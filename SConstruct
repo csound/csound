@@ -1174,13 +1174,21 @@ pvs_opcodes = Split('''
 
 folded_ops = Split('''Opcodes/modmatrix.c Opcodes/scoreline.c Opcodes/modal4.c
 Opcodes/physutil.c Opcodes/physmod.c Opcodes/mandolin.c Opcodes/singwave.c
-Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c''')
+Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
+Opcodes/pitch.c Opcodes/pitch0.c  Opcodes/spectra.c Opcodes/ambicode1.c
+Opcodes/sfont.c Opcodes/grain4.c Opcodes/hrtferX.c Opcodes/loscilx.c
+Opcodes/minmax.c Opcodes/pan2.c Opcodes/tabvars.c Opcodes/phisem.c
+''')
+
+oldpvoc = Split('''
+    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
+    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
+''')
 
 libCsoundSources += stdopcodes
 libCsoundSources += pvs_opcodes
 libCsoundSources += folded_ops
-
-
+libCsoundSources += oldpvoc
 
 if commonEnvironment['buildMultiCore'] != '0':
     libCsoundSources += MultiCoreSources
@@ -1541,6 +1549,7 @@ else:
 #############################################################################
 
 
+# these opcodes have been folded back into csoundLib
 #makePlugin(pluginEnvironment, 'stdopcd', Split('''
 #    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
 #    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
@@ -1569,58 +1578,35 @@ else:
 #    Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
 #    Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
 #'''))
-
-
-if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
-    makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
-if getPlatform() == 'linux':
-    makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
-makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
-makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
-makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
-makePlugin(pluginEnvironment, 'pitch',
-           ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
-makePlugin(pluginEnvironment, 'scansyn',
-           ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
-makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
-if mpafound==1:
-  makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
-##commonEnvironment.Append(LINKFLAGS = ['-Wl,-as-needed'])
-if wiifound==1:
-  WiiEnvironment = pluginEnvironment.Clone()
-  makePlugin(WiiEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
-if p5gfound==1:
-  P5GEnvironment = pluginEnvironment.Clone()
-  makePlugin(P5GEnvironment, 'p5g', ['Opcodes/p5glove.c'])
-if serialfound==1:
-  SerEnvironment = pluginEnvironment.Clone()
-  makePlugin(SerEnvironment, 'serial', ['Opcodes/serial.c'])
-
-sfontEnvironment = pluginEnvironment.Clone()
-if compilerGNU():
-   if getPlatform() != 'darwin':
-    sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
-if sys.byteorder == 'big':
-    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
-makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 ##makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
 ##makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
 ##makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
-makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
-makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
-makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
-makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
-makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
-makePlugin(pluginEnvironment, 'tabfns', ['Opcodes/tabvars.c'])
-makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
-makePlugin(pluginEnvironment, 'pvoc', Split('''
-    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
-    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
-'''))
 #makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
 #    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
 #    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
 #'''))
+#makePlugin(pluginEnvironment, 'pitch',
+#           ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
+#makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+#sfontEnvironment = pluginEnvironment.Clone()
+#if compilerGNU():
+#   if getPlatform() != 'darwin':
+#    sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
+#if sys.byteorder == 'big':
+#    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
+#makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
+#makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
+#makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
+#makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
+#makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
+#makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
+#makePlugin(pluginEnvironment, 'tabfns', ['Opcodes/tabvars.c'])
+#makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
+#makePlugin(pluginEnvironment, 'pvoc', Split('''
+#    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
+#    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
+#'''))
+makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
 makePlugin(pluginEnvironment, 'vbap',
            ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
@@ -1641,6 +1627,31 @@ makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
 makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
 makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
 makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
+
+#============================== ==================================
+
+if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
+    makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
+if getPlatform() == 'linux':
+    makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
+makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
+makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
+makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
+makePlugin(pluginEnvironment, 'scansyn',
+           ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
+if mpafound==1:
+  makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
+##commonEnvironment.Append(LINKFLAGS = ['-Wl,-as-needed'])
+if wiifound==1:
+  WiiEnvironment = pluginEnvironment.Clone()
+  makePlugin(WiiEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
+if p5gfound==1:
+  P5GEnvironment = pluginEnvironment.Clone()
+  makePlugin(P5GEnvironment, 'p5g', ['Opcodes/p5glove.c'])
+if serialfound==1:
+  SerEnvironment = pluginEnvironment.Clone()
+  makePlugin(SerEnvironment, 'serial', ['Opcodes/serial.c'])
+
 #oggEnvironment = pluginEnvironment.Clone()
 #makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
 #oggEnvironment.Append(LIBS=['vorbisfile'])
@@ -1668,7 +1679,7 @@ makePlugin(pluginEnvironment, 'gabnew', Split('''
 hrtfnewEnvironment = pluginEnvironment.Clone()
 if sys.byteorder == 'big':
     hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
-makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
+
 if jackFound and commonEnvironment['useJack'] == '1':
     jpluginEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'linux':

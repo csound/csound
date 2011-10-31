@@ -33,7 +33,9 @@
 /*        envelop rise and decade curve                 */
 /* Minor changes by John Fitch Dec 1995                 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include "grain4.h"
 #include <math.h>
 

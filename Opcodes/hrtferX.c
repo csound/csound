@@ -50,7 +50,9 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>

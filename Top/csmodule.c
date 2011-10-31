@@ -895,6 +895,7 @@ int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
  * Return value is CSOUND_SUCCESS if there was no error, and
  * CSOUND_ERROR if some modules could not be de-initialised.
  */
+extern int sfont_ModuleDestroy(CSOUND *csound);
 int csoundDestroyModules(CSOUND *csound)
 {
     csoundModule_t  *m;
@@ -919,7 +920,8 @@ int csoundDestroyModules(CSOUND *csound)
       /* free memory used by database */
       free((void*) m);
   
-    }
+    }  
+    sfont_ModuleDestroy(csound);
     /* return with error code */
     return retval;
 }
@@ -1322,14 +1324,29 @@ extern long modal4_localops_init(CSOUND *, void *);
 extern long scoreline_localops_init(CSOUND *, void *);
 extern long physmod_localops_init(CSOUND *, void *);
 extern long modmatrix_localops_init(CSOUND *, void *);
+extern long spectra_localops_init(CSOUND *, void *);
+extern long ambicode1_localops_init(CSOUND *, void *);
+extern long grain4_localops_init(CSOUND *, void *);
+extern long hrtferX_localops_init(CSOUND *, void *);
+extern long loscilx_localops_init(CSOUND *, void *);
+extern long pan2_localops_init(CSOUND *, void *);
+extern long tabvars_localops_init(CSOUND *, void *);
+extern long phisem_localops_init(CSOUND *, void *);
+extern long pvoc_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
+extern int sfont_ModuleInit(CSOUND *csound);
+extern int sfont_ModuleCreate(CSOUND *csound);
+
 
 const INITFN staticmodules[] = {  babo_localops_init, bilbar_localops_init, vosim_localops_init,
 				  compress_localops_init, pvsbuffer_localops_init, eqfil_localops_init,
 				  modal4_localops_init,scoreline_localops_init,physmod_localops_init,
-				  modmatrix_localops_init,
+				  modmatrix_localops_init, spectra_localops_init,  ambicode1_localops_init,
+				  grain4_localops_init,hrtferX_localops_init,loscilx_localops_init,
+				  pan2_localops_init, tabvars_localops_init, phisem_localops_init,
+                                  pvoc_localops_init,
                                  NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
@@ -1354,6 +1371,10 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 
     /* pvs module */
     if (pvsopc_ModuleInit(csound)) return CSOUND_ERROR;
+
+    /* sfont module */
+    sfont_ModuleCreate(csound);
+    if (sfont_ModuleInit(csound)) return CSOUND_ERROR;
 
     /* module was initialised successfully */
     return CSOUND_SUCCESS;

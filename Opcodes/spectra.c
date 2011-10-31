@@ -21,7 +21,9 @@
     02111-1307 USA
 */
 
-#include "csdl.h"         /*                                    SPECTRA.C       */
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include <math.h>
 #include "cwindow.h"
 #include "spectra.h"
