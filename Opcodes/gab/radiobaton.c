@@ -23,9 +23,6 @@ extern unsigned long MIDIINbufIndex;
 extern MIDIMESSAGE  MIDIINbuffer2[];
 */
 
-#define __BUILDING_LIBCSOUND  /* to access csound->midiGlobals */
-#undef CSOUND_CSDL_H          /* to access csound->midiGlobals */
-
 #include "csoundCore.h"  /* instead of "csd.h" in order to access
                             csound->midiGlobals */
 
@@ -331,7 +328,7 @@ static int rbatonPercPad(CSOUND *csound, RB_PERCPAD *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY radiobaton_localops[] = {
   { "rbatonPercPad", S(RB_PERCPAD),3, "", "kkkkkkkk",
     (SUBR)rbatonPercPad_set, (SUBR)rbatonPercPad },
   { "rbatonXYZ",     S(RB_XYZ),    3, "kkkkkk",  "",
@@ -340,7 +337,5 @@ static OENTRY localops[] = {
     (SUBR)rbatonPot_set, (SUBR)rbatonPot  }
 };
 
-int rbatonopc_init_(CSOUND *csound) {
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE1(radiobaton_localops)
+

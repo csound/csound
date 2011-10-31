@@ -266,7 +266,8 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
       MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                        \
                                                                         \
                                                                         \
-      if((outftp = csound->FTFind(csound, p->ioutfn)) != NULL) p->outTable = outftp->ftable; \
+      if((outftp = csound->FTFind(csound, p->ioutfn)) != NULL)          \
+        p->outTable = outftp->ftable;                                   \
       while (j < n) {                                                   \
         int t = (int) *sld->ifn;                                        \
         *slnum = (unsigned char) *sld->ictlno;                          \
@@ -318,7 +319,8 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
         chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5))); \
         /*----- init filtering coeffs*/                                 \
         *yt1++ = FL(0.0);                                               \
-        b = (MYFLT)(2.0 - cos((double)(*(sld)->ihp * csound->tpidsr * csound->ksmps))); \
+        b = (MYFLT)(2.0 - cos((double)(*(sld)->ihp *                    \
+                              csound->tpidsr * csound->ksmps)));        \
         *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));             \
         *c1++ = FL(1.0) - *c2++;                                        \
                                                                         \
@@ -610,66 +612,59 @@ static int ctrl7a(CSOUND *csound, CTRL7a *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-
+OENTRY sliderTable_localops[] = {
 { "slider8table", S(SLIDER8t), 3, "k",  "iii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                         (SUBR)sliderTable_i8, (SUBR)sliderTable8, (SUBR)NULL },
-
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i8, (SUBR)sliderTable8, (SUBR)NULL },
 { "slider16table", S(SLIDER8t), 3, "k", "iii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                         (SUBR)sliderTable_i16, (SUBR)sliderTable16, (SUBR)NULL },
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i16, (SUBR)sliderTable16, (SUBR)NULL },
 { "slider32table", S(SLIDER8t), 3, "k", "iii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                         (SUBR)sliderTable_i32, (SUBR)sliderTable32, (SUBR)NULL },
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i32, (SUBR)sliderTable32, (SUBR)NULL },
 { "slider64table", S(SLIDER8t), 3, "k", "iii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)sliderTable_i64, (SUBR)sliderTable64, (SUBR)NULL },
-
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i64, (SUBR)sliderTable64, (SUBR)NULL },
 { "slider8tablef", S(SLIDER8tf), 3, "k", "iii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                         (SUBR)sliderTable_i8f, (SUBR)sliderTable8f, (SUBR)NULL },
-
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i8f, (SUBR)sliderTable8f, (SUBR)NULL },
 { "slider16tablef",S(SLIDER16tf), 3, "k", "iii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                         (SUBR)sliderTable_i16f, (SUBR)sliderTable16f, (SUBR)NULL },
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i16f, (SUBR)sliderTable16f, (SUBR)NULL },
 { "slider32tablef",S(SLIDER32tf), 3, "k", "iii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                         (SUBR)sliderTable_i32f, (SUBR)sliderTable32f, (SUBR)NULL },
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i32f, (SUBR)sliderTable32f, (SUBR)NULL },
 { "slider64tablef",S(SLIDER64tf), 3, "k", "iii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                         (SUBR)sliderTable_i64f, (SUBR)sliderTable64f, (SUBR)NULL },
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i64f, (SUBR)sliderTable64f, (SUBR)NULL },
 { "sliderKawai", S(SLIDERKAWAI),  3, "kkkkkkkkkkkkkkkk",
-                                 "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                 "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                   (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
-{ "ctrl7.a", S(CTRL7a),  5, "a",    "iikkoo", (SUBR) ctrl7a_set,   NULL,    (SUBR) ctrl7a },
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
+{ "ctrl7.a", S(CTRL7a),  5, "a",    "iikkoo", 
+  (SUBR) ctrl7a_set,   NULL,    (SUBR) ctrl7a },
 };
 
-
-int slidertable_init_(CSOUND *csound) {
-   return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE1(sliderTable_localops)
