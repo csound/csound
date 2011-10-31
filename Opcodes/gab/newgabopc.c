@@ -164,7 +164,8 @@ static int schedInTime_set(CSOUND *csound, SCHEDINTIME *p)
      int *xtra;
      int j;
      OPARMS    *O = csound->oparms;
-     static MYFLT frac = 0; /* hugly hack, needs to be inserted in the CSOUND structure */
+     /* hugly hack, needs to be inserted in the CSOUND structure */
+     static MYFLT frac = 0;
 
      O->RTevents = 1;     /* Make sure kperf() looks for RT events */
      /*   O.ksensing = 1; */
@@ -236,24 +237,24 @@ static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
     int nelems = (int) *p->inumElems;
     if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
       return csound->InitError(csound,
-                               "copyTabElems: incorrect destination table number");
+                               Str("copyTabElems: incorrect destination table number"));
 
     p->dLen = ftp->flen;
     if (nelems > p->dLen)
       return csound->InitError(csound,
-                               "copyTabElems: destination table too short "
-                               "or number of elements to copy too big");
+                               Str("copyTabElems: destination table too short "
+                                   "or number of elements to copy too big"));
 
     p->dTable = ftp->ftable;
     if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
       return csound->InitError(csound,
-                               "copyTabElems: incorrect source table number");
+                               Str("copyTabElems: incorrect source table number"));
 
     p->sLen = ftp->flen;
     if (nelems > p->sLen)
       return csound->InitError(csound,
-                               "copyTabElems: source table size less than "
-                               "the number of elements to copy");
+                               Str("copyTabElems: source table size less than "
+                                   "the number of elements to copy"));
 
     p->sTable = ftp->ftable;
 
@@ -268,10 +269,10 @@ static int copyTabElems(CSOUND *csound, COPYTABELEMS *p)
       int j, sNdx = (int) *p->ksourceIndex * nelems,
              dNdx = (int) *p->kdestIndex * nelems;
       if (sNdx + nelems > p->sLen)
-        return csound->PerfError(csound, "copyTabElems: source table too short");
+        return csound->PerfError(csound, Str("copyTabElems: source table too short"));
       if (dNdx + nelems > p->dLen)
         return csound->PerfError(csound,
-                                 "copyTabElems: destination table too short");
+                                 Str("copyTabElems: destination table too short"));
 
       for (j = 0; j< nelems; j++)
         p->dTable[dNdx+j] = p->sTable[sNdx+j];
@@ -291,31 +292,32 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
     MYFLT *sTable, *dTable;
     if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
       return csound->InitError(csound,
-                               "copyTabElems: incorrect destination table number");
+                               Str("copyTabElems: incorrect destination "
+                                   "table number"));
     dLen = ftp->flen;
     if (nelems > dLen)
       return csound->InitError(csound,
-                               "copyTabElems: destination table too short "
-                               "or number of elements to copy too big");
+                               Str("copyTabElems: destination table too short "
+                                   "or number of elements to copy too big"));
     dTable = ftp->ftable;
     if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
       return csound->InitError(csound,
-                               "copyTabElems: incorrect source table number");
+                               Str("copyTabElems: incorrect source table number"));
     sLen = ftp->flen;
     if (nelems > sLen)
       return csound->InitError(csound,
-                               "copyTabElems: source table size less than "
-                               "the number of elements to copy");
+                               Str("copyTabElems: source table size less than "
+                                   "the number of elements to copy"));
     sTable = ftp->ftable;
 
     {
       int j, sNdx = (int) *p->isourceIndex * nelems,
         dNdx = (int) *p->idestIndex * nelems;
       if (sNdx + nelems > sLen)
-        return csound->PerfError(csound, "copyTabElems: source table too short");
+        return csound->PerfError(csound, Str("copyTabElems: source table too short"));
       if (dNdx + nelems > dLen)
         return csound->PerfError(csound,
-                                 "copyTabElems: destination table too short");
+                                 Str("copyTabElems: destination table too short"));
       for (j = 0; j< nelems; j++) {
         dTable[dNdx+j] = sTable[sNdx+j];
       }
@@ -341,7 +343,7 @@ static int inRange_i(CSOUND *csound, INRANGE *p)
     p->narg = p->INOCOUNT-1;
 /*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; */
     if (!csound->oparms->sfread)
-      return csound->InitError(csound, "inrg: audio input is not enabled");
+      return csound->InitError(csound, Str("inrg: audio input is not enabled"));
     p->numChans = csound->nchnls;
     return OK;
 }
@@ -570,10 +572,10 @@ static int lposcint_stereo_set(CSOUND *csound, LPOSCINT_ST *p)
     FUNC *ftp;
     double  loop, end, looplength, fsr;
     if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
-      return csound->InitError(csound, "invalid function");
+      return csound->InitError(csound, Str("invalid function"));
     if (!(fsr = ftp->gen01args.sample_rate)){
       csound->Message(csound,
-                      "lposcil: no sample rate stored in function assuming=sr\n");
+                      Str("lposcil: no sample rate stored in function assuming=sr\n"));
       p->fsr=csound->esr;
     }
     p->fsrUPsr = fsr/csound->esr;
