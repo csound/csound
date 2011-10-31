@@ -67,11 +67,11 @@ static int tabsum(CSOUND *csound, TABSUM *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY tabsum_localops[] = {
 { "tabsum",     S(TABSUM),     3,     "k",    "iOO",(SUBR)tabsuminit, (SUBR)tabsum },
 };
 
-LINKAGE
+LINKAGE1(tabsum_localops)
 
 
 
