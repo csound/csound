@@ -23,7 +23,7 @@
 #endif()
 
 make_plugin(modmatrix modmatrix.c)
-make_plugin(eqfil eqfil.c m)
+#make_plugin(eqfil eqfil.c m)
 #make_plugin(pvsbuffer pvsbuffer.c)
 make_plugin(scoreline scoreline.c)
 make_plugin(mixer mixer.cpp)
@@ -78,7 +78,7 @@ make_plugin(doppler doppler.cpp)
 make_plugin(tabsum tabsum.c)
 make_plugin(crossfm crossfm.c m)
 make_plugin(pvlock pvlock.c m)
-make_plugin(vosim Vosim.c)
+#make_plugin(vosim Vosim.c)
 make_plugin(tabfns tabvars.c)
 
 set(gabnew_SRCS

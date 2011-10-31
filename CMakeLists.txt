@@ -397,6 +397,8 @@ set(libcsound_SRCS
     Opcodes/babo.c
     Opcodes/bilbar.c
     Opcodes/compress.c
+    Opcodes/eqfil.c
+    Opcodes/Vosim.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
