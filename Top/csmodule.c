@@ -1310,9 +1310,8 @@ pvlock            pvlock.c
 vosim              vosim.c
 */
 
-typedef long long (*INITFN)(CSOUND *, void *);
+typedef long (*INITFN)(CSOUND *, void *);
 
-//extern const long (*babo_localops_init)(CSOUND *, OENTRY **);
 extern long babo_localops_init(CSOUND *, void *);
 extern long bilbar_localops_init(CSOUND *, void *);
 extern long compress_localops_init(CSOUND *, void *);
@@ -1351,10 +1350,10 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
       }
     }
     /* stdopc module */
-    if(stdopc_ModuleInit(csound)) return CSOUND_ERROR;
+    if (stdopc_ModuleInit(csound)) return CSOUND_ERROR;
 
     /* pvs module */
-    if(pvsopc_ModuleInit(csound)) return CSOUND_ERROR;
+    if (pvsopc_ModuleInit(csound)) return CSOUND_ERROR;
 
     /* module was initialised successfully */
     return CSOUND_SUCCESS;
