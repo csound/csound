@@ -667,4 +667,9 @@ OENTRY sliderTable_localops[] = {
   (SUBR) ctrl7a_set,   NULL,    (SUBR) ctrl7a },
 };
 
-LINKAGE1(sliderTable_localops)
+int slidertable_init_(CSOUND *csound) {
+    return
+      csound->AppendOpcodes(csound, &(sliderTable_localops[0]),
+                            (int) (sizeof(sliderTable_localops) / sizeof(OENTRY)));
+}
+

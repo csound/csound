@@ -26,9 +26,9 @@
 #include "csoundCore.h"
 #include <sndfile.h>
 
-#ifdef PARCS
+
 #include "interlocks.h"
-#endif
+
 
 /* file structure for fout opcodes */
 

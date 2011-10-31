@@ -1114,6 +1114,7 @@ OOps/ugrw2.c
 OOps/vdelay.c
 Opcodes/babo.c
 Opcodes/bilbar.c
+Opcodes/vosim.c
 Opcodes/compress.c
 Opcodes/eqfil.c
 Top/argdecode.c
@@ -1552,7 +1553,7 @@ else:
 #    '''))
 # makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
 # makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
-
+# makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
 if getPlatform() == 'linux':
@@ -1636,7 +1637,7 @@ makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
 #oggEnvironment = pluginEnvironment.Clone()
 #makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
 #oggEnvironment.Append(LIBS=['vorbisfile'])
-makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
+
 if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
 
