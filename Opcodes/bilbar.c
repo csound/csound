@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+//#include "csdl.h"
+#include "csoundCore.h"
 #include <math.h>
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
@@ -552,7 +553,6 @@ OENTRY bilbar_localops[] = {
      (SUBR) bar_run},
     { "prepiano", S(CSPP), 5, "mm", "iiiiiikkiiiiiiioo",
       (SUBR)init_pp, NULL, (SUBR)play_pp },
-    { "" }
 };
 
 LINKAGE1(bilbar_localops)

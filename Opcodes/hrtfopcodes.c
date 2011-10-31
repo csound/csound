@@ -2406,7 +2406,6 @@ OENTRY hrtfopcodes_localops[] = {
     (SUBR)hrtfstat_init, NULL, (SUBR)hrtfstat_process },
   { "hrtfmove2",   sizeof(hrtfmove2),5, "aa", "akkSSooo",
     (SUBR)hrtfmove2_init, NULL, (SUBR)hrtfmove2_process },
-  { "" }
 };
 
 LINKAGE1(hrtfopcodes_localops)

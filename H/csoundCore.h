@@ -1351,6 +1351,10 @@ extern const uint32_t csPlayScoMask;
  * in order to enable C++ to #include this file.
  */
 
+#define LINKAGE1(name)                                         \
+PUBLIC long name##_init(CSOUND *csound, OENTRY **ep)           \
+{   (void) csound; *ep = name; return (long) (sizeof(name));  } 
+
 #ifdef __cplusplus
 }
 #endif
