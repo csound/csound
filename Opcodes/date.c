@@ -77,7 +77,6 @@ OENTRY date_localops[] =
 {
     { "date",    sizeof(DATEMYFLT),     1,     "i",    "",(SUBR)datemyfltset, NULL, NULL },
     { "dates",   sizeof(DATESTRING),    1,     "S",    "j",(SUBR)datestringset, NULL, NULL },
-  { "" }
 };
 
 LINKAGE1(date_localops)

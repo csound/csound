@@ -436,7 +436,6 @@ OENTRY harmon_localops[] = {
   { "harmon2",S(HARMON2),5, "a",  "akkkiip",  (SUBR)harm2set,NULL, (SUBR)harmon2 },
   { "harmon3",S(HARMON3),5, "a",  "akkkkiip", (SUBR)harm3set,NULL, (SUBR)harmon3 },
   { "harmon4",S(HARMON4),5, "a",  "akkkkkiip",(SUBR)harm4set,NULL, (SUBR)harmon4 },
-  { "" }
 };
 
 LINKAGE1(harmon_localops)

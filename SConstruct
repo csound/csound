@@ -1112,6 +1112,9 @@ OOps/ugens6.c
 OOps/ugrw1.c
 OOps/ugrw2.c
 OOps/vdelay.c
+Opcodes/babo.c
+Opcodes/bilbar.c
+Opcodes/compress.c
 Top/argdecode.c
 Top/cscore_internal.c
 Top/cscorfns.c
@@ -1561,9 +1564,9 @@ if compilerGNU():
 if sys.byteorder == 'big':
     sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
-makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
-makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
-makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
+##makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
+##makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
+##makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
 makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
 makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
