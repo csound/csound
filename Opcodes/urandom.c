@@ -93,7 +93,8 @@ OENTRY urandom_localops[] = {
   { "urandom",      0xFFFF,             0,      NULL,   NULL, NULL},
   { "urandom.i", S(URANDOM), 1, "k", "jp", (SUBR) urand_irate },
   { "urandom.k", S(URANDOM), 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run},
-  { "urandom.a", S(URANDOM), 5, "a", "jp", (SUBR) urand_init, NULL, (SUBR) urand_arun}
+  { "urandom.a", S(URANDOM), 5, "a", "jp",
+                                    (SUBR) urand_init, NULL, (SUBR) urand_arun}
 };
 
 LINKAGE1(urandom_localops)
