@@ -1126,7 +1126,14 @@ extern "C" {
       /* now load and pre-initialise external modules for this instance */
       /* this function returns an error value that may be worth checking */
       {
-        int err = csoundLoadModules(p);
+        int err = csoundInitStaticModules(p);
+        if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
+          p->Warning(p, p->delayederrormessages);
+          free(p->delayederrormessages);
+          p->delayederrormessages = NULL;
+        }
+        if (UNLIKELY(err==CSOUND_ERROR)) return err;
+        err = csoundLoadModules(p);
         if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
           p->Warning(p, p->delayederrormessages);
           free(p->delayederrormessages);

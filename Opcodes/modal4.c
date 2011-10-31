@@ -491,7 +491,7 @@ int agogobel(CSOUND *csound, VIBRAPHN *p)
 
 #define S       sizeof
 
-static OENTRY localops[] = {
+OENTRY madal4_ocalops[] = {
 { "marimba", S(MARIMBA), TR|5, "a", "kkiiikkiijj",
                                  (SUBR)marimbaset, NULL, (SUBR)marimba},
 { "vibes", S(VIBRAPHN),  TR|5, "a", "kkiiikkii",
@@ -500,5 +500,5 @@ static OENTRY localops[] = {
                                  (SUBR)agogobelset,NULL, (SUBR)agogobel},
 };
 
-LINKAGE
+LINKAGE1(madal4_ocalops)
 

@@ -1231,7 +1231,7 @@ static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY phisem_localops[] = {
 { "cabasa",  S(CABASA),  5, "a", "iiooo",    (SUBR)cabasaset, NULL, (SUBR)cabasa},
 { "crunch",  S(CABASA),  5, "a", "iiooo",    (SUBR)crunchset, NULL, (SUBR)cabasa},
 { "sekere",  S(SEKERE),  5, "a", "iiooo",    (SUBR)sekereset, NULL, (SUBR)sekere},
@@ -1246,5 +1246,5 @@ static OENTRY localops[] = {
                                        (SUBR)sleighset, NULL, (SUBR)sleighbells }
 };
 
-LINKAGE
+LINKAGE1(phisem_localops)
 

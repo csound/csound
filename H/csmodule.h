@@ -76,32 +76,37 @@
 extern "C" {
 #endif
 
-/* ------------------------ INTERNAL API FUNCTIONS ------------------------ */
+  /* ------------------------ INTERNAL API FUNCTIONS ------------------------ */
 
-/**
- * Load plugin libraries for Csound instance 'csound', and call
- * pre-initialisation functions.
- * Return value is CSOUND_SUCCESS if there was no error, CSOUND_ERROR if
- * some modules could not be loaded or initialised, and CSOUND_MEMORY
- * if a memory allocation failure has occured.
- */
-int csoundLoadModules(CSOUND *csound);
+  /**
+   * Load plugin libraries for Csound instance 'csound', and call
+   * pre-initialisation functions.
+   * Return value is CSOUND_SUCCESS if there was no error, CSOUND_ERROR if
+   * some modules could not be loaded or initialised, and CSOUND_MEMORY
+   * if a memory allocation failure has occured.
+   */
+  int csoundLoadModules(CSOUND *csound);
 
-/**
- * Call initialisation functions of all loaded modules that have a
- * csoundModuleInit symbol, for Csound instance 'csound'.
- * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
- * some modules could not be initialised.
- */
-int csoundInitModules(CSOUND *csound);
+  /**
+   * Call initialisation functions of all loaded modules that have a
+   * csoundModuleInit symbol, for Csound instance 'csound'.
+   * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
+   * some modules could not be initialised.
+   */
+  int csoundInitModules(CSOUND *csound);
 
-/**
- * Call destructor functions of all loaded modules that have a
- * csoundModuleDestroy symbol, for Csound instance 'csound'.
- * Return value is CSOUND_SUCCESS if there was no error, and
- * CSOUND_ERROR if some modules could not be de-initialised.
- */
-int csoundDestroyModules(CSOUND *csound);
+  /**
+   * Call destructor functions of all loaded modules that have a
+   * csoundModuleDestroy symbol, for Csound instance 'csound'.
+   * Return value is CSOUND_SUCCESS if there was no error, and
+   * CSOUND_ERROR if some modules could not be de-initialised.
+   */
+  int csoundDestroyModules(CSOUND *csound);
+
+  /**
+   * Initialise opcodes not in entry1.c
+   */
+  int csoundInitSaticModules(CSOUND *csound);
 
 #ifdef __cplusplus
 }

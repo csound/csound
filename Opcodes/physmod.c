@@ -919,7 +919,7 @@ int shaker(void*,void*);
 int bowedbarset(void*,void*);
 int bowedbar(void*,void*);
 
-static OENTRY localops[] = {
+OENTRY physmod_localops[] = {
 { "wgclar",  S(CLARIN),TR|5, "a", "kkkiikkkio",(SUBR)clarinset,NULL,   (SUBR)clarin},
 { "wgflute", S(FLUTE), TR|5, "a", "kkkiikkkiovv",(SUBR)fluteset,NULL,  (SUBR)flute },
 { "wgbow",   S(BOWED), TR|5, "a", "kkkkkkio", (SUBR)bowedset, NULL,    (SUBR)bowed },
@@ -942,5 +942,5 @@ static OENTRY localops[] = {
                              (SUBR)bowedbarset, NULL,(SUBR) bowedbar },
 };
 
-LINKAGE
+LINKAGE1(physmod_localops)
 

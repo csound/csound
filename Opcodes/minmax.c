@@ -289,7 +289,7 @@ static int MinAbs_krate(CSOUND *csound, MINMAX *data)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY minmax_localops[] = {
     {"maxaccum", S(MINMAXACCUM), 4, "", "aa", NULL, NULL, (SUBR) MaxAccumulate},
     {"minaccum", S(MINMAXACCUM), 4, "", "aa", NULL, NULL, (SUBR) MinAccumulate},
     {"maxabsaccum", S(MINMAXACCUM), 4, "", "aa", NULL, NULL,
@@ -310,5 +310,5 @@ static OENTRY localops[] = {
     {"minabs.k", S(MINMAX), 2, "k", "kz", NULL, (SUBR) MinAbs_krate, NULL}
 };
 
-LINKAGE
+LINKAGE1(minmax_localops)
 
