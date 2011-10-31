@@ -22,9 +22,13 @@
 #ifndef CSOUND_STDOPCOD_H
 #define CSOUND_STDOPCOD_H
 
-#include "csdl.h"
-//#include "csoundCore.h"
+//#include "csdl.h"
+#include "csoundCore.h"
 #include <sndfile.h>
+
+#ifdef PARCS
+#include "interlocks.h"
+#endif
 
 /* file structure for fout opcodes */
 
