@@ -553,7 +553,6 @@ OENTRY bilbar_localops[] = {
      (SUBR) bar_run},
     { "prepiano", S(CSPP), 5, "mm", "iiiiiikkiiiiiiioo",
       (SUBR)init_pp, NULL, (SUBR)play_pp },
-    { "" }
 };
 
 LINKAGE1(bilbar_localops)
