@@ -875,5 +875,9 @@ OENTRY gab_localops[] = {
                             (SUBR) mandel_set, (SUBR) mandel, NULL }
 };
 
-LINKAGE1(gab_localops)
+int gab_gab_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(gab_localops[0]),
+                                 (int) (sizeof(gab_localops) / sizeof(OENTRY)));
+}
 
