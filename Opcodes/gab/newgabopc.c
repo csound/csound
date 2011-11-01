@@ -16,7 +16,8 @@
   02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 
 /* (Shouldn't there be global decl's for these?) */
 #define INCR (0.001f)
@@ -831,6 +832,7 @@ typedef struct NEWGABOPC_GLOBALS_ {
 
 } NEWGABOPC_GLOBALS;
 
+/*
 PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
@@ -842,8 +844,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     (void)csound;
     return 0;
 }
-
-
+*/
 
 
 int newgabopc_init_(CSOUND *csound) {
@@ -857,7 +858,7 @@ int tabmorph_init_(CSOUND *csound);
 int rbatonopc_init_(CSOUND *csound);
 
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int newgabopc_ModuleInit(CSOUND *csound)
 {
         int               err = 0;
         err |= hvs_init_(csound);
@@ -870,7 +871,9 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
         return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
+/*
 PUBLIC  int     csoundModuleDestroy(CSOUND *csound)
 {
     return 0;
 }
+*/

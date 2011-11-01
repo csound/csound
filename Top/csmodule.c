@@ -1353,6 +1353,7 @@ extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleCreate(CSOUND *csound);
+extern int newgabopc_ModuleInit(CSOUND *csound);
 
 
 const INITFN staticmodules[] = {  hrtfopcodes_localops_init, babo_localops_init, bilbar_localops_init, vosim_localops_init,
@@ -1394,6 +1395,9 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     /* sfont module */
     sfont_ModuleCreate(csound);
     if (sfont_ModuleInit(csound)) return CSOUND_ERROR;
+
+    /* newgabopc */
+   if (newgabopc_ModuleInit(csound)) return CSOUND_ERROR;
 
     /* module was initialised successfully */
     return CSOUND_SUCCESS;
