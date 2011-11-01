@@ -20,7 +20,9 @@
     Optional arguments to some opcodes and other fixes by Andres Cabrera
     and Istvan Varga.
 */
-#include "csdl.h"
+//#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include "vectorial.h"
 #include <math.h>
 
