@@ -73,8 +73,8 @@ PUBLIC int sfont_ModuleDestroy(CSOUND *csound)
     SFBANK *sfArray;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    sfArray = globals->sfArray;
     if (globals == NULL) return 0;
+    sfArray = globals->sfArray;
 
     for (j=0; j<globals->currSFndx; j++) {
       for (k=0; k< sfArray[j].presets_num; k++) {
