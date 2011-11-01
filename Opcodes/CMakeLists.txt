@@ -9,11 +9,6 @@ make_plugin(system_call system_call.c)
 make_plugin(mutexops mutexops.cpp)
 make_plugin(doppler doppler.cpp)
 
-set(gabnew_SRCS
-    gab/tabmorph.c      gab/hvs.c
-    gab/sliderTable.c   gab/newgabopc.c)
-make_plugin(gabnew "${gabnew_SRCS}" m)
-
 # temporarily do not build on Windows until these opcodes are fixed
 # to compile
 if(NOT WIN32) 
