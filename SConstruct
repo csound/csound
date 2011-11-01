@@ -1190,11 +1190,17 @@ oldpvoc = Split('''
     Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
 ''')
 
+gabnewopc =  Split('''
+    Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c''')
+
 libCsoundSources += stdopcodes
 libCsoundSources += pvs_opcodes
 libCsoundSources += folded_ops
 libCsoundSources += oldpvoc
-
+libCsoundSources += gabnewopc
+ 
 if commonEnvironment['buildMultiCore'] != '0':
     libCsoundSources += MultiCoreSources
 
@@ -1611,6 +1617,9 @@ else:
 #    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
 #    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
 #'''))
+#hrtfnewEnvironment = pluginEnvironment.Clone()
+#if sys.byteorder == 'big':
+#    hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
 # makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 # makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
 # makePlugin(pluginEnvironment, 'vbap',
@@ -1626,25 +1635,68 @@ else:
 # makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
 # makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
 # makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
- 
-
+# makePlugin(pluginEnvironment, 'gabnew', Split('''
+#    Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
+#    Opcodes/gab/sliderTable.c
+#    Opcodes/gab/newgabopc.c''')) 
 #============================== ==================================
 
-makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
 makePlugin(pluginEnvironment, 'cs_date', ['Opcodes/date.c'])
 makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
+
+# C++ opcodes
 makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
+makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
+makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
+
+# platform-specific
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
 if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
-makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
-makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
-makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
+    makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
+
+# scanned synthesis
 makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
+
+# tables
+makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
+makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
+
+#############################################################################
+#
+# Plugins with External Dependencies
+#############################################################################
+# UDP opcodes
+if commonEnvironment['useUDP'] == '0':
+    print "CONFIGURATION DECISION: Not building UDP plugins."
+else:
+    print "CONFIGURATION DECISION: Building UDP plugins."
+    udpEnvironment = pluginEnvironment.Clone()
+    udpEnvironment.Append(LIBS = ['pthread'])
+    if getPlatform() == 'win32':
+      udpEnvironment.Append(LIBS = ['ws2_32'])
+    makePlugin(udpEnvironment, 'udprecv', ['Opcodes/sockrecv.c'])
+    makePlugin(udpEnvironment, 'udpsend', ['Opcodes/socksend.c'])
+
+# end udp opcodes
+
+# OSC opcodes
+if not (commonEnvironment['useOSC'] == '1' and oscFound):
+    print "CONFIGURATION DECISION: Not building OSC plugin."
+else:
+    print "CONFIGURATION DECISION: Building OSC plugin."
+    oscEnvironment = pluginEnvironment.Clone()
+    oscEnvironment.Append(LIBS = ['lo', 'pthread'])
+    if getPlatform() == 'win32':
+        oscEnvironment.Append(LIBS = csoundWindowsLibraries)
+        if compilerGNU():
+           oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
+    makePlugin(oscEnvironment, 'osc', ['Opcodes/OSC.c'])
+
 if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 ##commonEnvironment.Append(LINKFLAGS = ['-Wl,-as-needed'])
@@ -1661,30 +1713,6 @@ if serialfound==1:
 #oggEnvironment = pluginEnvironment.Clone()
 #makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
 #oggEnvironment.Append(LIBS=['vorbisfile'])
-
-if getPlatform() == 'linux':
-    makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
-
-if commonEnvironment['buildImageOpcodes'] == '1':
-    if getPlatform() == 'win32':
-        if configure.CheckLibWithHeader("fltk_png", "png.h", language="C") and zlibhfound:
-            print 'CONFIGURATION DECISION: Building image opcodes'
-            pluginEnvironment.Append(LIBS= Split(''' fltk_png fltk_z '''))
-            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
-    else:
-        if configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
-            print 'CONFIGURATION DECISION: Building image opcodes'
-            pluginEnvironment.Append(LIBS= Split(''' png z '''))
-            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
-else:
-    print 'CONFIGURATION DECISION: Not building image opcodes'
-makePlugin(pluginEnvironment, 'gabnew', Split('''
-    Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
-    Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c'''))
-hrtfnewEnvironment = pluginEnvironment.Clone()
-if sys.byteorder == 'big':
-    hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
 
 if jackFound and commonEnvironment['useJack'] == '1':
     jpluginEnvironment = pluginEnvironment.Clone()
@@ -1705,10 +1733,19 @@ if gmmFound and commonEnvironment['useDouble'] != '0':
 else:
     print 'CONFIGURATION DECISION: Not building linear algebra opcodes.'
 
-#############################################################################
-#
-# Plugins with External Dependencies
-#############################################################################
+if commonEnvironment['buildImageOpcodes'] == '1':
+    if getPlatform() == 'win32':
+        if configure.CheckLibWithHeader("fltk_png", "png.h", language="C") and zlibhfound:
+            print 'CONFIGURATION DECISION: Building image opcodes'
+            pluginEnvironment.Append(LIBS= Split(''' fltk_png fltk_z '''))
+            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+    else:
+        if configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
+            print 'CONFIGURATION DECISION: Building image opcodes'
+            pluginEnvironment.Append(LIBS= Split(''' png z '''))
+            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+else:
+    print 'CONFIGURATION DECISION: Not building image opcodes'
 
 # FLTK widgets
 
@@ -1884,34 +1921,7 @@ if getPlatform() == 'darwin':
     makePlugin(coreMidiEnvironment, 'cmidi', ['InOut/cmidi.c'])
 
 
-# OSC opcodes
 
-if not (commonEnvironment['useOSC'] == '1' and oscFound):
-    print "CONFIGURATION DECISION: Not building OSC plugin."
-else:
-    print "CONFIGURATION DECISION: Building OSC plugin."
-    oscEnvironment = pluginEnvironment.Clone()
-    oscEnvironment.Append(LIBS = ['lo', 'pthread'])
-    if getPlatform() == 'win32':
-        oscEnvironment.Append(LIBS = csoundWindowsLibraries)
-        if compilerGNU():
-           oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
-    makePlugin(oscEnvironment, 'osc', ['Opcodes/OSC.c'])
-
-# UDP opcodes
-
-if commonEnvironment['useUDP'] == '0':
-    print "CONFIGURATION DECISION: Not building UDP plugins."
-else:
-    print "CONFIGURATION DECISION: Building UDP plugins."
-    udpEnvironment = pluginEnvironment.Clone()
-    udpEnvironment.Append(LIBS = ['pthread'])
-    if getPlatform() == 'win32':
-      udpEnvironment.Append(LIBS = ['ws2_32'])
-    makePlugin(udpEnvironment, 'udprecv', ['Opcodes/sockrecv.c'])
-    makePlugin(udpEnvironment, 'udpsend', ['Opcodes/socksend.c'])
-
-# end udp opcodes
 
 # FLUIDSYNTH OPCODES
 
