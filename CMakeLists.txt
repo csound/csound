@@ -439,7 +439,10 @@ set(libcsound_SRCS
     Opcodes/moog1.c 
     Opcodes/shaker.c 
     Opcodes/bowedbar.c
-
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
