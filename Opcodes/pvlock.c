@@ -126,12 +126,12 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
            esr is sampling rate
         */
         spos  = hsize*(int)((time[n])*csound->esr/hsize);
-	sizefrs = size/nchans;
-	while(spos > sizefrs - N) spos -= sizefrs;
-	while(spos <= hsize)  spos += sizefrs;
+        sizefrs = size/nchans;
+        while(spos > sizefrs - N) spos -= sizefrs;
+        while(spos <= hsize)  spos += sizefrs;
         pos = spos;
 
-	for (j = 0; j < nchans; j++) {
+        for (j = 0; j < nchans; j++) {
 
           bwin = (MYFLT *) p->bwin[j].auxp;
           fwin = (MYFLT *) p->fwin[j].auxp;
@@ -236,7 +236,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
           /* write to overlapped output frames */
           for (i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
         
-	}
+        }
 
         cnt=0;
         curframe++;
@@ -360,7 +360,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
             nwin[i] = in * win[i];
             pos += pitch;
           }
-	 
+         
           csound->RealFFT(csound, bwin, N);
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
@@ -441,14 +441,14 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
            
       for (j=0; j < nchans; j++) {
         out = p->out[j];
-	framecnt  = (int *) p->framecount[j].auxp;
-	outframe  = (MYFLT *) p->outframe[j].auxp;
+        framecnt  = (int *) p->framecount[j].auxp;
+        outframe  = (MYFLT *) p->outframe[j].auxp;
  
         out[n] = (MYFLT) 0;
      
         for (i = 0; i < decim; i++) {
           out[n] += outframe[framecnt[i]];
-          framecnt[i]++;	
+          framecnt[i]++;        
         }
         out[n] *= amp*(2./3.);
       }
