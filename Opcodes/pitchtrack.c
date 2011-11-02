@@ -535,7 +535,7 @@ int pitchafproc(CSOUND *csound, PITCHAF *p)
 
 #define S(x)    sizeof(x)
 
-OENTRY pitchtrack_localops[] = {
+static OENTRY pitchtrack_localops[] = {
   {"ptrack", S(PITCHTRACK), 5, "kk", "aio", (SUBR)pitchtrackinit, NULL, (SUBR)pitchtrackprocess},
   {"pitchac", S(PITCHTRACK), 5, "k", "akki", (SUBR)pitchafset, NULL, (SUBR)pitchafproc}
 };

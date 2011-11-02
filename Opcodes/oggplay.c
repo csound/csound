@@ -140,7 +140,7 @@ int oggplay_perf (CSOUND *csound, OGGPLAY * p)
 
 #define S(x)    sizeof(x)
 
-OENTRY oggplay_localops[] = {
+static OENTRY oggplay_localops[] = {
     { "oggplay",  S(OGGPLAY),  5, "mm", "To",
       (SUBR) oggplay_init, (SUBR) NULL, (SUBR) oggplay_perf }
 };

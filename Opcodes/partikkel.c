@@ -834,7 +834,7 @@ static int partikkelsync(CSOUND *csound, PARTIKKELSYNC *p)
     return OK;
 }
 
-OENTRY partikkel_localops[] = {
+static OENTRY partikkel_localops[] = {
     {
         "partikkel", sizeof(PARTIKKEL), TR|5,
         "ammmmmmm",

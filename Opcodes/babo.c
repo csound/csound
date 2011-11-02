@@ -820,7 +820,7 @@ babo(CSOUND *csound, void *entry)
 
 #define S(x)    sizeof(x)
 
-OENTRY babo_localops[] = {
+static OENTRY babo_localops[] = {
   { "babo",   S(BABO), TR|5, "aa", "akkkiiijj",(SUBR)baboset, NULL, (SUBR)babo   },
 };
 
