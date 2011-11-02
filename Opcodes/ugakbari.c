@@ -102,7 +102,7 @@ static int gainslider_perf(CSOUND *csound, gainslider *p)
 
 /* opcode library entries */
 
-OENTRY ugakbari_localops[] = {
+static OENTRY ugakbari_localops[] = {
   { "scale", sizeof(scale), 2, "k", "kkk", NULL, (SUBR)scale_process, NULL },
   { "expcurve", sizeof(expcurve), 2, "k", "kk", NULL,
     (SUBR)expcurve_perf, NULL },

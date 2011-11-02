@@ -246,7 +246,7 @@ int mp3len(CSOUND *csound, MP3LEN *p)
 
 #define S(x)    sizeof(x)
 
-OENTRY mp3in_localops[] = {
+static OENTRY mp3in_localops[] = {
   {"mp3in",  S(MP3IN),  5, "aa", "Toooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in},
   {"mp3len", S(MP3LEN), 1, "i",  "T",     (SUBR) mp3len,    NULL,  NULL}
 };
