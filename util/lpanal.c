@@ -843,7 +843,7 @@ static void gauss(CSOUND *csound, LPC* thislp,
                       i, thislp->poleCount, amax);
       csound->Die(csound, Str("gauss: ill-conditioned"));
    */ 
-	 for (ii=i; ii < thislp->poleCount;++ii) a[ii][i] = 1.0e-20; /* VL: fix for very low values */
+         for (ii=i; ii < thislp->poleCount;++ii) a[ii][i] = 1.0e-20; /* VL: fix for very low values */
        }
       if (i != istar) {
         for (j=0; j < thislp->poleCount;++j)  {    /* switch rows */
@@ -879,7 +879,7 @@ static void gauss(CSOUND *csound, LPC* thislp,
             csound->Message(csound,"Row %d or %d have maximum of %g\n",
              thislp->poleCount-1, thislp->poleCount,
              fabs(a[thislp->poleCount-1][thislp->poleCount-1]));
-	     csound->Die(csound, Str("gauss: ill-conditioned"));*/
+             csound->Die(csound, Str("gauss: ill-conditioned"));*/
       }
 
     b[thislp->poleCount-1] =

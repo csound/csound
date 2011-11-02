@@ -159,7 +159,7 @@ int phsor(CSOUND *csound, PHSOR *p)
         phase += incr;
         if (UNLIKELY((MYFLT)phase >= 1.0)){
           phase -= 1.0;
-	}
+        }
         else if (UNLIKELY((MYFLT)phase < 0.0))
           phase += 1.0;
       }

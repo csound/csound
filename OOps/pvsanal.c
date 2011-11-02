@@ -749,7 +749,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
          sum = FL(0.0); 
    /* no timescaling, so I(nterpolation) will always = D(ecimation) = overlap */
         for (i = -halfwinsize; i <= halfwinsize; i+=overlap)
-	  sum += *(synwinhalf + i) * *(synwinhalf + i); 
+          sum += *(synwinhalf + i) * *(synwinhalf + i); 
     }
     else {
      /* have to make analysis window to get amp scaling */
