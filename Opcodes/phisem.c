@@ -902,7 +902,7 @@ static int wuterset(CSOUND *csound, WUTER *p)
 
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-		      - (int)(csound->ekr * *p->dettack);
+             - (int)(csound->ekr * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
