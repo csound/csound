@@ -399,7 +399,35 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
-
+    Opcodes/pitch.c 
+    Opcodes/pitch0.c  
+    Opcodes/spectra.c 
+    Opcodes/ambicode1.c
+    Opcodes/sfont.c 
+    Opcodes/grain4.c 
+    Opcodes/hrtferX.c 
+    Opcodes/loscilx.c
+    Opcodes/minmax.c 
+    Opcodes/pan2.c 
+    Opcodes/tabvars.c 
+    Opcodes/phisem.c
+    Opcodes/hrtfopcodes.c 
+    Opcodes/stackops.c 
+    Opcodes/vbap.c 
+    Opcodes/vbap_eight.c 
+    Opcodes/vbap_four.c 
+    Opcodes/vbap_sixteen.c
+    Opcodes/vbap_zak.c  
+    Opcodes/vaops.c 
+    Opcodes/ugakbari.c 
+    Opcodes/harmon.c 
+    Opcodes/pitchtrack.c 
+    Opcodes/partikkel.c 
+    Opcodes/shape.c 
+    Opcodes/tabsum.c
+    Opcodes/crossfm.c 
+    Opcodes/pvlock.c 
+    Opcodes/fareyseq.c 
     Opcodes/modmatrix.c 
     Opcodes/scoreline.c 
     Opcodes/modal4.c
@@ -411,7 +439,10 @@ set(libcsound_SRCS
     Opcodes/moog1.c 
     Opcodes/shaker.c 
     Opcodes/bowedbar.c
-
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
@@ -482,7 +513,17 @@ set(cs_pvs_ops_SRCS
     Opcodes/pvsband.c
     Opcodes/pvsbuffer.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS})
+set(oldpvoc_SRCS
+    Opcodes/dsputil.c 
+    Opcodes/pvadd.c 
+    Opcodes/pvinterp.c 
+    Opcodes/pvocext.c
+    Opcodes/pvread.c 
+    Opcodes/ugens8.c 
+    Opcodes/vpvoc.c 
+    Opcodes/pvoc.c)
+
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS})
 
 # Handling New Parser
 
@@ -633,7 +674,13 @@ if(HAVE_TERMIOS_H)
     list(APPEND libcsound_CFLAGS -DHAVE_TERMIOS_H)
 endif()
 if(HAVE_VALUES_H)
-    set_target_properties(stdopcod PROPERTIES COMPILE_FLAGS "-DHAVE_VALUES_H")
+    list(APPEND libcsound_CFLAGS -DHAVE_VALUES_H)
+endif()
+#if(CMAKE_C_COMPILER MATCHES "gcc")
+#    list(APPEND libcsound_CFLAGS -fno-strict-aliasing)
+#endif()
+if(BIG_ENDIAN)
+    list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
 expand_list(expanded_libcsound_CFLAGS ${libcsound_CFLAGS})
