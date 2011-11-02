@@ -72,7 +72,7 @@ print "System platform is '" + getPlatform() + "'."
 
 # Create options that can be set from the command line.
 
-commandOptions = Options()
+commandOptions = Variables() # was Options()
 commandOptions.Add('CC')
 commandOptions.Add('CXX')
 commandOptions.Add('LINK')
@@ -331,12 +331,21 @@ elif getPlatform() == 'win32':
 	#Tool('mingw')(commonEnvironment)
 	optionsFilename = 'custom-mingw.py'
 
+if(not FindFile(optionsFilename, '.')):
+    print "\n\n*************************************************"  
+    print "%s NOT FOUND, please copy one of the custom-***.py" % optionsFilename
+    print "as %s and modify it to suit your system, if necessary" % optionsFilename
+    print "*************************************************"  
+    Exit(-1)
+
+
 Help(commandOptions.GenerateHelpText(commonEnvironment))
 
 if commonEnvironment['custom']:
     optionsFilename = commonEnvironment['custom']
 
 Requires(optionsFilename, commonEnvironment)
+   
 
 print "Using options from '%s.'" % optionsFilename
 
@@ -1639,8 +1648,10 @@ else:
 #    Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
 #    Opcodes/gab/sliderTable.c
 #    Opcodes/gab/newgabopc.c''')) 
+
 #============================== ==================================
 
+# system opcodes 
 makePlugin(pluginEnvironment, 'cs_date', ['Opcodes/date.c'])
 makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
 
