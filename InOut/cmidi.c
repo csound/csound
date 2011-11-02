@@ -23,13 +23,15 @@
 
 /* Realtime MIDI using coremidi */
 
+
+#include <CoreMidi/CoreMidi.h>
+#include <CoreAudio/HostTime.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include "csdl.h"                               /*      CMIDI.C         */
 #include "csGblMtx.h"
 #include "midiops.h"
 #include "oload.h"
-#include <CoreMidi/CoreMidi.h>
-#include <CoreAudio/HostTime.h>
-#include <CoreFoundation/CoreFoundation.h>
+
 
 
 
