@@ -527,7 +527,7 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p)
     return OK;
 }
 
-OENTRY pvlock_localops[] = {
+static OENTRY pvlock_localops[] = {
   {"mincer", sizeof(DATASPACE), 5, "mm", "akkkkoo",
                                                (SUBR)sinit, NULL,(SUBR)sprocess },
   {"temposcal", sizeof(DATASPACE), 5, "mm", "kkkkkooPOP",

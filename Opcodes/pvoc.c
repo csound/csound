@@ -33,7 +33,7 @@ int     pvinterpset(CSOUND *, void *), pvinterp(CSOUND *, void *);
 
 #define S(x)    sizeof(x)
 
-OENTRY pvoc_localops[] = {
+static OENTRY pvoc_localops[] = {
 { "pvoc",      S(PVOC),      5, "a",  "kkToooo", pvset, NULL, pvoc            },
 { "tableseg",  S(TABLESEG),  TR|3, "",   "iin",     tblesegset, ktableseg, NULL  },
 { "ktableseg", S(TABLESEG),  DP|TR|3, "",   "iin",  tblesegset, ktableseg, NULL  },

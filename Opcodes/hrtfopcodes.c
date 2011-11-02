@@ -2401,7 +2401,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 }
 
 /*see csound manual (extending csound) for details of below*/
-OENTRY hrtfopcodes_localops[] = {
+static OENTRY hrtfopcodes_localops[] = {
   { "hrtfmove",   sizeof(hrtfmove),5, "aa", "akkSSooo",
     (SUBR)hrtfmove_init, NULL, (SUBR)hrtfmove_process },
   { "hrtfstat",   sizeof(hrtfstat),5, "aa", "aiiSSoo",
