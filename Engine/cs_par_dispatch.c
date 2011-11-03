@@ -32,6 +32,7 @@
 #include "cs_par_dispatch.h"
 
 #include "cs_par_ops.h"
+#include "cs_par_structs.h"
 
 /***********************************************************************
  * external prototypes not in headers
@@ -102,33 +103,33 @@ struct global_var_lock_t {
   struct global_var_lock_t    *next;
 };
 
-static struct global_var_lock_t *global_var_lock_root;
-static int global_var_lock_count;
-static struct global_var_lock_t **global_var_lock_cache;
+//static struct global_var_lock_t *global_var_lock_root;
+//static int global_var_lock_count;
+//static struct global_var_lock_t **global_var_lock_cache;
 
 
 void inline csp_locks_lock(CSOUND * csound, int global_index)
 {
-    if (UNLIKELY(global_index >= global_var_lock_count)) {
+    if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
       csound->Die(csound, Str("Poorly specified global lock index: %i [max: %i]\n"),
-                  global_index, global_var_lock_count);
+                  global_index, csound->global_var_lock_count);
     }
     TRACE_2("Locking:   %i [%p %s]\n", global_index,
-            global_var_lock_cache[global_index],
-            global_var_lock_cache[global_index]->name);
-    TAKE_LOCK(&(global_var_lock_cache[global_index]->lock));
+            csound->global_var_lock_cache[global_index],
+            csound->global_var_lock_cache[global_index]->name);
+    TAKE_LOCK(&(csound->global_var_lock_cache[global_index]->lock));
 }
 
 void inline csp_locks_unlock(CSOUND * csound, int global_index)
 {
-    if (UNLIKELY(global_index >= global_var_lock_count)) {
+    if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
       csound->Die(csound, Str("Poorly specified global lock index: %i [max: %i]\n"),
-                  global_index, global_var_lock_count);
+                  global_index, csound->global_var_lock_count);
     }
-    RELS_LOCK(&(global_var_lock_cache[global_index]->lock));
+    RELS_LOCK(&(csound->global_var_lock_cache[global_index]->lock));
     TRACE_2("UnLocking: %i [%p %s]\n",
-            global_index, global_var_lock_cache[global_index],
-            global_var_lock_cache[global_index]->name);
+            global_index, csound->global_var_lock_cache[global_index],
+            csound->global_var_lock_cache[global_index]->name);
 }
 
 static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
@@ -145,7 +146,7 @@ static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
     ret->name = name;
     ret->index = index;
 
-    global_var_lock_count++;
+    csound->global_var_lock_count++;
 
     return ret;
 }
@@ -156,12 +157,12 @@ static struct global_var_lock_t *global_var_lock_find(CSOUND *csound, char *name
       csound->Die(csound,
                   Str("Invalid NULL parameter name for a global variable\n"));
 
-    if (global_var_lock_root == NULL) {
-      global_var_lock_root = global_var_lock_alloc(csound, name, 0);
-      return global_var_lock_root;
+    if (csound->global_var_lock_root == NULL) {
+      csound->global_var_lock_root = global_var_lock_alloc(csound, name, 0);
+      return csound->global_var_lock_root;
     }
     else {
-      struct global_var_lock_t *current = global_var_lock_root, *previous = NULL;
+      struct global_var_lock_t *current = csound->global_var_lock_root, *previous = NULL;
       int ctr = 0;
       while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
@@ -184,7 +185,7 @@ static struct global_var_lock_t *global_var_lock_find(CSOUND *csound, char *name
 /* static void locks_print(CSOUND *csound)
    {
    csound->Message(csound, Str("Current Global Locks\n"));
-   struct global_var_lock_t *current_global = global_var_lock_root;
+   struct global_var_lock_t *current_global = csound->global_var_lock_root;
    while (current_global != NULL) {
    csound->Message(csound, "[%i] %s [%p]\n", current_global->index,
    current_global->name, current_global);
@@ -288,26 +289,26 @@ void csp_locks_cache_build(CSOUND *csound)
 {
     int ctr = 0;
     struct global_var_lock_t *glob;
-    if (UNLIKELY(global_var_lock_count < 1)) {
+    if (UNLIKELY(csound->global_var_lock_count < 1)) {
       return;
     }
 
-    global_var_lock_cache =
+    csound->global_var_lock_cache =
       csound->Malloc(csound,
-                     sizeof(struct global_var_lock_t *) * global_var_lock_count);
+                     sizeof(struct global_var_lock_t *) * csound->global_var_lock_count);
 
-    glob = global_var_lock_root;
-    while (glob != NULL && ctr < global_var_lock_count) {
-      global_var_lock_cache[ctr] = glob;
+    glob = csound->global_var_lock_root;
+    while (glob != NULL && ctr < csound->global_var_lock_count) {
+      csound->global_var_lock_cache[ctr] = glob;
       glob = glob->next;
       ctr++;
     }
 
     /* csound->Message(csound, "Global Locks Cache\n");
        ctr = 0;
-       while (ctr < global_var_lock_count) {
-       csound->Message(csound, "[%i] %s\n", global_var_lock_cache[ctr]->index,
-       global_var_lock_cache[ctr]->name);
+       while (ctr < csound->global_var_lock_count) {
+       csound->Message(csound, "[%i] %s\n", csound->global_var_lock_cache[ctr]->index,
+       csound->global_var_lock_cache[ctr]->name);
        ctr++;
        } */
 }
@@ -486,13 +487,13 @@ struct opcode_weight_cache_entry_t {
   uint32_t                            weight;
 };
 
-#define OPCODE_WEIGHT_CACHE_SIZE     128
+//#define OPCODE_WEIGHT_CACHE_SIZE     128
 
-static int opcode_weight_cache_ctr;
-static struct opcode_weight_cache_entry_t *
-       opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
+//static int opcode_weight_cache_ctr;
+//static struct opcode_weight_cache_entry_t *
+//       opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
 
-static int opcode_weight_have_cache;
+//static int opcode_weight_have_cache;
 
 static void opcode_weight_entry_add(CSOUND *csound, char *name, uint32_t weight);
 
@@ -541,12 +542,13 @@ uint32_t csp_opcode_weight_fetch(CSOUND *csound, char *name)
       csound->Die(csound, Str("Invalid NULL Parameter name"));
 #endif
 
-    if (opcode_weight_have_cache == 0) {
+    if (csound->opcode_weight_have_cache == 0) {
       return WEIGHT_OPCODE_NODE;
     }
     else {
       uint32_t hash_val = hash_string(name, OPCODE_WEIGHT_CACHE_SIZE);
-      struct opcode_weight_cache_entry_t *curr = opcode_weight_cache[hash_val];
+      struct opcode_weight_cache_entry_t *curr =
+        csound->opcode_weight_cache[hash_val];
       while (curr != NULL) {
         if (UNLIKELY(strcmp(curr->name, name) == 0)) {
           return curr->weight;
@@ -566,12 +568,12 @@ void csp_opcode_weight_set(CSOUND *csound, char *name, double play_time)
       csound->Die(csound, Str("Invalid NULL Parameter name"));
 #endif
 
-    if (opcode_weight_have_cache == 0) {
+    if (csound->opcode_weight_have_cache == 0) {
       return;
     }
     else {
       uint32_t hash_val = hash_string(name, OPCODE_WEIGHT_CACHE_SIZE);
-      struct opcode_weight_cache_entry_t *curr = opcode_weight_cache[hash_val];
+      struct opcode_weight_cache_entry_t *curr = csound->opcode_weight_cache[hash_val];
       TRACE_0("Adding %s [%u]\n", name, hash_val);
 
       while (curr != NULL) {
@@ -606,7 +608,7 @@ static void opcode_weight_entry_add(CSOUND *csound, char *name, uint32_t weight)
 #endif
 
     uint32_t hash_val = hash_string(name, OPCODE_WEIGHT_CACHE_SIZE);
-    struct opcode_weight_cache_entry_t *curr = opcode_weight_cache[hash_val];
+    struct opcode_weight_cache_entry_t *curr =csound-> opcode_weight_cache[hash_val];
     int found = 0;
     TRACE_0("entry_add %s [%u]\n", name, hash_val);
     while (curr != NULL) {
@@ -619,16 +621,16 @@ static void opcode_weight_entry_add(CSOUND *csound, char *name, uint32_t weight)
     if (found == 0) {
       TRACE_0("Allocing %s\n", name);
       opcode_weight_entry_alloc(csound, &curr, name, weight, hash_val);
-      opcode_weight_cache_ctr++;
+      csound->opcode_weight_cache_ctr++;
 
-      curr->next = opcode_weight_cache[hash_val];
-      opcode_weight_cache[hash_val] = curr;
+      curr->next = csound->opcode_weight_cache[hash_val];
+      csound->opcode_weight_cache[hash_val] = curr;
     }
 }
 
 void csp_weights_dump(CSOUND *csound)
 {
-    if (UNLIKELY(opcode_weight_have_cache == 0)) {
+    if (UNLIKELY(csound->opcode_weight_have_cache == 0)) {
           csound->Message(csound, Str("No Weights to Dump (Using Defaults)\n"));
       return;
     }
@@ -636,7 +638,7 @@ void csp_weights_dump(CSOUND *csound)
       uint32_t bin_ctr = 0;
       csound->Message(csound, "Weights Dump\n");
       while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+        struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
 
         while (entry != NULL) {
           csound->Message(csound, "%s => %u\n", entry->name, entry->weight);
@@ -655,7 +657,7 @@ void csp_weights_dump_file(CSOUND *csound)
     FILE *f;
     uint32_t bin_ctr = 0;
     double min = 0, max = 0;
-    if (UNLIKELY(opcode_weight_have_cache == 0)) {
+    if (UNLIKELY(csound->opcode_weight_have_cache == 0)) {
       csound->Message(csound, "No Weights to Dump to file\n");
       return;
     }
@@ -671,7 +673,7 @@ void csp_weights_dump_file(CSOUND *csound)
     }
 
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-      struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
 
       while (entry != NULL) {
         if (min == 0) {
@@ -696,7 +698,7 @@ void csp_weights_dump_file(CSOUND *csound)
 
       bin_ctr = 0;
       while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+        struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
 
         while (entry != NULL) {
           uint32_t weight = floor((entry->play_time - min) * scale) + 1;
@@ -714,14 +716,14 @@ void csp_weights_dump_normalised(CSOUND *csound)
 {
     uint32_t bin_ctr = 0;
     double min = 0, max = 0;
-    if (UNLIKELY(opcode_weight_have_cache == 0)) {
+    if (UNLIKELY(csound->opcode_weight_have_cache == 0)) {
       csound->Message(csound, Str("No Weights to Dump (Using Defaults)\n"));
       return;
     }
 
     csound->Message(csound, Str("Weights Dump\n"));
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-      struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
 
       while (entry != NULL) {
         if (min == 0) {
@@ -751,7 +753,7 @@ void csp_weights_dump_normalised(CSOUND *csound)
 
       bin_ctr = 0;
       while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+        struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
 
         while (entry != NULL) {
           uint32_t weight = floor((entry->play_time - min) * scale) + 1;
@@ -781,12 +783,12 @@ void csp_weights_load(CSOUND *csound)
     int col = 0;
     int c;
     if (path == NULL) {
-      opcode_weight_have_cache = 0;
+      csound->opcode_weight_have_cache = 0;
       return;
     }
-    opcode_weight_have_cache = 1;
+    csound->opcode_weight_have_cache = 1;
 
-    memset(opcode_weight_cache, 0,
+    memset(csound->opcode_weight_cache, 0,
            sizeof(struct opcode_weight_cache_entry_t *) * OPCODE_WEIGHT_CACHE_SIZE);
 
     f = fopen(path, "r");
@@ -2302,7 +2304,7 @@ struct dag_cache_entry_t {
   int16                       chain[];
 };
 
-#define DAG_2_CACHE_SIZE     128
+//#define DAG_2_CACHE_SIZE     128
 #define DAG_2_DECAY_COMP     1
 #define DAG_2_MIN_USE_LIMIT  5000
 /* aiming for 8 passes of the cache update before a new entry
@@ -2311,7 +2313,7 @@ struct dag_cache_entry_t {
 #define DAG_2_AGE_START      131072
 
 static int cache_ctr;
-static struct dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
+//static struct dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
 
 /* #ifdef HYBRID_HASH_CACHE */
 /* static struct dag_cache_entry_t *cache_last; */
@@ -2340,7 +2342,7 @@ void csp_dag_cache_print(CSOUND *csound)
 
     csound->Message(csound, "Dag2 Cache Size: %i\n", cache_ctr);
     while (bin_ctr < DAG_2_CACHE_SIZE) {
-      struct dag_cache_entry_t *entry = cache[bin_ctr];
+      struct dag_cache_entry_t *entry = csound->cache[bin_ctr];
 
       if (entry == NULL) bins_empty++;
       else bins_used++;
@@ -2419,7 +2421,7 @@ static void csp_dag_cache_print_weights_dump(CSOUND *csound)
 #endif
 
     while (bin_ctr < DAG_2_CACHE_SIZE) {
-      struct dag_cache_entry_t *entry = cache[bin_ctr];
+      struct dag_cache_entry_t *entry = csound->cache[bin_ctr];
       char *dag_str;
 
       while (entry != NULL) {
@@ -2527,7 +2529,7 @@ static void csp_dag_cache_update(CSOUND *csound)
     csound->Message(csound, Str("Cache Update\n"));
 
     while (bin_ctr < DAG_2_CACHE_SIZE) {
-      struct dag_cache_entry_t *entry = cache[bin_ctr], *prev = NULL;
+      struct dag_cache_entry_t *entry = csound->cache[bin_ctr], *prev = NULL;
 
       if (entry == NULL) {
         bin_ctr++;
@@ -2540,14 +2542,14 @@ static void csp_dag_cache_update(CSOUND *csound)
         if (entry->uses < DAG_2_MIN_USE_LIMIT &&
             entry->age < DAG_2_MIN_AGE_LIMIT) {
           if (prev == NULL) {
-            cache[bin_ctr] = entry->next;
+            csound->cache[bin_ctr] = entry->next;
           }
           else {
             prev->next = entry->next;
           }
           csp_dag_cache_entry_dealloc(csound, &entry);
           if (prev == NULL) {
-            entry = cache[bin_ctr];
+            entry = csound->cache[bin_ctr];
           }
           else {
             entry = prev->next;
@@ -2628,7 +2630,7 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
 /* #endif */
 
     uint32_t hash_val = hash_chain(chain, DAG_2_CACHE_SIZE);
-    struct dag_cache_entry_t *curr = cache[hash_val];
+    struct dag_cache_entry_t *curr = csound->cache[hash_val];
     while (curr != NULL) {
       if (csp_dag_cache_compare(csound, curr, chain)) {
         TRACE_2("Cache Hit [%i]\n", cache_ctr);
@@ -2654,8 +2656,8 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
       cache_ctr++;
       *dag = curr->dag;
 
-      curr->next = cache[hash_val];
-      cache[hash_val] = curr;
+      curr->next = csound->cache[hash_val];
+      csound->cache[hash_val] = curr;
 /* #ifdef HYBRID_HASH_CACHE */
 /*       cache_last = curr; */
 /* #endif */
