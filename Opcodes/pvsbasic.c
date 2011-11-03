@@ -444,8 +444,8 @@ int pvstanal(CSOUND *csound, PVST *p)
       /* audio samples are stored in a function table */
       ft = csound->FTnp2Find(csound,p->knum);
       if (ft == NULL){
-	csound->PerfError(csound, "could not find table number %d\n", (int) *p->knum);
-	return NOTOK;
+        csound->PerfError(csound, "could not find table number %d\n", (int) *p->knum);
+        return NOTOK;
 
       }
 
@@ -466,7 +466,7 @@ int pvstanal(CSOUND *csound, PVST *p)
         for (j=0; j < nchans; j++) {
           memset(p->fout[j]->frame.auxp, 0, sizeof(float)*(N+2));
            p->fout[j]->framecount++;
-	}
+        }
          goto end;
       }
 
@@ -491,7 +491,7 @@ int pvstanal(CSOUND *csound, PVST *p)
           frac = pos  - post;
           post *= nchans;
           post += j;
-	  if (post < 0 || post >= size ) in = 0.0;
+          if (post < 0 || post >= size ) in = 0.0;
           else in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           fwin[i] = amp * in * win[i]; /* window it */
           /* back windo, bwin */
@@ -508,7 +508,7 @@ int pvstanal(CSOUND *csound, PVST *p)
           if (post < 0 || post >= size ) in = 0.0;
           else in =  tab[post];
           nwin[i] = amp * in * win[i];
-	  }
+          }
           /* increment read pos according to pitch transposition */
           pos += pitch;
         }
@@ -754,12 +754,12 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
           if (cbin != 0)     {
             for (i=cbin-1;i < cbin+3 &&i < NB ; i++) {
             if (i-cfbin == 0) a = 1;
-	    else a = sin(i-cfbin)/(i-cfbin);
+            else a = sin(i-cfbin)/(i-cfbin);
             fout[i].re = amp*a*a*a;
             fout[i].im = freq;
           }
           if (type==2) m++;
-	  }
+          }
         }
       }
       return OK;
@@ -792,7 +792,7 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
           fout[k+1] = freq;
         }
         if (type==2) n++;
-	 }
+         }
       }
       p->fout->framecount = p->lastframe;
     }

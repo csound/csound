@@ -1814,7 +1814,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
             switch (c[i]) {
               case 'a':
               case 'k':
-	      case 'f':
+              case 'f':
               case 'i': xtypes[i] = c[i]; break;
               case 'K': xtypes[i] = 'k';
             }
