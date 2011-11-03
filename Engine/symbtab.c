@@ -467,7 +467,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     i = i_incnt + S_incnt + inm->perf_incnt +
         i_outcnt + S_outcnt + inm->perf_outcnt;
     i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
-                                                   sizeof(int16) * (i + 12));
+                                                   sizeof(int16) * (i + 14));
     S_inlist = i_inlist + i_incnt + 1;
     a_inlist = S_inlist + S_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;

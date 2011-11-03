@@ -1107,7 +1107,7 @@ int xinset(CSOUND *csound, XIN *p)
      *(tmp++) = NULL;
    
     /* fix for case when xout is omitted */
-    *(tmp++) = NULL; *tmp = NULL;
+    *(tmp++) = NULL;  *(tmp++) = NULL;  *(tmp++) = NULL; *tmp = NULL;
     return OK;
 }
 
@@ -1139,10 +1139,11 @@ int xoutset(CSOUND *csound, XOUT *p)
     }
     /* skip input pointers, including the three delimiter NULLs */
     tmp = buf->iobufp_ptrs;
-    /* VL: needs to check if there are not 4 nulls in a sequence, which
+    /* VL: needs to check if there are not 6 nulls in a sequence, which
        would indicate no a, k, for t sigs */
-    if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3)) tmp += (inm->perf_incnt << 1);
-    tmp += 4;  /* VL: this was 2, now 4 with fsigs and tsigs added */
+    if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3) 
+        || *(tmp + 4) || *(tmp + 5)) tmp += (inm->perf_incnt << 1);
+    tmp += 6;  /* VL: this was 2, now 6 with fsigs and tsigs added */
     if (*tmp || *(tmp + 1))
     return OK;
    
