@@ -32,3 +32,6 @@ struct  dag_node_t;
 struct dag_cache_entry_t;
 #define DAG_2_CACHE_SIZE (128)
 #define OPCODE_WEIGHT_CACHE_SIZE (128)
+
+struct instr_semantics_t;
+
