@@ -1341,6 +1341,10 @@ typedef struct {
                   *opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
     int           opcode_weight_have_cache;
     struct        dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
+    /* statics from cs_par_orc_semantic_analysis */
+    struct instr_semantics_t *curr;
+    struct instr_semantics_t *root;
+    int           inInstr;
 #endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
