@@ -107,7 +107,7 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
     return csound->PerfError(csound, Str("pvsgendy: not initialised"));
 }
 
-OENTRY pvsgendy_localops[] = {
+static OENTRY pvsgendy_localops[] = {
   { "pvsgendy", sizeof(PVSGENDY), 3, "f", "fkk",
                 (SUBR) pvsgendyinit, (SUBR) pvsgendy, (SUBR) NULL }
 };

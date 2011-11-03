@@ -225,7 +225,7 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
 
 
 
-OENTRY tabvars_localops[] =
+static OENTRY tabvars_localops[] =
 {
   { "plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabadd },
   { "multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabmult },

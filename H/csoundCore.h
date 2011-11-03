@@ -1355,6 +1355,10 @@ extern const uint32_t csPlayScoMask;
 PUBLIC long name##_init(CSOUND *csound, OENTRY **ep)           \
 {   (void) csound; *ep = name; return (long) (sizeof(name));  } 
 
+#define FLINKAGE1(name)                                                 \
+PUBLIC NGFENS* name##_init(CSOUND *csound)                         \
+{   (void) csound; return name;                                     } 
+
 #ifdef __cplusplus
 }
 #endif

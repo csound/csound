@@ -1575,13 +1575,13 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 }
+         }
         /* and tsigs */
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 }
-	
+         }
+        
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
@@ -1612,12 +1612,12 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 }
+         }
         /* and tsigs */
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 } 
+         } 
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
@@ -1699,12 +1699,12 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 } 
+         } 
        /* VL: tsigs */
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 } 
+         } 
        
         
       /*  run each opcode  */
@@ -1732,12 +1732,12 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 }
+         }
        /* VL: tsigs */
        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 } 
+         } 
       /*  run each opcode  */
       do {
         (*csound->pds->opadr)(csound, csound->pds);

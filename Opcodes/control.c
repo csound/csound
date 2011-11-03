@@ -285,7 +285,7 @@ static int textflash(CSOUND *csound, TXTWIN *p)
 
 #define S(x)    sizeof(x)
 
-OENTRY control_localops[] = {
+static OENTRY control_localops[] = {
 { "control",  S(CNTRL),  3, "k", "k",  (SUBR) cntrl_set, (SUBR) control, NULL },
 { "setctrl",  S(SCNTRL), 1, "",  "iTi", (SUBR) ocontrol, NULL, NULL           },
 { "button",   S(CNTRL),  3, "k", "k",  (SUBR) button_set, (SUBR) button, NULL },

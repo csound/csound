@@ -642,7 +642,7 @@ static int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 
  /* ------------------------------------------------------------------------ */
 
-OENTRY stackops_localops[] = {
+static OENTRY stackops_localops[] = {
   { "stack",  sizeof(STACK_OPCODE), SB|1,  "",                                "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
   { "push",   sizeof(PUSH_OPCODE),  SB|3,  "",                                "N",
