@@ -2473,7 +2473,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       if (csound->oparms->msglevel & 7)
         csound->Message(csound, Str("  defer length %d\n"), ff->flen - 1);
        if (p->channel == ALLCHNLS)
-	 ff->flen *= p->nchanls;
+         ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
       /*ff->flen     -= 1;*/                  /* VL: this was causing tables to exclude last point  */
       ftp           = ftalloc(ff);            /*   alloc now, and           */

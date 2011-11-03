@@ -903,7 +903,7 @@ int csoundDestroyModules(CSOUND *csound)
 
     retval = CSOUND_SUCCESS;
     while (csound->csmodule_db != NULL) {
-     
+
       m = (csoundModule_t*) csound->csmodule_db;
       /* call destructor functions */
       if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
@@ -912,15 +912,15 @@ int csoundDestroyModules(CSOUND *csound)
           print_module_error(csound, Str("Error de-initialising module '%s'"),
                                      &(m->name[0]), m, i);
           retval = CSOUND_ERROR;
-        } 
+        }
       }
       /* unload library */
-      csoundCloseLibrary(m->h); 
+      csoundCloseLibrary(m->h);
       csound->csmodule_db = (void*) m->nxt;
       /* free memory used by database */
       free((void*) m);
-  
-    }  
+
+    }
     sfont_ModuleDestroy(csound);
     /* return with error code */
     return retval;
@@ -1136,7 +1136,7 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) dlsymIntern(library, undersym);
 }
 
-#elif defined(mac_classic) 
+#elif defined(mac_classic)
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryName)
 {
@@ -1271,7 +1271,7 @@ void print_opcodedir_warning(CSOUND *p)
 #endif
 }
 
-/* 
+/*
 These need to be added
 stdopcod          stdopcod.c
 urandom          urandom.c
@@ -1284,10 +1284,10 @@ pitch               pitch.c
 physmod         physmod.c
 scansyn           scansyn.c
 ambidecode1   ambicode1.c
-		DONE        babo                 babo.c
+                DONE        babo                 babo.c
 sfont                sfont.c
 barmodel         barmodel.c
-		DONE        compress        compress.c
+                DONE        compress        compress.c
 grain4             grain4.c
 hrtferX             hrtferX.c
 hrtfnew            hrtfopcodes.c
@@ -1356,18 +1356,29 @@ extern int sfont_ModuleCreate(CSOUND *csound);
 extern int newgabopc_ModuleInit(CSOUND *csound);
 
 
-const INITFN staticmodules[] = {  hrtfopcodes_localops_init, babo_localops_init, bilbar_localops_init, vosim_localops_init,
-				  compress_localops_init, pvsbuffer_localops_init, eqfil_localops_init,
-				  modal4_localops_init,scoreline_localops_init,physmod_localops_init,
-				  modmatrix_localops_init, spectra_localops_init,  ambicode1_localops_init,
-				  grain4_localops_init,hrtferX_localops_init,loscilx_localops_init,
-				  pan2_localops_init, tabvars_localops_init, phisem_localops_init,
-                                  pvoc_localops_init, stackops_localops_init,
-				  vbap_localops_init, ugakbari_localops_init, harmon_localops_init,
-				  pitchtrack_localops_init,partikkel_localops_init,
-				  shape_localops_init,tabsum_localops_init,crossfm_localops_init,
-				  pvlock_localops_init,fareyseq_localops_init,
+const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
+                                 bilbar_localops_init, vosim_localops_init,
+                                 compress_localops_init, pvsbuffer_localops_init,
+                                 eqfil_localops_init, modal4_localops_init,
+                                 scoreline_localops_init, physmod_localops_init,
+                                 modmatrix_localops_init, spectra_localops_init,
+                                 ambicode1_localops_init, grain4_localops_init,
+                                 hrtferX_localops_init, loscilx_localops_init,
+                                 pan2_localops_init, tabvars_localops_init,
+                                 phisem_localops_init, pvoc_localops_init,
+                                 stackops_localops_init, vbap_localops_init,
+                                 ugakbari_localops_init, harmon_localops_init,
+                                 pitchtrack_localops_init, partikkel_localops_init,
+                                 shape_localops_init, tabsum_localops_init,
+                                 crossfm_localops_init, pvlock_localops_init,
+                                 fareyseq_localops_init,
                                  NULL };
+
+typedef NGFENS* (*FGINITFN)(CSOUND *);
+
+NGFENS *ftest_fgens_init(CSOUND *);
+
+const FGINITFN fgentab[] = {  ftest_fgens_init, NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
@@ -1397,8 +1408,15 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     if (sfont_ModuleInit(csound)) return CSOUND_ERROR;
 
     /* newgabopc */
-   if (newgabopc_ModuleInit(csound)) return CSOUND_ERROR;
+    if (newgabopc_ModuleInit(csound)) return CSOUND_ERROR;
 
-    /* module was initialised successfully */
+    /* modules were initialised successfully */
+    /* Now fgens */
+    for (i = 0; fgentab[i]!=NULL; i++) {
+      int j;
+      NGFENS  *names = (fgentab[i])(csound);
+      for (j = 0; names[j].name != NULL; j++)
+        allocgen(csound, names[j].name, names[j].fn);
+    }
     return CSOUND_SUCCESS;
 }
