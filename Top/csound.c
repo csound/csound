@@ -689,8 +689,8 @@ extern "C" {
     0,              /* opcode_weight_have_cache */
     {NULL,NULL},    /* ache[DAG_2_CACHE_SIZE] */
     /* statics from cs_par_orc_semantic_analysis */
-    NULL,           /* curr */
-    NULL,           /* root */
+    NULL,           /* instCurr */
+    NULL,           /* instRoot */
     0,              /* inInstr */
 #endif /* PARCS */
     0,              /* tempStatus */
