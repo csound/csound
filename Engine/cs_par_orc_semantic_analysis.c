@@ -67,12 +67,12 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
  * parse time support
  */
 
-static INSTR_SEMANTICS *curr;
-static INSTR_SEMANTICS *root;
+//static INSTR_SEMANTICS *curr;
+//static INSTR_SEMANTICS *root;
 
 void csp_orc_sa_cleanup(CSOUND *csound)
 {
-    INSTR_SEMANTICS *current = root, *h = NULL;
+    INSTR_SEMANTICS *current = csound->instRoot, *h = NULL;
     while (current != NULL) {
 
       csp_set_dealloc(csound, &(current->read));
@@ -84,14 +84,14 @@ void csp_orc_sa_cleanup(CSOUND *csound)
       csound->Free(csound, h);
     }
 
-    csound->curr = NULL;
-    csound->root = NULL;
+    csound->instCurr = NULL;
+    csound->instRoot = NULL;
 }
 
 void csp_orc_sa_print_list(CSOUND *csound)
 {
     csound->Message(csound, "Semantic Analysis\n");
-    INSTR_SEMANTICS *current = root;
+    INSTR_SEMANTICS *current = csound->instRoot;
     while (current != NULL) {
       csound->Message(csound, "Instr: %s\n", current->name);
       csound->Message(csound, "  read: ");
@@ -114,7 +114,7 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
                                            struct set_t *write,
                                            struct set_t *read)
 {
-    if (csound->curr == NULL) {
+    if (csound->instCurr == NULL) {
       csound->Message(csound,
                       "Add global read, write lists without any instruments\n");
     }
@@ -129,9 +129,9 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
       if (write->count == 1 && read->count == 1 && new->count == 1) {
         /* this is a read_write list thing */
         struct set_t *new_read_write = NULL;
-        csp_set_union(csound, csound->curr->read_write, new, &new_read_write);
-        csp_set_dealloc(csound, &csound->curr->read_write);
-        csound->curr->read_write = new_read_write;
+        csp_set_union(csound, csound->instCurr->read_write, new, &new_read_write);
+        csp_set_dealloc(csound, &csound->instCurr->read_write);
+        csound->instCurr->read_write = new_read_write;
       }
       else {
         csp_orc_sa_global_write_add_list(csound, write);
@@ -144,7 +144,7 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
 
 void csp_orc_sa_global_write_add_list(CSOUND *csound, struct set_t *set)
 {
-    if (csound->curr == NULL) {
+    if (csound->instCurr == NULL) {
       csound->Message(csound,
                       "Add a global write_list without any instruments\n");
     }
@@ -154,18 +154,18 @@ void csp_orc_sa_global_write_add_list(CSOUND *csound, struct set_t *set)
     }
     else {
       struct set_t *new = NULL;
-      csp_set_union(csound, csound->curr->write, set, &new);
+      csp_set_union(csound, csound->instCurr->write, set, &new);
 
-      csp_set_dealloc(csound, &csound->curr->write);
+      csp_set_dealloc(csound, &csound->instCurr->write);
       csp_set_dealloc(csound, &set);
 
-      csound->curr->write = new;
+      csound->instCurr->write = new;
     }
 }
 
 void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
 {
-    if (csound->curr == NULL) {
+    if (csound->instCurr == NULL) {
       csound->Message(csound, "add a global read_list without any instruments\n");
     }
     else if (UNLIKELY(set == NULL)) {
@@ -174,12 +174,12 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
     }
     else {
       struct set_t *new = NULL;
-      csp_set_union(csound, curr->read, set, &new);
+      csp_set_union(csound, csound->instCurr->read, set, &new);
 
-      csp_set_dealloc(csound, &curr->read);
+      csp_set_dealloc(csound, &csound->instCurr->read);
       csp_set_dealloc(csound, &set);
 
-      csound->curr->read = new;
+      csound->instCurr->read = new;
     }
 }
 
@@ -240,25 +240,25 @@ static int inInstr = 0;
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
     csound->inInstr = 1;
-    if (csound->root == NULL) {
-      csound->root = instr_semantics_alloc(csound, name);
-      csound->curr = root;
+    if (csound->instRoot == NULL) {
+      csound->instRoot = instr_semantics_alloc(csound, name);
+      csound->instCurr = csound->instRoot;
     }
-    else if (csound->curr == NULL) {
-      INSTR_SEMANTICS *prev = root;
-      csound->curr = prev->next;
-      while (curr != NULL) {
-        prev = csound->curr;
-        csound->curr = csound->curr->next;
+    else if (csound->instCurr == NULL) {
+      INSTR_SEMANTICS *prev = csound->instRoot;
+      csound->instCurr = prev->next;
+      while (csound->instCurr != NULL) {
+        prev = csound->instCurr;
+        csound->instCurr = csound->instCurr->next;
       }
       prev->next = instr_semantics_alloc(csound, name);
-      csound->curr = prev->next;
+      csound->instCurr = prev->next;
     }
     else {
-      csound->curr->next = instr_semantics_alloc(csound, name);
-      csound->curr = csound->curr->next;
+      csound->instCurr->next = instr_semantics_alloc(csound, name);
+      csound->instCurr = csound->instCurr->next;
     }
-    // csound->curr->insno = named_instr_find(name);
+    // csound->instCurr->insno = named_instr_find(name);
 }
 
 /* New code to deal with lists of integer instruments -- JPff */
@@ -284,7 +284,7 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
 
 void csp_orc_sa_instr_finalize(CSOUND *csound)
 {
-    csound-> curr = NULL;
+    csound->instCurr = NULL;
     csound->inInstr = 0;
 }
 
@@ -332,9 +332,9 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     return current_set;
 }
 
-INSTR_SEMANTICS *csp_orc_sa_instr_get_by_name(char *instr_name)
+INSTR_SEMANTICS *csp_orc_sa_instr_get_by_name(CSOUND *csound, char *instr_name)
 {
-    INSTR_SEMANTICS *current_instr = root;
+    INSTR_SEMANTICS *current_instr = csound->instRoot;
     while (current_instr != NULL) {
       if (strcmp(current_instr->name, instr_name) == 0) {
         return current_instr;
@@ -344,10 +344,10 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_name(char *instr_name)
     return NULL;
 }
 
-INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(int16 insno)
+INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
 {
 #define BUF_LENGTH 8
-    INSTR_SEMANTICS *current_instr = root;
+    INSTR_SEMANTICS *current_instr = csound->instRoot;
     char buf[BUF_LENGTH];
     while (current_instr != NULL) {
       if (current_instr->insno != -1 && current_instr->insno == insno) {
@@ -358,7 +358,7 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(int16 insno)
 
     snprintf(buf, BUF_LENGTH, "%i", insno);
 
-    current_instr = csp_orc_sa_instr_get_by_name(buf);
+    current_instr = csp_orc_sa_instr_get_by_name(csound, buf);
     if (current_instr != NULL) {
       current_instr->insno = insno;
     }
