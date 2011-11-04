@@ -405,9 +405,9 @@ EXSTR           "}}"
                   yy_scan_string(mm->body, yyscanner);
                 }
 {INTGR}         {
-                    if(udoflag == 0) {
+                    if (udoflag == 0) {
                         *lvalp = lookup_token(csound, yytext, yyscanner);
-                    } else if(udoflag == 1) {
+                    } else if (udoflag == 1) {
                         *lvalp = lookup_token(csound, yytext, yyscanner);
                         (*lvalp)->type = T_UDO_ARGS;
                     } else {
