@@ -737,7 +737,7 @@ extern "C" {
       }
   }
 
-#if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
+#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__))
   static char *signal_to_string(int sig)
   {
       switch(sig) {
