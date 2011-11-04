@@ -149,7 +149,7 @@ static OPTXT * last_optxt(OPTXT *optxt)
 /**
  * Append OPTXT op2 to end of OPTXT chain op1
  */
-static void append_optxt(OPTXT *op1, OPTXT *op2)
+static inline void append_optxt(OPTXT *op1, OPTXT *op2)
 {
     last_optxt(op1)->nxtop = op2;
 }
