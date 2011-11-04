@@ -443,6 +443,7 @@ set(libcsound_SRCS
     Opcodes/gab/hvs.c
     Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c
+    Opcodes/ftest.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
