@@ -427,9 +427,16 @@ statement : ident S_ASSIGN expr S_NL
               }
           | S_NL { $$ = NULL; }
           ;
-
 ans       : ident               { $$ = $1; }
+          | T_IDENT error       { csound->Message(csound,
+                                  "Unexpected untyped word %s when expecting a variable\n", 
+                                         ((ORCTOKEN*)$1)->lexeme);
+                                  $$ = $1; }
           | ans S_COM ident     { $$ = appendToTree(csound, $1, $3); }
+          | ans S_COM T_IDENT   { csound->Message(csound,
+                                "Unexpected untyped word %s when expecting a variable\n", 
+                                         ((ORCTOKEN*)$3)->lexeme);
+                                  $$ = appendToTree(csound, $1, $3); }
           ;
 
 ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
