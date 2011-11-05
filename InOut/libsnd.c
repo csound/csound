@@ -730,16 +730,19 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* calc outbuf size & alloc bufspace */
     ST(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     ST(outbufp) = ST(outbuf) = mmalloc(csound, ST(outbufsiz));
-    csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
+    if (ST(pipdevout) == 2)
+      csound->Message(csound, Str("writing %d sample blks of MYFLTS to %s \n"),
+		      O->outbufsamps * O->sfsampsize,ST(sfoutname));
+    else {
+     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), ST(sfoutname));
-    if (ST(pipdevout) == 2)
-      /* realtime output has no header */
-      csound->Message(csound, "\n");
-    else if (O->sfheader == 0)
+    
+    if (O->sfheader == 0)
       csound->Message(csound, Str(" (raw)\n"));
     else
       csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+    }
     ST(osfopen) = 1;
     ST(outbufrem) = O->outbufsamps;
 }
@@ -800,16 +803,18 @@ void sfcloseout(CSOUND *csound)
 #endif
 
  report:
+    if (ST(pipdevout) == 2)
+     /* realtime output has no header */
+      csound->Message(csound, "\n");
+    else {
     csound->Message(csound, Str("%ld %d-byte soundblks of %s written to %s"),
                     csound->nrecs, O->outbufsamps * O->sfsampsize,
-                    getstrformat(O->outformat), ST(sfoutname));
-    if (ST(pipdevout) == 2)
-      /* realtime output has no header */
-      csound->Message(csound, "\n");
-    else if (O->sfheader == 0)
+                    getstrformat(O->outformat), ST(sfoutname));  
+    if (O->sfheader == 0)
       csound->Message(csound, Str(" (raw)\n"));
     else
       csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+    }
     ST(osfopen) = 0;
 }
 
