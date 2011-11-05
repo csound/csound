@@ -30,7 +30,7 @@
 #include "csdl.h"
 #include "soundio.h"
 
-#if defined(MAC_OS_X_VERSION_10_5)
+#if !defined(MAC_OS_X_VERSION_10_6)
 /* the API was changed for 10.6, these make it backwards compatible  */
 typedef ComponentInstance AudioComponentInstance; 
 typedef Component AudioComponent;
