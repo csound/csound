@@ -447,7 +447,6 @@ static void rtclose_(CSOUND *csound)
       cdata->auLock_out = NULL;
     }  
 
-
     if (cdata->outputBuffer != NULL) {
       free(cdata->outputBuffer);
       cdata->outputBuffer = NULL;
