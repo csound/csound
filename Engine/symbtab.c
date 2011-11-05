@@ -310,8 +310,8 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     strcpy(ans->lexeme, s);
     //ans->next = symbtab[h];
 
-    if (PARSER_DEBUG)
-      csound->Message(csound, "NamedInstrFlag: %d\n", namedInstrFlag);
+    /* if (PARSER_DEBUG) */
+    /*   csound->Message(csound, "NamedInstrFlag: %d\n", namedInstrFlag); */
 
     if (udoflag == -2 || namedInstrFlag == 1) {
         return ans;
