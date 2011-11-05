@@ -57,13 +57,11 @@ int rewindscore(CSOUND *csound, SCOREPOS *p){
 }
 
 
-OENTRY scoreline_localops[] = {
+static OENTRY scoreline_localops[] = {
   {"scoreline_i", sizeof(INMESS), 1, "", "S", (SUBR)messi, NULL, NULL},
   {"scoreline", sizeof(INMESS), 2, "", "Sk", NULL, (SUBR)messk, NULL},
   {"setscorepos", sizeof(SCOREPOS), 1, "", "i", (SUBR)setscorepos, NULL, NULL},
   {"rewindscore", sizeof(SCOREPOS), 1, "", "", (SUBR)rewindscore, NULL, NULL}
 };
-
-
 
 LINKAGE1(scoreline_localops)

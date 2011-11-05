@@ -1121,11 +1121,12 @@ OOps/ugens6.c
 OOps/ugrw1.c
 OOps/ugrw2.c
 OOps/vdelay.c
+Opcodes/Vosim.c
 Opcodes/babo.c
 Opcodes/bilbar.c
-Opcodes/Vosim.c
 Opcodes/compress.c
 Opcodes/eqfil.c
+Opcodes/ftest.c
 Top/argdecode.c
 Top/cscore_internal.c
 Top/cscorfns.c
@@ -1675,7 +1676,7 @@ makePlugin(pluginEnvironment, 'scansyn',
 
 # tables
 makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
-makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
+##makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
 
 #############################################################################
 #

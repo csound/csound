@@ -734,7 +734,7 @@ void float_to_cfrac (double r, int n, int a[], int p[], int q[])
 
 #define S sizeof
 
-OENTRY fareyseq_localops[] = {
+static OENTRY fareyseq_localops[] = {
     {"tablefilteri", S (TABFILT),TB|1, "i", "iiii", (SUBR) tableifilter,NULL,NULL},
     {"tablefilter", S (TABFILT), TB|2, "k", "kkkk",
                          (SUBR) tablefilterset, (SUBR) tablefilter, NULL},

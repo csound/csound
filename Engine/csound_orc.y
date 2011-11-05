@@ -216,7 +216,6 @@ rootstatement     : rootstatement topstatement
                   | udodecl
                   ;
 
-/* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
 instlist  : T_INTGR S_COM instlist
               { $$ = make_node(csound, T_INSTLIST,
                                make_leaf(csound, T_INTGR, (ORCTOKEN *)$1), $3); }
@@ -427,9 +426,18 @@ statement : ident S_ASSIGN expr S_NL
               }
           | S_NL { $$ = NULL; }
           ;
-
 ans       : ident               { $$ = $1; }
+          | T_IDENT error       { csound->Message(csound,
+                                  "Unexpected untyped word %s when expecting a variable\n", 
+                                         ((ORCTOKEN*)$1)->lexeme);
+                                  $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)$1); }
           | ans S_COM ident     { $$ = appendToTree(csound, $1, $3); }
+          | ans S_COM T_IDENT error  { csound->Message(csound,
+                                "Unexpected untyped word %s when expecting a variable\n", 
+                                         ((ORCTOKEN*)$3)->lexeme);
+                                  $$ = appendToTree(csound, $1, 
+                                                    make_leaf(csound, T_SRATE,
+                                                   (ORCTOKEN *)$3)); }
           ;
 
 ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL

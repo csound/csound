@@ -900,7 +900,7 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 #define S(x)    sizeof(x)
 
 /* static */ 
-OENTRY vbap_localops[] = {
+static OENTRY vbap_localops[] = {
   { "vbap4",      S(VBAP_FOUR),             TR|5,  "aaaa",             "akOO",
     (SUBR) vbap_FOUR_init,          (SUBR) NULL,    (SUBR) vbap_FOUR        },
   { "vbap8",      S(VBAP_EIGHT),            TR|5,  "aaaaaaaa",         "akOO",

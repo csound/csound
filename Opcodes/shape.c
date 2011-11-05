@@ -499,7 +499,7 @@ static int Phasine(CSOUND* csound, PHASINE* data)
 
 #define S(x)    sizeof(x)
 
-OENTRY shape_localops[] = {
+static OENTRY shape_localops[] = {
   /* { "phasine", S(PHASINE), 5, "a", "akp",
                         (SUBR)PhasineInit, NULL, (SUBR)Phasine }, */
   { "powershape", S(POWER_SHAPE), 5, "a", "akp",

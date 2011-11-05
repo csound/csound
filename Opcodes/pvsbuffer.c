@@ -322,7 +322,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 #define S(x)    sizeof(x)
 
 /* static */ 
-OENTRY pvsbuffer_localops[] = {
+static OENTRY pvsbuffer_localops[] = {
   {"pvsbuffer", S(PVSBUFFER), 3, "ik", "fi",
    (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},
   {"pvsbufread", S(PVSBUFFERREAD), 3, "f", "kkOOo",
