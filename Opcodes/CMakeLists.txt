@@ -16,9 +16,6 @@ if(NOT WIN32)
     make_plugin(udpsend socksend.c)
 endif()
 
-
-make_plugin(ftest ftest.c m)
-
 set(scansyn_SRCS
     scansyn.c scansynx.c)
 make_plugin(scansyn "${scansyn_SRCS}" m)

@@ -681,6 +681,17 @@ extern "C" {
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
+    NULL,           /* global_var_lock_root */
+    NULL,           /* global_var_lock_cache */
+    0,              /* global_var_lock_count */
+    0,              /* opcode_weight_cache_ctr */
+    {NULL,NULL},    /* opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE] */
+    0,              /* opcode_weight_have_cache */
+    {NULL,NULL},    /* ache[DAG_2_CACHE_SIZE] */
+    /* statics from cs_par_orc_semantic_analysis */
+    NULL,           /* instCurr */
+    NULL,           /* instRoot */
+    0,              /* inInstr */
 #endif /* PARCS */
     0,              /* tempStatus */
     0,              /* orcLineOffset */
@@ -737,7 +748,7 @@ extern "C" {
       }
   }
 
-#if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
+#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__))
   static char *signal_to_string(int sig)
   {
       switch(sig) {
