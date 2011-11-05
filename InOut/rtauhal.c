@@ -135,7 +135,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 		    kAudioHardwarePropertyDefaultInputDevice : 
 			kAudioHardwarePropertyDefaultOutputDevice );
       AudioObjectSetPropertyData(kAudioObjectSystemObject, &prop,
-             0, NULL, sizeof(AudioDeviceID), &sysdevs[devnum]);
+             0, NULL, sizeof(AudioDeviceID), &dev);
        
       free(sysdevs);
     }
@@ -146,9 +146,9 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     if(isInput)
     p->Message(csound, Str("selected input device: %s \n"), 
             CFStringGetCStringPtr(devName, defaultEncoding));
-    else
+    /*else
     p->Message(csound, Str("selected output device: %s \n"), 
-            CFStringGetCStringPtr(devName, defaultEncoding));
+    CFStringGetCStringPtr(devName, defaultEncoding));*/
 
     CFRelease(devName);
     
