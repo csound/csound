@@ -569,10 +569,15 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     /* calc inbufsize reqd */
     ST(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
     ST(inbuf) = (MYFLT*) mcalloc(csound, ST(inbufsiz)); /* alloc inbuf space */
+    if (ST(pipdevout) == 2)
+      csound->Message(csound, Str("reading %d sample blks of MYFLTS to %s \n"),
+		      O->inbufsamps * O->sfsampsize,sfname);
+    else {
     csound->Message(csound,
                     Str("reading %d-byte blks of %s from %s (%s)\n"),
                     O->inbufsamps * (int) sfsampsize(FORMAT2SF(O->informat)),
                     getstrformat(O->informat), sfname, type2string(fileType));
+    }
     ST(isfopen) = 1;
 }
 
