@@ -89,7 +89,7 @@ static int urand_arun(CSOUND *csound, URANDOM *p)
 
 #define S(x)    sizeof(x)
 
-OENTRY urandom_localops[] = {
+static OENTRY urandom_localops[] = {
   { "urandom",      0xFFFF,             0,      NULL,   NULL, NULL},
   { "urandom.i", S(URANDOM), 1, "k", "jp", (SUBR) urand_irate },
   { "urandom.k", S(URANDOM), 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run},

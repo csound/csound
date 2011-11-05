@@ -23,13 +23,15 @@
 
 /* Realtime MIDI using coremidi */
 
+
+#include <CoreMidi/CoreMidi.h>
+#include <CoreAudio/HostTime.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include "csdl.h"                               /*      CMIDI.C         */
 #include "csGblMtx.h"
 #include "midiops.h"
 #include "oload.h"
-#include <CoreMidi/CoreMidi.h>
-#include <CoreAudio/HostTime.h>
-#include <CoreFoundation/CoreFoundation.h>
+
 
 
 
@@ -99,32 +101,32 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
        pname = CFStringCreateWithCString(NULL, "inport", defaultEncoding);
        ret = MIDIInputPortCreate(mclient, pname, ReadProc, refcon, &mport);
        if(!ret){
-	 /* sources, we connect to all available input sources */
+         /* sources, we connect to all available input sources */
         endpoints = MIDIGetNumberOfSources();
         csoundMessage(csound, "%d MIDI sources in system \n", endpoints);
         if(!strcmp(dev,"all")) { 
         csoundMessage(csound, "receiving from all sources \n");
         for(k=0; k < endpoints; k++){
-	  endpoint = MIDIGetSource(k);
-	  long srcRefCon = (long) endpoint;
+          endpoint = MIDIGetSource(k);
+          long srcRefCon = (long) endpoint;
           MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
           MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
           csoundMessage(csound, "connecting midi device %d: %s \n", k,
-			CFStringGetCStringPtr(name, defaultEncoding)); 
+                        CFStringGetCStringPtr(name, defaultEncoding)); 
          }
-	}
+        }
         else{
-	  k = atoi(dev);
+          k = atoi(dev);
           if(k < endpoints){
           endpoint = MIDIGetSource(k);
-	  long srcRefCon = (long) endpoint;
+          long srcRefCon = (long) endpoint;
           MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
           MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
           csoundMessage(csound, "connecting midi device %d: %s \n", k,
-			CFStringGetCStringPtr(name, defaultEncoding));
-	  }
+                        CFStringGetCStringPtr(name, defaultEncoding));
+          }
           else csound->Message(csound, "MIDI device number %d is out-of-range, not connected \n", k);         
-	}
+        }
 
        }
      }
@@ -165,7 +167,7 @@ static int MidiDataRead(CSOUND *csound, void *userData,
           
           if (st >= 0xF0 &&
               !(st == 0xF8 || st == 0xFA || st == 0xFB ||
-		st == 0xFC || st == 0xFF)) goto next;
+                st == 0xFC || st == 0xFF)) goto next;
 
           nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
           if (nbytes < 0) break;
@@ -185,13 +187,13 @@ static int MidiDataRead(CSOUND *csound, void *userData,
               *mbuf++ = (unsigned char) d1;
               *mbuf++ = (unsigned char) d2;
               break;
-	      } 
+              } 
           /* mark as read */
     next:
-	  mdata[*q].flag = 0;
-	  (*q)++;
+          mdata[*q].flag = 0;
+          (*q)++;
           if(*q==DSIZE) *q = 0;
-	 
+         
       }
     
     /* return the number of bytes read */

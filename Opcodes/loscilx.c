@@ -669,7 +669,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
 
  /* ------------------------------------------------------------------------ */
 
-OENTRY loscilx_localops[] = {
+static OENTRY loscilx_localops[] = {
   { "sndload",  sizeof(SNDLOAD_OPCODE), 1,  "",                 "Tooooojjoo",
     (SUBR) sndload_opcode_init, (SUBR) NULL, (SUBR) NULL                      },
   { "loscilx",  sizeof(LOSCILX_OPCODE), TR|5,  "mmmmmmmmmmmmmmmm", "xkToojjoo",

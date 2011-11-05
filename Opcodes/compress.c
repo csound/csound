@@ -256,7 +256,7 @@ static int distort(CSOUND *csound, DIST *p)
 
 #define S(x)    sizeof(x)
 
-OENTRY compress_localops[] = {
+static OENTRY compress_localops[] = {
   { "compress", S(CMPRS), 5, "a", "aakkkkkki",
     (SUBR) compset, NULL, (SUBR) compress },
   { "distort", S(DIST), TR|5, "a", "akiqo",

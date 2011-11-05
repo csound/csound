@@ -74,6 +74,13 @@ PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
+#undef FLINKAGE1
+#define FLINKAGE1(name)                                                 \
+PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
+{   (void) csound; return name;                                     }   \
+PUBLIC int csoundModuleInfo(void)                                       \
+{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
+
 #ifdef __cplusplus
 }
 #endif

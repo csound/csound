@@ -492,7 +492,7 @@ int agogobel(CSOUND *csound, VIBRAPHN *p)
 
 #define S       sizeof
 
-OENTRY modal4_localops[] = {
+static OENTRY modal4_localops[] = {
 { "marimba", S(MARIMBA), TR|5, "a", "kkiiikkiijj",
                                  (SUBR)marimbaset, NULL, (SUBR)marimba},
 { "vibes", S(VIBRAPHN),  TR|5, "a", "kkiiikkii",

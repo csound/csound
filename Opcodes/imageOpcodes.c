@@ -612,7 +612,7 @@ static int imagefree (CSOUND *csound, IMGSAVE * p)
 
 #define S(x)    sizeof(x)
 
-OENTRY image_localops[] = {
+static OENTRY image_localops[] = {
   { "imageload",  S(IMGLOAD),  1, "i", "S",   (SUBR)imageload, NULL, NULL   },
   { "imagecreate",S(IMGCREATE),1, "i", "ii",  (SUBR)imagecreate, NULL, NULL },
   { "imagesize",  S(IMGSIZE),  1, "ii", "i",  (SUBR)imagesize, NULL, NULL   },

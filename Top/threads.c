@@ -224,7 +224,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     }
 }
 
-#if defined(LINUX) || defined(WIN32)
+#if !defined(ANDROID) && (defined(LINUX) || defined(WIN32))
 
 PUBLIC void *csoundCreateThreadLock(void)
 {

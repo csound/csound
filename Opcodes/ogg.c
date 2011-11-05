@@ -155,7 +155,7 @@ int oggread_perf (CSOUND *csound, OGGREAD * p)
 
 #define S(x)    sizeof(x)
 
-OENTRY ogg_localops[] = {
+static OENTRY ogg_localops[] = {
   { "oggread",  S(OGGREAD),  5, "mm", "To",
     (SUBR) oggread_init, (SUBR) NULL, (SUBR) oggread_perf }
 };
