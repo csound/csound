@@ -411,7 +411,8 @@ static void rtclose_(CSOUND *csound)
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
 
   if (cdata != NULL) {
-      
+    usleep(1000*csound->GetOutputBufferSize(p)/(csound->GetSr(p)*csound->GetNchnls(p)));      
+
     if(cdata->inunit != NULL){
       AudioOutputUnitStop(cdata->inunit);
       AudioUnitUninitialize(cdata->inunit);
