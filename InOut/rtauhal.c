@@ -30,6 +30,18 @@
 #include "csdl.h"
 #include "soundio.h"
 
+#if defined(MAC_OS_X_VERSION_10_5)
+/* the API was changed for 10.6, these make it backwards compatible  */
+typedef ComponentInstance AudioComponentInstance; 
+typedef Component AudioComponent;
+typedef ComponentDescription AudioComponentDescription;
+#define AudioComponentFindNext FindNextComponent
+#define AudioComponentInstanceNew OpenAComponent
+#define  AudioComponentInstanceDispose CloseComponent
+typedef float AudioUnitSampleType;
+
+#endif
+
 
 typedef struct csdata_ {
   AudioDeviceID dev;
