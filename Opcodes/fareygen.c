@@ -291,9 +291,10 @@ static void GenerateFarey (int n, RATIO flist[], int size) {
 }
 
 
-static NGFENS localfgens[] = {
+static NGFENS farey_fgens[] = {
   { "farey", fareytable },
   { NULL, NULL }
 };
 
-FLINKAGE
+FLINKAGE1(farey_fgens)
+

@@ -166,7 +166,7 @@ int vosim(CSOUND* csound, VOSIM *p)
 
 #define S(x)    sizeof(x)
 
-OENTRY vosim_localops[] = {
+static OENTRY vosim_localops[] = {
   { "vosim", S(VOSIM), TR|5, "a", "kkkkkkio", (SUBR)vosimset, NULL, (SUBR)vosim }
 };
 
