@@ -231,6 +231,7 @@
 ./InOut/midisend.c
 ./InOut/pmidi.c
 ./InOut/rtalsa.c
+./InOut/rtauhal.c
 ./InOut/rtcoreaudio.c
 ./InOut/rtjack.c
 ./InOut/rtpa.c
