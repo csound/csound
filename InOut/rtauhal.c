@@ -46,7 +46,6 @@ typedef float AudioUnitSampleType;
 typedef struct csdata_ {
   AudioDeviceID dev;
   AudioStreamBasicDescription format;
-  int         mode;                   /* 1: rec, 2: play, 3: full-duplex  */
   int         inBufSamples;
   int         outBufSamples;
   int         currentInputIndex;
@@ -65,6 +64,8 @@ typedef struct csdata_ {
   CSOUND *csound;
   AudioBufferList *inputdata;
   int disp;
+  int isInputRunning;
+  int isOutputRunning;
 } csdata;
 
 OSStatus  Csound_Input(void *inRefCon,
@@ -267,7 +268,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                "AuHAL module: input device open with %d buffer frames\n"
                "==============================================\n",
 	       bufframes);
-
+  
   }
 
   return 0;
@@ -299,6 +300,7 @@ static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
   cdata->inParm =  (csRtAudioParams *) parm;
   cdata->csound = cdata->csound;
   cdata->inputBuffer = (MYFLT *) calloc (csound->GetInputBufferSize(csound), sizeof(MYFLT));
+  cdata->isInputRunning = 1;
   return AuHAL_open(csound, parm, cdata, 1);
 }
 
@@ -322,6 +324,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
   cdata->outParm =  (csRtAudioParams *) parm;
   cdata->csound = csound;
   cdata->outputBuffer = (MYFLT *) calloc (csound->GetOutputBufferSize(csound), sizeof(MYFLT));
+  cdata->isOutputRunning = 1;
   return AuHAL_open(csound, parm, cdata, 0);
 }
 
@@ -338,6 +341,7 @@ OSStatus  Csound_Input(void *inRefCon,
   MYFLT *inputBuffer = cdata->inputBuffer;    
   int j,k;
   AudioUnitSampleType *buffer;
+  if(!cdata->isInputRunning) return 0;
   csound->WaitThreadLock(cdata->auLock_in,10);
   AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, cdata->inputdata);
   for (k = 0; k < inchnls; k++){
@@ -375,6 +379,7 @@ OSStatus  Csound_Render(void *inRefCon,
   int j,k;
   AudioUnitSampleType *buffer; 
     
+  if(!cdata->isOutputRunning) return 0;
   csound->WaitThreadLock(cdata->auLock_out, 10);
   for (k = 0; k < onchnls; k++) {
     buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
@@ -418,13 +423,15 @@ static void rtclose_(CSOUND *csound)
       AudioUnitUninitialize(cdata->inunit);
       AudioComponentInstanceDispose(cdata->inunit);
     }
+    cdata->isInputRunning = 0;
 
     if(cdata->outunit != NULL){
       AudioOutputUnitStop(cdata->outunit);
       AudioUnitUninitialize(cdata->outunit);
       AudioComponentInstanceDispose(cdata->outunit);
     }
-      
+    cdata->isOutputRunning = 0;  
+
     if (cdata->clientLock_in != NULL) {
       csound->NotifyThreadLock(cdata->clientLock_in);
       csound->DestroyThreadLock(cdata->clientLock_in);
