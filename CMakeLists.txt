@@ -598,7 +598,9 @@ else()
     set(CSOUNDLIB "csound")
 endif()
 
-add_library(${CSOUNDLIB} SHARED STATIC ${libcsound_SRCS})
+set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
+
+add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
     # Do not pull extra libs when linking against shared libcsound
     # The shared library loader will do that for us
@@ -695,6 +697,26 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
     LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
     ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+
+
+add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
+SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
+SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
+set_property(
+    TARGET ${CSOUNDLIB_STATIC}
+    PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
+
+target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+
+set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+    LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+    ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+
+# Add the install target
+install(TARGETS ${CSOUNDLIB_STATIC}
+    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 
 option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
 check_deps(BUILD_CATALOG)
