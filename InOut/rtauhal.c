@@ -46,7 +46,6 @@ typedef float AudioUnitSampleType;
 typedef struct csdata_ {
   AudioDeviceID dev;
   AudioStreamBasicDescription format;
-  int         mode;                      /* 1: rec, 2: play, 3: full-duplex  */
   int         inBufSamples;
   int         outBufSamples;
   int         currentInputIndex;
@@ -65,6 +64,8 @@ typedef struct csdata_ {
   CSOUND *csound;
   AudioBufferList *inputdata;
   int disp;
+  int isInputRunning;
+  int isOutputRunning;
 } csdata;
 
 OSStatus  Csound_Input(void *inRefCon,
@@ -279,60 +280,61 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     }
 
     return 0;
+
 }
 
 /* open for audio input */
 static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
 {
-    csdata  *cdata;
+  csdata  *cdata;
+    
+  if (csound->rtRecord_userdata != NULL)
+    return 0;    
 
-    if (csound->rtRecord_userdata != NULL)
-      return 0;
+  /* allocate structure */
 
-    /* allocate structure */
+  if(csound->rtPlay_userdata != NULL)
+    cdata = (csdata *) csound->rtPlay_userdata;
+  else {
+    cdata = (csdata *) calloc(1, sizeof(csdata));
+    cdata->disp = 1;
+  } 
 
-    if(csound->rtPlay_userdata != NULL)
-      cdata = (csdata *) csound->rtPlay_userdata;
-    else {
-      cdata = (csdata *) calloc(1, sizeof(csdata));
-      cdata->disp = 1;
-    }
-
-    cdata->inunit = NULL;
-    cdata->auLock_in = csound->CreateThreadLock();
-    cdata->clientLock_in = csound->CreateThreadLock();
-    csound->WaitThreadLock(cdata->auLock_in, (size_t) 500);
-    csound->WaitThreadLock(cdata->clientLock_in, (size_t) 500);
-    csound->rtRecord_userdata = (void *) cdata;
-    cdata->inParm =  (csRtAudioParams *) parm;
-    cdata->csound = cdata->csound;
-    cdata->inputBuffer =
-      (MYFLT *) calloc (csound->GetInputBufferSize(csound), sizeof(MYFLT));
-    return AuHAL_open(csound, parm, cdata, 1);
+  cdata->inunit = NULL;
+  cdata->auLock_in = csound->CreateThreadLock();
+  cdata->clientLock_in = csound->CreateThreadLock();
+  csound->WaitThreadLock(cdata->auLock_in, (size_t) 500);
+  csound->WaitThreadLock(cdata->clientLock_in, (size_t) 500);
+  csound->rtRecord_userdata = (void *) cdata;
+  cdata->inParm =  (csRtAudioParams *) parm;
+  cdata->csound = cdata->csound;
+  cdata->inputBuffer = (MYFLT *) calloc (csound->GetInputBufferSize(csound), sizeof(MYFLT));
+  cdata->isInputRunning = 1;
+  return AuHAL_open(csound, parm, cdata, 1);
 }
 
 /* open for audio output */
 static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
 {
-    csdata  *cdata;
-    if(csound->rtRecord_userdata != NULL)
-      cdata = (csdata *) csound->rtRecord_userdata;
-    else {
-      cdata = (csdata *) calloc(1, sizeof(csdata));
-      cdata->disp = 1;
-    }
-    cdata->outunit = NULL;
-    cdata->auLock_out = csound->CreateThreadLock();
-    cdata->clientLock_out = csound->CreateThreadLock();
-    csound->WaitThreadLock(cdata->auLock_out, (size_t) 500);
-    csound->WaitThreadLock(cdata->clientLock_out, (size_t) 500);
-
-    csound->rtPlay_userdata = (void *) cdata;
-    cdata->outParm =  (csRtAudioParams *) parm;
-    cdata->csound = csound;
-    cdata->outputBuffer =
-      (MYFLT *) calloc (csound->GetOutputBufferSize(csound), sizeof(MYFLT));
-    return AuHAL_open(csound, parm, cdata, 0);
+  csdata  *cdata;
+  if(csound->rtRecord_userdata != NULL)
+    cdata = (csdata *) csound->rtRecord_userdata;
+  else {
+    cdata = (csdata *) calloc(1, sizeof(csdata));
+    cdata->disp = 1;
+  } 
+  cdata->outunit = NULL;
+  cdata->auLock_out = csound->CreateThreadLock();
+  cdata->clientLock_out = csound->CreateThreadLock();
+  csound->WaitThreadLock(cdata->auLock_out, (size_t) 500);
+  csound->WaitThreadLock(cdata->clientLock_out, (size_t) 500);
+    
+  csound->rtPlay_userdata = (void *) cdata;
+  cdata->outParm =  (csRtAudioParams *) parm;
+  cdata->csound = csound;
+  cdata->outputBuffer = (MYFLT *) calloc (csound->GetOutputBufferSize(csound), sizeof(MYFLT));
+  cdata->isOutputRunning = 1;
+  return AuHAL_open(csound, parm, cdata, 0);
 }
 
 OSStatus  Csound_Input(void *inRefCon,
@@ -342,21 +344,21 @@ OSStatus  Csound_Input(void *inRefCon,
                        UInt32 inNumberFrames,
                        AudioBufferList *ioData)
 {
-    csdata *cdata = (csdata *) inRefCon;
-    CSOUND *csound = cdata->csound;
-    int inchnls = cdata->inchnls;
-    MYFLT *inputBuffer = cdata->inputBuffer;
-    int j,k;
-    AudioUnitSampleType *buffer;
-    csound->WaitThreadLock(cdata->auLock_in,500);
-    AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp,
-                    inBusNumber, inNumberFrames, cdata->inputdata);
-    for (k = 0; k < inchnls; k++){
-      buffer = (AudioUnitSampleType *) cdata->inputdata->mBuffers[k].mData;
-      for(j=0; j < inNumberFrames; j++){
-        inputBuffer[j*inchnls+k] = buffer[j];
-      }
+  csdata *cdata = (csdata *) inRefCon;
+  CSOUND *csound = cdata->csound;
+  int inchnls = cdata->inchnls;
+  MYFLT *inputBuffer = cdata->inputBuffer;    
+  int j,k;
+  AudioUnitSampleType *buffer;
+  if(!cdata->isInputRunning) return 0;
+  csound->WaitThreadLock(cdata->auLock_in,10);
+  AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, cdata->inputdata);
+  for (k = 0; k < inchnls; k++){
+    buffer = (AudioUnitSampleType *) cdata->inputdata->mBuffers[k].mData; 
+    for(j=0; j < inNumberFrames; j++){
+      inputBuffer[j*inchnls+k] = buffer[j];
     }
+  }
     csound->NotifyThreadLock(cdata->clientLock_in);
 
     return 0;
@@ -379,20 +381,22 @@ OSStatus  Csound_Render(void *inRefCon,
                         UInt32 inNumberFrames,
                         AudioBufferList *ioData)
 {
-    csdata *cdata = (csdata *) inRefCon;
-    CSOUND *csound = cdata->csound;
-    int onchnls = cdata->onchnls;;
-    MYFLT *outputBuffer = cdata->outputBuffer;
-    int j,k;
-    AudioUnitSampleType *buffer;
 
-    csound->WaitThreadLock(cdata->auLock_out,500);
-    for (k = 0; k < onchnls; k++) {
-      buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
-      for(j=0; j < inNumberFrames; j++){
-        buffer[j] = (AudioUnitSampleType) outputBuffer[j*onchnls+k] ;
-      }
+  csdata *cdata = (csdata *) inRefCon;
+  CSOUND *csound = cdata->csound;
+  int onchnls = cdata->onchnls;;
+  MYFLT *outputBuffer = cdata->outputBuffer;    
+  int j,k;
+  AudioUnitSampleType *buffer; 
+    
+  if(!cdata->isOutputRunning) return 0;
+  csound->WaitThreadLock(cdata->auLock_out, 10);
+  for (k = 0; k < onchnls; k++) {
+    buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
+    for(j=0; j < inNumberFrames; j++){
+      buffer[j] = (AudioUnitSampleType) outputBuffer[j*onchnls+k] ;
     }
+  }
     csound->NotifyThreadLock(cdata->clientLock_out);
 
     return 0;
@@ -421,36 +425,40 @@ static void rtclose_(CSOUND *csound)
     if(cdata == NULL)
       cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
 
-    if (cdata != NULL) {
+  if (cdata != NULL) {
+    usleep(1000*csound->GetOutputBufferSize(p)/(csound->GetSr(p)*csound->GetNchnls(p)));      
 
-      if(cdata->inunit != NULL){
-        AudioOutputUnitStop(cdata->inunit);
-        AudioUnitUninitialize(cdata->inunit);
-        AudioComponentInstanceDispose(cdata->inunit);
-      }
+    if(cdata->inunit != NULL){
+      AudioOutputUnitStop(cdata->inunit);
+      AudioUnitUninitialize(cdata->inunit);
+      AudioComponentInstanceDispose(cdata->inunit);
+    }
+    cdata->isInputRunning = 0;
 
-      if(cdata->outunit != NULL){
-        AudioOutputUnitStop(cdata->outunit);
-        AudioUnitUninitialize(cdata->outunit);
-        AudioComponentInstanceDispose(cdata->outunit);
-      }
+    if(cdata->outunit != NULL){
+      AudioOutputUnitStop(cdata->outunit);
+      AudioUnitUninitialize(cdata->outunit);
+      AudioComponentInstanceDispose(cdata->outunit);
+    }
+    cdata->isOutputRunning = 0;  
 
-      if (cdata->clientLock_in != NULL) {
-        csound->NotifyThreadLock(cdata->clientLock_in);
-        csound->DestroyThreadLock(cdata->clientLock_in);
-        cdata->clientLock_in = NULL;
-      }
-      if (cdata->auLock_in != NULL) {
-        csound->NotifyThreadLock(cdata->auLock_in);
-        csound->DestroyThreadLock(cdata->auLock_in);
-        cdata->auLock_in = NULL;
-      }
+    if (cdata->clientLock_in != NULL) {
+      csound->NotifyThreadLock(cdata->clientLock_in);
+      csound->DestroyThreadLock(cdata->clientLock_in);
+      cdata->clientLock_in = NULL;
+    }
+    if (cdata->auLock_in != NULL) {
+      csound->NotifyThreadLock(cdata->auLock_in);
+      csound->DestroyThreadLock(cdata->auLock_in);
+      cdata->auLock_in = NULL;
+    }  
 
-      if (cdata->clientLock_out != NULL) {
-        csound->NotifyThreadLock(cdata->clientLock_out);
-        csound->DestroyThreadLock(cdata->clientLock_out);
-        cdata->clientLock_in = NULL;
-      }
+    if (cdata->clientLock_out != NULL) {
+      csound->NotifyThreadLock(cdata->clientLock_out);
+      csound->DestroyThreadLock(cdata->clientLock_out);
+      cdata->clientLock_in = NULL;
+    }
+
       if (cdata->auLock_out != NULL) {
         csound->NotifyThreadLock(cdata->auLock_out);
         csound->DestroyThreadLock(cdata->auLock_out);
@@ -478,7 +486,7 @@ static void rtclose_(CSOUND *csound)
       free(cdata);
       p->Message(csound, Str("AuHAL module: device closed\n"));
 
-    }
+  }
 }
 
 int csoundModuleInit(CSOUND *csound)
