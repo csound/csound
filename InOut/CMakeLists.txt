@@ -77,7 +77,7 @@ check_deps(USE_AUDIOUNIT APPLE COREAUDIO_INCLUDE_PATH COREAUDIO_LIBRARY AUDIOUNI
 if(USE_AUDIOUNIT)
     make_plugin(rtauhal rtauhal.c)
     include_directories(${AUDIOUNIT_INCLUDE_PATH})
-    target_link_libraries(rtauhal ${AUDIOUNIT_LIBRARY} ${COREFOUNDATIO_LIBRARY})
+    target_link_libraries(rtauhal ${AUDIOUNIT_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COREAUDIO_LIBRARY})
 endif()
 
 check_deps(USE_ALSA ALSA_HEADER ALSA_LIBRARY PTHREAD_LIBRARY)
