@@ -11,9 +11,9 @@ TREE *csp_locks_insert(CSOUND * csound, TREE *root);
 /* build the cache of global locks */
 void csp_locks_cache_build(CSOUND *csound);
 /* lock global with index */
-void inline csp_locks_lock(CSOUND * csound, int global_index);
+extern void inline csp_locks_lock(CSOUND * csound, int global_index);
 /* unlock global with index */
-void inline csp_locks_unlock(CSOUND * csound, int global_index);
+extern void inline csp_locks_unlock(CSOUND * csound, int global_index);
 
 /* fetch a weight for opcode name */
 uint32_t csp_opcode_weight_fetch(CSOUND *csound, char *name);
@@ -107,7 +107,7 @@ void csp_dag_build(CSOUND *csound, DAG **dag, INSDS *chain);
 void csp_dag_print(CSOUND *csound, DAG *dag);
 
 /* return 1 if the DAG is completely consume */
-int inline csp_dag_is_finished(CSOUND *csound, DAG *dag);
+extern int inline csp_dag_is_finished(CSOUND *csound, DAG *dag);
 /* get a node from the dag
  * update_hdl should be passed into consume_update when the node has
  * been performed */
