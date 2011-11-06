@@ -338,7 +338,7 @@ OSStatus  Csound_Input(void *inRefCon,
   MYFLT *inputBuffer = cdata->inputBuffer;    
   int j,k;
   AudioUnitSampleType *buffer;
-  csound->WaitThreadLock(cdata->auLock_in,500);
+  csound->WaitThreadLock(cdata->auLock_in,10);
   AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, cdata->inputdata);
   for (k = 0; k < inchnls; k++){
     buffer = (AudioUnitSampleType *) cdata->inputdata->mBuffers[k].mData; 
@@ -355,7 +355,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuff_, int nbytes)
 {
   csdata  *cdata;
   cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
-  csound->WaitThreadLock(cdata->clientLock_in, (size_t) 500);
+  csound->WaitThreadLock(cdata->clientLock_in, (size_t) 10);
   memcpy(inbuff_,cdata->inputBuffer,nbytes);
   csound->NotifyThreadLock(cdata->auLock_in);  
   return nbytes;
@@ -375,7 +375,7 @@ OSStatus  Csound_Render(void *inRefCon,
   int j,k;
   AudioUnitSampleType *buffer; 
     
-  csound->WaitThreadLock(cdata->auLock_out,500);
+  csound->WaitThreadLock(cdata->auLock_out, 10);
   for (k = 0; k < onchnls; k++) {
     buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
     for(j=0; j < inNumberFrames; j++){
@@ -392,7 +392,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int nbytes)
   
   csdata  *cdata;
   cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
-  csound->WaitThreadLock(cdata->clientLock_out, (size_t) 500);
+  csound->WaitThreadLock(cdata->clientLock_out, (size_t) 10);
   memcpy(cdata->outputBuffer,outbuff_,nbytes);
   csound->NotifyThreadLock(cdata->auLock_out);  
    
