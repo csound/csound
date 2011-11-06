@@ -1922,7 +1922,8 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     portMidiEnvironment = pluginEnvironment.Clone()
     portMidiEnvironment.Append(LIBS = ['portmidi'])
     if getPlatform() != 'darwin' and getPlatform() != 'win32':
-        portMidiEnvironment.Append(LIBS = ['porttime'])
+        if configure.CheckLibWithHeader("porttimer","porttimmer.h",language="C"):
+            portMidiEnvironment.Append(LIBS = ['porttime'])
     if getPlatform() == 'win32':
         portMidiEnvironment.Append(LIBS = csoundWindowsLibraries)
     if getPlatform() == 'linux' and alsaFound:
