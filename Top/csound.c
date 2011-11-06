@@ -1315,7 +1315,7 @@ extern "C" {
 
 
 #ifdef PARCS
-  int inline nodePerf(CSOUND *csound, int index)
+  static int inline nodePerf(CSOUND *csound, int index)
   {
       struct instr_semantics_t *instr = NULL;
       INSDS *insds = NULL;
