@@ -737,7 +737,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     ST(outbufp) = ST(outbuf) = mmalloc(csound, ST(outbufsiz));
     if (ST(pipdevout) == 2)
       csound->Message(csound, Str("writing %d sample blks of MYFLTS to %s \n"),
-                      O->outbufsamps * O->sfsampsize,ST(sfoutname));
+                      O->outbufsamps, ST(sfoutname));
     else {
      csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
