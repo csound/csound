@@ -1142,11 +1142,10 @@ int xoutset(CSOUND *csound, XOUT *p)
     }
     /* skip input pointers, including the three delimiter NULLs */
     tmp = buf->iobufp_ptrs;
-    /* VL: needs to check if there are not 6 nulls in a sequence, which
+    /* VL: needs to check if there are not 4 nulls in a sequence, which
        would indicate no a, k, f or t sigs */
-    if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3) 
-        || *(tmp + 4) || *(tmp + 5)) tmp += (inm->perf_incnt << 1);
-    tmp += 6;  /* VL: this was 2, now 6 with fsigs and tsigs added */
+    if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3)) tmp += (inm->perf_incnt << 1);
+    tmp += 4;  /* VL: this was 2, now 4 with fsigs and tsigs added */
     if (*tmp || *(tmp + 1))
     return OK;
    
@@ -1640,7 +1639,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     /* k-rate outputs are copied only in the last sub-kperiod, */
     /* so we do it now */
     while (*(++tmp)) {                  /* k-rate */
-      ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+      ptr1 = *tmp; 
+      *(*(++tmp)) = *ptr1;
     }
     /* VL: fsigs out need to be dealt with here */
      while (*(++tmp)) {                
@@ -1725,8 +1725,9 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     }
     else {                      /* special case for kr == sr */
       /* copy inputs */
-      while (*(++tmp)) {                    /* a-rate */
-        ptr1 = *(tmp++); *(*(tmp++)) = *ptr1;
+      while (*tmp) {                    /* a-rate */
+        ptr1 = *(tmp++); 
+        *(*(tmp++)) = *ptr1;
       }
       while (*(++tmp)) {                /* k-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;

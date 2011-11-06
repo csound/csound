@@ -103,15 +103,15 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
        if(!ret){
          /* sources, we connect to all available input sources */
         endpoints = MIDIGetNumberOfSources();
-        csoundMessage(csound, "%d MIDI sources in system \n", endpoints);
+        csound->Message(csound, "%d MIDI sources in system \n", endpoints);
         if(!strcmp(dev,"all")) { 
-        csoundMessage(csound, "receiving from all sources \n");
+        csound->Message(csound, "receiving from all sources \n");
         for(k=0; k < endpoints; k++){
           endpoint = MIDIGetSource(k);
           long srcRefCon = (long) endpoint;
           MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
           MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-          csoundMessage(csound, "connecting midi device %d: %s \n", k,
+          csound->Message(csound, "connecting midi device %d: %s \n", k,
                         CFStringGetCStringPtr(name, defaultEncoding)); 
          }
         }
@@ -122,7 +122,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
           long srcRefCon = (long) endpoint;
           MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
           MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-          csoundMessage(csound, "connecting midi device %d: %s \n", k,
+          csound->Message(csound, "connecting midi device %d: %s \n", k,
                         CFStringGetCStringPtr(name, defaultEncoding));
           }
           else csound->Message(csound, "MIDI device number %d is out-of-range, not connected \n", k);         
@@ -245,12 +245,12 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           strcmp(drv, "CoreMIDI") == 0 || strcmp(drv, "cm") == 0))
       return 0;
     csound->Message(csound, Str("rtmidi: CoreMIDI module enabled\n"));
-    csoundSetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
-    csoundSetExternalMidiReadCallback(csound, MidiDataRead);
-    csoundSetExternalMidiInCloseCallback(csound, MidiInDeviceClose);
-    csoundSetExternalMidiOutOpenCallback(csound, MidiOutDeviceOpen);
-    csoundSetExternalMidiWriteCallback(csound, MidiDataWrite);
-    csoundSetExternalMidiOutCloseCallback(csound, MidiOutDeviceClose);
+    csound->SetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
+    csound->SetExternalMidiReadCallback(csound, MidiDataRead);
+    csound->SetExternalMidiInCloseCallback(csound, MidiInDeviceClose);
+    csound->SetExternalMidiOutOpenCallback(csound, MidiOutDeviceOpen);
+    csound->SetExternalMidiWriteCallback(csound, MidiDataWrite);
+    csound->SetExternalMidiOutCloseCallback(csound, MidiOutDeviceClose);
     return 0;
 }
 
