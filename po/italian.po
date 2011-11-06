@@ -2326,6 +2326,16 @@ msgstr "twarp: t ha tempo non positivo\n"
 msgid "twarp: t segments exceed twarp array\n"
 msgstr "twarp: segmenti di t superano l'array twarp\n"
 
+#: InOut/cmidi.c:233
+#, fuzzy
+msgid "CoreMIDI real time MIDI plugin for Csound\n"
+msgstr "PortMIDI real time MIDI plugin per Csound\n"
+
+#: InOut/cmidi.c:247
+#, fuzzy
+msgid "rtmidi: CoreMIDI module enabled\n"
+msgstr "rtmidi: PortMIDI modulo abilitato\n"
+
 #: InOut/libsnd.c:486
 msgid "error: no input file name"
 msgstr "errore: manca il nome del file di input"
