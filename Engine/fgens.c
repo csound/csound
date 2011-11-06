@@ -2671,26 +2671,6 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 
 #ifdef INC_MP3
 #include "mp3dec.h"
-static int gen49(FGDATA *ff, FUNC *ftp)
-{
-    if (UNLIKELY(ff->e.pcnt < 7)) {
-      return fterror(ff, Str("insufficient arguments"));
-    }
-    if (ff->csound->oparms->gen01defer) {
-      /* We're deferring the soundfile load until performance time,
-         so allocate the function table descriptor, save the arguments,
-         and get out */
-      ftp = ftalloc(ff);
-      ftp->gen01args.gen01 = ff->e.p[4];
-      ftp->gen01args.ifilno = ff->e.p[5];
-      ftp->gen01args.iskptim = ff->e.p[6];
-      ftp->gen01args.iformat = ff->e.p[7];
-      ftp->gen01args.channel = ff->e.p[8];
-      strcpy(ftp->gen01args.strarg, ff->e.strarg);
-      return OK;
-    }
-    return gen01raw(ff, ftp);
-}
 
 static int gen49raw(FGDATA *ff, FUNC *ftp)
 {
@@ -2829,7 +2809,27 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
 }
 
-static CS_NOINLINE FUNC *gen48_defer_load(CSOUND *csound, int fno)
+static int gen49(FGDATA *ff, FUNC *ftp)
+{
+    if (UNLIKELY(ff->e.pcnt < 7)) {
+      return fterror(ff, Str("insufficient arguments"));
+    }
+    if (ff->csound->oparms->gen01defer) {
+      /* We're deferring the soundfile load until performance time,
+         so allocate the function table descriptor, save the arguments,
+         and get out */
+      ftp = ftalloc(ff);
+      ftp->gen01args.gen01 = ff->e.p[4];
+      ftp->gen01args.ifilno = ff->e.p[5];
+      ftp->gen01args.iskptim = ff->e.p[6];
+      ftp->gen01args.iformat = ff->e.p[7];
+      ftp->gen01args.channel = ff->e.p[8];
+      strcpy(ftp->gen01args.strarg, ff->e.strarg);
+      return OK;
+    }
+    return gen49raw(ff, ftp);
+}
+static CS_NOINLINE FUNC *gen49_defer_load(CSOUND *csound, int fno)
 {
     FGDATA  ff;
     char    strarg[SSTRSIZ];

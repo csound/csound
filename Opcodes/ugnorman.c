@@ -1338,7 +1338,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
    
     /* set local pointer to output and initialise output to zero */
     ar = p->aoutput;
-    	
+
     memset(ar, 0, csound->ksmps*sizeof(MYFLT));
 /*     for (i = 0; i < csound->ksmps; i++) */
 /*       *ar++ = FL(0.0); */
@@ -1366,13 +1366,14 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
           /* calc noise */
           if (i < 25) {
           noise = nzamp * COS(p->noiphase[i])
-	    * randiats(csound, &(p->randinoise[i]));
-           p->noiphase[i] += p->phaseinc[i];
-	  } else noise = FL(0.0);
+            * randiats(csound, &(p->randinoise[i]));
+          p->noiphase[i] += p->phaseinc[i];
+          }
+          else noise = FL(0.0);
           /* calc output */
           ar[n] += csound->e0dbfs *
             (MYFLT)(amp * sinewave * *p->ksinamp + noise **p->knzamp);
-	  
+          
         }
         p->oscphase[i] = phase;
       }
