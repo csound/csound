@@ -36,7 +36,7 @@ typedef struct {
     int nummod, numparm;
     /* Variables for the preprocessed matrix */
     int doscan, scanned;
-	AUXCH aux;
+        AUXCH aux;
     MYFLT *proc_mat;
     int *mod_map, *parm_map;
     MYFLT *remap_mod, *remap_parm;
