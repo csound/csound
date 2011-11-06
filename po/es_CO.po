@@ -2292,6 +2292,14 @@ msgstr ""
 msgid "twarp: t segments exceed twarp array\n"
 msgstr ""
 
+#: InOut/cmidi.c:233
+msgid "CoreMIDI real time MIDI plugin for Csound\n"
+msgstr ""
+
+#: InOut/cmidi.c:247
+msgid "rtmidi: CoreMIDI module enabled\n"
+msgstr ""
+
 #: InOut/libsnd.c:486
 msgid "error: no input file name"
 msgstr "error: hay nombre del archivo de entrada"
