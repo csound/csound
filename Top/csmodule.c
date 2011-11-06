@@ -150,6 +150,10 @@ static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 #  endif
 #endif
 
+#if (TARGET_OS_IPHONE != 0) && (TARGET_IPHONE_SIMULATOR != 0)
+#  define ENABLE_OPCODEDIR_WARNINGS 0
+#endif
+
 typedef struct opcodeLibFunc_s {
     long    (*opcode_init)(CSOUND *, OENTRY **);  /* list of opcode entries  */
     NGFENS  *(*fgen_init)(CSOUND *);        /* list of named GEN routines    */
