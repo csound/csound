@@ -1725,7 +1725,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     }
     else {                      /* special case for kr == sr */
       /* copy inputs */
-      while (*tmp) {                    /* a-rate */
+      while (*(++tmp)) {                    /* a-rate */
         ptr1 = *(tmp++); *(*(tmp++)) = *ptr1;
       }
       while (*(++tmp)) {                /* k-rate */
