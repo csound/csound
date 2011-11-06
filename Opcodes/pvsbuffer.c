@@ -303,9 +303,9 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
            frac = pos - posi;
            fout[i] = frame1[i] + frac*(frame2[i] - frame1[i]);
         } else
-	  fout[i] = 0.0f;
+          fout[i] = 0.0f;
         if (tab == tab1) tab = tab2;
-	  else tab = tab1;
+          else tab = tab1;
       }
       p->scnt -= overlap;
       p->fout->framecount++;
