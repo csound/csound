@@ -962,6 +962,9 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       /* initialise perf time address lists */
       buf->iobufp_ptrs[0] = buf->iobufp_ptrs[1] = NULL;
       buf->iobufp_ptrs[2] = buf->iobufp_ptrs[3] = NULL;
+      buf->iobufp_ptrs[4] = buf->iobufp_ptrs[5] = NULL;
+      buf->iobufp_ptrs[6] = buf->iobufp_ptrs[7] = NULL;
+
       /* store parameters of input and output channels, and parent ip */
       buf->uopcode_struct = (void*) p;
       buf->parent_ip = p->parent_ip = parent_ip;
@@ -1140,7 +1143,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     /* skip input pointers, including the three delimiter NULLs */
     tmp = buf->iobufp_ptrs;
     /* VL: needs to check if there are not 6 nulls in a sequence, which
-       would indicate no a, k, for t sigs */
+       would indicate no a, k, f or t sigs */
     if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3) 
         || *(tmp + 4) || *(tmp + 5)) tmp += (inm->perf_incnt << 1);
     tmp += 6;  /* VL: this was 2, now 6 with fsigs and tsigs added */
