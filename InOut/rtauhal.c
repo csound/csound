@@ -501,10 +501,12 @@ int csoundModuleInit(CSOUND *csound)
     if (drv == NULL)
       return 0;
     if (!(strcmp(drv, "auhal") == 0 || strcmp(drv, "AuHal") == 0 ||
-          strcmp(drv, "auhal") == 0))
+          strcmp(drv, "auhal") == 0) ||
+        !(strcmp(drv, "coreaudio") == 0 || strcmp(drv, "CoreAudio") == 0 ||
+          strcmp(drv, "COREAUDIO") == 0))
       return 0;
     if (csound->oparms->msglevel & 0x400)
-      csound->Message(csound, Str("rtaudio: AuHAL module enabled\n"));
+      csound->Message(csound, Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);
