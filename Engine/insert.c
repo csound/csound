@@ -452,13 +452,14 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
        It is a nasty bug that needs to be fixed. 
         
        A possible solution is to  allocate always a minimum of 5 p-fields (see line
-       1809 below). The extra p-fields appear to be hanging at the end of 
+       approx 1809 below). The extra p-fields appear to be hanging at the end of 
        an INSDS structure, and &p1 appears to be a legal array start address.
        This allows p4 and p5 to be mapped, but no further p-fields (possibly).
 
        This fix is a bit of hack IMHO. But I have implemented it here, as it
        seemingly prevents the crashes.
 
+       (JPff) a safer fix to readthe extra arg numbers
      */
 
     csound->curip = ip;
@@ -1814,7 +1815,14 @@ static void instance(CSOUND *csound, int insno)
     tp = csound->instrtxtp[insno];
     /* VL: added 2 extra MYFLT pointers to the memory to account for possible
        use by midi mapping flags */
-    pextent = sizeof(INSDS) + tp->pextrab + 2*sizeof(MYFLT *);      /* alloc new space,  */
+    n = 3;
+    if (csound->oparms->midiKey>n) n = csound->oparms->midiKey;
+    if (csound->oparms->midiKeyCps>n) n = csound->oparms->midiKeyCps;
+    if (csound->oparms->midiKeyOct>n) n = csound->oparms->midiKeyOct;
+    if (csound->oparms->midiKeyPch>n) n = csound->oparms->midiKeyPch;
+    if (csound->oparms->midiVelocity>n) n = csound->oparms->midiVelocity;
+    if (csound->oparms->midiVelocityAmp>n) n = csound->oparms->midiVelocityAmp;
+    pextent = sizeof(INSDS) + tp->pextrab + (n-3)*sizeof(MYFLT *);      /* alloc new space,  */
     ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->localen + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
