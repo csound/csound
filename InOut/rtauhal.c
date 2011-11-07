@@ -39,7 +39,6 @@ typedef ComponentDescription AudioComponentDescription;
 #define AudioComponentInstanceNew OpenAComponent
 #define  AudioComponentInstanceDispose CloseComponent
 typedef float AudioUnitSampleType;
-
 #endif
 
 
@@ -52,10 +51,10 @@ typedef struct csdata_ {
   int         currentOutputIndex;
   MYFLT       *inputBuffer;
   MYFLT       *outputBuffer;
-  void        *auLock_in;                /* thread lock for stream callback  */
-  void        *clientLock_in;            /* thread lock for rtplay/rtrecord  */
-  void        *auLock_out;               /* thread lock for stream callback  */
-  void        *clientLock_out;           /* thread lock for rtplay/rtrecord  */
+  void        *auLock_in;                /* thread lock for au callback  */
+  void        *clientLock_in;            /* thread lock for rtrecord     */
+  void        *auLock_out;               /* thread lock for au callback  */
+  void        *clientLock_out;           /* thread lock for rtplay       */
   csRtAudioParams *inParm;
   csRtAudioParams *outParm;
   int onchnls, inchnls;
@@ -94,7 +93,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
   int     i;
   UInt32  bufframes, nchnls;
   MYFLT srate;
-  UInt32 enableIO = 1, maxFPS;
+  UInt32 enableIO, maxFPS;
   AudioComponent HALOutput;
   AudioComponentInstance *aunit;
   AudioComponentDescription cd = {kAudioUnitType_Output,
@@ -499,7 +498,6 @@ static void rtclose_(CSOUND *csound)
 int csoundModuleInit(CSOUND *csound)
 {
   char   *drv;
-
   drv = (char *) csound->QueryGlobalVariable(csound, "_RTAUDIO");
   if (drv == NULL)
     return 0;
