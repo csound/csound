@@ -75,8 +75,8 @@ void new_orc_parser(CSOUND *csound)
     if (UNLIKELY((t = csound->FileOpen2(csound, &ttt, CSFILE_STD,
                                  csound->orchname, "rb", NULL,
                                         CSFTYPE_ORCHESTRA, 0)) == NULL)) {
-    	csound->Free(csound, pp.buffer);
-    	csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
+      csound->Free(csound, pp.buffer);
+      csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
     }
     csound_orcset_in(ttt, pp.yyscanner);
     csound_orcrestart(ttt, pp.yyscanner);
