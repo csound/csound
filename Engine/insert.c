@@ -1808,7 +1808,8 @@ static void instance(CSOUND *csound, int insno)
     char      *nxtopds, *opdslim;
     MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
     int       *ndxp;
-    int       odebug = csound->oparms->odebug;
+    OPARMS    *O = csound->oparms;
+    int       odebug = O->odebug;
 
     lopdsp = csound->lopds;
     largp = (LARGNO*) csound->larg;
@@ -1816,12 +1817,12 @@ static void instance(CSOUND *csound, int insno)
     /* VL: added 2 extra MYFLT pointers to the memory to account for possible
        use by midi mapping flags */
     n = 3;
-    if (csound->oparms->midiKey>n) n = csound->oparms->midiKey;
-    if (csound->oparms->midiKeyCps>n) n = csound->oparms->midiKeyCps;
-    if (csound->oparms->midiKeyOct>n) n = csound->oparms->midiKeyOct;
-    if (csound->oparms->midiKeyPch>n) n = csound->oparms->midiKeyPch;
-    if (csound->oparms->midiVelocity>n) n = csound->oparms->midiVelocity;
-    if (csound->oparms->midiVelocityAmp>n) n = csound->oparms->midiVelocityAmp;
+    if (O->midiKey>n) n = O->midiKey;
+    if (O->midiKeyCps>n) n = O->midiKeyCps;
+    if (O->midiKeyOct>n) n = O->midiKeyOct;
+    if (O->midiKeyPch>n) n = O->midiKeyPch;
+    if (O->midiVelocity>n) n = O->midiVelocity;
+    if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
     pextent = sizeof(INSDS) + tp->pextrab + (n-3)*sizeof(MYFLT *);      /* alloc new space,  */
     ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->localen + tp->opdstot);
     ip->csound = csound;
