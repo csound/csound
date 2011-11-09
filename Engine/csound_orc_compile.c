@@ -35,8 +35,7 @@
 #include "typetabl.h"
 
 typedef struct NAME_ {
-    char          *namep;
-    struct NAME_  *nxt;
+    char          *namep;    struct NAME_  *nxt;
     int           type, count;
 } NAME;
 
@@ -126,7 +125,7 @@ int tree_arg_list_count(TREE * root)
     int count = 0;
     TREE * current = root;
 
-    while(current != NULL) {
+    while (current != NULL) {
       current = current->next;
       count++;
     }
@@ -140,7 +139,7 @@ static OPTXT * last_optxt(OPTXT *optxt)
 {
     OPTXT *current = optxt;
 
-    while(current->nxtop != NULL) {
+    while (current->nxtop != NULL) {
       current = current->nxtop;
     }
     return current;
@@ -167,7 +166,7 @@ void update_lclcount(CSOUND *csound, INSTRTXT *ip, TREE *argslist)
 {
     TREE * current = argslist;
 
-    while(current != NULL) {
+    while (current != NULL) {
       switch(current->type) {
       case T_IDENT_S:
         ip->lclscnt++;
@@ -548,7 +547,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
     ip->t.inlist->arg[0] = strsav_string(csound, "0");
 
 
-    while(current != NULL) {
+    while (current != NULL) {
 
       if (current->type != T_INSTR && current->type != T_UDO) {
 
@@ -583,14 +582,15 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
           }
           else if (current->left->type == T_NCHNLSI) {
             csound->tran_nchnlsi = current->right->value->value;
-            /* csound->Message(csound, "SETTING NCHNLS: %d\n", csound->tran_nchnls); */
+            /* csound->Message(csound, "SETTING NCHNLS: %d\n",
+                               csound->tran_nchnls); */
           }
           else if (current->left->type == T_0DBFS) {
             csound->tran_0dbfs = val;
-            csound->Message(csound, "SETTING 0DBFS: %f\n", csound->tran_0dbfs);
+            /* csound->Message(csound, "SETTING 0DBFS: %f\n",
+                               csound->tran_0dbfs); */
           }
 
-          /* TODO - Implement 0dbfs constant  -- surely done?? */
         }
 
         op->nxtop = create_opcode(csound, current, ip);
@@ -839,7 +839,8 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum) {
     csound->instrtxtp[instrNum] = instrtxt;
 }
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) {
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) 
+{
     OPCODINFO *opinfo = csound->opcodeInfo;
     if (UNLIKELY(opinfo == NULL)) {
       csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
@@ -860,7 +861,8 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) {
 /**
  * Compile the given TREE node into structs for Csound to use
  */
-void csound_orc_compile(CSOUND *csound, TREE *root) {
+void csound_orc_compile(CSOUND *csound, TREE *root) 
+{
     //    csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
     OPARMS      *O = csound->oparms;
@@ -875,7 +877,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
 
     strsav_create(csound);
 
-    if (csound->otranGlobals == NULL) {
+    if (UNLIKELY(csound->otranGlobals == NULL)) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
     }
     csound->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + csound->maxinsno)
@@ -921,7 +923,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
 
         prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
-        /* Handle Inserting into CSOUND here by checking id's (name or
+        /* Handle Inserting into CSOUND here by checking ids (name or
          * numbered) and using new insert_instrtxt?
          */
         //printf("Starting to install instruments\n");
@@ -935,7 +937,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
           TREE *p =  current->left;
           //printf("instlist case:\n"); /* This code is suspect */
           while (p) {
-            print_tree(csound, "Top of loop\n", p);
+            if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);
             if (p->left) {
               //print_tree(csound, "Left\n", p->left);
               if (p->left->type == T_INTGR)
