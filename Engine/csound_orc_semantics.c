@@ -48,10 +48,10 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
     //    print_tree(csound, "Verify", root);
     if (root==NULL) return NULL;
-    if (root->left)  {
-      root->left = verify_tree(csound, root->left);
-      if (root->right) {
-        root->right= verify_tree(csound, root->right);
+    if (root->right) {
+      root->right = verify_tree(csound, root->right);
+      if (root->left)  {
+        root->left= verify_tree(csound, root->left);
         if ((root->left->type  == T_INTGR || root->left->type  == T_NUMBER) &&
             (root->right->type == T_INTGR || root->right->type == T_NUMBER)) {
           lval = (root->left->type == T_INTGR ?
@@ -60,30 +60,35 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
                   (double)root->right->value->value :root->left->value->fvalue);
           ans = root->left;
           ans->type = ans->value->type = T_NUMBER;
+          /* **** Something wrong here -- subtractuon confuses memory **** */
           switch (root->type) {
           case S_PLUS:
             ans->value->fvalue = lval+rval;
-            mrealloc(csound, ans->value->lexeme, 24);
+            ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
-            //Memory leak!! mfree(csound, root); mfree(csound, root->right);
+            //Memory leak!! 
+            //mfree(csound, root); mfree(csound root->right);
             return ans;
           case S_MINUS:
             ans->value->fvalue = lval-rval;
-            mrealloc(csound, ans->value->lexeme, 24);
+            ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
-            //Memory leak!! mfree(csound, root); mfree(csound, root->right);
+            //Memory leak!! 
+            //mfree(csound, root); mfree(csound, root->right);
             return ans;
           case S_TIMES:
             ans->value->fvalue = lval*rval;
-            mrealloc(csound, ans->value->lexeme, 24);
+            ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
-            //Memory leak!! mfree(csound, root); mfree(csound, root->right);
+            //Memory leak!! 
+            //mfree(csound, root); mfree(csound, root->right);
             return ans;
           case S_DIV:
             ans->value->fvalue = lval/rval;
-            mrealloc(csound, ans->value->lexeme, 24);
+            ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
-            //Memory leak!! mfree(csound, root); mfree(csound, root->right);
+            //Memory leak!! 
+            //mfree(csound, root); mfree(csound, root->right);
             return ans;
             /* case S_NEQ: */
             /*   break; */
@@ -103,6 +108,22 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
             /*   break; */
           default: break;
           }
+        }
+      }
+      else if (root->right->type == T_INTGR || root->right->type == T_NUMBER) {
+        switch (root->type) {
+        case S_UMINUS:
+          print_tree(csound, "root", root);
+          ans = root->right;
+          ans->value->fvalue = -(ans->type == T_INTGR ? ans->value->value
+                                 : ans->value->fvalue);
+          ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
+          sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+          ans->type = ans->value->type = T_NUMBER;
+          print_tree(csound, "ans", ans);
+          return ans;
+        default:
+          break;
         }
       }
     }
