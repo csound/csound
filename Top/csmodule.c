@@ -1338,6 +1338,8 @@ extern long tabvars_localops_init(CSOUND *, void *);
 extern long phisem_localops_init(CSOUND *, void *);
 extern long pvoc_localops_init(CSOUND *, void *);
 extern long hrtfopcodes_localops_init(CSOUND *, void *);
+extern long hrtfreverb_localops_init(CSOUND *, void *);
+extern long hrtfearly_localops_init(CSOUND *, void *);
 
 extern long stackops_localops_init(CSOUND *, void *);
 extern long vbap_localops_init(CSOUND *, void *);
@@ -1375,7 +1377,8 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
                                  shape_localops_init, tabsum_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
-                                 fareyseq_localops_init,
+                                 fareyseq_localops_init, hrtfearly_localops_init,
+				 hrtfreverb_localops_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);
