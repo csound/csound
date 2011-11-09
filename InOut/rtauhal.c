@@ -65,6 +65,8 @@ typedef struct csdata_ {
   int disp;
   int isInputRunning;
   int isOutputRunning;
+  AudioDeviceID defdevin;
+  AudioDeviceID defdevout;
 } csdata;
 
 OSStatus  Csound_Input(void *inRefCon,
@@ -112,6 +114,9 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     psize = sizeof(AudioDeviceID);
     AudioObjectGetPropertyData(kAudioObjectSystemObject,
                                &prop, 0, NULL, &psize, &dev);
+    
+    if(isInput) cdata->defdevin = dev;
+    else cdata->defdevout = dev;
 
     prop.mSelector = kAudioHardwarePropertyDevices;
 
@@ -493,6 +498,27 @@ static void rtclose_(CSOUND *csound)
           free(cdata->inputdata->mBuffers[i].mData);
         free(cdata->inputdata);
       }
+
+      if(cdata->defdevin) {
+      AudioObjectPropertyAddress prop = {
+      kAudioHardwarePropertyDefaultInputDevice,
+      kAudioObjectPropertyScopeGlobal,
+      kAudioObjectPropertyElementMaster
+      };
+      UInt32 psize = sizeof(AudioDeviceID);
+      AudioObjectSetPropertyData(kAudioObjectSystemObject,
+                               &prop, 0, NULL, psize, &cdata->defdevin); 
+      }
+      if(cdata->defdevout) { 
+      AudioObjectPropertyAddress prop = {
+     kAudioHardwarePropertyDefaultOutputDevice,
+      kAudioObjectPropertyScopeGlobal,
+      kAudioObjectPropertyElementMaster
+      };   
+      UInt32 psize = sizeof(AudioDeviceID);
+      AudioObjectSetPropertyData(kAudioObjectSystemObject,
+                               &prop, 0, NULL, psize, &cdata->defdevout);
+    }
       free(cdata);
       csound->Message(csound, Str("AuHAL module: device closed\n"));
 
