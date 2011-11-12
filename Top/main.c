@@ -379,8 +379,12 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csoundNotifyFileOpened(csound, sortedscore, CSFTYPE_SCORE_OUT, 1,
                                      (csound->tempStatus & csScoSortMask)!=0);
       csound->Message(csound, Str("sorting score ...\n"));
-      scsort(csound, scorin, scorout);
-      fclose(scorin);
+      if (csound->scorestr)
+        scsortstr(csound, csound->scorestr, scorout);
+      else {
+        scsort(csound, scorin, scorout);
+        fclose(scorin);
+      }
       fclose(scorout);
     }
     if (csound->xfilename != NULL) {            /* optionally extract */

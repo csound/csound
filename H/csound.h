@@ -393,6 +393,9 @@ extern "C" {
         CSFTYPE_OTHER_TEXT = 57,
         CSFTYPE_OTHER_BINARY = 58,
 
+        /* In memory files */
+        CSFTYPE_MEMORY = 60,
+
         /* This should only be used internally by the original FileOpen()
            API call or for temp files written with <CsFileB> */
         CSFTYPE_UNKNOWN = 0
