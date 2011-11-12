@@ -444,6 +444,8 @@ set(libcsound_SRCS
     Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c
     Opcodes/ftest.c
+    Opcodes/hrtfearly.c
+    Opcodes/hrtfreverb.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
