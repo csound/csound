@@ -1075,11 +1075,13 @@ Engine/namedins.c
 Engine/otran.c
 Engine/rdorch.c
 Engine/rdscor.c
+Engine/rdscorstr.c
 Engine/scsort.c
 Engine/scxtract.c
 Engine/sort.c
 Engine/sread.c
 Engine/swrite.c
+Engine/swritestr.c
 Engine/twarp.c
 InOut/libsnd.c
 InOut/libsnd_u.c

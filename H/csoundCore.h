@@ -1156,6 +1156,8 @@ typedef struct {
     int           Linefd;
     void          *csoundCallbacks_;
     FILE*         scfp;
+    char          *scstr;
+    int           scindx;
     FILE*         oscfp;
     MYFLT         maxamp[MAXCHNLS];
     MYFLT         smaxamp[MAXCHNLS];
