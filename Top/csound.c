@@ -471,7 +471,9 @@ extern "C" {
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */
     NULL,           /*  csoundCallbacks_    */
-    NULL,           /*  scfp                */
+    (FILE*)NULL,    /*  scfp                */
+    (char*)NULL,    /*  scstr               */
+    0,              /*  scindx              */
     NULL,           /*  oscfp               */
     { FL(0.0) },    /*  maxamp              */
     { FL(0.0) },    /*  smaxamp             */

@@ -380,7 +380,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
                                      (csound->tempStatus & csScoSortMask)!=0);
       csound->Message(csound, Str("sorting score ...\n"));
       if (csound->scorestr)
-        scsortstr(csound, csound->scorestr, scorout);
+        scsortstr(csound, csound->scorestr);
       else {
         scsort(csound, scorin, scorout);
         fclose(scorin);
