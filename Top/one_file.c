@@ -330,11 +330,11 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
 static int createOrchestra(CSOUND *csound, FILE *unf)
 {
     char  *p;
-    FILE  *orcf;
-    void  *fd;
-    char  *incore = NULL;
-    int   len = 0;
-    char    buffer[CSD_MAX_LINE_LEN];
+    /* FILE  *orcf; */
+    /* void  *fd; */
+    char  *incore = (char*)calloc(1, 80);
+    int   len = 1;
+    char  buffer[CSD_MAX_LINE_LEN];
 
     /* Generate orchestra name */
 /*     csoundTmpFileName(csound, ST(orcname), ".orc"); */
@@ -361,7 +361,8 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
       else {
         //        fputs(buffer, orcf);
         len += strlen(buffer);
-        incore = realloc(incore, len+1);
+        incore = realloc(incore, len);
+        if (incore==NULL) abort();
         strcat(incore, buffer);
       }
     }
@@ -369,14 +370,14 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
-static int createScore(CSOUND *csound, FILE *unf)
+int createScore(CSOUND *csound, FILE *unf)
 {
-    char  *p;
-    FILE  *scof;
-    void  *fd;
-    char  *incore = NULL;
-    int   len = 0;
-    char  buffer[CSD_MAX_LINE_LEN];
+    char   *p;
+    /* FILE   *scof; */
+    /* void   *fd; */
+    char   buffer[CSD_MAX_LINE_LEN];
+    char   *incore = (char*)calloc(1, 80);
+    size_t len = 1;
 
     /* Generate score name */
 /*     csoundTmpFileName(csound, ST(sconame), ".sco"); */
@@ -403,7 +404,8 @@ static int createScore(CSOUND *csound, FILE *unf)
       else {
         /* fputs(buffer, scof); */
         len += strlen(buffer);
-        incore = realloc(incore, len+1);
+        incore = (char*)realloc(incore, len);
+        if (incore==NULL) abort();
         strcat(incore, buffer);
       }
     }

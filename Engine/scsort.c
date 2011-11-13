@@ -48,20 +48,21 @@ void scsort(CSOUND *csound, FILE *scin, FILE *scout)
     sfree(csound);              /* return all memory used */
 }
 
-void scsortstr(CSOUND *csound, char *scin, FILE *scout)
+void scsortstr(CSOUND *csound, char *scin)
 {
     int     n;
 
-    csound->scorein = scin;
-    csound->scoreout = scout;
-
+    csound->scoreout = NULL;
+    csound->scstr = (char *)calloc(1,80);
+    csound->scindx = 1;
     csound->sectcnt = 0;
     sread_initstr(csound);
     while ((n = sread(csound)) > 0) {
       sort(csound);
       twarp(csound);
-      swrite(csound);
+      swritestr(csound);
     }
+    csound->scindx = 0;
     sfree(csound);              /* return all memory used */
 }
 
