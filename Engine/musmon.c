@@ -308,12 +308,8 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("sorting cscore.out ..\n"));
-      if (csound->scorestr)
-        scsort(csound, csound->scorestr, csound->oscfp);  /* call the sorter again */
-      else {
-        scsort(csound, csound->scfp, csound->oscfp);  /* call the sorter again */
-        fclose(csound->scfp); csound->scfp = NULL;
-      }
+      scsort(csound, csound->scfp, csound->oscfp);  /* call the sorter again */
+      fclose(csound->scfp); csound->scfp = NULL;
       fclose(csound->oscfp); csound->oscfp = NULL;
       csound->Message(csound, Str("\t... done\n"));
       if (UNLIKELY(!(csound->scfp = fopen("cscore.srt", "r")))) /*  rd from cscore.srt */
