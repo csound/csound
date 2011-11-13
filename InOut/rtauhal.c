@@ -186,9 +186,10 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     
     double sr;
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
-    if(sr != srate) 
-       return csound->Die(csound, 
-            "could not set SR, tried %.1f, got %.1f \n", srate, sr); 
+    if(sr != srate) {
+       csound->Die(csound, 
+            "could not set SR, tried %.1f, got %.1f \n", srate, sr);
+    } 
 
     HALOutput = AudioComponentFindNext(NULL, &cd);
     if(isInput){
