@@ -276,7 +276,6 @@ static int getorchar(CSOUND *csound)
     else if (ST(str)->string) {
       c = *ST(str)->body++;
       if (UNLIKELY(c == '\0')) {
-        if (ST(str) == &ST(inputs)[0]) return EOF;
         ST(pop) += ST(str)->args;
         ST(str)--; ST(input_cnt)--;
         goto top;
