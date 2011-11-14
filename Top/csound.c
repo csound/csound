@@ -407,7 +407,6 @@ extern "C" {
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
     NULL, NULL,     /*  orchname, scorename */
-    NULL, NULL,     /*  orchstr, scorestr   */
     2345678,        /*  holdrand            */
     256,            /*  strVarMaxLen        */
     MAXINSNO,       /*  maxinsno            */
@@ -471,9 +470,7 @@ extern "C" {
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */
     NULL,           /*  csoundCallbacks_    */
-    (FILE*)NULL,    /*  scfp                */
-    (char*)NULL,    /*  scstr               */
-    0,              /*  scindx              */
+    NULL,           /*  scfp                */
     NULL,           /*  oscfp               */
     { FL(0.0) },    /*  maxamp              */
     { FL(0.0) },    /*  smaxamp             */
