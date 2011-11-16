@@ -292,7 +292,7 @@ int serialEnd(CSOUND *csound, SERIALEND *p)
 int serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
     if (p->XSTRCODE & 2) {
-#ifdef WIN32
+#ifndef WIN32
       write(*p->port, p->toWrite, strlen((char *)p->toWrite));
 #else
       int nbytes;

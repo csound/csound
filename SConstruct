@@ -283,7 +283,7 @@ commandOptions.Add('buildcatalog',
      '0')
 commandOptions.Add('includeSerial',
      'Set to 1 if compiling serial code',
-     '0')
+     '1')
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
