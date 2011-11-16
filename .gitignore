@@ -119,7 +119,7 @@ csnd.jar
 #Loris anf Perry's stuff
 Opcodes/Loris/*
 loris.py
-Opcodes/stk/*
+Opcodes/stk/*/
 
 # Vim swap files
 *.swp
