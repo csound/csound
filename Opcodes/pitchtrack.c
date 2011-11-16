@@ -25,7 +25,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 
 #define MINFREQINBINS 5
@@ -534,10 +535,10 @@ int pitchafproc(CSOUND *csound, PITCHAF *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY pitchtrack_localops[] = {
   {"ptrack", S(PITCHTRACK), 5, "kk", "aio", (SUBR)pitchtrackinit, NULL, (SUBR)pitchtrackprocess},
   {"pitchac", S(PITCHTRACK), 5, "k", "akki", (SUBR)pitchafset, NULL, (SUBR)pitchafproc}
 };
 
-LINKAGE
+LINKAGE1(pitchtrack_localops)
 

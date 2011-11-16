@@ -21,7 +21,9 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 
 #include <math.h>
 
@@ -94,12 +96,12 @@ static int pan2run(CSOUND *csound, PAN2 *p)
     return OK;
 }
 
-static OENTRY localops[] =
+static OENTRY pan2_localops[] =
 {
   { "pan2", sizeof(PAN2), 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run }
 };
 
-LINKAGE
+LINKAGE1(pan2_localops)
 
 
 

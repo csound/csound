@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+//#include "csdl.h"
+#include "csoundCore.h"
 #include <math.h>
 
 static int tanhtable(FGDATA *ff, FUNC *ftp)
@@ -83,12 +84,12 @@ static int sonetable(FGDATA *ff, FUNC *ftp)
 }
 
 
-static NGFENS localfgens[] = {
+static NGFENS ftest_fgens[] = {
    { "tanh", tanhtable },
    { "exp", exptable },
    { "sone", sonetable },
    { NULL, NULL }
 };
 
-FLINKAGE
+FLINKAGE1(ftest_fgens)
 

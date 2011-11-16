@@ -21,6 +21,9 @@
   02111-1307 USA
 */
 
+/* this code is deprecated, has been substituted by the rtauhal.c module */
+
+
 #include <CoreAudio.h>
 #include <unistd.h>
 #include <stdint.h>

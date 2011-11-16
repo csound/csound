@@ -431,7 +431,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     else if (O->midiVelocityAmp) {
       int pfield = O->midiVelocityAmp;
-      int index = pfield - 1;
+      int index = pfield - 1; 
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_veloc;
       value = value * value / FL(16239.0);
@@ -442,6 +442,25 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
                         pfield, (int) pfields[index]);
       }
     }
+    /* 
+       the code above assumes &p1 is a pointer to an array of N pfields, but 
+       this is wrong. It overwrites memory and uses it for passing p-field
+       values. When the overwritten memory is taken to be a pointer in the
+       loop below, the loop does not stop at the end of the opcode list
+       and causes iopadr to be garbage, leading to a segfault. 
+       This happens where there is exactly one opcode in an instrument. 
+       It is a nasty bug that needs to be fixed. 
+        
+       A possible solution is to  allocate always a minimum of 5 p-fields (see line
+       approx 1809 below). The extra p-fields appear to be hanging at the end of 
+       an INSDS structure, and &p1 appears to be a legal array start address.
+       This allows p4 and p5 to be mapped, but no further p-fields (possibly).
+
+       This fix is a bit of hack IMHO. But I have implemented it here, as it
+       seemingly prevents the crashes.
+
+       (JPff) a safer fix to readthe extra arg numbers
+     */
 
     csound->curip = ip;
     csound->ids = (OPDS *)ip;
@@ -962,6 +981,9 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       /* initialise perf time address lists */
       buf->iobufp_ptrs[0] = buf->iobufp_ptrs[1] = NULL;
       buf->iobufp_ptrs[2] = buf->iobufp_ptrs[3] = NULL;
+      buf->iobufp_ptrs[4] = buf->iobufp_ptrs[5] = NULL;
+      buf->iobufp_ptrs[6] = buf->iobufp_ptrs[7] = NULL;
+
       /* store parameters of input and output channels, and parent ip */
       buf->uopcode_struct = (void*) p;
       buf->parent_ip = p->parent_ip = parent_ip;
@@ -1107,7 +1129,7 @@ int xinset(CSOUND *csound, XIN *p)
      *(tmp++) = NULL;
    
     /* fix for case when xout is omitted */
-    *(tmp++) = NULL; *tmp = NULL;
+    *(tmp++) = NULL;  *(tmp++) = NULL;  *(tmp++) = NULL; *tmp = NULL;
     return OK;
 }
 
@@ -1140,7 +1162,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     /* skip input pointers, including the three delimiter NULLs */
     tmp = buf->iobufp_ptrs;
     /* VL: needs to check if there are not 4 nulls in a sequence, which
-       would indicate no a, k, for t sigs */
+       would indicate no a, k, f or t sigs */
     if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3)) tmp += (inm->perf_incnt << 1);
     tmp += 4;  /* VL: this was 2, now 4 with fsigs and tsigs added */
     if (*tmp || *(tmp + 1))
@@ -1574,13 +1596,13 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 }
+         }
         /* and tsigs */
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 }
-	
+         }
+        
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
@@ -1611,12 +1633,12 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 }
+         }
         /* and tsigs */
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 } 
+         } 
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
@@ -1636,7 +1658,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     /* k-rate outputs are copied only in the last sub-kperiod, */
     /* so we do it now */
     while (*(++tmp)) {                  /* k-rate */
-      ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+      ptr1 = *tmp; 
+      *(*(++tmp)) = *ptr1;
     }
     /* VL: fsigs out need to be dealt with here */
      while (*(++tmp)) {                
@@ -1698,12 +1721,12 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 } 
+         } 
        /* VL: tsigs */
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 } 
+         } 
        
         
       /*  run each opcode  */
@@ -1722,7 +1745,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     else {                      /* special case for kr == sr */
       /* copy inputs */
       while (*tmp) {                    /* a-rate */
-        ptr1 = *(tmp++); *(*(tmp++)) = *ptr1;
+        ptr1 = *(tmp++); 
+        *(*(tmp++)) = *ptr1;
       }
       while (*(++tmp)) {                /* k-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
@@ -1731,12 +1755,12 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 }
+         }
        /* VL: tsigs */
        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 } 
+         } 
       /*  run each opcode  */
       do {
         (*csound->pds->opadr)(csound, csound->pds);
@@ -1784,12 +1808,22 @@ static void instance(CSOUND *csound, int insno)
     char      *nxtopds, *opdslim;
     MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
     int       *ndxp;
-    int       odebug = csound->oparms->odebug;
+    OPARMS    *O = csound->oparms;
+    int       odebug = O->odebug;
 
     lopdsp = csound->lopds;
     largp = (LARGNO*) csound->larg;
     tp = csound->instrtxtp[insno];
-    pextent = sizeof(INSDS) + tp->pextrab;      /* alloc new space,  */
+    /* VL: added 2 extra MYFLT pointers to the memory to account for possible
+       use by midi mapping flags */
+    n = 3;
+    if (O->midiKey>n) n = O->midiKey;
+    if (O->midiKeyCps>n) n = O->midiKeyCps;
+    if (O->midiKeyOct>n) n = O->midiKeyOct;
+    if (O->midiKeyPch>n) n = O->midiKeyPch;
+    if (O->midiVelocity>n) n = O->midiVelocity;
+    if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
+    pextent = sizeof(INSDS) + tp->pextrab + (n-3)*sizeof(MYFLT *);      /* alloc new space,  */
     ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->localen + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;

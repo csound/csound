@@ -687,7 +687,7 @@ struct LorisPlayer
 // ---------------------------------------------------------------------------
 //
 LorisPlayer::LorisPlayer( CSOUND *csound, LORISPLAY * params ) :
-  reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->readerIdx) ) ),
+  reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->readerIdx))),
      dblbuffer( csound->ksmps, 0.0 )
 {
     if ( reader != NULL ) {
@@ -881,8 +881,10 @@ public:
 //
 LorisMorpher::LorisMorpher( LORISMORPH * params ) :
   morpher( GetFreqFunc( params ), GetAmpFunc( params ), GetBwFunc( params ) ),
-  src_reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->srcidx) ) ),
-  tgt_reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->tgtidx) ) ),
+  src_reader( EnvelopeReader::Find( params->h.insdshead,
+                                    (int)*(params->srcidx) ) ),
+  tgt_reader( EnvelopeReader::Find( params->h.insdshead,
+                                    (int)*(params->tgtidx) ) ),
   tag( params->h.insdshead, (int)*(params->morphedidx) )
 {
     if ( src_reader != NULL )
@@ -947,7 +949,8 @@ LorisMorpher::LorisMorpher( LORISMORPH * params ) :
 #ifdef DEBUG_LORISGENS
     std::cerr << "** Morph will use " << labelMap.size() << " labeled Partials, ";
     std::cerr << src_unlabeled.size() << " unlabeled source Partials, and ";
-    std::cerr << tgt_unlabeled.size() << " unlabeled target Partials." << std::endl;
+    std::cerr << tgt_unlabeled.size() << " unlabeled target Partials." 
+              << std::endl;
 #endif
 
     //    allocate and set the labels for the morphed envelopes:
@@ -1008,7 +1011,8 @@ LorisMorpher::updateEnvelopes( void )
         if ( itgt < 0 && isrc < 0 )
           {
 #ifdef DEBUG_LORISGENS
-            std::cerr << "HEY!!!! The labelMap had a pair of bogus indices in it at pos "
+            std::cerr << 
+              "HEY!!!! The labelMap had a pair of bogus indices in it at pos "
                       << envidx << std::endl;
 #endif
             continue;
@@ -1128,7 +1132,7 @@ int lorismorph_cleanup(CSOUND *csound, void * p)
 //
 extern "C"
 {
-  static OENTRY localops[] =
+  OENTRY loris_localops[] =
     {
       {(char*)"lorisread",  sizeof(LORISREAD),  3, (char*)"", (char*)"kTikkko",
        (SUBR) lorisread_setup,  (SUBR) lorisread,  0 },
@@ -1138,7 +1142,7 @@ extern "C"
        (SUBR) lorismorph_setup, (SUBR) lorismorph, 0 }
     };
 
-LINKAGE
+  LINKAGE1(loris_localops)
 
 }
 

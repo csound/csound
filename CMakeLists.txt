@@ -394,6 +394,58 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/ugrw2.c
     OOps/vdelay.c
+    Opcodes/babo.c
+    Opcodes/bilbar.c
+    Opcodes/compress.c
+    Opcodes/eqfil.c
+    Opcodes/Vosim.c
+    Opcodes/pitch.c 
+    Opcodes/pitch0.c  
+    Opcodes/spectra.c 
+    Opcodes/ambicode1.c
+    Opcodes/sfont.c 
+    Opcodes/grain4.c 
+    Opcodes/hrtferX.c 
+    Opcodes/loscilx.c
+    Opcodes/minmax.c 
+    Opcodes/pan2.c 
+    Opcodes/tabvars.c 
+    Opcodes/phisem.c
+    Opcodes/hrtfopcodes.c 
+    Opcodes/stackops.c 
+    Opcodes/vbap.c 
+    Opcodes/vbap_eight.c 
+    Opcodes/vbap_four.c 
+    Opcodes/vbap_sixteen.c
+    Opcodes/vbap_zak.c  
+    Opcodes/vaops.c 
+    Opcodes/ugakbari.c 
+    Opcodes/harmon.c 
+    Opcodes/pitchtrack.c 
+    Opcodes/partikkel.c 
+    Opcodes/shape.c 
+    Opcodes/tabsum.c
+    Opcodes/crossfm.c 
+    Opcodes/pvlock.c 
+    Opcodes/fareyseq.c 
+    Opcodes/modmatrix.c 
+    Opcodes/scoreline.c 
+    Opcodes/modal4.c
+    Opcodes/physutil.c 
+    Opcodes/physmod.c 
+    Opcodes/mandolin.c 
+    Opcodes/singwave.c
+    Opcodes/fm4op.c 
+    Opcodes/moog1.c 
+    Opcodes/shaker.c 
+    Opcodes/bowedbar.c
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c
+    Opcodes/ftest.c
+    Opcodes/hrtfearly.c
+    Opcodes/hrtfreverb.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
@@ -406,6 +458,75 @@ set(libcsound_SRCS
     Top/opcode.c
     Top/threads.c
     Top/utility.c)
+
+set(stdopcod_SRCS 
+    Opcodes/ambicode.c      
+    Opcodes/bbcut.c         
+    Opcodes/biquad.c
+    Opcodes/butter.c        
+    Opcodes/clfilt.c        
+    Opcodes/cross2.c
+    Opcodes/dam.c           
+    Opcodes/dcblockr.c      
+    Opcodes/filter.c
+    Opcodes/flanger.c       
+    Opcodes/follow.c        
+    Opcodes/fout.c
+    Opcodes/freeverb.c      
+    Opcodes/ftconv.c        
+    Opcodes/ftgen.c
+    Opcodes/gab/gab.c       
+    Opcodes/gab/vectorial.c 
+    Opcodes/grain.c
+    Opcodes/locsig.c        
+    Opcodes/lowpassr.c      
+    Opcodes/metro.c
+    Opcodes/midiops2.c      
+    Opcodes/midiops3.c      
+    Opcodes/newfils.c
+    Opcodes/nlfilt.c        
+    Opcodes/oscbnk.c        
+    Opcodes/pluck.c
+    Opcodes/repluck.c       
+    Opcodes/reverbsc.c      
+    Opcodes/seqtime.c
+    Opcodes/sndloop.c       
+    Opcodes/sndwarp.c       
+    Opcodes/space.c
+    Opcodes/spat3d.c        
+    Opcodes/syncgrain.c     
+    Opcodes/ugens7.c
+    Opcodes/ugens9.c        
+    Opcodes/ugensa.c        
+    Opcodes/uggab.c
+    Opcodes/ugmoss.c        
+    Opcodes/ugnorman.c      
+    Opcodes/ugsc.c
+    Opcodes/wave-terrain.c  
+    Opcodes/stdopcod.c)
+
+set(cs_pvs_ops_SRCS
+    Opcodes/ifd.c 
+    Opcodes/partials.c 
+    Opcodes/psynth.c 
+    Opcodes/pvsbasic.c
+    Opcodes/pvscent.c 
+    Opcodes/pvsdemix.c 
+    Opcodes/pvs_ops.c 
+    Opcodes/pvsband.c
+    Opcodes/pvsbuffer.c)
+
+set(oldpvoc_SRCS
+    Opcodes/dsputil.c 
+    Opcodes/pvadd.c 
+    Opcodes/pvinterp.c 
+    Opcodes/pvocext.c
+    Opcodes/pvread.c 
+    Opcodes/ugens8.c 
+    Opcodes/vpvoc.c 
+    Opcodes/pvoc.c)
+
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS})
 
 # Handling New Parser
 
@@ -478,6 +599,8 @@ if(USE_DOUBLE)
 else()
     set(CSOUNDLIB "csound")
 endif()
+
+set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -555,6 +678,15 @@ endif()
 if(HAVE_TERMIOS_H)
     list(APPEND libcsound_CFLAGS -DHAVE_TERMIOS_H)
 endif()
+if(HAVE_VALUES_H)
+    list(APPEND libcsound_CFLAGS -DHAVE_VALUES_H)
+endif()
+#if(CMAKE_C_COMPILER MATCHES "gcc")
+#    list(APPEND libcsound_CFLAGS -fno-strict-aliasing)
+#endif()
+if(BIG_ENDIAN)
+    list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
+endif()
 
 expand_list(expanded_libcsound_CFLAGS ${libcsound_CFLAGS})
 set_property(
@@ -567,6 +699,26 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
     LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
     ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+
+
+add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
+SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
+SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
+set_property(
+    TARGET ${CSOUNDLIB_STATIC}
+    PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
+
+target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+
+set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+    LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+    ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+
+# Add the install target
+install(TARGETS ${CSOUNDLIB_STATIC}
+    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 
 option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
 check_deps(BUILD_CATALOG)

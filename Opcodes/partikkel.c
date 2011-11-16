@@ -178,7 +178,7 @@ static inline MYFLT lrplookup(FUNC *tab, unsigned phase, MYFLT zscale,
 }
 
 /* Why not use csound->intpow ? */
-static inline double intpow(MYFLT x, unsigned n)
+static inline double intpow_(MYFLT x, unsigned n)
 {
     double ans = 1.0;
 
@@ -452,7 +452,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
             if (grain->harmonics < 2)
                 grain->harmonics = 2;
             grain->falloff = *p->falloff;
-            grain->falloff_pow_N = intpow(grain->falloff, grain->harmonics);
+            grain->falloff_pow_N = intpow_(grain->falloff, grain->harmonics);
             /* normalize trainlets to uniform peak, using geometric sum */
             if (FABS(grain->falloff) > FL(0.9999) &&
                 FABS(grain->falloff) < FL(1.0001))
@@ -834,7 +834,7 @@ static int partikkelsync(CSOUND *csound, PARTIKKELSYNC *p)
     return OK;
 }
 
-static OENTRY localops[] = {
+static OENTRY partikkel_localops[] = {
     {
         "partikkel", sizeof(PARTIKKEL), TR|5,
         "ammmmmmm",
@@ -852,4 +852,5 @@ static OENTRY localops[] = {
     }
 };
 
-LINKAGE
+LINKAGE1(partikkel_localops)
+

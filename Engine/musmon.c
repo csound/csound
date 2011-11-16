@@ -720,7 +720,8 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
 {
     int n, insno = chn->insno;
     if (mep->type == NOTEON_TYPE && mep->dat2) {      /* midi note ON: */
-      if (UNLIKELY((n = MIDIinsert(csound, insno, chn, mep)))) {     /* alloc,init,activ */
+      if (UNLIKELY((n = MIDIinsert(csound, insno, chn, mep)))) { 
+        /* alloc,init,activ */
         csound->Message(csound,
                         Str("\t\t   T%7.3f - note deleted. "), csound->curp2);
         {

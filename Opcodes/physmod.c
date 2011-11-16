@@ -23,13 +23,14 @@
 
 /* Collection of physical modelled instruments */
 
-#include "csdl.h"
+//#include "csdl.h"
+#include "csoundCore.h"
 #include "clarinet.h"
 #include "flute.h"
 #include "bowed.h"
 #include "brass.h"
 #include <math.h>
-
+#include "interlocks.h"
 /* ************************************** */
 /*  Waveguide Clarinet model ala Smith    */
 /*  after McIntyre, Schumacher, Woodhouse */
@@ -919,7 +920,7 @@ int shaker(void*,void*);
 int bowedbarset(void*,void*);
 int bowedbar(void*,void*);
 
-static OENTRY localops[] = {
+static OENTRY physmod_localops[] = {
 { "wgclar",  S(CLARIN),TR|5, "a", "kkkiikkkio",(SUBR)clarinset,NULL,   (SUBR)clarin},
 { "wgflute", S(FLUTE), TR|5, "a", "kkkiikkkiovv",(SUBR)fluteset,NULL,  (SUBR)flute },
 { "wgbow",   S(BOWED), TR|5, "a", "kkkkkkio", (SUBR)bowedset, NULL,    (SUBR)bowed },
@@ -942,5 +943,5 @@ static OENTRY localops[] = {
                              (SUBR)bowedbarset, NULL,(SUBR) bowedbar },
 };
 
-LINKAGE
+LINKAGE1(physmod_localops)
 

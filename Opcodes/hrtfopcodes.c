@@ -1,7 +1,7 @@
 /*
     hrtfopcodes.c: new HRTF opcodes
 
-    (c) Brian Carty, 2008
+    (c) Brian Carty, 2010
 
     This file is part of Csound.
 
@@ -20,97 +20,105 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-#include "csdl.h"
+
+#include "csoundCore.h"
+#include "interlocks.h"
+
 #include <math.h>
-/*definitions*/
-#define minelev -40             /*from mit*/
-#define elevincrement 10        /*from mit*/
+/* definitions */
+/* from mit */
+#define minelev (-40)
+#define elevincrement (10)
 
-#define maxdeltime 0.0011       /*max delay for min phase: a time value:
-                                  important to include offset...multiply by
-                                  sr to get no of samples for memory allocation*/
+/* max delay for min phase: a time value:
+   multiply by sr to get no of samples for memory allocation */
+#define maxdeltime (0.0011)
 
-/*additional definitions for woodworth models*/
-#define c 34400.0
+/* additional definitions for woodworth models */
+#define c (34400.0)
 
-/*hrtf data sets were analysed for low frequency phase values, as it
-  is the important part of the spectrum for phase based localisation
-  cues. The values below were extracted and are used to scale the
-  functional phase spectrum.*/
-static const float nonlinitd[5] = {1.535133f,1.347668f,1.111214f,1.071324f,1.0f};
-static const float nonlinitd48k[5] = {1.515308f,1.268052f,1.086033f,1.086159f,1.0f};
-static const float nonlinitd96k[5] = {1.515846f,1.268239f,1.086041f,1.086115f,1.0f};
+/* hrtf data sets were analysed for low frequency phase values, as it
+   is the important part of the spectrum for phase based localisation
+   cues. The values below were extracted and are used to scale the
+   functional phase spectrum. radius: 8.8 cm see nonlinitd.cpp */
+static const float nonlinitd[5] = {1.570024f, 1.378733f, 1.155164f, 1.101230f,1.0f};
+static const float nonlinitd48k[5] =
+  {1.549748f, 1.305457f, 1.124501f, 1.112852f,1.0f};
+static const float nonlinitd96k[5] =
+  {1.550297f, 1.305671f, 1.124456f, 1.112818f,1.0f};
 
-/*number of measurements per elev: mit data const:read only, static:exists
-  for whoe process...*/
-static const int elevationarray[14] = {56, 60, 72, 72, 72, 72, 72,
-                                       60, 56, 45, 36, 24, 12, 1 };
+/* number of measurements per elev: mit data const:read only, static:exists
+   for whole process... */
+static const int elevationarray[14] =
+  {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, 36, 24, 12, 1 };
 
-/*assumed mit hrtf data will be used here. Otherwise delay data would
-  need to be extracted and replaced here...*/
-static const float minphasedels[368] = {
-  0.000000f,0.000045f,0.000091f,0.000136f,0.000159f,0.000204f,
-  0.000249f,0.000272f,0.000295f,0.000317f,0.000363f,0.000385f,
-  0.000272f,0.000408f,0.000454f,0.000454f,0.000408f,0.000385f,
-  0.000363f,0.000317f,0.000295f,0.000295f,0.000249f,0.000204f,
-  0.000159f,0.000136f,0.000091f,0.000045f,0.000000f,0.000000f,
-  0.000045f,0.000091f,0.000136f,0.000181f,0.000227f,0.000249f,
-  0.000272f,0.000317f,0.000363f,0.000385f,0.000454f,0.000476f,
-  0.000454f,0.000522f,0.000499f,0.000499f,0.000476f,0.000454f,
-  0.000408f,0.000408f,0.000385f,0.000340f,0.000295f,0.000272f,
-  0.000227f,0.000181f,0.000136f,0.000091f,0.000045f,0.000000f,
-  0.000000f,0.000045f,0.000091f,0.000113f,0.000159f,0.000204f,
-  0.000227f,0.000272f,0.000317f,0.000317f,0.000363f,0.000408f,
-  0.000363f,0.000522f,0.000476f,0.000499f,0.000590f,0.000567f,
-  0.000567f,0.000544f,0.000522f,0.000499f,0.000476f,0.000454f,
-  0.000431f,0.000408f,0.000385f,0.000363f,0.000317f,0.000295f,
-  0.000249f,0.000204f,0.000181f,0.000136f,0.000091f,0.000045f,
-  0.000000f,0.000000f,0.000045f,0.000091f,0.000113f,0.000159f,
-  0.000204f,0.000249f,0.000295f,0.000317f,0.000363f,0.000340f,
-  0.000385f,0.000431f,0.000476f,0.000522f,0.000544f,0.000612f,
-  0.000658f,0.000658f,0.000635f,0.000658f,0.000522f,0.000499f,
-  0.000476f,0.000454f,0.000408f,0.000385f,0.000363f,0.000340f,
-  0.000295f,0.000272f,0.000227f,0.000181f,0.000136f,0.000091f,
-  0.000045f,0.000000f,0.000000f,0.000045f,0.000091f,0.000136f,
-  0.000159f,0.000204f,0.000249f,0.000295f,0.000340f,0.000385f,
-  0.000431f,0.000476f,0.000522f,0.000567f,0.000522f,0.000567f,
-  0.000567f,0.000635f,0.000703f,0.000748f,0.000748f,0.000726f,
-  0.000703f,0.000658f,0.000454f,0.000431f,0.000385f,0.000363f,
-  0.000317f,0.000295f,0.000272f,0.000227f,0.000181f,0.000136f,
-  0.000091f,0.000045f,0.000000f,0.000000f,0.000045f,0.000091f,
-  0.000113f,0.000159f,0.000204f,0.000249f,0.000295f,0.000340f,
-  0.000385f,0.000408f,0.000454f,0.000499f,0.000544f,0.000522f,
-  0.000590f,0.000590f,0.000635f,0.000658f,0.000680f,0.000658f,
-  0.000544f,0.000590f,0.000567f,0.000454f,0.000431f,0.000385f,
-  0.000363f,0.000317f,0.000272f,0.000272f,0.000227f,0.000181f,
-  0.000136f,0.000091f,0.000045f,0.000000f,0.000000f,0.000045f,
-  0.000068f,0.000113f,0.000159f,0.000204f,0.000227f,0.000272f,
-  0.000317f,0.000340f,0.000385f,0.000431f,0.000454f,0.000499f,
-  0.000499f,0.000544f,0.000567f,0.000590f,0.000590f,0.000590f,
-  0.000590f,0.000567f,0.000567f,0.000476f,0.000454f,0.000408f,
-  0.000385f,0.000340f,0.000340f,0.000295f,0.000249f,0.000204f,
-  0.000159f,0.000136f,0.000091f,0.000045f,0.000000f,0.000000f,
-  0.000045f,0.000091f,0.000113f,0.000159f,0.000204f,0.000249f,
-  0.000295f,0.000340f,0.000363f,0.000385f,0.000431f,0.000454f,
-  0.000499f,0.000522f,0.000522f,0.000522f,0.000499f,0.000476f,
-  0.000454f,0.000431f,0.000385f,0.000340f,0.000317f,0.000272f,
-  0.000227f,0.000181f,0.000136f,0.000091f,0.000045f,0.000000f,
-  0.000000f,0.000045f,0.000091f,0.000136f,0.000159f,0.000204f,
-  0.000227f,0.000249f,0.000295f,0.000340f,0.000363f,0.000385f,
-  0.000408f,0.000431f,0.000431f,0.000431f,0.000431f,0.000408f,
-  0.000385f,0.000363f,0.000317f,0.000317f,0.000272f,0.000227f,
-  0.000181f,0.000136f,0.000091f,0.000045f,0.000000f,0.000000f,
-  0.000045f,0.000091f,0.000136f,0.000181f,0.000204f,0.000227f,
-  0.000272f,0.000295f,0.000317f,0.000340f,0.000340f,0.000363f,
-  0.000363f,0.000340f,0.000317f,0.000295f,0.000249f,0.000204f,
-  0.000159f,0.000113f,0.000068f,0.000023f,0.000000f,0.000045f,
-  0.000068f,0.000113f,0.000159f,0.000181f,0.000204f,0.000227f,
-  0.000249f,0.000249f,0.000249f,0.000227f,0.000227f,0.000181f,
-  0.000159f,0.000113f,0.000091f,0.000045f,0.000000f,0.000000f,
-  0.000045f,0.000091f,0.000136f,0.000159f,0.000181f,0.000181f,
-  0.000181f,0.000159f,0.000136f,0.000091f,0.000045f,0.000000f,
-  0.000000f,0.000045f,0.000068f,0.000091f,0.000068f,0.000045f,
-  0.000000f,0.000000f};
+/* assumed mit hrtf data will be used here. Otherwise delay data would need
+   to be extracted and replaced here... */
+static const float minphasedels[368] =
+{
+  0.000000f, 0.000045f, 0.000091f, 0.000136f, 0.000159f, 0.000204f,
+  0.000249f, 0.000272f, 0.000295f, 0.000317f, 0.000363f, 0.000385f,
+  0.000272f, 0.000408f, 0.000454f, 0.000454f, 0.000408f, 0.000385f,
+  0.000363f, 0.000317f, 0.000295f, 0.000295f, 0.000249f, 0.000204f,
+  0.000159f, 0.000136f, 0.000091f, 0.000045f, 0.000000f, 0.000000f,
+  0.000045f, 0.000091f, 0.000136f, 0.000181f, 0.000227f, 0.000249f,
+  0.000272f, 0.000317f, 0.000363f, 0.000385f, 0.000454f, 0.000476f,
+  0.000454f, 0.000522f, 0.000499f, 0.000499f, 0.000476f, 0.000454f,
+  0.000408f, 0.000408f, 0.000385f, 0.000340f, 0.000295f, 0.000272f,
+  0.000227f, 0.000181f, 0.000136f, 0.000091f, 0.000045f, 0.000000f,
+  0.000000f, 0.000045f, 0.000091f, 0.000113f, 0.000159f, 0.000204f,
+  0.000227f, 0.000272f, 0.000317f, 0.000317f, 0.000363f, 0.000408f,
+  0.000363f, 0.000522f, 0.000476f, 0.000499f, 0.000590f, 0.000567f,
+  0.000567f, 0.000544f, 0.000522f, 0.000499f, 0.000476f, 0.000454f,
+  0.000431f, 0.000408f, 0.000385f, 0.000363f, 0.000317f, 0.000295f,
+  0.000249f, 0.000204f, 0.000181f, 0.000136f, 0.000091f, 0.000045f,
+  0.000000f, 0.000000f, 0.000045f, 0.000091f, 0.000113f, 0.000159f,
+  0.000204f, 0.000249f, 0.000295f, 0.000317f, 0.000363f, 0.000340f,
+  0.000385f, 0.000431f, 0.000476f, 0.000522f, 0.000544f, 0.000612f,
+  0.000658f, 0.000658f, 0.000635f, 0.000658f, 0.000522f, 0.000499f,
+  0.000476f, 0.000454f, 0.000408f, 0.000385f, 0.000363f, 0.000340f,
+  0.000295f, 0.000272f, 0.000227f, 0.000181f, 0.000136f, 0.000091f,
+  0.000045f, 0.000000f, 0.000000f, 0.000045f, 0.000091f, 0.000136f,
+  0.000159f, 0.000204f, 0.000249f, 0.000295f, 0.000340f, 0.000385f,
+  0.000431f, 0.000476f, 0.000522f, 0.000567f, 0.000522f, 0.000567f,
+  0.000567f, 0.000635f, 0.000703f, 0.000748f, 0.000748f, 0.000726f,
+  0.000703f, 0.000658f, 0.000454f, 0.000431f, 0.000385f, 0.000363f,
+  0.000317f, 0.000295f, 0.000272f, 0.000227f, 0.000181f, 0.000136f,
+  0.000091f, 0.000045f, 0.000000f, 0.000000f, 0.000045f, 0.000091f,
+  0.000113f, 0.000159f, 0.000204f, 0.000249f, 0.000295f, 0.000340f,
+  0.000385f, 0.000408f, 0.000454f, 0.000499f, 0.000544f, 0.000522f,
+  0.000590f, 0.000590f, 0.000635f, 0.000658f, 0.000680f, 0.000658f,
+  0.000544f, 0.000590f, 0.000567f, 0.000454f, 0.000431f, 0.000385f,
+  0.000363f, 0.000317f, 0.000272f, 0.000272f, 0.000227f, 0.000181f,
+  0.000136f, 0.000091f, 0.000045f, 0.000000f, 0.000000f, 0.000045f,
+  0.000068f, 0.000113f, 0.000159f, 0.000204f, 0.000227f, 0.000272f,
+  0.000317f, 0.000340f, 0.000385f, 0.000431f, 0.000454f, 0.000499f,
+  0.000499f, 0.000544f, 0.000567f, 0.000590f, 0.000590f, 0.000590f,
+  0.000590f, 0.000567f, 0.000567f, 0.000476f, 0.000454f, 0.000408f,
+  0.000385f, 0.000340f, 0.000340f, 0.000295f, 0.000249f, 0.000204f,
+  0.000159f, 0.000136f, 0.000091f, 0.000045f, 0.000000f, 0.000000f,
+  0.000045f, 0.000091f, 0.000113f, 0.000159f, 0.000204f, 0.000249f,
+  0.000295f, 0.000340f, 0.000363f, 0.000385f, 0.000431f, 0.000454f,
+  0.000499f, 0.000522f, 0.000522f, 0.000522f, 0.000499f, 0.000476f,
+  0.000454f, 0.000431f, 0.000385f, 0.000340f, 0.000317f, 0.000272f,
+  0.000227f, 0.000181f, 0.000136f, 0.000091f, 0.000045f, 0.000000f,
+  0.000000f, 0.000045f, 0.000091f, 0.000136f, 0.000159f, 0.000204f,
+  0.000227f, 0.000249f, 0.000295f, 0.000340f, 0.000363f, 0.000385f,
+  0.000408f, 0.000431f, 0.000431f, 0.000431f, 0.000431f, 0.000408f,
+  0.000385f, 0.000363f, 0.000317f, 0.000317f, 0.000272f, 0.000227f,
+  0.000181f, 0.000136f, 0.000091f, 0.000045f, 0.000000f, 0.000000f,
+  0.000045f, 0.000091f, 0.000136f, 0.000181f, 0.000204f, 0.000227f,
+  0.000272f, 0.000295f, 0.000317f, 0.000340f, 0.000340f, 0.000363f,
+  0.000363f, 0.000340f, 0.000317f, 0.000295f, 0.000249f, 0.000204f,
+  0.000159f, 0.000113f, 0.000068f, 0.000023f, 0.000000f, 0.000045f,
+  0.000068f, 0.000113f, 0.000159f, 0.000181f, 0.000204f, 0.000227f,
+  0.000249f, 0.000249f, 0.000249f, 0.000227f, 0.000227f, 0.000181f,
+  0.000159f, 0.000113f, 0.000091f, 0.000045f, 0.000000f, 0.000000f,
+  0.000045f, 0.000091f, 0.000136f, 0.000159f, 0.000181f, 0.000181f,
+  0.000181f, 0.000159f, 0.000136f, 0.000091f, 0.000045f, 0.000000f,
+  0.000000f, 0.000045f, 0.000068f, 0.000091f, 0.000068f, 0.000045f,
+  0.000000f, 0.000000f
+};
 
 
 #ifdef WORDS_BIGENDIAN
@@ -120,11 +128,12 @@ static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
     char *p = mfp->beginp;
     int  size = mfp->length;
 
-    while (size >= 4) {
-      c1 = p[0]; c2 = p[1]; c3 = p[2]; c4 = p[3];
-      p[0] = c4; p[1] = c3; p[2] = c2; p[3] = c1;
-      size -= 4; p +=4;
-    }
+    while (size >= 4)
+      {
+        c1 = p[0]; c2 = p[1]; c3 = p[2]; c4 = p[3];
+        p[0] = c4; p[1] = c3; p[2] = c2; p[3] = c1;
+        size -= 4; p +=4;
+      }
 
     return OK;
 }
@@ -132,74 +141,87 @@ static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
 static int (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 #endif
 
-/*Csound hrtf magnitude interpolation, phase truncation object: Jan 08*/
+/* Csound hrtf magnitude interpolation, phase truncation object */
 
-/*aleft,aright hrtfmove asrc, kaz, kel, ifilel, ifiler [, imode =0,
-  ifade =8, sr = 44100]...*/
-/*imode: minphase/phase truncation, ifade: no of buffers per fade for
-  phase trunc., sr can be 44.1/48/96k*/
+/* aleft,aright hrtfmove asrc, kaz, kel, ifilel, ifiler [, imode = 0,
+   ifade = 8, sr = 44100]... */
+/* imode: minphase/phase truncation, ifade: no of buffers per fade for
+   phase trunc., sr can be 44.1/48/96k */
 
-typedef struct {
-  OPDS  h;
-  MYFLT *outsigl, *outsigr;
-  MYFLT *in, *kangle, *kelev, *ifilel, *ifiler,
-         *omode, *ofade, *osr;   /* outputs and inputs*/
+typedef struct
+{
+        OPDS  h;
+        /* outputs and inputs */
+        MYFLT *outsigl, *outsigr;
+        MYFLT *in, *kangle, *kelev, *ifilel, *ifiler, *omode, *ofade, *osr;
 
-  MEMFIL *fpl,*fpr,*fpdel;                              /* file pointers*/
-  float *fpbeginl,*fpbeginr;
+        /* check if relative source has changed! */
+        MYFLT anglev, elevv;
 
-  int IMPLENGTH, complexIMPLENGTH, overlapsize,
-      complexfftbuff;         /*see definitions in INIT*/
+        float *fpbeginl,*fpbeginr;
 
-  MYFLT sr;
+        /* see definitions in INIT */
+        int irlength, irlengthpad, overlapsize;
 
-  int oldelevindex, oldangleindex;      /*old indices for checking if
-                                          changes occur in trajectory.*/
+        MYFLT sr;
 
-  int counter;
+        /* old indices for checking if changes occur in trajectory. */
+        int oldelevindex, oldangleindex;
 
-  int cross,l,initialfade;              /*initialfade used to avoid fade
-                                          in of data...if not,'old' data
-                                          faded out with zero hrtf,'new'
-                                          data faded in.*/
+        int counter;
 
-  int fadebuffer;               /*user defined buffer size for fades.*/
+        /* initialfade used to avoid fade in of data...if not,'old' data
+           faded out with zero hrtf,'new' data faded in. */
+        int cross,l,initialfade;
 
-  int minphase,phasetrunc;              /*flags for process type*/
+        /* user defined buffer size for fades. */
+        int fadebuffer, fade;
 
-  AUXCH hrtflpad,hrtfrpad;              /*hrtf data padded*/
-  AUXCH oldhrtflpad,oldhrtfrpad;        /*old data for fades*/
-  AUXCH insig, outl, outr, outlold, outrold;    /*in and output buffers*/
+        /* flags for process type */
+        int minphase,phasetrunc;
 
-  /*memory local to perform method*/
-  AUXCH complexinsig;                   /*insig fft*/
-  AUXCH hrtflfloat, hrtfrfloat;         /*hrtf buffers (rectangular complex form)*/
-  AUXCH outspecl, outspecr, outspecoldl, outspecoldr;   /*spectral data*/
+        /* hrtf data padded */
+        AUXCH hrtflpad,hrtfrpad;
+        /* old data for fades */
+        AUXCH oldhrtflpad,oldhrtfrpad;
+        /* in and output buffers */
+        AUXCH insig, outl, outr, outlold, outrold;
 
-  AUXCH overlapl, overlapr;             /*overlap data*/
-  AUXCH overlapoldl, overlapoldr;       /*old overlap data for longer crossfades*/
+        /* memory local to perform method */
+        /* insig fft */
+        AUXCH complexinsig;
+        /* hrtf buffers (rectangular complex form) */
+        AUXCH hrtflfloat, hrtfrfloat;
+        /* spectral data */
+        AUXCH outspecl, outspecr, outspecoldl, outspecoldr;
 
-  AUXCH lowl1,lowr1,lowl2,lowr2,
-        highl1,highr1,highl2,highr2;    /*interpolation buffers*/
-  AUXCH currentphasel, currentphaser;   /*current phase buffers*/
+        /* overlap data */
+        AUXCH overlapl, overlapr;
+        /* old overlap data for longer crossfades */
+        AUXCH overlapoldl, overlapoldr;
 
-  AUXCH logmagl,logmagr,xhatwinl,
-        xhatwinr,expxhatwinl,expxhatwinr;      /*min phase buffers*/
-  AUXCH win;            /*min phase window: a static buffer*/
+        /* interpolation buffers */
+        AUXCH lowl1, lowr1, lowl2, lowr2, highl1, highr1, highl2, highr2;
+        /* current phase buffers */
+        AUXCH currentphasel, currentphaser;
 
-  /*delay stuff*/
-  AUXCH delmeml, delmemr;
-  int ptl,ptr;
+        /* min phase buffers */
+        AUXCH logmagl,logmagr,xhatwinl,xhatwinr,expxhatwinl,expxhatwinr;
+        /* min phase window: a static buffer */
+        AUXCH win;
+        MYFLT delayfloat;
 
-  int counts;
-
-} hrtfmove;
+        /* delay */
+        AUXCH delmeml, delmemr;
+        int ptl, ptr, mdtl, mdtr;
+}
+hrtfmove;
 
 static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 {
-    MEMFIL *fpl=NULL,*fpr=NULL; /*left and right data files: spectral mag,
-                                  phase format.*/
-    int i;                        /*for looping*/
+    /* left and right data files: spectral mag, phase format. */
+    MEMFIL *fpl = NULL,*fpr = NULL;
+    int i;
     char filel[MAXNAME],filer[MAXNAME];
 
     int mode = (int)*p->omode;
@@ -208,200 +230,246 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     MYFLT *win;
 
-    int IMPLENGTH = 0;                /*time domain impulse length */
-    int complexIMPLENGTH = 0;         /*freq domain impulse length*/
-    int overlapsize = 0;              /*overlap add convolution*/
-    int complexfftbuff = 0;           /*complex fft used(min phase needs it)*/
+    /* time domain impulse length, padded, overlap add */
+    int irlength, irlengthpad, overlapsize;
 
+    /* flag for process type: default phase trunc */
+    if(mode == 1)
+      {
+        p->minphase = 1;
+        p->phasetrunc = 0;
+      }
+    else
+      {
+        p->phasetrunc = 1;
+        p->minphase = 0;
+      }
 
-    /* csound->Message(csound,
-                       Str("\n\nHrtf Based Binarual Spatialisation\n\n")); */
+    /* fade length: default 8, max 24, min 1 */
+    if(fade < 1 || fade > 24)
+      fade = 8;
+    p->fade = fade;
 
-    if (mode==1) p->minphase=1;    /*flag for process type: default phase trunc*/
-    else p->phasetrunc=1;
-
-    if (fade<1||fade>24)           /*fade length: default 8, max 24, min 1 */
-      fade=8;
-
-    if (sr!=FL(44100.0) && sr!=FL(48000.0) && sr!=FL(96000.0))
-      sr = FL(44100.0);
+    /* sr, defualt 44100 */
+    if(sr != 44100 && sr != 48000 && sr != 96000)
+      sr = 44100;
     p->sr = sr;
 
     if (UNLIKELY(csound->esr != sr))
-      csound->Warning(csound,
-                      Str("\nOrchestra sampling rate is not"
-                          " compatible with HRTF data files\nShould be %.0f,"
-                          " see Csound help for object\n\n"), sr);
+      csound->Message(csound,
+                      Str("\n\nWARNING!!:\nOrchestra SR not compatible"
+                          " with HRTF processing SR of: %.0f\n\n"), sr);
 
-    strcpy(filel, (char*) p->ifilel); /*copy in string name...*/
-    strcpy(filer, (char*) p->ifiler);
-
-    if (sr == FL(44100.0)) {               /*setup as per sr*/
-      IMPLENGTH = 128;
-      complexIMPLENGTH = 256;
-      overlapsize = (IMPLENGTH-1);
-      complexfftbuff = (complexIMPLENGTH*2);
-
-      /*added ldmemfile2: reading floats without a header!*/
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
+    /* setup as per sr */
+    if(sr == 44100 || sr == 48000)
+      {
+        irlength = 128;
+        irlengthpad = 256;
+        overlapsize = (irlength - 1);
       }
-      /* Byte swap */
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
-      }
-      /* Byte swap */
-    }
-
-    else if (sr == FL(48000.0)) {
-      IMPLENGTH = 128;
-      complexIMPLENGTH = 256;
-      overlapsize = (IMPLENGTH-1);
-      complexfftbuff = (complexIMPLENGTH*2);
-
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
+    else if(sr == 96000)
+      {
+        irlength = 256;
+        irlengthpad = 512;
+        overlapsize = (irlength - 1);
       }
 
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
-      }
-    }
+    /* copy in string name */
+    strncpy(filel, (char*) p->ifilel, MAXNAME);
+    strncpy(filer, (char*) p->ifiler, MAXNAME);
 
-    else if (sr == FL(96000.0)) {
-      IMPLENGTH = 256;
-      complexIMPLENGTH = 512;
-      overlapsize = (IMPLENGTH-1);
-      complexfftbuff = (complexIMPLENGTH*2);
-
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
-      }
-
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
-      }
-    }
-    else {
-
+    /* reading files, with byte swap */
+    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+                                   swap4bytes);
+    if (UNLIKELY(fpl == NULL))
       return
         csound->InitError(csound,
-                          Str("\n\n\n Sampling rate not supported, exiting\n\n"));
-    }
+                          Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-    p->IMPLENGTH = IMPLENGTH;
-    p->complexIMPLENGTH = complexIMPLENGTH;
+    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+                                   swap4bytes);
+    if (UNLIKELY(fpr == NULL))
+      return
+        csound->InitError(csound,
+                          Str("\n\n\nCannot load right data file, exiting\n\n"));
+
+    p->irlength = irlength;
+    p->irlengthpad = irlengthpad;
     p->overlapsize = overlapsize;
-    p->complexfftbuff = complexfftbuff;
 
-    p->fadebuffer = (int)fade*IMPLENGTH; /*the amount of buffers to fade over.*/
+    /* the amount of buffers to fade over. */
+    p->fadebuffer = (int)fade*irlength;
 
-    /*file handles*/
-    if (fpl && fpr) {
-      p->fpl = fpl;
-      p->fpr = fpr;
-      p->fpbeginl = (float *) fpl->beginp;
-      p->fpbeginr = (float *) fpr->beginp;
-    }
+    /* file handles */
+    p->fpbeginl = (float *) fpl->beginp;
+    p->fpbeginr = (float *) fpr->beginp;
 
-    /*common buffers (used by both min phase and phasetrunc)*/
-    csound->AuxAlloc(csound, IMPLENGTH*sizeof(MYFLT), &p->insig);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->outl);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->outr);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->hrtflpad);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->hrtfrpad);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p-> complexinsig);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->hrtflfloat);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->hrtfrfloat);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->outspecl);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->outspecr);
-    csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
-    csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
+    /* common buffers (used by both min phase and phasetrunc) */
+    if (!p->insig.auxp || p->insig.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->insig);
+    if (!p->outl.auxp || p->outl.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outl);
+    if (!p->outr.auxp || p->outr.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outr);
+    if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtflpad);
+    if (!p->hrtfrpad.auxp || p->hrtfrpad.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtfrpad);
+    if (!p->complexinsig.auxp || p->complexinsig.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->complexinsig);
+    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtflfloat);
+    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtfrfloat);
+    if (!p->outspecl.auxp || p->outspecl.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecl);
+    if (!p->outspecr.auxp || p->outspecr.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecr);
+    if (!p->overlapl.auxp || p->overlapl.size < overlapsize * sizeof(MYFLT))
+      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
+    if (!p->overlapr.auxp || p->overlapr.size < overlapsize * sizeof(MYFLT))
+      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
 
-    /*interpolation values*/
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowl1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowr1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowl2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowr2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highl1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highr1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highl2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highr2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->currentphasel);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->currentphaser);
+    memset(p->insig.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->outl.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->outr.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->hrtflpad.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->hrtfrpad.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->complexinsig.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->outspecl.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->outspecr.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->overlapl.auxp, 0, overlapsize * sizeof(MYFLT));
+    memset(p->overlapr.auxp, 0, overlapsize * sizeof(MYFLT));
 
-    p->counter = 0;               /*initialize counter*/
+    /* interpolation values */
+    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
+    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
+    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
+    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
+    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
+    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
+    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
+    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
+    if (!p->currentphasel.auxp || p->currentphasel.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->currentphasel);
+    if (!p->currentphaser.auxp || p->currentphaser.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->currentphaser);
 
-    /*phase truncation buffers and variables*/
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->oldhrtflpad);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->oldhrtfrpad);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->outlold);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->outrold);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->outspecoldl);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->outspecoldr);
-    csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldl);
-    csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldr);
+    memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowl2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowr2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highl1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highl2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highr1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->currentphasel.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->currentphaser.auxp, 0, irlength * sizeof(MYFLT));
 
-    /* initialize counters and indices*/
+    /* phase truncation buffers and variables */
+    if (!p->oldhrtflpad.auxp || p->oldhrtflpad.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->oldhrtflpad);
+    if (!p->oldhrtfrpad.auxp || p->oldhrtfrpad.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->oldhrtfrpad);
+    if (!p->outlold.auxp || p->outlold.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outlold);
+    if (!p->outrold.auxp || p->outrold.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outrold);
+    if (!p->outspecoldl.auxp || p->outspecoldl.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecoldl);
+    if (!p->outspecoldr.auxp || p->outspecoldr.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecoldr);
+    if (!p->overlapoldl.auxp || p->overlapoldl.size < overlapsize * sizeof(MYFLT))
+      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldl);
+    if (!p->overlapoldr.auxp || p->overlapoldr.size < overlapsize * sizeof(MYFLT))
+      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldr);
+
+    memset(p->oldhrtflpad.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->oldhrtfrpad.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->outlold.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->outrold.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->outspecoldl.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->outspecoldr.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->overlapoldl.auxp, 0, overlapsize * sizeof(MYFLT));
+    memset(p->overlapoldr.auxp, 0, overlapsize * sizeof(MYFLT));
+
+    /* initialize counters and indices */
+    p->counter = 0;
     p->cross = 0;
     p->l = 0;
     p->initialfade = 0;
 
-    /*need to be a value that is not possible for first check to avoid
-      phase not being read.*/
+    /* need to be a value that is not possible for first check to avoid
+       phase not being read. */
     p->oldelevindex = -1;
     p->oldangleindex = -1;
 
-    /*buffer declaration for min phase calculations*/
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->logmagl);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->logmagr);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->xhatwinl);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->xhatwinr);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->expxhatwinl);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->expxhatwinr);
+    /* buffer declaration for min phase calculations */
+    if (!p->logmagl.auxp || p->logmagl.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->logmagl);
+    if (!p->logmagr.auxp || p->logmagr.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->logmagr);
+    if (!p->xhatwinl.auxp || p->xhatwinl.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->xhatwinl);
+    if (!p->xhatwinr.auxp || p->xhatwinr.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->xhatwinr);
+    if (!p->expxhatwinl.auxp || p->expxhatwinl.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->expxhatwinl);
+    if (!p->expxhatwinr.auxp || p->expxhatwinr.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->expxhatwinr);
 
-    /*delay buffers*/
-    csound->AuxAlloc(csound, (int)(sr*maxdeltime)*sizeof(MYFLT), &p->delmeml);
-    csound->AuxAlloc(csound, (int)(sr*maxdeltime)*sizeof(MYFLT), &p->delmemr);
+    memset(p->logmagl.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->logmagr.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->xhatwinl.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->xhatwinr.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->expxhatwinl.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->expxhatwinr.auxp, 0, irlength * sizeof(MYFLT));
 
-    csound->AuxAlloc(csound, IMPLENGTH*sizeof(MYFLT), &p->win);
+    /* delay buffers */
+    if (!p->delmeml.auxp ||
+        p->delmeml.size < (int)(sr * maxdeltime) * sizeof(MYFLT))
+      csound->AuxAlloc(csound, (int)(sr * maxdeltime) * sizeof(MYFLT), &p->delmeml);
+    if (!p->delmemr.auxp ||
+        p->delmemr.size < (int)(sr * maxdeltime) * sizeof(MYFLT))
+      csound->AuxAlloc(csound, (int)(sr * maxdeltime) * sizeof(MYFLT), &p->delmemr);
+
+    memset(p->delmeml.auxp, 0, (int)(sr * maxdeltime) * sizeof(MYFLT));
+    memset(p->delmemr.auxp, 0, (int)(sr * maxdeltime) * sizeof(MYFLT));
+
+    if (!p->win.auxp && p->win.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->win);
 
     win = (MYFLT *)p->win.auxp;
 
-    /*min phase win defined for implength point impulse!*/
-    win[0]=1;
-    for (i=1;i<(IMPLENGTH/2);i++) win[i]=2;
-    win[(IMPLENGTH/2)]=1;
-    for (i=((IMPLENGTH/2)+1);i<IMPLENGTH;i++) win[i]=0;
+    /* min phase win defined for irlength point impulse! */
+    win[0] = FL(1.0);
+    for(i = 1; i < (irlength / 2); i++)
+      win[i] = FL(2.0);
+    win[(irlength / 2)] = FL(1.0);
+    for(i = ((irlength / 2) + 1); i < irlength; i++)
+      win[i] = FL(0.0);
 
-    p->ptl=0;
-    p->ptr=0;
+    p->mdtl = (int)(FL(0.00095) * sr);
+    p->mdtr = (int)(FL(0.00095) * sr);
+    p->delayfloat = FL(0.0);
 
-    p->counts = 0;
+    p->ptl = 0;
+    p->ptr = 0;
+
+    /* setup values used to check if src has moved, illegal values to
+       start with to ensure first read */
+    p->anglev = -1;
+    p->elevv = -41;
 
     return OK;
 }
@@ -409,11 +477,12 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
 static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 {
-    MYFLT *in = p->in;                    /*local pointers to p*/
-    MYFLT *outsigl = p->outsigl;
+    /* local pointers to p */
+    MYFLT *in = p->in;
+    MYFLT *outsigl  = p->outsigl;
     MYFLT *outsigr = p->outsigr;
 
-    /*common buffers and variables*/
+    /* common buffers and variables */
     MYFLT *insig = (MYFLT *)p->insig.auxp;
     MYFLT *outl = (MYFLT *)p->outl.auxp;
     MYFLT *outr = (MYFLT *)p->outr.auxp;
@@ -436,23 +505,27 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     int counter = p->counter;
     int n;
 
-    float *fpindexl;      /* pointers into HRTF files: floating point data
-                             (even in 64 bit csound)*/
+    /* pointers into HRTF files: floating point data (even in 64 bit csound) */
+    float *fpindexl;
     float *fpindexr;
 
-    int i,j,elevindex, angleindex, switchchannels=0, skip=0;
+    int i,j,elevindex, angleindex, skip = 0;
 
     int minphase = p->minphase;
     int phasetrunc = p->phasetrunc;
 
     MYFLT sr = p->sr;
 
-    int IMPLENGTH = p->IMPLENGTH;
-    int complexIMPLENGTH = p->complexIMPLENGTH;
+    int irlength = p->irlength;
+    int irlengthpad = p->irlengthpad;
     int overlapsize = p->overlapsize;
-    int complexfftbuff = p->complexfftbuff;
 
-    /*interpolation values*/
+    /* local variables, mainly used for simplification */
+    MYFLT elevindexstore;
+    MYFLT angleindexlowstore;
+    MYFLT angleindexhighstore;
+
+    /* interpolation values */
     MYFLT *lowl1 = (MYFLT *)p->lowl1.auxp;
     MYFLT *lowr1 = (MYFLT *)p->lowr1.auxp;
     MYFLT *lowl2 = (MYFLT *)p->lowl2.auxp;
@@ -464,14 +537,13 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT *currentphasel = (MYFLT *)p->currentphasel.auxp;
     MYFLT *currentphaser = (MYFLT *)p->currentphaser.auxp;
 
-    /*local interpolation values*/
-    MYFLT elevindexlowper,elevindexhighper,angleindex1per,
-      angleindex2per,angleindex3per,angleindex4per;
-    int elevindexlow,elevindexhigh,angleindex1,angleindex2,
-      angleindex3,angleindex4;
+    /* local interpolation values */
+    MYFLT elevindexhighper, angleindex2per, angleindex4per;
+    int elevindexlow, elevindexhigh, angleindex1, angleindex2,
+      angleindex3, angleindex4;
     MYFLT magl,magr,phasel,phaser, magllow, magrlow, maglhigh, magrhigh;
 
-    /*phase truncation buffers and variables*/
+    /* phase truncation buffers and variables */
     MYFLT *oldhrtflpad = (MYFLT *)p->oldhrtflpad.auxp;
     MYFLT *oldhrtfrpad = (MYFLT *)p->oldhrtfrpad.auxp;
     MYFLT *outlold = (MYFLT *)p->outlold.auxp;
@@ -486,14 +558,15 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
     int cross = p ->cross;
     int l = p->l;
-    int initialfade = p ->initialfade;
+    int initialfade = p->initialfade;
 
-    int crossfade = 0;
-    int crossout = 0;
+    int crossfade;
+    int crossout;
 
+    int fade = p->fade;
     int fadebuffer = p->fadebuffer;
 
-    /*minimum phase buffers*/
+    /* minimum phase buffers */
     MYFLT *logmagl = (MYFLT *)p->logmagl.auxp;
     MYFLT *logmagr = (MYFLT *)p->logmagr.auxp;
     MYFLT *xhatwinl = (MYFLT *)p->xhatwinl.auxp;
@@ -501,689 +574,808 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT *expxhatwinl = (MYFLT *)p->expxhatwinl.auxp;
     MYFLT *expxhatwinr = (MYFLT *)p->expxhatwinr.auxp;
 
-    MYFLT *win = (MYFLT *)p->win.auxp;     /*min phase window*/
+    /* min phase window */
+    MYFLT *win = (MYFLT *)p->win.auxp;
 
-    /*min phase delay variables*/
+    /* min phase delay variables */
     MYFLT *delmeml = (MYFLT *)p->delmeml.auxp;
     MYFLT *delmemr = (MYFLT *)p->delmemr.auxp;
-    MYFLT delaylow1,delaylow2,delayhigh1,delayhigh2,delaylow,delayhigh,delayfloat;
+    MYFLT delaylow1, delaylow2, delayhigh1, delayhigh2, delaylow, delayhigh;
+    MYFLT delayfloat = p->delayfloat;
     int ptl = p->ptl;
     int ptr = p->ptr;
+    int mdtl = p->mdtl;
+    int mdtr = p->mdtr;
+    int posl, posr;
+    MYFLT outvdl, outvdr, vdtl, vdtr, fracl, fracr, rpl, rpr;
 
-    int mdtl=0,mdtr=0;
-    MYFLT outvdl,outvdr,rpl,rpr,vdtl,vdtr,fracl,fracr;
-
-    /*start indices at correct value (start of file)/ zero indices.*/
+    /* start indices at correct value (start of file)/ zero indices. */
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    n=csound->ksmps;
+    n = csound->ksmps;
 
-    for (j=0;j<n;j++) {
-      insig[counter] = in[j];                   /*ins and outs*/
+    for(j = 0; j < n; j++)
+      {
+        /* ins and outs */
+        insig[counter] = in[j];
 
-      outsigl[j]=outl[counter];
-      outsigr[j]=outr[counter];
+        outsigl[j] = outl[counter];
+        outsigr[j] = outr[counter];
 
-      counter++;
+        counter++;
 
-      p->counts++;
-
-      if (phasetrunc) {
-        if (initialfade<(IMPLENGTH+2))
-          initialfade++;
-      }  /*used to ensure fade does not happen on first run*/
-
-      if (counter == IMPLENGTH) {         /*process a block*/
-        if (elev < -40) elev = -40;            /*within legal MIT range*/
-        if (elev > 90) elev = 90;
-        elevindex = (int)floor((float)((float)(elev-minelev)/elevincrement)+0.5f);
-
-        while (UNLIKELY(angle<FL(0.0))) angle+=360;
-        while (UNLIKELY(angle>FL(360))) angle-=360; /*mod 360*/
-        if (angle>180) {
-          angle=360-angle;
-          switchchannels=1; /*true for later function: data is symmetrical*/
-        }
-
-        /*read using an index system based on number of points
-          measured per elevation at mit*/
-        angleindex =    /*angle/increment+0.5*/
-          (int)floor(angle/(360/(MYFLT)elevationarray[elevindex])+0.5);
-        if (angleindex>=((int)(elevationarray[elevindex]/2)+1))
-          /*last point in current elevation*/
-          angleindex=(int)(elevationarray[elevindex]/2);
-        /* two nearest elev indices*/
-        elevindexlow = (int)((elev-minelev)/elevincrement);
-        if (elevindexlow<13) elevindexhigh = elevindexlow+1;
-        else elevindexhigh = elevindexlow;            /* highest index reached*/
-
-        /* get percentage value for interpolation*/
-        elevindexlowper = (1.0f - (((float)(elev-minelev)/elevincrement)
-                                   -(float)elevindexlow));
-        elevindexhighper = 1.0f - elevindexlowper;
-
-        /* 4 closest angle indices, 2 low and 2 high*/
-        angleindex1 = (int)(angle/(360/(float)elevationarray[elevindexlow]));
-
-        angleindex2 = angleindex1 + 1;
-        if (angleindex2>=((int)(elevationarray[elevindexlow]/2)+1))
-          angleindex2=(int)(elevationarray[elevindexlow]/2);
-
-        angleindex3 = (int)(angle/(360/(float)elevationarray[elevindexhigh]));
-
-        angleindex4 = angleindex3 + 1;
-        if (angleindex4>=((int)(elevationarray[elevindexhigh]/2)+1))
-          angleindex4=(int)(elevationarray[elevindexhigh]/2);
-
-        /* angle percentages for interp*/
-        angleindex1per =
-          1.0f-(float)((angle/(360.0/(float)elevationarray[elevindexlow])-
-                        angleindex1));
-        angleindex2per = 1.0f-angleindex1per;
-        angleindex3per =
-          1.0f - (float)((angle/(360.0/(float)elevationarray[elevindexhigh])-
-                          angleindex3));
-        angleindex4per = 1.0f-angleindex3per;
-
-        if (phasetrunc) {
-          if (angleindex!=oldangleindex || elevindex!=oldelevindex) {
-            /*store last point and turn crossfade on, provided
-              that initialfade value indicates first block
-              processed!*/
-            /*(otherwise,there will be a fade in at the start as
-              old hrtf will be filled with zeros and used).*/
-            if (initialfade>IMPLENGTH) {
-              /*post warning if fades ovelap*/
-              if (UNLIKELY(cross))
-                csound->Warning(csound,
-                                Str("fades are overlapping: "
-                                    "this could lead to noise: reduce "
-                                    "fade size or change trajectory\n\n"));
-              /*reset l, use as index to fade*/
-              l=0;
-              crossfade=1;
-              /*store old data*/
-              for (i=0;i<complexfftbuff;i++) {
-                oldhrtflpad[i] = hrtflpad[i];
-                oldhrtfrpad[i] = hrtfrpad[i];
-              }
-            }
-
-            /*store point for current phase as trajectory comes
-              closer to a new index  */
-            if (elevindex == 0);
-            else for (i=0; i<elevindex; i++)
-                   skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-            if (angleindex == 0);
-            else for (i=0; i<angleindex; i++)
-                   skip += (2*IMPLENGTH);
-
-            if (switchchannels) {
-              for (i=0;i<complexIMPLENGTH;i++){
-                currentphasel[i]=fpindexr[skip+i];
-                currentphaser[i]=fpindexl[skip+i];
-              }
-            }
-            else {
-              for (i=0;i<complexIMPLENGTH;i++) {
-                currentphasel[i]=fpindexl[skip+i];
-                currentphaser[i]=fpindexr[skip+i];
-              }
-            }
-          }
-        }
-
-        /*read 4 nearest points for interpolation*/
-        /*point 1*/
-        skip = 0;
-        if (elevindexlow == 0);
-        else for (i=0; i<elevindexlow; i++)
-               /*skip * 2 as data is in complex mag,phase format*/
-               skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-        if (angleindex1 == 0);
-        else for (i=0; i<angleindex1; i++)
-               skip += (2*IMPLENGTH);
-
-        if (switchchannels) {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            lowl1[i]=fpindexr[skip+i];
-            lowr1[i]=fpindexl[skip+i];
-          }
-        }
-        else {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            lowl1[i]=fpindexl[skip+i];
-            lowr1[i]=fpindexr[skip+i];
-          }
-        }
-
-        /*point 2*/
-        skip = 0;
-        if (elevindexlow == 0);
-        else for (i=0; i<elevindexlow; i++)
-               skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-        if (angleindex2 == 0);
-        else for (i=0; i<angleindex2; i++)
-               skip += (2*IMPLENGTH);
-
-        if (switchchannels) {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            lowl2[i]=fpindexr[skip+i];
-            lowr2[i]=fpindexl[skip+i];
-          }
-        }
-
-        else {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            lowl2[i]=fpindexl[skip+i];
-            lowr2[i]=fpindexr[skip+i];
-          }
-        }
-
-        /*point 3*/
-        skip = 0;
-        if (elevindexhigh == 0);
-        else for (i=0; i<elevindexhigh; i++)
-               skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-        if (angleindex3 == 0);
-        else for (i=0; i<angleindex3; i++)
-               skip += (2*IMPLENGTH);
-
-        if (switchchannels) {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            highl1[i]=fpindexr[skip+i];
-            highr1[i]=fpindexl[skip+i];
-          }
-        }
-
-        else {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            highl1[i]=fpindexl[skip+i];
-            highr1[i]=fpindexr[skip+i];
-          }
-        }
-
-        /*point 4*/
-        skip = 0;
-        if (elevindexhigh == 0);
-        else for (i=0; i<elevindexhigh; i++)
-               skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-        if (angleindex4 == 0);
-        else for (i=0; i<angleindex4; i++)
-               skip += (2*IMPLENGTH);
-
-        if (switchchannels) {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            highl2[i]=fpindexr[skip+i];
-            highr2[i]=fpindexl[skip+i];
-          }
-        }
-
-        else {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            highl2[i]=fpindexl[skip+i];
-            highr2[i]=fpindexr[skip+i];
-          }
-        }
-
-        /* magnitude interpolation*/
-        for (i=0; i < complexIMPLENGTH; i+=2) {
-          /* interpolate HIGH AND LOW MAGS*/
-          magllow = lowl1[i]+(lowl2[i]-lowl1[i])*angleindex2per;
-          maglhigh = highl1[i]+(highl2[i]-highl1[i])*angleindex4per;
-
-          magrlow = lowr1[i]+(lowr2[i]-lowr1[i])*angleindex2per;
-          magrhigh = highr1[i]+(highr2[i]-highr1[i])*angleindex4per;
-
-          /* interpolate high and low results*/
-          magl = magllow+(maglhigh-magllow)*elevindexhighper;
-          magr = magrlow+(magrhigh-magrlow)*elevindexhighper;
-
-          if (phasetrunc) {       /*use current phase, back to rectangular*/
-            phasel = currentphasel[i+1];
-            phaser = currentphaser[i+1];
-
-            /* polar to rectangular*/
-            hrtflfloat[i] = magl*COS(phasel);
-            hrtflfloat[i+1] = magl*SIN(phasel);
-
-            hrtfrfloat[i] = magr*COS(phaser);
-            hrtfrfloat[i+1] = magr*SIN(phaser);
-          }
-
-          if (minphase) {
-            /*store log magnitudes, 0 phases for ifft, do not allow log(0.0)*/
-            logmagl[i]= LOG(magl==FL(0.0)?FL(0.00000001):magl);
-            logmagr[i]= LOG(magr==FL(0.0)?FL(0.00000001):magr);
-
-            logmagl[i+1] = FL(0.0);
-            logmagr[i+1] = FL(0.0);
-          }
-        }
-
-        if (minphase) {
-          /*ifft!...see Oppehneim and Schafer for min phase process...
-            based on real cepstrum method*/
-          csound->InverseComplexFFT(csound, logmagl, IMPLENGTH);
-          csound->InverseComplexFFT(csound, logmagr, IMPLENGTH);
-
-          /*window, note no need to scale on csound iffts...*/
-          for (i=0;i<complexIMPLENGTH;i+=2)            {
-            xhatwinl[i] = (logmagl[i]) * win[i/2];
-            xhatwinr[i] = (logmagr[i]) * win[i/2];
-            xhatwinl[i+1] = FL(0.0);
-            xhatwinr[i+1] = FL(0.0);
-          }
-
-          /*fft*/
-          csound->ComplexFFT(csound, xhatwinl, IMPLENGTH);
-          csound->ComplexFFT(csound, xhatwinr, IMPLENGTH);
-
-          /*exponential of complex result*/
-          for (i=0;i<256;i+=2) {
-            expxhatwinl[i] = EXP(xhatwinl[i])*COS(xhatwinl[i+1]);
-            expxhatwinl[i+1] = EXP(xhatwinl[i])*SIN(xhatwinl[i+1]);
-            expxhatwinr[i] = EXP(xhatwinr[i])*COS(xhatwinr[i+1]);
-            expxhatwinr[i+1] = EXP(xhatwinr[i])*SIN(xhatwinr[i+1]);
-          }
-
-          /*ifft for output buffers*/
-          csound->InverseComplexFFT(csound, expxhatwinl, IMPLENGTH);
-          csound->InverseComplexFFT(csound, expxhatwinr, IMPLENGTH);
-
-          /*real parts of ifft for output, scale. */
-          for (i= 0; i < complexIMPLENGTH; i+=2) {
-            hrtflpad[i] = (expxhatwinl[i]);
-            hrtfrpad[i] = (expxhatwinr[i]);
-            hrtflpad[i+1] = FL(0.0);
-            hrtfrpad[i+1] = FL(0.0);
-          }
-        }
-
-        if (phasetrunc)        /*use current phase and interped mag directly*/
+        if(phasetrunc)
           {
-            /*ifft*/
-            csound->InverseComplexFFT(csound, hrtflfloat, IMPLENGTH);
-            csound->InverseComplexFFT(csound, hrtfrfloat, IMPLENGTH);
-
-            for (i=0; i<complexIMPLENGTH; i++) {
-              /* scale and pad buffers with zeros to fftbuff*/
-              hrtflpad[i] = hrtflfloat[i];
-              hrtfrpad[i] = hrtfrfloat[i];
-            }
+            /* used to ensure fade does not happen on first run */
+            if(initialfade < (irlength + 2))
+              initialfade++;
           }
 
-        /*zero pad impulse*/
-        for (i=complexIMPLENGTH;i<complexfftbuff;i++)
+        if(counter == irlength)
           {
-            hrtflpad[i]=FL(0.0);
-            hrtfrpad[i]=FL(0.0);
-          }
+            /* process a block */
+            crossfade = 0;
+            crossout = 0;
 
-        /*back to freq domain*/
-        csound->ComplexFFT(csound, hrtflpad, complexIMPLENGTH);
-        csound->ComplexFFT(csound, hrtfrpad, complexIMPLENGTH);
+            if(elev > FL(90.0))
+              elev = FL(90.0);
+            if(elev < FL(-40.0))
+              elev = FL(-40.0);
 
-        /* look after overlap add stuff*/
-        for (i = 0; i < overlapsize ; i++) {
-          overlapl[i] = outl[i+IMPLENGTH];
-          overlapr[i] = outr[i+IMPLENGTH];
+            while(angle < FL(0.0))
+              angle += FL(360.0);
+            while(angle >= FL(360.0))
+              angle -= FL(360.0);
 
-          if (phasetrunc)            /*look after fade stuff*/
-            {
-              if (crossfade)
-                {
-                  overlapoldl[i] = outl[i+IMPLENGTH];
-                  overlapoldr[i] = outr[i+IMPLENGTH];
-                }
-              /* overlap will be previous fading out signal*/
-              if (cross)
-                {
-                  overlapoldl[i] = outlold[i+IMPLENGTH];
-                  overlapoldr[i] = outrold[i+IMPLENGTH];
-                }
-            }
-        }
-
-        /* insert insig for complex real,im fft, zero pad*/
-        for (i = 0; i <  IMPLENGTH; i++)
-          {
-            complexinsig[2*i] = insig[i];
-            complexinsig[(2*i)+1] = FL(0.0);
-          }
-
-        for (i = complexIMPLENGTH; i <  complexfftbuff; i++)
-          complexinsig[i] = FL(0.0);
-
-        csound->ComplexFFT(csound, complexinsig, complexIMPLENGTH);
-
-        /* complex multiplication*/
-        for (i = 0; i < complexfftbuff; i+=2) {
-          outspecl[i] =
-            complexinsig[i]*hrtflpad[i] - complexinsig[i+1]*hrtflpad[i+1];
-          outspecr[i] =
-            complexinsig[i]*hrtfrpad[i] - complexinsig[i+1]*hrtfrpad[i+1];
-          outspecl[i+1] =
-            complexinsig[i]*hrtflpad[i+1] + complexinsig[i+1]*hrtflpad[i];
-          outspecr[i+1] =
-            complexinsig[i]*hrtfrpad[i+1] + complexinsig[i+1]*hrtfrpad[i];
-        }
-
-        /* convolution is the inverse FFT of above result */
-        csound->InverseComplexFFT(csound, outspecl, complexIMPLENGTH);
-        csound->InverseComplexFFT(csound, outspecr, complexIMPLENGTH);
-
-        if (phasetrunc) {
-          /*real values, scaled (by a little more than usual to ensure
-            no clipping) sr related?*/
-          for (i = 0; i < complexIMPLENGTH; i++)
-            {
-              outl[i] = outspecl[2*i]/(sr/FL(38000.0));
-              outr[i] = outspecr[2*i]/(sr/FL(38000.0));
-            }
-        }
-
-        if (minphase) {
-          /*real values*/
-
-          /*scaling relative to sr not necessary for min phase?...just
-            scaling by a little > 1 to avoid any possible overlap add clips*/
-
-          for (i = 0; i < complexIMPLENGTH; i++)
-            {
-              outl[i] = outspecl[2*i]/FL(1.17);
-              outr[i] = outspecr[2*i]/FL(1.17);
-            }
-        }
-
-        if (phasetrunc) {
-          /* setup for fades*/
-          if (crossfade || cross) {
-            crossout=1;
-
-            for (i = 0; i < complexfftbuff; i+=2) {
-              outspecoldl[i] = complexinsig[i]*oldhrtflpad[i] -
-                complexinsig[i+1]*oldhrtflpad[i+1];
-              outspecoldr[i] = complexinsig[i]*oldhrtfrpad[i] -
-                complexinsig[i+1]*oldhrtfrpad[i+1];
-              outspecoldl[i+1] = complexinsig[i]*oldhrtflpad[i+1] +
-                complexinsig[i+1]*oldhrtflpad[i];
-              outspecoldr[i+1] = complexinsig[i]*oldhrtfrpad[i+1] +
-                complexinsig[i+1]*oldhrtfrpad[i];
-            }
-
-            csound->InverseComplexFFT(csound, outspecoldl, complexIMPLENGTH);
-            csound->InverseComplexFFT(csound, outspecoldr, complexIMPLENGTH);
-
-            /*real values, scaled*/
-            for (i = 0; i < complexIMPLENGTH; i++)
+            /* only update if location changes! */
+            if(angle != p->anglev || elev != p->elevv)
               {
-                outlold[i] = outspecoldl[2*i]/(sr/FL(38000.0));
-                outrold[i] = outspecoldr[2*i]/(sr/FL(38000.0));
+                /* two nearest elev indices to avoid recalculating */
+                elevindexstore = (elev - minelev) / elevincrement;
+                elevindexlow = (int)elevindexstore;
+
+                if(elevindexlow < 13)
+                  elevindexhigh = elevindexlow + 1;
+                /* highest index reached */
+                else
+                  elevindexhigh = elevindexlow;
+
+                /* get percentage value for interpolation */
+                elevindexhighper = elevindexstore - elevindexlow;
+
+                /* read using an index system based on number of points
+                   measured per elevation at mit */
+                /* lookup indices, used to check for crossfade */
+                elevindex = (int)(elevindexstore + FL(0.5));
+
+                angleindex = (int)(angle / (FL(360.0) / elevationarray[elevindex])
+                                   + FL(0.5));
+                angleindex = angleindex % elevationarray[elevindex];
+
+                /* avoid recalculation */
+                angleindexlowstore = angle / (FL(360.0) /
+                                              elevationarray[elevindexlow]);
+                angleindexhighstore = angle / (FL(360.) /
+                                               elevationarray[elevindexhigh]);
+
+                /* 4 closest indices, 2 low and 2 high */
+                angleindex1 = (int)angleindexlowstore;
+
+                angleindex2 = angleindex1 + 1;
+                angleindex2 = angleindex2 % elevationarray[elevindexlow];
+
+                angleindex3 = (int)angleindexhighstore;
+
+                angleindex4 = angleindex3 + 1;
+                angleindex4 = angleindex4 % elevationarray[elevindexhigh];
+
+                /* angle percentages for interp */
+                angleindex2per = angleindexlowstore - angleindex1;
+                angleindex4per = angleindexhighstore - angleindex3;
+
+                if(phasetrunc)
+                  {
+                    if(angleindex!=oldangleindex || elevindex!=oldelevindex)
+                      {
+                        /* store last point and turn crossfade on, provided that
+                           initialfade value indicates first block processed! */
+                        /* (otherwise,there will be a fade in at the start). */
+                        if(initialfade>irlength)
+                          {
+                            /* post warning if fades ovelap */
+                            if(cross)
+                              {
+                                csound->Message(csound,
+                                                Str("\nWARNING: fades are "
+                                                    "overlapping: this could lead"
+                                                    " to noise: reduce fade size "
+                                                    "or change trajectory\n\n"));
+                                cross = 0;
+                              }
+                            /* reset l, use as index to fade */
+                            l = 0;
+                            crossfade = 1;
+                            /* store old data */
+                            for(i = 0; i < irlengthpad; i++)
+                              {
+                                oldhrtflpad[i] = hrtflpad[i];
+                                oldhrtfrpad[i] = hrtfrpad[i];
+                              }
+                          }
+
+                        /* store point for current phase as trajectory comes
+                           closer to a new index */
+                        skip = 0;
+                        /* store current phase */
+                        if(angleindex > elevationarray[elevindex] / 2)
+                          {
+                            for(i = 0; i < elevindex; i++)
+                              skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                            for (i = 0;
+                                 i < (elevationarray[elevindex] - angleindex);
+                                 i++)
+                              skip += irlength;
+                            for(i = 0; i < irlength; i++)
+                              {
+                                currentphasel[i] = fpindexr[skip + i];
+                                currentphaser[i] = fpindexl[skip + i];
+                              }
+                          }
+                        else
+                          {
+                            for(i = 0; i < elevindex; i++)
+                              skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                            for (i = 0; i < angleindex; i++)
+                              skip += irlength;
+                            for(i = 0; i < irlength; i++)
+                              {
+                                currentphasel[i] = fpindexl[skip+i];
+                                currentphaser[i] = fpindexr[skip+i];
+                              }
+                          }
+                      }
+                  }
+                /* for next check */
+                p->oldelevindex = elevindex;
+                p->oldangleindex = angleindex;
+
+                /* read 4 nearest HRTFs */
+                skip = 0;
+                /* switch l and r */
+                if(angleindex1 > elevationarray[elevindexlow] / 2)
+                  {
+                    for(i = 0; i < elevindexlow; i++)
+                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexlow] - angleindex1);
+                         i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        lowl1[i] = fpindexr[skip+i];
+                        lowr1[i] = fpindexl[skip+i];
+                      }
+                  }
+                else
+                  {
+                    for(i = 0; i < elevindexlow; i++)
+                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0; i < angleindex1; i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        lowl1[i] = fpindexl[skip+i];
+                        lowr1[i] = fpindexr[skip+i];
+                      }
+                  }
+                
+                skip = 0;
+                if(angleindex2 > elevationarray[elevindexlow] / 2)
+                  {
+                    for(i = 0; i < elevindexlow; i++)
+                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexlow] - angleindex2);
+                         i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        lowl2[i] = fpindexr[skip+i];
+                        lowr2[i] = fpindexl[skip+i];
+                      }
+                  }
+                else
+                  {
+                    for(i = 0; i < elevindexlow; i++)
+                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0; i < angleindex2; i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        lowl2[i] = fpindexl[skip+i];
+                        lowr2[i] = fpindexr[skip+i];
+                      }
+                  }
+                
+                skip = 0;
+                if(angleindex3 > elevationarray[elevindexhigh] / 2)
+                  {
+                    for(i = 0; i < elevindexhigh; i++)
+                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexhigh] - angleindex3);
+                         i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        highl1[i] = fpindexr[skip+i];
+                        highr1[i] = fpindexl[skip+i];
+                      }
+                  }
+                else
+                  {
+                    for(i = 0; i < elevindexhigh; i++)
+                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0; i < angleindex3; i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        highl1[i] = fpindexl[skip+i];
+                        highr1[i] = fpindexr[skip+i];
+                      }
+                  }
+                
+                skip = 0;
+                if(angleindex4 > elevationarray[elevindexhigh] / 2)
+                  {
+                    for(i = 0; i < elevindexhigh; i++)
+                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexhigh] - angleindex4);
+                         i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        highl2[i] = fpindexr[skip+i];
+                        highr2[i] = fpindexl[skip+i];
+                      }
+                  }
+                else
+                  {
+                    for(i = 0; i < elevindexhigh; i++)
+                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0; i < angleindex4; i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        highl2[i] = fpindexl[skip+i];
+                        highr2[i] = fpindexr[skip+i];
+                      }
+                  }
+
+                /* interpolation */
+                /* 0 Hz and Nyq...absoulute values for mag */
+                magllow = FABS(lowl1[0]) + (FABS(lowl2[0]) - FABS(lowl1[0])) *
+                  angleindex2per;
+                maglhigh = FABS(highl1[0]) + (FABS(highl2[0]) - FABS(highl1[0]))
+                  * angleindex4per;
+                magl = magllow + (maglhigh - magllow) * elevindexhighper;
+                if(minphase)
+                  {
+                    logmagl[0] = LOG((magl == FL(0.0) ? FL(0.00000001) : magl));
+                  }
+                /* this is where real values of 0hz and nyq needed:
+                   if neg real, 180 degree phase */
+                /* if data was complex, mag interp would use fabs()
+                   inherently, phase would be 0/pi */
+                /* if pi, real is negative! */
+                else
+                  {
+                    if(currentphasel[0] < FL(0.0))
+                      hrtflfloat[0] = -magl;
+                    else
+                      hrtflfloat[0] = magl;
+                  }
+
+                magllow = FABS(lowl1[1]) + (FABS(lowl2[1]) - FABS(lowl1[1])) *
+                  angleindex2per;
+                maglhigh = FABS(highl1[1]) + (FABS(highl2[1]) - FABS(highl1[1])) *
+                  angleindex4per;
+                magl = magllow + (maglhigh-magllow) * elevindexhighper;
+                if(minphase)
+                  {
+                    logmagl[1] = LOG(magl == FL(0.0) ? FL(0.00000001) : magl);
+                  }
+                else
+                  
+                  {
+                    if(currentphasel[1] < FL(0.0))
+                      hrtflfloat[1] = -magl;
+                    else
+                      hrtflfloat[1] = magl;
+                  }
+
+                magrlow = FABS(lowr1[0]) + (FABS(lowr2[0]) - FABS(lowr1[0])) *
+                  angleindex2per;
+                magrhigh = FABS(highr1[0]) + (FABS(highr2[0]) - FABS(highr1[0])) *
+                  angleindex4per;
+                magr = magrlow + (magrhigh - magrlow) * elevindexhighper;
+                if(minphase)
+                  {
+                    logmagr[0] = LOG(magr == FL(0.0) ? FL(0.00000001) : magr);
+                  }
+                else
+                  {
+                    if(currentphaser[0] < FL(0.0))
+                      hrtfrfloat[0] = -magr;
+                    else
+                      hrtfrfloat[0] = magr;
+                  }
+
+                magrlow = FABS(lowr1[1]) + (FABS(lowr2[1]) - FABS(lowr1[1]))  *
+                  angleindex2per;
+                magrhigh = FABS(highr1[1]) + (FABS(highr2[1]) - FABS(highr1[1])) *
+                  angleindex4per;
+                magr = magrlow + (magrhigh - magrlow) * elevindexhighper;
+                if(minphase)
+                  {
+                    logmagr[1] = LOG(magr == FL(0.0) ? FL(0.00000001) : magr);
+                  }
+                else
+                  {
+                    if(currentphaser[1] < FL(0.0))
+                      hrtfrfloat[1] = -magr;
+                    else
+                      hrtfrfloat[1] = magr;
+                  }
+
+                /* remaining values */
+                for(i = 2; i < irlength; i += 2)
+                  {
+                    /* interpolate high and low mags */
+                    magllow = lowl1[i] + (lowl2[i] - lowl1[i]) * angleindex2per;
+                    maglhigh = highl1[i] + (highl2[i] - highl1[i]) * angleindex4per;
+
+                    magrlow = lowr1[i] + (lowr2[i] - lowr1[i]) * angleindex2per;
+                    magrhigh = highr1[i] + (highr2[i] - highr1[i]) * angleindex4per;
+
+                    /* interpolate high and low results */
+                    magl = magllow + (maglhigh - magllow) * elevindexhighper;
+                    magr = magrlow + (magrhigh - magrlow) * elevindexhighper;
+
+                    if(phasetrunc)
+                      {
+                        /* use current phase, back to rectangular */
+                        phasel = currentphasel[i + 1];
+                        phaser = currentphaser[i + 1];
+
+                        /* polar to rectangular */
+                        hrtflfloat[i] = magl * COS(phasel);
+                        hrtflfloat[i+1] = magl * SIN(phasel);
+
+                        hrtfrfloat[i] = magr * COS(phaser);
+                        hrtfrfloat[i+1] = magr * SIN(phaser);
+                      }
+
+                    if(minphase)
+                      {
+                        /* store log magnitudes, 0 phases for ifft, do not
+                           allow log(0.0) */
+                        logmagl[i] = LOG(magl == FL(0.0) ? FL(0.00000001) : magl);
+                        logmagr[i] = LOG(magr == FL(0.0) ? FL(0.00000001) : magr);
+
+                        logmagl[i + 1] = FL(0.0);
+                        logmagr[i + 1] = FL(0.0);
+                      }
+                  }
+
+                if(minphase)
+                  {
+                    /* ifft!...see Oppehneim and Schafer for min phase
+                       process...based on real cepstrum method */
+                    csound->InverseRealFFT(csound, logmagl, irlength);
+                    csound->InverseRealFFT(csound, logmagr, irlength);
+
+                    /* window, note no need to scale on csound iffts... */
+                    for(i = 0; i < irlength; i++)
+                      {
+                        xhatwinl[i] = logmagl[i] * win[i];
+                        xhatwinr[i] = logmagr[i] * win[i];
+                      }
+
+                    /* fft */
+                    csound->RealFFT(csound, xhatwinl, irlength);
+                    csound->RealFFT(csound, xhatwinr, irlength);
+
+                    /* exponential of result */
+                    /* 0 hz and nyq purely real... */
+                    expxhatwinl[0] = EXP(xhatwinl[0]);
+                    expxhatwinl[1] = EXP(xhatwinl[1]);
+                    expxhatwinr[0] = EXP(xhatwinr[0]);
+                    expxhatwinr[1] = EXP(xhatwinr[1]);
+
+                    /* exponential of real, cos/sin of imag */
+                    for(i = 2; i < irlength; i += 2)
+                      {
+                        expxhatwinl[i] = EXP(xhatwinl[i]) * COS(xhatwinl[i + 1]);
+                        expxhatwinl[i+1] = EXP(xhatwinl[i]) * SIN(xhatwinl[i + 1]);
+                        expxhatwinr[i] = EXP(xhatwinr[i]) * COS(xhatwinr[i + 1]);
+                        expxhatwinr[i+1] = EXP(xhatwinr[i]) * SIN(xhatwinr[i + 1]);
+                      }
+
+                    /* ifft for output buffers */
+                    csound->InverseRealFFT(csound, expxhatwinl, irlength);
+                    csound->InverseRealFFT(csound, expxhatwinr, irlength);
+
+                    /* output */
+                    for(i= 0; i < irlength; i++)
+                      {
+                        hrtflpad[i] = expxhatwinl[i];
+                        hrtfrpad[i] = expxhatwinr[i];
+                      }
+                  }
+
+                /* use current phase and interped mag directly */
+                if(phasetrunc)
+                  {
+                    /* ifft */
+                    csound->InverseRealFFT(csound, hrtflfloat, irlength);
+                    csound->InverseRealFFT(csound, hrtfrfloat, irlength);
+
+                    for (i = 0; i < irlength; i++)
+                      {
+                        /* scale and pad buffers with zeros to fftbuff */
+                        hrtflpad[i] = hrtflfloat[i];
+                        hrtfrpad[i] = hrtfrfloat[i];
+                      }
+                  }
+
+                /* zero pad impulse */
+                for(i = irlength; i < irlengthpad; i++)
+                  {
+                    hrtflpad[i] = FL(0.0);
+                    hrtfrpad[i] = FL(0.0);
+                  }
+                
+                /* back to freq domain */
+                csound->RealFFT(csound, hrtflpad, irlengthpad);
+                csound->RealFFT(csound, hrtfrpad, irlengthpad);
+
+                if(minphase)
+                  {
+                    /* read delay data: 4 nearest points, as above */
+                    /* point 1 */
+                    skip = 0;
+                    if(angleindex1 > elevationarray[elevindexlow] / 2)
+                      {
+                        for (i = 0; i < elevindexlow; i++)
+                          skip += ((int)(elevationarray[i] / 2) + 1);
+                        for(i = 0;
+                            i < (elevationarray[elevindexlow] - angleindex1);
+                            i++)
+                          skip++;
+                        delaylow1 = minphasedels[skip];
+                      }
+                    else
+                      {
+                        for (i = 0; i < elevindexlow; i++)
+                          skip += ((int)(elevationarray[i] / 2) + 1);
+                        for(i = 0; i < angleindex1; i++)
+                          skip++;
+                        delaylow1 = minphasedels[skip];
+                      }
+                    
+                    /* point 2 */
+                    skip = 0;
+                    if(angleindex2 > elevationarray[elevindexlow] / 2)
+                      {
+                        for (i = 0; i < elevindexlow; i++)
+                          skip += ((int)(elevationarray[i] / 2) + 1);
+                        for(i = 0;
+                            i < (elevationarray[elevindexlow] - angleindex2);
+                            i++)
+                          skip++;
+                        delaylow2 = minphasedels[skip];
+                      }
+                    else
+                      {
+                        for (i = 0; i < elevindexlow; i++)
+                          skip += ((int)(elevationarray[i] / 2) + 1);
+                        for (i = 0; i < angleindex2; i++)
+                          skip++;
+                        delaylow2 = minphasedels[skip];
+                      }
+                    
+                    /* point 3 */
+                    skip = 0;
+                    if(angleindex3 > elevationarray[elevindexhigh] / 2)
+                      {
+                        for (i = 0; i < elevindexhigh; i++)
+                          skip += ((int)(elevationarray[i] / 2) + 1);
+                        for(i = 0;
+                            i < (elevationarray[elevindexhigh] - angleindex3);
+                            i++)
+                          skip++;
+                        delayhigh1  =minphasedels[skip];
+                      }
+                    else
+                      {
+                        for (i = 0; i < elevindexhigh; i++)
+                          skip += ((int)(elevationarray[i] / 2) + 1);
+                        for (i = 0; i < angleindex3; i++)
+                          skip++;
+                        delayhigh1 = minphasedels[skip];
+                      }
+                    
+                    /* point 4 */
+                    skip = 0;
+                    if(angleindex4 > elevationarray[elevindexhigh] / 2)
+                      {
+                        for (i = 0; i < elevindexhigh; i++)
+                          skip += ((int)(elevationarray[i] / 2) + 1);
+                        for(i = 0;
+                            i < (elevationarray[elevindexhigh] - angleindex4);
+                            i++)
+                          skip++;
+                        delayhigh2 = minphasedels[skip];
+                      }
+                    else
+                      {
+                        for (i = 0; i < elevindexhigh; i++)
+                          skip += ((int)(elevationarray[i] / 2) + 1);
+                        for (i = 0; i < angleindex4; i++)
+                          skip++;
+                        delayhigh2 = minphasedels[skip];
+                      }
+
+                    /* delay interp */
+                    delaylow = delaylow1 + ((delaylow2 - delaylow1) *
+                                            angleindex2per);
+                    delayhigh = delayhigh1 + ((delayhigh2 - delayhigh1) *
+                                              angleindex4per);
+                    delayfloat = delaylow + ((delayhigh - delaylow) *
+                                             elevindexhighper);
+                    
+                    p->delayfloat = delayfloat;
+                  }
+                /* end of angle/elev change process */
+                p->elevv = elev;
+                p->anglev = angle;
               }
 
-            cross++;
-            /*number of processing buffers in a fade*/
-            cross=cross%(int)(fadebuffer/IMPLENGTH);
-          }
-
-          if (crossout) {            /*do fade       */
-            for (i=0;i<IMPLENGTH;i++) {
-              outl[i] = ((outlold[i] + (i<overlapsize ? overlapoldl[i] : 0)) *
-                         (FL(1.0) - FL(l)/fadebuffer)) +
-                ((outl[i] + (i < overlapsize ? overlapl[i] : 0)) *
-                 FL(l)/fadebuffer);
-              outr[i] = ((outrold[i] + (i<overlapsize ? overlapoldr[i] : 0)) *
-                         (FL(1.0) - FL(l)/fadebuffer)) +
-                ((outr[i] + (i < overlapsize ? overlapr[i] : 0)) *
-                 FL(l)/fadebuffer);
-              l++;
-            }
-          }
-          else
-            for (i=0;i<IMPLENGTH;i++)
+            /* look after overlap add */
+            for(i = 0; i < overlapsize ; i++)
               {
-                outl[i] = outl[i] + (i < overlapsize ? overlapl[i] : FL(0.0));
-                outr[i] = outr[i] + (i < overlapsize ? overlapr[i] : FL(0.0));
+                overlapl[i] = outl[i + irlength];
+                overlapr[i] = outr[i + irlength];
+                /* look after fade */
+                if(phasetrunc)
+                  {
+                    if(crossfade)
+                      {
+                        overlapoldl[i] = outl[i + irlength];
+                        overlapoldr[i] = outr[i + irlength];
+                      }
+                    /* overlap will be previous fading out signal */
+                    if(cross)
+                      {
+                        overlapoldl[i] = outlold[i + irlength];
+                        overlapoldr[i] = outrold[i + irlength];
+                      }
+                  }
               }
 
-          /*use to check for crossfade next time!*/
-          p->oldelevindex = elevindex;
-          p->oldangleindex = angleindex;
-        }
+            /* insert insig */
+            for (i = 0; i < irlength; i++)
+              complexinsig[i] = insig[i];
 
-        if (minphase) {        /*use output direcly and add delay in time domain*/
-          for (i=0;i<IMPLENGTH;i++)
-            {
-              outl[i] = outl[i] + (i < overlapsize ? overlapl[i] : 0);
-              outr[i] = outr[i] + (i < overlapsize ? overlapr[i] : 0);
-            }
+            for (i = irlength; i < irlengthpad; i++)
+              complexinsig[i] = FL(0.0);
 
-          /*read delay data: 4 nearest points*/
-          /*point 1*/
-          skip = 0;
-          if (elevindexlow == 0);
-          else {
-            for (i=0; i<elevindexlow; i++)
-              skip +=((int)(elevationarray[i]/2)+1);
-          }
+            csound->RealFFT(csound, complexinsig, irlengthpad);
 
-          if (angleindex1 == 0);
-          else {
-            for (i=0; i<angleindex1; i++)
-              skip++;
-          }
+            /* complex mult function... */
+            csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
+                                irlengthpad, FL(1.0));
+            csound->RealFFTMult(csound, outspecr, hrtfrpad, complexinsig,
+                                irlengthpad, FL(1.0));
+            
+            /* convolution is the inverse FFT of above result */
+            csound->InverseRealFFT(csound, outspecl, irlengthpad);
+            csound->InverseRealFFT(csound, outspecr, irlengthpad);
 
-          delaylow1=minphasedels[skip];
+            /* real values, scaled (by a little more than usual to ensure
+               no clipping) sr related */
+            for(i = 0; i < irlengthpad; i++)
+              {
+                outl[i] = outspecl[i] / (sr / FL(38000.0));
+                outr[i] = outspecr[i] / (sr / FL(38000.0));
+              }
 
-          /*point 2*/
-          skip = 0;
-          if (elevindexlow == 0);
-          else {
-            for (i=0; i<elevindexlow; i++)
-              skip +=((int)(elevationarray[i]/2)+1);
-          }
+            if(phasetrunc)
+              {
+                /* setup for fades */
+                if(crossfade || cross)
+                  {
+                    crossout = 1;
 
-          if (angleindex2 == 0);
-          else {
-            for (i=0; i<angleindex2; i++)
-              skip++;
-          }
+                    csound->RealFFTMult(csound, outspecoldl, oldhrtflpad,
+                                        complexinsig, irlengthpad, FL(1.0));
+                    csound->RealFFTMult(csound, outspecoldr, oldhrtfrpad,
+                                        complexinsig, irlengthpad, FL(1.0));
 
-          delaylow2=minphasedels[skip];
+                    csound->InverseRealFFT(csound, outspecoldl, irlengthpad);
+                    csound->InverseRealFFT(csound, outspecoldr, irlengthpad);
 
-          /*point 3*/
-          skip = 0;
-          if (elevindexhigh == 0);
-          else {
-            for (i=0; i<elevindexhigh; i++)
-              skip +=((int)(elevationarray[i]/2)+1);
-          }
+                    /* scaled */
+                    for(i = 0; i < irlengthpad; i++)
+                      {
+                        outlold[i] = outspecoldl[i] / (sr / FL(38000.0));
+                        outrold[i] = outspecoldr[i] / (sr / FL(38000.0));
+                      }
+                    
+                    cross++;
+                    /* number of processing buffers in a fade */
+                    cross = cross % fade;
+                  }
 
-          if (angleindex3 == 0);
-          else {
-            for (i=0; i<angleindex3; i++)
-              skip++;
-          }
+                if(crossout)
+                  {
+                    /* do fade */
+                    for(i = 0; i < irlength; i++)
+                      {
+                        outl[i] = ((outlold[i] +
+                                    (i<overlapsize ? overlapoldl[i] : 0)) *
+                                   (FL(1.0) - l / fadebuffer)) +
+                          ((outl[i] + (i < overlapsize ? overlapl[i] : 0)) *
+                           FL(l)/fadebuffer);
+                        outr[i] = ((outrold[i] +
+                                    (i<overlapsize ? overlapoldr[i] : 0)) *
+                                   (FL(1.0) - l / fadebuffer)) +
+                          ((outr[i] + (i < overlapsize ? overlapr[i] : 0)) *
+                           FL(l)/fadebuffer);
+                        l++;
+                      }
+                  }
+                else
+                  for(i = 0; i < irlength; i++) {
+                    outl[i] = outl[i] + (i < overlapsize ? overlapl[i] : FL(0.0));
+                    outr[i] = outr[i] + (i < overlapsize ? overlapr[i] : FL(0.0));
+                  }
+              }
 
-          delayhigh1=minphasedels[skip];
+            if(minphase)
+              {
+                /* use output direcly and add delay in time domain */
+                for(i = 0; i < irlength; i++)
+                  {
+                    outl[i] = outl[i] + (i < overlapsize ? overlapl[i] : FL(0.0));
+                    outr[i] = outr[i] + (i < overlapsize ? overlapr[i] : FL(0.0));
+                  }
 
-          /*point 4*/
-          skip = 0;
-          if (elevindexhigh == 0);
-          else {
-            for (i=0; i<elevindexhigh; i++)
-              skip +=((int)(elevationarray[i]/2)+1);
-          }
+                if(angle > FL(180.0))
+                  {
+                    vdtr =  delayfloat * sr;
+                    vdtl = FL(0.0);
+                  }
+                else
+                  {
+                    vdtr = FL(0.0);
+                    vdtl = delayfloat * sr;
+                  }
 
-          if (angleindex4 == 0);
-          else {
-            for (i=0; i<angleindex4; i++)
-              skip++;
-          }
+                /* delay right */
+                if(vdtr > mdtr)
+                  vdtr = FL(mdtr);
+                for(i = 0; i < irlength; i++)
+                  {
+                    rpr = ptr - vdtr;
+                    rpr = (rpr >= 0 ? (rpr < mdtr ? rpr : rpr - mdtr) : rpr + mdtr);
+                    posr = (int) rpr;
+                    fracr = rpr - posr;
+                    delmemr[ptr] = outr[i];
+                    outvdr =  delmemr[posr] + fracr *
+                      (delmemr[(posr + 1 < mdtr ? posr + 1 : 0)] - delmemr[posr]);
+                    outr[i] = outvdr;
+                    ptr = (ptr != mdtr - 1 ? ptr + 1 : 0);
+                  }
 
-          delayhigh2=minphasedels[skip];
+                /* delay left */
+                if(vdtl > mdtl)
+                  vdtl = FL(mdtl);
+                for(i = 0; i < irlength; i++)
+                  {
+                    rpl = ptl - vdtl;
+                    rpl = (rpl >= 0 ? (rpl < mdtl ? rpl : rpl - mdtl) : rpl + mdtl);
+                    posl = (int) rpl;
+                    fracl = rpl - (int) posl;
+                    delmeml[ptl] = outl[i];
+                    outvdl =  delmeml[posl] + fracl *
+                      (delmeml[(posl + 1 < mdtl ? posl + 1 : 0)] - delmeml[posl]);
+                    outl[i] = outvdl;
+                    ptl = (ptl != mdtl - 1 ? ptl + 1 : 0);
+                  }
+                
+                p->ptl = ptl;
+                p->ptr = ptr;
+              }
 
-          /*delay interp*/
-          delaylow = delaylow1 +
-            ((delaylow2 - delaylow1)*angleindex2per);
-          delayhigh = delayhigh1 +
-            ((delayhigh2 - delayhigh1)*angleindex4per);
-          delayfloat = delaylow +
-            ((delayhigh - delaylow)*elevindexhighper);
-
-          /*standard variable delay function for each ear, according
-            to interpolated delay value*/
-          if (switchchannels) {
-            vdtr = (delayfloat + 0.0001f)*sr;
-            mdtr = (int)(0.00095f*sr);
-            if (vdtr > mdtr) vdtr = (float)mdtr;
-            for (i=0;i<IMPLENGTH;i++) {
-              rpr = ptr - vdtr;
-              if (rpr < 0) rpr += mdtr;
-              fracr = rpr - (int) rpr;
-              if (rpr  < mdtr -1)
-                outvdr =  delmemr[(int)rpr] +
-                  fracr*(delmemr[(int)rpr+1] - delmemr[(int)rpr]);
-              else outvdr = delmemr[mdtr-1] +
-                     fracr*(delmemr[0] - delmemr[mdtr-1]);
-              delmemr[ptr] = outr[i];
-              outr[i] = outvdr;
-              ptr = ptr + 1;
-              if (ptr >=mdtr) ptr = 0;
-            }
-
-            vdtl = (float)(FL(0.0001)*sr);
-            mdtl = (int)(FL(0.00095)*sr);
-            if (vdtl > mdtl) vdtl = (float)mdtl;
-            for (i=0;i<IMPLENGTH;i++) {
-              rpl = ptl - vdtl;
-              if (rpl < 0) rpl += mdtl;
-              fracl = rpl - (int) rpl;
-              if (rpl  < mdtl -1)
-                outvdl =  delmeml[(int)rpl] +
-                  fracl*(delmeml[(int)rpl+1] - delmeml[(int)rpl]);
-              else outvdl = delmeml[mdtl-1] +
-                     fracl*(delmeml[0] - delmeml[mdtl-1]);
-              delmeml[ptl] = outl[i];
-              outl[i] = outvdl;
-              ptl = ptl + 1;
-              if (ptl >=mdtl) ptl = 0;
-            }
-          }
-          else {
-            vdtl = (delayfloat + 0.0001f)*sr;
-            mdtl = (int)(.00095f*sr);
-            if (vdtl > mdtl) vdtl = (float)mdtl;
-            for (i=0;i<IMPLENGTH;i++) {
-              rpl = ptl - vdtl;
-              if (rpl < 0) rpl += mdtl;
-              fracl = rpl - (int) rpl;
-              if (rpl  < mdtl -1)
-                outvdl =  delmeml[(int)rpl] +
-                  fracl*(delmeml[(int)rpl+1] - delmeml[(int)rpl]);
-              else outvdl = delmeml[mdtl-1] +
-                     fracl*(delmeml[0] - delmeml[mdtl-1]);
-              delmeml[ptl] = outl[i];
-              outl[i] = outvdl;
-              ptl = ptl + 1;
-              if (ptl >=mdtl) ptl = 0;
-            }
-
-            vdtr = (float)(FL(0.0001)*sr);
-            mdtr = (int)(FL(0.00095)*sr);
-            if (vdtr > mdtr) vdtr = (float)mdtr;
-            for (i=0;i<IMPLENGTH;i++) {
-              rpr = ptr - vdtr;
-              if (rpr < 0) rpr += mdtr;
-              fracr = rpr - (int) rpr;
-              if (rpr  < mdtr -1)
-                outvdr =  delmemr[(int)rpr] +
-                  fracr*(delmemr[(int)rpr+1] - delmemr[(int)rpr]);
-              else outvdr = delmemr[mdtr-1] +
-                     fracr*(delmemr[0] - delmemr[mdtr-1]);
-              delmemr[ptr] = outr[i];
-              outr[i] = outvdr;
-              ptr = ptr + 1;
-              if (ptr >=mdtr) ptr = 0;
-            }
-          }
-
-          p->ptl = ptl;
-          p->ptr = ptr;
-
-        }
-        /*reset counter*/
-        counter=0;
-        if (phasetrunc) {
-          /*update*/
-          p->cross = cross;
-          p->l = l;
-        }
-
-      }       /* end of IMPLENGTH == counter*/
-
-    }   /* end of ksmps audio loop */
-
-        /*update*/
+            /* reset counter */
+            counter = 0;
+            if(phasetrunc)
+              {
+                /* update */
+                p->cross = cross;
+                p->l = l;
+              }
+            
+          }       /* end of irlength == counter */
+        
+      }   /* end of ksmps audio loop */
+    
+    /* update */
     p->counter = counter;
-    if (phasetrunc)p->initialfade = initialfade;
+    if(phasetrunc)
+      p->initialfade = initialfade;
 
     return OK;
 }
 
+/* Csound hrtf magnitude interpolation, woodworth phase,
+   static source: January 10 */
+/* overlap add convolution */
 
+/* aleft, aright hrtfstat ain, iang, iel, ifilel, ifiler [,iradius = 8.8,
+   isr = 44100]...options of 48 and 96k sr */
 
-/*Csound hrtf magnitude interpolation, woodworth phase, static source: January 08*/
-/*overlap add convolution*/
+/* see definitions above */
 
-/*aleft, aright hrtfstat ain, iang, iel, ifilel, ifiler [,iradius = 9.0,
-                         isr = 44100]...options of 48 and 96k sr*/
+typedef struct
+{
+        OPDS  h;
+        /* outputs and inputs */
+        MYFLT *outsigl, *outsigr;
+        MYFLT *in, *iangle, *ielev, *ifilel, *ifiler, *oradius, *osr;
 
-/*definitions above*/
-typedef struct {
-  OPDS  h;
-  MYFLT *outsigl, *outsigr;
-  MYFLT *in, *iangle, *ielev, *ifilel,
-    *ifiler, *oradius, *osr;   /* outputs and inputs*/
+        /*see definitions in INIT*/
+        int irlength, irlengthpad, overlapsize;
+        MYFLT sroverN;
 
-  int IMPLENGTH, complexIMPLENGTH,
-    overlapsize, complexfftbuff;        /*see definitions in INIT*/
-  MYFLT sroverN;
+        int counter;
+        MYFLT sr;
 
-  int counter;
-  MYFLT sr;
+        /* hrtf data padded */
+        AUXCH hrtflpad,hrtfrpad;
+        /* in and output buffers */
+        AUXCH insig, outl, outr;
 
-  AUXCH hrtflpad,hrtfrpad;              /*hrtf data padded*/
-  AUXCH insig, outl, outr;              /*in and output buffers*/
+        /* memory local to perform method */
+        /* insig fft */
+        AUXCH complexinsig;
+        /* hrtf buffers (rectangular complex form) */
+        AUXCH hrtflfloat, hrtfrfloat;
+        /* spectral data */
+        AUXCH outspecl, outspecr;
 
-  /*memory local to perform method*/
-  AUXCH complexinsig;                   /*insig fft*/
-  AUXCH hrtflfloat, hrtfrfloat;         /*hrtf buffers (rectangular complex form)*/
-  AUXCH outspecl, outspecr;             /*spectral data*/
+        /* overlap data */
+        AUXCH overlapl, overlapr;
 
-  AUXCH overlapl, overlapr;             /*overlap data*/
+        /* interpolation buffers */
+        AUXCH lowl1, lowr1, lowl2, lowr2, highl1, highr1, highl2, highr2;
 
-  AUXCH lowl1,lowr1,lowl2,lowr2,
-    highl1,highr1,highl2,highr2;        /*interpolation buffers*/
-
-  AUXCH leftshiftbuffer,rightshiftbuffer;  /*buffers for impulse shift*/
-
-} hrtfstat;
+        /* buffers for impulse shift */
+        AUXCH leftshiftbuffer, rightshiftbuffer;
+}
+hrtfstat;
 
 static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 {
-    /*left and right data files: spectral mag, phase format.*/
-    MEMFIL *fpl=NULL,*fpr=NULL;
-    char filel[MAXNAME],filer[MAXNAME];
+    /* left and right data files: spectral mag, phase format. */
+    MEMFIL *fpl = NULL, *fpr = NULL;
+    char filel[MAXNAME], filer[MAXNAME];
 
-    /*interpolation values*/
+    /* interpolation values */
     MYFLT *lowl1;
     MYFLT *lowr1;
     MYFLT *lowl2;
@@ -1204,153 +1396,165 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     MYFLT r = *p->oradius;
     MYFLT sr = *p->osr;
 
-    float *fpindexl=NULL;         /* pointers into HRTF files*/
+        /* pointers into HRTF files */
+    float *fpindexl=NULL;
     float *fpindexr=NULL;
 
-    int IMPLENGTH = 0;                /*time domain impulse length */
-    int complexIMPLENGTH = 0;         /*freq domain impulse length*/
-    int overlapsize = 0;              /*overlap add convolution*/
-    int complexfftbuff = 0;           /*complex fft used(min phase needs it)*/
+    /* time domain impulse length, padded, overlap add */
+    int irlength, irlengthpad, overlapsize;
 
-    int i,elevindex, angleindex, switchchannels=0, skip=0;
+    int i, skip = 0;
 
-    /*local interpolation values*/
-    MYFLT elevindexlowper,elevindexhighper,angleindex1per,
-      angleindex2per,angleindex3per,angleindex4per;
-    int elevindexlow,elevindexhigh,angleindex1,angleindex2,angleindex3,angleindex4;
-    MYFLT magl,magr,phasel,phaser, magllow, magrlow, maglhigh, magrhigh;
+    /* local interpolation values */
+    MYFLT elevindexhighper, angleindex2per, angleindex4per;
+    int elevindexlow, elevindexhigh, angleindex1, angleindex2,
+      angleindex3, angleindex4;
+    MYFLT magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
 
-    /*woodworth values*/
-    float radianangle,radianelev,itd,freq;
+    /* local variables, mainly used for simplification */
+    MYFLT elevindexstore;
+    MYFLT angleindexlowstore;
+    MYFLT angleindexhighstore;
 
-    /*shift stuff*/
+    /* woodworth values */
+    MYFLT radianangle, radianelev, itd, itdww, freq;
+
+    /* shift */
     int shift;
     MYFLT *leftshiftbuffer;
     MYFLT *rightshiftbuffer;
 
-    /*woodworth: change for different sr*/
-
-    if (sr!=FL(44100.0)&&sr!=FL(48000.0)&&sr!=FL(96000.0))
-      sr=FL(44100.0);
+    /* sr */
+    if(sr != FL(44100.0) && sr != FL(48000.0) && sr != FL(96000.0))
+      sr = FL(44100.0);
     p->sr = sr;
 
     if (UNLIKELY(csound->esr != sr))
-      csound->Warning(csound,
-                      Str("Orchestra sampling rate is not "
-                          "compatible with HRTF data files\nShould be %.0f,"
-                          " see Csound help for object\n\n"), sr);
+      csound->Message(csound,
+                      Str("\n\nWARNING!!:\nOrchestra SR not compatible with "
+                          "HRTF processing SR of: %.0f\n\n"), sr);
 
-    strcpy(filel, (char*) p->ifilel);             /*copy in string name...*/
-    strcpy(filer, (char*) p->ifiler);
-
-    if (sr == FL(44100.0)) {
-      IMPLENGTH = 128;
-      complexIMPLENGTH = 256;
-      overlapsize = (IMPLENGTH-1);
-      complexfftbuff = (complexIMPLENGTH*2);
-
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
+    /* setup as per sr */
+    if(sr == 44100 || sr == 48000)
+      {
+        irlength = 128;
+        irlengthpad = 256;
+        overlapsize = (irlength - 1);
       }
-
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
+    else if(sr == 96000)
+      {
+        irlength = 256;
+        irlengthpad = 512;
+        overlapsize = (irlength - 1);
       }
-    }
+    
+    /* copy in string name... */
+    strncpy(filel, (char*) p->ifilel, MAXNAME);
+    strncpy(filer, (char*) p->ifiler, MAXNAME);
 
-    else if (sr == FL(48000.0)) {
-      IMPLENGTH = 128;
-      complexIMPLENGTH = 256;
-      overlapsize = (IMPLENGTH-1);
-      complexfftbuff = (complexIMPLENGTH*2);
+    /* reading files, with byte swap */
+    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+                                   swap4bytes);
+    if (UNLIKELY(fpl == NULL))
+      return
+        csound->InitError(csound,
+                          Str("\n\n\nCannot load left data file, exiting\n\n"));
+    
+    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+                                   swap4bytes);
+    if (UNLIKELY(fpr == NULL))
+      return
+        csound->InitError(csound,
+                          Str("\n\n\nCannot load right data file, exiting\n\n"));
 
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
-      }
-
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
-      }
-    }
-
-    else if (sr == FL(96000.0)) {
-      IMPLENGTH = 256;
-      complexIMPLENGTH = 512;
-      overlapsize = (IMPLENGTH-1);
-      complexfftbuff = (complexIMPLENGTH*2);
-
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
-      }
-
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
-      }
-    }
-
-    p->IMPLENGTH = IMPLENGTH;
-    p->complexIMPLENGTH = complexIMPLENGTH;
+    p->irlength = irlength;
+    p->irlengthpad = irlengthpad;
     p->overlapsize = overlapsize;
-    p->complexfftbuff = complexfftbuff;
 
-    p->sroverN = sr/IMPLENGTH;
+    p->sroverN = sr/irlength;
 
-    if (fpl && fpr) {
-      /*start indices at correct value (start of file)/ zero indices.*/
-      fpindexl = (float *) fpl->beginp;
-      fpindexr = (float *) fpr->beginp;
-    }
-    /*buffers */
-    csound->AuxAlloc(csound, IMPLENGTH*sizeof(MYFLT), &p->insig);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->outl);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->outr);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->hrtflpad);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->hrtfrpad);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p-> complexinsig);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->hrtflfloat);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->hrtfrfloat);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->outspecl);
-    csound->AuxAlloc(csound, complexfftbuff*sizeof(MYFLT), &p->outspecr);
-    csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
-    csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
+    /* start indices at correct value (start of file)/ zero indices.
+       (don't need to store here, as only accessing in INIT) */
+    fpindexl = (float *) fpl->beginp;
+    fpindexr = (float *) fpr->beginp;
 
-    /*interpolation values*/
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowl1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowr1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowl2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowr2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highl1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highr1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highl2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highr2);
+    /* buffers */
+    if (!p->insig.auxp || p->insig.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->insig);
+    if (!p->outl.auxp || p->outl.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outl);
+    if (!p->outr.auxp || p->outr.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outr);
+    if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtflpad);
+    if (!p->hrtfrpad.auxp || p->hrtfrpad.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtfrpad);
+    if (!p->complexinsig.auxp || p->complexinsig.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p-> complexinsig);
+    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtflfloat);
+    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtfrfloat);
+    if (!p->outspecl.auxp || p->outspecl.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecl);
+    if (!p->outspecr.auxp || p->outspecr.size < irlengthpad * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecr);
+    if (!p->overlapl.auxp || p->overlapl.size < overlapsize * sizeof(MYFLT))
+      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
+    if (!p->overlapr.auxp || p->overlapr.size < overlapsize * sizeof(MYFLT))
+      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
+    
+    memset(p->insig.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->outl.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->outr.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->hrtflpad.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->hrtfrpad.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->complexinsig.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->outspecl.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->outspecr.auxp, 0, irlengthpad * sizeof(MYFLT));
+    memset(p->overlapl.auxp, 0, overlapsize * sizeof(MYFLT));
+    memset(p->overlapr.auxp, 0, overlapsize * sizeof(MYFLT));
 
-    /*shift buffers*/
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->leftshiftbuffer);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->rightshiftbuffer);
+    /* interpolation values */
+    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
+    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
+    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
+    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
+    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
+    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
+    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
+    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
+    
+    /* best to zero, for future changes (filled in init) */
+    memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowl2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowr2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highl1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highl2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highr1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
+
+    /* shift buffers */
+    if (!p->leftshiftbuffer.auxp ||
+        p->leftshiftbuffer.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->leftshiftbuffer);
+    if (!p->rightshiftbuffer.auxp ||
+        p->rightshiftbuffer.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->rightshiftbuffer);
+
+    memset(p->leftshiftbuffer.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->rightshiftbuffer.auxp, 0, irlength * sizeof(MYFLT));
 
     lowl1 = (MYFLT *)p->lowl1.auxp;
     lowr1 = (MYFLT *)p->lowr1.auxp;
@@ -1370,279 +1574,287 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     hrtflpad = (MYFLT *)p->hrtflpad.auxp;
     hrtfrpad = (MYFLT *)p->hrtfrpad.auxp;
 
-    if (r<=0||r>15)
-      r=9.0;
+    if(r <= 0 || r > 15)
+      r = FL(8.8);
 
-    if (elev < -40) elev = -40;            /*within legal MIT range*/
-    if (elev > 90) elev = 90;
-    elevindex = (int)floorf(((float)(elev-minelev)/elevincrement)+0.5f);
+    if(elev > FL(90.0))
+      elev = FL(90.0);
+    if(elev < FL(-40.0))
+      elev = FL(-40.0);
 
-    while (angle<0)angle+=360;
-    while (angle>360)angle-=360;                                   /*mod 360*/
-    if (angle>180) {
-      angle=360-angle;
-      switchchannels=1;         /*true for later function: data is symmetrical*/
-    }
+    while(angle < FL(0.0))
+      angle += FL(360.0);
+    while(angle >= FL(360.0))
+      angle -= FL(360.0);
 
-    /*read using an index system based on number of points measured
-      per elevation at mit*/
-    angleindex = (int)floorf(angle/(FL(360.0)/(MYFLT)elevationarray[elevindex])+FL(0.5));
-    /*angle/increment+0.5*/
-    if (angleindex>=((int)(elevationarray[elevindex]/2)+1))
-      /*last point in current elevation*/
-      angleindex=(int)(elevationarray[elevindex]/2);
+    /* two nearest elev indices to avoid recalculating */
+    elevindexstore = (elev - minelev) / elevincrement;
+    elevindexlow = (int)elevindexstore;
+    
+    if(elevindexlow < 13)
+      elevindexhigh = elevindexlow + 1;
+    /* highest index reached */
+    else
+      elevindexhigh = elevindexlow;
+    
+    /* get percentage value for interpolation */
+    elevindexhighper = elevindexstore - elevindexlow;
+    
+    /* avoid recalculation */
+    angleindexlowstore = angle / (FL(360.0) / elevationarray[elevindexlow]);
+    angleindexhighstore = angle / (FL(360.0) / elevationarray[elevindexhigh]);
 
-    /* two nearest elev indices*/
-    elevindexlow = (int)((elev-minelev)/elevincrement);
-    if (elevindexlow<13) elevindexhigh = elevindexlow+1;
-    else elevindexhigh = elevindexlow;            /* highest index reached*/
-
-    /* get percentage value for interpolation*/
-    elevindexlowper = FL(1.0) -
-      (MYFLT)(((MYFLT)(elev-minelev)/elevincrement)-(MYFLT)elevindexlow);
-    elevindexhighper = FL(1.0) - elevindexlowper;
-
-    /* 4 closest angle indices, 2 low and 2 high*/
-    angleindex1 = (int)(angle/(360.0f/(float)elevationarray[elevindexlow]));
+    /* 4 closest indices, 2 low and 2 high */
+    angleindex1 = (int)angleindexlowstore;
 
     angleindex2 = angleindex1 + 1;
-    if (angleindex2>=((int)(elevationarray[elevindexlow]/2)+1))
-      angleindex2=(int)(elevationarray[elevindexlow]/2);
+    angleindex2 = angleindex2 % elevationarray[elevindexlow];
 
-    angleindex3 = (int)(angle/(360.0f/(float)elevationarray[elevindexhigh]));
+    angleindex3 = (int)angleindexhighstore;
 
     angleindex4 = angleindex3 + 1;
-    if (angleindex4>=((int)(elevationarray[elevindexhigh]/2)+1))
-      angleindex4=(int)(elevationarray[elevindexhigh]/2);
+    angleindex4 = angleindex4 % elevationarray[elevindexhigh];
 
-    /* angle percentages for interp*/
-    angleindex1per = FL(1.0) -
-      (MYFLT)((angle/(FL(360.0)/(MYFLT)elevationarray[elevindexlow])-angleindex1));
-    angleindex2per = FL(1.0)-angleindex1per;
-    angleindex3per = FL(1.0) -
-      (MYFLT)((angle/(360.0/(MYFLT)elevationarray[elevindexhigh])-angleindex3));
-    angleindex4per = FL(1.0)-angleindex3per;
+    /* angle percentages for interp */
+    angleindex2per = angleindexlowstore - angleindex1;
+    angleindex4per = angleindexhighstore - angleindex3;
 
-    /*read 4 nearest points for interpolation*/
-    /*point 1*/
+    /* read 4 nearest HRTFs */
     skip = 0;
-    if (elevindexlow == 0);
-    else
-      for (i=0; i<elevindexlow; i++)
-        /*skip * 2 as data is in complex mag,phase format*/
-        skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-    if (angleindex1 == 0);
-    else
-      for (i=0; i<angleindex1; i++)
-        skip += (2*IMPLENGTH);
-
-    if (switchchannels) {
-      for (i=0;i<complexIMPLENGTH;i++) {
-        lowl1[i]=fpindexr[skip+i];
-        lowr1[i]=fpindexl[skip+i];
+    /* switch l and r */
+    if(angleindex1 > elevationarray[elevindexlow] / 2)
+      {
+        for(i = 0; i < elevindexlow; i++)
+          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+        for (i = 0; i < (elevationarray[elevindexlow] - angleindex1); i++)
+          skip += irlength;
+        for(i = 0; i < irlength; i++)
+          {
+            lowl1[i] = fpindexr[skip + i];
+            lowr1[i] = fpindexl[skip + i];
+          }
       }
-    }
-
-    else {
-      for (i=0;i<complexIMPLENGTH;i++) {
-        lowl1[i]=fpindexl[skip+i];
-        lowr1[i]=fpindexr[skip+i];
+    else
+      {
+        for(i = 0; i < elevindexlow; i++)
+          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+        for (i = 0; i < angleindex1; i++)
+          skip += irlength;
+        for(i = 0; i < irlength; i++)
+          {
+            lowl1[i] = fpindexl[skip + i];
+            lowr1[i] = fpindexr[skip + i];
+          }
       }
-    }
-
-    /*point 2*/
+    
     skip = 0;
-    if (elevindexlow == 0);
-    else
-      for (i=0; i<elevindexlow; i++)
-        skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-    if (angleindex2 == 0);
-    else
-      for (i=0; i<angleindex2; i++)
-        skip += (2*IMPLENGTH);
-
-    if (switchchannels) {
-      for (i=0;i<complexIMPLENGTH;i++) {
-        lowl2[i]=fpindexr[skip+i];
-        lowr2[i]=fpindexl[skip+i];
+    if(angleindex2 > elevationarray[elevindexlow] / 2)
+      {
+        for(i = 0; i < elevindexlow; i++)
+          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+        for (i = 0; i < (elevationarray[elevindexlow] - angleindex2); i++)
+          skip += irlength;
+        for(i = 0; i < irlength; i++)
+          {
+            lowl2[i] = fpindexr[skip + i];
+            lowr2[i] = fpindexl[skip + i];
+          }
       }
-    }
-
-    else {
-      for (i=0;i<complexIMPLENGTH;i++) {
-        lowl2[i]=fpindexl[skip+i];
-        lowr2[i]=fpindexr[skip+i];
+    else
+      {
+        for(i = 0; i < elevindexlow; i++)
+          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+        for (i = 0; i < angleindex2; i++)
+          skip += irlength;
+        for(i = 0; i < irlength; i++)
+          {
+            lowl2[i] = fpindexl[skip + i];
+            lowr2[i] = fpindexr[skip + i];
+          }
       }
-    }
-
-    /*point 3*/
+    
     skip = 0;
-    if (elevindexhigh == 0);
-    else
-      for (i=0; i<elevindexhigh; i++)
-        skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-    if (angleindex3 == 0);
-    else
-      for (i=0; i<angleindex3; i++)
-        skip += (2*IMPLENGTH);
-
-    if (switchchannels) {
-      for (i=0;i<complexIMPLENGTH;i++) {
-        highl1[i]=fpindexr[skip+i];
-        highr1[i]=fpindexl[skip+i];
+    if(angleindex3 > elevationarray[elevindexhigh] / 2)
+      {
+        for(i = 0; i < elevindexhigh; i++)
+          skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+        for (i = 0; i < (elevationarray[elevindexhigh] - angleindex3); i++)
+          skip += irlength;
+        for(i = 0; i < irlength; i++)
+          {
+            highl1[i] = fpindexr[skip + i];
+            highr1[i] = fpindexl[skip + i];
+          }
       }
-    }
-
-    else {
-      for (i=0;i<complexIMPLENGTH;i++) {
-        highl1[i]=fpindexl[skip+i];
-        highr1[i]=fpindexr[skip+i];
+    else
+      {
+        for(i = 0; i < elevindexhigh; i++)
+          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+        for (i = 0; i < angleindex3; i++)
+          skip += irlength;
+        for(i = 0; i < irlength; i++)
+          {
+            highl1[i] = fpindexl[skip + i];
+            highr1[i] = fpindexr[skip + i];
+          }
       }
-    }
 
-    /*point 4*/
     skip = 0;
-    if (elevindexhigh == 0);
+    if(angleindex4 > elevationarray[elevindexhigh] / 2)
+      {
+        for(i = 0; i < elevindexhigh; i++)
+          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+        for (i = 0; i < (elevationarray[elevindexhigh] - angleindex4); i++)
+          skip += irlength;
+        for(i = 0; i < irlength; i++)
+          {
+            highl2[i] = fpindexr[skip + i];
+            highr2[i] = fpindexl[skip + i];
+          }
+      }
     else
-      for (i=0; i<elevindexhigh; i++)
-        skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
+      {
+        for(i = 0; i < elevindexhigh; i++)
+          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+        for (i = 0; i < angleindex4; i++)
+          skip += irlength;
+        for(i = 0; i < irlength; i++)
+          {
+            highl2[i] = fpindexl[skip + i];
+            highr2[i] = fpindexr[skip + i];
+          }
+      }
 
-    if (angleindex4 == 0);
+    /* woodworth process */
+    /* ITD formula, check which ear is relevant to calculate angle from */
+    if(angle > FL(180.0))
+      radianangle = (angle - FL(180.0)) * PI_F / FL(180.0);
     else
-      for (i=0; i<angleindex4; i++)
-        skip += (2*IMPLENGTH);
+      radianangle = angle * PI_F / FL(180.0);
+    /* degrees to radians */
+    radianelev = elev * PI_F / FL(180.0);
 
-    if (switchchannels) {
-      for (i=0;i<complexIMPLENGTH;i++) {
-        highl2[i]=fpindexr[skip+i];
-        highr2[i]=fpindexl[skip+i];
+    /* get in correct range for formula */
+    if(radianangle > PI_F / FL(2.0))
+      radianangle = FL(PI) - radianangle;
+
+    /* woodworth formula for itd */
+    itdww = (radianangle + SIN(radianangle)) * r * COS(radianelev) / c;
+
+    /* 0 Hz and Nyq... */
+    /* these are real values...may be neg (implying phase of pi:
+       in phase truncation), so need fabs... */
+    magllow = FABS(lowl1[0]) + (FABS(lowl2[0]) - FABS(lowl1[0])) * angleindex2per;
+    maglhigh = FABS(highl1[0]) + (FABS(highl2[0]) - FABS(highl1[0])) *
+      angleindex4per;
+    hrtflfloat[0] = magllow + (maglhigh - magllow) * elevindexhighper;
+
+    magllow = FABS(lowl1[1]) + (FABS(lowl2[1]) - FABS(lowl1[1])) * angleindex2per;
+    maglhigh = FABS(highl1[1]) + (FABS(highl2[1]) - FABS(highl1[1])) *
+      angleindex4per;
+    hrtflfloat[1] = magllow + (maglhigh - magllow) * elevindexhighper;
+
+    magrlow = FABS(lowr1[0]) + (FABS(lowr2[0]) - FABS(lowr1[0])) * angleindex2per;
+    magrhigh = FABS(highr1[0]) + (FABS(highr2[0]) - FABS(highr1[0])) *
+      angleindex4per;
+    hrtfrfloat[0] = magrlow + (magrhigh - magrlow) * elevindexhighper;
+
+    magrlow = FABS(lowr1[1]) + (FABS(lowr2[1]) - FABS(lowr1[1])) * angleindex2per;
+    magrhigh = FABS(highr1[1]) + (FABS(highr2[1]) - FABS(highr1[1])) *
+      angleindex4per;
+    hrtfrfloat[1] = magrlow + (magrhigh - magrlow) * elevindexhighper;
+
+    /* magnitude interpolation */
+    for(i = 2; i < irlength; i+=2)
+      {
+        /* interpolate high and low mags */
+        magllow = lowl1[i] + (lowl2[i] - lowl1[i]) * angleindex2per;
+        maglhigh = highl1[i]+(highl2[i] - highl1[i]) * angleindex4per;
+
+        magrlow = lowr1[i] + (lowr2[i] - lowr1[i]) * angleindex2per;
+        magrhigh = highr1[i] + (highr2[i] - highr1[i]) * angleindex4per;
+
+        /* interpolate high and low results */
+        magl = magllow + (maglhigh - magllow) * elevindexhighper;
+        magr = magrlow + (magrhigh - magrlow) * elevindexhighper;
+
+        freq = (i / 2) * p->sroverN;
+
+        /* non linear itd...last value in array = 1.0, so back to itdww */
+        if(p->sr == 96000)
+          {
+            if ((i / 2) < 6)
+              itd = itdww * nonlinitd96k[(i / 2) - 1];
+          }
+        else if(p->sr == 48000)
+          {
+            if ((i / 2) < 6)
+              itd = itdww * nonlinitd48k[(i / 2) - 1];
+          }
+        else if(p->sr == 44100)
+          {
+            if((i / 2) < 6)
+              itd = itdww * nonlinitd[(i / 2) - 1];
+          }
+        
+        if(angle > FL(180.))
+          {
+            phasel = TWOPI_F * freq * (itd / 2);
+            phaser = TWOPI_F * freq * -(itd / 2);
+          }
+        else
+          {
+            phasel = TWOPI_F * freq * -(itd / 2);
+            phaser = TWOPI_F * freq * (itd / 2);
+          }
+        
+        /* polar to rectangular */
+        hrtflfloat[i] = magl * COS(phasel);
+        hrtflfloat[i+1] = magl * SIN(phasel);
+
+        hrtfrfloat[i] = magr * COS(phaser);
+        hrtfrfloat[i+1] = magr * SIN(phaser);
       }
+
+    /* ifft */
+    csound->InverseRealFFT(csound, hrtflfloat, irlength);
+    csound->InverseRealFFT(csound, hrtfrfloat, irlength);
+
+    for (i = 0; i < irlength; i++)
+      {
+        /* scale and pad buffers with zeros to fftbuff */
+        leftshiftbuffer[i] = hrtflfloat[i];
+        rightshiftbuffer[i] = hrtfrfloat[i];
     }
 
-    else {
-      for (i=0;i<complexIMPLENGTH;i++) {
-        highl2[i]=fpindexl[skip+i];
-        highr2[i]=fpindexr[skip+i];
-      }
+    /* shift for causality...impulse as is is centred around zero time lag...
+       then phase added. */
+    /* this step centres impulse around centre tap of filter (then phase
+       moves it for correct itd...) */
+    shift = irlength / 2;
+
+    for(i = 0; i < irlength; i++)
+      {
+        hrtflpad[i] = leftshiftbuffer[shift];
+        hrtfrpad[i] = rightshiftbuffer[shift];
+
+        shift++;
+        shift = shift % irlength;
     }
 
-    /*woodworth stuff*/
-    radianangle = angle * (float)PI/180.0f;  /* degrees to radians */
-    radianelev = elev * (float)PI/180.0f;
-
-    if (radianangle > (PI/2.0))             /*get in correct range for formula*/
-      radianangle = (float)PI - radianangle;
-
-    /*woodworth formula for itd*/
-    itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
-
-    /* magnitude interpolation*/
-    for (i=0; i < complexIMPLENGTH; i+=2) {
-      /* interpolate high and low mags*/
-      magllow = lowl1[i]+(MYFLT)((lowl2[i]-lowl1[i])*(MYFLT)angleindex2per);
-      maglhigh = highl1[i]+(MYFLT)((highl2[i]-highl1[i])*(MYFLT)angleindex4per);
-
-      magrlow = lowr1[i]+(MYFLT)((lowr2[i]-lowr1[i])*(MYFLT)angleindex2per);
-      magrhigh = highr1[i]+(MYFLT)((highr2[i]-highr1[i])*(MYFLT)angleindex4per);
-
-      /* interpolate high and low results*/
-      magl = magllow+(MYFLT)((maglhigh-magllow)*(MYFLT)elevindexhighper);
-      magr = magrlow+(MYFLT)((magrhigh-magrlow)*(MYFLT)elevindexhighper);
-
-      if (i<(IMPLENGTH+1))freq = (i/2)*p->sroverN;
-      else freq = (-IMPLENGTH+(i/2))*p->sroverN;
-
-      /*NONLIN ITD...*/
-      if (p->sr == 96000) {
-        if ((i/2)>0 && (i/2)<6) {
-          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
-          itd = itd * nonlinitd96k[(i/2)-1];
-        }
-        if ((i/2)>251 && (i/2)<256) {
-          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
-          itd = itd * nonlinitd96k[255-(i/2)];
-        }
+    /* zero pad impulse */
+    for(i = irlength; i < irlengthpad; i++)
+      {
+        hrtflpad[i] = FL(0.0);
+        hrtfrpad[i] = FL(0.0);
       }
-      if (p->sr == 48000) {
-        if ((i/2)>0 && (i/2)<6) {
-          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
-          itd = itd * nonlinitd48k[(i/2)-1];
-        }
-        if ((i/2)>123 && (i/2)<128) {
-          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
-          itd = itd * nonlinitd48k[127-(i/2)];
-        }
-      }
-      if (p->sr == 44100) {
-        if ((i/2)>0 && (i/2)<6) {
-          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
-          itd = itd * nonlinitd[(i/2)-1];
-        }
-        if ((i/2)>123 && (i/2)<128) {
-          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
-          itd = itd * nonlinitd[127-(i/2)];
-        }
-      }
+    
+    /* back to freq domain */
+    csound->RealFFT(csound, hrtflpad, irlengthpad);
+    csound->RealFFT(csound, hrtfrpad, irlengthpad);
 
-      if (switchchannels) {
-        phasel = TWOPI_F*freq*(itd/2);
-        phaser = TWOPI_F*freq*-(itd/2);
-      }
-      else {
-        phasel = TWOPI_F*freq*-(itd/2);
-        phaser = TWOPI_F*freq*(itd/2);
-      }
-
-      /* polar to rectangular*/
-      hrtflfloat[i] = magl*COS(phasel);
-      hrtflfloat[i+1] = magl*SIN(phasel);
-
-      hrtfrfloat[i] = magr*COS(phaser);
-      hrtfrfloat[i+1] = magr*SIN(phaser);
-    }
-
-    /*ifft*/
-    csound->InverseComplexFFT(csound, hrtflfloat, IMPLENGTH);
-    csound->InverseComplexFFT(csound, hrtfrfloat, IMPLENGTH);
-
-    for (i=0; i<complexIMPLENGTH; i++) {
-      hrtflpad[i] = hrtflfloat[i]; /* scale and pad buffers with zeros to fftbuff*/
-      hrtfrpad[i] = hrtfrfloat[i];
-    }
-
-    /*shift for causality...impulse as is is centred around zero time lag...
-      then phase added.*/
-    /*this step centres impulse around centre tap of filter (then phase
-      moves it for correct itd...)*/
-    shift = IMPLENGTH;
-    for (i=0;i<complexIMPLENGTH;i++) {
-      leftshiftbuffer[i] = hrtflpad[i];
-      rightshiftbuffer[i] = hrtfrpad[i];
-    }
-
-    for (i=0;i<complexIMPLENGTH;i++) {
-      hrtflpad[i] = leftshiftbuffer[shift];
-      hrtfrpad[i] = rightshiftbuffer[shift];
-
-      shift++;
-      shift = shift%complexIMPLENGTH;
-    }
-
-    /*zero pad impulse*/
-    for (i=complexIMPLENGTH;i<complexfftbuff;i++) {
-      hrtflpad[i]=FL(0.0);
-      hrtfrpad[i]=FL(0.0);
-    }
-
-    /*back to freq domain*/
-    csound->ComplexFFT(csound, hrtflpad, complexIMPLENGTH);
-    csound->ComplexFFT(csound, hrtfrpad, complexIMPLENGTH);
-
-
-    p->counter = 0;               /*initialize counter*/
+        /* initialize counter */
+    p->counter = 0;
 
     return OK;
 }
@@ -1650,11 +1862,12 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
 static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
 {
-    MYFLT *in = p->in;                    /*local pointers to p*/
+        /* local pointers to p */
+    MYFLT *in = p->in;
     MYFLT *outsigl  = p->outsigl;
     MYFLT *outsigr = p->outsigr;
 
-    /*common buffers and variables*/
+    /* common buffers and variables */
     MYFLT *insig = (MYFLT *)p->insig.auxp;
     MYFLT *outl = (MYFLT *)p->outl.auxp;
     MYFLT *outr = (MYFLT *)p->outr.auxp;
@@ -1670,155 +1883,157 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
     MYFLT *overlapr = (MYFLT *)p->overlapr.auxp;
 
     int counter = p->counter;
-    int n,j,i;
+    int n, j, i;
 
-    int IMPLENGTH = p->IMPLENGTH;
-    int complexIMPLENGTH = p->complexIMPLENGTH;
+    int irlength = p->irlength;
+    int irlengthpad = p->irlengthpad;
     int overlapsize = p->overlapsize;
-    int complexfftbuff = p->complexfftbuff;
 
     MYFLT sr = p->sr;
 
-    n=csound->ksmps;
+    n = csound->ksmps;
 
-    for (j=0;j<n;j++) {
-      insig[counter] = in[j];                   /*ins and outs*/
+    for(j = 0; j < n; j++)
+      {
+        /* ins and outs */
+        insig[counter] = in[j];
 
-      outsigl[j]=outl[counter];
-      outsigr[j]=outr[counter];
+        outsigl[j] = outl[counter];
+        outsigr[j] = outr[counter];
 
-      counter++;
+        counter++;
 
-      if (counter == IMPLENGTH) {        /*process a block*/
-        /* look after overlap add stuff*/
-        for (i = 0; i < overlapsize ; i++) {
-          overlapl[i] = outl[i+IMPLENGTH];
-          overlapr[i] = outr[i+IMPLENGTH];
-        }
+        if(counter == irlength)
+          {
+            /* process a block */
+            /* look after overlap add stuff */
+            for(i = 0; i < overlapsize ; i++)
+              {
+                overlapl[i] = outl[i+irlength];
+                overlapr[i] = outr[i+irlength];
+              }
 
-        /* insert insig for complex real,im fft, zero pad*/
-        for (i = 0; i <  IMPLENGTH; i++) {
-          complexinsig[2*i] = insig[i];
-          complexinsig[(2*i)+1] = FL(0.0);
-        }
+            /* insert insig for complex real,im fft, zero pad */
+            for (i = 0; i <  irlength; i++)
+              complexinsig[i] = insig[i];
 
-        for (i = complexIMPLENGTH; i <  complexfftbuff; i++)
-          complexinsig[i] = FL(0.0);
+            for (i = irlength; i <  irlengthpad; i++)
+              complexinsig[i] = FL(0.0);
+            
+            csound->RealFFT(csound, complexinsig, irlengthpad);
+            
+            /* complex multiplication */
+            csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
+                                irlengthpad, FL(1.0));
+            csound->RealFFTMult(csound, outspecr, hrtfrpad, complexinsig,
+                                irlengthpad, FL(1.0));
 
-        csound->ComplexFFT(csound, complexinsig, complexIMPLENGTH);
+            /* convolution is the inverse FFT of above result */
+            csound->InverseRealFFT(csound, outspecl, irlengthpad);
+            csound->InverseRealFFT(csound, outspecr, irlengthpad);
 
-        /* complex multiplication*/
-        for (i = 0; i < complexfftbuff; i+=2) {
-          outspecl[i] = complexinsig[i]*hrtflpad[i] -
-            complexinsig[i+1]*hrtflpad[i+1];
-          outspecr[i] = complexinsig[i]*hrtfrpad[i] -
-            complexinsig[i+1]*hrtfrpad[i+1];
-          outspecl[i+1] = complexinsig[i]*hrtflpad[i+1] +
-            complexinsig[i+1]*hrtflpad[i];
-          outspecr[i+1] = complexinsig[i]*hrtfrpad[i+1] +
-            complexinsig[i+1]*hrtfrpad[i];
-        }
+            /* scaled by a factor related to sr...? */
+            for(i = 0; i < irlengthpad; i++)
+              {
+                outl[i] = outspecl[i] / (sr / FL(38000.0));
+                outr[i] = outspecr[i] / (sr / FL(38000.0));
+              }
 
-        /* convolution is the inverse FFT of above result */
-        csound->InverseComplexFFT(csound, outspecl, complexIMPLENGTH);
-        csound->InverseComplexFFT(csound, outspecr, complexIMPLENGTH);
+            for(i = 0; i < irlength; i++)
+              {
+                outl[i] = outl[i] + (i < overlapsize ? overlapl[i] : FL(0.0));
+                outr[i] = outr[i] + (i < overlapsize ? overlapr[i] : FL(0.0));
+              }
 
+            /* reset counter */
+            counter = 0;
 
-        /*real values*/
+          }       /* end of irlength == counter */
 
-        /*scaled by a factor related to sr...?*/
+      }   /* end of ksmps audio loop */
 
-        for (i = 0; i < complexIMPLENGTH; i++) {
-          outl[i] = outspecl[2*i]/(sr/FL(38000.0));
-          outr[i] = outspecr[2*i]/(sr/FL(38000.0));
-        }
-
-
-        for (i=0;i<IMPLENGTH;i++) {
-          outl[i] = outl[i] + (i < overlapsize ? overlapl[i] : FL(0.0));
-          outr[i] = outr[i] + (i < overlapsize ? overlapr[i] : FL(0.0));
-        }
-
-        /*reset counter*/
-        counter=0;
-
-      }       /* end of IMPLENGTH == counter*/
-
-    }   /* end of ksmps audio loop */
-
-        /*update*/
+    /* update */
     p->counter = counter;
 
     return OK;
 }
 
-/*Csound hrtf magnitude interpolation, dynamic woodworth trajectory: September 07*/
-/*stft from fft.cpp in sndobj...*/
+/* Csound hrtf magnitude interpolation, dynamic woodworth trajectory */
+/* stft from fft.cpp in sndobj... */
 
-/*****/
-/*stft based on sndobj implementation...some notes:*/
-/*need an overlapskip (same as m_counter) for in and out to control seperately...*/
-/*ifft.cpp zeros current overlapskipout,then decrements t...not possible
-  here as t needs to be decremented before fft...*/
-/*****/
+/* stft based on sndobj implementation...some notes: */
+/* using an overlapskip (same as m_counter) for in and out to control
+   seperately for clarity... */
 
-/*aleft, aright hrtfmove2 ain, kang, kel, ifilel, ifiler
-                          [,ioverlap = 4, iradius = 9.0, isr = 44100] */
-/*ioverlap is stft overlap, iradius is head radius, sr can also be 48000 and 96000*/
+/* aleft, aright hrtfmove2 ain, kang, kel, ifilel, ifiler [, ioverlap = 4,
+   iradius = 8.8, isr = 44100] */
+/* ioverlap is stft overlap, iradius is head radius, sr can also be 48000
+   and 96000 */
 
-/*definitions above*/
-typedef struct {
-  OPDS  h;
-  MYFLT *outsigl, *outsigr;
-  MYFLT *in, *kangle, *kelev, *ifilel, *ifiler,
-    *ooverlap, *oradius, *osr;   /* outputs and inputs */
+typedef struct
+{
+        OPDS  h;
+        /* outputs and inputs */
+        MYFLT *outsigl, *outsigr;
+        MYFLT *in, *kangle, *kelev, *ifilel, *ifiler, *ooverlap, *oradius, *osr;
 
-  int IMPLENGTH, complexIMPLENGTH, complexfftbuff; /*see definitions in INIT*/
-  MYFLT sroverN;
-  MYFLT sr;
+        /* check if relative source has changed! */
+        MYFLT anglev, elevv;
 
-  /*test inputs in init, get accepted value/default, and store in variables below.*/
-  int overlap;
-  MYFLT radius;
+        /* see definitions in INIT */
+        int irlength;
+        MYFLT sroverN;
+        MYFLT sr;
 
-  int hopsize;
+        /* test inputs in init, get accepted value/default, and store in
+           variables below. */
+        int overlap;
+        MYFLT radius;
 
-  MEMFIL *fpl,*fpr;                     /* file pointers*/
-  float *fpbeginl,*fpbeginr;
+        int hopsize;
 
-  int counter, t;                       /*to keep track of process*/
+        float *fpbeginl,*fpbeginr;
 
-  AUXCH inbuf;          /*in and output buffers*/
-  AUXCH outbufl, outbufr;
+        /* to keep track of process */
+        int counter, t;
 
-  /*memory local to perform method*/
-  AUXCH complexinsig;                   /*insig fft*/
-  AUXCH hrtflfloat, hrtfrfloat;         /*hrtf buffers (rectangular complex form)*/
-  AUXCH outspecl, outspecr;             /*spectral data*/
+        /* in and output buffers */
+        AUXCH inbuf;
+        AUXCH outbufl, outbufr;
 
-  AUXCH lowl1,lowr1,lowl2,lowr2,
-        highl1,highr1,highl2,highr2;    /*interpolation buffers*/
+        /* memory local to perform method */
+        /* insig fft */
+        AUXCH complexinsig;
+        /* hrtf buffers (rectangular complex form) */
+        AUXCH hrtflfloat, hrtfrfloat;
+        /* spectral data */
+        AUXCH outspecl, outspecr;
 
-  AUXCH leftshiftbuffer,rightshiftbuffer; /*buffers for impulse shift*/
+        /* interpolation buffers */
+        AUXCH lowl1,lowr1,lowl2,lowr2,highl1,highr1,highl2,highr2;
 
-  AUXCH win;            /*stft window*/
-  AUXCH overlapskipin,overlapskipout;  /*used for skipping into next stft
-                                         array on way in and out*/
+        /* stft window */
+        AUXCH win;
+        /* used for skipping into next stft array on way in and out */
+        AUXCH overlapskipin, overlapskipout;
 
-} hrtfmove2;
+}
+hrtfmove2;
 
 static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 {
-    /*left and right data files: spectral mag, phase format.*/
-    MEMFIL *fpl=NULL,*fpr=NULL;
+    /* left and right data files: spectral mag, phase format. */
+    MEMFIL *fpl = NULL, *fpr = NULL;
 
-    char filel[MAXNAME],filer[MAXNAME];
+    char filel[MAXNAME], filer[MAXNAME];
 
-    int IMPLENGTH;              /*time domain impulse length */
-    int complexIMPLENGTH;       /*freq domain impulse length*/
+    /* time domain impulse length */
+    int irlength;
 
-    MYFLT *win;                        /*stft window*/
-    int *overlapskipin, *overlapskipout; /*overlap skip buffers*/
+    /* stft window */
+    MYFLT *win;
+    /* overlap skip buffers */
+    int *overlapskipin, *overlapskipout;
     MYFLT *inbuf;
     MYFLT *outbufl, *outbufr;
 
@@ -1826,139 +2041,124 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     MYFLT r = *p->oradius;
     MYFLT sr = *p->osr;
 
-    int i=0;
+    int i = 0;
 
-    if (sr!=FL(44100.0)&&sr!=FL(48000.0)&&sr!=FL(96000.0))
-      sr=FL(44100.0);
+    if(sr != 44100 && sr != 48000 && sr != 96000)
+      sr = 44100;
     p->sr = sr;
 
     if (UNLIKELY(csound->esr != sr))
-      csound->Warning(csound,
-                      Str("Orchestra sampling rate is not "
-                          "compatible with HRTF data files\nShould be %.0f, "
-                          "see Csound help for object\n\n"), sr);
+      csound->Message(csound,
+                      Str("\n\nWARNING!!:\nOrchestra SR not compatible"
+                          "with HRTF processing SR of: %.0f\n\n"), sr);
 
-    strcpy(filel, (char*) p->ifilel);             /*copy in string name...*/
-    strcpy(filer, (char*) p->ifiler);
+    /* setup as per sr */
+    if(sr == 44100 || sr == 48000)
+      irlength = 128;
+    else if(sr == 96000)
+      irlength = 256;
 
-    if (sr == FL(44100.0)) {             /*set up per sr...*/
-      IMPLENGTH = 128;
-      complexIMPLENGTH = 256;
+    /* copy in string name... */
+    strncpy(filel, (char*) p->ifilel, MAXNAME);
+    strncpy(filer, (char*) p->ifiler, MAXNAME);
 
-      /*  csound->Message(csound,"\ndatafile:44.1k\n");*/
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
-      }
-
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
-      }
-    }
-
-    else if (sr == FL(48000.0)) {
-      IMPLENGTH = 128;
-      complexIMPLENGTH = 256;
-
-      /*csound->Message(csound,"\ndatafile:48k\n");*/
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
-      }
-
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
-      }
-    }
-
-    else if (sr == FL(96000.0)) {
-      IMPLENGTH = 256;
-      complexIMPLENGTH = 512;
-
-      /*csound->Message(csound,"\ndatafile:96k\n");*/
-      if (UNLIKELY((fpl = csound->ldmemfile2withCB(csound, filel,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load left data file, exiting\n\n"));
-      }
-
-      if (UNLIKELY((fpr = csound->ldmemfile2withCB(csound, filer,
-                                                   CSFTYPE_FLOATS_BINARY,
-                                                   swap4bytes)) == NULL)) {
-        return
-          csound->InitError(csound,
-                            Str("\n\n\ncannot load right data file, exiting\n\n"));
-      }
-    }
-    else {
+    /* reading files, with byte swap */ 
+    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+                                   swap4bytes);
+    if (UNLIKELY(fpl == NULL))
+     return
+        csound->InitError(csound,
+                          Str("\n\n\nCannot load left data file, exiting\n\n"));
+    
+    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+                                   swap4bytes);
+    if (UNLIKELY(fpr == NULL))
       return
         csound->InitError(csound,
-                          Str("\n\n\n Sampling rate not supported, exiting\n\n"));
-    }
+                          Str("\n\n\nCannot load right data file, exiting\n\n"));
+    
+    p->irlength = irlength;
+    p->sroverN = sr / irlength;
 
-    p->IMPLENGTH = IMPLENGTH;
-    p->complexIMPLENGTH = complexIMPLENGTH;
+    /* file handles */
+    p->fpbeginl = (float *) fpl->beginp;
+    p->fpbeginr = (float *) fpr->beginp;
 
-    p->sroverN = sr/IMPLENGTH;
-
-    /*file handles*/
-    if (fpl && fpr) {
-      p->fpl = fpl;
-      p->fpr = fpr;
-      p->fpbeginl = (float *) fpl->beginp;
-      p->fpbeginr = (float *) fpr->beginp;
-    }
-
-    if (overlap!=2&&overlap!=4&&overlap!=8&&overlap!=16)
-      overlap=4;
+    if(overlap != 2 && overlap != 4 && overlap != 8 && overlap != 16)
+      overlap = 4;
     p->overlap = overlap;
 
-    if (r<=0||r>15)
-      r=9.0;
+    if(r <= 0 || r > 15)
+      r = FL(8.8);
     p->radius = r;
+    
+    p->hopsize = (int)(irlength / overlap);
 
-    p->hopsize = (int)(IMPLENGTH/overlap);
+    /* buffers */
+    if (!p->inbuf.auxp || p->inbuf.size < (overlap * irlength) * sizeof(MYFLT))
+      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->inbuf);
+    /* 2d arrays in 1d! */
+    if (!p->outbufl.auxp || p->outbufl.size < (overlap * irlength) * sizeof(MYFLT))
+      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->outbufl);
+    if (!p->outbufr.auxp || p->outbufr.size < (overlap * irlength) * sizeof(MYFLT))
+      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->outbufr);
+    if (!p->complexinsig.auxp || p->complexinsig.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p-> complexinsig);
+    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtflfloat);
+    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtfrfloat);
+    if (!p->outspecl.auxp || p->outspecl.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->outspecl);
+    if (!p->outspecr.auxp || p->outspecr.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->outspecr);
 
-    /*buffers */
-    csound->AuxAlloc(csound, (overlap*IMPLENGTH)*sizeof(MYFLT), &p->inbuf);
-  /*2d arrays in 1d!*/
-    csound->AuxAlloc(csound, (overlap*IMPLENGTH)*sizeof(MYFLT), &p->outbufl);
-    csound->AuxAlloc(csound, (overlap*IMPLENGTH)*sizeof(MYFLT), &p->outbufr);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p-> complexinsig);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->hrtflfloat);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->hrtfrfloat);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->outspecl);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->outspecr);
+    memset(p->inbuf.auxp, 0, (overlap*irlength) * sizeof(MYFLT));
+    memset(p->outbufl.auxp, 0, (overlap*irlength) * sizeof(MYFLT));
+    memset(p->outbufr.auxp, 0, (overlap*irlength) * sizeof(MYFLT));
+    memset(p->complexinsig.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->outspecl.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->outspecr.auxp, 0, irlength * sizeof(MYFLT));
 
-    /*interpolation values*/
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowl1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowr1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowl2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->lowr2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highl1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highr1);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highl2);
-    csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->highr2);
+    /* interpolation values */
+    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
+    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
+    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
+    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
+    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
+    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
+    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
+    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
 
-    csound->AuxAlloc(csound, IMPLENGTH*sizeof(MYFLT), &p->win);
-    csound->AuxAlloc(csound, overlap*sizeof(int), &p->overlapskipin);
-    csound->AuxAlloc(csound, overlap*sizeof(int), &p->overlapskipout);
+    memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowl2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowr2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highl1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highl2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highr1.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
+
+    if (!p->win.auxp || p->win.size < irlength * sizeof(MYFLT))
+      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->win);
+    if (!p->overlapskipin.auxp || p->overlapskipin.size < overlap * sizeof(int))
+      csound->AuxAlloc(csound, overlap * sizeof(int), &p->overlapskipin);
+    if (!p->overlapskipout.auxp || p->overlapskipout.size < overlap * sizeof(int))
+      csound->AuxAlloc(csound, overlap * sizeof(int), &p->overlapskipout);
+
+    memset(p->win.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->overlapskipin.auxp, 0, overlap * sizeof(int));
+    memset(p->overlapskipout.auxp, 0, overlap * sizeof(int));
 
     win = (MYFLT *)p->win.auxp;
     overlapskipin = (int *)p->overlapskipin.auxp;
@@ -1967,24 +2167,25 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     outbufl = (MYFLT *)p->outbufl.auxp;
     outbufr = (MYFLT *)p->outbufr.auxp;
 
-    for (i=0; i< (overlap*IMPLENGTH); i++) {
-      inbuf[i] = FL(0.0);
-      outbufl[i] = FL(0.0);
-      outbufr[i] = FL(0.0);
-    }
+    /* window is hanning */
+    for(i = 0; i < irlength; i++)
+      win[i] = FL(0.5) - (FL(0.5) * COS(i * TWOPI_F / (MYFLT)(irlength - 1)));
 
-    /* window is hanning*/
-    for (i=0; i< IMPLENGTH; i++)
-      win[i] = FL(0.5) - (MYFLT)(0.5*cos(i*TWOPI/(double)(IMPLENGTH-1)));
+    for(i = 0; i < overlap; i++)
+      {
+        /* so, for example in overlap 4: will be 0, 32, 64, 96 if ir = 128 */
+        overlapskipin[i] = p->hopsize * i;
+        overlapskipout[i] = p->hopsize * i;
+      }
 
-    for (i = 0; i < overlap; i++) {
-      /*so, for example in overlap 4: will be 0,32,64,96*/
-      overlapskipin[i] = p->hopsize*i;
-      overlapskipout[i] = p->hopsize*i;
-    }
-
-    p->counter = 0;               /*initialise*/
+    /* initialise */
+    p->counter = 0;
     p->t = 0;
+
+    /* setup values used to check if src has moved, illegal values to
+       start with to ensure first read */
+    p->anglev = -1;
+    p->elevv = -41;
 
     return OK;
 }
@@ -1992,17 +2193,18 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
 static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 {
-    MYFLT *in = p->in;                    /*local pointers to p*/
+    /* local pointers to p */
+    MYFLT *in = p->in;
     MYFLT *outsigl  = p->outsigl;
     MYFLT *outsigr = p->outsigr;
 
-    /*common buffers and variables*/
+    /* common buffers and variables */
     MYFLT *inbuf = (MYFLT *)p->inbuf.auxp;
 
     MYFLT *outbufl = (MYFLT *)p->outbufl.auxp;
     MYFLT *outbufr = (MYFLT *)p->outbufr.auxp;
 
-    MYFLT outsuml=FL(0.0), outsumr=FL(0.0);
+    MYFLT outsuml = FL(0.0), outsumr = FL(0.0);
 
     MYFLT *complexinsig = (MYFLT *)p->complexinsig.auxp;
     MYFLT *hrtflfloat = (MYFLT *)p->hrtflfloat.auxp;
@@ -2028,12 +2230,13 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     int t = p ->t;
     int n;
 
-    float *fpindexl;                      /* pointers into HRTF files*/
+        /* pointers into HRTF files */
+    float *fpindexl;
     float *fpindexr;
 
-    int i,j,elevindex, angleindex, switchchannels=0, skip=0;
+    int i, j, skip = 0;
 
-    /*interpolation values*/
+    /* interpolation values */
     MYFLT *lowl1 = (MYFLT *)p->lowl1.auxp;
     MYFLT *lowr1 = (MYFLT *)p->lowr1.auxp;
     MYFLT *lowl2 = (MYFLT *)p->lowl2.auxp;
@@ -2043,370 +2246,389 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     MYFLT *highl2 = (MYFLT *)p->highl2.auxp;
     MYFLT *highr2 = (MYFLT *)p->highr2.auxp;
 
-    /*local interpolation values*/
-    MYFLT elevindexlowper,elevindexhighper,angleindex1per,
-      angleindex2per,angleindex3per,angleindex4per;
-    int elevindexlow,elevindexhigh,angleindex1,angleindex2,
-      angleindex3,angleindex4;
-    MYFLT magl,magr,phasel,phaser, magllow, magrlow, maglhigh, magrhigh;
+    /* local interpolation values */
+    MYFLT elevindexhighper, angleindex2per, angleindex4per;
+    int elevindexlow, elevindexhigh, angleindex1, angleindex2,
+      angleindex3, angleindex4;
+    MYFLT magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
 
-    /*woodworth values*/
-    float radianangle,radianelev,itd,freq;
+    /* woodworth values */
+    MYFLT radianangle, radianelev, itd, itdww, freq;
 
-    int IMPLENGTH = p->IMPLENGTH;
-    int complexIMPLENGTH = p->complexIMPLENGTH;
-    /*int complexfftbuff = p->complexfftbuff;*/
+    int irlength = p->irlength;
 
-    /*start indices at correct value (start of file)/ zero indices.*/
+    /* local variables, mainly used for simplification */
+    MYFLT elevindexstore;
+    MYFLT angleindexlowstore;
+    MYFLT angleindexhighstore;
+
+
+    /* start indices at correct value (start of file)/ zero indices. */
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    n=csound->ksmps;
+    n = csound->ksmps;
 
-    /*ksmps loop*/
-    for (j=0;j<n;j++) {
-
-      /* distribute the signal and apply the window*/
-      /* according to a time pointer (kept by overlapskip[n])*/
-      for (i=0;i < overlap; i++) {
-        inbuf[(i*IMPLENGTH)+overlapskipin[i]]= in[j]*win[overlapskipin[i]];
-        overlapskipin[i]++;
-      }
-
-      counter++;
-
-      if (counter==hopsize) {            /*process a block*/
-
-        if (elev < -40) elev = -40;            /*within legal MIT range*/
-        if (elev > 90) elev = 90;
-        elevindex = (int)floor((float)((float)(elev-minelev)/elevincrement)+0.5);
-
-        while (angle<0)angle+=360;
-        while (angle>360)angle-=360;                                   /*mod 360*/
-        if (angle>180) {
-          angle=360-angle;
-          switchchannels=1; /*true for later function: data is symmetrical*/
-        }
-
-        /*read using an index system based on number of points measured
-          per elevation at MIT*/
-        angleindex = (int)floor(angle/(360/(MYFLT)elevationarray[elevindex])+0.5);
-        /*angle/increment+0.5*/
-        if (angleindex>=((int)(elevationarray[elevindex]/2)+1))
-          /*last point in current elevation*/
-          angleindex=(int)(elevationarray[elevindex]/2);
-
-        /* two nearest elev indices*/
-        elevindexlow = (int)((elev-minelev)/elevincrement);
-        if (elevindexlow<13) elevindexhigh = elevindexlow+1;
-        else elevindexhigh = elevindexlow;            /* highest index reached*/
-
-        /* get percentage value for interpolation*/
-        elevindexlowper = (FL(1.0) -
-                           (MYFLT)(((MYFLT)(elev-minelev)/elevincrement)-
-                                   (MYFLT)elevindexlow));
-        elevindexhighper = FL(1.0) - elevindexlowper;
-
-        /* 4 closest angle indices, 2 low and 2 high*/
-        angleindex1 = (int)(angle/(360/(float)elevationarray[elevindexlow]));
-
-        angleindex2 = angleindex1 + 1;
-        if (angleindex2>=((int)(elevationarray[elevindexlow]/2)+1))
-          angleindex2=(int)(elevationarray[elevindexlow]/2);
-
-        angleindex3 = (int)(angle/(360/(float)elevationarray[elevindexhigh]));
-
-        angleindex4 = angleindex3 + 1;
-        if (angleindex4>=((int)(elevationarray[elevindexhigh]/2)+1))
-          angleindex4=(int)(elevationarray[elevindexhigh]/2);
-
-        /* angle percentages for interp*/
-        angleindex1per =
-          (FL(1.0)-(MYFLT)((angle/(FL(360.0)/(MYFLT)elevationarray[elevindexlow])
-                            -angleindex1)));
-        angleindex2per = FL(1.0)-angleindex1per;
-        angleindex3per =
-          (FL(1.0) - (MYFLT)((angle/(360.0/(MYFLT)elevationarray[elevindexhigh])-
-                              angleindex3)));
-        angleindex4per = 1.0f-angleindex3per;
-
-        /*read 4 nearest points for interpolation*/
-        /*point 1*/
-        skip = 0;
-        if (elevindexlow == 0);
-        else
-          for (i=0; i<elevindexlow; i++)
-            /*skip * 2 as data is in complex mag,phase format*/
-            skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-        if (angleindex1 == 0);
-        else
-          for (i=0; i<angleindex1; i++)
-            skip += (2*IMPLENGTH);
+    /* ksmps loop */
+    for(j = 0; j < n; j++)
+      {
+        /* distribute the signal and apply the window */
+        /* according to a time pointer (kept by overlapskip[n]) */
+        for(i = 0; i < overlap; i++)
+          {
+            inbuf[(i * irlength) + overlapskipin[i]] = in[j] *
+              win[overlapskipin[i]];
+            overlapskipin[i]++;
+          }
         
-        if (switchchannels) {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            lowl1[i]=fpindexr[skip+i];
-            lowr1[i]=fpindexl[skip+i];
+        counter++;
+
+        if(counter == hopsize)
+          {
+            /* process a block */
+            if(elev > FL(90.0))
+              elev = FL(90.0);
+            if(elev < FL(-40.0))
+              elev = FL(-40.0);
+            
+            while(angle < FL(0.0))
+              angle += FL(360.0);
+            while(angle >= FL(360.0))
+              angle -= FL(360.0);
+            
+            if(angle != p->anglev || elev != p->elevv)
+              {
+                /* two nearest elev indices to avoid recalculating */
+                elevindexstore = (elev - minelev) / elevincrement;
+                elevindexlow = (int)elevindexstore;
+
+                if(elevindexlow < 13)
+                  elevindexhigh = elevindexlow + 1;
+                /* highest index reached */
+                else
+                  elevindexhigh = elevindexlow;
+                
+                /* get percentage value for interpolation */
+                elevindexhighper = elevindexstore - elevindexlow;
+                
+                /* avoid recalculation */
+                angleindexlowstore = angle / (FL(360.0) /
+                                              elevationarray[elevindexlow]);
+                angleindexhighstore = angle / (FL(360.0) /
+                                               elevationarray[elevindexhigh]);
+                
+                /* 4 closest indices, 2 low and 2 high */
+                angleindex1 = (int)angleindexlowstore;
+
+                angleindex2 = angleindex1 + 1;
+                angleindex2 = angleindex2 % elevationarray[elevindexlow];
+
+                angleindex3 = (int)angleindexhighstore;
+
+                angleindex4 = angleindex3 + 1;
+                angleindex4 = angleindex4 % elevationarray[elevindexhigh];
+
+                /* angle percentages for interp */
+                angleindex2per = angleindexlowstore - angleindex1;
+                angleindex4per = angleindexhighstore - angleindex3;
+
+                /* read 4 nearest HRTFs */
+                skip = 0;
+                /* switch l and r */
+                if(angleindex1 > elevationarray[elevindexlow] / 2)
+                  {
+                    for(i = 0; i < elevindexlow; i++)
+                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexlow] - angleindex1);
+                         i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        lowl1[i] = fpindexr[skip + i];
+                        lowr1[i] = fpindexl[skip + i];
+                      }
+                  }
+                else
+                  {
+                    for(i = 0; i < elevindexlow; i++)
+                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0; i < angleindex1; i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        lowl1[i] = fpindexl[skip + i];
+                        lowr1[i] = fpindexr[skip + i];
+                      }
+                  }
+
+                skip = 0;
+                if(angleindex2 > elevationarray[elevindexlow] / 2)
+                  {
+                    for(i = 0; i < elevindexlow; i++)
+                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexlow] - angleindex2);
+                         i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        lowl2[i] = fpindexr[skip + i];
+                        lowr2[i] = fpindexl[skip + i];
+                      }
+                  }
+                else
+                  {
+                    for(i = 0; i < elevindexlow; i++)
+                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0; i < angleindex2; i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        lowl2[i] = fpindexl[skip + i];
+                        lowr2[i] = fpindexr[skip + i];
+                      }
+                  }
+
+                skip = 0;
+                if(angleindex3 > elevationarray[elevindexhigh] / 2)
+                  {
+                    for(i = 0; i < elevindexhigh; i++)
+                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexhigh] - angleindex3);
+                         i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        highl1[i] = fpindexr[skip + i];
+                        highr1[i] = fpindexl[skip + i];
+                      }
+                  }
+                else
+                  {
+                    for(i = 0; i < elevindexhigh; i++)
+                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0; i < angleindex3; i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        highl1[i] = fpindexl[skip + i];
+                        highr1[i] = fpindexr[skip + i];
+                      }
+                  }
+                
+                skip = 0;
+                if(angleindex4 > elevationarray[elevindexhigh] / 2)
+                  {
+                    for(i = 0; i < elevindexhigh; i++)
+                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexhigh] - angleindex4);
+                         i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        highl2[i] = fpindexr[skip + i];
+                        highr2[i] = fpindexl[skip + i];
+                      }
+                  }
+                else
+                  {
+                    for(i = 0; i < elevindexhigh; i++)
+                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                    for (i = 0; i < angleindex4; i++)
+                      skip += irlength;
+                    for(i = 0; i < irlength; i++)
+                      {
+                        highl2[i] = fpindexl[skip + i];
+                        highr2[i] = fpindexr[skip + i];
+                      }
+                  }
+
+                /* woodworth process */
+                /* ITD formula, check which ear is relevant to calculate angle from */
+                if(angle > FL(180.0))
+                  radianangle = (angle - FL(180.0)) * PI_F / FL(180.0);
+                else
+                  radianangle = angle * PI_F / FL(180.0);  /* degrees to radians */
+                radianelev = elev * PI_F / FL(180.0);
+                
+                /* get in correct range for formula */
+                if(radianangle > (PI_F / FL(2.0)))
+                  radianangle = FL(PI) - radianangle;
+
+                /* woodworth formula for itd */
+                itdww = (radianangle + SIN(radianangle)) * r * COS(radianelev) / c;
+
+                /* 0 Hz and Nyq... */
+                /* need fabs() here, to get mag, as 0hz and nyq stored as a
+                   real value, to allow for possible negative, implying phase
+                   of pi (in phase truncation) */
+                magllow = FABS(lowl1[0]) + (FABS(lowl2[0]) - FABS(lowl1[0])) *
+                  angleindex2per;
+                maglhigh = FABS(highl1[0]) + (FABS(highl2[0]) - FABS(highl1[0])) *
+                  angleindex4per;
+                hrtflfloat[0] = magllow + (maglhigh - magllow) * elevindexhighper;
+                
+                magllow = FABS(lowl1[1]) + (FABS(lowl2[1]) - FABS(lowl1[1])) *
+                  angleindex2per;
+                maglhigh = FABS(highl1[1]) + (FABS(highl2[1]) - FABS(highl1[1])) *
+                  angleindex4per;
+                hrtflfloat[1] = magllow + (maglhigh - magllow) * elevindexhighper;
+                
+                magrlow = FABS(lowr1[0]) + (FABS(lowr2[0]) - FABS(lowr1[0])) *
+                  angleindex2per;
+                magrhigh = FABS(highr1[0]) + (FABS(highr2[0]) - FABS(highr1[0])) *
+                  angleindex4per;
+                hrtfrfloat[0] = magrlow + (magrhigh - magrlow) * elevindexhighper;
+
+                magrlow = FABS(lowr1[1]) + (FABS(lowr2[1]) - FABS(lowr1[1])) *
+                  angleindex2per;
+                magrhigh = FABS(highr1[1]) + (FABS(highr2[1]) - FABS(highr1[1])) *
+                  angleindex4per;
+                hrtfrfloat[1] = magrlow + (magrhigh - magrlow) * elevindexhighper;
+
+                /* magnitude interpolation */
+                for(i = 2; i < irlength; i += 2)
+                  {
+                    /* interpolate high and low mags */
+                    magllow = lowl1[i] + (lowl2[i] - lowl1[i]) * angleindex2per;
+                    maglhigh = highl1[i] + (highl2[i] - highl1[i]) * angleindex4per;
+                    
+                    magrlow = lowr1[i] + (lowr2[i] - lowr1[i]) * angleindex2per;
+                    magrhigh = highr1[i] + (highr2[i] - highr1[i]) * angleindex4per;
+                    
+                    /* interpolate high and low results */
+                    magl = magllow + (maglhigh - magllow) * elevindexhighper;
+                    magr = magrlow + (magrhigh - magrlow) * elevindexhighper;
+                    
+                    freq = (i / 2) * sroverN;
+                    
+                    /* non linear itd...last value in array = 1.0, so back to itdww */
+                    if(p->sr == 96000)
+                      {
+                        if ((i / 2) < 6)
+                          itd = itdww * nonlinitd96k[(i / 2) - 1];
+                      }
+                    else if(p->sr == 48000)
+                      {
+                        if ((i / 2) < 6)
+                          itd = itdww * nonlinitd48k[(i / 2) - 1];
+                      }
+                    else if(p->sr == 44100)
+                      {
+                        if((i / 2) < 6)
+                          itd = itdww * nonlinitd[(i / 2) - 1];
+                      }
+                    
+                    if(angle > FL(180.))
+                      {
+                        phasel = TWOPI_F * freq * (itd / 2);
+                        phaser = TWOPI_F * freq * -(itd / 2);}
+                    else
+                      {
+                        phasel = TWOPI_F * freq * -(itd / 2);
+                        phaser = TWOPI_F * freq * (itd / 2);
+                      }
+                    
+                    /* polar to rectangular */
+                    hrtflfloat[i] = magl * COS(phasel);
+                    hrtflfloat[i+1] = magl * SIN(phasel);
+                    
+                    hrtfrfloat[i] = magr * COS(phaser);
+                    hrtfrfloat[i+1] = magr * SIN(phaser);
+                  }
+                
+                p->elevv = elev;
+                p->anglev = angle;
+              }
+            
+            /* t used to read inbuf...*/
+            t--;
+            if(t < 0)
+              t = overlap - 1;
+            
+            /* insert insig for complex real, im fft */
+            for(i = 0; i < irlength; i++)
+              complexinsig[i] = inbuf[(t * irlength) + i];
+            
+            /* zero the current input sigframe time pointer */
+            overlapskipin[t] = 0;
+            
+            csound->RealFFT(csound, complexinsig, irlength);
+            
+            csound->RealFFTMult(csound, outspecl, hrtflfloat,
+                                complexinsig, irlength, FL(1.0));
+            csound->RealFFTMult(csound, outspecr, hrtfrfloat,
+                                complexinsig, irlength, FL(1.0));
+            
+            /* convolution is the inverse FFT of above result */
+            csound->InverseRealFFT(csound, outspecl, irlength);
+            csound->InverseRealFFT(csound, outspecr, irlength);
+
+            /* need scaling based on overlap (more overlaps -> louder) and sr... */
+            for(i = 0; i < irlength; i++)
+              {
+                outbufl[(t * irlength) + i] = outspecl[i] /
+                  (overlap * FL(0.5) * (sr / FL(44100.0)));
+                outbufr[(t * irlength) + i] = outspecr[i] /
+                  (overlap * FL(0.5) * (sr / FL(44100.0)));
+              }
+            
+          }       /* end of !counter % hopsize */
+
+        /* output = sum of all relevant outputs: eg if overlap = 4 and
+           counter = 0, */
+        /* outsigl[j] = outbufl[0] + outbufl[128 + 96] +
+           outbufl[256 + 64] + outbufl[384 + 32]; */
+        /*        * * * * [ ]         + */
+        /*          * * * [*]         + */
+        /*            * * [*] *       + */
+        /*              * [*] * *     = */
+        /* stft! */
+
+        outsuml = outsumr = FL(0.0);
+
+        for(i = 0; i < (int)overlap; i++)
+          {
+            outsuml += outbufl[(i * irlength) +
+                               overlapskipout[i]] * win[overlapskipout[i]];
+            outsumr += outbufr[(i * irlength) +
+                               overlapskipout[i]] * win[overlapskipout[i]];
+            overlapskipout[i]++;
           }
-        }
 
-        else {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            lowl1[i]=fpindexl[skip+i];
-            lowr1[i]=fpindexr[skip+i];
-          }
-        }
-
-        /*point 2*/
-        skip = 0;
-        if (elevindexlow == 0);
-        else
-          for (i=0; i<elevindexlow; i++)
-            skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-        if (angleindex2 == 0);
-        else
-          for (i=0; i<angleindex2; i++)
-            skip += (2*IMPLENGTH);
-
-        if (switchchannels) {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            lowl2[i]=fpindexr[skip+i];
-            lowr2[i]=fpindexl[skip+i];
-          }
-        }
-
-        else {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            lowl2[i]=fpindexl[skip+i];
-            lowr2[i]=fpindexr[skip+i];
-          }
-        }
-
-        /*point 3*/
-        skip = 0;
-        if (elevindexhigh == 0);
-        else
-          for (i=0; i<elevindexhigh; i++)
-            skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-        if (angleindex3 == 0);
-        else
-          for (i=0; i<angleindex3; i++)
-            skip += (2*IMPLENGTH);
-
-        if (switchchannels) {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            highl1[i]=fpindexr[skip+i];
-            highr1[i]=fpindexl[skip+i];
-          }
-        }
-
-        else {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            highl1[i]=fpindexl[skip+i];
-            highr1[i]=fpindexr[skip+i];
-          }
-        }
-
-        /*point 4*/
-        skip = 0;
-        if (elevindexhigh == 0);
-        else
-          for (i=0; i<elevindexhigh; i++)
-            skip +=((int)(elevationarray[i]/2)+1)*(IMPLENGTH*2);
-
-        if (angleindex4 == 0);
-        else
-          for (i=0; i<angleindex4; i++)
-            skip += (2*IMPLENGTH);
-
-        if (switchchannels) {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            highl2[i]=fpindexr[skip+i];
-            highr2[i]=fpindexl[skip+i];
-          }
-        }
-
-        else {
-          for (i=0;i<complexIMPLENGTH;i++) {
-            highl2[i]=fpindexl[skip+i];
-            highr2[i]=fpindexr[skip+i];
-          }
-        }
-
-        /*woodworth stuff*/
-        radianangle = angle * (float)PI/180.0f; /*degrees to radians*/
-        radianelev = elev * (float)PI/180.0f;
-
-        if (radianangle > (PI/2.0))
-          /*get in correct range for formula*/
-          radianangle = (float)PI - radianangle;
-
-        /*woodworth formula for itd     */
-        itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
-
-        /* magnitude interpolation*/
-        for (i=0; i < complexIMPLENGTH; i+=2) {
-          /* interpolate high and low mags*/
-          magllow = lowl1[i]+(MYFLT)((lowl2[i]-lowl1[i])*(MYFLT)angleindex2per);
-          maglhigh = highl1[i]+(MYFLT)((highl2[i]-highl1[i])*(MYFLT)angleindex4per);
-
-          magrlow = lowr1[i]+(MYFLT)((lowr2[i]-lowr1[i])*(MYFLT)angleindex2per);
-          magrhigh = highr1[i]+(MYFLT)((highr2[i]-highr1[i])*(MYFLT)angleindex4per);
-
-          /* interpolate high and low results*/
-          magl = magllow+(MYFLT)((maglhigh-magllow)*(MYFLT)elevindexhighper);
-          magr = magrlow+(MYFLT)((magrhigh-magrlow)*(MYFLT)elevindexhighper);
-
-          if (i<(IMPLENGTH+1))freq = (i/2)*sroverN;
-          else freq = (-IMPLENGTH+(i/2))*sroverN;
-
-          /*NONLIN ITD HERE!...NEED SEPERATE ARRAY FOR 48 and 96k...*/
-          if (p->sr == FL(96000.0)) {
-            if ((i/2)>0 && (i/2)<6) {
-              itd = (radianangle +
-                     sinf(radianangle))*r*cosf(radianelev)/c;
-              itd = itd * nonlinitd96k[(i/2)-1];
-            }
-            if ((i/2)>251 && (i/2)<256) {
-              itd = (radianangle +
-                     sinf(radianangle))*r*cosf(radianelev)/c;
-              itd = itd * nonlinitd96k[255-(i/2)];
-            }
-          }
-          if (p->sr == FL(48000.0)) {
-            if ((i/2)>0 && (i/2)<6) {
-              itd = (radianangle +
-                     sinf(radianangle))*r*cosf(radianelev)/c;
-              itd = itd * nonlinitd48k[(i/2)-1];
-            }
-            if ((i/2)>123 && (i/2)<128) {
-              itd = (radianangle +
-                     sinf(radianangle))*r*cosf(radianelev)/c;
-              itd = itd * nonlinitd48k[127-(i/2)];
-            }
-          }
-          if (p->sr == FL(44100.0)) {
-            if ((i/2)>0 && (i/2)<6) {
-              itd = (radianangle +
-                     sinf(radianangle))*r*cosf(radianelev)/c;
-              itd = itd * nonlinitd[(i/2)-1];
-            }
-            if ((i/2)>123 && (i/2)<128) {
-              itd = (radianangle +
-                     sinf(radianangle))*r*cosf(radianelev)/c;
-              itd = itd * nonlinitd[127-(i/2)];
-            }
+        if(counter == hopsize)
+          {
+            /* zero output incrementation... */
+            /* last buffer will have gone from 96 to 127...then 2nd last
+               will have gone from 64 to 127... */
+            overlapskipout[t] = 0;
+            counter = 0;
           }
 
-          if (switchchannels) {
-            phasel = TWOPI_F*freq*(itd/2);
-            phaser = TWOPI_F*freq*-(itd/2);
-          }
-          else {
-            phasel = TWOPI_F*freq*-(itd/2);
-            phaser = TWOPI_F*freq*(itd/2);
-          }
+        outsigl[j] = outsuml;
+        outsigr[j] = outsumr;
+        
+      }   /* end of ksmps audio loop */
 
-          /* polar to rectangular*/
-          hrtflfloat[i] = magl*COS(phasel);
-          hrtflfloat[i+1] = magl*SIN(phasel);
-
-          hrtfrfloat[i] = magr*COS(phaser);
-          hrtfrfloat[i+1] = magr*SIN(phaser);
-        }
-
-        /* t used to read inbuf...*/
-        t--; if (t<0) t = overlap-1;
-
-        /* insert insig for complex real,im fft               */
-        for (i=0;i<IMPLENGTH;i++) {
-          complexinsig[2*i]=inbuf[(t*IMPLENGTH)+i];
-          complexinsig[(2*i)+1]=FL(0.0);
-        }
-
-        /* zero the current input sigframe time pointer*/
-        overlapskipin[t] = 0;
-
-        csound->ComplexFFT(csound, complexinsig, IMPLENGTH);
-
-        /* complex multiplication*/
-        for (i = 0; i < complexIMPLENGTH; i+=2) {
-          outspecl[i] = complexinsig[i]*hrtflfloat[i] -
-            complexinsig[i+1]*hrtflfloat[i+1];
-          outspecr[i] = complexinsig[i]*hrtfrfloat[i] -
-            complexinsig[i+1]*hrtfrfloat[i+1];
-          outspecl[i+1] = complexinsig[i]*hrtflfloat[i+1] +
-            complexinsig[i+1]*hrtflfloat[i];
-          outspecr[i+1] = complexinsig[i]*hrtfrfloat[i+1] +
-            complexinsig[i+1]*hrtfrfloat[i];
-        }
-
-        /* convolution is the inverse FFT of above result */
-        csound->InverseComplexFFT(csound, outspecl, IMPLENGTH);
-        csound->InverseComplexFFT(csound, outspecr, IMPLENGTH);
-
-        /*real values, scaled*/
-
-        /*Should be simply scaled by rms of window(.707)?...however
-          need scaling based on overlap (more overlaps -> louder) and sr...?*/
-        for (i = 0; i < IMPLENGTH; i++) {
-          outbufl[(t*IMPLENGTH)+i] =
-            outspecl[2*i] / (overlap*FL(0.5)*(sr/FL(44100.0)));
-          outbufr[(t*IMPLENGTH)+i] =
-            outspecr[2*i] / (overlap*FL(0.5)*(sr/FL(44100.0)));
-        }
-
-      }       /* end of !counter%hopsize*/
-
-      /*output = sum of all relevant outputs: eg if overlap = 4 and counter = 0, */
-      /*outsigl[j] = outbufl[0] + outbufl[128+96] +
-                     outbufl[256+64] + outbufl[384+32];*/
-      /*        * * * * [ ]                     +*/
-      /*          * * * [*]             +*/
-      /*            * * [*] *           +*/
-      /*              * [*] * *         =*/
-      /*stft!*/
-
-      outsuml = outsumr = FL(0.0);
-
-      for (i=0;i<(int)overlap;i++) {
-        outsuml += outbufl[(i*IMPLENGTH)+overlapskipout[i]]*win[overlapskipout[i]];
-        outsumr += outbufr[(i*IMPLENGTH)+overlapskipout[i]]*win[overlapskipout[i]];
-        overlapskipout[i]++;
-      }
-
-      if (counter==hopsize) {
-        /*zero output incrementation...*/
-        /*last buffer will have gone from 96 to 127...then 2nd last
-          will have gone from 64 to 127...*/
-        overlapskipout[t] = 0;
-        counter = 0;
-      }
-
-      outsigl[j] = outsuml;
-      outsigr[j] = outsumr;
-
-    }   /* end of ksmps audio loop */
-
-        /*update*/
+    /* update */
     p->t = t;
     p->counter = counter;
 
     return OK;
 }
 
-/*see csound manual (extending csound) for details of below*/
-OENTRY hrtfopcodes_localops[] = {
-  { "hrtfmove",   sizeof(hrtfmove),5, "aa", "akkSSooo",
+/* see csound manual (extending csound) for details of below */
+static OENTRY hrtfopcodes_localops[] =
+{
+  { "hrtfmove", sizeof(hrtfmove),5, "aa", "akkSSooo",
     (SUBR)hrtfmove_init, NULL, (SUBR)hrtfmove_process },
-  { "hrtfstat",   sizeof(hrtfstat),5, "aa", "aiiSSoo",
+  { "hrtfstat", sizeof(hrtfstat),5, "aa", "aiiSSoo",
     (SUBR)hrtfstat_init, NULL, (SUBR)hrtfstat_process },
-  { "hrtfmove2",   sizeof(hrtfmove2),5, "aa", "akkSSooo",
-    (SUBR)hrtfmove2_init, NULL, (SUBR)hrtfmove2_process },
-  { "" }
+  { "hrtfmove2",  sizeof(hrtfmove2),5, "aa", "akkSSooo",
+    (SUBR)hrtfmove2_init, NULL, (SUBR)hrtfmove2_process }
 };
 
 LINKAGE1(hrtfopcodes_localops)

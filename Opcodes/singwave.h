@@ -36,7 +36,7 @@
 #if !defined(__SingWave_h)
 #define __SingWave_h
 
-#include "csdl.h"
+
 
 extern MYFLT phonGains[32][2];
 extern MYFLT phonParams[32][4][3];

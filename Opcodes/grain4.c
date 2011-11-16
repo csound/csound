@@ -33,7 +33,9 @@
 /*        envelop rise and decade curve                 */
 /* Minor changes by John Fitch Dec 1995                 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include "grain4.h"
 #include <math.h>
 
@@ -429,10 +431,9 @@ static MYFLT grand( GRAINV4 *p)
 
 #define S(x)    sizeof(x)
 
-OENTRY grain4_localops[] = {
+static OENTRY grain4_localops[] = {
   { "granule", S(GRAINV4), TR|5, "a", "xiiiiiiiiikikiiivppppo",
              (SUBR)grainsetv4, NULL, (SUBR)graingenv4},
-  { "" }
 };
 
 LINKAGE1(grain4_localops)

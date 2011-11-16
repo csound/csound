@@ -15,13 +15,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
-
-#include "csdl.h"
-
+//#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2, *argums[VARGMAX];
+        MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2, 
+                *argums[VARGMAX];
         MYFLT   *table[VARGMAX];
         int     length;
         long    numOfTabs;
@@ -43,7 +44,8 @@ static int tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
-                            Str("tabmorph: all tables must have the same length!"));
+                            Str("tabmorph: all tables must have the "
+                                "same length!"));
       flength = ftp->flen;
       if (j==0) first_table = ftp->ftable;
       p->table[j] = ftp->ftable;
@@ -194,7 +196,8 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
 }
 
 
-static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out and table index */
+ /* all args k-rate except out and table index */
+static int atabmorphi(CSOUND *csound, TABMORPH *p)
 {
     int    n, nsmps = csound->ksmps, tablen = p->length;
 
@@ -258,7 +261,7 @@ static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY tabmoroph_localops[] = {
 
 { "tabmorph",  S(TABMORPH), TR|3,  "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorph, NULL},
@@ -272,6 +275,8 @@ static OENTRY localops[] = {
 };
 
 int tabmorph_init_(CSOUND *csound) {
-   return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+    return
+      csound->AppendOpcodes(csound, &(tabmoroph_localops[0]),
+                            (int) (sizeof(tabmoroph_localops) / sizeof(OENTRY)));
 }
+
