@@ -156,3 +156,5 @@ set_target_properties(sfont
 #if p5gfound==1:
 #  P5GEnvironment = pluginEnvironment.Clone()
 #  makePlugin(P5GEnvironment, 'p5g', ['p5glove.c'])
+
+add_subdirectory(stk)
