@@ -23,7 +23,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"       /*                              PITCH.C         */
+// #include "csdl.h"
+#include "csoundCore.h"       /*                              PITCH.C         */
 #include <math.h>
 #include <limits.h>
 #include "cwindow.h"

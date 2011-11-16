@@ -21,7 +21,9 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+//#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 
 typedef struct {
         OPDS    h;
@@ -254,12 +256,11 @@ static int distort(CSOUND *csound, DIST *p)
 
 #define S(x)    sizeof(x)
 
-OENTRY compress_localops[] = {
+static OENTRY compress_localops[] = {
   { "compress", S(CMPRS), 5, "a", "aakkkkkki",
     (SUBR) compset, NULL, (SUBR) compress },
   { "distort", S(DIST), TR|5, "a", "akiqo",
     (SUBR) distset, NULL, (SUBR) distort },
-  { "" }
 };
 
 LINKAGE1(compress_localops)

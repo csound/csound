@@ -30,7 +30,9 @@
     02111-1307 USA
  */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
+
 #include <math.h>
 
 
@@ -497,7 +499,7 @@ static int Phasine(CSOUND* csound, PHASINE* data)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY shape_localops[] = {
   /* { "phasine", S(PHASINE), 5, "a", "akp",
                         (SUBR)PhasineInit, NULL, (SUBR)Phasine }, */
   { "powershape", S(POWER_SHAPE), 5, "a", "akp",
@@ -512,4 +514,4 @@ static OENTRY localops[] = {
                   (SUBR)SyncPhasorInit, NULL, (SUBR)SyncPhasor },
 };
 
-LINKAGE
+LINKAGE1(shape_localops)

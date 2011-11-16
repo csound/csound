@@ -1,0 +1,3 @@
+#!/bin/sh
+#/bin/ln -sf /Library/Frameworks/CsoundLib.framework/Resources/Java/lib_jcsound.jnilib /System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Libraries/lib_jcsound.jnilib
+

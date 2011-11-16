@@ -88,11 +88,10 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY jackTransport_localops[] = {
 
   { "jacktransport",  S(JACKTRANSPORT),  1, "", "ij",
                        (SUBR)jack_transport, NULL, NULL   },
-
 };
 
-LINKAGE
+LINKAGE1(jackTransport_localops)

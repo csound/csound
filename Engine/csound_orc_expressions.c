@@ -607,8 +607,10 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
                       argtyp2(csound, root->right->value->lexeme));
 
     outarg = get_boolean_arg(csound,
-                             argtyp2(csound, root->left->value->lexeme)=='k' ||
-                             argtyp2(csound, root->right->value->lexeme)=='k');
+                             argtyp2(csound, root->left->value->lexeme) =='k' ||
+                             argtyp2(csound, root->right->value->lexeme)=='k' ||
+                             argtyp2(csound, root->left->value->lexeme) =='B' ||
+                             argtyp2(csound, root->right->value->lexeme)=='B');
 
     opTree = create_opcode_token(csound, op);
     opTree->right = root->left;

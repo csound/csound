@@ -29,7 +29,9 @@
    documentation of your C compiler to choose the appropriate compiler
    directive switch.  */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -65,12 +67,13 @@ typedef struct _sfontg {
   MYFLT pitches[128];
 } sfontg;
 
-PUBLIC int csoundModuleDestroy(CSOUND *csound)
+PUBLIC int sfont_ModuleDestroy(CSOUND *csound)
 {
     int j,k,l;
     SFBANK *sfArray;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (globals == NULL) return 0;
     sfArray = globals->sfArray;
 
     for (j=0; j<globals->currSFndx; j++) {
@@ -2522,7 +2525,7 @@ static OENTRY localops[] = {
 { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int sfont_ModuleCreate(CSOUND *csound)
 {
     int j;
     sfontg *globals;
@@ -2543,7 +2546,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return OK;
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int sfont_ModuleInit(CSOUND *csound)
 {
     OENTRY  *ep = (OENTRY*) &(localops[0]);
     int     err = 0;
