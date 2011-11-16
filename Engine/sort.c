@@ -57,7 +57,7 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 #define FALSE (0)
 #endif
 
-inline int ordering(SRTBLK *a, SRTBLK *b)
+static inline int ordering(SRTBLK *a, SRTBLK *b)
 {
     char cb = b->text[0], ca = a->text[0];
     MYFLT tmp;

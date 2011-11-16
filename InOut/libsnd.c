@@ -569,10 +569,16 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     /* calc inbufsize reqd */
     ST(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
     ST(inbuf) = (MYFLT*) mcalloc(csound, ST(inbufsiz)); /* alloc inbuf space */
+    if (ST(pipdevout) == 2)
+      csound->Message(csound,
+                      Str("reading %d sample blks of %d-bit floats from %s \n"),
+                      O->inbufsamps * O->sfsampsize, sizeof(MYFLT)*8, sfname);
+    else {
     csound->Message(csound,
                     Str("reading %d-byte blks of %s from %s (%s)\n"),
                     O->inbufsamps * (int) sfsampsize(FORMAT2SF(O->informat)),
                     getstrformat(O->informat), sfname, type2string(fileType));
+    }
     ST(isfopen) = 1;
 }
 
@@ -730,16 +736,20 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* calc outbuf size & alloc bufspace */
     ST(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     ST(outbufp) = ST(outbuf) = mmalloc(csound, ST(outbufsiz));
-    csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
+    if (ST(pipdevout) == 2)
+      csound->Message(csound,
+                      Str("writing %d sample blks of %d-bit floats to %s \n"),
+                      O->outbufsamps, sizeof(MYFLT)*8, ST(sfoutname));
+    else {
+     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), ST(sfoutname));
-    if (ST(pipdevout) == 2)
-      /* realtime output has no header */
-      csound->Message(csound, "\n");
-    else if (O->sfheader == 0)
+
+    if (O->sfheader == 0)
       csound->Message(csound, Str(" (raw)\n"));
     else
       csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+    }
     ST(osfopen) = 1;
     ST(outbufrem) = O->outbufsamps;
 }
@@ -800,16 +810,21 @@ void sfcloseout(CSOUND *csound)
 #endif
 
  report:
-    csound->Message(csound, Str("%ld %d-byte soundblks of %s written to %s"),
-                    csound->nrecs, O->outbufsamps * O->sfsampsize,
-                    getstrformat(O->outformat), ST(sfoutname));
-    if (ST(pipdevout) == 2)
-      /* realtime output has no header */
-      csound->Message(csound, "\n");
-    else if (O->sfheader == 0)
-      csound->Message(csound, Str(" (raw)\n"));
-    else
-      csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+    if (ST(pipdevout) == 2) {
+      csound->Message(csound,
+                      Str("%ld %d sample blks of %d-bit floats written to %s\n"),
+                      csound->nrecs, O->outbufsamps,
+                      sizeof(MYFLT)*8, ST(sfoutname));
+    }
+    else {
+      csound->Message(csound, Str("%ld %d sample blks of %s written to %s"),
+                      O->outbufsamps, O->outbufsamps * O->sfsampsize,
+                      getstrformat(O->outformat), ST(sfoutname));
+      if (O->sfheader == 0)
+        csound->Message(csound, Str(" (raw)\n"));
+      else
+        csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+    }
     ST(osfopen) = 0;
 }
 
@@ -927,4 +942,3 @@ PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *csound)
       return NULL;
     return ST(outbuf);
 }
-

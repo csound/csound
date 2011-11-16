@@ -21,7 +21,9 @@
     02111-1307 USA
 */
 
-#include "csdl.h"         /*                                    SPECTRA.C       */
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include <math.h>
 #include "cwindow.h"
 #include "spectra.h"
@@ -1203,7 +1205,7 @@ int specfilt(CSOUND *csound, SPECFILT *p)
 
 #define S       sizeof
 
-static OENTRY localops[] = {
+static OENTRY spectra_localops[] = {
 { "spectrum", S(SPECTRUM),7, "w", "siiiqoooo",
                                    (SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
 { "specaddm", S(SPECADDM),5, "w",  "wwp",  (SUBR)spadmset,NULL,  (SUBR)specaddm},
@@ -1258,5 +1260,5 @@ static OENTRY localops[] = {
 { "mediank", S(MEDFILT), 5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
 
-LINKAGE
+LINKAGE1(spectra_localops)
 

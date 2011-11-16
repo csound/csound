@@ -56,7 +56,7 @@ typedef struct {
     OPCODINFO *opcode_info;
     void    *uopcode_struct;
     INSDS   *parent_ip;
-    MYFLT   *iobufp_ptrs[8];            /* expandable IV - Oct 26 2002 */
+    MYFLT   *iobufp_ptrs[12];            /* expandable IV - Oct 26 2002 */ /* was 8 */
 } OPCOD_IOBUFS;
 
 typedef struct {                        /* IV - Oct 16 2002 */

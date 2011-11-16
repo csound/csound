@@ -141,3 +141,7 @@ examples/java/CsoundEditor.jar
 ## Build scripts
 build
 buildD
+
+## Installer Resources
+installer/macosx/DmgResources
+installer/macosx/201*

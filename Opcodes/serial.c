@@ -368,7 +368,7 @@ int serialPeekByte(CSOUND *csound, SERIALPEEK *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY serial_localops[] = {
     { (char *)"serialBegin", S(SERIALBEGIN), 1, (char *)"i", (char *)"So",
       (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL   },
     { (char *)"serialEnd", S(SERIALEND), 2, (char *)"", (char *)"i",
@@ -389,4 +389,4 @@ static OENTRY localops[] = {
     /*   (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   } */
 };
 
-LINKAGE
+LINKAGE1(serial_localops)

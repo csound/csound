@@ -19,7 +19,8 @@
 /* This file includes the opcodes from newopcodes.c */
 /* TODO: Check if the authors (Peter Neubaeker and Jens Groh) are correct */
 
-/*printi removed? I can't find the corresponding OENTRY- Left them commented out */
+/*printi removed? I can't find the corresponding OENTRY- */
+/*Left them commented out */
 /*how should exitnow be safely implemented? */
 /*Check the zak opcodes */
 /*changed some comments to c-style */
@@ -790,7 +791,7 @@ static int mandel(CSOUND *csound,MANDEL *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY gab_localops[] = {
   {"resonxk", S(KRESONX),    3,   "k",    "kkkooo",
                             (SUBR) krsnsetx, (SUBR) kresonx, NULL },
   { "tab_i",S(FASTAB),       TR|1,   "i",    "iio", (SUBR) fastabi, NULL, NULL },
@@ -876,7 +877,7 @@ static OENTRY localops[] = {
 
 int gab_gab_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+    return csound->AppendOpcodes(csound, &(gab_localops[0]),
+                                 (int) (sizeof(gab_localops) / sizeof(OENTRY)));
 }
 

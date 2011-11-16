@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 
 #define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
 
@@ -51,12 +52,11 @@ static int vaset(CSOUND *csound, VA_SET *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "vaget",  S(VA_GET),   2,      "k", "ka",    NULL, (SUBR)vaget   },
-  { "vaset", S(VA_SET), 2, "",  "kka", NULL, (SUBR)vaset }
-
+static OENTRY vaops_localops[] = {
+  { "vaget",  S(VA_GET),   2,      "k", "ka",  NULL, (SUBR)vaget },
+  { "vaset", S(VA_SET),    2,      "",  "kka", NULL, (SUBR)vaset }
 };
 
 
-LINKAGE
+LINKAGE1(vaops_localops)
 

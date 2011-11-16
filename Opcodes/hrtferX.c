@@ -50,7 +50,9 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -489,9 +491,8 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     return csound->PerfError(csound, Str("hrtfer: not initialised"));
 }
 
-OENTRY hrtferX_localops[] = {
+static OENTRY hrtferX_localops[] = {
 { "hrtfer",   sizeof(HRTFER),5, "aa", "akkS", (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
-  { "" }
 };
 
 LINKAGE1(hrtferX_localops)

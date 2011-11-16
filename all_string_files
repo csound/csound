@@ -224,6 +224,7 @@
 ./H/windin.h
 ./H/winEPS.h
 ./InOut/FL_graph.cpp
+./InOut/cmidi.c
 ./InOut/libsnd.c
 ./InOut/libsnd_u.c
 ./InOut/midifile.c
@@ -231,6 +232,7 @@
 ./InOut/midisend.c
 ./InOut/pmidi.c
 ./InOut/rtalsa.c
+./InOut/rtauhal.c
 ./InOut/rtcoreaudio.c
 ./InOut/rtjack.c
 ./InOut/rtpa.c

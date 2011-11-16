@@ -27,7 +27,8 @@ assisting functions for VBAP
 functions for loudspeaker table initialization */
 
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>
@@ -898,7 +899,8 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+/* static */ 
+static OENTRY vbap_localops[] = {
   { "vbap4",      S(VBAP_FOUR),             TR|5,  "aaaa",             "akOO",
     (SUBR) vbap_FOUR_init,          (SUBR) NULL,    (SUBR) vbap_FOUR        },
   { "vbap8",      S(VBAP_EIGHT),            TR|5,  "aaaaaaaa",         "akOO",
@@ -919,7 +921,9 @@ static OENTRY localops[] = {
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  }
 };
 
-PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
+LINKAGE1(vbap_localops)
+
+/* PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
 {
     create_ls_table(csound, 3);
     *ep = localops;
@@ -930,4 +934,4 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
-
+*/

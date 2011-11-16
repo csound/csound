@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include "crossfm.h"
 #include <math.h>
 
@@ -422,14 +423,13 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
 
 #define S sizeof
 
-OENTRY crossfm_localops[] = {
+static OENTRY crossfm_localops[] = {
   { "crossfm", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfm },
   { "crossfmi", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmi },
   { "crosspm", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xpm },
   { "crosspmi", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xpmi },
   { "crossfmpm", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmpm },
   { "crossfmpmi", S(CROSSFM),TR| 5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmpmi },
-  { "" }
 };
 
 LINKAGE1(crossfm_localops)
