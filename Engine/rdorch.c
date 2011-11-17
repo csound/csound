@@ -483,25 +483,34 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       }
     }
     csound->Message(csound, Str("orch compiler:\n"));
-    if (UNLIKELY((ST(fd) = csound->FileOpen2(csound, &ST(fp), CSFILE_STD,
-                              csound->orchname, "rb", NULL, CSFTYPE_ORCHESTRA,
-                                             (csound->tempStatus & csOrcMask)!=0)) == NULL))
-      csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
-    if (UNLIKELY(fseek(ST(fp), 0L, SEEK_END) != 0))
-      csoundDie(csound, Str("cannot find end of file %s"), csound->orchname);
-    if (UNLIKELY((ST(orchsiz) = ftell(ST(fp))) <= 0))
-      csoundDie(csound, Str("ftell error on %s"), csound->orchname);
-    rewind(ST(fp));
     ST(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
     ST(input_size) = 20;
     ST(input_cnt) = 0;
     ST(str) = ST(inputs);
-    ST(str)->string = 0;
-    ST(str)->file = ST(fp);
-    ST(str)->fd = ST(fd);
-    ST(str)->body = csound->orchname;
     ST(str)->line = 1;
     ST(str)->unget_cnt = 0;
+    if (csound->orchstr) {
+      ST(orchsiz) = corfile_length(csound->orchstr);
+      ST(str)->string = 1;
+      ST(str)->body = csound->orchstr->body;
+      ST(str)->file = NULL;
+      ST(str)->fd = NULL;
+    }
+    else {
+      /* if (UNLIKELY((ST(fd) = csound->FileOpen2(csound, &ST(fp), CSFILE_STD, */
+      /*                         csound->orchname, "rb", NULL, CSFTYPE_ORCHESTRA, */
+      /*                                        (csound->tempStatus & csOrcMask)!=0)) == NULL)) */
+        csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
+      /* if (UNLIKELY(fseek(ST(fp), 0L, SEEK_END) != 0)) */
+      /*   csoundDie(csound, Str("cannot find end of file %s"), csound->orchname); */
+      /* if (UNLIKELY((ST(orchsiz) = ftell(ST(fp))) <= 0)) */
+      /*   csoundDie(csound, Str("ftell error on %s"), csound->orchname); */
+      /* rewind(ST(fp)); */
+      /* ST(str)->string = 0; */
+      /* ST(str)->file = ST(fp); */
+      /* ST(str)->fd = ST(fd); */
+      /* ST(str)->body = csound->orchname; */
+    }
     ortext = mmalloc(csound, ST(orchsiz) + 1);          /* alloc mem spaces */
     ST(linadr) = (char **) mmalloc(csound, (LINMAX + 1) * sizeof(char *));
     strsav_create(csound);
@@ -2200,7 +2209,8 @@ void synterr(CSOUND *csound, const char *s, ...)
      * This function may not be necessary at all in the end if some of this is
      * done in the parser
      */
-    if (ST(linadr) != NULL && (cp = ST(linadr)[ST(curline)]) != NULL
+ #ifdef never
+   if (ST(linadr) != NULL && (cp = ST(linadr)[ST(curline)]) != NULL
 #if defined(ENABLE_NEW_PARSER)
         && !csound->oparms->newParser
 #endif
@@ -2214,6 +2224,7 @@ void synterr(CSOUND *csound, const char *s, ...)
     else {
       csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
     }
+#endif
     csound->synterrcnt++;
 }
 

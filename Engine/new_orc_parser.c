@@ -72,19 +72,10 @@ void new_orc_parser(CSOUND *csound)
 
     csound_orcset_extra(&pp, pp.yyscanner);
 
-    if (csound->orchstr) {
-      csound_orc_scan_string(csound->orchstr, pp.yyscanner);
-    }
-    else {
-      if (UNLIKELY(t = csound->FileOpen2(csound, &ttt, CSFILE_STD,
-                                         csound->orchname, "rb", NULL,
-                                         CSFTYPE_ORCHESTRA, 0))==NULL) {
-        csound->Free(csound, pp.buffer);
-        csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
-      }
-      csound_orcset_in(ttt, pp.yyscanner);
-      csound_orcrestart(ttt, pp.yyscanner);
-    }
+    csound_orc_scan_string(csound->orchstr->body, pp.yyscanner);
+    /*     These relate to file input only       */
+    /*     csound_orcset_in(ttt, pp.yyscanner); */
+    /*     csound_orcrestart(ttt, pp.yyscanner); */
     csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
     cs_init_math_constants_macros(csound, pp.yyscanner);
     cs_init_omacros(csound, pp.yyscanner, csound->omacros);

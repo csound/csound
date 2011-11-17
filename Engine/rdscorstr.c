@@ -21,27 +21,24 @@
     02111-1307 USA
 */
 
-#include "csoundCore.h"         /*                              RDSCOR.C */
+#include "csoundCore.h"         /*                  RDSCORSTR.C */
+#include "corfile.h"
 
 static void dumpline(CSOUND *);
-
-static int GETC(CSOUND *csound)
-{
-    int c = csound->scstr[csound->scindx++];
-    return c;
-}
 
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
 {
     int     c;
-    while ((c = GETC(csound)) != '\0' && c != '\n')
+    while ((c = corfile_getc(csound->scstr)) != EOF && c != '\n')
         ;
 }
 
 static int scanflt(CSOUND *csound, MYFLT *pfld)
 {   /* read a MYFLT from scorefile; return 1 if OK, else 0 */
     int     c;
-    while ((c = GETC(csound)) == ' ' || c == '\t')  /* skip leading white space */
+
+    while ((c = corfile_getc(csound->scstr)) == ' ' ||
+           c == '\t')  /* skip leading white space */
         ;
     if (c == ';') {             /* Comments terminate line */
       flushline(csound);
@@ -52,8 +49,8 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       if (csound->scnt0==0) {
         if ((sstrp = csound->sstrbuf) == NULL)
           sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
-        while ((c = GETC(csound)) != '"') {
-          if (c=='\\') c = GETC(csound);
+        while ((c = corfile_getc(csound->scstr)) != '"') {
+          if (c=='\\') c = corfile_getc(csound->scstr);
           *sstrp++ = c;
         }
         *sstrp++ = '\0';
@@ -65,8 +62,8 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         printf("***Entering dubious code; n=%d\n", n);
         if ((sstrp = csound->sstrbuf0[n]) == NULL)
           sstrp = csound->sstrbuf0[n] = mmalloc(csound, SSTRSIZ);
-        while ((c = GETC(csound)) != '"') {
-          if (c=='\\') c = GETC(csound);
+        while ((c = corfile_getc(csound->scstr)) != '"') {
+          if (c=='\\') c = corfile_getc(csound->scstr);
           *sstrp++ = c;
         }
         *sstrp++ = '\0';
@@ -78,31 +75,28 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       return(1);
     }
     if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
-      csound->scindx--;  /* ungetc(c, csound->scfp); */
+      corfile_ungetc(csound->scstr);
       csound->Message(csound,
                       Str("ERROR: illegal character %c(%.2x) in scoreline: "),
                       c, c);
       dumpline(csound);
       return(0);
     }
-    csound->scindx--;  /* ungetc(c, csound->scfp); */
+    corfile_ungetc(csound->scstr);
+    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
     {
-      int n;
-#ifdef USE_DOUBLE
-      sscanf(&(csound->scstr[csound->scindx]), "%lf%n", pfld, &n);
-#else
-      fscanf(&(csound->scstr[csound->scindx]), "%f%n", pfld, &n);
-#endif
-      csound->scindx += n;
+      MYFLT ans = corfile_get_flt(csound->scstr);
+      *pfld = ans;
+      //printf("%s(%d):%lf %lf\n", __FILE__, __LINE__, ans, *pfld);
     }
+    //printf("%s(%d):(%d/%d)%lf >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, *pfld, &csound->scstr->body[csound->scstr->p]);
     return(1);
 }
 
 static void dumpline(CSOUND *csound)    /* print the line while flushing it */
 {
     int     c;
-    FILE    *xx = csound->scfp;
-    while ((c = GETC(csound)) != '\0' && c != '\n') {
+    while ((c = corfile_getc(csound->scstr)) != EOF && c != '\n') {
       csound->Message(csound, "%c", c);
     }
     csound->Message(csound, Str("\n\tremainder of line flushed\n"));
@@ -115,7 +109,7 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
     int     c;
 
     if (csound->scstr == NULL ||
-        csound->scstr[0] == '\0') {   /* if no concurrent scorefile  */
+        csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
       e->opcod = 'f';             /*     return an 'f 0 3600'    */
       e->p[1] = FL(0.0);
       e->p[2] = FL(3600.0);
@@ -123,7 +117,8 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
       e->pcnt = 2;
       return(1);
     }
-    while ((c = GETC(csound)) != '\0') {  /* else read the real score */
+    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, csound->scstr->body);
+    while ((c = corfile_getc(csound->scstr)) != EOF) {  /* else read the real score */
       csound->scnt0 = 0;
       switch (c) {
       case ' ':
@@ -143,12 +138,15 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
         pp = &e->p[0];
         plim = &e->p[PMAX];             /*    caution, irregular format */
         while (1) {
-          while ((c = GETC(csound))==' ' || c=='\t'); /* eat whitespace */
+    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
+           while ((c = corfile_getc(csound->scstr))==' ' ||
+                 c=='\t'); /* eat whitespace */
           if (c == ';') { flushline(csound); break; } /* comments? skip */
-          if (c == '\n' || c == '\0')   break;    /* newline? done  */
-          csound->scindx--;                /* pfld:  back up */
+          if (c == '\n' || c == EOF)   break;    /* newline? done  */
+          corfile_ungetc(csound->scstr);       /* pfld:  back up */
           if (!scanflt(csound, ++pp))  break;     /*   & read value */
-          if (UNLIKELY(pp >= plim)) {
+    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
+            if (UNLIKELY(pp >= plim)) {
             csound->Message(csound, Str("ERROR: too many pfields: "));
             dumpline(csound);
             break;
@@ -157,6 +155,7 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
         e->p2orig = e->p[2];                 /* now go count the pfields */
         e->p3orig = e->p[3];
         e->c.extra = NULL;
+        //printf("%s(%d): e: %c %lf %lf %lf\n", __FILE__, __LINE__, e->opcod, e->p[1], e->p[2], e->p[3]);
         goto setp;
       case 'e':
         e->opcod = c;
@@ -169,12 +168,18 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
         e->c.extra = NULL;
         pp = &e->p[0];
         plim = &e->p[PMAX];
-        if (GETC(csound) != '\n' && scanflt(csound, ++pp))         /* p1      */
-          if (GETC(csound) != '\n' && scanflt(csound, &e->p2orig)) /* p2 orig */
-            if (GETC(csound) != '\n' && scanflt(csound, ++pp))     /* p2 warp */
-              if (GETC(csound) != '\n' && scanflt(csound, &e->p3orig)) /* p3  */
-                if (GETC(csound) != '\n' && scanflt(csound, ++pp)) /* p3 warp */
-                  while (GETC(csound) != '\n' && scanflt(csound, ++pp))
+        if (corfile_getc(csound->scstr) != '\n' &&
+            scanflt(csound, ++pp))         /* p1      */
+          if (corfile_getc(csound->scstr) != '\n' &&
+              scanflt(csound, &e->p2orig)) /* p2 orig */
+            if (corfile_getc(csound->scstr) != '\n' &&
+                scanflt(csound, ++pp))     /* p2 warp */
+              if (corfile_getc(csound->scstr) != '\n' &&
+                  scanflt(csound, &e->p3orig)) /* p3  */
+                if (corfile_getc(csound->scstr) != '\n' &&
+                    scanflt(csound, ++pp)) /* p3 warp */
+                  while (corfile_getc(csound->scstr) != '\n' &&
+                         scanflt(csound, ++pp))
                     /* p4....  */
                     if (pp >= plim) {
                       MYFLT *q;
@@ -185,22 +190,26 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
                       e->c.extra = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
                       e->c.extra[0] = PMAX-2;
                       q = e->c.extra;
-                      while ((GETC(csound) != '\n') && (scanflt(csound, &q[c++]))) {
+                      while ((corfile_getc(csound->scstr) != '\n') &&
+                             (scanflt(csound, &q[c++]))) {
                         if (c > (int) e->c.extra[0]) {
                           fprintf(stderr, "and more extra p-fields [%d](%d)%d\n",
                                   c, (int) e->c.extra[0],
                                   sizeof(MYFLT)*((int)e->c.extra[0]+PMAX) );
                           q = e->c.extra =
                             (MYFLT *)realloc(e->c.extra,
-                                            sizeof(MYFLT)*((int) e->c.extra[0]+PMAX));
+                                             sizeof(MYFLT)*((int) e->c.extra[0]+PMAX));
                           e->c.extra[0] = e->c.extra[0]+PMAX-1;
                         }
                       }
                       e->c.extra[0] = c;
                       /* flushline(csound); */
-                      goto setp;
+        printf("%s(%d): e: %s %f %f %f\n",
+               __FILE__, __LINE__, e->opcod, e->p[1], e->p[2], e->p[3]);
+                       goto setp;
                     }
       setp:
+    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
         if (!csound->csoundIsScorePending_ && e->opcod == 'i') {
           /* FIXME: should pause and not mute */
           csound->sstrlen = 0;
@@ -217,6 +226,7 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
         return 1;
       }
     }
+    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
     return 0;
 }
 
