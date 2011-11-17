@@ -1061,6 +1061,7 @@ def makePlugin(env, pluginName, srcs):
 libCsoundSources = Split('''
 Engine/auxfd.c
 Engine/cfgvar.c
+Engine/corfiles.c
 Engine/entry1.c
 Engine/envvar.c
 Engine/express.c
