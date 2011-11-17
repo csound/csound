@@ -22,6 +22,7 @@
 */
 
 #include "csoundCore.h"                                  /*   SCSORT.C  */
+#include "corfile.h"
 
 extern void sort(CSOUND*), twarp(CSOUND*), swrite(CSOUND*);
 extern void sfree(CSOUND *csound);
@@ -48,21 +49,21 @@ void scsort(CSOUND *csound, FILE *scin, FILE *scout)
     sfree(csound);              /* return all memory used */
 }
 
-void scsortstr(CSOUND *csound, char *scin)
+void scsortstr(CSOUND *csound, CORFIL *scin)
 {
     int     n;
 
     csound->scoreout = NULL;
-    csound->scstr = (char *)calloc(1,80);
-    csound->scindx = 1;
+    csound->scstr = corfile_create_w();
     csound->sectcnt = 0;
     sread_initstr(csound);
+
     while ((n = sread(csound)) > 0) {
       sort(csound);
       twarp(csound);
       swritestr(csound);
     }
-    csound->scindx = 0;
+    corfile_flush(csound->scstr);
     sfree(csound);              /* return all memory used */
 }
 

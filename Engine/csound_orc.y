@@ -649,11 +649,13 @@ ifac      : ident               { $$ = $1; }
           | function S_LB error
           ;
 
-function  : T_FUNCTION  { $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); 
+function  : T_FUNCTION  { 
+    printf("FUNCTION ans=%p, token=%p %p\n", $1, ((ORCTOKEN *)$1)->value);
 #ifdef PARCS
-            if ((ORCTOKEN *)$1->value != 0)
-              csp_orc_sa_interlocksf(csound, ((ORCTOKEN *)$1->value)->value);
+    //                if ((ORCTOKEN *)$1->value != 0)
+    csp_orc_sa_interlocksf(csound, ((ORCTOKEN *)$1)->value);
 #endif
+    $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); 
                 }
 
 rident    : T_SRATE     { $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)$1); }

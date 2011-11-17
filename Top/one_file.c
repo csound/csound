@@ -24,6 +24,8 @@
 #include "csoundCore.h"
 #include <ctype.h>
 #include <errno.h>
+#include "corfile.h"
+
 #if defined(LINUX) || defined(__MACH__) || defined(WIN32)
 #  include <sys/types.h>
 #  include <sys/stat.h>
@@ -332,39 +334,20 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     char  *p;
     /* FILE  *orcf; */
     /* void  *fd; */
-    char  *incore = (char*)calloc(1, 80);
-    int   len = 1;
+    CORFIL *incore = corfile_create_w();
     char  buffer[CSD_MAX_LINE_LEN];
 
-    /* Generate orchestra name */
-/*     csoundTmpFileName(csound, ST(orcname), ".orc"); */
-/*     fd = csoundFileOpenWithType(csound, &orcf, CSFILE_STD, ST(orcname), "w", NULL, */
-/*                                 CSFTYPE_ORCHESTRA, 1); */
-/*     csound->tempStatus |= csOrcMask; */
-/* #ifdef _DEBUG */
-/*     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(orcname), orcf); */
-/* #endif */
-/*     if (UNLIKELY(fd == NULL)) { */
-/*       csoundDie(csound, Str("Failed to create %s"), ST(orcname)); */
-/*     } */
     csound->orcLineOffset = ST(csdlinecount);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;
       if (strstr(p, "</CsInstruments>") == p) {
-        //        csoundFileClose(csound, fd);
-        //        add_tmpfile(csound, ST(orcname));           /* IV - Feb 03 2005 */
-        printf("incore len=%d: starts: %.20s\n", len, incore);
+        corfile_flush(incore);
         csound->orchstr = incore;
         return TRUE;
       }
-      else {
-        //        fputs(buffer, orcf);
-        len += strlen(buffer);
-        incore = realloc(incore, len);
-        if (incore==NULL) abort();
-        strcat(incore, buffer);
-      }
+      else 
+        corfile_puts(buffer, incore);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
     return FALSE;
@@ -373,41 +356,20 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
 int createScore(CSOUND *csound, FILE *unf)
 {
     char   *p;
-    /* FILE   *scof; */
-    /* void   *fd; */
+    CORFIL *incore = corfile_create_w();
     char   buffer[CSD_MAX_LINE_LEN];
-    char   *incore = (char*)calloc(1, 80);
-    size_t len = 1;
-
-    /* Generate score name */
-/*     csoundTmpFileName(csound, ST(sconame), ".sco"); */
-/*     fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, ST(sconame), "w", NULL, */
-/*                                 CSFTYPE_SCORE, 1); */
-/*     csound->tempStatus |= csScoInMask; */
-/* #ifdef _DEBUG */
-/*     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(sconame), scof); */
-/* #endif */
-/*     /\* RWD 3:2000 *\/ */
-/*     if (UNLIKELY(fd == NULL)) */
-/*       return FALSE; */
 
     csound->scoLineOffset = ST(csdlinecount);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;
       if (strstr(p, "</CsScore>") == p) {
-        /* csoundFileClose(csound, fd); */
-        /* add_tmpfile(csound, ST(sconame));           /\* IV - Feb 03 2005 *\/ */
+        corfile_flush(incore);
         csound->scorestr = incore;
         return TRUE;
       }
-      else {
-        /* fputs(buffer, scof); */
-        len += strlen(buffer);
-        incore = (char*)realloc(incore, len);
-        if (incore==NULL) abort();
-        strcat(incore, buffer);
-      }
+      else 
+        corfile_puts(buffer, incore);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;

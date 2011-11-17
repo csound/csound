@@ -170,6 +170,12 @@ typedef struct {
    cause confusion
 #define printf  use_csoundMessage_instead_of_printf
 */
+  typedef struct CORFIL {
+    char    *body;
+    int     len;
+    int     p;
+  } CORFIL;
+
   typedef struct {
     int     odebug;
     int     sfread, sfwrite, sfheader, filetyp;
@@ -184,7 +190,8 @@ typedef struct {
     int     rewrt_hdr, heartbeat, gen01defer;
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
     float   sr_override, kr_override;
-    char    *infilename, *outfilename, *playscore;
+    char    *infilename, *outfilename;
+    CORFIL  *playscore;
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
     char    *FMidioutname;
@@ -1085,7 +1092,7 @@ typedef struct {
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
     char          *orchname, *scorename;
-    char          *orchstr, *scorestr;
+    CORFIL        *orchstr, *scorestr;
     int           holdrand;
     /** max. length of string variables + 1  */
     int           strVarMaxLen;
@@ -1156,8 +1163,7 @@ typedef struct {
     int           Linefd;
     void          *csoundCallbacks_;
     FILE*         scfp;
-    char          *scstr;
-    int           scindx;
+    CORFIL        *scstr;
     FILE*         oscfp;
     MYFLT         maxamp[MAXCHNLS];
     MYFLT         smaxamp[MAXCHNLS];
