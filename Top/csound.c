@@ -407,6 +407,7 @@ extern "C" {
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
     NULL, NULL,     /*  orchname, scorename */
+    NULL, NULL,     /*  orchstr, *scorestr  */
     2345678,        /*  holdrand            */
     256,            /*  strVarMaxLen        */
     MAXINSNO,       /*  maxinsno            */
