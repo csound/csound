@@ -2,7 +2,7 @@
  
 			CSOUND SERIAL PORT OPCODES
 			  ma++ ingalls, 2011/9/4
- 
+                     modified for WIndows John ffitch
  * based on "Arduino-serial"
  * Copyright (c) 2006, Tod E. Kurt, tod@todbot.com
  * http://todbot.com/blog/
@@ -148,11 +148,12 @@ int serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 // and a baud rate (bps) and connects to that port at that speed and 8N1.
 // opens the port in fully raw mode so you can send binary data.
 // returns valid fd, or -1 on error
-int serialport_init(const char* serialport, int baud)
+int serialport_init(CSOUND *csound, const char* serialport, int baud)
 {
     struct termios toptions;
     int fd;
     speed_t brate;
+    IGNORE(csound);
 
     fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
             serialport,baud);
@@ -168,19 +169,19 @@ int serialport_init(const char* serialport, int baud)
       return -1;
     }
     switch(baud) {
-    default:     brate = B9600; break;
-    case 4800:   brate=B4800;   break;
-    case 9600:   brate=B9600;   break;
+    default:     brate = B9600;   break;
+    case 4800:   brate = B4800;   break;
+    case 9600:   brate = B9600;   break;
 #ifdef B14400
-    case 14400:  brate=B14400;  break;
+    case 14400:  brate = B14400;  break;
 #endif
-    case 19200:  brate=B19200;  break;
+    case 19200:  brate = B19200;  break;
 #ifdef B28800
-    case 28800:  brate=B28800;  break;
+    case 28800:  brate = B28800;  break;
 #endif
-    case 38400:  brate=B38400;  break;
-    case 57600:  brate=B57600;  break;
-    case 115200: brate=B115200; break;
+    case 38400:  brate = B38400;  break;
+    case 57600:  brate = B57600;  break;
+    case 115200: brate = B115200; break;
     }
     cfsetispeed(&toptions, brate);
     cfsetospeed(&toptions, brate);
@@ -213,13 +214,13 @@ int serialport_init(const char* serialport, int baud)
 #else
 #include <windows.h>
 
-int serialport_init(const char* serialport, int baud)
+int serialport_init(CSOUND *csound, const char* serialport, int baud)
 {
     HANDLE hSerial;
     DCB dcbSerialParams = {0};
     WCHAR wport[256];
     MultiByteToWideChar(CP_ACP,MB_PRECOMPOSED, serialport, strlen(serialport)+1, 
-                        wport, 256);
+                        (LPCSTR)wport, 256);
     hSerial = CreateFile(wport, GENERIC_READ | GENERIC_WRITE, 0, 
                          0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
  //Check if the connection was successfull
@@ -227,7 +228,7 @@ int serialport_init(const char* serialport, int baud)
       //If not success full display an Error
       return csound->InitError(csound, Str("%s not available.\n"), serialport);
     }
-    dcbSerial.DCBlength=sizeof(dcbSerialParams);
+    hSerial.DCBlength=sizeof(dcbSerialParams);
     switch (baud) {
     case 1200:  dcbSerialParams.BaudRate = CBR_1200; break;
     case 2400:  dcbSerialParams.BaudRate = CBR_2400; break;
@@ -275,7 +276,8 @@ int serialport_init(const char* serialport, int baud)
 
 int serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
-    *p->returnedPort = (MYFLT)serialport_init((char *)p->portName, *p->baudRate);
+    *p->returnedPort =
+      (MYFLT)serialport_init(csound, (char *)p->portName, *p->baudRate);
     return OK;
 }
 
@@ -284,7 +286,7 @@ int serialEnd(CSOUND *csound, SERIALEND *p)
 #ifndef WIN32
     close(*p->port);
 #else
-    CloseHandle(*p->port); 
+    CloseHandle((HANDLE)*p->port); 
 #endif
     return OK;
 }
@@ -296,7 +298,8 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
       write(*p->port, p->toWrite, strlen((char *)p->toWrite));
 #else
       int nbytes;
-      WriteFile(*p->port,p->toWrite, strlen((char *)p->toWrite), &nbytes, NULL);
+      WriteFile((HANDLE)*p->port,p->toWrite, strlen((char *)p->toWrite),
+                &nbytes, NULL);
 #endif
     }
     else {
@@ -319,7 +322,7 @@ int serialRead(CSOUND *csound, SERIALREAD *p)
 #ifndef WIN32
     bytes = read(*p->port, &b, 1);
 #else
-    ReadFile(*p->port, &b, 1, &bytes, NULL));
+    ReadFile((HANDLE)*p->port, &b, 1, &bytes, NULL);
 #endif
     if (bytes > 0)
       *p->rChar = b;
@@ -336,7 +339,7 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
 #ifndef WIN32
     bytes  = read(*p->port, str, 32768);
 #else
-    ReadFile(*p->port, str, 32768, &bytes, NULL));
+    ReadFile((HANDLE)*p->port, str, 32768, &bytes, NULL);
 #endif
     if (bytes > 0) {
       str[bytes] = 0; // terminate
