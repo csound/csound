@@ -57,7 +57,10 @@ void    reverbinit(CSOUND *);
 void    dispinit(CSOUND *);
 int     init0(CSOUND *);
 void    scsort(CSOUND *, FILE *, FILE *);
+<<<<<<< HEAD
 void    scsortstr(CSOUND *, CORFIL *);
+=======
+>>>>>>> f7458dd9619363a4e38a069d3eef0639e2512c6c
 int     scxtract(CSOUND *, FILE *, FILE *, FILE *);
 int     rdscor(CSOUND *, EVTBLK *);
 int     musmon(CSOUND *);

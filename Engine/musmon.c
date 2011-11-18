@@ -40,7 +40,10 @@ extern  int     insert(CSOUND *, int, EVTBLK*);
 extern  void    MidiOpen(CSOUND *);
 extern  void    m_chn_init_all(CSOUND *);
 extern  void    scsort(CSOUND *, FILE *, FILE *);
+<<<<<<< HEAD
 extern  void    scsortstr(CSOUND *, CORFIL *);
+=======
+>>>>>>> f7458dd9619363a4e38a069d3eef0639e2512c6c
 extern  void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
 extern  void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
 extern  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
@@ -873,13 +876,9 @@ int sensevents(CSOUND *csound)
             memcpy((void*) e, (void*) &((*ST(ep)++)->strarg), sizeof(EVTBLK));
           else                                          /* else lcode   */
             memcpy((void*) e, (void*) &(ST(lsect)->strarg), sizeof(EVTBLK));
-        } 
-        else if (csound->scstr) {
-          if (!(rdscorstr(csound, e))) /*  or rd nxt evt from string */
+        } else
+          if (!(rdscor(csound, e)))       /*   or rd nxt evt from scorfil */
             e->opcod = 'e';
-        }
-        else if (!(rdscor(csound, e)))       /*   or rd nxt evt from scorfil */
-          e->opcod = 'e';
         csound->currevent = e;
         switch (e->opcod) {
         case 'w':
