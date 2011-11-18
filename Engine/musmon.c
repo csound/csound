@@ -40,10 +40,7 @@ extern  int     insert(CSOUND *, int, EVTBLK*);
 extern  void    MidiOpen(CSOUND *);
 extern  void    m_chn_init_all(CSOUND *);
 extern  void    scsort(CSOUND *, FILE *, FILE *);
-<<<<<<< HEAD
 extern  void    scsortstr(CSOUND *, CORFIL *);
-=======
->>>>>>> f7458dd9619363a4e38a069d3eef0639e2512c6c
 extern  void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
 extern  void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
 extern  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
