@@ -377,12 +377,18 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
           csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }
       csound->Message(csound, Str("sorting score ...\n"));
+<<<<<<< HEAD
       scsortstr(csound, csound->scorestr);
       if (csound->keep_tmp) { 
         FILE *ff = fopen("score.srt", "w");
         fputs(csound->scorestr->body, ff);
         fclose(ff);
       }
+=======
+      scsort(csound, scorin, scorout);
+      fclose(scorin);
+      fclose(scorout);
+>>>>>>> f7458dd9619363a4e38a069d3eef0639e2512c6c
     }
     if (csound->xfilename != NULL) {            /* optionally extract */
       if (!strcmp(csound->scorename, "score.xtr"))
