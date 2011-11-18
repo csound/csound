@@ -83,9 +83,8 @@ typedef struct {
 #define CSFILE_FD_R     1
 #define CSFILE_FD_W     2
 #define CSFILE_STD      3
-#define CSFILE_MEMORY   4
-#define CSFILE_SND_R    5
-#define CSFILE_SND_W    6
+#define CSFILE_SND_R    4
+#define CSFILE_SND_W    5
 
 #define MAXINSNO  (200)
 #define PMAX      (1998)
