@@ -24,7 +24,7 @@
 #include "csoundCore.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
 
-extern void sort(CSOUND*), twarp(CSOUND*), swrite(CSOUND*);
+extern void sort(CSOUND*), twarp(CSOUND*), swrite(CSOUND*), swritestr(CSOUND*);
 extern void sfree(CSOUND *csound);
 extern void sread_init(CSOUND *csound);
 extern int  sread(CSOUND *csound);
