@@ -83,13 +83,10 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       return(0);
     }
     corfile_ungetc(csound->scstr);
-    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
     {
       MYFLT ans = corfile_get_flt(csound->scstr);
       *pfld = ans;
-      //printf("%s(%d):%lf %lf\n", __FILE__, __LINE__, ans, *pfld);
     }
-    //printf("%s(%d):(%d/%d)%lf >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, *pfld, &csound->scstr->body[csound->scstr->p]);
     return(1);
 }
 
@@ -109,7 +106,7 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
     int     c;
 
     if (csound->scstr == NULL ||
-        csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
+        corfile_body(csound->scstr)[0] == '\0') {   /* if no concurrent scorefile  */
       e->opcod = 'f';             /*     return an 'f 0 3600'    */
       e->p[1] = FL(0.0);
       e->p[2] = FL(3600.0);
@@ -117,7 +114,6 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
       e->pcnt = 2;
       return(1);
     }
-    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, csound->scstr->body);
     while ((c = corfile_getc(csound->scstr)) != EOF) {  /* else read the real score */
       csound->scnt0 = 0;
       switch (c) {
@@ -138,14 +134,12 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
         pp = &e->p[0];
         plim = &e->p[PMAX];             /*    caution, irregular format */
         while (1) {
-    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
            while ((c = corfile_getc(csound->scstr))==' ' ||
                  c=='\t'); /* eat whitespace */
           if (c == ';') { flushline(csound); break; } /* comments? skip */
           if (c == '\n' || c == EOF)   break;    /* newline? done  */
           corfile_ungetc(csound->scstr);       /* pfld:  back up */
           if (!scanflt(csound, ++pp))  break;     /*   & read value */
-    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
             if (UNLIKELY(pp >= plim)) {
             csound->Message(csound, Str("ERROR: too many pfields: "));
             dumpline(csound);
@@ -209,7 +203,6 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
                        goto setp;
                     }
       setp:
-    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
         if (!csound->csoundIsScorePending_ && e->opcod == 'i') {
           /* FIXME: should pause and not mute */
           csound->sstrlen = 0;
@@ -226,7 +219,6 @@ int rdscorstr(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile 
         return 1;
       }
     }
-    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
     return 0;
 }
 
