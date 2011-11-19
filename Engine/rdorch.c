@@ -267,31 +267,19 @@ static int getorchar(CSOUND *csound)
 {
   int c;
  top:
-    if (UNLIKELY(ST(str)->unget_cnt)) {
-      c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
-      if (c == '\n')
-        ST(linepos) = -1;
-      return c;
-    }
-    else if (ST(str)->string) {
-      c = *ST(str)->body++;
-      if (UNLIKELY(c == '\0')) {
-        if (ST(str) == &ST(inputs)[0]) return EOF;
-        ST(pop) += ST(str)->args;
-        ST(str)--; ST(input_cnt)--;
-        goto top;
-      }
-    }
-    else {
-      c = getc(ST(str)->file);
-      if (UNLIKELY(c == 26)) goto top;    /* MS-DOS spare ^Z */
-      if (UNLIKELY(c == EOF)) {
-        if (ST(str) == &ST(inputs)[0]) return EOF;
-        if (ST(str)->fd != NULL) {
-          csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
-        }
-        ST(str)--; ST(input_cnt)--; goto top;
-      }
+  if (UNLIKELY(ST(str)->unget_cnt)) {
+    c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
+    if (c == '\n')
+      ST(linepos) = -1;
+    return c;
+  }
+  else if (ST(str)->string) {
+    c = *ST(str)->body++;
+    if (UNLIKELY(c == '\0')) {
+      if (ST(str) == &ST(inputs)[0]) return EOF;
+      ST(pop) += ST(str)->args;
+      ST(str)--; ST(input_cnt)--;
+      goto top;
     }
   }
   else {
@@ -300,7 +288,7 @@ static int getorchar(CSOUND *csound)
     if (UNLIKELY(c == EOF)) {
       if (ST(str) == &ST(inputs)[0]) return EOF;
       if (ST(str)->fd != NULL) {
-	csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
+        csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
       }
       ST(str)--; ST(input_cnt)--; goto top;
     }
