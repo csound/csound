@@ -874,7 +874,7 @@ int sensevents(CSOUND *csound)
           else                                          /* else lcode   */
             memcpy((void*) e, (void*) &(ST(lsect)->strarg), sizeof(EVTBLK));
         } else
-          if (!(rdscor(csound, e)))       /*   or rd nxt evt from scorfil */
+          if (!(rdscor(csound, e)))           /* or rd nxt evt from scstr */
             e->opcod = 'e';
         csound->currevent = e;
         switch (e->opcod) {
