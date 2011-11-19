@@ -228,12 +228,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csdFound = 1;
       }
     }
-    /* else { */
-    /*   csound->orchstr = copy_to_corefile(csound->orchname); */
-    /*   csound->orchname = NULL; */
-    /*   csound->scorestr = copy_to_corefile(csound->scorename); */
-    /*   csound->scorename = NULL; */
-    /* } */
 
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
     /* command line options override CSD options */
@@ -249,10 +243,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         (csound->stdout_assign_flg & (csound->stdout_assign_flg - 1)) != 0) {
       csound->Die(csound, Str("error: multiple uses of stdout"));
     }
-    /* if (csound->orchname) { */
-    /*   csound->orchstr = copy_to_corefile(csound->orchname); */
-    /*   csound->orchname = NULL; */
-    /* } */
     /* done parsing csoundrc, CSD, and command line options */
     /* if sound file type is still not known, check SFOUTYP */
     if (O->filetyp <= 0) {
@@ -380,7 +370,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       scsortstr(csound, csound->scorestr);
       if (csound->keep_tmp) { 
         FILE *ff = fopen("score.srt", "w");
-        fputs(csound->scorestr->body, ff);
+        fputs(corfile_body(csound->scorestr), ff);
         fclose(ff);
       }
     }
