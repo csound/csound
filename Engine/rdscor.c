@@ -110,8 +110,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
-      csound->Message("THIS SHOULD NOT HAPPEN");
-      e->opcod = 'e';             /*     return an 'f 0 3600'    */
+      csound->Message(csound, "THIS SHOULD NOT HAPPEN -- CONTACT jpff");
+      e->opcod = 'f';             /*     return an 'f 0 3600'    */
       e->p[1] = FL(3600.0);
       e->p[2] = FL(3600.0);
       e->p2orig = FL(3600.0);
