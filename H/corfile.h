@@ -12,6 +12,9 @@ void corfile_rewind(CORFIL *f);
 #define corfile_rewind(f) (f->p=0)
 int corfile_tell(CORFIL *f);
 #define corfile_tell(f) (f->p)
+char *cirfile_body(CORFIL *f);
+#define corfile_body(f) (f->body)
 CORFIL *copy_to_corefile(char *);
+//CORFIL *copy_to_corefile_path(CSOUND *, char *);
 int corfile_length(CORFIL *f);
 #define corfile_length(f) (strlen(f->body))
