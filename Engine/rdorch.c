@@ -27,6 +27,7 @@
 #include "typetabl.h"   /* IV - Oct 31 2002 */
 #include "envvar.h"
 #include <stddef.h>
+#include "corfile.h"
 
 #ifdef sun
 #define   SEEK_SET        0
@@ -492,7 +493,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
   if (csound->orchstr) {
     ST(orchsiz) = corfile_length(csound->orchstr);
     ST(str)->string = 1;
-    ST(str)->body = csound->orchstr->body;
+    ST(str)->body = corfile_body(csound->orchstr);
     ST(str)->file = NULL;
     ST(str)->fd = NULL;
   }

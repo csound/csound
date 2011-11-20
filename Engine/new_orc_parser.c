@@ -27,7 +27,7 @@
 #include "csound_orcparse.h"
 #include "csound_orc.h"
 #include "parse_param.h"
-
+#include "corfile.h"
 
 //#include "yyguts.h"
 
@@ -72,7 +72,7 @@ void new_orc_parser(CSOUND *csound)
 
     csound_orcset_extra(&pp, pp.yyscanner);
 
-    csound_orc_scan_string(csound->orchstr->body, pp.yyscanner);
+    csound_orc_scan_string(corfile_body(csound->orchstr), pp.yyscanner);
     /*     These relate to file input only       */
     /*     csound_orcset_in(ttt, pp.yyscanner); */
     /*     csound_orcrestart(ttt, pp.yyscanner); */

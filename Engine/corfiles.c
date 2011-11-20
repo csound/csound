@@ -119,6 +119,12 @@ int corfile_tell(CORFIL *f)
     return f->p;
 }
 
+#undef corfile_body
+char *corfile_body(CORFIL *f)
+{
+    return f->body;
+}
+
 CORFIL *copy_to_corefile(char *fname)
 {
     CORFIL *mm;
