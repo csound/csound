@@ -307,7 +307,7 @@ int musmon(CSOUND *csound)
       scsortstr(csound, csound->scorestr);  /* call the sorter again */
       corfile_rm(csound->scorestr);
       fclose(csound->scfp); csound->scfp = NULL;
-      fputs(csound->scstr->body, csound->oscfp);
+      fputs(corfile_body(csound->scstr), csound->oscfp);
       fclose(csound->oscfp); csound->oscfp = NULL;
       csound->Message(csound, Str("\t... done\n"));
       csound->Message(csound, Str("playing from cscore.srt\n"));

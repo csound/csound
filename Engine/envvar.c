@@ -1062,7 +1062,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int type,
  * used as metadata to be passed to the host application's FileOpenCallback.
  *
  * int csFileType:
- *   A value from the enumeration CSOUND_FILETYPES (see CsoundCore.h)
+ *   A value from the enumeration CSOUND_FILETYPES (see soundCore.h)
  * int isTemporary:
  *   1 if this file will be deleted when Csound is finished.
  *   Otherwise, 0.
