@@ -529,12 +529,18 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     ATS_SOUND *sound = NULL;
     FILE    *outfile;
     void    *fd;
+#ifdef WIN32
+    char buffer[160];
+    GetTempPath(160, buffer);
+    strcat(buffer, resfile);
+    resfile = buffer;
+#endif
 
     /* open output file */
     fd = csound->FileOpen2(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
                           NULL, CSFTYPE_ATS, 0);
     if (fd == NULL) {
-      csound->Die(csound, Str("\n Could not open %s for writing, bye...\n"),
+      csound->Die(csound, Str("\nCould not open %s for writing, bye...\n"),
                   ats_outfile);
     }
     /* call tracker */
@@ -1474,6 +1480,12 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     mus_sample_t **bufs;
     SNDFILE *sf;
     void    *fd;
+#ifdef WIN32
+    char buffer[160];
+    GetTempPath(160, buffer);
+    strcat(buffer, file);
+    file = buffer;
+#endif
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo, NULL,
@@ -1983,6 +1995,12 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     int     frame_n, k, sflen, *win_samps, peaks_size, tracks_size = 0;
     int     i, frame, i_tmp;
     float   *window, norm, sfdur, f_tmp;
+#ifdef WIN32
+    char buffer[160];
+    GetTempPath(160, buffer);
+    strncat(buffer, resfile);
+    resfile = buffer;
+#endif
 
     /* declare structures and buffers */
     ATS_SOUND *sound = NULL;
