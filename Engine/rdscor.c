@@ -29,7 +29,7 @@ static void dumpline(CSOUND *);
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
 {
     int     c;
-    while ((c = corfile_getc(csound->scstr)) != EOF && c != '\n')
+    while ((c = corfile_getc(csound->scstr)) != '0' && c != '\n')
         ;
 }
 
@@ -96,7 +96,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
 static void dumpline(CSOUND *csound)    /* print the line while flushing it */
 {
     int     c;
-    while ((c = corfile_getc(csound->scstr)) != EOF && c != '\n') {
+    while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n') {
       csound->Message(csound, "%c", c);
     }
     csound->Message(csound, Str("\n\tremainder of line flushed\n"));
@@ -110,15 +110,16 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
-      e->opcod = 'f';             /*     return an 'f 0 3600'    */
-      e->p[1] = FL(0.0);
+      csound->Message("THIS SHOULD NOT HAPPEN");
+      e->opcod = 'e';             /*     return an 'f 0 3600'    */
+      e->p[1] = FL(3600.0);
       e->p[2] = FL(3600.0);
       e->p2orig = FL(3600.0);
       e->pcnt = 2;
       return(1);
     }
     //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, csound->scstr->body);
-    while ((c = corfile_getc(csound->scstr)) != EOF) {  /* else read the real score */
+    while ((c = corfile_getc(csound->scstr)) != '\0') {  /* else read the real score */
       csound->scnt0 = 0;
       switch (c) {
       case ' ':
@@ -142,7 +143,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
            while ((c = corfile_getc(csound->scstr))==' ' ||
                  c=='\t'); /* eat whitespace */
           if (c == ';') { flushline(csound); break; } /* comments? skip */
-          if (c == '\n' || c == EOF)   break;    /* newline? done  */
+          if (c == '\n' || c == '\0')   break;    /* newline? done  */
           corfile_ungetc(csound->scstr);       /* pfld:  back up */
           if (!scanflt(csound, ++pp))  break;     /*   & read value */
     //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
