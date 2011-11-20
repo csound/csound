@@ -68,7 +68,7 @@ static CS_NOINLINE void
     s = csound->icurTime/csound->esr;
     if (csound->ids == NULL && csound->pds != NULL)
       s -= csound->ksmps/csound->esr;
-    s *= 26000.;  /* VL NOV 11: this was 3000.0, which was wrong; 26000.0 was arrived at by experimentation */
+    s *=  13000.;  /* VL NOV 11: this was 3000.0, which was wrong; 13000.0 was arrived at by experimentation */
 #ifdef HAVE_C99
     t = (unsigned int) lrint(s);
 #else
