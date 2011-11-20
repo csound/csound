@@ -263,12 +263,18 @@ static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int i, MYFLT sc)
     if (i>16) i = i%16;
     VoicForm_setFormantAll(p, 0,sc*phonParams[i][0][0], phonParams[i][0][1],
                            (MYFLT)pow(10.0,phonParams[i][0][2] / FL(20.0)));
-    VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0],
-                           phonParams[i][1][1], FL(1.0));
-    VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0],
-                           phonParams[i][2][1], FL(1.0));
-    VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0],
-                           phonParams[i][3][1], FL(1.0));
+    VoicForm_setFormantAll(p, 1,sc*phonParams[i][0][0], phonParams[i][1][1],
+                           (MYFLT)pow(10.0,phonParams[i][1][2] / FL(20.0)));
+    VoicForm_setFormantAll(p, 2,sc*phonParams[i][0][0], phonParams[i][2][1],
+                           (MYFLT)pow(10.0,phonParams[i][2][2] / FL(20.0)));
+    VoicForm_setFormantAll(p, 3,sc*phonParams[i][0][0], phonParams[i][3][1],
+                           (MYFLT)pow(10.0,phonParams[i][4][2] / FL(20.0)));
+     /* VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0], */
+    /*                        phonParams[i][1][1], FL(1.0)); */
+    /* VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0], */
+    /*                        phonParams[i][2][1], FL(1.0)); */
+    /* VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0], */
+    /*                        phonParams[i][3][1], FL(1.0)); */
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
     csound->Message(csound,
                     Str("Found Formant: %s (number %i)\n"), phonemes[i], i);
@@ -320,6 +326,7 @@ static void make_FormSwep(FormSwep *p)
 int voicformset(CSOUND *csound, VOICF *p)
 {
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+    int i;
 
     if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)==NOTOK))
       return NOTOK;
@@ -328,19 +335,13 @@ int voicformset(CSOUND *csound, VOICF *p)
 
     make_Noise(p->noise);
 
-    make_FormSwep(&p->filters[0]);
-    make_FormSwep(&p->filters[1]);
-    make_FormSwep(&p->filters[2]);
-    make_FormSwep(&p->filters[3]);
-    FormSwep_setSweepRate(p->filters[0], FL(0.001));
-    FormSwep_setSweepRate(p->filters[1], FL(0.001));
-    FormSwep_setSweepRate(p->filters[2], FL(0.001));
-    FormSwep_setSweepRate(p->filters[3], FL(0.001));
+    for (i=0; i<4; i++) {
+      make_FormSwep(&p->filters[i]);
+      FormSwep_setSweepRate(p->filters[i], FL(0.001));
+    }
 
     make_OneZero(&p->onezero);
-/*  OneZero_print(csound, &p->onezero); */
     OneZero_setCoeff(&p->onezero, - FL(0.9));
-/*  OneZero_print(csound, &p->onezero); */
     make_OnePole(&p->onepole);
     OnePole_setPole(&p->onepole, FL(0.9));
 
