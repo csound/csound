@@ -7,11 +7,6 @@ ksmps=1
 nchnls=2
 
 
-
-
-
-
-
 	instr 1	;untitled
 aout	vco2 10000, 440
 
@@ -22,13 +17,6 @@ aout	vco2 10000, 440
 </CsInstruments>
 
 <CsScore>
-
-
-
-
-
-
-
 
 i1	0.0	2	
 e
