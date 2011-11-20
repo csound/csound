@@ -66,6 +66,7 @@ void scsortstr(CSOUND *csound, CORFIL *scin)
       m++;
     }
     if (m==0) corfile_puts("f0 3600\ne\n", csound->scstr);
+    else corfile_puts("e\n", csound->scstr);
     corfile_flush(csound->scstr);
     sfree(csound);              /* return all memory used */
 }

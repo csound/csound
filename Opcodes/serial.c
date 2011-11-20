@@ -161,9 +161,9 @@ typedef struct {
 } SERIALPEEK;
 int serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 //------------------
-#ifdef __MACH__
+
 #define IGNORE(x)  (void *) x
-#endif
+
 
 #ifndef WIN32
 // takes the string name of the serial port (e.g. "/dev/tty.usbserial","COM1")
