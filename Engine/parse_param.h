@@ -30,6 +30,8 @@ typedef struct parse_parm_s {
     unsigned int macro_stack_ptr;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
+    unsigned char   isInclude;
+    unsigned char   clearBufferAfterEOF;
 } PARSE_PARM;
 
 #define lMaxBuffer (1000)

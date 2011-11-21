@@ -531,7 +531,8 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     void    *fd;
 #ifdef WIN32
     char buffer[160];
-    GetTempPath(160, buffer);
+    char * tmp = getenv("TEMP");
+    strncpy(buffer, tmp, 160);
     strncat(buffer, resfile, 160);
     resfile = buffer;
 #endif
@@ -1482,8 +1483,9 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     void    *fd;
 #ifdef WIN32
     char buffer[160];
-    GetTempPath(160, buffer);
-    strcat(buffer, file);
+    char * tmp = getenv("TEMP");
+    strncpy(buffer, tmp, 160);
+    strncat(buffer, file, 160);
     file = buffer;
 #endif
 
@@ -1997,7 +1999,8 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     float   *window, norm, sfdur, f_tmp;
 #ifdef WIN32
     char buffer[160];
-    GetTempPath(160, buffer);
+    char * tmp = getenv("TEMP");
+    strncpy(buffer, tmp, 160);
     strncat(buffer, resfile, 160);
     resfile = buffer;
 #endif
