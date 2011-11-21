@@ -186,8 +186,14 @@ EXSTR           "}}"
                   return T_INSTR;
                 }
 "endin"         { return T_ENDIN; }
-"opcode"        { return T_UDOSTART; }
-"endop"         { *lvalp = new_token(csound, T_UDOEND); return T_UDOEND; }
+"opcode"        {
+                  PARM->clearBufferAfterEOF = 0;
+                  return T_UDOSTART;
+                }
+"endop"         {
+                  PARM->clearBufferAfterEOF = PARM->isInclude;
+                  *lvalp = new_token(csound, T_UDOEND); return T_UDOEND;
+                }
 
 {LABEL}         { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
@@ -432,6 +438,10 @@ EXSTR           "}}"
                   yypop_buffer_state(yyscanner);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   printf("End of input; popping to %p\n", YY_CURRENT_BUFFER);
+                  if (PARM->clearBufferAfterEOF)
+                    PARM->lBuffer =
+                      PARM->clearBufferAfterEOF =
+                      PARM->isInclude = 0;
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   printf("n=%d\n", n);
                   if (n!=0) {
@@ -530,6 +540,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+    PARM->isInclude = PARM->clearBufferAfterEOF = 1;
     yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 }
 
