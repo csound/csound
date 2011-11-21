@@ -438,7 +438,7 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch %s' % cpuType))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch %s' % cpuType))
     else:
-        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mtune=%s' % (cpuType)))
+        commonEnvironment.Prepend(CCFLAGS = Split('-Wall -W -O3 -mtune=%s' % (cpuType)))
 
 
 if commonEnvironment['buildRelease'] != '0':

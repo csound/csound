@@ -38,6 +38,8 @@
 #include <fcntl.h>    /* File control definitions */
 #include <termios.h>  /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
+#else
+#include "windows.h"
 #endif
 
 #include "csdl.h"
@@ -98,16 +100,18 @@ typedef struct SERIAL_GLOBALS_ {
     HANDLE  handles[10];
 } SERIAL_GLOBALS;
 
-static HANDLE get_port(CSOUND csound, int port)
+static HANDLE get_port(CSOUND *csound, int port)
 {
     HANDLE hport;
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
-    if (q = NULL) 
-      return csound->PerfError(csound, Str("No ports available"));
+    if (q == NULL) {
+      csound->PerfError(csound, Str("No ports available"));
+      return NULL;
+    }
     hport = (HANDLE)q->handles[port];  
-    retrun hport;
+    return hport;
 }
 #endif
 
@@ -234,17 +238,17 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     return fd;
 }
 #else
-#include <windows.h>
 
 int serialport_init(CSOUND *csound, const char* serialport, int baud)
 {
     HANDLE hSerial;
     DCB dcbSerialParams = {0};
+    int i;
     /* NEED TO CREATE A GLOBAL FOR HANDLE */
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
-    if (q = NULL) {
+    if (q == NULL) {
       if (csound->CreateGlobalVariable(csound, "serialGlobals_",
                                        sizeof(SERIAL_GLOBALS)) != 0)
         csound->Die(csound, Str("serial: failed to allocate globals"));
@@ -257,14 +261,17 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     /* MultiByteToWideChar(CP_ACP,MB_PRECOMPOSED, serialport, */
     /*                     strlen(serialport)+1,  */
     /*                     (LPCSTR)wport, 256); */
-    hSerial = CreateFile(serialport, GENERIC_READ | GENERIC_WRITE, 0, 
-                         0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    /* hSerial = CreateFile(serialport, GENERIC_READ | GENERIC_WRITE, 0,  */
+    /*                      0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); */
+    hSerial = CreateFileA(serialport, GENERIC_READ | GENERIC_WRITE, 0, 
+                         NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
  //Check if the connection was successfull
     if (hSerial==INVALID_HANDLE_VALUE) {
       //If not success full display an Error
       return csound->InitError(csound, Str("%s not available.\n"), serialport);
     }
-    hSerial.DCBlength=sizeof(dcbSerialParams);
+    memset(&dcbSerialParams, 0, sizeof(dcbSerialParams));
+    dcbSerialParams.DCBlength=sizeof(dcbSerialParams);
     switch (baud) {
     case 1200:  dcbSerialParams.BaudRate = CBR_1200; break;
     case 2400:  dcbSerialParams.BaudRate = CBR_2400; break;
@@ -287,13 +294,11 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     for(i=0; i>q->maxind; i++) {
       if (q->handles[i]==NULL) {
         q->handles[i] = hSerial;
-        *p->returnedPort = (MYFLT)i;
         return i;
       }
     }
     if (q->maxind>=10)
       return csound->InitError(csound, Str("Number of serial handles exhausted"));
-    *p->returnedPort = (MYFLT)q->maxind;
     q->handles[q->maxind++] = hSerial;
     return q->maxind-1;
 }
@@ -323,7 +328,6 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
 
 int serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
-    int i;
     *p->returnedPort =
       (MYFLT)serialport_init(csound, (char *)p->portName, *p->baudRate);
     return OK;
@@ -348,15 +352,16 @@ int serialEnd(CSOUND *csound, SERIALEND *p)
 int serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
 #ifdef WIN32
-    HANDLE port = get_port((int)*p->port);
-#endif    
+    HANDLE port = get_port(csound, (int)*p->port);
+#endif  
+    if (port==NULL) return NOTOK;  
     if (p->XSTRCODE & 2) {
 #ifndef WIN32
       write((int)*p->port, p->toWrite, strlen((char *)p->toWrite));
 #else
       int nbytes;
       WriteFile(port,p->toWrite, strlen((char *)p->toWrite),
-                &nbytes, NULL);
+                (PDWORD)&nbytes, NULL);
 #endif
     }
     else {
@@ -365,7 +370,7 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
       write((int)*p->port, &b, 1);
 #else
       int nbytes;
-      WriteFile(port, &b, 1, &nbytes, NULL);
+      WriteFile(port, &b, 1, (PDWORD)&nbytes, NULL);
 #endif
     }
     return OK;
@@ -376,8 +381,9 @@ int serialRead(CSOUND *csound, SERIALREAD *p)
     unsigned char b = 0;
     ssize_t bytes;
 #ifdef WIN32
-    HANDLE port = get_portcsound, (int)*p->port);
-    ReadFile(port, &b, 1, &bytes, NULL);
+    HANDLE port = get_port(csound, (int)*p->port);
+    if (port==NULL) return NOTOK;  
+    ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
 #else
     bytes = read((int)*p->port, &b, 1);
 #endif
@@ -394,8 +400,9 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
     char str[32768];
     ssize_t bytes;
 #ifdef WIN32
-    HANDLE port = get_portcsound, (int)*p->port);
-    ReadFile(port, str, 32768, &bytes, NULL);
+    HANDLE port = get_port(csound, (int)*p->port);
+    if (port==NULL) return NOTOK;  
+    ReadFile(port, str, 32768, (PDWORD)&bytes, NULL);
 #else
     bytes  = read((int)*p->port, str, 32768);
 #endif
