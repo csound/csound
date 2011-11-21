@@ -532,7 +532,7 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
 #ifdef WIN32
     char buffer[160];
     GetTempPath(160, buffer);
-    strcat(buffer, resfile);
+    strncat(buffer, resfile, 160);
     resfile = buffer;
 #endif
 
@@ -1998,7 +1998,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
 #ifdef WIN32
     char buffer[160];
     GetTempPath(160, buffer);
-    strncat(buffer, resfile);
+    strncat(buffer, resfile, 160);
     resfile = buffer;
 #endif
 
