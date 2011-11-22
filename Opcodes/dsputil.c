@@ -144,13 +144,13 @@ void FetchIn(
       for (j = 0; j <= fsize; j += 2) { /* mag/frq for just over 1/2        */
                                         /* Interpolate both mag and freq    */
         buf[j     ] = frm_0[j     ] + frac * (frm_1[j     ] - frm_0[j     ]);
-        buf[j + 1L] = frm_0[j + 1L] + frac * (frm_1[j + 1L] - frm0[j + 1L]);
+        buf[j + 1L] = frm_0[j + 1L] + frac * (frm_1[j + 1L] - frm_0[j + 1L]);
       }
     }
     else {                  /* frac is 0.0 i.e. just copy the source frame */
       for (j = 0; j <= fsize; j += 2) { /* no need to interpolate */
-        buf[j     ] = frm0[j     ];
-        buf[j + 1L] = frm0[j + 1L];
+        buf[j     ] = frm_0[j     ];
+        buf[j + 1L] = frm_0[j + 1L];
       }
     }
 }
