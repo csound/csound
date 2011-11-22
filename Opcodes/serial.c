@@ -353,8 +353,8 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
 #ifdef WIN32
     HANDLE port = get_port(csound, (int)*p->port);
-#endif  
     if (port==NULL) return NOTOK;  
+#endif  
     if (p->XSTRCODE & 2) {
 #ifndef WIN32
       write((int)*p->port, p->toWrite, strlen((char *)p->toWrite));
