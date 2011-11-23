@@ -49,6 +49,8 @@ void do_include(CSOUND *, int, yyscan_t);
 void do_macro_arg(CSOUND *, char *, yyscan_t);
 void do_macro(CSOUND *, char *, yyscan_t);
 void do_umacro(CSOUND *, char *, yyscan_t);
+void do_ifdef(CSOUND *, char *, yyscan_t);
+void do_ifdef_skip_code(CSOUND *, yyscan_t);
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 //extern int udoflag;
@@ -92,6 +94,9 @@ OPTWHITE        [ \t]*
 INCLUDE         "#include"
 DEFINE          "#define"
 UNDEF           "#undef"
+IFDEF           #ifn?def
+ELSE            #else[ \t]*(;.*)?$
+END             #end(if)?[ \t]*(;.*)?\n
 CONT            \\[[ \t]*\n
 XSTR            "{{"
 EXSTR           "}}"
@@ -99,6 +104,7 @@ EXSTR           "}}"
 %x incl
 %x macro
 %x umacro
+%x ifdef
 %x xstr
 
 %%
@@ -495,6 +501,36 @@ EXSTR           "}}"
                                  csound_orcget_lineno(yyscanner),
                                  yytext[0],yytext[0]);
                 }
+{IFDEF}         {
+                  PARM->isIfndef = (yytext[3] == 'n');  /* #ifdef or #ifndef */
+                  BEGIN(ifdef);
+                }
+<ifdef>[ \t]*     /* eat the whitespace */
+<ifdef>{IDENT}  {
+                  do_ifdef(csound, yytext, yyscanner);
+                  BEGIN(INITIAL);
+                }
+{ELSE}          { 
+                  if (PARM->ifdefStack == NULL) {
+                    csound->Message(csound, Str("#else without #if\n"));
+                    csound->LongJmp(csound, 1); 
+                  }
+                  else if (PARM->ifdefStack->isElse) {
+                    csound->Message(csound, Str("#else after #else\n"));
+                    csound->LongJmp(csound, 1);
+                  }
+                  PARM->ifdefStack->isElse = 1;
+                  do_ifdef_skip_code(csound, yyscanner);
+                }
+{END}           {
+                  IFDEFSTACK *pp = PARM->ifdefStack;
+                  if (UNLIKELY(pp == NULL)) {
+                    csound->Message(csound, Str("Unmatched #end\n"));
+                    csound->LongJmp(csound, 1);
+                  }
+                  PARM->ifdefStack = pp->prv;
+                  mfree(csound, pp);
+                }
 
 
 %%
@@ -665,6 +701,74 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
     while ((c=input(yyscanner)) != '\n' && c != EOF); /* ignore rest of line */
     csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+}
+
+void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
+{
+    int c;
+    MACRO *mm;
+    IFDEFSTACK *pp;
+    pp = (IFDEFSTACK*) mcalloc(csound, sizeof(IFDEFSTACK));
+    pp->prv = PARM->ifdefStack;
+    pp->isDef = PARM->isIfndef;
+    for (mm = PARM->macros; mm != NULL; mm = mm->next) {
+      if (strcmp(name0, mm->name) == 0) {
+        pp->isDef ^= (unsigned char) 1;
+        break;
+      }
+    }
+    PARM->ifdefStack = pp;
+    pp->isSkip = pp->isDef ^ (unsigned char) 1;
+    if (pp->isSkip)
+      do_ifdef_skip_code(csound, yyscanner);
+    else
+      while ((c = input(yyscanner)) != '\n' && c != EOF);
+}
+
+void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
+{
+    int i, c, nested_ifdef = 0;
+    char *buf;
+    IFDEFSTACK *pp;
+    buf = (char*)malloc(8*sizeof(char));
+    pp = PARM->ifdefStack;
+    c = input(yyscanner);
+    for (;;) {
+      while (c!='\n') {
+        if (UNLIKELY(c == EOF)) {
+          csound->Message(csound, Str("Unmatched #if%sdef\n"),
+                          PARM->isIfndef ? "n" : "");
+          csound->LongJmp(csound, 1);
+        }
+        c = input(yyscanner);
+      }
+      while (isblank(c = input(yyscanner)));  /* eat the whitespace */
+      if (c == '#') {
+        for (i=0; islower(c = input(yyscanner)) && i < 7; i++)
+          buf[i] = c;
+        buf[i] = '\0';
+        if (strcmp("end", buf) == 0 || strcmp("endif", buf) == 0) {
+          if (nested_ifdef-- == 0) {
+            PARM->ifdefStack = pp->prv;
+            mfree(csound, pp);
+            break;
+          }
+        }
+        else if (strcmp("ifdef", buf) == 0 || strcmp("ifndef", buf) == 0) {
+          nested_ifdef++;
+        }
+        else if (strcmp("else", buf) == 0 && nested_ifdef == 0) {
+          if (pp->isElse) {
+            csound->Message(csound, Str("#else after #else\n"));
+            csound->LongJmp(csound, 1);
+          }
+          pp->isElse = 1;
+          break;
+        }
+      }
+    }
+    free(buf);
+    while (c != '\n' && c != EOF) c = input(yyscanner);
 }
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
