@@ -478,8 +478,8 @@ typedef struct strsav_t {
 
 typedef struct strsav_space_t {
         char    *sp;                    /* string space                */
-        int     splim;                  /* number of bytes allocated   */
         int     size;                   /* Size of buffer              */
+        int     splim;                  /* number of bytes allocated   */
         struct strsav_space_t   *prv;   /* ptr to previous buffer      */
 } STRSAV_SPACE;
 
@@ -535,22 +535,23 @@ char *strsav_string(CSOUND *csound, char *s)
        if (UNLIKELY(n > STRSAV_SPACE_->size)) {
         /* this should not happen */
          sp = (STRSAV_SPACE*)mcalloc(csound, sizeof(STRSAV_SPACE));
-         STRSAV_SPACE_->sp =
-          (char*)mcalloc(csound, STRSAV_SPACE_->size = n+STRSPACE);
+         sp->sp =
+          (char*)mcalloc(csound, sp->size = n+STRSPACE);
          csound->Message(csound,
                         "internal message: strsav: buffer length now %d\n", 
-                        STRSAV_SPACE_->size);
+                        sp->size);
        }
        else {
          sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
-         STRSAV_SPACE_->sp =
+         sp->sp =
            (char*)mcalloc(csound, STRSAV_SPACE_->size = STRSPACE);
        }
        sp->prv = STRSAV_SPACE_;
        csound->strsav_space = sp;
     }
     /* use space from buffer */
-    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
+    //    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
+    ssp = (STRSAV*)(&(STRSAV_SPACE_->sp)[STRSAV_SPACE_->splim]);
     STRSAV_SPACE_->splim += n;
     strcpy(ssp->s, s);          /* save string */
     /* link into chain */
