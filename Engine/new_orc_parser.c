@@ -82,6 +82,10 @@ void new_orc_parser(CSOUND *csound)
 
     retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
 
+    if (UNLIKELY(pp.ifdefStack != NULL)) {
+      csound->Message(csound, Str("Unmatched #ifdef\n"));
+      csound->LongJmp(csound, 1);
+    }
     if (LIKELY(retVal == 0)) {
       csound->Message(csound, "Parsing successful!\n");
     }
