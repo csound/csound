@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "csoundCore.h"
 #define YYSTYPE TREE*
 #define YYLTYPE ORCTOKEN*
@@ -37,7 +38,8 @@
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
-extern ORCTOKEN *lookup_token(CSOUND *csound, char *, void *);
+extern ORCTOKEN *lookup_token(CSOUND *, char *, void *);
+extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 ORCTOKEN *new_token(CSOUND *csound, int type);
 ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
@@ -312,7 +314,7 @@ EXSTR           "}}"
                   /* printf("%p\n", YY_CURRENT_BUFFER); */
                 }
 {MACRONAMEA}    {
-                  MACRO     *mm = PARM->macros, *last = PARM->macros;
+                  MACRO     *mm = PARM->macros;
                   int c, i, j;
                   printf("Macro with arguments call %s\n", yytext);
                   yytext[yyleng-1] = '\0';
@@ -365,7 +367,7 @@ EXSTR           "}}"
                   yy_scan_string(mm->body, yyscanner);
                 }
 {MACRONAMEDA}    {
-                  MACRO     *mm = PARM->macros, *last = PARM->macros;
+                  MACRO     *mm = PARM->macros;
                   int c, i, j;
                   printf("Macro with arguments call %s\n", yytext);
                   yytext[yyleng-2] = '\0';
@@ -569,7 +571,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     buffer[p] = '\0';
     while ((c=input(yyscanner))!='\n');
-    yyin = fopen( buffer, "r" );
+    fopen_path(csound, &yyin, buffer, NULL, "INCDIR", 0);
     if (UNLIKELY( ! yyin )) {
       csound->Message(csound, Str("Cannot open file \"%s\"\n"), buffer);
       exit(1);
@@ -644,7 +646,7 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
-    int   arg = 0, i, c;
+    int   i, c;
     int   size = 100;
     mm->margs = MARGS;    /* Initial size */
     //    printf("Macro definition for %s\n", name0);
@@ -934,7 +936,6 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 
 int get_next_line(struct yyguts_t * yyg)
 {
-    int i;
     char *p;
     void *yyscanner = yyg;
 
