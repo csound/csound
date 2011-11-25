@@ -277,7 +277,11 @@ static int getorchar(CSOUND *csound)
   else if (ST(str)->string) {
     c = *ST(str)->body++;
     if (UNLIKELY(c == '\0')) {
-      if (ST(str) == &ST(inputs)[0]) return EOF;
+      if (ST(str) == &ST(inputs)[0]) {
+        corfile_rm(csound->orchstr);
+        csound->orchstr = NULL;
+        return EOF;
+      }
       ST(pop) += ST(str)->args;
       ST(str)--; ST(input_cnt)--;
       goto top;
@@ -2197,8 +2201,6 @@ static void lblchk(CSOUND *csound)
 void synterr(CSOUND *csound, const char *s, ...)
 {
   va_list args;
-  char    *cp;
-  int     c;
 
   csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  "));
   va_start(args, s);
