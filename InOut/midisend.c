@@ -28,7 +28,7 @@
 typedef struct midiOutFile_s {
     FILE            *f;
     void            *fd;
-    unsigned long   prv_tick;
+    unsigned int    prv_tick;
     size_t          nBytes;
     unsigned char   prv_status;
 } midiOutFile_t;
@@ -39,13 +39,13 @@ static const unsigned char midiMsgBytes[32] = {
 };
 
 /* header for type 0 (1 track) MIDI file with 1/3 ms time resolution */
-
+/* 1/3 ms resolution is not working, changed to  1 ms */
 static const unsigned char midiOutFile_header[25] = {
     0x4D, 0x54, 0x68, 0x64,     /* "MThd"                       */
     0x00, 0x00, 0x00, 0x06,     /* header length                */
     0x00, 0x00,                 /* file type                    */
     0x00, 0x01,                 /* number of tracks             */
-    0xE7, 0x78,                 /* tick time (1/25 sec / 120)   */
+    0x19, 0x78,                 /* tick time (1/25 sec / 120), VL this was 0xE7, which was wrong, changed to 0x19 */
     0x4D, 0x54, 0x72, 0x6B,     /* "MTrk"                       */
     0x00, 0x00, 0x00, 0x00,     /* track length (updated later) */
     /* -------------------------------------------------------- */
@@ -60,7 +60,7 @@ static CS_NOINLINE void
     unsigned char   buf[8];
     double          s;
     midiOutFile_t   *p = (midiOutFile_t *) csound->midiGlobals->midiOutFileData;
-    unsigned long   t, prv;
+    unsigned int   t, prv;
     int             ndx = 0;
 
     if (nbytes < 2)
@@ -68,13 +68,13 @@ static CS_NOINLINE void
     s = csound->icurTime/csound->esr;
     if (csound->ids == NULL && csound->pds != NULL)
       s -= csound->ksmps/csound->esr;
-    s *= 1000.0;  /* VL NOV 11: this was 3000.0, which was clearly wrong */
+    s *= 10000.;  /* VL NOV 11: this was 3000.0, which was wrong; 13000.0 was arrived at by experimentation */
 #ifdef HAVE_C99
-    t = (unsigned long) lrint(s);
+    t = (unsigned int) lrint(s);
 #else
-    t = (unsigned long) ((long) (s + 0.5));
+    t = (unsigned int) ((int) (s + 0.5));
 #endif
-    t = ((long) t >= 0L ? t : 0UL);
+    t = ((int) t >= 0L ? t : 0UL);
     prv = p->prv_tick;
     p->prv_tick = t;
     t -= prv;
