@@ -46,17 +46,17 @@ void SpectralExtract(
     )
 {
     int32    i, j, k;
-    float   *frm0, *frm1;
+    float   *frm_0, *frm_1;
     int32    ampindex, freqindex, ampfrmjump;
     MYFLT   freqTemp, freqframes[10], freqdiff=FL(0.0), ampscale;
     int32            framecurb;
 
-    frm0 = inp;
-    frm1 = pvcopy;
+    frm_0 = inp;
+    frm_1 = pvcopy;
     memcpy(pvcopy, inp, (fsize+2L)*MaxFrame*sizeof(float));
     /* for (i=0; i<(fsize+2L)*MaxFrame; i++) */
-    /*   *frm1++ = *frm0++; */
-    frm1 = pvcopy;
+    /*   *frm_1++ = *frm_0++; */
+    frm_1 = pvcopy;
     ampfrmjump = (fsize+2L) / 2L;
     for (j=0; j<(fsize/2L + 1L); j++) {
       ampindex = j + j;
@@ -66,7 +66,7 @@ void SpectralExtract(
         freqdiff = FL(0.0);
         /* get frequencies from 6 or less consecutive frames */
         for (k=0; k<=framecurb; k++)
-          freqframes[k] = *(frm1 + freqindex + ((fsize+2L)*k) +
+          freqframes[k] = *(frm_1 + freqindex + ((fsize+2L)*k) +
                             ((fsize+2L)*i));
 
         /* average the deviation over framecurb interframe periods */
@@ -78,18 +78,18 @@ void SpectralExtract(
         if (mode==1) { /* lets through just the "noisy" parts */
           if (freqdiff > freqlim && freqdiff < freqlim * 2) {
             ampscale = (freqdiff - freqlim) / freqlim;
-            frm1[ampindex+((fsize+2L)*i)] *= ampscale;
+            frm_1[ampindex+((fsize+2L)*i)] *= ampscale;
           }
           else if (freqdiff <= freqlim)
-            frm1[ampindex+((fsize+2L)*i)] = FL(0.0);
+            frm_1[ampindex+((fsize+2L)*i)] = FL(0.0);
         }
         else if (mode==2) { /* lets through just the stable-pitched parts */
           if (freqdiff < freqlim) {
             ampscale = (freqlim - freqdiff) / freqlim;
-            frm1[ampindex+((fsize+2L)*i)] *= ampscale;
+            frm_1[ampindex+((fsize+2L)*i)] *= ampscale;
           }
           else
-            frm1[ampindex+((fsize+2L)*i)] = FL(0.0);
+            frm_1[ampindex+((fsize+2L)*i)] = FL(0.0);
         }
       }
     }
@@ -102,17 +102,17 @@ MYFLT PvocMaxAmp(
     )
 {
     int32    j, k;
-    float   *frm0, *frmx;
+    float   *frm_0, *frmx;
     int32    ampindex;
     MYFLT   MaxAmpInData = FL(0.0);
 
-    frm0 = inp;
+    frm_0 = inp;
 
 /* find max amp in the whole pvoc file */
     for (j=0; j<(fsize/2L + 1L); ++j) {
       ampindex = j + j;
       for (k=0; k<=MaxFrame; k++) {
-        frmx = frm0 + ((fsize+2L)*k);
+        frmx = frm_0 + ((fsize+2L)*k);
         MaxAmpInData = (frmx[ampindex] > MaxAmpInData ?
                         frmx[ampindex] : MaxAmpInData);
       }

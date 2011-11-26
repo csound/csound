@@ -469,7 +469,7 @@ int find_opcode(CSOUND *csound, char *opname)
 /* -------------------------------------------------------------------- */
 /* These functions replace the functionality of strsav() in rdorch.c.   */
 
-#define STRSPACE    (8000)              /* number of bytes in a buffer  */
+#define STRSPACE    (1000)               /* number of bytes in a buffer  */
 
 typedef struct strsav_t {
         struct strsav_t *nxt;           /* pointer to next structure    */
@@ -477,7 +477,8 @@ typedef struct strsav_t {
 } STRSAV;
 
 typedef struct strsav_space_t {
-        char    sp[STRSPACE];           /* string space                */
+        char    *sp;                    /* string space                */
+        int     size;                   /* Size of buffer              */
         int     splim;                  /* number of bytes allocated   */
         struct strsav_space_t   *prv;   /* ptr to previous buffer      */
 } STRSAV_SPACE;
@@ -490,8 +491,10 @@ typedef struct strsav_space_t {
 void strsav_create(CSOUND *csound)
 {
     if (csound->strsav_space != NULL) return;   /* already allocated */
-    csound->strsav_space = mcalloc(csound, sizeof(STRSAV_SPACE));
     csound->strsav_str = mcalloc(csound, sizeof(STRSAV*) * 256);
+    csound->strsav_space = mcalloc(csound, sizeof(STRSAV_SPACE));
+    STRSAV_SPACE_->sp = (char*)mcalloc(csound, STRSPACE);
+    STRSAV_SPACE_->size = STRSPACE;
 }
 
 /* Locate string s in database, and return address of stored string (not */
@@ -526,21 +529,29 @@ char *strsav_string(CSOUND *csound, char *s)
     n = (int) sizeof(struct strsav_t *) + (int) strlen(s) + 1;  /* n bytes */
     n = ((n + (int) sizeof(struct strsav_t *) - 1)  /* round up for alignment */
          / (int) sizeof(struct strsav_t *)) * (int) sizeof(struct strsav_t *);
-    if ((STRSAV_SPACE_->splim + n) > STRSPACE) {
+    if ((STRSAV_SPACE_->splim + n) > STRSAV_SPACE_->size) {
       STRSAV_SPACE  *sp;
       /* not enough space, allocate new buffer */
-      if (UNLIKELY(n > STRSPACE)) {
+       if (UNLIKELY(n > STRSAV_SPACE_->size)) {
         /* this should not happen */
-        csound->ErrorMsg(csound,
-                         "internal error: strsav: string length > STRSPACE");
-        return NULL;
-      }
-      sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
-      sp->prv = STRSAV_SPACE_;
-      csound->strsav_space = sp;
+         sp = (STRSAV_SPACE*)mcalloc(csound, sizeof(STRSAV_SPACE));
+         sp->sp =
+          (char*)mcalloc(csound, sp->size = n+STRSPACE);
+         csound->Message(csound,
+                        "internal message: strsav: buffer length now %d\n", 
+                        sp->size);
+       }
+       else {
+         sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
+         sp->sp =
+           (char*)mcalloc(csound, STRSAV_SPACE_->size = STRSPACE);
+       }
+       sp->prv = STRSAV_SPACE_;
+       csound->strsav_space = sp;
     }
     /* use space from buffer */
-    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
+    //    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
+    ssp = (STRSAV*)(&(STRSAV_SPACE_->sp)[STRSAV_SPACE_->splim]);
     STRSAV_SPACE_->splim += n;
     strcpy(ssp->s, s);          /* save string */
     /* link into chain */

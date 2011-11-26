@@ -30,6 +30,7 @@
 #include "remote.h"
 #include <math.h>
 # include "cscore.h"
+#include "corfile.h"
 
 #define SEGAMPS AMPLMSG
 #define SORMSG  RNGEMSG
@@ -39,6 +40,7 @@ extern  int     insert(CSOUND *, int, EVTBLK*);
 extern  void    MidiOpen(CSOUND *);
 extern  void    m_chn_init_all(CSOUND *);
 extern  void    scsort(CSOUND *, FILE *, FILE *);
+extern  void    scsortstr(CSOUND *, CORFIL *);
 extern  void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
 extern  void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
 extern  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
@@ -271,14 +273,8 @@ int musmon(CSOUND *csound)
         sfnopenout(csound);
     }
 
-    if (!(csound->scfp = fopen(O->playscore, "r"))) {
-      if (UNLIKELY(!O->Linein)) {
-        csoundDie(csound, Str("cannot reopen %s"), O->playscore);
-      }
-    }
-    /* notify the host if it asked */
-    csoundNotifyFileOpened(csound, O->playscore, CSFTYPE_SCORE_OUT, 0,
-                             (csound->tempStatus & csPlayScoMask)!=0);
+    corfile_flush(O->playscore);
+    //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
       if (ST(lsect) == NULL) {
         ST(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
@@ -307,13 +303,13 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("sorting cscore.out ..\n"));
-      scsort(csound, csound->scfp, csound->oscfp);  /* call the sorter again */
+      csound->scorestr = copy_to_corefile("cscore.srt");
+      scsortstr(csound, csound->scorestr);  /* call the sorter again */
+      corfile_rm(csound->scorestr);
       fclose(csound->scfp); csound->scfp = NULL;
+      fputs(corfile_body(csound->scstr), csound->oscfp);
       fclose(csound->oscfp); csound->oscfp = NULL;
       csound->Message(csound, Str("\t... done\n"));
-      if (UNLIKELY(!(csound->scfp = fopen("cscore.srt", "r")))) /*  rd from cscore.srt */
-        csoundDie(csound, Str("cannot reopen cscore.srt"));
-      csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 0, 0);
       csound->Message(csound, Str("playing from cscore.srt\n"));
       O->usingcscore = 0;
     }
@@ -388,9 +384,6 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       free(p);
     }
     orcompact(csound);
-    if (csound->scfp) {
-      fclose(csound->scfp); csound->scfp = NULL;
-    }
   
     /* print stats only if musmon was actually run */
     if (UNLIKELY(csound->musmonGlobals != NULL)) {
@@ -881,7 +874,7 @@ int sensevents(CSOUND *csound)
           else                                          /* else lcode   */
             memcpy((void*) e, (void*) &(ST(lsect)->strarg), sizeof(EVTBLK));
         } else
-          if (!(rdscor(csound, e)))       /*   or rd nxt evt from scorfil */
+          if (!(rdscor(csound, e)))           /* or rd nxt evt from scstr */
             e->opcod = 'e';
         csound->currevent = e;
         switch (e->opcod) {
@@ -1217,9 +1210,6 @@ void musmon_rewind_score(CSOUND *csound)
         settempo(csound, (MYFLT) csound->oparms->cmdTempo);
       else
         settempo(csound, FL(60.0));
-      /* rewind score file */
-      if (csound->scfp != NULL)
-        fseek(csound->scfp, 0L, SEEK_SET);
       /* update section/overall amplitudes, reset to section 1 */
       section_amps(csound, 1);
       ST(sectno) = 1;

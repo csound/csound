@@ -16,6 +16,15 @@ typedef struct MACRO {          /* To store active macros */
     char          *arg[MARGS];  /* With these arguments */
 } MACRO;
 
+typedef struct IFDEFSTACK_ {
+    struct IFDEFSTACK_  *prv;
+    unsigned char   isDef;      /* non-zero if #ifdef is true, or #ifndef   */
+                                /*   is false                               */
+    unsigned char   isElse;     /* non-zero between #else and #endif        */
+    unsigned char   isSkip;     /* sum of: 1: skipping code due to this     */
+                                /*   #ifdef, 2: skipping due to parent      */
+} IFDEFSTACK;
+
 typedef struct parse_parm_s {
     void            *yyscanner;
     char            *buffer;
@@ -30,6 +39,10 @@ typedef struct parse_parm_s {
     unsigned int macro_stack_ptr;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
+    IFDEFSTACK      *ifdefStack;
+    unsigned char   isIfndef;
+    unsigned char   isInclude;
+    unsigned char   clearBufferAfterEOF;
 } PARSE_PARM;
 
 #define lMaxBuffer (1000)
