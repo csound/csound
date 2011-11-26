@@ -80,7 +80,8 @@ static int tabmorph(CSOUND *csound, TABMORPH *p)
     val2 = tab2val1 * (1-tabndx2frac) + tab2val2 * tabndx2frac;
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int) interpoint; /* to limit to zero to 1 range */
+    interpoint = (interpoint < 0 ? 0 : (interpoint > 1.0 ? 1.0 : interpoint));
+    /* interpoint -= (int) interpoint;  to limit to zero to 1 range */
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;

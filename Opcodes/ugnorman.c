@@ -194,40 +194,40 @@ static void FetchPartial(ATSREAD *p, MYFLT *buf, MYFLT position)
 {
     MYFLT   frac;           /* the distance in time we are between frames */
     int     frame;          /* the number of the first frame */
-    double  *frm1, *frm2;   /* a pointer to frame 1 and frame 2 */
+    double  *frm_1, *frm_2;   /* a pointer to frame 1 and frame 2 */
     double  frm1amp, frm1freq, frm2amp, frm2freq;
 
     frame = (int) position;
-    frm1 = p->datastart + p->frmInc * frame + p->partialloc;
+    frm_1 = p->datastart + p->frmInc * frame + p->partialloc;
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == p->maxFr) {
       if (p->swapped == 1) {
-        buf[0] = (MYFLT) bswap(frm1);       /* calc amplitude */
-        buf[1] = (MYFLT) bswap(frm1 + 1);   /* calc freq */
+        buf[0] = (MYFLT) bswap(frm_1);       /* calc amplitude */
+        buf[1] = (MYFLT) bswap(frm_1 + 1);   /* calc freq */
       }
       else {
-        buf[0] = (MYFLT) *frm1;             /* calc amplitude */
-        buf[1] = (MYFLT) *(frm1 + 1);       /* calc freq */
+        buf[0] = (MYFLT) *frm_1;             /* calc amplitude */
+        buf[1] = (MYFLT) *(frm_1 + 1);       /* calc freq */
       }
       return;
     }
-    frm2 = frm1 + p->frmInc;
+    frm_2 = frm_1 + p->frmInc;
     frac = position - frame;
 
     /* byte swap if needed */
     if (p->swapped == 1) {
-      frm1amp = bswap(frm1);
-      frm2amp = bswap(frm2);
-      frm1freq = bswap(frm1 + 1);
-      frm2freq = bswap(frm2 + 1);
+      frm1amp = bswap(frm_1);
+      frm2amp = bswap(frm_2);
+      frm1freq = bswap(frm_1 + 1);
+      frm2freq = bswap(frm_2 + 1);
     }
     else {
-      frm1amp = *frm1;
-      frm2amp = *frm2;
-      frm1freq = *(frm1 + 1);
-      frm2freq = *(frm2 + 1);
+      frm1amp = *frm_1;
+      frm2amp = *frm_2;
+      frm1freq = *(frm_1 + 1);
+      frm2freq = *(frm_2 + 1);
     }
     buf[0] = (MYFLT) (frm1amp + frac * (frm2amp - frm1amp));    /* calc amp. */
     buf[1] = (MYFLT) (frm1freq + frac * (frm2freq - frm1freq)); /* calc freq */
@@ -340,21 +340,21 @@ static MYFLT FetchNzBand(ATSREADNZ *p, MYFLT position)
 {
     MYFLT   frac;               /* the distance in time we are between frames */
     int     frame;              /* the time of the first frame */
-    double  *frm1, *frm2;
+    double  *frm_1, *frm_2;
     double  frm1val, frm2val;
 
     frame = (int) position;
-    frm1 = p->datastart + p->frmInc * frame + p->nzbandloc;
-    frm1val = (p->swapped == 1) ? bswap(frm1) : *frm1;
+    frm_1 = p->datastart + p->frmInc * frame + p->nzbandloc;
+    frm1val = (p->swapped == 1) ? bswap(frm_1) : *frm_1;
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == p->maxFr)
       return (MYFLT) frm1val;
 
-    frm2 = frm1 + p->frmInc;
+    frm_2 = frm_1 + p->frmInc;
     frac = position - frame;
-    frm2val = (p->swapped == 1) ? bswap(frm2) : *frm2;
+    frm2val = (p->swapped == 1) ? bswap(frm_2) : *frm_2;
 
     return (MYFLT) (frm1val + frac * (frm2val - frm1val));  /* calc energy */
 }
@@ -642,7 +642,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
 static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
 {
     MYFLT   frac;               /* the distance in time we are between frames */
-    double  *frm0, *frm1;
+    double  *frm_0, *frm_1;
     double  temp0amp, temp1amp;
     double  temp0freq, temp1freq;
     int     frame;
@@ -651,19 +651,19 @@ static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
     int     npartials = (int) *p->iptls;
 
     frame = (int) position;
-    frm0 = p->datastart + frame * p->frmInc;
+    frm_0 = p->datastart + frame * p->frmInc;
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == p->maxFr) {
       for (i = 0; i < npartials; i++) {
         if (p->swapped == 1) {
-          buf[i].amp = bswap(&frm0[partialloc]);        /* calc amplitude */
-          buf[i].freq = bswap(&frm0[partialloc + 1]);   /* freq */
+          buf[i].amp = bswap(&frm_0[partialloc]);        /* calc amplitude */
+          buf[i].freq = bswap(&frm_0[partialloc + 1]);   /* freq */
         }
         else {
-          buf[i].amp = frm0[partialloc];                /* calc amplitude */
-          buf[i].freq = frm0[partialloc + 1];           /* freq */
+          buf[i].amp = frm_0[partialloc];                /* calc amplitude */
+          buf[i].freq = frm_0[partialloc + 1];           /* freq */
         }
         partialloc += p->partialinc;
       }
@@ -671,20 +671,20 @@ static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
     }
 
     frac = position - frame;
-    frm1 = frm0 + p->frmInc;
+    frm_1 = frm_0 + p->frmInc;
 
     for (i = 0; i < npartials; i++) {
       if (p->swapped == 1) {
-        temp0amp = bswap(&frm0[partialloc]);
-        temp1amp = bswap(&frm1[partialloc]);
-        temp0freq = bswap(&frm0[partialloc + 1]);
-        temp1freq = bswap(&frm1[partialloc + 1]);
+        temp0amp = bswap(&frm_0[partialloc]);
+        temp1amp = bswap(&frm_1[partialloc]);
+        temp0freq = bswap(&frm_0[partialloc + 1]);
+        temp1freq = bswap(&frm_1[partialloc + 1]);
       }
       else {
-        temp0amp = frm0[partialloc];
-        temp1amp = frm1[partialloc];
-        temp0freq = frm0[partialloc + 1];
-        temp1freq = frm1[partialloc + 1];
+        temp0amp = frm_0[partialloc];
+        temp1amp = frm_1[partialloc];
+        temp0freq = frm_0[partialloc + 1];
+        temp1freq = frm_1[partialloc + 1];
       }
       buf[i].amp = temp0amp + frac * (temp1amp - temp0amp); /* calc amplitude */
       buf[i].freq = temp0freq + frac * (temp1freq - temp0freq); /* calc freq */
@@ -772,7 +772,7 @@ static void FetchADDNZbands(int ptls, int firstband, double *datastart,
                             double *buf, MYFLT position)
 {
     double  frac;               /* the distance in time we are between frames */
-    double  *frm0, *frm1;
+    double  *frm_0, *frm_1;
     double  frm0val, frm1val;
     int     frame;
     int     i;                  /* for the for loop */
@@ -782,29 +782,29 @@ static void FetchADDNZbands(int ptls, int firstband, double *datastart,
     printf("FetchADDNZbands: position %f\n", (double)position);
 #endif
     frame = (int) position;
-    frm0 = datastart + frame * frmInc;
+    frm_0 = datastart + frame * frmInc;
   
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == maxFr) {
       for (i = 0; i < ptls; i++) {
-        buf[i] = (swapped == 1 ? bswap(&frm0[firstband + i])
-                                    : frm0[firstband + i]); /* output value */
+        buf[i] = (swapped == 1 ? bswap(&frm_0[firstband + i])
+                                    : frm_0[firstband + i]); /* output value */
       }
       return;
     }
 
-    frm1 = frm0 + frmInc;
+    frm_1 = frm_0 + frmInc;
     frac = (double) (position - frame);
     
     for (i = 0; i < ptls; i++) {
       if (swapped == 1) {
-        frm0val = bswap(&(frm0[firstband + i]));
-        frm1val = bswap(&(frm1[firstband + i]));
+        frm0val = bswap(&(frm_0[firstband + i]));
+        frm1val = bswap(&(frm_1[firstband + i]));
       }
       else {
-        frm0val = frm0[firstband + i];
-        frm1val = frm1[firstband + i];
+        frm0val = frm_0[firstband + i];
+        frm1val = frm_1[firstband + i];
       }
    
       buf[i] = frm0val + frac * (frm1val - frm0val);  /* calc energy */
@@ -1404,7 +1404,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
 {
     double  frac;               /* the distance in time we are between frames */
-    double  *frm0, *frm1;
+    double  *frm_0, *frm_1;
     double  frm0amp, frm0freq, frm1amp, frm1freq;
     double  nz0, nz1;
     ATS_DATA_LOC *oscbuf;
@@ -1414,7 +1414,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     int     npartials = p->npartials;
 
     frame = (int) position;
-    frm0 = p->datastart + frame * p->frmInc;
+    frm_0 = p->datastart + frame * p->frmInc;
 
     oscbuf = p->oscbuf;
     nzbuf = p->nzbuf;
@@ -1426,16 +1426,16 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
         if (p->swapped == 1) {
           for (i = (int) *p->iptloffset; i < (int) *p->iptls;
                i += (int) *p->iptlincr) {
-            oscbuf->amp = bswap(frm0 + 1 + i * (int) p->partialinc);  /* amp */
-            oscbuf->freq = bswap(frm0 + 2 + i * (int) p->partialinc); /* freq */
+            oscbuf->amp = bswap(frm_0 + 1 + i * (int) p->partialinc);  /* amp */
+            oscbuf->freq = bswap(frm_0 + 2 + i * (int) p->partialinc); /* freq */
             oscbuf++;
           }
         }
         else {
           for (i = (int) *p->iptloffset; i < (int) *p->iptls;
                i += (int) *p->iptlincr) {
-            oscbuf->amp = *(frm0 + 1 + i * (int) p->partialinc);    /* amp */
-            oscbuf->freq = *(frm0 + 2 + i * (int) p->partialinc);   /* freq */
+            oscbuf->amp = *(frm_0 + 1 + i * (int) p->partialinc);    /* amp */
+            oscbuf->freq = *(frm_0 + 2 + i * (int) p->partialinc);   /* freq */
             oscbuf++;
           }
         }
@@ -1444,8 +1444,8 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
         if (p->swapped == 1) {
           for (i = (int) *p->iptloffset; i < (int) *p->iptls;
                i += (int) *p->iptlincr) {
-            oscbuf->amp = bswap(frm0 + 1 + i * (int) p->partialinc);  /* amp */
-            oscbuf->freq = bswap(frm0 + 2 + i * (int) p->partialinc); /* freq */
+            oscbuf->amp = bswap(frm_0 + 1 + i * (int) p->partialinc);  /* amp */
+            oscbuf->freq = bswap(frm_0 + 2 + i * (int) p->partialinc); /* freq */
             *nzbuf = bswap(p->nzdata + frame * npartials + i);
             nzbuf++;
             oscbuf++;
@@ -1454,8 +1454,8 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
         else {
           for (i = (int) *p->iptloffset; i < (int) *p->iptls;
                i += (int) *p->iptlincr) {
-            oscbuf->amp = *(frm0 + 1 + i * (int) p->partialinc);    /* amp */
-            oscbuf->freq = *(frm0 + 2 + i * (int) p->partialinc);   /* freq */
+            oscbuf->amp = *(frm_0 + 1 + i * (int) p->partialinc);    /* amp */
+            oscbuf->freq = *(frm_0 + 2 + i * (int) p->partialinc);   /* freq */
             *nzbuf = *(p->nzdata + frame * npartials + i);
             nzbuf++;
             oscbuf++;
@@ -1465,17 +1465,17 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
 
       return;
     }
-    frm1 = frm0 + p->frmInc;
+    frm_1 = frm_0 + p->frmInc;
     frac = (double) (position - frame);
 
     if (p->firstband == -1) {   /* there is no noise data */
       if (p->swapped == 1) {
         for (i = (int) *p->iptloffset; i < (int) *p->iptls;
              i += (int) *p->iptlincr) {
-          frm0amp = bswap(frm0 + 1 + i * (int) p->partialinc);
-          frm1amp = bswap(frm1 + 1 + i * (int) p->partialinc);
-          frm0freq = bswap(frm0 + 2 + i * (int) p->partialinc);
-          frm1freq = bswap(frm1 + 2 + i * (int) p->partialinc);
+          frm0amp = bswap(frm_0 + 1 + i * (int) p->partialinc);
+          frm1amp = bswap(frm_1 + 1 + i * (int) p->partialinc);
+          frm0freq = bswap(frm_0 + 2 + i * (int) p->partialinc);
+          frm1freq = bswap(frm_1 + 2 + i * (int) p->partialinc);
           oscbuf->amp = frm0amp + frac * (frm1amp - frm0amp);       /* amp */
           oscbuf->freq = frm0freq + frac * (frm1freq - frm0freq);   /* freq */
           oscbuf++;
@@ -1484,10 +1484,10 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
       else {
         for (i = (int) *p->iptloffset; i < (int) *p->iptls;
              i += (int) *p->iptlincr) {
-          frm0amp = *(frm0 + 1 + i * (int) p->partialinc);
-          frm1amp = *(frm1 + 1 + i * (int) p->partialinc);
-          frm0freq = *(frm0 + 2 + i * (int) p->partialinc);
-          frm1freq = *(frm1 + 2 + i * (int) p->partialinc);
+          frm0amp = *(frm_0 + 1 + i * (int) p->partialinc);
+          frm1amp = *(frm_1 + 1 + i * (int) p->partialinc);
+          frm0freq = *(frm_0 + 2 + i * (int) p->partialinc);
+          frm1freq = *(frm_1 + 2 + i * (int) p->partialinc);
           oscbuf->amp = frm0amp + frac * (frm1amp - frm0amp);       /* amp */
           oscbuf->freq = frm0freq + frac * (frm1freq - frm0freq);   /* freq */
           oscbuf++;
@@ -1498,10 +1498,10 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
       if (p->swapped == 1) {
         for (i = (int) *p->iptloffset; i < (int) *p->iptls;
              i += (int) *p->iptlincr) {
-          frm0amp = bswap(frm0 + 1 + i * (int) p->partialinc);
-          frm1amp = bswap(frm1 + 1 + i * (int) p->partialinc);
-          frm0freq = bswap(frm0 + 2 + i * (int) p->partialinc);
-          frm1freq = bswap(frm1 + 2 + i * (int) p->partialinc);
+          frm0amp = bswap(frm_0 + 1 + i * (int) p->partialinc);
+          frm1amp = bswap(frm_1 + 1 + i * (int) p->partialinc);
+          frm0freq = bswap(frm_0 + 2 + i * (int) p->partialinc);
+          frm1freq = bswap(frm_1 + 2 + i * (int) p->partialinc);
           nz0 = bswap(p->nzdata + frame * npartials + i);
           nz1 = bswap(p->nzdata + (frame + 1) * npartials + i);
           oscbuf->amp = frm0amp + frac * (frm1amp - frm0amp);       /* amp */
@@ -1515,10 +1515,10 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
       else {
         for (i = (int) *p->iptloffset; i < (int) *p->iptls;
              i += (int) *p->iptlincr) {
-          frm0amp = *(frm0 + 1 + i * (int) p->partialinc);
-          frm1amp = *(frm1 + 1 + i * (int) p->partialinc);
-          frm0freq = *(frm0 + 2 + i * (int) p->partialinc);
-          frm1freq = *(frm1 + 2 + i * (int) p->partialinc);
+          frm0amp = *(frm_0 + 1 + i * (int) p->partialinc);
+          frm1amp = *(frm_1 + 1 + i * (int) p->partialinc);
+          frm0freq = *(frm_0 + 2 + i * (int) p->partialinc);
+          frm1freq = *(frm_1 + 2 + i * (int) p->partialinc);
           nz0 = *(p->nzdata + frame * npartials + i);
           nz1 = *(p->nzdata + (frame + 1) * npartials + i);
           oscbuf->amp = frm0amp + frac * (frm1amp - frm0amp);       /* amp */
@@ -1648,7 +1648,7 @@ static void FetchBUFPartials(ATSBUFREAD *p,
                              MYFLT position)
 {
     MYFLT   frac;               /* the distance in time we are between frames */
-    double  *frm0, *frm1;
+    double  *frm_0, *frm_1;
     double  frm0amp, frm0freq, frm1amp, frm1freq;
     int     frame;
     int     i;                  /* for the for loop */
@@ -1656,22 +1656,22 @@ static void FetchBUFPartials(ATSBUFREAD *p,
     int     npartials = (int) *p->iptls;
 
     frame = (int) position;
-    frm0 = p->datastart + frame * p->frmInc;
+    frm_0 = p->datastart + frame * p->frmInc;
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == p->maxFr) {
       if (p->swapped == 1) {
         for (i = 0; i < npartials; i++) {                   /* calc amplitude */
-          buf[i].amp = buf2[i].amp = bswap(&frm0[partialloc]);
-          buf[i].freq = buf2[i].freq = bswap(&frm0[partialloc + 1]);
+          buf[i].amp = buf2[i].amp = bswap(&frm_0[partialloc]);
+          buf[i].freq = buf2[i].freq = bswap(&frm_0[partialloc + 1]);
           partialloc += p->partialinc;
         }
       }
       else {
         for (i = 0; i < npartials; i++) {
-          buf[i].amp = buf2[i].amp = frm0[partialloc];      /* calc amplitude */
-          buf[i].freq = buf2[i].freq = frm0[partialloc + 1];
+          buf[i].amp = buf2[i].amp = frm_0[partialloc];      /* calc amplitude */
+          buf[i].freq = buf2[i].freq = frm_0[partialloc + 1];
           partialloc += p->partialinc;
         }
       }
@@ -1679,13 +1679,13 @@ static void FetchBUFPartials(ATSBUFREAD *p,
     }
 
     frac = position - frame;
-    frm1 = frm0 + p->frmInc;
+    frm_1 = frm_0 + p->frmInc;
     if (p->swapped == 1) {
       for (i = 0; i < npartials; i++) {
-        frm0amp = bswap(&frm0[partialloc]);
-        frm0freq = bswap(&frm0[partialloc + 1]);
-        frm1amp = bswap(&frm1[partialloc]);
-        frm1freq = bswap(&frm1[partialloc + 1]);
+        frm0amp = bswap(&frm_0[partialloc]);
+        frm0freq = bswap(&frm_0[partialloc + 1]);
+        frm1amp = bswap(&frm_1[partialloc]);
+        frm1freq = bswap(&frm_1[partialloc + 1]);
         /* calc amplitude */
         buf[i].amp = buf2[i].amp = frm0amp + frac * (frm1amp - frm0amp);
         /* calc freq */
@@ -1698,12 +1698,12 @@ static void FetchBUFPartials(ATSBUFREAD *p,
       for (i = 0; i < npartials; i++) {
         /* calc amplitude */
         buf[i].amp = buf2[i].amp =
-            frm0[partialloc] + frac * (frm1[partialloc] - frm0[partialloc]);
+            frm_0[partialloc] + frac * (frm_1[partialloc] - frm_0[partialloc]);
         /* calc freq */
         buf[i].freq = buf2[i].freq =
-            *p->kfmod * (frm0[partialloc + 1]
-                         + frac * (frm1[partialloc + 1]
-                                   - frm0[partialloc + 1]));
+            *p->kfmod * (frm_0[partialloc + 1]
+                         + frac * (frm_1[partialloc + 1]
+                                   - frm_0[partialloc + 1]));
         partialloc += p->partialinc;  /* get to the next partial */
       }
     }
@@ -1949,7 +1949,7 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
 static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
 {
     MYFLT   frac;               /* the distance in time we are between frames */
-    double  *frm0, *frm1;
+    double  *frm_0, *frm_1;
     double  frm0amp, frm0freq, frm1amp, frm1freq;
     int     frame;
     int     i;                  /* for the for loop */
@@ -1957,22 +1957,22 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
     int     npartials = (int) *p->iptls;
 
     frame = (int) position;
-    frm0 = p->datastart + frame * p->frmInc;
+    frm_0 = p->datastart + frame * p->frmInc;
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == p->maxFr) {
       if (p->swapped == 1) {
         for (i = 0; i < npartials; i++) {
-          buf[i].amp = bswap(&frm0[partialloc]);  /* calc amplitude */
-          buf[i].freq = bswap(&frm0[partialloc + 1]);
+          buf[i].amp = bswap(&frm_0[partialloc]);  /* calc amplitude */
+          buf[i].freq = bswap(&frm_0[partialloc + 1]);
           partialloc += p->partialinc;
         }
       }
       else {
         for (i = 0; i < npartials; i++) {
-          buf[i].amp = frm0[partialloc];          /* calc amplitude */
-          buf[i].freq = frm0[partialloc + 1];
+          buf[i].amp = frm_0[partialloc];          /* calc amplitude */
+          buf[i].freq = frm_0[partialloc + 1];
           partialloc += p->partialinc;
         }
       }
@@ -1980,13 +1980,13 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
     }
 
     frac = position - frame;
-    frm1 = frm0 + p->frmInc;
+    frm_1 = frm_0 + p->frmInc;
     if (p->swapped == 1) {
       for (i = 0; i < npartials; i++) {
-        frm0amp = frm0[partialloc];
-        frm0freq = frm0[partialloc + 1];
-        frm1amp = frm1[partialloc];
-        frm1freq = frm1[partialloc + 1];
+        frm0amp = frm_0[partialloc];
+        frm0freq = frm_0[partialloc + 1];
+        frm1amp = frm_1[partialloc];
+        frm1freq = frm_1[partialloc + 1];
 
         buf[i].amp = frm0amp + frac * (frm1amp - frm0amp);  /* calc amplitude */
         buf[i].freq = frm0freq + frac * (frm1freq - frm0freq);  /* calc freq */
@@ -1996,11 +1996,11 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
     else {
       for (i = 0; i < npartials; i++) {
         /* calc amplitude */
-        buf[i].amp = frm0[partialloc]
-                     + frac * (frm1[partialloc] - frm0[partialloc]);
+        buf[i].amp = frm_0[partialloc]
+                     + frac * (frm_1[partialloc] - frm_0[partialloc]);
         /* calc freq */
-        buf[i].freq = frm0[partialloc + 1]
-                      + frac * (frm1[partialloc + 1] - frm0[partialloc + 1]);
+        buf[i].freq = frm_0[partialloc + 1]
+                      + frac * (frm_1[partialloc + 1] - frm_0[partialloc + 1]);
         partialloc += p->partialinc;  /* get to the next partial */
       }
     }

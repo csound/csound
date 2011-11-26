@@ -438,7 +438,7 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch %s' % cpuType))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch %s' % cpuType))
     else:
-        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mtune=%s' % (cpuType)))
+        commonEnvironment.Prepend(CCFLAGS = Split('-Wall -W -O3 -mtune=%s' % (cpuType)))
 
 
 if commonEnvironment['buildRelease'] != '0':
@@ -1061,6 +1061,7 @@ def makePlugin(env, pluginName, srcs):
 libCsoundSources = Split('''
 Engine/auxfd.c
 Engine/cfgvar.c
+Engine/corfiles.c
 Engine/entry1.c
 Engine/envvar.c
 Engine/express.c
@@ -1080,6 +1081,7 @@ Engine/scxtract.c
 Engine/sort.c
 Engine/sread.c
 Engine/swrite.c
+Engine/swritestr.c
 Engine/twarp.c
 InOut/libsnd.c
 InOut/libsnd_u.c

@@ -22,13 +22,6 @@ aout	vco2 iamp, ifreq
 
 <CsScore>
 
-
-
-
-
-
-
-
 i1	0.0	2	
 e
 

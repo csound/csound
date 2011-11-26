@@ -25,7 +25,7 @@
 #include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
-
+#include "corfile.h"
 
 #ifdef ENABLE_NEW_PARSER
 #include "csound_orc.h"
@@ -228,6 +228,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csdFound = 1;
       }
     }
+
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
     /* command line options override CSD options */
     /* this assumes that argdecode is safe to run multiple times */
@@ -283,42 +284,38 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
     O->informat = O->outformat;             /* informat default */
 
-    if (csound->scorename == NULL || strlen(csound->scorename) == 0) {
+    if (csound->scorename == NULL && csound->scorestr==NULL) {
       /* No scorename yet */
-      char *sconame = get_sconame(csound);
-      FILE *scof;
+      csound->scorestr = corfile_create_r("f0 42000\n");
+      corfile_flush(csound->scorestr);
       if (O->RTevents)
         csound->Message(csound, Str("realtime performance using dummy "
                                     "numeric scorefile\n"));
-      csoundTmpFileName(csound, sconame, ".sco");   /* Generate score name */
-      scof = fopen(sconame, "w");
-      fprintf(scof, "f0 42000\n");
-      fclose(scof);
-      csound->scorename = sconame;
-      add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
-      csoundNotifyFileOpened(csound, sconame, CSFTYPE_SCORE, 1, 1);
-      csound->tempStatus |= csScoInMask;
-    } else if (!csdFound && !O->noDefaultPaths){
-        /* Add directory of SCO file to search paths*/
-        fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
-        csoundAppendEnv(csound, "SADIR", fileDir);
-        csoundAppendEnv(csound, "SSDIR", fileDir);
-        csoundAppendEnv(csound, "MFDIR", fileDir);
-        mfree(csound, fileDir);
+    } 
+    else if (!csdFound && !O->noDefaultPaths){
+      /* Add directory of SCO file to search paths*/
+      fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
+      csoundAppendEnv(csound, "SADIR", fileDir);
+      csoundAppendEnv(csound, "SSDIR", fileDir);
+      csoundAppendEnv(csound, "MFDIR", fileDir);
+      mfree(csound, fileDir);
     }
 
     /* Add directory of ORC file to search paths*/
     if (!csdFound && !O->noDefaultPaths) {
-        fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
-        csoundAppendEnv(csound, "SADIR", fileDir);
-        csoundAppendEnv(csound, "SSDIR", fileDir);
-        csoundAppendEnv(csound, "MFDIR", fileDir);
-        mfree(csound, fileDir);
+      fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+      csoundAppendEnv(csound, "SADIR", fileDir);
+      csoundAppendEnv(csound, "SSDIR", fileDir);
+      csoundAppendEnv(csound, "MFDIR", fileDir);
+      mfree(csound, fileDir);
     }
 
-    csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
-    if (csound->scorename != NULL)
-      csound->Message(csound, Str("scorename: %s\n"), csound->scorename);
+    if (csound->orchstr==NULL) {
+      /*  does not deal with search paths */
+      csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
+      csound->orchstr = copy_to_corefile(csound->orchname);
+      csound->orchname = NULL;
+    }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
@@ -344,8 +341,9 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 #endif
 #if defined(USE_OPENMP)
     if (csound->oparms->numThreads > 1) {
-        omp_set_num_threads(csound->oparms->numThreads);
-        csound->Message(csound, "OpenMP enabled: requested %d threads.\n", csound->oparms->numThreads);
+      omp_set_num_threads(csound->oparms->numThreads);
+      csound->Message(csound, "OpenMP enabled: requested %d threads.\n",
+                      csound->oparms->numThreads);
     }
 #endif
 
@@ -358,43 +356,36 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         (!strcmp(csound->scorename + (n - 4), ".srt") ||
          !strcmp(csound->scorename + (n - 4), ".xtr"))) {
       csound->Message(csound, Str("using previous %s\n"), csound->scorename);
-      playscore = sortedscore = csound->scorename;  /*   use that one */
+      //playscore = sortedscore = csound->scorename;   /*  use that one */
+      csound->scorestr = NULL;
+      csound->scorestr = copy_to_corefile(csound->scorename);
     }
     else {
-      if (csound->keep_tmp) {
-        playscore = sortedscore = "score.srt";
+      playscore = sortedscore = NULL;
+      if (csound->scorestr==NULL) {
+        if ((csound->scorestr = copy_to_corefile(csound->scorename))==NULL)
+          csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }
-      else {
-        playscore = sortedscore = csoundTmpFileName(csound, NULL, ".srt");
-        add_tmpfile(csound, playscore);         /* IV - Feb 03 2005 */
-        csound->tempStatus |= csScoSortMask + csPlayScoMask;
-      }
-      if (!(scorin = fopen(csound->scorename, "rb")))   /* else sort it   */
-        csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
-      /* notify the host that we are opening a file */
-      csoundNotifyFileOpened(csound, csound->scorename, CSFTYPE_SCORE, 0,
-                                     (csound->tempStatus & csScoInMask)!=0);
-      if (!(scorout = fopen(sortedscore, "w")))
-        csoundDie(csound, Str("cannot open %s for writing"), sortedscore);
-      csoundNotifyFileOpened(csound, sortedscore, CSFTYPE_SCORE_OUT, 1,
-                                     (csound->tempStatus & csScoSortMask)!=0);
       csound->Message(csound, Str("sorting score ...\n"));
-      scsort(csound, scorin, scorout);
-      fclose(scorin);
-      fclose(scorout);
+      scsortstr(csound, csound->scorestr);
+      if (csound->keep_tmp) { 
+        FILE *ff = fopen("score.srt", "w");
+        fputs(corfile_body(csound->scorestr), ff);
+        fclose(ff);
+      }
     }
     if (csound->xfilename != NULL) {            /* optionally extract */
       if (!strcmp(csound->scorename, "score.xtr"))
         csoundDie(csound, Str("cannot extract %s, name conflict"),
-                          csound->scorename);
+                  csound->scorename);
       if (!(xfile = fopen(csound->xfilename, "r")))
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
       csoundNotifyFileOpened(csound, csound->xfilename,
-                                     CSFTYPE_EXTRACT_PARMS, 0, 0);
+                             CSFTYPE_EXTRACT_PARMS, 0, 0);
       if (!(scorin = fopen(sortedscore, "r")))
         csoundDie(csound, Str("cannot reopen %s"), sortedscore);
       csoundNotifyFileOpened(csound, sortedscore, CSFTYPE_SCORE_OUT,  0,
-                                     (csound->tempStatus & csScoSortMask)!=0);
+                             (csound->tempStatus & csScoSortMask)!=0);
       if (!(scorout = fopen(xtractedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), xtractedscore);
       csoundNotifyFileOpened(csound, xtractedscore, CSFTYPE_SCORE_OUT, 1, 0);
@@ -408,15 +399,14 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
     csound->Message(csound, Str("\t... done\n"));
     /* copy sorted score name */
-    O->playscore = (char*) mmalloc(csound, strlen(playscore) + 1);
-    strcpy(O->playscore, playscore);
+    O->playscore = csound->scstr;
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of score sort"));
     if (O->syntaxCheckOnly) {
       csound->Message(csound, Str("Syntax check completed.\n"));
       return CSOUND_EXITJMP_SUCCESS;
     }
-
+      
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
       O->Midioutname = NULL;
@@ -424,37 +414,38 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
-
+      
 #ifdef PARCS
- if (O->numThreads > 1) {
-        int i;
-        THREADINFO *current = NULL;
-
-        csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
-        csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
-
-        csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
-        csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
-
-        csound->multiThreadedComplete = 0;
-
-        for(i = 1; i < O->numThreads; i++) {
-            THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
-
-            t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
-            t->next = NULL;
-
-            if(current == NULL) {
-                csound->multiThreadedThreadInfo = t;
-            } else {
-                current->next = t;
-            }
-            current = t;
+    if (O->numThreads > 1) {
+      int i;
+      THREADINFO *current = NULL;
+        
+      csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
+      csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
+      
+      csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
+      csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
+      
+      csound->multiThreadedComplete = 0;
+      
+      for (i = 1; i < O->numThreads; i++) {
+        THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
+        
+        t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
+        t->next = NULL;
+        
+        if (current == NULL) {
+          csound->multiThreadedThreadInfo = t;
+        } 
+        else {
+          current->next = t;
         }
-
-        csound->WaitBarrier(csound->barrier2);
-
-        csp_parallel_compute_spec_setup(csound);
+        current = t;
+      }
+      
+      csound->WaitBarrier(csound->barrier2);
+      
+      csp_parallel_compute_spec_setup(csound);
     }
 #endif
 
