@@ -334,6 +334,7 @@ endif()
 set(libcsound_SRCS
     Engine/auxfd.c
     Engine/cfgvar.c
+    Engine/corfiles.c
     Engine/entry1.c
     Engine/envvar.c
     Engine/express.c
@@ -353,6 +354,7 @@ set(libcsound_SRCS
     Engine/sort.c
     Engine/sread.c
     Engine/swrite.c
+    Engine/swritestr.c
     Engine/twarp.c
     InOut/libsnd.c
     InOut/libsnd_u.c

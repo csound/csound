@@ -15,11 +15,10 @@ if(BUILD_STK_OPCODES)
             src/UdpSocket.cpp
             stkOpcodes.cpp)
 
-        # Assume that if this directory exists, then we have the sources
+        # Assume that if this file exists, then we have the sources
         find_file(STK_FOUND
-            NAMES src
+            NAMES src/InetWvIn.cpp
             HINTS ${CMAKE_CURRENT_SOURCE_DIR})
-
         check_deps(BUILD_STK_OPCODES STK_FOUND)
 
         if(BUILD_STK_OPCODES)
@@ -31,7 +30,7 @@ if(BUILD_STK_OPCODES)
             set(stkdefs "__STK_REALTIME__")
             if(APPLE)
                 list(APPEND stkdefs "__OS_MACOSX__")
-                list(REMOVE_ITEM "__STK_REALTIME__")
+                list(REMOVE_ITEM stkdefs "__STK_REALTIME__")
             elseif(LINUX)
                 list(APPEND stkdefs "__OS_LINUX__")
                 list(APPEND stkdefs "__LINUX_ALSA__")

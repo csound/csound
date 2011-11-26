@@ -25,6 +25,7 @@
 #include <math.h>      /* for fabs() */
 #include <ctype.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
+#include "corfile.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */
@@ -335,6 +336,10 @@ static int getscochar(CSOUND *csound, int expand)
     else if (ST(str)->string) {
       c = *ST(str)->body++;
       if (c == '\0') {
+        if (ST(str) == &ST(inputs)[0]) {
+          ST(str)->body--;      /* to ensure repeated EOF */
+          return EOF;
+        }
         ST(pop) += ST(str)->args;
         ST(str)--; ST(input_cnt)--;
         goto top;
@@ -785,6 +790,21 @@ void sread_init(CSOUND *csound)
     ST(str)->file = csound->scorein;
     ST(str)->fd = NULL;
     ST(str)->string = 0; ST(str)->body = csound->scorename;
+    ST(str)->is_marked_repeat = 0;
+    ST(str)->line = 1; ST(str)->unget_cnt = 0; ST(str)->mac = NULL;
+    init_smacros(csound, csound->smacros);
+}
+
+void sread_initstr(CSOUND *csound)
+{
+    sread_alloc_globals(csound);
+    ST(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
+    ST(input_size) = 20;
+    ST(input_cnt) = 0;
+    ST(str) = ST(inputs);
+    ST(str)->file = NULL;
+    ST(str)->fd = NULL;
+    ST(str)->string = 1; ST(str)->body = corfile_body(csound->scorestr);
     ST(str)->is_marked_repeat = 0;
     ST(str)->line = 1; ST(str)->unget_cnt = 0; ST(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
@@ -1477,6 +1497,7 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
       }
       ST(str)--;
     }
+    corfile_rm(csound->scorestr);
 }
 
 static void flushlin(CSOUND *csound)

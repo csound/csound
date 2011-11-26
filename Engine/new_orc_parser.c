@@ -27,7 +27,7 @@
 #include "csound_orcparse.h"
 #include "csound_orc.h"
 #include "parse_param.h"
-
+#include "corfile.h"
 
 //#include "yyguts.h"
 
@@ -72,20 +72,20 @@ void new_orc_parser(CSOUND *csound)
 
     csound_orcset_extra(&pp, pp.yyscanner);
 
-    if (UNLIKELY((t = csound->FileOpen2(csound, &ttt, CSFILE_STD,
-                                 csound->orchname, "rb", NULL,
-                                        CSFTYPE_ORCHESTRA, 0)) == NULL)) {
-      csound->Free(csound, pp.buffer);
-      csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
-    }
-    csound_orcset_in(ttt, pp.yyscanner);
-    csound_orcrestart(ttt, pp.yyscanner);
+    csound_orc_scan_string(corfile_body(csound->orchstr), pp.yyscanner);
+    /*     These relate to file input only       */
+    /*     csound_orcset_in(ttt, pp.yyscanner); */
+    /*     csound_orcrestart(ttt, pp.yyscanner); */
     csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
     cs_init_math_constants_macros(csound, pp.yyscanner);
     cs_init_omacros(csound, pp.yyscanner, csound->omacros);
 
     retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
 
+    if (UNLIKELY(pp.ifdefStack != NULL)) {
+      csound->Message(csound, Str("Unmatched #ifdef\n"));
+      csound->LongJmp(csound, 1);
+    }
     if (LIKELY(retVal == 0)) {
       csound->Message(csound, "Parsing successful!\n");
     }
