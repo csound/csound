@@ -74,10 +74,14 @@ int corfile_length(CORFIL *f)
     return strlen(f->body);
 }
 
-void corfile_rm(CORFIL *f)
+void corfile_rm(CORFIL **ff)
 {
-    free(f->body);
-    free(f);
+    CORFIL *f = *ff;
+    if (f!=NULL) {
+      free(f->body);
+      free(f);
+      *ff = NULL;
+    }
 }
 
 int corfile_getc(CORFIL *f)
