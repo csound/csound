@@ -87,37 +87,37 @@ typedef struct {
 typedef struct {
     OPDS   h;
     MYFLT  *chn,*num, *value, *min, *max;
-    int    last_value;
+  int    last_value, lastchn, lastctrl;
 } OUT_CONTR;
 
 typedef struct {
     OPDS   h;
     MYFLT  *chn, *msb_num, *lsb_num, *value, *min, *max;
-    int    last_value;
+    int    last_value, lastchn, lastctrl;
 } OUT_CONTR14;
 
 typedef struct {
     OPDS   h;
     MYFLT  *chn, *value, *min, *max;
-    int    last_value;
+  int    last_value,  lastchn;
 } OUT_PB;
 
 typedef struct {
     OPDS   h;
     MYFLT  *chn, *value, *min, *max;
-    int    last_value;
+  int    last_value,  lastchn;
 } OUT_ATOUCH;
 
 typedef struct {
     OPDS   h;
     MYFLT  *chn, *prog_num, *min, *max;
-    int    last_prog_num;
+  int    last_prog_num,  lastchn;
 } OUT_PCHG;
 
 typedef struct {
     OPDS   h;
     MYFLT  *chn, *num, *value, *min, *max;
-    int    last_value;
+  int    last_value, lastchn, lastctrl;
 } OUT_POLYATOUCH;
 
 typedef struct {
