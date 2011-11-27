@@ -39,10 +39,6 @@ static const unsigned char midiMsgBytes[32] = {
 };
 
 /* header for type 0 (1 track) MIDI file with 1/3 ms time resolution */
-<<<<<<< HEAD
-/* 1/3 ms resolution is not working, changed to  1 ms */
-=======
->>>>>>> 58904ae7fd5214e8a0c5b0ae1bc3d25b8dc2da92
 static const unsigned char midiOutFile_header[25] = {
     0x4D, 0x54, 0x68, 0x64,     /* "MThd"                       */
     0x00, 0x00, 0x00, 0x06,     /* header length                */
