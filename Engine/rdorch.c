@@ -40,6 +40,8 @@
 #define GRPMAX    VARGMAX
 #define LBLMAX    100
 
+//#define MACDEBUG (1)
+
 typedef struct  {
   int     reqline;
   char    *label;
@@ -272,14 +274,15 @@ static int getorchar(CSOUND *csound)
     c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
     if (c == '\n')
       ST(linepos) = -1;
+    //    printf("%s(%d): %c(%.2x)\n", __FILE__, __LINE__, c,c);
     return c;
   }
   else if (ST(str)->string) {
     c = *ST(str)->body++;
     if (UNLIKELY(c == '\0')) {
       if (ST(str) == &ST(inputs)[0]) {
-        corfile_rm(csound->orchstr);
-        csound->orchstr = NULL;
+        //corfile_rm(&(csound->orchstr));
+        //        printf("%s(%d): EOF\n", __FILE__, __LINE__);
         return EOF;
       }
       ST(pop) += ST(str)->args;
@@ -324,6 +327,7 @@ static int getorchar(CSOUND *csound)
       ST(pop)--;
     } while (ST(pop));
   }
+  //  printf("%s(%d): %c(%.2x)\n", __FILE__, __LINE__, c,c);
   return c;
 }
 

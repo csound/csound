@@ -1497,7 +1497,7 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
       }
       ST(str)--;
     }
-    corfile_rm(csound->scorestr);
+    corfile_rm(&(csound->scorestr));
 }
 
 static void flushlin(CSOUND *csound)

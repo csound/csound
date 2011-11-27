@@ -227,8 +227,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         return 1;
       }
     }
-    corfile_rm(csound->scstr); csound->scstr=NULL;
-    //printf("%s(%d):(%d/%d) >>%s<<\n", __FILE__, __LINE__, csound->scstr->p, csound->scstr->len, &csound->scstr->body[csound->scstr->p]);
+    corfile_rm(&(csound->scstr));
     return 0;
 }
 

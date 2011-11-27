@@ -30,6 +30,7 @@
 #include "insert.h"
 #include "pstream.h"
 #include "namedins.h"           /* IV - Oct 31 2002 */
+#include "corfile.h"
 
 typedef struct NAME_ {
     char          *namep;
@@ -295,6 +296,7 @@ void otran(CSOUND *csound)
     gblnamset(csound, "$ksmps");
 
     rdorchfile(csound);         /* go read orch file    */
+    corfile_rm(&(csound->orchstr));
 
     csound->pool = (MYFLT*) mmalloc(csound, NCONSTS * sizeof(MYFLT));
     ST(poolcount) = 0;
