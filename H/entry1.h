@@ -55,6 +55,7 @@
 #include "bus.h"
 #include "pstream.h"
 #include "remote.h"
+#include "resize.h"
 #ifdef PARCS
 #include "cs_par_ops.h"
 #endif
@@ -392,3 +393,4 @@ int     kgaussi(CSOUND *, void *), agaussi(CSOUND *, void *);
 int     lsgset_bkpt(CSOUND *csound, void *p);
 int     xsgset_bkpt(CSOUND *csound, void *p);
 int     xsgset_bkpt(CSOUND *csound, void *p), xsgset2b(CSOUND *, void *);
+int     resize_table(CSOUND *csound, void *p);
