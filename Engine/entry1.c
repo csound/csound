@@ -680,7 +680,12 @@ OENTRY opcodlst_1[] = {
 { "subinstr", S(SUBINST), 5, "mmmmmmmm", "Tm",  subinstrset, NULL, subinstr },
 { "subinstrinit", S(SUBINST), 1, "",    "Tm",   subinstrset, NULL, NULL  },
 { "nstrnum", S(NSTRNUM), 1,     "i",    "T",    nstrnumset, NULL, NULL   },
-{ "turnoff2",S(TURNOFF2),2,     "",     "kkk",  NULL, turnoff2, NULL     },
+{ "turnoff2",   0xFFFB,   CW,    NULL,   NULL,   NULL, NULL, NULL  },
+{ "turnoff2.S",S(TURNOFF2),2,     "",     "Skk",  NULL, turnoff2S, NULL     },
+{ "turnoff2.c",S(TURNOFF2),2,     "",     "ikk",  NULL, turnoff2k, NULL     },
+{ "turnoff2.k",S(TURNOFF2),2,     "",     "kkk",  NULL, turnoff2k, NULL     },
+{ "turnoff2.i",S(TURNOFF2),2,     "",     "ikk",  NULL, turnoff2k, NULL     },
+{ "turnoff2.r",S(TURNOFF2),2,     "",     "ikk",  NULL, turnoff2k, NULL     },
 { "cngoto", S(CGOTO),   3,      "",     "Bl",   ingoto, kngoto, NULL     },
 { "cogoto", S(CGOTO),   3,      "",     "bl",   iingoto, kingoto, NULL   },
 /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
