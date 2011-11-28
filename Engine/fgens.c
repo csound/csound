@@ -3152,3 +3152,24 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
     return csound->genmax-1;
 }
 
+#include "resize.h"
+
+ static int warned = 0;
+int resize_table(CSOUND *csound, RESIZE *p)
+{
+    int fsize  = (int) MYFLT2LRND(*p->nsize);
+    int fno  = (int) MYFLT2LRND(*p->nsize);
+    FUNC *ftp;
+
+    if (warned==0) {
+      printf("WARNING: EXPERIMENTAL CODE\n");
+      warned = 1;
+    }
+    if ((ftp = csound->FTFind(csound, p->fn)) == NULL)
+      return NOTOK;
+    if (ftp->flen<fsize) 
+      ftp = (FUNC*) csound->ReAlloc(csound, ftp, sizeof(FUNC)+fsize);
+    ftp->flen = fsize;
+    csound->flist[fno] = ftp;
+    return OK;
+}
