@@ -30,7 +30,7 @@ CORFIL *corfile_create_r(char *text);
 void corfile_putc(int c, CORFIL *f);
 void corfile_puts(char *s, CORFIL *f);
 void corfile_flush(CORFIL *f);
-void corfile_rm(CORFIL *f);
+void corfile_rm(CORFIL **ff);
 int corfile_getc(CORFIL *f);
 void corfile_ungetc(CORFIL *f);
 #define corfile_ungetc(f)  (--f->p)
