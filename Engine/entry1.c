@@ -896,8 +896,8 @@ OENTRY opcodlst_1[] = {
 { "gaussi.i", S(PRANDI), 1,      "i",    "kxx",  igaussi, NULL,    NULL    },
 { "gaussi.k", S(PRANDI), 3,      "k",    "kxx",  gaussiset, kgaussi, NULL },
 { "gaussi.a", S(PRANDI), 4,      "a",    "kxx",  gaussiset, NULL, agaussi },
-{ "tresizei", S(RESIZE), TB|1, "i", "ii", (SUBR) resize_table, NULL, NULL },
-{ "tresize",  S(RESIZE), TB|2, "k", "kk", NULL, (SUBR) resize_table, NULL },
+{ "ftresizei", S(RESIZE), TB|1, "i", "ii", (SUBR) resize_table, NULL, NULL },
+{ "ftresize",  S(RESIZE), TB|2, "k", "kk", NULL, (SUBR) resize_table, NULL },
 /* terminate list */
 {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
