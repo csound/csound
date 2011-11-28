@@ -3158,7 +3158,7 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
 int resize_table(CSOUND *csound, RESIZE *p)
 {
     int fsize  = (int) MYFLT2LRND(*p->nsize);
-    int fno  = (int) MYFLT2LRND(*p->nsize);
+    int fno  = (int) MYFLT2LRND(*p->fn);
     FUNC *ftp;
 
     if (warned==0) {
@@ -3168,7 +3168,7 @@ int resize_table(CSOUND *csound, RESIZE *p)
     if ((ftp = csound->FTFind(csound, p->fn)) == NULL)
       return NOTOK;
     if (ftp->flen<fsize) 
-      ftp = (FUNC*) csound->ReAlloc(csound, ftp, sizeof(FUNC)+fsize);
+      ftp = (FUNC*) csound->ReAlloc(csound, ftp, sizeof(FUNC)+sizeof(MYFLT)*fsize);
     ftp->flen = fsize;
     csound->flist[fno] = ftp;
     return OK;
