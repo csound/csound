@@ -371,7 +371,7 @@ int     setksmpsset(CSOUND *, void *);
 int     xinset(CSOUND *, void *), xoutset(CSOUND *, void *);
 int     ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
 int     iingoto(CSOUND *, void *), kingoto(CSOUND *, void *);
-int     nstrnumset(CSOUND *, void *), turnoff2(CSOUND *, void *);
+int     nstrnumset(CSOUND *, void *), turnoff2k(CSOUND *, void *),  turnoff2S(CSOUND *, void *) ;
 int     loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
 int     loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
 int     loop_l_p(CSOUND *, void *), loop_le_p(CSOUND *, void *);

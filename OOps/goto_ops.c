@@ -166,16 +166,27 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 }
 
 /* turnoff2 opcode */
+int turnoff2S(CSOUND *csound, TURNOFF2 *p){
+  return turnoff2(csound, p, 1);
+}
 
-int turnoff2(CSOUND *csound, TURNOFF2 *p)
+int turnoff2k(CSOUND *csound, TURNOFF2 *p){
+   return turnoff2(csound, p, 0);
+}
+
+int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
 {
     MYFLT p1;
     INSDS *ip, *ip2, *nip;
     int   mode, insno, allow_release;
 
-    if (*(p->kInsNo) <= FL(0.0))
+    if(isStringArg){
+     p1 = (MYFLT) strarg2insno(csound, p->kInsNo, (p->XSTRCODE & 1));
+    } else p1 = *(p->kInsNo);
+
+    if (p1 <= FL(0.0))
       return OK;    /* not triggered */
-    p1 = *(p->kInsNo);
+    
     insno = (int) p1;
     if (UNLIKELY(insno < 1 || insno > (int) csound->maxinsno ||
                  csound->instrtxtp[insno] == NULL)) {
