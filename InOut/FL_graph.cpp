@@ -317,7 +317,7 @@ extern "C" {
   {
       for (int i = 0; i < NUMOFWINDOWS; i++) {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
-        if (n != NULL && n->windid == m) {
+        if (n != NULL && ((uintptr_t) n == m ||n->windid == m)) {
           free(n->fdata);
           free(n);
           free((void*) ST(menu)[i].text);
