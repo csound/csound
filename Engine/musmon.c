@@ -305,7 +305,6 @@ int musmon(CSOUND *csound)
       csound->Message(csound, Str("sorting cscore.out ..\n"));
       csound->scorestr = copy_to_corefile("cscore.srt");
       scsortstr(csound, csound->scorestr);  /* call the sorter again */
-      corfile_rm(&(csound->scorestr));
       fclose(csound->scfp); csound->scfp = NULL;
       fputs(corfile_body(csound->scstr), csound->oscfp);
       fclose(csound->oscfp); csound->oscfp = NULL;
