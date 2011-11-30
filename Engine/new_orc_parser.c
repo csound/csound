@@ -125,6 +125,7 @@ void new_orc_parser(CSOUND *csound)
     csound_orc_compile(csound, astTree);
 
     csound->Free(csound, pp.buffer);
+    corfile_rm(&csound->orchstr);
     csound_orclex_destroy(pp.yyscanner);
 }
 
