@@ -244,6 +244,10 @@ static void skiporchar(CSOUND *csound)
     if (c == '\n' || c == '\r' || c == 26) {    /* MS-DOS spare ^Z */
       ST(str)->line++; ST(linepos) = -1;
       if (c == '\r') {
+        if (ST(str)->string) {
+          if ((c = *ST(str)->body++) != '\n')
+            ST(str)->body--;
+        }
 	if ((c = getc(ST(str)->file)) != '\n')
 	  ungetc(c, ST(str)->file);
       }
