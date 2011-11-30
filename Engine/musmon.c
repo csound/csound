@@ -383,6 +383,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       free(p);
     }
     orcompact(csound);
+    corfile_rm(&csound->scstr);
   
     /* print stats only if musmon was actually run */
     if (UNLIKELY(csound->musmonGlobals != NULL)) {

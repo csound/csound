@@ -116,7 +116,7 @@ static  int     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
                                         const char *fname,
                                         long srate, long chans, long fftsize,
                                         long overlap, long winsize,
-                                        pv_wtype wintype, int verbose,
+                                        pv_wtype wintype, /*int verbose,*/
                                         double beta);
 static  long    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
                                         long samps, int frametype);
@@ -299,7 +299,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     if (pvxanal(csound, p, infd, outfilnam, p->sr,
                         ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
-                        WindowType, verbose, beta) != 0) {
+                WindowType, /*verbose,*/ beta) != 0) {
       csound->Message(csound, Str("error generating pvocex file.\n"));
       return -1;
     }
@@ -406,7 +406,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int frame)
 
 static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    long srate, long chans, long fftsize, long overlap,
-                   long winsize, pv_wtype wintype, int verbose, double beta)
+                   long winsize, pv_wtype wintype, /*int verbose,*/ double beta)
 {
     int         i, k, pvfile = -1, rc = 0;
     pv_stype    stype = STYPE_16;

@@ -166,9 +166,6 @@ typedef struct {
 int serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 //------------------
 
-#define IGNORE(x)  (void *) x
-
-
 #ifndef WIN32
 // takes the string name of the serial port (e.g. "/dev/tty.usbserial","COM1")
 // and a baud rate (bps) and connects to that port at that speed and 8N1.
@@ -179,8 +176,8 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     struct termios toptions;
     int fd;
     speed_t brate;
-    IGNORE(csound);
 
+    csound;
     fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
             serialport,baud);
 	
