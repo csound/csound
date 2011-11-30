@@ -248,7 +248,7 @@ static void skiporchar(CSOUND *csound)
           if ((c = *ST(str)->body++) != '\n')
             ST(str)->body--;
         }
-	if ((c = getc(ST(str)->file)) != '\n')
+	else if ((c = getc(ST(str)->file)) != '\n')
 	  ungetc(c, ST(str)->file);
       }
       return;
@@ -307,7 +307,11 @@ static int getorchar(CSOUND *csound)
   }
   if (c == '\r') {
     int d;
-    if ((d = getc(ST(str)->file)) != '\n') {
+    if (ST(str)->string) {
+      if ((d = *ST(str)->body+) != '\n')
+        ST(str)->body--;
+    }
+    else if ((d = getc(ST(str)->file)) != '\n') {
       ungetc(d, ST(str)->file);
     }
     c = '\n';

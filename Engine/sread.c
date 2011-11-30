@@ -357,7 +357,7 @@ static int getscochar(CSOUND *csound, int expand)
       }
     }
     if (c == '\r') {    /* can only occur in files, and not in macros */
-      if (ST(str)->string) {
+      if (ST(str)->string) {    /* not so if score in core */
         if ((c = *ST(str)->body++) != '\n') ST(str)->body--;
       }
       else if ((c = getc(ST(str)->file)) != '\n')
