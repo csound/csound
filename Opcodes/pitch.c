@@ -1694,6 +1694,7 @@ int impulse(CSOUND *csound, IMPULSE *p)
     int n, nsmps = csound->ksmps;
     int next = p->next;
     MYFLT *ar = p->ar;
+    if (next<0) next = -next;
     if (UNLIKELY(next < csound->ksmps)) {          /* Impulse in this frame */
       MYFLT frq = *p->freq;     /* Freq at k-rate */
       int sfreq;                /* Converted to samples */
