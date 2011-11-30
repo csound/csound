@@ -881,6 +881,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
               ST(bp)->p1val = ST(bp)->p2val = ST(bp)->newp2 = (MYFLT) tt;
             }
           }
+          else ST(bp)->p1val = ST(bp)->p2val = ST(bp)->newp2 = FL(0.0);
         }
         /* If we are in a repeat of a marked section ('n' statement),
            we must pop those inputs before doing an 'r' repeat. */
