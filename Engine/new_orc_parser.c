@@ -51,12 +51,10 @@ extern TREE *csp_locks_insert(CSOUND *csound, TREE *root);
 
 void new_orc_parser(CSOUND *csound)
 {
-    void *t;
     int retVal;
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
     OPARMS *O = csound->oparms;
     PARSE_PARM  pp;
-    void *ttt;
     //    struct yyguts_t* yyg;
 
     memset(&pp, '\0', sizeof(PARSE_PARM));
