@@ -1182,7 +1182,7 @@ static int dnoise_usage(CSOUND *csound, int exitcode)
 /* report soundfile write(osfd) error      */
 /*    called after chk of write() bytecnt  */
 
-static void sndwrterr(CSOUND *csound, SNDFILE *outfd, int nret, int nput)
+static void sndwrterr(CSOUND *csound, int nret, int nput)
 {
     csound->Message(csound, Str("soundfile write returned sample count of %d, "
                                 "not %d\n"), nret, nput);
@@ -1201,7 +1201,7 @@ static int writebuffer(CSOUND *csound, SNDFILE *outfd,
     if (outfd == NULL) return 0;
     n = sf_write_MYFLT(outfd, outbuf, nsmps);
     if (n < nsmps) {
-      sndwrterr(csound, outfd, n, nsmps);
+      sndwrterr(csound, n, nsmps);
       return -1;
     }
     if (O->rewrt_hdr)

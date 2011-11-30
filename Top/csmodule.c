@@ -204,7 +204,8 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       minorVersion = (n & 0xFF00) >> 8;
       majorVersion = (n & (~0xFFFF)) >> 16;
       if (majorVersion != (int) CS_APIVERSION ||
-          minorVersion > (int) CS_APISUBVER) {
+          (minorVersion > (int) CS_APISUBVER) ||
+          (minorVersion <= 5)) { /* NOTE **** REFACTOR *** */
         csound->Warning(csound, Str("not loading '%s' (incompatible "
                                     "with this version of Csound (%d.%d/%d.%d)"),
                         fname, majorVersion,minorVersion,
@@ -351,6 +352,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
 
 static int csoundCheckOpcodeDeny(CSOUND *csound, const char *fname)
 {
+    IGNORE(csound);
     /* Check to see if the fname is on the do-not-load list */
     char buff[256];
     char *p, *deny;
@@ -1275,47 +1277,6 @@ void print_opcodedir_warning(CSOUND *p)
 #endif
 }
 
-/*
-These need to be added
-stdopcod          stdopcod.c
-urandom          urandom.c
-modmatrix       modmatrix.c
-eqfil                eqfil.c
-pvsbuffer        pvsbuffer.c
-scoreline        scoreline.c
-modal4           modal4.c
-pitch               pitch.c
-physmod         physmod.c
-scansyn           scansyn.c
-ambidecode1   ambicode1.c
-                DONE        babo                 babo.c
-sfont                sfont.c
-barmodel         barmodel.c
-                DONE        compress        compress.c
-grain4             grain4.c
-hrtferX             hrtferX.c
-hrtfnew            hrtfopcodes.c
-loscilx              loscilx.c
-pan2                 pan2.c
-phisem             phisem.c
-pvoc                pvoc.c
-pvs_ops           pvs_ops.c
-stackops          stackops.c
-vbap                 vbap.c
-vaps                  vaops.c
-ugakbari           ugakbari.c
-harmon              harmon.c
-cs_date              cs_date.c
-ptrack               ptrack.c
-partikkel           partikkel.c
-shape               shape.c
-doppler            doppler.c
-tabsum            tabsum.c
-crossfm           crossfm.c
-pvlock            pvlock.c
-vosim              vosim.c
-*/
-
 typedef long (*INITFN)(CSOUND *, void *);
 
 extern long babo_localops_init(CSOUND *, void *);
@@ -1389,7 +1350,7 @@ const FGINITFN fgentab[] = {  ftest_fgens_init, NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
-  int     i, ret;
+    int     i;
     OENTRY  *opcodlst_n;
     long    length;
 

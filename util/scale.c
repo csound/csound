@@ -73,7 +73,7 @@ static void usage(CSOUND *csound, char *mesg)
     csound->Die(csound, "\n%s", mesg);
 }
 
-static char set_output_format(CSOUND *csound, OPARMS *p, char c, char outformch)
+static char set_output_format(OPARMS *p, char c, char outformch)
 {
     switch (c) {
       case 'a': p->outformat = AE_ALAW;   /* a-law soundfile */
@@ -219,7 +219,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
           case '3':
           case 'l':
           case 'f':
-            outformch = set_output_format(csound, O, c, outformch);
+            outformch = set_output_format(O, c, outformch);
             break;
           case 'R':
             O->rewrt_hdr = 1;
