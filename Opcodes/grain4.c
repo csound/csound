@@ -263,7 +263,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
     int         n, nsmps = csound->ksmps;
     int         nvoice;
-    int32       flen, tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
+    int32       tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
     int32       att_len, dec_len, att_sus;
     MYFLT       envlop;
@@ -277,7 +277,6 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
  /* Recover parameters from previous call.... */
    ftp = p->ftp;
    if (UNLIKELY(p->ftp==NULL)) goto err1;          /* RWD fix */
-   flen = ftp->flen;
    ftbl = ftp->ftable;
 
    if (*p->ifnenv > 0) {

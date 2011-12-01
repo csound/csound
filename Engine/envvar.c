@@ -814,7 +814,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
 {
     FILE  *f;
     char  *name, *name2, **searchPath;
-    int   len;
+    //int   len;
 
     *fullName = NULL;
     if ((name = csoundConvertPathname(csound, filename)) == NULL)
@@ -845,7 +845,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
     if (envList != NULL && envList[0] != '\0' &&
         (searchPath = csoundGetSearchPathFromEnv((CSOUND*) csound, envList))
           != NULL) {
-      len = (int) strlen(name) + 1;
+      //len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
         f = fopen(name2, mode);
@@ -876,7 +876,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
                              const char *envList)
 {
     char  *name, *name2, **searchPath;
-    int   len, fd;
+    int   fd;
 
     *fullName = NULL;
     if ((name = csoundConvertPathname(csound, filename)) == NULL)
@@ -907,7 +907,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
     if (envList != NULL && envList[0] != '\0' &&
         (searchPath = csoundGetSearchPathFromEnv((CSOUND*) csound, envList))
           != NULL) {
-      len = (int) strlen(name) + 1;
+      //len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
         if (!write_mode)

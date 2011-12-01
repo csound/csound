@@ -973,6 +973,10 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         yt = p->yt;
         zt = p->zt;
       }
+    else {
+      printf("Should not get here\n");
+      ut = vt = wt = xt = yt = zt = 0;
+    }
     if(M==24)
       {
         utf1 = p->utf1;

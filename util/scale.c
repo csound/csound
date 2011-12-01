@@ -463,7 +463,7 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc, SNDFILE *infile)
     double  max, min;
     long    mxpos, minpos;
     int     maxtimes, mintimes;
-    int     i, j, chans = thissc->p->nchanls;
+    int     i, chans = thissc->p->nchanls;
     int     block = 0;
     int     bufferLenFrames = (int) BUFFER_LEN / chans;
     int     bufferLenSamples = bufferLenFrames * chans;
@@ -474,7 +474,7 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc, SNDFILE *infile)
     while ((read_in = csound->getsndin(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
       for (i = 0; i < read_in; i++) {
-        j = (i / chans) + (bufferLenFrames * block);
+        //j = (i / chans) + (bufferLenFrames * block);
         if (buffer[i] >= max) ++maxtimes;
         if (buffer[i] <= min) ++mintimes;
         if (buffer[i] > max)

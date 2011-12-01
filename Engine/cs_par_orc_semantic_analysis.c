@@ -33,6 +33,7 @@
 
 #include "interlocks.h"
 
+int find_opcode(CSOUND *, char *);
 /***********************************************************************
  * static function prototypes
  */
@@ -235,7 +236,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
     csp_orc_sa_interlocksf(csound, ep->thread);
 }
 
-static int inInstr = 0;
+//static int inInstr = 0;
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
