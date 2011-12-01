@@ -38,6 +38,11 @@ extern void csound_orcrestart(FILE*, void *);
 extern int csound_orcdebug;
 
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
+extern void csound_orclex_init(void *);
+extern void csound_orcset_extra(void *, void *);
+extern void csound_orc_scan_string(char *, void *);
+extern void csound_orcset_lineno(int, void*);
+extern void csound_orclex_destroy(void *);
 extern void init_symbtab(CSOUND*);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *);
@@ -46,6 +51,8 @@ extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 extern void csound_orc_compile(CSOUND *, TREE *);
 #ifdef PARCS
 extern TREE *csp_locks_insert(CSOUND *csound, TREE *root);
+void csp_locks_cache_build(CSOUND *);
+void csp_weights_calculate(CSOUND *, TREE *);
 #endif
 
 

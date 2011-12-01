@@ -138,6 +138,7 @@ int csound_orcwrap()
     return (1);
 }
 
+extern int csound_orcget_lineno(void*);
 /* BISON PARSER FUNCTION */
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE *astTree, char *str)

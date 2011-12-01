@@ -160,7 +160,7 @@ int wiimote_poll(CSOUND *csound, WIIMOTE *p)
         csound->Warning(csound,
                         Str("wiimote %i disconnected\n"), wiimotes[i]->unid);
         *p->res = FL(0.0);
-        return;
+        return OK;
       case WIIUSE_NUNCHUK_INSERTED:
         /*
          *      This is a good place to set any nunchuk specific

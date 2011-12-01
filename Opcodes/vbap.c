@@ -696,7 +696,7 @@ static void choose_ls_tuplets(CSOUND *csound,
     int exist[CHANNELS];
     int amount = 0;
     MYFLT inv_mat[CHANNELS][4], *ls_table, *ptr;
-    int ftable_size;
+    //int ftable_size;
 
     for (i=0;i<CHANNELS;i++) {
       exist[i]=0;
@@ -731,13 +731,13 @@ static void choose_ls_tuplets(CSOUND *csound,
       }
     }
 
+#if 0
     if ( amount*6 + 6 <= 16) ftable_size = 16;
     else if ( amount*6 + 6 <= 32) ftable_size = 32;
     else if ( amount*6 + 6 <= 64) ftable_size = 64;
     else if ( amount*6 + 6 <= 128) ftable_size = 128;
     else if ( amount*6 + 6 <= 256) ftable_size = 256;
     else if ( amount*6 + 6 <= 1024) ftable_size = 1024;
-#if 0
     csound->Message(csound,
                     "Loudspeaker matrices calculated with configuration : ");
     for (i=0; i< ls_amount; i++)

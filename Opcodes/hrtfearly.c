@@ -237,7 +237,7 @@ static int early_init(CSOUND *csound, early *p)
     char filel[MAXNAME],filer[MAXNAME];
 
     /* processing sizes*/
-    int irlength, irlengthpad, overlapsize;
+    int irlength = 0, irlengthpad = 0, overlapsize = 0;
 
     /* walls: surface area*/
     MYFLT wallS1, wallS2, cfS;

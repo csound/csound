@@ -121,33 +121,25 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
 
 static CS_NOINLINE int csoundStack_OverflowError(void *p)
 {
-    CSOUND  *csound;
-
-    csound = ((OPDS*) p)->insdshead->csound;
+    /* CSOUND  *csound= ((OPDS*) p)->insdshead->csound; */
     return csoundStack_Error(p, Str("stack overflow"));
 }
 
 static CS_NOINLINE int csoundStack_EmptyError(void *p)
 {
-    CSOUND  *csound;
-
-    csound = ((OPDS*) p)->insdshead->csound;
+    /* CSOUND  *csound((OPDS*) p)->insdshead->csound; */
     return csoundStack_Error(p, Str("cannot pop from empty stack"));
 }
 
 static CS_NOINLINE int csoundStack_TypeError(void *p)
 {
-    CSOUND  *csound;
-
-    csound = ((OPDS*) p)->insdshead->csound;
+    /* CSOUND  *csound = ((OPDS*) p)->insdshead->csound; */
     return csoundStack_Error(p, Str("argument number or type mismatch"));
 }
 
 static CS_NOINLINE int csoundStack_LengthError(void *p)
 {
-    CSOUND  *csound;
-
-    csound = ((OPDS*) p)->insdshead->csound;
+    /* CSOUND  *csound = ((OPDS*) p)->insdshead->csound; */
     return csoundStack_Error(p, Str("string argument is too long"));
 }
 

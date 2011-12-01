@@ -522,6 +522,7 @@ static int opcode_weight_entry_alloc(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
+#if 0
 static int opcode_weight_entry_dealloc(CSOUND *csound,
                                        struct opcode_weight_cache_entry_t **entry)
 {
@@ -535,6 +536,7 @@ static int opcode_weight_entry_dealloc(CSOUND *csound,
 
     return CSOUND_SUCCESS;
 }
+#endif
 
 uint32_t csp_opcode_weight_fetch(CSOUND *csound, char *name)
 {
@@ -1080,7 +1082,7 @@ void csp_dag_add(CSOUND *csound, DAG *dag,
 {
     DAG_NODE *dag_node = NULL;
     DAG_NODE **old = dag->all;
-    int ctr = 0;
+    //int ctr = 0;
     dag_node_2_alloc(csound, &dag_node, instr, insds);
 
     TRACE_1("dag->count = %d\n", dag->count);
@@ -1466,7 +1468,7 @@ int inline csp_dag_is_finished(CSOUND *csound, DAG *dag)
 /*
  * consume an instr and update the first root cache
  */
-static int waiting_for_ending=0;
+//static int waiting_for_ending=0;
 void csp_dag_consume(CSOUND *csound, DAG *dag,
                      DAG_NODE **node, int *update_hdl)
 {
@@ -1512,9 +1514,9 @@ void csp_dag_consume(CSOUND *csound, DAG *dag,
       /* RELS_LOCK(&(dag->spinlock)); */
       *node = NULL;
       *update_hdl = -1;
-      { struct timespec tt = {0, 100};
+      //{ struct timespec tt = {0, 100};
         //        nanosleep(&tt, NULL);
-      }
+      //}
       /* Really ought to wait until someone leaves comsume_dag_update */
       return;
     }
@@ -2520,6 +2522,7 @@ static int csp_dag_cache_entry_dealloc(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
+#if 0
 static void csp_dag_cache_update(CSOUND *csound)
 {
     uint32_t bin_ctr = 0;
@@ -2565,6 +2568,7 @@ static void csp_dag_cache_update(CSOUND *csound)
       bin_ctr++;
     }
 }
+#endif
 
 static int csp_dag_cache_compare(CSOUND *csound,
                                  struct dag_cache_entry_t *entry, INSDS *chain)

@@ -702,9 +702,9 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
 // This is the function which contains code from amidi
 static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
 {
-    alsaMidiInputDevice *dev, *newdev, *olddev;
-    const char  *s = "hw:0,0";
-    int card, err;
+    alsaMidiInputDevice *dev = NULL, *newdev, *olddev;
+    //const char  *s = "hw:0,0";
+    int card;
     int device;
     snd_ctl_t *ctl;
     char* name;
@@ -836,7 +836,7 @@ static int midi_in_read(CSOUND *csound,
 
 static int midi_in_close(CSOUND *csound, void *userData)
 {
-    int ret, retval = 0;
+    int ret = 0, retval = 0;
     alsaMidiInputDevice *olddev, *dev = NULL;
     (void) csound;
     dev = (alsaMidiInputDevice*) userData;

@@ -139,7 +139,7 @@ CORFIL *copy_to_corefile(char *fname)
     if (ff==NULL) return NULL;
     mm = corfile_create_w();
     memset(buffer, '\0', 1024);
-    while (n = fread(buffer, 1, 1023, ff)) {
+    while ((n = fread(buffer, 1, 1023, ff))) {
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
