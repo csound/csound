@@ -2034,8 +2034,8 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     MYFLT *win;
     /* overlap skip buffers */
     int *overlapskipin, *overlapskipout;
-    MYFLT *inbuf;
-    MYFLT *outbufl, *outbufr;
+    //MYFLT *inbuf;
+    //MYFLT *outbufl, *outbufr;
 
     int overlap = (int)*p->ooverlap;
     MYFLT r = *p->oradius;
@@ -2163,11 +2163,8 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     win = (MYFLT *)p->win.auxp;
     overlapskipin = (int *)p->overlapskipin.auxp;
     overlapskipout = (int *)p->overlapskipout.auxp;
-    inbuf = (MYFLT *)p->inbuf.auxp;
-    outbufl = (MYFLT *)p->outbufl.auxp;
-    outbufr = (MYFLT *)p->outbufr.auxp;
 
-    /* window is hanning */
+    /* window is Hanning */
     for(i = 0; i < irlength; i++)
       win[i] = FL(0.5) - (FL(0.5) * COS(i * TWOPI_F / (MYFLT)(irlength - 1)));
 

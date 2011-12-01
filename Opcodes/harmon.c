@@ -133,7 +133,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     MYFLT       koct, vocamp, diramp;
     PULDAT      *endp;
     VOCDAT      *vdp;
-    int16       n, nsmps, oflow = 0;
+    int16       nsmps, oflow = 0;
 
     if ((koct = *p->koct) != p->prvoct) {               /* if new pitch estimate */
       if (koct >= p->minoct) {                          /*   above requested low */

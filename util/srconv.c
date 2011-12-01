@@ -205,7 +205,6 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
     FILE        *tvfp = NULL;   /* time-vary function file */
     SOUNDIN     *p;
-    void        *dummy;
     int         channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     char        *infile = NULL, *bfile = NULL;
@@ -374,7 +373,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */
-      dummy = csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
+      (void) csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
       fscanf(tvfp, "%d", &tvlen);
       fxval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
       fyval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
@@ -474,8 +473,8 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */
-      dummy = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
-                                               O->outfilename);
+      (void) csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
+                                      O->outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
     csound->esr = (MYFLT) p->sr;

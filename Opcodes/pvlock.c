@@ -93,7 +93,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
 {
     MYFLT pitch = *p->kpitch, *time = p->time, lock = *p->klock,
       *out, amp =*p->kamp;
-    MYFLT *tab, frac,scale;
+    MYFLT *tab, frac;
     FUNC *ft;
     int N = p->N, hsize = p->hsize, cnt = p->cnt, nchans = p->nchans;
     int ksmps = csound->GetKsmps(csound), n;
@@ -283,7 +283,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
 {
     MYFLT pitch = *p->kpitch, time = *p->time, lock = *p->klock;
     MYFLT *out, amp =*p->kamp;
-    MYFLT *tab,frac,scale,  dbtresh = *p->dbthresh;
+    MYFLT *tab,frac,  dbtresh = *p->dbthresh;
     FUNC *ft;
     int N = p->N, hsize = p->hsize, cnt = p->cnt, sizefrs, nchans = p->nchans;
     int  ksmps = csound->GetKsmps(csound), n;
@@ -496,8 +496,8 @@ static int pvslockset(CSOUND *csound, PVSLOCK *p)
 
 static int pvslockproc(CSOUND *csound, PVSLOCK *p)
 {
-    int i,n,k,j, maxmagi;
-    float mag,  maxmag, *fout = (float *) p->fout->frame.auxp, 
+    int i;
+    float *fout = (float *) p->fout->frame.auxp, 
       *fin = (float *) p->fin->frame.auxp;
     int N = p->fin->N;
   
@@ -505,7 +505,7 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p)
       memcpy(fout,fin, sizeof(float)*(N+2));
   
       if (*p->klock) {
-        for (i=2, n = 0; i < N-4; i+=2){
+        for (i=2; i < N-4; i+=2){
           float p2 = fin[i];
           float p3 = fin[i+2];
           float p1 = fin[i-2];
