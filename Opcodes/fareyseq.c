@@ -26,7 +26,8 @@
     by Robin Whittle, see source OOps/ugrw1.c
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 
 const int MAX_PFACTOR = 16;
@@ -733,14 +734,14 @@ void float_to_cfrac (double r, int n, int a[], int p[], int q[])
 
 #define S sizeof
 
-static OENTRY localops[] = {
-    {"tablefilteri", S (TABFILT), 1, "i", "iiii", (SUBR) tableifilter, NULL, NULL},
-    {"tablefilter", S (TABFILT), 2, "k", "kkkk",
+static OENTRY fareyseq_localops[] = {
+    {"tablefilteri", S (TABFILT),TB|1, "i", "iiii", (SUBR) tableifilter,NULL,NULL},
+    {"tablefilter", S (TABFILT), TB|2, "k", "kkkk",
                          (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
-    {"fareyleni", S (FAREYLEN), 1, "i", "i", (SUBR) fareylen, NULL, NULL},
-    {"fareylen", S (FAREYLEN), 2, "k", "k", NULL, (SUBR) fareylen, NULL},
-    {"tableshufflei", S (TABSHUFFLE), 1, "", "i", (SUBR) tableshuffle, NULL, NULL},
-    {"tableshuffle", S (TABSHUFFLE), 2, "", "k", (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL}
+    {"fareyleni", S (FAREYLEN), TR|1, "i", "i", (SUBR) fareylen, NULL, NULL},
+    {"fareylen", S (FAREYLEN), TR|2, "k", "k", NULL, (SUBR) fareylen, NULL},
+    {"tableshufflei", S (TABSHUFFLE), TB|1, "", "i", (SUBR) tableshuffle, NULL, NULL},
+    {"tableshuffle", S (TABSHUFFLE), TB|2, "", "k", (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL},
 };
 
-LINKAGE
+LINKAGE1(fareyseq_localops)

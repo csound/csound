@@ -98,7 +98,7 @@ typedef float mus_sample_t;
 #if defined(LINUX) || defined(MACOSX)
 #  define ATSA_RES_FILE "/tmp/atsa_res.wav"
 #else
-#  define ATSA_RES_FILE "atsa_res.wav"
+#  define ATSA_RES_FILE "/atsa_res.wav"
 #endif
 
 /* constants and macros */
@@ -534,7 +534,7 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     fd = csound->FileOpen2(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
                           NULL, CSFTYPE_ATS, 0);
     if (fd == NULL) {
-      csound->Die(csound, Str("\n Could not open %s for writing, bye...\n"),
+      csound->Die(csound, Str("\nCould not open %s for writing, bye...\n"),
                   ats_outfile);
     }
     /* call tracker */
@@ -721,7 +721,17 @@ static int atsa_main(CSOUND *csound, int argc, char **argv)
         soundfile == NULL || soundfile[0] == '\0' ||
         ats_outfile == NULL || ats_outfile[0] == '\0')
       usage(csound);
+#ifdef WIN32
+    {
+      char buffer[160];
+      char * tmp = getenv("TEMP");
+      strncpy(buffer, tmp, 160);
+      strncat(buffer, ATSA_RES_FILE, 160);
+      val = main_anal(csound, soundfile, ats_outfile, anargs, buffer);
+    }
+#else
     val = main_anal(csound, soundfile, ats_outfile, anargs, ATSA_RES_FILE);
+#endif
     csound->Free(csound, anargs);
     return (val);
 }
@@ -2363,8 +2373,17 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     csound->Free(csound, bufs);
     /* analyse residual */
     if (anargs->type == 3 || anargs->type == 4) {
+#ifdef WIN32
+      char buffer[160];
+      char * tmp = getenv("TEMP");
+      strncpy(buffer, tmp, 160);
+      strncat(buffer, ATSA_RES_FILE, 160);
+      csound->Message(csound, Str("Analysing residual..."));
+      residual_analysis(csound, buffer, sound);
+#else
       csound->Message(csound, Str("Analysing residual..."));
       residual_analysis(csound, ATSA_RES_FILE, sound);
+#endif
       csound->Message(csound, Str("done!\n"));
     }
     csound->Message(csound, Str("tracking completed.\n"));

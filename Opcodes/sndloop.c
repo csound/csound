@@ -996,14 +996,14 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
                                    "or amp-freq.\n"));
     }
    if (p->ceps.auxp == NULL ||
-      p->ceps.size < sizeof(MYFLT) * (N+2)) 
+      p->ceps.size < sizeof(MYFLT) * (N+2))
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->ceps);
   memset(p->ceps.auxp, 0, sizeof(MYFLT)*(N+2));
   if (p->fenv.auxp == NULL ||
-      p->fenv.size < sizeof(MYFLT) * (N+2)) 
+      p->fenv.size < sizeof(MYFLT) * (N+2))
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
   if (p->fexc.auxp == NULL ||
-      p->fexc.size < sizeof(MYFLT) * (N+2)) 
+      p->fexc.size < sizeof(MYFLT) * (N+2))
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fexc);
 
     return OK;
@@ -1021,44 +1021,43 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
     int coefs = (int) *(p->kcoefs), j;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-    float sr = csound->esr;
     float maxe=0.f, maxa=0.f;
-   
+
     if (UNLIKELY(fout==NULL)) goto err1;
 
     if (p->lastframe < p->fin->framecount) {
-      for(j=0; j < 2; j++) {	
-	MYFLT a;
-	maxe = 0.f;
+      for(j=0; j < 2; j++) {
+        MYFLT a;
+        maxe = 0.f;
         maxa = 0.f;
       for(i=0; i < N; i+=2) {
         a  = (j ? fin[i] : (fexc[i] = ffr[i]));
         maxa = maxa < a ? a : maxa;
-	if (a <= 0) a = 1e-20;
+        if (a <= 0) a = 1e-20;
         fenv[i/2] = log(a);
       }
       if (coefs < 1) coefs = 80;
-	for(i=0; i < N; i+=2){
-	  ceps[i] = fenv[i/2];
+        for(i=0; i < N; i+=2){
+          ceps[i] = fenv[i/2];
           ceps[i+1] = 0.0;
-	} 
-	csound->InverseComplexFFT(csound, ceps, N/2);
-        for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;   
+        }
+        csound->InverseComplexFFT(csound, ceps, N/2);
+        for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
         csound->ComplexFFT(csound, ceps, N/2);
-        for(i=0; i < N; i+=2) {    
-	  fenv[i/2] = exp(ceps[i]);
-	   maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
-	}      
-	if (maxe)
-	for(i=0; i<N; i+=2){
-          if (j) fenv[i/2] *= maxa/maxe;   
-	  if (fenv[i/2] && !j) {
+        for(i=0; i < N; i+=2) {
+          fenv[i/2] = exp(ceps[i]);
+           maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
+        }
+        if (maxe)
+        for(i=0; i<N; i+=2){
+          if (j) fenv[i/2] *= maxa/maxe;
+          if (fenv[i/2] && !j) {
              fenv[i/2] /= maxe;
-	     fexc[i] /= fenv[i/2];
-	  }	   
-	  }	   
+             fexc[i] /= fenv[i/2];
+          }
+          }
       }
-     
+
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
       for(i=0;i < N+2;i+=2) {
         fout[i] = fenv[i/2]*(fexc[i]*kdepth + fin[i]*(FL(1.0)-kdepth))*gain;
@@ -1066,7 +1065,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
-    
+
     return OK;
  err1:
     return csound->PerfError(csound,Str("pvsvoc: not initialised\n"));
@@ -1126,15 +1125,15 @@ static int pvsmorph_process(CSOUND *csound, pvsmorph *p)
 static OENTRY localops[] = {
   {"sndloop", sizeof(sndloop), 5,
    "ak", "akkii", (SUBR)sndloop_init, NULL, (SUBR)sndloop_process},
-  {"flooper", sizeof(flooper), 5,
+  {"flooper", sizeof(flooper), TR|5,
    "a", "kkiiii", (SUBR)flooper_init, NULL, (SUBR)flooper_process},
   {"pvsarp", sizeof(pvsarp), 3,
    "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
   {"pvsvoc", sizeof(pvsvoc), 3,
    "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
-  {"flooper2", sizeof(flooper2), 5,
+  {"flooper2", sizeof(flooper2), TR|5,
    "a", "kkkkkiooooO", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
- {"flooper3", sizeof(flooper3), 5,
+ {"flooper3", sizeof(flooper3), TR|5,
   "a", "kkkkkioooo", (SUBR)flooper3_init, NULL, (SUBR)flooper3_process},
  {"pvsmorph", sizeof(pvsvoc), 3,
    "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process}
@@ -1145,4 +1144,3 @@ int sndloop_init_(CSOUND *csound)
   return csound->AppendOpcodes(csound, &(localops[0]),
                                (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

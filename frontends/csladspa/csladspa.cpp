@@ -32,16 +32,6 @@
 #include "ladspa.h"
 using namespace std;
 
-
-
-#ifdef WIN32
-#define PUBLIC  __declspec(dllexport)
-#elif defined(__GNUC__)
-#define PUBLIC __attribute__ ( (visibility("default")) )
-#else
-#define PUBLIC
-#endif
-
 #define MAXLINESIZE 4098
 #define MAXPORTS 64
 
@@ -419,18 +409,18 @@ unsigned int CountCSD(char **csdnames)
   DIR             *dip = NULL;
   struct dirent   *dit;
   string          temp, name, path;
-  char           *ladspa_path;
   int             i = 0;
-  unsigned int             indx = 0;
+  size_t    indx = 0;
+  char ladspa_path[1024] = "";
 
 #ifndef MACOSX
-  ladspa_path = getenv("LADSPA_PATH");
+  strcpy(ladspa_path, getenv("LADSPA_PATH"));
 #else
-  ladspa_path = "/Library/Audio/Plug-Ins/LADSPA";
+  strcpy(ladspa_path, "/Library/Audio/Plug-Ins/LADSPA");
 #endif
   // if no LADSPA_PATH attempt to open
   // current directory
-  if(ladspa_path == NULL) dip = opendir(".");
+  if(strlen(ladspa_path) == 0) dip = opendir(".");
   else {
     path = ladspa_path;
 #ifdef WIN32

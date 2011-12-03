@@ -31,6 +31,14 @@
 #include "csdl.h"
 #include "SliderData.hpp"
 
+class WheelSlider: public Fl_Value_Slider
+{
+    int handle(int);
+public:
+    WheelSlider(int x, int y, int w, int h, const char *l=0) : 
+      Fl_Value_Slider (x,y,w,h,l) {}
+};
+
 class SliderBank : public Fl_Group
 {
 public:
@@ -43,15 +51,16 @@ public:
     void setChannel(int channel);
     SliderData *getSliderData();
 
+    void incrementSlider(int index, int n);
+
     void lock();
     void unlock();
 
-    Fl_Value_Slider* sliders[10];
+    WheelSlider* sliders[10];
     Fl_Spinner* spinners[10];
 
 private:
     int channel;
     SliderData sliderData[16];
 };
-
 #endif /*SLIDERBANK_HPP_*/

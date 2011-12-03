@@ -1042,7 +1042,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
     return OK;
 }
 
-static OENTRY localops[] = {
+static OENTRY dssi_localops[] = {
     {"dssiinit", sizeof(DSSIINIT), 1, "i", "Tip", (SUBR) dssiinit, NULL, NULL }
     ,
     {"dssiactivate", sizeof(DSSIACTIVATE), 3, "", "ik",
@@ -1068,5 +1068,5 @@ static OENTRY localops[] = {
 #endif
 };
 
-LINKAGE
+LINKAGE1(dssi_localops)
 

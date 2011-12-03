@@ -19,7 +19,8 @@
 /* This file includes the opcodes from newopcodes.c */
 /* TODO: Check if the authors (Peter Neubaeker and Jens Groh) are correct */
 
-/*printi removed? I can't find the corresponding OENTRY- Left them commented out */
+/*printi removed? I can't find the corresponding OENTRY- */
+/*Left them commented out */
 /*how should exitnow be safely implemented? */
 /*Check the zak opcodes */
 /*changed some comments to c-style */
@@ -29,6 +30,7 @@
 #include "csdl.h"
 #include "gab.h"
 #include <math.h>
+#include "interlocks.h"
 
 static int krsnsetx(CSOUND *csound, KRESONX *p)
   /* Gabriel Maldonado, modifies for arb order  */
@@ -789,31 +791,31 @@ static int mandel(CSOUND *csound,MANDEL *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY gab_localops[] = {
   {"resonxk", S(KRESONX),    3,   "k",    "kkkooo",
                             (SUBR) krsnsetx, (SUBR) kresonx, NULL },
-  { "tab_i",S(FASTAB),       1,   "i",    "iio", (SUBR) fastabi, NULL, NULL },
-  { "tab",S(FASTAB),         7,   "s",    "xio",
+  { "tab_i",S(FASTAB),       TR|1,   "i",    "iio", (SUBR) fastabi, NULL, NULL },
+  { "tab",S(FASTAB),         TR|7,   "s",    "xio",
                             (SUBR) fastab_set, (SUBR)fastabk, (SUBR) fastab },
-  { "tabw_i",S(FASTAB),      1,   "",    "iiio", (SUBR) fastabiw, NULL, NULL },
-  { "tabw",S(FASTAB),        7,   "",    "xxio",
+  { "tabw_i",S(FASTAB),      TW|1,   "",    "iiio", (SUBR) fastabiw, NULL, NULL },
+  { "tabw",S(FASTAB),        TW|7,   "",    "xxio",
                             (SUBR)fastab_set, (SUBR)fastabkw, (SUBR)fastabw },
-  { "tb0_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab0_init},
-  { "tb1_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab1_init},
-  { "tb2_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab2_init},
-  { "tb3_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab3_init},
-  { "tb4_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab4_init},
-  { "tb5_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab5_init},
-  { "tb6_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab6_init},
-  { "tb7_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab7_init},
-  { "tb8_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab8_init},
-  { "tb9_init", S(TB_INIT),  1,   "",      "i",    (SUBR)tab9_init},
-  { "tb10_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab10_init},
-  { "tb11_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab11_init},
-  { "tb12_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab12_init},
-  { "tb13_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab13_init},
-  { "tb14_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab14_init},
-  { "tb15_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab15_init},
+  { "tb0_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab0_init},
+  { "tb1_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab1_init},
+  { "tb2_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab2_init},
+  { "tb3_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab3_init},
+  { "tb4_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab4_init},
+  { "tb5_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab5_init},
+  { "tb6_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab6_init},
+  { "tb7_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab7_init},
+  { "tb8_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab8_init},
+  { "tb9_init", S(TB_INIT),  TR|1,   "",      "i",    (SUBR)tab9_init},
+  { "tb10_init", S(TB_INIT), TR|1,   "",      "i",    (SUBR)tab10_init},
+  { "tb11_init", S(TB_INIT), TR|1,   "",      "i",    (SUBR)tab11_init},
+  { "tb12_init", S(TB_INIT), TR|1,   "",      "i",    (SUBR)tab12_init},
+  { "tb13_init", S(TB_INIT), TR|1,   "",      "i",    (SUBR)tab13_init},
+  { "tb14_init", S(TB_INIT), TR|1,   "",      "i",    (SUBR)tab14_init},
+  { "tb15_init", S(TB_INIT), TR|1,   "",      "i",    (SUBR)tab15_init},
   { "tb0.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab0_k_tmp,  NULL  },
   { "tb1.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab1_k_tmp,  NULL  },
   { "tb2.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab2_k_tmp,  NULL  },
@@ -849,7 +851,7 @@ static OENTRY localops[] = {
   { "tb15.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab15_i_tmp   },
   { "nlalp",      S(NLALP), 5,    "a",     "akkoo",
                             (SUBR) nlalp_set, NULL, (SUBR) nlalp   },
-  { "adsynt2",S(ADSYNT2),   5,    "a",     "kkiiiio",
+  { "adsynt2",S(ADSYNT2),TR|5,    "a",     "kkiiiio",
                             (SUBR) adsynt2_set, NULL, (SUBR)adsynt2 },
   { "exitnow",S(EXITNOW),   1,    "",  "", (SUBR) exitnow, NULL, NULL },
 /* { "zr_i",  S(ZKR),     1,  "i",  "i",  (SUBR)zread, NULL, NULL}, */
@@ -860,7 +862,7 @@ static OENTRY localops[] = {
 /* { "a_k",   S(INDIFF),  5,  "a",  "k",  (SUBR)a_k_set,NULL, (SUBR)interp }, */
   { "tabrec",   S(TABREC),  3,     "",      "kkkkz",
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
-  { "tabplay",  S(TABPLAY), 3,     "",      "kkkz",
+  { "tabplay",  S(TABPLAY), TR|3,     "",      "kkkz",
                             (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
   { "changed", S(ISCHANGED), 3,     "k",     "z",
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },
@@ -875,7 +877,7 @@ static OENTRY localops[] = {
 
 int gab_gab_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+    return csound->AppendOpcodes(csound, &(gab_localops[0]),
+                                 (int) (sizeof(gab_localops) / sizeof(OENTRY)));
 }
 

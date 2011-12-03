@@ -21,7 +21,10 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
+
 
 typedef struct {
     OPDS h;
@@ -202,6 +205,7 @@ static int tab2ftab(CSOUND *csound, TABCOPY *p)
     fdata = ftp->ftable;
     if (fsize<tlen) tlen = fsize;
     memcpy(fdata, p->tab->data, sizeof(MYFLT)*tlen);
+    return OK;
 }
 
 static int ftab2tab(CSOUND *csound, TABCOPY *p)
@@ -218,11 +222,12 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
     fdata = ftp->ftable;
     if (fsize<tlen) tlen = fsize;
     memcpy(p->tab->data, fdata, sizeof(MYFLT)*tlen);
+    return OK;
 }
 
 
 
-static OENTRY localops[] =
+static OENTRY tabvars_localops[] =
 {
   { "plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabadd },
   { "multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabmult },
@@ -231,15 +236,15 @@ static OENTRY localops[] =
   { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
   { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
   { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
-  { "copy2ftab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) tab2ftab },
-  { "copy2ttab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) ftab2tab }
+  { "copy2ftab", sizeof(TABCOPY), TW|1, "", "tk", NULL, (SUBR) tab2ftab },
+  { "copy2ttab", sizeof(TABCOPY), TR|1, "", "tk", NULL, (SUBR) ftab2tab }
 };
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
 //          randomly repeats (holds) values based on a probability parameter    
 
 
-LINKAGE
+LINKAGE1(tabvars_localops)
 
 
 

@@ -28,12 +28,13 @@
 /*  wavetable, an envelope, and four reso- */
 /*  nances (Non-Sweeping BiQuad Filters).  */
 /*******************************************/
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
 #include "modal4.h"
 #include "marimba.h"
 #include "vibraphn.h"
 #include <math.h>
-
+#include "interlocks.h"
 static int make_Modal4(CSOUND *csound,
                        Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 {
@@ -491,14 +492,14 @@ int agogobel(CSOUND *csound, VIBRAPHN *p)
 
 #define S       sizeof
 
-static OENTRY localops[] = {
-{ "marimba", S(MARIMBA), 5, "a", "kkiiikkiijj",
+static OENTRY modal4_localops[] = {
+{ "marimba", S(MARIMBA), TR|5, "a", "kkiiikkiijj",
                                  (SUBR)marimbaset, NULL, (SUBR)marimba},
-{ "vibes", S(VIBRAPHN),  5, "a", "kkiiikkii",
+{ "vibes", S(VIBRAPHN),  TR|5, "a", "kkiiikkii",
                                  (SUBR)vibraphnset,NULL,(SUBR)vibraphn},
-{ "gogobel",S(VIBRAPHN), 5, "a", "kkiiikki",
+{ "gogobel",S(VIBRAPHN), TR|5, "a", "kkiiikki",
                                  (SUBR)agogobelset,NULL, (SUBR)agogobel},
 };
 
-LINKAGE
+LINKAGE1(modal4_localops)
 

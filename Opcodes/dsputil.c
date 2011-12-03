@@ -128,7 +128,7 @@ void FetchIn(
     MYFLT   pos)        /* fractional frame we want */
 {
     int32    j;
-    float   *frm0, *frm1;
+    float   *frm_0, *frm_1;
     int32    base;
     MYFLT   frac;
 
@@ -136,21 +136,21 @@ void FetchIn(
     base = (int32) pos;          /* index of basis frame of interpolation */
     frac = (MYFLT) pos - (MYFLT) base;
     /* & how close to get to next */
-    frm0 = inp  + ((int32) fsize + 2L) * base;
-    frm1 = frm0 + ((int32) fsize + 2L);          /* addresses of both frames */
+    frm_0 = inp  + ((int32) fsize + 2L) * base;
+    frm_1 = frm_0 + ((int32) fsize + 2L);          /* addresses of both frames */
     if (frac != FL(0.0)) {      /* must have 2 cases to avoid poss seg vlns */
                                 /* and failed computes, else may interp     */
                                         /* bd valid data                    */
       for (j = 0; j <= fsize; j += 2) { /* mag/frq for just over 1/2        */
                                         /* Interpolate both mag and freq    */
-        buf[j     ] = frm0[j     ] + frac * (frm1[j     ] - frm0[j     ]);
-        buf[j + 1L] = frm0[j + 1L] + frac * (frm1[j + 1L] - frm0[j + 1L]);
+        buf[j     ] = frm_0[j     ] + frac * (frm_1[j     ] - frm_0[j     ]);
+        buf[j + 1L] = frm_0[j + 1L] + frac * (frm_1[j + 1L] - frm_0[j + 1L]);
       }
     }
     else {                  /* frac is 0.0 i.e. just copy the source frame */
       for (j = 0; j <= fsize; j += 2) { /* no need to interpolate */
-        buf[j     ] = frm0[j     ];
-        buf[j + 1L] = frm0[j + 1L];
+        buf[j     ] = frm_0[j     ];
+        buf[j + 1L] = frm_0[j + 1L];
       }
     }
 }

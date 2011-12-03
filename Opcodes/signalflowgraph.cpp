@@ -244,14 +244,14 @@ struct Outleta : public OpcodeBase<Outleta> {
       sourceOutletId[0] = 0;
       const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
       if (insname) {
-	std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       std::vector<Outleta *> &aoutlets = aoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(aoutlets.begin(), aoutlets.end(), this) == aoutlets.end()) {
-	aoutlets.push_back(this);
-	warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, aoutlets.size(), sourceOutletId);
+        aoutlets.push_back(this);
+        warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, aoutlets.size(), sourceOutletId);
       }
     }
     //warn(csound, "ENDED Outleta::init()...\n");
@@ -281,34 +281,34 @@ struct Inleta : public OpcodeBase<Inleta> {
       sampleN = csound->GetKsmps(csound);
       warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
       if (std::find(aoutletVectorsForCsounds[csound].begin(),
-		    aoutletVectorsForCsounds[csound].end(),
-		    sourceOutlets) == aoutletVectorsForCsounds[csound].end()) {
-	sourceOutlets = new std::vector< std::vector<Outleta *> *>;
-	aoutletVectorsForCsounds[csound].push_back(sourceOutlets);
+                    aoutletVectorsForCsounds[csound].end(),
+                    sourceOutlets) == aoutletVectorsForCsounds[csound].end()) {
+        sourceOutlets = new std::vector< std::vector<Outleta *> *>;
+        aoutletVectorsForCsounds[csound].push_back(sourceOutlets);
       }
       warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
       sinkInletId[0] = 0;
       const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
       if (insname) {
-	std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       std::vector<Inleta *> &ainlets = ainletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(ainlets.begin(), ainlets.end(), this) == ainlets.end()) {
-	ainlets.push_back(this);
-	warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+        ainlets.push_back(this);
+        warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
       }
       // Find source outlets connecting to this.
       // Any number of sources may connect to any number of sinks.
       std::vector<std::string> &sourceOutletIds = connectionsForCsounds[csound][sinkInletId];
       for (size_t i = 0, n = sourceOutletIds.size(); i < n; i++) {
-	const std::string &sourceOutletId = sourceOutletIds[i];
-	std::vector<Outleta *> &aoutlets = aoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-	if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &aoutlets) == sourceOutlets->end()) {
-	  sourceOutlets->push_back(&aoutlets);
-	  warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
-	}
+        const std::string &sourceOutletId = sourceOutletIds[i];
+        std::vector<Outleta *> &aoutlets = aoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
+        if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &aoutlets) == sourceOutlets->end()) {
+          sourceOutlets->push_back(&aoutlets);
+          warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
+        }
       }
       warn(csound, "ENDED Inleta::init().\n");
     }
@@ -324,28 +324,28 @@ struct Inleta : public OpcodeBase<Inleta> {
       //warn(csound, "BEGAN Inleta::audio()...\n");
       // Zero the inlet buffer.
       for (int sampleI = 0; sampleI < sampleN; sampleI++) {
-	asignal[sampleI] = FL(0.0);
+        asignal[sampleI] = FL(0.0);
       }
       // Loop over the source connections...
       for (size_t sourceI = 0, sourceN = sourceOutlets->size();
-	   sourceI < sourceN;
-	   sourceI++) {
-	// Loop over the source connection instances...
-	std::vector<Outleta *> *instances = sourceOutlets->at(sourceI);
-	for (size_t instanceI = 0, instanceN = instances->size();
-	     instanceI < instanceN;
-	     instanceI++) {
-	  Outleta *sourceOutlet = instances->at(instanceI);
-	  // Skip inactive instances.
-	  if (sourceOutlet->h.insdshead->actflg) {
-	    // Loop over the samples in the inlet buffer.
-	    for (int sampleI = 0;
-		 sampleI < sampleN;
-		 sampleI++) {
-	      asignal[sampleI] += sourceOutlet->asignal[sampleI];
-	    }
-	  }
-	}
+           sourceI < sourceN;
+           sourceI++) {
+        // Loop over the source connection instances...
+        std::vector<Outleta *> *instances = sourceOutlets->at(sourceI);
+        for (size_t instanceI = 0, instanceN = instances->size();
+             instanceI < instanceN;
+             instanceI++) {
+          Outleta *sourceOutlet = instances->at(instanceI);
+          // Skip inactive instances.
+          if (sourceOutlet->h.insdshead->actflg) {
+            // Loop over the samples in the inlet buffer.
+            for (int sampleI = 0;
+                 sampleI < sampleN;
+                 sampleI++) {
+              asignal[sampleI] += sourceOutlet->asignal[sampleI];
+            }
+          }
+        }
       }
       //warn(csound, "ENDED Inleta::audio().\n");
     }
@@ -369,14 +369,14 @@ struct Outletk : public OpcodeBase<Outletk> {
 
       const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
       if (insname) {
-	std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       std::vector<Outletk *> &koutlets = koutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
-	koutlets.push_back(this);
-	warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, koutlets.size(), sourceOutletId);
+        koutlets.push_back(this);
+        warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, koutlets.size(), sourceOutletId);
       }
     }
     return OK;
@@ -404,33 +404,33 @@ struct Inletk : public OpcodeBase<Inletk> {
 
       ksmps = csound->GetKsmps(csound);
       if (std::find(koutletVectorsForCsounds[csound].begin(),
-		    koutletVectorsForCsounds[csound].end(),
-		    sourceOutlets) == koutletVectorsForCsounds[csound].end()) {
-	sourceOutlets = new std::vector< std::vector<Outletk *> *>;
-	koutletVectorsForCsounds[csound].push_back(sourceOutlets);
+                    koutletVectorsForCsounds[csound].end(),
+                    sourceOutlets) == koutletVectorsForCsounds[csound].end()) {
+        sourceOutlets = new std::vector< std::vector<Outletk *> *>;
+        koutletVectorsForCsounds[csound].push_back(sourceOutlets);
       }
       sinkInletId[0] = 0;
       const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
       if (insname) {
-	std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       std::vector<Inletk *> &kinlets = kinletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
-	kinlets.push_back(this);
-	warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+        kinlets.push_back(this);
+        warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
       }
       // Find source outlets connecting to this.
       // Any number of sources may connect to any number of sinks.
       std::vector<std::string> &sourceOutletIds = connectionsForCsounds[csound][sinkInletId];
       for (size_t i = 0, n = sourceOutletIds.size(); i < n; i++) {
-	const std::string &sourceOutletId = sourceOutletIds[i];
-	std::vector<Outletk *> &koutlets = koutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-	if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets) == sourceOutlets->end()) {
-	  sourceOutlets->push_back(&koutlets);
-	  warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
-	}
+        const std::string &sourceOutletId = sourceOutletIds[i];
+        std::vector<Outletk *> &koutlets = koutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
+        if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets) == sourceOutlets->end()) {
+          sourceOutlets->push_back(&koutlets);
+          warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
+        }
       }
     }
     return OK;
@@ -445,19 +445,19 @@ struct Inletk : public OpcodeBase<Inletk> {
       *ksignal = FL(0.0);
       // Loop over the source connections...
       for (size_t sourceI = 0, sourceN = sourceOutlets->size();
-	   sourceI < sourceN;
-	   sourceI++) {
-	// Loop over the source connection instances...
-	const std::vector<Outletk *> *instances = sourceOutlets->at(sourceI);
-	for (size_t instanceI = 0, instanceN = instances->size();
-	     instanceI < instanceN;
-	     instanceI++) {
-	  const Outletk *sourceOutlet = instances->at(instanceI);
-	  // Skip inactive instances.
-	  if (sourceOutlet->h.insdshead->actflg) {
-	    *ksignal += *sourceOutlet->ksignal;
-	  }
-	}
+           sourceI < sourceN;
+           sourceI++) {
+        // Loop over the source connection instances...
+        const std::vector<Outletk *> *instances = sourceOutlets->at(sourceI);
+        for (size_t instanceI = 0, instanceN = instances->size();
+             instanceI < instanceN;
+             instanceI++) {
+          const Outletk *sourceOutlet = instances->at(instanceI);
+          // Skip inactive instances.
+          if (sourceOutlet->h.insdshead->actflg) {
+            *ksignal += *sourceOutlet->ksignal;
+          }
+        }
       }
     }
     return OK;
@@ -479,14 +479,14 @@ struct Outletf : public OpcodeBase<Outletf> {
     {
       const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
       if (insname) {
-	std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       std::vector<Outletf *> &foutlets = foutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(foutlets.begin(), foutlets.end(), this) == foutlets.end()) {
-	foutlets.push_back(this);
-	warn(csound, "Created instance 0x%x of outlet %s\n", this, sourceOutletId);
+        foutlets.push_back(this);
+        warn(csound, "Created instance 0x%x of outlet %s\n", this, sourceOutletId);
       }
     }
     return OK;
@@ -517,33 +517,33 @@ struct Inletf : public OpcodeBase<Inletf> {
       lastframe = 0;
       fsignalInitialized = false;
       if (std::find(foutletVectorsForCsounds[csound].begin(),
-		    foutletVectorsForCsounds[csound].end(),
-		    sourceOutlets) == foutletVectorsForCsounds[csound].end()) {
-	sourceOutlets = new std::vector< std::vector<Outletf *> *>;
-	foutletVectorsForCsounds[csound].push_back(sourceOutlets);
+                    foutletVectorsForCsounds[csound].end(),
+                    sourceOutlets) == foutletVectorsForCsounds[csound].end()) {
+        sourceOutlets = new std::vector< std::vector<Outletf *> *>;
+        foutletVectorsForCsounds[csound].push_back(sourceOutlets);
       }
       sinkInletId[0] = 0;
       const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
       if (insname) {
-	std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       std::vector<Inletf *> &finlets = finletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(finlets.begin(), finlets.end(), this) == finlets.end()) {
-	finlets.push_back(this);
-	warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+        finlets.push_back(this);
+        warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
       }
       // Find source outlets connecting to this.
       // Any number of sources may connect to any number of sinks.
       std::vector<std::string> &sourceOutletIds = connectionsForCsounds[csound][sinkInletId];
       for (size_t i = 0, n = sourceOutletIds.size(); i < n; i++) {
-	const std::string &sourceOutletId = sourceOutletIds[i];
-	std::vector<Outletf *> &foutlets = foutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-	if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &foutlets) == sourceOutlets->end()) {
-	  sourceOutlets->push_back(&foutlets);
-	  warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
-	}
+        const std::string &sourceOutletId = sourceOutletIds[i];
+        std::vector<Outletf *> &foutlets = foutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
+        if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &foutlets) == sourceOutlets->end()) {
+          sourceOutlets->push_back(&foutlets);
+          warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
+        }
       }
     }
     return OK;
@@ -657,19 +657,19 @@ struct Outletkid : public OpcodeBase<Outletkid> {
                    (char *)"",
                    (int) csound->GetInputArgSMask(this));
       if (insname && instanceId) {
-	std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       if (insname) {
-	std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
-	koutlets.push_back(this);
-	warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, koutlets.size(), sourceOutletId);
+        koutlets.push_back(this);
+        warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, koutlets.size(), sourceOutletId);
       }
     }
     return OK;
@@ -699,10 +699,10 @@ struct Inletkid : public OpcodeBase<Inletkid> {
 
       ksmps = csound->GetKsmps(csound);
       if (std::find(kidoutletVectorsForCsounds[csound].begin(),
-		    kidoutletVectorsForCsounds[csound].end(),
-		    sourceOutlets) == kidoutletVectorsForCsounds[csound].end()) {
-	sourceOutlets = new std::vector< std::vector<Outletkid *> *>;
-	kidoutletVectorsForCsounds[csound].push_back(sourceOutlets);
+                    kidoutletVectorsForCsounds[csound].end(),
+                    sourceOutlets) == kidoutletVectorsForCsounds[csound].end()) {
+        sourceOutlets = new std::vector< std::vector<Outletkid *> *>;
+        kidoutletVectorsForCsounds[csound].push_back(sourceOutlets);
       }
       sinkInletId[0] = 0;
       instanceId = csound->strarg2name(csound,
@@ -712,25 +712,25 @@ struct Inletkid : public OpcodeBase<Inletkid> {
                    (int) csound->GetInputArgSMask(this));
       const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
       if (insname) {
-	std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
       } else {
-	std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
       }
       std::vector<Inletkid *> &kinlets = kidinletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
-	kinlets.push_back(this);
-	warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+        kinlets.push_back(this);
+        warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
       }
       // Find source outlets connecting to this.
       // Any number of sources may connect to any number of sinks.
       std::vector<std::string> &sourceOutletIds = connectionsForCsounds[csound][sinkInletId];
       for (size_t i = 0, n = sourceOutletIds.size(); i < n; i++) {
-	const std::string &sourceOutletId = sourceOutletIds[i];
-	std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-	if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets) == sourceOutlets->end()) {
-	  sourceOutlets->push_back(&koutlets);
-	  warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
-	}
+        const std::string &sourceOutletId = sourceOutletIds[i];
+        std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
+        if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets) == sourceOutlets->end()) {
+          sourceOutlets->push_back(&koutlets);
+          warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
+        }
       }
     }
     return OK;
@@ -745,21 +745,21 @@ struct Inletkid : public OpcodeBase<Inletkid> {
       *ksignal = FL(0.0);
       // Loop over the source connections...
       for (size_t sourceI = 0, sourceN = sourceOutlets->size();
-	   sourceI < sourceN;
-	   sourceI++) {
-	// Loop over the source connection instances...
-	const std::vector<Outletkid *> *instances = sourceOutlets->at(sourceI);
-	for (size_t instanceI = 0, instanceN = instances->size();
-	     instanceI < instanceN;
-	     instanceI++) {
-	  const Outletkid *sourceOutlet = instances->at(instanceI);
-	  // Skip inactive instances and also all non-matching instances.
-	  if (sourceOutlet->h.insdshead->actflg) {
+           sourceI < sourceN;
+           sourceI++) {
+        // Loop over the source connection instances...
+        const std::vector<Outletkid *> *instances = sourceOutlets->at(sourceI);
+        for (size_t instanceI = 0, instanceN = instances->size();
+             instanceI < instanceN;
+             instanceI++) {
+          const Outletkid *sourceOutlet = instances->at(instanceI);
+          // Skip inactive instances and also all non-matching instances.
+          if (sourceOutlet->h.insdshead->actflg) {
         if (std::strcmp(sourceOutlet->instanceId, instanceId) == 0) {
-	    *ksignal += *sourceOutlet->ksignal;
+            *ksignal += *sourceOutlet->ksignal;
         }
-	  }
-	}
+          }
+        }
       }
     }
     return OK;
@@ -778,27 +778,27 @@ struct Connect : public OpcodeBase<Connect> {
 #pragma omp critical (cs_sfg_ports)
     {
       std::string sourceOutletId = csound->strarg2name(csound,
-						       (char *) 0,
-						       Source,
-						       (char *)"",
-						       (int) csound->GetInputArgSMask(this));
+                                                       (char *) 0,
+                                                       Source,
+                                                       (char *)"",
+                                                       (int) csound->GetInputArgSMask(this));
       sourceOutletId += ":";
       sourceOutletId += csound->strarg2name(csound,
-					    (char *) 0,
-					    Soutlet,
-					    (char *)"",
-					    (int) csound->GetInputArgSMask(this));
+                                            (char *) 0,
+                                            Soutlet,
+                                            (char *)"",
+                                            (int) csound->GetInputArgSMask(this));
       std::string sinkInletId = csound->strarg2name(csound,
-						    (char *) 0,
-						    Sink,
-						    (char *)"",
-						    (int) csound->GetInputArgSMask(this));
+                                                    (char *) 0,
+                                                    Sink,
+                                                    (char *)"",
+                                                    (int) csound->GetInputArgSMask(this));
       sinkInletId += ":";
       sinkInletId += csound->strarg2name(csound,
-					 (char *) 0,
-					 Sinlet,
-					 (char *)"",
-					 (int) csound->GetInputArgSMask(this));
+                                         (char *) 0,
+                                         Sinlet,
+                                         (char *)"",
+                                         (int) csound->GetInputArgSMask(this));
       warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
       connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
     }
@@ -818,10 +818,10 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
   EVTBLK evtblk;
   int init(CSOUND *csound) {
     std::string source = csound->strarg2name(csound,
-					     (char *) 0,
-					     Sinstrument,
-					     (char *)"",
-					     (int) csound->GetInputArgSMask(this));
+                                             (char *) 0,
+                                             Sinstrument,
+                                             (char *)"",
+                                             (int) csound->GetInputArgSMask(this));
     evtblk.opcod = 'i';
     evtblk.strarg = 0;
     evtblk.p[0] = FL(0.0);
@@ -878,55 +878,55 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
       evtblk.p[4] = *p4;
       int n = 0;
       if (csound->GetInputArgSMask(this)) {
-	n = (int) evtblk.p[4];
-	evtblk.p[5] = SSTRCOD;
-	if (n < 0) {
-	  n = -n;
-	}
-	// Only GEN 1, 23, 28, or 43 can take strings.
-	switch (n) {
-	case 1:
-	case 23:
-	case 28:
-	case 43:
-	  evtblk.strarg = (char *)p5;
-	  break;
-	default:
-	  result = csound->InitError(csound, Str("ftgen string arg not allowed"));
-	}
+        n = (int) evtblk.p[4];
+        evtblk.p[5] = SSTRCOD;
+        if (n < 0) {
+          n = -n;
+        }
+        // Only GEN 1, 23, 28, or 43 can take strings.
+        switch (n) {
+        case 1:
+        case 23:
+        case 28:
+        case 43:
+          evtblk.strarg = (char *)p5;
+          break;
+        default:
+          result = csound->InitError(csound, Str("ftgen string arg not allowed"));
+        }
       } else {
-	evtblk.p[5] = *p5;
+        evtblk.p[5] = *p5;
       }
       if (result == OK) {
-	evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
-	n = evtblk.pcnt - 5;
-	if (n > 0) {
-	  MYFLT **argp = argums;
-	  MYFLT *fp = &evtblk.p[0] + 6;
-	  do {
-	    *fp++ = **argp++;
-	  } while (--n);
-	}
-	// If the arguments have not been used before for this instance of Csound,
-	// create a new function table and store the arguments and table number;
-	// otherwise, look up and return the already created function table's number.
-	if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
-	  *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
-	  warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
-	  // std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
-	} else {
-	  FUNC *func = 0;
-	  n = csound->hfgens(csound, &func, &evtblk, 1);
-	  if (UNLIKELY(n != 0)) {
-	    result = csound->InitError(csound, Str("ftgenonce error"));
-	  }
-	  if (func) {
-	    functionTablesForCsoundsForEvtblks[csound][eventBlock] = func->fno;
-	    *ifno = (MYFLT) func->fno;
-	    warn(csound, "ftgenonce: created new func: %d\n", func->fno);
-	    // std::cerr << "ftgenonce: created new func:" << evtblk << std::endl;
-	  }
-	}
+        evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
+        n = evtblk.pcnt - 5;
+        if (n > 0) {
+          MYFLT **argp = argums;
+          MYFLT *fp = &evtblk.p[0] + 6;
+          do {
+            *fp++ = **argp++;
+          } while (--n);
+        }
+        // If the arguments have not been used before for this instance of Csound,
+        // create a new function table and store the arguments and table number;
+        // otherwise, look up and return the already created function table's number.
+        if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
+          *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
+          warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
+          // std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
+        } else {
+          FUNC *func = 0;
+          n = csound->hfgens(csound, &func, &evtblk, 1);
+          if (UNLIKELY(n != 0)) {
+            result = csound->InitError(csound, Str("ftgenonce error"));
+          }
+          if (func) {
+            functionTablesForCsoundsForEvtblks[csound][eventBlock] = func->fno;
+            *ifno = (MYFLT) func->fno;
+            warn(csound, "ftgenonce: created new func: %d\n", func->fno);
+            // std::cerr << "ftgenonce: created new func:" << evtblk << std::endl;
+          }
+        }
       }
     }
     return OK;
@@ -949,7 +949,7 @@ extern "C"
     {
       (char *)"outleta",
       sizeof(Outleta),
-      5,
+      CW|5,
       (char *)"",
       (char *)"Sa",
       (SUBR)&Outleta::init_,
@@ -959,7 +959,7 @@ extern "C"
     {
       (char *)"inleta",
       sizeof(Inleta),
-      5,
+      CR|5,
       (char *)"a",
       (char *)"S",
       (SUBR)&Inleta::init_,
@@ -969,7 +969,7 @@ extern "C"
     {
       (char *)"outletk",
       sizeof(Outletk),
-      3,
+      CW|3,
       (char *)"",
       (char *)"Sk",
       (SUBR)&Outletk::init_,
@@ -979,7 +979,7 @@ extern "C"
     {
       (char *)"inletk",
       sizeof(Inletk),
-      3,
+      CR|3,
       (char *)"k",
       (char *)"S",
       (SUBR)&Inletk::init_,
@@ -989,7 +989,7 @@ extern "C"
     {
       (char *)"outletkid",
       sizeof(Outletkid),
-      3,
+      CW|3,
       (char *)"",
       (char *)"SSk",
       (SUBR)&Outletk::init_,
@@ -999,7 +999,7 @@ extern "C"
     {
       (char *)"inletkid",
       sizeof(Inletkid),
-      3,
+      CR|3,
       (char *)"k",
       (char *)"SS",
       (SUBR)&Inletk::init_,
@@ -1009,7 +1009,7 @@ extern "C"
     {
       (char *)"outletf",
       sizeof(Outletf),
-      5,
+      CW|5,
       (char *)"",
       (char *)"Sf",
       (SUBR)&Outletf::init_,
@@ -1019,7 +1019,7 @@ extern "C"
     {
       (char *)"inletf",
       sizeof(Inletf),
-      5,
+      CR|5,
       (char *)"f",
       (char *)"S",
       (SUBR)&Inletf::init_,
@@ -1049,7 +1049,7 @@ extern "C"
     {
       (char *)"ftgenonce",
       sizeof(FtGenOnce),
-      1,
+      TW|1,
       (char *)"i",
       (char *)"iiiiTm",
       (SUBR)&FtGenOnce::init_,
@@ -1070,14 +1070,14 @@ extern "C"
     int  err = 0;
     while (ep->opname != 0) {
       err |= csound->AppendOpcode(csound,
-				  ep->opname,
-				  ep->dsblksiz,
-				  ep->thread,
-				  ep->outypes,
-				  ep->intypes,
-				  (int (*)(CSOUND *, void*)) ep->iopadr,
-				  (int (*)(CSOUND *, void*)) ep->kopadr,
-				  (int (*)(CSOUND *, void*)) ep->aopadr);
+                                  ep->opname,
+                                  ep->dsblksiz,
+                                  ep->thread,
+                                  ep->outypes,
+                                  ep->intypes,
+                                  (int (*)(CSOUND *, void*)) ep->iopadr,
+                                  (int (*)(CSOUND *, void*)) ep->kopadr,
+                                  (int (*)(CSOUND *, void*)) ep->aopadr);
       ep++;
     }
     return err;
@@ -1091,19 +1091,19 @@ extern "C"
       aoutletsForCsoundsForSourceOutletIds[csound].clear();
       ainletsForCsoundsForSinkInletIds[csound].clear();
       for (size_t i = 0, n = aoutletVectorsForCsounds[csound].size(); i < n; i++) {
-	delete aoutletVectorsForCsounds[csound][i];
+        delete aoutletVectorsForCsounds[csound][i];
       }
       aoutletVectorsForCsounds[csound].clear();
       koutletsForCsoundsForSourceOutletIds[csound].clear();
       kinletsForCsoundsForSinkInletIds[csound].clear();
       for (size_t i = 0, n = koutletVectorsForCsounds[csound].size(); i < n; i++) {
-	delete koutletVectorsForCsounds[csound][i];
+        delete koutletVectorsForCsounds[csound][i];
       }
       koutletVectorsForCsounds[csound].clear();
       foutletsForCsoundsForSourceOutletIds[csound].clear();
       finletsForCsoundsForSinkInletIds[csound].clear();
       for (size_t i = 0, n = foutletVectorsForCsounds[csound].size(); i < n; i++) {
-	delete foutletVectorsForCsounds[csound][i];
+        delete foutletVectorsForCsounds[csound][i];
       }
       foutletVectorsForCsounds[csound].clear();
       connectionsForCsounds[csound].clear();

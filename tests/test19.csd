@@ -35,14 +35,6 @@ aout	vco2 kenv, kfreq
 </CsInstruments>
 
 <CsScore>
-
-
-
-
-
-
-
-
 i1	0.0	2 440 0
 i1  + . 440 1
 i1  + . 440 2

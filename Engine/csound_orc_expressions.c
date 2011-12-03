@@ -284,7 +284,7 @@ static int is_boolean_expression_node(TREE *node)
 static TREE *create_cond_expression(CSOUND *csound, TREE *root)
 {
     char *op = (char*)mmalloc(csound, 4), arg1, arg2, *outarg = NULL;
-    char outype, *s;
+    char outype;
     TREE *anchor = create_boolean_expression(csound, root->left), *last;
     TREE * opTree;
     TREE *b= create_ans_token(csound, anchor->left->value->lexeme);;
@@ -418,13 +418,13 @@ TREE * create_expression(CSOUND *csound, TREE *root)
     case S_POW:
       { int outype = 'i';
         strncpy(op, "pow.", 80);
-        if (arg1 == 'a') {
+        if (arg1 == 'a' || arg2 == 'a') {
           strncat(op, "a", 80);
-          outype = arg1;
+          outype = (arg1 == 'k' ? arg1 : arg2);
         }
-        else if (arg1 == 'k') {
+        else if (arg1 == 'k' || arg2 == 'k') {
           strncat(op, "k", 80);
-          outype = arg1;
+          outype = (arg1 == 'k' ? arg1 : arg2);
         }
         else
           strncat(op, "i", 80);
@@ -432,7 +432,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       }
       break;
     case S_TABREF:
-      strncpy(op, "tabref", 80);
+      strncpy(op, "##tabref", 80);
       if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found TABREF: %s\n", op);
       outarg = create_out_arg(csound, 'k');
       break;
@@ -607,8 +607,10 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
                       argtyp2(csound, root->right->value->lexeme));
 
     outarg = get_boolean_arg(csound,
-                             argtyp2(csound, root->left->value->lexeme)=='k' ||
-                             argtyp2(csound, root->right->value->lexeme)=='k');
+                             argtyp2(csound, root->left->value->lexeme) =='k' ||
+                             argtyp2(csound, root->right->value->lexeme)=='k' ||
+                             argtyp2(csound, root->left->value->lexeme) =='B' ||
+                             argtyp2(csound, root->right->value->lexeme)=='B');
 
     opTree = create_opcode_token(csound, op);
     opTree->right = root->left;
@@ -872,20 +874,20 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found UNTIL statement\n");
         {
-          TREE * left = current->left;
-          TREE * right = current->right;
-          TREE* last;
+          //TREE * left = current->left;
+          //TREE * right = current->right;
+          //TREE* last;
           TREE * gotoToken;
 
           int32 topLabelCounter = genlabs++;
           int32 endLabelCounter = genlabs++;
           TREE *tempLeft = current->left;
           TREE *tempRight = current->right;
-          TREE *ifBlockStart = current;
+          //TREE *ifBlockStart = current;
           TREE *ifBlockCurrent = current;
           TREE *ifBlockLast = current;
-          TREE *next = current->next;
-          TREE *statements, *label, *labelEnd;
+          //TREE *next = current->next;
+          TREE *statements, *labelEnd;
           int type;
           /* *** Stage 1: Create a top label (overwriting *** */
           {                           /* Change UNTIL to label and add IF */
@@ -908,7 +910,6 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           ifBlockLast = ifBlockLast->next;
           /* *** Stage 3: Create the goto *** */
           statements = tempRight;     /* the body of the loop */
-          label    = create_synthetic_ident(csound, topLabelCounter);
           labelEnd = create_synthetic_label(csound, endLabelCounter);
           gotoToken =
             create_goto_token(csound,
@@ -943,6 +944,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           ifBlockLast = labelEnd;
           ifBlockCurrent = tempRight->next;
         }
+        break;
+      case T_LABEL:
         break;
       default:
         { /* This is WRONG in optional argsq */

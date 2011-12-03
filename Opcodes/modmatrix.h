@@ -17,7 +17,9 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "csdl.h"
+//#include "csdl.h"
+#include "interlocks.h"
+#include "csoundCore.h"
 
 typedef struct {
     OPDS h;
@@ -34,7 +36,7 @@ typedef struct {
     int nummod, numparm;
     /* Variables for the preprocessed matrix */
     int doscan, scanned;
-	AUXCH aux;
+        AUXCH aux;
     MYFLT *proc_mat;
     int *mod_map, *parm_map;
     MYFLT *remap_mod, *remap_parm;

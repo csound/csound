@@ -1,6 +1,7 @@
 #include "OpcodeBase.hpp"
 #include <map>
 #include <vector>
+#include "interlocks.h"
 
 // Define ENABLE_MIXER_IDEBUG to enable i-rate debug messages.
 //#define ENABLE_MIXER_IDEBUG
@@ -305,7 +306,7 @@ extern "C"
     {
       (char*)"MixerSetLevel",
       sizeof(MixerSetLevel),
-      3,
+      CW|3,
       (char*)"",
       (char*)"iik",
       (SUBR)&MixerSetLevel::init_,
@@ -315,7 +316,7 @@ extern "C"
     {
       (char*)"MixerSetLevel_i",
       sizeof(MixerSetLevel),
-      1,
+      CW|1,
       (char*)"",
       (char*)"iii",
       (SUBR)&MixerSetLevel::init_,
@@ -325,7 +326,7 @@ extern "C"
     {
       (char*)"MixerGetLevel",
       sizeof(MixerGetLevel),
-      3,
+      CR|3,
       (char*)"k",
       (char*)"ii",
       (SUBR)&MixerGetLevel::init_,
@@ -335,7 +336,7 @@ extern "C"
     {
       (char*)"MixerSend",
       sizeof(MixerSend),
-      5,
+      CR|5,
       (char*)"",
       (char*)"aiii",
       (SUBR)&MixerSend::init_,
@@ -345,7 +346,7 @@ extern "C"
     {
       (char*)"MixerReceive",
       sizeof(MixerReceive),
-      5,
+      CW|5,
       (char*)"a",
       (char*)"ii",
       (SUBR)&MixerReceive::init_,

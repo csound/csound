@@ -39,7 +39,8 @@
 /*  Technology Licensing, Stanford U.       */
 /********************************************/
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
 #include "mandolin.h"
 
 static inline int infoTick(MANDOL *p)

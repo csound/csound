@@ -24,13 +24,6 @@ aout	vco2 kenv, ifreq
 
 <CsScore>
 
-
-
-
-
-
-
-
 i1	0.0	2 440
 e
 

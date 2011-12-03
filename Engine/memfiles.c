@@ -28,6 +28,7 @@
 #include "pstream.h"
 #include "namedins.h"
 #include <sndfile.h>
+#include <string.h>
 
 static int Load_File_(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int csFileType)

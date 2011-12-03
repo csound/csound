@@ -1,0 +1,6 @@
+#!/bin/sh
+#/usr/local/bin/Reza -i APPL -o /usr/local/bin/csound /usr/local/bin/cs5.r
+#/usr/local/bin/Reza -i APPL -o /usr/local/bin/cswish /usr/local/bin/cs5.r
+/bin/ln -sF /Library/Frameworks/CsoundLib.framework/Versions/Current/TclTk/tclcsound.dylib /usr/local/lib/tclcsound.dylib
+/bin/ln -sF /Library/Frameworks/CsoundLib.framework/Versions/Current/libcsnd.dylib /usr/local/lib/lib_csnd.dylib
+/bin/ln -sF /Library/Frameworks/CsoundLib.framework/Versions/Current/libcsnd.dylib /usr/local/lib/libcsnd.dylib

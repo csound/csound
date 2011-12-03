@@ -494,14 +494,14 @@ static int ftsave_k(CSOUND *csound, FTLOAD_K *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "ftgen",    S(FTGEN),     1,  "i",  "iiiTTm", (SUBR) ftgen, NULL, NULL    },
-  { "ftgentmp", S(FTGEN),     1,  "i",  "iiiiTm", (SUBR) ftgentmp, NULL, NULL },
-  { "ftfree",   S(FTFREE),    1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },
-  { "ftsave",   S(FTLOAD),    1,  "",   "Tim",    (SUBR) ftsave, NULL, NULL   },
-  { "ftload",   S(FTLOAD),    1,  "",   "Tim",    (SUBR) ftload, NULL, NULL   },
-  { "ftsavek",  S(FTLOAD_K),  3,  "",   "Tkim",   (SUBR) ftsave_k_set,
+  { "ftgen",    S(FTGEN),     TW|1,  "i",  "iiiTTm", (SUBR) ftgen, NULL, NULL    },
+  { "ftgentmp", S(FTGEN),     TW|1,  "i",  "iiiiTm", (SUBR) ftgentmp, NULL, NULL },
+  { "ftfree",   S(FTFREE),    TW|1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },
+  { "ftsave",   S(FTLOAD),    TR|1,  "",   "Tim",    (SUBR) ftsave, NULL, NULL   },
+  { "ftload",   S(FTLOAD),    TR|1,  "",   "Tim",    (SUBR) ftload, NULL, NULL   },
+  { "ftsavek",  S(FTLOAD_K),  TW|3,  "",   "Tkim",   (SUBR) ftsave_k_set,
                                                   (SUBR) ftsave_k, NULL       },
-  { "ftloadk",  S(FTLOAD_K),  3,  "",   "Tkim",   (SUBR) ftsave_k_set,
+  { "ftloadk",  S(FTLOAD_K),  TW|3,  "",   "Tkim",   (SUBR) ftsave_k_set,
                                                   (SUBR) ftload_k, NULL       }
 };
 

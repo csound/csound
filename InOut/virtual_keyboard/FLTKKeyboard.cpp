@@ -27,10 +27,11 @@
 #include <FL/fl_draw.H>
 #include "FLTKKeyboard.hpp"
 
-FLTKKeyboard::FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const char *L)
+FLTKKeyboard::FLTKKeyboard(CSOUND *csound, SliderBank *sliderBank, int X, int Y, int W, int H, const char *L)
   : Fl_Widget(X, Y, W, H, L) {
 
     this->csound = csound;
+    this->sliderBank = sliderBank;
     this->mutex = csound->Create_Mutex(0);
 
     FLTKKeyboard *o = this;
@@ -202,6 +203,51 @@ int FLTKKeyboard::getMIDIKey(int xVal, int yVal) {
 
 }
 
+void FLTKKeyboard::handleControl(int key) {
+    int index;
+
+    switch(key) {
+    case '1':
+      index = 0;
+      break;
+    case '2':
+      index = 1;
+      break;
+    case '3':
+      index = 2;
+      break;
+    case '4':
+      index = 3;
+      break;
+    case '5':
+      index = 4;
+      break;
+    case '6':
+      index = 5;
+      break;
+    case '7':
+      index = 6;
+      break;
+    case '8':
+      index = 7;
+      break;
+    case '9':
+      index = 8;
+      break;
+    case '0':
+      index = 9;
+      break;
+    default:
+      return;
+    }
+    if(Fl::event_shift()) {
+      sliderBank->incrementSlider(index, -1);
+    } else {
+      sliderBank->incrementSlider(index, 1);
+    }
+    return;
+}
+
 void FLTKKeyboard::handleKey(int key, int value) {
     int index = -1;
 
@@ -295,6 +341,10 @@ void FLTKKeyboard::handleKey(int key, int value) {
       break;
     default:
       return;
+    }
+
+    if(Fl::event_shift()) {
+      index += 29;
     }
 
     if(index < 0) {
@@ -394,7 +444,11 @@ int FLTKKeyboard::handle(int event) {
           return 1;
     case FL_KEYDOWN:
       //csound->Message(csound, "Key Down: Code: %d\n", Fl::event_key());
-      handleKey(Fl::event_key(), 1);
+      if(Fl::event_ctrl() && sliderBank != NULL) {
+        handleControl(Fl::event_key());
+      } else {
+        handleKey(Fl::event_key(), 1);
+      }
       Fl::focus(this);
       this->redraw();
       return 1;

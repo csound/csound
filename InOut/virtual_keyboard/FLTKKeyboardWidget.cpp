@@ -69,11 +69,24 @@ static void programChange(Fl_Widget *widget, void * v) {
     win->unlock();
 }
 
+static void octaveChange(Fl_Widget *widget, void * v) {
+    Fl_Choice *choice = (Fl_Choice *)widget;
+    FLTKKeyboardWidget *win = (FLTKKeyboardWidget *)v;
+
+    win->lock();
+
+    win->keyboard->octave = (int)choice->value() + 1;
+
+    win->unlock();
+}
+
 FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
           const char *deviceMap,
           int X, int Y, int w, int h)
     : Fl_Group(X, Y, w, h)
 {
+    char octave[2];
+    octave[1] = 0;
 
     this->csound = csound;
     this->mutex = csound->Create_Mutex(0);
@@ -89,13 +102,15 @@ FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
     int row2 = row1 + 20;
     int row3 = row2 + 20;
 
-    int x1 = (int)(baseX + ((60 / 624.0) * w));
-    int x2 = (int)(baseX + ((180 / 624.0) * w));
-    int x3 = (int)(baseX + ((420 / 624.0) * w));
+    int x1 = (int)(baseX + ((60 / 754.0) * w));
+    int x2 = (int)(baseX + ((180 / 754.0) * w));
+    int x3 = (int)(baseX + ((420 / 754.0) * w));
+    int x4 = (int)(baseX + ((670 / 754.0) * w));
 
-    int w1 = (int)((80 / 624.0) * w);
-    int w2 = (int)((180 / 624.0) * w);
-    int w3 = (int)((200 / 624.0) * w);
+    int w1 = (int)((80 / 754.0) * w);
+    int w2 = (int)((180 / 754.0) * w);
+    int w3 = (int)((200 / 754.0) * w);
+    int w4 = (int)((80 / 754.0) * w);
 
 
     //624, 120
@@ -107,6 +122,7 @@ FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
 
     this->bankChoice = new Fl_Choice(x2, row1, w2, 20, "Bank");
     this->programChoice = new Fl_Choice(x3, row1, w3, 20, "Program");
+    this->octaveChoice = new Fl_Choice(x4, row1, w4, 20, "Octave");
 
     bankChoice->clear();
 
@@ -118,14 +134,23 @@ FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
 
     setProgramNames();
 
+    octaveChoice->clear();
+ 
+    for(unsigned int i = 1; i < 8; i++) {
+            octave[0] = i + 48;
+            octaveChoice->add(octave);
+    }
+ 
+    octaveChoice->value(4);
+
     this->bankChoice->callback((Fl_Callback*)bankChange, this);
     this->programChoice->callback((Fl_Callback*)programChange, this);
-
+    this->octaveChoice->callback((Fl_Callback*)octaveChange, this);
 
     this->allNotesOffButton = new Fl_Button(baseX, row2, w, 20, "All Notes Off");
     this->allNotesOffButton->callback((Fl_Callback*) allNotesOff, this);
 
-    this->keyboard = new FLTKKeyboard(csound, baseX, row3, w, h - 40, "Keyboard");
+    this->keyboard = new FLTKKeyboard(csound, NULL, baseX, row3, w, h - 40, "Keyboard");
 
     this->end();
 

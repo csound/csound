@@ -23,7 +23,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"       /*                              PITCH.C         */
+// #include "csdl.h"
+#include "csoundCore.h"       /*                              PITCH.C         */
 #include <math.h>
 #include <limits.h>
 #include "cwindow.h"
@@ -1693,6 +1694,7 @@ int impulse(CSOUND *csound, IMPULSE *p)
     int n, nsmps = csound->ksmps;
     int next = p->next;
     MYFLT *ar = p->ar;
+    if (next<0) next = -next;
     if (UNLIKELY(next < csound->ksmps)) {          /* Impulse in this frame */
       MYFLT frq = *p->freq;     /* Freq at k-rate */
       int sfreq;                /* Converted to samples */

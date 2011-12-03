@@ -19,7 +19,9 @@
  * a new pulse should start, and that pulseinc can be negative.
  */
 
-#include "csdl.h"
+//#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 #include <limits.h>
 
@@ -164,9 +166,9 @@ int vosim(CSOUND* csound, VOSIM *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "vosim", S(VOSIM), 5, "a", "kkkkkkio", (SUBR)vosimset, NULL, (SUBR)vosim }
+static OENTRY vosim_localops[] = {
+  { "vosim", S(VOSIM), TR|5, "a", "kkkkkkio", (SUBR)vosimset, NULL, (SUBR)vosim }
 };
 
 
-LINKAGE
+LINKAGE1(vosim_localops)

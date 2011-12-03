@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include "pstream.h"
 
 typedef struct CsoundArgStack_s CsoundArgStack_t;
@@ -120,33 +121,25 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
 
 static CS_NOINLINE int csoundStack_OverflowError(void *p)
 {
-    CSOUND  *csound;
-
-    csound = ((OPDS*) p)->insdshead->csound;
+    /* CSOUND  *csound= ((OPDS*) p)->insdshead->csound; */
     return csoundStack_Error(p, Str("stack overflow"));
 }
 
 static CS_NOINLINE int csoundStack_EmptyError(void *p)
 {
-    CSOUND  *csound;
-
-    csound = ((OPDS*) p)->insdshead->csound;
+    /* CSOUND  *csound((OPDS*) p)->insdshead->csound; */
     return csoundStack_Error(p, Str("cannot pop from empty stack"));
 }
 
 static CS_NOINLINE int csoundStack_TypeError(void *p)
 {
-    CSOUND  *csound;
-
-    csound = ((OPDS*) p)->insdshead->csound;
+    /* CSOUND  *csound = ((OPDS*) p)->insdshead->csound; */
     return csoundStack_Error(p, Str("argument number or type mismatch"));
 }
 
 static CS_NOINLINE int csoundStack_LengthError(void *p)
 {
-    CSOUND  *csound;
-
-    csound = ((OPDS*) p)->insdshead->csound;
+    /* CSOUND  *csound = ((OPDS*) p)->insdshead->csound; */
     return csoundStack_Error(p, Str("string argument is too long"));
 }
 
@@ -641,21 +634,21 @@ static int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 
  /* ------------------------------------------------------------------------ */
 
-static OENTRY localops[] = {
-  { "stack",  sizeof(STACK_OPCODE), 1,  "",                                "i",
+static OENTRY stackops_localops[] = {
+  { "stack",  sizeof(STACK_OPCODE), SB|1,  "",                                "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
-  { "push",   sizeof(PUSH_OPCODE),  3,  "",                                "N",
+  { "push",   sizeof(PUSH_OPCODE),  SB|3,  "",                                "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "pop",    sizeof(POP_OPCODE),   3,  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+  { "pop",    sizeof(POP_OPCODE),   SB|3,  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
       (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "push_f", sizeof(PUSH_OPCODE),  3,  "",                                "f",
+  { "push_f", sizeof(PUSH_OPCODE),  SB|3,  "",                                "f",
       (SUBR) push_f_opcode_init, (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
-  { "pop_f",  sizeof(POP_OPCODE),   3,  "f",                               "",
+  { "pop_f",  sizeof(POP_OPCODE),   SB|3,  "f",                               "",
       (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
   /* ----------------------------------------------------------------------- */
   { "monitor",  sizeof(MONITOR_OPCODE), 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL }
 };
 
-LINKAGE
+LINKAGE1(stackops_localops)
 

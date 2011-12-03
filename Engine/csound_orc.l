@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "csoundCore.h"
 #define YYSTYPE TREE*
 #define YYLTYPE ORCTOKEN*
@@ -37,7 +38,8 @@
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
-extern ORCTOKEN *lookup_token(CSOUND *csound, char *, void *);
+extern ORCTOKEN *lookup_token(CSOUND *, char *, void *);
+extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 ORCTOKEN *new_token(CSOUND *csound, int type);
 ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
@@ -49,6 +51,8 @@ void do_include(CSOUND *, int, yyscan_t);
 void do_macro_arg(CSOUND *, char *, yyscan_t);
 void do_macro(CSOUND *, char *, yyscan_t);
 void do_umacro(CSOUND *, char *, yyscan_t);
+void do_ifdef(CSOUND *, char *, yyscan_t);
+void do_ifdef_skip_code(CSOUND *, yyscan_t);
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 //extern int udoflag;
@@ -86,12 +90,15 @@ MACRONAMEA      "$"[a-zA-Z0-9_]+\(
 MACRONAMEDA     "$"[a-zA-Z0-9_]+\.\(
 INTGR           [0-9]+
 NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
-STCOM           "/"\*
+STCOM           \/\*
 WHITE           [ \t]+
 OPTWHITE        [ \t]*
 INCLUDE         "#include"
 DEFINE          "#define"
 UNDEF           "#undef"
+IFDEF           #ifn?def
+ELSE            #else[ \t]*(;.*)?$
+END             #end(if)?[ \t]*(;.*)?\n
 CONT            \\[[ \t]*\n
 XSTR            "{{"
 EXSTR           "}}"
@@ -99,6 +106,7 @@ EXSTR           "}}"
 %x incl
 %x macro
 %x umacro
+%x ifdef
 %x xstr
 
 %%
@@ -186,8 +194,14 @@ EXSTR           "}}"
                   return T_INSTR;
                 }
 "endin"         { return T_ENDIN; }
-"opcode"        { return T_UDOSTART; }
-"endop"         { *lvalp = new_token(csound, T_UDOEND); return T_UDOEND; }
+"opcode"        {
+                  PARM->clearBufferAfterEOF = 0;
+                  return T_UDOSTART;
+                }
+"endop"         {
+                  PARM->clearBufferAfterEOF = PARM->isInclude;
+                  *lvalp = new_token(csound, T_UDOEND); return T_UDOEND;
+                }
 
 {LABEL}         { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
@@ -300,7 +314,7 @@ EXSTR           "}}"
                   /* printf("%p\n", YY_CURRENT_BUFFER); */
                 }
 {MACRONAMEA}    {
-                  MACRO     *mm = PARM->macros, *last = PARM->macros;
+                  MACRO     *mm = PARM->macros;
                   int c, i, j;
                   printf("Macro with arguments call %s\n", yytext);
                   yytext[yyleng-1] = '\0';
@@ -353,7 +367,7 @@ EXSTR           "}}"
                   yy_scan_string(mm->body, yyscanner);
                 }
 {MACRONAMEDA}    {
-                  MACRO     *mm = PARM->macros, *last = PARM->macros;
+                  MACRO     *mm = PARM->macros;
                   int c, i, j;
                   printf("Macro with arguments call %s\n", yytext);
                   yytext[yyleng-2] = '\0';
@@ -405,9 +419,9 @@ EXSTR           "}}"
                   yy_scan_string(mm->body, yyscanner);
                 }
 {INTGR}         {
-                    if(udoflag == 0) {
+                    if (udoflag == 0) {
                         *lvalp = lookup_token(csound, yytext, yyscanner);
-                    } else if(udoflag == 1) {
+                    } else if (udoflag == 1) {
                         *lvalp = lookup_token(csound, yytext, yyscanner);
                         (*lvalp)->type = T_UDO_ARGS;
                     } else {
@@ -432,6 +446,10 @@ EXSTR           "}}"
                   yypop_buffer_state(yyscanner);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   printf("End of input; popping to %p\n", YY_CURRENT_BUFFER);
+                  if (PARM->clearBufferAfterEOF)
+                    PARM->lBuffer =
+                      PARM->clearBufferAfterEOF =
+                      PARM->isInclude = 0;
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   printf("n=%d\n", n);
                   if (n!=0) {
@@ -446,10 +464,10 @@ EXSTR           "}}"
                       PARM->macros = x;
                     }
                     else {
-                      MACRO *nxt;
+                      MACRO *nxt = y->next;
                       while (x->next != y) x = x->next;
                       while (n>0) {
-                        MACRO *nxt = y->next;
+                        nxt = y->next;
                         mfree(csound, y->name); mfree(csound, y); y=nxt; n--;
                       }
                       x->next = nxt;
@@ -485,6 +503,36 @@ EXSTR           "}}"
                                  csound_orcget_lineno(yyscanner),
                                  yytext[0],yytext[0]);
                 }
+{IFDEF}         {
+                  PARM->isIfndef = (yytext[3] == 'n');  /* #ifdef or #ifndef */
+                  BEGIN(ifdef);
+                }
+<ifdef>[ \t]*     /* eat the whitespace */
+<ifdef>{IDENT}  {
+                  do_ifdef(csound, yytext, yyscanner);
+                  BEGIN(INITIAL);
+                }
+{ELSE}          { 
+                  if (PARM->ifdefStack == NULL) {
+                    csound->Message(csound, Str("#else without #if\n"));
+                    csound->LongJmp(csound, 1); 
+                  }
+                  else if (PARM->ifdefStack->isElse) {
+                    csound->Message(csound, Str("#else after #else\n"));
+                    csound->LongJmp(csound, 1);
+                  }
+                  PARM->ifdefStack->isElse = 1;
+                  do_ifdef_skip_code(csound, yyscanner);
+                }
+{END}           {
+                  IFDEFSTACK *pp = PARM->ifdefStack;
+                  if (UNLIKELY(pp == NULL)) {
+                    csound->Message(csound, Str("Unmatched #end\n"));
+                    csound->LongJmp(csound, 1);
+                  }
+                  PARM->ifdefStack = pp->prv;
+                  mfree(csound, pp);
+                }
 
 
 %%
@@ -500,10 +548,12 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
 {
     char c;
     for (;;) {
-      while ((c=input(yyscanner)) != '*')
-          if (UNLIKELY(c=='\n')) /* skip */
-            csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
-      if ((c=input(yyscanner))=='/') return;
+      c = input(yyscanner);
+      if (UNLIKELY(c=='\n')) /* skip */
+          csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+      if (c != '*') continue;
+      while ((c=input(yyscanner))=='*');
+      if (c=='/') return;
       if (UNLIKELY(c=='\n'))
         csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
     }
@@ -521,13 +571,14 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     buffer[p] = '\0';
     while ((c=input(yyscanner))!='\n');
-    yyin = fopen( buffer, "r" );
+    fopen_path(csound, &yyin, buffer, NULL, "INCDIR", 0);
     if (UNLIKELY( ! yyin )) {
       csound->Message(csound, Str("Cannot open file \"%s\"\n"), buffer);
       exit(1);
     }
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+    PARM->isInclude = PARM->clearBufferAfterEOF = 1;
     yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 }
 
@@ -595,7 +646,7 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
-    int   arg = 0, i, c;
+    int   i, c;
     int   size = 100;
     mm->margs = MARGS;    /* Initial size */
     //    printf("Macro definition for %s\n", name0);
@@ -652,6 +703,74 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
     while ((c=input(yyscanner)) != '\n' && c != EOF); /* ignore rest of line */
     csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+}
+
+void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
+{
+    int c;
+    MACRO *mm;
+    IFDEFSTACK *pp;
+    pp = (IFDEFSTACK*) mcalloc(csound, sizeof(IFDEFSTACK));
+    pp->prv = PARM->ifdefStack;
+    pp->isDef = PARM->isIfndef;
+    for (mm = PARM->macros; mm != NULL; mm = mm->next) {
+      if (strcmp(name0, mm->name) == 0) {
+        pp->isDef ^= (unsigned char) 1;
+        break;
+      }
+    }
+    PARM->ifdefStack = pp;
+    pp->isSkip = pp->isDef ^ (unsigned char) 1;
+    if (pp->isSkip)
+      do_ifdef_skip_code(csound, yyscanner);
+    else
+      while ((c = input(yyscanner)) != '\n' && c != EOF);
+}
+
+void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
+{
+    int i, c, nested_ifdef = 0;
+    char *buf;
+    IFDEFSTACK *pp;
+    buf = (char*)malloc(8*sizeof(char));
+    pp = PARM->ifdefStack;
+    c = input(yyscanner);
+    for (;;) {
+      while (c!='\n') {
+        if (UNLIKELY(c == EOF)) {
+          csound->Message(csound, Str("Unmatched #if%sdef\n"),
+                          PARM->isIfndef ? "n" : "");
+          csound->LongJmp(csound, 1);
+        }
+        c = input(yyscanner);
+      }
+      while (isblank(c = input(yyscanner)));  /* eat the whitespace */
+      if (c == '#') {
+        for (i=0; islower(c = input(yyscanner)) && i < 7; i++)
+          buf[i] = c;
+        buf[i] = '\0';
+        if (strcmp("end", buf) == 0 || strcmp("endif", buf) == 0) {
+          if (nested_ifdef-- == 0) {
+            PARM->ifdefStack = pp->prv;
+            mfree(csound, pp);
+            break;
+          }
+        }
+        else if (strcmp("ifdef", buf) == 0 || strcmp("ifndef", buf) == 0) {
+          nested_ifdef++;
+        }
+        else if (strcmp("else", buf) == 0 && nested_ifdef == 0) {
+          if (pp->isElse) {
+            csound->Message(csound, Str("#else after #else\n"));
+            csound->LongJmp(csound, 1);
+          }
+          pp->isElse = 1;
+          break;
+        }
+      }
+    }
+    free(buf);
+    while (c != '\n' && c != EOF) c = input(yyscanner);
 }
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
@@ -755,20 +874,20 @@ static void add_math_const_macro(CSOUND *csound, void* yyscanner,
 void cs_init_math_constants_macros(CSOUND *csound, void* yyscanner)
  {
      PARM->macros = NULL;
-     add_math_const_macro(csound, yyscanner, "E", "2.7182818284590452354");
-     add_math_const_macro(csound, yyscanner, "LOG2E", "1.4426950408889634074");
-     add_math_const_macro(csound, yyscanner, "LOG10E", "0.43429448190325182765");
-     add_math_const_macro(csound, yyscanner, "LN2", "0.69314718055994530942");
-     add_math_const_macro(csound, yyscanner, "LN10", "2.30258509299404568402");
-     add_math_const_macro(csound, yyscanner, "PI", "3.14159265358979323846");
-     add_math_const_macro(csound, yyscanner, "PI_2", "1.57079632679489661923");
-     add_math_const_macro(csound, yyscanner, "PI_4", "0.78539816339744830962");
-     add_math_const_macro(csound, yyscanner, "1_PI", "0.31830988618379067154");
-     add_math_const_macro(csound, yyscanner, "2_PI", "0.63661977236758134308");
-     add_math_const_macro(csound, yyscanner, "2_SQRTPI", "1.12837916709551257390");
+     add_math_const_macro(csound, yyscanner, "E",     "2.71828182845904523536");
+     add_math_const_macro(csound, yyscanner, "LOG2E", "1.44269504088896340736");
+     add_math_const_macro(csound, yyscanner, "LOG10E","0.43429448190325182765");
+     add_math_const_macro(csound, yyscanner, "LN2",   "0.69314718055994530942");
+     add_math_const_macro(csound, yyscanner, "LN10",  "2.30258509299404568402");
+     add_math_const_macro(csound, yyscanner, "PI",    "3.14159265358979323846");
+     add_math_const_macro(csound, yyscanner, "PI_2",  "1.57079632679489661923");
+     add_math_const_macro(csound, yyscanner, "PI_4",  "0.78539816339744830962");
+     add_math_const_macro(csound, yyscanner, "1_PI",  "0.31830988618379067154");
+     add_math_const_macro(csound, yyscanner, "2_PI",  "0.63661977236758134308");
+     add_math_const_macro(csound, yyscanner,"2_SQRTPI", "1.12837916709551257390");
      add_math_const_macro(csound, yyscanner, "SQRT2", "1.41421356237309504880");
-     add_math_const_macro(csound, yyscanner, "SQRT1_2", "0.70710678118654752440");
-     add_math_const_macro(csound, yyscanner, "INF", "2147483647.0"); /* ~7 years */
+     add_math_const_macro(csound, yyscanner,"SQRT1_2","0.70710678118654752440");
+     add_math_const_macro(csound, yyscanner, "INF",   "2147483647.0"); /* ~7 years */
 }
 
 void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
@@ -817,7 +936,6 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 
 int get_next_line(struct yyguts_t * yyg)
 {
-    int i;
     char *p;
     void *yyscanner = yyg;
 
