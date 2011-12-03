@@ -35,15 +35,22 @@ int corfile_getc(CORFIL *f);
 void corfile_ungetc(CORFIL *f);
 #define corfile_ungetc(f)  (--f->p)
 MYFLT corfile_get_flt(CORFIL *f);
+void corfile_reset(CORFIL *f);
+#define corfile_reset(f) (f->body[f->p=0]='\0')
 void corfile_rewind(CORFIL *f);
 #define corfile_rewind(f) (f->p=0)
 int corfile_tell(CORFIL *f);
 #define corfile_tell(f) (f->p)
-char *cirfile_body(CORFIL *f);
+char *corfile_body(CORFIL *f);
 #define corfile_body(f) (f->body)
+char *corfile_current(CORFIL *f);
+#define corfile_current(f) (f->body+f->p)
 CORFIL *copy_to_corefile(char *);
 //CORFIL *copy_to_corefile_path(CSOUND *, char *);
 int corfile_length(CORFIL *f);
 #define corfile_length(f) (strlen(f->body))
+void corfile_set(CORFIL *f, int n);
+#define corfile_set(f,n) (f->p = n)
+void corfile_seek(CORFIL *f, int n, int dir);
 
 #endif
