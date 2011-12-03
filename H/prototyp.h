@@ -29,8 +29,6 @@
 extern "C" {
 #endif
 
-#define IGNORE(x)  (void *) x
-
 void    cscore_(CSOUND *);
 void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
