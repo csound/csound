@@ -369,7 +369,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       scsortstr(csound, csound->scorestr);
       if (csound->keep_tmp) {
         FILE *ff = fopen("score.srt", "w");
-        fputs(corfile_body(csound->scorestr), ff);
+        fputs(corfile_body(csound->scstr), ff);
         fclose(ff);
       }
     }
