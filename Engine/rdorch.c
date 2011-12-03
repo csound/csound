@@ -308,7 +308,7 @@ static int getorchar(CSOUND *csound)
   if (c == '\r') {
     int d;
     if (ST(str)->string) {
-      if ((d = *ST(str)->body) != '\n')
+      if ((d = *ST(str)->body++) != '\n')
         ST(str)->body--;
     }
     else if ((d = getc(ST(str)->file)) != '\n') {
