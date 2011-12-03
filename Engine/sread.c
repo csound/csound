@@ -33,7 +33,7 @@
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
 
 #define MARGS   (3)
-#define MACDEBUG (1)
+//#define MACDEBUG (1)
 
 typedef struct MACRO {          /* To store active macros */
     char        *name;          /* Use is by name */
@@ -321,11 +321,9 @@ static int getscochar(CSOUND *csound, int expand)
         return EOF;
       }
       if (ST(str)->mac == 0) {
-        printf("%s(%d): EOF for %p, deleting\n", ST(str)->cf);
         corfile_rm(&(ST(str)->cf)); /* No longer needed */
       }
       else {
-        printf("%s(%d): EOF for %p, not deleting\n", ST(str)->cf);
         corfile_rewind(ST(str)->cf);
       }
       ST(pop) += ST(str)->args;
