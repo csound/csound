@@ -268,7 +268,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
     int32 analWinLen = p->fsig->winsize/2;
     int32 synWinLen = analWinLen;
     float *ofp;                 /* RWD MUST be 32bit */
-    MYFLT *fp,*oi,*i0,*i1;
+    MYFLT *fp;
     MYFLT *anal = (MYFLT *) (p->analbuf.auxp);
     MYFLT *input = (MYFLT *) (p->input.auxp);
     MYFLT *analWindow = (MYFLT *) (p->analwinbuf.auxp) + analWinLen;
@@ -677,7 +677,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
 {
     MYFLT *analwinhalf;
     MYFLT *synwinhalf;
-    MYFLT sum, olapratio;
+    MYFLT sum;
     int32 halfwinsize,buflen;
     int i,nBins,Mf,Lf;
     double IO;
@@ -829,9 +829,9 @@ static MYFLT synth_tick(CSOUND *csound, PVSYNTH *p)
 
 static void process_frame(CSOUND *csound, PVSYNTH *p)
 {
-    int n,i,j,k,ii,NO,NO2;
+    int i,j,k,ii,NO,NO2;
     float *anal;                                        /* RWD MUST be 32bit */
-    MYFLT *syn,*bsyn,*i0,*i1,*output;
+    MYFLT *syn,*bsyn,*output;
     MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
     int32 N = p->fsig->N;
     MYFLT *obufptr,*outbuf,*synWindow;
@@ -943,7 +943,6 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     obufptr = outbuf;
 
     for (i = 0; i < p->IOi;) {  /* shift out next IOi values */
-      int j;
       int todo = (p->IOi-i <= output+p->buflen - p->nextOut ?
                   p->IOi-i : output+p->buflen - p->nextOut);
       /*outfloats(nextOut, todo, ofd);*/

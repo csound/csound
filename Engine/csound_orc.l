@@ -464,10 +464,10 @@ EXSTR           "}}"
                       PARM->macros = x;
                     }
                     else {
-                      MACRO *nxt;
+                      MACRO *nxt = y->next;
                       while (x->next != y) x = x->next;
                       while (n>0) {
-                        MACRO *nxt = y->next;
+                        nxt = y->next;
                         mfree(csound, y->name); mfree(csound, y); y=nxt; n--;
                       }
                       x->next = nxt;

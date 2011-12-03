@@ -1295,7 +1295,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
     else {
       p->phs = -1;
       p->val = *(ftp->ftable + ftp->flen)-asym;
-      /* irise = FL(0.0);          /* in case irise < 0 */
+      /* irise = FL(0.0); */          /* in case irise < 0 */
     }
     if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
       return csound->InitError(csound, Str("rise func ends with zero"));

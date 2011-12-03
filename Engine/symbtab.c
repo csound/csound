@@ -43,6 +43,7 @@ ORCTOKEN** symbtab;
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
 static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
+extern int csound_orcget_lineno(void*);
 
 int get_opcode_type(OENTRY *ep)
 {

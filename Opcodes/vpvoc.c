@@ -158,7 +158,7 @@ int vpvset(CSOUND *csound, VPVOC *p)
     int      i;
     char     pvfilnam[64];
     PVOCEX_MEMFILE  pp;
-    int     frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int     frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     p->pp = PVOC_GetGlobals(csound);
     /* If optional table given, fake it up -- JPff  */
@@ -167,7 +167,8 @@ int vpvset(CSOUND *csound, VPVOC *p)
     else {
       csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
-      if (UNLIKELY((p->tableseg->outfunc = csound->FTFind(csound, p->isegtab)) == NULL)) {
+      if (UNLIKELY((p->tableseg->outfunc =
+                    csound->FTFind(csound, p->isegtab)) == NULL)) {
         return csound->InitError(csound,
                                  Str("vpvoc: Could not find ifnmagctrl table %f"),
                                  *p->isegtab);
@@ -224,7 +225,6 @@ int vpvset(CSOUND *csound, VPVOC *p)
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
-    size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
     /* amplitude scale for PVOC */
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
   */

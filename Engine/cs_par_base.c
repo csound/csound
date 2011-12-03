@@ -264,8 +264,10 @@ static int set_element_delloc(CSOUND *csound, struct set_element_t **set_element
 static int set_element_alloc(CSOUND *csound,
                              struct set_element_t **set_element, char *data);
 static int set_is_set(CSOUND *csound, struct set_t *set);
+#if 0
 static int set_element_is_set_element(CSOUND *csound,
                                       struct set_element_t *set_element);
+#endif
 
 int csp_set_alloc(CSOUND *csound, struct set_t **set,
                   set_element_data_eq *ele_eq_func,
@@ -288,7 +290,7 @@ int csp_set_alloc(CSOUND *csound, struct set_t **set,
 
 int csp_set_dealloc(CSOUND *csound, struct set_t **set)
 {
-    struct set_element_t *ele, *next = NULL;
+    struct set_element_t *ele;
     if (UNLIKELY(set == NULL || *set == NULL))
       csound->Die(csound, "Invalid NULL Parameter set");
     if (UNLIKELY(!set_is_set(csound, *set)))
@@ -298,8 +300,9 @@ int csp_set_dealloc(CSOUND *csound, struct set_t **set)
 
     ele = (*set)->head;
     while (ele != NULL) {
-      next = ele->next;
+      struct set_element_t *next = ele->next;
       set_element_delloc(csound, &ele);
+      ele = next;
     }
 
     csound->Free(csound, *set);
@@ -344,6 +347,7 @@ static int set_is_set(CSOUND *csound, struct set_t *set)
     return strcmp(buf, SET_HDR) == 0;
 }
 
+#if 0
 static int set_element_is_set_element(CSOUND *csound,
                                       struct set_element_t *set_element)
 {
@@ -353,6 +357,7 @@ static int set_element_is_set_element(CSOUND *csound,
     buf[3] = 0;
     return strcmp(buf, SET_ELEMENT_HDR) == 0;
 }
+#endif
 
 int csp_set_alloc_string(CSOUND *csound, struct set_t **set)
 {

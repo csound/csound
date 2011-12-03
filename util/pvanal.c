@@ -162,8 +162,8 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     FILE    *trfil = stdout;
     pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
-    int     verbose = 0;
     double  beta = 6.8;
+    int verbose = 0;
 
     csound->oparms->displays = 0;
     if (!(--argc))
@@ -417,10 +417,8 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
     MYFLT       *inbuf_c[MAXPVXCHANS];
     float       *frame_c[MAXPVXCHANS];  /* RWD : MUST be 32bit  */
     MYFLT       *inbuf = NULL;
-    MYFLT       nyquist, chwidth;
     float       *frame;                 /* RWD : MUST be 32bit  */
     MYFLT       *chanbuf;
-    unsigned int  nbins;
     long        total_sampsread = 0;
     PVDISPLAY   disp;
 
@@ -431,9 +429,9 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       case AE_FLOAT:  stype = STYPE_IEEE_FLOAT; break;
     }
 
-    nbins = (fftsize/2) + 1;
-    nyquist = (MYFLT) srate * FL(0.5);
-    chwidth = nyquist/(MYFLT)(nbins - 1);
+    //nbins = (fftsize/2) + 1;
+    //nyquist = (MYFLT) srate * FL(0.5);
+    //    chwidth = nyquist/(MYFLT)(nbins - 1);
     for (i = 0; i < MAXPVXCHANS; i++) {
       pvx[i] = NULL;
       inbuf_c[i] = NULL;

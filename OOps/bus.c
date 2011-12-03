@@ -942,10 +942,10 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
-    int *lock = p->lock;        /* Need lock for the channel */
-    csoundSpinLock(lock);
+    /* Need lock for the channel */
+    csoundSpinLock(p->lock);
     memcpy(p->fp, p->arg, sizeof(MYFLT)*csound->ksmps);
-    csoundSpinUnLock(lock);
+    csoundSpinUnLock(p->lock);
     return OK;
 }
 
@@ -955,12 +955,12 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 {
     int   i = 0;
     int n = csound->ksmps;
-    int *lock = p->lock;        /* Need lock for the channel */
-    csoundSpinLock(lock);
+                                /* Need lock for the channel */
+    csoundSpinLock(p->lock);
     for (i=0; i<n; i++) {
       p->fp[i] += p->arg[i];
     }
-    csoundSpinUnLock(lock);
+    csoundSpinUnLock(p->lock);
     return OK;
 }
 
@@ -968,10 +968,10 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 
 static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
-    int *lock = p->lock;        /* Need lock for the channel */
-    csoundSpinLock(lock);
+    /* Need lock for the channel */
+    csoundSpinLock(p->lock);
     memset(p->fp, 0, csound->ksmps*sizeof(MYFLT));
-    csoundSpinUnLock(lock);
+    csoundSpinUnLock(p->lock);
     return OK;
 }
 

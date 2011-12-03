@@ -49,6 +49,7 @@ void scsort(CSOUND *csound, FILE *scin, FILE *scout)
     sfree(csound);              /* return all memory used */
 }
 
+extern void sread_initstr(CSOUND *);
 void scsortstr(CSOUND *csound, CORFIL *scin)
 {
     int     n;
