@@ -92,7 +92,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 static int sndwarp(CSOUND *csound, SNDWARP *p)
 {
     int         n, nsmps = csound->ksmps;
-    MYFLT       frm0,frm1;
+    MYFLT       frm_0,frm_1;
     int32       base, longphase;
     MYFLT       frac, frIndx;
     MYFLT       *r1, *r2, *amp, *timewarpby, *resample;
@@ -159,19 +159,19 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
 
         base = (int32)frIndx;    /* index of basis frame of interpolation */
         frac = ((MYFLT)(frIndx - (MYFLT)base));
-        frm0 = *(ftpSamp->ftable + base);
-        frm1 = *(ftpSamp->ftable + (base+1));
+        frm_0 = *(ftpSamp->ftable + base);
+        frm_1 = *(ftpSamp->ftable + (base+1));
         if (frac != FL(0.0)) {
-          r1[n] += ((frm0 + frac*(frm1-frm0)) * windowamp) * *amp;
+          r1[n] += ((frm_0 + frac*(frm_1-frm_0)) * windowamp) * *amp;
           if (i==0)
            if (p->OUTOCOUNT > 1)
-             r2[n] += (frm0 + frac*(frm1-frm0)) * *amp;
+             r2[n] += (frm_0 + frac*(frm_1-frm_0)) * *amp;
         }
         else {
-          r1[n] += (frm0 * windowamp) * *amp;
+          r1[n] += (frm_0 * windowamp) * *amp;
           if (i==0)
             if (p->OUTOCOUNT > 1)
-              r2[n] += frm0 * *amp;
+              r2[n] += frm_0 * *amp;
         }
         if (p->ampcode) amp++;
         if (p->timewarpcode) timewarpby++;
@@ -355,9 +355,9 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "sndwarp", S(SNDWARP), 5, "mm", "xxxiiiiiii",
+  { "sndwarp", S(SNDWARP), TR|5, "mm", "xxxiiiiiii",
     (SUBR)sndwarpgetset, NULL, (SUBR)sndwarp},
-  { "sndwarpst", S(SNDWARPST), 5, "mmmm","xxxiiiiiii",
+  { "sndwarpst", S(SNDWARPST), TR|5, "mmmm","xxxiiiiiii",
     (SUBR)sndwarpstset,NULL,(SUBR)sndwarpst}
 };
 

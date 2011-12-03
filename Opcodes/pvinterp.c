@@ -40,7 +40,7 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
 {
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     {
       PVOC_GLOBALS  *p_ = PVOC_GetGlobals(csound);
@@ -89,7 +89,6 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
     p->maxFr = pp.nframes - 1;
     p->frPktim = (MYFLT) csound->ksmps / (MYFLT) frInc;
     p->frPrtim = csound->esr / (MYFLT) frInc;
-    size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
     p->prFlg = 1;       /* true */
     /* amplitude scale for PVOC */
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
@@ -140,7 +139,7 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     int      i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     p->pp = PVOC_GetGlobals(csound);
     p->pvbufread = p->pp->pvbufreadaddr;
@@ -193,7 +192,6 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
-    size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
     /* amplitude scale for PVOC */
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
   */
@@ -314,7 +312,7 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     int      i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     p->pp = PVOC_GetGlobals(csound);
     p->pvbufread = p->pp->pvbufreadaddr;
@@ -365,7 +363,6 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
-    size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
     /* amplitude scale for PVOC */
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
   */

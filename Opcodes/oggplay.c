@@ -140,9 +140,9 @@ int oggplay_perf (CSOUND *csound, OGGPLAY * p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY oggplay_localops[] = {
     { "oggplay",  S(OGGPLAY),  5, "mm", "To",
       (SUBR) oggplay_init, (SUBR) NULL, (SUBR) oggplay_perf }
 };
 
-LINKAGE
+LINKAGE1(oggplay_localops)

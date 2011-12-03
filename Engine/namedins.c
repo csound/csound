@@ -469,7 +469,7 @@ int find_opcode(CSOUND *csound, char *opname)
 /* -------------------------------------------------------------------- */
 /* These functions replace the functionality of strsav() in rdorch.c.   */
 
-#define STRSPACE    (8000)              /* number of bytes in a buffer  */
+#define STRSPACE    (1000)               /* number of bytes in a buffer  */
 
 typedef struct strsav_t {
         struct strsav_t *nxt;           /* pointer to next structure    */
@@ -477,7 +477,8 @@ typedef struct strsav_t {
 } STRSAV;
 
 typedef struct strsav_space_t {
-        char    sp[STRSPACE];           /* string space                */
+        char    *sp;                    /* string space                */
+        int     size;                   /* Size of buffer              */
         int     splim;                  /* number of bytes allocated   */
         struct strsav_space_t   *prv;   /* ptr to previous buffer      */
 } STRSAV_SPACE;
@@ -490,8 +491,10 @@ typedef struct strsav_space_t {
 void strsav_create(CSOUND *csound)
 {
     if (csound->strsav_space != NULL) return;   /* already allocated */
-    csound->strsav_space = mcalloc(csound, sizeof(STRSAV_SPACE));
     csound->strsav_str = mcalloc(csound, sizeof(STRSAV*) * 256);
+    csound->strsav_space = mcalloc(csound, sizeof(STRSAV_SPACE));
+    STRSAV_SPACE_->sp = (char*)mcalloc(csound, STRSPACE);
+    STRSAV_SPACE_->size = STRSPACE;
 }
 
 /* Locate string s in database, and return address of stored string (not */
@@ -526,21 +529,29 @@ char *strsav_string(CSOUND *csound, char *s)
     n = (int) sizeof(struct strsav_t *) + (int) strlen(s) + 1;  /* n bytes */
     n = ((n + (int) sizeof(struct strsav_t *) - 1)  /* round up for alignment */
          / (int) sizeof(struct strsav_t *)) * (int) sizeof(struct strsav_t *);
-    if ((STRSAV_SPACE_->splim + n) > STRSPACE) {
+    if ((STRSAV_SPACE_->splim + n) > STRSAV_SPACE_->size) {
       STRSAV_SPACE  *sp;
       /* not enough space, allocate new buffer */
-      if (UNLIKELY(n > STRSPACE)) {
+       if (UNLIKELY(n > STRSAV_SPACE_->size)) {
         /* this should not happen */
-        csound->ErrorMsg(csound,
-                         "internal error: strsav: string length > STRSPACE");
-        return NULL;
-      }
-      sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
-      sp->prv = STRSAV_SPACE_;
-      csound->strsav_space = sp;
+         sp = (STRSAV_SPACE*)mcalloc(csound, sizeof(STRSAV_SPACE));
+         sp->sp =
+          (char*)mcalloc(csound, sp->size = n+STRSPACE);
+         csound->Message(csound,
+                        "internal message: strsav: buffer length now %d\n", 
+                        sp->size);
+       }
+       else {
+         sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
+         sp->sp =
+           (char*)mcalloc(csound, STRSAV_SPACE_->size = STRSPACE);
+       }
+       sp->prv = STRSAV_SPACE_;
+       csound->strsav_space = sp;
     }
     /* use space from buffer */
-    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
+    //    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
+    ssp = (STRSAV*)(&(STRSAV_SPACE_->sp)[STRSAV_SPACE_->splim]);
     STRSAV_SPACE_->splim += n;
     strcpy(ssp->s, s);          /* save string */
     /* link into chain */
@@ -1073,248 +1084,6 @@ int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
     p->isLoaded = 0;
     return 1;
 }
-
-/* static CS_NOINLINE int csoundLoadOpcodeDB_AddFile(CSOUND *csound, */
-/*                                     CsoundOpcodePluginFile_t *fp) */
-/* { */
-/*     CsoundOpcodePluginFile_t    **pp, *p; */
-/*     unsigned char               h; */
-
-/*     pp = (CsoundOpcodePluginFile_t**) csound->pluginOpcodeFiles; */
-/*     h = name_hash_2(csound, fp->fname); */
-/*     p = pp[h]; */
-/*     while (p) { */
-/*       /\* check for a name conflict *\/ */
-/*       if (!sCmp(p->fname, fp->fname)) */
-/*         return -1; */
-/*       p = p->nxt; */
-/*     } */
-/*     fp->nxt = pp[h]; */
-/*     fp->isLoaded = -1; */
-/*     pp[h] = fp; */
-/*     return 0; */
-/* } */
-
-/* static CS_NOINLINE int csoundLoadOpcodeDB_AddOpcode(CSOUND *csound, */
-/*                                           CsoundPluginOpcode_t *op) */
-/* { */
-/*     CsoundPluginOpcode_t    **pp, *p; */
-/*     unsigned char           h; */
-
-/*     pp = (CsoundPluginOpcode_t**) csound->pluginOpcodeDB; */
-/*     h = name_hash_2(csound, op->opname); */
-/*     p = pp[h]; */
-/*     while (p) { */
-/*       /\* check for a name conflict *\/ */
-/*       if (!sCmp(p->opname, op->opname)) */
-/*         return -1; */
-/*       p = p->nxt; */
-/*     } */
-/*     op->nxt = pp[h]; */
-/*     pp[h] = op; */
-/*     return 0; */
-/* } */
-
-/* void csoundDestroyOpcodeDB(CSOUND *csound) */
-/* { */
-/*     void    *p; */
-
-/*     p = csound->pluginOpcodeFiles; */
-/*     csound->pluginOpcodeFiles = NULL; */
-/*     csound->pluginOpcodeDB = NULL; */
-/*     csound->Free(csound, p); */
-/* } */
-
-/* load opcodes.dir from the specified directory, and set up database */
-
-/* int csoundLoadOpcodeDB(CSOUND *csound, const char *dname) */
-/* { */
-/*     char    err_msg[256]; */
-/*     char    *s, *sp, *fileData = (char*) NULL; */
-/*     void    *fd = (void*) NULL; */
-/*     FILE    *fp = (FILE*) NULL; */
-/*     size_t  i, n, fileLen, fileCnt, opcodeCnt, byteCnt; */
-/*     void    *p, *p1, *p2; */
-/*     CsoundOpcodePluginFile_t  *currentFile; */
-
-/*     /\* check file name *\/ */
-/*     if (dname == NULL || dname[0] == (char) 0) */
-/*       return 0; */
-/*     n = strlen(dname); */
-/*     s = csoundConcatenatePaths(csound, dname, "opcodes.dir"); */
-/*     /\* open and load file *\/ */
-/*     fd = csound->FileOpen(csound, &fp, CSFILE_STD, s, "rb", NULL); */
-/*     csound->Free(csound, s); */
-/*     if (fd == NULL) */
-/*       return 0; */
-/*     if (fseek(fp, 0L, SEEK_END) != 0) { */
-/*       sprintf(&(err_msg[0]), "seek error"); */
-/*       goto err_return; */
-/*     } */
-/*     fileLen = (size_t) ftell(fp); */
-/*     fseek(fp, 0L, SEEK_SET); */
-/*     if (fileLen == (size_t) 0) { */
-/*       csound->FileClose(csound, fd); */
-/*       return 0; */
-/*     } */
-/*     fileData = (char*) csound->Malloc(csound, fileLen + (size_t) 1); */
-/*     n = fread(fileData, (size_t) 1, fileLen, fp); */
-/*     csound->FileClose(csound, fd); */
-/*     fd = NULL; */
-/*     if (n != fileLen) { */
-/*       sprintf(&(err_msg[0]), "read error"); */
-/*       goto err_return; */
-/*     } */
-/*     fileData[fileLen] = (char) '\n'; */
-/*     /\* check syntax, and count the number of files and opcodes *\/ */
-/*     fileCnt = (size_t) 0; */
-/*     opcodeCnt = (size_t) 0; */
-/*     byteCnt = (size_t) 0; */
-/*     n = fileLen; */
-/*     for (i = (size_t) 0; i <= fileLen; i++) { */
-/*       if (fileData[i] == (char) ' ' || fileData[i] == (char) '\t' || */
-/*           fileData[i] == (char) '\r' || fileData[i] == (char) '\n') { */
-/*         if (n >= fileLen) */
-/*           continue; */
-/*         fileData[i] = (char) 0; */
-/*         if (fileData[i - 1] != ':') { */
-/*           if (!fileCnt) { */
-/*             sprintf(&(err_msg[0]), "syntax error"); */
-/*             goto err_return; */
-/*           } */
-/*           opcodeCnt++; */
-/*         } */
-/* #if !(defined(LINUX) || defined(__unix__) || defined(__MACH__)) */
-/*         else { */
-/*           size_t  j; */
-/*           /\* on some platforms, file names are case insensitive *\/ */
-/*           for (j = n; j < (i - 1); j++) { */
-/*             if (isupper(fileData[j])) */
-/*               fileData[j] = (char) tolower(fileData[j]); */
-/*           } */
-/*         } */
-/* #endif */
-/*         n = fileLen; */
-/*         continue; */
-/*       } */
-/*       if (n >= fileLen) */
-/*         n = i; */
-/*       if (!(isalnum(fileData[i]) || fileData[i] == (char) '.' || */
-/*             fileData[i] == (char) '-' || fileData[i] == (char) '_')) { */
-/*         if (fileData[i] == (char) ':' && i != n && i < fileLen && */
-/*             (fileData[i + 1] == (char) ' ' || fileData[i + 1] == (char) '\t' || */
-/*              fileData[i + 1] == (char) '\r' || fileData[i + 1] == (char) '\n')) */
-/*           fileCnt++; */
-/*         else { */
-/*           sprintf(&(err_msg[0]), "syntax error"); */
-/*           goto err_return; */
-/*         } */
-/*       } */
-/*       else */
-/*         byteCnt++; */
-/*     } */
-/*     /\* calculate the number of bytes to allocate *\/ */
-/*     byteCnt += ((size_t) 256 * sizeof(CsoundOpcodePluginFile_t*)); */
-/*     byteCnt += ((size_t) 256 * sizeof(CsoundPluginOpcode_t*)); */
-/*     byteCnt += (fileCnt * sizeof(CsoundOpcodePluginFile_t)); */
-/*     byteCnt = (byteCnt + (size_t) 15) & (~((size_t) 15)); */
-/*     byteCnt += (opcodeCnt * sizeof(CsoundPluginOpcode_t)); */
-/*     byteCnt += (fileCnt * (strlen(dname) */
-/* #if defined(WIN32) */
-/*                 + (size_t) 6        /\* "\\NAME.dll\0" *\/ */
-/* #elif defined(__MACH__) */
-/*                 + (size_t) 11       /\* "/libNAME.dylib\0" *\/ */
-/* #else */
-/*                 + (size_t) 8        /\* "/libNAME.so\0" *\/ */
-/* #endif */
-/*                 )); */
-/*     byteCnt += opcodeCnt; */
-/*     /\* allocate and set up database *\/ */
-/*     p = csound->Calloc(csound, byteCnt); */
-/*     csound->pluginOpcodeFiles = p; */
-/*     n = (size_t) 256 * sizeof(CsoundOpcodePluginFile_t*); */
-/*     csound->pluginOpcodeDB = (void*) &(((char*) p)[n]); */
-/*     n += ((size_t) 256 * sizeof(CsoundPluginOpcode_t*)); */
-/*     p1 = (void*) &(((char*) p)[n]); */
-/*     n += (fileCnt * sizeof(CsoundOpcodePluginFile_t)); */
-/*     n = (n + (size_t) 15) & (~((size_t) 15)); */
-/*     p2 = (void*) &(((char*) p)[n]); */
-/*     n += (opcodeCnt * sizeof(CsoundPluginOpcode_t)); */
-/*     sp = &(((char*) p)[n]); */
-/*     currentFile = (CsoundOpcodePluginFile_t*) NULL; */
-/*     i = (size_t) 0; */
-/*     while (i < fileLen) { */
-/*       if (fileData[i] == (char) ' ' || fileData[i] == (char) '\t' || */
-/*           fileData[i] == (char) '\r' || fileData[i] == (char) '\n') { */
-/*         i++; */
-/*         continue; */
-/*       } */
-/*       s = &(fileData[i]); */
-/*       n = strlen(s); */
-/*       i += (n + (size_t) 1); */
-/*       if (s[n - 1] != (char) ':') { */
-/*         /\* add opcode entry *\/ */
-/*         CsoundPluginOpcode_t  *op_; */
-/*         op_ = (CsoundPluginOpcode_t*) p2; */
-/*         p2 = (void*) ((char*) p2 + (long) sizeof(CsoundPluginOpcode_t)); */
-/*         strcpy(sp, s); */
-/*         op_->opname = sp; */
-/*         sp += ((long) strlen(s) + 1L); */
-/*         op_->fp = currentFile; */
-/*         if (csoundLoadOpcodeDB_AddOpcode(csound, op_) != 0) { */
-/*           sprintf(&(err_msg[0]), "duplicate opcode name"); */
-/*           goto err_return; */
-/*         } */
-/*       } */
-/*       else { */
-/*         /\* add file entry *\/ */
-/*         CsoundOpcodePluginFile_t  *fp_; */
-/*         fp_ = (CsoundOpcodePluginFile_t*) p1; */
-/*         p1 = (void*) ((char*) p1 + (long) sizeof(CsoundOpcodePluginFile_t)); */
-/*         s[n - 1] = (char) 0; */
-/*         strcpy(sp, dname); */
-/*         n = strlen(dname); */
-/*         if (sp[n - 1] == (char) DIRSEP) */
-/*           n--; */
-/*         fp_->fullName = sp; */
-/*         sp = (char*) fp_->fullName + (long) n; */
-/* #if defined(WIN32) */
-/*         sprintf(sp, "\\%s.dll", s); */
-/* #elif defined(__MACH__) */
-/*         sprintf(sp, "/lib%s.dylib", s); */
-/* #else */
-/*         sprintf(sp, "%clib%s.so", DIRSEP, s); */
-/* #endif */
-/*         fp_->fname = &(sp[1]); */
-/*         sp = (char*) strchr(fp_->fname, '\0') + 1L; */
-/*         if (csoundLoadOpcodeDB_AddFile(csound, fp_) != 0) { */
-/*           sprintf(&(err_msg[0]), "duplicate file name"); */
-/*           goto err_return; */
-/*         } */
-/*         currentFile = fp_; */
-/*       } */
-/*       if ((size_t) ((char*) sp - (char*) p) > byteCnt) */
-/*         csound->Die(csound, Str(" *** internal error while " */
-/*                                 "loading opcode database file")); */
-/*     } */
-/*     /\* clean up *\/ */
-/*     csound->Free(csound, fileData); */
-/*     /\* plugin opcode database has been successfully loaded *\/ */
-/*     return 0; */
-
-/*  err_return: */
-/*     if (fileData) */
-/*       csound->Free(csound, fileData); */
-/*     if (fd) */
-/*       csound->FileClose(csound, fd); */
-/*     csoundDestroyOpcodeDB(csound); */
-/*     csound->ErrorMsg(csound, Str(" *** error loading opcode database file: "), */
-/*                              Str(&(err_msg[0]))); */
-/*     return -1; */
-/* } */
-
-/* load all pending opcode plugin libraries */
-/* called when listing opcodes (-z) */
 
 int csoundLoadAllPluginOpcodes(CSOUND *csound)
 {

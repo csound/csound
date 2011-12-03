@@ -216,7 +216,6 @@ rootstatement     : rootstatement topstatement
                   | udodecl
                   ;
 
-/* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
 instlist  : T_INTGR S_COM instlist
               { $$ = make_node(csound, T_INSTLIST,
                                make_leaf(csound, T_INTGR, (ORCTOKEN *)$1), $3); }
@@ -386,6 +385,7 @@ statement : ident S_ASSIGN expr S_NL
                   csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, $2->left),
                                     csp_orc_sa_globals_find(csound, $2->right));
+                  csp_orc_sa_interlocks(csound, $2->value);
 #endif
                 }
           | opcode0 exprlist S_NL
@@ -398,6 +398,7 @@ statement : ident S_ASSIGN expr S_NL
                   csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
+                  csp_orc_sa_interlocks(csound, $1->value);
 #endif
                 }
           | T_LABEL
@@ -425,9 +426,22 @@ statement : ident S_ASSIGN expr S_NL
               }
           | S_NL { $$ = NULL; }
           ;
-
 ans       : ident               { $$ = $1; }
+          | T_IDENT error       
+              { csound->Message(csound,
+                      "Unexpected untyped word %s when expecting a variable\n", 
+                      ((ORCTOKEN*)$1)->lexeme);
+                $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)$1);
+              }
           | ans S_COM ident     { $$ = appendToTree(csound, $1, $3); }
+          | ans S_COM T_IDENT error  
+              { csound->Message(csound,
+                      "Unexpected untyped word %s when expecting a variable\n", 
+                               ((ORCTOKEN*)$3)->lexeme);
+                $$ = appendToTree(csound, $1, 
+                               make_leaf(csound, T_SRATE,
+                               (ORCTOKEN *)$3));
+              }
           ;
 
 ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
@@ -635,18 +649,14 @@ ifac      : ident               { $$ = $1; }
           | function S_LB error
           ;
 
-function  : T_FUNCTION  { $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); }
-          ;
-
-/* exprstrlist    : exprstrlist S_COM expr
-                                        { $$ = make_node(csound, S_COM, $1, $3); }
-          | exprstrlist S_COM T_STRCONST
-                 { $$ = make_node(csound, S_COM, $1,
-                   make_leaf(csound, T_STRCONST, (ORCTOKEN *)$3)); }
-          | exprstrlist S_COM error
-          | expr                { $$ = $1; }
-          ;
- */
+function  : T_FUNCTION  { 
+    printf("FUNCTION ans=%p, token=%p %p\n", $1, ((ORCTOKEN *)$1)->value);
+#ifdef PARCS
+    //                if ((ORCTOKEN *)$1->value != 0)
+    csp_orc_sa_interlocksf(csound, ((ORCTOKEN *)$1)->value);
+#endif
+    $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); 
+                }
 
 rident    : T_SRATE     { $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)$1); }
           | T_KRATE     { $$ = make_leaf(csound, T_KRATE, (ORCTOKEN *)$1); }

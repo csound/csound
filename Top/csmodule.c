@@ -79,10 +79,13 @@
 #include "csmodule.h"
 
 #if defined(__MACH__)
+#include <TargetConditionals.h>
+#if (TARGET_OS_IPHONE == 0) && (TARGET_IPHONE_SIMULATOR == 0)
 #if defined(MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_6)
 #define NEW_MACH_CODE
 #else
 #define OLD_MACH_CODE
+#endif
 #endif
 #endif
 
@@ -147,6 +150,10 @@ static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 #  endif
 #endif
 
+#if (TARGET_OS_IPHONE != 0) && (TARGET_IPHONE_SIMULATOR != 0)
+#  define ENABLE_OPCODEDIR_WARNINGS 0
+#endif
+
 typedef struct opcodeLibFunc_s {
     long    (*opcode_init)(CSOUND *, OENTRY **);  /* list of opcode entries  */
     NGFENS  *(*fgen_init)(CSOUND *);        /* list of named GEN routines    */
@@ -197,7 +204,8 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       minorVersion = (n & 0xFF00) >> 8;
       majorVersion = (n & (~0xFFFF)) >> 16;
       if (majorVersion != (int) CS_APIVERSION ||
-          minorVersion > (int) CS_APISUBVER) {
+          (minorVersion > (int) CS_APISUBVER) ||
+          (minorVersion <= 5)) { /* NOTE **** REFACTOR *** */
         csound->Warning(csound, Str("not loading '%s' (incompatible "
                                     "with this version of Csound (%d.%d/%d.%d)"),
                         fname, majorVersion,minorVersion,
@@ -344,6 +352,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
 
 static int csoundCheckOpcodeDeny(CSOUND *csound, const char *fname)
 {
+    IGNORE(csound);
     /* Check to see if the fname is on the do-not-load list */
     char buff[256];
     char *p, *deny;
@@ -845,6 +854,7 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
  * some modules could not be initialised.
  */
+
 int csoundInitModules(CSOUND *csound)
 {
     csoundModule_t  *m;
@@ -891,6 +901,7 @@ int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
  * Return value is CSOUND_SUCCESS if there was no error, and
  * CSOUND_ERROR if some modules could not be de-initialised.
  */
+extern int sfont_ModuleDestroy(CSOUND *csound);
 int csoundDestroyModules(CSOUND *csound)
 {
     csoundModule_t  *m;
@@ -898,7 +909,7 @@ int csoundDestroyModules(CSOUND *csound)
 
     retval = CSOUND_SUCCESS;
     while (csound->csmodule_db != NULL) {
-     
+
       m = (csoundModule_t*) csound->csmodule_db;
       /* call destructor functions */
       if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
@@ -907,15 +918,16 @@ int csoundDestroyModules(CSOUND *csound)
           print_module_error(csound, Str("Error de-initialising module '%s'"),
                                      &(m->name[0]), m, i);
           retval = CSOUND_ERROR;
-        } 
+        }
       }
       /* unload library */
-      csoundCloseLibrary(m->h); 
+      csoundCloseLibrary(m->h);
       csound->csmodule_db = (void*) m->nxt;
       /* free memory used by database */
       free((void*) m);
-  
+
     }
+    sfont_ModuleDestroy(csound);
     /* return with error code */
     return retval;
 }
@@ -1265,3 +1277,114 @@ void print_opcodedir_warning(CSOUND *p)
 #endif
 }
 
+typedef long (*INITFN)(CSOUND *, void *);
+
+extern long babo_localops_init(CSOUND *, void *);
+extern long bilbar_localops_init(CSOUND *, void *);
+extern long compress_localops_init(CSOUND *, void *);
+extern long pvsbuffer_localops_init(CSOUND *, void *);
+extern long vosim_localops_init(CSOUND *, void *);
+extern long eqfil_localops_init(CSOUND *, void *);
+extern long modal4_localops_init(CSOUND *, void *);
+extern long scoreline_localops_init(CSOUND *, void *);
+extern long physmod_localops_init(CSOUND *, void *);
+extern long modmatrix_localops_init(CSOUND *, void *);
+extern long spectra_localops_init(CSOUND *, void *);
+extern long ambicode1_localops_init(CSOUND *, void *);
+extern long grain4_localops_init(CSOUND *, void *);
+extern long hrtferX_localops_init(CSOUND *, void *);
+extern long loscilx_localops_init(CSOUND *, void *);
+extern long pan2_localops_init(CSOUND *, void *);
+extern long tabvars_localops_init(CSOUND *, void *);
+extern long phisem_localops_init(CSOUND *, void *);
+extern long pvoc_localops_init(CSOUND *, void *);
+extern long hrtfopcodes_localops_init(CSOUND *, void *);
+extern long hrtfreverb_localops_init(CSOUND *, void *);
+extern long hrtfearly_localops_init(CSOUND *, void *);
+extern long minmax_localops_init(CSOUND *, void *);
+
+extern long stackops_localops_init(CSOUND *, void *);
+extern long vbap_localops_init(CSOUND *, void *);
+extern long vaops_localops_init(CSOUND *, void*);
+extern long ugakbari_localops_init(CSOUND *, void *);
+extern long harmon_localops_init(CSOUND *, void *);
+extern long pitchtrack_localops_init(CSOUND *, void *);
+
+extern long partikkel_localops_init(CSOUND *, void *);
+extern long shape_localops_init(CSOUND *, void *);
+extern long tabsum_localops_init(CSOUND *, void *);
+extern long crossfm_localops_init(CSOUND *, void *);
+extern long pvlock_localops_init(CSOUND *, void *);
+extern long fareyseq_localops_init(CSOUND *, void *);
+
+extern int stdopc_ModuleInit(CSOUND *csound);
+extern int pvsopc_ModuleInit(CSOUND *csound);
+extern int sfont_ModuleInit(CSOUND *csound);
+extern int sfont_ModuleCreate(CSOUND *csound);
+extern int newgabopc_ModuleInit(CSOUND *csound);
+
+const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
+                                 bilbar_localops_init, vosim_localops_init,
+                                 compress_localops_init, pvsbuffer_localops_init,
+                                 eqfil_localops_init, modal4_localops_init,
+                                 scoreline_localops_init, physmod_localops_init,
+                                 modmatrix_localops_init, spectra_localops_init,
+                                 ambicode1_localops_init, grain4_localops_init,
+                                 hrtferX_localops_init, loscilx_localops_init,
+                                 pan2_localops_init, tabvars_localops_init,
+                                 phisem_localops_init, pvoc_localops_init,
+                                 stackops_localops_init, vbap_localops_init,
+                                 ugakbari_localops_init, harmon_localops_init,
+                                 pitchtrack_localops_init, partikkel_localops_init,
+                                 shape_localops_init, tabsum_localops_init,
+                                 crossfm_localops_init, pvlock_localops_init,
+                                 fareyseq_localops_init, hrtfearly_localops_init,
+				 hrtfreverb_localops_init, minmax_localops_init,
+                                 vaops_localops_init, NULL };
+
+typedef NGFENS* (*FGINITFN)(CSOUND *);
+
+NGFENS *ftest_fgens_init(CSOUND *);
+
+const FGINITFN fgentab[] = {  ftest_fgens_init, NULL };
+
+CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
+{
+    int     i;
+    OENTRY  *opcodlst_n;
+    long    length;
+
+    for (i=0; staticmodules[i]!=NULL; i++) {
+      length = (staticmodules[i])(csound, &opcodlst_n);
+
+      if (UNLIKELY(length <= 0L)) return CSOUND_ERROR;
+      length /= (long) sizeof(OENTRY);
+      if (length) {
+        if (UNLIKELY(csound->AppendOpcodes(csound, opcodlst_n,
+                                           (int) length) != 0))
+          return CSOUND_ERROR;
+      }
+    }
+    /* stdopc module */
+    if (stdopc_ModuleInit(csound)) return CSOUND_ERROR;
+
+    /* pvs module */
+    if (pvsopc_ModuleInit(csound)) return CSOUND_ERROR;
+
+    /* sfont module */
+    sfont_ModuleCreate(csound);
+    if (sfont_ModuleInit(csound)) return CSOUND_ERROR;
+
+    /* newgabopc */
+    if (newgabopc_ModuleInit(csound)) return CSOUND_ERROR;
+
+    /* modules were initialised successfully */
+    /* Now fgens */
+    for (i = 0; fgentab[i]!=NULL; i++) {
+      int j;
+      NGFENS  *names = (fgentab[i])(csound);
+      for (j = 0; names[j].name != NULL; j++)
+        allocgen(csound, names[j].name, names[j].fn);
+    }
+    return CSOUND_SUCCESS;
+}

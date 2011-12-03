@@ -27,7 +27,7 @@
 #include "csound_orcparse.h"
 #include "csound_orc.h"
 #include "parse_param.h"
-
+#include "corfile.h"
 
 //#include "yyguts.h"
 
@@ -38,6 +38,11 @@ extern void csound_orcrestart(FILE*, void *);
 extern int csound_orcdebug;
 
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
+extern void csound_orclex_init(void *);
+extern void csound_orcset_extra(void *, void *);
+extern void csound_orc_scan_string(char *, void *);
+extern void csound_orcset_lineno(int, void*);
+extern void csound_orclex_destroy(void *);
 extern void init_symbtab(CSOUND*);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *);
@@ -46,17 +51,17 @@ extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 extern void csound_orc_compile(CSOUND *, TREE *);
 #ifdef PARCS
 extern TREE *csp_locks_insert(CSOUND *csound, TREE *root);
+void csp_locks_cache_build(CSOUND *);
+void csp_weights_calculate(CSOUND *, TREE *);
 #endif
 
 
 void new_orc_parser(CSOUND *csound)
 {
-    void *t;
     int retVal;
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
     OPARMS *O = csound->oparms;
     PARSE_PARM  pp;
-    void *ttt;
     //    struct yyguts_t* yyg;
 
     memset(&pp, '\0', sizeof(PARSE_PARM));
@@ -72,20 +77,20 @@ void new_orc_parser(CSOUND *csound)
 
     csound_orcset_extra(&pp, pp.yyscanner);
 
-    if (UNLIKELY((t = csound->FileOpen2(csound, &ttt, CSFILE_STD,
-                                 csound->orchname, "rb", NULL,
-                                        CSFTYPE_ORCHESTRA, 0)) == NULL)) {
-    	csound->Free(csound, pp.buffer);
-    	csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
-    }
-    csound_orcset_in(ttt, pp.yyscanner);
-    csound_orcrestart(ttt, pp.yyscanner);
+    csound_orc_scan_string(corfile_body(csound->orchstr), pp.yyscanner);
+    /*     These relate to file input only       */
+    /*     csound_orcset_in(ttt, pp.yyscanner); */
+    /*     csound_orcrestart(ttt, pp.yyscanner); */
     csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
     cs_init_math_constants_macros(csound, pp.yyscanner);
     cs_init_omacros(csound, pp.yyscanner, csound->omacros);
 
     retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
 
+    if (UNLIKELY(pp.ifdefStack != NULL)) {
+      csound->Message(csound, Str("Unmatched #ifdef\n"));
+      csound->LongJmp(csound, 1);
+    }
     if (LIKELY(retVal == 0)) {
       csound->Message(csound, "Parsing successful!\n");
     }
@@ -125,5 +130,7 @@ void new_orc_parser(CSOUND *csound)
     csound_orc_compile(csound, astTree);
 
     csound->Free(csound, pp.buffer);
+    corfile_rm(&csound->orchstr);
+    csound_orclex_destroy(pp.yyscanner);
 }
 

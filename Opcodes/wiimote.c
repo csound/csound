@@ -160,7 +160,7 @@ int wiimote_poll(CSOUND *csound, WIIMOTE *p)
         csound->Warning(csound,
                         Str("wiimote %i disconnected\n"), wiimotes[i]->unid);
         *p->res = FL(0.0);
-        return;
+        return OK;
       case WIIUSE_NUNCHUK_INSERTED:
         /*
          *      This is a good place to set any nunchuk specific
@@ -401,11 +401,11 @@ int wiimote_range(CSOUND *csound, WIIRANGE *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY wiimote_localops[] = {
   {"wiiconnect", S(WIIMOTE), 3, "i", "oo", (SUBR)wiimote_find, (SUBR)wiimote_poll },
   {"wiidata", S(WIIMOTE), 3, "k", "ko", (SUBR)wii_data_init, (SUBR)wii_data },
   {"wiisend", S(WIIMOTES), 3, "", "kko", (SUBR)wii_data_inits, (SUBR)wii_send },
   {"wiirange", S(WIIRANGE), 1, "", "iiio", (SUBR)wiimote_range, NULL, NULL }
 };
 
-LINKAGE
+LINKAGE1(wiimote_localops)

@@ -72,9 +72,9 @@ typedef struct {
 
 /* Forward declaration */
 
-static  void    alpol(CSOUND *, LPC *, MYFLT *,
-                                double *, double *, double *, double *);
-static  void    gauss(CSOUND *, LPC *, double (*)[MAXPOLES], double*, double*);
+static  void    alpol(LPC *, MYFLT *,
+                      double *, double *, double *, double *);
+static  void    gauss(LPC *, double (*)[MAXPOLES], double*, double*);
 static  void    quit(CSOUND *, char *), lpdieu(CSOUND *, char *);
 static  void    usage(CSOUND *);
 static  void    ptable(CSOUND *, MYFLT, MYFLT, MYFLT, int, LPANAL_GLOBALS*);
@@ -103,7 +103,7 @@ static  MYFLT   getpch(CSOUND *, MYFLT *, LPANAL_GLOBALS*);
  *
  */
 
-static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
+static void polyzero(int n, double *a, double *zerore, double *zeroim,
                      int *pt, int itmax, int *indic, double *work)
 {
     double        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
@@ -120,9 +120,9 @@ static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
       return;
     }
 
-    for (i=0; i<=n; i++)
-      work[i+1] = a[i];
-
+    /* for (i=0; i<=n; i++) */
+    /*   work[i+1] = a[i]; */
+    memcpy(work+1, a, (n+1)*sizeof(double));
     *indic = 0;
     *pt = 0;
     n1 = n;
@@ -592,7 +592,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
         (csound, Str("Starting new frame...\n"));
 #endif
       counter++;
-      alpol(csound, &lpc, sigbuf, &errn, &rms1, &rms2, filterCoef);
+      alpol(&lpc, sigbuf, &errn, &rms1, &rms2, filterCoef);
       /* Transfer results */
       coef[0] = (MYFLT)rms2;
       coef[1] = (MYFLT)rms1;
@@ -627,7 +627,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
         /* Get the Filter Poles */
 
-        polyzero(100,lpc.poleCount,filterCoef,polePart1,polePart2,
+        polyzero(lpc.poleCount,filterCoef,polePart1,polePart2,
                  &poleFound,2000,&indic,workArray1);
 
         if (poleFound<lpc.poleCount) {
@@ -750,7 +750,7 @@ static void lpdieu(CSOUND *csound, char *msg)
  *
  */
 
-static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
+static void alpol(LPC *thislp, MYFLT *sig, double *errn,
                   double *rms1, double *rms2, double b[MAXPOLES])
                                         /* sig now MYFLT */
                                         /* b filled here */
@@ -794,7 +794,7 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
     }
 
     /* Solves the system */
-    gauss(csound, thislp, thislp->a, v, b);
+    gauss(thislp, thislp->a, v, b);
 
     /* Compute associted parameters */
     for (i=0; i < thislp->poleCount;++i) {
@@ -814,7 +814,7 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
  * Perform gauss elemination: Could be replaced by something more robust
  *
  */
-static void gauss(CSOUND *csound, LPC* thislp,
+static void gauss(LPC* thislp,
                   double (*a/*old*/)[MAXPOLES], double *bold, double b[])
 {
     double amax, dum, pivot;
@@ -843,7 +843,7 @@ static void gauss(CSOUND *csound, LPC* thislp,
                       i, thislp->poleCount, amax);
       csound->Die(csound, Str("gauss: ill-conditioned"));
    */ 
-	 for (ii=i; ii < thislp->poleCount;++ii) a[ii][i] = 1.0e-20; /* VL: fix for very low values */
+         for (ii=i; ii < thislp->poleCount;++ii) a[ii][i] = 1.0e-20; /* VL: fix for very low values */
        }
       if (i != istar) {
         for (j=0; j < thislp->poleCount;++j)  {    /* switch rows */
@@ -879,7 +879,7 @@ static void gauss(CSOUND *csound, LPC* thislp,
             csound->Message(csound,"Row %d or %d have maximum of %g\n",
              thislp->poleCount-1, thislp->poleCount,
              fabs(a[thislp->poleCount-1][thislp->poleCount-1]));
-	     csound->Die(csound, Str("gauss: ill-conditioned"));*/
+             csound->Die(csound, Str("gauss: ill-conditioned"));*/
       }
 
     b[thislp->poleCount-1] =

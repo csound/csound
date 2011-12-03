@@ -333,7 +333,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
     winEPS_globals_t  *pp;
     int   iskip = (wdptr->npts < MyPS_WIDTH ?
                    1 : (int)(wdptr->npts / MyPS_WIDTH));
-    MYFLT xmin, ymin, ymax, xx, yy, dx, dy, fnts;
+    MYFLT ymin, ymax, xx, yy, dx, dy, fnts;
     char  cxmin[20], cxmax[20], cymin[20], cymax[20];
     int   i;
 
@@ -357,7 +357,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
     /**
      *  Get labels for axis limits, then draw the axis
      */
-    xmin = FL(0.0);
+    //xmin = FL(0.0);
     /* xmax = FL(1.0) * wdptr->npts; */
     sprintf(cxmin, "%d", 0);
     sprintf(cxmax, "%ld", wdptr->npts);

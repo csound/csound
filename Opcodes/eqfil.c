@@ -21,7 +21,11 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
+#ifdef PARCS
+#include "interlocks.h"
+#endif
 
 typedef struct _equ {
   OPDS h;
@@ -77,9 +81,9 @@ static int equ_process(CSOUND *csound, equ *p)
     return OK;
 }
 
-static OENTRY localops[] = {
+static OENTRY eqfil_localops[] = {
   {"eqfil", sizeof(equ), 5,
-   "a", "akkko", (SUBR)equ_init, NULL, (SUBR)equ_process}
+   "a", "akkko", (SUBR)equ_init, NULL, (SUBR)equ_process},
 };
 
-LINKAGE
+LINKAGE1(eqfil_localops)

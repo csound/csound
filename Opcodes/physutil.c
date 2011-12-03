@@ -25,7 +25,8 @@
    opcodes, in no particular order
 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
 #include <stdlib.h>
 #include "physutil.h"
 

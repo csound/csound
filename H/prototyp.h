@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+#define IGNORE(x)  (void *) x
+
 void    cscore_(CSOUND *);
 void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
@@ -57,6 +59,7 @@ void    reverbinit(CSOUND *);
 void    dispinit(CSOUND *);
 int     init0(CSOUND *);
 void    scsort(CSOUND *, FILE *, FILE *);
+void    scsortstr(CSOUND *, CORFIL *);
 int     scxtract(CSOUND *, FILE *, FILE *, FILE *);
 int     rdscor(CSOUND *, EVTBLK *);
 int     musmon(CSOUND *);

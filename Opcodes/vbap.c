@@ -27,11 +27,13 @@ assisting functions for VBAP
 functions for loudspeaker table initialization */
 
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "interlocks.h"
 
 static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
                                ls_triplet_chain **ls_triplets,
@@ -694,7 +696,7 @@ static void choose_ls_tuplets(CSOUND *csound,
     int exist[CHANNELS];
     int amount = 0;
     MYFLT inv_mat[CHANNELS][4], *ls_table, *ptr;
-    int ftable_size;
+    //int ftable_size;
 
     for (i=0;i<CHANNELS;i++) {
       exist[i]=0;
@@ -729,13 +731,13 @@ static void choose_ls_tuplets(CSOUND *csound,
       }
     }
 
+#if 0
     if ( amount*6 + 6 <= 16) ftable_size = 16;
     else if ( amount*6 + 6 <= 32) ftable_size = 32;
     else if ( amount*6 + 6 <= 64) ftable_size = 64;
     else if ( amount*6 + 6 <= 128) ftable_size = 128;
     else if ( amount*6 + 6 <= 256) ftable_size = 256;
     else if ( amount*6 + 6 <= 1024) ftable_size = 1024;
-#if 0
     csound->Message(csound,
                     "Loudspeaker matrices calculated with configuration : ");
     for (i=0; i< ls_amount; i++)
@@ -897,28 +899,31 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "vbap4",      S(VBAP_FOUR),             5,  "aaaa",             "akOO",
+/* static */ 
+static OENTRY vbap_localops[] = {
+  { "vbap4",      S(VBAP_FOUR),             TR|5,  "aaaa",             "akOO",
     (SUBR) vbap_FOUR_init,          (SUBR) NULL,    (SUBR) vbap_FOUR        },
-  { "vbap8",      S(VBAP_EIGHT),            5,  "aaaaaaaa",         "akOO",
+  { "vbap8",      S(VBAP_EIGHT),            TR|5,  "aaaaaaaa",         "akOO",
     (SUBR) vbap_EIGHT_init,         (SUBR) NULL,    (SUBR) vbap_EIGHT       },
-  { "vbap16",     S(VBAP_SIXTEEN),          5,  "aaaaaaaaaaaaaaaa", "akOO",
+  { "vbap16",     S(VBAP_SIXTEEN),          TR|5,  "aaaaaaaaaaaaaaaa", "akOO",
     (SUBR) vbap_SIXTEEN_init,       (SUBR) NULL,    (SUBR) vbap_SIXTEEN     },
-  { "vbapz",      S(VBAP_ZAK),              5,  "",                 "iiakOO",
+  { "vbapz",      S(VBAP_ZAK),           ZW|TR|5,  "",                 "iiakOO",
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
-  { "vbaplsinit", S(VBAP_LS_INIT), 1, "", "iioooooooooooooooooooooooooooooooo",
+  { "vbaplsinit", S(VBAP_LS_INIT), TR|1, "", "iioooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },
-  { "vbap4move",  S(VBAP_FOUR_MOVING),      5,  "aaaa",             "aiiim",
+  { "vbap4move",  S(VBAP_FOUR_MOVING),      TR|5,  "aaaa",             "aiiim",
     (SUBR) vbap_FOUR_moving_init,   (SUBR) NULL,    (SUBR) vbap_FOUR_moving },
-  { "vbap8move",  S(VBAP_EIGHT_MOVING),     5,  "aaaaaaaa",         "aiiim",
+  { "vbap8move",  S(VBAP_EIGHT_MOVING),     TR|5,  "aaaaaaaa",         "aiiim",
     (SUBR) vbap_EIGHT_moving_init,  (SUBR) NULL,    (SUBR) vbap_EIGHT_moving },
-  { "vbap16move", S(VBAP_SIXTEEN_MOVING),   5,  "aaaaaaaaaaaaaaaa", "aiiim",
+  { "vbap16move", S(VBAP_SIXTEEN_MOVING),   TR|5,  "aaaaaaaaaaaaaaaa", "aiiim",
     (SUBR) vbap_SIXTEEN_moving_init, (SUBR) NULL, (SUBR) vbap_SIXTEEN_moving },
-  { "vbapzmove",  S(VBAP_ZAK_MOVING),       5,  "",                 "iiaiiim",
+  { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR|5,  "",                 "iiaiiim",
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  }
 };
 
-PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
+LINKAGE1(vbap_localops)
+
+/* PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
 {
     create_ls_table(csound, 3);
     *ep = localops;
@@ -929,4 +934,4 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
-
+*/

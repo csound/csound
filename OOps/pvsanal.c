@@ -268,7 +268,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
     int32 analWinLen = p->fsig->winsize/2;
     int32 synWinLen = analWinLen;
     float *ofp;                 /* RWD MUST be 32bit */
-    MYFLT *fp,*oi,*i0,*i1;
+    MYFLT *fp;
     MYFLT *anal = (MYFLT *) (p->analbuf.auxp);
     MYFLT *input = (MYFLT *) (p->input.auxp);
     MYFLT *analWindow = (MYFLT *) (p->analwinbuf.auxp) + analWinLen;
@@ -677,11 +677,11 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
 {
     MYFLT *analwinhalf;
     MYFLT *synwinhalf;
-    MYFLT sum, olapratio;
+    MYFLT sum;
     int32 halfwinsize,buflen;
     int i,nBins,Mf,Lf;
     double IO;
-
+      
     /* get params from input fsig */
     /* we TRUST they are legal */
     int32 N = p->fsig->N;
@@ -728,14 +728,15 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     synwinhalf = (MYFLT *) (p->synwinbuf.auxp) + halfwinsize;
  
     
-
+  
     /* synthesis windows */
     if (M <= N) {
       if (UNLIKELY(PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK))
         return NOTOK;
-
+  
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
+       
 
        sum = FL(0.0); 
         for (i = -halfwinsize; i <= halfwinsize; i++)
@@ -748,7 +749,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
          sum = FL(0.0); 
    /* no timescaling, so I(nterpolation) will always = D(ecimation) = overlap */
         for (i = -halfwinsize; i <= halfwinsize; i+=overlap)
-	  sum += *(synwinhalf + i) * *(synwinhalf + i); 
+          sum += *(synwinhalf + i) * *(synwinhalf + i); 
     }
     else {
      /* have to make analysis window to get amp scaling */
@@ -792,6 +793,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
     }
    
+   
    if (!(N & (N - 1L)))
      sum = csound->GetInverseRealFFTScale(csound, (int) N) / sum;
     else
@@ -799,7 +801,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
    
   for (i = -halfwinsize; i <= halfwinsize; i++)
       *(synwinhalf + i) *= sum;
-
+ 
 /*  p->invR = FL(1.0) / csound->esr; */
     p->RoverTwoPi = p->arate / TWOPI_F;
     p->TwoPioverR = TWOPI_F / p->arate;
@@ -810,6 +812,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->outptr = 0;
     p->nextOut = (MYFLT *) (p->output.auxp);
     p->buflen = buflen;
+
     return OK;
 }
 
@@ -826,9 +829,9 @@ static MYFLT synth_tick(CSOUND *csound, PVSYNTH *p)
 
 static void process_frame(CSOUND *csound, PVSYNTH *p)
 {
-    int n,i,j,k,ii,NO,NO2;
+    int i,j,k,ii,NO,NO2;
     float *anal;                                        /* RWD MUST be 32bit */
-    MYFLT *syn,*bsyn,*i0,*i1,*output;
+    MYFLT *syn,*bsyn,*output;
     MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
     int32 N = p->fsig->N;
     MYFLT *obufptr,*outbuf,*synWindow;
@@ -940,7 +943,6 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     obufptr = outbuf;
 
     for (i = 0; i < p->IOi;) {  /* shift out next IOi values */
-      int j;
       int todo = (p->IOi-i <= output+p->buflen - p->nextOut ?
                   p->IOi-i : output+p->buflen - p->nextOut);
       /*outfloats(nextOut, todo, ofd);*/

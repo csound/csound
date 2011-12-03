@@ -127,12 +127,10 @@ static int hilbert(CSOUND *csound, HILBERT *p)
 {
     MYFLT xn1 = FL(0.0), yn1 = FL(0.0), xn2 = FL(0.0), yn2 = FL(0.0);
     MYFLT *out1, *out2, *in;
-    MYFLT *xnm1, *ynm1, *coef;
+    MYFLT *coef;
     int n, nsmps = csound->ksmps;
     int j;
 
-    xnm1 = p->xnm1;
-    ynm1 = p->ynm1;
     coef = p->coef;
     out1 = p->out1;
     out2 = p->out2;
@@ -344,14 +342,12 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
 {
     MYFLT xn = FL(0.0), yn = FL(0.0);
     MYFLT *out, *in;
-    MYFLT *xnm1, *ynm1, feedback;
+    MYFLT feedback;
     MYFLT coef = *p->kcoef, fbgain = *p->fbgain;
     MYFLT beta, wp;
     int nsmps = csound->ksmps;
     int i, j;
 
-    xnm1 = p->xnm1;
-    ynm1 = p->ynm1;
     feedback = p->feedback;
     out = p->out;
     in = p->in;
@@ -460,10 +456,10 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
         /* Difference equations for implementing canonical
          * 2nd order section. (Direct Form II)
          */
-        temp = xn - b * p->nm1[j] - a * p->nm2[j];
-        yn = a * temp + b * p->nm1[j] + nm2[j];
-        p->nm2[j] = p->nm1[j];
-        p->nm1[j] = temp;
+        temp = xn - b * nm1[j] - a * nm2[j];
+        yn = a * temp + b * nm1[j] + nm2[j];
+        nm2[j] = nm1[j];
+        nm1[j] = temp;
         xn = yn;
       }
       out[n] = yn;

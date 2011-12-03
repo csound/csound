@@ -15,13 +15,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
-
-#include "csdl.h"
-
+//#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2, *argums[VARGMAX];
+        MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2, 
+                *argums[VARGMAX];
         MYFLT   *table[VARGMAX];
         int     length;
         long    numOfTabs;
@@ -43,7 +44,8 @@ static int tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
-                            Str("tabmorph: all tables must have the same length!"));
+                            Str("tabmorph: all tables must have the "
+                                "same length!"));
       flength = ftp->flen;
       if (j==0) first_table = ftp->ftable;
       p->table[j] = ftp->ftable;
@@ -78,7 +80,8 @@ static int tabmorph(CSOUND *csound, TABMORPH *p)
     val2 = tab2val1 * (1-tabndx2frac) + tab2val2 * tabndx2frac;
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int) interpoint; /* to limit to zero to 1 range */
+    interpoint = (interpoint < 0 ? 0 : (interpoint > 1.0 ? 1.0 : interpoint));
+    /* interpoint -= (int) interpoint;  to limit to zero to 1 range */
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -194,7 +197,8 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
 }
 
 
-static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out and table index */
+ /* all args k-rate except out and table index */
+static int atabmorphi(CSOUND *csound, TABMORPH *p)
 {
     int    n, nsmps = csound->ksmps, tablen = p->length;
 
@@ -258,20 +262,22 @@ static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY tabmoroph_localops[] = {
 
-{ "tabmorph",  S(TABMORPH), 3,  "k", "kkkkm",
+{ "tabmorph",  S(TABMORPH), TR|3,  "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorph, NULL},
-{ "tabmorphi", S(TABMORPH), 3,  "k", "kkkkm",
+{ "tabmorphi", S(TABMORPH), TR|3,  "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorphi, NULL},
-{ "tabmorpha", S(TABMORPH), 5,  "a", "aaaam",
+{ "tabmorpha", S(TABMORPH), TR|5,  "a", "aaaam",
                (SUBR) tabmorph_set,  NULL, (SUBR) atabmorphia},
-{ "tabmorphak",S(TABMORPH), 5,  "a", "akkkm",
+{ "tabmorphak",S(TABMORPH), TR|5,  "a", "akkkm",
                (SUBR) tabmorph_set,  NULL, (SUBR) atabmorphi }
 
 };
 
 int tabmorph_init_(CSOUND *csound) {
-   return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+    return
+      csound->AppendOpcodes(csound, &(tabmoroph_localops[0]),
+                            (int) (sizeof(tabmoroph_localops) / sizeof(OENTRY)));
 }
+

@@ -884,13 +884,14 @@ void Fl_Value_Slider_Input::input_cb(Fl_Widget*, void* v) {
 void Fl_Value_Slider_Input::draw(void)
 {
     int sxx = x(), syy = y(), sww = w(), shh = h();
-    int bww = w();
+    //int bww = w();
     int X = x(), Y = y(), W = w(), H = h();
 
     int border_size=Fl::box_dx(box());
 
     if (horizontal()) {
-      bww = textboxsize();  sxx += textboxsize(); sww -= textboxsize();
+      //bww = textboxsize();  
+      sxx += textboxsize(); sww -= textboxsize();
       input.resize(X,Y,W-sww,shh);
     }
     else {

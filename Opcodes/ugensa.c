@@ -218,7 +218,7 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "fog",  S(FOGS), 5, "a","xxxakkkkkiiiiooo",(SUBR)fogset,NULL,(SUBR)fog}
+{ "fog",  S(FOGS), TR|5, "a","xxxakkkkkiiiiooo",(SUBR)fogset,NULL,(SUBR)fog}
 };
 
 int ugensa_init_(CSOUND *csound)

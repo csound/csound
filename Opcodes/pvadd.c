@@ -68,17 +68,16 @@ int pvaddset(CSOUND *csound, PVADD *p)
     char     pvfilnam[MAXNAME];
     int      size;
     FUNC     *ftp = NULL, *AmpGateFunc = NULL;
-    MYFLT    *oscphase;
     int32     memsize;
 
-   if (*p->ifn > FL(0.0))
-     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
-       return NOTOK;
-   p->ftp = ftp;
+    if (*p->ifn > FL(0.0))
+      if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
+        return NOTOK;
+    p->ftp = ftp;
 
-   if (*p->igatefun > FL(0.0))
-     if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL))
-       return NOTOK;
+    if (*p->igatefun > FL(0.0))
+      if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL))
+        return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
@@ -119,8 +118,6 @@ int pvaddset(CSOUND *csound, PVADD *p)
                      (int) *p->imode, *p->ifreqlim);
      p->frPtr = (float*) p->pvcopy;
    }
-
-    oscphase = p->oscphase;
 
     memset(p->oscphase, 0, MAXBINS*sizeof(MYFLT));
 

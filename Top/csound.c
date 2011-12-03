@@ -59,8 +59,8 @@ extern "C" {
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
-#ifdef PARCS
 #include "csound_orc.h"
+#ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
@@ -79,6 +79,7 @@ extern "C" {
   extern void MakeAscii(CSOUND *, WINDAT *, const char *);
   extern void DrawAscii(CSOUND *, WINDAT *);
   extern void KillAscii(CSOUND *, WINDAT *);
+  extern int csoundInitStaticModules(CSOUND *);
 
   static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
   static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -407,6 +408,7 @@ extern "C" {
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
     NULL, NULL,     /*  orchname, scorename */
+    NULL, NULL,     /*  orchstr, *scorestr  */
     2345678,        /*  holdrand            */
     256,            /*  strVarMaxLen        */
     MAXINSNO,       /*  maxinsno            */
@@ -470,7 +472,8 @@ extern "C" {
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */
     NULL,           /*  csoundCallbacks_    */
-    NULL,           /*  scfp                */
+    (FILE*)NULL,    /*  scfp                */
+    (CORFIL*)NULL,  /*  scstr               */
     NULL,           /*  oscfp               */
     { FL(0.0) },    /*  maxamp              */
     { FL(0.0) },    /*  smaxamp             */
@@ -634,7 +637,7 @@ extern "C" {
       0, 0, 0,      /*    rewrt_hdr, ...    */
       0,            /*    expr_opt          */
       0.0f, 0.0f,   /*    sr_override ...  */
-      (char*) NULL, (char*) NULL, (char*) NULL,
+      (char*) NULL, (char*) NULL, NULL,
       (char*) NULL, (char*) NULL, (char*) NULL,
       (char*) NULL, (char*) NULL,
       0,            /*    midiKey           */
@@ -681,6 +684,17 @@ extern "C" {
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
+    NULL,           /* global_var_lock_root */
+    NULL,           /* global_var_lock_cache */
+    0,              /* global_var_lock_count */
+    0,              /* opcode_weight_cache_ctr */
+    {NULL,NULL},    /* opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE] */
+    0,              /* opcode_weight_have_cache */
+    {NULL,NULL},    /* ache[DAG_2_CACHE_SIZE] */
+    /* statics from cs_par_orc_semantic_analysis */
+    NULL,           /* instCurr */
+    NULL,           /* instRoot */
+    0,              /* inInstr */
 #endif /* PARCS */
     0,              /* tempStatus */
     0,              /* orcLineOffset */
@@ -737,7 +751,7 @@ extern "C" {
       }
   }
 
-#if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
+#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__))
   static char *signal_to_string(int sig)
   {
       switch(sig) {
@@ -1126,7 +1140,14 @@ extern "C" {
       /* now load and pre-initialise external modules for this instance */
       /* this function returns an error value that may be worth checking */
       {
-        int err = csoundLoadModules(p);
+        int err = csoundInitStaticModules(p);
+        if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
+          p->Warning(p, p->delayederrormessages);
+          free(p->delayederrormessages);
+          p->delayederrormessages = NULL;
+        }
+        if (UNLIKELY(err==CSOUND_ERROR)) return err;
+        err = csoundLoadModules(p);
         if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
           p->Warning(p, p->delayederrormessages);
           free(p->delayederrormessages);
@@ -1240,6 +1261,7 @@ extern "C" {
       return -1;
   }
 
+#if 0
   static int getNumActive(INSDS *start, INSDS *end)
   {
       INSDS *current = start;
@@ -1249,6 +1271,7 @@ extern "C" {
       }
       return counter;
   }
+#endif
 
   inline void advanceINSDSPointer(INSDS ***start, int num)
   {
@@ -1297,7 +1320,7 @@ extern "C" {
 
 
 #ifdef PARCS
-  int inline nodePerf(CSOUND *csound, int index)
+  static int inline nodePerf(CSOUND *csound, int index)
   {
       struct instr_semantics_t *instr = NULL;
       INSDS *insds = NULL;
@@ -1399,8 +1422,8 @@ extern "C" {
 
         TRACE_1("[%i] Go\n", index);
 
-        /* TIMER_INIT(mutex, "Mutex ")
-           TIMER_T_START(mutex, index, "Mutex ") */
+        /* TIMER_INIT(mutex, "Mutex ");
+           TIMER_T_START(mutex, index, "Mutex "); */
 
         csound_global_mutex_lock();
         if (csound->multiThreadedComplete == 1) {
@@ -1416,14 +1439,14 @@ extern "C" {
         }
         csound_global_mutex_unlock();
 
-        /* TIMER_T_END(mutex, index, "Mutex ") */
+        /* TIMER_T_END(mutex, index, "Mutex "); */
 
-        TIMER_INIT(thread, "")
-          TIMER_T_START(thread, index, "")
+        TIMER_INIT(thread, "");
+        TIMER_T_START(thread, index, "");
 
           nodePerf(csound, index);
 
-        TIMER_T_END(thread, index, "")
+          TIMER_T_END(thread, index, "");
 
           TRACE_1("[%i] Done\n", index);
 
@@ -1527,9 +1550,9 @@ extern "C" {
       ip = csound->actanchor.nxtact;
 
       if (ip != NULL) {
-        TIMER_INIT(thread, "")
-          TIMER_START(thread, "Clock Sync ")
-          TIMER_END(thread, "Clock Sync ")
+        TIMER_INIT(thread, "");
+        TIMER_START(thread, "Clock Sync ");
+        TIMER_END(thread, "Clock Sync ");
 
           SHARK_SIGNPOST(KPERF_SYM);
         TRACE_1("[%i] kperf\n", 0);
@@ -1538,16 +1561,15 @@ extern "C" {
            2nd by inso count / thread count. */
         if (csound->multiThreadedThreadInfo != NULL) {
           struct dag_t *dag2 = NULL;
-          int main_played_count = 0;
 
-          TIMER_START(thread, "Dag ")
+          TIMER_START(thread, "Dag ");
 #if defined(LINEAR_CACHE) || defined(HASH_CACHE)
-            csp_dag_cache_fetch(csound, &dag2, ip);
+          csp_dag_cache_fetch(csound, &dag2, ip);
           csp_dag_build(csound, &dag2, ip);
 #endif
-          TIMER_END(thread, "Dag ")
+          TIMER_END(thread, "Dag ");
 
-            TRACE_1("{Time: %f}\n", csound->GetScoreTime(csound));
+          TRACE_1("{Time: %f}\n", csound->GetScoreTime(csound));
 #if TRACE > 1
           csp_dag_print(csound, dag2);
 #endif
@@ -1558,17 +1580,17 @@ extern "C" {
           SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
           csound->WaitBarrier(csound->barrier1);
 
-          TIMER_START(thread, "[0] ")
+          TIMER_START(thread, "[0] ");
 
-            main_played_count = nodePerf(csound, 0);
+          (void) nodePerf(csound, 0);
 
-          TIMER_END(thread, "[0] ")
+          TIMER_END(thread, "[0] ");
 
             SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
           /* wait until partition is complete */
           csound->WaitBarrier(csound->barrier2);
           TRACE_1("[%i] Barrier2 Done\n", 0);
-          TIMER_END(thread, "")
+          TIMER_END(thread, "");
 
 #if !defined(LINEAR_CACHE) && !defined(HASH_CACHE)
             csp_dag_dealloc(csound, &dag2);
