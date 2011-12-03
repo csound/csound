@@ -85,7 +85,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     char    *s;
     char    *sortedscore = NULL;
     char    *xtractedscore = "score.xtr";
-    char    *playscore = NULL;      /* unless we extract */
     FILE    *scorin = NULL, *scorout = NULL, *xfile = NULL;
     int     n;
     int     csdFound = 0;
@@ -291,7 +290,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       if (O->RTevents)
         csound->Message(csound, Str("realtime performance using dummy "
                                     "numeric scorefile\n"));
-    } 
+    }
     else if (!csdFound && !O->noDefaultPaths){
       /* Add directory of SCO file to search paths*/
       fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
@@ -361,16 +360,16 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->scorestr = copy_to_corefile(csound->scorename);
     }
     else {
-      playscore = sortedscore = NULL;
+      sortedscore = NULL;
       if (csound->scorestr==NULL) {
         if ((csound->scorestr = copy_to_corefile(csound->scorename))==NULL)
           csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }
       csound->Message(csound, Str("sorting score ...\n"));
       scsortstr(csound, csound->scorestr);
-      if (csound->keep_tmp) { 
+      if (csound->keep_tmp) {
         FILE *ff = fopen("score.srt", "w");
-        fputs(corfile_body(csound->scorestr), ff);
+        fputs(corfile_body(csound->scstr), ff);
         fclose(ff);
       }
     }
@@ -394,7 +393,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       fclose(scorin);
       fclose(scorout);
       fclose(xfile);
-      playscore = xtractedscore;
       csound->tempStatus &= ~csPlayScoMask;
     }
     csound->Message(csound, Str("\t... done\n"));
@@ -406,7 +404,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("Syntax check completed.\n"));
       return CSOUND_EXITJMP_SUCCESS;
     }
-      
+
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
       O->Midioutname = NULL;
@@ -414,37 +412,37 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
-      
+
 #ifdef PARCS
     if (O->numThreads > 1) {
       int i;
       THREADINFO *current = NULL;
-        
+
       csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
       csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
-      
+
       csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
       csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
-      
+
       csound->multiThreadedComplete = 0;
-      
+
       for (i = 1; i < O->numThreads; i++) {
         THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
-        
+
         t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
         t->next = NULL;
-        
+
         if (current == NULL) {
           csound->multiThreadedThreadInfo = t;
-        } 
+        }
         else {
           current->next = t;
         }
         current = t;
       }
-      
+
       csound->WaitBarrier(csound->barrier2);
-      
+
       csp_parallel_compute_spec_setup(csound);
     }
 #endif
@@ -452,4 +450,3 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
     return musmon(csound);
 }
-

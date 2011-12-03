@@ -495,7 +495,7 @@ int pitchafproc(CSOUND *csound, PITCHAF *p)
     MYFLT *buff2 = (MYFLT *)p->buff2.auxp;
     MYFLT *cor = (MYFLT *)p->cor.auxp;
     MYFLT *s = p->asig, pitch;
-    MYFLT ifmax = *p->kfmax;
+    //MYFLT ifmax = *p->kfmax;
 
     for (n=0; n < ksmps; n++) {
       for (i=0,j=lag; i < len; i++) {

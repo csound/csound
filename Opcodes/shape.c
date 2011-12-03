@@ -66,7 +66,7 @@ static int PowerShape(CSOUND* csound, POWER_SHAPE* data)
       for (n=0; n<nsmps; n++) {
         cur = in[n];
         if (cur == FL(0.0))  out[n] = FL(0.0);    /* make 0^0 = 0 for continuity */
-        else                 out[n] = maxampl;    /* otherwise, x^0 = 1.0 */
+        else                 out[n] = FL(1.0)/invmaxampl;    /* otherwise, x^0 = 1.0 */
       }
     }
     else {

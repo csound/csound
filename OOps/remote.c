@@ -29,7 +29,10 @@
 #include <sys/ioctl.h>
 #ifdef LINUX
 #include <linux/if.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
+extern int inet_aton (const char *, struct in_addr *);
 #endif
 #include <net/if.h>
 #endif
