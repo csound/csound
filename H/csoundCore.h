@@ -31,10 +31,11 @@
 #include "sysdep.h"
 #ifdef PARCS
 #include <pthread.h>
-#endif
+#include "cs_par_structs.h"
+#endif /* PARCS */
 #include <stdarg.h>
 #include <setjmp.h>
-
+ 
 /*
 #include <sndfile.h>
 JPff:  But this gives warnings in many files as rewriteheader expects
@@ -60,7 +61,7 @@ util/xtrct.c
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /*  __cplusplus */
 
 #ifdef __MACH__
 #define BARRIER_SERIAL_THREAD (-1)
@@ -72,8 +73,8 @@ typedef struct {
 
 #ifndef PTHREAD_BARRIER_SERIAL_THREAD
 #define pthread_barrier_t barrier_t
-#endif
-#endif
+#endif /* PTHREAD_BARRIER_SERIAL_THREAd */
+#endif /* __MACH__ */
 
 
 #define OK        (0)
@@ -152,7 +153,7 @@ typedef struct {
 
 #ifndef PI
 #define PI      (3.141592653589793238462643383279502884197)
-#endif
+#endif /* pi */
 #define TWOPI   (6.283185307179586476925286766559005768394)
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
@@ -168,6 +169,12 @@ typedef struct {
    cause confusion
 #define printf  use_csoundMessage_instead_of_printf
 */
+  typedef struct CORFIL {
+    char    *body;
+    int     len;
+    int     p;
+  } CORFIL;
+
   typedef struct {
     int     odebug;
     int     sfread, sfwrite, sfheader, filetyp;
@@ -182,7 +189,8 @@ typedef struct {
     int     rewrt_hdr, heartbeat, gen01defer;
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
     float   sr_override, kr_override;
-    char    *infilename, *outfilename, *playscore;
+    char    *infilename, *outfilename;
+    CORFIL  *playscore;
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
     char    *FMidioutname;
@@ -196,7 +204,7 @@ typedef struct {
 #ifdef ENABLE_NEW_PARSER
     int     newParser; /* SYY - July 30, 2006: for --new-parser */
     int     calculateWeights;
-#endif
+#endif /* ENABLE_NEW_PARSE */
   } OPARMS;
 
   typedef struct arglst {
@@ -243,9 +251,9 @@ typedef struct {
     int     lclpcnt, lclscnt;
     int     lclfixed, optxtcount;
     int16   muted;
-    int32    localen;
-    int32    opdstot;                /* Total size of opds structs in instr */
-    int32    *inslist;               /* Only used in parsing (?) */
+    int32   localen;
+    int32   opdstot;                /* Total size of opds structs in instr */
+    int32   *inslist;               /* Only used in parsing (?) */
     MYFLT   *psetdata;              /* Used for pset opcode */
     struct insds * instance;        /* Chain of allocated instances of
                                        this instrument */
@@ -719,17 +727,18 @@ typedef struct {
 /* These are used to set/clear bits in csound->tempStatus.
    If the bit is set, it indicates that the given file is
    a temporary. */
-extern const uint32_t csOrcMask;
-extern const uint32_t csScoInMask;
-extern const uint32_t csScoSortMask;
-extern const uint32_t csMidiScoMask;
-extern const uint32_t csPlayScoMask;
+  extern const uint32_t csOrcMask;
+  extern const uint32_t csScoInMask;
+  extern const uint32_t csScoSortMask;
+  extern const uint32_t csMidiScoMask;
+  extern const uint32_t csPlayScoMask;
 
 #endif  /* __BUILDING_LIBCSOUND */
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
    */
+
 
   struct CSOUND_ {
     /* Csound API function pointers (320 total) */
@@ -1062,7 +1071,7 @@ extern const uint32_t csPlayScoMask;
     pthread_spinlock_t spoutlock, spinlock;
 #else
     int           spoutlock, spinlock;
-#endif
+#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS) */
     /* Widgets */
     void          *widgetGlobals;
     /** reserved for std opcode library  */
@@ -1082,6 +1091,7 @@ extern const uint32_t csPlayScoMask;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
     char          *orchname, *scorename;
+    CORFIL        *orchstr, *scorestr;
     int           holdrand;
     /** max. length of string variables + 1  */
     int           strVarMaxLen;
@@ -1099,7 +1109,7 @@ extern const uint32_t csPlayScoMask;
     pthread_spinlock_t memlock;
 #else
     int           memlock;
-#endif
+#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS */
     int           floatsize;
     int           inchnls;      /* Not fully used yet -- JPff */
     int   dummyint[7];
@@ -1152,6 +1162,7 @@ extern const uint32_t csPlayScoMask;
     int           Linefd;
     void          *csoundCallbacks_;
     FILE*         scfp;
+    CORFIL        *scstr;
     FILE*         oscfp;
     MYFLT         maxamp[MAXCHNLS];
     MYFLT         smaxamp[MAXCHNLS];
@@ -1330,6 +1341,19 @@ extern const uint32_t csPlayScoMask;
     struct dag_t        *multiThreadedDag;
     pthread_barrier_t   *barrier1;
     pthread_barrier_t   *barrier2;
+    /* Statics from cs_par_dispatch; */
+    struct global_var_lock_t *global_var_lock_root;
+    struct global_var_lock_t **global_var_lock_cache;
+    int           global_var_lock_count;
+    int           opcode_weight_cache_ctr;
+    struct opcode_weight_cache_entry_t 
+                  *opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
+    int           opcode_weight_have_cache;
+    struct        dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
+    /* statics from cs_par_orc_semantic_analysis */
+    struct instr_semantics_t *instCurr;
+    struct instr_semantics_t *instRoot;
+    int           inInstr;
 #endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
@@ -1351,9 +1375,16 @@ extern const uint32_t csPlayScoMask;
  * in order to enable C++ to #include this file.
  */
 
+#define LINKAGE1(name)                                         \
+PUBLIC long name##_init(CSOUND *csound, OENTRY **ep)           \
+{   (void) csound; *ep = name; return (long) (sizeof(name));  } 
+
+#define FLINKAGE1(name)                                                 \
+PUBLIC NGFENS* name##_init(CSOUND *csound)                         \
+{   (void) csound; return name;                                     } 
+
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif  /* CSOUNDCORE_H */
-

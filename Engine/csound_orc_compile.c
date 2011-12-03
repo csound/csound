@@ -35,8 +35,7 @@
 #include "typetabl.h"
 
 typedef struct NAME_ {
-    char          *namep;
-    struct NAME_  *nxt;
+    char          *namep;    struct NAME_  *nxt;
     int           type, count;
 } NAME;
 
@@ -126,7 +125,7 @@ int tree_arg_list_count(TREE * root)
     int count = 0;
     TREE * current = root;
 
-    while(current != NULL) {
+    while (current != NULL) {
       current = current->next;
       count++;
     }
@@ -140,7 +139,7 @@ static OPTXT * last_optxt(OPTXT *optxt)
 {
     OPTXT *current = optxt;
 
-    while(current->nxtop != NULL) {
+    while (current->nxtop != NULL) {
       current = current->nxtop;
     }
     return current;
@@ -149,7 +148,7 @@ static OPTXT * last_optxt(OPTXT *optxt)
 /**
  * Append OPTXT op2 to end of OPTXT chain op1
  */
-static void append_optxt(OPTXT *op1, OPTXT *op2)
+static inline void append_optxt(OPTXT *op1, OPTXT *op2)
 {
     last_optxt(op1)->nxtop = op2;
 }
@@ -167,7 +166,7 @@ void update_lclcount(CSOUND *csound, INSTRTXT *ip, TREE *argslist)
 {
     TREE * current = argslist;
 
-    while(current != NULL) {
+    while (current != NULL) {
       switch(current->type) {
       case T_IDENT_S:
         ip->lclscnt++;
@@ -548,7 +547,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
     ip->t.inlist->arg[0] = strsav_string(csound, "0");
 
 
-    while(current != NULL) {
+    while (current != NULL) {
 
       if (current->type != T_INSTR && current->type != T_UDO) {
 
@@ -583,14 +582,15 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
           }
           else if (current->left->type == T_NCHNLSI) {
             csound->tran_nchnlsi = current->right->value->value;
-            /* csound->Message(csound, "SETTING NCHNLS: %d\n", csound->tran_nchnls); */
+            /* csound->Message(csound, "SETTING NCHNLS: %d\n",
+                               csound->tran_nchnls); */
           }
           else if (current->left->type == T_0DBFS) {
             csound->tran_0dbfs = val;
-            csound->Message(csound, "SETTING 0DBFS: %f\n", csound->tran_0dbfs);
+            /* csound->Message(csound, "SETTING 0DBFS: %f\n",
+                               csound->tran_0dbfs); */
           }
 
-          /* TODO - Implement 0dbfs constant  -- surely done?? */
         }
 
         op->nxtop = create_opcode(csound, current, ip);
@@ -796,125 +796,6 @@ void append_instrument(CSOUND * csound, INSTRTXT * instrtxt)
     current->nxtinstxt = instrtxt;
 }
 
-
-/* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
-
-#if 0
-static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
-{
-    OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
-    char    *types, *otypes;
-    int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
-    int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-
-    /* count the number of arguments, and check types */
-    i = i_incnt = a_incnt = k_incnt = i_outcnt = a_outcnt = k_outcnt = err = 0;
-    types = inm->intypes; otypes = opc->intypes;
-    opc->dsblksiz = (uint16) sizeof(UOPCODE);
-    if (!strcmp(types, "0"))
-      types++;                  /* no input args */
-    while (*types) {
-      switch (*types) {
-      case 'a':
-        a_incnt++; *otypes++ = *types;
-        break;
-      case 'K':
-        i_incnt++;              /* also updated at i-time */
-      case 'k':
-        k_incnt++; *otypes++ = 'k';
-        break;
-      case 'i':
-      case 'o':
-      case 'p':
-      case 'j':
-        i_incnt++; *otypes++ = *types;
-        break;
-      default:
-        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
-        err++; i--;
-      }
-      i++; types++;
-      if (i > OPCODENUMOUTS_MAX) {
-        synterr(csound, Str("too many input args for opcode %s"), inm->name);
-        csound->LongJmp(csound, 1);
-      }
-    }
-    *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
-    inm->inchns = i;                    /* total number of input chnls */
-    inm->perf_incnt = a_incnt + k_incnt;
-    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
-    /* same for outputs */
-    i = 0;
-    types = inm->outtypes; otypes = opc->outypes;
-    if (!strcmp(types, "0"))
-      types++;                  /* no output args */
-    while (*types) {
-      if (i >= OPCODENUMOUTS_MAX) {
-        synterr(csound, Str("too many output args for opcode %s"), inm->name);
-        csound->LongJmp(csound, 1);
-      }
-      switch (*types) {
-      case 'a':
-        a_outcnt++; *otypes++ = *types;
-        break;
-      case 'K':
-        i_outcnt++;             /* also updated at i-time */
-      case 'k':
-        k_outcnt++; *otypes++ = 'k';
-        break;
-      case 'i':
-        i_outcnt++; *otypes++ = *types;
-        break;
-      default:
-        synterr(csound, Str("invalid output type for opcode %s"), inm->name);
-        err++; i--;
-      }
-      i++; types++;
-    }
-    *otypes = '\0';
-    inm->outchns = i;                   /* total number of output chnls */
-    inm->perf_outcnt = a_outcnt + k_outcnt;
-    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
-    opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
-                     & (~((uint16) 15)));   /* align (needed ?) */
-    /* now build index lists for the various types of arguments */
-    i = i_incnt + inm->perf_incnt + i_outcnt + inm->perf_outcnt;
-    i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
-                                                   sizeof(int16) * (i + 6));
-    a_inlist = i_inlist + i_incnt + 1;
-    k_inlist = a_inlist + a_incnt + 1;
-    i = 0; types = inm->intypes;
-    while (*types) {
-      switch (*types++) {
-        case 'a': *a_inlist++ = i; break;
-        case 'k': *k_inlist++ = i; break;
-        case 'K': *k_inlist++ = i;      /* also updated at i-time */
-        case 'i':
-        case 'o':
-        case 'p':
-        case 'j': *i_inlist++ = i;
-      }
-      i++;
-    }
-    *i_inlist = *a_inlist = *k_inlist = -1;     /* put delimiters */
-    i_outlist = inm->out_ndx_list = k_inlist + 1;
-    a_outlist = i_outlist + i_outcnt + 1;
-    k_outlist = a_outlist + a_outcnt + 1;
-    i = 0; types = inm->outtypes;
-    while (*types) {
-      switch (*types++) {
-        case 'a': *a_outlist++ = i; break;
-        case 'k': *k_outlist++ = i; break;
-        case 'K': *k_outlist++ = i;     /* also updated at i-time */
-        case 'i': *i_outlist++ = i;
-      }
-      i++;
-    }
-    *i_outlist = *a_outlist = *k_outlist = -1;  /* put delimiters */
-    return err;
-}
-#endif
-
 static int pnum(char *s)        /* check a char string for pnum format  */
                                 /*   and return the pnum ( >= 0 )       */
 {                               /* else return -1                       */
@@ -958,7 +839,8 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum) {
     csound->instrtxtp[instrNum] = instrtxt;
 }
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) {
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) 
+{
     OPCODINFO *opinfo = csound->opcodeInfo;
     if (UNLIKELY(opinfo == NULL)) {
       csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
@@ -979,7 +861,8 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) {
 /**
  * Compile the given TREE node into structs for Csound to use
  */
-void csound_orc_compile(CSOUND *csound, TREE *root) {
+void csound_orc_compile(CSOUND *csound, TREE *root) 
+{
     //    csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
     OPARMS      *O = csound->oparms;
@@ -994,7 +877,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
 
     strsav_create(csound);
 
-    if (csound->otranGlobals == NULL) {
+    if (UNLIKELY(csound->otranGlobals == NULL)) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
     }
     csound->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + csound->maxinsno)
@@ -1040,7 +923,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
 
         prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
-        /* Handle Inserting into CSOUND here by checking id's (name or
+        /* Handle Inserting into CSOUND here by checking ids (name or
          * numbered) and using new insert_instrtxt?
          */
         //printf("Starting to install instruments\n");
@@ -1054,7 +937,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
           TREE *p =  current->left;
           //printf("instlist case:\n"); /* This code is suspect */
           while (p) {
-            print_tree(csound, "Top of loop\n", p);
+            if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);
             if (p->left) {
               //print_tree(csound, "Left\n", p->left);
               if (p->left->type == T_INTGR)

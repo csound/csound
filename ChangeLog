@@ -1,3 +1,21 @@
+2011-11-30  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/pitch.c (impulse): If next is negative time, make it
+	absolute value
+
+2011-10-28  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/socksend.c (send_send, send_sendS): Added optional
+	format message as INT16_LE and remove MTFU check
+
+2011-10-14  John ff  <jpff@cs.bath.ac.uk>
+
+	* Opcodes/tabvars.c (ftab2tab):
+	(tab2ftab):  New opcodes
+
+2011-10-12 John ff 
+	* VERSION 5.14
+
 2011-06-21  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/wiimote.c (wii_data_init): Return value missing

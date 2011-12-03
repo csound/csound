@@ -72,7 +72,7 @@ print "System platform is '" + getPlatform() + "'."
 
 # Create options that can be set from the command line.
 
-commandOptions = Options()
+commandOptions = Variables() # was Options()
 commandOptions.Add('CC')
 commandOptions.Add('CXX')
 commandOptions.Add('LINK')
@@ -283,7 +283,7 @@ commandOptions.Add('buildcatalog',
      '0')
 commandOptions.Add('includeSerial',
      'Set to 1 if compiling serial code',
-     '0')
+     '1')
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
@@ -331,12 +331,21 @@ elif getPlatform() == 'win32':
 	#Tool('mingw')(commonEnvironment)
 	optionsFilename = 'custom-mingw.py'
 
+if(not FindFile(optionsFilename, '.')):
+    print "\n\n*************************************************"  
+    print "%s NOT FOUND, please copy one of the custom-***.py" % optionsFilename
+    print "as %s and modify it to suit your system, if necessary" % optionsFilename
+    print "*************************************************"  
+    Exit(-1)
+
+
 Help(commandOptions.GenerateHelpText(commonEnvironment))
 
 if commonEnvironment['custom']:
     optionsFilename = commonEnvironment['custom']
 
 Requires(optionsFilename, commonEnvironment)
+   
 
 print "Using options from '%s.'" % optionsFilename
 
@@ -429,7 +438,7 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch %s' % cpuType))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch %s' % cpuType))
     else:
-        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mtune=%s' % (cpuType)))
+        commonEnvironment.Prepend(CCFLAGS = Split('-Wall -O3 -mtune=%s' % (cpuType)))
 
 
 if commonEnvironment['buildRelease'] != '0':
@@ -728,9 +737,12 @@ else:
 #pthreadSpinlockFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_spin_lock(0);')
 if getPlatform() != 'darwin': # pthreadSpinlockFound:
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_SPIN_LOCK'])
-pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
+pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, NULL, 0);')
 if pthreadBarrierFound:
+    print 'CONFIGURATION DECISION: Using HAVE_PTHREAD_BARRIER_INIT'
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
+else:
+    print 'CONFIGURATION DECISION: Not using HAVE_PTHREAD_BARRIER_INIT'
 openMpFound = configure.CheckLibWithHeader('gomp', 'omp.h', 'C++', 'int n = omp_get_num_threads();')
 if openMpFound and pthreadBarrierFound and commonEnvironment['useOpenMP'] == '1':
     print 'CONFIGURATION DECISION: Using OpenMP.'
@@ -966,7 +978,6 @@ uuid
 winmm
 winspool
 ws2_32
-wsock32
         ''')
     else:
         csoundWindowsLibraries = Split('''
@@ -1050,6 +1061,7 @@ def makePlugin(env, pluginName, srcs):
 libCsoundSources = Split('''
 Engine/auxfd.c
 Engine/cfgvar.c
+Engine/corfiles.c
 Engine/entry1.c
 Engine/envvar.c
 Engine/express.c
@@ -1069,6 +1081,7 @@ Engine/scxtract.c
 Engine/sort.c
 Engine/sread.c
 Engine/swrite.c
+Engine/swritestr.c
 Engine/twarp.c
 InOut/libsnd.c
 InOut/libsnd_u.c
@@ -1110,6 +1123,12 @@ OOps/ugens6.c
 OOps/ugrw1.c
 OOps/ugrw2.c
 OOps/vdelay.c
+Opcodes/Vosim.c
+Opcodes/babo.c
+Opcodes/bilbar.c
+Opcodes/compress.c
+Opcodes/eqfil.c
+Opcodes/ftest.c
 Top/argdecode.c
 Top/cscore_internal.c
 Top/cscorfns.c
@@ -1141,6 +1160,60 @@ Engine/cs_par_orc_semantic_analysis.c
 Engine/cs_par_dispatch.c
 ''')
 
+stdopcodes = Split('''
+    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
+    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
+    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
+    Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
+    Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
+    Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
+    Opcodes/locsig.c        Opcodes/lowpassr.c      Opcodes/metro.c
+    Opcodes/midiops2.c      Opcodes/midiops3.c      Opcodes/newfils.c
+    Opcodes/nlfilt.c        Opcodes/oscbnk.c        Opcodes/pluck.c
+    Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
+    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
+    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
+    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
+    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
+    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
+    ''')
+
+pvs_opcodes = Split('''
+    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
+    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
+    Opcodes/pvsbuffer.c
+''')
+
+folded_ops = Split('''Opcodes/modmatrix.c Opcodes/scoreline.c Opcodes/modal4.c
+Opcodes/physutil.c Opcodes/physmod.c Opcodes/mandolin.c Opcodes/singwave.c
+Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
+Opcodes/pitch.c Opcodes/pitch0.c  Opcodes/spectra.c Opcodes/ambicode1.c
+Opcodes/sfont.c Opcodes/grain4.c Opcodes/hrtferX.c Opcodes/loscilx.c
+Opcodes/minmax.c Opcodes/pan2.c Opcodes/tabvars.c Opcodes/phisem.c
+Opcodes/hrtfopcodes.c Opcodes/stackops.c Opcodes/vbap.c 
+Opcodes/vbap_eight.c Opcodes/vbap_four.c Opcodes/vbap_sixteen.c
+Opcodes/vbap_zak.c Opcodes/vaops.c Opcodes/ugakbari.c Opcodes/harmon.c 
+Opcodes/pitchtrack.c Opcodes/partikkel.c Opcodes/shape.c Opcodes/tabsum.c
+Opcodes/crossfm.c Opcodes/pvlock.c Opcodes/fareyseq.c  Opcodes/hrtfearly.c
+Opcodes/hrtfreverb.c
+''')
+
+oldpvoc = Split('''
+    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
+    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
+''')
+
+gabnewopc =  Split('''
+    Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c''')
+
+libCsoundSources += stdopcodes
+libCsoundSources += pvs_opcodes
+libCsoundSources += folded_ops
+libCsoundSources += oldpvoc
+libCsoundSources += gabnewopc
+ 
 if commonEnvironment['buildMultiCore'] != '0':
     libCsoundSources += MultiCoreSources
 
@@ -1499,46 +1572,146 @@ else:
 # Plugin opcodes.
 #############################################################################
 
-makePlugin(pluginEnvironment, 'stdopcod', Split('''
-    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
-    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
-    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
-    Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
-    Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
-    Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
-    Opcodes/locsig.c        Opcodes/lowpassr.c      Opcodes/metro.c
-    Opcodes/midiops2.c      Opcodes/midiops3.c      Opcodes/newfils.c
-    Opcodes/nlfilt.c        Opcodes/oscbnk.c        Opcodes/pluck.c
-    Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
-    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
-    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
-    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
-    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
-    '''))
 
+# these opcodes have been folded back into csoundLib
+# makePlugin(pluginEnvironment, 'stdopcd', Split('''
+#    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
+#    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
+#    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
+#    Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
+#    Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
+#    Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
+#    Opcodes/locsig.c        Opcodes/lowpassr.c      Opcodes/metro.c
+#    Opcodes/midiops2.c      Opcodes/midiops3.c      Opcodes/newfils.c
+#    Opcodes/nlfilt.c        Opcodes/oscbnk.c        Opcodes/pluck.c
+#    Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
+#    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
+#    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
+#    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
+#    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
+#    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
+#    '''))
+# makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
+# makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
+# makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
+# makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
+# makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
+# makePlugin(pluginEnvironment, 'modal4',
+#           ['Opcodes/modal4.c', 'Opcodes/physutil.c'])
+# makePlugin(pluginEnvironment, 'physmod', Split('''
+#    Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
+#    Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
+#'''))
+# makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
+# makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
+# makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
+# makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
+#    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
+#    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
+#'''))
+# makePlugin(pluginEnvironment, 'pitch',
+#           ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
+# makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+# sfontEnvironment = pluginEnvironment.Clone()
+# if compilerGNU():
+#   if getPlatform() != 'darwin':
+#    sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
+# if sys.byteorder == 'big':
+#    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
+# makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
+# makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
+# makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
+# makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
+# makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
+# makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
+# makePlugin(pluginEnvironment, 'tabfns', ['Opcodes/tabvars.c'])
+# makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
+# makePlugin(pluginEnvironment, 'pvoc', Split('''
+#    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
+#    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
+#'''))
+#hrtfnewEnvironment = pluginEnvironment.Clone()
+#if sys.byteorder == 'big':
+#    hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
+# makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
+# makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
+# makePlugin(pluginEnvironment, 'vbap',
+#           ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
+#            'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
+# makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
+# makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
+# makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
+# makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
+# makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
+# makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
+# makePlugin(pluginEnvironment, 'tabsum', ['Opcodes/tabsum.c'])
+# makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
+# makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
+# makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
+# makePlugin(pluginEnvironment, 'gabnew', Split('''
+#    Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
+#    Opcodes/gab/sliderTable.c
+#    Opcodes/gab/newgabopc.c''')) 
+
+#============================== ==================================
+
+# system opcodes 
+makePlugin(pluginEnvironment, 'cs_date', ['Opcodes/date.c'])
+makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
+
+# C++ opcodes
+makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
+makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
+makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
+makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
+makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
+
+# platform-specific
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
 if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
-makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
-makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
-makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
-makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
-makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
-makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
-makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
-makePlugin(pluginEnvironment, 'modal4',
-           ['Opcodes/modal4.c', 'Opcodes/physutil.c'])
-makePlugin(pluginEnvironment, 'physmod', Split('''
-    Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
-    Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
-'''))
-makePlugin(pluginEnvironment, 'pitch',
-           ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
+    makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
+
+# scanned synthesis
 makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
-makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+
+# tables
+makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
+##makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
+
+#############################################################################
+#
+# Plugins with External Dependencies
+#############################################################################
+# UDP opcodes
+if commonEnvironment['useUDP'] == '0':
+    print "CONFIGURATION DECISION: Not building UDP plugins."
+else:
+    print "CONFIGURATION DECISION: Building UDP plugins."
+    udpEnvironment = pluginEnvironment.Clone()
+    udpEnvironment.Append(LIBS = ['pthread'])
+    if getPlatform() == 'win32':
+      udpEnvironment.Append(LIBS = ['ws2_32'])
+    makePlugin(udpEnvironment, 'udprecv', ['Opcodes/sockrecv.c'])
+    makePlugin(udpEnvironment, 'udpsend', ['Opcodes/socksend.c'])
+
+# end udp opcodes
+
+# OSC opcodes
+if not (commonEnvironment['useOSC'] == '1' and oscFound):
+    print "CONFIGURATION DECISION: Not building OSC plugin."
+else:
+    print "CONFIGURATION DECISION: Building OSC plugin."
+    oscEnvironment = pluginEnvironment.Clone()
+    oscEnvironment.Append(LIBS = ['lo', 'pthread'])
+    if getPlatform() == 'win32':
+        oscEnvironment.Append(LIBS = csoundWindowsLibraries)
+        if compilerGNU():
+           oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
+    makePlugin(oscEnvironment, 'osc', ['Opcodes/OSC.c'])
+
 if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 ##commonEnvironment.Append(LINKFLAGS = ['-Wl,-as-needed'])
@@ -1552,79 +1725,10 @@ if serialfound==1:
   SerEnvironment = pluginEnvironment.Clone()
   makePlugin(SerEnvironment, 'serial', ['Opcodes/serial.c'])
 
-sfontEnvironment = pluginEnvironment.Clone()
-if compilerGNU():
-   if getPlatform() != 'darwin':
-    sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
-if sys.byteorder == 'big':
-    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
-makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
-makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
-makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
-makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
-makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
-makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
-makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
-makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
-makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
-makePlugin(pluginEnvironment, 'tabfns', ['Opcodes/tabvars.c'])
-makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
-makePlugin(pluginEnvironment, 'pvoc', Split('''
-    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
-    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
-'''))
-makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
-    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
-    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
-'''))
-makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
-makePlugin(pluginEnvironment, 'vbap',
-           ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
-            'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
-makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
-makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
-makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
-makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
-makePlugin(pluginEnvironment, 'cs_date', ['Opcodes/date.c'])
-makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
-makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
-makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
-makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
-makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
-makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
-makePlugin(pluginEnvironment, 'tabsum', ['Opcodes/tabsum.c'])
-makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
-makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
-makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
-makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
 #oggEnvironment = pluginEnvironment.Clone()
 #makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
 #oggEnvironment.Append(LIBS=['vorbisfile'])
-makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
-if getPlatform() == 'linux':
-    makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
 
-if commonEnvironment['buildImageOpcodes'] == '1':
-    if getPlatform() == 'win32':
-        if configure.CheckLibWithHeader("fltk_png", "png.h", language="C") and zlibhfound:
-            print 'CONFIGURATION DECISION: Building image opcodes'
-            pluginEnvironment.Append(LIBS= Split(''' fltk_png fltk_z '''))
-            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
-    else:
-        if configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
-            print 'CONFIGURATION DECISION: Building image opcodes'
-            pluginEnvironment.Append(LIBS= Split(''' png z '''))
-            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
-else:
-    print 'CONFIGURATION DECISION: Not building image opcodes'
-makePlugin(pluginEnvironment, 'gabnew', Split('''
-    Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
-    Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c'''))
-hrtfnewEnvironment = pluginEnvironment.Clone()
-if sys.byteorder == 'big':
-    hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
-makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 if jackFound and commonEnvironment['useJack'] == '1':
     jpluginEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'linux':
@@ -1644,10 +1748,19 @@ if gmmFound and commonEnvironment['useDouble'] != '0':
 else:
     print 'CONFIGURATION DECISION: Not building linear algebra opcodes.'
 
-#############################################################################
-#
-# Plugins with External Dependencies
-#############################################################################
+if commonEnvironment['buildImageOpcodes'] == '1':
+    if getPlatform() == 'win32':
+        if configure.CheckLibWithHeader("fltk_png", "png.h", language="C") and zlibhfound:
+            print 'CONFIGURATION DECISION: Building image opcodes'
+            pluginEnvironment.Append(LIBS= Split(''' fltk_png fltk_z '''))
+            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+    else:
+        if configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
+            print 'CONFIGURATION DECISION: Building image opcodes'
+            pluginEnvironment.Append(LIBS= Split(''' png z '''))
+            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+else:
+    print 'CONFIGURATION DECISION: Not building image opcodes'
 
 # FLTK widgets
 
@@ -1746,7 +1859,10 @@ if commonEnvironment['useCoreAudio'] == '1' and getPlatform() == 'darwin':
     print "CONFIGURATION DECISION: Building CoreAudio plugin."
     coreaudioEnvironment = pluginEnvironment.Clone()
     coreaudioEnvironment.Append(CCFLAGS = ['-I/System/Library/Frameworks/CoreAudio.framework/Headers'])
-    makePlugin(coreaudioEnvironment, 'rtcoreaudio', ['InOut/rtcoreaudio.c'])
+#    makePlugin(coreaudioEnvironment, 'rtcoreaudio', ['InOut/rtcoreaudio.c'])
+    coreaudioEnvironment.Append(CCFLAGS = ['-I/System/Library/Frameworks/AudioUnit.framework/Headers'])
+    coreaudioEnvironment.Append(LINKFLAGS = ['-framework', 'AudioUnit'])
+    makePlugin(coreaudioEnvironment, 'rtauhal', ['InOut/rtauhal.c'])
 else:
     print "CONFIGURATION DECISION: Not building CoreAudio plugin."
 
@@ -1809,7 +1925,8 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     portMidiEnvironment = pluginEnvironment.Clone()
     portMidiEnvironment.Append(LIBS = ['portmidi'])
     if getPlatform() != 'darwin' and getPlatform() != 'win32':
-        portMidiEnvironment.Append(LIBS = ['porttime'])
+        if configure.CheckLibWithHeader("porttimer","porttimmer.h",language="C"):
+            portMidiEnvironment.Append(LIBS = ['porttime'])
     if getPlatform() == 'win32':
         portMidiEnvironment.Append(LIBS = csoundWindowsLibraries)
     if getPlatform() == 'linux' and alsaFound:
@@ -1818,32 +1935,12 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
-# OSC opcodes
+if getPlatform() == 'darwin':
+    coreMidiEnvironment = pluginEnvironment.Clone()
+    makePlugin(coreMidiEnvironment, 'cmidi', ['InOut/cmidi.c'])
 
-if not (commonEnvironment['useOSC'] == '1' and oscFound):
-    print "CONFIGURATION DECISION: Not building OSC plugin."
-else:
-    print "CONFIGURATION DECISION: Building OSC plugin."
-    oscEnvironment = pluginEnvironment.Clone()
-    oscEnvironment.Append(LIBS = ['lo', 'pthread'])
-    if getPlatform() == 'win32':
-        oscEnvironment.Append(LIBS = csoundWindowsLibraries)
-        if compilerGNU():
-           oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
-    makePlugin(oscEnvironment, 'osc', ['Opcodes/OSC.c'])
 
-# UDP opcodes
 
-if commonEnvironment['useUDP'] == '0':
-    print "CONFIGURATION DECISION: Not building UDP plugins."
-else:
-    print "CONFIGURATION DECISION: Building UDP plugins."
-    udpEnvironment = pluginEnvironment.Clone()
-    udpEnvironment.Append(LIBS = ['pthread'])
-    makePlugin(udpEnvironment, 'udprecv', ['Opcodes/sockrecv.c'])
-    makePlugin(udpEnvironment, 'udpsend', ['Opcodes/socksend.c'])
-
-# end udp opcodes
 
 # FLUIDSYNTH OPCODES
 
@@ -2416,7 +2513,7 @@ else:
     Depends(csoundAcPythonModule, pythonWrapper)
     Depends(csoundAcPythonModule, csoundac)
     Depends(csoundAcPythonModule, csnd)
-    if luaFound:
+    if luaFound and commonEnvironment['buildLuaWrapper'] != '0':
        luaCsoundACWrapperEnvironment = acWrapperEnvironment.Clone()
        if getPlatform() == 'win32':
        	  luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('luaCsnd lua51 CsoundAC csnd fltk_images'))

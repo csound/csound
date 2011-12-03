@@ -24,6 +24,7 @@
 #include "stdopcod.h"
 #include "ptrigtbl.h"
 #include "fhtfun.h"
+#include "interlocks.h"
 #include <math.h>
 
 #define CH_THRESH       1.19209e-7
@@ -429,7 +430,7 @@ static int Xsynth(CSOUND *csound, CON *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "cross2",  S(CON), 5, "a", "aaiiik",(SUBR)Xsynthset, NULL, (SUBR)Xsynth}
+{ "cross2",  S(CON), TR|5, "a", "aaiiik",(SUBR)Xsynthset, NULL, (SUBR)Xsynth}
 };
 
 int cross2_init_(CSOUND *csound)

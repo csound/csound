@@ -1,0 +1,4 @@
+#!/bin/sh
+if /bin/test -d /Library/Frameworks/CsoundLib.Framework
+then /bin/rm -R /Library/Frameworks/CsoundLib.Framework
+fi

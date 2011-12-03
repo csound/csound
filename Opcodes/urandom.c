@@ -57,7 +57,7 @@ static int urand_run(CSOUND *csound, URANDOM *p)
     int ur = p->ur;
     /* union ieee754_double x; */
     int64_t x;
-    read(p->ur, &x, sizeof(int64_t));
+    read(ur, &x, sizeof(int64_t));
 
     /* x.ieee.exponent = x.ieee.exponent& 0x377; */
     /* printf("Debug: %s(%d): %g %d %03x %05x %08x\n", __FILE__, __LINE__, x.d, */
@@ -89,12 +89,13 @@ static int urand_arun(CSOUND *csound, URANDOM *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY urandom_localops[] = {
   { "urandom",      0xFFFF,             0,      NULL,   NULL, NULL},
   { "urandom.i", S(URANDOM), 1, "k", "jp", (SUBR) urand_irate },
   { "urandom.k", S(URANDOM), 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run},
-  { "urandom.a", S(URANDOM), 5, "a", "jp", (SUBR) urand_init, NULL, (SUBR) urand_arun}
+  { "urandom.a", S(URANDOM), 5, "a", "jp",
+                                    (SUBR) urand_init, NULL, (SUBR) urand_arun}
 };
 
-LINKAGE
+LINKAGE1(urandom_localops)
 

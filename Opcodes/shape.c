@@ -30,7 +30,9 @@
     02111-1307 USA
  */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
+
 #include <math.h>
 
 
@@ -64,7 +66,7 @@ static int PowerShape(CSOUND* csound, POWER_SHAPE* data)
       for (n=0; n<nsmps; n++) {
         cur = in[n];
         if (cur == FL(0.0))  out[n] = FL(0.0);    /* make 0^0 = 0 for continuity */
-        else                 out[n] = maxampl;    /* otherwise, x^0 = 1.0 */
+        else                 out[n] = FL(1.0)/invmaxampl;    /* otherwise, x^0 = 1.0 */
       }
     }
     else {
@@ -497,7 +499,7 @@ static int Phasine(CSOUND* csound, PHASINE* data)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY shape_localops[] = {
   /* { "phasine", S(PHASINE), 5, "a", "akp",
                         (SUBR)PhasineInit, NULL, (SUBR)Phasine }, */
   { "powershape", S(POWER_SHAPE), 5, "a", "akp",
@@ -512,4 +514,4 @@ static OENTRY localops[] = {
                   (SUBR)SyncPhasorInit, NULL, (SUBR)SyncPhasor },
 };
 
-LINKAGE
+LINKAGE1(shape_localops)

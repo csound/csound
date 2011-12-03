@@ -57,7 +57,7 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 #define FALSE (0)
 #endif
 
-inline int ordering(SRTBLK *a, SRTBLK *b)
+static inline int ordering(SRTBLK *a, SRTBLK *b)
 {
     char cb = b->text[0], ca = a->text[0];
     MYFLT tmp;
@@ -66,7 +66,6 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
     if (ca=='w') return TRUE;
     if (cb=='w') return FALSE;
     if (cb=='t') return FALSE;
-    /* printf("SORT: ap2=%f, bp2=%f tmp=%f\n", a->newp2, b->newp2); */
     tmp = b->newp2 - a->newp2;
     if (tmp < 0) return FALSE;
     if (tmp > 0) return TRUE;
@@ -253,11 +252,12 @@ void sort(CSOUND *csound)
       case 'a':
         bp->preced = 'e';
         break;
+      case 'e':
+        //        bp->newp2 ;
       case 'q':
       case 'w':
       case 't':
       case 's':
-      case 'e':
         bp->preced = 'a';
         break;
       default:

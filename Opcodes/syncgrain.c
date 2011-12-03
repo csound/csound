@@ -24,6 +24,7 @@
 #include "csdl.h"
 #include "syncgrain.h"
 #include "soundio.h"
+#include "interlocks.h"
 
 /*
 #ifdef HAVE_VALUES_H
@@ -686,11 +687,11 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
 
 
 static OENTRY localops[] = {
-{"syncgrain", sizeof(syncgrain), 5, "a", "kkkkkiii",
+{"syncgrain", sizeof(syncgrain), TR|5, "a", "kkkkkiii",
  (SUBR)syncgrain_init, NULL,(SUBR)syncgrain_process },
-{"syncloop", sizeof(syncgrainloop), 5, "a", "kkkkkkkiiioo",
+{"syncloop", sizeof(syncgrainloop), TR|5, "a", "kkkkkkkiiioo",
  (SUBR)syncgrainloop_init, NULL,(SUBR)syncgrainloop_process },
-{"diskgrain", sizeof(filegrain), 5, DGRAIN_OUTTYPES, "Skkkkkiipo",
+{"diskgrain", sizeof(filegrain), TR|5, DGRAIN_OUTTYPES, "Skkkkkiipo",
                             (SUBR)filegrain_init, NULL,(SUBR)filegrain_process }
 
 };

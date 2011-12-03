@@ -33,7 +33,9 @@
 /*        envelop rise and decade curve                 */
 /* Minor changes by John Fitch Dec 1995                 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include "grain4.h"
 #include <math.h>
 
@@ -261,7 +263,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
     int         n, nsmps = csound->ksmps;
     int         nvoice;
-    int32       flen, tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
+    int32       tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
     int32       att_len, dec_len, att_sus;
     MYFLT       envlop;
@@ -275,7 +277,6 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
  /* Recover parameters from previous call.... */
    ftp = p->ftp;
    if (UNLIKELY(p->ftp==NULL)) goto err1;          /* RWD fix */
-   flen = ftp->flen;
    ftbl = ftp->ftable;
 
    if (*p->ifnenv > 0) {
@@ -429,10 +430,10 @@ static MYFLT grand( GRAINV4 *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "granule", S(GRAINV4), 5, "a", "xiiiiiiiiikikiiivppppo",
-             (SUBR)grainsetv4, NULL, (SUBR)graingenv4}
+static OENTRY grain4_localops[] = {
+  { "granule", S(GRAINV4), TR|5, "a", "xiiiiiiiiikikiiivppppo",
+             (SUBR)grainsetv4, NULL, (SUBR)graingenv4},
 };
 
-LINKAGE
+LINKAGE1(grain4_localops)
 

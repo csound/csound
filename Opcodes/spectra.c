@@ -21,7 +21,9 @@
     02111-1307 USA
 */
 
-#include "csdl.h"         /*                                    SPECTRA.C       */
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include <math.h>
 #include "cwindow.h"
 #include "spectra.h"
@@ -1203,7 +1205,7 @@ int specfilt(CSOUND *csound, SPECFILT *p)
 
 #define S       sizeof
 
-static OENTRY localops[] = {
+static OENTRY spectra_localops[] = {
 { "spectrum", S(SPECTRUM),7, "w", "siiiqoooo",
                                    (SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
 { "specaddm", S(SPECADDM),5, "w",  "wwp",  (SUBR)spadmset,NULL,  (SUBR)specaddm},
@@ -1212,7 +1214,7 @@ static OENTRY localops[] = {
 { "spechist", S(SPECHIST),5, "w",  "w",    (SUBR)sphstset,NULL,  (SUBR)spechist},
 { "specfilt", S(SPECFILT),5, "w",  "wi",   (SUBR)spfilset,NULL,  (SUBR)specfilt},
 { "specptrk", S(SPECPTRK),5, "kk", "wkiiiiiioqooo",
-                                             (SUBR)sptrkset,NULL,(SUBR)specptrk},
+                                            (SUBR)sptrkset,NULL,(SUBR)specptrk},
 { "specsum",  S(SPECSUM), 5, "k",  "wo",   (SUBR)spsumset,NULL,  (SUBR)specsum },
 { "specdisp", S(SPECDISP),5, "",   "wio",  (SUBR)spdspset,NULL,  (SUBR)specdisp},
 { "pitch", S(PITCH),     5,    "kk", "aiiiiqooooojo",
@@ -1224,10 +1226,10 @@ static OENTRY localops[] = {
 { "readclock", S(CLKRD), 1,  "i", "i",    (SUBR)clockread, NULL, NULL          },
 { "pitchamdf",S(PITCHAMDF),5,"kk","aiioppoo",
                                      (SUBR)pitchamdfset, NULL, (SUBR)pitchamdf },
-{ "hsboscil",S(HSBOSC),  5,  "a", "kkkiiioo",(SUBR)hsboscset,NULL,(SUBR)hsboscil },
+{ "hsboscil",S(HSBOSC), TR|5, "a", "kkkiiioo",(SUBR)hsboscset,NULL,(SUBR)hsboscil },
 { "phasorbnk", S(PHSORBNK),7,"s", "xkio",
                                 (SUBR)phsbnkset, (SUBR)kphsorbnk, (SUBR)phsorbnk },
-{ "adsynt",S(HSBOSC),    5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
+{ "adsynt",S(HSBOSC), TR|5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
 { "mpulse", S(IMPULSE),  5,  "a", "kko",  (SUBR)impulse_set, NULL, (SUBR)impulse },
 { "lpf18", S(LPF18),     5,  "a", "akkko",  (SUBR)lpf18set, NULL, (SUBR)lpf18db   },
 { "waveset", S(BARRI),   5,  "a", "ako",   (SUBR)wavesetset,  NULL, (SUBR)waveset},
@@ -1248,7 +1250,7 @@ static OENTRY localops[] = {
 { "p.k", S(PFUN),        2,     "k",    "k",     NULL, (SUBR)pfun, NULL     },
 { "mute", S(MUTE), 1,          "",      "To",   (SUBR)mute_inst             },
 #ifdef BETA
-{ "oscilv",  0xfffe                                                         },
+{ "oscilv",  0xfffe,    TR                                                     },
 { "oscilv.kk", S(XOSC),  5,     "a",   "kkio", (SUBR)Foscset, NULL, (SUBR)Fosckk },
 { "oscilv.ka", S(XOSC),  5,     "a",   "kaio", (SUBR)Foscset, NULL, (SUBR)Foscka },
 { "oscilv.ak", S(XOSC),  5,     "a",   "akio", (SUBR)Foscset, NULL, (SUBR)Foscak },
@@ -1258,5 +1260,5 @@ static OENTRY localops[] = {
 { "mediank", S(MEDFILT), 5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
 
-LINKAGE
+LINKAGE1(spectra_localops)
 

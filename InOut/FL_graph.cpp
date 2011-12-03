@@ -96,7 +96,7 @@ void flgraph_init(CSOUND *csound)
      
 
       /*ST(menu) =  (Fl_Menu_Item*) csound->Calloc(csound,
-	sizeof(Fl_Menu_Item)*(1+NUMOFWINDOWS));*/
+        sizeof(Fl_Menu_Item)*(1+NUMOFWINDOWS));*/
       /* VL: moved menu object to be built at each new compilation */
  
 }
@@ -212,7 +212,7 @@ void add_graph(CSOUND *csound, WINDAT *wdptr)
     for (m = 0; m < NUMOFWINDOWS; m++) {  // If text the same use slot
       if(ST(menu) != NULL) {
        if (ST(menu)[m].text != NULL && wdptr->caption != NULL){
-	if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
+        if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
         replacing = 1;
         goto replace;
         }
@@ -317,7 +317,7 @@ extern "C" {
   {
       for (int i = 0; i < NUMOFWINDOWS; i++) {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
-        if (n != NULL && n->windid == m) {
+        if (n != NULL && ((uintptr_t) n == m ||n->windid == m)) {
           free(n->fdata);
           free(n);
           free((void*) ST(menu)[i].text);
@@ -332,16 +332,16 @@ extern "C" {
   {
       if (ST(form) && ST(graph_created) == 1) {
           
-	if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
-	const char *env = csound->GetEnv(csound, "CSNOSTOP");
-	if (env == NULL || strcmp(env, "yes") != 0) {
-	  ST(end)->show();
+        if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
+        const char *env = csound->GetEnv(csound, "CSNOSTOP");
+        if (env == NULL || strcmp(env, "yes") != 0) {
+          ST(end)->show();
            // print click-Exit message in most recently active window 
-	  while (ST(end)->value() == 0 && ST(form)->shown()) {
-	    Fl_wait_locked(csound, 0.03);
-	  }
+          while (ST(end)->value() == 0 && ST(form)->shown()) {
+            Fl_wait_locked(csound, 0.03);
           }
-	 }
+          }
+         }
 
         delete ST(form); 
         ST(form) = (Fl_Window *) 0;
@@ -356,7 +356,7 @@ extern "C" {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
         if (n)
           kill_graph(csound, (uintptr_t) ((void*) n));
-	  } 
+          } 
        if(ST(menu)){
              delete ST(menu);
              ST(menu) = (Fl_Menu_Item *) 0;

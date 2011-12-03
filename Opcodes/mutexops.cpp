@@ -94,7 +94,7 @@ static int mutexUnlock(CSOUND *csound, OPCODE_MUTEX *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY mutex_localops[] = {
   { (char*)"mutex_lock",   S(OPCODE_MUTEX),  2, (char*)"", (char*)"i",
     NULL, (SUBR)mutexLock, NULL   },
   { (char*)"mutex_unlock",  S(OPCODE_MUTEX), 2, (char*)"", (char*)"i",
@@ -106,4 +106,4 @@ static OENTRY localops[] = {
 };
 
 
-LINKAGE
+LINKAGE1(mutex_localops)

@@ -54,6 +54,7 @@ static CS_NOINLINE int fout_deinit_callback(CSOUND *csound, void *p_)
           pp->name = (char*) NULL;
           pp->do_scale = 0;
           pp->refCount = 0U;
+      
           if (pp->fd != NULL) {
             if ((csound->oparms->msglevel & 7) == 7)
               csound->Message(csound, Str("Closing file '%s'...\n"),
@@ -451,7 +452,7 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
     }
     else {
       FOUT_FILE tmp;
-      pp->file_opened[idx].refCount = 0x80000001U;
+      pp->file_opened[idx].refCount = 1; /*ref count was set to 0x80000001U, but it needs to be 1 */
       memset(&tmp, 0, sizeof(FOUT_FILE));
       tmp.h.insdshead = p->h.insdshead;
       tmp.idx = idx + 1;
@@ -686,7 +687,7 @@ static int kinfile(CSOUND *csound, KINFILE *p)
 
     if (p->flag) {
       sf_seek(p->f.sf, p->currpos, SEEK_SET);
-      p->currpos++;
+       p->currpos++;
 #ifndef USE_DOUBLE
       n = (int) sf_readf_float(p->f.sf, (float*) pp->buf, 1);
 #else

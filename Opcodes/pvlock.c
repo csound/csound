@@ -1,4 +1,28 @@
-#include "csdl.h"
+/*
+    crossfm.c:
+
+    Copyright (C) 2009 V Lazzarini
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+#include "csoundCore.h"
+#include "interlocks.h"
 #include "pstream.h"
 #define MAXOUTS 2
 
@@ -69,7 +93,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
 {
     MYFLT pitch = *p->kpitch, *time = p->time, lock = *p->klock,
       *out, amp =*p->kamp;
-    MYFLT *tab, frac,scale;
+    MYFLT *tab, frac;
     FUNC *ft;
     int N = p->N, hsize = p->hsize, cnt = p->cnt, nchans = p->nchans;
     int ksmps = csound->GetKsmps(csound), n;
@@ -102,12 +126,12 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
            esr is sampling rate
         */
         spos  = hsize*(int)((time[n])*csound->esr/hsize);
-	sizefrs = size/nchans;
-	while(spos > sizefrs - N) spos -= sizefrs;
-	while(spos <= hsize)  spos += sizefrs;
+        sizefrs = size/nchans;
+        while(spos > sizefrs - N) spos -= sizefrs;
+        while(spos <= hsize)  spos += sizefrs;
         pos = spos;
 
-	for (j = 0; j < nchans; j++) {
+        for (j = 0; j < nchans; j++) {
 
           bwin = (MYFLT *) p->bwin[j].auxp;
           fwin = (MYFLT *) p->fwin[j].auxp;
@@ -212,7 +236,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
           /* write to overlapped output frames */
           for (i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
         
-	}
+        }
 
         cnt=0;
         curframe++;
@@ -259,7 +283,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
 {
     MYFLT pitch = *p->kpitch, time = *p->time, lock = *p->klock;
     MYFLT *out, amp =*p->kamp;
-    MYFLT *tab,frac,scale,  dbtresh = *p->dbthresh;
+    MYFLT *tab,frac,  dbtresh = *p->dbthresh;
     FUNC *ft;
     int N = p->N, hsize = p->hsize, cnt = p->cnt, sizefrs, nchans = p->nchans;
     int  ksmps = csound->GetKsmps(csound), n;
@@ -336,7 +360,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
             nwin[i] = in * win[i];
             pos += pitch;
           }
-	 
+         
           csound->RealFFT(csound, bwin, N);
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
@@ -417,14 +441,14 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
            
       for (j=0; j < nchans; j++) {
         out = p->out[j];
-	framecnt  = (int *) p->framecount[j].auxp;
-	outframe  = (MYFLT *) p->outframe[j].auxp;
+        framecnt  = (int *) p->framecount[j].auxp;
+        outframe  = (MYFLT *) p->outframe[j].auxp;
  
         out[n] = (MYFLT) 0;
      
         for (i = 0; i < decim; i++) {
           out[n] += outframe[framecnt[i]];
-          framecnt[i]++;	
+          framecnt[i]++;        
         }
         out[n] *= amp*(2./3.);
       }
@@ -472,8 +496,8 @@ static int pvslockset(CSOUND *csound, PVSLOCK *p)
 
 static int pvslockproc(CSOUND *csound, PVSLOCK *p)
 {
-    int i,n,k,j, maxmagi;
-    float mag,  maxmag, *fout = (float *) p->fout->frame.auxp, 
+    int i;
+    float *fout = (float *) p->fout->frame.auxp, 
       *fin = (float *) p->fin->frame.auxp;
     int N = p->fin->N;
   
@@ -481,7 +505,7 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p)
       memcpy(fout,fin, sizeof(float)*(N+2));
   
       if (*p->klock) {
-        for (i=2, n = 0; i < N-4; i+=2){
+        for (i=2; i < N-4; i+=2){
           float p2 = fin[i];
           float p3 = fin[i+2];
           float p1 = fin[i-2];
@@ -503,7 +527,7 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p)
     return OK;
 }
 
-static OENTRY localops[] = {
+static OENTRY pvlock_localops[] = {
   {"mincer", sizeof(DATASPACE), 5, "mm", "akkkkoo",
                                                (SUBR)sinit, NULL,(SUBR)sprocess },
   {"temposcal", sizeof(DATASPACE), 5, "mm", "kkkkkooPOP",
@@ -512,4 +536,4 @@ static OENTRY localops[] = {
          (SUBR) pvslockproc},
 };
 
-LINKAGE
+LINKAGE1(pvlock_localops)

@@ -242,9 +242,9 @@ static int modmatrix(CSOUND *csound, MODMATRIX *m)
     return OK;
 }
 
-static OENTRY localops[] = {
+static OENTRY modmatrix_localops[] = {
     {
-        "modmatrix", sizeof(MODMATRIX), 3,
+        "modmatrix", sizeof(MODMATRIX), TB|3,
         "",
         "iiiiiik",
         (SUBR)modmatrix_init,
@@ -253,5 +253,5 @@ static OENTRY localops[] = {
     }
 };
 
-LINKAGE
+LINKAGE1(modmatrix_localops)
 

@@ -46,18 +46,18 @@
   #define TIMER_START(val, name) \
               csound->InitTimerStruct(& val ## _timer); \
               csound->Message(csound, name "Start: %f\n", \
-                              csound->GetRealTime(& val ## _timer));
+                              csound->GetRealTime(& val ## _timer))
   #define TIMER_END(val, name) \
               csound->Message(csound, name "End: %f\n", \
-                              csound->GetRealTime(& val ## _timer));
+                              csound->GetRealTime(& val ## _timer))
 
   #define TIMER_T_START(val, index, name) \
               csound->InitTimerStruct(& val ## _timer); \
               csound->Message(csound, "[%i] " name "Start: %f\n", \
-                              index, csound->GetRealTime(& val ## _timer));
+                              index, csound->GetRealTime(& val ## _timer))
   #define TIMER_T_END(val, index, name) \
               csound->Message(csound, "[%i] " name "End: %f\n", \
-                              index, csound->GetRealTime(& val ## _timer));
+                              index, csound->GetRealTime(& val ## _timer))
 #else
   #define TIMER_INIT(val, name)
   #define TIMER_START(val, name)
@@ -168,8 +168,8 @@ int csp_set_exists(CSOUND *csound,  struct set_t *set, void *data);
 int csp_set_print(CSOUND *csound, struct set_t *set);
 
 /* get a count and access members */
-int inline csp_set_count(CSOUND *csound, struct set_t *set);
-int inline csp_set_get_num(CSOUND *csound, struct set_t *set, int num, void **data);
+extern int inline csp_set_count(CSOUND *csound, struct set_t *set);
+extern int inline csp_set_get_num(CSOUND *csound, struct set_t *set, int num, void **data);
 
 /* 
  * set union and intersection

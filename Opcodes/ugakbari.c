@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 
 #define LOGCURVE(x,y) ((LOG(x * (y-FL(1.0))+FL(1.0)))/(LOG(y)))
@@ -101,7 +102,7 @@ static int gainslider_perf(CSOUND *csound, gainslider *p)
 
 /* opcode library entries */
 
-static OENTRY localops[] = {
+static OENTRY ugakbari_localops[] = {
   { "scale", sizeof(scale), 2, "k", "kkk", NULL, (SUBR)scale_process, NULL },
   { "expcurve", sizeof(expcurve), 2, "k", "kk", NULL,
     (SUBR)expcurve_perf, NULL },
@@ -111,4 +112,4 @@ static OENTRY localops[] = {
     (SUBR)gainslider_perf, NULL }
 };
 
-LINKAGE
+LINKAGE1(ugakbari_localops)

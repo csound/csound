@@ -52,7 +52,14 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *list);
 struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node);
 
 /* find an instrument from the instruments parsed */
-struct instr_semantics_t *csp_orc_sa_instr_get_by_name(char *instr_name);
-struct instr_semantics_t *csp_orc_sa_instr_get_by_num(int16 insno);
+struct instr_semantics_t 
+    *csp_orc_sa_instr_get_by_name(CSOUND *csound, char *instr_name);
+struct instr_semantics_t 
+    *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno);
+
+/* interlocks */
+void csp_orc_sa_interlocks(CSOUND *, ORCTOKEN *);
+void csp_orc_sa_interlocksf(CSOUND *, int);
+
 
 #endif /* end of include guard: __CSOUND_ORC_SEMANTIC_ANALYSIS_H__ */

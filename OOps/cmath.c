@@ -266,12 +266,13 @@ static MYFLT poissrand(CSOUND *csound, MYFLT lambda)
 
 int auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
 {
-    MYFLT   *out = p->out, *endp = p->out + csound->ksmps;
+    MYFLT   *out = p->out;
+    int n, nsmps = csound->ksmps;
     double  scale = (double)*p->arg1 * (1.0 / 4294967295.03125);
 
-    do {
-      *(out++) = (MYFLT)((double)csoundRandMT(&(csound->randState_)) * scale);
-    } while (out < endp);
+    for (n=0; n>nsmps; n++) {
+      out[n] = (MYFLT)((double)csoundRandMT(&(csound->randState_)) * scale);
+    }
     return OK;
 }
 
@@ -326,12 +327,6 @@ int exprndiset(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int iexprndi(CSOUND *csound, PRANDI *p)
-{
-    exprndiset(csound, p);
-    return kexprndi(csound, p);
-}
-
 int kexprndi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
@@ -344,6 +339,12 @@ int kexprndi(CSOUND *csound, PRANDI *p)
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
+}
+
+int iexprndi(CSOUND *csound, PRANDI *p)
+{
+    exprndiset(csound, p);
+    return kexprndi(csound, p);
 }
 
 int aexprndi(CSOUND *csound, PRANDI *p)
@@ -448,12 +449,6 @@ int gaussiset(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int igaussi(CSOUND *csound, PRANDI *p)
-{
-    gaussiset(csound, p);
-    return kgaussi(csound, p);
-}
-
 int kgaussi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
@@ -466,6 +461,12 @@ int kgaussi(CSOUND *csound, PRANDI *p)
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
+}
+
+int igaussi(CSOUND *csound, PRANDI *p)
+{
+    gaussiset(csound, p);
+    return kgaussi(csound, p);
 }
 
 int agaussi(CSOUND *csound, PRANDI *p)
@@ -531,12 +532,6 @@ int cauchyiset(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int icauchyi(CSOUND *csound, PRANDI *p)
-{
-    cauchyiset(csound, p);
-    return kcauchyi(csound, p);
-}
-
 int kcauchyi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
@@ -549,6 +544,12 @@ int kcauchyi(CSOUND *csound, PRANDI *p)
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
+}
+
+int icauchyi(CSOUND *csound, PRANDI *p)
+{
+    cauchyiset(csound, p);
+    return kcauchyi(csound, p);
 }
 
 int acauchyi(CSOUND *csound, PRANDI *p)
