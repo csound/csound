@@ -295,7 +295,7 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
 
 static int psynth2_process(CSOUND *csound, _PSYN2 *p)
 {
-    double   ampnext, amp, freq, freqnext, phase, phasenext, ratio;
+    double   ampnext, amp, freq, freqnext, phase, phasenext;
     double  a2, a3, cph;
     double   phasediff, facsqr, ph;
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
@@ -316,7 +316,6 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
 
     incrph = csound->onedsr;
     lotwopi = (double)(size) / TWOPI_F;
-    ratio = size * csound->onedsr;
     factor = p->factor;
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -421,7 +420,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
 
 static int psynth3_process(CSOUND *csound, _PSYN *p)
 {
-    double   ampnext, amp, freq, freqnext, phase, phasenext, ratio;
+    double   ampnext, amp, freq, freqnext, phase, phasenext;
     double  a2, a3, cph;
     double   phasediff, facsqr, ph;
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
@@ -442,7 +441,6 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
 
     incrph = csound->onedsr;
     lotwopi = (double) (size) / TWOPI_F;
-    ratio = size * csound->onedsr;
     factor = p->factor;
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -889,7 +887,7 @@ static int trmix_process(CSOUND *csound, _PSMIX *p)
     float   *framein2 = (float *) p->fsig3->frame.auxp;
     float   *frameout = (float *) p->fsig1->frame.auxp;
     float   *framein1 = (float *) p->fsig2->frame.auxp;
-    int     i = 0, j = 0, k = 0, id = (int) framein1[3], end = p->numbins * 4;
+    int     i = 0, j = 0, id = (int) framein1[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fsig2->framecount) {
 
@@ -901,7 +899,6 @@ static int trmix_process(CSOUND *csound, _PSMIX *p)
         i += 4;
         id = (int) framein1[i + 3];
       }
-      k = i;
       id = (int) framein2[3];
       while (id != -1 && i < end && j < end) {
         frameout[i] = framein2[j];
@@ -916,7 +913,6 @@ static int trmix_process(CSOUND *csound, _PSMIX *p)
         frameout[i + 3] = -1.0f;
       p->fsig1->framecount = p->lastframe = p->fsig2->framecount;
 
-/*csound->Message(csound, "mix %d : %d\n", k/4, j/4);*/
     }
 
     return OK;

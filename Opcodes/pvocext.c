@@ -46,18 +46,13 @@ void SpectralExtract(
     )
 {
     int32    i, j, k;
-    float   *frm_0, *frm_1;
-    int32    ampindex, freqindex, ampfrmjump;
+    float   *frm_1;
+    int32    ampindex, freqindex;
     MYFLT   freqTemp, freqframes[10], freqdiff=FL(0.0), ampscale;
     int32            framecurb;
 
-    frm_0 = inp;
-    frm_1 = pvcopy;
     memcpy(pvcopy, inp, (fsize+2L)*MaxFrame*sizeof(float));
-    /* for (i=0; i<(fsize+2L)*MaxFrame; i++) */
-    /*   *frm_1++ = *frm_0++; */
     frm_1 = pvcopy;
-    ampfrmjump = (fsize+2L) / 2L;
     for (j=0; j<(fsize/2L + 1L); j++) {
       ampindex = j + j;
       freqindex = ampindex + 1L;

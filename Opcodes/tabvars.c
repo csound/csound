@@ -205,6 +205,7 @@ static int tab2ftab(CSOUND *csound, TABCOPY *p)
     fdata = ftp->ftable;
     if (fsize<tlen) tlen = fsize;
     memcpy(fdata, p->tab->data, sizeof(MYFLT)*tlen);
+    return OK;
 }
 
 static int ftab2tab(CSOUND *csound, TABCOPY *p)
@@ -221,6 +222,7 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
     fdata = ftp->ftable;
     if (fsize<tlen) tlen = fsize;
     memcpy(p->tab->data, fdata, sizeof(MYFLT)*tlen);
+    return OK;
 }
 
 

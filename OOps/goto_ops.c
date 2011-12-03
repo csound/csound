@@ -27,6 +27,7 @@
 #include "oload.h"
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
+extern int32 strarg2insno(CSOUND *, void *p, int is_string);
 
 int igoto(CSOUND *csound, GOTO *p)
 {
@@ -166,14 +167,6 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 }
 
 /* turnoff2 opcode */
-int turnoff2S(CSOUND *csound, TURNOFF2 *p){
-  return turnoff2(csound, p, 1);
-}
-
-int turnoff2k(CSOUND *csound, TURNOFF2 *p){
-   return turnoff2(csound, p, 0);
-}
-
 int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
 {
     MYFLT p1;
@@ -242,6 +235,14 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
         csound->pds = csound->pds->nxtp;            /* loop to last opds */
     }
     return OK;
+}
+
+int turnoff2S(CSOUND *csound, TURNOFF2 *p){
+  return turnoff2(csound, p, 1);
+}
+
+int turnoff2k(CSOUND *csound, TURNOFF2 *p){
+   return turnoff2(csound, p, 0);
 }
 
 int loop_l_i(CSOUND *csound, LOOP_OPS *p)

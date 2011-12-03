@@ -133,7 +133,6 @@ static void
 FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
              double window, char *outname)
 {
-    int         chans;
     double      tpersample;
     double      max, min;
     long        mxpos, minpos;
@@ -147,7 +146,6 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
     outfile = fopen((outname == NULL ? "newenv" : outname), "w");
     bufferlen = (int)(window*(double)p->sr);
     buffer = (MYFLT*) malloc(bufferlen*sizeof(MYFLT));
-    chans = p->nchanls;
     tpersample = 1.0/(double)p->sr;
     fprintf(outfile, "%.3f\t%.3f\n", 0.0, 0.0);
     while ((read_in = csound->getsndin(csound,infd,buffer,bufferlen,p)) > 0) {
