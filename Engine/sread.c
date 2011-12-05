@@ -1142,7 +1142,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             }
             ST(str)++;
             ST(str)->is_marked_repeat = 1;
-            ST(str)->cf = copy_to_corefile(ST(names)[i].file);
+            ST(str)->cf = copy_to_corefile(csound, ST(names)[i].file, NULL);
 //            ST(str)->cf = corfile_create_r(csound->GetFileName(ST(str)->fd));
             ST(str)->line = ST(names)[i].line;
             corfile_set(ST(str)->cf, ST(names)[i].posit);
@@ -1661,7 +1661,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         }
         ST(str)++;
         ST(str)->is_marked_repeat = 0;
-        ST(str)->cf = copy_to_corefile(mname); // "INCDIR");
+        ST(str)->cf = copy_to_corefile(csound, mname, "INCDIR");
         if (ST(str)->cf == NULL) {
           ST(str)--;
           ST(str)->line--; /* include was one line earlier */

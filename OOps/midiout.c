@@ -314,7 +314,7 @@ int out_controller (CSOUND *csound, OUT_CONTR *p)
         p->last_value = value;
         p->lastchn = *p->chn;
         p->lastctrl = *p->num;
-	} 
+        } 
     }
     return OK;
 }
@@ -367,7 +367,7 @@ int out_progchange (CSOUND *csound, OUT_PCHG *p)
         program_change(csound, (int)*p->chn-1, prog_num);
         p->last_prog_num = prog_num;
         p->lastchn = *p->chn;
-	} 
+        } 
     }
     return OK;
 }
@@ -392,7 +392,7 @@ int out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
         p->last_value = value;
         p->lastchn = *p->chn;
         p->lastctrl = *p->msb_num;
-	 } 
+         } 
     }
     return OK;
 }
@@ -416,7 +416,7 @@ int out_pitch_bend(CSOUND *csound, OUT_PB *p)
         pitch_bend(csound, (int)*p->chn - 1, lsb, msb);
         p->last_value = value;
         p->lastchn = *p->chn;
-	}
+        }
     }
     return OK;
 }

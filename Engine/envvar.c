@@ -637,7 +637,8 @@ int csoundIsNameJustFilename(const char *name)
  *  conform to the conventions for the current platform (begin with ':'
  *  on MacOS 9 and not begin with DIRSEP on others).
  */
-char* csoundConcatenatePaths(CSOUND* csound, const char *path1, const char *path2)
+char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
+                             const char *path2)
 {
     char *result;
     const char *start2;
@@ -1191,7 +1192,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
                       (type == CSFILE_STD && ((char*)param)[0] == 'w'));
       if (csFileType == CSFTYPE_UNKNOWN_AUDIO && type == CSFILE_SND_R)
         csFileType = sftype2csfiletype(((SF_INFO*)param)->format);
-      csound->FileOpenCallback_(csound, p->fullName, csFileType, writing, isTemporary);
+      csound->FileOpenCallback_(csound, p->fullName, csFileType,
+                                writing, isTemporary);
     }
     /* return with opaque file handle */
     return (void*) p;

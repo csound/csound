@@ -248,7 +248,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       }
       i++;
     }
-    *i_outlist = *S_outlist = *a_outlist = *k_outlist = *f_outlist = *t_outlist = -1;  /* put delimiters */
+    *i_outlist = *S_outlist = *a_outlist = *k_outlist =
+      *f_outlist = *t_outlist = -1;  /* put delimiters */
     return err;
 }
 
@@ -364,7 +365,8 @@ void otran(CSOUND *csound)
                     err++; continue;
                   }
                   /* IV - Oct 31 2002: store the name */
-                  if (UNLIKELY(!named_instr_alloc(csound, c, ip, insno_priority))) {
+                  if (UNLIKELY(!named_instr_alloc(csound, c, ip,
+                                                  insno_priority))) {
                     synterr(csound, Str("instr %s redefined"), c);
                     err++; continue;
                   }
@@ -580,7 +582,8 @@ void otran(CSOUND *csound)
       else if (UNLIKELY(p->tran_ksmps < FL(0.75) ||
                         FLOAT_COMPARE(p->tran_ksmps, MYFLT2LRND(p->tran_ksmps))))
         synterr(p, Str("%s invalid ksmps value"), err_msg);
-      else if (UNLIKELY(FLOAT_COMPARE(p->tran_sr, (double) p->tran_kr * p->tran_ksmps)))
+      else if (UNLIKELY(FLOAT_COMPARE(p->tran_sr,
+                                      (double) p->tran_kr * p->tran_ksmps)))
         synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
     }
 
