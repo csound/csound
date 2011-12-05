@@ -24,7 +24,6 @@
 ./Engine/parse_param.h
 ./Engine/rdorch.c
 ./Engine/rdscor.c
-./Engine/rdscorstr.c
 ./Engine/scsort.c
 ./Engine/scxtract.c
 ./Engine/sort.c
@@ -165,7 +164,7 @@
 ./H/cfgvar.h
 ./H/cmath.h
 ./H/convolve.h
-./H/corfile.h 
+./H/corfile.h
 ./H/cscore.h
 ./H/csdl.h
 ./H/csGblMtx.h

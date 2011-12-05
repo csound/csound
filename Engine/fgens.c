@@ -2476,7 +2476,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
        if (p->channel == ALLCHNLS)
          ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
-      /*ff->flen     -= 1;*/                  /* VL: this was causing tables to exclude last point  */
+/*ff->flen     -= 1;*/ /* VL: this was causing tables to exclude last point  */
       ftp           = ftalloc(ff);            /*   alloc now, and           */
       ftp->lenmask  = 0L;                     /*   mark hdr partly filled   */
       /*if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;
