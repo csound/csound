@@ -195,7 +195,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     PmDeviceInfo *info;
 //     PortMidiStream *midistream;
     pmall_data *data = NULL;
-    pmall_data *next;
+    pmall_data *next = NULL;
 
 
     if (start_portmidi(csound) != 0)

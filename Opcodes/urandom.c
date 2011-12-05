@@ -80,7 +80,7 @@ static int urand_arun(CSOUND *csound, URANDOM *p)
     MYFLT *ar = p->ar;
     int n, nsmps = csound->ksmps;
     for (n=0; n<nsmps; n++) {
-      read(p->ur, &x, sizeof(int64_t));
+      read(ur, &x, sizeof(int64_t));
       ar[n] = p->mul *((MYFLT)x/(MYFLT)0x7fffffffffffffff) + p->add;
     }
     return OK;

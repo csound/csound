@@ -207,7 +207,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     float *fpindexl, *fpindexr;
 
     /* processing sizes */
-    int irlength, irlengthpad, overlapsize;
+    int irlength=0, irlengthpad=0, overlapsize=0;
 
     /* pointers used to fill buffers in data structure */
     int *delaysp;
@@ -222,7 +222,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     int skipdouble = 0;
 
     /* used in choice of delay line lengths */
-    int basedelay;
+    int basedelay=0;
 
     /* local filter variables for spectral manipulations */
     MYFLT rel, rer, retemp, iml, imr, imtemp;
@@ -862,9 +862,11 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 
     /* pointers to delay data */
     MYFLT *del1p, *del2p, *del3p, *del4p, *del5p, *del6p;
-    MYFLT *del1tp, *del2tp, *del3tp, *del4tp, *del5tp, *del6tp;
-    MYFLT *del1tfp, *del2tfp, *del3tfp, *del4tfp, *del5tfp, *del6tfp,
-          *del7tfp, *del8tfp, *del9tfp, *del10tfp, *del11tfp, *del12tfp;
+    MYFLT *del1tp=NULL, *del2tp=NULL, *del3tp=NULL,
+          *del4tp=NULL, *del5tp=NULL, *del6tp=NULL;
+    MYFLT *del1tfp=NULL, *del2tfp=NULL, *del3tfp=NULL, *del4tfp=NULL,
+          *del5tfp=NULL, *del6tfp=NULL, *del7tfp=NULL, *del8tfp=NULL,
+          *del9tfp=NULL, *del10tfp=NULL, *del11tfp=NULL, *del12tfp=NULL;
     int *delaysp;
 
     /* matrix manipulation */
@@ -873,8 +875,8 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
     /* delay line iterators */
     int u, v, w, x, y, z;
     int ut, vt, wt, xt, yt, zt;
-    int utf1, vtf1, wtf1, xtf1, ytf1, ztf1;
-    int utf2, vtf2, wtf2, xtf2, ytf2, ztf2;
+    int utf1=0, vtf1=0, wtf1=0, xtf1=0, ytf1=0, ztf1=0;
+    int utf2=0, vtf2=0, wtf2=0, xtf2=0, ytf2=0, ztf2=0;
 
     /* number of delays */
     int M = p->M;
