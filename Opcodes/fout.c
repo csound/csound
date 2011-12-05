@@ -167,7 +167,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         csound->Free(csound, name);
         return -1;
       }
-      /*      setvbuf(f, (char *) NULL, _IOLBF, 0); /* Ensure line buffering */
+      /* setvbuf(f, (char *) NULL, _IOLBF, 0); */ /* Ensure line buffering */
       pp->file_opened[idx].raw = f;
       pp->file_opened[idx].fd = fd;
     }

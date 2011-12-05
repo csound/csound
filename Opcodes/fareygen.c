@@ -269,6 +269,7 @@ static int PrimeFactors (int n, PFACTOR p[])
           ++j;
         }
     }
+    return j;
 }
 
 static void GenerateFarey (int n, RATIO flist[], int size) {
