@@ -352,7 +352,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
 
 static int csoundCheckOpcodeDeny(CSOUND *csound, const char *fname)
 {
-    IGNORE(csound);
+    (void *)csound;
     /* Check to see if the fname is on the do-not-load list */
     char buff[256];
     char *p, *deny;
