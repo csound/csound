@@ -732,7 +732,7 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
       break;
     case 3: { /* average */
         MYFLT temp = FL(0.0);
-        p->counter += n;
+        p->counter += nsmps;
         for (n=0; n<nsmps; n++) {
           temp += a[n];
         }

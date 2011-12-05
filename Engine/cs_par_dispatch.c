@@ -2327,11 +2327,13 @@ static uint32_t update_ctr;
 static int csp_dag_cache_entry_alloc(CSOUND *csound,
                                      struct dag_cache_entry_t **entry,
                                      INSDS *chain, uint32_t hash_val);
-static int csp_dag_cache_entry_dealloc(CSOUND *csound,
-                                       struct dag_cache_entry_t **entry);
 static int csp_dag_cache_compare(CSOUND *csound,
                                  struct dag_cache_entry_t *entry, INSDS *chain);
+#if 0
+static int csp_dag_cache_entry_dealloc(CSOUND *csound,
+                                       struct dag_cache_entry_t **entry);
 static void csp_dag_cache_update(CSOUND *csound);
+#endif
 static void csp_dag_cache_print_weights_dump(CSOUND *csound);
 
 void csp_dag_cache_print(CSOUND *csound)
@@ -2504,6 +2506,7 @@ static int csp_dag_cache_entry_alloc(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
+#if 0
 static int csp_dag_cache_entry_dealloc(CSOUND *csound,
                                        struct dag_cache_entry_t **entry)
 {
@@ -2521,6 +2524,7 @@ static int csp_dag_cache_entry_dealloc(CSOUND *csound,
 
     return CSOUND_SUCCESS;
 }
+#endif
 
 #if 0
 static void csp_dag_cache_update(CSOUND *csound)

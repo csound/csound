@@ -415,6 +415,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
 #ifdef PARCS
     if (O->numThreads > 1) {
+      void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
       int i;
       THREADINFO *current = NULL;
 
