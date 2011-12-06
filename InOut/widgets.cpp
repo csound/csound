@@ -2663,13 +2663,17 @@ extern "C" {
 
   //-----------
 
-  static int StartPack(CSOUND *csound, FLSCROLL *p)
+  static int StartPack(CSOUND *csound, FLPACK *p)
   {
       Fl_Pack *o = new Fl_Pack ((int) *p->ix, (int) *p->iy,
                                 (int) *p->iwidth, (int) *p->iheight);
-      //fl_window->resizable(o);
-      o->box(FL_ENGRAVED_FRAME);
-      o->spacing(15);
+      Fl_Boxtype borderType;
+      int iborder = (int)*p->iborder;
+      // fl_window->resizable(o);
+      if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX;
+      else borderType = BOX_TABLE[iborder];
+      o->type((int)*p->itype);
+      o->spacing((int)*p->ispace);
 
       ADDR_STACK adrstk(&p->h,o,ST(stack_count));
       ST(AddrStack).push_back(adrstk);
@@ -5591,7 +5595,7 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR) EndScroll,               (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLscroll_end",S(FLSCROLLEND),  1,  (char*)"",     (char*)"",
     (SUBR) EndScroll,               (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLpack",      S(FLPACK),       1,  (char*)"",     (char*)"iiii",
+  { (char*)"FLpack",      S(FLPACK),       1,  (char*)"",     (char*)"iiiiooo",
     (SUBR) StartPack,               (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLpackEnd",   S(FLPACKEND),    1,  (char*)"",     (char*)"",
     (SUBR) EndPack,                 (SUBR) NULL,              (SUBR) NULL },

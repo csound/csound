@@ -870,8 +870,8 @@ OENTRY gab_localops[] = {
   /*{ "ftlen_k",S(EVAL),    2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
   { "max_k",  S(P_MAXIMUM), 5,      "k",    "aki",
             (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
-  { "maxk",   S(P_MAXIMUM), 5,      "k",    "aki",
-            (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
+/*{ "maxk",   S(P_MAXIMUM), 5,      "k",    "aki", */
+/*        (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum }, */
   { "mandel",S(MANDEL),     3,      "kk",    "kkkk",
                             (SUBR) mandel_set, (SUBR) mandel, NULL }
 };
