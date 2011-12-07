@@ -326,11 +326,13 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
 #ifdef ENABLE_NEW_PARSER
     if (O->newParser) {
-      extern void new_orc_parser(CSOUND *);
+      int new_orc_parser(CSOUND *);
       csound->Message(csound, "********************\n");
       csound->Message(csound, "* USING NEW PARSER *\n");
       csound->Message(csound, "********************\n");
-      new_orc_parser(csound);
+      if (new_orc_parser(csound)) {
+        csoundDie(csound, Str("Stopping on parser failure\n"));
+      }
     }
     else {
       otran(csound);                  /* read orcfile, setup desblks & spaces */
