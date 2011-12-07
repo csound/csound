@@ -153,7 +153,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     //    extern char* buffer;
 
     csound->Message(csound, Str("\nerror: %s (token \"%s\")"),
-                    str, csound_orcget_text(yyscanner));
+                str, csound_orcget_text(yyscanner));
     csound->Message(csound, Str(" line %d:\n  %s\n"),
                     csound_orcget_lineno(yyscanner),pp->buffer); // buffer has \n at end
 
