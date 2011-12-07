@@ -152,12 +152,15 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     //??    extern int yyline;
     //    extern char* buffer;
 
-    csound->Message(csound, Str("error: %s (token \"%s\")"),
+    csound->Message(csound, Str("\nerror: %s (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     csound->Message(csound, Str(" line %d: %s\n"),
                     csound_orcget_lineno(yyscanner)+csound->orcLineOffset,
                     pp->buffer); // buffer has \n at end
+    /* pp->buffer is too much to pass as a diagnostics message. Somehow we have to
+       retrieve the correct line and pass it instead */
 }
+
 
 /**
  * Appends TREE * node to TREE * node using ->next field in struct; walks
