@@ -62,7 +62,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
           ans->type = ans->value->type = T_NUMBER;
           /* **** Something wrong here -- subtractuon confuses memory **** */
           switch (root->type) {
-          case S_PLUS:
+          case '+':
             ans->value->fvalue = lval+rval;
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
@@ -70,7 +70,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
             //Memory leak!! 
             //mfree(csound, root); mfree(csound root->right);
             return ans;
-          case S_MINUS:
+          case '-':
             ans->value->fvalue = lval-rval;
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
@@ -78,7 +78,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
             //Memory leak!! 
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
-          case S_TIMES:
+          case '*':
             ans->value->fvalue = lval*rval;
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
@@ -86,7 +86,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
             //Memory leak!! 
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
-          case S_DIV:
+          case '/':
             ans->value->fvalue = lval/rval;
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
@@ -153,10 +153,10 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     //    extern char* buffer;
 
     csound->Message(csound, Str("\nerror: %s (token \"%s\")"),
-                str, csound_orcget_text(yyscanner));
-    csound->Message(csound, Str(" line %d:\n  %s\n"),
-                    csound_orcget_lineno(yyscanner),pp->buffer); // buffer has \n at end
-
+                    str, csound_orcget_text(yyscanner));
+    csound->Message(csound, Str(" line %d:\n %s\n"),
+                    csound_orcget_lineno(yyscanner)+csound->orcLineOffset,
+                    pp->buffer); // buffer has \n at end
     /* pp->buffer is too much to pass as a diagnostics message. Somehow we have to
        retrieve the correct line and pass it instead */
 }
@@ -279,32 +279,32 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     csound->Message(csound, "TYPE: %d ", l->type);
 
     switch (l->type) {
-    case S_COM:
-      csound->Message(csound,"S_COM:\n"); break;
-    case S_Q:
-      csound->Message(csound,"S_Q:\n"); break;
-    case S_COL:
-      csound->Message(csound,"S_COL:\n"); break;
-    case S_NOT:
-      csound->Message(csound,"S_NOT:\n"); break;
-    case S_PLUS:
-      csound->Message(csound,"S_PLUS:\n"); break;
-    case S_MINUS:
-      csound->Message(csound,"S_MINUS:\n"); break;
-    case S_TIMES:
-      csound->Message(csound,"S_TIMES:\n"); break;
-    case S_DIV:
-      csound->Message(csound,"S_DIV:\n"); break;
-    case S_MOD:
-      csound->Message(csound,"S_MOD:\n"); break;
-    case S_POW:
-      csound->Message(csound,"S_POW:\n"); break;
-    case S_NL:
-      csound->Message(csound,"S_NL:\n"); break;
-    case S_LB:
-      csound->Message(csound,"S_LB:\n"); break;
-    case S_RB:
-      csound->Message(csound,"S_RB:\n"); break;
+    case ',':
+      csound->Message(csound,",:\n"); break;
+    case '?':
+      csound->Message(csound,"?:\n"); break;
+    case ':':
+      csound->Message(csound,"::\n"); break;
+    case '!':
+      csound->Message(csound,"!:\n"); break;
+    case '+':
+      csound->Message(csound,"+:\n"); break;
+    case '-':
+      csound->Message(csound,"-:\n"); break;
+    case '*':
+      csound->Message(csound,"*:\n"); break;
+    case '/':
+      csound->Message(csound,"/:\n"); break;
+    case '%':
+      csound->Message(csound,"%:\n"); break;
+    case '^':
+      csound->Message(csound,"^:\n"); break;
+    case NEWLINE:
+      csound->Message(csound,"NEWLINE:\n"); break;
+    case '(':
+      csound->Message(csound,"(:\n"); break;
+    case ')':
+      csound->Message(csound,"):\n"); break;
     case S_NEQ:
       csound->Message(csound,"S_NEQ:\n"); break;
     case S_AND:
@@ -448,32 +448,32 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound, "<tree%s type=\"%d\" ", child[which], l->type);
 
     switch (l->type) {
-    case S_COM:
-      csound->Message(csound,"name=\"S_COM\""); break;
-    case S_Q:
-      csound->Message(csound,"name=\"S_Q\""); break;
-    case S_COL:
-      csound->Message(csound,"name=\"S_COL\""); break;
-    case S_NOT:
-      csound->Message(csound,"name=\"S_NOT\""); break;
-    case S_PLUS:
-      csound->Message(csound,"name=\"S_PLUS\""); break;
-    case S_MINUS:
-      csound->Message(csound,"name=\"S_MINUS\""); break;
-    case S_TIMES:
-      csound->Message(csound,"name=\"S_TIMES\""); break;
-    case S_DIV:
-      csound->Message(csound,"name=\"S_DIV\""); break;
-    case S_MOD:
-      csound->Message(csound,"name=\"S_MOD\""); break;
-    case S_POW:
-      csound->Message(csound,"name=\"S_POW\""); break;
-    case S_NL:
-      csound->Message(csound,"name=\"S_NL\""); break;
-    case S_LB:
-      csound->Message(csound,"name=\"S_LB\""); break;
-    case S_RB:
-      csound->Message(csound,"name=\"S_RB\""); break;
+    case ',':
+      csound->Message(csound,"name=\",\""); break;
+    case '?':
+      csound->Message(csound,"name=\"?\""); break;
+    case ':':
+      csound->Message(csound,"name=\":\""); break;
+    case '!':
+      csound->Message(csound,"name=\"!\""); break;
+    case '+':
+      csound->Message(csound,"name=\"+\""); break;
+    case '-':
+      csound->Message(csound,"name=\"-\""); break;
+    case '*':
+      csound->Message(csound,"name=\"*\""); break;
+    case '/':
+      csound->Message(csound,"name=\"/\""); break;
+    case '%':
+      csound->Message(csound,"name=\"%%\""); break;
+    case '^':
+      csound->Message(csound,"name=\"^\""); break;
+    case NEWLINE:
+      csound->Message(csound,"name=\"NEWLINE\""); break;
+    case '(':
+      csound->Message(csound,"name=\"(\""); break;
+    case ')':
+      csound->Message(csound,"name=\")\""); break;
     case S_NEQ:
       csound->Message(csound,"name=\"S_NEQ\""); break;
     case S_AND:

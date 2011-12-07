@@ -72,6 +72,7 @@ void do_ifdef_skip_code(CSOUND *, yyscan_t);
 
 struct yyguts_t;
 ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
+int get_next_char(char *, int, struct yyguts_t*);
 %}
 %option reentrant
 %option bison-bridge
@@ -115,24 +116,24 @@ EXSTR           "}}"
                                        yyscanner);
  }
 "\n"            {
-                  return S_NL; }
-"//"            { comment(yyscanner); return S_NL; }
-";"             { comment(yyscanner); return S_NL; }
+                  return NEWLINE; }
+"//"            { comment(yyscanner); return NEWLINE; }
+";"             { comment(yyscanner); return NEWLINE; }
 {STCOM}         { do_comment(yyscanner); }
-"("             { return S_LB; }
-")"             { return S_RB; }
-"["             { return S_SLB; }
-"]"             { return S_SRB; }
-"+"             { return S_PLUS; }
-"-"             { return S_MINUS; }
-"*"             { return S_TIMES; }
-"/"             { return S_DIV; }
-"%"             { return S_MOD; }
-"\^"            { return S_POW; }
-"?"             { return S_Q; }
-":"             { return S_COL; }
-","             { return S_COM; }
-"!"             { return S_NOT; }
+"("             { return '('; }
+")"             { return ')'; }
+"["             { return '['; }
+"]"             { return ']'; }
+"+"             { return '+'; }
+"-"             { return '-'; }
+"*"             { return '*'; }
+"/"             { return '/'; }
+"%"             { return '%'; }
+"\^"            { return '^'; }
+"?"             { return '?'; }
+":"             { return ':'; }
+","             { return ','; }
+"!"             { return '!'; }
 "!="            { return S_NEQ; }
 "&&"            { return S_AND; }
 "||"            { return S_OR; }
@@ -251,7 +252,8 @@ EXSTR           "}}"
 {STRCONSTe}     { *lvalp = make_string(csound, yytext);
                   csound->Message(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
-                          csound_orcget_lineno(yyscanner), yytext);
+                          csound->orcLineOffset+csound_orcget_lineno(yyscanner),
+                          yytext);
                   return (T_STRCONST); }
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
@@ -500,7 +502,8 @@ EXSTR           "}}"
 
 .               { csound->Message(csound,
                                  Str("Line %d: Unknown character: '%c'(%2x)\n"),
-                                 csound_orcget_lineno(yyscanner),
+                                 csound->orcLineOffset+
+                                        csound_orcget_lineno(yyscanner),
                                  yytext[0],yytext[0]);
                 }
 {IFDEF}         {
@@ -942,6 +945,7 @@ int get_next_line(struct yyguts_t * yyg)
     PARM->nBuffer = 0;
 
     p = fgets(yyextra->buffer, lMaxBuffer, yyin);
+    printf("get_next_line: %s\n", yyextra->buffer);
     if (UNLIKELY(p == NULL)) {
       if (ferror(yyin))
         return -1;
@@ -961,7 +965,7 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
     void *yyscanner = yyg;
     if (UNLIKELY( feof(yyin)  ))
       return 0;
-
+    printf("get_next_char: %s\n", yyextra->buffer);
     while (  PARM->nBuffer >= PARM->lBuffer  ) {
       frc = get_next_line(yyg);
       if (UNLIKELY(  frc != 0  ))
@@ -971,6 +975,6 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
     b[0] = yyextra->buffer[PARM->nBuffer];
     PARM->nBuffer += 1;
 
-    return b[0]==0?0:1;
+    return b[0]=='\0'?0:1;
 }
 
