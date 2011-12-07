@@ -195,7 +195,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     PmDeviceInfo *info;
 //     PortMidiStream *midistream;
     pmall_data *data = NULL;
-    pmall_data *next;
+    pmall_data *next = NULL;
 
 
     if (start_portmidi(csound) != 0)
@@ -207,7 +207,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     if (dev == NULL || dev[0] == '\0')
       devnum =
         portMidi_getPackedDeviceID((int)Pm_GetDefaultInputDeviceID(), 0);
-    else if (UNLIKELY(dev[0] < '0' || dev[0] > '9' && dev[0] != 'a')) {
+    else if (UNLIKELY((dev[0] < '0' || dev[0] > '9') && dev[0] != 'a')) {
       portMidiErrMsg(csound,
                      Str("error: must specify a device number (>=0) or"
                          " 'a' for all, not a name"));

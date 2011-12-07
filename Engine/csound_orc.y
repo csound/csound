@@ -195,6 +195,7 @@ extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 orcfile           : rootstatement
                         {
                             *astTree = *((TREE *)$1);
+                            csound->synterrcnt = csound_orcnerrs;
                             //print_tree(csound, "ALL", $1);
                         }
                   ;

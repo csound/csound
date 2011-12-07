@@ -50,7 +50,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
     if (root==NULL) return NULL;
     if (root->right) {
       root->right = verify_tree(csound, root->right);
-      if (root->left)  {
+      if (root->left) {
         root->left= verify_tree(csound, root->left);
         if ((root->left->type  == T_INTGR || root->left->type  == T_NUMBER) &&
             (root->right->type == T_INTGR || root->right->type == T_NUMBER)) {
@@ -64,28 +64,32 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
           switch (root->type) {
           case S_PLUS:
             ans->value->fvalue = lval+rval;
-            ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
+            ans->value->lexeme =
+              (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             //Memory leak!! 
             //mfree(csound, root); mfree(csound root->right);
             return ans;
           case S_MINUS:
             ans->value->fvalue = lval-rval;
-            ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
+            ans->value->lexeme =
+              (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             //Memory leak!! 
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
           case S_TIMES:
             ans->value->fvalue = lval*rval;
-            ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
+            ans->value->lexeme =
+              (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             //Memory leak!! 
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
           case S_DIV:
             ans->value->fvalue = lval/rval;
-            ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
+            ans->value->lexeme =
+              (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             //Memory leak!! 
             //mfree(csound, root); mfree(csound, root->right);
@@ -110,14 +114,16 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
           }
         }
       }
-      else if (root->right->type == T_INTGR || root->right->type == T_NUMBER) {
+      else if (root->right->type == T_INTGR ||
+               root->right->type == T_NUMBER) {
         switch (root->type) {
         case S_UMINUS:
           print_tree(csound, "root", root);
           ans = root->right;
-          ans->value->fvalue = -(ans->type == T_INTGR ? ans->value->value
+          ans->value->fvalue = -(ans->type==T_INTGR ? ans->value->value
                                  : ans->value->fvalue);
-          ans->value->lexeme = (char*)mrealloc(csound, ans->value->lexeme, 24);
+          ans->value->lexeme =
+            (char*)mrealloc(csound, ans->value->lexeme, 24);
           sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
           ans->type = ans->value->type = T_NUMBER;
           print_tree(csound, "ans", ans);
@@ -149,7 +155,8 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     csound->Message(csound, Str("error: %s (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     csound->Message(csound, Str(" line %d: %s"),
-                    csound_orcget_lineno(yyscanner), pp->buffer); // buffer has \n at end
+                    csound_orcget_lineno(yyscanner),
+                    pp->buffer); // buffer has \n at end
 }
 
 /**
@@ -170,8 +177,8 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
     /* HACK - Checks to see if first node is uninitialized (sort of)
      * This occurs for rules like in topstatement where the left hand
      * topstatement the first time around is not initialized to anything
-     * useful; the number 400 is arbitrary, chosen as it seemed to be a value
-     * higher than all the type numbers that were being printed out
+     * useful; the number 400 is arbitrary, chosen as it seemed to be a
+     * value higher than all the type numbers that were being printed out
      */
     if (first->type > 400 || first-> type < 0) {
         return newlast;
@@ -740,12 +747,10 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     if (tree->type == S_ASSIGN) {
       /* BUG: tree->right->value may be NULL */
       /* if (tree->right->value) */
-        tree->value->lexeme = get_assignment_type(csound,
-                                                  tree->left->value->lexeme,
-                                                  tree->right/*->value->lexeme*/);
-      /* else {                    /\* Conditional expression so broken  *\/ */
-      /*   print_tree(csound, "Odd case\n", tree); */
-      /* } */
+      tree->value->lexeme =
+        get_assignment_type(csound,
+                            tree->left->value->lexeme,
+                            tree->right/*->value->lexeme*/);
       return;
     }
     else if (tree->type==0) {
@@ -777,13 +782,13 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
 
           if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
 
-          /*if (find_opcode(csound, str) == 0) {*/
-          /* synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
-             str, ST(group)[ST(nxtest)]);*/    /* report syntax error     */
-          /*ST(nxtest) = 100; */                    /* step way over this line */
-          /*goto tstnxt;*/                          /* & go to next            */
-          /*break;*/
-          /*}*/
+     /*if (find_opcode(csound, str) == 0) {*/
+     /* synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
+        str, ST(group)[ST(nxtest)]);*/    /* report syntax error     */
+     /*ST(nxtest) = 100; */                    /* step way over this line */
+     /*goto tstnxt;*/                          /* & go to next            */
+     /*break;*/
+     /*}*/
           tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
                                                  strlen(str) + 1);
           strcpy(tree->value->lexeme, str);
@@ -847,15 +852,14 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
         default:
           csound->Message(csound, "Impossible case\n");
           break;
-          /*strcpy(str, ST(linopcod));*/  /* unknown code: use original opcode   */
         }
 
-        /*if (!(isopcod(csound, str))) {*/
-        /* if opcode is not found: report syntax error     */
-        /*synterr(csound, Str("failed to find %s, input arg illegal type"), str);*/
-        /*ST(nxtest) = 100;*/                       /* step way over this line */
-        /*goto tstnxt;*/                            /* & go to next            */
-        /*}
+   /*if (!(isopcod(csound, str))) {*/
+   /* if opcode is not found: report syntax error     */
+   /*synterr(csound, Str("failed to find %s, input arg illegal type"), str);*/
+   /*ST(nxtest) = 100;*/                       /* step way over this line */
+   /*goto tstnxt;*/                            /* & go to next            */
+   /*}
           ST(linopnum) = ST(opnum);
           ST(linopcod) = ST(opcod);
           csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));*/

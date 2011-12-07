@@ -243,8 +243,8 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         synterr(csound, Str("input arg '%s' used before defined"), s);
         }*/
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
-      if (tfound == 'a' && n < 31)    /* JMC added for FOG */
-                                      /* 4 for FOF, 8 for FOG; expanded to 15  */
+      if (tfound == 'a' && n < 31) /* JMC added for FOG */
+                                   /* 4 for FOF, 8 for FOG; expanded to 15  */
         tp->xincod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xincod_str |= (1 << n);
@@ -289,7 +289,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 
     if (nreqd < 0)    /* for other opcodes */
       nreqd = strlen(types = ep->outypes);
-/*      if ((n != nreqd) &&       */        /* IV - Oct 24 2002: end of new code */
+/* if ((n != nreqd) && */        /* IV - Oct 24 2002: end of new code */
 /*          !(n > 0 && n < nreqd &&
             (types[n] == (char) 'm' || types[n] == (char) 'z' ||
              types[n] == (char) 'X' || types[n] == (char) 'N' ||
@@ -464,9 +464,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           tp->pftype = tp->intype;
         }
 
-        //        csound->Message(csound,
-        //                        Str("create_opcode[%s]: opnum for opcode: %d\n"),
-        //                        root->value->lexeme, opnum);
+//        csound->Message(csound,
+//                        Str("create_opcode[%s]: opnum for opcode: %d\n"),
+//                        root->value->lexeme, opnum);
       }
       break;
     default:
@@ -751,7 +751,8 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
           ip->lclkcnt = (ip->lclkcnt + 1) & (~1);
     }
 
-    ip->lclfixed = ip->lclkcnt + ip->lclwcnt * Wfloats * ip->lclpcnt * Pfloats;*/
+    ip->lclfixed = ip->lclkcnt + 
+                   ip->lclwcnt * Wfloats * ip->lclpcnt * Pfloats;*/
 
     ip->mdepends = ip->mdepends >> 4;
 
@@ -863,7 +864,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
  */
 void csound_orc_compile(CSOUND *csound, TREE *root) 
 {
-    //    csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
+//    csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
     OPARMS      *O = csound->oparms;
     INSTRTXT    *instrtxt = NULL;
@@ -1052,7 +1053,8 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
       if (UNLIKELY(p->tran_kr <= FL(0.0)))
         synterr(p, Str("%s invalid control rate"), err_msg);
       else if (UNLIKELY(p->tran_ksmps < FL(0.75) ||
-                        FLOAT_COMPARE(p->tran_ksmps, MYFLT2LRND(p->tran_ksmps))))
+                        FLOAT_COMPARE(p->tran_ksmps,
+                                      MYFLT2LRND(p->tran_ksmps))))
         synterr(p, Str("%s invalid ksmps value"), err_msg);
       else if (UNLIKELY(FLOAT_COMPARE(p->tran_sr,
                                       (double) p->tran_kr * p->tran_ksmps)))
@@ -1069,7 +1071,8 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
       if (PARSER_DEBUG) printf("Instr 0 check on opcode=%s\n", bp->t.opcod);
       if (UNLIKELY((thread = csound->opcodlst[opnum].thread) & 06 ||
                    (!thread && bp->t.pftype != 'b'))) {
-        printf("***opcode=%s thread=%d pftype=%c\n", bp->t.opcod, thread, bp->t.pftype);
+        printf("***opcode=%s thread=%d pftype=%c\n", 
+               bp->t.opcod, thread, bp->t.pftype);
         synterr(csound, Str("perf-pass statements illegal in header blk\n"));
       }
     }

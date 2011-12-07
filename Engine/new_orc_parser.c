@@ -56,7 +56,7 @@ void csp_weights_calculate(CSOUND *, TREE *);
 #endif
 
 
-void new_orc_parser(CSOUND *csound)
+int new_orc_parser(CSOUND *csound)
 {
     int retVal;
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
@@ -86,7 +86,7 @@ void new_orc_parser(CSOUND *csound)
     cs_init_omacros(csound, pp.yyscanner, csound->omacros);
 
     retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
-
+    if (csound->synterrcnt) retVal = 3;
     if (UNLIKELY(pp.ifdefStack != NULL)) {
       csound->Message(csound, Str("Unmatched #ifdef\n"));
       csound->LongJmp(csound, 1);
@@ -94,13 +94,19 @@ void new_orc_parser(CSOUND *csound)
     if (LIKELY(retVal == 0)) {
       csound->Message(csound, "Parsing successful!\n");
     }
-    else if (retVal == 1){
-      csound->Message(csound, "Parsing failed due to invalid input!\n");
+    else {
+      if (retVal == 1){
+        csound->Message(csound, "Parsing failed due to invalid input!\n");
+      }
+      else if (retVal == 2){
+        csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
+      }
+      else if (retVal == 3){
+        csound->Message(csound, "Parsing failed due to %d syntax error%s!\n",
+                        csound->synterrcnt, csound->synterrcnt==1?"":"s");
+      }
+      goto ending;
     }
-    else if (retVal == 2){
-      csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
-    }
-
     if (UNLIKELY(PARSER_DEBUG)) {
       print_tree(csound, "AST - INITIAL\n", astTree);
     }
@@ -129,8 +135,10 @@ void new_orc_parser(CSOUND *csound)
     astTree = csound_orc_optimize(csound, astTree);
     csound_orc_compile(csound, astTree);
 
+ ending:
     csound->Free(csound, pp.buffer);
     corfile_rm(&csound->orchstr);
     csound_orclex_destroy(pp.yyscanner);
+    return retVal;
 }
 
