@@ -16,8 +16,7 @@ fi
 "$0" remove ".sconf_temp"
 "$0" remove "config.log"
 
-patterns='*.xmg *.o *.os *.so *.a *.wav *.aif* *.sf *.pcm *.exe *.dll
-*.obj *.lib *.class'
+patterns='*.xmg *.o *.os *.so *.a *.wav *.aif* *.sf *.pcm *.exe *.dll *.obj *.lib *.class'
 findexpr='-iname .scons*'
 for pat in $patterns; do
 	findexpr="$findexpr -o -iname $pat"
@@ -43,8 +42,7 @@ find . -type f $findexpr -exec "$0" remove '{}'  \;
 find "./interfaces" -type f -iname "*.java" -exec "$0" remove '{}' \;
 #find "./interfaces" -type f -iname "*.class" -exec "$0" remove '{}' \;
 
-notexecpatterns="*.cpp *.cxx *.h *.hpp *.fl *.i *.csd *.py *.sh *.sco *.orc
-	*.txt *.tcl"
+notexecpatterns="*.cpp *.cxx *.h *.hpp *.fl *.i *.csd *.py *.sh *.sco *.orc *.txt *.tcl"
 notexecexpr="-iname *.c"
 for pat in $notexecpatterns; do
 	notexecexpr="$notexecexpr -o -iname $pat"

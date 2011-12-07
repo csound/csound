@@ -312,7 +312,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csound->orchstr==NULL) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
-      csound->orchstr = copy_to_corefile(csound->orchname);
+      csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL);
       csound->orchname = NULL;
     }
     if (csound->xfilename != NULL)
@@ -326,11 +326,13 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
 #ifdef ENABLE_NEW_PARSER
     if (O->newParser) {
-      extern void new_orc_parser(CSOUND *);
+      int new_orc_parser(CSOUND *);
       csound->Message(csound, "********************\n");
       csound->Message(csound, "* USING NEW PARSER *\n");
       csound->Message(csound, "********************\n");
-      new_orc_parser(csound);
+      if (new_orc_parser(csound)) {
+        csoundDie(csound, Str("Stopping on parser failure\n"));
+      }
     }
     else {
       otran(csound);                  /* read orcfile, setup desblks & spaces */
@@ -357,12 +359,13 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("using previous %s\n"), csound->scorename);
       //playscore = sortedscore = csound->scorename;   /*  use that one */
       csound->scorestr = NULL;
-      csound->scorestr = copy_to_corefile(csound->scorename);
+      csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL);
     }
     else {
       sortedscore = NULL;
       if (csound->scorestr==NULL) {
-        if ((csound->scorestr = copy_to_corefile(csound->scorename))==NULL)
+        csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL);
+        if (csound->scorestr==NULL)
           csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }
       csound->Message(csound, Str("sorting score ...\n"));
@@ -415,6 +418,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
 #ifdef PARCS
     if (O->numThreads > 1) {
+      void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
       int i;
       THREADINFO *current = NULL;
 

@@ -161,13 +161,16 @@ char *corfile_current(CORFIL *f)
 }
 
 /* *** THIS NEEDS TO TAKE ACCOUNT OF SEARCH PATH *** */
-CORFIL *copy_to_corefile(char *fname)
+CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env)
 {
     CORFIL *mm;
-    FILE *ff = fopen(fname, "r");
+    FILE *ff;
+    void *fd;
     int n;
     char buffer[1024];
 
+    fd = csound->FileOpen2(csound, &ff, CSFILE_STD, fname, "r", env,
+                           CSFTYPE_SCO_INCLUDE, 0);
     if (ff==NULL) return NULL;
     mm = corfile_create_w();
     memset(buffer, '\0', 1024);

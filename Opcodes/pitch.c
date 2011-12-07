@@ -2314,7 +2314,6 @@ int kmedfilt(CSOUND *csound, MEDFILT *p)
     int maxwind = p->maxwind;
     int kwind = MYFLT2LONG(*p->kwind);
     int index = p->ind;
-    int n, nsmps=csound->ksmps;
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, Str("median: not initialised (krate)\n"));
     }

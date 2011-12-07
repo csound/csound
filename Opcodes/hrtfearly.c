@@ -906,7 +906,7 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT formx, formy, formz;
     int formxpow, formypow, formzpow;
 
-    int wallreflections, floorreflections, ceilingreflections;
+    int wallreflections, floorreflections=0, ceilingreflections=0;
     MYFLT delsinglel, delsingler;
     MYFLT deldoublel[2], deldoubler[2];
 
