@@ -122,8 +122,8 @@ EXSTR           "}}"
 {STCOM}         { do_comment(yyscanner); }
 "("             { return '('; }
 ")"             { return ')'; }
-"["             { return S_SLB; }
-"]"             { return S_SRB; }
+"["             { return '['; }
+"]"             { return ']'; }
 "+"             { return '+'; }
 "-"             { return '-'; }
 "*"             { return '*'; }
