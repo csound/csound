@@ -22,6 +22,8 @@
 */
 
 #include "csoundCore.h"
+#include <stdlib.h>
+int mkstemp(char *);
 #include <ctype.h>
 #include <errno.h>
 #include "corfile.h"

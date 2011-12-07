@@ -14,6 +14,7 @@ static int pyexec_krate(CSOUND *csound, PYEXEC *p)
     return OK;
 }
 
+#if 0
 static int pyexeci_irate(CSOUND *csound, PYEXEC *p)
 {
     char      source[1024];
@@ -28,6 +29,7 @@ static int pyexeci_irate(CSOUND *csound, PYEXEC *p)
     Py_DECREF(result);
     return OK;
 }
+#endif
 
 static int pylexec_irate(CSOUND *csound, PYEXEC *p)
 {
@@ -240,6 +242,7 @@ static int pyeval_krate(CSOUND *csound, PYEVAL *p)
     return OK;
 }
 
+#if 0
 static int pyevali_irate(CSOUND *csound, PYEVAL *p)
 {
     char      source[1024];
@@ -260,6 +263,7 @@ static int pyevali_irate(CSOUND *csound, PYEVAL *p)
     Py_DECREF(result);
     return OK;
 }
+#endif
 
 static int pyleval_irate(CSOUND *csound, PYEVAL *p)
 {
@@ -386,6 +390,7 @@ static int pyassign_krate(CSOUND *csound, PYASSIGN *p)
     return OK;
 }
 
+#if 0
 static int pyassigni_irate(CSOUND *csound, PYASSIGN *p)
 {
     char      source[1024];
@@ -400,6 +405,7 @@ static int pyassigni_irate(CSOUND *csound, PYASSIGN *p)
     Py_DECREF(result);
     return OK;
 }
+#endif
 
 static int pylassign_irate(CSOUND *csound, PYASSIGN *p)
 {

@@ -711,28 +711,28 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     switch(flag) {
-    case 0: /* absolute maximum */
+    case 1: /* absolute maximum */
       for (n=0; n<nsmps; n++) {
         MYFLT temp;
         if ((temp = FABS(a[n])) > max) max = temp;
       }
       if (max > p->max) p->max = max;
       break;
-    case 1: /* actual maximum */
+    case 2: /* actual maximum */
       for (n=0; n<nsmps; n++) {
         if (a[n] > max) max = a[n];
       }
       if (max > p->max) p->max = max;
       break;
-    case 2: /* actual minimum */
+    case 3: /* actual minimum */
       for (n=0; n<nsmps; n++) {
         if (a[n] < max) max = a[n];
       }
       if (max < p->max) p->max = max;
       break;
-    case 3: { /* average */
+    case 4: { /* average */
         MYFLT temp = FL(0.0);
-        p->counter += n;
+        p->counter += nsmps;
         for (n=0; n<nsmps; n++) {
           temp += a[n];
         }
@@ -743,11 +743,12 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
       return csound->PerfError(csound, Str("max_k: invalid imaxflag value"));
     }
     if (*p->ktrig) {
-      if (flag == 3) {
+      if (flag == 4) {
         *p->kout = p->max / (MYFLT) p->counter;
         p->counter = 0;
       }
-      else *p->kout = p->max;
+      else
+        *p->kout = p->max;
       p->max = FL(0.0);
     }
     return OK;
@@ -869,8 +870,8 @@ OENTRY gab_localops[] = {
   /*{ "ftlen_k",S(EVAL),    2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
   { "max_k",  S(P_MAXIMUM), 5,      "k",    "aki",
             (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
-  { "maxk",   S(P_MAXIMUM), 5,      "k",    "aki",
-            (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
+/*{ "maxk",   S(P_MAXIMUM), 5,      "k",    "aki", */
+/*        (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum }, */
   { "mandel",S(MANDEL),     3,      "kk",    "kkkk",
                             (SUBR) mandel_set, (SUBR) mandel, NULL }
 };

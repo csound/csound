@@ -263,7 +263,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *iwidth, *iheight, *ix, *iy;
+    MYFLT   *iwidth, *iheight, *ix, *iy, *itype, *ispace, *iborder;
 } FLPACK;
 
 typedef struct {
