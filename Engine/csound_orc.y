@@ -28,8 +28,6 @@
 %lex-param {yyscan_t *scanner}
 
 %token NEWLINE
-%token S_SLB
-%token S_SRB
 %token S_NEQ
 %token S_AND
 %token S_OR
@@ -348,7 +346,7 @@ statement : ident S_ASSIGN expr NEWLINE
               ans->right = make_leaf(csound, T_IDENT_T, (ORCTOKEN *)$3);
               $$ = ans;
           }
-          | T_IDENT_T S_SLB iexp S_SRB S_ASSIGN expr NEWLINE
+          | T_IDENT_T '[' iexp ']' S_ASSIGN expr NEWLINE
           {
               TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$5);
               ans->left = make_leaf(csound, T_IDENT_T, (ORCTOKEN *)$1);
@@ -603,7 +601,7 @@ iterm     : iterm '*' ifac  { $$ = make_node(csound, '*', $1, $3); }
 
 ifac      : ident               { $$ = $1; }
           | constant            { $$ = $1; }
-          | T_IDENT_T S_SLB iexp S_SRB
+          | T_IDENT_T '[' iexp ']'
           {
               $$ = make_node(csound, S_TABREF,
                              make_leaf(csound, T_IDENT_T, (ORCTOKEN*)$1), $3);
