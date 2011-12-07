@@ -240,12 +240,12 @@ static int is_expression_node(TREE *node)
     }
 
     switch(node->type) {
-    case S_PLUS:
-    case S_MINUS:
-    case S_TIMES:
-    case S_DIV:
-    case S_MOD:
-    case S_POW:
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '%':
+    case '^':
     case T_FUNCTION:
     case S_UMINUS:
     case S_BITOR:
@@ -254,7 +254,7 @@ static int is_expression_node(TREE *node)
     case S_BITSHL:
     case S_NEQV:
     case S_BITNOT:
-    case S_Q:
+    case '?':
     case S_TABREF:
       return 1;
     }
@@ -352,7 +352,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
     TREE * opTree;
     /* HANDLE SUB EXPRESSIONS */
 
-    if (root->type==S_Q) return create_cond_expression(csound, root);
+    if (root->type=='?') return create_cond_expression(csound, root);
 
     if (is_expression_node(root->left)) {
       anchor = create_expression(csound, root->left);
@@ -396,27 +396,27 @@ TREE * create_expression(CSOUND *csound, TREE *root)
     op = mcalloc(csound, 80);
 
      switch(root->type) {
-    case S_PLUS:
+    case '+':
       strncpy(op, "add", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_MINUS:
+    case '-':
       strncpy(op, "sub", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_TIMES:
+    case '*':
       strncpy(op, "mul", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_MOD:
+    case '%':
       strncpy(op, "mod", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_DIV:
+    case '/':
       strncpy(op, "div", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_POW:
+    case '^':
       { int outype = 'i';
         strncpy(op, "pow.", 80);
         if (arg1 == 'a' || arg2 == 'a') {
