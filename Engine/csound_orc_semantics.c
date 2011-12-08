@@ -508,44 +508,44 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     case S_BITNOT:
       csound->Message(csound,"name=\"S_BITNOT\""); break;
     case LABEL_TOKEN:
-      csound->Message(csound,"name=\"LABEL\"_TOKEN label=\"%s\"",
+      csound->Message(csound,"name=\"LABEL_TOKEN\" label=\"%s\"",
                       l->value->lexeme); break;
     case IF_TOKEN:
-      csound->Message(csound,"name=\"IF\"_TOKEN"); break;
+      csound->Message(csound,"name=\"IF_TOKEN\""); break;
     case THEN_TOKEN:
-          csound->Message(csound,"name=\"THEN\"_TOKEN"); break;
+          csound->Message(csound,"name=\"THEN_TOKEN\""); break;
     case ITHEN_TOKEN:
-          csound->Message(csound,"name=\"ITHEN\"_TOKEN"); break;
+          csound->Message(csound,"name=\"ITHEN_TOKEN\""); break;
     case KTHEN_TOKEN:
-          csound->Message(csound,"name=\"KTHEN\"_TOKEN"); break;
+          csound->Message(csound,"name=\"KTHEN_TOKEN\""); break;
     case ELSEIF_TOKEN:
-          csound->Message(csound,"name=\"ELSEIF\"_TOKEN"); break;
+          csound->Message(csound,"name=\"ELSEIF_TOKEN\""); break;
     case ELSE_TOKEN:
-          csound->Message(csound,"name=\"ELSE\"_TOKEN"); break;
+          csound->Message(csound,"name=\"ELSE_TOKEN\""); break;
     case UNTIL_TOKEN:
-          csound->Message(csound,"name=\"UNTIL\"_TOKEN"); break;
+          csound->Message(csound,"name=\"UNTIL_TOKEN\""); break;
     case DO_TOKEN:
-          csound->Message(csound,"name=\"DO\"_TOKEN"); break;
+          csound->Message(csound,"name=\"DO_TOKEN\""); break;
     case OD_TOKEN:
-          csound->Message(csound,"name=\"OD\"_TOKEN"); break;
+          csound->Message(csound,"name=\"OD_TOKEN\""); break;
     case GOTO_TOKEN:
-      csound->Message(csound,"name=\"GOTO\"_TOKEN"); break;
+      csound->Message(csound,"name=\"GOTO_TOKEN\""); break;
     case IGOTO_TOKEN:
-      csound->Message(csound,"name=\"IGOTO\"_TOKEN"); break;
+      csound->Message(csound,"name=\"IGOTO_TOKEN\""); break;
     case KGOTO_TOKEN:
-      csound->Message(csound,"name=\"KGOTO\"_TOKEN"); break;
+      csound->Message(csound,"name=\"KGOTO_TOKEN\""); break;
     case SRATE_TOKEN:
-      csound->Message(csound,"name=\"SRATE\"_TOKEN"); break;
+      csound->Message(csound,"name=\"SRATE_TOKEN\""); break;
     case KRATE_TOKEN:
-      csound->Message(csound,"name=\"KRATE\"_TOKEN"); break;
+      csound->Message(csound,"name=\"KRATE_TOKEN\""); break;
     case KSMPS_TOKEN:
-      csound->Message(csound,"name=\"KSMPS\"_TOKEN"); break;
+      csound->Message(csound,"name=\"KSMPS_TOKEN\""); break;
     case NCHNLS_TOKEN:
-      csound->Message(csound,"name=\"NCHNLS\"_TOKEN"); break;
+      csound->Message(csound,"name=\"NCHNLS_TOKEN\""); break;
     case NCHNLSI_TOKEN:
-      csound->Message(csound,"name=\"NCHNLSI\"_TOKEN"); break;
+      csound->Message(csound,"name=\"NCHNLSI_TOKEN\""); break;
     case INSTR_TOKEN:
-      csound->Message(csound,"name=\"INSTR\"_TOKEN"); break;
+      csound->Message(csound,"name=\"INSTR_TOKEN\""); break;
     case STRING_TOKEN:
       csound->Message(csound,"name=\"T_STRCONST\" str=\"%s\"",
                       l->value->lexeme); break;
@@ -604,10 +604,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"",
                       l->value->lexeme); break;
     case INTEGER_TOKEN:
-      csound->Message(csound,"name=\"INTEGER\"_TOKEN value=\"%d\"",
+      csound->Message(csound,"name=\"INTEGER_TOKEN\" value=\"%d\"",
                       l->value->value); break;
     case NUMBER_TOKEN:
-      csound->Message(csound,"name=\"NUMBER\"_TOKEN value=\"%f\" type=%d",
+      csound->Message(csound,"name=\"NUMBER_TOKEN\" value=\"%f\" type=%d",
                       l->value->fvalue, l->value->type); break;
     case S_ANDTHEN:
       csound->Message(csound,"name=\"S_ANDTHEN\""); break;
@@ -627,15 +627,15 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     case T_INSTLIST:
         csound->Message(csound,"name=\"T_INSTLIST\""); break;
     case UDO_TOKEN:
-        csound->Message(csound,"name=\"UDO\"_TOKEN"); break;
+        csound->Message(csound,"name=\"UDO_TOKEN\""); break;
     case UDO_ANS_TOKEN:
-        csound->Message(csound,"name=\"UDO_ANS\"_TOKEN signature=\"%s\"",
+        csound->Message(csound,"name=\"UDO_ANS_TOKEN\" signature=\"%s\"",
                         l->value->lexeme); break;
     case UDO_ARGS_TOKEN:
-        csound->Message(csound,"name=\"UDO_ARGS\"_TOKEN signature=\"%s\"",
+        csound->Message(csound,"name=\"UDO_ARGS_TOKEN\" signature=\"%s\"",
                         l->value->lexeme); break;
     default:
-      csound->Message(csound,"name=\"unknown\"");
+      csound->Message(csound,"name=\"unknown\"(%d)", l->type);
     }
 
     csound->Message(csound, " >\n");
