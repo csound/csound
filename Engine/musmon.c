@@ -303,7 +303,7 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("sorting cscore.out ..\n"));
-      csound->scorestr = copy_to_corefile(csound, "cscore.srt", NULL);
+      csound->scorestr = copy_to_corefile(csound, "cscore.srt", NULL, 1);
       scsortstr(csound, csound->scorestr);  /* call the sorter again */
       fclose(csound->scfp); csound->scfp = NULL;
       fputs(corfile_body(csound->scstr), csound->oscfp);
