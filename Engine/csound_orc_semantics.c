@@ -154,13 +154,14 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     char *p = get_current_pointer(yyscanner);
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
-    csound->Message(csound, Str(" line %d:\n"),
+    csound->Message(csound, Str(" line %d: "),
                     csound_orcget_lineno(yyscanner)+csound->orcLineOffset);
     do {
       ch = *++p;
       csound->Message(csound, "%c", ch);
     } while (ch != '\n' && ch != '\0');
     /* pp->buffer is not being written anywhere */
+
 }
 
 
