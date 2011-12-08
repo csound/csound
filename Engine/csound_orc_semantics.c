@@ -140,7 +140,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
 /* BISON PARSER FUNCTION */
 int csound_orcwrap()
 {
-    printf("END OF INPUT\n");
+    printf("\n === END OF INPUT ===\n");
     return (1);
 }
 
@@ -157,12 +157,25 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     csound->Message(csound, Str(" line %d:\n>>>"), line);
+    /* if(!strcmp(csound_orcget_text(yyscanner), "\n")) { */
+    /*  csound->Message(csound, Str("error: %s (\"\\n\")"), */
+    /*                 str); */
+    /*  csound->Message(csound, Str(" line %d:\n>>> "), */
+    /*     	     csound_orcget_lineno(yyscanner)); */
+    /* } */
+    /* else { */
+    /*  csound->Message(csound, Str("\nerror: %s  (token \"%s\")"), */
+    /*                 str, csound_orcget_text(yyscanner)); */
+    /* csound->Message(csound, Str(" line %d:\n>>> "), */
+    /*                 csound_orcget_lineno(yyscanner)+1); */
+    /* } */
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
+      if(ch == '\n') break;
       csound->Message(csound, "%c", ch);
     } while (ch != '\n' && ch != '\0');
-    csound->Message(csound, "<<<\n");
+    csound->Message(csound, " <<<\n");
 }
 
 
