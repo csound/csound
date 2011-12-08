@@ -147,18 +147,17 @@ int csound_orcwrap()
 extern int csound_orcget_lineno(void*);
 /* BISON PARSER FUNCTION */
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
-                     CSOUND *csound, TREE *astTree, char *str)
+                     CSOUND *csound, TREE *astTree, const char *str)
 {
     //??    extern int yyline;
     //    extern char* buffer;
 
-    csound->Message(csound, Str("\nerror: %s (token \"%s\")"),
+    csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     csound->Message(csound, Str(" line %d:\n %s\n"),
                     csound_orcget_lineno(yyscanner)+csound->orcLineOffset,
                     pp->buffer); // buffer has \n at end
-    /* pp->buffer is too much to pass as a diagnostics message. Somehow we have to
-       retrieve the correct line and pass it instead */
+    /* pp->buffer is not being written anywhere */
 }
 
 
