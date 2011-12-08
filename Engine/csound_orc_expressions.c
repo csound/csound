@@ -145,7 +145,7 @@ TREE *create_minus_token(CSOUND *csound)
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
     }
-    ans->type = T_INTGR;
+    ans->type = INTEGER_TOKEN;
     ans->left = NULL;
     ans->right = NULL;
     ans->next = NULL;
@@ -186,17 +186,17 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
     TREE *opTree, *bVar;
 
     switch(gotoNode->type) {
-    case T_KGOTO:
+    case KGOTO_TOKEN:
       sprintf(op, "ckgoto");
       break;
-    case T_IGOTO:
+    case IGOTO_TOKEN:
       sprintf(op, "cigoto");
       break;
-    case T_ITHEN:
+    case ITHEN_TOKEN:
       sprintf(op, "cngoto");
       break;
-    case T_THEN:
-    case T_KTHEN:
+    case THEN_TOKEN:
+    case KTHEN_TOKEN:
       sprintf(op, "cngoto");
       break;
     default:
@@ -252,7 +252,7 @@ static int is_expression_node(TREE *node)
     case S_BITAND:
     case S_BITSHR:
     case S_BITSHL:
-    case S_NEQV:
+    case '#':
     case S_BITNOT:
     case '?':
     case S_TABREF:
@@ -470,7 +470,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       strncpy(op, "shl", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_NEQV:
+    case '#':
       strncpy(op, "xor", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
@@ -659,7 +659,7 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
     sprintf(label, "__synthetic_%ld:", count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
-    return make_leaf(csound, T_LABEL, make_label(csound, label));
+    return make_leaf(csound, LABEL_TOKEN, make_label(csound, label));
 }
 
 /* Expands expression nodes into opcode calls
@@ -699,17 +699,17 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
     while (current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Instrument found\n");
         current->right = csound_orc_expand_expressions(csound, current->right);
         //        print_tree(csound, "AFTER", current);
         break;
-      case T_UDO:
+      case UDO_TOKEN:
         if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
         current->right = csound_orc_expand_expressions(csound, current->right);
         break;
-      case T_IF:
+      case IF_TOKEN:
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found IF statement\n");
         {
@@ -718,9 +718,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           TREE* last;
           TREE * gotoToken;
 
-          if (right->type == T_IGOTO ||
-              right->type == T_KGOTO ||
-              right->type == T_GOTO) {
+          if (right->type == IGOTO_TOKEN ||
+              right->type == KGOTO_TOKEN ||
+              right->type == GOTO_TOKEN) {
             if (UNLIKELY(PARSER_DEBUG))
               csound->Message(csound, "Found if-goto\n");
             expressionNodes = create_boolean_expression(csound, left);
@@ -747,9 +747,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             current = gotoToken;
             previous = last;
           }
-          else if (right->type == T_THEN ||
-                   right->type == T_ITHEN ||
-                   right->type == T_KTHEN) {
+          else if (right->type == THEN_TOKEN ||
+                   right->type == ITHEN_TOKEN ||
+                   right->type == KTHEN_TOKEN) {
             int endLabelCounter = -1;
             TREE *tempLeft;
             TREE *tempRight;
@@ -766,7 +766,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             while (ifBlockCurrent != NULL) {
               tempLeft = ifBlockCurrent->left;
               tempRight = ifBlockCurrent->right;
-              if (ifBlockCurrent->type == T_ELSE) {
+              if (ifBlockCurrent->type == ELSE_TOKEN) {
                 //  print_tree(csound, "ELSE case\n", ifBlockCurrent);
                 ifBlockLast->next =
                   csound_orc_expand_expressions(csound, tempRight);
@@ -776,10 +776,10 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 // print_tree(csound, "ELSE transformed\n", ifBlockCurrent);
                 break;
               }
-              else if (ifBlockCurrent->type == T_ELSEIF) { /* JPff code */
+              else if (ifBlockCurrent->type == ELSEIF_TOKEN) { /* JPff code */
                 // print_tree(csound, "ELSEIF case\n", ifBlockCurrent);
-                ifBlockCurrent->type = T_IF;
-                ifBlockCurrent = make_node(csound, T_ELSE,
+                ifBlockCurrent->type = IF_TOKEN;
+                ifBlockCurrent = make_node(csound, ELSE_TOKEN,
                                            NULL, ifBlockCurrent);
                 //tempLeft = NULL;
                 /*   ifBlockLast->next = */
@@ -883,7 +883,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           }
         }
         break;
-      case T_UNTIL:
+      case UNTIL_TOKEN:
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found UNTIL statement\n");
         {
@@ -911,7 +911,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             ifBlockCurrent->left = tempLeft;
             ifBlockCurrent->right = tempRight;
             ifBlockCurrent->next = current->next;
-            ifBlockCurrent->type = T_IF;
+            ifBlockCurrent->type = IF_TOKEN;
             current->next = t;
           }
           /* *** Stage 2: Boolean expression *** */
@@ -958,7 +958,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           ifBlockCurrent = tempRight->next;
         }
         break;
-      case T_LABEL:
+      case LABEL_TOKEN:
         break;
       default:
         { /* This is WRONG in optional argsq */
@@ -967,7 +967,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           if (UNLIKELY(PARSER_DEBUG))
             csound->Message(csound, "Found Statement.\n");
 
-          /* if (current->type == S_ASSIGN) { */
+          /* if (current->type == '=') { */
           /*   //csound->Message(csound, "Assignment Statement.\n"); */
           /* } */
           while (currentArg != NULL) {

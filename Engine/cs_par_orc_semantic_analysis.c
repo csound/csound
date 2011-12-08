@@ -266,7 +266,7 @@ void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
 {
     while (x) {
-      if (x->type == T_INTGR) {
+      if (x->type == INTEGER_TOKEN) {
         csp_orc_sa_instr_add(csound, x->value->lexeme);
         return;
       }
