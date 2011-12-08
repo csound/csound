@@ -439,7 +439,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       pfields[index] = value;
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n",
-                        pfield, (int) pfields[index]);
+                        pfield, pfields[index]);
       }
     }
     /* 
