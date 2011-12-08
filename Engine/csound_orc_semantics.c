@@ -140,28 +140,33 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
 /* BISON PARSER FUNCTION */
 int csound_orcwrap()
 {
-    printf("END OF INPUT\n");
+    printf("\n === END OF INPUT ===\n");
     return (1);
 }
 
 extern int csound_orcget_lineno(void*);
-extern char *get_current_pointer(void *);
+extern char *csound_orcget_current_pointer(void *);
 /* BISON PARSER FUNCTION */
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE *astTree, const char *str)
 {
     char ch;
-    char *p = get_current_pointer(yyscanner);
-    csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
+    char *p = csound_orcget_current_pointer(yyscanner)-1;
+    if(!strcmp(csound_orcget_text(yyscanner), "\n"))
+     csound->Message(csound, Str("error: %s (\"\\n\")"),
+                    str);
+    else
+     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
-    csound->Message(csound, Str(" line %d: "),
-                    csound_orcget_lineno(yyscanner)+csound->orcLineOffset);
+    csound->Message(csound, Str(" line %d:\n>>> "),
+                    csound_orcget_lineno(yyscanner));
+    while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
+      if(ch == '\n') break;
       csound->Message(csound, "%c", ch);
     } while (ch != '\n' && ch != '\0');
-    /* pp->buffer is not being written anywhere */
-
+    csound->Message(csound, " <<<\n");
 }
 
 
@@ -499,18 +504,18 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
       csound->Message(csound,"name=\"S_GE\""); break;
-    case S_BITOR:
-      csound->Message(csound,"name=\"S_BITOR\""); break;
-    case S_BITAND:
-      csound->Message(csound,"name=\"S_BITAND\""); break;
+    case '|':
+      csound->Message(csound,"name=\"|\""); break;
+    case '&':
+      csound->Message(csound,"name=\"&\""); break;
     case S_BITSHR:
       csound->Message(csound,"name=\"S_BITSHR\""); break;
     case S_BITSHL:
       csound->Message(csound,"name=\"S_BITSHL\""); break;
     case '#':
-      csound->Message(csound,"name=\"'#'\""); break;
-    case S_BITNOT:
-      csound->Message(csound,"name=\"S_BITNOT\""); break;
+      csound->Message(csound,"name=\"#\""); break;
+    case '~':
+      csound->Message(csound,"name=\"~\""); break;
     case LABEL_TOKEN:
       csound->Message(csound,"name=\"LABEL_TOKEN\" label=\"%s\"",
                       l->value->lexeme); break;
