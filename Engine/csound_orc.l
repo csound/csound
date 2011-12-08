@@ -115,7 +115,8 @@ EXSTR           "}}"
 {CONT}          { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
  }
-"\n"            {
+"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                       yyscanner);
                   return NEWLINE; }
 "//"            { comment(yyscanner); return NEWLINE; }
 ";"             { comment(yyscanner); return NEWLINE; }
@@ -252,7 +253,7 @@ EXSTR           "}}"
 {STRCONSTe}     { *lvalp = make_string(csound, yytext);
                   csound->Message(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
-                          csound->orcLineOffset+csound_orcget_lineno(yyscanner),
+                          csound_orcget_lineno(yyscanner),
                           yytext);
                   return (STRING_TOKEN); }
 
@@ -502,8 +503,7 @@ EXSTR           "}}"
 
 .               { csound->Message(csound,
                                  Str("Line %d: Unknown character: '%c'(%2x)\n"),
-                                 csound->orcLineOffset+
-                                        csound_orcget_lineno(yyscanner),
+                                 csound_orcget_lineno(yyscanner),
                                  yytext[0],yytext[0]);
                 }
 {IFDEF}         {
