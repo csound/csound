@@ -743,7 +743,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           nreqd--;
           break;
         default:
-          synterr(csound, Str("insufficient required arguments"));
+          synterr(csound, Str("insufficient required arguments for opcode %s\n"), ep->opname);
         }
         incnt++;
       } while (incnt < nreqd);
