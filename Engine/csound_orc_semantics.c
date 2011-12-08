@@ -159,7 +159,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
      csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     csound->Message(csound, Str(" line %d:\n>>> "),
-                    csound_orcget_lineno(yyscanner));
+                    csound_orcget_lineno(yyscanner)+1);
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
