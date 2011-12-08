@@ -978,3 +978,8 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
     return b[0]=='\0'?0:1;
 }
 
+char *get_current_pointer(void *yyscanner)
+{
+    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return yyg->yy_c_buf_p;
+}
