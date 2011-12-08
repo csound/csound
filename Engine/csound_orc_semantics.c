@@ -52,14 +52,14 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
       root->right = verify_tree(csound, root->right);
       if (root->left) {
         root->left= verify_tree(csound, root->left);
-        if ((root->left->type  == T_INTGR || root->left->type  == T_NUMBER) &&
-            (root->right->type == T_INTGR || root->right->type == T_NUMBER)) {
-          lval = (root->left->type == T_INTGR ?
+        if ((root->left->type  == INTEGER_TOKEN || root->left->type  == NUMBER_TOKEN) &&
+            (root->right->type == INTEGER_TOKEN || root->right->type == NUMBER_TOKEN)) {
+          lval = (root->left->type == INTEGER_TOKEN ?
                   (double)root->left->value->value :root->left->value->fvalue);
-          rval = (root->right->type == T_INTGR ?
+          rval = (root->right->type == INTEGER_TOKEN ?
                   (double)root->right->value->value :root->left->value->fvalue);
           ans = root->left;
-          ans->type = ans->value->type = T_NUMBER;
+          ans->type = ans->value->type = NUMBER_TOKEN;
           /* **** Something wrong here -- subtractuon confuses memory **** */
           switch (root->type) {
           case '+':
@@ -114,18 +114,18 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
           }
         }
       }
-      else if (root->right->type == T_INTGR ||
-               root->right->type == T_NUMBER) {
+      else if (root->right->type == INTEGER_TOKEN ||
+               root->right->type == NUMBER_TOKEN) {
         switch (root->type) {
         case S_UMINUS:
           print_tree(csound, "root", root);
           ans = root->right;
-          ans->value->fvalue = -(ans->type==T_INTGR ? ans->value->value
+          ans->value->fvalue = -(ans->type==INTEGER_TOKEN ? ans->value->value
                                  : ans->value->fvalue);
           ans->value->lexeme =
             (char*)mrealloc(csound, ans->value->lexeme, 24);
           sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
-          ans->type = ans->value->type = T_NUMBER;
+          ans->type = ans->value->type = NUMBER_TOKEN;
           print_tree(csound, "ans", ans);
           return ans;
         default:
@@ -317,8 +317,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_LE:\n"); break;
     case S_EQ:
       csound->Message(csound,"S_EQ:\n"); break;
-    case S_ASSIGN:
-      csound->Message(csound,"S_ASSIGN:\n"); break;
+    case '=':
+      csound->Message(csound,"'=':\n"); break;
     case S_TASSIGN:
       csound->Message(csound,"S_TASSIGN:\n"); break;
     case S_TABREF:
@@ -327,46 +327,46 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_GT:\n"); break;
     case S_GE:
       csound->Message(csound,"S_GE:\n"); break;
-    case T_LABEL:
-      csound->Message(csound,"T_LABEL: %s\n", l->value->lexeme); break;
-    case T_IF:
-      csound->Message(csound,"T_IF:\n"); break;
-    case T_THEN:
-          csound->Message(csound,"T_THEN:\n"); break;
-    case T_ITHEN:
-          csound->Message(csound,"T_ITHEN:\n"); break;
-    case T_KTHEN:
-          csound->Message(csound,"T_KTHEN:\n"); break;
-    case T_ELSEIF:
-          csound->Message(csound,"T_ELSEIF:\n"); break;
-    case T_ELSE:
-          csound->Message(csound,"T_ELSE:\n"); break;
-    case T_UNTIL:
-          csound->Message(csound,"T_UNTIL:\n"); break;
-    case T_DO:
-          csound->Message(csound,"T_DO:\n"); break;
-    case T_OD:
-          csound->Message(csound,"T_OD:\n"); break;
-    case T_GOTO:
-      csound->Message(csound,"T_GOTO:\n"); break;
-    case T_IGOTO:
-      csound->Message(csound,"T_IGOTO:\n"); break;
-    case T_KGOTO:
-      csound->Message(csound,"T_KGOTO:\n"); break;
-    case T_SRATE:
-      csound->Message(csound,"T_SRATE:\n"); break;
-    case T_KRATE:
-      csound->Message(csound,"T_KRATE:\n"); break;
-    case T_KSMPS:
-      csound->Message(csound,"T_KSMPS:\n"); break;
-    case T_NCHNLS:
-      csound->Message(csound,"T_NCHNLS:\n"); break;
-    case T_NCHNLSI:
-      csound->Message(csound,"T_NCHNLSI:\n"); break;
-    case T_INSTR:
-      csound->Message(csound,"T_INSTR:\n"); break;
-    case T_STRCONST:
-      csound->Message(csound,"T_STRCONST: %s\n", l->value->lexeme); break;
+    case LABEL_TOKEN:
+      csound->Message(csound,"LABEL_TOKEN: %s\n", l->value->lexeme); break;
+    case IF_TOKEN:
+      csound->Message(csound,"IF_TOKEN:\n"); break;
+    case THEN_TOKEN:
+          csound->Message(csound,"THEN_TOKEN:\n"); break;
+    case ITHEN_TOKEN:
+          csound->Message(csound,"ITHEN_TOKEN:\n"); break;
+    case KTHEN_TOKEN:
+          csound->Message(csound,"KTHEN_TOKEN:\n"); break;
+    case ELSEIF_TOKEN:
+          csound->Message(csound,"ELSEIF_TOKEN:\n"); break;
+    case ELSE_TOKEN:
+          csound->Message(csound,"ELSE_TOKEN:\n"); break;
+    case UNTIL_TOKEN:
+          csound->Message(csound,"UNTIL_TOKEN:\n"); break;
+    case DO_TOKEN:
+          csound->Message(csound,"DO_TOKEN:\n"); break;
+    case OD_TOKEN:
+          csound->Message(csound,"OD_TOKEN:\n"); break;
+    case GOTO_TOKEN:
+      csound->Message(csound,"GOTO_TOKEN:\n"); break;
+    case IGOTO_TOKEN:
+      csound->Message(csound,"IGOTO_TOKEN:\n"); break;
+    case KGOTO_TOKEN:
+      csound->Message(csound,"KGOTO_TOKEN:\n"); break;
+    case SRATE_TOKEN:
+      csound->Message(csound,"SRATE_TOKEN:\n"); break;
+    case KRATE_TOKEN:
+      csound->Message(csound,"KRATE_TOKEN:\n"); break;
+    case KSMPS_TOKEN:
+      csound->Message(csound,"KSMPS_TOKEN:\n"); break;
+    case NCHNLS_TOKEN:
+      csound->Message(csound,"NCHNLS_TOKEN:\n"); break;
+    case NCHNLSI_TOKEN:
+      csound->Message(csound,"NCHNLSI_TOKEN:\n"); break;
+    case INSTR_TOKEN:
+      csound->Message(csound,"INSTR_TOKEN:\n"); break;
+    case STRING_TOKEN:
+      csound->Message(csound,"STRING_TOKEN: %s\n", l->value->lexeme); break;
     case T_IDENT:
       csound->Message(csound,"T_IDENT: %s\n", l->value->lexeme); break;
     case T_IDENT_I:
@@ -403,10 +403,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"IDENT_B: %s\n", l->value->lexeme); break;
     case T_IDENT_b:
       csound->Message(csound,"IDENT_b: %s\n", l->value->lexeme); break;
-    case T_INTGR:
-      csound->Message(csound,"T_INTGR: %d\n", l->value->value); break;
-    case T_NUMBER:
-      csound->Message(csound,"T_NUMBER: %f\n", l->value->fvalue); break;
+    case INTEGER_TOKEN:
+      csound->Message(csound,"INTEGER_TOKEN: %d\n", l->value->value); break;
+    case NUMBER_TOKEN:
+      csound->Message(csound,"NUMBER_TOKEN: %f\n", l->value->fvalue); break;
     case S_ANDTHEN:
       csound->Message(csound,"S_ANDTHEN:\n"); break;
     case S_APPLY:
@@ -486,8 +486,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_LE\""); break;
     case S_EQ:
       csound->Message(csound,"name=\"S_EQ\""); break;
-    case S_ASSIGN:
-      csound->Message(csound,"name=\"S_ASSIGN\""); break;
+    case '=':
+      csound->Message(csound,"name=\"'='\""); break;
     case S_TASSIGN:
       csound->Message(csound,"name=\"S_TASSIGN\""); break;
     case S_TABREF:
@@ -504,50 +504,50 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_BITSHR\""); break;
     case S_BITSHL:
       csound->Message(csound,"name=\"S_BITSHL\""); break;
-    case S_NEQV:
-      csound->Message(csound,"name=\"S_NEQV\""); break;
+    case '#':
+      csound->Message(csound,"name=\"'#'\""); break;
     case S_BITNOT:
       csound->Message(csound,"name=\"S_BITNOT\""); break;
-    case T_LABEL:
-      csound->Message(csound,"name=\"T_LABEL\" label=\"%s\"",
+    case LABEL_TOKEN:
+      csound->Message(csound,"name=\"LABEL\"_TOKEN label=\"%s\"",
                       l->value->lexeme); break;
-    case T_IF:
-      csound->Message(csound,"name=\"T_IF\""); break;
-    case T_THEN:
-          csound->Message(csound,"name=\"T_THEN\""); break;
-    case T_ITHEN:
-          csound->Message(csound,"name=\"T_ITHEN\""); break;
-    case T_KTHEN:
-          csound->Message(csound,"name=\"T_KTHEN\""); break;
-    case T_ELSEIF:
-          csound->Message(csound,"name=\"T_ELSEIF\""); break;
-    case T_ELSE:
-          csound->Message(csound,"name=\"T_ELSE\""); break;
-    case T_UNTIL:
-          csound->Message(csound,"name=\"T_UNTIL\""); break;
-    case T_DO:
-          csound->Message(csound,"name=\"T_DO\""); break;
-    case T_OD:
-          csound->Message(csound,"name=\"T_OD\""); break;
-    case T_GOTO:
-      csound->Message(csound,"name=\"T_GOTO\""); break;
-    case T_IGOTO:
-      csound->Message(csound,"name=\"T_IGOTO\""); break;
-    case T_KGOTO:
-      csound->Message(csound,"name=\"T_KGOTO\""); break;
-    case T_SRATE:
-      csound->Message(csound,"name=\"T_SRATE\""); break;
-    case T_KRATE:
-      csound->Message(csound,"name=\"T_KRATE\""); break;
-    case T_KSMPS:
-      csound->Message(csound,"name=\"T_KSMPS\""); break;
-    case T_NCHNLS:
-      csound->Message(csound,"name=\"T_NCHNLS\""); break;
-    case T_NCHNLSI:
-      csound->Message(csound,"name=\"T_NCHNLSI\""); break;
-    case T_INSTR:
-      csound->Message(csound,"name=\"T_INSTR\""); break;
-    case T_STRCONST:
+    case IF_TOKEN:
+      csound->Message(csound,"name=\"IF\"_TOKEN"); break;
+    case THEN_TOKEN:
+          csound->Message(csound,"name=\"THEN\"_TOKEN"); break;
+    case ITHEN_TOKEN:
+          csound->Message(csound,"name=\"ITHEN\"_TOKEN"); break;
+    case KTHEN_TOKEN:
+          csound->Message(csound,"name=\"KTHEN\"_TOKEN"); break;
+    case ELSEIF_TOKEN:
+          csound->Message(csound,"name=\"ELSEIF\"_TOKEN"); break;
+    case ELSE_TOKEN:
+          csound->Message(csound,"name=\"ELSE\"_TOKEN"); break;
+    case UNTIL_TOKEN:
+          csound->Message(csound,"name=\"UNTIL\"_TOKEN"); break;
+    case DO_TOKEN:
+          csound->Message(csound,"name=\"DO\"_TOKEN"); break;
+    case OD_TOKEN:
+          csound->Message(csound,"name=\"OD\"_TOKEN"); break;
+    case GOTO_TOKEN:
+      csound->Message(csound,"name=\"GOTO\"_TOKEN"); break;
+    case IGOTO_TOKEN:
+      csound->Message(csound,"name=\"IGOTO\"_TOKEN"); break;
+    case KGOTO_TOKEN:
+      csound->Message(csound,"name=\"KGOTO\"_TOKEN"); break;
+    case SRATE_TOKEN:
+      csound->Message(csound,"name=\"SRATE\"_TOKEN"); break;
+    case KRATE_TOKEN:
+      csound->Message(csound,"name=\"KRATE\"_TOKEN"); break;
+    case KSMPS_TOKEN:
+      csound->Message(csound,"name=\"KSMPS\"_TOKEN"); break;
+    case NCHNLS_TOKEN:
+      csound->Message(csound,"name=\"NCHNLS\"_TOKEN"); break;
+    case NCHNLSI_TOKEN:
+      csound->Message(csound,"name=\"NCHNLSI\"_TOKEN"); break;
+    case INSTR_TOKEN:
+      csound->Message(csound,"name=\"INSTR\"_TOKEN"); break;
+    case STRING_TOKEN:
       csound->Message(csound,"name=\"T_STRCONST\" str=\"%s\"",
                       l->value->lexeme); break;
     case T_IDENT:
@@ -604,11 +604,11 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     case T_IDENT_b:
       csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"",
                       l->value->lexeme); break;
-    case T_INTGR:
-      csound->Message(csound,"name=\"T_INTGR\" value=\"%d\"",
+    case INTEGER_TOKEN:
+      csound->Message(csound,"name=\"INTEGER\"_TOKEN value=\"%d\"",
                       l->value->value); break;
-    case T_NUMBER:
-      csound->Message(csound,"name=\"T_NUMBER\" value=\"%f\" type=%d",
+    case NUMBER_TOKEN:
+      csound->Message(csound,"name=\"NUMBER\"_TOKEN value=\"%f\" type=%d",
                       l->value->fvalue, l->value->type); break;
     case S_ANDTHEN:
       csound->Message(csound,"name=\"S_ANDTHEN\""); break;
@@ -627,13 +627,13 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
         csound->Message(csound,"name=\"S_UMINUS\""); break;
     case T_INSTLIST:
         csound->Message(csound,"name=\"T_INSTLIST\""); break;
-    case T_UDO:
-        csound->Message(csound,"name=\"T_UDO\""); break;
-    case T_UDO_ANS:
-        csound->Message(csound,"name=\"T_UDO_ANS\" signature=\"%s\"",
+    case UDO_TOKEN:
+        csound->Message(csound,"name=\"UDO\"_TOKEN"); break;
+    case UDO_ANS_TOKEN:
+        csound->Message(csound,"name=\"UDO_ANS\"_TOKEN signature=\"%s\"",
                         l->value->lexeme); break;
-    case T_UDO_ARGS:
-        csound->Message(csound,"name=\"T_UDO_ARGS\" signature=\"%s\"",
+    case UDO_ARGS_TOKEN:
+        csound->Message(csound,"name=\"UDO_ARGS\"_TOKEN signature=\"%s\"",
                         l->value->lexeme); break;
     default:
       csound->Message(csound,"name=\"unknown\"");
@@ -670,7 +670,7 @@ void print_tree(CSOUND * csound, char* msg, TREE *l)
 
 void handle_optional_args(CSOUND *csound, TREE *l)
 {
-    if (l == NULL || l->type == T_LABEL) return;
+    if (l == NULL || l->type == LABEL_TOKEN) return;
 
     int opnum = find_opcode(csound, l->value->lexeme);
     OENTRY *ep = csound->opcodlst + opnum;
@@ -692,36 +692,36 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         switch (ep->intypes[incnt]) {
         case 'O':             /* Will this work?  Doubtful code.... */
         case 'o':
-          temp = make_leaf(csound, T_INTGR, make_int(csound, "0"));
+          temp = make_leaf(csound, INTEGER_TOKEN, make_int(csound, "0"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'P':
         case 'p':
-          temp = make_leaf(csound, T_INTGR, make_int(csound, "1"));
+          temp = make_leaf(csound, INTEGER_TOKEN, make_int(csound, "1"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'q':
-          temp = make_leaf(csound, T_INTGR, make_int(csound, "10"));
+          temp = make_leaf(csound, INTEGER_TOKEN, make_int(csound, "10"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
 
         case 'V':
         case 'v':
-          temp = make_leaf(csound, T_NUMBER, make_num(csound, ".5"));
+          temp = make_leaf(csound, NUMBER_TOKEN, make_num(csound, ".5"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'h':
-          temp = make_leaf(csound, T_INTGR, make_int(csound, "127"));
+          temp = make_leaf(csound, INTEGER_TOKEN, make_int(csound, "127"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'J':
         case 'j':
-          temp = make_leaf(csound, T_INTGR, make_int(csound, "-1"));
+          temp = make_leaf(csound, INTEGER_TOKEN, make_int(csound, "-1"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
@@ -739,7 +739,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 }
 
 char tree_argtyp(CSOUND *csound, TREE *tree) {
-    if (tree->type == T_INTGR || tree->type == T_NUMBER) {
+    if (tree->type == INTEGER_TOKEN || tree->type == NUMBER_TOKEN) {
       return 'i';
     }
 
@@ -747,7 +747,7 @@ char tree_argtyp(CSOUND *csound, TREE *tree) {
 }
 
 void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
-    if (tree->type == S_ASSIGN) {
+    if (tree->type == '=') {
       /* BUG: tree->right->value may be NULL */
       /* if (tree->right->value) */
       tree->value->lexeme =

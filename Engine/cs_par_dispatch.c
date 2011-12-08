@@ -211,7 +211,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         instr = csp_orc_sa_instr_get_by_name(csound,
                                              current->left->value->lexeme);
         if (instr->read_write->count > 0 &&
@@ -221,12 +221,12 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
         }
         break;
 
-      case T_UDO:
-      case T_IF:
+      case UDO_TOKEN:
+      case IF_TOKEN:
         break;
 
       default:
-        if (current->type == S_ASSIGN) {
+        if (current->type == '=') {
           struct set_t *left = NULL, *right  = NULL;
           left = csp_orc_sa_globals_find(csound, current->left);
           right = csp_orc_sa_globals_find(csound, current->right);
@@ -252,9 +252,9 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
             ORCTOKEN *var_tok    = make_int(csound, buf);
 
             TREE *lock_leaf = make_leaf(csound, T_OPCODE, lock_tok);
-            lock_leaf->right = make_leaf(csound, T_INTGR, var_tok);
+            lock_leaf->right = make_leaf(csound, INTEGER_TOKEN, var_tok);
             TREE *unlock_leaf = make_leaf(csound, T_OPCODE, unlock_tok);
-            unlock_leaf->right = make_leaf(csound, T_INTGR, var_tok);
+            unlock_leaf->right = make_leaf(csound, INTEGER_TOKEN, var_tok);
 
             if (previous == NULL) {
               TREE *old_current = lock_leaf;
@@ -369,7 +369,7 @@ static void csp_weights_calculate_instr(CSOUND *csound, TREE *root,
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         nested_instr = 
           csp_orc_sa_instr_get_by_name(csound,
                                        current->left->value->lexeme);
@@ -391,7 +391,7 @@ static void csp_weights_calculate_instr(CSOUND *csound, TREE *root,
       case T_OPCODE0:
         instr->weight += WEIGHT_OPCODE_NODE;
         break;
-      case S_ASSIGN:
+      case '=':
         instr->weight += WEIGHT_S_ASSIGN_NODE;
         break;
 #endif
@@ -420,7 +420,7 @@ void csp_weights_calculate(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         instr = csp_orc_sa_instr_get_by_name(csound,
                                              current->left->value->lexeme);
         /* if (instr->weight == NULL) {
@@ -446,7 +446,7 @@ static void csp_orc_sa_opcode_dump_instr(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         break;
 
       case T_OPCODE:
@@ -454,7 +454,7 @@ static void csp_orc_sa_opcode_dump_instr(CSOUND *csound, TREE *root)
         csound->Message(csound, "OPCODE: %s\n", current->value->lexeme);
         break;
 
-      case S_ASSIGN:
+      case '=':
         break;
 
       default:
@@ -475,7 +475,7 @@ void csp_orc_sa_opcode_dump(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         csp_orc_sa_opcode_dump_instr(csound, current->right);
         break;
 
