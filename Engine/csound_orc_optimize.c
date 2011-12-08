@@ -37,17 +37,17 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         current->right = csound_orc_optimize(csound, current->right);
 
         break;
-      case T_UDO:
+      case UDO_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
 
         break;
 
-      case T_IF:
+      case IF_TOKEN:
 
         break;
 
@@ -56,8 +56,8 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
         if (current->right != NULL) {
           if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
 
-          if (current->type == S_ASSIGN && previous != NULL) {
-            /* S_ASSIGN should be guaranteed to have left and right
+          if (current->type == '=' && previous != NULL) {
+            /* '=' should be guaranteed to have left and right
              * arg by the time it gets here */
             if (previous->left != NULL && previous->left->value != NULL) {
               if (strcmp(previous->left->value->lexeme,

@@ -186,8 +186,8 @@ void update_lclcount(CSOUND *csound, INSTRTXT *ip, TREE *argslist)
       case T_IDENT_K:
       case T_IDENT_F:
       case T_IDENT_I:
-      case T_NUMBER:
-      case T_INTGR:
+      case NUMBER_TOKEN:
+      case INTEGER_TOKEN:
       default:
         ip->lclkcnt++;
         if (UNLIKELY(PARSER_DEBUG))
@@ -342,7 +342,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
     tp = &(optxt->t);
 
     switch(root->type) {
-    case T_LABEL:
+    case LABEL_TOKEN:
       /* TODO - Need to verify here or elsewhere that this label is not
          already defined */
       tp->opnum = LABEL;
@@ -357,12 +357,12 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
       ip->opdstot += csound->opcodlst[LABEL].dsblksiz;
 
       break;
-    case T_GOTO:
-    case T_IGOTO:
-    case T_KGOTO:
+    case GOTO_TOKEN:
+    case IGOTO_TOKEN:
+    case KGOTO_TOKEN:
     case T_OPCODE:
     case T_OPCODE0:
-    case S_ASSIGN:
+    case '=':
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound,
                         "create_opcode: Found node for opcode %s\n",
@@ -549,43 +549,43 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
 
     while (current != NULL) {
 
-      if (current->type != T_INSTR && current->type != T_UDO) {
+      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
 
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
-        if (current->type == S_ASSIGN
+        if (current->type == '='
            && strcmp(current->value->lexeme, "=.r") == 0) {
 
           MYFLT val = csound->pool[constndx(csound,
                                             current->right->value->lexeme)];
 
 
-          /* if (current->right->type == T_INTGR) {
+          /* if (current->right->type == INTEGER_TOKEN) {
              val = FL(current->right->value->value);
              } else {
              val = FL(current->right->value->fvalue);
              }*/
 
           /* modify otran defaults*/
-          if (current->left->type == T_SRATE) {
+          if (current->left->type == SRATE_TOKEN) {
             csound->tran_sr = val;
           }
-          else if (current->left->type == T_KRATE) {
+          else if (current->left->type == KRATE_TOKEN) {
             csound->tran_kr = val;
           }
-          else if (current->left->type == T_KSMPS) {
+          else if (current->left->type == KSMPS_TOKEN) {
             csound->tran_ksmps = val;
           }
-          else if (current->left->type == T_NCHNLS) {
+          else if (current->left->type == NCHNLS_TOKEN) {
             csound->tran_nchnls = current->right->value->value;
           }
-          else if (current->left->type == T_NCHNLSI) {
+          else if (current->left->type == NCHNLSI_TOKEN) {
             csound->tran_nchnlsi = current->right->value->value;
             /* csound->Message(csound, "SETTING NCHNLS: %d\n",
                                csound->tran_nchnls); */
           }
-          else if (current->left->type == T_0DBFS) {
+          else if (current->left->type == ZERODBFS_TOKEN) {
             csound->tran_0dbfs = val;
             /* csound->Message(csound, "SETTING 0DBFS: %f\n",
                                csound->tran_0dbfs); */
@@ -660,7 +660,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
      * Note2: For now am not checking if root->left is a list (i.e. checking
      * root->left->next is NULL or not to indicate list)
      */
-    if (root->left->type == T_INTGR) { /* numbered instrument */
+    if (root->left->type == INTEGER_TOKEN) { /* numbered instrument */
       int32 instrNum = (int32)root->left->value->value; /* Not used! */
 
       c = csound->Malloc(csound, 10); /* arbritrarily chosen number of digits */
@@ -911,10 +911,10 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
 
       switch (current->type) {
       case T_INIT:
-      case S_ASSIGN:
+      case '=':
         /* csound->Message(csound, "Assignment found\n"); */
         break;
-      case T_INSTR:
+      case INSTR_TOKEN:
         /* csound->Message(csound, "Instrument found\n"); */
 
         resetouts(csound); /* reset #out counts */
@@ -929,7 +929,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
          */
         //printf("Starting to install instruments\n");
         /* Temporarily using the following code */
-        if (current->left->type == T_INTGR) { /* numbered instrument */
+        if (current->left->type == INTEGER_TOKEN) { /* numbered instrument */
           int32 instrNum = (int32)current->left->value->value;
 
           insert_instrtxt(csound, instrtxt, instrNum);
@@ -941,11 +941,11 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
             if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);
             if (p->left) {
               //print_tree(csound, "Left\n", p->left);
-              if (p->left->type == T_INTGR)
+              if (p->left->type == INTEGER_TOKEN)
                 insert_instrtxt(csound, instrtxt, p->left->value->value);
             }
             else {
-              if (p->type == T_INTGR)
+              if (p->type == INTEGER_TOKEN)
                 insert_instrtxt(csound, instrtxt, p->value->value);
               break;
             }
@@ -953,7 +953,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
           }
         }
         break;
-      case T_UDO:
+      case UDO_TOKEN:
         /* csound->Message(csound, "UDO found\n"); */
 
         resetouts(csound); /* reset #out counts */

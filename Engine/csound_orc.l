@@ -143,70 +143,70 @@ EXSTR           "}}"
 "<="            { return S_LE; }
 "=="            { return S_EQ; }
 "="             { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = S_ASSIGN;
-                  return S_ASSIGN; }
+                  (*lvalp)->type = '=';
+                  return '='; }
 ">"             { return S_GT; }
 ">="            { return S_GE; }
 "|"             { return S_BITOR; }
 "&"             { return S_BITAND; }
-"#"             { return S_NEQV; }
+"#"             { return '#'; }
 "¬"             { return S_BITNOT; }
 "~"             { return S_BITNOT; }
-"@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return T_INTGR; }
-"@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return T_INTGR; }
-"if"            { return T_IF; }
-"then"          { return T_THEN; }
-"ithen"         { return T_ITHEN; }
-"kthen"         { return T_KTHEN; }
-"elseif"        { return T_ELSEIF; }
-"else"          { return T_ELSE; }
-"endif"         { return T_ENDIF; }
-"until"         { return T_UNTIL; }
-"do"            { return T_DO; }
-"od"            { return T_OD; }
+"@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
+"@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
+"if"            { return IF_TOKEN; }
+"then"          { return THEN_TOKEN; }
+"ithen"         { return ITHEN_TOKEN; }
+"kthen"         { return KTHEN_TOKEN; }
+"elseif"        { return ELSEIF_TOKEN; }
+"else"          { return ELSE_TOKEN; }
+"endif"         { return ENDIF_TOKEN; }
+"until"         { return UNTIL_TOKEN; }
+"do"            { return DO_TOKEN; }
+"od"            { return OD_TOKEN; }
 
 "goto"          { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_GOTO;
-                  return T_GOTO; };
+                  (*lvalp)->type = GOTO_TOKEN;
+                  return GOTO_TOKEN; };
 "igoto"         { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_IGOTO;
-                  return T_IGOTO; };
+                  (*lvalp)->type = IGOTO_TOKEN;
+                  return IGOTO_TOKEN; };
 "kgoto"         { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_KGOTO;
-                  return T_KGOTO; };
+                  (*lvalp)->type = KGOTO_TOKEN;
+                  return KGOTO_TOKEN; };
 
 "sr"            { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_SRATE;
-                  return T_SRATE; }
+                  (*lvalp)->type = SRATE_TOKEN;
+                  return SRATE_TOKEN; }
 "kr"            { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_KRATE;
-                  return T_KRATE; }
+                  (*lvalp)->type = KRATE_TOKEN;
+                  return KRATE_TOKEN; }
 "ksmps"         { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_KSMPS;
-                  return T_KSMPS; }
+                  (*lvalp)->type = KSMPS_TOKEN;
+                  return KSMPS_TOKEN; }
 "nchnls"        { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_NCHNLS;
-                  return T_NCHNLS; }
+                  (*lvalp)->type = NCHNLS_TOKEN;
+                  return NCHNLS_TOKEN; }
 "nchnls_i"      { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_NCHNLSI;
-                  return T_NCHNLSI; }
+                  (*lvalp)->type = NCHNLSI_TOKEN;
+                  return NCHNLSI_TOKEN; }
 "instr"         {
                   namedInstrFlag = 1;
-                  return T_INSTR;
+                  return INSTR_TOKEN;
                 }
-"endin"         { return T_ENDIN; }
+"endin"         { return ENDIN_TOKEN; }
 "opcode"        {
                   PARM->clearBufferAfterEOF = 0;
-                  return T_UDOSTART;
+                  return UDOSTART_TOKEN;
                 }
 "endop"         {
                   PARM->clearBufferAfterEOF = PARM->isInclude;
-                  *lvalp = new_token(csound, T_UDOEND); return T_UDOEND;
+                  *lvalp = new_token(csound, UDOEND_TOKEN); return UDOEND_TOKEN;
                 }
 
 {LABEL}         { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
-                  *lvalp = make_label(csound, pp); return T_LABEL;
+                  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
 
 "\{\{"          {
@@ -223,7 +223,7 @@ EXSTR           "}}"
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                   *lvalp = make_string(csound, PARM->xstrbuff);
                   free(PARM->xstrbuff);
-                  return T_STRCONST;
+                  return STRING_TOKEN;
                 }
 
 <xstr>"\n"     { /* THe next two should be one case but I cannot get that to work */
@@ -247,19 +247,19 @@ EXSTR           "}}"
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
 
-{STRCONST}      { *lvalp = make_string(csound, yytext); return (T_STRCONST); }
+{STRCONST}      { *lvalp = make_string(csound, yytext); return (STRING_TOKEN); }
 
 {STRCONSTe}     { *lvalp = make_string(csound, yytext);
                   csound->Message(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
                           csound->orcLineOffset+csound_orcget_lineno(yyscanner),
                           yytext);
-                  return (T_STRCONST); }
+                  return (STRING_TOKEN); }
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = T_0DBFS;
+                  (*lvalp)->type = ZERODBFS_TOKEN;
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
-                  return T_0DBFS; }
+                  return ZERODBFS_TOKEN; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
@@ -310,7 +310,7 @@ EXSTR           "}}"
                   }
                   PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                   PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-                  /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
+                  /* printf("Push buffer %p -> ", YY_CURRENBUFFER_TOKEN); */
                   yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                   yy_scan_string(mm->body, yyscanner);
                   /* printf("%p\n", YY_CURRENT_BUFFER); */
@@ -425,15 +425,15 @@ EXSTR           "}}"
                         *lvalp = lookup_token(csound, yytext, yyscanner);
                     } else if (udoflag == 1) {
                         *lvalp = lookup_token(csound, yytext, yyscanner);
-                        (*lvalp)->type = T_UDO_ARGS;
+                        (*lvalp)->type = UDO_ARGS_TOKEN;
                     } else {
-                        *lvalp = make_int(csound, yytext); return (T_INTGR);
+                        *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
                     }
 
                     csound->Message(csound,"%d\n", (*lvalp)->type);
                     return ((*lvalp)->type);
                 }
-{NUMBER}        { *lvalp = make_num(csound, yytext); return (T_NUMBER); }
+{NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
 {WHITE}         { }
 {INCLUDE}       BEGIN(incl);
 <incl>[ \t]*     /* eat the whitespace */
@@ -785,7 +785,7 @@ ORCTOKEN *new_token(CSOUND *csound, int type)
 
 ORCTOKEN *make_token(CSOUND *csound, char *s)
 {
-    ORCTOKEN *ans = new_token(csound, T_STRCONST);
+    ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
     int len = strlen(s);
     ans->lexeme = (char*)mcalloc(csound, len + 1);
     strcpy(ans->lexeme, s);
@@ -794,7 +794,7 @@ ORCTOKEN *make_token(CSOUND *csound, char *s)
 
 ORCTOKEN *make_label(CSOUND *csound, char *s)
 {
-    ORCTOKEN *ans = new_token(csound, T_LABEL);
+    ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
     int len = strlen(s);
     ans->lexeme = (char*)mcalloc(csound, len);
     strncpy(ans->lexeme, s, len - 1); /* Not the trailing colon */
@@ -803,7 +803,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
 
 ORCTOKEN *make_string(CSOUND *csound, char *s)
 {
-    ORCTOKEN *ans = new_token(csound, T_STRCONST);
+    ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
     int len = strlen(s);
 /* Keep the quote marks */
     /* ans->lexeme = (char*)mcalloc(csound, len-1); */
@@ -824,7 +824,7 @@ ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
     while (*s=='@') s++;
     n = atoi(s);
     while (i<=n-k && i< 0x4000000) i <<= 1;
-    ans = new_token(csound, T_INTGR);
+    ans = new_token(csound, INTEGER_TOKEN);
     sprintf(buf, "%d", i+k);
     len = strlen(buf);
     ans->lexeme = (char*)mcalloc(csound, len + 1);
@@ -836,7 +836,7 @@ ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
 ORCTOKEN *make_int(CSOUND *csound, char *s)
 {
     int n = atoi(s);
-    ORCTOKEN *ans = new_token(csound, T_INTGR);
+    ORCTOKEN *ans = new_token(csound, INTEGER_TOKEN);
     int len = strlen(s);
     ans->lexeme = (char*)mcalloc(csound, len + 1);
     strncpy(ans->lexeme, s, len);
@@ -847,7 +847,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s)
 ORCTOKEN *make_num(CSOUND *csound, char *s)
 {
     double n = atof(s);
-    ORCTOKEN *ans = new_token(csound, T_NUMBER);
+    ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN);
     int len = strlen(s);
     ans->lexeme = (char*)mcalloc(csound, len + 1);
     strncpy(ans->lexeme, s, len);

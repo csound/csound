@@ -265,7 +265,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 
     if (udoflag == 0) {
       if (isUDOAnsList(s)) {
-        ans = new_token(csound, T_UDO_ANS);
+        ans = new_token(csound, UDO_ANS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
         ans->next = symbtab[h];
@@ -277,7 +277,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 
     if (udoflag == 1) {
       if (isUDOArgList(s)) {
-        ans = new_token(csound, T_UDO_ARGS);
+        ans = new_token(csound, UDO_ARGS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
         ans->next = symbtab[h];
