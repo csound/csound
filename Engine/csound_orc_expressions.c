@@ -248,12 +248,12 @@ static int is_expression_node(TREE *node)
     case '^':
     case T_FUNCTION:
     case S_UMINUS:
-    case S_BITOR:
-    case S_BITAND:
+    case '|':
+    case '&':
     case S_BITSHR:
     case S_BITSHL:
     case '#':
-    case S_BITNOT:
+    case '~':
     case '?':
     case S_TABREF:
       return 1;
@@ -454,11 +454,11 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       strncpy(op, "mul", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_BITOR:
+    case '|':
       strncpy(op, "or", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_BITAND:
+    case '&':
       strncpy(op, "and", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
@@ -474,7 +474,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       strncpy(op, "xor", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_BITNOT:
+    case '~':
       strncpy(op, "not", 80);
       outarg = set_expression_type(csound, op, arg1, '\0');
       break;

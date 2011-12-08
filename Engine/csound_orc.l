@@ -148,11 +148,11 @@ EXSTR           "}}"
                   return '='; }
 ">"             { return S_GT; }
 ">="            { return S_GE; }
-"|"             { return S_BITOR; }
-"&"             { return S_BITAND; }
+"|"             { return '|'; }
+"&"             { return '&'; }
 "#"             { return '#'; }
-"¬"             { return S_BITNOT; }
-"~"             { return S_BITNOT; }
+"¬"             { return '~'; }
+"~"             { return '~'; }
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
 "if"            { return IF_TOKEN; }
