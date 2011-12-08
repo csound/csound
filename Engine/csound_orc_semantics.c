@@ -145,18 +145,21 @@ int csound_orcwrap()
 }
 
 extern int csound_orcget_lineno(void*);
+extern char *get_current_pointer(void *);
 /* BISON PARSER FUNCTION */
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE *astTree, const char *str)
 {
-    //??    extern int yyline;
-    //    extern char* buffer;
-
+    char ch;
+    char *p = get_current_pointer(yyscanner);
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
-    csound->Message(csound, Str(" line %d:\n %s\n"),
-                    csound_orcget_lineno(yyscanner)+csound->orcLineOffset,
-                    pp->buffer); // buffer has \n at end
+    csound->Message(csound, Str(" line %d:\n"),
+                    csound_orcget_lineno(yyscanner)+csound->orcLineOffset);
+    do {
+      ch = *++p;
+      csound->Message(csound, "%c", ch);
+    } while (ch != '\n' && ch != '\0');
     /* pp->buffer is not being written anywhere */
 }
 
