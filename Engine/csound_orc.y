@@ -38,11 +38,8 @@
 %token S_TABREF
 %token S_GT
 %token S_GE
-%token S_BITAND
-%token S_BITOR
 %token S_BITSHL
 %token S_BITSHR
-%token S_BITNOT
 
 %token LABEL_TOKEN
 %token IF_TOKEN
@@ -121,12 +118,12 @@
 %left '+' '-'
 %left '*' '/' '%'
 %left '^'
-%left S_BITOR
-%left S_BITAND
+%left '|'
+%left '&'
 %left '#'
 %left S_BITSHL
 %left S_BITSHR
-%right S_BITNOT
+%right '~'
 %right S_UNOT
 %right S_UMINUS
 %right S_ATAT
@@ -611,13 +608,13 @@ ifac      : ident               { $$ = $1; }
                 $$ = $2;
             }
           | ifac '^' ifac        { $$ = make_node(csound, '^', $1, $3); }
-          | ifac S_BITOR ifac    { $$ = make_node(csound, S_BITOR, $1, $3); }
-          | ifac S_BITAND ifac   { $$ = make_node(csound, S_BITAND, $1, $3); }
+          | ifac '|' ifac        { $$ = make_node(csound, '|', $1, $3); }
+          | ifac '&' ifac        { $$ = make_node(csound, '&', $1, $3); }
           | ifac '#' ifac        { $$ = make_node(csound, '#', $1, $3); }
           | ifac S_BITSHL ifac   { $$ = make_node(csound, S_BITSHL, $1, $3); }
           | ifac S_BITSHR ifac   { $$ = make_node(csound, S_BITSHR, $1, $3); }
-          | S_BITNOT ifac %prec S_UMINUS
-            { $$ = make_node(csound, S_BITNOT, NULL, $2);}
+          | '~' ifac %prec S_UMINUS
+            { $$ = make_node(csound, '~', NULL, $2);}
           | '-' error
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error
