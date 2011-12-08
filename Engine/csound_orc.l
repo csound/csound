@@ -68,7 +68,7 @@ void do_ifdef_skip_code(CSOUND *, yyscan_t);
     if ( UNLIKELY( result <= 0  )) \
       result = YY_NULL; \
     }
-
+#define YY_USER_INIT csound_orcset_lineno(csound->orcLineOffset, yyscanner);
 
 struct yyguts_t;
 ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
@@ -115,7 +115,8 @@ EXSTR           "}}"
 {CONT}          { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
  }
-"\n"            {
+"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                       yyscanner);
                   return NEWLINE; }
 "//"            { comment(yyscanner); return NEWLINE; }
 ";"             { comment(yyscanner); return NEWLINE; }
@@ -147,11 +148,11 @@ EXSTR           "}}"
                   return '='; }
 ">"             { return S_GT; }
 ">="            { return S_GE; }
-"|"             { return S_BITOR; }
-"&"             { return S_BITAND; }
+"|"             { return '|'; }
+"&"             { return '&'; }
 "#"             { return '#'; }
-"¬"             { return S_BITNOT; }
-"~"             { return S_BITNOT; }
+"¬"             { return '~'; }
+"~"             { return '~'; }
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
 "if"            { return IF_TOKEN; }
@@ -252,7 +253,7 @@ EXSTR           "}}"
 {STRCONSTe}     { *lvalp = make_string(csound, yytext);
                   csound->Message(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
-                          csound->orcLineOffset+csound_orcget_lineno(yyscanner),
+                          csound_orcget_lineno(yyscanner),
                           yytext);
                   return (STRING_TOKEN); }
 
@@ -502,8 +503,7 @@ EXSTR           "}}"
 
 .               { csound->Message(csound,
                                  Str("Line %d: Unknown character: '%c'(%2x)\n"),
-                                 csound->orcLineOffset+
-                                        csound_orcget_lineno(yyscanner),
+                                 csound_orcget_lineno(yyscanner),
                                  yytext[0],yytext[0]);
                 }
 {IFDEF}         {
@@ -978,7 +978,7 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
     return b[0]=='\0'?0:1;
 }
 
-char *get_current_pointer(void *yyscanner)
+char *csound_orcget_current_pointer(void *yyscanner)
 {
     struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return yyg->yy_c_buf_p;

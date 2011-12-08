@@ -81,7 +81,7 @@ int new_orc_parser(CSOUND *csound)
     /*     These relate to file input only       */
     /*     csound_orcset_in(ttt, pp.yyscanner); */
     /*     csound_orcrestart(ttt, pp.yyscanner); */
-    csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
+    //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
     cs_init_math_constants_macros(csound, pp.yyscanner);
     cs_init_omacros(csound, pp.yyscanner, csound->omacros);
 
