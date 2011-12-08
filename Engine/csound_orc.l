@@ -68,7 +68,7 @@ void do_ifdef_skip_code(CSOUND *, yyscan_t);
     if ( UNLIKELY( result <= 0  )) \
       result = YY_NULL; \
     }
-
+#define YY_USER_INIT csound_orcset_lineno(csound->orcLineOffset, yyscanner);
 
 struct yyguts_t;
 ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
@@ -978,7 +978,7 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
     return b[0]=='\0'?0:1;
 }
 
-char *get_current_pointer(void *yyscanner)
+char *csound_orcget_current_pointer(void *yyscanner)
 {
     struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return yyg->yy_c_buf_p;
