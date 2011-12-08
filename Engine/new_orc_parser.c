@@ -67,7 +67,7 @@ int new_orc_parser(CSOUND *csound)
     memset(&pp, '\0', sizeof(PARSE_PARM));
     init_symbtab(csound);
 
-    pp.buffer = (char*)csound->Malloc(csound, lMaxBuffer);
+    pp.buffer = (char*)csound->Calloc(csound, lMaxBuffer);
 
     if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Testing...\n");
 
