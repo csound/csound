@@ -138,8 +138,8 @@ EXSTR           "}}"
 "!="            { return S_NEQ; }
 "&&"            { return S_AND; }
 "||"            { return S_OR; }
-"<<"            { return S_BITSHL; }
-">>"            { return S_BITSHR; }
+"<<"            { return S_BITSHIFT_LEFT; }
+">>"            { return S_BITSHIFT_RIGHT; }
 "<"             { return S_LT; }
 "<="            { return S_LE; }
 "=="            { return S_EQ; }
