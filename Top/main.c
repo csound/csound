@@ -312,7 +312,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csound->orchstr==NULL) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
-      csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL);
+      csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
       csound->orchname = NULL;
     }
     if (csound->xfilename != NULL)
@@ -359,12 +359,12 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("using previous %s\n"), csound->scorename);
       //playscore = sortedscore = csound->scorename;   /*  use that one */
       csound->scorestr = NULL;
-      csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL);
+      csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
     }
     else {
       sortedscore = NULL;
       if (csound->scorestr==NULL) {
-        csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL);
+        csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
         if (csound->scorestr==NULL)
           csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }

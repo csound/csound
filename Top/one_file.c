@@ -339,7 +339,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     CORFIL *incore = corfile_create_w();
     char  buffer[CSD_MAX_LINE_LEN];
 
-    csound->orcLineOffset = ST(csdlinecount);
+    csound->orcLineOffset = ST(csdlinecount)+1;
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;

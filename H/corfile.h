@@ -1,5 +1,5 @@
 /*
-    corfiles.c:
+    corfiles.h:
 
     Copyright (C) 2011 John ffitch
 
@@ -45,8 +45,7 @@ char *corfile_body(CORFIL *f);
 #define corfile_body(f) (f->body)
 char *corfile_current(CORFIL *f);
 #define corfile_current(f) (f->body+f->p)
-CORFIL *copy_to_corefile(CSOUND *, char *, char *);
-//CORFIL *copy_to_corefile_path(CSOUND *, char *);
+CORFIL *copy_to_corefile(CSOUND *, char *, char *, int);
 int corfile_length(CORFIL *f);
 #define corfile_length(f) (strlen(f->body))
 void corfile_set(CORFIL *f, int n);
