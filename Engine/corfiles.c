@@ -161,7 +161,9 @@ char *corfile_current(CORFIL *f)
 }
 
 /* *** THIS NEEDS TO TAKE ACCOUNT OF SEARCH PATH *** */
-CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env)
+void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
+                 char *env, int fromScore);
+CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env, int fromScore)
 {
     CORFIL *mm;
     FILE *ff;
@@ -169,8 +171,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env)
     int n;
     char buffer[1024];
 
-    fd = csound->FileOpen2(csound, &ff, CSFILE_STD, fname, "r", env,
-                           CSFTYPE_SCO_INCLUDE, 0);
+    fd = fopen_path(csound, &ff, fname, NULL, env, fromScore);
     if (ff==NULL) return NULL;
     mm = corfile_create_w();
     memset(buffer, '\0', 1024);
@@ -178,6 +179,8 @@ CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env)
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
+    corfile_putc('\0', mm);     /* For use in bison/flex */
+    corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_flush(mm);
     fclose(ff);
     return mm;

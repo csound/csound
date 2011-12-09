@@ -63,11 +63,11 @@ void do_ifdef_skip_code(CSOUND *, yyscan_t);
 #define YY_EXTRA_TYPE  PARSE_PARM *
 #define PARM    yyget_extra(yyscanner)
 
-#define YY_INPUT(buf,result,max_size)  {\
-    result = get_next_char(buf, max_size, yyg); \
-    if ( UNLIKELY( result <= 0  )) \
-      result = YY_NULL; \
-    }
+/* #define YY_INPUT(buf,result,max_size)  {\ */
+/*     result = get_next_char(buf, max_size, yyg); \ */
+/*     if ( UNLIKELY( result <= 0  )) \ */
+/*       result = YY_NULL; \ */
+/*     } */
 #define YY_USER_INIT csound_orcset_lineno(csound->orcLineOffset, yyscanner);
 
 struct yyguts_t;
@@ -138,8 +138,8 @@ EXSTR           "}}"
 "!="            { return S_NEQ; }
 "&&"            { return S_AND; }
 "||"            { return S_OR; }
-"<<"            { return S_BITSHL; }
-">>"            { return S_BITSHR; }
+"<<"            { return S_BITSHIFT_LEFT; }
+">>"            { return S_BITSHIFT_RIGHT; }
 "<"             { return S_LT; }
 "<="            { return S_LE; }
 "=="            { return S_EQ; }
@@ -567,6 +567,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     char buffer[100];
     int p=0;
     int c;
+    CORFIL *cf;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     while ((c=input(yyscanner))!=term) {
       buffer[p] = c;
@@ -574,15 +575,12 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     buffer[p] = '\0';
     while ((c=input(yyscanner))!='\n');
-    fopen_path(csound, &yyin, buffer, NULL, "INCDIR", 0);
-    if (UNLIKELY( ! yyin )) {
-      csound->Message(csound, Str("Cannot open file \"%s\"\n"), buffer);
-      exit(1);
-    }
+    cf = copy_to_corefile(csound, buffer, "INCDIR");
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     PARM->isInclude = PARM->clearBufferAfterEOF = 1;
-    yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE, yyscanner), yyscanner);
+    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+    yy_scan_string(cf->body, yyscanner);
 }
 
 static inline int isNameChar(int c, int pos)
@@ -935,7 +933,9 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 }
 
 
-/* Functions for working with grabbing input one line aa time */
+#if 0
+/* Functions for working with grabbing input one line at a time */
+/* These two functions assume reading from a file */
 
 int get_next_line(struct yyguts_t * yyg)
 {
@@ -977,6 +977,7 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
 
     return b[0]=='\0'?0:1;
 }
+#endif
 
 char *csound_orcget_current_pointer(void *yyscanner)
 {
