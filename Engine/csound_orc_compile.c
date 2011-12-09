@@ -292,7 +292,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       /* IV - Oct 31 2002 */
       tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
-        synterr(csound, Str("input arg '%s' used before defined"), s);
+        synterr(csound, Str("input arg '%s' used before defined\n"), s);
       }
       csound->DebugMsg(csound, "%s(%d): treqd: %c, tfound %c\n", __FILE__, __LINE__,treqd, tfound);
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
@@ -1753,7 +1753,8 @@ char argtyp2(CSOUND *csound, char *s)
       return('p');                              /* pnum */
     if (c == '"')
       return('S');                              /* quoted String */
-      ST(lgprevdef) = lgexist(csound, s);       /* (lgprev) */
+    /* VL: commented out to prevent segfaults */
+    /*  ST(lgprevdef) = lgexist(csound, s);  */       /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
