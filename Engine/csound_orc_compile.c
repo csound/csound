@@ -271,7 +271,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       s = tp->inlist->arg[n];
 
       if (n >= nreqd) {               /* det type required */
-        printf("%s(%d): type required: %c\n", __FILE__, __LINE__, types[nreqd-1]);
+        csound->DebugMsg(csound, "%s(%d): type required: %c\n", __FILE__, __LINE__, types[nreqd-1]);
         switch (types[nreqd-1]) {
         case 'M':
         case 'N':
@@ -282,7 +282,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         }
       }
       else treqd = types[n];          /*       or given)   */
-      printf("%s(%d): treqd: %c\n", __FILE__, __LINE__, treqd);
+      csound->DebugMsg(csound, "%s(%d): treqd: %c\n", __FILE__, __LINE__, treqd);
       if (treqd == 'l') {             /* if arg takes lbl  */
         csound->DebugMsg(csound, "treqd = l");
         lblrequest(csound, s);        /*      req a search */
@@ -294,7 +294,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
         synterr(csound, Str("input arg '%s' used before defined"), s);
       }
-      printf("%s(%d): treqd: %c, tfound %c\n", __FILE__, __LINE__,treqd, tfound);
+      csound->DebugMsg(csound, "%s(%d): treqd: %c, tfound %c\n", __FILE__, __LINE__,treqd, tfound);
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
       if (tfound == 'a' && n < 31) /* JMC added for FOG */
                                    /* 4 for FOF, 8 for FOG; expanded to 15  */
@@ -373,7 +373,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         }
       /* IV - Oct 31 2002: simplified code */
       if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
-        synterr(csound, Str("output arg '%s' illegal type"), s);
+        synterr(csound, Str("output arg '%s' illegal type\n"), s);
       }
     }
 }
@@ -1142,10 +1142,10 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
       int thread, opnum = bp->t.opnum;
       if (opnum == ENDIN) break;
       if (opnum == LABEL) continue;
-      if (PARSER_DEBUG) printf("Instr 0 check on opcode=%s\n", bp->t.opcod);
+      if (PARSER_DEBUG) csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
       if (UNLIKELY((thread = csound->opcodlst[opnum].thread) & 06 ||
                    (!thread && bp->t.pftype != 'b'))) {
-        printf("***opcode=%s thread=%d pftype=%c\n", 
+        csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n", 
                bp->t.opcod, thread, bp->t.pftype);
         synterr(csound, Str("perf-pass statements illegal in header blk\n"));
       }
