@@ -53,6 +53,9 @@ typedef struct {
     int32      poolcount, strpool_cnt, argoffsize;
     int       nconsts;
     int       *constTbl;
+    int32     *typemask_tabl;
+    int32     *typemask_tabl_in, *typemask_tabl_out;
+    int       lgprevdef;
 } OTRAN_GLOBALS;
 
 static  int     gexist(CSOUND *, char *), gbloffndx(CSOUND *, char *);
@@ -104,6 +107,52 @@ static void lblclear(CSOUND *csound)
     /* ST(lblcnt) = 0; */
 }
 #endif
+
+static void intyperr(CSOUND *csound, int n, char tfound, char expect)
+{
+   char    t[10];
+
+  switch (tfound) {
+  case 'w':
+  case 'f':
+  case 'a':
+  case 'k':
+  case 'i':
+  case 'P':
+  case 'p': t[0] = tfound;
+    t[1] = '\0';
+    break;
+  case 'r':
+  case 'c': strcpy(t,"const");
+    break;
+  case 'S': strcpy(t,"string");
+    break;
+  case 'b':
+  case 'B': strcpy(t,"boolean");
+    break;
+  case '?': strcpy(t,"?");
+    break;
+  }
+  synterr(csound, Str("input arg '%s' of type %s "
+                      "not allowed when expecting %c"), "??", t, expect);
+}
+
+static void lblrequest(CSOUND *csound, char *s)
+{
+  int     req;
+
+  /* for (req=0; req<ST(lblcnt); req++) */
+  /*   if (strcmp(ST(lblreq)[req].label,s) == 0) */
+  /*     return; */
+  /* if (++ST(lblcnt) >= ST(lblmax)) { */
+  /*   LBLREQ *tmp; */
+  /*   ST(lblmax) += LBLMAX; */
+  /*   tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ)); */
+  /*   ST(lblreq) = tmp; */
+  /* } */
+  /* ST(lblreq)[req].reqline = ST(curline); */
+  /* ST(lblreq)[req].label =s; */
+}
 
 static inline void resetouts(CSOUND *csound)
 {
@@ -218,9 +267,11 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     }
 
     while (n--) {                     /* inargs:   */
+      int32    tfound_m, treqd_m = 0L;
       s = tp->inlist->arg[n];
 
       if (n >= nreqd) {               /* det type required */
+        printf("%s(%d): type required: %c\n", __FILE__, __LINE__, types[nreqd-1]);
         switch (types[nreqd-1]) {
         case 'M':
         case 'N':
@@ -231,17 +282,19 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         }
       }
       else treqd = types[n];          /*       or given)   */
+      printf("%s(%d): treqd: %c\n", __FILE__, __LINE__, treqd);
       if (treqd == 'l') {             /* if arg takes lbl  */
         csound->DebugMsg(csound, "treqd = l");
-        /*lblrequest(csound, s);*/        /*      req a search */
+        lblrequest(csound, s);        /*      req a search */
         continue;                     /*      chk it later */
       }
       tfound = argtyp2(csound, s);     /* else get arg type */
       /* IV - Oct 31 2002 */
-      /*tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
-        if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
+      tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
+      if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
         synterr(csound, Str("input arg '%s' used before defined"), s);
-        }*/
+      }
+      printf("%s(%d): treqd: %c, tfound %c\n", __FILE__, __LINE__,treqd, tfound);
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
       if (tfound == 'a' && n < 31) /* JMC added for FOG */
                                    /* 4 for FOF, 8 for FOG; expanded to 15  */
@@ -249,32 +302,32 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       if (tfound == 'S' && n < 31)
         tp->xincod_str |= (1 << n);
       /* IV - Oct 31 2002: simplified code */
-      /* if (!(tfound_m & ST(typemask_tabl_in)[(unsigned char) treqd])) { */
+      if (!(tfound_m & ST(typemask_tabl_in)[(unsigned char) treqd])) {
       /* check for exceptional types */
-      /*switch (treqd) {*/
-      /*case 'Z':*/                             /* indef kakaka ... */
-      /*if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
-        intyperr(csound, n, tfound, treqd);
+      switch (treqd) {
+      case 'Z':                             /* indef kakaka ... */
+        if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
+          intyperr(csound, n, tfound, treqd);
         break;
-        case 'x':
-        treqd_m = ARGTYP_ipcr;*/              /* also allows i-rate */
-      /*case 's':*/                             /* a- or k-rate */
-      /*treqd_m |= ARGTYP_a | ARGTYP_k;
-        if (tfound_m & treqd_m) {
-        if (tfound == 'a' && tp->outlist != ST(nullist)) {*/
-      /*long outyp_m =*/                  /* ??? */
-      /*ST(typemask_tabl)[(unsigned char) argtyp(csound,
-        tp->outlist->arg[0])];
-        if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
+      case 'x':
+        treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
+      case 's':                             /* a- or k-rate */
+      treqd_m |= ARGTYP_a | ARGTYP_k;
+      if (tfound_m & treqd_m) {
+        if (tfound == 'a' && tp->outlist != ST(nullist)) {
+          long outyp_m =                  /* ??? */
+            ST(typemask_tabl)[(unsigned char) argtyp(csound,
+                                                     tp->outlist->arg[0])];
+          if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
         }
         else
-        break;
-        }
-        default:
+          break;
+      }
+      default:
         intyperr(csound, n, tfound, treqd);
         break;
-        }
-        }*/
+      }
+      }
     }
     csound->DebugMsg(csound, "xincod = %d", tp->xincod);
 }
@@ -301,27 +354,27 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 
 
     while (n--) {                                     /* outargs:  */
-      /*        long    tfound_m;*/       /* IV - Oct 31 2002 */
+      long    tfound_m;       /* IV - Oct 31 2002 */
       s = tp->outlist->arg[n];
       treqd = types[n];
       tfound = argtyp2(csound, s);                     /*  found    */
       /* IV - Oct 31 2002 */
-      /*tfound_m = ST(typemask_tabl)[(unsigned char) tfound];*/
+      tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
       /* IV - Sep 1 2002: xoutcod is the same as xincod for input */
       if (tfound == 'a' && n < 31)
         tp->xoutcod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xoutcod_str |= (1 << n);
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
-      /*if (tfound_m & ARGTYP_w)
+      if (tfound_m & ARGTYP_w)
         if (ST(lgprevdef)) {
-        synterr(csound, Str("output name previously used, "
-        "type '%c' must be uniquely defined"), tfound);
-        }*/
+          synterr(csound, Str("output name previously used, "
+                              "type '%c' must be uniquely defined"), tfound);
+        }
       /* IV - Oct 31 2002: simplified code */
-      /*if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
+      if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
         synterr(csound, Str("output arg '%s' illegal type"), s);
-        }*/
+      }
     }
 }
 
@@ -903,6 +956,27 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
     ST(constTbl) = (int*) mcalloc(csound, (256 + NCONSTS) * sizeof(int));
     constndx(csound, "0");
 
+    if (!ST(typemask_tabl)) {
+      const int32 *ptr = typetabl1;
+      ST(typemask_tabl) = (int32*) mcalloc(csound, sizeof(int32) * 256);
+      ST(typemask_tabl_in) = (int32*) mcalloc(csound, sizeof(int32) * 256);
+      ST(typemask_tabl_out) = (int32*) mcalloc(csound, sizeof(int32) * 256);
+      while (*ptr) {            /* basic types (both for input */
+        int32 pos = *ptr++;      /* and output) */
+        ST(typemask_tabl)[pos] = ST(typemask_tabl_in)[pos] =
+          ST(typemask_tabl_out)[pos] = *ptr++;
+      }
+      ptr = typetabl2;
+      while (*ptr) {            /* input types */
+        int32 pos = *ptr++;
+        ST(typemask_tabl_in)[pos] = *ptr++;
+      }
+      ptr = typetabl3;
+      while (*ptr) {            /* output types */
+        int32 pos = *ptr++;
+        ST(typemask_tabl_out)[pos] = *ptr++;
+      }
+    }
     instr0 = create_instrument0(csound, root);
     prvinstxt = prvinstxt->nxtinstxt = instr0;
     insert_instrtxt(csound, instr0, 0);
@@ -1679,7 +1753,7 @@ char argtyp2(CSOUND *csound, char *s)
       return('p');                              /* pnum */
     if (c == '"')
       return('S');                              /* quoted String */
-      /* ST(lgprevdef) = lgexist(csound, s);  */             /* (lgprev) */
+      ST(lgprevdef) = lgexist(csound, s);       /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
