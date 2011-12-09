@@ -133,8 +133,8 @@ static void intyperr(CSOUND *csound, int n, char tfound, char expect)
   case '?': strcpy(t,"?");
     break;
   }
-  synterr(csound, Str("input arg '%s' of type %s "
-                      "not allowed when expecting %c"), "??", t, expect);
+  synterr(csound, Str("input arg %d '%s' of type %s "
+                      "not allowed when expecting %c\n"), n+1, "??", t, expect);
 }
 
 static void lblrequest(CSOUND *csound, char *s)
