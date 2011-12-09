@@ -38,8 +38,8 @@
 %token S_TABREF
 %token S_GT
 %token S_GE
-%token S_BITSHL
-%token S_BITSHR
+%token S_BITSHIFT_LEFT
+%token S_BITSHIFT_RRIGHT
 
 %token LABEL_TOKEN
 %token IF_TOKEN
@@ -121,8 +121,8 @@
 %left '|'
 %left '&'
 %left '#'
-%left S_BITSHL
-%left S_BITSHR
+%left S_BITSHIFT_LEFT
+%left S_BITSHIFT_RIGHT
 %right '~'
 %right S_UNOT
 %right S_UMINUS
@@ -611,8 +611,10 @@ ifac      : ident               { $$ = $1; }
           | ifac '|' ifac        { $$ = make_node(csound, '|', $1, $3); }
           | ifac '&' ifac        { $$ = make_node(csound, '&', $1, $3); }
           | ifac '#' ifac        { $$ = make_node(csound, '#', $1, $3); }
-          | ifac S_BITSHL ifac   { $$ = make_node(csound, S_BITSHL, $1, $3); }
-          | ifac S_BITSHR ifac   { $$ = make_node(csound, S_BITSHR, $1, $3); }
+          | ifac S_BITSHIFT_LEFT ifac   
+                 { $$ = make_node(csound, S_BITSHIFT_LEFT, $1, $3); }
+          | ifac S_BITSHIFT_RIGHT ifac
+                 { $$ = make_node(csound, S_BITSHIFT_RIGHT, $1, $3); }
           | '~' ifac %prec S_UMINUS
             { $$ = make_node(csound, '~', NULL, $2);}
           | '-' error
