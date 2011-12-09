@@ -1,5 +1,5 @@
 /*
-    rdscorstr.c:
+    rdscor.c:
 
     Copyright (C) 2011 John ffitch (after Barry Vercoe)
 

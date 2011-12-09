@@ -250,8 +250,8 @@ static int is_expression_node(TREE *node)
     case S_UMINUS:
     case '|':
     case '&':
-    case S_BITSHR:
-    case S_BITSHL:
+    case S_BITSHIFT_RIGHT:
+    case S_BITSHIFT_LEFT:
     case '#':
     case '~':
     case '?':
@@ -462,11 +462,11 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       strncpy(op, "and", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_BITSHR:
+    case S_BITSHIFT_RIGHT:
       strncpy(op, "shr", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
-    case S_BITSHL:
+    case S_BITSHIFT_LEFT:
       strncpy(op, "shl", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;

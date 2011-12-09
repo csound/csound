@@ -517,10 +517,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"|\""); break;
     case '&':
       csound->Message(csound,"name=\"&\""); break;
-    case S_BITSHR:
-      csound->Message(csound,"name=\"S_BITSHR\""); break;
-    case S_BITSHL:
-      csound->Message(csound,"name=\"S_BITSHL\""); break;
+    case S_BITSHIFT_RIGHT:
+      csound->Message(csound,"name=\"S_BITSHIFT_RIGHT\""); break;
+    case S_BITSHIFT_LEFT:
+      csound->Message(csound,"name=\"S_BITSHIFT_LEFT\""); break;
     case '#':
       csound->Message(csound,"name=\"#\""); break;
     case '~':
