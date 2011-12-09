@@ -297,31 +297,21 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
 
     switch (l->type) {
     case ',':
-      csound->Message(csound,",:\n"); break;
     case '?':
-      csound->Message(csound,"?:\n"); break;
     case ':':
-      csound->Message(csound,"::\n"); break;
     case '!':
-      csound->Message(csound,"!:\n"); break;
     case '+':
-      csound->Message(csound,"+:\n"); break;
     case '-':
-      csound->Message(csound,"-:\n"); break;
     case '*':
-      csound->Message(csound,"*:\n"); break;
     case '/':
-      csound->Message(csound,"/:\n"); break;
     case '%':
-      csound->Message(csound,"%:\n"); break;
     case '^':
-      csound->Message(csound,"^:\n"); break;
+    case '(':
+    case ')':
+    case '=':
+      csound->Message(csound,"%c:\n", l->type); break;
     case NEWLINE:
       csound->Message(csound,"NEWLINE:\n"); break;
-    case '(':
-      csound->Message(csound,"(:\n"); break;
-    case ')':
-      csound->Message(csound,"):\n"); break;
     case S_NEQ:
       csound->Message(csound,"S_NEQ:\n"); break;
     case S_AND:
@@ -334,8 +324,6 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_LE:\n"); break;
     case S_EQ:
       csound->Message(csound,"S_EQ:\n"); break;
-    case '=':
-      csound->Message(csound,"'=':\n"); break;
     case S_TASSIGN:
       csound->Message(csound,"S_TASSIGN:\n"); break;
     case S_TABREF:
@@ -439,7 +427,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case T_INSTLIST:
         csound->Message(csound,"T_INSTLIST:\n"); break;
     default:
-      csound->Message(csound,"t:%d\n", l->type);
+      csound->Message(csound,"unknown:%d\n", l->type);
     }
 
     print_tree_i(csound, l->left,n+1);
@@ -466,31 +454,25 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
 
     switch (l->type) {
     case ',':
-      csound->Message(csound,"name=\",\""); break;
     case '?':
-      csound->Message(csound,"name=\"?\""); break;
     case ':':
-      csound->Message(csound,"name=\":\""); break;
     case '!':
-      csound->Message(csound,"name=\"!\""); break;
     case '+':
-      csound->Message(csound,"name=\"+\""); break;
     case '-':
-      csound->Message(csound,"name=\"-\""); break;
     case '*':
-      csound->Message(csound,"name=\"*\""); break;
     case '/':
-      csound->Message(csound,"name=\"/\""); break;
     case '%':
-      csound->Message(csound,"name=\"%%\""); break;
     case '^':
-      csound->Message(csound,"name=\"^\""); break;
+    case '(':
+    case ')':
+    case '=':
+    case '|':
+    case '&':
+    case '#':
+    case '~':
+      csound->Message(csound,"name=\"%c\"", l->type); break;
     case NEWLINE:
       csound->Message(csound,"name=\"NEWLINE\""); break;
-    case '(':
-      csound->Message(csound,"name=\"(\""); break;
-    case ')':
-      csound->Message(csound,"name=\")\""); break;
     case S_NEQ:
       csound->Message(csound,"name=\"S_NEQ\""); break;
     case S_AND:
@@ -503,8 +485,6 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_LE\""); break;
     case S_EQ:
       csound->Message(csound,"name=\"S_EQ\""); break;
-    case '=':
-      csound->Message(csound,"name=\"'='\""); break;
     case S_TASSIGN:
       csound->Message(csound,"name=\"S_TASSIGN\""); break;
     case S_TABREF:
@@ -513,18 +493,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
       csound->Message(csound,"name=\"S_GE\""); break;
-    case '|':
-      csound->Message(csound,"name=\"|\""); break;
-    case '&':
-      csound->Message(csound,"name=\"&\""); break;
     case S_BITSHIFT_RIGHT:
       csound->Message(csound,"name=\"S_BITSHIFT_RIGHT\""); break;
     case S_BITSHIFT_LEFT:
       csound->Message(csound,"name=\"S_BITSHIFT_LEFT\""); break;
-    case '#':
-      csound->Message(csound,"name=\"#\""); break;
-    case '~':
-      csound->Message(csound,"name=\"~\""); break;
     case LABEL_TOKEN:
       csound->Message(csound,"name=\"LABEL_TOKEN\" label=\"%s\"",
                       l->value->lexeme); break;
