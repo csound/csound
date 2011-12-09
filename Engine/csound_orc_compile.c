@@ -108,7 +108,7 @@ static void lblclear(CSOUND *csound)
 }
 #endif
 
-static void intyperr(CSOUND *csound, int n, char *s, char tfound, char expect)
+static void intyperr(CSOUND *csound, int n, char *s, char *opname, char tfound, char expect)
 {
    char    t[10];
 
@@ -134,7 +134,7 @@ static void intyperr(CSOUND *csound, int n, char *s, char tfound, char expect)
     break;
   }
   synterr(csound, Str("input arg %d '%s' of type %s "
-                      "not allowed when expecting %c\n"), n+1, s, t, expect);
+                      "not allowed when expecting %c (for opcode %s)\n"), n+1, s, t, expect, opname);
 }
 
 static void lblrequest(CSOUND *csound, char *s)
@@ -292,7 +292,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       /* IV - Oct 31 2002 */
       tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
-        synterr(csound, Str("input arg '%s' used before defined\n"), s);
+        synterr(csound, Str("input arg '%s used before defined (in opcode %s)\n"), s, ep->opname);
       }
       csound->DebugMsg(csound, "%s(%d): treqd: %c, tfound %c\n", __FILE__, __LINE__,treqd, tfound);
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
@@ -307,7 +307,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       switch (treqd) {
       case 'Z':                             /* indef kakaka ... */
         if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
-          intyperr(csound, n, s, tfound, treqd);
+          intyperr(csound, n, s, ep->opname, tfound, treqd);
         break;
       case 'x':
         treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
@@ -324,7 +324,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
           break;
       }
       default:
-        intyperr(csound, n, s, tfound, treqd);
+        intyperr(csound, n, s, ep->opname, tfound, treqd);
         break;
       }
       }
@@ -373,7 +373,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         }
       /* IV - Oct 31 2002: simplified code */
       if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
-        synterr(csound, Str("output arg '%s' illegal type\n"), s);
+        synterr(csound, Str("output arg '%s' illegal type (for opcode %s)\n"), s, ep->opname);
       }
     }
 }
