@@ -108,7 +108,7 @@ static void lblclear(CSOUND *csound)
 }
 #endif
 
-static void intyperr(CSOUND *csound, int n, char tfound, char expect)
+static void intyperr(CSOUND *csound, int n, char *s, char tfound, char expect)
 {
    char    t[10];
 
@@ -134,7 +134,7 @@ static void intyperr(CSOUND *csound, int n, char tfound, char expect)
     break;
   }
   synterr(csound, Str("input arg %d '%s' of type %s "
-                      "not allowed when expecting %c\n"), n+1, "??", t, expect);
+                      "not allowed when expecting %c\n"), n+1, s, t, expect);
 }
 
 static void lblrequest(CSOUND *csound, char *s)
@@ -307,7 +307,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       switch (treqd) {
       case 'Z':                             /* indef kakaka ... */
         if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
-          intyperr(csound, n, tfound, treqd);
+          intyperr(csound, n, s, tfound, treqd);
         break;
       case 'x':
         treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
@@ -324,7 +324,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
           break;
       }
       default:
-        intyperr(csound, n, tfound, treqd);
+        intyperr(csound, n, s, tfound, treqd);
         break;
       }
       }
