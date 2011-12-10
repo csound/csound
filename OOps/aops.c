@@ -28,7 +28,7 @@
 #include <time.h>
 
 #define POW2TABSIZI 4096
-#define POW2MAX   15.0
+#define POW2MAX   24.0
 #define EIPT3       (25.0/3.0)
 #define LOGTWO      (0.69314718055994530942)
 #define STEPS       (32768)
@@ -37,25 +37,48 @@
 #define MIDINOTE0   (3.00)  /* Lowest midi note is 3.00 in oct & pch formats */
 
 /* static lookup tables, initialised once at start-up; also used by midi ops */
-MYFLT   cpsocfrc[OCTRES] = { FL(0.0) };
-static  MYFLT   powerof2[POW2TABSIZI];
+/* MYFLT   cpsocfrc[OCTRES] = { FL(0.0) }; */
+/* static  MYFLT   powerof2[POW2TABSIZI]; */
 
 /* initialise the tables, called by csoundInitialize() */
 
-void aops_init_tables(void)
+/*void aops_init_tables(void)
 {
     int   i;
     for (i = 0; i < OCTRES; i++)
       cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
     for (i = 0; i < POW2TABSIZI; i++)
       powerof2[i] = POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
+}*/
+
+/* initialise the tables, called by csoundPreCompile() */
+void csound_aops_init_tables(CSOUND *csound)
+{
+    int   i;
+    if(csound->cpsocfrc==NULL)csound->cpsocfrc = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*OCTRES);
+    if(csound->powerof2==NULL) csound->powerof2 = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*POW2TABSIZI);
+    for (i = 0; i < OCTRES; i++)
+      csound->cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
+    for (i = 0; i < POW2TABSIZI; i++)
+      csound->powerof2[i] = POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
 }
 
-static inline MYFLT pow2(MYFLT a)
-{
+
+MYFLT csoundPow2(CSOUND *csound, MYFLT a){
+
+  if(a > POW2MAX) a = POW2MAX;
+  else if(a < -POW2MAX) a = -POW2MAX;
     int n = (int)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;   /* 4096 * 15 */
-    return ((MYFLT) (1 << (n >> 12)) * powerof2[n & (POW2TABSIZI-1)]);
+    return ((MYFLT) (1 << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]);
+
 }
+
+
+/*static inline MYFLT pow2(MYFLT a)
+{
+    int n = (int)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;  
+    return ((MYFLT) (1 << (n >> 12)) * powerof2[n & (POW2TABSIZI-1)]);
+}*/
 
 int rassign(CSOUND *csound, ASSIGN *p)
 {
@@ -958,7 +981,7 @@ int logbasetwo_set(CSOUND *csound, EVAL *p)
 
 int powoftwo(CSOUND *csound, EVAL *p)
 {
-    *p->r = pow2(*p->a);
+    *p->r = csound->Pow2(csound,*p->a);
     return OK;
 }
 
@@ -966,7 +989,7 @@ int powoftwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado, liberalised by JPff */
     int n, nsmps = csound->ksmps;
     for (n = 0; n < nsmps; n++)
-      p->r[n] = pow2(p->a[n]);
+      p->r[n] = csound->Pow2(csound,p->a[n]);
     return OK;
 }
 
@@ -976,7 +999,7 @@ int powoftwoa(CSOUND *csound, EVAL *p)
 int semitone(CSOUND *csound, EVAL *p)
 {
     MYFLT a = *p->a*ONEd12;
-    *p->r = pow2(a);
+    *p->r = csound->Pow2(csound,a);
     return OK;
 }
 
@@ -989,7 +1012,7 @@ int asemitone(CSOUND *csound, EVAL *p)            /* JPff */
     r = p->r;
     for (n=0; n<nsmps; n++) {
       MYFLT aa = (a[n])*ONEd12;
-      r[n] = pow2(aa);
+      r[n] = csound->Pow2(csound,aa);
     }
     return OK;
 }
@@ -997,7 +1020,7 @@ int asemitone(CSOUND *csound, EVAL *p)            /* JPff */
 int cent(CSOUND *csound, EVAL *p)
 {
     MYFLT a = *p->a*ONEd1200;
-    *p->r = pow2(a);
+    *p->r = csound->Pow2(csound,a);
     return OK;
 }
 
@@ -1010,7 +1033,7 @@ int acent(CSOUND *csound, EVAL *p)        /* JPff */
     r = p->r;
     for (n=0; n<nsmps; n++) {
       MYFLT aa = (a[n])*ONEd1200;
-      r[n] = pow2(aa);
+      r[n] = csound->Pow2(csound,aa);
   }
   return OK;
 }
@@ -1019,7 +1042,7 @@ int acent(CSOUND *csound, EVAL *p)        /* JPff */
 
 int db(CSOUND *csound, EVAL *p)
 {
-    *p->r = pow2(*p->a*LOG2_10D20);
+    *p->r = csound->Pow2(csound,*p->a*LOG2_10D20);
     return OK;
 }
 
@@ -1032,7 +1055,7 @@ int dba(CSOUND *csound, EVAL *p)          /* JPff */
     r = p->r;
     for (n=0; n<nsmps; n++) {
       MYFLT aa = a[n];
-      r[n] = pow2(aa*LOG2_10D20);
+      r[n] = csound->Pow2(csound,aa*LOG2_10D20);
     }
     return OK;
 }
