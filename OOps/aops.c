@@ -27,6 +27,8 @@
 #include <math.h>
 #include <time.h>
 
+#define POW2TABSIZI 4096
+#define POW2MAX   15.0
 #define EIPT3       (25.0/3.0)
 #define LOGTWO      (0.69314718055994530942)
 #define STEPS       (32768)
@@ -36,7 +38,7 @@
 
 /* static lookup tables, initialised once at start-up; also used by midi ops */
 MYFLT   cpsocfrc[OCTRES] = { FL(0.0) };
-static  MYFLT   powerof2[4096];
+static  MYFLT   powerof2[POW2TABSIZI];
 
 /* initialise the tables, called by csoundInitialize() */
 
@@ -45,14 +47,14 @@ void aops_init_tables(void)
     int   i;
     for (i = 0; i < OCTRES; i++)
       cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
-    for (i = 0; i < 4096; i++)
-      powerof2[i] = POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/4096.0) - FL(15.0));
+    for (i = 0; i < POW2TABSIZI; i++)
+      powerof2[i] = POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
 }
 
 static inline MYFLT pow2(MYFLT a)
 {
-    int n = (int)MYFLT2LRND(a * FL(4096.0)) + 61440;   /* 4096 * 15 */
-    return ((MYFLT) (1 << (n >> 12)) * powerof2[n & 4095]);
+    int n = (int)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;   /* 4096 * 15 */
+    return ((MYFLT) (1 << (n >> 12)) * powerof2[n & (POW2TABSIZI-1)]);
 }
 
 int rassign(CSOUND *csound, ASSIGN *p)
