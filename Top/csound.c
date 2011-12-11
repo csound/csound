@@ -76,6 +76,7 @@ extern "C" {
 #include <omp.h>
 #endif /* USE_OPENMP */
 
+  MYFLT csoundPow2(CSOUND *csound, MYFLT a);
   extern void MakeAscii(CSOUND *, WINDAT *, const char *);
   extern void DrawAscii(CSOUND *, WINDAT *);
   extern void KillAscii(CSOUND *, WINDAT *);
@@ -338,6 +339,7 @@ extern "C" {
     csoundChanOAGetSample,
     csoundStop,
     csoundGetNamedGens,
+    csoundPow2,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -347,7 +349,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
@@ -706,14 +708,17 @@ extern "C" {
     0,              /* Count of extra strings */
     {NULL, NULL, NULL}, /* For extra strings in scores */
     {0, 0, 0},      /* For extra strings in scores */
-    300             /* Count for generated labels */
+    300,             /* Count for generated labels */
+    NULL,
+    NULL
   };
 
   /* from threads.c */
   void csoundLock(void);
   void csoundUnLock(void);
   /* aops.c */
-  void aops_init_tables(void);
+  /*void aops_init_tables(void);*/
+  void csound_aops_init_tables(CSOUND *cs);
 
   typedef struct csInstance_s {
     CSOUND              *csound;
@@ -962,7 +967,7 @@ extern "C" {
 #if !defined(WIN32)
         atexit(destroy_all_instances);
 #endif
-      aops_init_tables();
+      /*aops_init_tables();*/
       csoundLock();
       init_done = 1;
       csoundUnLock();
@@ -993,7 +998,7 @@ extern "C" {
       instance_list = p;
       csoundUnLock();
       csoundReset(csound);
-
+      //csound_aops_init_tables(csound);
       return csound;
   }
 
@@ -1137,6 +1142,7 @@ extern "C" {
                                         " (default: no)", NULL);
       p->opcode_list = (int*) mcalloc(p, sizeof(int) * 256);
       p->engineState |= CS_STATE_PRE;
+      csound_aops_init_tables(p);
       /* now load and pre-initialise external modules for this instance */
       /* this function returns an error value that may be worth checking */
       {
