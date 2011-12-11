@@ -298,7 +298,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
                        __FILE__, __LINE__,treqd, tfound);
       csound->DebugMsg(csound, "treqd %c, tfound_m %d ST(lgprevdef) %d\n",
                        treqd, tfound_m);
-      if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) /*&& !ST(lgprevdef)*/ && *s != '"') {
+      if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
         synterr(csound,
                 Str("input arg '%s used before defined (in opcode %s)\n"),
                 s, ep->opname);
@@ -1749,6 +1749,11 @@ char argtyp2(CSOUND *csound, char *s)
 {                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
+    /* VL: added this to make sure the object exists before we try to read 
+       from it */
+    if (UNLIKELY(csound->otranGlobals == NULL)) {
+      csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
+    }
     /* csound->Message(csound, "\nArgtyp2: received %s\n", s); */
 
     /*trap this before parsing for a number! */
@@ -1762,8 +1767,7 @@ char argtyp2(CSOUND *csound, char *s)
       return('p');                              /* pnum */
     if (c == '"')
       return('S');                              /* quoted String */
-    /* VL: commented out to prevent segfaults */
-    /*  ST(lgprevdef) = lgexist(csound, s);   */      /* (lgprev) */
+     ST(lgprevdef) = lgexist(csound, s);         /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
