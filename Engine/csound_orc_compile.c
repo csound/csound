@@ -108,56 +108,58 @@ static void lblclear(CSOUND *csound)
 }
 #endif
 
-static void intyperr(CSOUND *csound, int n, char *s, char *opname, char tfound, char expect)
+static void intyperr(CSOUND *csound, int n, char *s, char *opname,
+                     char tfound, char expect)
 {
-   char    t[10];
+    char    t[10];
 
-  switch (tfound) {
-  case 'w':
-  case 'f':
-  case 'a':
-  case 'k':
-  case 'i':
-  case 'P':
-  case 'p': t[0] = tfound;
-    t[1] = '\0';
-    break;
-  case 'r':
-  case 'c': strcpy(t,"const");
-    break;
-  case 'S': strcpy(t,"string");
-    break;
-  case 'b':
-  case 'B': strcpy(t,"boolean");
-    break;
-  case '?': strcpy(t,"?");
-    break;
+    switch (tfound) {
+    case 'w':
+    case 'f':
+    case 'a':
+    case 'k':
+    case 'i':
+    case 'P':
+    case 'p': t[0] = tfound;
+      t[1] = '\0';
+      break;
+    case 'r':
+    case 'c': strcpy(t,"const");
+      break;
+    case 'S': strcpy(t,"string");
+      break;
+    case 'b':
+    case 'B': strcpy(t,"boolean");
+      break;
+    case '?': strcpy(t,"?");
+      break;
   }
-  synterr(csound, Str("input arg %d '%s' of type %s "
-                      "not allowed when expecting %c (for opcode %s)\n"), n+1, s, t, expect, opname);
+    synterr(csound, Str("input arg %d '%s' of type %s "
+                        "not allowed when expecting %c (for opcode %s)\n"),
+            n+1, s, t, expect, opname);
 }
 
 static void lblrequest(CSOUND *csound, char *s)
 {
-  int     req;
+    int     req;
 
-  /* for (req=0; req<ST(lblcnt); req++) */
-  /*   if (strcmp(ST(lblreq)[req].label,s) == 0) */
-  /*     return; */
-  /* if (++ST(lblcnt) >= ST(lblmax)) { */
-  /*   LBLREQ *tmp; */
-  /*   ST(lblmax) += LBLMAX; */
-  /*   tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ)); */
-  /*   ST(lblreq) = tmp; */
-  /* } */
-  /* ST(lblreq)[req].reqline = ST(curline); */
-  /* ST(lblreq)[req].label =s; */
+    /* for (req=0; req<ST(lblcnt); req++) */
+    /*   if (strcmp(ST(lblreq)[req].label,s) == 0) */
+    /*     return; */
+    /* if (++ST(lblcnt) >= ST(lblmax)) { */
+    /*   LBLREQ *tmp; */
+    /*   ST(lblmax) += LBLMAX; */
+    /*   tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ)); */
+    /*   ST(lblreq) = tmp; */
+    /* } */
+    /* ST(lblreq)[req].reqline = ST(curline); */
+    /* ST(lblreq)[req].label =s; */
 }
 
 static inline void resetouts(CSOUND *csound)
 {
-    csound->acount = csound->kcount = csound->icount = 0;
-    csound->Bcount = csound->bcount = 0;
+    csound->acount = csound->kcount = csound->icount = 
+      csound->Bcount = csound->bcount = 0;
 }
 
 /* Unused */
@@ -271,7 +273,8 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       s = tp->inlist->arg[n];
 
       if (n >= nreqd) {               /* det type required */
-        csound->DebugMsg(csound, "%s(%d): type required: %c\n", __FILE__, __LINE__, types[nreqd-1]);
+        csound->DebugMsg(csound, "%s(%d): type required: %c\n",
+                         __FILE__, __LINE__, types[nreqd-1]);
         switch (types[nreqd-1]) {
         case 'M':
         case 'N':
@@ -291,11 +294,15 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       tfound = argtyp2(csound, s);     /* else get arg type */
       /* IV - Oct 31 2002 */
       tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
-      if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
-        synterr(csound, Str("input arg '%s used before defined (in opcode %s)\n"), s, ep->opname);
+      csound->DebugMsg(csound, "%s(%d): treqd: %c, tfound %c\n",
+                       __FILE__, __LINE__,treqd, tfound);
+      csound->DebugMsg(csound, "treqd %c, tfound_m %d ST(lgprevdef) %d\n",
+                       treqd, tfound_m);
+      if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && /*!ST(lgprevdef)*/ && *s != '"') {
+        synterr(csound,
+                Str("input arg '%s used before defined (in opcode %s)\n"),
+                s, ep->opname);
       }
-      csound->DebugMsg(csound, "%s(%d): treqd: %c, tfound %c\n", __FILE__, __LINE__,treqd, tfound);
-      csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
       if (tfound == 'a' && n < 31) /* JMC added for FOG */
                                    /* 4 for FOF, 8 for FOG; expanded to 15  */
         tp->xincod |= (1 << n);
@@ -373,7 +380,8 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         }
       /* IV - Oct 31 2002: simplified code */
       if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
-        synterr(csound, Str("output arg '%s' illegal type (for opcode %s)\n"), s, ep->opname);
+        synterr(csound, Str("output arg '%s' illegal type (for opcode %s)\n"),
+                s, ep->opname);
       }
     }
 }
@@ -1142,7 +1150,8 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
       int thread, opnum = bp->t.opnum;
       if (opnum == ENDIN) break;
       if (opnum == LABEL) continue;
-      if (PARSER_DEBUG) csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
+      if (PARSER_DEBUG)
+        csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
       if (UNLIKELY((thread = csound->opcodlst[opnum].thread) & 06 ||
                    (!thread && bp->t.pftype != 'b'))) {
         csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n", 
