@@ -316,7 +316,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       if (tfound_m & treqd_m) {
         if (tfound == 'a' && tp->outlist != ST(nullist)) {
           long outyp_m =                  /* ??? */
-            ST(typemask_tabl)[(unsigned char) argtyp(csound,
+            ST(typemask_tabl)[(unsigned char) argtyp2(csound,
                                                      tp->outlist->arg[0])];
           if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
         }
