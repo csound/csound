@@ -1754,7 +1754,7 @@ char argtyp2(CSOUND *csound, char *s)
     if (c == '"')
       return('S');                              /* quoted String */
     /* VL: commented out to prevent segfaults */
-    /*  ST(lgprevdef) = lgexist(csound, s);  */       /* (lgprev) */
+    /*  ST(lgprevdef) = lgexist(csound, s);   */      /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
