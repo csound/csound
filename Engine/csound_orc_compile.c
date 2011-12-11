@@ -298,7 +298,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
                        __FILE__, __LINE__,treqd, tfound);
       csound->DebugMsg(csound, "treqd %c, tfound_m %d ST(lgprevdef) %d\n",
                        treqd, tfound_m);
-      if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && /*!ST(lgprevdef)*/ && *s != '"') {
+      if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) /*&& !ST(lgprevdef)*/ && *s != '"') {
         synterr(csound,
                 Str("input arg '%s used before defined (in opcode %s)\n"),
                 s, ep->opname);
