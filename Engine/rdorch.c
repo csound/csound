@@ -2123,6 +2123,7 @@ char argtyp(CSOUND *csound, char *s)
 {                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
   char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
+
   /*trap this before parsing for a number! */
   /* two situations: defined at header level: 0dbfs = 1.0
    *  and returned as a value:  idb = 0dbfs
