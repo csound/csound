@@ -119,7 +119,7 @@ typedef struct {
                     (n<<8 & 0xFF0000L) | (n<<24 & 0xFF000000L))
 
 #define OCTRES     8192
-#define CPSOCTL(n) ((MYFLT)(1 << ((int)(n) >> 13)) * cpsocfrc[(int)(n) & 8191])
+#define CPSOCTL(n) ((MYFLT)(1 << ((int)(n) >> 13)) * csound->cpsocfrc[(int)(n) & 8191])
 
 #define LOBITS     10
 #define LOFACT     1024
@@ -1039,7 +1039,8 @@ typedef struct {
     void (*Stop)(CSOUND *);
     void *(*GetNamedGens)(CSOUND *);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[76];
+    MYFLT (*Pow2)(CSOUND *, MYFLT a);
+    SUBR dummyfn_2[75];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;
@@ -1366,7 +1367,8 @@ typedef struct {
     char          *sstrbuf0[3]; /* For extra strings in scores */
     int           sstrlen0[3];  /* lengths for extra strings */
     int           genlabs;      /* Count for generated labels */
-
+    MYFLT  *powerof2;         /* pow2 table */
+    MYFLT  *cpsocfrc;         /* cps conv table */
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

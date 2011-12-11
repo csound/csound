@@ -30,7 +30,7 @@
 #define dv127   (FL(1.0)/FL(127.0))
 
 /* aops.c, table for CPSOCTL */
-extern  MYFLT   cpsocfrc[];
+/*extern  MYFLT   cpsocfrc[];*/
 
 extern int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls);
 
