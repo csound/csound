@@ -362,6 +362,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"SRATE_TOKEN:\n"); break;
     case KRATE_TOKEN:
       csound->Message(csound,"KRATE_TOKEN:\n"); break;
+    case ZERODBFS_TOKEN:
+      csound->Message(csound,"ZERODFFS_TOKEN:\n"); break;
     case KSMPS_TOKEN:
       csound->Message(csound,"KSMPS_TOKEN:\n"); break;
     case NCHNLS_TOKEN:
@@ -528,6 +530,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"SRATE_TOKEN\""); break;
     case KRATE_TOKEN:
       csound->Message(csound,"name=\"KRATE_TOKEN\""); break;
+    case ZERODBFS_TOKEN:
+      csound->Message(csound,"name=\"ZERODBFS_TOKEN\""); break;
     case KSMPS_TOKEN:
       csound->Message(csound,"name=\"KSMPS_TOKEN\""); break;
     case NCHNLS_TOKEN:
