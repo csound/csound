@@ -292,7 +292,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       /* IV - Oct 31 2002 */
       tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
-        synterr(csound, Str("input arg '%s used before defined (in opcode %s)\n"), s, ep->opname);
+        synterr(csound, Str("input arg '%s' used before defined (in opcode %s)\n"), s, ep->opname);
       }
       csound->DebugMsg(csound, "%s(%d): treqd: %c, tfound %c\n", __FILE__, __LINE__,treqd, tfound);
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
@@ -1740,6 +1740,11 @@ char argtyp2(CSOUND *csound, char *s)
 {                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
+    if (UNLIKELY(csound->otranGlobals == NULL)) {
+      csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
+    }
+
+
     /* csound->Message(csound, "\nArgtyp2: received %s\n", s); */
 
     /*trap this before parsing for a number! */
@@ -1754,7 +1759,7 @@ char argtyp2(CSOUND *csound, char *s)
     if (c == '"')
       return('S');                              /* quoted String */
     /* VL: commented out to prevent segfaults */
-    /*  ST(lgprevdef) = lgexist(csound, s);   */      /* (lgprev) */
+     ST(lgprevdef) = lgexist(csound, s);         /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
