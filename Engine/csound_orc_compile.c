@@ -1740,11 +1740,11 @@ char argtyp2(CSOUND *csound, char *s)
 {                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
+    /* VL: added this to make sure the object exists before we try to read 
+       from it */
     if (UNLIKELY(csound->otranGlobals == NULL)) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
     }
-
-
     /* csound->Message(csound, "\nArgtyp2: received %s\n", s); */
 
     /*trap this before parsing for a number! */
@@ -1758,7 +1758,6 @@ char argtyp2(CSOUND *csound, char *s)
       return('p');                              /* pnum */
     if (c == '"')
       return('S');                              /* quoted String */
-    /* VL: commented out to prevent segfaults */
      ST(lgprevdef) = lgexist(csound, s);         /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
