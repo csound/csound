@@ -48,7 +48,7 @@
 %token T_OPCODE
 
 %token UDO_TOKEN
-%token UDOSTART_TOKEN
+%token UDOSTART_DEFINITION
 %token UDOEND_TOKEN
 %token UDO_ANS_TOKEN
 %token UDO_ARGS_TOKEN
@@ -255,7 +255,7 @@ instrdecl : INSTR_TOKEN
                 }
           ;
 
-udodecl   : UDOSTART_TOKEN
+udodecl   : UDOSTART_DEFINITION
                                                 { udoflag = -2; }
                   T_IDENT
                                                 { udoflag = -1; }
