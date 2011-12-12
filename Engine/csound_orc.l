@@ -35,6 +35,7 @@
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orcparse.h"
 #include "csound_orc.h"
+#include "corfile.h"
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
@@ -198,7 +199,7 @@ EXSTR           "}}"
 "endin"         { return ENDIN_TOKEN; }
 "opcode"        {
                   PARM->clearBufferAfterEOF = 0;
-                  return UDOSTART_TOKEN;
+                  return UDOSTART_DEFINITION;
                 }
 "endop"         {
                   PARM->clearBufferAfterEOF = PARM->isInclude;
@@ -575,7 +576,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     buffer[p] = '\0';
     while ((c=input(yyscanner))!='\n');
-    cf = copy_to_corefile(csound, buffer, "INCDIR");
+    cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     PARM->isInclude = PARM->clearBufferAfterEOF = 1;
