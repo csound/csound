@@ -1195,7 +1195,7 @@ Opcodes/vbap_eight.c Opcodes/vbap_four.c Opcodes/vbap_sixteen.c
 Opcodes/vbap_zak.c Opcodes/vaops.c Opcodes/ugakbari.c Opcodes/harmon.c 
 Opcodes/pitchtrack.c Opcodes/partikkel.c Opcodes/shape.c Opcodes/tabsum.c
 Opcodes/crossfm.c Opcodes/pvlock.c Opcodes/fareyseq.c  Opcodes/hrtfearly.c
-Opcodes/hrtfreverb.c
+Opcodes/hrtfreverb.c Opcodes/cpumeter.c
 ''')
 
 oldpvoc = Split('''
@@ -1669,9 +1669,10 @@ makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp']
 # platform-specific
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
+#   makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
 if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
-    makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
+
 
 # scanned synthesis
 makePlugin(pluginEnvironment, 'scansyn',
