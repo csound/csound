@@ -421,7 +421,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
         strncpy(op, "pow.", 80);
         if (arg1 == 'a' || arg2 == 'a') {
           strncat(op, "a", 80);
-          outype = (arg1 == 'k' ? arg1 : arg2);
+          outype = (arg1 == 'a' ? arg1 : arg2);
         }
         else if (arg1 == 'k' || arg2 == 'k') {
           strncat(op, "k", 80);

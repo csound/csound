@@ -15,7 +15,10 @@
  * GNU Library General Public License for more details.
  * 
  */
-#include "csdl.h"
+
+#if defined(__MACH__) || defined(LINUX)
+ 
+#include "csoundCore.h"
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -28,7 +31,8 @@
 #include <string.h>
 
 #include <unistd.h>
-#include <values.h>
+#include <limits.h>
+#include <float.h>
 
 /*######  Miscellaneous global stuff  ####################################*/
 #define SMLBUFSIZ (512)
@@ -205,3 +209,5 @@ static OENTRY cpumeter_localops[] = {
 };
 
 LINKAGE1(cpumeter_localops)
+
+#endif
