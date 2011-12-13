@@ -270,6 +270,7 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
  #ifdef MACDEBUG
      printf("%s(%d): corfile is %p\n", __FILE__, __LINE__, ST(macros)->body);
  #endif
+     corfile_rm(&(ST(macros)->body));
      for (i = 0; i < ST(macros)->acnt; i++)
         mfree(csound, ST(macros)->arg[i]);
       mfree(csound, ST(macros));
