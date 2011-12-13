@@ -1316,12 +1316,15 @@ extern long tabsum_localops_init(CSOUND *, void *);
 extern long crossfm_localops_init(CSOUND *, void *);
 extern long pvlock_localops_init(CSOUND *, void *);
 extern long fareyseq_localops_init(CSOUND *, void *);
+extern long cpumeter_localops_init(CSOUND *, void *);
+
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleCreate(CSOUND *csound);
 extern int newgabopc_ModuleInit(CSOUND *csound);
+
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
@@ -1340,7 +1343,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
-                                 vaops_localops_init, NULL };
+                                 vaops_localops_init, cpumeter_localops_init, NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 
