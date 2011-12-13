@@ -1489,9 +1489,12 @@ else:
                 'interfaces/java_interface.i',
         SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
         if getPlatform() == 'darwin':
+            if commonEnvironment['dynamicCsoundLibrary'] == '0':
+               if commonEnvironment['useDouble'] == '0': csoundlibLink = '-lcsound'
+               else: csoundlibLink = '-lcsound64'
             javaWrapperEnvironment.Prepend(LINKFLAGS = ['-bundle'])
             javaWrapperEnvironment.Append(LINKFLAGS =
-                ['-framework', 'JavaVM', '-Wl'])
+                ['-framework', 'JavaVM', '-Wl', '-lcsound64'])
             javaWrapper = javaWrapperEnvironment.Program(
                 'lib_jcsound.jnilib', javaWrapperSources)
         else:
