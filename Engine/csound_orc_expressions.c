@@ -532,7 +532,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
       }
       /* TODO - Free memory of old left node
          freetree */
-      root->left = create_ans_token(csound, anchor->left->value->lexeme);
+      root->left = create_ans_token(csound, last->left->value->lexeme);
     } else if (is_expression_node(root->left)) {
       anchor = create_expression(csound, root->left);
       
@@ -629,7 +629,6 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
     opTree->right = root->left;
     opTree->right->next = root->right;
     opTree->left = create_ans_token(csound, outarg);
-
     if (anchor == NULL) {
       anchor = opTree;
     }
