@@ -120,6 +120,7 @@ static void intyperr(CSOUND *csound, int n, char *s, char *opname,
     case 'k':
     case 'i':
     case 'P':
+    case 't':
     case 'p': t[0] = tfound;
       t[1] = '\0';
       break;
