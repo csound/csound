@@ -63,7 +63,7 @@ static  int     lcloffndx(CSOUND *, char *);
 static  int     constndx(CSOUND *, const char *);
 static  int     strconstndx(CSOUND *, const char *);
 static  void    insprep(CSOUND *, INSTRTXT *);
-static  void    lgbuild(CSOUND *, char *);
+static  void    lgbuild(CSOUND *, char *, int inarg);
 static  void    gblnamset(CSOUND *, char *);
 static  int     plgndx(CSOUND *, char *);
 static  NAME    *lclnamset(CSOUND *, char *);
@@ -470,8 +470,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           /* VL 14/12/11 : calling lgbuild here seems to be problematic for
              undef arg checks */
 	  else {
-	   lgbuild(csound, arg);
-	   } 
+	    lgbuild(csound, arg, 1);
+	  } 
 
 
         }
@@ -492,7 +492,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
             if (n > ip->pmax)  ip->pmax = n;
           }
           else {
-            lgbuild(csound, arg);
+            lgbuild(csound, arg, 0);
           }
 
         }
@@ -1389,7 +1389,7 @@ static int lgexist2(CSOUND *csound, const char *s)
 /* build pool of floating const values  */
 /* build lcl/gbl list of ds names, offsets */
 /* (no need to save the returned values) */
-static void lgbuild(CSOUND *csound, char *s)
+static void lgbuild(CSOUND *csound, char *s, int inarg)
 {
     char    c;
 
@@ -1400,7 +1400,7 @@ static void lgbuild(CSOUND *csound, char *s)
       constndx(csound, s);
     else if (c == '"')
       strconstndx(csound, s);
-    else if (!(lgexist2(csound, s))) {
+    else if (!(lgexist2(csound, s)) && !inarg) {
       if (c == 'g' || (c == '#' && s[1] == 'g'))
         gblnamset(csound, s);
       else
