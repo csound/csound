@@ -221,6 +221,14 @@ public:
             delete sourcePositionQueue;
             sourcePositionQueue = 0;
         }
+        if (audioInterpolator) {
+            delete audioInterpolator;
+            audioInterpolator = 0;
+        }
+        if (smoothingFilter) {
+            delete smoothingFilter;
+            smoothingFilter = 0;
+        }
         return result;
     }
 };
