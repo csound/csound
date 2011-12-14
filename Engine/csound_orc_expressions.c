@@ -31,6 +31,7 @@ extern void handle_polymorphic_opcode(CSOUND*, TREE *);
 extern void handle_optional_args(CSOUND *, TREE *);
 extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
+extern int find_opcode(CSOUND *csound, char *opname);
 
 TREE* create_boolean_expression(CSOUND*, TREE*);
 TREE * create_expression(CSOUND *, TREE *);
@@ -350,6 +351,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
     char *op, arg1, arg2, c, *outarg = NULL;
     TREE *anchor = NULL, *last;
     TREE * opTree;
+    int opnum;
     /* HANDLE SUB EXPRESSIONS */
 
     if (root->type=='?') return create_cond_expression(csound, root);
@@ -444,6 +446,10 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       sprintf(op, "%s.%c", root->value->lexeme, c);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found OP: %s\n", op);
+             
+      opnum = find_opcode(csound, op);
+      c = csound->opcodlst[opnum].outypes[0];
+             
       outarg = create_out_arg(csound, c);
       break;
     case S_UMINUS:
