@@ -1715,6 +1715,8 @@ TEXT *getoptxt(CSOUND *csound, int *init)
     else
       ST(opcodflg) |= (int16) 4;
   }
+#if 0
+  /* NO LONGER USED */
   if (strncmp(ST(linopcod),"out",3) == 0 && /* but take case of MIDI ops */
       (ST(linopcod)[3] == '\0' || ST(linopcod)[3] == 's' ||
        ST(linopcod)[3] == 'q'  || ST(linopcod)[3] == 'h' ||
@@ -1740,6 +1742,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       tp->opnum = ST(linopnum) = ST(opnum);
       tp->opcod = strsav_string(csound, ST(linopcod) = ST(opcod));
     }
+#endif
   incnt = outcnt = 0;
   while (ST(nxtest) < ST(opgrpno)-1)          /* create the out arglist  */
     ST(nxtarglist)->arg[outcnt++] =

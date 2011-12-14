@@ -131,33 +131,38 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    MYFLT   *asig[VARGMAX];
+} OUT;
+
+typedef struct {
+    OPDS    h;
     MYFLT   *asig;
 } OUTM;
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *asig1, *asig2;
-} OUTS;
+/* typedef struct { */
+/*     OPDS    h; */
+/*     MYFLT   *asig1, *asig2; */
+/* } OUTS; */
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *asig1, *asig2, *asig3, *asig4;
-} OUTQ;
+/* typedef struct { */
+/*     OPDS    h; */
+/*     MYFLT   *asig1, *asig2, *asig3, *asig4; */
+/* } OUTQ; */
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6;
-} OUTH;
+/* typedef struct { */
+/*     OPDS    h; */
+/*     MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6; */
+/* } OUTH; */
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6, *asig7, *asig8;
-} OUTO;
+/* typedef struct { */
+/*     OPDS    h; */
+/*     MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6, *asig7, *asig8; */
+/* } OUTO; */
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *asig[VARGMAX];
-} OUTX;
+/* typedef struct { */
+/*     OPDS    h; */
+/*     MYFLT   *asig[VARGMAX]; */
+/* } OUTX; */
 
 typedef struct {
     OPDS    h;

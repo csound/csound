@@ -1271,6 +1271,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
     return OK;
 }
 
+#if 0
 int out(CSOUND *csound, OUTM *p)
 {
     int n;
@@ -1342,6 +1343,7 @@ int outq(CSOUND *csound, OUTQ *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
+#endif
 
 int outs1(CSOUND *csound, OUTM *p)
 {
@@ -1513,6 +1515,7 @@ int outq4(CSOUND *csound, OUTM *p)
     return OK;
 }
 
+#if 0
 int outh(CSOUND *csound, OUTH *p)
 {
     MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3,
@@ -1583,8 +1586,9 @@ int outo(CSOUND *csound, OUTO *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
+#endif
 
-static int outn(CSOUND *csound, int n, OUTX *p)
+static int outn(CSOUND *csound, int n, OUT *p)
 {
     int   i, j = 0, k = 0;
     int nsmps = csound->ksmps;
@@ -1613,6 +1617,7 @@ static int outn(CSOUND *csound, int n, OUTX *p)
     return OK;
 }
 
+#if 0
 int outx(CSOUND *csound, OUTX *p)
 {
     return outn(csound, 16, p);
@@ -1622,8 +1627,9 @@ int outX(CSOUND *csound, OUTX *p)
 {
     return outn(csound, 32, p);
 }
+#endif
 
-int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
+int outall(CSOUND *csound, OUT *p)             /* Output a list of channels */
 {
     int nch = (int)p->INOCOUNT;
     return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
