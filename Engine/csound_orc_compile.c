@@ -67,7 +67,7 @@ static  void    lgbuild(CSOUND *, char *);
 static  void    gblnamset(CSOUND *, char *);
 static  int     plgndx(CSOUND *, char *);
 static  NAME    *lclnamset(CSOUND *, char *);
-        int     lgexist(CSOUND *, const char *);
+/*        int     lgexist(CSOUND *, const char *);*/
 static  void    delete_global_namepool(CSOUND *);
 static  void    delete_local_namepool(CSOUND *);
 static  int     pnum(char *s) ;
@@ -300,7 +300,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
                        treqd, tfound_m);
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
         synterr(csound,
-                Str("input arg '%s used before defined (in opcode %s)\n"),
+                Str("input arg '%s' used before defined (in opcode %s)\n"),
                 s, ep->opname);
       }
       if (tfound == 'a' && n < 31) /* JMC added for FOG */
@@ -467,9 +467,11 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           if ((n = pnum(arg)) >= 0) {
             if (n > ip->pmax)  ip->pmax = n;
           }
-          else {
-            lgbuild(csound, arg);
-          }
+          /* VL 14/12/11 : calling lgbuild here is causing undef variables to be
+             added to the list of lclnames */
+	  /* else {
+	   lgbuild(csound, arg);
+	   } */
 
 
         }
@@ -1371,6 +1373,19 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
     mfree(csound, larg);
 }
 
+/* returns non-zero if 's' is defined in the global or local pool of names */
+
+static int lgexist2(CSOUND *csound, const char *s)
+{
+    unsigned char h = name_hash(csound, s);
+    NAME          *p = NULL;
+    for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    if (p != NULL)
+      return 1;
+    for (p = ST(lclNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    return (p == NULL ? 0 : 1);
+}
+
 /* build pool of floating const values  */
 /* build lcl/gbl list of ds names, offsets */
 /* (no need to save the returned values) */
@@ -1385,7 +1400,7 @@ static void lgbuild(CSOUND *csound, char *s)
       constndx(csound, s);
     else if (c == '"')
       strconstndx(csound, s);
-    else if (!(lgexist(csound, s))) {
+    else if (!(lgexist2(csound, s))) {
       if (c == 'g' || (c == '#' && s[1] == 'g'))
         gblnamset(csound, s);
       else
@@ -1767,7 +1782,7 @@ char argtyp2(CSOUND *csound, char *s)
       return('p');                              /* pnum */
     if (c == '"')
       return('S');                              /* quoted String */
-     ST(lgprevdef) = lgexist(csound, s);         /* (lgprev) */
+     ST(lgprevdef) = lgexist2(csound, s);         /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
         strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
