@@ -69,7 +69,7 @@ MYFLT csoundPow2(CSOUND *csound, MYFLT a){
   if(a > POW2MAX) a = POW2MAX;
   else if(a < -POW2MAX) a = -POW2MAX;
     int n = (int)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;   /* 4096 * 15 */
-    return ((MYFLT) (1 << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]);
+    return ((MYFLT) (1UL << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]);
 
 }
 
