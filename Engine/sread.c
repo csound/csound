@@ -266,11 +266,12 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
 
     if (strcmp(name, ST(macros)->name) == 0) {
       mm = ST(macros)->next;
+      if (strcmp(ST(macros)->name, "[") != 0)
+        corfile_rm(&(ST(macros)->body));
       mfree(csound, ST(macros)->name);
  #ifdef MACDEBUG
      printf("%s(%d): corfile is %p\n", __FILE__, __LINE__, ST(macros)->body);
  #endif
-     corfile_rm(&(ST(macros)->body));
      for (i = 0; i < ST(macros)->acnt; i++)
         mfree(csound, ST(macros)->arg[i]);
       mfree(csound, ST(macros));

@@ -424,9 +424,10 @@ EXSTR           "}}"
                 }
 {INTGR}         {
                     if (udoflag == 0) {
-                        *lvalp = lookup_token(csound, yytext, yyscanner);
+                        *lvalp = make_string(csound, yytext);
+                        (*lvalp)->type = UDO_ANS_TOKEN;
                     } else if (udoflag == 1) {
-                        *lvalp = lookup_token(csound, yytext, yyscanner);
+                        *lvalp = make_string(csound, yytext);
                         (*lvalp)->type = UDO_ARGS_TOKEN;
                     } else {
                         *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
