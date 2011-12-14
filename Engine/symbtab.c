@@ -269,8 +269,8 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         ans = new_token(csound, UDO_ANS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
-        ans->next = symbtab[h];
-        symbtab[h] = ans;
+//        ans->next = symbtab[h];
+//        symbtab[h] = ans;
         //printf("Found UDO Answer List\n");
         return ans;
       }
@@ -281,8 +281,8 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         ans = new_token(csound, UDO_ARGS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
-        ans->next = symbtab[h];
-        symbtab[h] = ans;
+//        ans->next = symbtab[h];
+//        symbtab[h] = ans;
         //printf("Found UDO Arg List\n");
         return ans;
       }
