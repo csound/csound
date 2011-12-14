@@ -1930,10 +1930,11 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       }
       tfound = argtyp(csound, s);     /* else get arg type */
       /* IV - Oct 31 2002 */
+      
       tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
       if (UNLIKELY(!(tfound_m & (ARGTYP_c|ARGTYP_p)) &&
                    !ST(lgprevdef) && *s != '"')) {
-        synterr(csound, Str("input arg '%s' used before defined"), s);
+        synterr(csound, Str("input arg '%s' used before defined \n"), s);
       }
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
       if (tfound == 'a' && n < 31)    /* JMC added for FOG */
