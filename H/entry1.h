@@ -221,13 +221,14 @@ int     inq(CSOUND *, void *), inh(CSOUND *, void *);
 int     ino(CSOUND *, void *), in16(CSOUND *, void *);
 int     in32(CSOUND *, void *);
 int     inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
-int     out(CSOUND *, void *), outs(CSOUND *, void *);
+int     outmultiple(CSOUND *, void *);
+/* int     out(CSOUND *, void *), outs(CSOUND *, void *); */
 int     outs1(CSOUND *, void *), outs2(CSOUND *, void *);
-int     outq(CSOUND *, void *);
+/* int     outq(CSOUND *, void *); */
 int     outq1(CSOUND *, void *), outq2(CSOUND *, void *);
 int     outq3(CSOUND *, void *), outq4(CSOUND *, void *);
-int     outh(CSOUND *, void *), outo(CSOUND *, void *);
-int     outx(CSOUND *, void *), outX(CSOUND *, void *);
+/* int     outh(CSOUND *, void *), outo(CSOUND *, void *); */
+/* int     outx(CSOUND *, void *), outX(CSOUND *, void *); */
 int     outch(CSOUND *, void *), outall(CSOUND *, void *);
 int     igoto(CSOUND *, void *), kgoto(CSOUND *, void *);
 int     icgoto(CSOUND *, void *), kcgoto(CSOUND *, void *);
