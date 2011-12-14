@@ -991,12 +991,16 @@ int lgexist(CSOUND *csound, const char *s)
 {
     unsigned char h = name_hash(csound, s);
     NAME          *p;
+ 
+    
 
     for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
     if (p != NULL)
       return 1;
     for (p = ST(lclNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+  
     return (p == NULL ? 0 : 1);
+
 }
 
 /* builds namelist & type counts for gbl names */

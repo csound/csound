@@ -448,6 +448,7 @@ set(libcsound_SRCS
     Opcodes/ftest.c
     Opcodes/hrtfearly.c
     Opcodes/hrtfreverb.c
+    Opcodes/cpumeter.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c

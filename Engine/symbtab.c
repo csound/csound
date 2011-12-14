@@ -293,19 +293,18 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         if (PARSER_DEBUG)
           csound->Message(csound, "Looking up token for: %d: %d: %s : %s\n",
                           hash("reverb"), hash("a4"), s, a->lexeme);
-      }
+			  }
       if (strcmp(a->lexeme, s)==0) {
         ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));
         memcpy(ans, a, sizeof(ORCTOKEN));
         ans->next = NULL;
         ans->lexeme = (char *)mmalloc(csound, strlen(a->lexeme) + 1);
         strcpy(ans->lexeme, a->lexeme);
-
         return ans;
       }
       a = a->next;
     }
-
+   
 
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
