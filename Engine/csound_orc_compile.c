@@ -467,11 +467,11 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           if ((n = pnum(arg)) >= 0) {
             if (n > ip->pmax)  ip->pmax = n;
           }
-          /* VL 14/12/11 : calling lgbuild here is causing undef variables to be
-             added to the list of lclnames */
-	  /* else {
+          /* VL 14/12/11 : calling lgbuild here seems to be problematic for
+             undef arg checks */
+	  else {
 	   lgbuild(csound, arg);
-	   } */
+	   } 
 
 
         }
