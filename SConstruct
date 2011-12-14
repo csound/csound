@@ -119,9 +119,9 @@ commandOptions.Add('generateTags',
 commandOptions.Add('generatePdf',
     'Set to 1 to generate PDF documentation',
     '0')
-commandOptions.Add('buildLoris',
-    'Set to 1 to build the Loris Python extension and opcodes',
-    '1')
+#commandOptions.Add('buildLoris',
+#    'Set to 1 to build the Loris Python extension and opcodes',
+#    '1')
 commandOptions.Add('useOSC',
     'Set to 1 if you want OSC support',
     '0')
@@ -2015,62 +2015,62 @@ else:
     print "CONFIGURATION DECISION: Not building DSSI plugin host opcodes."
 
 # Loris opcodes
-if not (commonEnvironment['buildLoris'] == '1' and configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
-    print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
-else:
-    print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
+#if not (commonEnvironment['buildLoris'] == '1' and configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
+#    print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
+#else:
+#    print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
     # For Loris, we build only the loris Python extension module and
     # the Csound opcodes (modified for Csound 5).
     # It is assumed that you have copied all contents of the Loris
     # distribution into the csound5/Opcodes/Loris directory, e.g.
     # csound5/Opcodes/Loris/src/*, etc.
-    lorisEnvironment = pluginEnvironment.Clone()
-    lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
-    if commonEnvironment['buildRelease'] == '0':
-        lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
-    if getPlatform() == 'win32':
-        lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
-    if compilerGNU():
-	if getPlatform() != 'win32':
-		lorisEnvironment.Prepend(LIBS = ['stdc++'])
-        lorisEnvironment.Append(CCFLAGS = Split('''
-            -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
-        '''))
-    lorisEnvironment.Append(CPPPATH = Split('''
-        Opcodes/Loris Opcodes/Loris/src ./
-    '''))
-    lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
-    if 'Opcodes/Loris/src/lorisgens.C' in lorisSources:
-        lorisSources.remove('Opcodes/Loris/src/lorisgens.C')
-    lorisLibrarySources = []
-    for i in lorisSources:
-        lorisLibrarySources += lorisEnvironment.SharedObject(i)
-    lorisLibrary = lorisEnvironment.StaticLibrary(
-        'lorisbase', lorisLibrarySources)
-    lorisEnvironment.Prepend(LIBS = ['lorisbase', 'fftw3'])
+#    lorisEnvironment = pluginEnvironment.Clone()
+#    lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
+#    if commonEnvironment['buildRelease'] == '0':
+#        lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
+#    if getPlatform() == 'win32':
+#        lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
+#    if compilerGNU():
+#	if getPlatform() != 'win32':
+#		lorisEnvironment.Prepend(LIBS = ['stdc++'])
+#        lorisEnvironment.Append(CCFLAGS = Split('''
+#            -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
+#        '''))
+#    lorisEnvironment.Append(CPPPATH = Split('''
+#        Opcodes/Loris Opcodes/Loris/src ./
+#    '''))
+#    lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
+#    if 'Opcodes/Loris/src/lorisgens.C' in lorisSources:
+#        lorisSources.remove('Opcodes/Loris/src/lorisgens.C')
+#    lorisLibrarySources = []
+#    for i in lorisSources:
+#        lorisLibrarySources += lorisEnvironment.SharedObject(i)
+#    lorisLibrary = lorisEnvironment.StaticLibrary(
+#        'lorisbase', lorisLibrarySources)
+#    lorisEnvironment.Prepend(LIBS = ['lorisbase', 'fftw3'])
     # The following file has been patched for Csound 5
     # and you should update it from Csound 5 CVS.
-    lorisOpcodes = makePlugin(lorisEnvironment, 'loris',
-                              ['Opcodes/Loris/lorisgens5.C'])
-    Depends(lorisOpcodes, lorisLibrary)
-    lorisPythonEnvironment = lorisEnvironment.Clone()
-    fixCFlagsForSwig(lorisPythonEnvironment)
-    lorisPythonEnvironment.Append(CPPPATH = pythonIncludePath)
-    lorisPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-    lorisPythonEnvironment.Append(LIBPATH = pythonLibraryPath)
-    if getPlatform() != 'darwin':
-        lorisPythonEnvironment.Prepend(LIBS = pythonLibs)
-    lorisPythonEnvironment.Append(SWIGPATH = ['./'])
-    lorisPythonEnvironment.Prepend(SWIGFLAGS = Split('''
-        -module loris -c++ -includeall -verbose -outdir . -python
-        -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.
-    '''))
-    lorisPythonWrapper = lorisPythonEnvironment.SharedObject(
-        'Opcodes/Loris/scripting/loris.i')
-    lorisPythonEnvironment['SHLIBPREFIX'] = ''
-    lorisPythonModule = makePythonModule(lorisPythonEnvironment,
-                                         'loris', lorisPythonWrapper)
-    Depends(lorisPythonModule, lorisLibrary)
+#    lorisOpcodes = makePlugin(lorisEnvironment, 'loris',
+#                              ['Opcodes/Loris/lorisgens5.C'])
+#    Depends(lorisOpcodes, lorisLibrary)
+#    lorisPythonEnvironment = lorisEnvironment.Clone()
+#    fixCFlagsForSwig(lorisPythonEnvironment)
+#    lorisPythonEnvironment.Append(CPPPATH = pythonIncludePath)
+#    lorisPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+#    lorisPythonEnvironment.Append(LIBPATH = pythonLibraryPath)
+#    if getPlatform() != 'darwin':
+#        lorisPythonEnvironment.Prepend(LIBS = pythonLibs)
+#    lorisPythonEnvironment.Append(SWIGPATH = ['./'])
+#    lorisPythonEnvironment.Prepend(SWIGFLAGS = Split('''
+#        -module loris -c++ -includeall -verbose -outdir . -python
+#        -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.
+#    '''))
+#    lorisPythonWrapper = lorisPythonEnvironment.SharedObject(
+#        'Opcodes/Loris/scripting/loris.i')
+#    lorisPythonEnvironment['SHLIBPREFIX'] = ''
+#    lorisPythonModule = makePythonModule(lorisPythonEnvironment,
+#                                         'loris', lorisPythonWrapper)
+#    Depends(lorisPythonModule, lorisLibrary)
 
 # STK opcodes
 
