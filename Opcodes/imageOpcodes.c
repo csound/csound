@@ -84,7 +84,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     unsigned char header[8];
     png_structp png_ptr;
     png_infop info_ptr;
-    png_infop end_ptr;
+    /* png_infop end_ptr; */
     int is_png;
     png_uint_32 width, height, rowbytes;
     int bit_depth;
@@ -128,13 +128,13 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
       return NULL;
     }
 
-    end_ptr = png_create_info_struct(png_ptr);
-    if (UNLIKELY(!end_ptr)) {
-      png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
-      csound->FileClose(csound, fd);
-      return NULL;
-    }
+    /* end_ptr = png_create_info_struct(png_ptr); */
+    /* if (UNLIKELY(!end_ptr)) { */
+    /*   png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL); */
+    /*   csound->InitError(csound, Str("imageload: out of memory.\n")); */
+    /*   csound->FileClose(csound, fd); */
+    /*   return NULL; */
+    /* } */
 
     png_init_io(png_ptr, fp);
     png_set_sig_bytes(png_ptr, hs);
