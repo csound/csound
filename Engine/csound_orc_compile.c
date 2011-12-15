@@ -322,7 +322,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       case 's':                             /* a- or k-rate */
       treqd_m |= ARGTYP_a | ARGTYP_k;
       if (tfound_m & treqd_m) {
-        if (tfound == 'a' && tp->outlist != ST(nullist)) {
+        if (tfound == 'a' && tp->outlist->count != 0) {
           long outyp_m =                  /* ??? */
             ST(typemask_tabl)[(unsigned char) argtyp2(csound,
                                                      tp->outlist->arg[0])];
