@@ -393,14 +393,14 @@ statement : ident '=' expr NEWLINE
                     $1->right = make_leaf(csound, LABEL_TOKEN, (ORCTOKEN *)$2);
                     $$ = $1;
                 }
-          | IF_TOKEN expr goto label NEWLINE
+          | IF_TOKEN bexpr goto label NEWLINE
                 {
                     $3->left = NULL;
                     $3->right = make_leaf(csound, LABEL_TOKEN, (ORCTOKEN *)$4);
                     $$ = make_node(csound, IF_TOKEN, $2, $3);
                 }
           | ifthen
-          | UNTIL_TOKEN expr DO_TOKEN statementlist OD_TOKEN
+          | UNTIL_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
                   $$ = make_leaf(csound, UNTIL_TOKEN, (ORCTOKEN *)$1);
                   $$->left = $2;
@@ -424,13 +424,14 @@ ans       : ident               { $$ = $1; }
               }
           ;
 
-ifthen    : IF_TOKEN expr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
+ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
           {
             $3->right = $5;
             $$ = make_node(csound, IF_TOKEN, $2, $3);
             //print_tree(csound, "if-endif", $$);
           }
-          | IF_TOKEN expr then NEWLINE statementlist ELSE_TOKEN statementlist ENDIF_TOKEN NEWLINE
+          | IF_TOKEN bexpr then NEWLINE statementlist ELSE_TOKEN
+                                        statementlist ENDIF_TOKEN NEWLINE
           {
             $3->right = $5;
             $3->next = make_node(csound, ELSE_TOKEN, NULL, $7);
@@ -438,7 +439,7 @@ ifthen    : IF_TOKEN expr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
             //print_tree(csound, "if-else", $$);
 
           }
-          | IF_TOKEN expr then NEWLINE statementlist elseiflist ENDIF_TOKEN NEWLINE
+          | IF_TOKEN bexpr then NEWLINE statementlist elseiflist ENDIF_TOKEN NEWLINE
           {
             if (UNLIKELY(PARSER_DEBUG))
                 csound->Message(csound, "IF-ELSEIF FOUND!\n");
@@ -447,7 +448,7 @@ ifthen    : IF_TOKEN expr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
             $$ = make_node(csound, IF_TOKEN, $2, $3);
             //print_tree(csound, "if-elseif\n", $$);
           }
-          | IF_TOKEN expr then NEWLINE statementlist elseiflist ELSE_TOKEN
+          | IF_TOKEN bexpr then NEWLINE statementlist elseiflist ELSE_TOKEN
             statementlist ENDIF_TOKEN NEWLINE
           {
             TREE * tempLastNode;
@@ -482,7 +483,7 @@ elseiflist : elseiflist elseif
             | elseif { $$ = $1; }
            ;
 
-elseif    : ELSEIF_TOKEN expr then NEWLINE statementlist
+elseif    : ELSEIF_TOKEN bexpr then NEWLINE statementlist
             {
                 if (UNLIKELY(PARSER_DEBUG))
                   csound->Message(csound, "ELSEIF FOUND!\n");
@@ -547,12 +548,7 @@ exprlist  : exprlist ',' expr
           | /* null */          { $$ = NULL; }
           ;
 
-expr      : expr '?' expr ':' expr %prec '?'
-            { $$ = make_node(csound, '?', $1,
-                             make_node(csound, ':', $3, $5)); }
-          | expr '?' expr ':' error
-          | expr '?' expr error
-          | expr '?' error
+bexpr     : '(' bexpr ')'       { $$ = $2; }
           | expr S_LE expr      { $$ = make_node(csound, S_LE, $1, $3); }
           | expr S_LE error
           | expr S_GE expr      { $$ = make_node(csound, S_GE, $1, $3); }
@@ -567,12 +563,20 @@ expr      : expr '?' expr ':' expr %prec '?'
           | expr S_GT error
           | expr S_LT expr      { $$ = make_node(csound, S_LT, $1, $3); }
           | expr S_LT error
-          | expr S_AND expr     { $$ = make_node(csound, S_AND, $1, $3); }
-          | expr S_AND error
-          | expr S_OR expr      { $$ = make_node(csound, S_OR, $1, $3); }
-          | expr S_OR error
-          | '!' expr %prec S_UNOT { $$ = make_node(csound, S_UNOT, $2, NULL); }
+          | bexpr S_AND bexpr     { $$ = make_node(csound, S_AND, $1, $3); }
+          | bexpr S_AND error
+          | bexpr S_OR bexpr      { $$ = make_node(csound, S_OR, $1, $3); }
+          | bexpr S_OR error
+          | '!' bexpr %prec S_UNOT { $$ = make_node(csound, S_UNOT, $2, NULL); }
           | '!' error
+          ;
+
+expr      : bexpr '?' expr ':' expr %prec '?'
+            { $$ = make_node(csound, '?', $1,
+                             make_node(csound, ':', $3, $5)); }
+          | bexpr '?' expr ':' error
+          | bexpr '?' expr error
+          | bexpr '?' error
           | iexp                { $$ = $1; }
           ;
 
