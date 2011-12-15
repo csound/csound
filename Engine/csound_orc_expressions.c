@@ -285,7 +285,7 @@ static int is_boolean_expression_node(TREE *node)
 
 static TREE *create_cond_expression(CSOUND *csound, TREE *root)
 {
-    char *op = (char*)mmalloc(csound, 4), arg1, arg2, *outarg = NULL;
+    char *op = (char*)mmalloc(csound, 4), arg1, arg2, ans, *outarg = NULL;
     char outype;
     TREE *anchor = create_boolean_expression(csound, root->left), *last;
     TREE * opTree;
@@ -319,11 +319,12 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root)
 
     arg1 = argtyp2(csound, c->value->lexeme);
     arg2 = argtyp2(csound, d->value->lexeme);
+    ans  = argtyp2(csound, b->value->lexeme);
     if (arg1 == 'a' || arg2 == 'a') {
       strcpy(op,":a");
       outype = 'a';
     }
-    else if (arg1 == 'k' || arg2 == 'k') {
+    else if (arg1 == 'k' || arg2 == 'k' || ans == 'B') {
       strcpy(op,":k");
       outype = 'k';
     }
