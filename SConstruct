@@ -1492,9 +1492,10 @@ else:
             if commonEnvironment['dynamicCsoundLibrary'] == '0':
                if commonEnvironment['useDouble'] == '0': csoundlibLink = '-lcsound'
                else: csoundlibLink = '-lcsound64'
+            else: csoundliblink = ''
             javaWrapperEnvironment.Prepend(LINKFLAGS = ['-bundle'])
             javaWrapperEnvironment.Append(LINKFLAGS =
-                ['-framework', 'JavaVM', '-Wl', '-lcsound64'])
+                ['-framework', 'JavaVM', '-Wl', csoundliblink])
             javaWrapper = javaWrapperEnvironment.Program(
                 'lib_jcsound.jnilib', javaWrapperSources)
         else:
