@@ -289,12 +289,13 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root)
     char outype;
     TREE *anchor = create_boolean_expression(csound, root->left), *last;
     TREE * opTree;
-    TREE *b= create_ans_token(csound, anchor->left->value->lexeme);;
+    TREE *b;
     TREE *c = root->right->left, *d = root->right->right;
     last = anchor;
     while (last->next != NULL) {
       last = last->next;
     }
+    b= create_ans_token(csound, last->left->value->lexeme);
     if (is_expression_node(c)) {
       last->next = create_expression(csound, c);
       /* TODO - Free memory of old left node
@@ -329,7 +330,8 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root)
     else {
       strcpy(op,":i");
       outype = 'i';
-      }
+    }
+
     outarg = create_out_arg(csound, outype);
     opTree = create_opcode_token(csound, op);
     opTree->left = create_ans_token(csound, outarg);
@@ -532,7 +534,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
       }
       /* TODO - Free memory of old left node
          freetree */
-      root->left = create_ans_token(csound, anchor->left->value->lexeme);
+      root->left = create_ans_token(csound, last->left->value->lexeme);
     } else if (is_expression_node(root->left)) {
       anchor = create_expression(csound, root->left);
       
@@ -629,7 +631,6 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
     opTree->right = root->left;
     opTree->right->next = root->right;
     opTree->left = create_ans_token(csound, outarg);
-
     if (anchor == NULL) {
       anchor = opTree;
     }
