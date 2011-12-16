@@ -525,7 +525,9 @@ struct JackoState
       // block until it is signaled.
       result = pthread_create(&closeThread, 0, &JackoState::closeRoutine_, this);
       std::memset(&jack_position, 0, sizeof(jack_position_t));
-      jack_options_t jack_options = (jack_options_t) JackOpenOptions;
+      jack_options_t jack_options = (jack_options_t) (JackServerName |
+                                                      JackNoStartServer |
+                                                      JackUseExactName);
       jack_status_t status = jack_status_t(0);
       jackClient = jack_client_open(clientName,
                                     jack_options,
