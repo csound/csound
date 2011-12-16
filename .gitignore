@@ -134,7 +134,7 @@ po/old_*
 Release_Notes/*
 
 .DS_Store
-CsoundLib64*
+/CsoundLib64*
 examples/java/CSDPlayer.jar
 examples/java/CsoundEditor.jar
 
