@@ -232,7 +232,7 @@ TREE* make_node(CSOUND *csound, int line, int type, TREE* left, TREE* right)
     ans->len = 2;
     ans->rate = -1;
     ans->line = line;
-    printf("%s(%d) line = %d\n", __FILE__, __LINE__, line);
+    csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
 
@@ -252,7 +252,7 @@ TREE* make_leaf(CSOUND *csound, int line, int type, ORCTOKEN *v)
     ans->rate = -1;
     ans->value = v;
     ans->line = line;
-    printf("%s(%d) line = %d\n", __FILE__, __LINE__, line);
+    csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
 
