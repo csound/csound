@@ -109,7 +109,7 @@ static void lblclear(CSOUND *csound)
 #endif
 
 static void intyperr(CSOUND *csound, int n, char *s, char *opname,
-                     char tfound, char expect)
+                     char tfound, char expect, int line)
 {
     char    t[10];
 
@@ -136,8 +136,8 @@ static void intyperr(CSOUND *csound, int n, char *s, char *opname,
       break;
   }
     synterr(csound, Str("input arg %d '%s' of type %s "
-                        "not allowed when expecting %c (for opcode %s)\n"),
-            n+1, s, t, expect, opname);
+                        "not allowed when expecting %c (for opcode %s), line %d\n"),
+            n+1, s, t, expect, opname, line);
 }
 
 static void lblrequest(CSOUND *csound, char *s)
@@ -250,7 +250,7 @@ void update_lclcount(CSOUND *csound, INSTRTXT *ip, TREE *argslist)
 }
 */
 
-void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
+void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
 {
     int n = tp->inlist->count;
     char *s;
@@ -301,8 +301,8 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
                        treqd, tfound_m);
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
         synterr(csound,
-                Str("input arg '%s' used before defined (in opcode %s)\n"),
-                s, ep->opname);
+                Str("input arg '%s' used before defined (in opcode %s), line %d\n"),
+                s, ep->opname, line);
       }
       if (tfound == 'a' && n < 31) /* JMC added for FOG */
                                    /* 4 for FOF, 8 for FOG; expanded to 15  */
@@ -315,7 +315,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       switch (treqd) {
       case 'Z':                             /* indef kakaka ... */
         if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
-          intyperr(csound, n, s, ep->opname, tfound, treqd);
+          intyperr(csound, n, s, ep->opname, tfound, treqd, line);
         break;
       case 'x':
         treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
@@ -332,7 +332,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
           break;
       }
       default:
-        intyperr(csound, n, s, ep->opname, tfound, treqd);
+        intyperr(csound, n, s, ep->opname, tfound, treqd, line);
         break;
       }
       }
@@ -340,7 +340,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     csound->DebugMsg(csound, "xincod = %d", tp->xincod);
 }
 
-void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
+void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
 {
     int n = tp->outlist->count;
     char *s;
@@ -377,12 +377,12 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       if (tfound_m & ARGTYP_w)
         if (ST(lgprevdef)) {
           synterr(csound, Str("output name previously used, "
-                              "type '%c' must be uniquely defined"), tfound);
+                              "type '%c' must be uniquely defined, line %d"), tfound, line);
         }
       /* IV - Oct 31 2002: simplified code */
       if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
-        synterr(csound, Str("output arg '%s' illegal type (for opcode %s)\n"),
-                s, ep->opname);
+        synterr(csound, Str("output arg '%s' illegal type (for opcode %s), line %d\n"),
+                s, ep->opname, line);
       }
     }
 }
@@ -508,9 +508,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
 
         //        csound->Message(csound, "Opcode InTypes: %s\n", ep->intypes);
         //        csound->Message(csound, "Opcode OutTypes: %s\n", ep->outypes);
-
-        set_xincod(csound, tp, ep);
-        set_xoutcod(csound, tp, ep);
+  
+        set_xincod(csound, tp, ep, root->line);
+        set_xoutcod(csound, tp, ep, root->line);
 
         if (root->right != NULL) {
           if (ep->intypes[0] != 'l') {     /* intype defined by 1st inarg */
