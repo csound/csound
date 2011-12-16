@@ -561,9 +561,14 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
         }
         last->next = newRight;
       }
+      last = newRight;
+
+      while (last->next != NULL) {
+        last = last->next;
+      }
       /* TODO - Free memory of old right node
          freetree */
-      root->right = create_ans_token(csound, newRight->left->value->lexeme);
+      root->right = create_ans_token(csound, last->left->value->lexeme);
     }
     else if (is_expression_node(root->right)) {
       TREE * newRight = create_expression(csound, root->right);
