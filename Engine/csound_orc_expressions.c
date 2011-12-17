@@ -449,7 +449,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
       sprintf(op, "%s.%c", root->value->lexeme, c);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found OP: %s\n", op);   
-         
+      /* VL: some non-existing functions were appearing here 
+         looking for opcodes that did not exist */   
       if(opnum = find_opcode(csound, op)){;     
       c = csound->opcodlst[opnum].outypes[0];
       outarg = create_out_arg(csound, c);
