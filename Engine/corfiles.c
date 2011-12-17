@@ -25,6 +25,8 @@
 #include <string.h>
 #include <stdio.h>
 
+extern int csoundFileClose(CSOUND*, void*);
+
 CORFIL *corfile_create_w(void)
 {
     CORFIL *ans = (CORFIL*)malloc(sizeof(CORFIL));
@@ -182,7 +184,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env, int fromScore)
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_flush(mm);
-    fclose(ff);
+    csoundFileClose(csound, fd);
     return mm;
 }
 
