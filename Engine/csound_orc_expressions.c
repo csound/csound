@@ -40,8 +40,8 @@ static int genlabs = 300;
 
 char *create_out_arg(CSOUND *csound, char outype)
 {
-    char* s = (char *)csound->Malloc(csound, 8);
-
+    char* s = (char *)csound->Malloc(csound, 16);
+    
     switch(outype) {
     case 'a': sprintf(s, "#a%d", csound->acount++); break;
     case 'K':
@@ -448,12 +448,14 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
       if (c == 'p' || c == 'c')   c = 'i';
       sprintf(op, "%s.%c", root->value->lexeme, c);
       if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "Found OP: %s\n", op);
-             
-      opnum = find_opcode(csound, op);
+        csound->Message(csound, "Found OP: %s\n", op);   
+         
+      if(opnum = find_opcode(csound, op)){;     
       c = csound->opcodlst[opnum].outypes[0];
-             
       outarg = create_out_arg(csound, c);
+      } else {
+	csound->Die(csound, "error: function %s with arg type %c not found, line %d \n",  root->value->lexeme, c, line);        
+      }
       break;
     case S_UMINUS:
       if (UNLIKELY(PARSER_DEBUG))
