@@ -135,8 +135,8 @@ static void intyperr(CSOUND *csound, int n, char *s, char *opname,
     case '?': strcpy(t,"?");
       break;
   }
-    synterr(csound, Str("input arg %d '%s' of type %s "
-                        "not allowed when expecting %c (for opcode %s), line %d\n"),
+    synterr(csound, Str("input arg %d '%s' of type %s not allowed when "
+                        "expecting %c (for opcode %s), line %d\n"),
             n+1, s, t, expect, opname, line);
 }
 
@@ -301,7 +301,8 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
                        treqd, tfound_m);
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
         synterr(csound,
-                Str("input arg '%s' used before defined (in opcode %s), line %d\n"),
+                Str("input arg '%s' used before defined (in opcode %s),"
+                    " line %d\n"),
                 s, ep->opname, line);
       }
       if (tfound == 'a' && n < 31) /* JMC added for FOG */
@@ -377,11 +378,13 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
       if (tfound_m & ARGTYP_w)
         if (ST(lgprevdef)) {
           synterr(csound, Str("output name previously used, "
-                              "type '%c' must be uniquely defined, line %d"), tfound, line);
+                              "type '%c' must be uniquely defined, line %d"),
+                  tfound, line);
         }
       /* IV - Oct 31 2002: simplified code */
       if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
-        synterr(csound, Str("output arg '%s' illegal type (for opcode %s), line %d\n"),
+        synterr(csound, Str("output arg '%s' illegal type (for opcode %s),"
+                            " line %d\n"),
                 s, ep->opname, line);
       }
     }
@@ -1762,8 +1765,8 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
 #endif
 
 char argtyp2(CSOUND *csound, char *s)
-{                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
-    char c = *s;        /*   also set lgprevdef if !c && !p && !S */
+{                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
+    char c = *s;    /*   also set lgprevdef if !c && !p && !S */
 
     /* VL: added this to make sure the object exists before we try to read 
        from it */
