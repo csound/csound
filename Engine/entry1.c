@@ -913,6 +913,7 @@ OENTRY opcodlst_1[] = {
 { "##globalunlock", S(GLOBAL_LOCK_UNLOCK), 3, "", "k", 
                     globalunlock, globalunlock, NULL},
 #endif
+{ "##error",S(ERRFN), 1,          "i",     "i",   error_fn, NULL,    NULL    },
 { "exprandi.i",S(PRANDI), 1,      "i",    "kxx",  iexprndi, NULL,    NULL    },
 { "exprandi.k",S(PRANDI), 3,      "k",    "kxx",  exprndiset, kexprndi, NULL },
 { "exprandi.a",S(PRANDI), 4,      "a",    "kxx",  exprndiset, NULL, aexprndi },

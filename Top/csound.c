@@ -59,7 +59,9 @@ extern "C" {
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
+#ifdef ENABLE_NEW_PARSER
 #include "csound_orc.h"
+#endif
 #ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
