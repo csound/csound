@@ -395,3 +395,4 @@ int     lsgset_bkpt(CSOUND *csound, void *p);
 int     xsgset_bkpt(CSOUND *csound, void *p);
 int     xsgset_bkpt(CSOUND *csound, void *p), xsgset2b(CSOUND *, void *);
 int     resize_table(CSOUND *csound, void *p);
+int     error_fn(CSOUND *csound, void *p);
