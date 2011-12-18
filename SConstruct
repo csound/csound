@@ -2407,6 +2407,7 @@ else:
     acEnvironment.Append(CPPPATH = pythonIncludePath)
     acEnvironment.Append(LINKFLAGS = pythonLinkFlags)
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
+    acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
     if musicXmlFound:
@@ -2416,12 +2417,16 @@ else:
         else:  
             acEnvironment.Prepend(LIBS = 'csnd')
     else: 
+     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = '_csnd')
-    acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-    if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary']== '0':
+     else:
+        acEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+    if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary'] == '0':
       acEnvironment.Prepend(LIBS = libCsoundLibs)
     else:
-      acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib'])
+     if commonEnvironment['useDouble'] == 1:
+      acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib64'])
+     else:  acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib64'])
     acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     # csoundAC uses fltk_images, but -Wl,-as-needed willl wrongly discard it
     flag = '-Wl,-as-needed'
@@ -2497,7 +2502,9 @@ else:
     libs.append(csoundac)
     Depends(csoundac, csnd)
     pythonWrapperEnvironment = csoundWrapperEnvironment.Clone()
-    pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
+    if getPlatform() == 'darwin':
+      pythonWrapperEnvironment.Append(LINKFLAGS = Split('-L. -l_csnd'))
+    else: pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
     pythonCsoundACWrapperEnvironment = pythonWrapperEnvironment.Clone()
     if getPlatform() == 'darwin':
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC'])
