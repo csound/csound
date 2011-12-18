@@ -861,9 +861,18 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 if (endLabelCounter > 0) {
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
-                  int type = (gotoType == 1) ? 0 : 1;
-                  TREE *gotoEndLabelToken =
-                    create_simple_goto_token(csound, endLabel, type);
+                  int type;
+                  TREE *gotoEndLabelToken;
+                  if (gotoType == 1) {
+                    type = 0;
+                  } else {
+                    switch(argtyp2(csound, tempRight->value->lexeme)) {
+                    case 'i':
+                    case 'c': type = 0; break;
+                    default: type = 1;
+                    }
+                  }
+                  gotoEndLabelToken = create_simple_goto_token(csound, endLabel, type);
                   if (UNLIKELY(PARSER_DEBUG))
                     csound->Message(csound, "Creating simple goto token\n");
 
