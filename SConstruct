@@ -770,7 +770,7 @@ else:
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 gmmFound = configure.CheckHeader("gmm/gmm.h", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
-oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
+oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'MusicXML2::SXMLFile f = MusicXML2::TXMLFile::create();', autoadd=0)
 if musicXmlFound:
    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_MUSICXML2'])
@@ -1500,7 +1500,7 @@ else:
         else:
             javaWrapper = javaWrapperEnvironment.SharedLibrary(
                 '_jcsound', javaWrapperSources)
-        Depends(javaWrapper, csoundLibrary)
+        #Depends(javaWrapper, csoundLibrary)
         libs.append(javaWrapper)
         jcsnd = javaWrapperEnvironment.Java(
             target = './interfaces', source = './interfaces',
@@ -1754,15 +1754,17 @@ else:
 
 if commonEnvironment['buildImageOpcodes'] == '1':
     if getPlatform() == 'win32':
-        if configure.CheckLibWithHeader("fltk_png", "png.h", language="C") and zlibhfound:
+        if configure.CheckHeader("png.h", language="C") and zlibhfound:
             print 'CONFIGURATION DECISION: Building image opcodes'
-            pluginEnvironment.Append(LIBS= Split(''' fltk_png fltk_z '''))
-            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+            imEnv = pluginEnvironment.cClone()
+            imEnv.Append(LIBS= Split(''' fltk_png fltk_z '''))
+            makePlugin(imEnv, 'image', ['Opcodes/imageOpcodes.c'])
     else:
-        if configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
+        if configure.CheckHeader("png.h", language="C") and zlibhfound:
             print 'CONFIGURATION DECISION: Building image opcodes'
-            pluginEnvironment.Append(LIBS= Split(''' png z '''))
-            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+            imEnv = pluginEnvironment.Clone()
+            imEnv.Append(LIBS= Split(''' png z '''))
+            makePlugin(imEnv, 'image', ['Opcodes/imageOpcodes.c'])
 else:
     print 'CONFIGURATION DECISION: Not building image opcodes'
 
@@ -2266,7 +2268,7 @@ if getPlatform() == 'linux':
 csoundProgram = csoundProgramEnvironment.Program('csound', csoundProgramSources)
 executables.append(csoundProgram)
 Depends(csoundProgram, csoundLibrary)
-
+os
 def fluidTarget(env, dirName, baseName, objFiles):
     flFile = dirName + '/' + baseName + '.fl'
     cppFile = dirName + '/' + baseName + '.cpp'
