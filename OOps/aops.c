@@ -1829,3 +1829,8 @@ int is_infa(CSOUND *csound, ASSIGN *p)
     *p->r = ans*sign;
     return OK;
 }
+
+int error_fn(CSOUND *csound, ERRFN *p)
+{
+    return csound->InitError(csound, Str("Unknown functuon called"));
+}
