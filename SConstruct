@@ -222,12 +222,12 @@ commandOptions.Add('buildPythonWrapper',
 commandOptions.Add('buildJavaWrapper',
     'Set to 1 to build Java wrapper for the C++ interface library (needs buildInterfaces).',
     '0')
-commandOptions.Add('buildOSXGUI',
-    'On OSX, set to 1 to build the basic GUI frontend',
-    '0')
-commandOptions.Add('buildCSEditor',
-    'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
-    '0')
+#commandOptions.Add('buildOSXGUI',
+#    'On OSX, set to 1 to build the basic GUI frontend',
+#    '0')
+#commandOptions.Add('buildCSEditor',
+#    'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
+#    '0')
 commandOptions.Add('withICL',
     'On Windows, set to 1 to build with the Intel C++ Compiler (also requires Microsoft Visual C++), or set to 0 to build with MinGW',
     '0')
@@ -485,7 +485,6 @@ if commonEnvironment['Word64'] == '1':
         commonEnvironment.Append(CCFLAGS = ['-xcode=pic32'])
     else:
         commonEnvironment.Append(CCFLAGS = ['-fPIC'])
-
 
 if commonEnvironment['useDouble'] == '0':
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
@@ -2358,35 +2357,35 @@ else:
 
 # Build Cseditor
 
-if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
-    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
-else:
-    csEditorEnvironment = commonEnvironment.Clone()
-    if getPlatform() == 'linux':
-        csEditorEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
-        csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        csEditor = csEditorEnvironment.Program( 'cseditor', 'frontends/cseditor/cseditor.cxx')
-        executables.append(csEditor)
-    elif getPlatform() == 'win32':
-        if compilerGNU():
-            #csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            csEditorEnvironment.Prepend(LINKFLAGS = Split('''-mwindows -Wl,--enable-runtime-pseudo-reloc'''))
-            csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
-        else:
-            csEditorEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
-        csEditorEnvironment.Append(LIBS = csoundWindowsLibraries)
-        csEditor = csEditorEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
-        executables.append(csEditor)
-    elif getPlatform() == 'darwin':
-        csEditorEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
-        csEditorEnvironment.Append(LIBS = Split('''
-            fltk stdc++ pthread m
-        '''))
-        csEditorEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework ApplicationServices
-        '''))
-        csEditor = csEditorEnvironment.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
-        executables.append(csEditor)
+#if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
+#    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
+#else:
+#    csEditorEnvironment = commonEnvironment.Clone()
+#    if getPlatform() == 'linux':
+#        csEditorEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+#        csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+#       csEditor = csEditorEnvironment.Program( 'cseditor', 'frontends/cseditor/cseditor.cxx')
+#        executables.append(csEditor)
+#    elif getPlatform() == 'win32':
+#        if compilerGNU():
+#            #csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+#            csEditorEnvironment.Prepend(LINKFLAGS = Split('''-mwindows -Wl,--enable-runtime-pseudo-reloc'''))
+#            csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+#        else:
+#            csEditorEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
+#        csEditorEnvironment.Append(LIBS = csoundWindowsLibraries)
+#        csEditor = csEditorEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
+#        executables.append(csEditor)
+#    elif getPlatform() == 'darwin':
+#        csEditorEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
+#        csEditorEnvironment.Append(LIBS = Split('''
+#            fltk stdc++ pthread m
+#        '''))
+#        csEditorEnvironment.Append(LINKFLAGS = Split('''
+#            -framework Carbon -framework ApplicationServices
+#        '''))
+#        csEditor = csEditorEnvironment.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
+#        executables.append(csEditor)
 
 # Build CsoundAC
 
@@ -2760,16 +2759,16 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
 else:
     print "CONFIGURATION DECISION: Not building Winsound"
 
-if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
-    print "CONFIGURATION DECISION: building OSX GUI frontend"
-    csOSXGUIEnvironment = commonEnvironment.Clone()
-    OSXGUI = csOSXGUIEnvironment.Command(
-        '''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
-        'frontends/OSX/main.c',
-        "cd frontends/OSX; xcodebuild -buildstyle Deployment")
-    Depends(OSXGUI, csoundLibrary)
-else:
-    print "CONFIGURATION DECISION: Not building OSX GUI frontend"
+#if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
+#    print "CONFIGURATION DECISION: building OSX GUI frontend"
+#    csOSXGUIEnvironment = commonEnvironment.Clone()
+#    OSXGUI = csOSXGUIEnvironment.Command(
+#        '''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
+#        'frontends/OSX/main.c',
+#        "cd frontends/OSX; xcodebuild -buildstyle Deployment")
+#    Depends(OSXGUI, csoundLibrary)
+#else:
+#    print "CONFIGURATION DECISION: Not building OSX GUI frontend"
 
 # build csLADSPA
 print "CONFIGURATION DEFAULT:  Building csLadspa."
