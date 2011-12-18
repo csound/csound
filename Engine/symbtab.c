@@ -180,6 +180,7 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "pchmidinn", T_FUNCTION);
     add_token(csound, "db", T_FUNCTION);
     add_token(csound, "p", T_FUNCTION);
+    add_token(csound, "##error", T_FUNCTION);
 }
 
 static unsigned int hash(char *s)

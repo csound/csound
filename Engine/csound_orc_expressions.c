@@ -451,12 +451,17 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
         csound->Message(csound, "Found OP: %s\n", op);   
       /* VL: some non-existing functions were appearing here 
          looking for opcodes that did not exist */   
-      if(opnum = find_opcode(csound, op)){;     
+      if ((opnum = find_opcode(csound, op))==NULL) {;     
+                                /* This is a little like overkill */
+        strncpy(op, "##error", 80);
+        opnum = find_opcode(csound, op);
+	csound->Warning(csound,
+                    Str("error: function %s with arg type %c not found, "
+                        "line %d \n"),
+                    root->value->lexeme, c, line);        
+      }
       c = csound->opcodlst[opnum].outypes[0];
       outarg = create_out_arg(csound, c);
-      } else {
-	csound->Die(csound, "error: function %s with arg type %c not found, line %d \n",  root->value->lexeme, c, line);        
-      }
       break;
     case S_UMINUS:
       if (UNLIKELY(PARSER_DEBUG))
