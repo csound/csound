@@ -1468,7 +1468,9 @@ else:
     else:
         print 'CONFIGURATION DECISION: Building Java wrapper to Csound C++ interface library.'
         javaWrapperEnvironment = csoundWrapperEnvironment.Clone()
-	javaWrapperEnvironment.Prepend(LIBS = ['csnd'])
+        if  getPlatform() == 'darwin': 
+             javaWrapperEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+	else: javaWrapperEnvironment.Prepend(LIBS = ['csnd'])
         if getPlatform() == 'darwin':
             javaWrapperEnvironment.Append(CPPPATH =
                 ['/System/Library/Frameworks/JavaVM.framework/Headers'])
@@ -1521,7 +1523,9 @@ else:
     else:
         print 'CONFIGURATION DECISION: Building Python wrapper to Csound C++ interface library.'
         pythonWrapperEnvironment = csoundWrapperEnvironment.Clone()
-        pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
+        if  getPlatform() == 'darwin': 
+             pythonWrapperEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+        else: pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
 	if getPlatform() == 'linux':
 	    os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
 	    # os.symlink('lib_csnd.so', '_csnd.so')
