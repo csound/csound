@@ -59,7 +59,9 @@ extern "C" {
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
+#ifdef ENABLE_NEW_PARSER
 #include "csound_orc.h"
+#endif
 #ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
@@ -76,9 +78,11 @@ extern "C" {
 #include <omp.h>
 #endif /* USE_OPENMP */
 
+  MYFLT csoundPow2(CSOUND *csound, MYFLT a);
   extern void MakeAscii(CSOUND *, WINDAT *, const char *);
   extern void DrawAscii(CSOUND *, WINDAT *);
   extern void KillAscii(CSOUND *, WINDAT *);
+  extern int csoundInitStaticModules(CSOUND *);
 
   static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
   static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -337,6 +341,7 @@ extern "C" {
     csoundChanOAGetSample,
     csoundStop,
     csoundGetNamedGens,
+    csoundPow2,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -346,7 +351,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
@@ -636,7 +641,7 @@ extern "C" {
       0, 0, 0,      /*    rewrt_hdr, ...    */
       0,            /*    expr_opt          */
       0.0f, 0.0f,   /*    sr_override ...  */
-      (char*) NULL, (char*) NULL, (char*) NULL,
+      (char*) NULL, (char*) NULL, NULL,
       (char*) NULL, (char*) NULL, (char*) NULL,
       (char*) NULL, (char*) NULL,
       0,            /*    midiKey           */
@@ -705,14 +710,17 @@ extern "C" {
     0,              /* Count of extra strings */
     {NULL, NULL, NULL}, /* For extra strings in scores */
     {0, 0, 0},      /* For extra strings in scores */
-    300             /* Count for generated labels */
+    300,             /* Count for generated labels */
+    NULL,
+    NULL
   };
 
   /* from threads.c */
   void csoundLock(void);
   void csoundUnLock(void);
   /* aops.c */
-  void aops_init_tables(void);
+  /*void aops_init_tables(void);*/
+  void csound_aops_init_tables(CSOUND *cs);
 
   typedef struct csInstance_s {
     CSOUND              *csound;
@@ -961,7 +969,7 @@ extern "C" {
 #if !defined(WIN32)
         atexit(destroy_all_instances);
 #endif
-      aops_init_tables();
+      /*aops_init_tables();*/
       csoundLock();
       init_done = 1;
       csoundUnLock();
@@ -992,7 +1000,7 @@ extern "C" {
       instance_list = p;
       csoundUnLock();
       csoundReset(csound);
-
+      //csound_aops_init_tables(csound);
       return csound;
   }
 
@@ -1136,6 +1144,7 @@ extern "C" {
                                         " (default: no)", NULL);
       p->opcode_list = (int*) mcalloc(p, sizeof(int) * 256);
       p->engineState |= CS_STATE_PRE;
+      csound_aops_init_tables(p);
       /* now load and pre-initialise external modules for this instance */
       /* this function returns an error value that may be worth checking */
       {
@@ -1260,6 +1269,7 @@ extern "C" {
       return -1;
   }
 
+#if 0
   static int getNumActive(INSDS *start, INSDS *end)
   {
       INSDS *current = start;
@@ -1269,6 +1279,7 @@ extern "C" {
       }
       return counter;
   }
+#endif
 
   inline void advanceINSDSPointer(INSDS ***start, int num)
   {
@@ -1419,8 +1430,8 @@ extern "C" {
 
         TRACE_1("[%i] Go\n", index);
 
-        /* TIMER_INIT(mutex, "Mutex ")
-           TIMER_T_START(mutex, index, "Mutex ") */
+        /* TIMER_INIT(mutex, "Mutex ");
+           TIMER_T_START(mutex, index, "Mutex "); */
 
         csound_global_mutex_lock();
         if (csound->multiThreadedComplete == 1) {
@@ -1436,14 +1447,14 @@ extern "C" {
         }
         csound_global_mutex_unlock();
 
-        /* TIMER_T_END(mutex, index, "Mutex ") */
+        /* TIMER_T_END(mutex, index, "Mutex "); */
 
-        TIMER_INIT(thread, "")
-          TIMER_T_START(thread, index, "")
+        TIMER_INIT(thread, "");
+        TIMER_T_START(thread, index, "");
 
           nodePerf(csound, index);
 
-        TIMER_T_END(thread, index, "")
+          TIMER_T_END(thread, index, "");
 
           TRACE_1("[%i] Done\n", index);
 
@@ -1547,9 +1558,9 @@ extern "C" {
       ip = csound->actanchor.nxtact;
 
       if (ip != NULL) {
-        TIMER_INIT(thread, "")
-          TIMER_START(thread, "Clock Sync ")
-          TIMER_END(thread, "Clock Sync ")
+        TIMER_INIT(thread, "");
+        TIMER_START(thread, "Clock Sync ");
+        TIMER_END(thread, "Clock Sync ");
 
           SHARK_SIGNPOST(KPERF_SYM);
         TRACE_1("[%i] kperf\n", 0);
@@ -1558,16 +1569,15 @@ extern "C" {
            2nd by inso count / thread count. */
         if (csound->multiThreadedThreadInfo != NULL) {
           struct dag_t *dag2 = NULL;
-          int main_played_count = 0;
 
-          TIMER_START(thread, "Dag ")
+          TIMER_START(thread, "Dag ");
 #if defined(LINEAR_CACHE) || defined(HASH_CACHE)
-            csp_dag_cache_fetch(csound, &dag2, ip);
+          csp_dag_cache_fetch(csound, &dag2, ip);
           csp_dag_build(csound, &dag2, ip);
 #endif
-          TIMER_END(thread, "Dag ")
+          TIMER_END(thread, "Dag ");
 
-            TRACE_1("{Time: %f}\n", csound->GetScoreTime(csound));
+          TRACE_1("{Time: %f}\n", csound->GetScoreTime(csound));
 #if TRACE > 1
           csp_dag_print(csound, dag2);
 #endif
@@ -1578,17 +1588,17 @@ extern "C" {
           SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
           csound->WaitBarrier(csound->barrier1);
 
-          TIMER_START(thread, "[0] ")
+          TIMER_START(thread, "[0] ");
 
-            main_played_count = nodePerf(csound, 0);
+          (void) nodePerf(csound, 0);
 
-          TIMER_END(thread, "[0] ")
+          TIMER_END(thread, "[0] ");
 
             SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
           /* wait until partition is complete */
           csound->WaitBarrier(csound->barrier2);
           TRACE_1("[%i] Barrier2 Done\n", 0);
-          TIMER_END(thread, "")
+          TIMER_END(thread, "");
 
 #if !defined(LINEAR_CACHE) && !defined(HASH_CACHE)
             csp_dag_dealloc(csound, &dag2);

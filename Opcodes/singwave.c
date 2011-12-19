@@ -268,7 +268,7 @@ static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int i, MYFLT sc)
     VoicForm_setFormantAll(p, 2,sc*phonParams[i][0][0], phonParams[i][2][1],
                            (MYFLT)pow(10.0,phonParams[i][2][2] / FL(20.0)));
     VoicForm_setFormantAll(p, 3,sc*phonParams[i][0][0], phonParams[i][3][1],
-                           (MYFLT)pow(10.0,phonParams[i][4][2] / FL(20.0)));
+                           (MYFLT)pow(10.0,phonParams[i][3][2] / FL(20.0)));
      /* VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0], */
     /*                        phonParams[i][1][1], FL(1.0)); */
     /* VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0], */

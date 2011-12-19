@@ -408,9 +408,7 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
 
     nsmps = ksmps;
     if (!csound->spoutactive) {
-      MYFLT *sptemp = sp;
       memset(sp, 0, ksmps * nchnls * sizeof(MYFLT));
-      /* for (j=0; j< ksmps * nchnls; j++) *sptemp++ = 0; /\* clear all channels *\/ */
       for (n=0; n<nsmps; n++) {
         int i;
         MYFLT *sptemp = sp;

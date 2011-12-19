@@ -79,8 +79,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       initFlags = 1;
     }
     fltkFlags = getFLTKFlagsPtr(csound);
-    if (csound->oparms->displays &&
-        ((*fltkFlags) & 2) == 0 &&
+    if (((*fltkFlags) & 2) == 0 &&
         !(csound->oparms->graphsoff || csound->oparms->postscript)) {
 #ifdef LINUX
       Display *dpy = XOpenDisplay(NULL);
@@ -116,7 +115,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 #endif
         (*fltkFlags) |= 28;
     }
-    if (!((*fltkFlags) & 129)) {
+    if (!((*fltkFlags) & 129))
       for ( ; ep->opname != NULL; ep++) {
         if (csound->AppendOpcode(csound, ep->opname,
                                  (int)ep->dsblksiz, (int)ep->thread,
@@ -127,7 +126,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           return -1;
         }
       }
-    }
     else if (!((*fltkFlags) & 128)) {
       for ( ; ep->opname != NULL; ep++) {
         if (csound->AppendOpcode(
@@ -143,7 +141,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       }
     }
 
-    widget_init(csound);
+    if (!(csound->oparms->graphsoff || csound->oparms->postscript))
+      widget_init(csound);
     return 0;
 }
 

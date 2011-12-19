@@ -43,6 +43,7 @@ ORCTOKEN** symbtab;
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
 static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
+extern int csound_orcget_lineno(void*);
 
 int get_opcode_type(OENTRY *ep)
 {
@@ -177,6 +178,9 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "cpsmidinn", T_FUNCTION);
     add_token(csound, "octmidinn", T_FUNCTION);
     add_token(csound, "pchmidinn", T_FUNCTION);
+    add_token(csound, "db", T_FUNCTION);
+    add_token(csound, "p", T_FUNCTION);
+    add_token(csound, "##error", T_FUNCTION);
 }
 
 static unsigned int hash(char *s)
@@ -264,11 +268,11 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 
     if (udoflag == 0) {
       if (isUDOAnsList(s)) {
-        ans = new_token(csound, T_UDO_ANS);
+        ans = new_token(csound, UDO_ANS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
-        ans->next = symbtab[h];
-        symbtab[h] = ans;
+//        ans->next = symbtab[h];
+//        symbtab[h] = ans;
         //printf("Found UDO Answer List\n");
         return ans;
       }
@@ -276,11 +280,11 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 
     if (udoflag == 1) {
       if (isUDOArgList(s)) {
-        ans = new_token(csound, T_UDO_ARGS);
+        ans = new_token(csound, UDO_ARGS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
-        ans->next = symbtab[h];
-        symbtab[h] = ans;
+//        ans->next = symbtab[h];
+//        symbtab[h] = ans;
         //printf("Found UDO Arg List\n");
         return ans;
       }
@@ -291,19 +295,18 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         if (PARSER_DEBUG)
           csound->Message(csound, "Looking up token for: %d: %d: %s : %s\n",
                           hash("reverb"), hash("a4"), s, a->lexeme);
-      }
+			  }
       if (strcmp(a->lexeme, s)==0) {
         ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));
         memcpy(ans, a, sizeof(ORCTOKEN));
         ans->next = NULL;
         ans->lexeme = (char *)mmalloc(csound, strlen(a->lexeme) + 1);
         strcpy(ans->lexeme, a->lexeme);
-
         return ans;
       }
       a = a->next;
     }
-
+   
 
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
@@ -490,7 +493,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       i++;
     }
       
-    *i_inlist = *S_inlist = *a_inlist = *k_inlist = *f_inlist = *t_inlist = -1;     /* put delimiters */
+    /* put delimiters */
+    *i_inlist = *S_inlist = *a_inlist = *k_inlist = *f_inlist = *t_inlist = -1; 
     i_outlist = inm->out_ndx_list = t_inlist + 1;
     S_outlist = i_outlist + i_outcnt + 1;
     a_outlist = S_outlist + S_outcnt + 1;
@@ -511,7 +515,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       i++;
     }
     
-    *i_outlist = *S_outlist = *a_outlist = *k_outlist = *f_outlist = *t_outlist = -1;  /* put delimiters */
+    *i_outlist = *S_outlist = *a_outlist = *k_outlist =
+      *f_outlist = *t_outlist = -1;  /* put delimiters */
     return err;
 }
 

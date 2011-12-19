@@ -203,8 +203,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
 
     MYFLT
         Ninv,       /* 1. / N */
-        RoverTwoPi, /* R/D divided by 2*Pi */
-        TwoPioverR, /* 2*Pi divided by R/I */
+      //RoverTwoPi, /* R/D divided by 2*Pi */
+      //TwoPioverR, /* 2*Pi divided by R/I */
         sum,        /* scale factor for renormalizing windows */
         rIn,        /* decimated sampling rate */
         rOut,       /* pre-interpolated sampling rate */
@@ -220,8 +220,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         R = -FL(1.0);  /* input sampling rate */
 
     int    i,j,k,   /* index variables */
-        Dd,         /* number of new inputs to read (Dd <= D) */
-        Ii,         /* number of new outputs to write (Ii <= I) */
         ibs,        /* current starting location in input buffer */
         ibc,        /* current location in input buffer */
         obs,        /* current starting location in output buffer */
@@ -243,7 +241,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         first = 0;  /* first-time-thru flag */
 
     SOUNDIN     *p, *pn;
-    void        *dummy;
     char        *infile = NULL, *nfile = NULL;
     SNDFILE     *inf = NULL, *outfd = NULL;
     char        c, *s;
@@ -252,7 +249,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     MYFLT       beg_ntime = FL(0.0), input_ndur = FL(0.0), srn = FL(0.0);
     const char  *envoutyp = NULL;
     unsigned int  outbufsiz = 0U;
-    char        outformch = 's';
     int         nrecs = 0;
 
     csound->e0dbfs = csound->dbfs_to_float = FL(1.0);
@@ -314,31 +310,24 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
               O->sfheader = 0;           /* skip sfheader  */
               break;
             case 'c':
-              outformch = c;
               O->outformat = AE_CHAR;     /* 8-bit char soundfile */
               break;
             case '8':
-              outformch = c;
               O->outformat = AE_UNCH;     /* 8-bit unsigned char file */
               break;
             case 'a':
-              outformch = c;
               O->outformat = AE_ALAW;     /* a-law soundfile */
               break;
             case 'u':
-              outformch = c;
               O->outformat = AE_ULAW;     /* mu-law soundfile */
               break;
             case 's':
-              outformch = c;
               O->outformat = AE_SHORT;    /* short_int soundfile */
               break;
             case 'l':
-              outformch = c;
               O->outformat = AE_LONG;     /* long_int soundfile */
               break;
             case 'f':
-              outformch = c;
               O->outformat = AE_FLOAT;    /* float soundfile */
               break;
             case 'R':
@@ -492,8 +481,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         return -1;
       }
       /* register file to be closed by csoundReset() */
-      dummy = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
-                                               O->outfilename);
+      (void)csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
+                                     O->outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
     csound->esr = (MYFLT) p->sr;
@@ -846,12 +835,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     rIn = ((MYFLT) R / D);
     rOut = ((MYFLT) R / I);
     invR = FL(1.0) / R;
-    RoverTwoPi = rIn / TWOPI_F;
-    TwoPioverR = TWOPI_F / rOut;
     nI = -(aLen / D) * D;    /* input time (in samples) */
     nO = nI;                 /* output time (in samples) */
-    Dd = aLen + nI + 1;      /* number of new inputs to read */
-    Ii = 0;                  /* number of new outputs to write */
     ibs = ibuflen + Chans * (nI - aLen - 1);    /* starting position in ib1 */
     ib1 = ibuf1;        /* filled with zeros to start */
     ib2 = ibuf2;        /* first buffer of speech */
@@ -1182,7 +1167,7 @@ static int dnoise_usage(CSOUND *csound, int exitcode)
 /* report soundfile write(osfd) error      */
 /*    called after chk of write() bytecnt  */
 
-static void sndwrterr(CSOUND *csound, SNDFILE *outfd, int nret, int nput)
+static void sndwrterr(CSOUND *csound, int nret, int nput)
 {
     csound->Message(csound, Str("soundfile write returned sample count of %d, "
                                 "not %d\n"), nret, nput);
@@ -1201,7 +1186,7 @@ static int writebuffer(CSOUND *csound, SNDFILE *outfd,
     if (outfd == NULL) return 0;
     n = sf_write_MYFLT(outfd, outbuf, nsmps);
     if (n < nsmps) {
-      sndwrterr(csound, outfd, n, nsmps);
+      sndwrterr(csound, n, nsmps);
       return -1;
     }
     if (O->rewrt_hdr)

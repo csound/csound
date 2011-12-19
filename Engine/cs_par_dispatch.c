@@ -111,7 +111,8 @@ struct global_var_lock_t {
 void inline csp_locks_lock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
-      csound->Die(csound, Str("Poorly specified global lock index: %i [max: %i]\n"),
+      csound->Die(csound,
+                  Str("Poorly specified global lock index: %i [max: %i]\n"),
                   global_index, csound->global_var_lock_count);
     }
     TRACE_2("Locking:   %i [%p %s]\n", global_index,
@@ -123,7 +124,8 @@ void inline csp_locks_lock(CSOUND * csound, int global_index)
 void inline csp_locks_unlock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
-      csound->Die(csound, Str("Poorly specified global lock index: %i [max: %i]\n"),
+      csound->Die(csound,
+                  Str("Poorly specified global lock index: %i [max: %i]\n"),
                   global_index, csound->global_var_lock_count);
     }
     RELS_LOCK(&(csound->global_var_lock_cache[global_index]->lock));
@@ -136,7 +138,8 @@ static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
                                                        char *name, int index)
 {
     if (UNLIKELY(name == NULL))
-      csound->Die(csound, Str("Invalid NULL parameter name for a global variable\n"));
+      csound->Die(csound,
+                  Str("Invalid NULL parameter name for a global variable\n"));
 
     struct global_var_lock_t *ret =
       csound->Malloc(csound, sizeof(struct global_var_lock_t));
@@ -151,7 +154,8 @@ static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
     return ret;
 }
 
-static struct global_var_lock_t *global_var_lock_find(CSOUND *csound, char *name)
+static struct global_var_lock_t 
+  *global_var_lock_find(CSOUND *csound, char *name)
 {
     if (UNLIKELY(name == NULL))
       csound->Die(csound,
@@ -162,7 +166,8 @@ static struct global_var_lock_t *global_var_lock_find(CSOUND *csound, char *name
       return csound->global_var_lock_root;
     }
     else {
-      struct global_var_lock_t *current = csound->global_var_lock_root, *previous = NULL;
+      struct global_var_lock_t *current = csound->global_var_lock_root,
+        *previous = NULL;
       int ctr = 0;
       while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
@@ -185,17 +190,18 @@ static struct global_var_lock_t *global_var_lock_find(CSOUND *csound, char *name
 /* static void locks_print(CSOUND *csound)
    {
    csound->Message(csound, Str("Current Global Locks\n"));
-   struct global_var_lock_t *current_global = csound->global_var_lock_root;
-   while (current_global != NULL) {
-   csound->Message(csound, "[%i] %s [%p]\n", current_global->index,
-   current_global->name, current_global);
-   current_global = current_global->next;
+   struct global_var_lock_t *cg = csound->global_var_lock_root;
+   while (cg != NULL) {
+   csound->Message(csound, "[%i] %s [%p]\n", cg->index,
+                   cg->name, cg);
+   cg = cg->next;
    }
    } */
 
 TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
-    csound->Message(csound, "Inserting Parallelism Constructs into AST\n");
+    csound->Message(csound,
+                    "Inserting Parallelism Constructs into AST\n");
 
     TREE *anchor = NULL;
 
@@ -205,8 +211,9 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
-        instr = csp_orc_sa_instr_get_by_name(csound, current->left->value->lexeme);
+      case INSTR_TOKEN:
+        instr = csp_orc_sa_instr_get_by_name(csound,
+                                             current->left->value->lexeme);
         if (instr->read_write->count > 0 &&
             instr->read->count == 0 &&
             instr->write->count == 0) {
@@ -214,12 +221,12 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
         }
         break;
 
-      case T_UDO:
-      case T_IF:
+      case UDO_TOKEN:
+      case IF_TOKEN:
         break;
 
       default:
-        if (current->type == S_ASSIGN) {
+        if (current->type == '=') {
           struct set_t *left = NULL, *right  = NULL;
           left = csp_orc_sa_globals_find(csound, current->left);
           right = csp_orc_sa_globals_find(csound, current->right);
@@ -244,10 +251,10 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
             ORCTOKEN *unlock_tok = lookup_token(csound, "##globalunlock");
             ORCTOKEN *var_tok    = make_int(csound, buf);
 
-            TREE *lock_leaf = make_leaf(csound, T_OPCODE, lock_tok);
-            lock_leaf->right = make_leaf(csound, T_INTGR, var_tok);
-            TREE *unlock_leaf = make_leaf(csound, T_OPCODE, unlock_tok);
-            unlock_leaf->right = make_leaf(csound, T_INTGR, var_tok);
+            TREE *lock_leaf = make_leaf(csound, current->line, T_OPCODE, lock_tok);
+            lock_leaf->right = make_leaf(csound, current->line, INTEGER_TOKEN, var_tok);
+            TREE *unlock_leaf = make_leaf(csound, current->line, T_OPCODE, unlock_tok);
+            unlock_leaf->right = make_leaf(csound, current->line, INTEGER_TOKEN, var_tok);
 
             if (previous == NULL) {
               TREE *old_current = lock_leaf;
@@ -280,7 +287,8 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 
     }
 
-    csound->Message(csound, "[End Inserting Parallelism Constructs into AST]\n");
+    csound->Message(csound,
+                    "[End Inserting Parallelism Constructs into AST]\n");
 
     return anchor;
 }
@@ -295,7 +303,8 @@ void csp_locks_cache_build(CSOUND *csound)
 
     csound->global_var_lock_cache =
       csound->Malloc(csound,
-                     sizeof(struct global_var_lock_t *) * csound->global_var_lock_count);
+                     sizeof(struct global_var_lock_t *) *
+                     csound->global_var_lock_count);
 
     glob = csound->global_var_lock_root;
     while (glob != NULL && ctr < csound->global_var_lock_count) {
@@ -307,7 +316,8 @@ void csp_locks_cache_build(CSOUND *csound)
     /* csound->Message(csound, "Global Locks Cache\n");
        ctr = 0;
        while (ctr < csound->global_var_lock_count) {
-       csound->Message(csound, "[%i] %s\n", csound->global_var_lock_cache[ctr]->index,
+       csound->Message(csound, "[%i] %s\n", 
+                       csound->global_var_lock_cache[ctr]->index,
        csound->global_var_lock_cache[ctr]->name);
        ctr++;
        } */
@@ -334,7 +344,8 @@ int globalunlock(CSOUND *csound, GLOBAL_LOCK_UNLOCK *p)
 #pragma mark -
 #pragma mark Instr weightings
 
-/* static struct instr_weight_info_t *instr_weight_info_alloc(CSOUND *csound)
+/* static struct instr_weight_info_t 
+   *instr_weight_info_alloc(CSOUND *csound)
    {
    struct instr_weight_info_t *ret =
    csound->Malloc(csound, sizeof(struct instr_weight_info_t));
@@ -358,26 +369,29 @@ static void csp_weights_calculate_instr(CSOUND *csound, TREE *root,
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
-        nested_instr = csp_orc_sa_instr_get_by_name(csound,
-                                                    current->left->value->lexeme);
+      case INSTR_TOKEN:
+        nested_instr = 
+          csp_orc_sa_instr_get_by_name(csound,
+                                       current->left->value->lexeme);
         /* if (nested_instr->weight == NULL) {
            nested_instr->weight = instr_weight_info_alloc(csound);
            } */
-        csp_weights_calculate_instr(csound, current->right, nested_instr);
+        csp_weights_calculate_instr(csound,
+                                    current->right, nested_instr);
         break;
 
 #ifdef LOOKUP_WEIGHTS
       case T_OPCODE:
       case T_OPCODE0:
-        instr->weight += csp_opcode_weight_fetch(csound, current->value->lexeme);
+        instr->weight += csp_opcode_weight_fetch(csound,
+                                                 current->value->lexeme);
         break;
 #else
       case T_OPCODE:
       case T_OPCODE0:
         instr->weight += WEIGHT_OPCODE_NODE;
         break;
-      case S_ASSIGN:
+      case '=':
         instr->weight += WEIGHT_S_ASSIGN_NODE;
         break;
 #endif
@@ -393,7 +407,8 @@ static void csp_weights_calculate_instr(CSOUND *csound, TREE *root,
       current = current->next;
     }
 
-    csound->Message(csound, "[End Calculating Instrument weight from AST]\n");
+    csound->Message(csound,
+                    "[End Calculating Instrument weight from AST]\n");
 }
 
 void csp_weights_calculate(CSOUND *csound, TREE *root)
@@ -405,8 +420,9 @@ void csp_weights_calculate(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
-        instr = csp_orc_sa_instr_get_by_name(csound, current->left->value->lexeme);
+      case INSTR_TOKEN:
+        instr = csp_orc_sa_instr_get_by_name(csound,
+                                             current->left->value->lexeme);
         /* if (instr->weight == NULL) {
            instr->weight = instr_weight_info_alloc(csound);
            } */
@@ -420,7 +436,8 @@ void csp_weights_calculate(CSOUND *csound, TREE *root)
       current = current->next;
     }
 
-    csound->Message(csound, "[End Calculating Instrument weights from AST]\n");
+    csound->Message(csound,
+                    "[End Calculating Instrument weights from AST]\n");
 }
 
 static void csp_orc_sa_opcode_dump_instr(CSOUND *csound, TREE *root)
@@ -429,7 +446,7 @@ static void csp_orc_sa_opcode_dump_instr(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         break;
 
       case T_OPCODE:
@@ -437,7 +454,7 @@ static void csp_orc_sa_opcode_dump_instr(CSOUND *csound, TREE *root)
         csound->Message(csound, "OPCODE: %s\n", current->value->lexeme);
         break;
 
-      case S_ASSIGN:
+      case '=':
         break;
 
       default:
@@ -458,7 +475,7 @@ void csp_orc_sa_opcode_dump(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
       switch(current->type) {
-      case T_INSTR:
+      case INSTR_TOKEN:
         csp_orc_sa_opcode_dump_instr(csound, current->right);
         break;
 
@@ -496,11 +513,13 @@ struct opcode_weight_cache_entry_t {
 
 //static int opcode_weight_have_cache;
 
-static void opcode_weight_entry_add(CSOUND *csound, char *name, uint32_t weight);
+static void opcode_weight_entry_add(CSOUND *csound,
+                                    char *name, uint32_t weight);
 
-static int opcode_weight_entry_alloc(CSOUND *csound,
-                                     struct opcode_weight_cache_entry_t **entry,
-                                     char *name, uint32_t weight, uint32_t hash_val)
+static int 
+  opcode_weight_entry_alloc(CSOUND *csound,
+                            struct opcode_weight_cache_entry_t **entry,
+                            char *name, uint32_t weight, uint32_t hash_val)
 {
 #ifdef CAUTIOUS
     if (UNLIKELY(entry == NULL))
@@ -509,9 +528,11 @@ static int opcode_weight_entry_alloc(CSOUND *csound,
       csound->Die(csound, Str("Invalid NULL Parameter name"));
 #endif
 
-    *entry = csound->Malloc(csound, sizeof(struct opcode_weight_cache_entry_t));
+    *entry = csound->Malloc(csound,
+                            sizeof(struct opcode_weight_cache_entry_t));
     if (UNLIKELY(*entry == NULL)) {
-      csound->Die(csound, Str("Failed to allocate Opcode Weight cache entry"));
+      csound->Die(csound,
+                  Str("Failed to allocate Opcode Weight cache entry"));
     }
     memset(*entry, 0, sizeof(struct opcode_weight_cache_entry_t));
 
@@ -522,8 +543,10 @@ static int opcode_weight_entry_alloc(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
-static int opcode_weight_entry_dealloc(CSOUND *csound,
-                                       struct opcode_weight_cache_entry_t **entry)
+#if 0
+static int 
+  opcode_weight_entry_dealloc(CSOUND *csound,
+                              struct opcode_weight_cache_entry_t **entry)
 {
 #ifdef CAUTIOUS
     if (UNLIKELY(entry == NULL || *entry == NULL))
@@ -535,6 +558,7 @@ static int opcode_weight_entry_dealloc(CSOUND *csound,
 
     return CSOUND_SUCCESS;
 }
+#endif
 
 uint32_t csp_opcode_weight_fetch(CSOUND *csound, char *name)
 {
@@ -557,7 +581,8 @@ uint32_t csp_opcode_weight_fetch(CSOUND *csound, char *name)
         curr = curr->next;
       }
       /* no weight for this opcode use default */
-      csound->Message(csound, "WARNING: no weight found for opcode: %s\n", name);
+      csound->Message(csound,
+                      "WARNING: no weight found for opcode: %s\n", name);
       return WEIGHT_OPCODE_NODE;
     }
 }
@@ -574,7 +599,8 @@ void csp_opcode_weight_set(CSOUND *csound, char *name, double play_time)
     }
     else {
       uint32_t hash_val = hash_string(name, OPCODE_WEIGHT_CACHE_SIZE);
-      struct opcode_weight_cache_entry_t *curr = csound->opcode_weight_cache[hash_val];
+      struct opcode_weight_cache_entry_t *curr =
+        csound->opcode_weight_cache[hash_val];
       TRACE_0("Adding %s [%u]\n", name, hash_val);
 
       while (curr != NULL) {
@@ -601,7 +627,8 @@ void csp_opcode_weight_set(CSOUND *csound, char *name, double play_time)
     }
 }
 
-static void opcode_weight_entry_add(CSOUND *csound, char *name, uint32_t weight)
+static void opcode_weight_entry_add(CSOUND *csound,
+                                    char *name, uint32_t weight)
 {
 #ifdef CAUTIOUS
     if (UNLIKELY(name == NULL))
@@ -609,7 +636,8 @@ static void opcode_weight_entry_add(CSOUND *csound, char *name, uint32_t weight)
 #endif
 
     uint32_t hash_val = hash_string(name, OPCODE_WEIGHT_CACHE_SIZE);
-    struct opcode_weight_cache_entry_t *curr =csound-> opcode_weight_cache[hash_val];
+    struct opcode_weight_cache_entry_t *curr =
+      csound-> opcode_weight_cache[hash_val];
     int found = 0;
     TRACE_0("entry_add %s [%u]\n", name, hash_val);
     while (curr != NULL) {
@@ -632,17 +660,20 @@ static void opcode_weight_entry_add(CSOUND *csound, char *name, uint32_t weight)
 void csp_weights_dump(CSOUND *csound)
 {
     if (UNLIKELY(csound->opcode_weight_have_cache == 0)) {
-          csound->Message(csound, Str("No Weights to Dump (Using Defaults)\n"));
+          csound->Message(csound,
+                          Str("No Weights to Dump (Using Defaults)\n"));
       return;
     }
     else {
       uint32_t bin_ctr = 0;
       csound->Message(csound, "Weights Dump\n");
       while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
+        struct opcode_weight_cache_entry_t *entry =
+          csound->opcode_weight_cache[bin_ctr];
 
         while (entry != NULL) {
-          csound->Message(csound, "%s => %u\n", entry->name, entry->weight);
+          csound->Message(csound, "%s => %u\n",
+                          entry->name, entry->weight);
           entry = entry->next;
         }
 
@@ -670,11 +701,13 @@ void csp_weights_dump_file(CSOUND *csound)
 
     f = fopen(path, "w+");
     if (UNLIKELY(f == NULL)) {
-      csound->Die(csound, Str("Opcode Weight Spec File not found at: %s"), path);
+      csound->Die(csound,
+                  Str("Opcode Weight Spec File not found at: %s"), path);
     }
 
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-      struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry =
+        csound->opcode_weight_cache[bin_ctr];
 
       while (entry != NULL) {
         if (min == 0) {
@@ -699,7 +732,8 @@ void csp_weights_dump_file(CSOUND *csound)
 
       bin_ctr = 0;
       while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
+        struct opcode_weight_cache_entry_t *entry =
+          csound->opcode_weight_cache[bin_ctr];
 
         while (entry != NULL) {
           uint32_t weight = floor((entry->play_time - min) * scale) + 1;
@@ -724,7 +758,8 @@ void csp_weights_dump_normalised(CSOUND *csound)
 
     csound->Message(csound, Str("Weights Dump\n"));
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-      struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry =
+        csound->opcode_weight_cache[bin_ctr];
 
       while (entry != NULL) {
         if (min == 0) {
@@ -754,7 +789,8 @@ void csp_weights_dump_normalised(CSOUND *csound)
 
       bin_ctr = 0;
       while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = csound->opcode_weight_cache[bin_ctr];
+        struct opcode_weight_cache_entry_t *entry =
+          csound->opcode_weight_cache[bin_ctr];
 
         while (entry != NULL) {
           uint32_t weight = floor((entry->play_time - min) * scale) + 1;
@@ -790,11 +826,13 @@ void csp_weights_load(CSOUND *csound)
     csound->opcode_weight_have_cache = 1;
 
     memset(csound->opcode_weight_cache, 0,
-           sizeof(struct opcode_weight_cache_entry_t *) * OPCODE_WEIGHT_CACHE_SIZE);
+           sizeof(struct opcode_weight_cache_entry_t *) *
+           OPCODE_WEIGHT_CACHE_SIZE);
 
     f = fopen(path, "r");
     if (UNLIKELY(f == NULL)) {
-      csound->Die(csound, Str("Opcode Weight Spec File not found at: %s"), path);
+      csound->Die(csound,
+                  Str("Opcode Weight Spec File not found at: %s"), path);
     }
 
     while ((c = fgetc(f)) != EOF) {
@@ -961,7 +999,8 @@ static inline void csp_dag_prepare_use_insds(CSOUND *csound, DAG *dag,
 void csp_dag_alloc(CSOUND *csound, DAG **dag)
 {
 #ifdef CAUTIOUS
-    if (UNLIKELY(dag == NULL)) csound->Die(csound, Str("Invalid NULL Parameter dag"));
+    if (UNLIKELY(dag == NULL))
+      csound->Die(csound, Str("Invalid NULL Parameter dag"));
 #endif
 
     *dag = (DAG*)csound->Malloc(csound, sizeof(DAG));
@@ -997,7 +1036,8 @@ void csp_dag_dealloc(CSOUND *csound, DAG **dag)
     if ((*dag)->all          != NULL) csound->Free(csound, (*dag)->all);
     if ((*dag)->roots_ori    != NULL) csound->Free(csound, (*dag)->roots_ori);
     if ((*dag)->roots        != NULL) csound->Free(csound, (*dag)->roots);
-    if ((*dag)->root_seen_ori!= NULL) csound->Free(csound, (*dag)->root_seen_ori);
+    if ((*dag)->root_seen_ori!= NULL)
+      csound->Free(csound, (*dag)->root_seen_ori);
     if ((*dag)->root_seen    != NULL) csound->Free(csound, (*dag)->root_seen);
     if ((*dag)->table_ori    != NULL) csound->Free(csound, (*dag)->table_ori);
     if ((*dag)->table        != NULL) csound->Free(csound, (*dag)->table);
@@ -1080,12 +1120,13 @@ void csp_dag_add(CSOUND *csound, DAG *dag,
 {
     DAG_NODE *dag_node = NULL;
     DAG_NODE **old = dag->all;
-    int ctr = 0;
+    //int ctr = 0;
     dag_node_2_alloc(csound, &dag_node, instr, insds);
 
     TRACE_1("dag->count = %d\n", dag->count);
-    //    dag->all = (DAG_NODE **)csound->Malloc(csound,
-    //                                           sizeof(DAG_NODE *) * (dag->count + 1));
+    //    dag->all = 
+    //     (DAG_NODE **)csound->Malloc(csound,
+    //                                 sizeof(DAG_NODE *) * (dag->count + 1));
     /* Can not this be done with memcpy or Realloc */
     //    while (ctr < dag->count) {
     //      dag->all[ctr] = old[ctr];
@@ -1093,8 +1134,9 @@ void csp_dag_add(CSOUND *csound, DAG *dag,
     //    }
     //    dag->all[ctr] = dag_node;
     //    if (old != NULL) csound->Free(csound, old);
-    dag->all = (DAG_NODE **)csound->ReAlloc(csound, old,
-                                            sizeof(DAG_NODE *) * (dag->count + 1));
+    dag->all =
+      (DAG_NODE **)csound->ReAlloc(csound, old,
+                                   sizeof(DAG_NODE *) * (dag->count + 1));
     dag->all[dag->count++] = dag_node;
     //dag->count++;
 
@@ -1109,16 +1151,19 @@ void csp_dag_add(CSOUND *csound, DAG *dag,
 inline static void csp_dag_build_prepare(CSOUND *csound, DAG *dag)
 {
 #ifdef CAUTIOUS
-    if (dag == NULL) csound->Die(csound, Str("Invalid NULL Parameter dag"));
+    if (dag == NULL) csound->Die(csound,
+                                 Str("Invalid NULL Parameter dag"));
 #endif
 
     if (dag->roots_ori       != NULL) csound->Free(csound, dag->roots_ori);
     if (dag->roots           != NULL) csound->Free(csound, dag->roots);
-    if (dag->root_seen_ori   != NULL) csound->Free(csound, dag->root_seen_ori);
+    if (dag->root_seen_ori   != NULL)
+      csound->Free(csound, dag->root_seen_ori);
     if (dag->root_seen       != NULL) csound->Free(csound, dag->root_seen);
     if (dag->remaining_count_ori != NULL)
       csound->Free(csound, dag->remaining_count_ori);
-    if (dag->remaining_count != NULL) csound->Free(csound, dag->remaining_count);
+    if (dag->remaining_count != NULL)
+      csound->Free(csound, dag->remaining_count);
     if (dag->table_ori       != NULL) csound->Free(csound, dag->table_ori);
     if (dag->table           != NULL) csound->Free(csound, dag->table);
 
@@ -1139,8 +1184,10 @@ inline static void csp_dag_build_prepare(CSOUND *csound, DAG *dag)
     dag->roots = csound->Malloc(csound, sizeof(DAG_NODE *) * dag->count);
     dag->root_seen_ori = csound->Malloc(csound, sizeof(uint8_t) * dag->count);
     dag->root_seen     = csound->Malloc(csound, sizeof(uint8_t) * dag->count);
-    dag->remaining_count_ori = csound->Malloc(csound, sizeof(int) * dag->count);
-    dag->remaining_count     = csound->Malloc(csound, sizeof(int) * dag->count);
+    dag->remaining_count_ori =
+      csound->Malloc(csound, sizeof(int) * dag->count);
+    dag->remaining_count     =
+      csound->Malloc(csound, sizeof(int) * dag->count);
     {
       long int ss = (sizeof(uint8_t *) * dag->count) +
                     (sizeof(uint8_t) * dag->count * dag->count);
@@ -1154,9 +1201,11 @@ inline static void csp_dag_build_prepare(CSOUND *csound, DAG *dag)
       int ctr = 0;
       while (ctr < dag->count) {
         dag->table_ori[ctr] = ((uint8_t *)dag->table_ori) +
-          (sizeof(uint8_t *) * dag->count) + (sizeof(uint8_t) * dag->count * ctr);
+          (sizeof(uint8_t *) * dag->count) +
+          (sizeof(uint8_t) * dag->count * ctr);
         dag->table[ctr]     = ((uint8_t *)dag->table) +
-          (sizeof(uint8_t *) * dag->count) + (sizeof(uint8_t) * dag->count * ctr);
+          (sizeof(uint8_t *) * dag->count) +
+          (sizeof(uint8_t) * dag->count * ctr);
         ctr++;
       }
     }
@@ -1164,18 +1213,20 @@ inline static void csp_dag_build_prepare(CSOUND *csound, DAG *dag)
     memset(dag->roots,     0,        sizeof(DAG_NODE *) * dag->count);
     memset(dag->root_seen_ori, 0,    sizeof(uint8_t) * dag->count);
     memset(dag->root_seen, 0,        sizeof(uint8_t) * dag->count);
-    memset(dag->remaining_count_ori, 0,           sizeof(int) * dag->count);
-    memset(dag->remaining_count,     0,           sizeof(int) * dag->count);
+    memset(dag->remaining_count_ori, 0, sizeof(int) * dag->count);
+    memset(dag->remaining_count,     0, sizeof(int) * dag->count);
     memset(dag->table_ori[0], DAG_NO_LINK,
            sizeof(uint8_t) * dag->count * dag->count);
-    memset(dag->table[0], DAG_NO_LINK, sizeof(uint8_t) * dag->count * dag->count);
+    memset(dag->table[0], DAG_NO_LINK,
+           sizeof(uint8_t) * dag->count * dag->count);
 }
 
 inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
 {
     DAG *dag = NULL;
 #ifdef CAUTIOUS
-    if (chain == NULL) csound->Die(csound, Str("Invalid NULL Parameter chain"));
+    if (UNLIKELY(chain == NULL))
+      csound->Die(csound, Str("Invalid NULL Parameter chain"));
 #endif
     csp_dag_alloc(csound, &dag);
     while (chain != NULL) {
@@ -1183,7 +1234,8 @@ inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
         csp_orc_sa_instr_get_by_num(csound, chain->insno);
       if (current_instr == NULL)
         csound->Die(csound,
-                    Str("Failed to find semantic information for instrument '%i'"),
+                    Str("Failed to find semantic information"
+                        " for instrument '%i'"),
                         chain->insno);
       csp_dag_add(csound, dag, current_instr, chain);
       dag->weight += current_instr->weight;
@@ -1195,7 +1247,8 @@ inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
 inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
 {
 #ifdef CAUTIOUS
-    if (dag == NULL) csound->Die(csound, Str("Invalid NULL Parameter dag"));
+    if (UNLIKELY(dag == NULL))
+      csound->Die(csound, Str("Invalid NULL Parameter dag"));
 #endif
 
     int dag_root_ctr = 0;
@@ -1217,7 +1270,8 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &write_intersection);
 
-        /* csound->Message(csound, "write_intersection depends: %i\n", depends);
+        /* csound->Message(csound, 
+                           "write_intersection depends: %i\n", depends);
            csp_set_print(csound, dag->all[dag_root_ctr]->instr->write);
            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read); */
 
@@ -1230,7 +1284,8 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &read_intersection);
 
-        /* csound->Message(csound, "read_intersection depends: %i\n", depends);
+        /* csound->Message(csound,
+                           "read_intersection depends: %i\n", depends);
            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
@@ -1249,7 +1304,8 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
         struct set_t *readwrite_write_intersection = NULL;
-        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write,
+        csp_set_intersection(csound,
+                             dag->all[dag_root_ctr]->instr->read_write,
                              dag->all[dag_curr_ctr]->instr->write,
                              &readwrite_write_intersection);
         if (csp_set_count(csound, readwrite_write_intersection) != 0) {
@@ -1257,13 +1313,15 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &readwrite_write_intersection);
 
-        /* csound->Message(csound, "readwrite_write_intersection depends: %i\n",
+        /* csound->Message(csound, 
+                           "readwrite_write_intersection depends: %i\n",
                            depends);
            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
         struct set_t *readwrite_read_intersection = NULL;
-        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write,
+        csp_set_intersection(csound, 
+                             dag->all[dag_root_ctr]->instr->read_write,
                              dag->all[dag_curr_ctr]->instr->read,
                              &readwrite_read_intersection);
         if (csp_set_count(csound, readwrite_read_intersection) != 0) {
@@ -1271,8 +1329,11 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &readwrite_read_intersection);
 
-        /* csound->Message(csound, "readwrite_read_intersection depends: %i\n", depends);
-           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
+        /* csound->Message(csound,
+                           "readwrite_read_intersection depends: %i\n",
+                           depends);
+           csp_set_print(csound, 
+                         dag->all[dag_root_ctr]->instr->read_write);
            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
         struct set_t *read_readwrite_intersection = NULL;
@@ -1284,9 +1345,12 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &read_readwrite_intersection);
 
-        /* csound->Message(csound, "read_readwrite_intersection depends: %i\n", depends);
+        /* csound->Message(csound, 
+                           "read_readwrite_intersection depends: %i\n",
+                           depends);
            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
-           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
+           csp_set_print(csound, 
+                         dag->all[dag_curr_ctr]->instr->read_write); */
 
         struct set_t *write_readwrite_intersection = NULL;
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write,
@@ -1297,24 +1361,30 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &write_readwrite_intersection);
 
-        /* csound->Message(csound, "write_readwrite_intersection depends: %i\n",
+        /* csound->Message(csound,
+                           "write_readwrite_intersection depends: %i\n",
                            depends);
            csp_set_print(csound, dag->all[dag_root_ctr]->instr->write);
-           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
+           csp_set_print(csound,
+                          dag->all[dag_curr_ctr]->instr->read_write); */
 
         struct set_t *readwrite_readwrite_intersection = NULL;
-        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write,
+        csp_set_intersection(csound,
+                             dag->all[dag_root_ctr]->instr->read_write,
                              dag->all[dag_curr_ctr]->instr->read_write,
                              &readwrite_readwrite_intersection);
-        if (csp_set_count(csound, readwrite_readwrite_intersection) != 0) {
+        if (csp_set_count(csound,
+                          readwrite_readwrite_intersection) != 0) {
           depends |= DAG_WEAK_LINK;
         }
         csp_set_dealloc(csound, &readwrite_readwrite_intersection);
 
         /* csound->Message(csound,
-                      "readwrite_readwrite_intersection depends: %i\n", depends);
+                           "readwrite_readwrite_intersection depends: %i\n",
+                           depends);
            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
-           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
+           csp_set_print(csound, 
+                         dag->all[dag_curr_ctr]->instr->read_write); */
 
         if (depends & DAG_STRONG_LINK) {
           dag->table_ori[dag_root_ctr][dag_curr_ctr] = DAG_STRONG_LINK;
@@ -1432,8 +1502,10 @@ static void csp_dag_calculate_max_roots(CSOUND *csound, DAG *dag)
 void csp_dag_build(CSOUND *csound, DAG **dag, INSDS *chain)
 {
 #ifdef CAUTIOUS
-    if (dag == NULL) csound->Die(csound, Str("Invalid NULL Parameter dag"));
-    if (chain == NULL) csound->Die(csound, Str("Invalid NULL Parameter chain"));
+    if (dag == NULL)
+      csound->Die(csound, Str("Invalid NULL Parameter dag"));
+    if (chain == NULL)
+      csound->Die(csound, Str("Invalid NULL Parameter chain"));
 #endif
 
     TRACE_5("DAG BUILD\n");
@@ -1452,7 +1524,8 @@ void csp_dag_build(CSOUND *csound, DAG **dag, INSDS *chain)
 int inline csp_dag_is_finished(CSOUND *csound, DAG *dag)
 {
 #ifdef CAUTIOUS
-    if (dag == NULL) csound->Die(csound, Str("Invalid NULL Parameter dag"));
+    if (dag == NULL)
+      csound->Die(csound, Str("Invalid NULL Parameter dag"));
 #endif
     /* TAKE_LOCK(&(dag->spinlock));
        int res = (dag->remaining <= 0);
@@ -1466,7 +1539,7 @@ int inline csp_dag_is_finished(CSOUND *csound, DAG *dag)
 /*
  * consume an instr and update the first root cache
  */
-static int waiting_for_ending=0;
+//static int waiting_for_ending=0;
 void csp_dag_consume(CSOUND *csound, DAG *dag,
                      DAG_NODE **node, int *update_hdl)
 {
@@ -1484,7 +1557,8 @@ void csp_dag_consume(CSOUND *csound, DAG *dag,
 #endif
 
     TRACE_2("[%i] Consuming PreLock [%i, %i] +++++\n",
-            csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
+            csp_thread_index_get(csound),
+            dag->first_root, dag->consume_spinlock);
 
     TAKE_LOCK(&(dag->consume_spinlock));
 
@@ -1506,22 +1580,23 @@ void csp_dag_consume(CSOUND *csound, DAG *dag,
       //      csp_dag_print(csound, dag);
 
       /* csound->Die(csound, */
-      /*             Str("Expected a root to perform. Found none (%i remaining)"), */
-      /*             dag->remaining); */
+      /*     Str("Expected a root to perform. Found none (%i remaining)"), */
+      /*     dag->remaining); */
       RELS_LOCK(&(dag->consume_spinlock));
       /* RELS_LOCK(&(dag->spinlock)); */
       *node = NULL;
       *update_hdl = -1;
-      { struct timespec tt = {0, 100};
+      //{ struct timespec tt = {0, 100};
         //        nanosleep(&tt, NULL);
-      }
+      //}
       /* Really ought to wait until someone leaves comsume_dag_update */
       return;
     }
 
     first_root = dag->first_root;
 
-    TRACE_5("[%i] Consuming root:%i\n", csp_thread_index_get(csound), first_root);
+    TRACE_5("[%i] Consuming root:%i\n",
+            csp_thread_index_get(csound), first_root);
 
     dag_node = dag->roots[first_root];
     dag->roots[first_root] = NULL;
@@ -2325,11 +2400,13 @@ static uint32_t update_ctr;
 static int csp_dag_cache_entry_alloc(CSOUND *csound,
                                      struct dag_cache_entry_t **entry,
                                      INSDS *chain, uint32_t hash_val);
-static int csp_dag_cache_entry_dealloc(CSOUND *csound,
-                                       struct dag_cache_entry_t **entry);
 static int csp_dag_cache_compare(CSOUND *csound,
                                  struct dag_cache_entry_t *entry, INSDS *chain);
+#if 0
+static int csp_dag_cache_entry_dealloc(CSOUND *csound,
+                                       struct dag_cache_entry_t **entry);
 static void csp_dag_cache_update(CSOUND *csound);
+#endif
 static void csp_dag_cache_print_weights_dump(CSOUND *csound);
 
 void csp_dag_cache_print(CSOUND *csound)
@@ -2502,6 +2579,7 @@ static int csp_dag_cache_entry_alloc(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
+#if 0
 static int csp_dag_cache_entry_dealloc(CSOUND *csound,
                                        struct dag_cache_entry_t **entry)
 {
@@ -2519,7 +2597,9 @@ static int csp_dag_cache_entry_dealloc(CSOUND *csound,
 
     return CSOUND_SUCCESS;
 }
+#endif
 
+#if 0
 static void csp_dag_cache_update(CSOUND *csound)
 {
     uint32_t bin_ctr = 0;
@@ -2565,6 +2645,7 @@ static void csp_dag_cache_update(CSOUND *csound)
       bin_ctr++;
     }
 }
+#endif
 
 static int csp_dag_cache_compare(CSOUND *csound,
                                  struct dag_cache_entry_t *entry, INSDS *chain)

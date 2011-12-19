@@ -637,7 +637,8 @@ int csoundIsNameJustFilename(const char *name)
  *  conform to the conventions for the current platform (begin with ':'
  *  on MacOS 9 and not begin with DIRSEP on others).
  */
-char* csoundConcatenatePaths(CSOUND* csound, const char *path1, const char *path2)
+char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
+                             const char *path2)
 {
     char *result;
     const char *start2;
@@ -814,7 +815,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
 {
     FILE  *f;
     char  *name, *name2, **searchPath;
-    int   len;
+    //int   len;
 
     *fullName = NULL;
     if ((name = csoundConvertPathname(csound, filename)) == NULL)
@@ -845,7 +846,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
     if (envList != NULL && envList[0] != '\0' &&
         (searchPath = csoundGetSearchPathFromEnv((CSOUND*) csound, envList))
           != NULL) {
-      len = (int) strlen(name) + 1;
+      //len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
         f = fopen(name2, mode);
@@ -876,7 +877,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
                              const char *envList)
 {
     char  *name, *name2, **searchPath;
-    int   len, fd;
+    int   fd;
 
     *fullName = NULL;
     if ((name = csoundConvertPathname(csound, filename)) == NULL)
@@ -907,7 +908,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
     if (envList != NULL && envList[0] != '\0' &&
         (searchPath = csoundGetSearchPathFromEnv((CSOUND*) csound, envList))
           != NULL) {
-      len = (int) strlen(name) + 1;
+      //len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
         if (!write_mode)
@@ -1191,7 +1192,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
                       (type == CSFILE_STD && ((char*)param)[0] == 'w'));
       if (csFileType == CSFTYPE_UNKNOWN_AUDIO && type == CSFILE_SND_R)
         csFileType = sftype2csfiletype(((SF_INFO*)param)->format);
-      csound->FileOpenCallback_(csound, p->fullName, csFileType, writing, isTemporary);
+      csound->FileOpenCallback_(csound, p->fullName, csFileType,
+                                writing, isTemporary);
     }
     /* return with opaque file handle */
     return (void*) p;

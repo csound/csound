@@ -237,7 +237,7 @@ static int early_init(CSOUND *csound, early *p)
     char filel[MAXNAME],filer[MAXNAME];
 
     /* processing sizes*/
-    int irlength, irlengthpad, overlapsize;
+    int irlength = 0, irlengthpad = 0, overlapsize = 0;
 
     /* walls: surface area*/
     MYFLT wallS1, wallS2, cfS;
@@ -906,7 +906,7 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT formx, formy, formz;
     int formxpow, formypow, formzpow;
 
-    int wallreflections, floorreflections, ceilingreflections;
+    int wallreflections, floorreflections=0, ceilingreflections=0;
     MYFLT delsinglel, delsingler;
     MYFLT deldoublel[2], deldoubler[2];
 

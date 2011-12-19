@@ -341,7 +341,8 @@ int lsgrset(CSOUND *csound, LINSEG *p)
     int32 relestim;
     lsgset(csound,p);
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr releases in an instr => xtratim 
+    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr 
+                            releases in an instr => xtratim 
                             set to relestim seems to fix this */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int)relestim;
@@ -387,7 +388,7 @@ int linsegr(CSOUND *csound, LINSEG *p)
     if (LIKELY(p->segsrem)) {               /* if no more segs putk */
       SEG *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
-        while (p->segsrem > 1) {            /* reles flag new:      */
+        while (p->segsrem > 1) {            /* release flag new:    */
           segp = ++p->cursegp;              /*   go to last segment */
           p->segsrem--;
         }                                   /*   get univ relestim  */
@@ -1295,7 +1296,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
     else {
       p->phs = -1;
       p->val = *(ftp->ftable + ftp->flen)-asym;
-      /* irise = FL(0.0);          /* in case irise < 0 */
+      /* irise = FL(0.0); */          /* in case irise < 0 */
     }
     if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
       return csound->InitError(csound, Str("rise func ends with zero"));

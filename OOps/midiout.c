@@ -308,11 +308,13 @@ int out_controller (CSOUND *csound, OUT_CONTR *p)
       value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
       value = (value < 128) ?  value : 127;
       value = (value > -1) ?  value : 0;
-      if (value != p->last_value) {
+      if (value != p->last_value || *p->chn != p->lastchn || *p->num != p->lastctrl) { 
         /* csound->Message(csound, "out contr value: %d\n", value); */
         control_change(csound, (int)*p->chn-1,(int)*p->num ,value);
         p->last_value = value;
-      }
+        p->lastchn = *p->chn;
+        p->lastctrl = *p->num;
+        } 
     }
     return OK;
 }
@@ -326,10 +328,11 @@ int out_aftertouch (CSOUND *csound, OUT_ATOUCH *p)
       value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
       value = value < 128 ?  value : 127;
       value = value > -1  ?  value : 0;
-      if (value != p->last_value) {
+      if (value != p->last_value || *p->chn != p->lastchn) {
         after_touch(csound, (int)*p->chn-1, value);
         p->last_value = value;
-      }
+        p->lastchn = *p->chn;
+       }
     }
     return OK;
 }
@@ -341,10 +344,12 @@ int out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
     value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
     value = value < 128 ?  value : 127;
     value = value > -1  ?  value : 0;
-    if (value != p->last_value) {
+    if (value != p->last_value  || *p->chn != p->lastchn || *p->num != p->lastctrl) {
       poly_after_touch(csound, (int)*p->chn-1, (int)*p->num, value);
       p->last_value = value;
-    }
+      p->lastchn = *p->chn;
+      p->lastctrl = *p->num;
+}
 
     return OK;
 }
@@ -358,10 +363,11 @@ int out_progchange (CSOUND *csound, OUT_PCHG *p)
       prog_num =  (int)((*p->prog_num - min) * FL(127.0) / (*p->max - min));
       prog_num = prog_num < 128 ?  prog_num : 127;
       prog_num = prog_num > -1  ?  prog_num : 0;
-      if (prog_num != p->last_prog_num) {
+      if (prog_num != p->last_prog_num || *p->chn != p->lastchn) { 
         program_change(csound, (int)*p->chn-1, prog_num);
         p->last_prog_num = prog_num;
-      }
+        p->lastchn = *p->chn;
+        } 
     }
     return OK;
 }
@@ -377,14 +383,16 @@ int out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
       value = (value < 16384) ?  value : 16383;
       value = (value > -1) ?  value : 0;
 
-      if (value != p->last_value) {
+      if (value != p->last_value  || *p->chn != p->lastchn || *p->msb_num != p->lastctrl) {
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
         csound->Warning(csound, Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
         control_change(csound, (int)*p->chn-1, (int)*p->msb_num, msb);
         control_change(csound, (int)*p->chn-1, (int)*p->lsb_num, lsb);
         p->last_value = value;
-      }
+        p->lastchn = *p->chn;
+        p->lastctrl = *p->msb_num;
+         } 
     }
     return OK;
 }
@@ -402,12 +410,13 @@ int out_pitch_bend(CSOUND *csound, OUT_PB *p)
       value = (int)((*p->value - min) * FL(16383.0) / (*p->max - min));
       value = (value < 16384  ?  value : 16383);
       value = (value > -1     ?  value : 0);
-      if (value != p->last_value) {
+      if (value != p->last_value || *p->chn != p->lastchn )  {
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
         pitch_bend(csound, (int)*p->chn - 1, lsb, msb);
         p->last_value = value;
-      }
+        p->lastchn = *p->chn;
+        }
     }
     return OK;
 }

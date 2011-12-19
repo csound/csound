@@ -40,7 +40,7 @@ static char   *fpnum(CSOUND *,char *, int, int);
 static void fltout(CSOUND *csound, MYFLT n) 
 {
     char buffer[1024];
-    int len = sprintf(buffer, "%.6f", n);
+    sprintf(buffer, "%.6f", n);
     corfile_puts(buffer, csound->scstr);
 }
 
@@ -57,7 +57,6 @@ void swritestr(CSOUND *csound)
     if ((c = bp->text[0]) != 'w'
         && c != 's' && c != 'e') {      /*   if no warp stmnt but real data,  */
       /* create warp-format indicator */
-      char buffer[20];
       corfile_puts("w 0 60\n", csound->scstr);
       lincnt++;
     }
