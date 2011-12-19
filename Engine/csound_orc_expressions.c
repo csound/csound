@@ -451,7 +451,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
         csound->Message(csound, "Found OP: %s\n", op);   
       /* VL: some non-existing functions were appearing here 
          looking for opcodes that did not exist */   
-      if ((opnum = find_opcode(csound, op))==NULL) {;     
+      if ((opnum = find_opcode(csound, op))) {;     
                                 /* This is a little like overkill */
         strncpy(op, "##error", 80);
         opnum = find_opcode(csound, op);
@@ -855,9 +855,13 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
-                /* VL: added as means of dealing with empty conditionals, may need revision */
+                /* VL: added as means of dealing with empty conditionals,
+                   may need revision */
                 if(statements == NULL) 
-                   csound->Die(csound, "error: non-existent statement in conditional, line %d \n", last->right->line); 
+                   csound->Die(csound,
+                               Str("error: non-existent statement in "
+                                   "conditional, line %d \n"),
+                               last->right->line); 
                 while (statements->next != NULL) {
                   statements = statements->next;
                 }
@@ -865,8 +869,10 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
                   int type = (gotoType == 1) ? 0 : 1;
+                  printf("%s(%d): type = %d %d\n",
+                         __FILE__, __LINE__, type, gotoType);
                   TREE *gotoEndLabelToken =
-                     create_simple_goto_token(csound, endLabel, type);
+                    create_simple_goto_token(csound, endLabel, gotoType/*type*/);
                   if (UNLIKELY(PARSER_DEBUG))
                     csound->Message(csound, "Creating simple goto token\n");
 
