@@ -22,7 +22,8 @@
 */
 
                                                         /* mp3in.c */
-#include "csdl.h"
+/* #include "csdl.h" */
+#include "csoundCore.h"
 #include "mp3dec.h"
 
 typedef struct {

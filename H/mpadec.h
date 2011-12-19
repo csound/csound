@@ -21,6 +21,8 @@
 
 #ifndef __MPADEC_H
 #define __MPADEC_H
+#include "sysdep.h"
+#define FLOAT MYFLT
 
 #undef FALSE
 #undef TRUE

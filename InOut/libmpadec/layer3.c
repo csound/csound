@@ -1,3 +1,4 @@
+
 /*
  *  mpadec - MPEG audio decoder
  *  Copyright (C) 2002-2004 Dmitriy Startsev (dstartsev@rambler.ru)
@@ -671,6 +672,7 @@ static void dct36(register MYFLT *in, register MYFLT *out1, register MYFLT *out2
   }
 #undef DCT36_MACRO
 }
+
 
 static void dct12(register MYFLT *in, register MYFLT *out1, register MYFLT *out2, register MYFLT *w, register MYFLT *ts)
 {
