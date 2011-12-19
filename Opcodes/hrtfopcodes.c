@@ -231,7 +231,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
     MYFLT *win;
 
     /* time domain impulse length, padded, overlap add */
-    int irlength, irlengthpad, overlapsize;
+    int irlength=0, irlengthpad=0, overlapsize=0;
 
     /* flag for process type: default phase trunc */
     if(mode == 1)
@@ -1401,7 +1401,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     float *fpindexr=NULL;
 
     /* time domain impulse length, padded, overlap add */
-    int irlength, irlengthpad, overlapsize;
+    int irlength=0, irlengthpad=0, overlapsize=0;
 
     int i, skip = 0;
 
@@ -1417,7 +1417,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     MYFLT angleindexhighstore;
 
     /* woodworth values */
-    MYFLT radianangle, radianelev, itd, itdww, freq;
+    MYFLT radianangle, radianelev, itd=0, itdww, freq;
 
     /* shift */
     int shift;
@@ -2028,14 +2028,14 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     char filel[MAXNAME], filer[MAXNAME];
 
     /* time domain impulse length */
-    int irlength;
+    int irlength=0;
 
     /* stft window */
     MYFLT *win;
     /* overlap skip buffers */
     int *overlapskipin, *overlapskipout;
-    MYFLT *inbuf;
-    MYFLT *outbufl, *outbufr;
+    //MYFLT *inbuf;
+    //MYFLT *outbufl, *outbufr;
 
     int overlap = (int)*p->ooverlap;
     MYFLT r = *p->oradius;
@@ -2163,11 +2163,8 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     win = (MYFLT *)p->win.auxp;
     overlapskipin = (int *)p->overlapskipin.auxp;
     overlapskipout = (int *)p->overlapskipout.auxp;
-    inbuf = (MYFLT *)p->inbuf.auxp;
-    outbufl = (MYFLT *)p->outbufl.auxp;
-    outbufr = (MYFLT *)p->outbufr.auxp;
 
-    /* window is hanning */
+    /* window is Hanning */
     for(i = 0; i < irlength; i++)
       win[i] = FL(0.5) - (FL(0.5) * COS(i * TWOPI_F / (MYFLT)(irlength - 1)));
 
@@ -2253,7 +2250,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     MYFLT magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
 
     /* woodworth values */
-    MYFLT radianangle, radianelev, itd, itdww, freq;
+    MYFLT radianangle, radianelev, itd=0, itdww, freq;
 
     int irlength = p->irlength;
 

@@ -95,7 +95,7 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
         p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound,
-                        Str("unknown lowest frequency for bowed string -- "
+                        Str("unknown lowest frequency for bowed bar -- "
                             "assuming 50Hz\n"));
         p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }

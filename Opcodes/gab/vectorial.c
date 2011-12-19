@@ -2383,7 +2383,6 @@ static int vphaseseg(CSOUND *csound,VPSEG *p)
 static int kdel_set(CSOUND *csound,KDEL *p)
 {
     uint32 n;
-    MYFLT *buf;
     n = (p->maxd = (int32) (*p->imaxd * csound->ekr));
     if (n == 0) n = (p->maxd = 1);
 

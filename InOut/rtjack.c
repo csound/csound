@@ -531,7 +531,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
       /* connection yet; this is a somewhat hackish solution... */
       if (p->client == (jack_client_t*) NULL) {
         useTmpClient = 1;
-        client_ = jack_client_new(&(p->clientName[0]));
+        client_ = jack_client_open(&(p->clientName[0]), JackNullOption, NULL);
       }
       else
         client_ = p->client;

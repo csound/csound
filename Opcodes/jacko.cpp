@@ -456,14 +456,16 @@ struct JackoNoteOut;
 struct JackoTransport;
 struct JackoState;
 
+#if 0
 static JackoState *getJackoState(CSOUND *csound);
+static void *closeRoutine(void *userdata);
+#endif
 
-static int JackProcessCallback_(jack_nframes_t frames,
-                                void *data);
-
+static std::map<CSOUND *, JackoState *> jackoStatesForCsoundInstances;
 static void SenseEventCallback_(CSOUND *csound,
                                 void *data);
-
+static int JackProcessCallback_(jack_nframes_t frames,
+                                void *data);
 static int midiDeviceOpen_(CSOUND *csound,
                            void **userData,
                            const char *devName);
@@ -472,11 +474,6 @@ static int midiRead_(CSOUND *csound,
                      void *userData,
                      unsigned char *midiData,
                      int nbytes);
-
-static void *closeRoutine(void *userdata);
-
-
-static std::map<CSOUND *, JackoState *> jackoStatesForCsoundInstances;
 
 /**
  * Manages all state relevant to the global
@@ -528,7 +525,9 @@ struct JackoState
       // block until it is signaled.
       result = pthread_create(&closeThread, 0, &JackoState::closeRoutine_, this);
       std::memset(&jack_position, 0, sizeof(jack_position_t));
-      jack_options_t jack_options = (jack_options_t) JackOpenOptions;
+      jack_options_t jack_options = (jack_options_t) (JackServerName |
+                                                      JackNoStartServer |
+                                                      JackUseExactName);
       jack_status_t status = jack_status_t(0);
       jackClient = jack_client_open(clientName,
                                     jack_options,
@@ -583,7 +582,7 @@ struct JackoState
   }
   ~JackoState()
   {
-      int result = 0;
+      //int result = 0;           // This does NOTHING!
   }
   int close()
   {
@@ -828,7 +827,6 @@ struct JackoInfo : public OpcodeBase<JackoInfo>
   JackoState *jackoState;
   int init(CSOUND *csound)
   {
-    int result = OK;
     jackoState = getJackoState(csound);
     log(csound, "Jack information for client: %s\n", jackoState->clientName);
     log(csound, "  Daemon name:               %s\n", jackoState->serverName);
@@ -1415,7 +1413,6 @@ struct JackoTransport : public OpcodeBase<JackoTransport>
   double priorPositionSeconds;
   int init(CSOUND *csound)
   {
-      int result = OK;
       jackoState = getJackoState(csound);
       priorCommand = -1;
       priorPositionSeconds = 0.0;

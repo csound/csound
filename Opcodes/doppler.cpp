@@ -152,7 +152,7 @@ public:
 
     std::vector<MYFLT> *sourceBuffer = new std::vector<MYFLT>;
     sourceBuffer->resize(blockSize);
-    for (size_t inputFrame = 0; inputFrame < blockSize; inputFrame++) {
+    for (size_t inputFrame = 0; inputFrame<(unsigned int)blockSize; inputFrame++) {
       (*sourceBuffer)[inputFrame] = audioInput[inputFrame];
     }
     audioBufferQueue->push_back(sourceBuffer);
@@ -179,7 +179,9 @@ public:
       log(csound, "Doppler::kontrol: kSourcePosition:       %10.3f\n", *kSourcePosition);
     }
 
-    for (size_t outputFrame = 0; outputFrame < blockSize; outputFrame++) {
+    for (size_t outputFrame = 0;
+         outputFrame < (unsigned int)blockSize;
+         outputFrame++) {
       MYFLT position = smoothingFilter->update(targetPosition);
       MYFLT distance = std::fabs(position);
       MYFLT sourceTime = relativeIndex - (distance * samplesPerDistance);
@@ -218,6 +220,14 @@ public:
         if (sourcePositionQueue) {
             delete sourcePositionQueue;
             sourcePositionQueue = 0;
+        }
+        if (audioInterpolator) {
+            delete audioInterpolator;
+            audioInterpolator = 0;
+        }
+        if (smoothingFilter) {
+            delete smoothingFilter;
+            smoothingFilter = 0;
         }
         return result;
     }

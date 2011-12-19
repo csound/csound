@@ -1,0 +1,29 @@
+#!/bin/sh
+/bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Resources/Java/lib_jcsound.jnilib /Library/Java/Extensions/lib_jcsound.jnilib
+
+PY_SRC_DIR="/Library/Frameworks/CsoundLib64.framework/Resources/Python/Current"
+
+PYTHON_DIR="/Library/Python/2.7/site-packages"
+if [ -d "$PYTHON_DIR" ]; then
+  /bin/ln -sF $PY_SRC_DIR/CsoundAC.py $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/_csnd.so $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/csnd.py $PYTHON_DIR
+fi
+
+
+PYTHON_DIR="/Library/Python/2.6/site-packages"
+if [ -d "$PYTHON_DIR" ]; then
+  /bin/ln -sF $PY_SRC_DIR/CsoundAC.py $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/_csnd.so $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/csnd.py $PYTHON_DIR
+fi
+
+PYTHON_DIR="/Library/Python/2.5/site-packages"
+if [ -d "$PYTHON_DIR" ]; then
+  /bin/ln -sF $PY_SRC_DIR/CsoundAC.py $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/_csnd.so $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/csnd.py $PYTHON_DIR
+fi

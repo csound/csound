@@ -2258,6 +2258,7 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
     return ftp;
 }
 
+/* **** SOMETHING WRONG HERE __ NOT CALLED **** */
 static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
 {
     FGDATA  ff;
@@ -2475,7 +2476,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
        if (p->channel == ALLCHNLS)
          ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
-      /*ff->flen     -= 1;*/                  /* VL: this was causing tables to exclude last point  */
+/*ff->flen     -= 1;*/ /* VL: this was causing tables to exclude last point  */
       ftp           = ftalloc(ff);            /*   alloc now, and           */
       ftp->lenmask  = 0L;                     /*   mark hdr partly filled   */
       /*if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;
@@ -2498,7 +2499,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       SF_INSTRUMENT lpd;
       int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
       if (ans) {
-        double natcps, gainfac;
+        double natcps;
 #ifdef BETA
         if ((csound->oparms_.msglevel & 7) == 7) {
           csound->Message(csound,
@@ -2520,7 +2521,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         natcps = pow(2.0, ((double) ((int) lpd.basenote - 69)
                            + (double) lpd.detune * 0.01) / 12.0) * 440.0;
         /* As far as I can tell this gainfac value is never used! */
-        gainfac = exp((double) lpd.gain * LOG10D20);
+        //gainfac = exp((double) lpd.gain * LOG10D20);
      /* if (lpd.basenote == 0)
           lpd.basenote = ftp->cvtbas; */
         ftp->cpscvt = ftp->cvtbas / natcps;
@@ -2686,7 +2687,6 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     char    sfname[1024];
     mpadec_info_t mpainfo;
     uint32_t bufsize, bufused = 0;
-    uint64_t maxsize;
     uint8_t *buffer;
     int size = 0x1000;
     int flen;
@@ -2756,9 +2756,9 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       return fterror(ff, mp3dec_error(r));
     }
     ftp->gen01args.sample_rate = mpainfo.frequency;
-    maxsize = mpainfo.decoded_sample_size
-      *mpainfo.decoded_frame_samples
-      *mpainfo.frames;
+    /* maxsize = mpainfo.decoded_sample_size */
+    /*   *mpainfo.decoded_frame_samples */
+    /*   *mpainfo.frames; */
     {
       char temp[80];
       if (mpainfo.frequency < 16000) strcpy(temp, "MPEG-2.5 ");
@@ -3152,3 +3152,24 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
     return csound->genmax-1;
 }
 
+#include "resize.h"
+
+ static int warned = 0;
+int resize_table(CSOUND *csound, RESIZE *p)
+{
+    int fsize  = (int) MYFLT2LRND(*p->nsize);
+    int fno  = (int) MYFLT2LRND(*p->fn);
+    FUNC *ftp;
+
+    if (warned==0) {
+      printf("WARNING: EXPERIMENTAL CODE\n");
+      warned = 1;
+    }
+    if ((ftp = csound->FTFind(csound, p->fn)) == NULL)
+      return NOTOK;
+    if (ftp->flen<fsize) 
+      ftp = (FUNC*) csound->ReAlloc(csound, ftp, sizeof(FUNC)+sizeof(MYFLT)*fsize);
+    ftp->flen = fsize;
+    csound->flist[fno] = ftp;
+    return OK;
+}

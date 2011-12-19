@@ -373,10 +373,9 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
 {
     TSEG2       *segp;
     int nsegs,j;
-    MYFLT       **argp,  *vector;
+    MYFLT       **argp;
     double dur, durtot = 0.0, prevphs;
     FUNC *nxtfunc, *curfunc, *ftp;
-    long        flength;
 
     nsegs = p->nsegs =((p->INCOUNT-3) >> 1);    /* count segs & alloc if nec */
 

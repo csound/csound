@@ -153,7 +153,10 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 {
     MYFLT      *aLeft, *aRight; /* audio output streams */
     MYFLT      *aIn, *kAz, *kElev; /* audio and control input streams */
-    int        azim, elev, el_index, az_index,oldel_index, oldaz_index;
+    int        azim, elev, el_index, az_index,oldel_index;
+#ifdef CLICKS
+    int        oldaz_index;
+#endif
     int        nsmpsi, nsmpso; /* number of samples in/out */
     /*         input,      out-left,    out-right */
     MYFLT      *x, *yl, *yr;    /* Local copies of address */
@@ -188,11 +191,11 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     elev = (int) *kElev;
     azim = (int) *kAz;
     oldel_index = p->oldel_index;
-    oldaz_index = p->oldaz_index;
     fpindex = (int16 *) p->fpbegin;
     flip = 0;
 #ifdef CLICKS
     crossfadeflag = 0;
+    oldaz_index = p->oldaz_index;
 #endif
 
         /* Convert elevation in degrees to elevation array index. */
@@ -477,9 +480,9 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     p->outfront    = outfront;
     p->outend      = outend;
     p->oldel_index = el_index;
+#ifdef CLICKS
     p->oldaz_index = az_index;
 
-#ifdef CLICKS
     for (i=0; i<FILT_LEN; i++) {        /* archive current HRTFs */
       p->oldhrtf_data.left[i]  = hrtf_data.left[i];
       p->oldhrtf_data.right[i] = hrtf_data.right[i];

@@ -52,7 +52,7 @@ static int (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 #define tthird (FL(2.0) / 3)
 #define msix (-FL(1.0) / 6)
 #define fsix (FL(5.0) / 6)
-#define mtw (-FL(-1.0) / 12)
+#define mtw (-FL(1.0) / 12)
 #define etw (FL(11.0) / 12)
 
 static const MYFLT matrix6[36] =
@@ -207,7 +207,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     float *fpindexl, *fpindexr;
 
     /* processing sizes */
-    int irlength, irlengthpad, overlapsize;
+    int irlength=0, irlengthpad=0, overlapsize=0;
 
     /* pointers used to fill buffers in data structure */
     int *delaysp;
@@ -222,7 +222,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     int skipdouble = 0;
 
     /* used in choice of delay line lengths */
-    int basedelay;
+    int basedelay=0;
 
     /* local filter variables for spectral manipulations */
     MYFLT rel, rer, retemp, iml, imr, imtemp;
@@ -411,12 +411,16 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     Mtwelve = abs((int)(delaytime / 12) - meanfpsamps);
     Mtwentyfour = abs((int)(delaytime / 24) - meanfpsamps);
     M = Mtwelve < Mtwentyfour ? (Msix < Mtwelve ? 6 : 12) : 24;
+    
+    csound->Message(csound, "%d \n", M);
 
     delaytime /= M;
     delaytimeint = (int)delaytime;
 
     if(delaytimeint < meanfpsamps)
       delaytimeint = meanfpsamps;
+
+    /*csound->Message(csound, "%d %d %d \n", M, delaytimeint, meanfpsamps);*/
 
     /* maximum value, according to primes array and delay line allocation */
     if(delaytimeint > 10112)
@@ -438,7 +442,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
         if(delaytimeint < 410)
           delaytimeint = 410;
       }
-    
+   
     /* allocate memory based on M: number of delays */
     if (!p->delays.auxp || p->delays.size < M * sizeof(int))
       csound->AuxAlloc(csound, M * sizeof(int), &p->delays);
@@ -477,7 +481,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
           {
             basedelay = i - 1;
             if(primes[test] > meanfpordersamps)
-              printf("\nfdn delay > earlies del..., fixed!");
+              csound->Message(csound, "\nfdn delay > earlies del..., fixed!");
             *p->idel = (meanfpordersamps - primes[test - 1]) / sr;
             break;
           }
@@ -825,7 +829,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
             if(aip[i] > FL(0.99) || aip[i] < -FL(0.99))
               {
-                printf(Str("\nwarning, approaching instability, fixed with "
+                csound->Message(csound, Str("\nwarning, approaching instability, fixed with "
                            "a flat late reverb!"));
                 clipcheck = 1;
                 if(aip[i] > 0.99)
@@ -852,15 +856,17 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
     int i, j, k, n = csound->ksmps;
 
     /* signals in, out */
-    MYFLT *in = p->insig;
+    MYFLT *in = p->insig, sigin;
     MYFLT *outl = p->outsigl;
     MYFLT *outr = p->outsigr;
 
     /* pointers to delay data */
     MYFLT *del1p, *del2p, *del3p, *del4p, *del5p, *del6p;
-    MYFLT *del1tp, *del2tp, *del3tp, *del4tp, *del5tp, *del6tp;
-    MYFLT *del1tfp, *del2tfp, *del3tfp, *del4tfp, *del5tfp, *del6tfp,
-          *del7tfp, *del8tfp, *del9tfp, *del10tfp, *del11tfp, *del12tfp;
+    MYFLT *del1tp=NULL, *del2tp=NULL, *del3tp=NULL,
+          *del4tp=NULL, *del5tp=NULL, *del6tp=NULL;
+    MYFLT *del1tfp=NULL, *del2tfp=NULL, *del3tfp=NULL, *del4tfp=NULL,
+          *del5tfp=NULL, *del6tfp=NULL, *del7tfp=NULL, *del8tfp=NULL,
+          *del9tfp=NULL, *del10tfp=NULL, *del11tfp=NULL, *del12tfp=NULL;
     int *delaysp;
 
     /* matrix manipulation */
@@ -869,8 +875,8 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
     /* delay line iterators */
     int u, v, w, x, y, z;
     int ut, vt, wt, xt, yt, zt;
-    int utf1, vtf1, wtf1, xtf1, ytf1, ztf1;
-    int utf2, vtf2, wtf2, xtf2, ytf2, ztf2;
+    int utf1=0, vtf1=0, wtf1=0, xtf1=0, ytf1=0, ztf1=0;
+    int utf2=0, vtf2=0, wtf2=0, xtf2=0, ytf2=0, ztf2=0;
 
     /* number of delays */
     int M = p->M;
@@ -969,6 +975,10 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         yt = p->yt;
         zt = p->zt;
       }
+    else {
+      printf("Should not get here\n");
+      ut = vt = wt = xt = yt = zt = 0;
+    }
     if(M==24)
       {
         utf1 = p->utf1;
@@ -1082,37 +1092,37 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
               }
           }
 
-        in[i] = in[i] * (FL(32767.0) / csound->e0dbfs);
+        sigin = in[i] * (FL(32767.0) / csound->e0dbfs);
 
-        del1p[u] = outmatp[0] + in[i];
-        del2p[v] = outmatp[1] + in[i];
-        del3p[w] = outmatp[2] + in[i];
-        del4p[x] = outmatp[3] + in[i];
-        del5p[y] = outmatp[4] + in[i];
-        del6p[z] = outmatp[5] + in[i];
+        del1p[u] = outmatp[0] + sigin;
+        del2p[v] = outmatp[1] + sigin;
+        del3p[w] = outmatp[2] + sigin;
+        del4p[x] = outmatp[3] + sigin;
+        del5p[y] = outmatp[4] + sigin;
+        del6p[z] = outmatp[5] + sigin;
         if(M == 12 || M == 24)
           {
-            del1tp[ut] = outmatp[6] + in[i];
-            del2tp[vt] = outmatp[7] + in[i];
-            del3tp[wt] = outmatp[8] + in[i];
-            del4tp[xt] = outmatp[9] + in[i];
-            del5tp[yt] = outmatp[10] + in[i];
-            del6tp[zt] = outmatp[11] + in[i];
+            del1tp[ut] = outmatp[6] + sigin;
+            del2tp[vt] = outmatp[7] + sigin;
+            del3tp[wt] = outmatp[8] + sigin;
+            del4tp[xt] = outmatp[9] + sigin;
+            del5tp[yt] = outmatp[10] + sigin;
+            del6tp[zt] = outmatp[11] + sigin;
           }
         if(M == 24)
           {
-            del1tfp[utf1] = outmatp[12] + in[i];
-            del2tfp[vtf1] = outmatp[13] + in[i];
-            del3tfp[wtf1] = outmatp[14] + in[i];
-            del4tfp[xtf1] = outmatp[15] + in[i];
-            del5tfp[ytf1] = outmatp[16] + in[i];
-            del6tfp[ztf1] = outmatp[17] + in[i];
-            del7tfp[utf2] = outmatp[18] + in[i];
-            del8tfp[vtf2] = outmatp[19] + in[i];
-            del9tfp[wtf2] = outmatp[20] + in[i];
-            del10tfp[xtf2] = outmatp[21] + in[i];
-            del11tfp[ytf2] = outmatp[22] + in[i];
-            del12tfp[ztf2] = outmatp[23] + in[i];
+            del1tfp[utf1] = outmatp[12] + sigin;
+            del2tfp[vtf1] = outmatp[13] + sigin;
+            del3tfp[wtf1] = outmatp[14] + sigin;
+            del4tfp[xtf1] = outmatp[15] + sigin;
+            del5tfp[ytf1] = outmatp[16] + sigin;
+            del6tfp[ztf1] = outmatp[17] + sigin;
+            del7tfp[utf2] = outmatp[18] + sigin;
+            del8tfp[vtf2] = outmatp[19] + sigin;
+            del9tfp[wtf2] = outmatp[20] + sigin;
+            del10tfp[xtf2] = outmatp[21] + sigin;
+            del11tfp[ytf2] = outmatp[22] + sigin;
+            del12tfp[ztf2] = outmatp[23] + sigin;
           }
                 
         u = (u != delaysp[0] - 1 ? u + 1 : 0);

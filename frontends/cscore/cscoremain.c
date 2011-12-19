@@ -35,11 +35,13 @@ extern void cscore(CSOUND*);
 
    Use this command (or your system's equivalent) to compile:
 
-     gcc mycscore.c cscoremain.c -o cscore -lcsound -L/usr/local/lib -I/usr/local/include/csound
+     gcc mycscore.c cscoremain.c -o cscore -lcsound -L/usr/local/lib \
+         -I/usr/local/include/csound
 
    On Mac OS X, use this command to compile:
 
-     gcc mycscore.c cscoremain.c -o cscore -framework CsoundLib -I/Library/Frameworks/CsoundLib.framework/Headers
+     gcc mycscore.c cscoremain.c -o cscore -framework CsoundLib \
+         -I/Library/Frameworks/CsoundLib.framework/Headers
 
    The resulting executable can be run with:
 
@@ -69,7 +71,8 @@ int main(int argc, char **argv)
 
     /* open the command line scorein file */
     if (argc < 2) {
-      fprintf(stderr, "Insufficient arguments: must provide an input filename.\n");
+      fprintf(stderr,
+              "Insufficient arguments: must provide an input filename.\n");
       return -1;
     }
     if (!(insco = fopen(argv[1], "r"))) {

@@ -1694,6 +1694,7 @@ int impulse(CSOUND *csound, IMPULSE *p)
     int n, nsmps = csound->ksmps;
     int next = p->next;
     MYFLT *ar = p->ar;
+    if (next<0) next = -next;
     if (UNLIKELY(next < csound->ksmps)) {          /* Impulse in this frame */
       MYFLT frq = *p->freq;     /* Freq at k-rate */
       int sfreq;                /* Converted to samples */
@@ -1916,7 +1917,8 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
     int         relestim;
     NSEG        *segp;
     int         nsegs;
-    MYFLT       **argp, val;
+    MYFLT       **argp;
+    double      val;
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
       csound->InitError(csound, Str("Incorrect argument count in transegr"));
@@ -1928,18 +1930,18 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
     }
     segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
     argp = p->argums;
-    val = **argp++;
-    if (**argp <= FL(0.0)) return OK; /* if idur1 <= 0, skip init  */
+    val = (double)**argp++;
+    if (UNLIKELY(**argp <= FL(0.0))) return OK; /* if idur1 <= 0, skip init  */
     p->curval = val;
     p->curcnt = 0;
     p->cursegp = segp - 1;            /* else setup null seg0 */
     p->segsrem = nsegs + 1;
     p->curx = FL(0.0);
     do {                              /* init each seg ..  */
-      MYFLT dur = **argp++;
+      double dur = (double)**argp++;
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
-      MYFLT d = dur * csound->esr;
+      MYFLT d = dur * csound->ekr;
       if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
         segp->cnt = 0;
       else
@@ -1950,18 +1952,21 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
         segp->c1 = (nxtval-val)/d;
       }
       else {
+        p->lastalpha = alpha;
         segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
       }
       segp->alpha = alpha/d;
       val = nxtval;
       segp++;
+      p->finalval = nxtval;
     } while (--nsegs);
-    p->xtra = -1;
+    //p->xtra = -1;
     p->alpha = ((NSEG*)p->auxch.auxp)[0].alpha;
     p->curinc = ((NSEG*)p->auxch.auxp)[0].c1;
     relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
+    p->xtra = relestim;
     if (relestim > p->h.insdshead->xtratim)
-      p->h.insdshead->xtratim = relestim;
+      p->h.insdshead->xtratim = (int)relestim;
     return OK;
 }
 
@@ -1979,6 +1984,15 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
           p->segsrem--;
         }                               /*   get univ relestim  */
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
+        if (segp->alpha == FL(0.0)) {
+          segp->c1 = (p->finalval-p->curval)/segp->cnt;
+        }
+        else {
+          /* this is very wrong */
+          segp->c1 = (p->finalval - p->curval)/(FL(1.0) - EXP(p->lastalpha));
+          segp->alpha = p->lastalpha/segp->cnt;
+          segp->val = p->curval;
+        }
         goto newm;                      /*   and set new curmlt */
       }
       if (--p->curcnt <= 0) {           /* if done cur segment  */
@@ -2009,28 +2023,38 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
     int         n, nsmps = csound->ksmps;
-    NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
     }
     val = p->curval;                      /* sav the cur value    */
-    if (p->segsrem) {                     /* if no more segs putk */
+    if (LIKELY(p->segsrem)) {             /* if no more segs putk */ 
+      NSEG  *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
-        while (p->segsrem > 1) {        /* if reles flag new    */
-          segp = ++p->cursegp;          /*   go to last segment */
+        while (p->segsrem > 1) {          /* if release flag new  */
+          segp = ++p->cursegp;            /*   go to last segment */
           p->segsrem--;
-        }                               /*   get univ relestim  */
+        }                                 /*   get univ relestim  */
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
-        goto newm;                      /*   and set new curmlt */
+        if (segp->alpha == FL(0.0)) {
+          segp->c1 = (p->finalval-val)/segp->cnt;
+        }
+        else {
+          /* this is very wrong */
+          segp->c1 = (p->finalval - val)/(FL(1.0) - EXP(p->lastalpha));
+          segp->alpha = p->lastalpha/segp->cnt;
+          segp->val = val;
+        }
+        goto newm;                        /*   and set new curmlt */
       }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
         segp = p->cursegp;
       chk1:
+        if (p->segsrem == 2) goto putk;     /*   seg Y rpts lastval */
         if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
-          val = p->curval = segp->nxtpt;
+          //val = p->curval = segp->nxtpt;
           goto putk;                      /*      put endval      */
         }
-        p->cursegp = ++segp;              /*   else find the next */
+        segp = ++p->cursegp;              /*   else find the next */
       newm:
        if (!(p->curcnt = segp->cnt)) {
           val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
@@ -2048,16 +2072,16 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
         }
       }
       else {
+        segp = p->cursegp;
         for (n=0; n<nsmps; n++) {
           rs[n] = val;
           p->curx += p->alpha;
-          val = segp->val + p->curinc *
-            (FL(1.0) - EXP(p->curx));
+          val = segp->val + p->curinc * (FL(1.0) - EXP(p->curx));
         }
       }
       p->curval = val;
       return OK;
-putk:
+    putk:
       for (n=0; n<nsmps; n++) {
         rs[n] = val;
       }
@@ -2313,7 +2337,6 @@ int kmedfilt(CSOUND *csound, MEDFILT *p)
     int maxwind = p->maxwind;
     int kwind = MYFLT2LONG(*p->kwind);
     int index = p->ind;
-    int n, nsmps=csound->ksmps;
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, Str("median: not initialised (krate)\n"));
     }

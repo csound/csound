@@ -189,6 +189,7 @@ typedef struct {
         MYFLT   curx;
         AUXCH   auxch;
         int32   xtra;
+        MYFLT   finalval, lastalpha;
 } TRANSEG;
 
 typedef struct {

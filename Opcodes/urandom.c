@@ -57,7 +57,7 @@ static int urand_run(CSOUND *csound, URANDOM *p)
     int ur = p->ur;
     /* union ieee754_double x; */
     int64_t x;
-    read(p->ur, &x, sizeof(int64_t));
+    read(ur, &x, sizeof(int64_t));
 
     /* x.ieee.exponent = x.ieee.exponent& 0x377; */
     /* printf("Debug: %s(%d): %g %d %03x %05x %08x\n", __FILE__, __LINE__, x.d, */
@@ -80,7 +80,7 @@ static int urand_arun(CSOUND *csound, URANDOM *p)
     MYFLT *ar = p->ar;
     int n, nsmps = csound->ksmps;
     for (n=0; n<nsmps; n++) {
-      read(p->ur, &x, sizeof(int64_t));
+      read(ur, &x, sizeof(int64_t));
       ar[n] = p->mul *((MYFLT)x/(MYFLT)0x7fffffffffffffff) + p->add;
     }
     return OK;

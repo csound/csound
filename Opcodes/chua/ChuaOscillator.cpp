@@ -87,18 +87,22 @@
 //     k1(2) = (G*(M(1) - M(2)) + M(3))/C2;
 //     k1(3) = (-(M(2) + R0*M(3)))/L;
 //     % Round Two
-//     k2(1) = (G*(M(2) + h2*k1(2) - (M(1) + h2*k1(1))) - gnor(M(1) + h2*k1(1),sys_variables))/C1;
+//     k2(1) = (G*(M(2) + h2*k1(2) - (M(1) + h2*k1(1))) - gnor(M(1) +
+//              h2*k1(1),sys_variables))/C1;
 //     k2(2) = (G*(M(1) + h2*k1(1) - (M(2) + h2*k1(2))) + M(3) + h2*k1(3))/C2;
 //     k2(3) = (-(M(2) + h2*k1(2) + R0*(M(3) + h2*k1(3))))/L;
 //     % Round Three
-//     k3(1) = (G*(M(2) + h2*k2(2) - (M(1) + h2*k2(1))) - gnor(M(1) + h2*k2(1),sys_variables))/C1;
+//     k3(1) = (G*(M(2) + h2*k2(2) - (M(1) + h2*k2(1))) - gnor(M(1) +
+//              h2*k2(1),sys_variables))/C1;
 //     k3(2) = (G*(M(1) + h2*k2(1) - (M(2) + h2*k2(2))) + M(3) + h2*k2(3))/C2;
 //     k3(3) = (-(M(2) + h2*k2(2) + R0*(M(3) + h2*k2(3))))/L;
 //     % Round Four
-//     k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) + h*k3(1),sys_variables))/C1;
+//     k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) + 
+//              h*k3(1),sys_variables))/C1;
 //     k4(2) = (G*(M(1) + h*k3(1) - (M(2) + h*k3(2))) + M(3) + h*k3(3))/C2;
 //     k4(3) = (-(M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;
-//     M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6); %Finishes integration and assigns values to M(1),
+// %Finishes integration and assigns values to M(1),
+//     M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6); 
 //                                           %M(2) and M(3)
 //     TimeSeries(3,i+1) = M(1);  %TimeSeries 3 is V1
 //     TimeSeries(2,i+1) = M(2);  %TimeSeries 2 is V2
@@ -126,9 +130,12 @@ public:
   MYFLT *V2;
   MYFLT *V1;
   // INPUTS
-  // sys_variables = [system_vars(5:12),system_vars(23:26)]; % L,R0,C2,G,Ga,Gb,E,C1,a,b,c,d
-  // integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size
-  // function TimeSeries = chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,dataset_size,step_size)
+  // % L,R0,C2,G,Ga,Gb,E,C1,a,b,c,d
+  // sys_variables = [system_vars(5:12),system_vars(23:26)]; 
+  // % x0,y0,z0,dataset_size,step_size
+  // integ_variables = [system_vars(14:16),system_vars(1:2)];
+  // function TimeSeries = chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,
+  //                              dataset_size,step_size)
   // Circuit elements.
   MYFLT *L_;
   MYFLT *R0_;
@@ -200,8 +207,11 @@ public:
     c = -0.00121;
     d = 0.0;
     ksmps = csound->GetKsmps(csound);
-    warn(csound, "ChuasOscillatorCubic::init: L: %f  R0: %f  C2: %f  G: %f  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n", *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
-    warn(csound, "ChuasOscillatorCubic::init: a: %f  b: %f  c: %f  d: %f\n", a, b, c, d);
+    warn(csound, "ChuasOscillatorCubic::init: L: %f  R0: %f  C2: %f  G: %f"
+         "  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n", 
+         *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
+    warn(csound, "ChuasOscillatorCubic::init: a: %f  b: %f  c: %f  d: %f\n", 
+         a, b, c, d);
     return OK;
   }
   int noteoff(CSOUND *csound)
@@ -327,22 +337,26 @@ public:
 // for i=1:dataset_size
 //     % Runge Kutta
 //     % Round One
-//     k1(1) = alpha*(M(2) - bnorplus1*M(1) - (.5)*(anor - bnor)*(abs(M(1) + 1) - abs(M(1) - 1)));
+//     k1(1) = alpha*(M(2) - bnorplus1*M(1) - (.5)*(anor - bnor)*(abs(M(1) + 1)
+//                                                              - abs(M(1) - 1)));
 //     k1(2) = M(1) - M(2) + M(3);
 //     k1(3) = -beta*M(2) - gammaloc*M(3);
 //     % Round Two
 //     temp = M(1) + h2*k1(1);
-//     k2(1) = alpha*(M(2) + h2*k1(2) - bnorplus1*temp - (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
+//     k2(1) = alpha*(M(2) + h2*k1(2) - bnorplus1*temp - 
+//             (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
 //     k2(2) = k1(2) + h2*(k1(1) - k1(2) + k1(3));
 //     k2(3) = omch2*k1(3) - bh2*k1(2);
 //     % Round Three
 //     temp = M(1) + h2*k2(1);
-//     k3(1) = alpha*(M(2) + h2*k2(2) - bnorplus1*temp - (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
+//     k3(1) = alpha*(M(2) + h2*k2(2) - bnorplus1*temp -
+//             (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
 //     k3(2) = k1(2) + h2*(k2(1) - k2(2) + k2(3));
 //     k3(3) = k1(3) - bh2*k2(2) - ch2*k2(3);
 //     % Round Four
 //     temp = M(1) + h*k3(1);
-//     k4(1) = alpha*(M(2) + h*k3(2) - bnorplus1*temp - (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
+//     k4(1) = alpha*(M(2) + h*k3(2) - bnorplus1*temp - 
+//             (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
 //     k4(2) = k1(2) + h*(k3(1) - k3(2) + k3(3));
 //     k4(3) = k1(3) - bh*k3(2) - ch*k3(3);
 //     M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
@@ -361,8 +375,10 @@ public:
   MYFLT *V1;
   // INPUTS
   // sys_variables = system_vars(5:12); % L,R0,C2,G,Ga,Gb,E,C1
-  // integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size
-  // function TimeSeries = chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,dataset_size,step_size)
+  // % x0,y0,z0,dataset_size,step_size
+  // integ_variables = [system_vars(14:16),system_vars(1:2)];
+  // function TimeSeries = chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,
+  //                              dataset_size,step_size)
   // Circuit elements.
   MYFLT *L_;
   MYFLT *R0_;
@@ -429,7 +445,11 @@ public:
     // M(3) = TimeSeries(1)/(E*G);
     M(3) = *I3_ / (*E_ * *G_);
     ksmps = csound->GetKsmps(csound);
-    warn(csound, "ChuasOscillatorPiecewise::init: L: %f  R0: %f  C2: %f  G: %f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2): %f  M(3): %f step: %f\n", *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_, M(1), M(2), M(3), step_size);
+    warn(csound, "ChuasOscillatorPiecewise::init: L: %f  R0: %f  C2: %f  G: "
+         "%f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2):"
+         " %f  M(3): %f step: %f\n",
+         *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_,
+         M(1), M(2), M(3), step_size);
     return OK;
   }
   int noteoff(CSOUND *csound)
@@ -460,7 +480,8 @@ public:
     MYFLT &Gb = *Gb_;
     MYFLT &E = *E_;
     MYFLT &C1 = *C1_;
-    // Recompute Runge-Kutta stuff every kperiod in case kontrol variables have changed.
+    // Recompute Runge-Kutta stuff every kperiod in case kontrol variables
+    // have changed.
     step_size = *step_size_;
     // h = step_size*G/C2;
     h = step_size * G / C2;
@@ -493,22 +514,26 @@ public:
      // Standard 4th-order Runge-Kutta integration.
     for (size_t i = 0; i < ksmps; i++) {
       // Stage 1.
-      k1(1) = alpha*(M(2) - bnorplus1*M(1) - (.5)*(anor - bnor)*(abs(M(1) + 1) - abs(M(1) - 1)));
+      k1(1) = alpha*(M(2) - bnorplus1*M(1) -
+                     (.5)*(anor - bnor)*(abs(M(1) + 1) - abs(M(1) - 1)));
       k1(2) = M(1) - M(2) + M(3);
       k1(3) = -beta*M(2) - gammaloc*M(3);
       // Stage 2.
       temp = M(1) + h2*k1(1);
-      k2(1) = alpha*(M(2) + h2*k1(2) - bnorplus1*temp - (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
+      k2(1) = alpha*(M(2) + h2*k1(2) - bnorplus1*temp -
+                     (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
       k2(2) = k1(2) + h2*(k1(1) - k1(2) + k1(3));
       k2(3) = omch2*k1(3) - bh2*k1(2);
       // Stage 3.
       temp = M(1) + h2*k2(1);
-      k3(1) = alpha*(M(2) + h2*k2(2) - bnorplus1*temp - (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
+      k3(1) = alpha*(M(2) + h2*k2(2) - bnorplus1*temp -
+                     (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
       k3(2) = k1(2) + h2*(k2(1) - k2(2) + k2(3));
       k3(3) = k1(3) - bh2*k2(2) - ch2*k2(3);
       // Stage 4.
       temp = M(1) + h*k3(1);
-      k4(1) = alpha*(M(2) + h*k3(2) - bnorplus1*temp - (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
+      k4(1) = alpha*(M(2) + h*k3(2) - bnorplus1*temp -
+                     (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
       k4(2) = k1(2) + h*(k3(1) - k3(2) + k3(3));
       k4(3) = k1(3) - bh*k3(2) - ch*k3(3);
       M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
@@ -532,8 +557,8 @@ extern "C"
 //         (char*)"chuac",
 //         sizeof(ChuasOscillatorCubic),
 //         5,
-//      // kL,       kR0,  kC2,     kG,       kC1,       iI3, iV2,   iV1,  kstep_size
-//      // 0.00945,  7.5,  2e-007,  0.00105,  1.5e-008,  0,   -0.1,  0.1,  5e-6
+//    // kL,       kR0,  kC2,     kG,       kC1,       iI3, iV2,   iV1,  kstep_size
+//    // 0.00945,  7.5,  2e-007,  0.00105,  1.5e-008,  0,   -0.1,  0.1,  5e-6
 //         (char*)"aaa",
 //         (char*)"kkkkkiiik",
 //         (SUBR) ChuasOscillatorCubic::init_,
@@ -544,8 +569,10 @@ extern "C"
         (char*)"chuap",
         sizeof(ChuasOscillatorPiecewise),
         5,
-        // kL,       kR0,  kC2,     kG,       kGa, kGb,       kE,         kC1,       iI3, iV2,   iV1,  kstep_size
-        // 0.00945,  7.5,  2e-007,  0.00105,  0,   -0.00121,  1.76e-005,  1.5e-008,  0,   -0.1,  0.1,  5e-6
+        // kL,       kR0,  kC2,     kG,       kGa, kGb,       kE,         kC1,
+        //                  iI3, iV2,   iV1,  kstep_size
+        // 0.00945,  7.5,  2e-007,  0.00105,  0,   -0.00121,  1.76e-005,  1.5e-008,
+        //                   0,   -0.1,  0.1,  5e-6
         (char*)"aaa",
         (char*)"kkkkkkkkiiik",
         (SUBR) ChuasOscillatorPiecewise::init_,

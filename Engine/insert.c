@@ -30,7 +30,7 @@
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "pstream.h"
-extern MYFLT cpsocfrc[];        /* Needed by CPSOCTL */
+/*extern MYFLT cpsocfrc[]; */       /* Needed by CPSOCTL */
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -371,7 +371,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       MYFLT value = (MYFLT) ip->m_pitch;
       pfields[index] = value;
       if (O->msglevel & WARNMSG) {
-        csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
+        csound->Message(csound, "  midiKey:         pfield: %3d  value: %.3f\n",
                         pfield, (int) pfields[index]);
       }
     }
@@ -439,7 +439,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       pfields[index] = value;
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n",
-                        pfield, (int) pfields[index]);
+                        pfield, pfields[index]);
       }
     }
     /* 

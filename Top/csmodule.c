@@ -204,7 +204,8 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       minorVersion = (n & 0xFF00) >> 8;
       majorVersion = (n & (~0xFFFF)) >> 16;
       if (majorVersion != (int) CS_APIVERSION ||
-          minorVersion > (int) CS_APISUBVER) {
+          (minorVersion > (int) CS_APISUBVER) ||
+          (minorVersion <= 5)) { /* NOTE **** REFACTOR *** */
         csound->Warning(csound, Str("not loading '%s' (incompatible "
                                     "with this version of Csound (%d.%d/%d.%d)"),
                         fname, majorVersion,minorVersion,
@@ -351,6 +352,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
 
 static int csoundCheckOpcodeDeny(CSOUND *csound, const char *fname)
 {
+    (void *)csound;
     /* Check to see if the fname is on the do-not-load list */
     char buff[256];
     char *p, *deny;
@@ -1275,47 +1277,6 @@ void print_opcodedir_warning(CSOUND *p)
 #endif
 }
 
-/*
-These need to be added
-stdopcod          stdopcod.c
-urandom          urandom.c
-modmatrix       modmatrix.c
-eqfil                eqfil.c
-pvsbuffer        pvsbuffer.c
-scoreline        scoreline.c
-modal4           modal4.c
-pitch               pitch.c
-physmod         physmod.c
-scansyn           scansyn.c
-ambidecode1   ambicode1.c
-                DONE        babo                 babo.c
-sfont                sfont.c
-barmodel         barmodel.c
-                DONE        compress        compress.c
-grain4             grain4.c
-hrtferX             hrtferX.c
-hrtfnew            hrtfopcodes.c
-loscilx              loscilx.c
-pan2                 pan2.c
-phisem             phisem.c
-pvoc                pvoc.c
-pvs_ops           pvs_ops.c
-stackops          stackops.c
-vbap                 vbap.c
-vaps                  vaops.c
-ugakbari           ugakbari.c
-harmon              harmon.c
-cs_date              cs_date.c
-ptrack               ptrack.c
-partikkel           partikkel.c
-shape               shape.c
-doppler            doppler.c
-tabsum            tabsum.c
-crossfm           crossfm.c
-pvlock            pvlock.c
-vosim              vosim.c
-*/
-
 typedef long (*INITFN)(CSOUND *, void *);
 
 extern long babo_localops_init(CSOUND *, void *);
@@ -1344,6 +1305,7 @@ extern long minmax_localops_init(CSOUND *, void *);
 
 extern long stackops_localops_init(CSOUND *, void *);
 extern long vbap_localops_init(CSOUND *, void *);
+extern long vaops_localops_init(CSOUND *, void*);
 extern long ugakbari_localops_init(CSOUND *, void *);
 extern long harmon_localops_init(CSOUND *, void *);
 extern long pitchtrack_localops_init(CSOUND *, void *);
@@ -1354,12 +1316,15 @@ extern long tabsum_localops_init(CSOUND *, void *);
 extern long crossfm_localops_init(CSOUND *, void *);
 extern long pvlock_localops_init(CSOUND *, void *);
 extern long fareyseq_localops_init(CSOUND *, void *);
+extern long cpumeter_localops_init(CSOUND *, void *);
+
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleCreate(CSOUND *csound);
 extern int newgabopc_ModuleInit(CSOUND *csound);
+
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
@@ -1377,8 +1342,8 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  shape_localops_init, tabsum_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
-				 hrtfreverb_localops_init, minmax_localops_init,
-                                 NULL };
+                                 hrtfreverb_localops_init, minmax_localops_init,
+                                 vaops_localops_init, cpumeter_localops_init, NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 
@@ -1388,7 +1353,7 @@ const FGINITFN fgentab[] = {  ftest_fgens_init, NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
-  int     i, ret;
+    int     i;
     OENTRY  *opcodlst_n;
     long    length;
 

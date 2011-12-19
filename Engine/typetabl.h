@@ -41,6 +41,7 @@
 #define ARGTYP_B        0x00000200L     /* boolean (k-rate) */
 #define ARGTYP_b        0x00000400L     /* boolean (i-rate) */
 #define ARGTYP_l        0x00000800L     /* label */
+#define ARGTYP_t        0x00001000L     /* table */
 
 /* some common type combinations to save typing */
 
@@ -57,6 +58,7 @@ static const int32 typetabl1[/*25*/] = {
     'p',    ARGTYP_p,       'c',    ARGTYP_c,       'r',    ARGTYP_r,
     'S',    ARGTYP_S,       'w',    ARGTYP_w,       'f',    ARGTYP_f,
     'B',    ARGTYP_B,       'b',    ARGTYP_b,       'l',    ARGTYP_l,
+    't',    ARGTYP_t,
     0L
 };
 
@@ -90,6 +92,7 @@ static const int32 typetabl3[/*17*/] = {
     'N',    (ARGTYP_S | ARGTYP_a | ARGTYP_k | ARGTYP_i | ARGTYP_p),
     'I',    (ARGTYP_S | ARGTYP_i | ARGTYP_p),
     'F',    ARGTYP_f,
+    't',    ARGTYP_t,
     0L
 };
 
