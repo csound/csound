@@ -431,7 +431,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
                                     "FLTK_Flags") == (void*) 0) {
       if (csound->CreateGlobalVariable(csound,
                                        "FLTK_Flags", sizeof(int)) != 0)
-        csound->Die(csound,
+        csound->Die(csound, "%s",
                     Str("virtual_keyboard.cpp: error allocating FLTK flags"));
     }
 
