@@ -266,9 +266,6 @@ commandOptions.Add('useOpenMP',
 commandOptions.Add('tclversion',
     'Set to 8.4 or 8.5',
     '8.5')
-commandOptions.Add('includeMP3',
-     'Set to 1 if using mpadec',
-     '0')
 commandOptions.Add('includeWii',
      'Set to 1 if using libwiimote',
      '0')
@@ -703,13 +700,6 @@ if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
 	Exit(-1)
 
 # Support for GEN49 (load MP3 file)
-if commonEnvironment['includeMP3'] == '1' : ### and configure.CheckHeader("mp3dec.h", language = "C") :
-    mpafound = 1
-    commonEnvironment.Append(CPPFLAGS = ['-DINC_MP3'])
-    print 'CONFIGURATION DECISION: Building with MP3 support'
-else:
-    mpafound = 0
-    print 'CONFIGURATION DECISION: No MP3 support'
 
 if commonEnvironment['includeWii'] == '1' and configure.CheckLibWithHeader('wiiuse', "wiiuse.h", language = "C") :
     wiifound = 1
@@ -995,8 +985,6 @@ ws2_32
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
 elif getPlatform() == 'linux' or getPlatform() == 'sunos' or getPlatform() == 'darwin':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
-    if mpafound :
-        csoundDynamicLibraryEnvironment.Append(LIBS = ['mpadec'])
 csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Clone()
 
 if buildOSXFramework:
@@ -1092,6 +1080,14 @@ InOut/winascii.c
 InOut/windin.c
 InOut/window.c
 InOut/winEPS.c
+InOut/libmpadec/layer1.c
+InOut/libmpadec/layer2.c
+InOut/libmpadec/layer3.c
+InOut/libmpadec/synth.c
+InOut/libmpadec/tables.c
+InOut/libmpadec/mpadec.c
+InOut/libmpadec/mp3dec.c
+Opcodes/mp3in.c
 OOps/aops.c
 OOps/bus.c
 OOps/cmath.c
@@ -1141,6 +1137,13 @@ Top/one_file.c
 Top/opcode.c
 Top/threads.c
 Top/utility.c
+InOut/libmpadec/layer1.c 
+InOut/libmpadec/layer2.c 
+InOut/libmpadec/layer3.c 
+InOut/libmpadec/synth.c 
+InOut/libmpadec/tables.c 
+InOut/libmpadec/mpadec.c 
+InOut/libmpadec/mp3dec.c
 ''')
 
 newParserSources = Split('''
@@ -1195,7 +1198,7 @@ Opcodes/vbap_eight.c Opcodes/vbap_four.c Opcodes/vbap_sixteen.c
 Opcodes/vbap_zak.c Opcodes/vaops.c Opcodes/ugakbari.c Opcodes/harmon.c 
 Opcodes/pitchtrack.c Opcodes/partikkel.c Opcodes/shape.c Opcodes/tabsum.c
 Opcodes/crossfm.c Opcodes/pvlock.c Opcodes/fareyseq.c  Opcodes/hrtfearly.c
-Opcodes/hrtfreverb.c Opcodes/cpumeter.c
+Opcodes/hrtfreverb.c Opcodes/cpumeter.c Opcodes/mp3in.c
 ''')
 
 oldpvoc = Split('''
@@ -1289,8 +1292,6 @@ libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Clone()
 pluginEnvironment.Append(LIBS = Split('sndfile'))
-if mpafound:
-  pluginEnvironment.Append(LIBS = ['mpadec'])
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
@@ -1722,8 +1723,6 @@ else:
            oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
     makePlugin(oscEnvironment, 'osc', ['Opcodes/OSC.c'])
 
-if mpafound==1:
-  makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 ##commonEnvironment.Append(LINKFLAGS = ['-Wl,-as-needed'])
 if wiifound==1:
   WiiEnvironment = pluginEnvironment.Clone()
@@ -1810,8 +1809,6 @@ else:
         vstEnvironment.Append(LIBS = ['dl'])
         guiProgramEnvironment.Append(LIBS = ['dl'])
     csoundProgramEnvironment.Append(LIBS = ['pthread', 'm'])
-    if mpafound :
-        csoundProgramEnvironment.Append(LIBS = ['mpadec'])
     if wiifound :
         WiiEnvironment.Append(LIBS = ['wiiuse', 'bluetooth'])
     if p5gfound :
@@ -2656,8 +2653,6 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     csTclEnvironment = commonEnvironment.Clone()
     csTclEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csTclEnvironment.Append(LIBS = libCsoundLibs)
-    if mpafound :
-        csTclEnvironment.Append(LIBS = ['mpadec'])
     if getPlatform() == 'darwin':
         csTclEnvironment.Append(CCFLAGS = Split('''
             -I/Library/Frameworks/Tcl.framework/Headers
@@ -2729,8 +2724,6 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     csWinEnvironment = commonEnvironment.Clone()
     csWinEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csWinEnvironment.Append(LIBS = libCsoundLibs)
-    if mpafound :
-        csWinEnvironment.Append(LIBS = ['mpadec'])
     # not used
     # if (commonEnvironment['noFLTKThreads'] == '1'):
     #     csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
