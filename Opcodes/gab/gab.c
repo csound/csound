@@ -189,7 +189,7 @@ static int fastabi(CSOUND *csound, FASTAB *p)
     else
       i = (int) *p->xndx;
     if (UNLIKELY(i >= ftp->flen || i<0)) {
-        return csound->PerfError(csound, Str("tab_i off end"));
+      return csound->PerfError(csound, Str("tab_i off end: table number: %d\n"), (int) *p->xfn);
     }
     *p->rslt =  ftp->ftable[i];
     return OK;
