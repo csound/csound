@@ -868,11 +868,11 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 if (endLabelCounter > 0) {
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
-                  int type = (gotoType == 1) ? 0 : 1;
-                  printf("%s(%d): type = %d %d\n",
+                  int type = (gotoType == 1) ? 0 : 2;
+                  csound->DebugMsg(csound, "%s(%d): type = %d %d\n",
                          __FILE__, __LINE__, type, gotoType);
                   TREE *gotoEndLabelToken =
-                    create_simple_goto_token(csound, endLabel, gotoType/*type*/);
+                    create_simple_goto_token(csound, endLabel, type);
                   if (UNLIKELY(PARSER_DEBUG))
                     csound->Message(csound, "Creating simple goto token\n");
 
