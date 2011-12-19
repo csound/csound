@@ -76,7 +76,7 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
             hdr.framrate, hdr.srate, hdr.duration);
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
     fread(&hdr, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf);
-    for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
+    for (i=0; i<(signed int)hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
     coef = (MYFLT *)csound->Malloc(csound,(hdr.npoles+hdr.nvals)*sizeof(MYFLT));

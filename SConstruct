@@ -119,9 +119,9 @@ commandOptions.Add('generateTags',
 commandOptions.Add('generatePdf',
     'Set to 1 to generate PDF documentation',
     '0')
-commandOptions.Add('buildLoris',
-    'Set to 1 to build the Loris Python extension and opcodes',
-    '1')
+#commandOptions.Add('buildLoris',
+#    'Set to 1 to build the Loris Python extension and opcodes',
+#    '1')
 commandOptions.Add('useOSC',
     'Set to 1 if you want OSC support',
     '0')
@@ -222,12 +222,12 @@ commandOptions.Add('buildPythonWrapper',
 commandOptions.Add('buildJavaWrapper',
     'Set to 1 to build Java wrapper for the C++ interface library (needs buildInterfaces).',
     '0')
-commandOptions.Add('buildOSXGUI',
-    'On OSX, set to 1 to build the basic GUI frontend',
-    '0')
-commandOptions.Add('buildCSEditor',
-    'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
-    '0')
+#commandOptions.Add('buildOSXGUI',
+#    'On OSX, set to 1 to build the basic GUI frontend',
+#    '0')
+#commandOptions.Add('buildCSEditor',
+#    'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
+#    '0')
 commandOptions.Add('withICL',
     'On Windows, set to 1 to build with the Intel C++ Compiler (also requires Microsoft Visual C++), or set to 0 to build with MinGW',
     '0')
@@ -438,7 +438,7 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch %s' % cpuType))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch %s' % cpuType))
     else:
-        commonEnvironment.Prepend(CCFLAGS = Split('-Wall -W -O3 -mtune=%s' % (cpuType)))
+        commonEnvironment.Prepend(CCFLAGS = Split('-Wall -O3 -mtune=%s' % (cpuType)))
 
 
 if commonEnvironment['buildRelease'] != '0':
@@ -485,7 +485,6 @@ if commonEnvironment['Word64'] == '1':
         commonEnvironment.Append(CCFLAGS = ['-xcode=pic32'])
     else:
         commonEnvironment.Append(CCFLAGS = ['-fPIC'])
-
 
 if commonEnvironment['useDouble'] == '0':
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
@@ -771,7 +770,7 @@ else:
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 gmmFound = configure.CheckHeader("gmm/gmm.h", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
-oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
+oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'MusicXML2::SXMLFile f = MusicXML2::TXMLFile::create();', autoadd=0)
 if musicXmlFound:
    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_MUSICXML2'])
@@ -1195,7 +1194,7 @@ Opcodes/vbap_eight.c Opcodes/vbap_four.c Opcodes/vbap_sixteen.c
 Opcodes/vbap_zak.c Opcodes/vaops.c Opcodes/ugakbari.c Opcodes/harmon.c 
 Opcodes/pitchtrack.c Opcodes/partikkel.c Opcodes/shape.c Opcodes/tabsum.c
 Opcodes/crossfm.c Opcodes/pvlock.c Opcodes/fareyseq.c  Opcodes/hrtfearly.c
-Opcodes/hrtfreverb.c
+Opcodes/hrtfreverb.c Opcodes/cpumeter.c
 ''')
 
 oldpvoc = Split('''
@@ -1405,6 +1404,7 @@ else:
                 '_csnd', csoundInterfacesSources)
             try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
             except: pass
+            csoundInterfacesEnvironment.Command('interfaces install', csnd, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
         else:
             csnd = csoundInterfacesEnvironment.Library('csnd', csoundInterfacesSources)
     elif getPlatform() == 'linux':
@@ -1468,7 +1468,9 @@ else:
     else:
         print 'CONFIGURATION DECISION: Building Java wrapper to Csound C++ interface library.'
         javaWrapperEnvironment = csoundWrapperEnvironment.Clone()
-	javaWrapperEnvironment.Prepend(LIBS = ['csnd'])
+        if  getPlatform() == 'darwin': 
+             javaWrapperEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+	else: javaWrapperEnvironment.Prepend(LIBS = ['csnd'])
         if getPlatform() == 'darwin':
             javaWrapperEnvironment.Append(CPPPATH =
                 ['/System/Library/Frameworks/JavaVM.framework/Headers'])
@@ -1489,15 +1491,19 @@ else:
                 'interfaces/java_interface.i',
         SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
         if getPlatform() == 'darwin':
+            if commonEnvironment['dynamicCsoundLibrary'] == '0':
+               if commonEnvironment['useDouble'] == '0': csoundlibLink = '-lcsound'
+               else: csoundlibLink = '-lcsound64'
+            else: csoundliblink = ''
             javaWrapperEnvironment.Prepend(LINKFLAGS = ['-bundle'])
             javaWrapperEnvironment.Append(LINKFLAGS =
-                ['-framework', 'JavaVM', '-Wl'])
+                ['-framework', 'JavaVM', '-Wl', csoundliblink])
             javaWrapper = javaWrapperEnvironment.Program(
                 'lib_jcsound.jnilib', javaWrapperSources)
         else:
             javaWrapper = javaWrapperEnvironment.SharedLibrary(
                 '_jcsound', javaWrapperSources)
-        Depends(javaWrapper, csoundLibrary)
+        #Depends(javaWrapper, csoundLibrary)
         libs.append(javaWrapper)
         jcsnd = javaWrapperEnvironment.Java(
             target = './interfaces', source = './interfaces',
@@ -1517,18 +1523,20 @@ else:
     else:
         print 'CONFIGURATION DECISION: Building Python wrapper to Csound C++ interface library.'
         pythonWrapperEnvironment = csoundWrapperEnvironment.Clone()
-        pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
+        if  getPlatform() == 'darwin': 
+             pythonWrapperEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+        else: pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
 	if getPlatform() == 'linux':
 	    os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
 	    # os.symlink('lib_csnd.so', '_csnd.so')
 	    pythonWrapperEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
 	if getPlatform() == 'darwin':
 	    if commonEnvironment['dynamicCsoundLibrary'] == '1':
-		ilibName = "lib_csnd.dylib"
-		ilibVersion = csoundLibraryVersion
-		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -compatibility_version -Xlinker %s''' % ilibVersion))
-		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
-		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/%s/%s''' % (OSXFrameworkCurrentVersion, ilibName)))
+		#ilibName = "lib_csnd.dylib"
+		#ilibVersion = csoundLibraryVersion
+		#pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -compatibility_version -Xlinker %s''' % ilibVersion))
+		#pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
+		#pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/%s/%s''' % (OSXFrameworkCurrentVersion, ilibName)))
                 pythonWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
                 pythonWrapperEnvironment.Append(LINKFLAGS = ['-framework','python'])
 		#pythonWrapper = pythonWrapperEnvironment.SharedLibrary('_csnd', pythonWrapperSources)
@@ -1537,9 +1545,8 @@ else:
 		'interfaces/python_interface.i',
 		SWIGFLAGS = [swigflags, '-python', '-outdir', '.', pyVersToken])
 	        pythonWrapperEnvironment.Clean('.', 'interfaces/python_interface_wrap.h')
-		pythonWrapperEnvironment.Command('interfaces install', csoundPythonInterface, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
-		try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
-		except: print "link exists..."
+		#try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
+		#except: print "link exists..."
 	else:
 	    pythonWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
 	    if getPlatform() != 'darwin':
@@ -1669,9 +1676,10 @@ makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp']
 # platform-specific
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
+#   makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
 if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
-    makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
+
 
 # scanned synthesis
 makePlugin(pluginEnvironment, 'scansyn',
@@ -1750,15 +1758,17 @@ else:
 
 if commonEnvironment['buildImageOpcodes'] == '1':
     if getPlatform() == 'win32':
-        if configure.CheckLibWithHeader("fltk_png", "png.h", language="C") and zlibhfound:
+        if configure.CheckHeader("png.h", language="C") and zlibhfound:
             print 'CONFIGURATION DECISION: Building image opcodes'
-            pluginEnvironment.Append(LIBS= Split(''' fltk_png fltk_z '''))
-            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+            imEnv = pluginEnvironment.cClone()
+            imEnv.Append(LIBS= Split(''' fltk_png fltk_z '''))
+            makePlugin(imEnv, 'image', ['Opcodes/imageOpcodes.c'])
     else:
-        if configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
+        if configure.CheckHeader("png.h", language="C") and zlibhfound:
             print 'CONFIGURATION DECISION: Building image opcodes'
-            pluginEnvironment.Append(LIBS= Split(''' png z '''))
-            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+            imEnv = pluginEnvironment.Clone()
+            imEnv.Append(LIBS= Split(''' png z '''))
+            makePlugin(imEnv, 'image', ['Opcodes/imageOpcodes.c'])
 else:
     print 'CONFIGURATION DECISION: Not building image opcodes'
 
@@ -2011,62 +2021,62 @@ else:
     print "CONFIGURATION DECISION: Not building DSSI plugin host opcodes."
 
 # Loris opcodes
-if not (commonEnvironment['buildLoris'] == '1' and configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
-    print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
-else:
-    print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
+#if not (commonEnvironment['buildLoris'] == '1' and configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
+#    print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
+#else:
+#    print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
     # For Loris, we build only the loris Python extension module and
     # the Csound opcodes (modified for Csound 5).
     # It is assumed that you have copied all contents of the Loris
     # distribution into the csound5/Opcodes/Loris directory, e.g.
     # csound5/Opcodes/Loris/src/*, etc.
-    lorisEnvironment = pluginEnvironment.Clone()
-    lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
-    if commonEnvironment['buildRelease'] == '0':
-        lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
-    if getPlatform() == 'win32':
-        lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
-    if compilerGNU():
-	if getPlatform() != 'win32':
-		lorisEnvironment.Prepend(LIBS = ['stdc++'])
-        lorisEnvironment.Append(CCFLAGS = Split('''
-            -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
-        '''))
-    lorisEnvironment.Append(CPPPATH = Split('''
-        Opcodes/Loris Opcodes/Loris/src ./
-    '''))
-    lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
-    if 'Opcodes/Loris/src/lorisgens.C' in lorisSources:
-        lorisSources.remove('Opcodes/Loris/src/lorisgens.C')
-    lorisLibrarySources = []
-    for i in lorisSources:
-        lorisLibrarySources += lorisEnvironment.SharedObject(i)
-    lorisLibrary = lorisEnvironment.StaticLibrary(
-        'lorisbase', lorisLibrarySources)
-    lorisEnvironment.Prepend(LIBS = ['lorisbase', 'fftw3'])
+#    lorisEnvironment = pluginEnvironment.Clone()
+#    lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
+#    if commonEnvironment['buildRelease'] == '0':
+#        lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
+#    if getPlatform() == 'win32':
+#        lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
+#    if compilerGNU():
+#	if getPlatform() != 'win32':
+#		lorisEnvironment.Prepend(LIBS = ['stdc++'])
+#        lorisEnvironment.Append(CCFLAGS = Split('''
+#            -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
+#        '''))
+#    lorisEnvironment.Append(CPPPATH = Split('''
+#        Opcodes/Loris Opcodes/Loris/src ./
+#    '''))
+#    lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
+#    if 'Opcodes/Loris/src/lorisgens.C' in lorisSources:
+#        lorisSources.remove('Opcodes/Loris/src/lorisgens.C')
+#    lorisLibrarySources = []
+#    for i in lorisSources:
+#        lorisLibrarySources += lorisEnvironment.SharedObject(i)
+#    lorisLibrary = lorisEnvironment.StaticLibrary(
+#        'lorisbase', lorisLibrarySources)
+#    lorisEnvironment.Prepend(LIBS = ['lorisbase', 'fftw3'])
     # The following file has been patched for Csound 5
     # and you should update it from Csound 5 CVS.
-    lorisOpcodes = makePlugin(lorisEnvironment, 'loris',
-                              ['Opcodes/Loris/lorisgens5.C'])
-    Depends(lorisOpcodes, lorisLibrary)
-    lorisPythonEnvironment = lorisEnvironment.Clone()
-    fixCFlagsForSwig(lorisPythonEnvironment)
-    lorisPythonEnvironment.Append(CPPPATH = pythonIncludePath)
-    lorisPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-    lorisPythonEnvironment.Append(LIBPATH = pythonLibraryPath)
-    if getPlatform() != 'darwin':
-        lorisPythonEnvironment.Prepend(LIBS = pythonLibs)
-    lorisPythonEnvironment.Append(SWIGPATH = ['./'])
-    lorisPythonEnvironment.Prepend(SWIGFLAGS = Split('''
-        -module loris -c++ -includeall -verbose -outdir . -python
-        -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.
-    '''))
-    lorisPythonWrapper = lorisPythonEnvironment.SharedObject(
-        'Opcodes/Loris/scripting/loris.i')
-    lorisPythonEnvironment['SHLIBPREFIX'] = ''
-    lorisPythonModule = makePythonModule(lorisPythonEnvironment,
-                                         'loris', lorisPythonWrapper)
-    Depends(lorisPythonModule, lorisLibrary)
+#    lorisOpcodes = makePlugin(lorisEnvironment, 'loris',
+#                              ['Opcodes/Loris/lorisgens5.C'])
+#    Depends(lorisOpcodes, lorisLibrary)
+#    lorisPythonEnvironment = lorisEnvironment.Clone()
+#    fixCFlagsForSwig(lorisPythonEnvironment)
+#    lorisPythonEnvironment.Append(CPPPATH = pythonIncludePath)
+#    lorisPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+#    lorisPythonEnvironment.Append(LIBPATH = pythonLibraryPath)
+#    if getPlatform() != 'darwin':
+#        lorisPythonEnvironment.Prepend(LIBS = pythonLibs)
+#    lorisPythonEnvironment.Append(SWIGPATH = ['./'])
+#    lorisPythonEnvironment.Prepend(SWIGFLAGS = Split('''
+#        -module loris -c++ -includeall -verbose -outdir . -python
+#        -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.
+#    '''))
+#    lorisPythonWrapper = lorisPythonEnvironment.SharedObject(
+#        'Opcodes/Loris/scripting/loris.i')
+#    lorisPythonEnvironment['SHLIBPREFIX'] = ''
+#    lorisPythonModule = makePythonModule(lorisPythonEnvironment,
+#                                         'loris', lorisPythonWrapper)
+#    Depends(lorisPythonModule, lorisLibrary)
 
 # STK opcodes
 
@@ -2262,7 +2272,7 @@ if getPlatform() == 'linux':
 csoundProgram = csoundProgramEnvironment.Program('csound', csoundProgramSources)
 executables.append(csoundProgram)
 Depends(csoundProgram, csoundLibrary)
-
+os
 def fluidTarget(env, dirName, baseName, objFiles):
     flFile = dirName + '/' + baseName + '.fl'
     cppFile = dirName + '/' + baseName + '.cpp'
@@ -2353,35 +2363,35 @@ else:
 
 # Build Cseditor
 
-if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
-    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
-else:
-    csEditorEnvironment = commonEnvironment.Clone()
-    if getPlatform() == 'linux':
-        csEditorEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
-        csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        csEditor = csEditorEnvironment.Program( 'cseditor', 'frontends/cseditor/cseditor.cxx')
-        executables.append(csEditor)
-    elif getPlatform() == 'win32':
-        if compilerGNU():
-            #csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            csEditorEnvironment.Prepend(LINKFLAGS = Split('''-mwindows -Wl,--enable-runtime-pseudo-reloc'''))
-            csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
-        else:
-            csEditorEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
-        csEditorEnvironment.Append(LIBS = csoundWindowsLibraries)
-        csEditor = csEditorEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
-        executables.append(csEditor)
-    elif getPlatform() == 'darwin':
-        csEditorEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
-        csEditorEnvironment.Append(LIBS = Split('''
-            fltk stdc++ pthread m
-        '''))
-        csEditorEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework ApplicationServices
-        '''))
-        csEditor = csEditorEnvironment.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
-        executables.append(csEditor)
+#if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
+#    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
+#else:
+#    csEditorEnvironment = commonEnvironment.Clone()
+#    if getPlatform() == 'linux':
+#        csEditorEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+#        csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+#       csEditor = csEditorEnvironment.Program( 'cseditor', 'frontends/cseditor/cseditor.cxx')
+#        executables.append(csEditor)
+#    elif getPlatform() == 'win32':
+#        if compilerGNU():
+#            #csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+#            csEditorEnvironment.Prepend(LINKFLAGS = Split('''-mwindows -Wl,--enable-runtime-pseudo-reloc'''))
+#            csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+#        else:
+#            csEditorEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
+#        csEditorEnvironment.Append(LIBS = csoundWindowsLibraries)
+#        csEditor = csEditorEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
+#        executables.append(csEditor)
+#    elif getPlatform() == 'darwin':
+#        csEditorEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
+#        csEditorEnvironment.Append(LIBS = Split('''
+#            fltk stdc++ pthread m
+#        '''))
+#        csEditorEnvironment.Append(LINKFLAGS = Split('''
+#            -framework Carbon -framework ApplicationServices
+#        '''))
+#        csEditor = csEditorEnvironment.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
+#        executables.append(csEditor)
 
 # Build CsoundAC
 
@@ -2397,6 +2407,7 @@ else:
     acEnvironment.Append(CPPPATH = pythonIncludePath)
     acEnvironment.Append(LINKFLAGS = pythonLinkFlags)
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
+    acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
     if musicXmlFound:
@@ -2406,12 +2417,16 @@ else:
         else:  
             acEnvironment.Prepend(LIBS = 'csnd')
     else: 
+     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = '_csnd')
-    acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-    if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary']== '0':
+     else:
+        acEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+    if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary'] == '0':
       acEnvironment.Prepend(LIBS = libCsoundLibs)
     else:
-      acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib'])
+     if commonEnvironment['useDouble'] == 1:
+      acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib64'])
+     else:  acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib64'])
     acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     # csoundAC uses fltk_images, but -Wl,-as-needed willl wrongly discard it
     flag = '-Wl,-as-needed'
@@ -2487,7 +2502,9 @@ else:
     libs.append(csoundac)
     Depends(csoundac, csnd)
     pythonWrapperEnvironment = csoundWrapperEnvironment.Clone()
-    pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
+    if getPlatform() == 'darwin':
+      pythonWrapperEnvironment.Append(LINKFLAGS = Split('-L. -l_csnd'))
+    else: pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
     pythonCsoundACWrapperEnvironment = pythonWrapperEnvironment.Clone()
     if getPlatform() == 'darwin':
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC'])
@@ -2755,16 +2772,16 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
 else:
     print "CONFIGURATION DECISION: Not building Winsound"
 
-if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
-    print "CONFIGURATION DECISION: building OSX GUI frontend"
-    csOSXGUIEnvironment = commonEnvironment.Clone()
-    OSXGUI = csOSXGUIEnvironment.Command(
-        '''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
-        'frontends/OSX/main.c',
-        "cd frontends/OSX; xcodebuild -buildstyle Deployment")
-    Depends(OSXGUI, csoundLibrary)
-else:
-    print "CONFIGURATION DECISION: Not building OSX GUI frontend"
+#if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
+#    print "CONFIGURATION DECISION: building OSX GUI frontend"
+#    csOSXGUIEnvironment = commonEnvironment.Clone()
+#    OSXGUI = csOSXGUIEnvironment.Command(
+#        '''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
+#        'frontends/OSX/main.c',
+#        "cd frontends/OSX; xcodebuild -buildstyle Deployment")
+#    Depends(OSXGUI, csoundLibrary)
+#else:
+#    print "CONFIGURATION DECISION: Not building OSX GUI frontend"
 
 # build csLADSPA
 print "CONFIGURATION DEFAULT:  Building csLadspa."

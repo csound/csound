@@ -884,13 +884,14 @@ void Fl_Value_Slider_Input::input_cb(Fl_Widget*, void* v) {
 void Fl_Value_Slider_Input::draw(void)
 {
     int sxx = x(), syy = y(), sww = w(), shh = h();
-    int bww = w();
+    //int bww = w();
     int X = x(), Y = y(), W = w(), H = h();
 
     int border_size=Fl::box_dx(box());
 
     if (horizontal()) {
-      bww = textboxsize();  sxx += textboxsize(); sww -= textboxsize();
+      //bww = textboxsize();  
+      sxx += textboxsize(); sww -= textboxsize();
       input.resize(X,Y,W-sww,shh);
     }
     else {
@@ -2676,13 +2677,17 @@ extern "C" {
 
   //-----------
 
-  static int StartPack(CSOUND *csound, FLSCROLL *p)
+  static int StartPack(CSOUND *csound, FLPACK *p)
   {
       Fl_Pack *o = new Fl_Pack ((int) *p->ix, (int) *p->iy,
                                 (int) *p->iwidth, (int) *p->iheight);
-      //fl_window->resizable(o);
-      o->box(FL_ENGRAVED_FRAME);
-      o->spacing(15);
+      Fl_Boxtype borderType;
+      int iborder = (int)*p->iborder;
+      // fl_window->resizable(o);
+      if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX;
+      else borderType = BOX_TABLE[iborder];
+      o->type((int)*p->itype);
+      o->spacing((int)*p->ispace);
 
       ADDR_STACK adrstk(&p->h,o,ST(stack_count));
       ST(AddrStack).push_back(adrstk);
@@ -5642,7 +5647,7 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR) EndScroll,               (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLscroll_end",S(FLSCROLLEND),  1,  (char*)"",     (char*)"",
     (SUBR) EndScroll,               (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLpack",      S(FLPACK),       1,  (char*)"",     (char*)"iiii",
+  { (char*)"FLpack",      S(FLPACK),       1,  (char*)"",     (char*)"iiiiooo",
     (SUBR) StartPack,               (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLpackEnd",   S(FLPACKEND),    1,  (char*)"",     (char*)"",
     (SUBR) EndPack,                 (SUBR) NULL,              (SUBR) NULL },

@@ -400,12 +400,20 @@ OENTRY opcodlst_1[] = {
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the charcters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
+     CODE REMOVED 2011-Dec-14
    */
-{ "out",    S(OUTM),    4,      "",     "a",    NULL,   NULL,   out     },
-{ "outs",   S(OUTS),    4,      "",     "aa",   NULL,   NULL,   outs    },
+{ "out",    S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outs",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outq",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outh",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outo",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outx",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "out32",  S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
+/* { "out",    S(OUTM),    4,      "",     "a",    NULL,   NULL,   out     }, */
+/* { "outs",   S(OUTS),    4,      "",     "aa",   NULL,   NULL,   outs    }, */
 { "outs1",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outs1   },
 { "outs2",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outs2   },
-{ "outq",   S(OUTQ),    4,      "",     "aaaa", NULL,   NULL,   outq    },
+/* { "outq",   S(OUTQ),    4,      "",     "aaaa", NULL,   NULL,   outq    }, */
 { "outq1",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq1   },
 { "outq2",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq2   },
 { "outq3",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq3   },
@@ -476,9 +484,11 @@ OENTRY opcodlst_1[] = {
 { "unirand.i",S(PRAND), 1,     "i",     "k",    ikuniform, NULL,  NULL  },
 { "unirand.k",S(PRAND), 2,     "k",     "k",    NULL,    ikuniform, NULL},
 { "unirand.a",S(PRAND), 4,     "a",     "k",    NULL,    NULL, auniform },
-{ "diskin",S(SOUNDINEW),DP|5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "Tkooooo",
+{ "diskin",S(SOUNDINEW),DP|5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", 
+                            "Tkooooo",
                             (SUBR) newsndinset, NULL, (SUBR) soundinew  },
-{ "diskin2",S(DISKIN2), 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "Tkoooooo",
+{ "diskin2",S(DISKIN2), 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", 
+                            "Tkoooooo",
                             (SUBR) diskin2_init, (SUBR) NULL,
                             (SUBR) diskin2_perf                         },
 { "noteon", S(OUT_ON),  1,      "",     "iii",  iout_on, NULL,   NULL   },
@@ -525,8 +535,10 @@ OENTRY opcodlst_1[] = {
 { "tableiw",  S(TABLEW),TW|1,     "",      "iiiooo", (SUBR)itablew, NULL, NULL},
 { "tablew.kk", S(TABLEW),TW|3,    "", "kkiooo",(SUBR)tblsetw,(SUBR)ktablew, NULL},
 { "tablew.aa", S(TABLEW),TW|5,    "", "aaiooo",(SUBR)tblsetw, NULL, (SUBR)tablew},
-{ "tablewkt.kk", S(TABLEW),TW|3, "",  "kkkooo",(SUBR)tblsetwkt,(SUBR)ktablewkt,NULL},
-{ "tablewkt.aa", S(TABLEW),TW|5, "",  "aakooo",(SUBR)tblsetwkt,NULL,(SUBR)tablewkt},
+{ "tablewkt.kk", S(TABLEW),TW|3, "",  "kkkooo",
+                          (SUBR)tblsetwkt,(SUBR)ktablewkt,NULL},
+{ "tablewkt.aa", S(TABLEW),TW|5, "",  "aakooo",
+                          (SUBR)tblsetwkt,NULL,(SUBR)tablewkt},
 { "tableng.i", S(TABLENG),1,  "i",     "i",    (SUBR)itableng, NULL,  NULL},
 { "tableng.k",  S(TABLENG),2, "k",     "k",    NULL,   (SUBR)tableng, NULL},
 { "tableigpw",S(TABLENG),TB|1,   "",  "i",    (SUBR)itablegpw, NULL,  NULL},
@@ -537,8 +549,10 @@ OENTRY opcodlst_1[] = {
 { "tableicopy",S(TABLECOPY),TB|1, "", "ii",   (SUBR)itablecopy, NULL, NULL},
 { "tablecopy", S(TABLECOPY),TB|2, "", "kk",
                                       (SUBR)tablecopyset, (SUBR)tablecopy, NULL},
-{ "tablera", S(TABLERA),TR|5,   "a",  "kkk",  (SUBR)tableraset, NULL, (SUBR)tablera},
-{ "tablewa", S(TABLEWA),TW|5,   "k",  "kak",  (SUBR)tablewaset, NULL, (SUBR)tablewa},
+{ "tablera", S(TABLERA),TR|5,   "a",  "kkk",  
+                                      (SUBR)tableraset, NULL, (SUBR)tablera},
+{ "tablewa", S(TABLEWA),TW|5,   "k",  "kak",
+                                      (SUBR)tablewaset, NULL, (SUBR)tablewa},
 { "tablekt",  S(TABLE), TR|7,     "s",  "xkooo",tblsetkt,  ktablekt, tablekt },
 { "tableikt", S(TABLE), TR|7,     "s",  "xkooo",tblsetkt,  ktablikt, tablikt },
 { "zakinit", S(ZAKINIT), ZB|1,  "",   "ii",   (SUBR)zakinit, NULL,  NULL},
@@ -593,14 +607,15 @@ OENTRY opcodlst_1[] = {
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the charcters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
+     CODE REMOVED 2011-Dec-14
    */
-{ "outh",   S(OUTH),    4,      "",     "aaaaaa",NULL,  NULL,   outh    },
-{ "outo",   S(OUTO),    4,      "",     "aaaaaaaa",NULL,NULL,   outo    },
-{ "outx",   S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaa",NULL,NULL, outx },
-{ "out32",  S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                                                NULL,   NULL,   outX    },
+/* { "outh",   S(OUTH),    4,      "",     "aaaaaa",NULL,  NULL,   outh    }, */
+/* { "outo",   S(OUTO),    4,      "",     "aaaaaaaa",NULL,NULL,   outo    }, */
+/* { "outx",   S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaa",NULL,NULL, outx }, */
+/* { "out32",  S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", */
+                                                /* NULL,   NULL,   outX    }, */
 { "outch",  S(OUTCH),   4,      "",     "Z",    NULL,   NULL,   outch   },
-{ "outc",   S(OUTX),    4,      "",     "y",    NULL,   NULL,   outall  },
+{ "outc",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall  },
 { "cpsxpch", S(XENH),TR|1,      "i",    "iiii", cpsxpch, NULL,  NULL    },
 { "cps2pch", S(XENH),TR|1,      "i",    "ii",   cps2pch, NULL,  NULL    },
 { "cpstun", S(CPSTUN),  TR|2,      "k",    "kkk",   NULL,   cpstun         },
@@ -618,11 +633,16 @@ OENTRY opcodlst_1[] = {
 { "event", S(LINEVENT),  2,     "",     "SUz",  NULL, eventOpcode, NULL   },
 { "event_i", S(LINEVENT),1,     "",     "STm",  eventOpcodeI, NULL, NULL  },
 { "lfo", S(LFO),         7,     "s",    "kko",  lfoset,   lfok,   lfoa    },
-{ "oscils",   S(OSCILS), 5,     "a", "iiio",     (SUBR)oscils_set, NULL, (SUBR)oscils       },
-{ "lphasor",  S(LPHASOR),5,     "a", "xooooooo" ,(SUBR)lphasor_set, NULL, (SUBR)lphasor     },
-{ "tablexkt", S(TABLEXKT),TR|5,    "a", "xkkiooo",  (SUBR)tablexkt_set, NULL, (SUBR)tablexkt   },
-{ "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR)reverbx    },
-{ "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR) reverbx    },
+{ "oscils",   S(OSCILS), 5,     "a", "iiio",     
+                                         (SUBR)oscils_set, NULL, (SUBR)oscils },
+{ "lphasor",  S(LPHASOR),5,     "a", "xooooooo" ,
+                                         (SUBR)lphasor_set, NULL, (SUBR)lphasor },
+{ "tablexkt", S(TABLEXKT),TR|5,    "a", "xkkiooo",
+                                         (SUBR)tablexkt_set, NULL, (SUBR)tablexkt },
+{ "reverb2",  S(NREV2),  5,     "a",    "akkoojoj",
+                                         (SUBR)reverbx_set,NULL,(SUBR)reverbx },
+{ "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", 
+                                         (SUBR)reverbx_set,NULL,(SUBR) reverbx },
 { "=.f",      S(FASSIGN), 2,    "f",   "f",      NULL, fassign, NULL    },
 { "init.f",   S(FASSIGN), 2,    "f",   "f",      fassign, NULL, NULL    },
 { "pvsanal",  S(PVSANAL), 5,    "f",   "aiiiioo",  pvsanalset, NULL, pvsanal  },
@@ -680,7 +700,12 @@ OENTRY opcodlst_1[] = {
 { "subinstr", S(SUBINST), 5, "mmmmmmmm", "Tm",  subinstrset, NULL, subinstr },
 { "subinstrinit", S(SUBINST), 1, "",    "Tm",   subinstrset, NULL, NULL  },
 { "nstrnum", S(NSTRNUM), 1,     "i",    "T",    nstrnumset, NULL, NULL   },
-{ "turnoff2",S(TURNOFF2),2,     "",     "kkk",  NULL, turnoff2, NULL     },
+{ "turnoff2",   0xFFFB,   CW,    NULL,   NULL,   NULL, NULL, NULL  },
+{ "turnoff2.S",S(TURNOFF2),2,     "",     "Skk",  NULL, turnoff2S, NULL     },
+{ "turnoff2.c",S(TURNOFF2),2,     "",     "ikk",  NULL, turnoff2k, NULL     },
+{ "turnoff2.k",S(TURNOFF2),2,     "",     "kkk",  NULL, turnoff2k, NULL     },
+{ "turnoff2.i",S(TURNOFF2),2,     "",     "ikk",  NULL, turnoff2k, NULL     },
+{ "turnoff2.r",S(TURNOFF2),2,     "",     "ikk",  NULL, turnoff2k, NULL     },
 { "cngoto", S(CGOTO),   3,      "",     "Bl",   ingoto, kngoto, NULL     },
 { "cogoto", S(CGOTO),   3,      "",     "bl",   iingoto, kingoto, NULL   },
 /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
@@ -709,7 +734,8 @@ OENTRY opcodlst_1[] = {
 { "a.k",    S(INTERP),  5,  "a", "k",    (SUBR)a_k_set,NULL,   (SUBR)interp  },
 { "integ", S(INDIFF), 7, "s", "xo", (SUBR)indfset,(SUBR)kntegrate,(SUBR)integrate},
 { "diff",   S(INDIFF),  7,  "s", "xo",   (SUBR)indfset,(SUBR)kdiff, (SUBR)diff },
-{ "samphold",S(SAMPHOLD),7, "s", "xxoo", (SUBR)samphset,(SUBR)ksmphold,(SUBR)samphold},
+{ "samphold",S(SAMPHOLD),7, "s", "xxoo", 
+                                 (SUBR)samphset,(SUBR)ksmphold,(SUBR)samphold},
 { "delay",  S(DELAY),   5,  "a", "aio",  (SUBR)delset, NULL,   (SUBR)delay   },
 { "delayr", S(DELAYR),  5,  "aX","io",   (SUBR)delrset,NULL,   (SUBR)delayr  },
 { "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
@@ -721,15 +747,18 @@ OENTRY opcodlst_1[] = {
 { "reverb", S(REVERB),  5,  "a", "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
 { "vdelay",   S(VDEL),  5,  "a", "axio", (SUBR)vdelset, NULL,  (SUBR)vdelay  },
 { "vdelay3",  S(VDEL),  5,  "a", "axio", (SUBR)vdelset, NULL,  (SUBR)vdelay3 },
-{ "vdelayxwq",S(VDELXQ),5,  "aaaa", "aaaaaiio", (SUBR)vdelxqset, NULL, (SUBR)vdelayxwq},
+{ "vdelayxwq",S(VDELXQ),5,  "aaaa", "aaaaaiio", 
+                                         (SUBR)vdelxqset, NULL, (SUBR)vdelayxwq},
 { "vdelayxws",S(VDELXS),5,  "aa", "aaaiio", (SUBR)vdelxsset, NULL, (SUBR)vdelayxws},
 { "vdelayxw", S(VDELX), 5,  "a",  "aaiio", (SUBR)vdelxset, NULL, (SUBR)vdelayxw},
-{ "vdelayxq", S(VDELXQ),5,  "aaaa", "aaaaaiio", (SUBR)vdelxqset, NULL, (SUBR)vdelayxq},
+{ "vdelayxq", S(VDELXQ),5,  "aaaa", "aaaaaiio",
+                                         (SUBR)vdelxqset, NULL, (SUBR)vdelayxq},
 { "vdelayxs", S(VDELXS),5,  "aa", "aaaiio", (SUBR)vdelxsset, NULL, (SUBR)vdelayxs},
 { "vdelayx",  S(VDELX), 5,  "a",  "aaiio", (SUBR)vdelxset, NULL, (SUBR)vdelayx},
 { "deltapx",  S(DELTAPX),5, "a",  "aio",  (SUBR)tapxset, NULL,  (SUBR)deltapx },
 { "deltapxw", S(DELTAPX),5,  "",  "aaio", (SUBR)tapxset, NULL, (SUBR)deltapxw },
-{ "multitap", S(MDEL),  5,   "a", "am",   (SUBR)multitap_set,NULL,(SUBR)multitap_play},
+{ "multitap", S(MDEL),  5,   "a", "am",
+                                   (SUBR)multitap_set,NULL,(SUBR)multitap_play},
 { "comb",   S(COMB),    5,  "a",  "akioo", (SUBR)cmbset,NULL,   (SUBR)comb    },
 { "alpass", S(COMB),    5,  "a",  "akioo", (SUBR)cmbset,NULL,   (SUBR)alpass  },
 {  "strset",   S(STRSET_OP),   1,  "",     "iS",
@@ -879,9 +908,12 @@ OENTRY opcodlst_1[] = {
 { "remove",      S(DELETEIN),         1,      "",             "T",
    (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
 #ifdef PARCS
-{ "##globallock",   S(GLOBAL_LOCK_UNLOCK), 3, "", "k", globallock,   globallock,   NULL},
-{ "##globalunlock", S(GLOBAL_LOCK_UNLOCK), 3, "", "k", globalunlock, globalunlock, NULL},
+{ "##globallock",   S(GLOBAL_LOCK_UNLOCK), 3, "", "k", 
+                    globallock,   globallock,   NULL},
+{ "##globalunlock", S(GLOBAL_LOCK_UNLOCK), 3, "", "k", 
+                    globalunlock, globalunlock, NULL},
 #endif
+{ "##error",S(ERRFN), 1,          "i",     "i",   error_fn, NULL,    NULL    },
 { "exprandi.i",S(PRANDI), 1,      "i",    "kxx",  iexprndi, NULL,    NULL    },
 { "exprandi.k",S(PRANDI), 3,      "k",    "kxx",  exprndiset, kexprndi, NULL },
 { "exprandi.a",S(PRANDI), 4,      "a",    "kxx",  exprndiset, NULL, aexprndi },
@@ -891,6 +923,8 @@ OENTRY opcodlst_1[] = {
 { "gaussi.i", S(PRANDI), 1,      "i",    "kxx",  igaussi, NULL,    NULL    },
 { "gaussi.k", S(PRANDI), 3,      "k",    "kxx",  gaussiset, kgaussi, NULL },
 { "gaussi.a", S(PRANDI), 4,      "a",    "kxx",  gaussiset, NULL, agaussi },
+{ "ftresizei", S(RESIZE), TB|1, "i", "ii", (SUBR) resize_table, NULL, NULL },
+{ "ftresize",  S(RESIZE), TB|2, "k", "kk", NULL, (SUBR) resize_table, NULL },
 /* terminate list */
 {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };

@@ -55,6 +55,7 @@
 #include "bus.h"
 #include "pstream.h"
 #include "remote.h"
+#include "resize.h"
 #ifdef PARCS
 #include "cs_par_ops.h"
 #endif
@@ -220,13 +221,14 @@ int     inq(CSOUND *, void *), inh(CSOUND *, void *);
 int     ino(CSOUND *, void *), in16(CSOUND *, void *);
 int     in32(CSOUND *, void *);
 int     inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
-int     out(CSOUND *, void *), outs(CSOUND *, void *);
+int     outmultiple(CSOUND *, void *);
+/* int     out(CSOUND *, void *), outs(CSOUND *, void *); */
 int     outs1(CSOUND *, void *), outs2(CSOUND *, void *);
-int     outq(CSOUND *, void *);
+/* int     outq(CSOUND *, void *); */
 int     outq1(CSOUND *, void *), outq2(CSOUND *, void *);
 int     outq3(CSOUND *, void *), outq4(CSOUND *, void *);
-int     outh(CSOUND *, void *), outo(CSOUND *, void *);
-int     outx(CSOUND *, void *), outX(CSOUND *, void *);
+/* int     outh(CSOUND *, void *), outo(CSOUND *, void *); */
+/* int     outx(CSOUND *, void *), outX(CSOUND *, void *); */
 int     outch(CSOUND *, void *), outall(CSOUND *, void *);
 int     igoto(CSOUND *, void *), kgoto(CSOUND *, void *);
 int     icgoto(CSOUND *, void *), kcgoto(CSOUND *, void *);
@@ -371,7 +373,7 @@ int     setksmpsset(CSOUND *, void *);
 int     xinset(CSOUND *, void *), xoutset(CSOUND *, void *);
 int     ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
 int     iingoto(CSOUND *, void *), kingoto(CSOUND *, void *);
-int     nstrnumset(CSOUND *, void *), turnoff2(CSOUND *, void *);
+int     nstrnumset(CSOUND *, void *), turnoff2k(CSOUND *, void *),  turnoff2S(CSOUND *, void *) ;
 int     loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
 int     loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
 int     loop_l_p(CSOUND *, void *), loop_le_p(CSOUND *, void *);
@@ -392,3 +394,5 @@ int     kgaussi(CSOUND *, void *), agaussi(CSOUND *, void *);
 int     lsgset_bkpt(CSOUND *csound, void *p);
 int     xsgset_bkpt(CSOUND *csound, void *p);
 int     xsgset_bkpt(CSOUND *csound, void *p), xsgset2b(CSOUND *, void *);
+int     resize_table(CSOUND *csound, void *p);
+int     error_fn(CSOUND *csound, void *p);

@@ -749,6 +749,7 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 
 /* ------------------------------------------------------------------ */
 
+#if 0
 static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
 {
     MYFLT   output;
@@ -766,6 +767,7 @@ static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
 
     return (FL(1.0) - ((MYFLT) output * (FL(2.0) / (MYFLT) 0x7FFFFFFF)));
 }
+#endif
 
 static void FetchADDNZbands(int ptls, int firstband, double *datastart,
                             int frmInc, int maxFr, int swapped,
@@ -1299,12 +1301,10 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     double  inc;
     int     i;
     double  phase;
-    double  *nzbuf;
     double  amp;
     double  nzamp;              /* noize amp */
     double  sinewave;
     MYFLT   freq;
-    MYFLT   nzfreq;
     ATS_DATA_LOC *oscbuf;
     //csound->Message(csound , "start \n");
 
@@ -1344,7 +1344,6 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 /*       *ar++ = FL(0.0); */
 
     oscbuf = p->oscbuf;
-    nzbuf = p->nzbuf;
   
     /* do synthesis */
     if (p->firstband != -1) {
@@ -1357,7 +1356,6 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
         inc = TWOPI * freq * csound->onedsr;
         nzamp =
             sqrt(*(p->nzbuf + i) / (p->atshead->winsz * ATSA_NOISE_VARIANCE));
-        nzfreq = (freq < 500.0 ? 50.0 : freq * 0.05);
         for (n=0; n<nsmps;n++) {
           /* calc sine wave */
           sinewave = cos(phase);

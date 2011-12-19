@@ -303,9 +303,8 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("sorting cscore.out ..\n"));
-      csound->scorestr = copy_to_corefile("cscore.srt");
+      csound->scorestr = copy_to_corefile(csound, "cscore.srt", NULL, 1);
       scsortstr(csound, csound->scorestr);  /* call the sorter again */
-      corfile_rm(csound->scorestr);
       fclose(csound->scfp); csound->scfp = NULL;
       fputs(corfile_body(csound->scstr), csound->oscfp);
       fclose(csound->oscfp); csound->oscfp = NULL;
@@ -384,6 +383,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       free(p);
     }
     orcompact(csound);
+    corfile_rm(&csound->scstr);
   
     /* print stats only if musmon was actually run */
     if (UNLIKELY(csound->musmonGlobals != NULL)) {

@@ -23,7 +23,9 @@
 
 #include "csoundCore.h"     /*                              CORFILES.C      */
 #include <string.h>
+#include <stdio.h>
 
+extern int csoundFileClose(CSOUND*, void*);
 
 CORFIL *corfile_create_w(void)
 {
@@ -74,10 +76,14 @@ int corfile_length(CORFIL *f)
     return strlen(f->body);
 }
 
-void corfile_rm(CORFIL *f)
+void corfile_rm(CORFIL **ff)
 {
-    free(f->body);
-    free(f);
+    CORFIL *f = *ff;
+    if (f!=NULL) {
+      free(f->body);
+      free(f);
+      *ff = NULL;
+    }
 }
 
 int corfile_getc(CORFIL *f)
@@ -113,11 +119,36 @@ void corfile_rewind(CORFIL *f)
     f->p = 0;
 }
 
+#undef corfile_reset
+void corfile_reset(CORFIL *f)
+{
+    f->p = 0;
+    f->body[0] = '\0';
+}
+
 #undef corfile_tell
 int corfile_tell(CORFIL *f)
 {
     return f->p;
 }
+
+#undef corfile_set
+void corfile_set(CORFIL *f, int n)
+{
+    f->p = n;
+}
+
+void corfile_seek(CORFIL *f, int n, int dir)
+{
+    if (dir == SEEK_SET) f->p = n;
+    else if (dir == SEEK_CUR) f->p += n;
+    else if (dir == SEEK_END) f->p = strlen(f->body)-n;
+    if (f->p < 0 || f->p > strlen(f->body)) {
+      printf("INTERNAL ERROR: Corfile seek out of range\n");
+      exit(1);
+    }
+}
+
 
 #undef corfile_body
 char *corfile_body(CORFIL *f)
@@ -125,22 +156,35 @@ char *corfile_body(CORFIL *f)
     return f->body;
 }
 
-CORFIL *copy_to_corefile(char *fname)
+#undef corfile_current
+char *corfile_current(CORFIL *f)
+{
+    return f->body+f->p;
+}
+
+/* *** THIS NEEDS TO TAKE ACCOUNT OF SEARCH PATH *** */
+void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
+                 char *env, int fromScore);
+CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env, int fromScore)
 {
     CORFIL *mm;
-    FILE *ff = fopen(fname, "r");
+    FILE *ff;
+    void *fd;
     int n;
     char buffer[1024];
 
+    fd = fopen_path(csound, &ff, fname, NULL, env, fromScore);
     if (ff==NULL) return NULL;
     mm = corfile_create_w();
     memset(buffer, '\0', 1024);
-    while (n = fread(buffer, 1, 1023, ff)) {
+    while ((n = fread(buffer, 1, 1023, ff))) {
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
+    corfile_putc('\0', mm);     /* For use in bison/flex */
+    corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_flush(mm);
-    fclose(ff);
+    csoundFileClose(csound, fd);
     return mm;
 }
 

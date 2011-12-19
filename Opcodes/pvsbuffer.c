@@ -137,7 +137,7 @@ typedef struct {
 static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 {
     int N;
-    FSIG_HANDLE *handle, **phandle;
+    FSIG_HANDLE *handle=NULL, **phandle;
     char varname[32];
 
     sprintf(varname, "::buffer%d", (int)(*p->hptr));

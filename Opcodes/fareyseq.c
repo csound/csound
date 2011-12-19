@@ -356,10 +356,7 @@ static int dotablefilter (CSOUND *csound, TABFILT *p)
     MYFLT *pdest, *ps;
     MYFLT threshold;
     int32 ftype;
-    MYFLT remember1st = FL(0.0);
     MYFLT previous = FL(0.0);
-    MYFLT oneminuslast = FL(0.0);
-    MYFLT wraparoundioi = FL(0.0);
     int32 sourcelength;
 
     ftype = (int32) *p->ftype;
@@ -601,6 +598,7 @@ int PrimeFactors (int n, PFACTOR p[])
             ++pcount; ++j;
           }
       }
+    return j;
 }
 
 /* ----------------------------------------------- *

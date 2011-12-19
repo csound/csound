@@ -104,7 +104,7 @@ void auxchfree(CSOUND *csound, INSDS *ip)
 {
     if (UNLIKELY(csound->oparms->odebug))
       auxchprint(csound, ip);
-    while (LIKELY(ip->auxchp != NULL)) {            /* for all auxp's in chain: */
+    while (LIKELY(ip->auxchp != NULL)) {        /* for all auxp's in chain: */
       void  *auxp = (void*) ip->auxchp->auxp;
       AUXCH *nxt = ip->auxchp->nxtchp;
       memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
@@ -146,7 +146,8 @@ static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
       csound->Message(csound, Str("auxlist for instr %s [%d] (%p):\n"),
                       name, ip->insno, ip);
     else
-      csound->Message(csound, Str("auxlist for instr %d (%p):\n"), ip->insno, ip);
+      csound->Message(csound, Str("auxlist for instr %d (%p):\n"),
+                      ip->insno, ip);
     /* chain through auxlocs */
     for (curchp = ip->auxchp; curchp != NULL; curchp = curchp->nxtchp)
       csound->Message(csound,

@@ -30,6 +30,7 @@
 #include "insert.h"
 #include "pstream.h"
 #include "namedins.h"           /* IV - Oct 31 2002 */
+#include "corfile.h"
 
 typedef struct NAME_ {
     char          *namep;
@@ -247,7 +248,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       }
       i++;
     }
-    *i_outlist = *S_outlist = *a_outlist = *k_outlist = *f_outlist = *t_outlist = -1;  /* put delimiters */
+    *i_outlist = *S_outlist = *a_outlist = *k_outlist =
+      *f_outlist = *t_outlist = -1;  /* put delimiters */
     return err;
 }
 
@@ -295,6 +297,7 @@ void otran(CSOUND *csound)
     gblnamset(csound, "$ksmps");
 
     rdorchfile(csound);         /* go read orch file    */
+    corfile_rm(&(csound->orchstr));
 
     csound->pool = (MYFLT*) mmalloc(csound, NCONSTS * sizeof(MYFLT));
     ST(poolcount) = 0;
@@ -362,7 +365,8 @@ void otran(CSOUND *csound)
                     err++; continue;
                   }
                   /* IV - Oct 31 2002: store the name */
-                  if (UNLIKELY(!named_instr_alloc(csound, c, ip, insno_priority))) {
+                  if (UNLIKELY(!named_instr_alloc(csound, c, ip,
+                                                  insno_priority))) {
                     synterr(csound, Str("instr %s redefined"), c);
                     err++; continue;
                   }
@@ -578,7 +582,8 @@ void otran(CSOUND *csound)
       else if (UNLIKELY(p->tran_ksmps < FL(0.75) ||
                         FLOAT_COMPARE(p->tran_ksmps, MYFLT2LRND(p->tran_ksmps))))
         synterr(p, Str("%s invalid ksmps value"), err_msg);
-      else if (UNLIKELY(FLOAT_COMPARE(p->tran_sr, (double) p->tran_kr * p->tran_ksmps)))
+      else if (UNLIKELY(FLOAT_COMPARE(p->tran_sr,
+                                      (double) p->tran_kr * p->tran_ksmps)))
         synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
     }
 
@@ -986,12 +991,16 @@ int lgexist(CSOUND *csound, const char *s)
 {
     unsigned char h = name_hash(csound, s);
     NAME          *p;
+ 
+    
 
     for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
     if (p != NULL)
       return 1;
     for (p = ST(lclNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+  
     return (p == NULL ? 0 : 1);
+
 }
 
 /* builds namelist & type counts for gbl names */

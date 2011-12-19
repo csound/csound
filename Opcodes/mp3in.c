@@ -35,14 +35,14 @@ typedef struct {
     MYFLT   *ibufsize;
  /* ------------------------------------- */
     mp3dec_t mpa;               /* For library */
-    int     r;                  /* Result field */
-    int     initDone;
-    int     bufSize;            /* in sample frames, power of two */
-    int     bufused;
-    int64_t pos;           /* type should be defined in sysdep.h */
-    uint8_t *buf;
-    AUXCH   auxch;
-    FDCH    fdch;
+    int      r;                  /* Result field */
+    int      initDone;
+    int      bufSize;            /* in sample frames, power of two */
+    uint32_t bufused;
+    int64_t  pos;           /* type should be defined in sysdep.h */
+    uint8_t  *buf;
+    AUXCH    auxch;
+    FDCH     fdch;
 } MP3IN;
 typedef struct {
     OPDS    h;

@@ -7,6 +7,7 @@ typedef struct TREE {
   ORCTOKEN         *value;
   int           rate;
   int           len;
+  int           line;
   struct TREE   *left;
   struct TREE   *right;
   struct TREE   *next;
@@ -24,8 +25,8 @@ enum {
 #define PARSER_DEBUG (0)
 #endif
 
-TREE* make_node(CSOUND *, int, TREE*, TREE*);
-TREE* make_leaf(CSOUND *,int, ORCTOKEN*);
+TREE* make_node(CSOUND *, int, int, TREE*, TREE*);
+TREE* make_leaf(CSOUND *, int, int, ORCTOKEN*);
 ORCTOKEN* make_int(CSOUND *,char *);
 ORCTOKEN* make_num(CSOUND *,char *);
 ORCTOKEN *make_token(CSOUND *csound, char *s);

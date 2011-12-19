@@ -1021,7 +1021,6 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
     int coefs = (int) *(p->kcoefs), j;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-    float sr = csound->esr;
     float maxe=0.f, maxa=0.f;
 
     if (UNLIKELY(fout==NULL)) goto err1;
