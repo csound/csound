@@ -895,7 +895,8 @@ if getPlatform() == 'darwin':
 csoundLibraryEnvironment = commonEnvironment.Clone()
 
 if commonEnvironment['buildMultiCore'] != '0':
-    csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
+    if commonEnvironment['buildNewParser'] != '0':
+      csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
 
 if commonEnvironment['buildNewParser'] != '0':
     if commonEnvironment['buildMultiCore'] != '0':
@@ -1214,9 +1215,10 @@ libCsoundSources += oldpvoc
 libCsoundSources += gabnewopc
  
 if commonEnvironment['buildMultiCore'] != '0':
-    libCsoundSources += MultiCoreSources
+    if commonEnvironment['buildNewParser'] != '0':
+      libCsoundSources += MultiCoreSources
 
-if commonEnvironment['buildNewParser'] != '0' or commonEnvironment['buildMultiCore'] != '0':
+if commonEnvironment['buildNewParser'] != '0':
     libCsoundSources += newParserSources
 
 csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
