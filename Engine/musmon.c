@@ -1220,6 +1220,8 @@ void musmon_rewind_score(CSOUND *csound)
     csound->advanceCnt = 0;
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
+
+    corfile_rewind(csound->scstr);
 }
 
 /**
