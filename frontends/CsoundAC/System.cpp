@@ -44,7 +44,7 @@ namespace csound
 
   void Logger::write(const char *text)
   {
-    fprintf(stderr, text);
+    fprintf(stderr, "%s", text);
   }
 
   ThreadLock::ThreadLock() : lock(0)

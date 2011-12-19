@@ -895,7 +895,8 @@ if getPlatform() == 'darwin':
 csoundLibraryEnvironment = commonEnvironment.Clone()
 
 if commonEnvironment['buildMultiCore'] != '0':
-    csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
+    if commonEnvironment['buildNewParser'] != '0':
+      csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
 
 if commonEnvironment['buildNewParser'] != '0':
     if commonEnvironment['buildMultiCore'] != '0':
@@ -1214,9 +1215,10 @@ libCsoundSources += oldpvoc
 libCsoundSources += gabnewopc
  
 if commonEnvironment['buildMultiCore'] != '0':
-    libCsoundSources += MultiCoreSources
+    if commonEnvironment['buildNewParser'] != '0':
+      libCsoundSources += MultiCoreSources
 
-if commonEnvironment['buildNewParser'] != '0' or commonEnvironment['buildMultiCore'] != '0':
+if commonEnvironment['buildNewParser'] != '0':
     libCsoundSources += newParserSources
 
 csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
@@ -1404,6 +1406,7 @@ else:
                 '_csnd', csoundInterfacesSources)
             try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
             except: pass
+            csoundInterfacesEnvironment.Command('interfaces install', csnd, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
         else:
             csnd = csoundInterfacesEnvironment.Library('csnd', csoundInterfacesSources)
     elif getPlatform() == 'linux':
@@ -1467,7 +1470,9 @@ else:
     else:
         print 'CONFIGURATION DECISION: Building Java wrapper to Csound C++ interface library.'
         javaWrapperEnvironment = csoundWrapperEnvironment.Clone()
-	javaWrapperEnvironment.Prepend(LIBS = ['csnd'])
+        if  getPlatform() == 'darwin': 
+             javaWrapperEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+	else: javaWrapperEnvironment.Prepend(LIBS = ['csnd'])
         if getPlatform() == 'darwin':
             javaWrapperEnvironment.Append(CPPPATH =
                 ['/System/Library/Frameworks/JavaVM.framework/Headers'])
@@ -1520,18 +1525,20 @@ else:
     else:
         print 'CONFIGURATION DECISION: Building Python wrapper to Csound C++ interface library.'
         pythonWrapperEnvironment = csoundWrapperEnvironment.Clone()
-        pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
+        if  getPlatform() == 'darwin': 
+             pythonWrapperEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+        else: pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
 	if getPlatform() == 'linux':
 	    os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
 	    # os.symlink('lib_csnd.so', '_csnd.so')
 	    pythonWrapperEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
 	if getPlatform() == 'darwin':
 	    if commonEnvironment['dynamicCsoundLibrary'] == '1':
-		ilibName = "lib_csnd.dylib"
-		ilibVersion = csoundLibraryVersion
-		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -compatibility_version -Xlinker %s''' % ilibVersion))
-		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
-		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/%s/%s''' % (OSXFrameworkCurrentVersion, ilibName)))
+		#ilibName = "lib_csnd.dylib"
+		#ilibVersion = csoundLibraryVersion
+		#pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -compatibility_version -Xlinker %s''' % ilibVersion))
+		#pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
+		#pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/%s/%s''' % (OSXFrameworkCurrentVersion, ilibName)))
                 pythonWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
                 pythonWrapperEnvironment.Append(LINKFLAGS = ['-framework','python'])
 		#pythonWrapper = pythonWrapperEnvironment.SharedLibrary('_csnd', pythonWrapperSources)
@@ -1540,9 +1547,8 @@ else:
 		'interfaces/python_interface.i',
 		SWIGFLAGS = [swigflags, '-python', '-outdir', '.', pyVersToken])
 	        pythonWrapperEnvironment.Clean('.', 'interfaces/python_interface_wrap.h')
-		pythonWrapperEnvironment.Command('interfaces install', csoundPythonInterface, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
-		try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
-		except: print "link exists..."
+		#try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
+		#except: print "link exists..."
 	else:
 	    pythonWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
 	    if getPlatform() != 'darwin':
@@ -2403,6 +2409,7 @@ else:
     acEnvironment.Append(CPPPATH = pythonIncludePath)
     acEnvironment.Append(LINKFLAGS = pythonLinkFlags)
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
+    acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
     if musicXmlFound:
@@ -2412,12 +2419,16 @@ else:
         else:  
             acEnvironment.Prepend(LIBS = 'csnd')
     else: 
+     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = '_csnd')
-    acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-    if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary']== '0':
+     else:
+        acEnvironment.Append(LINKFLAGS = ['-L.', '-l_csnd'])
+    if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary'] == '0':
       acEnvironment.Prepend(LIBS = libCsoundLibs)
     else:
-      acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib'])
+     if commonEnvironment['useDouble'] == 1:
+      acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib64'])
+     else:  acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib64'])
     acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     # csoundAC uses fltk_images, but -Wl,-as-needed willl wrongly discard it
     flag = '-Wl,-as-needed'
@@ -2493,7 +2504,9 @@ else:
     libs.append(csoundac)
     Depends(csoundac, csnd)
     pythonWrapperEnvironment = csoundWrapperEnvironment.Clone()
-    pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
+    if getPlatform() == 'darwin':
+      pythonWrapperEnvironment.Append(LINKFLAGS = Split('-L. -l_csnd'))
+    else: pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
     pythonCsoundACWrapperEnvironment = pythonWrapperEnvironment.Clone()
     if getPlatform() == 'darwin':
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC'])

@@ -855,6 +855,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
+                /* VL: added as means of dealing with empty conditionals, may need revision */
+                if(statements == NULL) 
+                   csound->Die(csound, "error: non-existent statement in conditional, line %d \n", last->right->line); 
                 while (statements->next != NULL) {
                   statements = statements->next;
                 }
@@ -863,7 +866,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                                                           endLabelCounter);
                   int type = (gotoType == 1) ? 0 : 1;
                   TREE *gotoEndLabelToken =
-                    create_simple_goto_token(csound, endLabel, type);
+                     create_simple_goto_token(csound, endLabel, type);
                   if (UNLIKELY(PARSER_DEBUG))
                     csound->Message(csound, "Creating simple goto token\n");
 
