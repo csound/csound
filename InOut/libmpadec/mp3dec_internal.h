@@ -22,6 +22,7 @@
 #ifndef __MP3DEC_INTERNAL_H
 #define __MP3DEC_INTERNAL_H
 
+#include "mpadec_config.h"
 #include "mp3dec.h"
 
 #define MP3DEC_FLAG_INITIALIZED 1

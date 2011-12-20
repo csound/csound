@@ -21,7 +21,7 @@
 
 #ifndef __MPADEC_H
 #define __MPADEC_H
-#include "mpadec_config.h"
+
 #undef FALSE
 #undef TRUE
 #define FALSE 0
