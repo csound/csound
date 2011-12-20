@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2011-12-18 14:56+0000\n"
+"PO-Revision-Date: 2011-12-20 13:28+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: \n"
@@ -364,9 +364,8 @@ msgstr ""
 #: Engine/cs_par_dispatch.c:1552 Engine/cs_par_dispatch.c:1644
 #: Engine/cs_par_dispatch.c:1699 Engine/cs_par_dispatch.c:1792
 #: Engine/cs_par_dispatch.c:1847 Engine/cs_par_dispatch.c:2681
-#, fuzzy
 msgid "Invalid NULL Parameter dag"
-msgstr "paramètre de mode non valide : %d"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1008
 msgid "Failed to allocate dag"
@@ -374,9 +373,8 @@ msgstr ""
 
 #: Engine/cs_par_dispatch.c:1060 Engine/cs_par_dispatch.c:1083
 #: Engine/cs_par_dispatch.c:1105 Engine/cs_par_dispatch.c:1107
-#, fuzzy
 msgid "Invalid NULL Parameter dag_node"
-msgstr "paramètre de mode non valide : %d"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1062
 #, fuzzy
@@ -384,9 +382,8 @@ msgid "Invalid NULL Parameter instr"
 msgstr "paramètre de mode non valide"
 
 #: Engine/cs_par_dispatch.c:1064
-#, fuzzy
 msgid "Invalid NULL Parameter insds"
-msgstr "paramètre de mode non valide : %d"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1069 Engine/cs_par_dispatch.c:1091
 msgid "Failed to allocate dag_node"
@@ -399,9 +396,8 @@ msgstr ""
 #: Engine/cs_par_dispatch.c:1229 Engine/cs_par_dispatch.c:1508
 #: Engine/cs_par_dispatch.c:2545 Engine/cs_par_dispatch.c:2655
 #: Engine/cs_par_dispatch.c:2682
-#, fuzzy
 msgid "Invalid NULL Parameter chain"
-msgstr "paramètre de mode non valide"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1237
 #, c-format
@@ -2326,9 +2322,9 @@ msgid "audio_in %s has %d chnls, orch %d chnls_i"
 msgstr "l'entrée audio_in %s a %d voix, l'orchestre a %d voix"
 
 #: InOut/libsnd.c:574
-#, fuzzy, c-format
+#, c-format
 msgid "reading %d sample blks of %d-bit floats from %s \n"
-msgstr "lecture de blocs de %2$s de %1$d octets à partir de %3$s\n"
+msgstr ""
 
 #: InOut/libsnd.c:578
 #, c-format
@@ -2350,9 +2346,9 @@ msgid "sfinit: cannot open %s"
 msgstr "sfinit : impossible d'ouvrir %s"
 
 #: InOut/libsnd.c:741
-#, fuzzy, c-format
+#, c-format
 msgid "writing %d sample blks of %d-bit floats to %s \n"
-msgstr "écriture de blocs de %2$s de %1$d octets vers %3$s\n"
+msgstr ""
 
 #: InOut/libsnd.c:744 util/srconv.c:484
 #, c-format
@@ -2364,9 +2360,9 @@ msgid " (raw)\n"
 msgstr " (raw)\n"
 
 #: InOut/libsnd.c:815
-#, fuzzy, c-format
+#, c-format
 msgid "%ld %d sample blks of %d-bit floats written to %s\n"
-msgstr "%1$ld blocs de %3$s de %2$d octets écrits vers %4$s"
+msgstr ""
 
 #: InOut/libsnd.c:820
 #, fuzzy, c-format
@@ -3651,8 +3647,8 @@ msgid "Index %d out of range [0,%d] in t[]\n"
 msgstr ""
 
 #: OOps/aops.c:209
-msgid "Vector notinitialised\n"
-msgstr ""
+msgid "Vector not initialised\n"
+msgstr "Vector : non initialisé"
 
 #: OOps/aops.c:711
 msgid "non-looping sample"
@@ -3681,9 +3677,8 @@ msgid "k-rate invalue ChannelName cannot start with $"
 msgstr "Un nom de canal d'entrée au taux-k ne peut pas commencer par un $"
 
 #: OOps/aops.c:1835
-#, fuzzy
 msgid "Unknown functuon called"
-msgstr "Contrôle %d inconnu"
+msgstr ""
 
 #: OOps/bus.c:313 OOps/bus.c:345
 msgid "chani: invalid index"
@@ -6097,9 +6092,9 @@ msgid "tab_i: incorrect table number"
 msgstr "tab_i : numéro de table incorrect"
 
 #: Opcodes/gab/gab.c:192
-#, fuzzy, c-format
+#, c-format
 msgid "tab_i off end: table number: %d\n"
-msgstr "Numéro de table non valide : %d"
+msgstr ""
 
 #: Opcodes/gab/gab.c:204
 msgid "tabw_i: incorrect table number"
@@ -6662,23 +6657,23 @@ msgid "vecdly: invalid delay table"
 msgstr "vecdly : id de table non valide"
 
 #: Opcodes/gab/vectorial.c:2138
-msgid "vecdly: not initialized"
+msgid "vecdly: not initialised"
 msgstr "vecdly : non initialisé"
 
 #: Opcodes/gab/vectorial.c:2181
 msgid "vlinseg/vexpseg: invalid num. of elements"
 msgstr "vlinseg/vexpseg : nombre d'éléments non valide"
 
-#: Opcodes/gab/vectorial.c:2223
-msgid "tableseg: not initialized"
+#: Opcodes/gab/vectorial.c:2223 Opcodes/vpvoc.c:118
+msgid "tableseg: not initialised"
 msgstr "tableseg : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2253
-msgid "tablexseg: not initialized"
+#: Opcodes/gab/vectorial.c:2253 Opcodes/vpvoc.c:146
+msgid "tablexseg: not initialised"
 msgstr "tablexseg : non initialisé"
 
 #: Opcodes/gab/vectorial.c:2406
-msgid "vdelayk: not initialized"
+msgid "vdelayk: not initialised"
 msgstr "vdelayk : non initialisé"
 
 #: Opcodes/gab/vectorial.c:2439 Opcodes/gab/vectorial.c:2445
@@ -9233,14 +9228,6 @@ msgstr "vosim: kfund (%f) > sr. Génération d'un silence de ksmps."
 #: Opcodes/Vosim.c:160
 msgid "vosim: not initialised"
 msgstr "vosim : non initialisé"
-
-#: Opcodes/vpvoc.c:118
-msgid "tableseg: not initialised"
-msgstr "tableseg : non initialisé"
-
-#: Opcodes/vpvoc.c:146
-msgid "tablexseg: not initialised"
-msgstr "tablexseg : non initialisé"
 
 #: Opcodes/vpvoc.c:173
 #, c-format
@@ -12729,6 +12716,15 @@ msgstr "extraction depuis la trame d'échantillon %ld (%3.1f secs)\n"
 #: util/xtrct.c:371
 msgid "Extract part of a sound file"
 msgstr "Extraction d'une partie d'un fichier son"
+
+#~ msgid "tableseg: not initialized"
+#~ msgstr "tableseg : non initialisé"
+
+#~ msgid "tablexseg: not initialized"
+#~ msgstr "tablexseg : non initialisé"
+
+#~ msgid "vdelayk: not initialized"
+#~ msgstr "vdelayk : non initialisé"
 
 #~ msgid "tab_i off end"
 #~ msgstr "tab_i hors-limite"
