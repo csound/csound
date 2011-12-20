@@ -1087,7 +1087,6 @@ InOut/libmpadec/synth.c
 InOut/libmpadec/tables.c
 InOut/libmpadec/mpadec.c
 InOut/libmpadec/mp3dec.c
-Opcodes/mp3in.c
 OOps/aops.c
 OOps/bus.c
 OOps/cmath.c
@@ -1137,13 +1136,6 @@ Top/one_file.c
 Top/opcode.c
 Top/threads.c
 Top/utility.c
-InOut/libmpadec/layer1.c 
-InOut/libmpadec/layer2.c 
-InOut/libmpadec/layer3.c 
-InOut/libmpadec/synth.c 
-InOut/libmpadec/tables.c 
-InOut/libmpadec/mpadec.c 
-InOut/libmpadec/mp3dec.c
 ''')
 
 newParserSources = Split('''

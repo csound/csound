@@ -17,7 +17,9 @@
 
 #define FLOAT double
 
-#ifdef HAVE_INTTYPES_H
+#include "sysdep.h"
+
+/*#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #else
 typedef signed char      int8_t;
@@ -43,6 +45,7 @@ typedef int32_t  intptr_t;
 typedef uint32_t uintptr_t;
 #endif
 #endif
+*/
 
 #undef PACKED
 #ifdef __GNUC__
