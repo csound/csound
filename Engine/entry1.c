@@ -615,7 +615,7 @@ OENTRY opcodlst_1[] = {
 /* { "out32",  S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", */
                                                 /* NULL,   NULL,   outX    }, */
 { "outch",  S(OUTCH),   4,      "",     "Z",    NULL,   NULL,   outch   },
-{ "outc",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall  },
+{ "outc",   S(OUTX),    4,      "",     "y",    NULL,   NULL,   outall  },
 { "cpsxpch", S(XENH),TR|1,      "i",    "iiii", cpsxpch, NULL,  NULL    },
 { "cps2pch", S(XENH),TR|1,      "i",    "ii",   cps2pch, NULL,  NULL    },
 { "cpstun", S(CPSTUN),  TR|2,      "k",    "kkk",   NULL,   cpstun         },
