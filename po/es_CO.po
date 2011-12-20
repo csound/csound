@@ -102,11 +102,11 @@ msgid "(unknown error)"
 msgstr ""
 
 #: Engine/csound_orc_compile.c:138
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "input arg %d '%s' of type %s not allowed when expecting %c (for opcode %s), "
 "line %d\n"
-msgstr "argumento de entrada '%s' de tipo %s no se permite porque se espera %c"
+msgstr ""
 
 #: Engine/csound_orc_compile.c:265 Engine/rdorch.c:1862
 msgid "missing or extra arg"
@@ -115,12 +115,12 @@ msgstr "argumento sobrante o faltante"
 #: Engine/csound_orc_compile.c:269
 #, fuzzy
 msgid "too many input args\n"
-msgstr "demasiados argumentos de entrada"
+msgstr "demasiados argumentos de entrada\n"
 
 #: Engine/csound_orc_compile.c:304
-#, fuzzy, c-format
+#, c-format
 msgid "input arg '%s' used before defined (in opcode %s), line %d\n"
-msgstr "argumento de entrada '%s' usado antes de ser definido"
+msgstr ""
 
 #: Engine/csound_orc_compile.c:380
 #, fuzzy, c-format
@@ -133,7 +133,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:386
 #, fuzzy, c-format
 msgid "output arg '%s' illegal type (for opcode %s), line %d\n"
-msgstr "tipo ilegal de argumento de salida '%s'"
+msgstr ""
 
 #: Engine/csound_orc_compile.c:541
 #, c-format
@@ -275,12 +275,12 @@ msgstr ""
 msgid ""
 " line %d:\n"
 ">>>"
-msgstr ", línea %d:\n"
+msgstr " línea %d:\n"
 
 #: Engine/csound_orc_semantics.c:732
 #, fuzzy, c-format
 msgid "insufficient required arguments for opcode %s on line %d\n"
-msgstr "número insuficiente de argumentos requeridos"
+msgstr ""
 
 #: Engine/csound_orc_semantics.c:797 Engine/rdorch.c:1644 Engine/rdorch.c:1662
 #: Engine/rdorch.c:1703 Engine/rdorch.c:1841 Engine/rdorch.c:2011
@@ -358,18 +358,18 @@ msgstr ""
 #: Engine/cs_par_dispatch.c:1847 Engine/cs_par_dispatch.c:2681
 #, fuzzy
 msgid "Invalid NULL Parameter dag"
-msgstr "parámetro de modo inválido: %d"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1008
 #, fuzzy
 msgid "Failed to allocate dag"
-msgstr "No fue posible crear %s"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1060 Engine/cs_par_dispatch.c:1083
 #: Engine/cs_par_dispatch.c:1105 Engine/cs_par_dispatch.c:1107
 #, fuzzy
 msgid "Invalid NULL Parameter dag_node"
-msgstr "parámetro de modo inválido: %d"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1062
 #, fuzzy
@@ -379,12 +379,12 @@ msgstr "parámetros de modo inválidos"
 #: Engine/cs_par_dispatch.c:1064
 #, fuzzy
 msgid "Invalid NULL Parameter insds"
-msgstr "parámetro de modo inválido: %d"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1069 Engine/cs_par_dispatch.c:1091
 #, fuzzy
 msgid "Failed to allocate dag_node"
-msgstr "No fue posible crear %s"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1086
 msgid "Invalid Parameter count must be greater than 0"
@@ -405,12 +405,12 @@ msgstr ""
 #: Engine/cs_par_dispatch.c:1554
 #, fuzzy
 msgid "Invalid NULL Parameter node"
-msgstr "parámetro de modo inválido: %d"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1556
 #, fuzzy
 msgid "Invalid NULL Parameter update_hdl"
-msgstr "parámetro de modo inválido: %d"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1647
 msgid "Invalid Parameter update_hdl is outside the DAG range"
@@ -419,7 +419,7 @@ msgstr ""
 #: Engine/cs_par_dispatch.c:2497
 #, fuzzy, c-format
 msgid "Parallel Dump File not found at: %s for writing"
-msgstr "no es posible abrir para escritura el archivo %s"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:2557
 msgid "Failed to allocate Dag2 cache entry"
@@ -1497,7 +1497,7 @@ msgstr "No se puede encontrar el instrumento o opcode especificado"
 #: Engine/new_orc_parser.c:91
 #, fuzzy
 msgid "Unmatched #ifdef\n"
-msgstr "endin sin complemento"
+msgstr ""
 
 #: Engine/otran.c:149 Engine/symbtab.c:413
 #, c-format
@@ -1840,7 +1840,7 @@ msgstr "número insuficiente de argumentos requeridos"
 #: Engine/rdorch.c:1940
 #, fuzzy, c-format
 msgid "input arg '%s' used before defined \n"
-msgstr "argumento de entrada '%s' usado antes de ser definido"
+msgstr "argumento de entrada '%s' usado antes de ser definido\n"
 
 #: Engine/rdorch.c:1987
 msgid "xin is allowed only in user defined opcodes"
@@ -2326,7 +2326,7 @@ msgstr "sfinit: no se puede abrir %s"
 #: InOut/libsnd.c:741
 #, fuzzy, c-format
 msgid "writing %d sample blks of %d-bit floats to %s \n"
-msgstr "escribiendo bloques de %d bytes de %s a %s"
+msgstr ""
 
 #: InOut/libsnd.c:744 util/srconv.c:484
 #, c-format
@@ -2345,7 +2345,7 @@ msgstr ""
 #: InOut/libsnd.c:820
 #, fuzzy, c-format
 msgid "%ld %d sample blks of %s written to %s"
-msgstr "escribiendo bloques de %d bytes de %s a %s"
+msgstr "escribiendo %ld bloques de %d bytes de %s a %s"
 
 #: InOut/libsnd.c:837
 #, c-format
@@ -3062,12 +3062,12 @@ msgstr ""
 #: InOut/rtauhal.c:163
 #, fuzzy, c-format
 msgid "selected input device: %s \n"
-msgstr "PortMIDI: dispositivo de salida %d: '%s'\n"
+msgstr ""
 
 #: InOut/rtauhal.c:166
 #, fuzzy, c-format
 msgid "selected output device: %s \n"
-msgstr "PortMIDI: dispositivo de salida %d: '%s'\n"
+msgstr ""
 
 #: InOut/rtauhal.c:524
 msgid "AuHAL module: device closed\n"
@@ -3606,7 +3606,7 @@ msgstr ""
 #: OOps/aops.c:209
 #, fuzzy
 msgid "Vector not initialised\n"
-msgstr "vco: no ha sido inicializado"
+msgstr "Vector: no ha sido inicializado\n"
 
 #: OOps/aops.c:711
 msgid "non-looping sample"
@@ -3738,8 +3738,6 @@ msgid ""
 "diskin2: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
-"Archivo '%s' (sr = %d Hz, %d canal(es), %lu cuadros de muestra) cargado en "
-"la memoria\n"
 
 #: OOps/diskin2.c:240
 msgid ""
@@ -3778,8 +3776,6 @@ msgid ""
 "soundin: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
-"Archivo '%s' (sr = %d Hz, %d canal(es), %lu cuadros de muestra) cargado en "
-"la memoria\n"
 
 #: OOps/diskin2.c:609
 msgid ""
@@ -3818,8 +3814,6 @@ msgid ""
 "diskin: opened '%s':\n"
 "        %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
-"Archivo '%s' (sr = %d Hz, %d canal(es), %lu cuadros de muestra) cargado en "
-"la memoria\n"
 
 #: OOps/diskin.c:207
 msgid "diskin: number of output args inconsistent with number of file channels"
@@ -3891,7 +3885,7 @@ msgstr ""
 #: OOps/disprep.c:96
 #, fuzzy
 msgid "illegal iprd in display"
-msgstr "iperiod ilegal"
+msgstr ""
 
 #: OOps/disprep.c:120
 #, c-format
@@ -3917,7 +3911,7 @@ msgstr "el tamaño de la ventana debe ser una potencia de dos"
 #: OOps/disprep.c:252
 #, fuzzy
 msgid "illegal iprd in ffy display"
-msgstr "iperiod ilegal"
+msgstr ""
 
 #: OOps/disprep.c:277
 #, c-format
@@ -5606,7 +5600,7 @@ msgstr ""
 #: Opcodes/cpumeter.c:77
 #, fuzzy, c-format
 msgid "Failed to open /proc/stat: %s"
-msgstr "No fue posible abrir el archivo csd: %s"
+msgstr "No fue posible abrir el archivo /proc/stat : %s"
 
 #: Opcodes/cpumeter.c:79 Opcodes/cpumeter.c:84 Opcodes/cpumeter.c:111
 #: Opcodes/cpumeter.c:151
@@ -5713,7 +5707,7 @@ msgstr ""
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:553
 #, fuzzy, c-format
 msgid "Illegal Engine Number: %i.\n"
-msgstr "número GEN ilegal"
+msgstr ""
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:238
 #, c-format
@@ -6009,7 +6003,7 @@ msgstr ""
 #: Opcodes/gab/newgabopc.c:252 Opcodes/gab/newgabopc.c:306
 #, fuzzy
 msgid "copyTabElems: incorrect source table number"
-msgstr "GEN53: número inválido de tabla fuente"
+msgstr "copyTabElems: número inválido de tabla fuente"
 
 #: Opcodes/gab/newgabopc.c:257 Opcodes/gab/newgabopc.c:310
 msgid ""
@@ -6399,17 +6393,17 @@ msgstr ""
 #: Opcodes/gab/vectorial.c:1698
 #, fuzzy
 msgid "vectorop: invalid num of elements"
-msgstr "número inválido de argumentos"
+msgstr "vectorop : número inválido de argumentos"
 
 #: Opcodes/gab/vectorial.c:1727
 #, fuzzy
 msgid "vport: invalid table length or num of elements"
-msgstr "GEN53: tamaño inválido de tabla"
+msgstr "vport : tamaño inválido de tabla"
 
 #: Opcodes/gab/vectorial.c:1730
 #, fuzzy
 msgid "vport: invalid table"
-msgstr "cpstun: tabla inválida"
+msgstr "vport : tabla inválida"
 
 #: Opcodes/gab/vectorial.c:1735
 msgid "vport: invalid init table length or num of elements"
@@ -6418,7 +6412,7 @@ msgstr ""
 #: Opcodes/gab/vectorial.c:1738
 #, fuzzy
 msgid "vport: invalid init table"
-msgstr "cpstun: tabla inválida"
+msgstr "vport : tabla inválida"
 
 #: Opcodes/gab/vectorial.c:1875
 #, c-format
@@ -6428,7 +6422,7 @@ msgstr ""
 #: Opcodes/gab/vectorial.c:1888
 #, fuzzy
 msgid "vrandh: Invalid table."
-msgstr "cpstun: tabla inválida"
+msgstr vrandh: tabla inválida"
 
 #: Opcodes/gab/vectorial.c:1891
 msgid "vrandh: idstoffset is greater than table length."
@@ -6446,7 +6440,7 @@ msgstr ""
 #: Opcodes/gab/vectorial.c:1987
 #, fuzzy
 msgid "vrandi: Invalid table."
-msgstr "cpstun: tabla inválida"
+msgstr "vrandi : tabla inválida"
 
 #: Opcodes/gab/vectorial.c:1990
 msgid "vrandi: idstoffset is greater thantable length."
@@ -6460,27 +6454,27 @@ msgstr ""
 #: Opcodes/gab/vectorial.c:2091
 #, fuzzy
 msgid "vecdelay: invalid num of elements"
-msgstr "número inválido de argumentos"
+msgstr "vecdelay : número inválido de argumentos"
 
 #: Opcodes/gab/vectorial.c:2079
 #, fuzzy
 msgid "vecdly: invalid output table"
-msgstr "cpstabm: tabla de modulador inválida"
+msgstr "vecdly : tabla de modulador inválida"
 
 #: Opcodes/gab/vectorial.c:2086
 #, fuzzy
 msgid "vecdly: invalid input table"
-msgstr "GEN53: tabla de ventana inválida"
+msgstr "vecdly : tabla de ventana inválida"
 
 #: Opcodes/gab/vectorial.c:2093
 #, fuzzy
 msgid "vecdly: invalid delay table"
-msgstr "cpstabm: tabla de modulador inválida"
+msgstr "vecdly : tabla de modulador inválida"
 
 #: Opcodes/gab/vectorial.c:2138
 #, fuzzy
 msgid "vecdly: not initialised"
-msgstr "vdelay: no ha sido inicializado"
+msgstr "vecdly : no ha sido inicializado"
 
 #: Opcodes/gab/vectorial.c:2181
 msgid "vlinseg/vexpseg: invalid num. of elements"
@@ -6497,27 +6491,27 @@ msgstr "tablexseg: no ha sido inicializado"
 #: Opcodes/gab/vectorial.c:2406
 #, fuzzy
 msgid "vdelayk: not initialised"
-msgstr "delayk: no ha sido inicializado"
+msgstr "vdelayk: no ha sido inicializado"
 
 #: Opcodes/gab/vectorial.c:2439 Opcodes/gab/vectorial.c:2445
 #, fuzzy
 msgid "cella: invalid num of elements"
-msgstr "número inválido de argumentos"
+msgstr "cella: número inválido de argumentos"
 
 #: Opcodes/gab/vectorial.c:2441
 #, fuzzy
 msgid "cella: invalid output table"
-msgstr "cpstabm: tabla de modulador inválida"
+msgstr "cella: tabla de modulador inválida"
 
 #: Opcodes/gab/vectorial.c:2448
 #, fuzzy
 msgid "cella: invalid initial state table"
-msgstr "cpstabm: tabla de modulador inválida"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:2452
 #, fuzzy
 msgid "cella: invalid rule table"
-msgstr "cpstabm: tabla de modulador inválida"
+msgstr "cella: tabla de modulador inválida"
 
 #: Opcodes/grain4.c:59
 msgid "granule_set: Unable to find function table"
@@ -7179,7 +7173,7 @@ msgstr ""
 #: Opcodes/OSC.c:240
 #, fuzzy, c-format
 msgid "ftable %.2f does not exist"
-msgstr "la tabla-f (ftable) no existe"
+msgstr "la tabla-f (ftable) %.2f no existe"
 
 #: Opcodes/OSC.c:249
 #, c-format
@@ -7649,7 +7643,7 @@ msgstr "pvsband: no ha sido inicializado"
 #: Opcodes/pvsbasic.c:69
 #, fuzzy
 msgid "pvsgain: signal format must be amp-phase or amp-freq."
-msgstr "formato de muestra inválido: debe ser -s, -l, or -f"
+msgstr ""
 
 #: Opcodes/pvsbasic.c:181 Opcodes/pvsbasic.c:248
 msgid "SDFT Not implemented in this case yet"
@@ -7736,14 +7730,14 @@ msgstr "pvstencil: no ha sido inicializado"
 #: Opcodes/pvsbasic.c:2148
 #, fuzzy
 msgid "pvs2tab: signal format must be amp-phase or amp-freq."
-msgstr "formato de muestra inválido: debe ser -s, -l, or -f"
+msgstr ""
 
 #: Opcodes/pvsbasic.c:2151 Opcodes/pvsbasic.c:2189 Opcodes/tabvars.c:56
 #: Opcodes/tabvars.c:92 Opcodes/tabvars.c:134 Opcodes/tabvars.c:179
 #: Opcodes/tabvars.c:181
 #, fuzzy
 msgid "t-variable not initialised"
-msgstr "table: no ha sido inicializado"
+msgstr "t-variable no ha sido inicializado"
 
 #: Opcodes/pvsbuffer.c:56 Opcodes/pvscent.c:164 Opcodes/pvsdemix.c:49
 msgid "SDFT case not implemented yet"
@@ -8424,7 +8418,7 @@ msgstr "tabsum: no ha sido inicializado"
 #: Opcodes/tabvars.c:201 Opcodes/tabvars.c:218
 #, fuzzy
 msgid "t-var not initialised"
-msgstr "table: no ha sido inicializado"
+msgstr "t-var no ha sido inicializado"
 
 #: Opcodes/tabvars.c:203 Opcodes/tabvars.c:220
 msgid "No table for copy2ftab"
