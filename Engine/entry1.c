@@ -402,13 +402,13 @@ OENTRY opcodlst_1[] = {
      ***BEWARE***
      CODE REMOVED 2011-Dec-14
    */
-{ "out",    S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
-{ "outs",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
-{ "outq",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
-{ "outh",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
-{ "outo",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
-{ "outx",   S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
-{ "out32",  S(OUT),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "out",    S(OUTX),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outs",   S(OUTX),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outq",   S(OUTX),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outh",   S(OUTX),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outo",   S(OUTX),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "outx",   S(OUTX),     4,      "",     "y",    NULL,   NULL,   outall },
+{ "out32",  S(OUTX),     4,      "",     "y",    NULL,   NULL,   outall },
 /* { "out",    S(OUTM),    4,      "",     "a",    NULL,   NULL,   out     }, */
 /* { "outs",   S(OUTS),    4,      "",     "aa",   NULL,   NULL,   outs    }, */
 { "outs1",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outs1   },
