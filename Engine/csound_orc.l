@@ -101,7 +101,7 @@ UNDEF           "#undef"
 IFDEF           #ifn?def
 ELSE            #else[ \t]*(;.*)?$
 END             #end(if)?[ \t]*(;.*)?\n
-CONT            \\[[ \t]*\n
+CONT            \\[ \t]*(;.*)?\n
 XSTR            "{{"
 EXSTR           "}}"
 
