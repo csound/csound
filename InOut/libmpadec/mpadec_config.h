@@ -15,7 +15,7 @@
 #define HAVE_INTTYPES_H
 #endif
 
-#define FLOAT double
+#define FLOAT MYFLT
 
 #include "sysdep.h"
 
