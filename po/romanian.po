@@ -3550,7 +3550,7 @@ msgid "Index %d out of range [0,%d] in t[]\n"
 msgstr ""
 
 #: OOps/aops.c:209
-msgid "Vector notinitialised\n"
+msgid "Vector not initialised\n"
 msgstr ""
 
 #: OOps/aops.c:711
@@ -6388,23 +6388,23 @@ msgid "vecdly: invalid delay table"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:2138
-msgid "vecdly: not initialized"
+msgid "vecdly: not initialised"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:2181
 msgid "vlinseg/vexpseg: invalid num. of elements"
 msgstr ""
 
-#: Opcodes/gab/vectorial.c:2223
-msgid "tableseg: not initialized"
+#: Opcodes/gab/vectorial.c:2223 Opcodes/vpvoc.c:118
+msgid "tableseg: not initialised"
 msgstr ""
 
-#: Opcodes/gab/vectorial.c:2253
-msgid "tablexseg: not initialized"
+#: Opcodes/gab/vectorial.c:2253 Opcodes/vpvoc.c:146
+msgid "tablexseg: not initialised"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:2406
-msgid "vdelayk: not initialized"
+msgid "vdelayk: not initialised"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:2439 Opcodes/gab/vectorial.c:2445
@@ -8815,14 +8815,6 @@ msgstr ""
 
 #: Opcodes/Vosim.c:160
 msgid "vosim: not initialised"
-msgstr ""
-
-#: Opcodes/vpvoc.c:118
-msgid "tableseg: not initialised"
-msgstr ""
-
-#: Opcodes/vpvoc.c:146
-msgid "tablexseg: not initialised"
 msgstr ""
 
 #: Opcodes/vpvoc.c:173

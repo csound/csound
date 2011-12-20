@@ -2135,7 +2135,7 @@ static int vecdly(CSOUND *csound,VECDEL *p)
     MYFLT *outVec = p->outvec, *dlyVec = p->dlyvec;
     int elements = p->elements;
     if (UNLIKELY(buf==NULL)) {
-      return csound->InitError(csound, Str("vecdly: not initialized"));
+      return csound->InitError(csound, Str("vecdly: not initialised"));
     }
     do {
       (*buf)[*indx] = *inVec++;
@@ -2220,7 +2220,7 @@ static int vlinseg(CSOUND *csound,VSEG *p)
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0), *vector;
     int32        flength, upcnt;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
-      return csound->InitError(csound, Str("tableseg: not initialized"));
+      return csound->InitError(csound, Str("tableseg: not initialised"));
     }
     segp = p->cursegp;
     curtab = segp->function->ftable;
@@ -2250,7 +2250,7 @@ static int vexpseg(CSOUND *csound,VSEG *p)
     int32        flength, upcnt;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) {
-      return csound->InitError(csound, Str("tablexseg: not initialized"));
+      return csound->InitError(csound, Str("tablexseg: not initialised"));
     }
     segp = p->cursegp;
     curtab = segp->function->ftable;
@@ -2403,7 +2403,7 @@ static int kdelay(CSOUND *csound,KDEL *p)
     MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
 
     if (UNLIKELY(buf==NULL)) {
-      return csound->InitError(csound, Str("vdelayk: not initialized"));
+      return csound->InitError(csound, Str("vdelayk: not initialised"));
     }
 
     indx = p->left;

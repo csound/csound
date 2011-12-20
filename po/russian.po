@@ -3552,7 +3552,7 @@ msgstr ""
 
 #: OOps/aops.c:209
 #, fuzzy
-msgid "Vector notinitialised\n"
+msgid "Vector not initialised\n"
 msgstr "%s: не выступлено с иничиативой"
 
 #: OOps/aops.c:711
@@ -6396,26 +6396,24 @@ msgstr ""
 
 #: Opcodes/gab/vectorial.c:2138
 #, fuzzy
-msgid "vecdly: not initialized"
+msgid "vecdly: not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
 #: Opcodes/gab/vectorial.c:2181
 msgid "vlinseg/vexpseg: invalid num. of elements"
 msgstr ""
 
-#: Opcodes/gab/vectorial.c:2223
-#, fuzzy
-msgid "tableseg: not initialized"
-msgstr "%s: не выступлено с иничиативой"
+#: Opcodes/gab/vectorial.c:2223 Opcodes/vpvoc.c:118
+msgid "tableseg: not initialised"
+msgstr ""
 
-#: Opcodes/gab/vectorial.c:2253
-#, fuzzy
-msgid "tablexseg: not initialized"
-msgstr "%s: не выступлено с иничиативой"
+#: Opcodes/gab/vectorial.c:2253 Opcodes/vpvoc.c:146
+msgid "tablexseg: not initialised"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:2406
 #, fuzzy
-msgid "vdelayk: not initialized"
+msgid "vdelayk: not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
 #: Opcodes/gab/vectorial.c:2439 Opcodes/gab/vectorial.c:2445
@@ -8839,14 +8837,6 @@ msgstr ""
 
 #: Opcodes/Vosim.c:160
 msgid "vosim: not initialised"
-msgstr ""
-
-#: Opcodes/vpvoc.c:118
-msgid "tableseg: not initialised"
-msgstr ""
-
-#: Opcodes/vpvoc.c:146
-msgid "tablexseg: not initialised"
 msgstr ""
 
 #: Opcodes/vpvoc.c:173
@@ -12172,6 +12162,14 @@ msgstr ""
 #: util/xtrct.c:371
 msgid "Extract part of a sound file"
 msgstr ""
+
+#, fuzzy
+#~ msgid "tableseg: not initialized"
+#~ msgstr "%s: не выступлено с иничиативой"
+
+#, fuzzy
+#~ msgid "tablexseg: not initialized"
+#~ msgstr "%s: не выступлено с иничиативой"
 
 #, fuzzy
 #~ msgid "OSCrecv: OSC has not been initialised"
