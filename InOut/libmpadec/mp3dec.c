@@ -19,6 +19,7 @@
 
 /* $Id: mp3dec.c,v 1.6 2009/03/01 15:27:05 jpff Exp $ */
 
+#include "csoundCore.h"
 #include "mp3dec_internal.h"
 
 mp3dec_t mp3dec_init(void)
