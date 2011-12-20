@@ -1588,7 +1588,7 @@ int outo(CSOUND *csound, OUTO *p)
 }
 #endif
 
-static int outn(CSOUND *csound, int n, OUT *p)
+static int outn(CSOUND *csound, int n, OUTX *p)
 {
     int   i, j = 0, k = 0;
     int nsmps = csound->ksmps;
@@ -1629,7 +1629,7 @@ int outX(CSOUND *csound, OUTX *p)
 }
 #endif
 
-int outall(CSOUND *csound, OUT *p)             /* Output a list of channels */
+int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
 {
     int nch = (int)p->INOCOUNT;
     return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
