@@ -3549,7 +3549,7 @@ msgid "Index %d out of range [0,%d] in t[]\n"
 msgstr ""
 
 #: OOps/aops.c:209
-#, fuzzy
+#
 msgid "Vector not initialised\n"
 msgstr "Vector not initialized\n"
 
@@ -6408,9 +6408,9 @@ msgid "tablexseg: not initialised"
 msgstr "tablexseg: not initialized"
 
 #: Opcodes/gab/vectorial.c:2406
-#, fuzzy
+#
 msgid "vdelayk: not initialised"
-msgstr "delayk: not initialized"
+msgstr "vdelayk: not initialized"
 
 #: Opcodes/gab/vectorial.c:2439 Opcodes/gab/vectorial.c:2445
 msgid "cella: invalid num of elements"
