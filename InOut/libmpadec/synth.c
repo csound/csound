@@ -333,7 +333,8 @@ static void synth_full(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
   if (mpa->synth_bufoffs & 1) {
     b0 = buf[0];
     bo = mpa->synth_bufoffs;
-    dct64(buf[1] + ((mpa->synth_bufoffs + 1) & 0x0F), buf[0] + mpa->synth_bufoffs, bandptr);
+    dct64(buf[1] + ((mpa->synth_bufoffs + 1) & 0x0F),
+          buf[0] + mpa->synth_bufoffs, bandptr);
   } else {
     b0 = buf[1];
     bo = mpa->synth_bufoffs + 1;
@@ -413,11 +414,13 @@ static void synth_half(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
   if (mpa->synth_bufoffs & 1) {
     b0 = buf[0];
     bo = mpa->synth_bufoffs;
-    dct64(buf[1] + ((mpa->synth_bufoffs + 1) & 0x0F), buf[0] + mpa->synth_bufoffs, bandptr);
+    dct64(buf[1] + ((mpa->synth_bufoffs + 1) & 0x0F),
+          buf[0] + mpa->synth_bufoffs, bandptr);
   } else {
     b0 = buf[1];
     bo = mpa->synth_bufoffs + 1;
-    dct64(buf[0] + mpa->synth_bufoffs, buf[1] + (mpa->synth_bufoffs + 1), bandptr);
+    dct64(buf[0] + mpa->synth_bufoffs,
+          buf[1] + (mpa->synth_bufoffs + 1), bandptr);
   }
   {
     register int i;
@@ -483,7 +486,8 @@ static void synth_half(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
 
 /* 16 bit, little-endian */
 
-static void synth_full16lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full16lmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -500,7 +504,8 @@ static void synth_full16lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_full16lsm synth_full16lmm
 
-static void synth_full16lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full16lms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -515,7 +520,8 @@ static void synth_full16lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   }
 }
 
-static void synth_full16lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full16lss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -533,7 +539,8 @@ static void synth_full16lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 16 bit, big-endian */
 
-static void synth_full16bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full16bmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -542,7 +549,8 @@ static void synth_full16bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
+    if (tmp > 32767) tmp = 32767;
+    else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[1] = (uint8_t)tmp;
     ((int8_t *)out)[0] = (int8_t)(tmp >> 8);
   }
@@ -550,7 +558,8 @@ static void synth_full16bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_full16bsm synth_full16bmm
 
-static void synth_full16bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full16bms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -565,7 +574,8 @@ static void synth_full16bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   }
 }
 
-static void synth_full16bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full16bss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -583,7 +593,8 @@ static void synth_full16bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 24 bit, little-endian */
 
-static void synth_full24lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full24lmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -592,7 +603,8 @@ static void synth_full24lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 3) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[2] = (int8_t)(tmp >> 16);
@@ -601,7 +613,8 @@ static void synth_full24lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_full24lsm synth_full24lmm
 
-static void synth_full24lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full24lms(mpadec_t mpadec, MYFLT *bandptr, 
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -610,14 +623,16 @@ static void synth_full24lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 6) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[4] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[2] = ((int8_t *)out)[5] = (int8_t)(tmp >> 16);
   }
 }
 
-static void synth_full24lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full24lss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -627,7 +642,8 @@ static void synth_full24lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT; i++, out += 6) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[2] = (int8_t)(tmp >> 16);
@@ -636,7 +652,8 @@ static void synth_full24lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 24 bit, big-endian */
 
-static void synth_full24bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full24bmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -645,7 +662,8 @@ static void synth_full24bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 3) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[0] = (int8_t)(tmp >> 16);
@@ -654,7 +672,8 @@ static void synth_full24bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_full24bsm synth_full24bmm
 
-static void synth_full24bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full24bms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -663,14 +682,16 @@ static void synth_full24bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 6) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = ((uint8_t *)out)[5] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[4] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[0] = ((int8_t *)out)[3] = (int8_t)(tmp >> 16);
   }
 }
 
-static void synth_full24bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full24bss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -680,7 +701,8 @@ static void synth_full24bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT; i++, out += 6) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[0] = (int8_t)(tmp >> 16);
@@ -689,7 +711,8 @@ static void synth_full24bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 32 bit , little-endian */
 
-static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr, 
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -698,7 +721,8 @@ static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 16);
@@ -708,7 +732,8 @@ static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_full32lsm synth_full32lmm
 
-static void synth_full32lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32lms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -717,7 +742,8 @@ static void synth_full32lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 16);
@@ -725,7 +751,8 @@ static void synth_full32lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   }
 }
 
-static void synth_full32lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32lss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -735,7 +762,8 @@ static void synth_full32lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 16);
@@ -745,7 +773,8 @@ static void synth_full32lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 32 bit, big-endian */
 
-static void synth_full32bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32bmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -754,7 +783,8 @@ static void synth_full32bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 16);
@@ -764,7 +794,8 @@ static void synth_full32bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_full32bsm synth_full32bmm
 
-static void synth_full32bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32bms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -773,7 +804,8 @@ static void synth_full32bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp;
     ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 16);
@@ -781,7 +813,8 @@ static void synth_full32bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   }
 }
 
-static void synth_full32bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32bss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -791,7 +824,8 @@ static void synth_full32bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 16);
@@ -801,7 +835,8 @@ static void synth_full32bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 32 bit floating-point, little-endian */
 
-static void synth_full32flmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32flmm(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -820,7 +855,8 @@ static void synth_full32flmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
 
 #define synth_full32flsm synth_full32flmm
 
-static void synth_full32flms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32flms(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -837,7 +873,8 @@ static void synth_full32flms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
   }
 }
 
-static void synth_full32flss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32flss(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -857,7 +894,8 @@ static void synth_full32flss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
 
 /* 32 bit floating-point, big-endian */
 
-static void synth_full32fbmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32fbmm(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -876,7 +914,8 @@ static void synth_full32fbmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
 
 #define synth_full32fbsm synth_full32fbmm
 
-static void synth_full32fbms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32fbms(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -893,7 +932,8 @@ static void synth_full32fbms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
   }
 }
 
-static void synth_full32fbss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_full32fbss(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -915,7 +955,8 @@ static void synth_full32fbss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
 
 /* 16 bit, little-endian */
 
-static void synth_half16lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half16lmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -932,7 +973,8 @@ static void synth_half16lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_half16lsm synth_half16lmm
 
-static void synth_half16lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half16lms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -947,7 +989,8 @@ static void synth_half16lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   }
 }
 
-static void synth_half16lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half16lss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -965,7 +1008,8 @@ static void synth_half16lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 16 bit, big-endian */
 
-static void synth_half16bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half16bmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -982,7 +1026,8 @@ static void synth_half16bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_half16bsm synth_half16bmm
 
-static void synth_half16bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half16bms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -997,7 +1042,8 @@ static void synth_half16bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   }
 }
 
-static void synth_half16bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half16bss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int16_t *out = (int16_t *)buffer;
@@ -1015,7 +1061,8 @@ static void synth_half16bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 24 bit, little-endian */
 
-static void synth_half24lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half24lmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -1024,7 +1071,8 @@ static void synth_half24lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 3) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[2] = (int8_t)(tmp >> 16);
@@ -1033,7 +1081,8 @@ static void synth_half24lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_half24lsm synth_half24lmm
 
-static void synth_half24lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half24lms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -1042,14 +1091,16 @@ static void synth_half24lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[4] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[2] = ((int8_t *)out)[5] = (int8_t)(tmp >> 16);
   }
 }
 
-static void synth_half24lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half24lss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -1059,7 +1110,8 @@ static void synth_half24lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[2] = (int8_t)(tmp >> 16);
@@ -1068,7 +1120,8 @@ static void synth_half24lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 24 bit, big-endian */
 
-static void synth_half24bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half24bmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -1077,7 +1130,8 @@ static void synth_half24bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 3) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[0] = (int8_t)(tmp >> 16);
@@ -1086,7 +1140,8 @@ static void synth_half24bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_half24bsm synth_half24bmm
 
-static void synth_half24bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half24bms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -1095,14 +1150,16 @@ static void synth_half24bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = ((uint8_t *)out)[5] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[4] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[0] = ((int8_t *)out)[3] = (int8_t)(tmp >> 16);
   }
 }
 
-static void synth_half24bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half24bss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register uint8_t *out = (uint8_t *)buffer;
@@ -1112,7 +1169,8 @@ static void synth_half24bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
     register int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; else if (tmp < -0x800000) tmp = -0x800000;
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
+    else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((int8_t *)out)[0] = (int8_t)(tmp >> 16);
@@ -1121,7 +1179,8 @@ static void synth_half24bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 32 bit, little-endian */
 
-static void synth_half32lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32lmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -1130,7 +1189,8 @@ static void synth_half32lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out++) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 16);
@@ -1140,7 +1200,8 @@ static void synth_half32lmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_half32lsm synth_half32lmm
 
-static void synth_half32lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32lms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -1149,7 +1210,8 @@ static void synth_half32lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 16);
@@ -1157,7 +1219,8 @@ static void synth_half32lms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   }
 }
 
-static void synth_half32lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32lss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -1167,7 +1230,8 @@ static void synth_half32lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   if (channel) out++;
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 16);
@@ -1177,7 +1241,8 @@ static void synth_half32lss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 32 bit, big-endian */
 
-static void synth_half32bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32bmm(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -1186,7 +1251,8 @@ static void synth_half32bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out++) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 16);
@@ -1196,7 +1262,8 @@ static void synth_half32bmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 #define synth_half32bsm synth_half32bmm
 
-static void synth_half32bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32bms(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -1205,7 +1272,8 @@ static void synth_half32bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp;
     ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 16);
@@ -1213,7 +1281,8 @@ static void synth_half32bms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   }
 }
 
-static void synth_half32bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32bss(mpadec_t mpadec, MYFLT *bandptr,
+                            int channel, uint8_t *buffer)
 {
   register int i;
   register int32_t *out = (int32_t *)buffer;
@@ -1223,7 +1292,8 @@ static void synth_half32bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
   if (channel) out++;
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
     register int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
+    else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 16);
@@ -1233,7 +1303,8 @@ static void synth_half32bss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_
 
 /* 32 bit floating-point, little-endian */
 
-static void synth_half32flmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32flmm(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -1252,7 +1323,8 @@ static void synth_half32flmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
 
 #define synth_half32flsm synth_half32flmm
 
-static void synth_half32flms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32flms(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -1269,7 +1341,8 @@ static void synth_half32flms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
   }
 }
 
-static void synth_half32flss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32flss(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -1289,7 +1362,8 @@ static void synth_half32flss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
 
 /* 32 bit floating-point, big-endian */
 
-static void synth_half32fbmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32fbmm(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -1308,7 +1382,8 @@ static void synth_half32fbmm(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
 
 #define synth_half32fbsm synth_half32fbmm
 
-static void synth_half32fbms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32fbms(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
@@ -1325,7 +1400,8 @@ static void synth_half32fbms(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8
   }
 }
 
-static void synth_half32fbss(mpadec_t mpadec, MYFLT *bandptr, int channel, uint8_t *buffer)
+static void synth_half32fbss(mpadec_t mpadec, MYFLT *bandptr,
+                             int channel, uint8_t *buffer)
 {
   register int i;
   register float *out = (float *)buffer;
