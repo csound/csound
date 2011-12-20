@@ -206,7 +206,7 @@ int tassign(CSOUND *csound, ASSIGNT *p)
 int tabref_check(CSOUND *csound, TABREF *p)
 {
     if (UNLIKELY(p->tab->data==NULL))
-      return csound->InitError(csound, Str("Vector notinitialised\n"));
+      return csound->InitError(csound, Str("Vector not initialised\n"));
     return OK;
 }
 

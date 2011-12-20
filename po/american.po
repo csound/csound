@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2010-12-28 14:14+0000\n"
+"PO-Revision-Date: 2011-12-20 13:18+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (USA)\n"
 "Language: \n"
@@ -400,9 +400,9 @@ msgid "Invalid Parameter update_hdl is outside the DAG range"
 msgstr ""
 
 #: Engine/cs_par_dispatch.c:2497
-#, fuzzy, c-format
+#, c-format
 msgid "Parallel Dump File not found at: %s for writing"
-msgstr "can't open %s for writing"
+msgstr "Parallel Dump File not found at: %s for writing"
 
 #: Engine/cs_par_dispatch.c:2557
 msgid "Failed to allocate Dag2 cache entry"
@@ -1795,9 +1795,9 @@ msgid "insufficient required arguments"
 msgstr ""
 
 #: Engine/rdorch.c:1940
-#, fuzzy, c-format
+#, c-format
 msgid "input arg '%s' used before defined \n"
-msgstr "instr %s redefined"
+msgstr ""
 
 #: Engine/rdorch.c:1987
 msgid "xin is allowed only in user defined opcodes"
@@ -3550,8 +3550,8 @@ msgstr ""
 
 #: OOps/aops.c:209
 #, fuzzy
-msgid "Vector notinitialised\n"
-msgstr "vco: not initialized"
+msgid "Vector not initialised\n"
+msgstr "Vector not initialized\n"
 
 #: OOps/aops.c:711
 msgid "non-looping sample"
@@ -6392,27 +6392,24 @@ msgid "vecdly: invalid delay table"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:2138
-#, fuzzy
-msgid "vecdly: not initialized"
-msgstr "vdelay: not initialized"
+msgid "vecdly: not initialised"
+msgstr "vecdly: not initialized"
 
 #: Opcodes/gab/vectorial.c:2181
 msgid "vlinseg/vexpseg: invalid num. of elements"
 msgstr ""
 
-#: Opcodes/gab/vectorial.c:2223
-#, fuzzy
-msgid "tableseg: not initialized"
+#: Opcodes/gab/vectorial.c:2223 Opcodes/vpvoc.c:118
+msgid "tableseg: not initialised"
 msgstr "tableseg: not initialized"
 
-#: Opcodes/gab/vectorial.c:2253
-#, fuzzy
-msgid "tablexseg: not initialized"
+#: Opcodes/gab/vectorial.c:2253 Opcodes/vpvoc.c:146
+msgid "tablexseg: not initialised"
 msgstr "tablexseg: not initialized"
 
 #: Opcodes/gab/vectorial.c:2406
 #, fuzzy
-msgid "vdelayk: not initialized"
+msgid "vdelayk: not initialised"
 msgstr "delayk: not initialized"
 
 #: Opcodes/gab/vectorial.c:2439 Opcodes/gab/vectorial.c:2445
@@ -6577,7 +6574,6 @@ msgstr ""
 
 #: Opcodes/hrtfopcodes.c:287 Opcodes/hrtfopcodes.c:1461
 #: Opcodes/hrtfopcodes.c:2071 Opcodes/hrtfearly.c:327 Opcodes/hrtfreverb.c:300
-#, fuzzy
 msgid ""
 "\n"
 "\n"
@@ -6593,7 +6589,6 @@ msgstr ""
 
 #: Opcodes/hrtfopcodes.c:294 Opcodes/hrtfopcodes.c:1468
 #: Opcodes/hrtfopcodes.c:2078 Opcodes/hrtfearly.c:334 Opcodes/hrtfreverb.c:306
-#, fuzzy
 msgid ""
 "\n"
 "\n"
@@ -7099,9 +7094,9 @@ msgid "Time stamp is two values"
 msgstr ""
 
 #: Opcodes/OSC.c:240
-#, fuzzy, c-format
+#, c-format
 msgid "ftable %.2f does not exist"
-msgstr "ftable doesn't exist"
+msgstr "ftable %.2f doesn't exist"
 
 #: Opcodes/OSC.c:249
 #, c-format
@@ -7660,9 +7655,8 @@ msgstr ""
 #: Opcodes/pvsbasic.c:2151 Opcodes/pvsbasic.c:2189 Opcodes/tabvars.c:56
 #: Opcodes/tabvars.c:92 Opcodes/tabvars.c:134 Opcodes/tabvars.c:179
 #: Opcodes/tabvars.c:181
-#, fuzzy
 msgid "t-variable not initialised"
-msgstr "table: not initialized"
+msgstr "t-variable not initialized"
 
 #: Opcodes/pvsbuffer.c:56 Opcodes/pvscent.c:164 Opcodes/pvsdemix.c:49
 msgid "SDFT case not implemented yet"
@@ -8343,9 +8337,8 @@ msgid "tabsum: Not initialised"
 msgstr "tabsum: not initialized"
 
 #: Opcodes/tabvars.c:201 Opcodes/tabvars.c:218
-#, fuzzy
 msgid "t-var not initialised"
-msgstr "table: not initialized"
+msgstr "t-var not initialized"
 
 #: Opcodes/tabvars.c:203 Opcodes/tabvars.c:220
 msgid "No table for copy2ftab"
@@ -8840,14 +8833,6 @@ msgstr ""
 #: Opcodes/Vosim.c:160
 msgid "vosim: not initialised"
 msgstr "vosim: not initialized"
-
-#: Opcodes/vpvoc.c:118
-msgid "tableseg: not initialised"
-msgstr "tableseg: not initialized"
-
-#: Opcodes/vpvoc.c:146
-msgid "tablexseg: not initialised"
-msgstr "tablexseg: not initialized"
 
 #: Opcodes/vpvoc.c:173
 #, c-format
@@ -10363,7 +10348,7 @@ msgid "scot: %d errors.\n"
 msgstr ""
 
 #: util/atsa.c:537
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "Could not open %s for writing, bye...\n"
@@ -12177,6 +12162,15 @@ msgstr ""
 #: util/xtrct.c:371
 msgid "Extract part of a sound file"
 msgstr ""
+
+#~ msgid "tableseg: not initialized"
+#~ msgstr "tableseg: not initialized"
+
+#~ msgid "tablexseg: not initialized"
+#~ msgstr "tablexseg: not initialized"
+
+#~ msgid "vdelayk: not initialized"
+#~ msgstr "vdelayk: not initialized"
 
 #~ msgid "Cannot open file \"%s\"\n"
 #~ msgstr "Can't open input file \"%s\"\n"

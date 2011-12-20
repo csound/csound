@@ -3559,7 +3559,7 @@ msgstr ""
 
 #: OOps/aops.c:209
 #, fuzzy
-msgid "Vector notinitialised\n"
+msgid "Vector not initialised\n"
 msgstr "vco: nicht initialisiert"
 
 #: OOps/aops.c:711
@@ -6405,26 +6405,24 @@ msgstr ""
 
 #: Opcodes/gab/vectorial.c:2138
 #, fuzzy
-msgid "vecdly: not initialized"
+msgid "vecdly: not initialised"
 msgstr "vdelay: nicht initialisiert"
 
 #: Opcodes/gab/vectorial.c:2181
 msgid "vlinseg/vexpseg: invalid num. of elements"
 msgstr ""
 
-#: Opcodes/gab/vectorial.c:2223
-#, fuzzy
-msgid "tableseg: not initialized"
+#: Opcodes/gab/vectorial.c:2223 Opcodes/vpvoc.c:118
+msgid "tableseg: not initialised"
 msgstr "tableseg: nicht initialisiert"
 
-#: Opcodes/gab/vectorial.c:2253
-#, fuzzy
-msgid "tablexseg: not initialized"
+#: Opcodes/gab/vectorial.c:2253 Opcodes/vpvoc.c:146
+msgid "tablexseg: not initialised"
 msgstr "tablexseg: nicht initialisiert"
 
 #: Opcodes/gab/vectorial.c:2406
 #, fuzzy
-msgid "vdelayk: not initialized"
+msgid "vdelayk: not initialised"
 msgstr "delayk: nicht initialisiert"
 
 #: Opcodes/gab/vectorial.c:2439 Opcodes/gab/vectorial.c:2445
@@ -8855,14 +8853,6 @@ msgstr ""
 #: Opcodes/Vosim.c:160
 msgid "vosim: not initialised"
 msgstr "vosim: nicht initialisiert"
-
-#: Opcodes/vpvoc.c:118
-msgid "tableseg: not initialised"
-msgstr "tableseg: nicht initialisiert"
-
-#: Opcodes/vpvoc.c:146
-msgid "tablexseg: not initialised"
-msgstr "tablexseg: nicht initialisiert"
 
 #: Opcodes/vpvoc.c:173
 #, c-format
@@ -12187,6 +12177,18 @@ msgstr ""
 #: util/xtrct.c:371
 msgid "Extract part of a sound file"
 msgstr ""
+
+#, fuzzy
+#~ msgid "tableseg: not initialized"
+#~ msgstr "tableseg: nicht initialisiert"
+
+#, fuzzy
+#~ msgid "tablexseg: not initialized"
+#~ msgstr "tablexseg: nicht initialisiert"
+
+#, fuzzy
+#~ msgid "vdelayk: not initialized"
+#~ msgstr "delayk: nicht initialisiert"
 
 #, fuzzy
 #~ msgid "csound_orcerror on line %d: %s\n"
