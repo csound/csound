@@ -259,12 +259,12 @@ msgstr "type nommé inconnu"
 #: Engine/csound_orc_expressions.c:459
 #, c-format
 msgid "error: function %s with arg type %c not found, line %d \n"
-msgstr ""
+msgstr "erreur : fonction %s avec le type d'arg %c introuvable, ligne %d\n"
 
 #: Engine/csound_orc_expressions.c:862
 #, c-format
 msgid "error: non-existent statement in conditional, line %d \n"
-msgstr ""
+msgstr "erreur : instruction inexistante dans la conditionnelle, ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:157
 #, c-format
@@ -298,63 +298,60 @@ msgstr "opcode modifié : %s"
 #: Engine/cs_par_dispatch.c:115 Engine/cs_par_dispatch.c:128
 #, c-format
 msgid "Poorly specified global lock index: %i [max: %i]\n"
-msgstr ""
+msgstr "Index de verrou global faiblement spécifié : %i [max : %i]\n"
 
 #: Engine/cs_par_dispatch.c:142 Engine/cs_par_dispatch.c:162
 msgid "Invalid NULL parameter name for a global variable\n"
-msgstr ""
+msgstr "Nom de paramètre NULL non valide pour une variable globale\n"
 
 #: Engine/cs_par_dispatch.c:526 Engine/cs_par_dispatch.c:553
 #: Engine/cs_par_dispatch.c:2543 Engine/cs_par_dispatch.c:2588
 #: Engine/cs_par_dispatch.c:2590 Engine/cs_par_dispatch.c:2654
-#, fuzzy
 msgid "Invalid NULL Parameter entry"
-msgstr "paramètre de mode NULL non valide"
+msgstr "Paramètre entry NULL non valide"
 
 #: Engine/cs_par_dispatch.c:528 Engine/cs_par_dispatch.c:567
 #: Engine/cs_par_dispatch.c:594 Engine/cs_par_dispatch.c:635
-#, fuzzy
 msgid "Invalid NULL Parameter name"
-msgstr "Variable NULL non valide"
+msgstr "Paramètre name NULL non valide"
 
 #: Engine/cs_par_dispatch.c:535
-#, fuzzy
 msgid "Failed to allocate Opcode Weight cache entry"
-msgstr "Echec de l'allocation d'une nouvelle entrée d'opcode."
+msgstr "Echec de l'allocation de l'entrée du cache de poids d'opcode."
 
 #: Engine/cs_par_dispatch.c:664 Engine/cs_par_dispatch.c:755
 msgid "No Weights to Dump (Using Defaults)\n"
-msgstr ""
+msgstr "Aucun poids à sortir (valeurs par défaut)\n"
 
 #: Engine/cs_par_dispatch.c:705 Engine/cs_par_dispatch.c:835
 #, c-format
 msgid "Opcode Weight Spec File not found at: %s"
-msgstr ""
+msgstr "Fichier de spéc de poids d'opcode non trouvé à : %s"
 
 #: Engine/cs_par_dispatch.c:759
 msgid "Weights Dump\n"
-msgstr ""
+msgstr "Dump des poids\n"
 
 #: Engine/cs_par_dispatch.c:907
 #, c-format
 msgid "Parallel Spec File not found at: %s"
-msgstr ""
+msgstr "Fichier de spéc parallèle non trouvé à : %s"
 
 #: Engine/cs_par_dispatch.c:913
 msgid "Parallel Spec File invalid format expected weight_min parameter"
-msgstr ""
+msgstr "Format du fichier de spéc parallèle non valide, paramètre weight_min attendu"
 
 #: Engine/cs_par_dispatch.c:918
 msgid "Parallel Spec File invalid format expected weight_max parameter"
-msgstr ""
+msgstr "Format du fichier de spéc parallèle non valide, paramètre weight_max attendu"
 
 #: Engine/cs_par_dispatch.c:922
 msgid "Parallel Spec File invalid format expected roots_avail_min parameter"
-msgstr ""
+msgstr "Format du fichier de spéc parallèle non valide, paramètre roots_avail_min attendu"
 
 #: Engine/cs_par_dispatch.c:926
 msgid "Parallel Spec File invalid format expected roots_avail_max parameter"
-msgstr ""
+msgstr "Format du fichier de spéc parallèle non valide, paramètre roots_avail_max attendu"
 
 #: Engine/cs_par_dispatch.c:1003 Engine/cs_par_dispatch.c:1027
 #: Engine/cs_par_dispatch.c:1155 Engine/cs_par_dispatch.c:1251
@@ -365,69 +362,68 @@ msgstr ""
 #: Engine/cs_par_dispatch.c:1699 Engine/cs_par_dispatch.c:1792
 #: Engine/cs_par_dispatch.c:1847 Engine/cs_par_dispatch.c:2681
 msgid "Invalid NULL Parameter dag"
-msgstr ""
+msgstr "Paramètre dag NULL non valide"
 
 #: Engine/cs_par_dispatch.c:1008
 msgid "Failed to allocate dag"
-msgstr ""
+msgstr "L'allocation de dag a échoué"
 
 #: Engine/cs_par_dispatch.c:1060 Engine/cs_par_dispatch.c:1083
 #: Engine/cs_par_dispatch.c:1105 Engine/cs_par_dispatch.c:1107
 msgid "Invalid NULL Parameter dag_node"
-msgstr ""
+msgstr "Paramètre dag_node NULL non valide"
 
 #: Engine/cs_par_dispatch.c:1062
-#, fuzzy
 msgid "Invalid NULL Parameter instr"
-msgstr "paramètre de mode non valide"
+msgstr "Paramètre instr NULL non valide"
 
 #: Engine/cs_par_dispatch.c:1064
 msgid "Invalid NULL Parameter insds"
-msgstr ""
+msgstr "Paramètre insds NULL non valide"
 
 #: Engine/cs_par_dispatch.c:1069 Engine/cs_par_dispatch.c:1091
 msgid "Failed to allocate dag_node"
-msgstr ""
+msgstr "L'allocation de dag_node a échoué"
 
 #: Engine/cs_par_dispatch.c:1086
 msgid "Invalid Parameter count must be greater than 0"
-msgstr ""
+msgstr "Nombre des paramètres non valide, doit être supérieur à 0"
 
 #: Engine/cs_par_dispatch.c:1229 Engine/cs_par_dispatch.c:1508
 #: Engine/cs_par_dispatch.c:2545 Engine/cs_par_dispatch.c:2655
 #: Engine/cs_par_dispatch.c:2682
 msgid "Invalid NULL Parameter chain"
-msgstr ""
+msgstr "Paramètre chain NULL non valide"
 
 #: Engine/cs_par_dispatch.c:1237
 #, c-format
 msgid "Failed to find semantic information for instrument '%i'"
-msgstr ""
+msgstr "Impossible de trouver l'information sémantique pour l'instrument '%i'"
 
 #: Engine/cs_par_dispatch.c:1554
 msgid "Invalid NULL Parameter node"
-msgstr ""
+msgstr "Paramètre node NULL non valide"
 
 #: Engine/cs_par_dispatch.c:1556
 msgid "Invalid NULL Parameter update_hdl"
-msgstr ""
+msgstr "Paramètre update_hdl NULL non valide"
 
 #: Engine/cs_par_dispatch.c:1647
 msgid "Invalid Parameter update_hdl is outside the DAG range"
-msgstr ""
+msgstr "Paramètre update_hdl non valide, hors limites de DAG"
 
 #: Engine/cs_par_dispatch.c:2497
 #, c-format
 msgid "Parallel Dump File not found at: %s for writing"
-msgstr ""
+msgstr "Fichier de dump parallèle non trouvé à : %s pour écriture"
 
 #: Engine/cs_par_dispatch.c:2557
 msgid "Failed to allocate Dag2 cache entry"
-msgstr ""
+msgstr "L'allocation du cache d'entrée de Dag2 a échoué"
 
 #: Engine/cs_par_dispatch.c:2610
 msgid "Cache Update\n"
-msgstr ""
+msgstr "Mise à jour du cache\n"
 
 #: Engine/envvar.c:265
 #, c-format
@@ -1506,7 +1502,6 @@ msgid "cannot find the specified instrument or opcode"
 msgstr "impossible de trouver l'instrument ou l'opcode spécifié"
 
 #: Engine/new_orc_parser.c:91
-#, fuzzy
 msgid "Unmatched #ifdef\n"
 msgstr "#ifdef non apparié\n"
 
@@ -2324,12 +2319,12 @@ msgstr "l'entrée audio_in %s a %d voix, l'orchestre a %d voix"
 #: InOut/libsnd.c:574
 #, c-format
 msgid "reading %d sample blks of %d-bit floats from %s \n"
-msgstr ""
+msgstr "lecture de %d blocs d'échantillons de flottants sur %d bit depuis %s\n"
 
 #: InOut/libsnd.c:578
 #, c-format
 msgid "reading %d-byte blks of %s from %s (%s)\n"
-msgstr "lecture de blocs de %2$s de %1$d octets à partir de %3$s (%4$s)\n"
+msgstr "lecture de blocs de %d octets de %s à partir de %s (%s)\n"
 
 #: InOut/libsnd.c:614
 msgid "Output file type changed to IRCAM for use in pipe\n"
@@ -2348,7 +2343,7 @@ msgstr "sfinit : impossible d'ouvrir %s"
 #: InOut/libsnd.c:741
 #, c-format
 msgid "writing %d sample blks of %d-bit floats to %s \n"
-msgstr ""
+msgstr "écriture de %d blocs d'échantillons de flottants sur %d bit vers %s\n"
 
 #: InOut/libsnd.c:744 util/srconv.c:484
 #, c-format
@@ -2362,12 +2357,12 @@ msgstr " (raw)\n"
 #: InOut/libsnd.c:815
 #, c-format
 msgid "%ld %d sample blks of %d-bit floats written to %s\n"
-msgstr ""
+msgstr "%ld %d blocs d'échantillons de flottants sur %d bit écrits vers %s\n"
 
 #: InOut/libsnd.c:820
-#, fuzzy, c-format
+#, c-format
 msgid "%ld %d sample blks of %s written to %s"
-msgstr "%1$ld blocs de %3$s de %2$d octets écrits vers %4$s"
+msgstr "%ld %d blocs d'échantillons de %s écrits vers %s"
 
 #: InOut/libsnd.c:837
 #, c-format
@@ -3091,12 +3086,12 @@ msgstr "rtmidi : module devfile activé\n"
 #: InOut/rtauhal.c:163
 #, c-format
 msgid "selected input device: %s \n"
-msgstr ""
+msgstr "périphérique d'entrée sélectionné : %s\n"
 
 #: InOut/rtauhal.c:166
 #, c-format
 msgid "selected output device: %s \n"
-msgstr ""
+msgstr "périphérique de sortie sélectionné : %s\n"
 
 #: InOut/rtauhal.c:524
 msgid "AuHAL module: device closed\n"
@@ -3644,11 +3639,11 @@ msgstr "Il ne peut y avoir plus d'arguments In que Out dans init (%d,%d)"
 #: OOps/aops.c:200 OOps/aops.c:219
 #, c-format
 msgid "Index %d out of range [0,%d] in t[]\n"
-msgstr ""
+msgstr "Index %d hors-limites [0,%d] dans t[]\n"
 
 #: OOps/aops.c:209
 msgid "Vector not initialised\n"
-msgstr "Vector : non initialisé"
+msgstr "Vector : non initialisé\n"
 
 #: OOps/aops.c:711
 msgid "non-looping sample"
@@ -3678,7 +3673,7 @@ msgstr "Un nom de canal d'entrée au taux-k ne peut pas commencer par un $"
 
 #: OOps/aops.c:1835
 msgid "Unknown functuon called"
-msgstr ""
+msgstr "Appel de fonction inconnue"
 
 #: OOps/bus.c:313 OOps/bus.c:345
 msgid "chani: invalid index"
@@ -3929,9 +3924,8 @@ msgid "display"
 msgstr "affichage"
 
 #: OOps/disprep.c:96
-#, fuzzy
 msgid "illegal iprd in display"
-msgstr "iprd illégal"
+msgstr "iprd illégal dans l'affichage"
 
 #: OOps/disprep.c:120
 #, c-format
@@ -3955,9 +3949,8 @@ msgid "window size must be power of two"
 msgstr "la taille de la fenêtre doit être une puissance de deux"
 
 #: OOps/disprep.c:252
-#, fuzzy
 msgid "illegal iprd in ffy display"
-msgstr "iperiod illégal"
+msgstr "iprd illégal dans l'affichage de ffy"
 
 #: OOps/disprep.c:277
 #, c-format
@@ -4884,7 +4877,7 @@ msgstr "signes différents"
 #: OOps/ugens1.c:156
 #, c-format
 msgid "Breakpoint %d not valid"
-msgstr ""
+msgstr "Point charnière %d non valide"
 
 #: OOps/ugens1.c:198
 msgid "linseg not initialised (krate)\n"
@@ -4910,7 +4903,7 @@ msgstr "ival%d conflit de signe"
 #: OOps/ugens1.c:496 OOps/ugens1.c:545
 #, c-format
 msgid "Breakpoint time %f not valid"
-msgstr ""
+msgstr "Date %f du point charnière non valide"
 
 #: OOps/ugens1.c:707
 msgid "expseg (krate): not initialised"
@@ -5754,12 +5747,12 @@ msgstr "Contrôle %d inconnu"
 #: Opcodes/cpumeter.c:77
 #, c-format
 msgid "Failed to open /proc/stat: %s"
-msgstr ""
+msgstr "Echec de l'ouverture de /proc/stat : %s"
 
 #: Opcodes/cpumeter.c:79 Opcodes/cpumeter.c:84 Opcodes/cpumeter.c:111
 #: Opcodes/cpumeter.c:151
 msgid "failed /proc/stat read"
-msgstr ""
+msgstr "La lecture de /proc/stat a échoué"
 
 #: Opcodes/crossfm.c:34
 msgid "crossfm: ftable not found"
@@ -6094,7 +6087,7 @@ msgstr "tab_i : numéro de table incorrect"
 #: Opcodes/gab/gab.c:192
 #, c-format
 msgid "tab_i off end: table number: %d\n"
-msgstr ""
+msgstr "tab_i hors-limite : numéro de table : %d\n"
 
 #: Opcodes/gab/gab.c:204
 msgid "tabw_i: incorrect table number"
@@ -6180,28 +6173,31 @@ msgid ""
 "copyTabElems: destination table too short or number of elements to copy too "
 "big"
 msgstr ""
+"copyTabElems : table de destination trop courte ou nombre d'éléments à copier "
+"trop grand"
 
 #: Opcodes/gab/newgabopc.c:252 Opcodes/gab/newgabopc.c:306
-#, fuzzy
 msgid "copyTabElems: incorrect source table number"
-msgstr "copyTabElems : numéro de table incorrect"
+msgstr "copyTabElems : numéro de table source incorrect"
 
 #: Opcodes/gab/newgabopc.c:257 Opcodes/gab/newgabopc.c:310
 msgid ""
 "copyTabElems: source table size less than the number of elements to copy"
 msgstr ""
+"copyTabElems : taille de la table source inférieure au nombre d'éléments "
+"à copier"
 
 #: Opcodes/gab/newgabopc.c:273 Opcodes/gab/newgabopc.c:318
 msgid "copyTabElems: source table too short"
-msgstr ""
+msgstr "copyTabElems : table source trop courte"
 
 #: Opcodes/gab/newgabopc.c:276 Opcodes/gab/newgabopc.c:321
 msgid "copyTabElems: destination table too short"
-msgstr ""
+msgstr "copyTabElems : table de destination trop courte"
 
 #: Opcodes/gab/newgabopc.c:347
 msgid "inrg: audio input is not enabled"
-msgstr ""
+msgstr "inrg : entrée audio désactivée"
 
 #: Opcodes/gab/newgabopc.c:362
 msgid "inrg: channel number cannot be < 1 (1 is the first channel)"
@@ -6587,18 +6583,16 @@ msgid "vectorop: invalid num of elements"
 msgstr "vectorop : nombre d'éléments non valide"
 
 #: Opcodes/gab/vectorial.c:1727
-#, fuzzy
 msgid "vport: invalid table length or num of elements"
-msgstr "vport : nombre d'éléments non valide"
+msgstr "vport : longueur de table ou nombre d'éléments non valides"
 
 #: Opcodes/gab/vectorial.c:1730
 msgid "vport: invalid table"
 msgstr "vport : table non valide"
 
 #: Opcodes/gab/vectorial.c:1735
-#, fuzzy
 msgid "vport: invalid init table length or num of elements"
-msgstr "vport : nombre d'éléments non valide"
+msgstr "vport : longueur de table init ou nombre d'éléments non valides"
 
 #: Opcodes/gab/vectorial.c:1738
 msgid "vport: invalid init table"
@@ -6610,17 +6604,16 @@ msgid "vrandh: Seeding from current time %lu\n"
 msgstr "vrandh : graine à partir de l'horloge %lu\n"
 
 #: Opcodes/gab/vectorial.c:1888
-#, fuzzy
 msgid "vrandh: Invalid table."
-msgstr "vrandh : id de table non valide"
+msgstr "vrandh : table non valide."
 
 #: Opcodes/gab/vectorial.c:1891
 msgid "vrandh: idstoffset is greater than table length."
-msgstr ""
+msgstr "vrandh : idstoffset est supérieur à la longueur de la table."
 
 #: Opcodes/gab/vectorial.c:1896
 msgid "randh: Table length exceeded, last elements discarded."
-msgstr ""
+msgstr "randh : longeur de la table dépassée, derniers éléments ignoré."
 
 #: Opcodes/gab/vectorial.c:1975
 #, c-format
@@ -6629,15 +6622,15 @@ msgstr "vrandi : graine à partir de l'horloge %lu\n"
 
 #: Opcodes/gab/vectorial.c:1987
 msgid "vrandi: Invalid table."
-msgstr "vrandi : id de table non valide"
+msgstr "vrandi : table non valide."
 
 #: Opcodes/gab/vectorial.c:1990
 msgid "vrandi: idstoffset is greater thantable length."
-msgstr ""
+msgstr "vrandi : idstoffset est supérieur à la longueur de la table."
 
 #: Opcodes/gab/vectorial.c:1995
 msgid "vrandi: Table length exceeded, last elements discarded."
-msgstr ""
+msgstr "vrandi : longueur de la table dépassée, derniers éléments ignorés."
 
 #: Opcodes/gab/vectorial.c:2077 Opcodes/gab/vectorial.c:2084
 #: Opcodes/gab/vectorial.c:2091
@@ -6646,15 +6639,15 @@ msgstr "vecdelay : nombre d'éléments non valide"
 
 #: Opcodes/gab/vectorial.c:2079
 msgid "vecdly: invalid output table"
-msgstr ""
+msgstr "vecdly : table de sortie non valide"
 
 #: Opcodes/gab/vectorial.c:2086
 msgid "vecdly: invalid input table"
-msgstr "vecdly : id de table non valide"
+msgstr "vecdly : table d'entrée non valide"
 
 #: Opcodes/gab/vectorial.c:2093
 msgid "vecdly: invalid delay table"
-msgstr "vecdly : id de table non valide"
+msgstr "vecdly : table de délai non valide"
 
 #: Opcodes/gab/vectorial.c:2138
 msgid "vecdly: not initialised"
@@ -6682,15 +6675,15 @@ msgstr "cella : nombre d'éléments non valide"
 
 #: Opcodes/gab/vectorial.c:2441
 msgid "cella: invalid output table"
-msgstr ""
+msgstr "cella : table de sortie non valide"
 
 #: Opcodes/gab/vectorial.c:2448
 msgid "cella: invalid initial state table"
-msgstr ""
+msgstr "cella : table d'état initial non valide"
 
 #: Opcodes/gab/vectorial.c:2452
 msgid "cella: invalid rule table"
-msgstr ""
+msgstr "cella : table de règle non valide"
 
 #: Opcodes/grain4.c:59
 msgid "granule_set: Unable to find function table"
@@ -6847,6 +6840,11 @@ msgid ""
 "Orchestra SR not compatible with HRTF processing SR of: %.0f\n"
 "\n"
 msgstr ""
+"\n"
+"\n"
+"AVERTISSEMENT !! :\n"
+"SR de l'orchestre incompatible avec le SR du traitement HRTF de : %.0f\n"
+"\n"
 
 #: Opcodes/hrtfopcodes.c:287 Opcodes/hrtfopcodes.c:1461
 #: Opcodes/hrtfopcodes.c:2071 Opcodes/hrtfearly.c:327 Opcodes/hrtfreverb.c:300
@@ -6879,15 +6877,15 @@ msgstr ""
 "\n"
 
 #: Opcodes/hrtfopcodes.c:690 Opcodes/hrtfearly.c:1241
-#, fuzzy
 msgid ""
 "\n"
 "WARNING: fades are overlapping: this could lead to noise: reduce fade size "
 "or change trajectory\n"
 "\n"
 msgstr ""
-"les fondus se chevauchent : ceci peut provoquer du bruit : réduisez la "
-"taille des fondus ou changez la trajectoire\n"
+"\n"
+"AVERTISSEMENT : les fondus se chevauchent : ceci peut provoquer du bruit : "
+"réduisez la taille des fondus ou changez la trajectoire\n"
 "\n"
 
 #: Opcodes/hrtfopcodes.c:2052
@@ -6899,12 +6897,19 @@ msgid ""
 "Orchestra SR not compatiblewith HRTF processing SR of: %.0f\n"
 "\n"
 msgstr ""
+"\n"
+"\n"
+"AVERTISSEMENT !! :\n"
+"SR de l'orchestre incompatible avec le SR du traitement HRTF de : %.0f\n"
+"\n"
 
 #: Opcodes/hrtfreverb.c:832
 msgid ""
 "\n"
 "warning, approaching instability, fixed with a flat late reverb!"
 msgstr ""
+"\n"
+"avertissement, proche de l'instabilité, résolu avec une réverbération tardive plate !"
 
 #: Opcodes/ifd.c:74
 msgid "pvsifd: fftsize should be an integral multiple of hopsize"
@@ -7139,7 +7144,7 @@ msgstr "Pas de table pour l'excitation d'Agogobell"
 
 #: Opcodes/modmatrix.c:22
 msgid "modmatrix: "
-msgstr ""
+msgstr "modmatrix : "
 
 #: Opcodes/mp3in.c:93 Opcodes/mp3in.c:231
 #, c-format
@@ -7989,7 +7994,7 @@ msgstr "Descripteur de tampon non valide"
 #: Opcodes/pvsbuffer.c:285 Opcodes/pvsbuffer.c:291
 #, c-format
 msgid "table length too small: needed %d, got %d\n"
-msgstr ""
+msgstr "longueur de table trop petite : %d attendu, %d obtenu\n"
 
 #: Opcodes/pvscent.c:42
 msgid "pvscent: format must be amp-phase or amp-freq.\n"
@@ -8391,7 +8396,7 @@ msgstr "sndwarpst : non initialisé"
 #: Opcodes/socksend.c:73 Opcodes/socksend.c:157 Opcodes/socksend.c:252
 #, c-format
 msgid "Winsock2 failed to start: %d"
-msgstr ""
+msgstr "Le démarrage de winsock2 a échoué : %d"
 
 #: Opcodes/sockrecv.c:131 Opcodes/sockrecv.c:227 Opcodes/sockrecv.c:320
 #: Opcodes/socksend.c:86 Opcodes/socksend.c:171 Opcodes/socksend.c:259
@@ -9331,7 +9336,7 @@ msgstr "-C\tutilisation du traitement de partition Cscore"
 
 #: Top/argdecode.c:67
 msgid "-j N\tuse N processes"
-msgstr ""
+msgstr "-j N\tutilise N processus"
 
 #: Top/argdecode.c:69
 msgid "-I\tI-time only orch run"
@@ -10046,15 +10051,15 @@ msgstr "pas de nom de fichier d'extraction de partition"
 
 #: Top/argdecode.c:865
 msgid "no weight-info"
-msgstr ""
+msgstr "pas d'info de poids"
 
 #: Top/argdecode.c:871
 msgid "no weight-dump"
-msgstr ""
+msgstr "pas de dump de poids"
 
 #: Top/argdecode.c:877
 msgid "no weights"
-msgstr ""
+msgstr "pas de poids"
 
 #: Top/argdecode.c:892
 #, c-format
@@ -10375,7 +10380,7 @@ msgstr "nom de l'orchestre :   %s\n"
 
 #: Top/main.c:334
 msgid "Stopping on parser failure\n"
-msgstr ""
+msgstr "Arrêt sur échec du parseur\n"
 
 #: Top/main.c:352
 msgid "end of orchestra compile"
@@ -12729,9 +12734,8 @@ msgstr "Extraction d'une partie d'un fichier son"
 #~ msgid "tab_i off end"
 #~ msgstr "tab_i hors-limite"
 
-#, fuzzy
 #~ msgid " line %d: %s"
-#~ msgstr " ligne %d : %s\n"
+#~ msgstr " ligne %d : %s"
 
 #~ msgid "Includes nested too deeply"
 #~ msgstr "Imbrication des boucles trop profonde"
@@ -12776,9 +12780,8 @@ msgstr "Extraction d'une partie d'un fichier son"
 #~ msgid "cannot open input file %s"
 #~ msgstr "impossible d'ouvrir le fichier en entrée %s"
 
-#, fuzzy
 #~ msgid "rtaudio: AuHAL module enabled\n"
-#~ msgstr "rtaudio : module ALSA activé\n"
+#~ msgstr "rtaudio : module AuHAL activé\n"
 
 #~ msgid ""
 #~ "Invalid snapshot. Perhaps you modified orchestra widget code after you "
