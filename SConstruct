@@ -1499,6 +1499,7 @@ else:
             javaWrapper = javaWrapperEnvironment.SharedLibrary(
                 '_jcsound', javaWrapperSources)
         #Depends(javaWrapper, csoundLibrary)
+        Depends(javaWrapper, csnd)
         libs.append(javaWrapper)
         jcsnd = javaWrapperEnvironment.Java(
             target = './interfaces', source = './interfaces',
