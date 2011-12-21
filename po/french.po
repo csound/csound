@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2011-12-20 13:28+0000\n"
+"PO-Revision-Date: 2011-12-20 22:46+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: \n"
@@ -3648,7 +3648,7 @@ msgstr ""
 
 #: OOps/aops.c:209
 msgid "Vector not initialised\n"
-msgstr "Vector : non initialisé"
+msgstr "Vector : non initialisé\n"
 
 #: OOps/aops.c:711
 msgid "non-looping sample"
