@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2008-09-07 15:24+0100\n"
+"PO-Revision-Date: 2011-12-20 23:56+0000\n"
 "Last-Translator: JPff\n"
 "Language-Team: German\n"
 "Language: \n"
@@ -113,7 +113,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:269
 #, fuzzy
 msgid "too many input args\n"
-msgstr "zu viele Argumente"
+msgstr "zu viele Argumente\n"
 
 #: Engine/csound_orc_compile.c:304
 #, c-format
@@ -263,7 +263,7 @@ msgstr ""
 msgid ""
 "\n"
 "error: %s  (token \"%s\")"
-msgstr "%s: Störung: %s (%s)\n"
+msgstr ""
 
 #: Engine/csound_orc_semantics.c:159
 #, c-format
@@ -275,7 +275,7 @@ msgstr ""
 #: Engine/csound_orc_semantics.c:732
 #, fuzzy, c-format
 msgid "insufficient required arguments for opcode %s on line %d\n"
-msgstr "unzulängliche Argumente"
+msgstr ""
 
 #: Engine/csound_orc_semantics.c:797 Engine/rdorch.c:1644 Engine/rdorch.c:1662
 #: Engine/rdorch.c:1703 Engine/rdorch.c:1841 Engine/rdorch.c:2011
@@ -377,7 +377,7 @@ msgstr ""
 #: Engine/cs_par_dispatch.c:1086
 #, fuzzy
 msgid "Invalid Parameter count must be greater than 0"
-msgstr "granule_set: iratio müssen grösseres dann 0 sein"
+msgstr ""
 
 #: Engine/cs_par_dispatch.c:1229 Engine/cs_par_dispatch.c:1508
 #: Engine/cs_par_dispatch.c:2545 Engine/cs_par_dispatch.c:2655
@@ -1169,7 +1169,7 @@ msgstr ""
 #: Engine/memfiles.c:131
 #, fuzzy, c-format
 msgid "error processing file %s\n"
-msgstr "Störung Öffnung ASCII Akte"
+msgstr ""
 
 #: Engine/memfiles.c:137 Engine/memfiles.c:320
 #, c-format
@@ -3560,7 +3560,7 @@ msgstr ""
 #: OOps/aops.c:209
 #, fuzzy
 msgid "Vector not initialised\n"
-msgstr "vco: nicht initialisiert"
+msgstr "Vector: nicht initialisiert"
 
 #: OOps/aops.c:711
 msgid "non-looping sample"
