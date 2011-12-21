@@ -24,7 +24,7 @@ exeFiles1 = ['csound', 'csound5gui', 'CsoundVST', 'winsound',
              'het_export', 'het_import', 'hetro', 'lpanal',
              'lpc_export', 'lpc_import', 'mixer', 'pvanal',
              'pv_export', 'pv_import', 'atsa',
-             'pvlook', 'scale', 'sndinfo', 'srconv', 'beats',
+             'pvlook', 'scale', 'sndinfo', 'srconv', 'csbeats',
              'scsort', 'extract', 'cs', 'csb64enc', 'makecsd', 'scot']
 
 exeFiles2 = ['brkpt', 'linseg', 'tabdes']
