@@ -6422,7 +6422,7 @@ msgstr ""
 #: Opcodes/gab/vectorial.c:1888
 #, fuzzy
 msgid "vrandh: Invalid table."
-msgstr vrandh: tabla inválida"
+msgstr "vrandh: tabla inválida"
 
 #: Opcodes/gab/vectorial.c:1891
 msgid "vrandh: idstoffset is greater than table length."
