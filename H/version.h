@@ -33,9 +33,9 @@
 
 /* Define to the full name and version of this package. */
 #ifndef PARCS
-#define CS_PACKAGE_STRING   "Csound 5.14"
+#define CS_PACKAGE_STRING   "Csound 5.15"
 #else /* PARCS */
-#define CS_PACKAGE_STRING   "ParCsound 5.14"
+#define CS_PACKAGE_STRING   "ParCsound 5.15"
 #endif /* PARCS */
 
 /* Define to the one symbol short name of this package. */
