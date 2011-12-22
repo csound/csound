@@ -1,9 +1,9 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual
-export PACKAGE_NAME=csound5.14-OSX10.7-universal.pkg
-export DMG_DIR="Csound 5.14"
-export DMG_NAME="csound5.14-OSX10.7-universal.dmg"
+export PACKAGE_NAME=csound5.15-OSX10.7-universal.pkg
+export DMG_DIR="Csound 5.15"
+export DMG_NAME="csound5.15-OSX10.7-universal.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
@@ -204,7 +204,6 @@ cp /usr/local/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
 #cp /usr/local/lib/libpng12.0.dylib $SUPLIBS
-cp /usr/local/lib/libmpadec.so $SUPPORT_LIBS_DIR
 #cp /usr/local/lib/libmpadec.dylib $SUPPORT_LIBS_DIR
 #cp /usr/local/lib/libluajit.dylib $SUPLIBS
 
