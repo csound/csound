@@ -1,0 +1,11 @@
+--- Csound5.13.0/install.py.orig	2011-04-07 08:02:28.460324321 +0100
++++ Csound5.13.0/install.py	2011-04-07 08:04:25.227162356 +0100
+@@ -154,7 +154,7 @@
+     fileList += [fileName]
+     fullName = concatPath([instDir, fileName])
+     err = runCmd(['install', '-p', '-m', perm, src, fullName])
+-    if err == 0 and stripMode != '':
++    if err == 0 and stripMode == 'packman':
+         err = runCmd(['strip', stripMode, fullName])
+     if err == 0:
+         addMD5(fullName, fileName)

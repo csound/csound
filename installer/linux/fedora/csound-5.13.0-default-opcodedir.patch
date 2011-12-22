@@ -1,0 +1,37 @@
+--- Csound5.13.0/Top/csmodule.c.orig	2011-04-07 11:00:11.880733934 +0100
++++ Csound5.13.0/Top/csmodule.c	2011-04-07 11:01:31.557737121 +0100
+@@ -130,26 +130,25 @@
+ static  const   char    *plugindir64_envvar = "OPCODEDIR64";
+ 
+ /* default directory to load plugins from if environment variable is not set */
+-#ifdef OLPC
+-# define CS_DEFAULT_PLUGINDIR  "/usr/lib/csound/plugins"
+-#else
+ #if !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
+ #  define ENABLE_OPCODEDIR_WARNINGS 1
+-#  ifdef CS_DEFAULT_PLUGINDIR
+-#    undef CS_DEFAULT_PLUGINDIR
++#  ifndef CS_DEFAULT_PLUGINDIR
++#    ifndef USE_DOUBLE
++#      define CS_DEFAULT_PLUGINDIR  "/usr/lib/csound/plugins"
++#    else
++#      define CS_DEFAULT_PLUGINDIR  "/usr/lib64/csound/plugins"
++#    endif
+ #  endif
+-#  define CS_DEFAULT_PLUGINDIR      "."
+ #else
+ #  define ENABLE_OPCODEDIR_WARNINGS 0
+ #  ifndef CS_DEFAULT_PLUGINDIR
+ #    ifndef USE_DOUBLE
+-#      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins"
++#      define CS_DEFAULT_PLUGINDIR  "/usr/lib/csound/plugins"
+ #    else
+-#      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins64"
++#      define CS_DEFAULT_PLUGINDIR  "/usr/lib64/csound/plugins"
+ #    endif
+ #  endif
+ #endif
+-#endif
+ 
+ typedef struct opcodeLibFunc_s {
+     long    (*opcode_init)(CSOUND *, OENTRY **);  /* list of opcode entries  */

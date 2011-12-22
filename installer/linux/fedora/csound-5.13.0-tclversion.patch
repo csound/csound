@@ -1,0 +1,11 @@
+--- Csound5.13.0/SConstruct.orig	2011-04-07 07:29:45.323126316 +0100
++++ Csound5.13.0/SConstruct	2011-04-07 07:29:54.757352073 +0100
+@@ -262,7 +262,7 @@
+     '0')
+ commandOptions.Add('tclversion',
+     'Set to 8.4 or 8.5',
+-    '8.4')
++    '8.5')
+ commandOptions.Add('includeMP3',
+      'Set to 1 if using mpadec',
+      '0')

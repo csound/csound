@@ -1,0 +1,19 @@
+--- Csound5.12.1/install.py.orig	2010-12-26 23:57:36.556893990 +0000
++++ Csound5.12.1/install.py	2010-12-27 00:04:26.322205519 +0000
+@@ -288,7 +288,7 @@
+ #err = installFile('opcodes.dir', pluginDir)
+ installErrors = installErrors or err
+ pluginList = findFiles('.', 'lib[A-Za-z].*\\.so')
+-for i in ['libcsound.so', 'libcsound64.so']:
++for i in ['libcsound.so', 'libcsound64.so', 'libcsnd.so']:
+     if i in pluginList:
+         pluginList.remove(i)
+ for i in pluginList:
+@@ -305,6 +305,7 @@
+ 
+ print ' === Installing language interfaces ==='
+ wrapperList = [['csnd\\.py', '0', pythonDir],
++               ['_csnd\\.so', '1', pythonDir],
+                ['loris\\.py', '0', pythonDir],
+                ['CsoundVST\\.py', '0', pythonDir],
+                ['scoregen\\.py', '0', pythonDir],

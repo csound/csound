@@ -1,0 +1,14 @@
+diff -Naur Csound5.13.0.orig/InOut/virtual_keyboard/SliderBank.hpp Csound5.13.0/InOut/virtual_keyboard/SliderBank.hpp
+--- Csound5.13.0.orig/InOut/virtual_keyboard/SliderBank.hpp	2006-11-21 06:45:53.000000000 +0100
++++ Csound5.13.0/InOut/virtual_keyboard/SliderBank.hpp	2011-06-01 08:51:24.473373941 +0200
+@@ -26,8 +26,8 @@
+ 
+ #include <FL/Fl.H>
+ #include <FL/Fl_Group.H>
+-#include <Fl/Fl_Value_Slider.H>
+-#include <Fl/Fl_Spinner.H>
++#include <FL/Fl_Value_Slider.H>
++#include <FL/Fl_Spinner.H>
+ #include "csdl.h"
+ #include "SliderData.hpp"
+ 
