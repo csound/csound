@@ -1,0 +1,23 @@
+--- Csound5.10.1/SConstruct.orig	2009-03-31 12:17:17.000000000 +0100
++++ Csound5.10.1/SConstruct	2009-03-31 12:19:17.000000000 +0100
+@@ -132,6 +132,9 @@
+     commandOptions.Add('useUDP',
+         'Set to 1 if you want UDP support',
+         '0')
++commandOptions.Add('useOGG',
++    'Set to 1 to build ogg opcodes',
++    '1')
+ commandOptions.Add('buildPythonOpcodes',
+     'Set to 1 to build Python opcodes',
+     '0')
+@@ -1725,7 +1728,9 @@
+ # end udp opcodes
+ 
+ # OGG opcodes
+-if buildOLPC:
++if commonEnvironment['useOGG'] == '0':
++    print "CONFIGURATION DECISION: Not building OGG plugins."
++else:
+     print "CONFIGURATION DECISION: Building OGG plugins."
+     oggEnvironment = pluginEnvironment.Clone()
+     oggEnvironment.Append(LINKFLAGS = ['-lvorbisfile', '-lvorbis', '-logg'])

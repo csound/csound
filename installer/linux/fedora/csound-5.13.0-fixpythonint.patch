@@ -1,0 +1,38 @@
+From: Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+Date: Wed, 27 Apr 2011 11:05:32 +0000 (+0100)
+Subject: fixed cstddef symbol definitions issue for linux in python interface
+X-Git-Url: http://csound.git.sourceforge.net/git/gitweb.cgi?p=csound%2Fcsound5.git;a=commitdiff_plain;h=7e5377da29e7524df8ea57e6614d21cdd4d18ee0
+
+fixed cstddef symbol definitions issue for linux in python interface
+---
+
+diff --git a/interfaces/python_interface.i b/interfaces/python_interface.i
+index cbaeff8..a2cbfaf 100644
+--- a/interfaces/python_interface.i
++++ b/interfaces/python_interface.i
+@@ -20,6 +20,8 @@
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+ 
++
++
+ #ifndef MACOSX
+ %module(directors="1") csnd
+ %feature("director") CsoundCallbackWrapper;
+@@ -43,6 +45,7 @@
+ 
+ %feature("autodoc", "1");
+ %{
++    #include <cstddef>
+     #include "csound.h"
+     #include "cfgvar.h"
+     #include "csound.hpp"
+@@ -51,7 +54,7 @@
+     #include "CsoundFile.hpp"
+     #include "CppSound.hpp"
+     #include "filebuilding.h"
+-    #include "Soundfile.hpp"
++    #include "Soundfile.hpp" 
+ %}
+ 
+ %apply int { size_t };

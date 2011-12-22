@@ -1,0 +1,15 @@
+--- Csound5.13.0/Top/csound.c.orig	2010-12-27 17:56:15.000000000 +0000
++++ Csound5.13.0/Top/csound.c	2011-04-07 08:08:54.967713991 +0100
+@@ -1005,11 +1005,7 @@
+         max_len = 21;
+         csoundCreateGlobalVariable(p, "_RTAUDIO", (size_t) max_len);
+         s = csoundQueryGlobalVariable(p, "_RTAUDIO");
+-#ifdef OLPC
+-        strcpy(s, "alsa");
+-#else
+-        strcpy(s, "PortAudio");
+-#endif
++        strcpy(s, "pulse");
+         csoundCreateConfigurationVariable(p, "rtaudio", s, CSOUNDCFG_STRING,
+                 0, NULL, &max_len,
+                 "Real time audio module name", NULL);
