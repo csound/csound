@@ -50,8 +50,6 @@ endif()
     
           
 
-#if mpafound==1:
-#  makePlugin(pluginEnvironment, 'mp3in', ['mp3in.c'])
 #if wiifound==1:
 #  WiiEnvironment = pluginEnvironment.Clone()
 #  makePlugin(WiiEnvironment, 'wiimote', ['wiimote.c'])

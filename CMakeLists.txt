@@ -529,7 +529,18 @@ set(oldpvoc_SRCS
     Opcodes/vpvoc.c 
     Opcodes/pvoc.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS})
+set(mp3in_SRCS
+    Opcodes/mp3in.c
+    InOut/libmpadec/layer1.c
+    InOut/libmpadec/layer2.c
+    InOut/libmpadec/layer3.c
+    InOut/libmpadec/synth.c
+    InOut/libmpadec/tables.c
+    InOut/libmpadec/mpadec.c
+    InOut/libmpadec/mp3dec.c)
+
+
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
 
 # Handling New Parser
 
