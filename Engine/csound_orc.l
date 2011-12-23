@@ -366,6 +366,8 @@ EXSTR           "}}"
                   /* printf("New body: ...#%s#\n", mm->body); */
                   PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
                   PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
+                  PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+                  PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                   /* printf("Push %p macro stack\n",PARM->macros); */
                   yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                   yy_scan_string(mm->body, yyscanner);
@@ -419,6 +421,8 @@ EXSTR           "}}"
                   /* printf("New body: ...#%s#\n", mm->body); */
                   PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
                   PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
+                  PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+                  PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                   yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                   yy_scan_string(mm->body, yyscanner);
                 }
