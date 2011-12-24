@@ -492,13 +492,13 @@ else:
 # Define different build environments for different types of targets.
 
 if getPlatform() == 'linux':
-    commonEnvironment.Append(CCFLAGS = "-DLINUX")
+    commonEnvironment.Append(CCFLAGS = ["-DLINUX"])
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
-    commonEnvironment.Append(CPPPATH = '/usr/local/include')
-    commonEnvironment.Append(CPPPATH = '/usr/include')
-    commonEnvironment.Append(CPPPATH = '/usr/include')
-    commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
-    commonEnvironment.Append(CCFLAGS = "-DPIPES")
+    commonEnvironment.Append(CPPPATH = ['/usr/local/include'])
+    commonEnvironment.Append(CPPPATH = ['/usr/include'])
+    commonEnvironment.Append(CPPPATH = ['/usr/include'])
+    commonEnvironment.Append(CPPPATH = ['/usr/X11R6/include'])
+    commonEnvironment.Append(CCFLAGS = ["-DPIPES"])
     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 elif getPlatform() == 'sunos':
     commonEnvironment.Append(CCFLAGS = "-D_SOLARIS")
@@ -526,7 +526,7 @@ elif getPlatform() == 'win32':
     commonEnvironment.Append(CXXFLAGS = '-DOS_IS_WIN32')
     commonEnvironment.Append(CXXFLAGS = '-DFL_DLL')
     if compilerGNU():
-        commonEnvironment.Prepend(CCFLAGS = "-Wall")
+        commonEnvironment.Prepend(CCFLAGS = ["-Wall"])
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
         commonEnvironment.Append(SHLINKFLAGS = Split(' -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))

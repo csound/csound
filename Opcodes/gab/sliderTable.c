@@ -368,9 +368,8 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
             break;                                                              \
         }                                                                       \
         *outTable++ =                                                           \
-            *yt1++ = *c1++ * value + *c2++ * *yt1; /* filters the output */     \
-                                                                                \
-        min++; max++; j++; ftp++;                                               \
+            *yt1 = *c1++ * value + *c2++ * *yt1; /* filters the output */       \
+        yt1++; min++; max++; j++; ftp++;                                        \
     }                                                                           \
 }                                                                               \
 return OK;
