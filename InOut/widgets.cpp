@@ -1518,7 +1518,7 @@ extern "C" {
           Fl_lock(csound);
           n = fl_choice("%s", Str("Saving could overwrite the old file.\n"
                                   "Are you sure you want to save ?"),
-                        Str("No"), Str("Yes"), NULL);
+                        Str("No"), Str("Yes"), (char*)NULL);
           Fl_unlock(csound);
           if (!n)
             return OK;
