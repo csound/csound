@@ -341,10 +341,10 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       case 'w': type = T_IDENT_GW; break;
       case 't': type = T_IDENT_GT; break;
       case 'S': type = T_IDENT_GS; break;
-      default: 
-        csound->Message(csound, Str("Unknown word type for %s on line %d\n"),
-                        s, csound_orcget_lineno(yyscanner));
-        exit(1);
+      /* default:  */
+      /*   csound->Message(csound, Str("Unknown word type for %s on line %d\n"), */
+      /*                   s, csound_orcget_lineno(yyscanner)); */
+      /*   exit(1); */
       }
     default: /*
       printf("IDENT Token: %i : %i", ans->type, T_IDENT);
