@@ -118,7 +118,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
                root->right->type == NUMBER_TOKEN) {
         switch (root->type) {
         case S_UMINUS:
-          print_tree(csound, "root", root);
+          //print_tree(csound, "root", root);
           ans = root->right;
           ans->value->fvalue = -(ans->type==INTEGER_TOKEN ? ans->value->value
                                  : ans->value->fvalue);
@@ -126,7 +126,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
             (char*)mrealloc(csound, ans->value->lexeme, 24);
           sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
           ans->type = ans->value->type = NUMBER_TOKEN;
-          print_tree(csound, "ans", ans);
+          //print_tree(csound, "ans", ans);
           return ans;
         default:
           break;
