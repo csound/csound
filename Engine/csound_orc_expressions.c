@@ -956,24 +956,26 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             ifBlockLast->next = create_boolean_expression(csound,
                                                           ifBlockCurrent->left,
                                                           ifBlockCurrent->line);
-          ifBlockLast = ifBlockLast->next;
+          while (ifBlockLast->next != NULL) {
+            ifBlockLast = ifBlockLast->next;
+          }
           /* *** Stage 3: Create the goto *** */
           statements = tempRight;     /* the body of the loop */
           labelEnd = create_synthetic_label(csound, endLabelCounter);
           gotoToken =
             create_goto_token(csound,
-                              expressionNodes->left->value->lexeme,
+                              ifBlockLast->left->value->lexeme,
                               labelEnd,
                               type =
                               ((argtyp2(csound,
-                                  expressionNodes->left->value->lexeme)=='B')
+                                  ifBlockLast->left->value->lexeme)=='B')
                                ||
                                (argtyp2(csound,
                                    tempRight->value->lexeme) == 'k')));
           /* relinking */
-          tempRight = ifBlockLast->next;
+          /* tempRight = ifBlockLast->next; */
           ifBlockLast->next = gotoToken;
-          ifBlockLast->next->next = tempRight;
+          /* ifBlockLast->next->next = tempRight; */
           gotoToken->right->next = labelEnd;
           gotoToken->next = statements;
           labelEnd = create_synthetic_label(csound, endLabelCounter);
@@ -990,6 +992,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             statements->next = gotoTopLabelToken;
             gotoTopLabelToken->next = labelEnd;
           }
+          labelEnd->next = ifBlockCurrent->next;
           ifBlockLast = labelEnd;
           ifBlockCurrent = tempRight->next;
         }
