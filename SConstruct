@@ -1754,7 +1754,7 @@ if commonEnvironment['buildImageOpcodes'] == '1':
     if getPlatform() == 'win32':
         if configure.CheckHeader("png.h", language="C") and zlibhfound:
             print 'CONFIGURATION DECISION: Building image opcodes'
-            imEnv = pluginEnvironment.cClone()
+            imEnv = pluginEnvironment.Clone()
             imEnv.Append(LIBS= Split(''' fltk_png fltk_z '''))
             makePlugin(imEnv, 'image', ['Opcodes/imageOpcodes.c'])
     else:
@@ -1787,8 +1787,8 @@ if getPlatform() == 'darwin':
     vstEnvironment.Append(LIBS = ['fltk', 'fltk_images']) # png z jpeg are not on OSX at the mo
 if getPlatform() == 'win32':
     if compilerGNU():
-        vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-        guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+        vstEnvironment.Append(LINKFLAGS = "-mwindows")
+        guiProgramEnvironment.Append(LINKFLAGS = "-mwindows")
         #vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
         #guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
     else:
@@ -2152,7 +2152,6 @@ else:
         pyEnvironment.Append(LIBS = ['dl', 'm'])
     elif getPlatform() == 'win32':
         pyEnvironment['ENV']['PATH'] = os.environ['PATH']
-        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
     pythonOpcodes = makePlugin(pyEnvironment, 'py',
                                ['Opcodes/py/pythonopcodes.c'])
     if getPlatform() == 'win32' and pythonLibs[0] < 'python24':
@@ -2174,7 +2173,6 @@ else:
        if(luaFound == 1):
         luaEnvironment.Append(LIBS = ['lua51'])
         luaEnvironment['ENV']['PATH'] = os.environ['PATH']
-        luaEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
     elif getPlatform() == 'darwin':
         luaEnvironment.Append(LIBS = 'luajit-51')
         luaEnvironment.Append(CPPPATH = '/usr/local/include/luajit-2.0')
@@ -2554,7 +2552,7 @@ else:
     vstEnvironment.Append(LIBS = libCsoundLibs)
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
-        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        vstEnvironment.Append(SHLINKFLAGS = '-Wl,--no-export-all-symbols')
         vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
     elif getPlatform() == 'darwin':
@@ -2566,7 +2564,7 @@ else:
     elif getPlatform() == 'win32':
         if compilerGNU():
             vstEnvironment['ENV']['PATH'] = os.environ['PATH']
-            vstEnvironment.Append(SHLINKFLAGS = Split('-Wl,--add-stdcall-alias --no-export-all-symbols'))
+            vstEnvironment.Append(SHLINKFLAGS = Split('-Wl,--add-stdcall-alias'))
             vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
             guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
                                    -mwindows -Wl,--enable-runtime-pseudo-reloc
