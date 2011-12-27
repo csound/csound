@@ -536,8 +536,7 @@ skipAssoc:
       # libsndfile
       File C:\utah\opt\Mega-Nerd\libsndfile\libsndfile-1.dll
       # Pthreads
-      File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
-      File C:\utah\opt\MinGW\bin\libpthread-2.dll
+      File C:\utah\opt\MinGW\bin\pthreadGC2.dll
       # FLTK
       File C:\utah\opt\fltk-1.1.10\src\mgwfltknox-1.1.dll
       File C:\utah\opt\fltk-1.1.10\src\mgwfltknox_forms-1.1.dll
@@ -558,12 +557,10 @@ skipAssoc:
       # MusicXML
       File C:\utah\opt\musicxml-v2\win32\codeblocks\libmusicxml2.dll
       # pthreads
-      # Now static. File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
       File c:\utah\opt\MinGW\bin\libgomp-1.dll
       # C runtime library
       File C:\windows\system32\MSVCRT.DLL
       # GNU
-      File C:\utah\opt\MinGW\bin\libgettextsrc-0-17.dll
       File C:\utah\opt\MinGW\bin\libstdc++-6.dll
       File C:\utah\opt\MinGW\bin\mingwm10.dll
       File C:\utah\opt\MinGW\bin\libgcc_s_dw2-1.dll
@@ -571,67 +568,34 @@ skipAssoc:
       File C:\utah\msys\1.0\local\bin\intl.dll
       File C:\utah\msys\1.0\local\bin\libgthread-2.0-0.dll
     # Opcodes, drivers, and other modules:
-    SetOutPath $INSTDIR\${OPCODEDIR_VAL}
+    SetOutPath $INSTDIR\${OPCODEDIR_VAL}    
       File ..\..\LuaCsound.dll
-      File ..\..\ambicode1.dll
       File ..\..\ampmidid.dll
-      File ..\..\babo.dll
-      File ..\..\barmodel.dll
       File ..\..\chua.dll
-      File ..\..\compress.dll
-      File ..\..\crossfm.dll
       File ..\..\cs_date.dll
-      File ..\..\cs_pan2.dll
-      File ..\..\cs_pvs_ops.dll
+      File ..\..\csladspa.dll
       File ..\..\doppler.dll
-      File ..\..\eqfil.dll
       File ..\..\fareygen.dll
-      File ..\..\fareyseq.dll
       File ..\..\fluidOpcodes.dll
-      File ..\..\ftest.dll
-      File ..\..\gabnew.dll
-      File ..\..\grain4.dll
-      File ..\..\harmon.dll
-      File ..\..\hrtferX.dll
-      File ..\..\hrtfnew.dll
       File ..\..\image.dll
 !ifndef FLOAT
       File ..\..\linear_algebra.dll
 !endif
-      File ..\..\loscilx.dll
-      File ..\..\minmax.dll
       File ..\..\mixer.dll
-      File ..\..\modal4.dll
-      File ..\..\modmatrix.dll
       File ..\..\mutexops.dll
       File ..\..\osc.dll
-      File ..\..\partikkel.dll
-      File ..\..\phisem.dll
-      File ..\..\physmod.dll
-      File ..\..\pitch.dll
       File ..\..\pmidi.dll
-      File ..\..\ptrack.dll
-      File ..\..\pvlock.dll
-      File ..\..\pvoc.dll
-      File ..\..\pvsbuffer.dll
+      File ..\..\py.dll
       File ..\..\rtpa.dll
       File ..\..\rtwinmm.dll
       File ..\..\scansyn.dll
-      File ..\..\scoreline.dll
-      File ..\..\sfont.dll
-      File ..\..\shape.dll
+      File ..\..\serial.dll
       File ..\..\signalflowgraph.dll
-      File ..\..\stackops.dll
-      File ..\..\stdopcod.dll
       File ..\..\stdutil.dll
       File ..\..\stk.dll
       File ..\..\system_call.dll
-      File ..\..\tabsum.dll
-      File ..\..\ugakbari.dll
-      File ..\..\vaops.dll
-      File ..\..\vbap.dll
+      File ..\..\tclcsound.dll
       File ..\..\virtual.dll
-      File ..\..\vosim.dll
 !ifdef NONFREE
       File ..\..\vst4cs.dll
 !endif
@@ -715,15 +679,12 @@ skipAssoc:
   SectionGroupEnd
 SectionGroupEnd
 SectionGroup "Front ends"
-  #Section "CsoundQt (user-defined widgets)"
-  Section "QuteCsound(user-defined widgets)"
+  Section "CsoundQt (user-defined widgets)"
     SectionIn 2 3
 !ifdef FLOAT
-#    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-f.exe" "" "" "" "" "" " CsoundQt"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\qutecsound-f.exe" "" "" "" "" "" " QuteCsound"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-f.exe" "" "" "" "" "" " CsoundQt"
 !else
-#    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-d.exe" "" "" "" "" "" " CsoundQt"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\qutecsound-d.exe" "" "" "" "" "" " QuteCsound"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-d.exe" "" "" "" "" "" " CsoundQt"
 !endif
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
@@ -732,11 +693,9 @@ SectionGroup "Front ends"
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtGui4.dll
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtXml4.dll
 !ifdef FLOAT
-      #File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f.exe
-      File C:\utah\opt\qutecsound-0.6.1\qutecsound-0.6.1\bin\qutecsound-f.exe
+      File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f.exe
 !else
-      #File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d.exe
-      File C:\utah\opt\qutecsound-0.6.1\qutecsound-0.6.1\bin\qutecsound-d.exe
+      File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d.exe
 !endif
   SectionEnd
 !ifdef NONFREE
@@ -871,15 +830,12 @@ SectionGroup "Csound interfaces"
 	File ..\..\_CsoundAC.pyd  
         File ..\..\CsoundAC.py
     SectionEnd
-    #Section /o "CsoundQt-Py (user-defined widgets with PythonQt support)"
-    Section /o "QuteCsound-Py (user-defined widgets with PythonQt support)"
+    Section /o "CsoundQt-Py (user-defined widgets with PythonQt support)"
       SectionIn 2
     !ifdef FLOAT
-        #CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-f-py.exe" "" "" "" "" "" " CsoundQt-py"
-        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\qutecsound-f-py.exe" "" "" "" "" "" " QuteCsound-py"
+        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-f-py.exe" "" "" "" "" "" " CsoundQt-py"
     !else
-        #CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-d-py.exe" "" "" "" "" "" " CsoundQt-py"
-        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\qutecsound-d-py.exe" "" "" "" "" "" " QuteCsound-py"
+        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-d-py.exe" "" "" "" "" "" " CsoundQt-py"
     !endif
         SetOutPath $INSTDIR\bin
           File ..\..\csnd.dll
@@ -896,11 +852,9 @@ SectionGroup "Csound interfaces"
           File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt_QtAll.dll
           File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt.dll
     !ifdef FLOAT
-          #File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f-py.exe
-          File C:\utah\opt\qutecsound-0.6.1\qutecsound-0.6.1\bin\qutecsound-f-py.exe
+          File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f-py.exe
     !else
-          #File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d-py.exe
-          File C:\utah\opt\qutecsound-0.6.1\qutecsound-0.6.1\bin\qutecsound-d-py.exe
+          File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d-py.exe
     !endif
       SectionEnd
   SectionGroupEnd 
