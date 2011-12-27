@@ -1013,7 +1013,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             TREE* last;
             TREE *nextArg;
             TREE *newArgTree;
-            int is_bool;
+            int is_bool = 0;
             if (is_expression_node(currentArg) ||
                 (is_bool = is_boolean_expression_node(currentArg))) {
               char * newArg;
