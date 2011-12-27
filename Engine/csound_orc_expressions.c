@@ -1013,12 +1013,20 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             TREE* last;
             TREE *nextArg;
             TREE *newArgTree;
-            if (is_expression_node(currentArg)) {
+            int is_bool;
+            if (is_expression_node(currentArg) ||
+                (is_bool = is_boolean_expression_node(currentArg))) {
               char * newArg;
               if (UNLIKELY(PARSER_DEBUG))
                 csound->Message(csound, "Found Expression.\n");
-              expressionNodes =
-                create_expression(csound, currentArg, currentArg->line);
+              if (is_bool == 0) {
+                expressionNodes =
+                  create_expression(csound, currentArg, currentArg->line);
+              }
+              else {
+                expressionNodes =
+                  create_boolean_expression(csound, currentArg, currentArg->line);
+              }
 
               /* Set as anchor if necessary */
               if (anchor == NULL) {
