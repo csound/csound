@@ -492,8 +492,20 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '~':
-      strncpy(op, "not", 80);
-      outarg = set_expression_type(csound, op, arg1, '\0');
+      { int outype = 'i';
+        strncpy(op, "not.", 80);
+        if (arg2 == 'a') {
+          strncat(op, "a", 80);
+          outype = 'a';
+        }
+        else if (arg2 == 'k') {
+          strncat(op, "k", 80);
+          outype = 'k';
+        }
+        else
+          strncat(op, "i", 80);
+        outarg = create_out_arg(csound, outype);
+      }
       break;
     }
     opTree = create_opcode_token(csound, op);
