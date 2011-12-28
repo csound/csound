@@ -897,13 +897,15 @@ if commonEnvironment['buildNewParser'] != '0':
     print 'CONFIGURATION DECISION: Building with new parser enabled'
     reportflag='--report=itemset'
     csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', reportflag, '-p','csound_orc'])
-    csoundLibraryEnvironment.Append(LEXFLAGS = ['-Pcsound_orc'])
+    csoundLibraryEnvironment.Append(LEXFLAGS = ['-B'])
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-DENABLE_NEW_PARSER'])
     csoundLibraryEnvironment.Append(CPPPATH = ['Engine'])
     yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
                                source = 'Engine/csound_orc.y')
     lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
                                source = 'Engine/csound_orc.l')
+    preBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_prelex.c',
+                               source = 'Engine/csound_pre.lex')
     if commonEnvironment['NewParserDebug'] != '0':
         print 'CONFIGURATION DECISION: Building with new parser debugging'
         csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARSER_DEBUG=1'])
@@ -1139,6 +1141,7 @@ Top/utility.c
 ''')
 
 newParserSources = Split('''
+Engine/csound_prelex.c
 Engine/csound_orclex.c
 Engine/csound_orcparse.c
 Engine/csound_orc_semantics.c

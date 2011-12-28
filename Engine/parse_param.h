@@ -25,6 +25,20 @@ typedef struct IFDEFSTACK_ {
                                 /*   #ifdef, 2: skipping due to parent      */
 } IFDEFSTACK;
 
+
+typedef struct pre_parm_s {  
+    void            *yyscanner;
+    MACRO           *macros;
+    MACRON alt_stack[MAX_INCLUDE_DEPTH];
+    unsigned int macro_stack_ptr;
+    IFDEFSTACK      *ifdefStack;
+    unsigned char   isIfndef;
+    unsigned char   isInclude;
+    unsigned char   clearBufferAfterEOF;
+    int             line;
+    CORFIL*         cf;
+} PRE_PARM;
+
 typedef struct parse_parm_s {
     void            *yyscanner;
     char            *buffer;
@@ -35,13 +49,8 @@ typedef struct parse_parm_s {
 //  unsigned int    macro_stack_ptr;
     int             nBuffer;
     int             lBuffer;
-    MACRON alt_stack[MAX_INCLUDE_DEPTH];
-    unsigned int macro_stack_ptr;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
-    IFDEFSTACK      *ifdefStack;
-    unsigned char   isIfndef;
-    unsigned char   isInclude;
     unsigned char   clearBufferAfterEOF;
 } PARSE_PARM;
 
