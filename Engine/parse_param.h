@@ -36,7 +36,6 @@ typedef struct pre_parm_s {
     unsigned char   isInclude;
     unsigned char   clearBufferAfterEOF;
     int             line;
-    CORFIL*         cf;
 } PRE_PARM;
 
 typedef struct parse_parm_s {
@@ -47,8 +46,8 @@ typedef struct parse_parm_s {
 //  double          result;
     MACRO           *macros;
 //  unsigned int    macro_stack_ptr;
-    int             nBuffer;
-    int             lBuffer;
+//    int             nBuffer;
+//    int             lBuffer;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
     unsigned char   clearBufferAfterEOF;
