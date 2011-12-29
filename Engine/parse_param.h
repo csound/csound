@@ -40,14 +40,14 @@ typedef struct pre_parm_s {
 
 typedef struct parse_parm_s {
     void            *yyscanner;
-    char            *buffer;
+//    char            *buffer;
 //  int             pos;
 //  int             length;
 //  double          result;
     MACRO           *macros;
 //  unsigned int    macro_stack_ptr;
-    int             nBuffer;
-    int             lBuffer;
+//    int             nBuffer;
+//    int             lBuffer;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
     unsigned char   clearBufferAfterEOF;

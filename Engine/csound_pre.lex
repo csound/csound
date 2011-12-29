@@ -267,7 +267,7 @@ CONT            \\[ \t]*(;.*)?\n
                 }
 #exit           { return 0;}
 <<EOF>>         {
-                  MACRO *x, *y;
+                  MACRO *x, *y=NULL;
                   int n;
                   fprintf(stderr,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
@@ -637,7 +637,6 @@ void cs_init_math_constants_macros(CSOUND *csound, void* yyscanner)
      add_math_const_macro(csound, yyscanner, "INF",   "2147483647.0"); /* ~7 years */
 }
 
-#if 0
 void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 {
     while (nn) {
@@ -648,9 +647,8 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 
       if (p == NULL)
         p = s + strlen(s);
-      //      if (csound->oparms->msglevel & 7)
-      // csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
-      fprintf(strderr, "Macro definition for %*s\n", p - s, s);
+      if (csound->oparms->msglevel & 7)
+        csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {
         csound->Die(csound, Str("Invalid macro name for --omacro"));
@@ -680,10 +678,10 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
       nn = nn->next;
     }
 }
-#endif
 
+int csound_prewrap(yyscan_t yyscanner) 
+{ print_csound_predata("WRAP\n", yyscanner); return 1;}
 
-int csound_prewrap(yyscan_t yyscanner) { print_csound_predata("WRAP\n", yyscanner); return 1;}
 #ifdef MAIN_NEEDED
 int main(void)
 {
