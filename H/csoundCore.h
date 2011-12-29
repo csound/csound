@@ -1367,8 +1367,9 @@ typedef struct {
     char          *sstrbuf0[3]; /* For extra strings in scores */
     int           sstrlen0[3];  /* lengths for extra strings */
     int           genlabs;      /* Count for generated labels */
-    MYFLT  *powerof2;         /* pow2 table */
-    MYFLT  *cpsocfrc;         /* cps conv table */
+    MYFLT         *powerof2;    /* pow2 table */
+    MYFLT         *cpsocfrc;    /* cps conv table */
+    CORFIL*       expanded_orc; /* output of preprocessor */
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
