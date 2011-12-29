@@ -540,6 +540,7 @@ exprlist  : exprlist ',' expr
                 }
           | exprlist ',' error
           | expr { $$ = $1;     }
+          | bexpr { $$ = $1; }
           | T_IDENT { $$ = make_leaf(csound, LINE, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | /* null */          { $$ = NULL; }
           ;
