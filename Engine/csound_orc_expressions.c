@@ -492,8 +492,20 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '~':
-      strncpy(op, "not", 80);
-      outarg = set_expression_type(csound, op, arg1, '\0');
+      { int outype = 'i';
+        strncpy(op, "not.", 80);
+        if (arg2 == 'a') {
+          strncat(op, "a", 80);
+          outype = 'a';
+        }
+        else if (arg2 == 'k') {
+          strncat(op, "k", 80);
+          outype = 'k';
+        }
+        else
+          strncat(op, "i", 80);
+        outarg = create_out_arg(csound, outype);
+      }
       break;
     }
     opTree = create_opcode_token(csound, op);
@@ -1013,12 +1025,20 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             TREE* last;
             TREE *nextArg;
             TREE *newArgTree;
-            if (is_expression_node(currentArg)) {
+            int is_bool = 0;
+            if (is_expression_node(currentArg) ||
+                (is_bool = is_boolean_expression_node(currentArg))) {
               char * newArg;
               if (UNLIKELY(PARSER_DEBUG))
                 csound->Message(csound, "Found Expression.\n");
-              expressionNodes =
-                create_expression(csound, currentArg, currentArg->line);
+              if (is_bool == 0) {
+                expressionNodes =
+                  create_expression(csound, currentArg, currentArg->line);
+              }
+              else {
+                expressionNodes =
+                  create_boolean_expression(csound, currentArg, currentArg->line);
+              }
 
               /* Set as anchor if necessary */
               if (anchor == NULL) {
