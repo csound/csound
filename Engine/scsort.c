@@ -32,6 +32,7 @@ extern int  sread(CSOUND *csound);
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */
 
+#ifdef OLD_CODE
 void scsort(CSOUND *csound, FILE *scin, FILE *scout)
 {
     int     n;
@@ -48,6 +49,7 @@ void scsort(CSOUND *csound, FILE *scin, FILE *scout)
     }
     sfree(csound);              /* return all memory used */
 }
+#endif
 
 extern void sread_initstr(CSOUND *);
 void scsortstr(CSOUND *csound, CORFIL *scin)

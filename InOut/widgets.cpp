@@ -1272,7 +1272,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       Fl_Widget* o = (Fl_Widget*) (valuators[k].WidgAddress);
       void *opcode = valuators[k].opcode;
-      //CSOUND *csound = (CSOUND*) (((OPDS*) opcode)->insdshead->csound); //Not used
+//CSOUND *csound = (CSOUND*) (((OPDS*) opcode)->insdshead->csound); //Not used
       VALUATOR_FIELD* fld = &fields[j];
       string opcode_name = fld->opcode_name;
 
@@ -1328,11 +1328,12 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
           if(fld->value >= *p->ioff - 0.0001 &&
              fld->value <= *p->ioff + 0.0001)  // to avoid eventual  math rounding
             ((Fl_Button*) o)->value(0);
-          else if (fld->value >= *p->ion - 0.0001 &&
-                   fld->value <= *p->ion + 0.0001) // to avoid eventual math rounding
-            ((Fl_Button*) o)->value(1);
-          else
-            ((Fl_Button*) o)->value((int)fld->value);
+          else 
+            if (fld->value >= *p->ion - 0.0001 &&
+                fld->value <= *p->ion + 0.0001) // to avoid eventual math rounding
+              ((Fl_Button*) o)->value(1);
+            else
+              ((Fl_Button*) o)->value((int)fld->value);
           o->do_callback(o, opcode);
         }
       }
@@ -1518,7 +1519,7 @@ extern "C" {
           Fl_lock(csound);
           n = fl_choice("%s", Str("Saving could overwrite the old file.\n"
                                   "Are you sure you want to save ?"),
-                        Str("No"), Str("Yes"), NULL);
+                        Str("No"), Str("Yes"), (char*)NULL);
           Fl_unlock(csound);
           if (!n)
             return OK;
@@ -2870,7 +2871,8 @@ extern "C" {
           break;
         case EXP_:        // exponential
           #if defined(sun)
-            log_base = (MYFLT) log(::pow(v.max / (double)v.min, 1.0 / (v.max - v.min)));
+            log_base = (MYFLT) log(::pow(v.max / (double)v.min,
+                                         1.0 / (v.max - v.min)));
           #else
             log_base = (MYFLT) log(::pow(v.max / v.min, 1.0 / (v.max - v.min)));
           #endif
@@ -2907,7 +2909,8 @@ extern "C" {
           break;
         case EXP_:        // exponential
           #if defined(sun)
-            log_base = (MYFLT) log(::pow(v.max / (double)v.min, 1.0 / (v.max - v.min)));
+            log_base = (MYFLT) log(::pow(v.max / (double)v.min, 
+                                   1.0 / (v.max - v.min)));
           #else
             log_base = (MYFLT) log(::pow(v.max / v.min, 1.0 / (v.max - v.min)));
           #endif
@@ -3269,7 +3272,8 @@ extern "C" {
       Fl_Slider *o;
       if (itype <= 10) o = new Fl_Slider(ix, iy, iwidth, iheight, controlName);
       else {
-        o = new Fl_Value_Slider_Input(csound, ix, iy, iwidth, iheight, controlName);
+        o = new Fl_Value_Slider_Input(csound, ix, iy, 
+                                      iwidth, iheight, controlName);
         itype -=10;
         //o->labelsize(20);
         ((Fl_Value_Slider_Input*) o)->textboxsize(50);
@@ -3355,7 +3359,7 @@ extern "C" {
 
       if (*p->ioutable  < 1) {
         if (LIKELY(csound->zkstart != NULL &&
-                   csound->zklast > (long)(*p->inumsliders + *p->ioutablestart_ndx)))
+                   csound->zklast > (long)(*p->inumsliders+*p->ioutablestart_ndx)))
           outable = csound->zkstart + (long) *p->ioutablestart_ndx;
         else {
           return csound->InitError(csound, "%s",
@@ -3781,7 +3785,8 @@ extern "C" {
         break;
       case 2:
         {
-          o = new Fl_Value_Input_Spin(csound, ix, iy, iwidth, iheight, controlName);
+          o = new Fl_Value_Input_Spin(csound, ix, iy,
+                                      iwidth, iheight, controlName);
           ((Fl_Value_Input *) o)->step(istep);
           ((Fl_Value_Input *) o)->range(*p->imin,*p->imax);
         }
@@ -4431,7 +4436,7 @@ extern "C" {
 
       if (*p->ioutable  < 1) {
         if (LIKELY(csound->zkstart != NULL &&
-                   csound->zklast>(long)(*p->inumsliders + *p->ioutablestart_ndx)))
+                   csound->zklast>(long)(*p->inumsliders+*p->ioutablestart_ndx)))
           outable = csound->zkstart + (long) *p->ioutablestart_ndx;
         else {
           return csound->InitError(csound, "%s",
@@ -5249,7 +5254,8 @@ extern "C" {
       if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
       if (UNLIKELY( p->q->elements < p->startslid + p->numslid)) {
         return csound->InitError(csound, "%s",
-                                 Str("FLslidBnkSetk: too many sliders to reset!"));
+                                 Str("FLslidBnkSetk:"
+                                     " too many sliders to reset!"));
       }
       return OK;
   }
