@@ -723,8 +723,7 @@ int main(void)
 void print_csound_predata(char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-    PRE_PARM  *x = yyg->yyextra_r;
-    printf("********* %s extra data %p ************\n", mesg, x);
+    printf("********* %s extra data ************\n", mesg);
     printf("yyscanner = %p\n", yyscanner);
     printf("yyextra_r = %p, yyin_r = %p, yyout_r = %p, yy_buffer_stack_top = %d\n", 
            yyg->yyextra_r, yyg->yyin_r,yyg->yyout_r, yyg->yy_buffer_stack_top);
@@ -743,10 +742,6 @@ void print_csound_predata(char *mesg, void *yyscanner)
     printf("yylineno_r = %d, yy_flex_debug_r = %d, yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d\n",
            yyg->yylineno_r, yyg->yy_flex_debug_r, yyg->yytext_r, yyg->yytext_r, yyg->yy_more_flag, yyg->yy_more_len);
     printf("*********\n");
-    printf("macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
-           "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
-           x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, x->isInclude, x->clearBufferAfterEOF, x->line);
-    printf("******************\n");
 }
 
 
