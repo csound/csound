@@ -265,7 +265,9 @@ CONT            \\[ \t]*(;.*)?\n
                   do_include(csound, yytext[0], yyscanner);
                   BEGIN(INITIAL);
                 }
-#exit           { return 0;}
+#exit           { corfile_putc('\0', csound->expanded_orc);
+                  corfile_putc('\0', csound->expanded_orc);
+                  return 0;}
 <<EOF>>         {
                   MACRO *x, *y=NULL;
                   int n;

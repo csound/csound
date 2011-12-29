@@ -87,11 +87,11 @@ OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
 XSTR            "{{"
 EXSTR           "}}"
-
-%x incl
-%x macro
-%x umacro
-%x ifdef
+LINE            "#line"
+FILE            "#source"
+FNAME           [a-zA-Z0-9/:.+-_]+
+%x line
+%x src
 %x xstr
 
 %%
@@ -263,6 +263,20 @@ EXSTR           "}}"
                 }
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
 {WHITE}         { }
+
+{LINE}          { BEGIN(line); }
+
+<line>[ \t]*     /* eat the whitespace */
+<line>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
+<line>"\n"      {BEGIN(INITIAL);}
+
+{FILE}          { BEGIN(src); }
+
+<src>[ \t]*     /* eat the whitespace */
+<src>{FNAME}    { strncpy(PARM->loc, yytext, 48); }
+<src>"\n"       {BEGIN(INITIAL);}
+
+
 <<EOF>>         {
                   yyterminate();
                   /* int n; */

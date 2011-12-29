@@ -41,10 +41,11 @@ extern void print_csound_predata(void *);
 extern void csound_prelex_init(void *);
 extern void csound_preset_extra(void *, void *);
 extern void csound_prelex(CSOUND*, void*);
+extern void csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
 extern void csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
-extern void csound_orc_scan_string(char *, void *);
+//extern void csound_orc_scan_string(char *, void *);
 extern void csound_orcset_lineno(int, void*);
 extern void csound_orclex_destroy(void *);
 extern void init_symbtab(CSOUND*);
@@ -83,7 +84,6 @@ int new_orc_parser(CSOUND *csound)
       csound->Message(csound, Str("Unmatched #ifdef\n"));
       csound->LongJmp(csound, 1);
     }
-    corfile_rewind(csound->expanded_orc);
     fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
     /* Parse */
     memset(&pp, '\0', sizeof(PARSE_PARM));
@@ -96,8 +96,9 @@ int new_orc_parser(CSOUND *csound)
     //    yyg = (struct yyguts_t*)pp.yyscanner;
 
     csound_orcset_extra(&pp, pp.yyscanner);
-
-    csound_orc_scan_string(corfile_body(csound->expanded_orc), pp.yyscanner);
+    csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
+                           corfile_tell(csound->expanded_orc), pp.yyscanner);
+    free(csound->expanded_orc);
     /*     These relate to file input only       */
     /*     csound_orcset_in(ttt, pp.yyscanner); */
     /*     csound_orcrestart(ttt, pp.yyscanner); */
