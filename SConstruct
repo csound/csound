@@ -492,13 +492,13 @@ else:
 # Define different build environments for different types of targets.
 
 if getPlatform() == 'linux':
-    commonEnvironment.Append(CCFLAGS = "-DLINUX")
+    commonEnvironment.Append(CCFLAGS = ["-DLINUX"])
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
-    commonEnvironment.Append(CPPPATH = '/usr/local/include')
-    commonEnvironment.Append(CPPPATH = '/usr/include')
-    commonEnvironment.Append(CPPPATH = '/usr/include')
-    commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
-    commonEnvironment.Append(CCFLAGS = "-DPIPES")
+    commonEnvironment.Append(CPPPATH = ['/usr/local/include'])
+    commonEnvironment.Append(CPPPATH = ['/usr/include'])
+    commonEnvironment.Append(CPPPATH = ['/usr/include'])
+    commonEnvironment.Append(CPPPATH = ['/usr/X11R6/include'])
+    commonEnvironment.Append(CCFLAGS = ["-DPIPES"])
     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 elif getPlatform() == 'sunos':
     commonEnvironment.Append(CCFLAGS = "-D_SOLARIS")
@@ -526,7 +526,7 @@ elif getPlatform() == 'win32':
     commonEnvironment.Append(CXXFLAGS = '-DOS_IS_WIN32')
     commonEnvironment.Append(CXXFLAGS = '-DFL_DLL')
     if compilerGNU():
-        commonEnvironment.Prepend(CCFLAGS = "-Wall")
+        commonEnvironment.Prepend(CCFLAGS = ["-Wall"])
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
         commonEnvironment.Append(SHLINKFLAGS = Split(' -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
@@ -897,13 +897,15 @@ if commonEnvironment['buildNewParser'] != '0':
     print 'CONFIGURATION DECISION: Building with new parser enabled'
     reportflag='--report=itemset'
     csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', reportflag, '-p','csound_orc'])
-    csoundLibraryEnvironment.Append(LEXFLAGS = ['-Pcsound_orc'])
+    csoundLibraryEnvironment.Append(LEXFLAGS = ['-B'])
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-DENABLE_NEW_PARSER'])
     csoundLibraryEnvironment.Append(CPPPATH = ['Engine'])
     yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
                                source = 'Engine/csound_orc.y')
     lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
                                source = 'Engine/csound_orc.l')
+    preBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_prelex.c',
+                               source = 'Engine/csound_pre.lex')
     if commonEnvironment['NewParserDebug'] != '0':
         print 'CONFIGURATION DECISION: Building with new parser debugging'
         csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARSER_DEBUG=1'])
@@ -1139,6 +1141,7 @@ Top/utility.c
 ''')
 
 newParserSources = Split('''
+Engine/csound_prelex.c
 Engine/csound_orclex.c
 Engine/csound_orcparse.c
 Engine/csound_orc_semantics.c

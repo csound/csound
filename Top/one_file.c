@@ -26,6 +26,7 @@
 int mkstemp(char *);
 #include <ctype.h>
 #include <errno.h>
+#include <stdlib.h>
 #include "corfile.h"
 
 #if defined(LINUX) || defined(__MACH__) || defined(WIN32)
@@ -106,8 +107,13 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
       do {
 #endif
 #ifndef WIN32
-        if (UNLIKELY(mytmpnam(buf) == NULL))
+        //        if (UNLIKELY(mytmpnam(buf) == NULL))
+        //          csound->Die(csound, Str(" *** cannot create temporary file"));
+        int fd;
+        strcpy(buf, "/tmp/csoundXXXXXX");
+        if (UNLIKELY((fd = mkstemp(buf)) < 0))
           csound->Die(csound, Str(" *** cannot create temporary file"));
+        close(fd);
 #else
         {
           char  *s = (char*) csoundGetEnv(csound, "SFDIR");

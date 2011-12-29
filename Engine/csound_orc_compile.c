@@ -540,7 +540,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
       csound->Message(csound,
                       Str("create_opcode: No rule to handle statement of "
                           "type %d\n"), root->type);
-      print_tree(csound, NULL, root);
+      if (PARSER_DEBUG) print_tree(csound, NULL, root);
     }
 
     if (retOptxt == NULL) {
@@ -1082,7 +1082,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
         csound->Message(csound,
                         Str("Unknown TREE node of type %d found in root.\n"),
                         current->type);
-        /* if (PARSER_DEBUG) */ print_tree(csound, NULL, current);
+        if (PARSER_DEBUG) print_tree(csound, NULL, current);
       }
 
       current = current->next;
