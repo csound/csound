@@ -1565,7 +1565,7 @@ extern "C"
       sizeof(JackoMidiOut),
       3,
       (char *)"",
-      (char *)"Skkkj",
+      (char *)"SkkkO",
       (SUBR)&JackoMidiOut::init_,
       (SUBR)&JackoMidiOut::kontrol_,
       0,
