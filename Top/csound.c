@@ -710,9 +710,10 @@ extern "C" {
     0,              /* Count of extra strings */
     {NULL, NULL, NULL}, /* For extra strings in scores */
     {0, 0, 0},      /* For extra strings in scores */
-    300,             /* Count for generated labels */
-    NULL,
-    NULL
+    300,            /* Count for generated labels */
+    NULL,           /* pow2 table */
+    NULL,           /* cps conv table */
+    NULL            /* Result of preprocessor */
   };
 
   /* from threads.c */
