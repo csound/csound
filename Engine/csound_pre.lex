@@ -39,7 +39,7 @@ void do_macro(CSOUND *, char *, yyscan_t);
 void do_umacro(CSOUND *, char *, yyscan_t);
 void do_ifdef(CSOUND *, char *, yyscan_t);
 void do_ifdef_skip_code(CSOUND *, yyscan_t);
-void print_csound_predata(yyscan_t);
+void print_csound_predata(char *,yyscan_t);
 
 #include "parse_param.h"
 
@@ -99,6 +99,7 @@ CONT            \\[ \t]*(;.*)?\n
 {STCOM}         { do_comment(yyscanner); }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
+                   print_csound_predata("Macro call", yyscanner);
                    while (mm != NULL) {  /* Find the definition */
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
@@ -111,7 +112,7 @@ CONT            \\[ \t]*(;.*)?\n
                    /* Need to read from macro definition */
                    fprintf(stderr, "found macro %s\nstack ptr = %d\n",
                            yytext+1, PARM->macro_stack_ptr);
-                   print_csound_predata(yyscanner);
+                   print_csound_predata("macro found", yyscanner);
                    /* ??fiddle with buffers I guess */
                    if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                      csound->Die(csound, Str("Includes nested too deeply"));
@@ -308,14 +309,17 @@ CONT            \\[ \t]*(;.*)?\n
 <macro>{MACRO}  {
                   yytext[yyleng-1] = '\0';
                   fprintf(stderr,"Define macro with args %s\n", yytext);
+                  print_csound_predata("Before do_macro_arg", yyscanner);
                   do_macro_arg(csound, yytext, yyscanner);
+                  print_csound_predata("After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
                 }
 <macro>{IDENTN} {
                   fprintf(stderr,"Define macro %s\n", yytext);
-                  do_macro(csound, yytext, yyscanner);
-                  print_csound_predata(yyscanner);
-                  BEGIN(INITIAL);
+                   print_csound_predata("Before do_macro", yyscanner);
+                   do_macro(csound, yytext, yyscanner);
+                   print_csound_predata("After do_macro", yyscanner);
+                   BEGIN(INITIAL);
                 }
 {UNDEF}        BEGIN(umacro);
 <umacro>[ \t]*    /* eat the whitespace */
@@ -679,7 +683,7 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 #endif
 
 
-int csound_prewrap(yyscan_t yyscanner) { return 0;}
+int csound_prewrap(yyscan_t yyscanner) { print_csound_predata("WRAP\n", yyscanner); return 1;}
 #ifdef MAIN_NEEDED
 int main(void)
 {
@@ -716,10 +720,10 @@ int main(void)
 }
 #endif
 
-void print_csound_predata(void *yyscanner)
+void print_csound_predata(char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-    printf("********* extra data %p ************\n", PARM);
+    printf("********* %s extra data %p ************\n", mesg, PARM);
     printf("macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
            "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
            PARM->macros, PARM->macro_stack_ptr, PARM->ifdefStack, PARM->isIfndef, PARM->isInclude, PARM->clearBufferAfterEOF, PARM->line);
