@@ -36,7 +36,6 @@ typedef struct pre_parm_s {
     unsigned char   isInclude;
     unsigned char   clearBufferAfterEOF;
     int             line;
-    CORFIL*         cf;
 } PRE_PARM;
 
 typedef struct parse_parm_s {

@@ -72,16 +72,16 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option bison-bridge
 %option bison-locations
 %option prefix="csound_orc"
+%option outfile="Engine/csound_orclex.c"
+%option stdout
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
-MACRO           [a-zA-Z0-9_]+\(
 INTGR           [0-9]+
 NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
-STCOM           \/\*
 WHITE           [ \t]+
 OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
@@ -264,6 +264,7 @@ EXSTR           "}}"
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
 {WHITE}         { }
 <<EOF>>         {
+                  yyterminate();
                   /* int n; */
                   /* printf("Leaving buffer %p\n", YY_CURRENT_BUFFER); */
                   /* yypop_buffer_state(yyscanner); */
