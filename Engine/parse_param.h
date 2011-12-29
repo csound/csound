@@ -54,7 +54,6 @@ typedef struct parse_parm_s {
     unsigned char   clearBufferAfterEOF;
 } PARSE_PARM;
 
-#define lMaxBuffer (1000)
-void    cs_init_math_constants_macros(CSOUND*, void*);
-void    cs_init_omacros(CSOUND*, void*, NAMES*);
+void    cs_init_math_constants_macros(CSOUND*, PRE_PARM*);
+void    cs_init_omacros(CSOUND*, PRE_PARM*, NAMES*);
 
