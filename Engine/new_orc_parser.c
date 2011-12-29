@@ -41,6 +41,7 @@ extern void print_csound_predata(void *);
 extern void csound_prelex_init(void *);
 extern void csound_preset_extra(void *, void *);
 extern void csound_prelex(CSOUND*, void*);
+extern void csound_prelex_destroy(void *);
 extern void csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
 extern void csound_orclex_init(void *);
@@ -66,8 +67,8 @@ int new_orc_parser(CSOUND *csound)
     int retVal;
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
     OPARMS *O = csound->oparms;
+    PRE_PARM    qq;
     PARSE_PARM  pp;
-    PRE_PARM  qq;
     /* Preprocess */
     corfile_puts("\n#exit\n", csound->orchstr);
     memset(&qq, '\0', sizeof(PRE_PARM));
@@ -84,6 +85,7 @@ int new_orc_parser(CSOUND *csound)
       csound->Message(csound, Str("Unmatched #ifdef\n"));
       csound->LongJmp(csound, 1);
     }
+    csound_prelex_destroy(pp.yyscanner);
     fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
     /* Parse */
     memset(&pp, '\0', sizeof(PARSE_PARM));
