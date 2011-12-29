@@ -28,6 +28,9 @@
 #ifndef _POSIX_SOURCE
 #define _POSIX_SOURCE 1
 #endif
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 1
+#endif
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE 1
 #endif

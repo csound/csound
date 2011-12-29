@@ -1310,7 +1310,8 @@ static void ifa(CSOUND *csound)
       case 1:                           /*   & MYFLT, setinsno..*/
         if ((ST(op) == 'i' || ST(op) == 'q') && *ST(sp) == '"') {
         /*   printf("***Entering second dubious code scnt=%d\n", csound->scnt0); */
-        /*   ST(bp)->p1val = ((int[4]){SSTRCOD,SSTRCOD1,SSTRCOD2,SSTRCOD3})[csound->scnt0++]; */
+        /*   ST(bp)->p1val = ((int[4]){SSTRCOD,SSTRCOD1,
+                                       SSTRCOD2,SSTRCOD3})[csound->scnt0++]; */
         /*   if (csound->scnt0>3) { */
         /*     csound->scnt0 = 3; */
         /*   } */

@@ -1,0 +1,22 @@
+Plugin Directories
+==================
+
+The plugin binaries are installed under /usr/lib/csound/plugins
+(/usr/lib64/csound/plugins in x86_64).  Please set the environment variable
+"OPCODEDIR" to this direcrory before starting csound.
+in bash style,
+	export OPCODEDIR=/usr/lib/csound/plugins
+in tcsh style,
+	setenv OPCODEDIR /usr/lib/csound/plugins
+
+Also, set CSSTRINGS variable such as
+	export CSSTRINGS=/usr/share/csound/xmg
+
+
+Binary Renaming
+===============
+
+sndinfo is renamed to csndinfo in this package due to the name
+confliction with snd package.
+
+Simiarly, extract was renamed to csound-extract.
