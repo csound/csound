@@ -264,40 +264,7 @@ EXSTR           "}}"
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
 {WHITE}         { }
 <<EOF>>         {
-                  /* int n; */
-                  /* printf("Leaving buffer %p\n", YY_CURRENT_BUFFER); */
-                  /* yypop_buffer_state(yyscanner); */
-                  /* if ( !YY_CURRENT_BUFFER ) yyterminate(); */
-                  /* printf("End of input; popping to %p\n", YY_CURRENT_BUFFER); */
-                  /* if (PARM->clearBufferAfterEOF) */
-                  /*   PARM->clearBufferAfterEOF = */
-                  /*     PARM->isInclude = 0; */
-                  /* n = PARM->alt_stack[--PARM->macro_stack_ptr].n; */
-                  /* printf("n=%d\n", n); */
-                  /* if (n!=0) { */
-                  /*   /\* We need to delete n macros starting with y *\/ */
-                  /*   y = PARM->alt_stack[PARM->macro_stack_ptr].s; */
-                  /*   x = PARM->macros; */
-                  /*   if (x==y) { */
-                  /*     while (n>0) { */
-                  /*       mfree(csound, y->name); x=y->next; */
-                  /*       mfree(csound, y); y=x; n--; */
-                  /*     } */
-                  /*     PARM->macros = x; */
-                  /*   } */
-                  /*   else { */
-                  /*     MACRO *nxt = y->next; */
-                  /*     while (x->next != y) x = x->next; */
-                  /*     while (n>0) { */
-                  /*       nxt = y->next; */
-                  /*       mfree(csound, y->name); mfree(csound, y); y=nxt; n--; */
-                  /*     } */
-                  /*     x->next = nxt; */
-                  /*   } */
-                  /*   y->next = x; */
-                  /* } */
-                  /* /\* printf("End of input segment: macro pop %p -> %p\n", */
-                  /*            y, PARM->macros); *\/ */
+                  yyterminate();
                 }
 
 %%
