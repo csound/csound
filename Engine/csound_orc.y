@@ -113,6 +113,7 @@
 %token T_INSTLIST
 
 %start orcfile
+%left '?'
 %left S_AND S_OR
 %nonassoc THEN_TOKEN ITHEN_TOKEN KTHEN_TOKEN ELSE_TOKEN /* NOT SURE IF THIS IS NECESSARY */
 %left '+' '-'
@@ -128,7 +129,6 @@
 %right S_UMINUS
 %right S_ATAT
 %right S_AT
-%left '?'
 %nonassoc S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
 %token S_GOTO
 %token T_HIGHEST
@@ -540,6 +540,7 @@ exprlist  : exprlist ',' expr
                 }
           | exprlist ',' error
           | expr { $$ = $1;     }
+          | bexpr { $$ = $1; }
           | T_IDENT { $$ = make_leaf(csound, LINE, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | /* null */          { $$ = NULL; }
           ;
