@@ -1,4 +1,4 @@
- /*
+/*
     new_orc_parser.c:
 
     Copyright (C) 2006
@@ -37,6 +37,7 @@ extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
 
+extern void print_csound_predata(void *);
 extern void csound_prelex_init(void *);
 extern void csound_preset_extra(void *, void *);
 extern void csound_prelex(CSOUND*, void*);
@@ -66,19 +67,22 @@ int new_orc_parser(CSOUND *csound)
     OPARMS *O = csound->oparms;
     PARSE_PARM  pp;
     PRE_PARM  qq;
-    CORFIL *expanded_orc = corfile_create_w();
     /* Preprocess */
     corfile_puts("\n#exit\n", csound->orchstr);
     memset(&qq, '\0', sizeof(PRE_PARM));
     csound_prelex_init(&qq.yyscanner);
     csound_preset_extra(&qq, qq.yyscanner);
-    qq.cf = expanded_orc;
     qq.line = 1;
+    csound->expanded_orc = corfile_create_w();
+    fprintf(stderr, "Calling preprocess on >>%s<<\n", corfile_body(csound->orchstr));
+    //print_csound_predata(&qq.yyscanner);
     csound_prelex(csound, &qq.yyscanner);
     if (UNLIKELY(qq.ifdefStack != NULL)) {
       csound->Message(csound, Str("Unmatched #ifdef\n"));
       csound->LongJmp(csound, 1);
     }
+    corfile_rewind(csound->expanded_orc);
+    fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
     /* Parse */
     memset(&pp, '\0', sizeof(PARSE_PARM));
     init_symbtab(csound);
@@ -91,7 +95,7 @@ int new_orc_parser(CSOUND *csound)
 
     csound_orcset_extra(&pp, pp.yyscanner);
 
-    csound_orc_scan_string(corfile_body(expanded_orc), pp.yyscanner);
+    csound_orc_scan_string(corfile_body(csound->expanded_orc), pp.yyscanner);
     /*     These relate to file input only       */
     /*     csound_orcset_in(ttt, pp.yyscanner); */
     /*     csound_orcrestart(ttt, pp.yyscanner); */
