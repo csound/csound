@@ -62,6 +62,16 @@ void csp_weights_calculate(CSOUND *, TREE *);
 #endif
 
 
+csound_print_preextra(PRE_PARM  *x)
+{
+    printf("********* Exrea Pre Data %p *********\n", x);
+    printf("macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
+           "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
+           x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, 
+           x->isInclude, x->clearBufferAfterEOF, x->line);
+    printf("******************\n");
+}
+
 int new_orc_parser(CSOUND *csound)
 {
     int retVal;
@@ -78,8 +88,9 @@ int new_orc_parser(CSOUND *csound)
     csound->expanded_orc = corfile_create_w();
     fprintf(stderr, "Calling preprocess on >>%s<<\n", corfile_body(csound->orchstr));
     //print_csound_predata("start", &qq.yyscanner);
-    cs_init_math_constants_macros(csound, qq.yyscanner);
+    cs_init_math_constants_macros(csound, &qq);
     cs_init_omacros(csound, qq.yyscanner, csound->omacros);
+    csound_print_preextra(&qq);
     csound_prelex(csound, &qq.yyscanner);
     if (UNLIKELY(qq.ifdefStack != NULL)) {
       csound->Message(csound, Str("Unmatched #ifdef\n"));
