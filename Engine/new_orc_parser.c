@@ -31,6 +31,7 @@
 
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
 
+extern int file_to_int(CSOUND*,char *);
 extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
@@ -91,7 +92,8 @@ int new_orc_parser(CSOUND *csound)
         char bb[80];
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
-        sprintf(bb, "#source %s\n", csound->orchname);
+        printf(">>>>%s<<<<\n", csound->orchname);
+        sprintf(bb, "#source %d\n", file_to_int(csound, csound->orchname));
         corfile_puts(bb, csound->expanded_orc);
         sprintf(bb, "#line %d\n", csound->orcLineOffset);
         corfile_puts(bb, csound->expanded_orc);
