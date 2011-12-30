@@ -29,8 +29,6 @@
 #include "parse_param.h"
 #include "corfile.h"
 
-//#include "yyguts.h"
-
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
 
 extern void csound_orcrestart(FILE*, void *);
@@ -77,98 +75,102 @@ void csound_print_preextra(PRE_PARM  *x)
 int new_orc_parser(CSOUND *csound)
 {
     int retVal;
-    TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
     OPARMS *O = csound->oparms;
-    PRE_PARM    qq;
-    PARSE_PARM  pp;
-    /* Preprocess */
-    corfile_puts("\n#exit\n", csound->orchstr);
-    corfile_putc('\0', csound->orchstr);
-    corfile_putc('\0', csound->orchstr);
-    memset(&qq, 0, sizeof(PRE_PARM));
-    csound_prelex_init(&qq.yyscanner);
-    csound_preset_extra(&qq, qq.yyscanner);
-    qq.line = 1;
-    csound->expanded_orc = corfile_create_w();
-    fprintf(stderr, "Calling preprocess on >>%s<<\n", corfile_body(csound->orchstr));    
-    csound_print_preextra(&qq);
-    cs_init_math_constants_macros(csound, &qq);
-    cs_init_omacros(csound, &qq, csound->omacros);
-    csound_print_preextra(&qq);
-    csound_prelex(csound, qq.yyscanner);
-    if (UNLIKELY(qq.ifdefStack != NULL)) {
-      csound->Message(csound, Str("Unmatched #ifdef\n"));
-      csound->LongJmp(csound, 1);
-    }
-    csound_prelex_destroy(qq.yyscanner);
-    fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
-    /* Parse */
-    memset(&pp, '\0', sizeof(PARSE_PARM));
-    init_symbtab(csound);
-
-    //    pp.buffer = (char*)csound->Calloc(csound, lMaxBuffer);
-
-    csound_orcdebug = O->odebug;
-    csound_orclex_init(&pp.yyscanner);
-    //    yyg = (struct yyguts_t*)pp.yyscanner;
-
-    csound_orcset_extra(&pp, pp.yyscanner);
-    csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
-                           corfile_tell(csound->expanded_orc), pp.yyscanner);
-    free(csound->expanded_orc);
-    /*     These relate to file input only       */
-    /*     csound_orcset_in(ttt, pp.yyscanner); */
-    /*     csound_orcrestart(ttt, pp.yyscanner); */
-    //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
-    retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
-    if (csound->synterrcnt) retVal = 3;
-    if (LIKELY(retVal == 0)) {
-      csound->Message(csound, "Parsing successful!\n");
-    }
-    else {
-      if (retVal == 1){
-        csound->Message(csound, "Parsing failed due to invalid input!\n");
+    {
+      PRE_PARM    qq;
+      /* Preprocess */
+      corfile_puts("\n#exit\n", csound->orchstr);
+      corfile_putc('\0', csound->orchstr);
+      corfile_putc('\0', csound->orchstr);
+      memset(&qq, 0, sizeof(PRE_PARM));
+      csound_prelex_init(&qq.yyscanner);
+      csound_preset_extra(&qq, qq.yyscanner);
+      qq.line = 1;
+      csound->expanded_orc = corfile_create_w();
+      {
+        char bb[80];
+        sprintf(bb, "#line %d\n", csound->orcLineOffset);
+        corfile_puts(bb, csound->expanded_orc);
       }
-      else if (retVal == 2){
-        csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
+      fprintf(stderr, "Calling preprocess on >>%s<<\n", 
+              corfile_body(csound->orchstr));
+      //    csound_print_preextra(&qq);
+      cs_init_math_constants_macros(csound, &qq);
+      cs_init_omacros(csound, &qq, csound->omacros);
+      //    csound_print_preextra(&qq);
+      csound_prelex(csound, qq.yyscanner);
+      if (UNLIKELY(qq.ifdefStack != NULL)) {
+        csound->Message(csound, Str("Unmatched #ifdef\n"));
+        csound->LongJmp(csound, 1);
       }
-      else if (retVal == 3){
-        csound->Message(csound, "Parsing failed due to %d syntax error%s!\n",
-                        csound->synterrcnt, csound->synterrcnt==1?"":"s");
-      }
-      goto ending;
+      csound_prelex_destroy(qq.yyscanner);
+      fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
+      free(csound->orchstr); csound->orchstr=NULL;
     }
-    if (UNLIKELY(PARSER_DEBUG)) {
-      print_tree(csound, "AST - INITIAL\n", astTree);
-    }
+    {
+      TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
+      PARSE_PARM  pp;
+      /* Parse */
+      memset(&pp, '\0', sizeof(PARSE_PARM));
+      init_symbtab(csound);
 
-    astTree = verify_tree(csound, astTree);
+      csound_orcdebug = O->odebug;
+      csound_orclex_init(&pp.yyscanner);
+
+      csound_orcset_extra(&pp, pp.yyscanner);
+      csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
+                             corfile_tell(csound->expanded_orc), pp.yyscanner);
+      free(csound->expanded_orc);
+      //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
+      retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
+      if (csound->synterrcnt) retVal = 3;
+      if (LIKELY(retVal == 0)) {
+        csound->Message(csound, "Parsing successful!\n");
+      }
+      else {
+        if (retVal == 1){
+          csound->Message(csound, "Parsing failed due to invalid input!\n");
+        }
+        else if (retVal == 2){
+          csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
+        }
+        else if (retVal == 3){
+          csound->Message(csound, "Parsing failed due to %d syntax error%s!\n",
+                          csound->synterrcnt, csound->synterrcnt==1?"":"s");
+        }
+        goto ending;
+      }
+      if (UNLIKELY(PARSER_DEBUG)) {
+        print_tree(csound, "AST - INITIAL\n", astTree);
+      }
+      
+      astTree = verify_tree(csound, astTree);
 #ifdef PARCS
-    if (LIKELY(O->numThreads > 1)) {
-      /* insert the locks around global variables before expr expansion */
-      astTree = csp_locks_insert(csound, astTree);
-      csp_locks_cache_build(csound);
-    }
+      if (LIKELY(O->numThreads > 1)) {
+        /* insert the locks around global variables before expr expansion */
+        astTree = csp_locks_insert(csound, astTree);
+        csp_locks_cache_build(csound);
+      }
 #endif /* PARCS */
 
-    astTree = csound_orc_expand_expressions(csound, astTree);
+      astTree = csound_orc_expand_expressions(csound, astTree);
 
-    if (UNLIKELY(PARSER_DEBUG)) {
-      print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
-    }     
+      if (UNLIKELY(PARSER_DEBUG)) {
+        print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
+      }     
 #ifdef PARCS
-    if (LIKELY(O->numThreads > 1)) {
-      /* calculate the weights for the instruments */
-      csp_weights_calculate(csound, astTree);
-    }
+      if (LIKELY(O->numThreads > 1)) {
+        /* calculate the weights for the instruments */
+        csp_weights_calculate(csound, astTree);
+      }
 #endif /* PARCS */
- 
-    astTree = csound_orc_optimize(csound, astTree);
-    csound_orc_compile(csound, astTree);
+      
+      astTree = csound_orc_optimize(csound, astTree);
+      csound_orc_compile(csound, astTree);
 
- ending:
-    corfile_rm(&csound->orchstr);
-    csound_orclex_destroy(pp.yyscanner);
+    ending:
+      csound_orclex_destroy(pp.yyscanner);
+    }
     return retVal;
 }
 
