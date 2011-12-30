@@ -99,11 +99,9 @@ CONT            \\[ \t]*(;.*)?\n
                 }
 {STCOM}         { do_comment(yyscanner); }
 {STRCONST}      {
-                  char *c;
                   csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
-                  for (c = yytext; *c != '\0'; c++)
-                    corfile_putc(*c, csound->expanded_orc);
+		  corfile_puts(yytext, csound->expanded_orc);
                 }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
