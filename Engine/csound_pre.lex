@@ -404,6 +404,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     PARM->isInclude = PARM->clearBufferAfterEOF = 1;
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);
+    corfile_rm(&cf);
 }
 
 static inline int isNameChar(int c, int pos)
