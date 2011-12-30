@@ -55,6 +55,7 @@ void do_ifdef_skip_code(CSOUND *, yyscan_t);
 %option stdout
 
 WHITE           ^[ \t]*
+STRCONST        \"(\\.|[^\"])*\"
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 MACRONAME       "$"[a-zA-Z0-9_]+
@@ -97,6 +98,13 @@ CONT            \\[ \t]*(;.*)?\n
                   //corfile_putline(csound_preget_lineno(yyscanner), csound->expanded_orc);
                 }
 {STCOM}         { do_comment(yyscanner); }
+{STRCONST}      {
+                  char *c;
+                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                       yyscanner);
+                  for (c = yytext; *c != '\0'; c++)
+                    corfile_putc(*c, csound->expanded_orc);
+                }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
                    while (mm != NULL) {  /* Find the definition */
@@ -631,7 +639,7 @@ void cs_init_math_constants_macros(CSOUND *csound, void* yyscanner)
      add_math_const_macro(csound, yyscanner, "INF",   "2147483647.0"); /* ~7 years */
 }
 
-#if 0
+#if 1
 void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 {
     while (nn) {
@@ -644,7 +652,7 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
         p = s + strlen(s);
       //      if (csound->oparms->msglevel & 7)
       // csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
-      fprintf(strderr, "Macro definition for %*s\n", p - s, s);
+      fprintf(stderr, "Macro definition for %*s\n", p - s, s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {
         csound->Die(csound, Str("Invalid macro name for --omacro"));
