@@ -420,9 +420,13 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (PARM->depth++>1024) {
       csound->Die(csound, Str("Includes nested too deeply"));
     }
-    corfile_puts("#source ", csound->expanded_orc);
-    corfile_puts(buffer, csound->expanded_orc);
-    corfile_putc('\n', csound->expanded_orc);
+    {
+      int n = file_to_int(buffer);
+      char bb[16];
+      sprintf(bb, "#source %d\n", n);
+      corfile_puts(bb, csound->expanded_orc);
+      PARM->locn = n;
+    }
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
@@ -712,6 +716,14 @@ int csound_prewrap(yyscan_t yyscanner)
 void csound_pre_line(CORFIL* cf, void *yyscanner)
 {
     int n = csound_preget_lineno(yyscanner);
+    int locn = PARM->locn;
+    int lastloc = PARM->llocn;
+    if (PARM->locn != PARM->llocn) {
+      char bb[80];
+      sprintf(bb, "#source %d\n", PARM->locn);
+      corfile_puts(bb, cf);
+    }
+    PARM->llocn = PARM->locn;
     if (n!=PARM->line+1) {
       char bb[80];
       sprintf(bb, "#line %d\n", n);
