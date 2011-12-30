@@ -49,6 +49,7 @@ void do_ifdef_skip_code(CSOUND *, yyscan_t);
                       yyg->yy_flex_debug_r=1;}
 %}
 %option reentrant
+%option noyywrap
 %option prefix="csound_pre"
 %option outfile="Engine/csound_prelex.c"
 %option stdout
@@ -676,7 +677,7 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 #endif
 
 
-int csound_prewrap(yyscan_t yyscanner) { return 0;}
+/* int csound_prewrap(yyscan_t yyscanner) { return 0;} */
 #ifdef MAIN_NEEDED
 int main(void)
 {
