@@ -62,7 +62,7 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 /*       result = YY_NULL; \ */
 /*     } */
 
-#define YY_USER_INIT csound_orcset_lineno(csound->orcLineOffset, yyscanner);
+#define YY_USER_INIT 
 
 struct yyguts_t;
 ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
@@ -87,8 +87,8 @@ OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
 XSTR            "{{"
 EXSTR           "}}"
-LINE            "#line"
-FILE            "#source"
+LINE            ^"#line"
+FILE            ^"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
 %x line
 %x src
