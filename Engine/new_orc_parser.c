@@ -84,7 +84,7 @@ int new_orc_parser(CSOUND *csound)
     /* Preprocess */
     corfile_puts("\n#exit\n", csound->orchstr);
     memset(&qq, 0, sizeof(PRE_PARM));
-    csound_prelex_init( qq.yyscanner);
+    csound_prelex_init(&qq.yyscanner);
     csound_preset_extra(&qq, qq.yyscanner);
     qq.line = 1;
     csound->expanded_orc = corfile_create_w();
@@ -96,7 +96,7 @@ int new_orc_parser(CSOUND *csound)
       csound->Message(csound, Str("Unmatched #ifdef\n"));
       csound->LongJmp(csound, 1);
     }
-    csound_prelex_destroy(pp.yyscanner);
+    csound_prelex_destroy(qq.yyscanner);
     fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
     /* Parse */
     memset(&pp, '\0', sizeof(PARSE_PARM));
