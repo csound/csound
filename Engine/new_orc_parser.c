@@ -74,6 +74,8 @@ int new_orc_parser(CSOUND *csound)
     qq.line = 1;
     csound->expanded_orc = corfile_create_w();
     fprintf(stderr, "Calling preprocess on >>%s<<\n", corfile_body(csound->orchstr));
+    cs_init_math_constants_macros(csound, qq.yyscanner);
+    cs_init_omacros(csound, qq.yyscanner, csound->omacros);
     csound_prelex(csound, qq.yyscanner);
     if (UNLIKELY(qq.ifdefStack != NULL)) {
       csound->Message(csound, Str("Unmatched #ifdef\n"));
