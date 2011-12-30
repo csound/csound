@@ -41,7 +41,7 @@ typedef struct pre_parm_s {
 
 typedef struct parse_parm_s {
     void            *yyscanner;
-    char            loc[56];
+    int             locn;
 //    char            *buffer;
 //  int             pos;
 //  int             length;

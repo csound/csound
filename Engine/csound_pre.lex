@@ -39,7 +39,7 @@ void do_macro(CSOUND *, char *, yyscan_t);
 void do_umacro(CSOUND *, char *, yyscan_t);
 void do_ifdef(CSOUND *, char *, yyscan_t);
 void do_ifdef_skip_code(CSOUND *, yyscan_t);
-void print_csound_predata(char *,yyscan_t);
+static void print_csound_predata(char *,yyscan_t);
 void csound_pre_line(CORFIL*, yyscan_t);
 
 #include "parse_param.h"
@@ -103,7 +103,7 @@ CONT            \\[ \t]*(;.*)?\n
 {STCOM}         { do_comment(yyscanner); }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
-                   print_csound_predata("Macro call", yyscanner);
+                   //print_csound_predata("Macro call", yyscanner);
                    while (mm != NULL) {  /* Find the definition */
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
@@ -127,9 +127,7 @@ CONT            \\[ \t]*(;.*)?\n
                    /*           PARM->macros, mm->body); */
                    /* fprintf(stderr,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   if (PARM->depth++>1024) {
-                     csound->Die(csound, Str("Includes nested too deeply"));
-                   }
+                   PARM->depth++;
                    yy_scan_string(mm->body, yyscanner);
                    /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
                   }
@@ -154,9 +152,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   if (PARM->depth++>1024) {
-                     csound->Die(csound, Str("Includes nested too deeply"));
-                   }
+                   PARM->depth++;
                    yy_scan_string(mm->body, yyscanner);
                    /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
                  }
@@ -219,9 +215,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    /* fprintf(stderr,"Push %p macro stack\n",PARM->macros); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   if (PARM->depth++>1024) {
-                     csound->Die(csound, Str("Includes nested too deeply"));
-                   }
+                   PARM->depth;
                    yy_scan_string(mm->body, yyscanner);
                  }
 {MACRONAMEDA}    {
@@ -336,14 +330,14 @@ CONT            \\[ \t]*(;.*)?\n
                   /* fprintf(stderr,"Define macro with args %s\n", yytext); */
                   /* print_csound_predata("Before do_macro_arg", yyscanner); */
                   do_macro_arg(csound, yytext, yyscanner);
-                  print_csound_predata("After do_macro_arg", yyscanner);
+                  //print_csound_predata("After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
                 }
 <macro>{IDENTN} {
                   /* fprintf(stderr,"Define macro %s\n", yytext); */
                   /* print_csound_predata("Before do_macro", yyscanner); */
                   do_macro(csound, yytext, yyscanner);
-                  print_csound_predata("After do_macro", yyscanner);
+                  //print_csound_predata("After do_macro", yyscanner);
                   BEGIN(INITIAL);
                 }
 {UNDEF}        BEGIN(umacro);
@@ -426,6 +420,9 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (PARM->depth++>1024) {
       csound->Die(csound, Str("Includes nested too deeply"));
     }
+    corfile_puts("#source ", csound->expanded_orc);
+    corfile_puts(buffer, csound->expanded_orc);
+    corfile_putc('\n', csound->expanded_orc);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
@@ -759,7 +756,7 @@ int main(void)
 }
 #endif
 
-void print_csound_predata(char *mesg, void *yyscanner)
+static void print_csound_predata(char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
     printf("********* %s extra data ************\n", mesg);
