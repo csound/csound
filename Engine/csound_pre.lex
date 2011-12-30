@@ -605,7 +605,7 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     while (c != '\n' && c != EOF) c = input(yyscanner);
 }
 
-static void add_math_const_macro(CSOUND *csound, void* yyscanner,
+static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
                                  char * name, char *body)
 {
     MACRO *mm;
@@ -613,8 +613,8 @@ static void add_math_const_macro(CSOUND *csound, void* yyscanner,
     mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
     mm->name = (char*) mcalloc(csound, strlen(name) + 3);
     sprintf(mm->name, "M_%s", name);
-    mm->next = PARM->macros;
-    PARM->macros = mm;
+    mm->next = qq->macros;
+    qq->macros = mm;
     mm->margs = MARGS;    /* Initial size */
     mm->acnt = 0;
     mm->body = (char*) mcalloc(csound, strlen(body) + 1);
@@ -624,26 +624,26 @@ static void add_math_const_macro(CSOUND *csound, void* yyscanner,
 /**
  * Add math constants from math.h as orc PARM->macros
  */
-void cs_init_math_constants_macros(CSOUND *csound, void* yyscanner)
+void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM* qq)
 {
-     PARM->macros = NULL;
-     add_math_const_macro(csound, yyscanner, "E",     "2.71828182845904523536");
-     add_math_const_macro(csound, yyscanner, "LOG2E", "1.44269504088896340736");
-     add_math_const_macro(csound, yyscanner, "LOG10E","0.43429448190325182765");
-     add_math_const_macro(csound, yyscanner, "LN2",   "0.69314718055994530942");
-     add_math_const_macro(csound, yyscanner, "LN10",  "2.30258509299404568402");
-     add_math_const_macro(csound, yyscanner, "PI",    "3.14159265358979323846");
-     add_math_const_macro(csound, yyscanner, "PI_2",  "1.57079632679489661923");
-     add_math_const_macro(csound, yyscanner, "PI_4",  "0.78539816339744830962");
-     add_math_const_macro(csound, yyscanner, "1_PI",  "0.31830988618379067154");
-     add_math_const_macro(csound, yyscanner, "2_PI",  "0.63661977236758134308");
-     add_math_const_macro(csound, yyscanner,"2_SQRTPI", "1.12837916709551257390");
-     add_math_const_macro(csound, yyscanner, "SQRT2", "1.41421356237309504880");
-     add_math_const_macro(csound, yyscanner,"SQRT1_2","0.70710678118654752440");
-     add_math_const_macro(csound, yyscanner, "INF",   "2147483647.0"); /* ~7 years */
+     qq->macros = NULL;
+     add_math_const_macro(csound, qq, "E",     "2.71828182845904523536");
+     add_math_const_macro(csound, qq, "LOG2E", "1.44269504088896340736");
+     add_math_const_macro(csound, qq, "LOG10E","0.43429448190325182765");
+     add_math_const_macro(csound, qq, "LN2",   "0.69314718055994530942");
+     add_math_const_macro(csound, qq, "LN10",  "2.30258509299404568402");
+     add_math_const_macro(csound, qq, "PI",    "3.14159265358979323846");
+     add_math_const_macro(csound, qq, "PI_2",  "1.57079632679489661923");
+     add_math_const_macro(csound, qq, "PI_4",  "0.78539816339744830962");
+     add_math_const_macro(csound, qq, "1_PI",  "0.31830988618379067154");
+     add_math_const_macro(csound, qq, "2_PI",  "0.63661977236758134308");
+     add_math_const_macro(csound, qq,"2_SQRTPI", "1.12837916709551257390");
+     add_math_const_macro(csound, qq, "SQRT2", "1.41421356237309504880");
+     add_math_const_macro(csound, qq,"SQRT1_2","0.70710678118654752440");
+     add_math_const_macro(csound, qq, "INF",   "2147483647.0"); /* ~7 years */
 }
 
-void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
+void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
 {
     while (nn) {
       char  *s = nn->mac;
@@ -663,15 +663,15 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
       strncpy(mname, s, p - s);
       mname[p - s] = '\0';
       /* check if macro is already defined */
-      for (mm = PARM->macros; mm != NULL; mm = mm->next) {
+      for (mm = qq->macros; mm != NULL; mm = mm->next) {
         if (strcmp(mm->name, mname) == 0)
           break;
       }
       if (mm == NULL) {
         mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
         mm->name = mname;
-        mm->next = PARM->macros;
-        PARM->macros = mm;
+        mm->next = qq->macros;
+        qq->macros = mm;
       }
       else
         mfree(csound, mname);
@@ -727,15 +727,13 @@ int main(void)
 void print_csound_predata(char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-    printf("********* %s extra data %p ************\n", mesg, PARM);
-    printf("macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
-           "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
-           PARM->macros, PARM->macro_stack_ptr, PARM->ifdefStack, PARM->isIfndef, PARM->isInclude, PARM->clearBufferAfterEOF, PARM->line);
+    printf("********* %s extra data ************\n", mesg);
     printf("yyscanner = %p\n", yyscanner);
-    printf("yyin_r = %p, yyout_r = %p, yy_buffer_stack_top = %d\n", 
-           yyg->yyin_r,yyg->yyout_r, yyg->yy_buffer_stack_top);
-    printf("yy_buffer_stack_max = %d1, yy_buffer_stack = %p, yy_hold_char = %d '%c\n", 
-           yyg->yy_buffer_stack_max, yyg->yy_buffer_stack, yyg->yy_hold_char,yyg->yy_hold_char);
+    printf("yyextra_r = %p, yyin_r = %p, yyout_r = %p, yy_buffer_stack_top = %d\n", 
+           yyg->yyextra_r, yyg->yyin_r,yyg->yyout_r, yyg->yy_buffer_stack_top);
+    printf("yy_buffer_stack_max = %d1, yy_buffer_stack = %p, yy_hold_char = %d '%c'\n", 
+           yyg->yy_buffer_stack_max, yyg->yy_buffer_stack, yyg->yy_hold_char,
+           yyg->yy_hold_char);
     printf("yy_n_chars = %d, yyleng_r = %d, yy_c_buf_p = %p %c\n",
            yyg->yy_n_chars, yyg->yyleng_r, yyg->yy_c_buf_p, *yyg->yy_c_buf_p);
     printf("yy_init = %d, yy_start = %d, yy_did_buffer_switch_on_eof = %d\n",
@@ -747,6 +745,7 @@ void print_csound_predata(char *mesg, void *yyscanner)
            yyg->yy_last_accepting_state, yyg->yy_last_accepting_cpos, *yyg->yy_last_accepting_cpos);
     printf("yylineno_r = %d, yy_flex_debug_r = %d, yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d\n",
            yyg->yylineno_r, yyg->yy_flex_debug_r, yyg->yytext_r, yyg->yytext_r, yyg->yy_more_flag, yyg->yy_more_len);
+    printf("*********\n");
 }
 
 
