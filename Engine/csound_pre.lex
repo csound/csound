@@ -127,7 +127,9 @@ CONT            \\[ \t]*(;.*)?\n
                    /*           PARM->macros, mm->body); */
                    /* fprintf(stderr,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   PARM->depth++;
+                   if (PARM->depth++>1024) {
+                     csound->Die(csound, Str("Includes nested too deeply"));
+                   }
                    yy_scan_string(mm->body, yyscanner);
                    /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
                   }
@@ -152,7 +154,9 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   PARM->depth++;
+                   if (PARM->depth++>1024) {
+                     csound->Die(csound, Str("Includes nested too deeply"));
+                   }
                    yy_scan_string(mm->body, yyscanner);
                    /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
                  }
@@ -215,7 +219,9 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    /* fprintf(stderr,"Push %p macro stack\n",PARM->macros); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   PARM->depth++;
+                   if (PARM->depth++>1024) {
+                     csound->Die(csound, Str("Includes nested too deeply"));
+                   }
                    yy_scan_string(mm->body, yyscanner);
                  }
 {MACRONAMEDA}    {
@@ -270,7 +276,9 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   PARM->depth++;
+                   if (PARM->depth++>1024) {
+                     csound->Die(csound, Str("Includes nested too deeply"));
+                   }
                    yy_scan_string(mm->body, yyscanner);
                  }
 {INCLUDE}       BEGIN(incl);
