@@ -64,7 +64,7 @@ void csp_weights_calculate(CSOUND *, TREE *);
 #endif
 
 
-csound_print_preextra(PRE_PARM  *x)
+void csound_print_preextra(PRE_PARM  *x)
 {
     printf("********* Exrea Pre Data %p *********\n", x);
     printf("macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
