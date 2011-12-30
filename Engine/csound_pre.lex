@@ -127,6 +127,7 @@ CONT            \\[ \t]*(;.*)?\n
                    /*           PARM->macros, mm->body); */
                    /* fprintf(stderr,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                   PARM->depth++;
                    yy_scan_string(mm->body, yyscanner);
                    /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
                   }
@@ -151,6 +152,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                   PARM->depth++;
                    yy_scan_string(mm->body, yyscanner);
                    /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
                  }
@@ -213,6 +215,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    /* fprintf(stderr,"Push %p macro stack\n",PARM->macros); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                   PARM->depth++;
                    yy_scan_string(mm->body, yyscanner);
                  }
 {MACRONAMEDA}    {
@@ -267,6 +270,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                   PARM->depth++;
                    yy_scan_string(mm->body, yyscanner);
                  }
 {INCLUDE}       BEGIN(incl);
@@ -283,6 +287,7 @@ CONT            \\[ \t]*(;.*)?\n
                   int n;
                   /* fprintf(stderr,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER); */
                   yypop_buffer_state(yyscanner);
+                  PARM->depth--;
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* fprintf(stderr,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
@@ -410,6 +415,9 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     buffer[p] = '\0';
     while ((c=input(yyscanner))!='\n');
+    if (PARM->depth++>1024) {
+      csound->Die(csound, Str("Includes nested too deeply"));
+    }
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
