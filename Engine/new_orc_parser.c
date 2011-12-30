@@ -153,6 +153,7 @@ int new_orc_parser(CSOUND *csound)
  ending:
     csound->Free(csound, pp.buffer);
     corfile_rm(&csound->orchstr);
+    corfile_rm(&csound->expanded_orc);
     csound_prelex_destroy(qq.yyscanner);
     csound_orclex_destroy(pp.yyscanner);
     return retVal;
