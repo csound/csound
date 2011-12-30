@@ -89,6 +89,10 @@ int new_orc_parser(CSOUND *csound)
       csound->expanded_orc = corfile_create_w();
       {
         char bb[80];
+        if (csound->orchname==NULL ||
+            csound->orchname[0]=='\0') csound->orchname = csound->csdname;
+        sprintf(bb, "#source %s\n", csound->orchname);
+        corfile_puts(bb, csound->expanded_orc);
         sprintf(bb, "#line %d\n", csound->orcLineOffset);
         corfile_puts(bb, csound->expanded_orc);
       }

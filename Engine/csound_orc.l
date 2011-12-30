@@ -273,8 +273,8 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 {FILE}          { BEGIN(src); }
 
 <src>[ \t]*     /* eat the whitespace */
-<src>{FNAME}    { strncpy(PARM->loc, yytext, 48); }
-<src>"\n"       {BEGIN(INITIAL);}
+<src>{FNAME}    { PARM->locn = file_to_int(csound, yytext); }
+<src>"\n"       { BEGIN(INITIAL); }
 
 
 <<EOF>>         {
@@ -452,4 +452,10 @@ char *csound_orcget_current_pointer(void *yyscanner)
 {
     struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return yyg->yy_c_buf_p;
+}
+
+int csound_orcget_locn(void *yyscanner)
+{
+    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return PARM->locn;
 }
