@@ -141,7 +141,7 @@ CONT            \\[ \t]*(;.*)?\n
                    /* Need to read from macro definition */
                    /* ??fiddle with buffers I guess */
                    if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
-                     csound->Message(csound, Str("Includes nested too deeply"));
+                     csound->Message(csound, Str("Includes nested too deeply\n"));
                      exit(1);
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
@@ -197,6 +197,10 @@ CONT            \\[ \t]*(;.*)?\n
                      PARM->macros = nn;
                    }
                    fprintf(stderr,"New body: ...#%s#\n", mm->body);
+                    if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
+		      csound->Message(csound, Str("macro_stack_ptr beyond end: %d \n"),PARM->macro_stack_ptr);
+                     exit(1);
+                   }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
