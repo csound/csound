@@ -350,7 +350,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;
       if (strstr(p, "</CsInstruments>") == p) {
-        corfile_flush(incore);
+        //corfile_flush(incore);
         csound->orchstr = incore;
         return TRUE;
       }
