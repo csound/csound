@@ -35,8 +35,10 @@ typedef struct pre_parm_s {
     unsigned char   isIfndef;
     unsigned char   isInclude;
     unsigned char   clearBufferAfterEOF;
-    int             line;
-    int             depth;
+    int16             line;
+    int16             locn;
+    int16             llocn;
+    int16             depth;
 } PRE_PARM;
 
 typedef struct parse_parm_s {

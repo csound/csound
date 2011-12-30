@@ -273,7 +273,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 {FILE}          { BEGIN(src); }
 
 <src>[ \t]*     /* eat the whitespace */
-<src>{FNAME}    { PARM->locn = file_to_int(csound, yytext); }
+<src>{FNAME}    { PARM->locn = atoi(yytext); }
 <src>"\n"       { BEGIN(INITIAL); }
 
 
