@@ -40,7 +40,10 @@ extern int csound_orcdebug;
 extern void print_csound_predata(void *);
 extern void csound_prelex_init(void *);
 extern void csound_preset_extra(void *, void *);
-extern void csound_prelex(void *, void*);
+
+extern void csound_prelex(CSOUND*, void*);
+extern void csound_prelex_destroy(void *);
+
 extern void csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
 extern void csound_orclex_init(void *);
@@ -61,22 +64,31 @@ void csp_weights_calculate(CSOUND *, TREE *);
 #endif
 
 
+csound_print_preextra(PRE_PARM  *x)
+{
+    printf("********* Exrea Pre Data %p *********\n", x);
+    printf("macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
+           "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
+           x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, 
+           x->isInclude, x->clearBufferAfterEOF, x->line);
+    printf("******************\n");
+}
+
 int new_orc_parser(CSOUND *csound)
 {
     int retVal;
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
     OPARMS *O = csound->oparms;
+    PRE_PARM    qq;
     PARSE_PARM  pp;
-    PRE_PARM  qq;
     /* Preprocess */
     corfile_puts("\n#exit\n", csound->orchstr);
     memset(&qq, 0, sizeof(PRE_PARM));
-    csound_prelex_init( &(qq.yyscanner));
+    csound_prelex_init( qq.yyscanner);
     csound_preset_extra(&qq, qq.yyscanner);
     qq.line = 1;
     csound->expanded_orc = corfile_create_w();
-    fprintf(stderr, "Calling preprocess on >>%s<<\n", corfile_body(csound->orchstr));
-    
+    fprintf(stderr, "Calling preprocess on >>%s<<\n", corfile_body(csound->orchstr));    
     cs_init_math_constants_macros(csound, qq.yyscanner);
     cs_init_omacros(csound, qq.yyscanner, csound->omacros);
     csound_prelex(csound, qq.yyscanner);
@@ -84,6 +96,7 @@ int new_orc_parser(CSOUND *csound)
       csound->Message(csound, Str("Unmatched #ifdef\n"));
       csound->LongJmp(csound, 1);
     }
+    csound_prelex_destroy(pp.yyscanner);
     fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
     /* Parse */
     memset(&pp, '\0', sizeof(PARSE_PARM));
