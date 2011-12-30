@@ -66,7 +66,7 @@ void csp_weights_calculate(CSOUND *, TREE *);
 
 void csound_print_preextra(PRE_PARM  *x)
 {
-    printf("********* Exrea Pre Data %p *********\n", x);
+    printf("********* Extra Pre Data %p *********\n", x);
     printf("macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
            "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
            x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, 
@@ -83,14 +83,18 @@ int new_orc_parser(CSOUND *csound)
     PARSE_PARM  pp;
     /* Preprocess */
     corfile_puts("\n#exit\n", csound->orchstr);
+    corfile_putc('\0', csound->orchstr);
+    corfile_putc('\0', csound->orchstr);
     memset(&qq, 0, sizeof(PRE_PARM));
     csound_prelex_init(&qq.yyscanner);
     csound_preset_extra(&qq, qq.yyscanner);
     qq.line = 1;
     csound->expanded_orc = corfile_create_w();
     fprintf(stderr, "Calling preprocess on >>%s<<\n", corfile_body(csound->orchstr));    
-    cs_init_math_constants_macros(csound, qq.yyscanner);
-    cs_init_omacros(csound, qq.yyscanner, csound->omacros);
+    csound_print_preextra(&qq);
+    cs_init_math_constants_macros(csound, &qq);
+    cs_init_omacros(csound, &qq, csound->omacros);
+    csound_print_preextra(&qq);
     csound_prelex(csound, qq.yyscanner);
     if (UNLIKELY(qq.ifdefStack != NULL)) {
       csound->Message(csound, Str("Unmatched #ifdef\n"));
