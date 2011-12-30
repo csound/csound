@@ -706,7 +706,7 @@ int main(void)
     //csound_pre_scan_string(inp, qq.yyscanner);
     //csound_preset_in(NULL, qq.yyscanner);
     qq.line = 1;
-    csound_prelex(NULL, &qq.yyscanner);
+    csound_prelex(NULL, qq.yyscanner);
     //fprintf(stderr,corfile_body(expanded_pre));
     //csound_prelex_destroy(&qq.yyscanner);
     return 0;
