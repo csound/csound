@@ -127,7 +127,7 @@ CONT            \\[ \t]*(;.*)?\n
                    /*           PARM->macros, mm->body); */
                    /* fprintf(stderr,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   PARM->depth++;
+                   PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
                    yy_scan_string(mm->body, yyscanner);
                    /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
                   }
@@ -152,7 +152,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   PARM->depth++;
+                   PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
                    yy_scan_string(mm->body, yyscanner);
                    /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
                  }
@@ -215,7 +215,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    /* fprintf(stderr,"Push %p macro stack\n",PARM->macros); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   PARM->depth;
+                   PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
                    yy_scan_string(mm->body, yyscanner);
                  }
 {MACRONAMEDA}    {
@@ -273,6 +273,7 @@ CONT            \\[ \t]*(;.*)?\n
                    if (PARM->depth++>1024) {
                      csound->Die(csound, Str("Includes nested too deeply"));
                    }
+                   PARM->lstack[PARM->depth] = file_to_int(csound, yytext);
                    yy_scan_string(mm->body, yyscanner);
                  }
 {INCLUDE}       BEGIN(incl);
@@ -290,6 +291,7 @@ CONT            \\[ \t]*(;.*)?\n
                   /* fprintf(stderr,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER); */
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
+                  PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* fprintf(stderr,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
@@ -417,21 +419,23 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     buffer[p] = '\0';
     while ((c=input(yyscanner))!='\n');
-    if (PARM->depth++>1024) {
+    if (PARM->depth++>=1024) {
       csound->Die(csound, Str("Includes nested too deeply"));
     }
     {
-      int n = file_to_int(buffer);
+      uint8_t n = file_to_int(csound, buffer);
       char bb[16];
-      sprintf(bb, "#source %d\n", n);
+      PARM->lstack[PARM->depth] = n;
+      PARM->llocn = PARM->locn;
+      sprintf(bb, "#source %d\n", PARM->locn = make_location(PARM));
       corfile_puts(bb, csound->expanded_orc);
-      PARM->locn = n;
     }
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     PARM->isInclude = PARM->clearBufferAfterEOF = 1;
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+    csound_preset_lineno(1, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);
 }
 
@@ -717,13 +721,13 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
 {
     int n = csound_preget_lineno(yyscanner);
     int locn = PARM->locn;
-    int lastloc = PARM->llocn;
-    if (PARM->locn != PARM->llocn) {
+    int llocn = PARM->llocn;
+    if (locn != llocn) {
       char bb[80];
-      sprintf(bb, "#source %d\n", PARM->locn);
+      sprintf(bb, "#source %d\n", locn);
       corfile_puts(bb, cf);
     }
-    PARM->llocn = PARM->locn;
+    PARM->llocn = locn;
     if (n!=PARM->line+1) {
       char bb[80];
       sprintf(bb, "#line %d\n", n);
