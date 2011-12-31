@@ -3,7 +3,8 @@
 struct MACRO;
 
 typedef struct MACRON {
-  int      n;
+  int             n;
+  unsigned int    line; 
   struct MACRO    *s;
 } MACRON;
 
@@ -45,14 +46,7 @@ typedef struct pre_parm_s {
 typedef struct parse_parm_s {
     void            *yyscanner;
     int             locn;
-//    char            *buffer;
-//  int             pos;
-//  int             length;
-//  double          result;
     MACRO           *macros;
-//  unsigned int    macro_stack_ptr;
-//    int             nBuffer;
-//    int             lBuffer;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
     unsigned char   clearBufferAfterEOF;
