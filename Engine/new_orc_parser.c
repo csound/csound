@@ -81,8 +81,11 @@ int new_orc_parser(CSOUND *csound)
       PRE_PARM    qq;
       /* Preprocess */
       corfile_puts("\n#exit\n", csound->orchstr);
+      //if (csound->orchname==NULL ||
+      //csound->orchname[0]=='\0') {
       corfile_putc('\0', csound->orchstr);
       corfile_putc('\0', csound->orchstr);
+      //}
       memset(&qq, 0, sizeof(PRE_PARM));
       csound_prelex_init(&qq.yyscanner);
       csound_preset_extra(&qq, qq.yyscanner);
@@ -100,6 +103,7 @@ int new_orc_parser(CSOUND *csound)
       }
       fprintf(stderr, "Calling preprocess on >>%s<<\n", 
               corfile_body(csound->orchstr));
+      //printf("FILE: %s \n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
       cs_init_math_constants_macros(csound, &qq);
       cs_init_omacros(csound, &qq, csound->omacros);
