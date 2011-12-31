@@ -75,7 +75,7 @@ void csound_print_preextra(PRE_PARM  *x)
 
 int new_orc_parser(CSOUND *csound)
 {
-    int retVal;
+  int retVal, i;
     OPARMS *O = csound->oparms;
     {
       PRE_PARM    qq;
@@ -174,6 +174,8 @@ int new_orc_parser(CSOUND *csound)
       csound_orc_compile(csound, astTree);
 
     ending:
+      for (i=0; csound->filedir[i] != NULL; i++)
+        free(csound->filedir[i]);
       corfile_rm(&csound->expanded_orc);
       csound_orclex_destroy(pp.yyscanner);
     }
