@@ -56,6 +56,7 @@ void csound_pre_line(CORFIL*, yyscan_t);
 %option stdout
 
 WHITE           ^[ \t]*
+STRCONST        \"(\\.|[^\"])*\"
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 MACRONAME       "$"[a-zA-Z0-9_]+
@@ -101,6 +102,11 @@ CONT            \\[ \t]*(;.*)?\n
                   //corfile_putline(csound_preget_lineno(yyscanner), csound->expanded_orc);
                 }
 {STCOM}         { do_comment(yyscanner); }
+{STRCONST}      {
+                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                       yyscanner);
+		  corfile_puts(yytext, csound->expanded_orc);
+                }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
                    //print_csound_predata("Macro call", yyscanner);
@@ -437,6 +443,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_preset_lineno(1, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);
+    corfile_rm(&cf);
 }
 
 static inline int isNameChar(int c, int pos)
