@@ -1370,7 +1370,7 @@ typedef struct {
     MYFLT         *powerof2;    /* pow2 table */
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
-    char          *filedir[101];/* for location directory */
+    char          *filedir[64]; /* for location directory */
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
