@@ -31,7 +31,6 @@
 
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
 
-extern int file_to_int(CSOUND*,char *);
 extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
@@ -73,6 +72,17 @@ void csound_print_preextra(PRE_PARM  *x)
     printf("******************\n");
 }
 
+uint32_t make_location(PRE_PARM *qq)
+{
+    int d = qq->depth;
+    uint32_t loc = 0;
+    int n = (d>6?d-5:0);
+    for (; n<=d; n++) {
+      loc = (loc<<6)+(qq->lstack[n]);
+    }
+    return loc;
+}
+
 int new_orc_parser(CSOUND *csound)
 {
     int retVal;
@@ -93,10 +103,12 @@ int new_orc_parser(CSOUND *csound)
       csound->expanded_orc = corfile_create_w();
       {
         char bb[80];
+        file_to_int(csound, "**unknown**");
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
-        printf(">>>>%s<<<<\n", csound->orchname);
-        sprintf(bb, "#source %d\n", file_to_int(csound, csound->orchname));
+        /* We know this is the start so stack is empty so far */
+        sprintf(bb, "#source %d\n",
+                qq.lstack[0] = file_to_int(csound, csound->orchname));
         corfile_puts(bb, csound->expanded_orc);
         sprintf(bb, "#line %d\n", csound->orcLineOffset);
         corfile_puts(bb, csound->expanded_orc);
