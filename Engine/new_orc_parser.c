@@ -111,7 +111,7 @@ int new_orc_parser(CSOUND *csound)
       }
       csound_prelex_destroy(qq.yyscanner);
       fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
-      free(csound->orchstr); csound->orchstr=NULL;
+      corfile_rm(&csound->orchstr); csound->orchstr=NULL;
     }
     {
       TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
@@ -126,7 +126,6 @@ int new_orc_parser(CSOUND *csound)
       csound_orcset_extra(&pp, pp.yyscanner);
       csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
                              corfile_tell(csound->expanded_orc), pp.yyscanner);
-      free(csound->expanded_orc);
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
       retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
       if (csound->synterrcnt) retVal = 3;
@@ -175,6 +174,7 @@ int new_orc_parser(CSOUND *csound)
       csound_orc_compile(csound, astTree);
 
     ending:
+      corfile_rm(&csound->expanded_orc);
       csound_orclex_destroy(pp.yyscanner);
     }
     return retVal;
