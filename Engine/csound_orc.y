@@ -581,6 +581,15 @@ iexp      : iexp '+' iterm   { $$ = make_node(csound, LINE, '+', $1, $3); }
           | iexp '+' error
           | iexp '-' iterm  { $$ = make_node(csound ,LINE, '-', $1, $3); }
           | iexp '-' error
+          | '-' iexp %prec S_UMINUS
+            {
+                $$ = make_node(csound,LINE, S_UMINUS, NULL, $2);
+            }
+          | '+' iexp %prec S_UMINUS
+            {
+                $$ = $2;
+            }
+          | '-' error
           | iterm               { $$ = $1; }
           ;
 
@@ -601,14 +610,6 @@ ifac      : ident               { $$ = $1; }
                              make_leaf(csound, LINE,
                                        T_IDENT_T, (ORCTOKEN*)$1), $3);
           }
-          | '-' ifac %prec S_UMINUS
-            {
-                $$ = make_node(csound,LINE, S_UMINUS, NULL, $2);
-            }
-          | '+' ifac %prec S_UMINUS
-            {
-                $$ = $2;
-            }
           | expr '^' expr        { $$ = make_node(csound, LINE, '^', $1, $3); }
           | expr '|' expr        { $$ = make_node(csound, LINE, '|', $1, $3); }
           | expr '&' expr        { $$ = make_node(csound, LINE, '&', $1, $3); }
@@ -619,7 +620,6 @@ ifac      : ident               { $$ = $1; }
                  { $$ = make_node(csound, LINE, S_BITSHIFT_RIGHT, $1, $3); }
           | '~' expr %prec S_UMINUS
             { $$ = make_node(csound, LINE, '~', NULL, $2);}
-          | '-' error
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error
           | '(' error
