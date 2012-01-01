@@ -116,14 +116,13 @@
 %left '?'
 %left S_AND S_OR
 %nonassoc THEN_TOKEN ITHEN_TOKEN KTHEN_TOKEN ELSE_TOKEN /* NOT SURE IF THIS IS NECESSARY */
+%left '|'
+%left '&'
+%left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
 %left '^'
-%left '|'
-%left '&'
 %left '#'
-%left S_BITSHIFT_LEFT
-%left S_BITSHIFT_RIGHT
 %right '~'
 %right S_UNOT
 %right S_UMINUS
@@ -610,15 +609,15 @@ ifac      : ident               { $$ = $1; }
             {
                 $$ = $2;
             }
-          | ifac '^' ifac        { $$ = make_node(csound, LINE, '^', $1, $3); }
-          | ifac '|' ifac        { $$ = make_node(csound, LINE, '|', $1, $3); }
-          | ifac '&' ifac        { $$ = make_node(csound, LINE, '&', $1, $3); }
-          | ifac '#' ifac        { $$ = make_node(csound, LINE, '#', $1, $3); }
-          | ifac S_BITSHIFT_LEFT ifac   
+          | expr '^' expr        { $$ = make_node(csound, LINE, '^', $1, $3); }
+          | expr '|' expr        { $$ = make_node(csound, LINE, '|', $1, $3); }
+          | expr '&' expr        { $$ = make_node(csound, LINE, '&', $1, $3); }
+          | expr '#' expr        { $$ = make_node(csound, LINE, '#', $1, $3); }
+          | expr S_BITSHIFT_LEFT expr   
                  { $$ = make_node(csound, LINE, S_BITSHIFT_LEFT, $1, $3); }
-          | ifac S_BITSHIFT_RIGHT ifac
+          | expr S_BITSHIFT_RIGHT expr
                  { $$ = make_node(csound, LINE, S_BITSHIFT_RIGHT, $1, $3); }
-          | '~' ifac %prec S_UMINUS
+          | '~' expr %prec S_UMINUS
             { $$ = make_node(csound, LINE, '~', NULL, $2);}
           | '-' error
           | '(' expr ')'      { $$ = $2; }
