@@ -62,14 +62,14 @@ void csp_weights_calculate(CSOUND *, TREE *);
 #endif
 
 
-void csound_print_preextra(PRE_PARM  *x)
+void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
 {
-    printf("********* Extra Pre Data %p *********\n", x);
-    printf("macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
+    csound->DebugMsg(csound,"********* Extra Pre Data %p *********\n", x);
+    csound->DebugMsg(csound,"macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
            "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
            x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, 
            x->isInclude, x->clearBufferAfterEOF, x->line);
-    printf("******************\n");
+    csound->DebugMsg(csound,"******************\n");
 }
 
 uint32_t make_location(PRE_PARM *qq)
@@ -116,7 +116,7 @@ int new_orc_parser(CSOUND *csound)
       }
       csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n", 
               corfile_body(csound->orchstr));
-      //printf("FILE: %s \n", csound->orchstr->body);
+      //csound->DebugMsg(csound,"FILE: %s \n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
       cs_init_math_constants_macros(csound, &qq);
       cs_init_omacros(csound, &qq, csound->omacros);

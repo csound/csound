@@ -213,9 +213,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
-                      printf("Extending xstr buffer\n");
+                      csound->DebugMsg(csound,"Extending xstr buffer\n");
                   }
-//                  printf("Adding newline (%.2x)\n", yytext[0]);
+//                  csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
                   PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
@@ -223,9 +223,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 <xstr>.     { if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
-                      printf("Extending xstr buffer\n");
+                      csound->DebugMsg(csound,"Extending xstr buffer\n");
                   }
-//                  printf("Adding (%.2x)\n", yytext[0]);
+//                  csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
                   PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
@@ -280,15 +280,15 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 <<EOF>>         {
                   yyterminate();
                   /* int n; */
-                  /* printf("Leaving buffer %p\n", YY_CURRENT_BUFFER); */
+                  /* csound->DebugMsg(csound,"Leaving buffer %p\n", YY_CURRENT_BUFFER); */
                   /* yypop_buffer_state(yyscanner); */
                   /* if ( !YY_CURRENT_BUFFER ) yyterminate(); */
-                  /* printf("End of input; popping to %p\n", YY_CURRENT_BUFFER); */
+                  /* csound->DebugMsg(csound,"End of input; popping to %p\n", YY_CURRENT_BUFFER); */
                   /* if (PARM->clearBufferAfterEOF) */
                   /*   PARM->clearBufferAfterEOF = */
                   /*     PARM->isInclude = 0; */
                   /* n = PARM->alt_stack[--PARM->macro_stack_ptr].n; */
-                  /* printf("n=%d\n", n); */
+                  /* csound->DebugMsg(csound,"n=%d\n", n); */
                   /* if (n!=0) { */
                   /*   /\* We need to delete n macros starting with y *\/ */
                   /*   y = PARM->alt_stack[PARM->macro_stack_ptr].s; */
@@ -311,7 +311,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   /*   } */
                   /*   y->next = x; */
                   /* } */
-                  /* /\* printf("End of input segment: macro pop %p -> %p\n", */
+                  /* /\* csound->DebugMsg(csound,"End of input segment: macro pop %p -> %p\n", */
                   /*            y, PARM->macros); *\/ */
                 }
 
@@ -414,7 +414,7 @@ int get_next_line(struct yyguts_t * yyg)
     PARM->nBuffer = 0;
 
     p = fgets(yyextra->buffer, lMaxBuffer, yyin);
-    printf("get_next_line: %s\n", yyextra->buffer);
+    csound->DebugMsg(csound,"get_next_line: %s\n", yyextra->buffer);
     if (UNLIKELY(p == NULL)) {
       if (ferror(yyin))
         return -1;
@@ -434,7 +434,7 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
     void *yyscanner = yyg;
     if (UNLIKELY( feof(yyin)  ))
       return 0;
-    printf("get_next_char: %s\n", yyextra->buffer);
+    csound->DebugMsg(csound,"get_next_char: %s\n", yyextra->buffer);
     while (  PARM->nBuffer >= PARM->lBuffer  ) {
       frc = get_next_line(yyg);
       if (UNLIKELY(  frc != 0  ))
