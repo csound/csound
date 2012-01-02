@@ -635,7 +635,7 @@ ifac      : ident               { $$ = $1; }
           ;
 
 function  : T_FUNCTION  { 
-             printf("FUNCTION ans=%p, token=%p %p\n",
+             csound->DebugMsg(csound,"FUNCTION ans=%p, token=%p %p\n",
                     $1, ((ORCTOKEN *)$1)->value);
 #ifdef PARCS
     //                if ((ORCTOKEN *)$1->value != 0)

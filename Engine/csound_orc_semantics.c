@@ -140,7 +140,9 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
 /* BISON PARSER FUNCTION */
 int csound_orcwrap()
 {
+#ifdef DEBUG
     printf("\n === END OF INPUT ===\n");
+#endif
     return (1);
 }
 

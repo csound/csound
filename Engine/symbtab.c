@@ -347,8 +347,8 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       /*   exit(1); */
       }
     default: /*
-      printf("IDENT Token: %i : %i", ans->type, T_IDENT);
-      printf("Unknown word type for %s on line %d\n", s, yyline);
+      csound->DebugMsg(csound,"IDENT Token: %i : %i", ans->type, T_IDENT);
+      csound->DebugMsg(csound,"Unknown word type for %s on line %d\n", s, yyline);
       exit(1);
              */
       break;

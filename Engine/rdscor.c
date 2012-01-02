@@ -181,7 +181,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                     if (pp >= plim) {
                       MYFLT *q;
                       int c=1;
-                      fprintf(stderr, "Extra p-fields (%d %d %d %d)\n",
+                      csound->DebugMsg(csound, "Extra p-fields (%d %d %d %d)\n",
                               (int)e->p[1],(int)e->p[2],
                               (int)e->p[3],(int)e->p[4]);
                       e->c.extra = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
@@ -190,7 +190,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       while ((corfile_getc(csound->scstr) != '\n') &&
                              (scanflt(csound, &q[c++]))) {
                         if (c > (int) e->c.extra[0]) {
-                          fprintf(stderr, "and more extra p-fields [%d](%d)%d\n",
+                          csound->DebugMsg(csound, "and more extra p-fields [%d](%d)%d\n",
                                   c, (int) e->c.extra[0],
                                   sizeof(MYFLT)*((int)e->c.extra[0]+PMAX) );
                           q = e->c.extra =
