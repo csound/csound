@@ -351,6 +351,9 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
       while (*p == ' ' || *p == '\t') p++;
       if (strstr(p, "</CsInstruments>") == p) {
         //corfile_flush(incore);
+        corfile_puts("\n#exit\n", incore);
+        corfile_putc('\0', incore);
+        corfile_putc('\0', incore);
         csound->orchstr = incore;
         return TRUE;
       }

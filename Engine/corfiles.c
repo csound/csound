@@ -183,7 +183,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env, int fromScore)
     }
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_putc('\0', mm);     /* For use in bison/flex */
-    corfile_flush(mm);
+    //corfile_flush(mm);
     csoundFileClose(csound, fd);
     return mm;
 }
