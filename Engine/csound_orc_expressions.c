@@ -685,7 +685,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
     token->type = T_IDENT;
-    return make_leaf(csound, -1, T_IDENT, token);
+    return make_leaf(csound, -1, 0, T_IDENT, token);
 }
 
 TREE *create_synthetic_label(CSOUND *csound, int32 count)
@@ -695,7 +695,7 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
     sprintf(label, "__synthetic_%ld:", count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
-    return make_leaf(csound, -1, LABEL_TOKEN, make_label(csound, label));
+    return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));
 }
 
 /* Expands expression nodes into opcode calls
@@ -815,7 +815,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               else if (ifBlockCurrent->type == ELSEIF_TOKEN) { /* JPff code */
                 // print_tree(csound, "ELSEIF case\n", ifBlockCurrent);
                 ifBlockCurrent->type = IF_TOKEN;
-                ifBlockCurrent = make_node(csound, ifBlockCurrent->line, ELSE_TOKEN,
+                ifBlockCurrent = make_node(csound, ifBlockCurrent->line, 
+                                           ifBlockCurrent->locn, ELSE_TOKEN,
                                            NULL, ifBlockCurrent);
                 //tempLeft = NULL;
                 /*   ifBlockLast->next = */

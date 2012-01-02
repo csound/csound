@@ -3,7 +3,8 @@
 struct MACRO;
 
 typedef struct MACRON {
-  int      n;
+  int             n;
+  unsigned int    line; 
   struct MACRO    *s;
 } MACRON;
 
@@ -35,25 +36,24 @@ typedef struct pre_parm_s {
     unsigned char   isIfndef;
     unsigned char   isInclude;
     unsigned char   clearBufferAfterEOF;
-    int             line;
+    uint16_t        line;
+    uint32_t        locn;
+    uint32_t        llocn;
+    uint16_t        depth;
+    uint8_t         lstack[1024]; 
 } PRE_PARM;
 
 typedef struct parse_parm_s {
     void            *yyscanner;
-    char            *buffer;
-//  int             pos;
-//  int             length;
-//  double          result;
+    int             locn;
     MACRO           *macros;
-//  unsigned int    macro_stack_ptr;
-//    int             nBuffer;
-//    int             lBuffer;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
     unsigned char   clearBufferAfterEOF;
 } PARSE_PARM;
 
-#define lMaxBuffer (1000)
-void    cs_init_math_constants_macros(CSOUND*, void*);
-void    cs_init_omacros(CSOUND*, void*, NAMES*);
+void    cs_init_math_constants_macros(CSOUND*, PRE_PARM*);
+void    cs_init_omacros(CSOUND*, PRE_PARM*, NAMES*);
 
+uint32_t make_location(PRE_PARM *);
+extern uint8_t file_to_int(CSOUND*, char*);

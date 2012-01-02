@@ -313,7 +313,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
-      csound->orchname = NULL;
+      corfile_puts("\n#exit\n", csound->orchstr);
+      corfile_putc('\0', csound->orchstr);
+      corfile_putc('\0', csound->orchstr);
+      //csound->orchname = NULL;
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
