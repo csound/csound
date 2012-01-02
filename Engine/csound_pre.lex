@@ -754,18 +754,21 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
 void csound_pre_line(CORFIL* cf, void *yyscanner)
 {
     int n = csound_preget_lineno(yyscanner);
-    int locn = PARM->locn;
-    int llocn = PARM->llocn;
-    if (locn != llocn) {
+    /* This assumes that the initial line was not written with this system  */
+    if (cf->body[cf->p-1]=='\n') {
+      int locn = PARM->locn;
+      int llocn = PARM->llocn;
+      if (locn != llocn) {
       char bb[80];
       sprintf(bb, "#source %d\n", locn);
       corfile_puts(bb, cf);
-    }
-    PARM->llocn = locn;
-    if (n!=PARM->line+1) {
-      char bb[80];
-      sprintf(bb, "#line %d was %d\n", n, PARM->line+1);
-      corfile_puts(bb, cf);
+      }
+      PARM->llocn = locn;
+      if (n!=PARM->line+1) {
+        char bb[80];
+        sprintf(bb, "#line %d was %d\n", n, PARM->line+1);
+        corfile_puts(bb, cf);
+      }
     }
     PARM->line = n;
 }
