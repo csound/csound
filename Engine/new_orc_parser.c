@@ -114,7 +114,7 @@ int new_orc_parser(CSOUND *csound)
         sprintf(bb, "#line %d\n", csound->orcLineOffset);
         corfile_puts(bb, csound->expanded_orc);
       }
-      fprintf(stderr, "Calling preprocess on >>%s<<\n", 
+      csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n", 
               corfile_body(csound->orchstr));
       //printf("FILE: %s \n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
@@ -127,7 +127,7 @@ int new_orc_parser(CSOUND *csound)
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);
-      fprintf(stderr, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
+      csound->DebugMsg(csound, "yielding >>%s<<\n", corfile_body(csound->expanded_orc));
       free(csound->orchstr); csound->orchstr=NULL;
     }
     {
