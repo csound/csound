@@ -121,7 +121,7 @@ CONT            \\[ \t]*(;.*)?\n
                      csound->LongJmp(csound, 1);
                    }
                    /* Need to read from macro definition */
-                   /* fprintf(stderr, "found macro %s\nstack ptr = %d\n", */
+                   /* csound->DebugMsg(csound, "found macro %s\nstack ptr = %d\n", */
                    /*         yytext+1, PARM->macro_stack_ptr); */
                    /* print_csound_predata("macro found", yyscanner); */
                    /* ??fiddle with buffers I guess */
@@ -132,14 +132,14 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-                   /* fprintf(stderr,"Push %p macro stack; new body #%s#\n", */
+                   /* csound->DebugMsg(csound,"Push %p macro stack; new body #%s#\n", */
                    /*           PARM->macros, mm->body); */
-                   /* fprintf(stderr,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
+                   /* csound->DebugMsg(csound,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
                    yy_scan_string(mm->body, yyscanner);
-                   fprintf(stderr,"%p\n", YY_CURRENT_BUFFER);
+                   csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER);
                   }
 {MACRONAMED}    {
                    MACRO     *mm = PARM->macros;
@@ -167,15 +167,15 @@ CONT            \\[ \t]*(;.*)?\n
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
                    yy_scan_string(mm->body, yyscanner);
-                   fprintf(stderr,"%p\n", YY_CURRENT_BUFFER);
+                   csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER);
                  }
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
                    int c, i, j;
-                   /* fprintf(stderr,"Macro with arguments call %s\n", yytext); */
+                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
                    yytext[yyleng-1] = '\0';
                    while (mm != NULL) {  /* Find the definition */
-                     fprintf(stderr,"Check %s against %s\n", yytext+1, mm->name);
+                     csound->DebugMsg(csound,"Check %s against %s\n", yytext+1, mm->name);
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
                      mm = mm->next;
@@ -185,7 +185,7 @@ CONT            \\[ \t]*(;.*)?\n
                      csound->LongJmp(csound, 1);
                    }
                    /* Need to read from macro definition */
-                   fprintf(stderr,"Looking for %d args\n", mm->acnt);
+                   csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
@@ -193,7 +193,7 @@ CONT            \\[ \t]*(;.*)?\n
                      MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
                      int   size = 100;
                      nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
-                     fprintf(stderr,"Arg %d: %s\n", j+1, mm->arg[j]);
+                     csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
@@ -215,7 +215,7 @@ CONT            \\[ \t]*(;.*)?\n
                      nn->next = PARM->macros;
                      PARM->macros = nn;
                    }
-                   /* fprintf(stderr,"New body: ...#%s#\n", mm->body); */
+                   /* csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body); */
                    if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                      csound->Message(csound,
                                      Str("macro_stack_ptr beyond end: %d \n"),
@@ -228,7 +228,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-                   fprintf(stderr,"Push %p macro stack\n",PARM->macros);
+                   csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
@@ -237,10 +237,10 @@ CONT            \\[ \t]*(;.*)?\n
 {MACRONAMEDA}    {
                    MACRO     *mm = PARM->macros;
                    int c, i, j;
-                   /* fprintf(stderr,"Macro with arguments call %s\n", yytext); */
+                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
                    yytext[yyleng-2] = '\0';
                    while (mm != NULL) {  /* Find the definition */
-                     fprintf(stderr,"Check %s against %s\n", yytext+1, mm->name);
+                     csound->DebugMsg(csound,"Check %s against %s\n", yytext+1, mm->name);
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
                      mm = mm->next;
@@ -250,7 +250,7 @@ CONT            \\[ \t]*(;.*)?\n
                      csound->LongJmp(csound, 1);
                    }
                    /* Need to read from macro definition */
-                   fprintf(stderr,"Looking for %d args\n", mm->acnt);
+                   csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
@@ -258,7 +258,7 @@ CONT            \\[ \t]*(;.*)?\n
                      MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
                      int   size = 100;
                      nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
-                     fprintf(stderr,"Arg %d: %s\n", j+1, mm->arg[j]);
+                     csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
@@ -280,7 +280,7 @@ CONT            \\[ \t]*(;.*)?\n
                      nn->next = PARM->macros;
                      PARM->macros = nn;
                    }
-                   fprintf(stderr,"New body: ...#%s#\n", mm->body);
+                   csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
                    PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
@@ -307,14 +307,14 @@ CONT            \\[ \t]*(;.*)?\n
 <<EOF>>         {
                   MACRO *x, *y=NULL;
                   int n;
-                  fprintf(stderr,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
+                  csound->DebugMsg(csound,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
                   printf("%s(%d): loc=%d; lastloc=%d\n", __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
-                  /* fprintf(stderr,"End of input; popping to %p\n", */
+                  /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
                   csound_pre_line(csound->expanded_orc, yyscanner);
                   if (PARM->clearBufferAfterEOF)
@@ -325,7 +325,7 @@ CONT            \\[ \t]*(;.*)?\n
                                        yyscanner);
                   printf("%s(%d): line now %d at %d\n", __FILE__, __LINE__,
                          csound_preget_lineno(yyscanner), PARM->macro_stack_ptr);
-                  /* fprintf(stderr,"n=%d\n", n); */
+                  /* csound->DebugMsg(csound,"n=%d\n", n); */
                   if (n!=0) {
                     /* We need to delete n macros starting with y */
                     y = PARM->alt_stack[PARM->macro_stack_ptr].s;
@@ -348,7 +348,7 @@ CONT            \\[ \t]*(;.*)?\n
                     }
                     y->next = x;
                   }
-                  /* fprintf(stderr,"End of input segment: macro pop %p -> %p\n", */
+                  /* csound->DebugMsg(csound,"End of input segment: macro pop %p -> %p\n", */
                   /*            y, PARM->macros); */
                   csound_pre_line(csound->orchstr, yyscanner);
                 }
@@ -356,14 +356,14 @@ CONT            \\[ \t]*(;.*)?\n
 <macro>[ \t]*    /* eat the whitespace */
 <macro>{MACRO}  {
                   yytext[yyleng-1] = '\0';
-                  /* fprintf(stderr,"Define macro with args %s\n", yytext); */
+                  /* csound->DebugMsg(csound,"Define macro with args %s\n", yytext); */
                   /* print_csound_predata("Before do_macro_arg", yyscanner); */
                   do_macro_arg(csound, yytext, yyscanner);
                   //print_csound_predata("After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
                 }
 <macro>{IDENTN} {
-                  /* fprintf(stderr,"Define macro %s\n", yytext); */
+                  /* csound->DebugMsg(csound,"Define macro %s\n", yytext); */
                   /* print_csound_predata("Before do_macro", yyscanner); */
                   do_macro(csound, yytext, yyscanner);
                   //print_csound_predata("After do_macro", yyscanner);
@@ -372,7 +372,7 @@ CONT            \\[ \t]*(;.*)?\n
 {UNDEF}        BEGIN(umacro);
 <umacro>[ \t]*    /* eat the whitespace */
 <umacro>{IDENT}  {
-                  /* fprintf(stderr,"Undefine macro %s\n", yytext); */
+                  /* csound->DebugMsg(csound,"Undefine macro %s\n", yytext); */
                   do_umacro(csound, yytext, yyscanner);
                   BEGIN(INITIAL);
                 }
@@ -541,7 +541,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     int   i, c;
     int   size = 100;
     mm->margs = MARGS;    /* Initial size */
-    /* fprintf(stderr,"Macro definition for %s\n", name0); */
+    /* csound->DebugMsg(csound,"Macro definition for %s\n", name0); */
     mm->name = (char*)mmalloc(csound, strlen(name0) + 1);
     strcpy(mm->name, name0);
     mm->acnt = 0;
@@ -561,7 +561,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
     }
     mm->body[i] = '\0';
-    /* fprintf(stderr,"Body #%s#\n", mm->body); */
+    /* csound->DebugMsg(csound,"Body #%s#\n", mm->body); */
     mm->next = PARM->macros;
     PARM->macros = mm;
 }
@@ -571,7 +571,7 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     int i,c;
     if (UNLIKELY(csound->oparms->msglevel))
       csound->Message(csound,Str("macro %s undefined\n"), name0);
-    /* fprintf(stderr, "macro %s undefined\n", name0); */
+    /* csound->DebugMsg(csound, "macro %s undefined\n", name0); */
     if (strcmp(name0, PARM->macros->name)==0) {
       MACRO *mm=PARM->macros->next;
       mfree(csound, PARM->macros->name); mfree(csound, PARM->macros->body);
@@ -803,7 +803,7 @@ int main(void)
     //csound_preset_in(NULL, qq.yyscanner);
     qq.line = 1;
     csound_prelex(NULL, qq.yyscanner);
-    //fprintf(stderr,corfile_body(expanded_pre));
+    //csound->DebugMsg(csound,corfile_body(expanded_pre));
     //csound_prelex_destroy(&qq.yyscanner);
     return 0;
 }
