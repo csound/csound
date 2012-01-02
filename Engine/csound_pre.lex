@@ -39,7 +39,7 @@ void do_macro(CSOUND *, char *, yyscan_t);
 void do_umacro(CSOUND *, char *, yyscan_t);
 void do_ifdef(CSOUND *, char *, yyscan_t);
 void do_ifdef_skip_code(CSOUND *, yyscan_t);
-static void print_csound_predata(char *,yyscan_t);
+ static void print_csound_predata(CSOUND *,char *,yyscan_t);
 void csound_pre_line(CORFIL*, yyscan_t);
 
 #include "parse_param.h"
@@ -110,7 +110,7 @@ CONT            \\[ \t]*(;.*)?\n
                 }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
-                   //print_csound_predata("Macro call", yyscanner);
+                   //print_csound_predata(csound, "Macro call", yyscanner);
                    while (mm != NULL) {  /* Find the definition */
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
@@ -123,7 +123,7 @@ CONT            \\[ \t]*(;.*)?\n
                    /* Need to read from macro definition */
                    /* csound->DebugMsg(csound, "found macro %s\nstack ptr = %d\n", */
                    /*         yytext+1, PARM->macro_stack_ptr); */
-                   /* print_csound_predata("macro found", yyscanner); */
+                   /* print_csound_predata(csound, "macro found", yyscanner); */
                    /* ??fiddle with buffers I guess */
                    if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                      csound->Die(csound, Str("Includes nested too deeply"));
@@ -311,7 +311,7 @@ CONT            \\[ \t]*(;.*)?\n
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  printf("%s(%d): loc=%d; lastloc=%d\n", __FILE__, __LINE__,
+                  csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n", __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
@@ -323,7 +323,7 @@ CONT            \\[ \t]*(;.*)?\n
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  printf("%s(%d): line now %d at %d\n", __FILE__, __LINE__,
+                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n", __FILE__, __LINE__,
                          csound_preget_lineno(yyscanner), PARM->macro_stack_ptr);
                   /* csound->DebugMsg(csound,"n=%d\n", n); */
                   if (n!=0) {
@@ -357,16 +357,16 @@ CONT            \\[ \t]*(;.*)?\n
 <macro>{MACRO}  {
                   yytext[yyleng-1] = '\0';
                   /* csound->DebugMsg(csound,"Define macro with args %s\n", yytext); */
-                  /* print_csound_predata("Before do_macro_arg", yyscanner); */
+                  /* print_csound_predata(csound, "Before do_macro_arg", yyscanner); */
                   do_macro_arg(csound, yytext, yyscanner);
-                  //print_csound_predata("After do_macro_arg", yyscanner);
+                  //print_csound_predata(csound,"After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
                 }
 <macro>{IDENTN} {
                   /* csound->DebugMsg(csound,"Define macro %s\n", yytext); */
-                  /* print_csound_predata("Before do_macro", yyscanner); */
+                  /* print_csound_predata(csound,"Before do_macro", yyscanner); */
                   do_macro(csound, yytext, yyscanner);
-                  //print_csound_predata("After do_macro", yyscanner);
+                  //print_csound_predata(csound,"After do_macro", yyscanner);
                   BEGIN(INITIAL);
                 }
 {UNDEF}        BEGIN(umacro);
@@ -450,7 +450,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       csound->Die(csound, Str("Includes nested too deeply"));
     }
     csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
-    printf("line %d at end of #include line\n", csound_preget_lineno(yyscanner));
+    csound->DebugMsg(csound,"line %d at end of #include line\n", csound_preget_lineno(yyscanner));
     {
       uint8_t n = file_to_int(csound, buffer);
       char bb[16];
@@ -460,7 +460,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       corfile_puts(bb, csound->expanded_orc);
     }
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
-    printf("%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
+    csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
@@ -469,7 +469,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);
     corfile_rm(&cf);
-    printf("Set line number to 1\n");
+    csound->DebugMsg(csound,"Set line number to 1\n");
     csound_preset_lineno(1, yyscanner);
 }
 
@@ -809,28 +809,28 @@ int main(void)
 }
 #endif
 
-static void print_csound_predata(char *mesg, void *yyscanner)
+static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-    printf("********* %s extra data ************\n", mesg);
-    printf("yyscanner = %p\n", yyscanner);
-    printf("yyextra_r = %p, yyin_r = %p, yyout_r = %p, yy_buffer_stack_top = %d\n", 
+    csound->DebugMsg(csound,"********* %s extra data ************\n", mesg);
+    csound->DebugMsg(csound,"yyscanner = %p\n", yyscanner);
+    csound->DebugMsg(csound,"yyextra_r = %p, yyin_r = %p, yyout_r = %p, yy_buffer_stack_top = %d\n", 
            yyg->yyextra_r, yyg->yyin_r,yyg->yyout_r, yyg->yy_buffer_stack_top);
-    printf("yy_buffer_stack_max = %d1, yy_buffer_stack = %p, yy_hold_char = %d '%c'\n", 
+    csound->DebugMsg(csound,"yy_buffer_stack_max = %d1, yy_buffer_stack = %p, yy_hold_char = %d '%c'\n", 
            yyg->yy_buffer_stack_max, yyg->yy_buffer_stack, yyg->yy_hold_char,
            yyg->yy_hold_char);
-    printf("yy_n_chars = %d, yyleng_r = %d, yy_c_buf_p = %p %c\n",
+    csound->DebugMsg(csound,"yy_n_chars = %d, yyleng_r = %d, yy_c_buf_p = %p %c\n",
            yyg->yy_n_chars, yyg->yyleng_r, yyg->yy_c_buf_p, *yyg->yy_c_buf_p);
-    printf("yy_init = %d, yy_start = %d, yy_did_buffer_switch_on_eof = %d\n",
+    csound->DebugMsg(csound,"yy_init = %d, yy_start = %d, yy_did_buffer_switch_on_eof = %d\n",
            yyg->yy_init, yyg->yy_start, yyg->yy_did_buffer_switch_on_eof);
-    printf("yy_start_stack_ptr = %d, yy_start_stack_depth = %d, yy_start_stack = %p\n",
+    csound->DebugMsg(csound,"yy_start_stack_ptr = %d, yy_start_stack_depth = %d, yy_start_stack = %p\n",
            yyg->yy_start_stack_ptr, yyg->yy_start_stack_depth, yyg->yy_start_stack);
 
-    printf("yy_last_accepting_state = %d, yy_last_accepting_cpos = %p %c\n",
+    csound->DebugMsg(csound,"yy_last_accepting_state = %d, yy_last_accepting_cpos = %p %c\n",
            yyg->yy_last_accepting_state, yyg->yy_last_accepting_cpos, *yyg->yy_last_accepting_cpos);
-    printf("yylineno_r = %d, yy_flex_debug_r = %d, yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d\n",
+    csound->DebugMsg(csound,"yylineno_r = %d, yy_flex_debug_r = %d, yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d\n",
            yyg->yylineno_r, yyg->yy_flex_debug_r, yyg->yytext_r, yyg->yytext_r, yyg->yy_more_flag, yyg->yy_more_len);
-    printf("*********\n");
+    csound->DebugMsg(csound,"*********\n");
 }
 
 

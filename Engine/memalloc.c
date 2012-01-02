@@ -66,7 +66,7 @@ void *mmalloc(CSOUND *csound, size_t size)
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
-      fprintf(stderr,
+      csound->DebugMsg(csound,
               " *** internal error: mmalloc() called with zero nbytes\n");
       return NULL;
     }
@@ -97,7 +97,7 @@ void *mcalloc(CSOUND *csound, size_t size)
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
-      fprintf(stderr,
+      csound->DebugMsg(csound,
               " *** internal error: mcalloc() called with zero nbytes\n");
       return NULL;
     }
@@ -131,7 +131,7 @@ void mfree(CSOUND *csound, void *p)
     pp = HDR_PTR(p);
 #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
-      fprintf(stderr, " *** internal error: mfree() called with invalid "
+      csound->DebugMsg(csound, " *** internal error: mfree() called with invalid "
                       "pointer (%p)\n", p);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
@@ -169,7 +169,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     pp = HDR_PTR(oldp);
 #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp)) {
-      fprintf(stderr, " *** internal error: mrealloc() called with invalid "
+      csound->DebugMsg(csound, " *** internal error: mrealloc() called with invalid "
                       "pointer (%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */

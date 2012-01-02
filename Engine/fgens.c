@@ -154,7 +154,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     }
     if (ff.e.pcnt>PMAX) {
 #ifdef BETA
-      fprintf(stderr, "T%d/%d(%d): x=%p memcpy from %p to %p length %d\n",
+      csound->DebugMsg(csound, "T%d/%d(%d): x=%p memcpy from %p to %p length %d\n",
               (int)evtblkp->p[1], (int)evtblkp->p[4], ff.e.pcnt, evtblkp->c.extra,
               &(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * PMAX);
 #endif
@@ -350,7 +350,7 @@ static int gen02(FGDATA *ff, FUNC *ftp)
       *fp++ = *pp++;                            /*   copy into ftable   */
       if (UNLIKELY(nsw && pp>&ff->e.p[PMAX])) {
 #ifdef BETA
-        fprintf(stderr, "Switch to extra args\n");
+        csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
         nsw = 0;                /* only switch once */
         pp = &(ff->e.c.extra[1]);
@@ -651,7 +651,7 @@ static int gen08(FGDATA *ff, FUNC *ftp)
         f2 = *valp++;                       /*    and the value at x2    */
         if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])) {
 #ifdef BETA
-          fprintf(stderr, "Switch to extra args\n");
+          csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
           nsw = 0;                /* only switch once */
           valp = &(ff->e.c.extra[1]);
@@ -713,7 +713,7 @@ static int gen09(FGDATA *ff, FUNC *ftp)
       inc = *(valp++) * tpdlen;
       if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])) {
 #ifdef BETA
-        fprintf(stderr, "Switch to extra args\n");
+        csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
         nsw = 0;                /* only switch once */
         valp = &(ff->e.c.extra[1]);
@@ -721,7 +721,7 @@ static int gen09(FGDATA *ff, FUNC *ftp)
       amp = *(valp++);
       if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])) {
 #ifdef BETA
-        fprintf(stderr, "Switch to extra args\n");
+        csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
         nsw = 0;                /* only switch once */
         valp = &(ff->e.c.extra[1]);
@@ -729,7 +729,7 @@ static int gen09(FGDATA *ff, FUNC *ftp)
       phs = *(valp++) * tpd360;
       if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])) {
 #ifdef BETA
-        fprintf(stderr, "Switch to extra args\n");
+        csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
         nsw = 0;                /* only switch once */
         valp = &(ff->e.c.extra[1]);
@@ -898,7 +898,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
       sum = *oddhp++;                           /* sum = diag(=1) * this h   */
       if (UNLIKELY(nsw && oddhp>&ff->e.p[PMAX])) {
 #ifdef BETA
-        fprintf(stderr, "Switch to extra args\n");
+        csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
         nsw = 0;                /* only switch once */
         oddhp = &(ff->e.c.extra[1]);
@@ -908,7 +908,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
         oddhp++;                                /*  + odd terms * h+2,h+4,.. */
         if (UNLIKELY(nnsw && oddhp>&ff->e.p[PMAX])) {
 #ifdef BETA
-          fprintf(stderr, "Switch to extra args\n");
+          csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
           nnsw = 0;                /* only switch once */
           oddhp = &(ff->e.c.extra[1]);
@@ -916,7 +916,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
         sum += *mp++ * *oddhp++;
         if (UNLIKELY(nnsw && oddhp>&ff->e.p[PMAX])) {
 #ifdef BETA
-          fprintf(stderr, "Switch to extra args\n");
+          csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
           nnsw = 0;                /* only switch once */
           oddhp = &(ff->e.c.extra[1]);
@@ -925,7 +925,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
       *hp++ = sum * mxscal;                     /* repl this h w. coef (sum) */
       if (UNLIKELY(nsw && hp>&ff->e.p[PMAX])) {
 #ifdef BETA
-        fprintf(stderr, "Switch to extra args\n");
+        csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
         nsw = 0;                /* only switch once */
         hp = &(ff->e.c.extra[1]);
@@ -964,7 +964,7 @@ static int gen15(FGDATA *ff, FUNC *ftp)
       h = *fp++;                                /* rpl h,angle pairs */
       if (UNLIKELY(nsw && fp>&ff->e.p[PMAX])) {
 #ifdef BETA
-        fprintf(stderr, "Switch to extra args\n");
+        csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
         nsw = 0;                /* only switch once */
         fp = &(ff->e.c.extra[1]);
@@ -990,7 +990,7 @@ static int gen15(FGDATA *ff, FUNC *ftp)
       *fp++ = *sinp++;                          /* & copy rem hn*sin */
       if (UNLIKELY(nsw && fp>&ff->e.p[PMAX])) {
 #ifdef BETA
-        fprintf(stderr, "Switch to extra args\n");
+        csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
         nsw = 0;                /* only switch once */
         fp = &(ff->e.c.extra[1]);
@@ -2762,7 +2762,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       if (mpainfo.layer == 1) strcat(temp, "Layer I");
       else if (mpainfo.layer == 2) strcat(temp, "Layer II");
       else strcat(temp, "Layer III");
-      fprintf(stderr, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
+      csound->DebugMsg(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
               temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
               mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
               mpainfo.duration%60);
