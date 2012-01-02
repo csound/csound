@@ -51,6 +51,7 @@ void csound_pre_line(CORFIL*, yyscan_t);
     csound_preset_lineno(csound->orcLineOffset, yyscanner); yyg->yy_flex_debug_r=1;}
 %}
 %option reentrant
+%option noyywrap
 %option prefix="csound_pre"
 %option outfile="Engine/csound_prelex.c"
 %option stdout
@@ -138,7 +139,7 @@ CONT            \\[ \t]*(;.*)?\n
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
                    yy_scan_string(mm->body, yyscanner);
-                   /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
+                   fprintf(stderr,"%p\n", YY_CURRENT_BUFFER);
                   }
 {MACRONAMED}    {
                    MACRO     *mm = PARM->macros;
@@ -166,7 +167,7 @@ CONT            \\[ \t]*(;.*)?\n
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
                    yy_scan_string(mm->body, yyscanner);
-                   /* fprintf(stderr,"%p\n", YY_CURRENT_BUFFER); */
+                   fprintf(stderr,"%p\n", YY_CURRENT_BUFFER);
                  }
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
@@ -174,7 +175,7 @@ CONT            \\[ \t]*(;.*)?\n
                    /* fprintf(stderr,"Macro with arguments call %s\n", yytext); */
                    yytext[yyleng-1] = '\0';
                    while (mm != NULL) {  /* Find the definition */
-                     /* fprintf(stderr,"Check %s against %s\n", yytext+1, mm->name); */
+                     fprintf(stderr,"Check %s against %s\n", yytext+1, mm->name);
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
                      mm = mm->next;
@@ -184,7 +185,7 @@ CONT            \\[ \t]*(;.*)?\n
                      csound->LongJmp(csound, 1);
                    }
                    /* Need to read from macro definition */
-                   /* fprintf(stderr,"Looking for %d args\n", mm->acnt); */
+                   fprintf(stderr,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
@@ -192,7 +193,7 @@ CONT            \\[ \t]*(;.*)?\n
                      MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
                      int   size = 100;
                      nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
-                     /* fprintf(stderr,"Arg %d: %s\n", j+1, mm->arg[j]); */
+                     fprintf(stderr,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
@@ -227,7 +228,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-                   /* fprintf(stderr,"Push %p macro stack\n",PARM->macros); */
+                   fprintf(stderr,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
@@ -239,7 +240,7 @@ CONT            \\[ \t]*(;.*)?\n
                    /* fprintf(stderr,"Macro with arguments call %s\n", yytext); */
                    yytext[yyleng-2] = '\0';
                    while (mm != NULL) {  /* Find the definition */
-                     /* fprintf(stderr,"Check %s against %s\n", yytext+1, mm->name); */
+                     fprintf(stderr,"Check %s against %s\n", yytext+1, mm->name);
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
                      mm = mm->next;
@@ -249,7 +250,7 @@ CONT            \\[ \t]*(;.*)?\n
                      csound->LongJmp(csound, 1);
                    }
                    /* Need to read from macro definition */
-                   /* fprintf(stderr,"Looking for %d args\n", mm->acnt); */
+                   fprintf(stderr,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
@@ -257,7 +258,7 @@ CONT            \\[ \t]*(;.*)?\n
                      MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
                      int   size = 100;
                      nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
-                     /* fprintf(stderr,"Arg %d: %s\n", j+1, mm->arg[j]); */
+                     fprintf(stderr,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
@@ -279,7 +280,7 @@ CONT            \\[ \t]*(;.*)?\n
                      nn->next = PARM->macros;
                      PARM->macros = nn;
                    }
-                   /* fprintf(stderr,"New body: ...#%s#\n", mm->body); */
+                   fprintf(stderr,"New body: ...#%s#\n", mm->body);
                    PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
@@ -745,10 +746,10 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
     }
 }
 
-int csound_prewrap(yyscan_t yyscanner) 
-{ 
- return 1;
-}
+/* int csound_prewrap(void *yyscanner)  */
+/* {  */
+/*     return 1; */
+/* } */
 
 void csound_pre_line(CORFIL* cf, void *yyscanner)
 {
@@ -798,7 +799,7 @@ int main(void)
     //csound_pre_scan_string(inp, qq.yyscanner);
     //csound_preset_in(NULL, qq.yyscanner);
     qq.line = 1;
-    csound_prelex(NULL, &qq.yyscanner);
+    csound_prelex(NULL, qq.yyscanner);
     //fprintf(stderr,corfile_body(expanded_pre));
     //csound_prelex_destroy(&qq.yyscanner);
     return 0;
