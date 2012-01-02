@@ -100,7 +100,7 @@ int new_orc_parser(CSOUND *csound)
       memset(&qq, 0, sizeof(PRE_PARM));
       csound_prelex_init(&qq.yyscanner);
       csound_preset_extra(&qq, qq.yyscanner);
-      qq.line = 1;
+      qq.line = csound->orcLineOffset;
       csound->expanded_orc = corfile_create_w();
       {
         char bb[80];
