@@ -1816,7 +1816,7 @@ int file_to_int(CSOUND *csound, const char *name)
     }
     // Not there so add
     // ensure long enough?
-    if (n==100) csound->Die(csound, "Too many file/macros\n");
+    if (n==63) csound->Die(csound, "Too many file/macros\n");
     filedir[n] = strdup(name);
     filedir[n+1] = NULL;
     return n;
