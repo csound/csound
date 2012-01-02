@@ -280,7 +280,7 @@ void sort(CSOUND *csound)
     for (i=1; i<n-1; i++ ) {
       bp = A[i]; bp->prvblk = A[i-1]; bp->nxtblk = A[i+1];
     }
-    bp = A[n-1]; bp->nxtblk = NULL; bp->prvblk = A[n-2];
+    if (n>1) bp = A[n-1]; bp->nxtblk = NULL; bp->prvblk = A[n-2];
     /* and return temporary space */
     free(A);
 }

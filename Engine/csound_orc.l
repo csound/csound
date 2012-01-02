@@ -62,7 +62,7 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 /*       result = YY_NULL; \ */
 /*     } */
 
-#define YY_USER_INIT csound_orcset_lineno(csound->orcLineOffset, yyscanner);
+#define YY_USER_INIT 
 
 struct yyguts_t;
 ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
@@ -72,26 +72,26 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option bison-bridge
 %option bison-locations
 %option prefix="csound_orc"
+%option outfile="Engine/csound_orclex.c"
+%option stdout
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
-MACRO           [a-zA-Z0-9_]+\(
 INTGR           [0-9]+
 NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
-STCOM           \/\*
 WHITE           [ \t]+
 OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
 XSTR            "{{"
 EXSTR           "}}"
-
-%x incl
-%x macro
-%x umacro
-%x ifdef
+LINE            ^"#line"
+FILE            ^"#source"
+FNAME           [a-zA-Z0-9/:.+-_]+
+%x line
+%x src
 %x xstr
 
 %%
@@ -263,8 +263,56 @@ EXSTR           "}}"
                 }
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
 {WHITE}         { }
+
+{LINE}          { BEGIN(line); }
+
+<line>[ \t]*     /* eat the whitespace */
+<line>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
+<line>"\n"      {BEGIN(INITIAL);}
+
+{FILE}          { BEGIN(src); }
+
+<src>[ \t]*     /* eat the whitespace */
+<src>{FNAME}    { PARM->locn = atoi(yytext); }
+<src>"\n"       { BEGIN(INITIAL); }
+
+
 <<EOF>>         {
                   yyterminate();
+                  /* int n; */
+                  /* printf("Leaving buffer %p\n", YY_CURRENT_BUFFER); */
+                  /* yypop_buffer_state(yyscanner); */
+                  /* if ( !YY_CURRENT_BUFFER ) yyterminate(); */
+                  /* printf("End of input; popping to %p\n", YY_CURRENT_BUFFER); */
+                  /* if (PARM->clearBufferAfterEOF) */
+                  /*   PARM->clearBufferAfterEOF = */
+                  /*     PARM->isInclude = 0; */
+                  /* n = PARM->alt_stack[--PARM->macro_stack_ptr].n; */
+                  /* printf("n=%d\n", n); */
+                  /* if (n!=0) { */
+                  /*   /\* We need to delete n macros starting with y *\/ */
+                  /*   y = PARM->alt_stack[PARM->macro_stack_ptr].s; */
+                  /*   x = PARM->macros; */
+                  /*   if (x==y) { */
+                  /*     while (n>0) { */
+                  /*       mfree(csound, y->name); x=y->next; */
+                  /*       mfree(csound, y); y=x; n--; */
+                  /*     } */
+                  /*     PARM->macros = x; */
+                  /*   } */
+                  /*   else { */
+                  /*     MACRO *nxt = y->next; */
+                  /*     while (x->next != y) x = x->next; */
+                  /*     while (n>0) { */
+                  /*       nxt = y->next; */
+                  /*       mfree(csound, y->name); mfree(csound, y); y=nxt; n--; */
+                  /*     } */
+                  /*     x->next = nxt; */
+                  /*   } */
+                  /*   y->next = x; */
+                  /* } */
+                  /* /\* printf("End of input segment: macro pop %p -> %p\n", */
+                  /*            y, PARM->macros); *\/ */
                 }
 
 %%
@@ -355,87 +403,6 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
 }
 
 #if 0
-static void add_math_const_macro(CSOUND *csound, void* yyscanner,
-                                 char * name, char *body)
-{
-    MACRO *mm;
-
-    mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
-    mm->name = (char*) mcalloc(csound, strlen(name) + 3);
-    sprintf(mm->name, "M_%s", name);
-    mm->next = PARM->macros;
-    PARM->macros = mm;
-    mm->margs = MARGS;    /* Initial size */
-    mm->acnt = 0;
-    mm->body = (char*) mcalloc(csound, strlen(body) + 1);
-    mm->body = strcpy(mm->body, body);
-}
-
-/**
- * Add math constants from math.h as orc PARM->macros
- */
-void cs_init_math_constants_macros(CSOUND *csound, void* yyscanner)
- {
-     PARM->macros = NULL;
-     add_math_const_macro(csound, yyscanner, "E",     "2.71828182845904523536");
-     add_math_const_macro(csound, yyscanner, "LOG2E", "1.44269504088896340736");
-     add_math_const_macro(csound, yyscanner, "LOG10E","0.43429448190325182765");
-     add_math_const_macro(csound, yyscanner, "LN2",   "0.69314718055994530942");
-     add_math_const_macro(csound, yyscanner, "LN10",  "2.30258509299404568402");
-     add_math_const_macro(csound, yyscanner, "PI",    "3.14159265358979323846");
-     add_math_const_macro(csound, yyscanner, "PI_2",  "1.57079632679489661923");
-     add_math_const_macro(csound, yyscanner, "PI_4",  "0.78539816339744830962");
-     add_math_const_macro(csound, yyscanner, "1_PI",  "0.31830988618379067154");
-     add_math_const_macro(csound, yyscanner, "2_PI",  "0.63661977236758134308");
-     add_math_const_macro(csound, yyscanner,"2_SQRTPI", "1.12837916709551257390");
-     add_math_const_macro(csound, yyscanner, "SQRT2", "1.41421356237309504880");
-     add_math_const_macro(csound, yyscanner,"SQRT1_2","0.70710678118654752440");
-     add_math_const_macro(csound, yyscanner, "INF",   "2147483647.0"); /* ~7 years */
-}
-
-void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
-{
-    while (nn) {
-      char  *s = nn->mac;
-      char  *p = strchr(s, '=');
-      char  *mname;
-      MACRO *mm;
-
-      if (p == NULL)
-        p = s + strlen(s);
-      if (csound->oparms->msglevel & 7)
-        csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
-      s = strchr(s, ':') + 1;                   /* skip arg bit */
-      if (UNLIKELY(s == NULL || s >= p))
-        csound->Die(csound, Str("Invalid macro name for --omacro"));
-      mname = (char*) mmalloc(csound, (p - s) + 1);
-      strncpy(mname, s, p - s);
-      mname[p - s] = '\0';
-      /* check if macro is already defined */
-      for (mm = PARM->macros; mm != NULL; mm = mm->next) {
-        if (strcmp(mm->name, mname) == 0)
-          break;
-      }
-      if (mm == NULL) {
-        mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
-        mm->name = mname;
-        mm->next = PARM->macros;
-        PARM->macros = mm;
-      }
-      else
-        mfree(csound, mname);
-      mm->margs = MARGS;    /* Initial size */
-      mm->acnt = 0;
-      if (*p != '\0')
-        p++;
-      mm->body = (char*) mmalloc(csound, strlen(p) + 1);
-      strcpy(mm->body, p);
-      nn = nn->next;
-    }
-}
-#endif
-
-#if 0
 /* Functions for working with grabbing input one line at a time */
 /* These two functions assume reading from a file */
 
@@ -485,4 +452,10 @@ char *csound_orcget_current_pointer(void *yyscanner)
 {
     struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return yyg->yy_c_buf_p;
+}
+
+int csound_orcget_locn(void *yyscanner)
+{
+    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return PARM->locn;
 }
