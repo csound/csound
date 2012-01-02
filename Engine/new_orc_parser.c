@@ -90,9 +90,7 @@ int new_orc_parser(CSOUND *csound)
     {
       PRE_PARM    qq;
       /* Preprocess */
-      corfile_puts("\n#exit\n", csound->orchstr);
-      corfile_putc('\0', csound->orchstr);
-      corfile_putc('\0', csound->orchstr);
+      //corfile_puts("\n#exit\n", csound->orchstr);
       memset(&qq, 0, sizeof(PRE_PARM));
       csound_prelex_init(&qq.yyscanner);
       csound_preset_extra(&qq, qq.yyscanner);
