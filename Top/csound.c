@@ -2630,6 +2630,7 @@ extern "C" {
       CSOUND    *saved_env;
       void      *p1, *p2;
       uintptr_t length;
+      int n = 0;
      
       csoundCleanup(csound);
  
@@ -2682,6 +2683,8 @@ extern "C" {
       memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
       csound->memalloc_db = saved_env->memalloc_db;
       free(saved_env);
+      while (csound->filedir[n])        /* Clear source directoiry */
+        free(csound->filedir[n++]);
    
   }
 
