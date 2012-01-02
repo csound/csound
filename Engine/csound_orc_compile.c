@@ -27,6 +27,7 @@
 #include "csound_orc.h"
 #include <math.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "oload.h"
 #include "insert.h"
@@ -56,6 +57,7 @@ typedef struct {
     int32     *typemask_tabl;
     int32     *typemask_tabl_in, *typemask_tabl_out;
     int       lgprevdef;
+    char      *filedir[101];
 } OTRAN_GLOBALS;
 
 static  int     gexist(CSOUND *, char *), gbloffndx(CSOUND *, char *);
@@ -1801,3 +1803,22 @@ char argtyp2(CSOUND *csound, char *s)
       return(c);
     else return('?');
 }
+
+/* For diagnostics map file name or macro name to an index */
+int file_to_int(CSOUND *csound, const char *name)
+{
+    extern char *strdup(const char *);
+    int n = 0;
+    char **filedir = csound->filedir;
+    while (filedir[n]) {        /* Do we have it already? */
+      if (strcmp(filedir[n], name)==0) return n; /* yes */
+      n++;                                       /* look again */
+    }
+    // Not there so add
+    // ensure long enough?
+    if (n==63) csound->Die(csound, "Too many file/macros\n");
+    filedir[n] = strdup(name);
+    filedir[n+1] = NULL;
+    return n;
+}
+
