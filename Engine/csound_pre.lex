@@ -535,8 +535,11 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
-      if (UNLIKELY(c == '\n'))
+      if (UNLIKELY(c == '\n')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+        corfile_putc('\n', csound->expanded_orc);
+        csound_pre_line(csound->expanded_orc, yyscanner);
+      }
     }
     mm->body[i] = '\0';
     mm->next = PARM->macros;
@@ -565,8 +568,11 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
-      if (UNLIKELY(c == '\n'))
+      if (UNLIKELY(c == '\n')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+        corfile_putc('\n', csound->expanded_orc);
+        csound_pre_line(csound->expanded_orc, yyscanner);
+      }
     }
     mm->body[i] = '\0';
     /* csound->DebugMsg(csound,"Body #%s#\n", mm->body); */
