@@ -178,9 +178,9 @@ int new_orc_parser(CSOUND *csound)
 
       astTree = csound_orc_expand_expressions(csound, astTree);
 
-      if (UNLIKELY(PARSER_DEBUG)) {
+      //if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
-      }     
+        //}     
 #ifdef PARCS
       if (LIKELY(O->numThreads > 1)) {
         /* calculate the weights for the instruments */
