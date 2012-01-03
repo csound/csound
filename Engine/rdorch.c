@@ -900,7 +900,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           goto ifdefSkipCode;
         if (preprocName == NULL)
           lexerr(csound, Str("Unexpected # character"));
-        else
+        else if (strcmp("exit", preprocName)) /* VL: ignore #exit */
           lexerr(csound, Str("Unknown # option: '%s'"), preprocName);
       }
       free(mname);
