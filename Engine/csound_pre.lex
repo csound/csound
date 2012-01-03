@@ -103,11 +103,7 @@ CONT            \\[ \t]*(;.*)?\n
                   //corfile_putline(csound_preget_lineno(yyscanner), csound->expanded_orc);
                 }
 {STCOM}         { do_comment(yyscanner); }
-{STRCONST}      {
-                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
-                                       yyscanner);
-		  corfile_puts(yytext, csound->expanded_orc);
-                }
+{STRCONST}      { corfile_puts(yytext, csound->expanded_orc); }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
                    //print_csound_predata(csound, "Macro call", yyscanner);
@@ -379,6 +375,10 @@ CONT            \\[ \t]*(;.*)?\n
 
 {IFDEF}         {
                   PARM->isIfndef = (yytext[3] == 'n');  /* #ifdef or #ifndef */
+                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                       yyscanner);
+                  corfile_putc('\n', csound->expanded_orc);
+                  csound_pre_line(csound->expanded_orc, yyscanner);
                   BEGIN(ifdef);
                 }
 <ifdef>[ \t]*     /* eat the whitespace */
@@ -396,6 +396,10 @@ CONT            \\[ \t]*(;.*)?\n
                     csound->LongJmp(csound, 1);
                   }
                   PARM->ifdefStack->isElse = 1;
+                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                       yyscanner);
+                  corfile_putc('\n', csound->expanded_orc);
+                  csound_pre_line(csound->expanded_orc, yyscanner);
                   do_ifdef_skip_code(csound, yyscanner);
                 }
 {END}           {
@@ -405,6 +409,10 @@ CONT            \\[ \t]*(;.*)?\n
                     csound->LongJmp(csound, 1);
                   }
                   PARM->ifdefStack = pp->prv;
+                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                       yyscanner);
+                  corfile_putc('\n', csound->expanded_orc);
+                  csound_pre_line(csound->expanded_orc, yyscanner);
                   mfree(csound, pp);
                 }
 .               { corfile_putc(yytext[0], csound->expanded_orc); }
@@ -637,6 +645,10 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
         }
         c = input(yyscanner);
       }
+      csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                           yyscanner);
+      corfile_putc('\n', csound->expanded_orc);
+      csound_pre_line(csound->expanded_orc, yyscanner);
       while (isblank(c = input(yyscanner)));  /* eat the whitespace */
       if (c == '#') {
         for (i=0; islower(c = input(yyscanner)) && i < 7; i++)
