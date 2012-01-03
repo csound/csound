@@ -171,6 +171,7 @@ extern void add_udo_definition(CSOUND*, char *, char *, char *);
 extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
+extern int csound_orcget_locn(void *);
 extern int csound_orcget_lineno(void *);
 %}
 %%
