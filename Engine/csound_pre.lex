@@ -103,11 +103,7 @@ CONT            \\[ \t]*(;.*)?\n
                   //corfile_putline(csound_preget_lineno(yyscanner), csound->expanded_orc);
                 }
 {STCOM}         { do_comment(yyscanner); }
-{STRCONST}      {
-                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
-                                       yyscanner);
-		  corfile_puts(yytext, csound->expanded_orc);
-                }
+{STRCONST}      { corfile_puts(yytext, csound->expanded_orc); }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
                    //print_csound_predata(csound, "Macro call", yyscanner);
