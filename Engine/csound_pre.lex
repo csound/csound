@@ -784,7 +784,7 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
       PARM->llocn = locn;
       if (n!=PARM->line+1) {
         char bb[80];
-        sprintf(bb, "#line %d was %d\n", n, PARM->line+1);
+        sprintf(bb, "#line %d\n", n);
         corfile_puts(bb, cf);
       }
     }
