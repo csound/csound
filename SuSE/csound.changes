@@ -1,0 +1,100 @@
+-------------------------------------------------------------------
+Thu Dec 22 -- John ffitch
+
+- Brought into line with csound 5.15
+
+-------------------------------------------------------------------
+Sun Sep 18 00:04:38 UTC 2011 - jengelh@medozas.de
+
+- Remove redundant tags/sections from specfile
+
+-------------------------------------------------------------------
+Thu Jul 16 18:04:52 CEST 2009 - tiwai@suse.de
+
+- fix scons argument to build for 64bit archs (bnc#521979)
+
+-------------------------------------------------------------------
+Wed Jan 28 14:40:46 CET 2009 - tiwai@suse.de
+
+- Fix python module search path insecure issue (bnc#470095)
+  This package is unaffected; the patch is included just for any
+  possible cases in future.
+
+-------------------------------------------------------------------
+Wed Oct  1 15:28:52 CEST 2008 - tiwai@suse.de
+
+- fix build with python-2.6
+
+-------------------------------------------------------------------
+Wed Jun 20 15:44:26 CEST 2007 - tiwai@suse.de
+
+- fix fdupes usage
+
+-------------------------------------------------------------------
+Mon Jun 11 17:57:22 CEST 2007 - tiwai@suse.de
+
+- updated to version 5.06:
+  * fix k-rate, vrandh and vrandi scaling problems, mod fix
+  * new opcodes: partikkel, partikkelsync
+
+-------------------------------------------------------------------
+Tue Mar 27 18:08:43 CEST 2007 - tiwai@suse.de
+
+- update to version 5.05:
+  * fixes/improvements on FLTK support
+  * fix heap overflow
+  * clean up old codes
+
+-------------------------------------------------------------------
+Mon Jan 22 13:11:02 CET 2007 - tiwai@suse.de
+
+- major update to version 5.04
+  (not built with fltk due to lack of threading support)
+
+-------------------------------------------------------------------
+Mon Mar 27 18:54:23 CEST 2006 - pth@suse.de
+
+- Add missing parameter in printf call (bug #129676).
+
+-------------------------------------------------------------------
+Wed Jan 25 21:35:15 CET 2006 - mls@suse.de
+
+- converted neededforbuild to BuildRequires
+
+-------------------------------------------------------------------
+Fri Oct 15 10:54:27 CEST 2004 - tiwai@suse.de
+
+- renamed extract to csound-extract to avoid name confliction
+  (bug #45347).
+
+-------------------------------------------------------------------
+Wed Jun  2 17:05:41 CEST 2004 - tiwai@suse.de
+
+- fixed the ALSA RT plugin with the new API.
+
+-------------------------------------------------------------------
+Sat Jan 10 18:11:42 CET 2004 - adrian@suse.de
+
+- add %run_ldconfig and %defattr
+
+-------------------------------------------------------------------
+Tue Aug  5 12:48:27 CEST 2003 - tiwai@suse.de
+
+- renamed sndinfo to csndinfo to avoid name confliction with snd.
+
+-------------------------------------------------------------------
+Wed Jul 30 12:48:59 CEST 2003 - tiwai@suse.de
+
+- fixed the build on x86-64.
+
+-------------------------------------------------------------------
+Mon Jul 28 16:11:55 CEST 2003 - tiwai@suse.de
+
+- updated to 4.24.1.
+- fixed tmpnam with mkstemp.
+
+-------------------------------------------------------------------
+Thu Feb  1 19:18:36 CET 2001 - tiwai@suse.de
+
+- Initial vesrion: unofficial-4.10.0.0c
+

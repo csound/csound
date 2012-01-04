@@ -171,7 +171,7 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 //    if (*sem != NULL) {
 //      int val;
 //      sem_getvalue(*sem, &val);
-//      fprintf(stdout, "Already a semaphore: %d %p\n", val, *sem);
+//      csound->DebugMsg(csound, "Already a semaphore: %d %p\n", val, *sem);
 //      sem_destroy(*sem);
 //      csound->Free(csound, *sem);
 //    }
@@ -201,11 +201,11 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 //    {
 //      /* int val, res; */
 //      /* res = sem_getvalue(sem, &val); */
-//      /* fprintf(stdout, "before sem_wait: %d %i:\t", val, */
+//      /* csound->DebugMsg(csound, "before sem_wait: %d %i:\t", val, */
 //      /*         csp_thread_index_get(csound)); */
 //      sem_wait(sem);
 //      /* res = sem_getvalue(sem, &val); */
-//      /* fprintf(stdout, "after sem_wait: %d %i\n", val, */
+//      /* csound->DebugMsg(csound, "after sem_wait: %d %i\n", val, */
 //      /*         csp_thread_index_get(csound)); */
 //    }
 //    TRACE_1("[%i] continue:\n", csp_thread_index_get(csound));
@@ -215,11 +215,11 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 //{
 //    /* int val, res; */
 //    /* res = sem_getvalue(sem, &val); */
-//    /* fprintf(stdout, "before sem_grow: %d %i\t", 
+//    /* csound->DebugMsg(csound, "before sem_grow: %d %i\t", 
 //               val, csp_thread_index_get(csound)); */
 //    sem_post(sem);
 //    /* res = sem_getvalue(sem, &val); */
-//    /* fprintf(stdout, "after sem_grow: %d %i\n",
+//    /* csound->DebugMsg(csound, "after sem_grow: %d %i\n",
 //               val, csp_thread_index_get(csound)); */
 //}
 //
@@ -229,7 +229,7 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 //    /* { */
 //    /*   int val, res; */
 //    /*   res = sem_getvalue(sem, &val); */
-//    /*   fprintf(stdout, "before sem_release: %d %i\n", */
+//    /*   csound->DebugMsg(csound, "before sem_release: %d %i\n", */
 //    /*           val, csp_thread_index_get(csound)); */
 //    /* } */
 //}
@@ -238,11 +238,11 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 //{
 //    /* int val, res; */
 //    /* res = sem_getvalue(sem, &val); */
-//    /* fprintf(stdout, "before sem_release_end: %d %i\t", */
+//    /* csound->DebugMsg(csound, "before sem_release_end: %d %i\t", */
 //    /*         val, csp_thread_index_get(csound)); */
 //    sem_post(sem);
 //    /* res = sem_getvalue(sem, &val); */
-//    /* fprintf(stdout, "after sem_release_end: %d %i\n", */
+//    /* csound->DebugMsg(csound, "after sem_release_end: %d %i\n", */
 //    /*         val, csp_thread_index_get(csound)); */
 //}
 //
@@ -252,7 +252,7 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 //    if (UNLIKELY(sem == NULL)) 
 //      csound->Die(csound, "Invalid NULL Parameter sem");
 //    res = sem_getvalue(sem, &val);
-//    fprintf(stdout, "sem_release_print: %d %p\n",
+//    csound->DebugMsg(csound, "sem_release_print: %d %p\n",
 //            val, csp_thread_index_get(csound));
 //}
 //
