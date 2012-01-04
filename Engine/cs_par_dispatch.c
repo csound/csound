@@ -251,10 +251,14 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
             ORCTOKEN *unlock_tok = lookup_token(csound, "##globalunlock");
             ORCTOKEN *var_tok    = make_int(csound, buf);
 
-            TREE *lock_leaf = make_leaf(csound, current->line, T_OPCODE, lock_tok);
-            lock_leaf->right = make_leaf(csound, current->line, INTEGER_TOKEN, var_tok);
-            TREE *unlock_leaf = make_leaf(csound, current->line, T_OPCODE, unlock_tok);
-            unlock_leaf->right = make_leaf(csound, current->line, INTEGER_TOKEN, var_tok);
+            TREE *lock_leaf = make_leaf(csound, current->line, current->locn,
+                                        T_OPCODE, lock_tok);
+            lock_leaf->right = make_leaf(csound, current->line, current->locn,
+                                         INTEGER_TOKEN, var_tok);
+            TREE *unlock_leaf = make_leaf(csound, current->line, current->locn,
+                                          T_OPCODE, unlock_tok);
+            unlock_leaf->right = make_leaf(csound, current->line, current->locn,
+                                           INTEGER_TOKEN, var_tok);
 
             if (previous == NULL) {
               TREE *old_current = lock_leaf;

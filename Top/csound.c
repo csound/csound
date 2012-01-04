@@ -711,8 +711,10 @@ extern "C" {
     {NULL, NULL, NULL}, /* For extra strings in scores */
     {0, 0, 0},      /* For extra strings in scores */
     300,             /* Count for generated labels */
-    NULL,
-    NULL
+    NULL,            /* pow2 table */
+    NULL,            /* cps conv table */
+    NULL,            /* output of preprocessor */
+    { NULL, NULL, NULL}/* for location directory */
   };
 
   /* from threads.c */
@@ -2628,6 +2630,7 @@ extern "C" {
       CSOUND    *saved_env;
       void      *p1, *p2;
       uintptr_t length;
+      int n = 0;
      
       csoundCleanup(csound);
  
@@ -2680,6 +2683,8 @@ extern "C" {
       memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
       csound->memalloc_db = saved_env->memalloc_db;
       free(saved_env);
+      while (csound->filedir[n])        /* Clear source directoiry */
+        free(csound->filedir[n++]);
    
   }
 

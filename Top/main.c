@@ -313,7 +313,15 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
-      csound->orchname = NULL;
+      if (csound->orchstr==NULL)
+        csound->Die(csound,
+                    Str("Failed to open input file %s\n"), csound->orchname);
+#ifdef ENABLE_NEW_PARSER
+      if (O->newParser) corfile_puts("\n#exit\n", csound->orchstr);
+#endif
+      corfile_putc('\0', csound->orchstr);
+      corfile_putc('\0', csound->orchstr);
+      //csound->orchname = NULL;
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);

@@ -1,0 +1,145 @@
+--- SConstruct-dist	2008-10-01 14:46:05.000000000 +0200
++++ SConstruct	2008-10-01 15:25:35.000000000 +0200
+@@ -266,19 +266,19 @@
+     Tool('mingw')(commonEnvironment)
+ 
+ customCPPPATH = commonEnvironment['customCPPPATH']
+-commonEnvironment.Prepend(CPPPATH = customCPPPATH)
++commonEnvironment.Prepend(CPPPATH = Split(customCPPPATH))
+ customCCFLAGS = commonEnvironment['customCCFLAGS']
+-commonEnvironment.Prepend(CCFLAGS = customCCFLAGS)
++commonEnvironment.Prepend(CCFLAGS = Split(customCCFLAGS))
+ customCXXFLAGS = commonEnvironment['customCXXFLAGS']
+-commonEnvironment.Prepend(CXXFLAGS = customCXXFLAGS)
++commonEnvironment.Prepend(CXXFLAGS = Split(customCXXFLAGS))
+ customLIBS = commonEnvironment['customLIBS']
+-commonEnvironment.Prepend(LIBS = customLIBS)
++commonEnvironment.Prepend(LIBS = Split(customLIBS))
+ customLIBPATH = commonEnvironment['customLIBPATH']
+-commonEnvironment.Prepend(LIBPATH = customLIBPATH)
++commonEnvironment.Prepend(LIBPATH = Split(customLIBPATH))
+ customSHLINKFLAGS = commonEnvironment['customSHLINKFLAGS']
+-commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
++commonEnvironment.Prepend(SHLINKFLAGS = Split(customSHLINKFLAGS))
+ customSWIGFLAGS = commonEnvironment['customSWIGFLAGS']
+-commonEnvironment.Prepend(SWIGFLAGS = customSWIGFLAGS)
++commonEnvironment.Prepend(SWIGFLAGS = Split(customSWIGFLAGS))
+ 
+ # Define options for different platforms.
+ if getPlatform() != 'win32':
+@@ -339,15 +339,15 @@
+ # Define different build environments for different types of targets.
+ 
+ if not withMSVC():
+-    commonEnvironment.Prepend(CCFLAGS = "-Wall")
++    commonEnvironment.Prepend(CCFLAGS = ["-Wall"])
+ 
+ if getPlatform() == 'linux':
+-    commonEnvironment.Append(CCFLAGS = "-DLINUX")
+-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+-    commonEnvironment.Append(CPPPATH = '/usr/local/include')
+-    commonEnvironment.Append(CPPPATH = '/usr/include')
+-    commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
+-    commonEnvironment.Append(CCFLAGS = "-DPIPES")
++    commonEnvironment.Append(CCFLAGS = ["-DLINUX"])
++    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
++    commonEnvironment.Append(CPPPATH = ['/usr/local/include'])
++    commonEnvironment.Append(CPPPATH = ['/usr/include'])
++    commonEnvironment.Append(CPPPATH = ['/usr/X11R6/include'])
++    commonEnvironment.Append(CCFLAGS = ["-DPIPES"])
+     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
+ elif getPlatform() == 'darwin':
+     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
+@@ -519,9 +519,9 @@
+ 
+ if getPlatform() == 'win32':
+     if configure.CheckHeader("winsock.h", language = "C"):
+-        commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
++        commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
+ elif configure.CheckHeader("sys/socket.h", language = "C"):
+-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
++    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
+ 
+ if getPlatform() == 'darwin':
+     commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
+@@ -954,7 +954,7 @@
+         pyModule_ = env.Program('_%s.so' % targetName, srcs)
+     else:
+         if  getPlatform() == 'linux':
+-         pyModule_ = env.SharedLibrary('%s' % targetName, srcs, SHLIBPREFIX="_", SHLIBSUFFIX = '.so')
++         pyModule_ = env.SharedLibrary('%s' % targetName, srcs, SHLIBPREFIX="_", SHLIBSUFFIX = ['.so'])
+         else:
+ 	 pyModule_ = env.SharedLibrary('_%s' % targetName, srcs, SHLIBSUFFIX = '.pyd')
+         if getPlatform() == 'win32' and pythonLibs[0] < 'python24':
+@@ -992,7 +992,7 @@
+     '''))
+     csoundWrapperEnvironment = csoundInterfacesEnvironment.Copy()
+     fixCFlagsForSwig(csoundWrapperEnvironment)
+-    csoundWrapperEnvironment.Append(CPPFLAGS = '-D__BUILDING_CSOUND_INTERFACES')
++    csoundWrapperEnvironment.Append(CPPFLAGS = ['-D__BUILDING_CSOUND_INTERFACES'])
+     for option in csoundWrapperEnvironment['CCFLAGS']:
+         if string.find(option, '-D') == 0:
+             csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
+@@ -1407,11 +1407,11 @@
+     # distribution into the csound5/Opcodes/Loris directory, e.g.
+     # csound5/Opcodes/Loris/src/*, etc.
+     lorisEnvironment = pluginEnvironment.Copy()
+-    lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
++    lorisEnvironment.Append(CCFLAGS = ['-DHAVE_FFTW3_H'])
+     if commonEnvironment['buildRelease'] == '0':
+-        lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
++        lorisEnvironment.Append(CCFLAGS = ['-DDEBUG_LORISGENS'])
+     if getPlatform() == 'win32':
+-        lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
++        lorisEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
+     if not withMSVC():
+         lorisEnvironment.Append(CCFLAGS = Split('''
+             -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
+@@ -1474,15 +1474,15 @@
+     ''')
+     stkEnvironment = pluginEnvironment.Copy()
+     if getPlatform() == 'win32':
+-        stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__')
++        stkEnvironment.Append(CCFLAGS = ['-D__OS_WINDOWS__'])
+     elif getPlatform() == 'linux':
+-        stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__')
++        stkEnvironment.Append(CCFLAGS = ['-D__OS_LINUX__'])
+     elif getPlatform() == 'darwin':
+-        stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__')
++        stkEnvironment.Append(CCFLAGS = ['-D__OS_MACOSX__'])
+     if sys.byteorder == 'big':
+-        stkEnvironment.Append(CCFLAGS = '-D__BIG_ENDIAN__')
++        stkEnvironment.Append(CCFLAGS = ['-D__BIG_ENDIAN__'])
+     else:
+-        stkEnvironment.Append(CCFLAGS = '-D__LITTLE_ENDIAN__')
++        stkEnvironment.Append(CCFLAGS = ['-D__LITTLE_ENDIAN__'])
+     stkEnvironment.Prepend(CPPPATH = Split('''
+         Opcodes/stk/include Opcodes/stk/src ./ ./../include
+     '''))
+@@ -1523,7 +1523,7 @@
+         pyEnvironment.Append(LIBS = ['dl', 'm'])
+     elif getPlatform() == 'win32':
+         pyEnvironment['ENV']['PATH'] = os.environ['PATH']
+-        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
++        pyEnvironment.Append(SHLINKFLAGS = ['--no-export-all-symbols'])
+     pythonOpcodes = makePlugin(pyEnvironment, 'py',
+                                ['Opcodes/py/pythonopcodes.c'])
+     if getPlatform() == 'win32' and pythonLibs[0] < 'python24':
+@@ -1713,7 +1713,7 @@
+     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
+     if getPlatform() == 'linux':
+         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
+-        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
++        vstEnvironment.Append(SHLINKFLAGS = ['--no-export-all-symbols'])
+         vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
+         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundVST.so'])
+@@ -2029,7 +2029,7 @@
+ print "...Building csLadspa"
+ csLadspaEnv = commonEnvironment.Copy()
+ csLadspaEnv.Append(LIBS=libCsoundLibs)
+-csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
++csLadspaEnv.Append(CCFLAGS=['-I./frontends/csladspa'])
+ csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp', PREFIX="")
+ Depends(csladspa, csoundLibrary)
+ libs.append(csladspa)
