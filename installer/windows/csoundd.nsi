@@ -569,7 +569,6 @@ skipAssoc:
       File C:\utah\msys\1.0\local\bin\libgthread-2.0-0.dll
     # Opcodes, drivers, and other modules:
     SetOutPath $INSTDIR\${OPCODEDIR_VAL}    
-      File ..\..\LuaCsound.dll
       File ..\..\ampmidid.dll
       File ..\..\chua.dll
       File ..\..\cs_date.dll
@@ -780,6 +779,8 @@ SectionGroup "Csound interfaces"
   SectionGroup "Lua (luajit included)"
     Section "luaCsnd: Lua interface to Csound"
       SectionIn 2 3
+    	SetOutPath $INSTDIR\${OPCODEDIR_VAL}    
+      	File ..\..\LuaCsound.dll
       SetOutPath $INSTDIR\bin
         File C:\utah\opt\luajit\src\lua51.dll
         File C:\utah\opt\luajit\src\luajit.exe
@@ -791,6 +792,8 @@ SectionGroup "Csound interfaces"
     Section "luaCsoundAC: Lua interface to CsoundAC"
       SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\luajit.lnk" "$INSTDIR\bin\luajit.exe" "" "" "" "" "" "Lua JIT shell"
+    	SetOutPath $INSTDIR\${OPCODEDIR_VAL}    
+      	File ..\..\LuaCsound.dll
       SetOutPath $INSTDIR\bin
         File C:\utah\opt\luajit\src\lua51.dll
         File C:\utah\opt\luajit\src\luajit.exe
