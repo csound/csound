@@ -118,6 +118,7 @@
 %nonassoc THEN_TOKEN ITHEN_TOKEN KTHEN_TOKEN ELSE_TOKEN /* NOT SURE IF THIS IS NECESSARY */
 %left '|'
 %left '&'
+%left S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
@@ -128,7 +129,6 @@
 %right S_UMINUS
 %right S_ATAT
 %right S_AT
-%nonassoc S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
 %token S_GOTO
 %token T_HIGHEST
 %pure_parser
@@ -587,18 +587,21 @@ iexp      : iexp '+' iterm   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
             {
                 $$ = make_node(csound,LINE,LOCN, S_UMINUS, NULL, $2);
             }
+          | '-' error
           | '+' iexp %prec S_UMINUS
             {
                 $$ = $2;
             }
-          | '-' error
+          | '+' error
           | iterm               { $$ = $1; }
           ;
 
-iterm     : iterm '*' ifac  { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
+iterm     : iterm '*' ifac    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
           | iterm '*' error
           | iterm '/' ifac    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
           | iterm '/' error
+          | iterm '^' ifac    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
+          | iterm '^' error
           | iterm '%' ifac    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
           | iterm '%' error
           | ifac                { $$ = $1; }
@@ -612,16 +615,21 @@ ifac      : ident               { $$ = $1; }
                              make_leaf(csound, LINE,LOCN,
                                        T_IDENT_T, (ORCTOKEN*)$1), $3);
           }
-          | expr '^' expr        { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
-          | expr '|' expr        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
-          | expr '&' expr        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
-          | expr '#' expr        { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
-          | expr S_BITSHIFT_LEFT expr   
+          | iexp '|' iexp        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
+          | iexp '|' error
+          | iexp '&' iexp        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
+          | iexp '&' error
+          | iexp '#' iexp        { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
+          | iexp '#' error
+          | iexp S_BITSHIFT_LEFT iexp   
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_LEFT, $1, $3); }
-          | expr S_BITSHIFT_RIGHT expr
+          | iexp S_BITSHIFT_LEFT error
+          | iexp S_BITSHIFT_RIGHT iexp
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $3); }
-          | '~' expr %prec S_UMINUS
+          | iexp S_BITSHIFT_RIGHT error
+          | '~' iexp %prec S_UMINUS
             { $$ = make_node(csound, LINE,LOCN, '~', NULL, $2);}
+          | '~' error
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error
           | '(' error
