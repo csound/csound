@@ -275,7 +275,7 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
         return;
       }
       if (UNLIKELY(x->type != T_INSTLIST)) {
-        printf("type %d not T_INSTLIST\n", x->type);
+        csound->DebugMsg(csound,"type %d not T_INSTLIST\n", x->type);
         csound->Die(csound, "Not a proper list of ints");
       }
       csp_orc_sa_instr_add(csound, x->left->value->lexeme);

@@ -327,7 +327,8 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
     int32   ndx;
     int     i, nn, chn, wsized2, warp;
 
-    if (UNLIKELY(p->fdch.fd == NULL)) {
+    if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
+    if(!p->initDone && !p->iSkipInit){
       return csound->PerfError(csound, Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -492,6 +493,9 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
       for (nn = 0; nn < csound->ksmps; nn++)
         p->aOut[chn][nn] *= csound->e0dbfs;
     return OK;
+ file_error:
+    csound->ErrorMsg(csound, "diskin2: file descriptor closed or invalid\n");
+   return NOTOK;
 }
 
 /* -------- soundin opcode: simplified version of diskin2 -------- */
