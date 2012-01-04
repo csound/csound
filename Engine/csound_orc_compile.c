@@ -405,6 +405,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
     int opnum;
     int n;
 
+    /* printf("%d(%d): tree=%p\n", __FILE__, __LINE__, root); */
+    /* print_tree(csound, "create_opcode", root); */
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
 
@@ -449,8 +451,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
         int outcount = tree_arg_list_count(root->left);
         int argcount = 0;
 
-//            csound->Message(csound, "Tree: In Count: %d\n", incount);
-//            csound->Message(csound, "Tree: Out Count: %d\n", outcount);
+        //    csound->Message(csound, "Tree: In Count: %d\n", incount);
+        //    csound->Message(csound, "Tree: Out Count: %d\n", outcount);
 
         size_t m = sizeof(ARGLST) + (incount - 1) * sizeof(char*);
         tp->inlist = (ARGLST*) mrealloc(csound, tp->inlist, m);
@@ -464,7 +466,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
         for (inargs = root->right; inargs != NULL; inargs = inargs->next) {
           /* INARGS */
 
-//                csound->Message(csound, "IN ARG TYPE: %d\n", inargs->type);
+          //      csound->Message(csound, "IN ARG TYPE: %d\n", inargs->type);
 
           arg = inargs->value->lexeme;
 

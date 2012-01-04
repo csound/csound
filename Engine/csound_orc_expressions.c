@@ -33,8 +33,8 @@ extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
 extern int find_opcode(CSOUND *csound, char *opname);
 
-TREE* create_boolean_expression(CSOUND*, TREE*, int);
-TREE * create_expression(CSOUND *, TREE *, int);
+TREE* create_boolean_expression(CSOUND*, TREE*, int, int);
+TREE * create_expression(CSOUND *, TREE *, int, int);
 
 static int genlabs = 300;
 
@@ -283,11 +283,12 @@ static int is_boolean_expression_node(TREE *node)
     return 0;
 }
 
-static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line)
+static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line, int locn)
 {
     char *op = (char*)mmalloc(csound, 4), arg1, arg2, ans, *outarg = NULL;
     char outype;
-    TREE *anchor = create_boolean_expression(csound, root->left, line), *last;
+    TREE *anchor = create_boolean_expression(csound, root->left, line, locn);
+    TREE *last;
     TREE * opTree;
     TREE *b;
     TREE *c = root->right->left, *d = root->right->right;
@@ -297,7 +298,7 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line)
     }
     b= create_ans_token(csound, last->left->value->lexeme);
     if (is_expression_node(c)) {
-      last->next = create_expression(csound, c, line);
+      last->next = create_expression(csound, c, line, locn);
       /* TODO - Free memory of old left node
          freetree */
       last = last->next;
@@ -307,7 +308,7 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line)
       c = create_ans_token(csound, last->left->value->lexeme);
     }
     if (is_expression_node(d)) {
-      last->next = create_expression(csound, d, line);
+      last->next = create_expression(csound, d, line, locn);
       /* TODO - Free memory of old left node
          freetree */
       last = last->next;
@@ -349,7 +350,7 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line)
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
  */
-TREE * create_expression(CSOUND *csound, TREE *root, int line)
+TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
 {
     char *op, arg1, arg2, c, *outarg = NULL;
     TREE *anchor = NULL, *last;
@@ -357,10 +358,10 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
     int opnum;
     /* HANDLE SUB EXPRESSIONS */
 
-    if (root->type=='?') return create_cond_expression(csound, root, line);
+    if (root->type=='?') return create_cond_expression(csound, root, line, locn);
 
     if (is_expression_node(root->left)) {
-      anchor = create_expression(csound, root->left, line);
+      anchor = create_expression(csound, root->left, line, locn);
 
       /* TODO - Free memory of old left node
          freetree */
@@ -372,7 +373,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
     }
 
     if (is_expression_node(root->right)) {
-      TREE * newRight = create_expression(csound, root->right, line);
+      TREE * newRight = create_expression(csound, root->right, line, locn);
       if (anchor == NULL) {
         anchor = newRight;
       }
@@ -514,12 +515,14 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
       opTree->right->next = root->right;
       opTree->left = create_ans_token(csound, outarg);
       opTree->line = line;
+      opTree->locn = locn;
       //print_tree(csound, "making expression", opTree);
     }
     else {
       opTree->right = root->right;
       opTree->left = create_ans_token(csound, outarg);
       opTree->line = line;
+      opTree->locn = locn;
     }
 
     if (anchor == NULL) {
@@ -540,7 +543,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line)
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
  */
-TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line)
+TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn)
 {
     char *op, *outarg;
     TREE *anchor = NULL, *last;
@@ -550,7 +553,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line)
     csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
-      anchor = create_boolean_expression(csound, root->left, line);
+      anchor = create_boolean_expression(csound, root->left, line, locn);
       last = anchor;
       while (last->next != NULL) {
         last = last->next;
@@ -559,7 +562,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line)
          freetree */
       root->left = create_ans_token(csound, last->left->value->lexeme);
     } else if (is_expression_node(root->left)) {
-      anchor = create_expression(csound, root->left, line);
+      anchor = create_expression(csound, root->left, line, locn);
       
       /* TODO - Free memory of old left node
          freetree */
@@ -572,7 +575,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line)
 
     
     if (is_boolean_expression_node(root->right)) {
-      TREE * newRight = create_boolean_expression(csound, root->right, line);
+      TREE * newRight = create_boolean_expression(csound, root->right, line, locn);
       if (anchor == NULL) {
         anchor = newRight;
       }
@@ -593,7 +596,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line)
       root->right = create_ans_token(csound, last->left->value->lexeme);
     }
     else if (is_expression_node(root->right)) {
-      TREE * newRight = create_expression(csound, root->right, line);
+      TREE * newRight = create_expression(csound, root->right, line, locn);
       if (anchor == NULL) {
         anchor = newRight;
       }
@@ -614,6 +617,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line)
          freetree */
       root->right = create_ans_token(csound, last->left->value->lexeme);
       root->line = line;
+      root->locn = locn;
     }
 
     op = mcalloc(csound, 80);
@@ -759,7 +763,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               right->type == GOTO_TOKEN) {
             if (UNLIKELY(PARSER_DEBUG))
               csound->Message(csound, "Found if-goto\n");
-            expressionNodes = create_boolean_expression(csound, left, right->line);
+            expressionNodes =
+              create_boolean_expression(csound, left, right->line, right->locn);
             /* Set as anchor if necessary */
             if (anchor == NULL) {
               anchor = expressionNodes;
@@ -829,7 +834,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               }
 
               expressionNodes =
-                create_boolean_expression(csound, tempLeft, tempLeft->line);
+                create_boolean_expression(csound, tempLeft,
+                                          tempLeft->line, tempLeft->locn);
                             /* Set as anchor if necessary */
               if (ifBlockStart == NULL) {
                 ifBlockStart = expressionNodes;
@@ -968,7 +974,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           expressionNodes =
             ifBlockLast->next = create_boolean_expression(csound,
                                                           ifBlockCurrent->left,
-                                                          ifBlockCurrent->line);
+                                                          ifBlockCurrent->line,
+                                                          ifBlockCurrent->locn);
           while (ifBlockLast->next != NULL) {
             ifBlockLast = ifBlockLast->next;
           }
@@ -1012,16 +1019,33 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         break;
       case LABEL_TOKEN:
         break;
+      case '=':
+        {
+          TREE* currentArg = current->right;
+          TREE* currentAns = current->left;
+          //csound->Message(csound, "Assignment Statement.\n");
+          //print_tree(csound, "Assignment\n", current);
+          if (currentArg->left || currentArg->right) {
+            csound->Message(csound, "expansion case\n");
+            expressionNodes =
+              create_expression(csound, currentArg,
+                                currentArg->line, currentArg->locn);
+            currentArg = expressionNodes;
+            while (currentArg->next) currentArg = currentArg->next;
+            mfree(csound, currentArg->left);
+            currentArg->left = currentAns;
+            currentArg->next = current->next;
+            //print_tree(csound, "becomes\n", expressionNodes);
+            memmove(current, expressionNodes, sizeof(TREE));
+            break;
+          }
+        }
       default:
         { /* This is WRONG in optional argsq */
           TREE* previousArg = NULL;
           TREE* currentArg = current->right;
           if (UNLIKELY(PARSER_DEBUG))
             csound->Message(csound, "Found Statement.\n");
-
-          /* if (current->type == '=') { */
-          /*   //csound->Message(csound, "Assignment Statement.\n"); */
-          /* } */
           while (currentArg != NULL) {
             TREE* last;
             TREE *nextArg;
@@ -1034,11 +1058,13 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 csound->Message(csound, "Found Expression.\n");
               if (is_bool == 0) {
                 expressionNodes =
-                  create_expression(csound, currentArg, currentArg->line);
+                  create_expression(csound, currentArg,
+                                    currentArg->line, currentArg->locn);
               }
               else {
                 expressionNodes =
-                  create_boolean_expression(csound, currentArg, currentArg->line);
+                  create_boolean_expression(csound, currentArg,
+                                            currentArg->line, currentArg->locn);
               }
 
               /* Set as anchor if necessary */
