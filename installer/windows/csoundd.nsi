@@ -584,7 +584,6 @@ skipAssoc:
       File ..\..\mutexops.dll
       File ..\..\osc.dll
       File ..\..\pmidi.dll
-      File ..\..\py.dll
       File ..\..\rtpa.dll
       File ..\..\rtwinmm.dll
       File ..\..\scansyn.dll
@@ -593,7 +592,6 @@ skipAssoc:
       File ..\..\stdutil.dll
       File ..\..\stk.dll
       File ..\..\system_call.dll
-      File ..\..\tclcsound.dll
       File ..\..\virtual.dll
 !ifdef NONFREE
       File ..\..\vst4cs.dll
@@ -719,6 +717,8 @@ SectionGroup "Front ends"
 #   SectionEnd
   Section /o "tclcsound (requires TCL/Tk)"
     SectionIn 2
+    SetOutPath $INSTDIR\${OPCODEDIR_VAL}    
+      File ..\..\tclcsound.dll
     SetOutPath $INSTDIR\bin
       File ..\..\cswish.exe
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cswish.lnk" "$INSTDIR\bin\cswish.exe" "" "" "" "" "" "Csound wish (tcl/tk)"
