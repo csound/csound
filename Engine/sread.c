@@ -336,8 +336,11 @@ static int getscochar(CSOUND *csound, int expand)
     csound->DebugMsg(csound,"%s(%d): character = %c(%.2d)\n", __FILE__, __LINE__, c, c);
 #endif
     if (c == '\r') {    /* can only occur in files, and not in macros */
-      if ((c = corfile_getc(ST(str)->cf)) != '\n')
+      if ((c = corfile_getc(ST(str)->cf)) != '\n') {
+        if (c == EOF)
+          goto top;
         corfile_ungetc(ST(str)->cf);
+      }
       c = '\n';
     }
     if (c == '\n') {
