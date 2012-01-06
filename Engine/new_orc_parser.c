@@ -166,7 +166,7 @@ int new_orc_parser(CSOUND *csound)
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
-      
+
       astTree = verify_tree(csound, astTree);
 #ifdef PARCS
       if (LIKELY(O->numThreads > 1)) {
