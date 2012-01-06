@@ -271,11 +271,16 @@ PUBLIC int csoundScoreExtract(CSOUND *csound,
                               FILE *inFile, FILE *outFile, FILE *extractFile)
 {
     int   err;
-
+    CORFIL *inf = corfile_create_w();
+    int c;
     if ((err = setjmp(csound->exitjmp)) != 0) {
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    scxtract(csound, inFile, outFile, extractFile);
+    while ((c=getc(inFile))!=EOF) corfile_putc(c, inf);
+    corfile_rewind(inf);
+    scxtract(csound, inf, extractFile);
+    while ((c=corfile_getc(csound->scstr))!=EOF)
+      putc(c, outFile);
+    corfile_rm(&csound->scstr);
     return 0;
 }
-
