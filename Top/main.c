@@ -385,24 +385,12 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       }
     }
     if (csound->xfilename != NULL) {            /* optionally extract */
-      if (!strcmp(csound->scorename, "score.xtr"))
-        csoundDie(csound, Str("cannot extract %s, name conflict"),
-                  csound->scorename);
       if (!(xfile = fopen(csound->xfilename, "r")))
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
       csoundNotifyFileOpened(csound, csound->xfilename,
                              CSFTYPE_EXTRACT_PARMS, 0, 0);
-      if (!(scorin = fopen(sortedscore, "r")))
-        csoundDie(csound, Str("cannot reopen %s"), sortedscore);
-      csoundNotifyFileOpened(csound, sortedscore, CSFTYPE_SCORE_OUT,  0,
-                             (csound->tempStatus & csScoSortMask)!=0);
-      if (!(scorout = fopen(xtractedscore, "w")))
-        csoundDie(csound, Str("cannot open %s for writing"), xtractedscore);
-      csoundNotifyFileOpened(csound, xtractedscore, CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("  ... extracting ...\n"));
-      scxtract(csound, scorin, scorout, xfile);
-      fclose(scorin);
-      fclose(scorout);
+      scxtract(csound, csound->scstr, xfile);
       fclose(xfile);
       csound->tempStatus &= ~csPlayScoMask;
     }
