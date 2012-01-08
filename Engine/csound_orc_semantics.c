@@ -46,21 +46,23 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
     TREE* ans;
     double lval, rval;
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
-    //    print_tree(csound, "Verify", root);
+    //print_tree(csound, "Verify", root);
     if (root==NULL) return NULL;
     if (root->right) {
       root->right = verify_tree(csound, root->right);
       if (root->left) {
         root->left= verify_tree(csound, root->left);
-        if ((root->left->type  == INTEGER_TOKEN || root->left->type  == NUMBER_TOKEN) &&
-            (root->right->type == INTEGER_TOKEN || root->right->type == NUMBER_TOKEN)) {
+        if ((root->left->type  == INTEGER_TOKEN ||
+             root->left->type  == NUMBER_TOKEN) &&
+            (root->right->type == INTEGER_TOKEN ||
+             root->right->type == NUMBER_TOKEN)) {
           lval = (root->left->type == INTEGER_TOKEN ?
                   (double)root->left->value->value :root->left->value->fvalue);
           rval = (root->right->type == INTEGER_TOKEN ?
                   (double)root->right->value->value :root->left->value->fvalue);
           ans = root->left;
           ans->type = ans->value->type = NUMBER_TOKEN;
-          /* **** Something wrong here -- subtractuon confuses memory **** */
+          /* **** Something wrong here -- subtraction confuses memory **** */
           switch (root->type) {
           case '+':
             ans->value->fvalue = lval+rval;
