@@ -2142,13 +2142,14 @@ typedef struct pvs2tab_t {
     PVSDAT *fsig;
 } PVS2TAB_T;
 
-int pvs2tab_init(CSOUND *csound, PVS2TAB_T *p){
-  if (UNLIKELY(!(p->fsig->format == PVS_AMP_FREQ) ||
+int pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
+{
+    if (UNLIKELY(!(p->fsig->format == PVS_AMP_FREQ) ||
                  (p->fsig->format == PVS_AMP_PHASE)))
       return csound->InitError(csound, Str("pvs2tab: signal format "
                                            "must be amp-phase or amp-freq."));
-  if (LIKELY(p->ans->data)) return OK;
-  return csound->InitError(csound, Str("t-variable not initialised"));
+    if (LIKELY(p->ans->data)) return OK;
+    return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
 int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
@@ -2169,7 +2170,8 @@ typedef struct tab2pvs_t {
     uint32  lastframe;
 } TAB2PVS_T;
 
-int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p){
+int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
+{
     if (LIKELY(p->in->data)){
       int N;
       p->fout->N = N = p->in->size - 2;

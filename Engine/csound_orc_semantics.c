@@ -41,21 +41,21 @@ void print_tree(CSOUND *, char *, TREE *);
 
 
 /** Verifies and optimise; constant fold and opcodes and args are correct*/
-TREE * verify_tree(CSOUND *csound, TREE *root) 
+static TREE * verify_tree1(CSOUND *csound, TREE *root) 
 {
-    TREE* ans;
+    TREE *ans;
     double lval, rval;
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
     //print_tree(csound, "Verify", root);
-    if (root==NULL) return NULL;
     if (root->right) {
-      root->right = verify_tree(csound, root->right);
+      root->right = verify_tree1(csound, root->right);
       if (root->left) {
-        root->left= verify_tree(csound, root->left);
+        root->left= verify_tree1(csound, root->left);
         if ((root->left->type  == INTEGER_TOKEN ||
              root->left->type  == NUMBER_TOKEN) &&
             (root->right->type == INTEGER_TOKEN ||
              root->right->type == NUMBER_TOKEN)) {
+          //print_tree(csound, "numerical case\n", root);
           lval = (root->left->type == INTEGER_TOKEN ?
                   (double)root->left->value->value :root->left->value->fvalue);
           rval = (root->right->type == INTEGER_TOKEN ?
@@ -120,7 +120,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
                root->right->type == NUMBER_TOKEN) {
         switch (root->type) {
         case S_UMINUS:
-          //print_tree(csound, "root", root);
+          print_tree(csound, "root", root);
           ans = root->right;
           ans->value->fvalue = -(ans->type==INTEGER_TOKEN ? ans->value->value
                                  : ans->value->fvalue);
@@ -138,6 +138,21 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
     return root;
 }
 
+TREE * verify_tree(CSOUND *csound, TREE *root) 
+{
+    TREE *original=root, *last = NULL;
+    while (root) {
+      TREE *xx = verify_tree1(csound, root);
+      if (xx != root) {
+        xx->next = root->next;
+        if (last) last->next = xx;
+        else original = xx;
+      }
+      last = root;
+      root = root->next;
+    }
+    return original;
+}
 
 /* BISON PARSER FUNCTION */
 int csound_orcwrap()
