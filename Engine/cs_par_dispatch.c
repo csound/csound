@@ -209,7 +209,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
     TREE *previous = NULL;
     INSTR_SEMANTICS *instr = NULL;
 
-    while(current != NULL) {
+    while (current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
         instr = csp_orc_sa_instr_get_by_name(csound,
@@ -225,8 +225,9 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
       case IF_TOKEN:
         break;
 
-      default:
-        if (current->type == '=') {
+      case '=':
+        /*if (current->type == '=')*/
+        {
           struct set_t *left = NULL, *right  = NULL;
           left = csp_orc_sa_globals_find(csound, current->left);
           right = csp_orc_sa_globals_find(csound, current->right);
@@ -278,7 +279,8 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
           csp_set_dealloc(csound, &new);
           csp_set_dealloc(csound, &left);
           csp_set_dealloc(csound, &right);
-        }
+       }
+      default:
         break;
       }
 

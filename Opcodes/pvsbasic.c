@@ -2170,37 +2170,38 @@ typedef struct tab2pvs_t {
 } TAB2PVS_T;
 
 int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p){
-  if (LIKELY(p->in->data)){
-    int N;
-    p->fout->N = N = p->in->size - 2;
-    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
-    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
-    p->fout->wintype = (int32) *p->wintype;
-    p->fout->format = 0;
-    p->fout->framecount = 1;
-    p->lastframe = 0;
-   if (p->fout->frame.auxp == NULL || p->fout->frame.size < sizeof(float) * (N + 2)) {
-          csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-     }
+    if (LIKELY(p->in->data)){
+      int N;
+      p->fout->N = N = p->in->size - 2;
+      p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
+      p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
+      p->fout->wintype = (int32) *p->wintype;
+      p->fout->format = 0;
+      p->fout->framecount = 1;
+      p->lastframe = 0;
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < sizeof(float) * (N + 2)) {
+        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+      }
 
-  memset(p->fout->frame.auxp, sizeof(float)*(N+2), 0);
-  return OK;
-  }
-  else return csound->InitError(csound, Str("t-variable not initialised"));
+      memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
+      return OK;
+    }
+    else return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
-int  tab2pvs(CSOUND *csound, TAB2PVS_T *p){
- 
-  int size = p->in->size, i;
-  float *fout = (float *) p->fout->frame.auxp;
+int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
+{
+    int size = p->in->size, i;
+    float *fout = (float *) p->fout->frame.auxp;
   
-  if(p->lastframe < p->fout->framecount){
-    for(i = 0; i < size; i++){
-      fout[i] = (float) p->in->data[i]; 
-    } 
-    p->lastframe = p->fout->framecount;
-  }
-  return OK;
+    if (p->lastframe < p->fout->framecount){
+      for (i = 0; i < size; i++){
+        fout[i] = (float) p->in->data[i]; 
+      } 
+      p->lastframe = p->fout->framecount;
+    }
+    return OK;
 }
 
 
