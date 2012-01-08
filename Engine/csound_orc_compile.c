@@ -751,8 +751,8 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       if (PARSER_DEBUG)
           csound->Message(csound, Str("create_instrument: instr name %s\n"), c);
 
-      if (UNLIKELY(*c == '+')) {
-        insno_priority--; c++;
+      if (UNLIKELY(root->left->rate == (int) '+')) {
+        insno_priority--;
       }
       /* IV - Oct 31 2002: some error checking */
       if (UNLIKELY(!check_instr_name(c))) {
@@ -1041,8 +1041,8 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
                 char *c;
                 c = p->left->value->lexeme;
 
-                if (UNLIKELY(*c == '+')) {
-                  insno_priority--; c++;
+                if (UNLIKELY(p->left->rate == (int) '+')) {
+                  insno_priority--;
                 }
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
@@ -1062,8 +1062,8 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
                 char *c;
                 c = p->value->lexeme;
 
-                if (UNLIKELY(*c == '+')) {
-                  insno_priority--; c++;
+                if (UNLIKELY(p->rate == (int) '+')) {
+                  insno_priority--;
                 }
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
