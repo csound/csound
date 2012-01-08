@@ -212,8 +212,14 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
     while (current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
-        instr = csp_orc_sa_instr_get_by_name(csound,
-                                             current->left->value->lexeme);
+        if (current->left->type == T_INSTLIST) {
+          instr = csp_orc_sa_instr_get_by_name(csound,
+                                               current->left->left->value->lexeme);
+        }
+        else {
+          instr = csp_orc_sa_instr_get_by_name(csound,
+                                               current->left->value->lexeme);
+        }
         if (instr->read_write->count > 0 &&
             instr->read->count == 0 &&
             instr->write->count == 0) {
@@ -427,12 +433,31 @@ void csp_weights_calculate(CSOUND *csound, TREE *root)
     while(current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
-        instr = csp_orc_sa_instr_get_by_name(csound,
-                                             current->left->value->lexeme);
-        /* if (instr->weight == NULL) {
-           instr->weight = instr_weight_info_alloc(csound);
-           } */
-        csp_weights_calculate_instr(csound, current->right, instr);
+        if (current->left->type == T_INSTLIST) {
+          TREE *p =  current->left;
+          while (p) {
+            if (p->left) {
+              instr = csp_orc_sa_instr_get_by_name(csound,
+                                                   p->left->value->lexeme);
+              csp_weights_calculate_instr(csound, current->right, instr);
+            }
+            else {
+              instr = csp_orc_sa_instr_get_by_name(csound,
+                                                   p->value->lexeme);
+              csp_weights_calculate_instr(csound, current->right, instr);
+              break;
+            }
+            p = p->right;
+          }
+        }
+        else {
+          instr = csp_orc_sa_instr_get_by_name(csound,
+                                               current->left->value->lexeme);
+          /* if (instr->weight == NULL) {
+             instr->weight = instr_weight_info_alloc(csound);
+             } */
+          csp_weights_calculate_instr(csound, current->right, instr);
+        }
         break;
 
       default:
