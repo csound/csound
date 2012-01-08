@@ -1238,11 +1238,15 @@ inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
     while (chain != NULL) {
       INSTR_SEMANTICS *current_instr =
         csp_orc_sa_instr_get_by_num(csound, chain->insno);
-      if (current_instr == NULL)
-        csound->Die(csound,
-                    Str("Failed to find semantic information"
-                        " for instrument '%i'"),
-                        chain->insno);
+      if (current_instr == NULL) {
+        current_instr =
+          csp_orc_sa_instr_get_by_name(csound, csound->instrtxtp[chain->insno]->insname);
+        if (current_instr == NULL)
+          csound->Die(csound,
+                      Str("Failed to find semantic information"
+                          " for instrument '%i'"),
+                      chain->insno);
+      }
       csp_dag_add(csound, dag, current_instr, chain);
       dag->weight += current_instr->weight;
       chain = chain->nxtact;
