@@ -1227,12 +1227,12 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                       {
                         outl[i] = ((outlold[i] +
                                     (i<overlapsize ? overlapoldl[i] : 0)) *
-                                   (FL(1.0 - l) / fadebuffer)) +
+                                   (FL(1.0) - FL(l) / fadebuffer)) +
                           ((outl[i] + (i < overlapsize ? overlapl[i] : 0)) *
                            FL(l)/fadebuffer);
                         outr[i] = ((outrold[i] +
                                     (i<overlapsize ? overlapoldr[i] : 0)) *
-                                   (FL(1.0 - l) / fadebuffer)) +
+                                   (FL(1.0) - FL(l) / fadebuffer)) +
                           ((outr[i] + (i < overlapsize ? overlapr[i] : 0)) *
                            FL(l)/fadebuffer);
                         l++;
