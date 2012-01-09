@@ -47,7 +47,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
     double lval, rval;
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
     //print_tree(csound, "Verify", root);
-    if (root->right) {
+    if (root->right && root->right->type != T_INSTLIST) {
       root->right = verify_tree1(csound, root->right);
       if (root->left) {
         root->left= verify_tree1(csound, root->left);
