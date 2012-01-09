@@ -213,6 +213,21 @@ instlist  : INTEGER_TOKEN ',' instlist
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
                                          T_IDENT, (ORCTOKEN *)$1), $3); }
+          | '+' T_IDENT ',' instlist
+              {
+                  TREE *ans;
+                  ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
+                  ans->rate = (int) '+';
+#ifdef PARCS
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$2)->lexeme);
+#endif
+                  $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
+          | '+' T_IDENT
+              {
+                  TREE *ans;
+                  ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
+                  ans->rate = (int) '+';
+                  $$ = ans; }
           | INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
                                            INTEGER_TOKEN, (ORCTOKEN *)$1); }
           | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
