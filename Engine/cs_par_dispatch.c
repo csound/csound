@@ -209,11 +209,17 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
     TREE *previous = NULL;
     INSTR_SEMANTICS *instr = NULL;
 
-    while(current != NULL) {
+    while (current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
-        instr = csp_orc_sa_instr_get_by_name(csound,
-                                             current->left->value->lexeme);
+        if (current->left->type == T_INSTLIST) {
+          instr = csp_orc_sa_instr_get_by_name(csound,
+                                               current->left->left->value->lexeme);
+        }
+        else {
+          instr = csp_orc_sa_instr_get_by_name(csound,
+                                               current->left->value->lexeme);
+        }
         if (instr->read_write->count > 0 &&
             instr->read->count == 0 &&
             instr->write->count == 0) {
@@ -225,8 +231,9 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
       case IF_TOKEN:
         break;
 
-      default:
-        if (current->type == '=') {
+      case '=':
+        /*if (current->type == '=')*/
+        {
           struct set_t *left = NULL, *right  = NULL;
           left = csp_orc_sa_globals_find(csound, current->left);
           right = csp_orc_sa_globals_find(csound, current->right);
@@ -278,7 +285,8 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
           csp_set_dealloc(csound, &new);
           csp_set_dealloc(csound, &left);
           csp_set_dealloc(csound, &right);
-        }
+       }
+      default:
         break;
       }
 
@@ -425,12 +433,31 @@ void csp_weights_calculate(CSOUND *csound, TREE *root)
     while(current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
-        instr = csp_orc_sa_instr_get_by_name(csound,
-                                             current->left->value->lexeme);
-        /* if (instr->weight == NULL) {
-           instr->weight = instr_weight_info_alloc(csound);
-           } */
-        csp_weights_calculate_instr(csound, current->right, instr);
+        if (current->left->type == T_INSTLIST) {
+          TREE *p =  current->left;
+          while (p) {
+            if (p->left) {
+              instr = csp_orc_sa_instr_get_by_name(csound,
+                                                   p->left->value->lexeme);
+              csp_weights_calculate_instr(csound, current->right, instr);
+            }
+            else {
+              instr = csp_orc_sa_instr_get_by_name(csound,
+                                                   p->value->lexeme);
+              csp_weights_calculate_instr(csound, current->right, instr);
+              break;
+            }
+            p = p->right;
+          }
+        }
+        else {
+          instr = csp_orc_sa_instr_get_by_name(csound,
+                                               current->left->value->lexeme);
+          /* if (instr->weight == NULL) {
+             instr->weight = instr_weight_info_alloc(csound);
+             } */
+          csp_weights_calculate_instr(csound, current->right, instr);
+        }
         break;
 
       default:
@@ -1236,11 +1263,15 @@ inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
     while (chain != NULL) {
       INSTR_SEMANTICS *current_instr =
         csp_orc_sa_instr_get_by_num(csound, chain->insno);
-      if (current_instr == NULL)
-        csound->Die(csound,
-                    Str("Failed to find semantic information"
-                        " for instrument '%i'"),
-                        chain->insno);
+      if (current_instr == NULL) {
+        current_instr =
+          csp_orc_sa_instr_get_by_name(csound, csound->instrtxtp[chain->insno]->insname);
+        if (current_instr == NULL)
+          csound->Die(csound,
+                      Str("Failed to find semantic information"
+                          " for instrument '%i'"),
+                      chain->insno);
+      }
       csp_dag_add(csound, dag, current_instr, chain);
       dag->weight += current_instr->weight;
       chain = chain->nxtact;
