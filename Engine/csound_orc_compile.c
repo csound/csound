@@ -751,8 +751,8 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       if (PARSER_DEBUG)
           csound->Message(csound, Str("create_instrument: instr name %s\n"), c);
 
-      if (UNLIKELY(*c == '+')) {
-        insno_priority--; c++;
+      if (UNLIKELY(root->left->rate == (int) '+')) {
+        insno_priority--;
       }
       /* IV - Oct 31 2002: some error checking */
       if (UNLIKELY(!check_instr_name(c))) {
@@ -1033,12 +1033,46 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
             if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);
             if (p->left) {
               //print_tree(csound, "Left\n", p->left);
-              if (p->left->type == INTEGER_TOKEN)
+              if (p->left->type == INTEGER_TOKEN) {
                 insert_instrtxt(csound, instrtxt, p->left->value->value);
+              }
+              else if (p->left->type == T_IDENT) {
+                int32  insno_priority = -1L;
+                char *c;
+                c = p->left->value->lexeme;
+
+                if (UNLIKELY(p->left->rate == (int) '+')) {
+                  insno_priority--;
+                }
+                if (UNLIKELY(!check_instr_name(c))) {
+                  synterr(csound, Str("invalid name for instrument"));
+                }
+                if (UNLIKELY(!named_instr_alloc(csound, c, instrtxt, insno_priority))) {
+                  synterr(csound, Str("instr %s redefined"), c);
+                }
+                instrtxt->insname = c;
+              }
             }
             else {
-              if (p->type == INTEGER_TOKEN)
+              if (p->type == INTEGER_TOKEN) {
                 insert_instrtxt(csound, instrtxt, p->value->value);
+              }
+              else if (p->type == T_IDENT) {
+                int32  insno_priority = -1L;
+                char *c;
+                c = p->value->lexeme;
+
+                if (UNLIKELY(p->rate == (int) '+')) {
+                  insno_priority--;
+                }
+                if (UNLIKELY(!check_instr_name(c))) {
+                  synterr(csound, Str("invalid name for instrument"));
+                }
+                if (UNLIKELY(!named_instr_alloc(csound, c, instrtxt, insno_priority))) {
+                  synterr(csound, Str("instr %s redefined"), c);
+                }
+                instrtxt->insname = c;
+              }
               break;
             }
             p = p->right;
