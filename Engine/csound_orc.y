@@ -539,6 +539,15 @@ label : T_OPCODE    { $$ = (TREE *)$1; }
       | T_IDENT_T   { $$ = (TREE *)$1; }
       | T_IDENT_GT  { $$ = (TREE *)$1; }
       | T_IDENT     { $$ = (TREE *)$1; }
+      | IF_TOKEN    { $$ = (TREE *)$1; }
+      | THEN_TOKEN  { $$ = (TREE *)$1; }
+      | ITHEN_TOKEN { $$ = (TREE *)$1; }
+      | KTHEN_TOKEN { $$ = (TREE *)$1; }
+      | ELSEIF_TOKEN { $$ = (TREE *)$1; }
+      | ENDIF_TOKEN { $$ = (TREE *)$1; }
+      | UNTIL_TOKEN { $$ = (TREE *)$1; }
+      | DO_TOKEN    { $$ = (TREE *)$1; }
+      | OD_TOKEN    { $$ = (TREE *)$1; }
       ;
 
 
