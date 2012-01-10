@@ -43,11 +43,16 @@ void print_tree(CSOUND *, char *, TREE *);
 /** Verifies and optimise; constant fold and opcodes and args are correct*/
 static TREE * verify_tree1(CSOUND *csound, TREE *root) 
 {
-    TREE *ans;
+    TREE *ans, *last;
     double lval, rval;
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
     //print_tree(csound, "Verify", root);
     if (root->right && root->right->type != T_INSTLIST) {
+      last = root->right;
+      while (last->next) {
+        last->next = verify_tree1(csound, last->next);
+        last = last->next;
+      }
       root->right = verify_tree1(csound, root->right);
       if (root->left) {
         root->left= verify_tree1(csound, root->left);
@@ -69,6 +74,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+            ans->next = root->next;
             //Memory leak!! 
             //mfree(csound, root); mfree(csound root->right);
             return ans;
@@ -77,6 +83,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+            ans->next = root->next;
             //Memory leak!! 
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
@@ -85,6 +92,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+            ans->next = root->next;
             //Memory leak!! 
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
@@ -93,6 +101,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+            ans->next = root->next;
             //Memory leak!! 
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
@@ -129,6 +138,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
           sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
           ans->type = ans->value->type = NUMBER_TOKEN;
           //print_tree(csound, "ans", ans);
+          ans->next = root->next;
           return ans;
         default:
           break;
