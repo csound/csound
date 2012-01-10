@@ -611,13 +611,13 @@ iexp      : iexp '+' iterm   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
           | iterm               { $$ = $1; }
           ;
 
-iterm     : iterm '*' ifac    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
+iterm     : iterm '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
           | iterm '*' error
-          | iterm '/' ifac    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
+          | iterm '/' iexp    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
           | iterm '/' error
-          | iterm '^' ifac    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
+          | iterm '^' iexp    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
           | iterm '^' error
-          | iterm '%' ifac    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
+          | iterm '%' iexp    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
           | iterm '%' error
           | ifac                { $$ = $1; }
           ;
