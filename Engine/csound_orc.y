@@ -603,9 +603,9 @@ expr      : bexpr '?' expr ':' expr %prec '?'
           | iexp                { $$ = $1; }
           ;
 
-iexp      : iexp '+' iterm   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
+iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
           | iexp '+' error
-          | iexp '-' iterm  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
+          | iexp '-' iexp  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
           | iexp '-' error
           | '-' iexp %prec S_UMINUS
             {
