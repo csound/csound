@@ -718,17 +718,17 @@ constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
           | STRING_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
                                            STRING_TOKEN, (ORCTOKEN *)$1); }
           | SRATE_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           SRATE_TOKEN, (ORCTOKEN *)$1); }
           | KRATE_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           KRATE_TOKEN, (ORCTOKEN *)$1); }
           | KSMPS_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           KSMPS_TOKEN, (ORCTOKEN *)$1); }
           | NCHNLS_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           NCHNLS_TOKEN, (ORCTOKEN *)$1); }
           | NCHNLSI_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           NCHNLSI_TOKEN, (ORCTOKEN *)$1); }
           | ZERODBFS_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
-                                            NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                            ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
           ;
 
 opcode0   : T_OPCODE0
