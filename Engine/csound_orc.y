@@ -621,14 +621,14 @@ iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
           | iterm               { $$ = $1; }
           ;
 
-iterm     : iterm '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
-          | iterm '*' error
-          | iterm '/' iexp    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
-          | iterm '/' error
-          | iterm '^' iexp    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
-          | iterm '^' error
-          | iterm '%' iexp    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
-          | iterm '%' error
+iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
+          | iexp '*' error
+          | iexp '/' iexp    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
+          | iexp '/' error
+          | iexp '^' iexp    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
+          | iexp '^' error
+          | iexp '%' iexp    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
+          | iexp '%' error
           | ifac                { $$ = $1; }
           ;
 
