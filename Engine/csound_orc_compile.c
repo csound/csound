@@ -403,7 +403,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
     OPTXT *optxt, *retOptxt = NULL;
     char *arg;
     int opnum;
-    int n;
+    int n, nreqd;;
 
     /* printf("%d(%d): tree=%p\n", __FILE__, __LINE__, root); */
     /* print_tree(csound, "create_opcode", root); */
@@ -437,7 +437,18 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
                         "create_opcode: Found node for opcode %s\n",
                         root->value->lexeme);
 
-      opnum = find_opcode(csound, root->value->lexeme);
+      nreqd = tree_arg_list_count(root->left);   /* outcount */
+      /* replace opcode if needed */
+      if (!strcmp(root->value->lexeme, "xin") &&
+          nreqd > OPCODENUMOUTS_LOW) {
+        if (nreqd > OPCODENUMOUTS_HIGH)
+          opnum = find_opcode(csound, ".xin256");
+        else
+          opnum = find_opcode(csound, ".xin64");
+      }
+      else {
+        opnum = find_opcode(csound, root->value->lexeme);
+      }
 
       /* INITIAL SETUP */
       tp->opnum = opnum;
