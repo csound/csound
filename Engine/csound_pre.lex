@@ -68,7 +68,7 @@ MACRO           [a-zA-Z0-9_]+\(
 
 STCOM           \/\*
 INCLUDE         "#include"
-DEFINE          "#define"
+DEFINE          #[ \t]*define
 UNDEF           "#undef"
 IFDEF           #ifn?def
 ELSE            #else[ \t]*(;.*)?$
