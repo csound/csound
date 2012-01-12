@@ -1058,6 +1058,19 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               //print_tree(csound, "current\n", current);
               break;
             }
+            else if (anstype=='k' && argtype=='i') {
+              TREE* opTree = create_opcode_token(csound, "k.i");
+              opTree->right = make_leaf(csound, current->line, current->locn,
+                                        T_IDENT_K, currentArg->left->value);
+              opTree->left = current->left;
+              opTree->line = current->line;
+              opTree->locn = current->locn;
+              opTree->next = current->next;
+              currentArg->next = opTree;
+              memmove(current, expressionNodes, sizeof(TREE));
+              //print_tree(csound, "current\n", current);
+              break;
+            }
             else {
               mfree(csound, currentArg->left);
               currentArg->left = currentAns;
