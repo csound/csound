@@ -218,7 +218,7 @@ CONT            \\[ \t]*(;.*)?\n
                                      PARM->macro_stack_ptr);
                      exit(1);
                    }
-                   PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
+                   PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -277,7 +277,7 @@ CONT            \\[ \t]*(;.*)?\n
                      PARM->macros = nn;
                    }
                    csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
-                   PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
+                   PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
