@@ -115,7 +115,7 @@ static int read_midi_callback(CSOUND *cs, void *userData, unsigned char *mbuf, i
 static int close_midi_callback(CSOUND *cs, void *userData);
 
 static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_floatarg f);
-static void csoundapi_tabget(t_csoundapi *x, t_symbol *tab, t_floatarg f);
+static void csoundapi_tabget(t_csoundapi *x, t_floatarg f, t_symbol *tab);
 
 
 PUBLIC void csoundapi_tilde_setup(void)
@@ -146,7 +146,7 @@ PUBLIC void csoundapi_tilde_setup(void)
       gensym("chnset"), A_GIMME, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_mess, gensym("messages"), A_DEFFLOAT, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_tabset, gensym("tabset"), A_SYMBOL, A_DEFFLOAT, 0);
-  class_addmethod(csoundapi_class, (t_method) csoundapi_tabget, gensym("tabget"), A_SYMBOL, A_DEFFLOAT, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_tabget, gensym("tabget"),  A_DEFFLOAT, A_SYMBOL, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_midi, gensym("midi"), A_GIMME, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_noteon, gensym("noteon"), A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_noteoff, gensym("noteoff"), A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);
@@ -519,7 +519,7 @@ static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_floatarg f)
   } else post("csoundapi~: csound table %d not found \n", (int) f);
 }
 
-static void csoundapi_tabget(t_csoundapi *x, t_symbol *tab, t_floatarg f)
+static void csoundapi_tabget(t_csoundapi *x,  t_floatarg f, t_symbol *tab)
 {
   t_garray *pdarray;
   MYFLT    *cstable;
