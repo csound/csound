@@ -258,9 +258,13 @@ instrdecl : INSTR_TOKEN
                 }
           ;
 
+udoname   : T_IDENT    { $$ = (TREE *)$1; }
+          | T_OPCODE   { $$ = (TREE *)$1; }
+          | T_OPCODE0  { $$ = (TREE *)$1; }
+
 udodecl   : UDOSTART_DEFINITION
                                                 { udoflag = -2; }
-                  T_IDENT
+                  udoname
                                                 { udoflag = -1; }
                   ','
                                                 { udoflag = 0;}
@@ -539,6 +543,16 @@ label : T_OPCODE    { $$ = (TREE *)$1; }
       | T_IDENT_T   { $$ = (TREE *)$1; }
       | T_IDENT_GT  { $$ = (TREE *)$1; }
       | T_IDENT     { $$ = (TREE *)$1; }
+      | IF_TOKEN    { $$ = (TREE *)$1; }
+      | THEN_TOKEN  { $$ = (TREE *)$1; }
+      | ITHEN_TOKEN { $$ = (TREE *)$1; }
+      | KTHEN_TOKEN { $$ = (TREE *)$1; }
+      | ELSEIF_TOKEN { $$ = (TREE *)$1; }
+      | ENDIF_TOKEN { $$ = (TREE *)$1; }
+      | UNTIL_TOKEN { $$ = (TREE *)$1; }
+      | DO_TOKEN    { $$ = (TREE *)$1; }
+      | OD_TOKEN    { $$ = (TREE *)$1; }
+      | INTEGER_TOKEN { $$ = (TREE *)$1; }
       ;
 
 
@@ -594,9 +608,9 @@ expr      : bexpr '?' expr ':' expr %prec '?'
           | iexp                { $$ = $1; }
           ;
 
-iexp      : iexp '+' iterm   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
+iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
           | iexp '+' error
-          | iexp '-' iterm  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
+          | iexp '-' iexp  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
           | iexp '-' error
           | '-' iexp %prec S_UMINUS
             {
@@ -611,14 +625,14 @@ iexp      : iexp '+' iterm   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
           | iterm               { $$ = $1; }
           ;
 
-iterm     : iterm '*' ifac    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
-          | iterm '*' error
-          | iterm '/' ifac    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
-          | iterm '/' error
-          | iterm '^' ifac    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
-          | iterm '^' error
-          | iterm '%' ifac    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
-          | iterm '%' error
+iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
+          | iexp '*' error
+          | iexp '/' iexp    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
+          | iexp '/' error
+          | iexp '^' iexp    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
+          | iexp '^' error
+          | iexp '%' iexp    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
+          | iexp '%' error
           | ifac                { $$ = $1; }
           ;
 
@@ -709,17 +723,17 @@ constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
           | STRING_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
                                            STRING_TOKEN, (ORCTOKEN *)$1); }
           | SRATE_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           SRATE_TOKEN, (ORCTOKEN *)$1); }
           | KRATE_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           KRATE_TOKEN, (ORCTOKEN *)$1); }
           | KSMPS_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           KSMPS_TOKEN, (ORCTOKEN *)$1); }
           | NCHNLS_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           NCHNLS_TOKEN, (ORCTOKEN *)$1); }
           | NCHNLSI_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                           NCHNLSI_TOKEN, (ORCTOKEN *)$1); }
           | ZERODBFS_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
-                                            NUMBER_TOKEN, (ORCTOKEN *)$1); }
+                                            ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
           ;
 
 opcode0   : T_OPCODE0

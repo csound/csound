@@ -77,7 +77,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
-LABEL           ^[ \t]*[a-zA-Z_][a-zA-Z0-9_]*:
+LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 INTGR           [0-9]+
@@ -137,16 +137,36 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "~"             { return '~'; }
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
-"if"            { return IF_TOKEN; }
-"then"          { return THEN_TOKEN; }
-"ithen"         { return ITHEN_TOKEN; }
-"kthen"         { return KTHEN_TOKEN; }
-"elseif"        { return ELSEIF_TOKEN; }
-"else"          { return ELSE_TOKEN; }
-"endif"         { return ENDIF_TOKEN; }
-"until"         { return UNTIL_TOKEN; }
-"do"            { return DO_TOKEN; }
-"od"            { return OD_TOKEN; }
+"if"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = IF_TOKEN;
+                  return IF_TOKEN; }
+"then"          { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = THEN_TOKEN;
+                  return THEN_TOKEN; }
+"ithen"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ITHEN_TOKEN;
+                  return ITHEN_TOKEN; }
+"kthen"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = KTHEN_TOKEN;
+                  return KTHEN_TOKEN; }
+"elseif"        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ELSEIF_TOKEN;
+                  return ELSEIF_TOKEN; }
+"else"          { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ELSE_TOKEN;
+                  return ELSE_TOKEN; }
+"endif"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ENDIF_TOKEN;
+                  return ENDIF_TOKEN; }
+"until"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = UNTIL_TOKEN;
+                  return UNTIL_TOKEN; }
+"do"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = DO_TOKEN;
+                  return DO_TOKEN; }
+"od"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = OD_TOKEN;
+                  return OD_TOKEN; }
 
 "goto"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = GOTO_TOKEN;
