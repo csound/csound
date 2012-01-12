@@ -1068,7 +1068,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               opTree->next = current->next;
               currentArg->next = opTree;
               memmove(current, expressionNodes, sizeof(TREE));
-              print_tree(csound, "current\n", current);
+              //print_tree(csound, "current\n", current);
               break;
             }
             else {
