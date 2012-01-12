@@ -114,8 +114,8 @@ static int open_midi_callback(CSOUND *cs, void **userData, const char *dev);
 static int read_midi_callback(CSOUND *cs, void *userData, unsigned char *mbuf, int nbytes);
 static int close_midi_callback(CSOUND *cs, void *userData);
 
-static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_floatarg f);
-static void csoundapi_tabget(t_csoundapi *x, t_floatarg f, t_symbol *tab);
+static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_float f);
+static void csoundapi_tabget(t_csoundapi *x, t_symbol *tab, t_float f);
 
 
 PUBLIC void csoundapi_tilde_setup(void)
@@ -145,8 +145,8 @@ PUBLIC void csoundapi_tilde_setup(void)
   class_addmethod(csoundapi_class, (t_method) csoundapi_set_channel,
       gensym("chnset"), A_GIMME, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_mess, gensym("messages"), A_DEFFLOAT, 0);
-  class_addmethod(csoundapi_class, (t_method) csoundapi_tabset, gensym("tabset"), A_SYMBOL, A_DEFFLOAT, 0);
-  class_addmethod(csoundapi_class, (t_method) csoundapi_tabget, gensym("tabget"),  A_DEFFLOAT, A_SYMBOL, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_tabset, gensym("tabset"), A_DEFSYMBOL, A_DEFFLOAT, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_tabget, gensym("tabget"),  A_DEFSYMBOL, A_DEFFLOAT, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_midi, gensym("midi"), A_GIMME, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_noteon, gensym("noteon"), A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);
   class_addmethod(csoundapi_class, (t_method) csoundapi_noteoff, gensym("noteoff"), A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);
@@ -496,7 +496,7 @@ static void csoundapi_run(t_csoundapi *x, t_floatarg f)
   post("csoundapi~ run: %d", x->run);
 }
 
-static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_floatarg f)
+static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_float f)
 {
   t_garray *pdarray;
   MYFLT    *cstable;
@@ -504,7 +504,7 @@ static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_floatarg f)
   int   cstabsize, i, size;
   int   pdarraysize;
   cstabsize = csoundGetTable(x->csound, &cstable, (int) f);
-  if(cstabsize > 0) {
+  if(cstabsize != -1) {
     pdarray =  (t_garray *) pd_findbyclass(tab, garray_class);
     if( pdarray != NULL) {
     garray_getfloatarray(pdarray, &pdarraysize, &pdarray_vec);;  
@@ -519,7 +519,7 @@ static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_floatarg f)
   } else post("csoundapi~: csound table %d not found \n", (int) f);
 }
 
-static void csoundapi_tabget(t_csoundapi *x,  t_floatarg f, t_symbol *tab)
+static void csoundapi_tabget(t_csoundapi *x,  t_symbol *tab, t_float f)
 {
   t_garray *pdarray;
   MYFLT    *cstable;
@@ -527,13 +527,15 @@ static void csoundapi_tabget(t_csoundapi *x,  t_floatarg f, t_symbol *tab)
   int   cstabsize, i, size;
   int   pdarraysize;
   cstabsize = csoundGetTable(x->csound, &cstable, (int) f);
-  if(cstabsize > 0) {
+  if(cstabsize != -1) {
     pdarray =  (t_garray *) pd_findbyclass(tab, garray_class);
     if( pdarray != NULL) {
     garray_getfloatarray(pdarray, &pdarraysize, &pdarray_vec);
     size = cstabsize <= pdarraysize ? cstabsize : pdarraysize;
     for(i = 0; i < size; i++) 
       pdarray_vec[i] = (t_float) cstable[i];
+
+    garray_redraw(pdarray);
     }
     else {
       post ("csoundapi~: could not find array\n"); 
