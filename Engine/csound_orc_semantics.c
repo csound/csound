@@ -64,7 +64,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
           lval = (root->left->type == INTEGER_TOKEN ?
                   (double)root->left->value->value :root->left->value->fvalue);
           rval = (root->right->type == INTEGER_TOKEN ?
-                  (double)root->right->value->value :root->left->value->fvalue);
+                  (double)root->right->value->value :root->right->value->fvalue);
           ans = root->left;
           ans->type = ans->value->type = NUMBER_TOKEN;
           /* **** Something wrong here -- subtraction confuses memory **** */
