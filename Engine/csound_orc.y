@@ -258,9 +258,13 @@ instrdecl : INSTR_TOKEN
                 }
           ;
 
+udoname   : T_IDENT    { $$ = (TREE *)$1; }
+          | T_OPCODE   { $$ = (TREE *)$1; }
+          | T_OPCODE0  { $$ = (TREE *)$1; }
+
 udodecl   : UDOSTART_DEFINITION
                                                 { udoflag = -2; }
-                  T_IDENT
+                  udoname
                                                 { udoflag = -1; }
                   ','
                                                 { udoflag = 0;}
