@@ -77,7 +77,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
-LABEL           ^[ \t]*[a-zA-Z_][a-zA-Z0-9_]*:
+LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 INTGR           [0-9]+
