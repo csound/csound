@@ -554,11 +554,20 @@ if(BUILD_NEW_PARSER)
     set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.l)
     set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 
+    set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
+    set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
+
     add_custom_command(
         SOURCE ${LEX_SRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -Pcsound_orc -o${LEX_OUT} ${LEX_SRC}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT} 
         TARGET NewParser
         OUTPUTS ${LEX_OUT})
+
+    add_custom_command(
+        SOURCE ${PRELEX_SRC}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SRC} > ${PRELEX_OUT} 
+        TARGET NewParser
+        OUTPUTS ${PRELEX_OUT})
 
     add_custom_command(
         SOURCE ${YACC_SRC}
@@ -569,7 +578,7 @@ if(BUILD_NEW_PARSER)
         OUTPUTS ${YACC_OUT})
     
     list(APPEND libcsound_SRCS 
-                ${LEX_OUT} ${YACC_OUT}
+                ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
                 Engine/csound_orc_semantics.c
                 Engine/csound_orc_expressions.c
                 Engine/csound_orc_optimize.c
