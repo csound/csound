@@ -511,7 +511,6 @@ static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_float f)
     size = cstabsize <= pdarraysize ? cstabsize : pdarraysize;
     for(i = 0; i < size; i++) {
       cstable[i] = (MYFLT) pdarray_vec[i].w_float;
-    post("[%d] %f \n", i, pdarray_vec[i]);
     }
     }
     else {
