@@ -105,17 +105,30 @@ CONT            \\[ \t]*(;.*)?\n
 {STCOM}         { do_comment(yyscanner); }
 {STRCONST}      { corfile_puts(yytext, csound->expanded_orc); }
 {MACRONAME}     {
-                   MACRO     *mm = PARM->macros;
+                   MACRO     *mm, *mfound;
+                   int       i, len, mlen;
                    //print_csound_predata(csound, "Macro call", yyscanner);
-                   while (mm != NULL) {  /* Find the definition */
-                     if (!(strcmp(yytext+1, mm->name)))
-                       break;
-                     mm = mm->next;
+                   len = strlen(yytext)-1;
+                   mlen = 0;
+                   for (i=len; i>0; i--) { /* Find the definition */
+                     mm = PARM->macros;
+                     while (mm != NULL) {
+                       if (!(strncmp(yytext+1, mm->name, i))) {
+                         mfound = mm;
+                         mlen = i;
+                         if (strlen(mm->name) == mlen)
+                           goto cont;
+                       }
+                       mm = mm->next;
+                     }
                    }
+                   cont:
+                   mm = mfound;
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
                    }
+                   if (mlen<len) yyless(mlen+1);
                    /* Need to read from macro definition */
                    /* csound->DebugMsg(csound, "found macro %s\nstack ptr = %d\n", */
                    /*         yytext+1, PARM->macro_stack_ptr); */
@@ -218,7 +231,7 @@ CONT            \\[ \t]*(;.*)?\n
                                      PARM->macro_stack_ptr);
                      exit(1);
                    }
-                   PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
+                   PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -277,7 +290,7 @@ CONT            \\[ \t]*(;.*)?\n
                      PARM->macros = nn;
                    }
                    csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
-                   PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
+                   PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =

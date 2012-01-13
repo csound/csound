@@ -73,6 +73,7 @@ static  NAME    *lclnamset(CSOUND *, char *);
 static  void    delete_global_namepool(CSOUND *);
 static  void    delete_local_namepool(CSOUND *);
 static  int     pnum(char *s) ;
+static  int     lgexist2(CSOUND *csound, const char *s);
 
 extern void     print_tree(CSOUND *, char *, TREE *);
 
@@ -377,12 +378,12 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
       if (tfound == 'S' && n < 31)
         tp->xoutcod_str |= (1 << n);
       csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
-      if (tfound_m & ARGTYP_w)
-        if (ST(lgprevdef)) {
-          synterr(csound, Str("output name previously used, "
-                              "type '%c' must be uniquely defined, line %d"),
-                  tfound, line);
-        }
+      /* if (tfound_m & ARGTYP_w) */
+      /*   if (ST(lgprevdef)) { */
+      /*     synterr(csound, Str("output name previously used, " */
+      /*                         "type '%c' must be uniquely defined, line %d"), */
+      /*             tfound, line); */
+      /*   } */
       /* IV - Oct 31 2002: simplified code */
       if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
         synterr(csound, Str("output arg '%s' illegal type (for opcode %s),"
@@ -511,6 +512,12 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
             if (n > ip->pmax)  ip->pmax = n;
           }
           else {
+            if (arg[0] == 'w' &&
+                lgexist2(csound, arg) != 0) {
+              synterr(csound, Str("output name previously used, "
+                                  "type 'w' must be uniquely defined, line %d"),
+                      root->line);
+            }
             lgbuild(csound, arg, 0);
           }
 
