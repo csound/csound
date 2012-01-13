@@ -500,17 +500,19 @@ static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_float f)
 {
   t_garray *pdarray;
   MYFLT    *cstable;
-  t_float *pdarray_vec;
+  t_word *pdarray_vec;
   int   cstabsize, i, size;
   int   pdarraysize;
   cstabsize = csoundGetTable(x->csound, &cstable, (int) f);
   if(cstabsize != -1) {
     pdarray =  (t_garray *) pd_findbyclass(tab, garray_class);
     if( pdarray != NULL) {
-    garray_getfloatarray(pdarray, &pdarraysize, &pdarray_vec);;  
+    garray_getfloatwords(pdarray, &pdarraysize, &pdarray_vec);  
     size = cstabsize <= pdarraysize ? cstabsize : pdarraysize;
-    for(i = 0; i < size; i++) 
-      cstable[i] = (MYFLT) pdarray_vec[i];
+    for(i = 0; i < size; i++) {
+      cstable[i] = (MYFLT) pdarray_vec[i].w_float;
+    post("[%d] %f \n", i, pdarray_vec[i]);
+    }
     }
     else {
       post ("csoundapi~: could not find array\n"); 
@@ -523,19 +525,18 @@ static void csoundapi_tabget(t_csoundapi *x,  t_symbol *tab, t_float f)
 {
   t_garray *pdarray;
   MYFLT    *cstable;
-  t_float *pdarray_vec;
+  t_word *pdarray_vec;
   int   cstabsize, i, size;
   int   pdarraysize;
   cstabsize = csoundGetTable(x->csound, &cstable, (int) f);
   if(cstabsize != -1) {
     pdarray =  (t_garray *) pd_findbyclass(tab, garray_class);
     if( pdarray != NULL) {
-    garray_getfloatarray(pdarray, &pdarraysize, &pdarray_vec);
+    garray_getfloatwords(pdarray, &pdarraysize, &pdarray_vec);
     size = cstabsize <= pdarraysize ? cstabsize : pdarraysize;
     for(i = 0; i < size; i++) 
-      pdarray_vec[i] = (t_float) cstable[i];
-
-    garray_redraw(pdarray);
+      pdarray_vec[i].w_float = (t_float) cstable[i];
+      garray_redraw(pdarray);
     }
     else {
       post ("csoundapi~: could not find array\n"); 
