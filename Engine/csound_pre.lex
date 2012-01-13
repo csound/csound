@@ -105,17 +105,24 @@ CONT            \\[ \t]*(;.*)?\n
 {STCOM}         { do_comment(yyscanner); }
 {STRCONST}      { corfile_puts(yytext, csound->expanded_orc); }
 {MACRONAME}     {
-                   MACRO     *mm = PARM->macros;
+                   MACRO     *mm;
+                   int       i, len;
                    //print_csound_predata(csound, "Macro call", yyscanner);
-                   while (mm != NULL) {  /* Find the definition */
-                     if (!(strcmp(yytext+1, mm->name)))
-                       break;
-                     mm = mm->next;
+                   len = strlen(yytext)-1;
+                   for (i=len; i>0; i--) { /* Find the definition */
+                     mm = PARM->macros;
+                     while (mm != NULL) {
+                       if (!(strncmp(yytext+1, mm->name, i)))
+                         goto cont;
+                       mm = mm->next;
+                     }
                    }
+                   cont:
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
                    }
+                   if (i<len) yyless(i+1);
                    /* Need to read from macro definition */
                    /* csound->DebugMsg(csound, "found macro %s\nstack ptr = %d\n", */
                    /*         yytext+1, PARM->macro_stack_ptr); */
