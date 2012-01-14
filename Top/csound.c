@@ -1602,7 +1602,8 @@ extern "C" {
           TRACE_1("[%i] Barrier2 Done\n", 0);
           TIMER_END(thread, "");
 
-#if !defined(LINEAR_CACHE) && !defined(HASH_CACHE)
+/* #if !defined(LINEAR_CACHE) && !defined(HASH_CACHE) */
+#if defined(LINEAR_CACHE) || defined(HASH_CACHE)
             csp_dag_dealloc(csound, &dag2);
 #else
           dag2 = NULL;
