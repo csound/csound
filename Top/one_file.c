@@ -532,13 +532,13 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
-static int createSample(CSOUND *csound, FILE *unf)
+static int createSample(CSOUND *csound, char *buffer, FILE *unf)
 {
     int   num;
     FILE  *smpf;
     void  *fd;
     char  sampname[256];
-    char  buffer[CSD_MAX_LINE_LEN];
+    /* char  buffer[CSD_MAX_LINE_LEN]; */
 
     sscanf(buffer, "<CsSampleB filename=\"%d\">", &num);
     sprintf(sampname, "soundin.%d", num);
@@ -567,12 +567,12 @@ static int createSample(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
-static int createFile(CSOUND *csound, FILE *unf)
+static int createFile(CSOUND *csound, char *buffer, FILE *unf)
 {
     FILE  *smpf;
     void  *fd;
     char  filename[256];
-    char  buffer[CSD_MAX_LINE_LEN];
+    /* char  buffer[CSD_MAX_LINE_LEN]; */
     char *p = buffer, *q;
 
     filename[0] = '\0';
@@ -783,11 +783,11 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         result = r && result;
       }
       else if (strstr(p, "<CsSampleB filename=") == p) {
-        r = createSample(csound, unf);
+        r = createSample(csound, buffer,unf);
         result = r && result;
       }
       else if (strstr(p, "<CsFileB filename=") == p) {
-        r = createFile(csound, unf);
+        r = createFile(csound, buffer, unf);
         result = r && result;
       }
       else if (strstr(p, "<CsVersion>") == p) {
