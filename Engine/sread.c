@@ -904,6 +904,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           if (ST(str)->fd != NULL) {
             csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
           }
+          corfile_rm(&(ST(str)->cf));
           ST(str)--; ST(input_cnt)--;
         }
         if (ST(repeat_cnt) != 0) {
@@ -1014,6 +1015,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             if (ST(str)->fd != NULL) {
               csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
             }
+            corfile_rm(&(ST(str)->cf));
             ST(str)--; ST(input_cnt)--;
           }
           /* last time thru an 'r', cleanup up 'r' before finishing 'n' */
@@ -1147,7 +1149,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             }
             ST(str)++;
             ST(str)->is_marked_repeat = 1;
-            ST(str)->cf = copy_to_corefile(csound, ST(names)[i].file, NULL, 1);
+            /* ST(str)->cf = copy_to_corefile(csound, ST(names)[i].file, NULL, 1); */
+            ST(str)->cf = corfile_create_r(ST(names)[i].file);
 //            ST(str)->cf = corfile_create_r(csound->GetFileName(ST(str)->fd));
             ST(str)->line = ST(names)[i].line;
             corfile_set(ST(str)->cf, ST(names)[i].posit);
