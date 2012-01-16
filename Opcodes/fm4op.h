@@ -65,7 +65,7 @@ typedef struct FM4OP {
     MYFLT       *control1, *control2, *modDepth; /* Control1 doubles as vowel */
     MYFLT       *vibFreq;
     MYFLT       *ifn0, *ifn1, *ifn2, *ifn3, *vifn;
-
+    MYFLT       *opt;
     ADSR        adsr[4];
     FUNC        *waves[4];
     MYFLT       w_rate[4];         /* Parameters for vibrato */
