@@ -974,9 +974,9 @@ static int gen15(FGDATA *ff, FUNC *ftp)
       *sinp++ = h * SIN(angle);  /* and save the sine */
     }
     nargs -= nh;
+    ff->e.pcnt = (int16)(nargs + 4);            /* added by F. Pinot 16-01-2012 */
     if (gen13(ff, ftp) != OK)                   /* call gen13   */
       return NOTOK;
-    ftresdisp(ff, ftp);                         /* and display fno   */
     lp13 = (void*) ftp;
     ff->fno++;                                  /* alloc eq. space for fno+1 */
     ftp = ftalloc(ff);                          /* & copy header */
@@ -997,8 +997,13 @@ static int gen15(FGDATA *ff, FUNC *ftp)
       }
     }
     nargs--;
+    ff->e.pcnt = (int16)(nargs + 4);            /* added by F. Pinot 16-01-2012 */
     free(hsin);
-    return gen14(ff, ftp);                      /* now draw ftable   */
+    n = gen14(ff, ftp);                         /* now draw ftable   */
+    ftresdisp(ff, ftp);                         /* added by F. Pinot 16-01-2012 */
+    ff->fno--;                                  /* F. Pinot, the first function table */
+                                                /* is scaled and displayed by hfgens */
+    return n;
 }
 
 static int gen16(FGDATA *ff, FUNC *ftp)
