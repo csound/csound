@@ -114,7 +114,7 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
     p->tablen = ftp->flen;
     p->xmode = (int) *p->ixmode;
     if (p->xmode)
-      p->xbmul = (MYFLT) ftp->flen;
+      p->xbmul = (MYFLT) ftp->flen - FL(0.001);
     else
       p->xbmul = FL(1.0);
     return OK;
