@@ -420,7 +420,7 @@ int voicform(CSOUND *csound, VOICF *p)
       lastOutput *= p->lastGain;
       //      printf("%f ", lastOutput);
       //      printf("->%f\n", lastOutput* AMP_SCALE);
-      ar[n] = lastOutput * FL(0.22) * AMP_SCALE;
+      ar[n] = lastOutput * FL(0.22) * AMP_SCALE * *p->amp;
     }
 
     return OK;
