@@ -114,7 +114,7 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
     p->tablen = ftp->flen;
     p->xmode = (int) *p->ixmode;
     if (p->xmode)
-      p->xbmul = (MYFLT) ftp->flen - FL(0.001);
+      p->xbmul = (MYFLT) p->tablen /*- FL(0.001)*/;
     else
       p->xbmul = FL(1.0);
     return OK;
@@ -129,7 +129,7 @@ static int fastabw(CSOUND *csound, FASTAB *p)
       MYFLT xbmul = p->xbmul;   /* load once */
       for (n=0; n<nsmps; n++)  { /* for loops compile better */
         int i = (int)(ndx[n]*xbmul);
-        if (UNLIKELY(i >= p->tablen || i<0)) {
+        if (UNLIKELY(i > p->tablen || i<0)) {
           csound->Message(csound, "ndx: %f \n", ndx[n]);
           return csound->PerfError(csound, Str("tabw off end"));
         }
@@ -139,7 +139,7 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     else {
       for (n=0; n<nsmps; n++) {
         int i = ndx[n];
-        if (UNLIKELY(i >= p->tablen || i<0)) {
+        if (UNLIKELY(i > p->tablen || i<0)) {
           return csound->PerfError(csound, Str("tabw off end"));
         }
         tab[i] = rslt[n];
@@ -155,7 +155,7 @@ static int fastabk(CSOUND *csound, FASTAB *p)
       i = (int) (*p->xndx * p->xbmul);
     else
       i = (int) *p->xndx;
-    if (UNLIKELY(i >= p->tablen || i<0)) {
+    if (UNLIKELY(i > p->tablen || i<0)) {
       return csound->PerfError(csound, Str("tab off end"));
     }
     *p->rslt =  p->table[i];
@@ -169,7 +169,7 @@ static int fastabkw(CSOUND *csound, FASTAB *p)
       i = (int) (*p->xndx * p->xbmul);
     else
       i = (int) *p->xndx;
-    if (UNLIKELY(i >= p->tablen || i<0)) {
+    if (UNLIKELY(i > p->tablen || i<0)) {
       return csound->PerfError(csound, Str("tabw off end"));
     }
     p->table[i] = *p->rslt;
@@ -223,7 +223,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
       MYFLT xbmul = p->xbmul;
       for (i=0; i<nsmps; i++) {
         int n = (int) (ndx[i] * xbmul);
-        if (UNLIKELY(n >= p->tablen || n<0)) {
+        if (UNLIKELY(n > p->tablen || n<0)) {
           return csound->PerfError(csound, Str("tab off end"));
         }
         rslt[i] = tab[n];
@@ -232,7 +232,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
     else {
       for (i=0; i<nsmps; i++) {
         int n = (int) ndx[i];
-        if (UNLIKELY(n >= p->tablen || n<0)) {
+        if (UNLIKELY(n > p->tablen || n<0)) {
           return csound->PerfError(csound, Str("tab off end"));
         }
         rslt[i] = tab[n];
