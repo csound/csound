@@ -654,13 +654,7 @@ extern "C" {
       1,            /*    numThreads        */
       0,            /*    syntaxCheckOnly   */
       1,            /*    useCsdLineCounts  */
-#if defined(PARCS) ||  defined(ENABLE_NEW_PARSER)
-#ifdef BETA
       1,            /*    newParser   */
-#else
-      0,            /*    newParser   */
-#endif
-#endif
       0,            /*    calculateWeights   */
     },
     0L, 0L,         /*  instxtcount, optxtsize  */
