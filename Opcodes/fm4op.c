@@ -258,6 +258,7 @@ MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 int tubebellset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    MYFLT       opt = *p->opt;
 
     if (UNLIKELY(make_FM4Op(csound,p))) return NOTOK;
     if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK; /* 4 x "rawwaves/sinewave.raw" */
@@ -270,10 +271,11 @@ int tubebellset(CSOUND *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[76];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[71];
-    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.005), FL(4.0), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.005), FL(4.0), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.001), FL(2.0), FL(0.0), FL(0.04));
-    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.004), FL(4.0), FL(0.0), FL(0.04));
+    if (opt<= FL(0.0)) opt = FL(4.0);
+    ADSR_setAllTimes(csound, &p->adsr[0], FL(0.005), opt, FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[1], FL(0.005), opt, FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[2], FL(0.001),FL(0.5)*opt,FL(0.0), FL(0.04));
+    ADSR_setAllTimes(csound, &p->adsr[3], FL(0.004), opt, FL(0.0), FL(0.04));
     /*      ADSR_setAll(csound, &p->adsr[0], 0.03f,0.00001f,FL(0.0),0.02f); */
     /*      ADSR_setAll(csound, &p->adsr[1], 0.03f,0.00001f,FL(0.0),0.02f); */
     /*      ADSR_setAll(csound, &p->adsr[2], 0.07f,0.00002f,FL(0.0),0.02f); */

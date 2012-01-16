@@ -927,7 +927,7 @@ static OENTRY physmod_localops[] = {
 { "wgbrass", S(BRASS), TR|5, "a", "kkkikkio", (SUBR)brassset, NULL,     (SUBR)brass},
 { "mandol", S(MANDOL), TR|5, "a", "kkkkkkio", (SUBR)mandolinset, NULL,(SUBR)mandolin},
 { "voice", S(VOICF),   TR|5, "a", "kkkkkkii", (SUBR)voicformset, NULL,(SUBR)voicform},
-{ "fmbell",  S(FM4OP), TR|5, "a", "kkkkkkiiiii",
+{ "fmbell",  S(FM4OP), TR|5, "a", "kkkkkkiiiiio",
                                             (SUBR)tubebellset,NULL,(SUBR)tubebell},
 { "fmrhode", S(FM4OP), TR|5, "a", "kkkkkkiiiii",(SUBR)rhodeset,NULL,  (SUBR)tubebell},
 { "fmwurlie", S(FM4OP),TR|5, "a", "kkkkkkiiiii",(SUBR)wurleyset, NULL,(SUBR) wurley },
