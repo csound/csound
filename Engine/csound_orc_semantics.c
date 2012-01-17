@@ -129,7 +129,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
                root->right->type == NUMBER_TOKEN) {
         switch (root->type) {
         case S_UMINUS:
-          print_tree(csound, "root", root);
+          /*print_tree(csound, "root", root);*/
           ans = root->right;
           ans->value->fvalue = -(ans->type==INTEGER_TOKEN ? ans->value->value
                                  : ans->value->fvalue);
