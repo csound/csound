@@ -537,9 +537,10 @@ char *strsav_string(CSOUND *csound, char *s)
          sp = (STRSAV_SPACE*)mcalloc(csound, sizeof(STRSAV_SPACE));
          sp->sp =
           (char*)mcalloc(csound, sp->size = n+STRSPACE);
-         csound->Message(csound,
+         csound->DebugMsg(csound,
                         "internal message: strsav: buffer length now %d\n", 
                         sp->size);
+
        }
        else {
          sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
