@@ -874,7 +874,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 
     /* delay line iterators */
     int u, v, w, x, y, z;
-    int ut, vt, wt, xt, yt, zt;
+    int ut=0, vt=0, wt=0, xt=0, yt=0, zt=0;
     int utf1=0, vtf1=0, wtf1=0, xtf1=0, ytf1=0, ztf1=0;
     int utf2=0, vtf2=0, wtf2=0, xtf2=0, ytf2=0, ztf2=0;
 
