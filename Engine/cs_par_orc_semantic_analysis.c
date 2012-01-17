@@ -116,7 +116,7 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
                                            struct set_t *read)
 {
     if (csound->instCurr == NULL) {
-      csound->Message(csound,
+      csound->DebugMsg(csound,
                       "Add global read, write lists without any instruments\n");
     }
     else if (UNLIKELY(write == NULL  || read == NULL)) {
