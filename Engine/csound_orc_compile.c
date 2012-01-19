@@ -1864,15 +1864,20 @@ int file_to_int(CSOUND *csound, const char *name)
     extern char *strdup(const char *);
     int n = 0;
     char **filedir = csound->filedir;
-    while (filedir[n]) {        /* Do we have it already? */
+    while (filedir[n] && n<63) {        /* Do we have it already? */
       if (strcmp(filedir[n], name)==0) return n; /* yes */
       n++;                                       /* look again */
     }
     // Not there so add
     // ensure long enough?
-    if (n==63) csound->Die(csound, "Too many file/macros\n");
-    filedir[n] = strdup(name);
-    filedir[n+1] = NULL;
+    if (n==63) {
+      //csound->Die(csound, "Too many file/macros\n");
+      filedir[n] = strdup("**unknown**");
+    }
+    else {
+      filedir[n] = strdup(name);
+      filedir[n+1] = NULL;
+    }
     return n;
 }
 
