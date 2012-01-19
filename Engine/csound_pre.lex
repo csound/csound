@@ -146,7 +146,8 @@ CONT            \\[ \t]*(;.*)?\n
                    /* csound->DebugMsg(csound,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
-                   PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
+                   PARM->lstack[++PARM->depth] =
+                     (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
                    csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER);
                   }
@@ -174,7 +175,8 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
-                   PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
+                   PARM->lstack[++PARM->depth] =
+                     (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
                    csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER);
                  }
@@ -240,7 +242,8 @@ CONT            \\[ \t]*(;.*)?\n
                    csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
-                   PARM->lstack[++PARM->depth] = file_to_int(csound, yytext);
+                   PARM->lstack[++PARM->depth] =
+                     (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
                  }
 {MACRONAMEDA}    {
@@ -301,7 +304,8 @@ CONT            \\[ \t]*(;.*)?\n
                      csound->Die(csound, Str("Includes nested too deeply"));
                    }
                    csound_preset_lineno(1, yyscanner);
-                   PARM->lstack[PARM->depth] = file_to_int(csound, yytext);
+                   PARM->lstack[PARM->depth] = 
+                     (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
                  }
 {INCLUDE}       BEGIN(incl);
