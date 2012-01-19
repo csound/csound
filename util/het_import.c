@@ -50,7 +50,7 @@ int16 getnum(FILE* inf, char *term)
     char buff[100];
     int  cc;
     int p = 0;
-    while ((cc=getc(inf))!=',' && cc!='\n') {
+    while ((cc=getc(inf))!=',' && cc!='\n' && p<99) {
         if (cc == EOF) {
             *term = '\0';
             return 0;
