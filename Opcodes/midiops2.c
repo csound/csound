@@ -52,6 +52,9 @@ static int imidic7(CSOUND *csound, MIDICTL2 *p)
     FUNC  *ftp;
     int32  ctlno;
 
+    if (!p->h.insdshead->m_chnbp) {
+      return OK;
+    }
     if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
     else {
@@ -87,6 +90,9 @@ static int midic7(CSOUND *csound, MIDICTL2 *p)
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
 
+    if (!p->h.insdshead->m_chnbp) {
+      return OK;
+    }
     value = (MYFLT) (lcurip->m_chnbp->ctl_val[p->ctlno] * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
       value = *(p->ftp->ftable +
@@ -106,6 +112,9 @@ static int imidic14(CSOUND *csound, MIDICTL3 *p)
     int32  ctlno1;
     int32  ctlno2;
 
+    if (!p->h.insdshead->m_chnbp) {
+      return OK;
+    }
     if (UNLIKELY((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
                  (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ))
       return csound->InitError(csound, Str("illegal controller number"));
@@ -161,6 +170,9 @@ static int midic14(CSOUND *csound, MIDICTL3 *p)
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
 
+    if (!p->h.insdshead->m_chnbp) {
+      return OK;
+    }
     value =     (MYFLT) ((lcurip->m_chnbp->ctl_val[p->ctlno1] *128  +
                           lcurip->m_chnbp->ctl_val[p->ctlno2] )
                          * oneTOf14bit);
@@ -200,6 +212,9 @@ static int imidic21(CSOUND *csound, MIDICTL4 *p)
     int32   ctlno2;
     int32   ctlno3;
 
+    if (!p->h.insdshead->m_chnbp) {
+      return OK;
+    }
     if (UNLIKELY((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
         (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ||
                  (ctlno3 = (int32)*p->ictlno3) < 0 || ctlno3 > 127))
@@ -255,6 +270,9 @@ static int midic21(CSOUND *csound, MIDICTL4 *p)
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
 
+    if (!p->h.insdshead->m_chnbp) {
+      return OK;
+    }
     value = (MYFLT)((lcurip->m_chnbp->ctl_val[p->ctlno1] * 16384 +
                      lcurip->m_chnbp->ctl_val[p->ctlno2] * 128   +
                      lcurip->m_chnbp->ctl_val[p->ctlno3] )  * oneTOf21bit);
