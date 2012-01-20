@@ -26,7 +26,7 @@
     02111-1307 USA
 */
 
-#include <csound/csoundCore.h>
+#include "csoundCore.h"
 
 typedef struct {
         OPDS    h;
