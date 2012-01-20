@@ -79,7 +79,7 @@ int main(int argc, char **argv)
       putc(str[i],outf);
     putc('\n', outf);
     coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
-    if (coeff==NULL) {
+    if (coef==NULL) {
       printf("memory allocation failure\n");
       exit(1);
     }
