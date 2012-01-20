@@ -527,6 +527,7 @@ goto  : GOTO_TOKEN
 /* Allow all words as a label */
 label : T_OPCODE    { $$ = (TREE *)$1; }
       | T_OPCODE0   { $$ = (TREE *)$1; }
+      | T_FUNCTION  { $$ = (TREE *)$1; }
       | T_IDENT_P   { $$ = (TREE *)$1; }
       | T_IDENT_I   { $$ = (TREE *)$1; }
       | T_IDENT_GI  { $$ = (TREE *)$1; }
