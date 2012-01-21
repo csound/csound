@@ -1671,6 +1671,7 @@ makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
 makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
+makePlugin(pluginEnvironment, 'fractalnoise', ['Opcodes/tl/fractalnoise.cpp'])
 
 # platform-specific
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
