@@ -1249,13 +1249,6 @@ static OENTRY spectra_localops[] = {
 { "p.i", S(PFUN),        1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
 { "p.k", S(PFUN),        2,     "k",    "k",     NULL, (SUBR)pfun, NULL     },
 { "mute", S(MUTE), 1,          "",      "To",   (SUBR)mute_inst             },
-#ifdef BETA
-{ "oscilv",  0xfffe,    TR                                                     },
-{ "oscilv.kk", S(XOSC),  5,     "a",   "kkio", (SUBR)Foscset, NULL, (SUBR)Fosckk },
-{ "oscilv.ka", S(XOSC),  5,     "a",   "kaio", (SUBR)Foscset, NULL, (SUBR)Foscka },
-{ "oscilv.ak", S(XOSC),  5,     "a",   "akio", (SUBR)Foscset, NULL, (SUBR)Foscak },
-{ "oscilv.aa", S(XOSC),  5,     "a",   "aaio", (SUBR)Foscset, NULL, (SUBR)Foscaa },
-#endif
 { "median", S(MEDFILT),  5,     "a", "akio", (SUBR)medfiltset, NULL, (SUBR)medfilt},
 { "mediank", S(MEDFILT), 5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
