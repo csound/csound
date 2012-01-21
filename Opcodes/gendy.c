@@ -87,7 +87,7 @@ MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
       r = (LOG(FL(1.0)-r)/c)*FL(2.0) - FL(1.0);
       return r;
     case 6: // external sig
-      return a;
+      return a*FL(2.0) - FL(1.0);
     default:
       break;
     }
