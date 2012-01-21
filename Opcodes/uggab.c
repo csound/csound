@@ -211,7 +211,8 @@ static int posc_set(CSOUND *csound, POSC *p)
 {
     FUNC *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)) return NOTOK;
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)) 
+      return csound->InitError(csound, Str("table not found in poscil"));
     p->ftp        = ftp;
     p->tablen     = ftp->flen;
     p->tablenUPsr = p->tablen * csound->onedsr;
@@ -221,13 +222,17 @@ static int posc_set(CSOUND *csound, POSC *p)
 
 static int posckk(CSOUND *csound, POSC *p)
 {
-    MYFLT       *out = p->out, *ft = p->ftp->ftable;
+    FUNC        *ftp = p->ftp;
+    MYFLT       *out = p->out, *ft;
     MYFLT       *curr_samp, fract;
     double      phs = p->phs;
     double      si = *p->freq * p->tablenUPsr; /* gab c3 */
     int32       n,nsmps = csound->ksmps;
     MYFLT       amp = *p->amp;
 
+    if (UNLIKELY(ftp==NULL))
+      return csound->PerfError(csound, Str("poscil: not initialised"));
+    ft = p->ftp->ftable;
     for (n=0; n<nsmps; n++) {
       curr_samp = ft + (int32)phs;
       fract     = (MYFLT)(phs - (int32)phs);
@@ -244,15 +249,17 @@ static int posckk(CSOUND *csound, POSC *p)
 
 static int poscaa(CSOUND *csound, POSC *p)
 {
+    FUNC        *ftp = p->ftp;
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
     MYFLT       *curr_samp, fract;
     double      phs = p->phs;
-    /*double      si = *p->freq * p->tablen * csound->onedsr;*/
-
     MYFLT       *freq = p->freq;
     int32       n,nsmps = csound->ksmps;
     MYFLT       *amp = p->amp; /*gab c3*/
 
+    if (UNLIKELY(ftp==NULL))
+      return csound->PerfError(csound, Str("poscil: not initialised"));
+    ft = p->ftp->ftable;
     for (n=0; n<nsmps; n++) {
       MYFLT ff = freq[n];
       curr_samp = ft + (int32)phs;
@@ -271,13 +278,17 @@ static int poscaa(CSOUND *csound, POSC *p)
 
 static int poscka(CSOUND *csound, POSC *p)
 {
-    MYFLT       *out = p->out, *ft = p->ftp->ftable;
+    FUNC        *ftp = p->ftp;
+    MYFLT       *out = p->out, *ft;
     MYFLT       *curr_samp, fract;
     double      phs = p->phs;
     int32       n,nsmps = csound->ksmps;
     MYFLT       amp = *p->amp;
     MYFLT       *freq = p->freq;
 
+    if (UNLIKELY(ftp==NULL))
+      return csound->PerfError(csound, Str("poscil: not initialised"));
+    ft = p->ftp->ftable;
     for (n=0; n<nsmps; n++) {
       MYFLT ff = freq[n];
       curr_samp = ft + (int32)phs;
@@ -295,13 +306,17 @@ static int poscka(CSOUND *csound, POSC *p)
 
 static int poscak(CSOUND *csound, POSC *p)
 {
-    MYFLT       *out = p->out, *ft = p->ftp->ftable;
+    FUNC        *ftp = p->ftp;
+    MYFLT       *out = p->out, *ft;
     MYFLT       *curr_samp, fract;
     double      phs = p->phs;
     double      si = *p->freq * p->tablenUPsr;
     int32       n,nsmps = csound->ksmps;
     MYFLT       *amp = p->amp; /*gab c3*/
 
+    if (UNLIKELY(ftp==NULL))
+      return csound->PerfError(csound, Str("poscil: not initialised"));
+    ft = p->ftp->ftable;
     for (n=0; n<nsmps; n++) {
       curr_samp = ft + (int32)phs;
       fract     = (MYFLT)(phs - (int32)phs);
@@ -336,7 +351,8 @@ static int kposc(CSOUND *csound, POSC *p)
 
 static int posc3kk(CSOUND *csound, POSC *p)
 {
-    MYFLT       *out = p->out, *ftab = p->ftp->ftable;
+    FUNC        *ftp = p->ftp;
+    MYFLT       *out = p->out, *ftab;
     MYFLT       fract;
     double      phs  = p->phs;
     double      si   = *p->freq * p->tablen * csound->onedsr;
@@ -345,6 +361,9 @@ static int posc3kk(CSOUND *csound, POSC *p)
     int         x0;
     MYFLT       y0, y1, ym1, y2;
 
+    if (UNLIKELY(ftp==NULL))
+      return csound->PerfError(csound, Str("poscil3: not initialised"));
+    ftab = p->ftp->ftable;
     for (n=0; n<nsmps; n++) {
       x0    = (int32)phs;
       fract = (MYFLT)(phs - (double)x0);
@@ -379,7 +398,8 @@ static int posc3kk(CSOUND *csound, POSC *p)
 
 static int posc3ak(CSOUND *csound, POSC *p)
 {
-    MYFLT       *out = p->out, *ftab = p->ftp->ftable;
+    FUNC        *ftp = p->ftp;
+    MYFLT       *out = p->out, *ftab;
     MYFLT       fract;
     double      phs  = p->phs;
     double      si   = *p->freq * p->tablen * csound->onedsr;
@@ -388,6 +408,9 @@ static int posc3ak(CSOUND *csound, POSC *p)
     int         x0;
     MYFLT       y0, y1, ym1, y2;
 
+    if (UNLIKELY(ftp==NULL))
+      return csound->PerfError(csound, Str("poscil3: not initialised"));
+    ftab = p->ftp->ftable;
     for (n=0; n<nsmps; n++) {
       x0    = (int32)phs;
       fract = (MYFLT)(phs - (double)x0);
@@ -422,7 +445,8 @@ static int posc3ak(CSOUND *csound, POSC *p)
 
 static int posc3ka(CSOUND *csound, POSC *p)
 {
-    MYFLT       *out = p->out, *ftab = p->ftp->ftable;
+    FUNC        *ftp = p->ftp;
+    MYFLT       *out = p->out, *ftab;
     MYFLT       fract;
     double      phs  = p->phs;
     /*double      si   = *p->freq * p->tablen * csound->onedsr;*/
@@ -432,6 +456,9 @@ static int posc3ka(CSOUND *csound, POSC *p)
     int         x0;
     MYFLT       y0, y1, ym1, y2;
 
+    if (UNLIKELY(ftp==NULL))
+      return csound->PerfError(csound, Str("poscil3: not initialised"));
+    ftab = p->ftp->ftable;
     for (n=0; n<nsmps; n++) {
       MYFLT ff = freq[n];
       x0    = (int32)phs;
@@ -467,7 +494,8 @@ static int posc3ka(CSOUND *csound, POSC *p)
 
 static int posc3aa(CSOUND *csound, POSC *p)
 {
-    MYFLT       *out = p->out, *ftab = p->ftp->ftable;
+    FUNC        *ftp = p->ftp;
+    MYFLT       *out = p->out, *ftab;
     MYFLT       fract;
     double      phs  = p->phs;
     /*double      si   = *p->freq * p->tablen * csound->onedsr;*/
@@ -477,6 +505,9 @@ static int posc3aa(CSOUND *csound, POSC *p)
     int         x0;
     MYFLT       y0, y1, ym1, y2;
 
+    if (UNLIKELY(ftp==NULL))
+      return csound->PerfError(csound, Str("poscil3: not initialised"));
+    ftab = p->ftp->ftable;
     for (n=0; n<nsmps; n++) {
       MYFLT ff = freq[n];
       x0    = (int32)phs;
