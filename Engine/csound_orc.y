@@ -554,6 +554,7 @@ label : T_OPCODE    { $$ = (TREE *)$1; }
       | DO_TOKEN    { $$ = (TREE *)$1; }
       | OD_TOKEN    { $$ = (TREE *)$1; }
       | INTEGER_TOKEN { $$ = (TREE *)$1; }
+      | ENDIN_TOKEN { $$ = (TREE *)$1; }
       ;
 
 

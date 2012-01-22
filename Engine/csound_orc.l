@@ -197,7 +197,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   namedInstrFlag = 1;
                   return INSTR_TOKEN;
                 }
-"endin"         { return ENDIN_TOKEN; }
+"endin"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ENDIN_TOKEN;
+                  return ENDIN_TOKEN; }
 "opcode"        {
                   PARM->clearBufferAfterEOF = 0;
                   return UDOSTART_DEFINITION;
