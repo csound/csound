@@ -1319,6 +1319,7 @@ extern long fareyseq_localops_init(CSOUND *, void *);
 extern long cpumeter_localops_init(CSOUND *, void *);
 extern long mp3in_localops_init(CSOUND *, void *);
 extern long gendy_localops_init(CSOUND *, void *);
+extern long scnoise_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -1348,7 +1349,8 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #ifndef WIN32
                                  cpumeter_localops_init,
 #endif
-                                 mp3in_localops_init, gendy_localops_init, NULL };
+                                 mp3in_localops_init, gendy_localops_init,
+                                 scnoise_localops_init, NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 
