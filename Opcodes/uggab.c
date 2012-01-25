@@ -526,12 +526,12 @@ static int posc3aa(CSOUND *csound, POSC *p)
         MYFLT frcu = frsq*ym1;
         MYFLT t1   = y2 + y0+y0+y0;
         out[n]     = ampp[n] * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
-                                   - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
+                                fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
+                                       - ym1/FL(3.0)) +
+                                frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
+                                frsq*(FL(0.5)* y1 - y0));
+        phs       += ff * p->tablenUPsr;
       }
-      phs      += ff * p->tablenUPsr;
       while (UNLIKELY(phs >= p->tablen))
         phs -= p->tablen;
       while (UNLIKELY(phs < 0.0) )
@@ -549,6 +549,7 @@ static int kposc3(CSOUND *csound, POSC *p)
     int         x0    = (int32)phs;
     MYFLT       fract = (MYFLT)(phs - (double)x0);
     MYFLT       y0, y1, ym1, y2;
+    MYFLT       amp = *p->amp;
 
     x0--;
     if (UNLIKELY(x0<0)) {
@@ -563,11 +564,11 @@ static int kposc3(CSOUND *csound, POSC *p)
       MYFLT frsq = fract*fract;
       MYFLT frcu = frsq*ym1;
       MYFLT t1 = y2 + y0+y0+y0;
-      *p->out  = *p->amp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
-                                   - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
+      *p->out  = amp * (y0 + FL(0.5)*frcu +
+                        fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
+                               - ym1/FL(3.0)) +
+                        frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
+                        frsq*(FL(0.5)* y1 - y0));
     }
     phs += si;
     while (UNLIKELY(phs >= p->tablen))

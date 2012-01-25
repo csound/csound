@@ -1113,6 +1113,7 @@ OOps/sndinfUG.c
 OOps/str_ops.c
 OOps/ugens1.c
 OOps/ugens2.c
+OOps/ugens2a.c
 OOps/ugens3.c
 OOps/ugens4.c
 OOps/ugens5.c
