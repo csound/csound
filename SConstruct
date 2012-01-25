@@ -1194,6 +1194,7 @@ Opcodes/vbap_zak.c Opcodes/vaops.c Opcodes/ugakbari.c Opcodes/harmon.c
 Opcodes/pitchtrack.c Opcodes/partikkel.c Opcodes/shape.c Opcodes/tabsum.c
 Opcodes/crossfm.c Opcodes/pvlock.c Opcodes/fareyseq.c  Opcodes/hrtfearly.c
 Opcodes/hrtfreverb.c Opcodes/cpumeter.c Opcodes/mp3in.c Opcodes/gendy.c
+Opcodes/tl/sc_noise.c
 ''')
 
 oldpvoc = Split('''
