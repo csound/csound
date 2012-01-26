@@ -33,8 +33,8 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *kamp, *kfrq, *kdev;
-        int32   count, rand;
+        MYFLT   *out, *kamp, *kfrq, *kdev, *imode, frq0;
+        int32   count, rand, mmode;
 } GAUSSTRIG;
 
 #define BIPOLAR   0x7FFFFFFF    /* Constant to make bipolar */
@@ -144,6 +144,14 @@ static int gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 {
     p->rand  = csoundRand31(&csound->randSeed1);
     p->count = 0;
+    /*
+     * imode > 0 means better frequency modulation. If the frequency
+     * changes, the delay before the next impulse is calculed again.
+     * With the default imode value we have the classic behavior of
+     * the GaussTrig ugen, where the freq modulation is bypassed
+     * during the delay time that precedes the next impulse.
+     */
+    p->mmode = (*p->imode <= FL(0.0) ? 0 : 1);
     return OK;
 }
 
@@ -152,6 +160,7 @@ static int gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
     if (p->count <= 0) {
       int     nextsamps;
       MYFLT   nextcount, frq, dev, r1, r2;
+      p->frq0 = *p->kfrq;
       frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
       dev = *p->kdev;
       nextsamps = (int)(csound->esr / frq);
@@ -172,6 +181,8 @@ static int gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
       *p->out = *p->kamp;
     }
     else {
+      if (p->mmode && *p->kfrq != p->frq0)
+        p->count = 0;
       *p->out = FL(0.0);
     }
     p->count--;
@@ -186,6 +197,7 @@ static int gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
       if (p->count <= 0) {
         int     nextsamps;
         MYFLT   nextcount, frq, dev, r1, r2;
+        p->frq0 = *p->kfrq;
         frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
         dev = *p->kdev;
         nextsamps = (int)(csound->esr / frq);
@@ -206,6 +218,8 @@ static int gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
         out[n] = *p->kamp;
       }
       else {
+        if (p->mmode && *p->kfrq != p->frq0)
+          p->count = 0;
         out[n] = FL(0.0);
       }
       p->count--;
@@ -225,9 +239,9 @@ static OENTRY scnoise_localops[] = {
     (SUBR)dust_init, (SUBR)dust2_process_krate, NULL },
   { "dust2.a",     sizeof(DUST), 5, "a", "kk",
     (SUBR)dust_init, NULL, (SUBR)dust2_process_arate },
-  { "gausstrig.k", sizeof(GAUSSTRIG), 3, "k", "kkk",
+  { "gausstrig.k", sizeof(GAUSSTRIG), 3, "k", "kkko",
     (SUBR)gausstrig_init, (SUBR)gausstrig_process_krate, NULL },
-  { "gausstrig.a", sizeof(GAUSSTRIG), 5, "a", "kkk",
+  { "gausstrig.a", sizeof(GAUSSTRIG), 5, "a", "kkko",
     (SUBR)gausstrig_init, NULL, (SUBR)gausstrig_process_arate }
 };
 
