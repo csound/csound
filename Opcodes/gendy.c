@@ -33,7 +33,7 @@ typedef struct {
         MYFLT   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
         MYFLT   *minfreq, *maxfreq, *ampscl, *durscl, *initcps, *knum;
         MYFLT   phase, amp, nextamp, dur, speed;
-        int32   index, rand;
+        int32   index, rand, points;
         AUXCH   memamp, memdur;
 } GENDY;
 
@@ -43,7 +43,7 @@ typedef struct {
         MYFLT   *minfreq, *maxfreq, *ampscl, *durscl;
         MYFLT   *kcurveup, *kcurvedown, *initcps, *knum;
         MYFLT   phase, amp, nextamp, dur, speed;
-        int32   index, rand;
+        int32   index, rand, points;
         AUXCH   memamp, memdur;
 } GENDYX;
 
@@ -105,16 +105,17 @@ int gendy_init(CSOUND *csound, GENDY *p)
     p->speed   = FL(100.0);
     p->index   = 0;
     if (*p->initcps < FL(1.0))
-      *p->initcps = FL(12.0);
+      p->points = 12;
     else if (*p->initcps > GENDYMAXCPS)
-      *p->initcps = GENDYMAXCPS;
-    initcps = (int32) *p->initcps;
-    csound->AuxAlloc(csound, initcps*sizeof(MYFLT), &p->memamp);
-    csound->AuxAlloc(csound, initcps*sizeof(MYFLT), &p->memdur);
+      p->points = GENDYMAXCPS;
+    else
+      p->points = (int32)*p->initcps;
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     p->rand = csoundRand31(&csound->randSeed1);
-    for (i=0; i < initcps; i++) {
+    for (i=0; i < p->points; i++) {
       p->rand = csoundRand31(&p->rand);
       memamp[i] = (MYFLT)((int32)((unsigned)p->rand<<1)-BIPOLAR)*dv2_31;
       p->rand = csoundRand31(&p->rand);
@@ -127,7 +128,6 @@ int gendy_process_arate(CSOUND *csound, GENDY *p)
 {
     int     knum, n, nn = csound->ksmps;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
-    int32   initcps = (int32)*p->initcps;
     out  = p->out;
     knum = (int)*p->knum;
     memamp  = p->memamp.auxp;
@@ -138,8 +138,8 @@ int gendy_process_arate(CSOUND *csound, GENDY *p)
       if (p->phase >= FL(1.0)) {
         int index = p->index;
         p->phase -= FL(1.0);
-        if (knum > initcps || knum < 1)
-          knum = initcps;
+        if (knum > p->points || knum < 1)
+          knum = p->points;
         p->index = index = (index+1) % knum;
         p->amp = p->nextamp;
         p->rand = csoundRand31(&p->rand);
@@ -184,16 +184,17 @@ int gendyx_init(CSOUND *csound, GENDYX *p)
     p->speed   = FL(100.0);
     p->index   = 0;
     if (*p->initcps < FL(1.0))
-      *p->initcps = FL(12.0);
+      p->points = 12;
     else if (*p->initcps > GENDYMAXCPS)
-      *p->initcps = GENDYMAXCPS;
-    initcps = (int32) *p->initcps;
-    csound->AuxAlloc(csound, initcps*sizeof(MYFLT), &p->memamp);
-    csound->AuxAlloc(csound, initcps*sizeof(MYFLT), &p->memdur);
+      p->points = GENDYMAXCPS;
+    else
+      p->points = (int32)*p->initcps;
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     p->rand = csoundRand31(&csound->randSeed1);
-    for (i=0; i < initcps; i++) {
+    for (i=0; i < p->points; i++) {
       p->rand   = (int32)csoundRand31(&p->rand);
       memamp[i] = (MYFLT)((int32)((unsigned)p->rand<<1)-BIPOLAR)*dv2_31;
       p->rand   = csoundRand31(&p->rand);
@@ -206,7 +207,6 @@ int gendyx_process_arate(CSOUND *csound, GENDYX *p)
 {
     int     knum, n, nn = csound->ksmps;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist, curve;
-    int32   initcps = (int32)*p->initcps;
     out  = p->out;
     knum = (int)*p->knum;
     memamp  = p->memamp.auxp;
@@ -217,8 +217,8 @@ int gendyx_process_arate(CSOUND *csound, GENDYX *p)
       if (p->phase >= FL(1.0)) {
         int index = p->index;
         p->phase -= FL(1.0);
-        if (knum > initcps || knum < 1)
-          knum = initcps;
+        if (knum > p->points || knum < 1)
+          knum = p->points;
         p->index = index = (index+1) % knum;
         p->amp = p->nextamp;
         p->rand = csoundRand31(&p->rand);
