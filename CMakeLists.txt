@@ -389,6 +389,7 @@ set(libcsound_SRCS
     OOps/str_ops.c
     OOps/ugens1.c
     OOps/ugens2.c
+    OOps/ugens2a.c
     OOps/ugens3.c
     OOps/ugens4.c
     OOps/ugens5.c
@@ -449,6 +450,8 @@ set(libcsound_SRCS
     Opcodes/hrtfearly.c
     Opcodes/hrtfreverb.c
     Opcodes/cpumeter.c
+    Opcodes/gendy.c
+    Opcodes/tl/sc_noise.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
