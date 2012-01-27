@@ -57,6 +57,7 @@ void csound_pre_line(CORFIL*, yyscan_t);
 %option stdout
 
 WHITE           ^[ \t]*
+NEWLINE         (\n|\r\n?)
 STRCONST        \"(\\.|[^\"])*\"
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
@@ -83,12 +84,10 @@ CONT            \\[ \t]*(;.*)?\n
 
 %%
 
-"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
-
 {CONT}          { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
                 }
-"\n"            { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+{NEWLINE}       { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
                   corfile_putc('\n', csound->expanded_orc); 
                   csound_pre_line(csound->expanded_orc, yyscanner);
@@ -438,8 +437,10 @@ CONT            \\[ \t]*(;.*)?\n
 void comment(yyscan_t yyscanner)              /* Skip until nextline */
 {
     char c;
-
-    while ((c = input(yyscanner)) != '\n'); /* skip */
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+    while ((c = input(yyscanner)) != '\n' && c != '\r'); /* skip */
+    if (c == '\r' && (c = input(yyscanner)) != '\n')
+      unput(c);
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
 }
 
