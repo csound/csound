@@ -39,6 +39,54 @@ void print_tree(CSOUND *, char *, TREE *);
 /*     return a; */
 /* } */
 
+static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
+{
+    TREE *ans;
+    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    if (UNLIKELY(ans == NULL)) exit(1);
+    ans->type = T_FUNCTION;
+    ans->value = make_token(csound, fname);
+    ans->value->type = T_FUNCTION;
+    ans->left = NULL;
+    ans->right = right;
+    ans->next = NULL;
+    ans->len = 0;
+    ans->rate = -1;
+    return ans;
+}
+
+static TREE * optimize_ifun(CSOUND *csound, TREE *root)
+{
+    /* print_tree(csound, "optimize_ifun: before", root); */
+    switch(root->right->type) {
+    case INTEGER_TOKEN:
+    case NUMBER_TOKEN:       /* i(num)    -> num      */
+    case T_IDENT_I:          /* i(ivar)   -> ivar     */
+    case T_IDENT_GI:         /* i(givar)  -> givar    */
+    case T_IDENT_P:          /* i(pN)     -> pN       */
+      root = root->right;
+      break;
+    case T_IDENT_K:          /* i(kvar)   -> i(kvar)  */
+    case T_IDENT_GK:         /* i(gkvar)  -> i(gkvar) */
+      break;
+    case T_FUNCTION:         /* i(fn(x))  -> fn(i(x)) */
+      {
+        TREE *funTree = root->right;
+        funTree->right = create_fun_token(csound, funTree->right, "i");
+        root = funTree;
+      }
+      break;
+    default:                 /* i(A op B) -> i(A) op i(B) */
+      if(root->right->left != NULL)
+        root->right->left = create_fun_token(csound, root->right->left, "i");
+      if(root->right->right != NULL)
+        root->right->right = create_fun_token(csound, root->right->right, "i");
+      root = root->right;
+      break;
+    }
+    /* print_tree(csound, "optimize_ifun: after", root); */
+    return root;
+}
 
 /** Verifies and optimise; constant fold and opcodes and args are correct*/
 static TREE * verify_tree1(CSOUND *csound, TREE *root) 
@@ -48,6 +96,23 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
     //print_tree(csound, "Verify", root);
     if (root->right && root->right->type != T_INSTLIST) {
+      if (root->type == T_OPCODE || root->type == T_OPCODE0) {
+        last = root->right;
+        while (last->next) {
+          /* we optimize the i() functions in the opcode */
+          if (last->next->type == T_FUNCTION &&
+              (strcmp(last->next->value->lexeme, "i") == 0)) {
+            TREE *temp = optimize_ifun(csound, last->next);
+            temp->next = last->next->next;
+            last->next = temp;
+          }
+          last = last->next;
+        }
+      }
+      if (root->right->type == T_FUNCTION &&                 
+          (strcmp(root->right->value->lexeme, "i") == 0)) {  /* i() function */
+        root->right = optimize_ifun(csound, root->right);
+      }
       last = root->right;
       while (last->next) {
         last->next = verify_tree1(csound, last->next);
@@ -55,6 +120,10 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
       }
       root->right = verify_tree1(csound, root->right);
       if (root->left) {
+        if (root->left->type == T_FUNCTION &&                 
+            (strcmp(root->left->value->lexeme, "i") == 0)) {  /* i() function */
+          root->left = optimize_ifun(csound, root->left);
+        }
         root->left= verify_tree1(csound, root->left);
         if ((root->left->type  == INTEGER_TOKEN ||
              root->left->type  == NUMBER_TOKEN) &&
