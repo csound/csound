@@ -63,6 +63,10 @@ if(BUILD_CSOUND_AC)
         target_link_libraries(CsoundAC MUSICXML_LIBRARY)
     endif()
 
+    install(TARGETS libCsoundAC
+        LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
+
     if(SWIG_FOUND)
         include(${SWIG_USE_FILE})
         set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
