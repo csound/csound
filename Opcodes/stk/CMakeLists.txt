@@ -3,7 +3,9 @@ option(BUILD_STK_OPCODES "Build the stk opcodes" ON)
 if(BUILD_STK_OPCODES)
     find_library(STK_LIBRARY stk)
     if(STK_LIBRARY)
-        make_plugin(stkOpcodes stkOpcodes.cpp stk)
+        make_plugin(stk-ops stkOpcodes.cpp "stk")
+        set_target_properties(stk-ops PROPERTIES
+            OUTPUT_NAME stk)
     else()
         set(stk_srcs
             src/InetWvIn.cpp    src/InetWvOut.cpp
