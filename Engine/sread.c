@@ -730,7 +730,9 @@ static int do_repeat(CSOUND *csound)
         {
           char buffer[128];
           sprintf(buffer, "%d", i);
+          corfile_reset(ST(repeat_mm)->body);
           corfile_puts(buffer, ST(repeat_mm)->body);
+          corfile_rewind(ST(repeat_mm)->body);
         }
         if (csound->oparms->msglevel & TIMEMSG)
           csound->Message(csound, Str("Repeat section (%d)\n"), i);
@@ -901,9 +903,9 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
            we must pop those inputs before doing an 'r' repeat. */
         while (ST(str)->is_marked_repeat && ST(input_cnt) > 0) {
           /* close all marked repeat inputs */
-          if (ST(str)->fd != NULL) {
-            csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
-          }
+          /* if (ST(str)->fd != NULL) { */
+          /*   csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL; */
+          /* } */
           corfile_rm(&(ST(str)->cf));
           ST(str)--; ST(input_cnt)--;
         }
@@ -1012,9 +1014,9 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         if (ST(str)->is_marked_repeat) {
           while (ST(str)->is_marked_repeat && ST(input_cnt) > 0) {
             /* close all marked repeat inputs */
-            if (ST(str)->fd != NULL) {
-              csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
-            }
+            /* if (ST(str)->fd != NULL) { */
+            /*   csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL; */
+            /* } */
             corfile_rm(&(ST(str)->cf));
             ST(str)--; ST(input_cnt)--;
           }
