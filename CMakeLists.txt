@@ -214,6 +214,8 @@ option(FAIL_MISSING "Fail when a required external dependency is not present (us
 
 option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 
+option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
+
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -634,6 +636,7 @@ endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
+
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
     # Do not pull extra libs when linking against shared libcsound
@@ -734,25 +737,26 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
     ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
+if(BUILD_STATIC_LIBRARY)
+    add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
+    SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
+    SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
+    set_property(
+        TARGET ${CSOUNDLIB_STATIC}
+        PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
 
-add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
-SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
-SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
-set_property(
-    TARGET ${CSOUNDLIB_STATIC}
-    PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
+    target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
 
-target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+    set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
-set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
-    LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-    ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
-
-# Add the install target
-install(TARGETS ${CSOUNDLIB_STATIC}
-    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+    # Add the install target
+    install(TARGETS ${CSOUNDLIB_STATIC}
+        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+endif()
 
 option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
 check_deps(BUILD_CATALOG)
