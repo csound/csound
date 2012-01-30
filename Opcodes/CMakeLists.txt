@@ -1,7 +1,8 @@
 option(BUILD_CHUA_OPCODE "Build the chua opcodes (requires boost)" ON)
-
+option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 
 find_package(Boost)
+check_include_file(ladspa.h LADSPA_H)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
@@ -19,6 +20,7 @@ make_plugin(doppler doppler.cpp)
 if(NOT WIN32) 
     make_plugin(udprecv sockrecv.c)
     make_plugin(udpsend socksend.c)
+
 endif()
 
 set(scansyn_SRCS
@@ -35,6 +37,12 @@ check_deps(BUILD_CHUA_OPCODE Boost_FOUND)
 if(BUILD_CHUA_OPCODE)
     include_directories(${Boost_INCLUDE_DIRS})
     make_plugin(chua chua/ChuaOscillator.cpp)
+endif()
+
+check_deps(BUILD_DSSI_OPCODES LADSPA_H)
+if(BUILD_DSSI_OPCODES)
+    set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
+    make_plugin(dssi4cs "${dssi_SRC}" )
 endif()
 
 # OGG Opcode previously was built only for OLPC
