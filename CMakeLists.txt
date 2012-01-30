@@ -18,6 +18,7 @@ endif()
 set(PYTHON_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+set(LOCALE_INSTALL_DIR "share/locale")
 
 # Include this after the install path definitions so we can override them here.
 find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
@@ -208,6 +209,7 @@ option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NE
 
 option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
 
+option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
@@ -279,8 +281,9 @@ set(CMAKE_REQUIRED_LIBRARIES pthread)
 # Now, non required library searches #
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
-check_include_file(libintl.h USE_GETTEXT)
+check_include_file(libintl.h LIBINTL_HEADER)
 find_library(LIBINTL_LIBRARY intl)
+find_package(Gettext)
 
 set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
@@ -649,7 +652,9 @@ if(WIN32)
 endif()
 
 # Linux does not have a separate libintl, it is part of libc
-if(USE_GETTEXT AND (LIBINTL_LIBRARY OR LINUX))
+set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
+check_deps(USE_GETTEXT LIBINTL_HEADER LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
+if(USE_GETTEXT)
     message(STATUS "Using GNU Gettext")
     if(NOT LINUX)
         list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
@@ -762,3 +767,4 @@ add_subdirectory(frontends)
 add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(SDIF)
+add_subdirectory(po)
