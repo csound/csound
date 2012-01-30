@@ -31,6 +31,7 @@ endif()
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
+include(CheckIncludeFileCXX)
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
