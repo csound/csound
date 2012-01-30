@@ -19,6 +19,7 @@ set(PYTHON_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
+set(HEADER_INSTALL_DIR "include/csound")
 
 # Include this after the install path definitions so we can override them here.
 find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
@@ -140,6 +141,7 @@ function(check_deps option)
         message(STATUS "${option} is disabled")
     endif()
 endfunction(check_deps)
+
 
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
@@ -768,3 +770,4 @@ add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(SDIF)
 add_subdirectory(po)
+add_subdirectory(H)
