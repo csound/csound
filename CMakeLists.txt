@@ -227,6 +227,7 @@ if(USE_DOUBLE)
 endif(USE_DOUBLE)
 if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
     add_definitions("-fvisibility=hidden")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fvisibility=hidden")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
