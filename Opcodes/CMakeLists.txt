@@ -1,4 +1,4 @@
-option(BUILD_CHUA_OPCODE "Build the chua opcodes (requires boost)" ON)
+option(BUILD_CHUA_OPCODES "Build the chua opcodes (requires boost)" ON)
 option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 
 find_package(Boost)
@@ -33,8 +33,8 @@ endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 
-check_deps(BUILD_CHUA_OPCODE Boost_FOUND)
-if(BUILD_CHUA_OPCODE)
+check_deps(BUILD_CHUA_OPCODES Boost_FOUND)
+if(BUILD_CHUA_OPCODES)
     include_directories(${Boost_INCLUDE_DIRS})
     make_plugin(chua chua/ChuaOscillator.cpp)
 endif()
