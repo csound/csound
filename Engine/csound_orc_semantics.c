@@ -81,6 +81,7 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
         root->right->left = create_fun_token(csound, root->right->left, "i");
       if(root->right->right != NULL)
         root->right->right = create_fun_token(csound, root->right->right, "i");
+      root->right->next = root->next;
       root = root->right;
       break;
     }
