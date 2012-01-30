@@ -16,8 +16,7 @@ find_library(JACKDMP_LIBRARY jackdmp)
 check_include_file(jack/jack.h JACK_HEADER)
 check_include_file_cxx(gmm/gmm.h GMM_HEADER)
 check_include_file(lo/lo.h OSC_HEADER)
-find_library(PNGLIB png)
-find_library(ZLIB z)
+find_package(PNG)
 find_package(PythonLibs)
 find_package(Lua51)
 
@@ -49,6 +48,9 @@ make_plugin(scansyn "${scansyn_SRCS}" m)
 
 if(UNIX)
     make_plugin(control control.c)
+endif()
+
+if(LINUX)
     make_plugin(urandom urandom.c)
 endif()
 
@@ -95,10 +97,12 @@ if(BUILD_OSC_OPCODES)
     target_link_libraries(osc lo pthread)
 endif()
 
-check_deps(BUILD_IMAGE_OPCODES PNGLIB ZLIB)
+check_deps(BUILD_IMAGE_OPCODES PNG_FOUND)
 if(BUILD_IMAGE_OPCODES)
-    set(img_libs ${PNGLIB} ${ZLIB})
-    make_plugin(image imageOpcodes.c "${img_libs}")
+    include_directories(${PNG_INCLUDE_DIR})
+    make_plugin(image imageOpcodes.c "${PNG_LIBRARIES}")
+    set_target_properties(image
+        PROPERTIES COMPILER_FLAGS "${PNG_DEFINITIONS}")
 endif()
 
 check_deps(BUILD_PYTHON_OPCODES PYTHONLIBS_FOUND)
