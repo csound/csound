@@ -1,12 +1,15 @@
+option(BUILD_PD_CLASS "Build the puredata csoundapi~ class" ON)
+
 find_package(FLEX)
 find_package(BISON)
+
+check_include_file(m_pd.h PD_HEADER)
 
 ## Csound Commandline Executable ##
 set(CS_MAIN_SRCS csound/csound_main.c)
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     list(APPEND CS_MAIN_SRCS csound/sched.c)
 endif()
-
 
 # We need a different name to avoid clashes with float libcsound
 make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB}" csound)
@@ -68,6 +71,26 @@ if(BUILD_CSBEATS)
 
     make_executable(csbeats "${csbeats_SRCS}" "m")
     
+endif()
+
+check_deps(BUILD_PD_CLASS PD_HEADER)
+if(BUILD_PD_CLASS)
+    if(LINUX)
+        set(pdname "csoundapi~.pd_linux")
+    elseif(APPLE)
+        set(pdname "csoundapi~.pd_darwin")
+    elseif(WIN32)
+        set(pdname "csoundapi~.dll")
+    endif()
+
+    add_library(${pdname} MODULE csoundapi_tilde/csoundapi_tilde.c)
+    set_target_properties(${pdname} PROPERTIES
+        PREFIX ""
+        SUFFIX "")
+
+    install(TARGETS ${pdname}
+        LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR})
+
 endif()
 
 add_subdirectory(CsoundAC)
