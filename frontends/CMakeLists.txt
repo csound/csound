@@ -84,6 +84,7 @@ if(BUILD_PD_CLASS)
     endif()
 
     add_library(${pdname} MODULE csoundapi_tilde/csoundapi_tilde.c)
+    target_link_libraries (${pdname} ${CSOUNDLIB})
     set_target_properties(${pdname} PROPERTIES
         PREFIX ""
         SUFFIX "")
