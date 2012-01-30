@@ -1,3 +1,8 @@
+option(BUILD_CHUA_OPCODE "Build the chua opcodes (requires boost)" ON)
+
+
+find_package(Boost)
+
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
 make_plugin(mixer mixer.cpp)
@@ -25,6 +30,12 @@ if(UNIX)
 endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
+
+check_deps(BUILD_CHUA_OPCODE Boost_FOUND)
+if(BUILD_CHUA_OPCODE)
+    include_directories(${Boost_INCLUDE_DIRS})
+    make_plugin(chua chua/ChuaOscillator.cpp)
+endif()
 
 # OGG Opcode previously was built only for OLPC
 #if(VORBISFILE_LIBRARY)
