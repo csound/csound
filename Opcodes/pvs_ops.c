@@ -29,7 +29,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 }
 */
 
-PUBLIC int pvsopc_ModuleInit(CSOUND *csound)
+int pvsopc_ModuleInit(CSOUND *csound)
 {
     int     err = 0;
 

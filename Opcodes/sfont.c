@@ -67,7 +67,7 @@ typedef struct _sfontg {
   MYFLT pitches[128];
 } sfontg;
 
-PUBLIC int sfont_ModuleDestroy(CSOUND *csound)
+int sfont_ModuleDestroy(CSOUND *csound)
 {
     int j,k,l;
     SFBANK *sfArray;
@@ -2525,7 +2525,7 @@ static OENTRY localops[] = {
 { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
-PUBLIC int sfont_ModuleCreate(CSOUND *csound)
+int sfont_ModuleCreate(CSOUND *csound)
 {
     int j;
     sfontg *globals;
@@ -2546,7 +2546,7 @@ PUBLIC int sfont_ModuleCreate(CSOUND *csound)
     return OK;
 }
 
-PUBLIC int sfont_ModuleInit(CSOUND *csound)
+int sfont_ModuleInit(CSOUND *csound)
 {
     OENTRY  *ep = (OENTRY*) &(localops[0]);
     int     err = 0;
