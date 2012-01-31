@@ -216,6 +216,7 @@ option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 
+option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -257,6 +258,8 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
+
+find_package(OpenMP)
 
 # First, required stuff
 find_library(LIBSNDFILE_LIBRARY sndfile)
@@ -332,6 +335,15 @@ if(PTHREAD_BARRIER_INIT_EXISTS)
    list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
 endif()
 
+
+check_deps(USE_OPEN_MP OPENMP_FOUND PTHREAD_BARRIER_INIT_EXISTS) 
+if(USE_OPEN_MP)
+message(INFO ${OpenMP_C_FLAGS})
+
+    list(APPEND libcsound_CFLAGS -DUSE_OPENMP)
+    list(APPEND libcsound_CFLAGS ${OpenMP_C_FLAGS})
+    list(APPEND libcsound_CXXFLAGS ${OpenMP_CXX_FLAGS})
+endif()
 
 
 #if(WIN32)
