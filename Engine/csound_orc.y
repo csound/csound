@@ -574,6 +574,8 @@ exprlist  : exprlist ',' expr
           | expr { $$ = $1;     }
           | bexpr { $$ = $1; }
           | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
+          | T_OPCODE   { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
+          | T_FUNCTION { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | /* null */          { $$ = NULL; }
           ;
 
