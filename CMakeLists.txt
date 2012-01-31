@@ -338,11 +338,9 @@ endif()
 
 check_deps(USE_OPEN_MP OPENMP_FOUND PTHREAD_BARRIER_INIT_EXISTS) 
 if(USE_OPEN_MP)
-message(INFO ${OpenMP_C_FLAGS})
-
-    list(APPEND libcsound_CFLAGS -DUSE_OPENMP)
-    list(APPEND libcsound_CFLAGS ${OpenMP_C_FLAGS})
-    list(APPEND libcsound_CXXFLAGS ${OpenMP_CXX_FLAGS})
+   list(APPEND libcsound_CFLAGS -DUSE_OPENMP)
+   list(APPEND libcsound_CFLAGS ${OpenMP_C_FLAGS})
+   list(APPEND libcsound_CXXFLAGS ${OpenMP_CXX_FLAGS})
 endif()
 
 
