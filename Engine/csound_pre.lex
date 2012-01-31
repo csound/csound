@@ -58,7 +58,8 @@ void csound_pre_line(CORFIL*, yyscan_t);
 
 WHITE           ^[ \t]*
 NEWLINE         (\n|\r\n?)
-STRCONST        \"(\\.|[^\"])*\"
+STRCONST        \"[^\"]*\"
+XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 MACRONAME       "$"[a-zA-Z0-9_]+
@@ -80,7 +81,6 @@ CONT            \\[ \t]*(;.*)?\n
 %x macro
 %x umacro
 %x ifdef
-%x xstr
 
 %%
 
@@ -103,6 +103,7 @@ CONT            \\[ \t]*(;.*)?\n
                 }
 {STCOM}         { do_comment(yyscanner); }
 {STRCONST}      { corfile_puts(yytext, csound->expanded_orc); }
+{XSTR}          { corfile_puts(yytext, csound->expanded_orc); }
 {MACRONAME}     {
                    MACRO     *mm, *mfound;
                    int       i, len, mlen;
