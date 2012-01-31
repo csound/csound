@@ -237,7 +237,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
-                   PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+                   PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                    csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
@@ -297,7 +297,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
-                   PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+                   PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    if (PARM->depth++>1024) {
                      csound->Die(csound, Str("Includes nested too deeply"));
