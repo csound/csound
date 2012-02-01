@@ -1669,7 +1669,6 @@ makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
 
 # C++ opcodes
 makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
-makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
 makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
