@@ -158,6 +158,7 @@ int mp3dec_uninit(mp3dec_t mp3dec)
     mp3->flags = 0;
     mpadec_uninit(mp3->mpadec);
     mp3->size = 0;
+    free(mp3);
     return MP3DEC_RETCODE_OK;
 }
 
