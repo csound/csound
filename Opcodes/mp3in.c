@@ -105,7 +105,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
       mp3dec_uninit(mpa);
       return csound->InitError(csound, mp3dec_error(r));
     }
-    skip = (int)(*p->iSkipTime*csound->esr);
+    skip = (int)(*p->iSkipTime*csound->esr+1);
     /* maxsize = mpainfo.decoded_sample_size */
     /*          *mpainfo.decoded_frame_samples */
     /*          *mpainfo.frames; */

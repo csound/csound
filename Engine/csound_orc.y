@@ -205,7 +205,7 @@ instlist  : INTEGER_TOKEN ',' instlist
           { $$ = make_node(csound, LINE, LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
                                          INTEGER_TOKEN, (ORCTOKEN *)$1), $3); }
-          | T_IDENT ',' instlist
+          | label ',' instlist
               {
 #ifdef PARCS
                   csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$1)->lexeme);
@@ -213,7 +213,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
                                          T_IDENT, (ORCTOKEN *)$1), $3); }
-          | '+' T_IDENT ',' instlist
+          | '+' label ',' instlist
               {
                   TREE *ans;
                   ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
@@ -222,7 +222,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$2)->lexeme);
 #endif
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
-          | '+' T_IDENT
+          | '+' label
               {
                   TREE *ans;
                   ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
@@ -230,7 +230,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   $$ = ans; }
           | INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
                                            INTEGER_TOKEN, (ORCTOKEN *)$1); }
-          | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
+          | label { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
           ;
 
 instrdecl : INSTR_TOKEN
@@ -527,6 +527,7 @@ goto  : GOTO_TOKEN
 /* Allow all words as a label */
 label : T_OPCODE    { $$ = (TREE *)$1; }
       | T_OPCODE0   { $$ = (TREE *)$1; }
+      | T_FUNCTION  { $$ = (TREE *)$1; }
       | T_IDENT_P   { $$ = (TREE *)$1; }
       | T_IDENT_I   { $$ = (TREE *)$1; }
       | T_IDENT_GI  { $$ = (TREE *)$1; }
@@ -553,6 +554,7 @@ label : T_OPCODE    { $$ = (TREE *)$1; }
       | DO_TOKEN    { $$ = (TREE *)$1; }
       | OD_TOKEN    { $$ = (TREE *)$1; }
       | INTEGER_TOKEN { $$ = (TREE *)$1; }
+      | ENDIN_TOKEN { $$ = (TREE *)$1; }
       ;
 
 
@@ -572,6 +574,8 @@ exprlist  : exprlist ',' expr
           | expr { $$ = $1;     }
           | bexpr { $$ = $1; }
           | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
+          | T_OPCODE   { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
+          | T_FUNCTION { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | /* null */          { $$ = NULL; }
           ;
 

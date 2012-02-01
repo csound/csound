@@ -1113,6 +1113,7 @@ OOps/sndinfUG.c
 OOps/str_ops.c
 OOps/ugens1.c
 OOps/ugens2.c
+OOps/ugens2a.c
 OOps/ugens3.c
 OOps/ugens4.c
 OOps/ugens5.c
@@ -1194,6 +1195,7 @@ Opcodes/vbap_zak.c Opcodes/vaops.c Opcodes/ugakbari.c Opcodes/harmon.c
 Opcodes/pitchtrack.c Opcodes/partikkel.c Opcodes/shape.c Opcodes/tabsum.c
 Opcodes/crossfm.c Opcodes/pvlock.c Opcodes/fareyseq.c  Opcodes/hrtfearly.c
 Opcodes/hrtfreverb.c Opcodes/cpumeter.c Opcodes/mp3in.c Opcodes/gendy.c
+Opcodes/tl/sc_noise.c
 ''')
 
 oldpvoc = Split('''
@@ -1671,6 +1673,7 @@ makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
 makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
+makePlugin(pluginEnvironment, 'fractalnoise', ['Opcodes/tl/fractalnoise.cpp'])
 
 # platform-specific
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
