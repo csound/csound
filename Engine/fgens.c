@@ -1331,6 +1331,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
       /* Allocate memory and read them in now */
   /*  ff->flen      = ff->flen + 2;        ??? */
       ftp           = ftalloc(ff);
+      ftp->lenmask  = 0xFFFFFFFF; /* avoid the error in csoundFTFind */
     }
     fp = ftp->ftable;
     j = 0;
