@@ -31,6 +31,7 @@ make_plugin(cs_date date.c)
 make_plugin(system_call system_call.c)
 make_plugin(mutexops mutexops.cpp)
 make_plugin(doppler doppler.cpp)
+make_plugin(fractalnoise tl/fractalnoise.cpp)
 
 make_plugin(fareygen fareygen.c)
 
