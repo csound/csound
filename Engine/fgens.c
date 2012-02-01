@@ -2713,7 +2713,6 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       else
         sprintf(sfname, "soundin.%d", filno);   /* soundin.filno */
     }
-    skip = ff->e.p[6];
     chan  = (int) MYFLT2LRND(ff->e.p[7]);
     if (UNLIKELY(chan < 0)) {
       return fterror(ff, Str("channel %d illegal"), (int) chan);
@@ -2773,6 +2772,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     }
     buffer = (uint8_t *)malloc(size);
     bufsize = size/mpainfo.decoded_sample_size;
+    skip = (int)(ff->e.p[6] * mpainfo.frequency);
     while (skip > 0) {
       uint32_t xx = skip;
       if ((uint32_t)xx > bufsize) xx = bufsize;
