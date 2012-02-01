@@ -145,3 +145,6 @@ buildD
 ## Installer Resources
 installer/macosx/DmgResources
 installer/macosx/201*
+
+## Generated Doxygen
+doc/html

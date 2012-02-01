@@ -1,3 +1,57 @@
+POWER OF TWO ISSUES
+-------------------
+
+envlpx
+envlpxr
+
+oscil
+
+oscil1
+oscili1
+
+foscil
+foscili
+
+loscil
+loscil3 (these don't depend on pow2 but maths could be simplified with
+floating point).
+
+tablei
+table3
+
+buzz
+gbuzz
+
+tablew
+
+vco
+
+fof
+fog
+fof2
+
+grain
+
+partikkel
+
+specscal
+specfilt
+atsadd
+atscross
+
+pitch
+
+oscbank
+
+grain2
+grain3
+oscilikt
+osciliktp
+oscilitkts
+vco2
+
+
+
 KNOWN AREAS OF INCOMPLETENESS
 -----------------------------
 
@@ -44,25 +98,4 @@ KNOWN AREAS OF INCOMPLETENESS
 -other notes
     -look into creating API functions for programmatically building orc from
     opcodes, exposing INSTRTXT chain
-
-================================================================================
-Language Changes
-
--Signal Arrays
-
--Opcode Arrays
-
--new operators: +=, -=, *=, /=
-
-================================================================================
-
-BUGS NOT FIXED
---------------
-
-B2.     Many differences between FL code on Csound and CsoundAV
-
-DOCUMENTATION
--------------
-
- cogoto
 

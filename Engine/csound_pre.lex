@@ -57,7 +57,9 @@ void csound_pre_line(CORFIL*, yyscan_t);
 %option stdout
 
 WHITE           ^[ \t]*
-STRCONST        \"(\\.|[^\"])*\"
+NEWLINE         (\n|\r\n?)
+STRCONST        \"[^\"]*\"
+XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 MACRONAME       "$"[a-zA-Z0-9_]+
@@ -79,16 +81,13 @@ CONT            \\[ \t]*(;.*)?\n
 %x macro
 %x umacro
 %x ifdef
-%x xstr
 
 %%
-
-"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
 
 {CONT}          { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
                 }
-"\n"            { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+{NEWLINE}       { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
                   corfile_putc('\n', csound->expanded_orc); 
                   csound_pre_line(csound->expanded_orc, yyscanner);
@@ -104,6 +103,7 @@ CONT            \\[ \t]*(;.*)?\n
                 }
 {STCOM}         { do_comment(yyscanner); }
 {STRCONST}      { corfile_puts(yytext, csound->expanded_orc); }
+{XSTR}          { corfile_puts(yytext, csound->expanded_orc); }
 {MACRONAME}     {
                    MACRO     *mm, *mfound;
                    int       i, len, mlen;
@@ -238,7 +238,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
-                   PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+                   PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                    csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
@@ -298,7 +298,7 @@ CONT            \\[ \t]*(;.*)?\n
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
-                   PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+                   PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    if (PARM->depth++>1024) {
                      csound->Die(csound, Str("Includes nested too deeply"));
@@ -438,8 +438,10 @@ CONT            \\[ \t]*(;.*)?\n
 void comment(yyscan_t yyscanner)              /* Skip until nextline */
 {
     char c;
-
-    while ((c = input(yyscanner)) != '\n'); /* skip */
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+    while ((c = input(yyscanner)) != '\n' && c != '\r'); /* skip */
+    if (c == '\r' && (c = input(yyscanner)) != '\n')
+      unput(c);
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
 }
 

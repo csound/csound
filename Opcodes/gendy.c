@@ -33,7 +33,7 @@ typedef struct {
         MYFLT   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
         MYFLT   *minfreq, *maxfreq, *ampscl, *durscl, *initcps, *knum;
         MYFLT   phase, amp, nextamp, dur, speed;
-        int32   index, rand;
+        int32   index, rand, points;
         AUXCH   memamp, memdur;
 } GENDY;
 
@@ -43,15 +43,24 @@ typedef struct {
         MYFLT   *minfreq, *maxfreq, *ampscl, *durscl;
         MYFLT   *kcurveup, *kcurvedown, *initcps, *knum;
         MYFLT   phase, amp, nextamp, dur, speed;
-        int32   index, rand;
+        int32   index, rand, points;
         AUXCH   memamp, memdur;
 } GENDYX;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
+        MYFLT   *minfreq, *maxfreq, *ampscl, *durscl, *initcps, *knum;
+        MYFLT   amp, nextamp, dur, slope, midpnt, curve;
+        int32   phase, index, rand, points;
+        AUXCH   memamp, memdur;
+} GENDYC;
 
 #define BIPOLAR      0x7FFFFFFF    /* Constant to make bipolar */
 #define dv2_31       (FL(4.656612873077392578125e-10))
 #define GENDYMAXCPS  8192          /* Max number of control points */
 
-MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
+static MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
 {
     MYFLT   c, r;
     if (a > FL(1.0))
@@ -87,7 +96,7 @@ MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
       r = (LOG(FL(1.0)-r)/c)*FL(2.0) - FL(1.0);
       return r;
     case 6: // external sig
-      return a;
+      return a*FL(2.0) - FL(1.0);
     default:
       break;
     }
@@ -95,9 +104,9 @@ MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
     return r;
 }
 
-int gendy_init(CSOUND *csound, GENDY *p)
+static int gendyset(CSOUND *csound, GENDY *p)
 {
-    int32   initcps, i;
+    int     i;
     MYFLT   *memamp, *memdur;
     p->amp     = FL(0.0);
     p->nextamp = FL(0.0);
@@ -105,16 +114,17 @@ int gendy_init(CSOUND *csound, GENDY *p)
     p->speed   = FL(100.0);
     p->index   = 0;
     if (*p->initcps < FL(1.0))
-      *p->initcps = FL(12.0);
+      p->points = 12;
     else if (*p->initcps > GENDYMAXCPS)
-      *p->initcps = GENDYMAXCPS;
-    initcps = (int32) *p->initcps;
-    csound->AuxAlloc(csound, initcps*sizeof(MYFLT), &p->memamp);
-    csound->AuxAlloc(csound, initcps*sizeof(MYFLT), &p->memdur);
+      p->points = GENDYMAXCPS;
+    else
+      p->points = (int32)*p->initcps;
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     p->rand = csoundRand31(&csound->randSeed1);
-    for (i=0; i < initcps; i++) {
+    for (i=0; i < p->points; i++) {
       p->rand = csoundRand31(&p->rand);
       memamp[i] = (MYFLT)((int32)((unsigned)p->rand<<1)-BIPOLAR)*dv2_31;
       p->rand = csoundRand31(&p->rand);
@@ -123,11 +133,57 @@ int gendy_init(CSOUND *csound, GENDY *p)
     return OK;
 }
 
-int gendy_process_arate(CSOUND *csound, GENDY *p)
+static int kgendy(CSOUND *csound, GENDY *p)
+{
+    int     knum;
+    MYFLT   *memamp, *memdur, minfreq, maxfreq, dist;
+    knum = (int)*p->knum;
+    memamp  = p->memamp.auxp;
+    memdur  = p->memdur.auxp;
+    minfreq = *p->minfreq;
+    maxfreq = *p->maxfreq;
+    if (p->phase >= FL(1.0)) {
+      int index = p->index;
+      p->phase -= FL(1.0);
+      if (knum > p->points || knum < 1)
+        knum = p->points;
+      p->index = index = (index+1) % knum;
+      p->amp = p->nextamp;
+      p->rand = csoundRand31(&p->rand);
+      dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
+      p->nextamp = memamp[index] + *p->ampscl * dist;
+      /* amplitude variations within the boundaries of a mirror */
+      if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
+        if (p->nextamp < FL(0.0))
+          p->nextamp += FL(4.0);
+        p->nextamp = FMOD(p->nextamp, FL(4.0));
+        if (p->nextamp > FL(1.0)) {
+          p->nextamp =
+            (p->nextamp < FL(3.0) ? FL(2.0) - p->nextamp : p->nextamp - FL(4.0));
+        }
+      }
+      memamp[index] = p->nextamp;
+      p->rand = csoundRand31(&p->rand);
+      dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
+      p->dur = memdur[index] + *p->durscl * dist;
+      /* time variations within the boundaries of a mirror */
+      if (p->dur > FL(1.0))
+        p->dur = FL(2.0) - FMOD(p->dur, FL(2.0));
+      else if (p->dur < FL(0.0))
+        p->dur = FL(2.0) - FMOD(p->dur + FL(2.0), FL(2.0));
+      memdur[index] = p->dur;
+      p->speed =
+        (minfreq + (maxfreq - minfreq) * p->dur) * csound->onedsr * knum;
+    }
+    *p->out = *p->kamp * ((FL(1.0) - p->phase) * p->amp + p->phase * p->nextamp);
+    p->phase += p->speed;
+    return OK;
+}
+
+static int agendy(CSOUND *csound, GENDY *p)
 {
     int     knum, n, nn = csound->ksmps;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
-    int32   initcps = (int32)*p->initcps;
     out  = p->out;
     knum = (int)*p->knum;
     memamp  = p->memamp.auxp;
@@ -138,14 +194,13 @@ int gendy_process_arate(CSOUND *csound, GENDY *p)
       if (p->phase >= FL(1.0)) {
         int index = p->index;
         p->phase -= FL(1.0);
-        if (knum > initcps || knum < 1)
-          knum = initcps;
+        if (knum > p->points || knum < 1)
+          knum = p->points;
         p->index = index = (index+1) % knum;
         p->amp = p->nextamp;
         p->rand = csoundRand31(&p->rand);
         dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
         p->nextamp = memamp[index] + *p->ampscl * dist;
-        /* amplitude variations within the boundaries of a mirror */
         if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
           if (p->nextamp < FL(0.0))
             p->nextamp += FL(4.0);
@@ -159,7 +214,6 @@ int gendy_process_arate(CSOUND *csound, GENDY *p)
         p->rand = csoundRand31(&p->rand);
         dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
         p->dur = memdur[index] + *p->durscl * dist;
-        /* time variations within the boundaries of a mirror */
         if (p->dur > FL(1.0))
           p->dur = FL(2.0) - FMOD(p->dur, FL(2.0));
         else if (p->dur < FL(0.0))
@@ -174,9 +228,9 @@ int gendy_process_arate(CSOUND *csound, GENDY *p)
     return OK;
 }
 
-int gendyx_init(CSOUND *csound, GENDYX *p)
+static int gendyxset(CSOUND *csound, GENDYX *p)
 {
-    int32   initcps, i;
+    int     i;
     MYFLT   *memamp, *memdur;
     p->amp     = FL(0.0);
     p->nextamp = FL(0.0);
@@ -184,16 +238,17 @@ int gendyx_init(CSOUND *csound, GENDYX *p)
     p->speed   = FL(100.0);
     p->index   = 0;
     if (*p->initcps < FL(1.0))
-      *p->initcps = FL(12.0);
+      p->points = 12;
     else if (*p->initcps > GENDYMAXCPS)
-      *p->initcps = GENDYMAXCPS;
-    initcps = (int32) *p->initcps;
-    csound->AuxAlloc(csound, initcps*sizeof(MYFLT), &p->memamp);
-    csound->AuxAlloc(csound, initcps*sizeof(MYFLT), &p->memdur);
+      p->points = GENDYMAXCPS;
+    else
+      p->points = (int32)*p->initcps;
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     p->rand = csoundRand31(&csound->randSeed1);
-    for (i=0; i < initcps; i++) {
+    for (i=0; i < p->points; i++) {
       p->rand   = (int32)csoundRand31(&p->rand);
       memamp[i] = (MYFLT)((int32)((unsigned)p->rand<<1)-BIPOLAR)*dv2_31;
       p->rand   = csoundRand31(&p->rand);
@@ -202,11 +257,60 @@ int gendyx_init(CSOUND *csound, GENDYX *p)
     return OK;
 }
 
-int gendyx_process_arate(CSOUND *csound, GENDYX *p)
+static int kgendyx(CSOUND *csound, GENDYX *p)
+{
+    int     knum;
+    MYFLT   *memamp, *memdur, minfreq, maxfreq, dist, curve;
+    knum = (int)*p->knum;
+    memamp  = p->memamp.auxp;
+    memdur  = p->memdur.auxp;
+    minfreq = *p->minfreq;
+    maxfreq = *p->maxfreq;
+    if (p->phase >= FL(1.0)) {
+      int index = p->index;
+      p->phase -= FL(1.0);
+      if (knum > p->points || knum < 1)
+        knum = p->points;
+      p->index = index = (index+1) % knum;
+      p->amp = p->nextamp;
+      p->rand = csoundRand31(&p->rand);
+      dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
+      p->nextamp = memamp[index] + *p->ampscl * dist;
+      if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
+        if (p->nextamp < FL(0.0))
+          p->nextamp += FL(4.0);
+        p->nextamp = FMOD(p->nextamp, FL(4.0));
+        if (p->nextamp > FL(1.0)) {
+          p->nextamp =
+            (p->nextamp < FL(3.0) ? FL(2.0) - p->nextamp : p->nextamp - FL(4.0));
+        }
+      }
+      memamp[index] = p->nextamp;
+      p->rand = csoundRand31(&p->rand);
+      dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
+      p->dur = memdur[index] + *p->durscl * dist;
+      if (p->dur > FL(1.0))
+        p->dur = FL(2.0) - FMOD(p->dur, FL(2.0));
+      else if (p->dur < FL(0.0))
+        p->dur = FL(2.0) - FMOD(p->dur + FL(2.0), FL(2.0));
+      memdur[index] = p->dur;
+      p->speed =
+        (minfreq + (maxfreq - minfreq) * p->dur) * csound->onedsr * knum;
+    }
+    if (*p->kcurveup < FL(0.0))
+      *p->kcurveup = FL(0.0);
+    if (*p->kcurvedown < FL(0.0))
+      *p->kcurvedown = FL(0.0);
+    curve = ((p->nextamp - p->amp) > FL(0.0) ? *p->kcurveup : *p->kcurvedown);
+    *p->out = *p->kamp * (p->amp + POWER(p->phase, curve) * (p->nextamp - p->amp));
+    p->phase += p->speed;
+    return OK;
+}
+
+static int agendyx(CSOUND *csound, GENDYX *p)
 {
     int     knum, n, nn = csound->ksmps;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist, curve;
-    int32   initcps = (int32)*p->initcps;
     out  = p->out;
     knum = (int)*p->knum;
     memamp  = p->memamp.auxp;
@@ -217,8 +321,8 @@ int gendyx_process_arate(CSOUND *csound, GENDYX *p)
       if (p->phase >= FL(1.0)) {
         int index = p->index;
         p->phase -= FL(1.0);
-        if (knum > initcps || knum < 1)
-          knum = initcps;
+        if (knum > p->points || knum < 1)
+          knum = p->points;
         p->index = index = (index+1) % knum;
         p->amp = p->nextamp;
         p->rand = csoundRand31(&p->rand);
@@ -256,11 +360,167 @@ int gendyx_process_arate(CSOUND *csound, GENDYX *p)
     return OK;
 }
 
+/* version with cubic interpolation based from Bhob Rainey's Gendy4 */
+static int gendycset(CSOUND *csound, GENDYC *p)
+{
+    int     i;
+    MYFLT   *memamp, *memdur;
+    p->amp     = FL(0.0);
+    p->nextamp = FL(0.0);
+    p->slope   = FL(0.0);
+    p->midpnt  = FL(0.0);
+    p->curve   = FL(0.0);
+    p->phase   = 0;
+    p->index   = 0;
+    if (*p->initcps < FL(1.0))
+      p->points = 12;
+    else if (*p->initcps > GENDYMAXCPS)
+      p->points = GENDYMAXCPS;
+    else
+      p->points = (int32)*p->initcps;
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
+    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
+    memamp  = p->memamp.auxp;
+    memdur  = p->memdur.auxp;
+    p->rand = csoundRand31(&csound->randSeed1);
+    for (i=0; i < p->points; i++) {
+      p->rand = csoundRand31(&p->rand);
+      memamp[i] = (MYFLT)((int32)((unsigned)p->rand<<1)-BIPOLAR)*dv2_31;
+      p->rand = csoundRand31(&p->rand);
+      memdur[i] = (MYFLT)p->rand * dv2_31;
+    }
+    return OK;
+}
+
+static int kgendyc(CSOUND *csound, GENDYC *p)
+{
+    int     knum;
+    MYFLT   *memamp, *memdur, minfreq, maxfreq, dist;
+    knum = (int)*p->knum;
+    memamp  = p->memamp.auxp;
+    memdur  = p->memdur.auxp;
+    minfreq = *p->minfreq;
+    maxfreq = *p->maxfreq;
+    if (p->phase <= 0) {
+      int     index = p->index;
+      MYFLT   fphase, next_midpnt;
+      if (knum > p->points || knum < 1)
+        knum = p->points;
+      p->index = index = (index+1) % knum;
+      p->amp = p->nextamp;
+      p->rand = csoundRand31(&p->rand);
+      dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
+      p->nextamp = memamp[index] + *p->ampscl * dist;
+      if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
+        if (p->nextamp < FL(0.0))
+          p->nextamp += FL(4.0);
+        p->nextamp = FMOD(p->nextamp, FL(4.0));
+        if (p->nextamp > FL(1.0)) {
+          p->nextamp =
+            (p->nextamp < FL(3.0) ? FL(2.0) - p->nextamp : p->nextamp - FL(4.0));
+        }
+      }
+      next_midpnt = (p->amp + p->nextamp) * 0.5;
+      memamp[index] = p->nextamp;
+      p->rand = csoundRand31(&p->rand);
+      dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
+      p->dur = memdur[index] + *p->durscl * dist;
+      if (p->dur > FL(1.0))
+        p->dur = FL(2.0) - FMOD(p->dur, FL(2.0));
+      else if (p->dur < FL(0.0))
+        p->dur = FL(2.0) - FMOD(p->dur + FL(2.0), FL(2.0));
+      memdur[index] = p->dur;
+      fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
+      fphase = (fphase > FL(0.001) ? fphase : FL(0.001));
+      p->phase = (int32)(csound->esr / fphase);
+      if (p->phase < 2) p->phase = 2;
+      p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
+      p->curve = p->curve / (p->phase * p->phase + p->phase);
+    }
+    p->phase--;
+    *p->out = *p->kamp * p->midpnt;
+    p->slope  += p->curve;
+    p->midpnt += p->slope;
+
+    return OK;
+}
+
+static int agendyc(CSOUND *csound, GENDYC *p)
+{
+    int     knum, remain = csound->ksmps;
+    MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
+    out  = p->out;
+    knum = (int)*p->knum;
+    memamp  = p->memamp.auxp;
+    memdur  = p->memdur.auxp;
+    minfreq = *p->minfreq;
+    maxfreq = *p->maxfreq;
+    do {
+      int nsmps, n;
+      if (p->phase <= 0) {
+        int     index = p->index;
+        MYFLT   fphase, next_midpnt;
+        if (knum > p->points || knum < 1)
+          knum = p->points;
+        p->index = index = (index+1) % knum;
+        p->amp = p->nextamp;
+        p->rand = csoundRand31(&p->rand);
+        dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
+        p->nextamp = memamp[index] + *p->ampscl * dist;
+        if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
+          if (p->nextamp < FL(0.0))
+            p->nextamp += FL(4.0);
+          p->nextamp = FMOD(p->nextamp, FL(4.0));
+          if (p->nextamp > FL(1.0)) {
+            p->nextamp =
+              (p->nextamp < FL(3.0) ? FL(2.0) - p->nextamp : p->nextamp - FL(4.0));
+          }
+        }
+        next_midpnt = (p->amp + p->nextamp) * 0.5;
+        memamp[index] = p->nextamp;
+        p->rand = csoundRand31(&p->rand);
+        dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
+        p->dur = memdur[index] + *p->durscl * dist;
+        if (p->dur > FL(1.0))
+          p->dur = FL(2.0) - FMOD(p->dur, FL(2.0));
+        else if (p->dur < FL(0.0))
+          p->dur = FL(2.0) - FMOD(p->dur + FL(2.0), FL(2.0));
+        memdur[index] = p->dur;
+        fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
+        fphase = (fphase > FL(0.001) ? fphase : FL(0.001));
+        p->phase = (int32)(csound->esr / fphase);
+        if (p->phase < 2) p->phase = 2;
+        p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
+        p->curve = p->curve / (p->phase * p->phase + p->phase);
+      }
+      nsmps = (remain < p->phase ? remain : p->phase);
+      remain   -= nsmps;
+      p->phase -= nsmps;
+      for (n=0; n<nsmps; n++) {
+        *(out++) = *p->kamp * p->midpnt;
+        p->slope  += p->curve;
+        p->midpnt += p->slope;
+      }
+    } while (remain);
+    return OK;
+}
+
 static OENTRY gendy_localops[] = {
-  { "gendy", sizeof(GENDY), 5, "a", "kkkkkkkkkoO",
-    (SUBR)gendy_init, NULL, (SUBR)gendy_process_arate },
-  { "gendyx", sizeof(GENDYX), 5, "a", "kkkkkkkkkkkoO",
-    (SUBR)gendyx_init, NULL, (SUBR)gendyx_process_arate }
+  { "gendy",    0xffff                                   },
+  { "gendyx",   0xffff                                   },
+  { "gendyc",   0xffff                                   },
+  { "gendy.k",  sizeof(GENDY),  3, "k", "kkkkkkkkkoO",
+    (SUBR)gendyset,  (SUBR)kgendy,  (SUBR)NULL           },
+  { "gendy.a",  sizeof(GENDY),  5, "a", "kkkkkkkkkoO",
+    (SUBR)gendyset,  (SUBR)NULL,    (SUBR)agendy         },
+  { "gendyx.k", sizeof(GENDYX), 3, "k", "kkkkkkkkkkkoO",
+    (SUBR)gendyxset, (SUBR)kgendyx, (SUBR)NULL           },
+  { "gendyx.a", sizeof(GENDYX), 5, "a", "kkkkkkkkkkkoO",
+    (SUBR)gendyxset, (SUBR)NULL,    (SUBR)agendyx        },
+  { "gendyc.k", sizeof(GENDYC), 3, "k", "kkkkkkkkkoO",
+    (SUBR)gendycset, (SUBR)kgendyc, (SUBR)NULL           },
+  { "gendyc.a", sizeof(GENDYC), 5, "a", "kkkkkkkkkoO",
+    (SUBR)gendycset, (SUBR)NULL,    (SUBR)agendyc        }
 };
 
 LINKAGE1(gendy_localops)

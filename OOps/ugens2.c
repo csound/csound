@@ -589,7 +589,7 @@ int ktabli(CSOUND *csound, TABLE   *p)
         indx  = length - 1;
         fract = FL(1.0);
       }
-      else if (UNLIKELY(ndx < 0)) {
+      else if (UNLIKELY(indx < 0L)) {
         indx  = 0L;
         fract = FL(0.0);
       }
@@ -667,7 +667,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
         indx  = length - 1;
         fract = FL(1.0);
       }
-      else if (UNLIKELY(ndx < 0)) {
+      else if (UNLIKELY(indx < 0L)) {
         indx  = 0L;
         fract = FL(0.0);
       }
@@ -728,7 +728,7 @@ int tabli(CSOUND *csound, TABLE   *p)
          * the offset.  */
         ndx = (pxndx[n] * xbmul) + offset;
         indx = (int32) ndx;
-        if (UNLIKELY(ndx <= FL(0.0))) {
+        if (UNLIKELY(indx <= 0L)) {
           rslt[n] = tab[0];
           continue;
         }
@@ -806,7 +806,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
           indx  = length - 1;
           fract = FL(1.0);
         }
-        else if (UNLIKELY(ndx < 0)) {
+        else if (UNLIKELY(indx < 0L)) {
           indx  = 0L;
           fract = FL(0.0);
         }

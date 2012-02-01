@@ -70,7 +70,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
     for (i=0; i< *p->ioverlap; i++) {
       if (i==0) {
         exp[i].wsize = (int)iwsize;
-        exp[1].cnt = 0;
+        exp[i].cnt = 0;
         exp[i].ampphs = FL(0.0);
       }
       else {
