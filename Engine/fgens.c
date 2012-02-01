@@ -2689,7 +2689,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     uint32_t bufsize, bufused = 0;
     uint8_t *buffer;
     int size = 0x1000;
-    int flen;
+    int flen, nchanls, def = 0;
 
     if (UNLIKELY(ff->e.pcnt < 7)) {
       return fterror(ff, Str("insufficient arguments"));
@@ -2755,7 +2755,6 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       mp3dec_uninit(mpa);
       return fterror(ff, mp3dec_error(r));
     }
-    ftp->gen01args.sample_rate = mpainfo.frequency;
     /* maxsize = mpainfo.decoded_sample_size */
     /*   *mpainfo.decoded_frame_samples */
     /*   *mpainfo.frames; */
@@ -2783,13 +2782,33 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     }
     //bufsize *= mpainfo.decoded_sample_size;
     r = mp3dec_decode(mpa, buffer, size, &bufused);
+    nchanls = (chan == 2 && mpainfo.channels == 2 ? 2 : 1);
+    if (ff->flen == 0) {    /* deferred ftalloc */
+      int fsize, frames;
+      frames = mpainfo.frames * mpainfo.decoded_frame_samples;
+      fsize  = frames * nchanls;
+      if (UNLIKELY((ff->flen = fsize) <= 0))
+        return fterror(ff, Str("deferred size, but filesize unknown"));
+      if (UNLIKELY(ff->flen > MAXLEN))
+        return fterror(ff, Str("illegal table length"));
+      if (csound->oparms->msglevel & 7)
+        csound->Message(csound, Str("  defer length %d\n"), ff->flen);
+      ftp = ftalloc(ff);
+      ftp->lenmask  = 0L;
+      ftp->flenfrms = frames;
+      ftp->nchanls  = nchanls;
+      fp = ftp->ftable;
+      def = 1;
+    }
+    ftp->gen01args.sample_rate = mpainfo.frequency;
+    ftp->cvtbas = LOFACT * mpainfo.frequency * csound->onedsr;
     flen = ftp->flen;
     //printf("gen49: flen=%d size=%d bufsize=%d\n", flen, size, bufsize);
     while ((r == MP3DEC_RETCODE_OK) && bufused) {
       int i;
       short *bb = (short*)buffer;
       //printf("gen49: p=%d bufused=%d\n", p, bufused);
-      for (i=0; i<bufused/mpainfo.decoded_sample_size; i++)  {
+      for (i=0; i<bufused*nchanls/mpainfo.decoded_sample_size; i++)  {
         if (p>=flen) {
           free(buffer);
           //printf("gen49: i=%d p=%d exit as at end of table\n", i, p);
@@ -2806,6 +2825,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
 
     free(buffer);
     r |= mp3dec_uninit(mpa);
+    if (def) ftresdisp(ff, ftp);
     return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
 }
 
