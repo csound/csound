@@ -605,10 +605,10 @@ elif getPlatform() == 'darwin':
     # or if the MacPython version equals the expected Apple Python version
     if vers[1] == sysPyVers:
         print "Current Python version is %s, using Apple Python Framework" % pvers
-        pyBasePath = '/System/Library/Frameworks/Python.framework'
+        pyBasePath = '/System/Library/Frameworks'
     else:
         print "Current Python version is %s, using MacPython Framework" % pvers
-        pyBasePath = '/Library/Frameworks/Python.framework'
+        pyBasePath = '/Library/Frameworks'
     if commonEnvironment['pythonVersion'] != pvers:
         commonEnvironment['pythonVersion'] = pvers
         print "WARNING python version used is " + pvers
@@ -1532,6 +1532,7 @@ else:
 	    # os.symlink('lib_csnd.so', '_csnd.so')
 	    pythonWrapperEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
 	if getPlatform() == 'darwin':
+            pythonWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
 	    if commonEnvironment['dynamicCsoundLibrary'] == '1':
 		#ilibName = "lib_csnd.dylib"
 		#ilibVersion = csoundLibraryVersion
@@ -1539,7 +1540,6 @@ else:
 		#pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
 		#pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/%s/%s''' % (OSXFrameworkCurrentVersion, ilibName)))
                 pythonWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
-                pythonWrapperEnvironment.Append(LINKFLAGS = ['-framework','python'])
 		#pythonWrapper = pythonWrapperEnvironment.SharedLibrary('_csnd', pythonWrapperSources)
 		pyVersToken = '-DPYTHON_24_or_newer'
 	        csoundPythonInterface = pythonWrapperEnvironment.SharedObject(
