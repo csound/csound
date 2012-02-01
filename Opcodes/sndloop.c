@@ -652,11 +652,11 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
 }
 
 
-
+/*
 static int flooper3_init(CSOUND *csound, flooper3 *p)
 {
     int len,i,p2s,lomod;
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
+    p->sfunc = csound->FTnp2Find(csound, p->ifn);  
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,Str("function table not found\n"));
     }
@@ -703,7 +703,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
     int *firsttime = &p->firsttime, elen, init = p->init;
     uint32 tndx0, tndx1;
 
-    /* loop parameters & check */
+
     if (pitch < FL(0.0)) pitch = FL(0.0);
     if (*firsttime) {
       int loopsize;
@@ -832,7 +832,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
       }
       else if (mode == 2){
         out[i] = 0;
-        /* this is the forward reader */
+        
         tndx0 = ndx[0]>>lobits;
         frac0 = (ndx[0] & lomask)*lodiv;
         if (init && tndx0 < loop_start + crossfade) {
@@ -870,7 +870,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
           count  += ei;
         }
 
-        /* this is the backward reader */
+        
         tndx1 = ndx[1]>>lobits;
         frac1 = (ndx[1] & lomask)*lodiv;
         if (tndx1 > loop_end - crossfade) {
@@ -923,7 +923,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
     p->init = init;
     return OK;
 }
-
+*/
 
 static int pvsarp_init(CSOUND *csound, pvsarp *p)
 {
@@ -1133,8 +1133,8 @@ static OENTRY localops[] = {
    "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
   {"flooper2", sizeof(flooper2), TR|5,
    "a", "kkkkkiooooO", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
- {"flooper3", sizeof(flooper3), TR|5,
-  "a", "kkkkkioooo", (SUBR)flooper3_init, NULL, (SUBR)flooper3_process},
+  /* {"flooper3", sizeof(flooper3), TR|5,
+     "a", "kkkkkioooo", (SUBR)flooper3_init, NULL, (SUBR)flooper3_process},*/
  {"pvsmorph", sizeof(pvsvoc), 3,
    "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process}
 };
