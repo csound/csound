@@ -612,9 +612,9 @@ elif getPlatform() == 'darwin':
     if commonEnvironment['pythonVersion'] != pvers:
         commonEnvironment['pythonVersion'] = pvers
         print "WARNING python version used is " + pvers
-    pythonIncludePath = ['%s/Headers' % pyBasePath]
+    pythonIncludePath = ['%s/Python.Framework/Headers' % pyBasePath]
     pythonLinkFlags = [ '-F' + pyBasePath, '-framework', 'python']
-    path1 = '%s/Versions/Current/lib' % pyBasePath
+    path1 = '%s/Python.framework/Versions/Current/lib' % pyBasePath
     path2 = '%s/python%s/config' % (path1, commonEnvironment['pythonVersion'])
     pythonLibraryPath = [path1, path2]
     pythonLibs = []
@@ -783,7 +783,10 @@ print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
 print "Python Version: " + commonEnvironment['pythonVersion']
 pythonFound = configure.CheckHeader("Python.h", language = "C")
 if not pythonFound:
-    for i in pythonIncludePath:
+    if getPlatform() == 'darwin':
+      pythonFound = configure.CheckHeader('%s/Python.h' % pythonIncludePath[0], language = "C")
+    else:
+      for i in pythonIncludePath:
         tmp = '%s/Python.h' % i
         pythonFound = pythonFound or configure.CheckHeader(tmp, language = "C")
 if getPlatform() == 'darwin':

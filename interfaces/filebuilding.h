@@ -44,7 +44,7 @@
 
 #if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
 #  define PUBLIC        __declspec(dllexport)
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !defined(__MACH__)
 #  define PUBLIC        __attribute__ ( (visibility("default")) )
 #else
 #  define PUBLIC
