@@ -18,6 +18,8 @@ endif()
 set(PYTHON_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+set(LOCALE_INSTALL_DIR "share/locale")
+set(HEADER_INSTALL_DIR "include/csound")
 
 # Include this after the install path definitions so we can override them here.
 find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
@@ -29,6 +31,7 @@ endif()
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
+include(CheckIncludeFileCXX)
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
@@ -140,6 +143,7 @@ function(check_deps option)
     endif()
 endfunction(check_deps)
 
+
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
         include_directories(C:/MinGW/include)
@@ -208,7 +212,11 @@ option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NE
 
 option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
 
+option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 
+option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
+
+option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -220,6 +228,7 @@ if(USE_DOUBLE)
 endif(USE_DOUBLE)
 if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
     add_definitions("-fvisibility=hidden")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fvisibility=hidden")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
@@ -250,6 +259,8 @@ SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
 
+find_package(OpenMP)
+
 # First, required stuff
 find_library(LIBSNDFILE_LIBRARY sndfile)
 if(NOT LIBSNDFILE_LIBRARY)
@@ -279,8 +290,9 @@ set(CMAKE_REQUIRED_LIBRARIES pthread)
 # Now, non required library searches #
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
-check_include_file(libintl.h USE_GETTEXT)
+check_include_file(libintl.h LIBINTL_HEADER)
 find_library(LIBINTL_LIBRARY intl)
+find_package(Gettext)
 
 set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
@@ -323,6 +335,13 @@ if(PTHREAD_BARRIER_INIT_EXISTS)
    list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
 endif()
 
+
+check_deps(USE_OPEN_MP OPENMP_FOUND PTHREAD_BARRIER_INIT_EXISTS) 
+if(USE_OPEN_MP)
+   list(APPEND libcsound_CFLAGS -DUSE_OPENMP)
+   list(APPEND CMAKE_C_FLAGS ${OpenMP_C_FLAGS})
+   list(APPEND CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS})
+endif()
 
 
 #if(WIN32)
@@ -389,6 +408,7 @@ set(libcsound_SRCS
     OOps/str_ops.c
     OOps/ugens1.c
     OOps/ugens2.c
+    OOps/ugens2a.c
     OOps/ugens3.c
     OOps/ugens4.c
     OOps/ugens5.c
@@ -449,6 +469,8 @@ set(libcsound_SRCS
     Opcodes/hrtfearly.c
     Opcodes/hrtfreverb.c
     Opcodes/cpumeter.c
+    Opcodes/gendy.c
+    Opcodes/tl/sc_noise.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
@@ -625,6 +647,7 @@ endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
+
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
     # Do not pull extra libs when linking against shared libcsound
@@ -646,7 +669,9 @@ if(WIN32)
 endif()
 
 # Linux does not have a separate libintl, it is part of libc
-if(USE_GETTEXT AND (LIBINTL_LIBRARY OR LINUX))
+set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
+check_deps(USE_GETTEXT LIBINTL_HEADER LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
+if(USE_GETTEXT)
     message(STATUS "Using GNU Gettext")
     if(NOT LINUX)
         list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
@@ -723,25 +748,26 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
     ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
+if(BUILD_STATIC_LIBRARY)
+    add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
+    SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
+    SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
+    set_property(
+        TARGET ${CSOUNDLIB_STATIC}
+        PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
 
-add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
-SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
-SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
-set_property(
-    TARGET ${CSOUNDLIB_STATIC}
-    PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
+    target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
 
-target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+    set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
-set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
-    LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-    ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
-
-# Add the install target
-install(TARGETS ${CSOUNDLIB_STATIC}
-    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+    # Add the install target
+    install(TARGETS ${CSOUNDLIB_STATIC}
+        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+endif()
 
 option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
 check_deps(BUILD_CATALOG)
@@ -759,3 +785,5 @@ add_subdirectory(frontends)
 add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(SDIF)
+add_subdirectory(po)
+add_subdirectory(H)

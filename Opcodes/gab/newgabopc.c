@@ -856,7 +856,7 @@ int tabmorph_init_(CSOUND *csound);
 int rbatonopc_init_(CSOUND *csound);
 
 
-PUBLIC int newgabopc_ModuleInit(CSOUND *csound)
+int newgabopc_ModuleInit(CSOUND *csound)
 {
         int               err = 0;
         err |= hvs_init_(csound);

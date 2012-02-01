@@ -1380,11 +1380,11 @@ typedef struct {
  */
 
 #define LINKAGE1(name)                                         \
-PUBLIC long name##_init(CSOUND *csound, OENTRY **ep)           \
+long name##_init(CSOUND *csound, OENTRY **ep)           \
 {   (void) csound; *ep = name; return (long) (sizeof(name));  } 
 
 #define FLINKAGE1(name)                                                 \
-PUBLIC NGFENS* name##_init(CSOUND *csound)                         \
+NGFENS* name##_init(CSOUND *csound)                         \
 {   (void) csound; return name;                                     } 
 
 #ifdef __cplusplus

@@ -762,7 +762,9 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       ip->t.inlist->arg[0] = strsav_string(csound, c);
 
       csound->Free(csound, c);
-    } else if (root->left->type == T_IDENT) { /* named instrument */
+    } else if (root->left->type == T_IDENT &&
+               !(root->left->left != NULL &&
+                 root->left->left->type == UDO_ANS_TOKEN)) { /* named instrument */
       int32  insno_priority = -1L;
       c = root->left->value->lexeme;
 

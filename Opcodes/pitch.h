@@ -235,6 +235,13 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ans;
+        MYFLT   *pnum;
+        AUXCH   pfield;
+} PFUNK;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ans;
         MYFLT   *asig;
         MYFLT   *kwind;
         MYFLT   *imaxsize;
@@ -279,6 +286,8 @@ int macset(CSOUND *, SUM *p);
 int maxalloc(CSOUND *, CPU_PERC *p);
 int mute_inst(CSOUND *, MUTE *p);
 int pfun(CSOUND *, PFUN *p);
+int pfunk_init(CSOUND *, PFUNK *p);
+int pfunk(CSOUND *, PFUNK *p);
 int phsbnkset(CSOUND *, PHSORBNK *p);
 int phsorbnk(CSOUND *, PHSORBNK *p);
 int pinkish(CSOUND *, PINKISH *p);

@@ -28,7 +28,7 @@
 }
 */
 
-PUBLIC int stdopc_ModuleInit(CSOUND *csound)
+int stdopc_ModuleInit(CSOUND *csound)
 {
     STDOPCOD_GLOBALS  *p;
     int               err = 0;
