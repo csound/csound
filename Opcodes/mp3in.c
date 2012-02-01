@@ -51,6 +51,13 @@ typedef struct {
     MYFLT   *iFileCode;
 } MP3LEN;
 
+int mp3in_cleanup(CSOUND *csound, MP3IN *p)
+{
+    if (p->mpa != NULL)
+      mp3dec_uninit(p->mpa);
+    return OK;
+}
+
 int mp3ininit(CSOUND *csound, MP3IN *p)
 {
     char    name[1024];
@@ -89,6 +96,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
+      mp3dec_uninit(mpa);
       return
         csound->InitError(csound, Str("mp3in: %s: failed to open file"), name);
     }
@@ -158,6 +166,8 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     /* done initialisation */
     p->initDone = -1;
     p->pos = 0;
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND*, void*)) mp3in_cleanup);
     return OK;
 }
 
@@ -227,6 +237,7 @@ int mp3len(CSOUND *csound, MP3LEN *p)
     if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
+      mp3dec_uninit(mpa);
       return
         csound->InitError(csound, Str("mp3in: %s: failed to open file"), name);
     }
@@ -242,6 +253,7 @@ int mp3len(CSOUND *csound, MP3LEN *p)
     }
     close(fd);
     *p->ir = (MYFLT)mpainfo.duration;
+    mp3dec_uninit(mpa);
     return OK;
 }
 
