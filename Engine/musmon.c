@@ -289,20 +289,32 @@ int musmon(CSOUND *csound)
       /* call cscore, optionally re-enter via lplay() */
       csound->cscoreCallback_(csound);
       fclose(csound->oscfp); csound->oscfp = NULL;
-      fclose(csound->scfp); csound->scfp = NULL;
+      if (csound->scfp != NULL) {
+        fclose(csound->scfp);
+        csound->scfp = NULL;
+      }
       if (ST(lplayed))
         return 0;
 
       /*  read from cscore.out */
-      if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r"))))
+      if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r")))) {
         csoundDie(csound, Str("cannot reopen cscore.out"));
+      }
+      else {
+        CORFIL *inf = corfile_create_w();
+        int c;
+        while ((c=getc(csound->scfp))!=EOF) corfile_putc(c, inf);
+        corfile_rewind(inf);
+        csound->scorestr = inf;
+        corfile_rm(&csound->scstr);
+      }
       csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
       /* write to cscore.srt */
      if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w"))))
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("sorting cscore.out ..\n"));
-      csound->scorestr = copy_to_corefile(csound, "cscore.srt", NULL, 1);
+      /* csound->scorestr = copy_to_corefile(csound, "cscore.srt", NULL, 1); */
       scsortstr(csound, csound->scorestr);  /* call the sorter again */
       fclose(csound->scfp); csound->scfp = NULL;
       fputs(corfile_body(csound->scstr), csound->oscfp);

@@ -158,6 +158,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         e->opcod = c;
         e->pcnt = 0;
         return(1);
+      case EOF:                          /* necessary for cscoreGetEvent */
+        return(0);
       default:                                /* WARPED scorefile:       */
         if (!csound->warped) goto unwarped;
         e->opcod = c;                                       /* opcod */

@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"     /*                      CSCORFNS.C      */
 #include "cscore.h"
+#include "corfile.h"
 
 #define TYP_FREE   0
 #define TYP_EVENT  1
@@ -290,7 +291,7 @@ PUBLIC EVENT * cscoreGetEvent(CSOUND *csound)
 {
     EVENT *e;
 
-    if (csound->scfp != NULL && !atEOF && nxtevt->op != '\0')
+    if (!atEOF && nxtevt->op != '\0')
       e = cscoreCopyEvent(csound, nxtevt);
     else e = NULL;
     if (!(rdscor(csound, nxtevtblk))) {
@@ -809,7 +810,7 @@ static void makecurrent(CSOUND *csound, FILE *fp)
 
 /* verify initial scfp, init other data */
 /* record & make all this current       */
-
+#ifdef OLD_CODE
 PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
 {
     EVENT   *next;
@@ -835,6 +836,38 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
 
     return CSOUND_SUCCESS;
 }
+#endif
+
+PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
+{
+    EVENT  *next;
+
+    if (insco != NULL) {
+      CORFIL *inf = corfile_create_w();
+      int c;
+      while ((c=getc(insco))!=EOF) corfile_putc(c, inf);
+      corfile_rewind(inf);
+      csound->scstr = inf;
+    }
+    if (outsco == NULL) {
+      csound->ErrorMsg(csound,
+                       Str("csoundInitializeCscore: no output score given."));
+      return CSOUND_INITIALIZATION;
+    }
+    csound->scfp = insco;
+    csound->oscfp = outsco;
+
+    next = cscoreCreateEvent(csound, PMAX); /* creat EVENT blk receiving buf */
+    next->op = '\0';
+
+    savinfdata(csound, csound->scfp,
+               next, FL(0.0), 1, 0, 0);    /* curuntil 0, wasend, non-warp, not eof */
+    makecurrent(csound, csound->scfp);  /* make all this current         */
+
+    return CSOUND_SUCCESS;
+}
+
+
 
 /* open new cscore input file, init data */
 /* & save;  no rdscor until made current */
