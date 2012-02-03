@@ -858,8 +858,8 @@
 /*---------------------------------------------------------------------------*/
 
 static int ftkrchkw(CSOUND *, TABLEW *p);
-static int itblchkw(CSOUND *, TABLEW *p);
-static int ptblchkw(CSOUND *, TABLEW *p);
+       int itblchkw(CSOUND *, TABLEW *p);
+static int tblchkw(CSOUND *, TABLEW *p);
 
 /* Table write code
  *
@@ -875,7 +875,7 @@ static int ptblchkw(CSOUND *, TABLEW *p);
  *
  * Also called by itablew().
  *
- * A similar function ptblchkw() does the same job at performance time
+ * A similar function tblchkw() does the same job at performance time
  * - k processing cycles.
  *
  * Both these functions are virtually identical to those itblchk() and
@@ -886,7 +886,7 @@ static int ptblchkw(CSOUND *, TABLEW *p);
  * 3 -  There is an igwmode parameter.
 */
 
-static int itblchkw(CSOUND *csound, TABLEW *p)
+int itblchkw(CSOUND *csound, TABLEW *p)
 {
     /* Get pointer to the function table data structure of the table
      * number specified in xfn. Return 0 if it cannot be found.
@@ -928,7 +928,7 @@ static int itblchkw(CSOUND *csound, TABLEW *p)
 
 /*************************************/
 
-/* ptblchkw()
+/* tblchkw()
  *
  * This is called at init time by tblsetwkt() to set up the TABLEW
  * data structure for subsequent k and a rate operations which are
@@ -946,7 +946,7 @@ static int itblchkw(CSOUND *csound, TABLEW *p)
  * ktablewkt tablewkt
  *
  */
-static int ptblchkw(CSOUND *csound, TABLEW *p)
+static int tblchkw(CSOUND *csound, TABLEW *p)
 {
     /* TABLEW has an integer variable for the previous table number
      * (p->pfn).
@@ -964,29 +964,16 @@ static int ptblchkw(CSOUND *csound, TABLEW *p)
 
 /*---------------------------------------------------------------------------*/
 
-/* tblsetw()
- *
- * This is called at init time to set up TABLEW for the a and k rate
- * table read functions which are expecting the table number to be
- * fixed at i time.
- *
- * Call the itblchkw() function to do the work.
- */
-int tblsetw(CSOUND *csound, TABLEW *p)
-{
-    return itblchkw(csound, p);
-}
-
 /* tblsetwkt()
  *
  * This is called at init time to set up TABLEW for the a and k rate
  * table read functions which are expecting the table number to be a k
  * rate variable.
  *
- * Call the ptblchkw() function to do the work.  */
+ * Call the tblchkw() function to do the work.  */
 int tblsetwkt(CSOUND *csound, TABLEW *p)
 {
-    return ptblchkw(csound, p);
+    return tblchkw(csound, p);
 }
 
 /* itablew()
