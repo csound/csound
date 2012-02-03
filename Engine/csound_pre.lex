@@ -487,6 +487,9 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       corfile_puts(bb, csound->expanded_orc);
     }
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
+    if (cf == NULL)
+      csound->Die(csound,
+                  Str("Cannot open #include'd file %s\n"), buffer);
     csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
