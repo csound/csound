@@ -24,6 +24,7 @@
 
 #include "csoundCore.h" /*                              UGENS2.C        */
 #include "ugens2.h"
+#include "ugrw1.h"
 #include <math.h>
 
 #define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
@@ -437,8 +438,8 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
           fract = FL(0.0);
         }
       }
-      else if (indx>=length) indx %= length;
-      else if (indx<0) indx = length-(-indx)%length;
+      else if (UNLIKELY(indx>=length)) indx %= length;
+      else if (UNLIKELY(indx<0)) indx = length-(-indx)%length;
       /* interpolate with cubic if we can */
       if (UNLIKELY(indx <1 || indx == length-2 || length<4)) {
         /* Too short or at ends */
@@ -464,3 +465,151 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
     return csound->PerfError(csound, Str("ptable3: not initialised"));
 }
 
+extern int itblchkw(CSOUND *, TABLEW*);
+int pktablew(CSOUND *, TABLEW*);
+int pitablew(CSOUND *csound, TABLEW *p)
+{
+    if (LIKELY(itblchkw(csound, p) == OK))
+      return pktablew(csound, p);
+    return NOTOK;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* pktablew is called with p pointing to the TABLEW data structure -
+ * which contains the input arguments.  */
+
+int pktablew(CSOUND *csound, TABLEW   *p)
+{
+/* Pointer to data structure for accessing the table we will be
+ * writing to.
+ */
+    FUNC        *ftp;
+    int32        indx, length;
+    MYFLT       ndx;            /*  for calculating index of read.  */
+    MYFLT       *ptab;          /* Where we will write */
+
+    /*-----------------------------------*/
+    /* Assume that TABLEW has been set up correctly.  */
+
+    ftp    = p->ftp;
+    ndx    = *p->xndx;
+    length = ftp->flen;
+    /* Multiply ndx by denormalisation factor.  and add in the
+     * offset - already denormalised - by tblchkw().
+     * xbmul = 1 or table length depending on state of ixmode.  */
+
+    ndx = (ndx * p->xbmul) + p->offset;
+
+    /* ndx now includes the offset and is ready to address the table.
+     * However we have three modes to consider:
+     * igwm = 0     Limit mode.
+     *        1     Wrap mode.
+     *        2     Guardpoint mode.
+     */
+    if (p->iwgm == 0) {
+      /* Limit mode - when igmode = 0.
+       *
+       * Limit the final index to 0 and the last location in the table.
+       */
+      indx = (int32) MYFLOOR(ndx); /* Limit to (table length - 1) */
+      if (UNLIKELY(indx > length - 1))
+        indx = length - 1;      /* Limit the high values. */
+      else if (UNLIKELY(indx < 0L)) indx = 0L; /* limit negative values to zero. */
+    }
+    /* Wrap and guard point mode.
+     * In guard point mode only, add 0.5 to the index. */
+    else {
+      if (p->iwgm == 2) ndx += FL(0.5);
+      indx = (int32) MYFLOOR(ndx);
+
+      /* Both wrap and guard point mode.
+       * The following code uses an AND with an integer like 0000 0111 to wrap
+       * the current index within the range of the table. */
+      if (UNLIKELY(indx>=length)) indx %= length;
+      else if (UNLIKELY(indx<0)) indx = length-(-indx)%length;
+    }
+                                /* Calculate the address of where we
+                                 * want to write to, from indx and the
+                                 * starting address of the table.
+                                 */
+    ptab = ftp->ftable + indx;
+    *ptab = *p->xsig;           /* Write the input value to the table. */
+                                /* If this is guard point mode and we
+                                 * have just written to location 0,
+                                 * then also write to the guard point.
+                                 */
+    if ((p->iwgm == 2) && indx == 0) { /* Fix -- JPff 2000/1/5 */
+      ptab += ftp->flen;
+      *ptab = *p->xsig;
+    }
+    return OK;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* tablew() is similar to ktablew()  above, except that it processes
+ * two arrays of input values and indexes.  These arrays are ksmps long. */
+int ptablew(CSOUND *csound, TABLEW *p)
+{
+    FUNC        *ftp;   /* Pointer to function table data structure. */
+    MYFLT       *psig;  /* Array of input values to be written to table. */
+    MYFLT       *pxndx; /* Array of input index values */
+    MYFLT       *ptab;  /* Pointer to start of table we will write. */
+    MYFLT       *pwrite;/* Pointer to location in table where we will write */
+    int32        indx;   /* Used to read table. */
+    int32        length; /* Length of table */
+    int         liwgm;          /* Local copy of iwgm for speed */
+    int         n, nsmps = csound->ksmps;
+    MYFLT       ndx, xbmul, offset;
+                                /*-----------------------------------*/
+    /* Assume that TABLEW has been set up correctly. */
+
+    ftp    = p->ftp;
+    psig   = p->xsig;
+    pxndx  = p->xndx;
+    ptab   = ftp->ftable;
+    length = ftp->flen;
+    liwgm  = p->iwgm;
+    xbmul  = (MYFLT)p->xbmul;
+    offset = p->offset;
+                /* Main loop - for the number of a samples in a k cycle. */
+    for (n=0; n<nsmps; n++) {
+      /* Read in the next raw index and increment the pointer ready for the
+         next cycle.  Then multiply the ndx by the denormalising factor and
+         add in the offset.  */
+      ndx = (pxndx[n] * xbmul) + offset;
+      if (liwgm == 0) {         /* Limit mode - when igmode = 0. */
+        indx = (int32) MYFLOOR(ndx);
+        if (UNLIKELY(indx > length - 1)) indx = length - 1;
+        else if (UNLIKELY(indx < 0L)) indx = 0L;
+      }
+      else {
+        if (liwgm == 2) ndx += FL(0.5);
+        indx = (int32) MYFLOOR(ndx);
+        /* Both wrap and guard point mode. */
+        if (UNLIKELY(indx>=length)) indx %= length;
+        else if (UNLIKELY(indx<0)) indx = length-(-indx)%length;
+      }
+      pwrite = ptab + indx;
+      *pwrite = psig[n];
+                                        /* If this is guard point mode and we
+                                         * have just written to location 0,
+                                         * then also write to the guard point.
+                                         */
+      if ((liwgm == 2) && indx == 0) {  /* Fix -- JPff 2000/1/5 */
+                                        /* Note that since pwrite is a pointer
+                                         * to a float, adding length to it
+                                         * adds (4 * length) to its value since
+                                         * the length of a float is 4 bytes.
+                                         */
+        pwrite += length;
+                                        /* Decrement psig to make it point
+                                         * to the same input value.
+                                         * Write to guard point.
+                                         */
+        *pwrite = psig[n];
+      }
+    }
+    return OK;
+}
