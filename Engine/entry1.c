@@ -731,7 +731,9 @@ OENTRY opcodlst_1[] = {
 { "turnoff2.i",S(TURNOFF2),2,     "",     "ikk",  NULL, turnoff2k, NULL     },
 { "turnoff2.r",S(TURNOFF2),2,     "",     "ikk",  NULL, turnoff2k, NULL     },
 { "cngoto", S(CGOTO),   3,      "",     "Bl",   ingoto, kngoto, NULL     },
+#ifdef VARGA
 { "cogoto", S(CGOTO),   3,      "",     "bl",   iingoto, kingoto, NULL   },
+#endif
 /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
 /* and setksmps */
 { ".userOpcode", S(UOPCODE), 7, "", "", useropcdset, useropcd, useropcd },

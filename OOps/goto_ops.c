@@ -71,6 +71,7 @@ int kngoto(CSOUND *csound, CGOTO *p)
     return OK;
 }
 
+#ifdef VARGS
 /* an i-rate version that ALWAYS jumps at p-time */
 
 int iingoto(CSOUND *csound, CGOTO *p)
@@ -85,6 +86,7 @@ int kingoto(CSOUND *csound, CGOTO *p)
     csound->pds = p->lblblk->prvp;
     return OK;
 }
+#endif
 
 int timset(CSOUND *csound, TIMOUT *p)
 {
