@@ -47,12 +47,14 @@ typedef struct {
     int   cnt;
 } OSCSEND;
 
+#ifdef VARGA
 typedef struct {
     OPDS    h;
     MYFLT   *i_port;
     MYFLT   *S_path;
     MYFLT   *i_absp2;
 } OSCRECV;
+#endif
 
 typedef struct osc_pat {
     struct osc_pat *next;
@@ -74,12 +76,14 @@ typedef struct {
     /* for OSCinit/OSClisten */
     int     nPorts;
     OSC_PORT  *ports;
+#ifdef VARGA
     /* for OSCrecv */
     rtEvt_t *eventQueue;
     void    *mutex_;
     lo_server_thread  st;
     double  baseTime;
     int     absp2mode;
+#endif
 } OSC_GLOBALS;
 
 /* opcode for starting the OSC listener (called once from orchestra header) */
@@ -255,6 +259,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     return OK;
 }
 
+#ifdef VARGA
 /* callback function called by sensevents() once in every control period */
 
 static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
@@ -381,6 +386,7 @@ static void osc_error_handler(int n, const char *msg, const char *path)
 {
     return;
 }
+#endif
 
 /* RESET routine for cleaning up */
 
@@ -388,6 +394,7 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
 {
     int i;
 
+#ifdef VARGA
     if (p->mutex_ != NULL) {
       /* stop and destroy OSC thread */
       lo_server_thread_stop(p->st);
@@ -404,6 +411,7 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
       csound->UnlockMutex(p->mutex_);
       csound->DestroyMutex(p->mutex_);
     }
+#endif
     for (i = 0; i < p->nPorts; i++)
       if (p->ports[i].thread) {
         lo_server_thread_stop(p->ports[i].thread);
@@ -433,6 +441,7 @@ static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
     return pp;
 }
 
+#ifdef VARGA
 /* OSCrecv opcode (called once from orchestra header) */
 
 static int OSCrecv_init(CSOUND *csound, OSCRECV *p)
@@ -465,6 +474,7 @@ static int OSCrecv_init(CSOUND *csound, OSCRECV *p)
                                                  event_sense_callback, pp);
     return OK;
 }
+#endif
 
  /* ------------------------------------------------------------------------ */
 
@@ -754,7 +764,9 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 
 static OENTRY localops[] = {
 { "OSCsend", S(OSCSEND), 3, "", "kSiSSN", (SUBR)osc_send_set, (SUBR)osc_send },
+#ifdef VARGA
 { "OSCrecv", S(OSCRECV), 1, "", "iSo",    (SUBR)OSCrecv_init },
+#endif
 { "OSCinit", S(OSCINIT), 1, "i", "i", (SUBR)osc_listener_init },
 { "OSClisten", S(OSCLISTEN),3, "k", "iSSN", (SUBR)OSC_list_init, (SUBR)OSC_list}
 };
