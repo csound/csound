@@ -941,6 +941,7 @@ if getPlatform() == 'win32':
     # These are the Windows system call libraries.
     if compilerGNU():
         csoundWindowsLibraries = Split('''
+setupapi 
 advapi32
 comctl32
 comdlg32
@@ -957,7 +958,8 @@ uuid
 winmm
 winspool
 ws2_32
-wsock32
+wsock32 
+setupapi 
 advapi32
 comctl32
 comdlg32
@@ -976,10 +978,10 @@ ws2_32
         ''')
     else:
         csoundWindowsLibraries = Split('''
-            kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
+            setupapi kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
             comctl32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib
             ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
-            kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
+            setupapi kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
             advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
             odbc32.lib odbccp32.lib pthread.lib
         ''')
