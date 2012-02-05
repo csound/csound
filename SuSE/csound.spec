@@ -24,7 +24,7 @@ BuildRequires:  alsa-devel fdupes fluidsynth-devel gcc-c++ jack-devel liblo-deve
 BuildRequires:  fltk-devel libjpeg-devel libpng-devel xorg-x11-devel
 %endif
 Summary:        Computer Sound Synthesis and Composition Program
-Version:        5.15.0
+Version:        5.16.0
 Release:        130
 License:        GFDL-1.2 ; LGPL-2.1+ ; MIT
 Group:          Productivity/Multimedia/Sound/Utilities
