@@ -576,12 +576,12 @@ skipAssoc:
       File ..\..\doppler.dll
       File ..\..\fareygen.dll
       File ..\..\fluidOpcodes.dll
+      File ..\..\fractalnoise.dll
       File ..\..\image.dll
 !ifndef FLOAT
       File ..\..\linear_algebra.dll
 !endif
       File ..\..\mixer.dll
-      File ..\..\mutexops.dll
       File ..\..\osc.dll
       File ..\..\pmidi.dll
       File ..\..\rtpa.dll
