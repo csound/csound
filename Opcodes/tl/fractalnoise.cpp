@@ -39,7 +39,7 @@ inline int lsr (int x, int n)
 inline void *aligned_calloc(size_t nmemb, size_t size)
 {
     return (void*)((unsigned long)(calloc((nmemb*size)+15,
-                                          sizeof(char)))+15 & 0xfffffff0);
+                                          (sizeof(char)))+15) & 0xfffffff0);
 }
 
 /* ABSTRACT USER INTERFACE */
@@ -49,12 +49,12 @@ struct Meta
     void declare (const char* key, const char* value) { }
 };
 
-class UI
+class UserInterface
 {
   bool	fStopped;
 public:
-  UI() : fStopped(false) {}
-  virtual ~UI() {}
+  UserInterface() : fStopped(false) {}
+  virtual ~UserInterface() {}
   virtual void addButton(char* label, MYFLT* zone) = 0;
   virtual void addToggleButton(char* label, MYFLT* zone) = 0;
   virtual void addCheckButton(char* label, MYFLT* zone) = 0;
@@ -74,7 +74,7 @@ public:
   bool stopped() { return fStopped; }
 };
 
-class csUI : public UI {
+class csUI : public UserInterface {
 private:
   MYFLT* args[2];
   int ctrlCount;
@@ -84,7 +84,7 @@ private:
   }
 
 public:
-  csUI() : UI(), ctrlCount(0) {};
+  csUI() : UserInterface(), ctrlCount(0) {};
   virtual ~csUI() {};
 
   virtual void addButton(char* label, MYFLT* zone)
@@ -140,7 +140,7 @@ public:
   virtual ~dsp() {}
   virtual int getNumInputs() = 0;
   virtual int getNumOutputs() = 0;
-  virtual void buildUserInterface(UI* interface) = 0;
+  virtual void buildUserInterface(UserInterface* userInterface) = 0;
   virtual void init(int samplingRate) = 0;
   virtual void compute(CSOUND* csound, MYFLT* output) = 0;
 };
@@ -293,14 +293,14 @@ class mydsp : public dsp {
             classInit(samplingFreq);
             instanceInit(samplingFreq);
 	}
-	virtual void buildUserInterface(UI* interface)
+	virtual void buildUserInterface(UserInterface* userInterface)
         {
-            interface->openVerticalBox((char*)"fractalnoise");
-            interface->addVerticalSlider((char*)"amp", &fslider1, FL(1.0),
+            userInterface->openVerticalBox((char*)"fractalnoise");
+            userInterface->addVerticalSlider((char*)"amp", &fslider1, FL(1.0),
                                          FL(0.0), FL(20.0), FL(0.01));
-            interface->addVerticalSlider((char*)"beta", &fslider0, FL(1.75),
+            userInterface->addVerticalSlider((char*)"beta", &fslider0, FL(1.75),
                                          FL(0.0), FL(10.0), FL(0.01));
-            interface->closeBox();
+            userInterface->closeBox();
 	}
         virtual void compute (CSOUND* csound, MYFLT* output)
         {
@@ -369,12 +369,12 @@ class mydsp : public dsp {
 	}
 };
 
-typedef struct mydsp FaustCode;
+//typedef struct mydsp FaustCode;
 
 typedef struct {
         OPDS       h;
         MYFLT      *out, *kamp, *kbeta;
-        FaustCode  *faust;
+        mydsp  *faust;
         csUI       *cs_interface;
 } FRACTALNOISE;
 
@@ -391,7 +391,7 @@ extern "C"
 
     int fractalnoise_init(CSOUND *csound, FRACTALNOISE *p)
     {
-        p->faust = new FaustCode;
+        p->faust = new mydsp;
         p->cs_interface = new csUI;
         p->faust->init((int)csound->esr);
         p->faust->buildUserInterface(p->cs_interface);

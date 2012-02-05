@@ -1,5 +1,5 @@
 #!/bin/sh
-echo Setting up environment to run Csound head branch from build area...
+echo Setting up environment to build and run Csound head branch from build area...
 echo Order of paths can be vitally important!
 export PATH=/c/utah/opt/Mega-Nerd/libsndfile:${PATH}
 export PATH=/c/utah/opt/portaudio:${PATH}
@@ -22,14 +22,13 @@ export PATH=${PATH}:/c/utah/opt/fltk-1.1.10/src
 export PATH=${PATH}:/c/utah/opt/fltk-1.1.10/lib
 export PATH=${PATH}:/c/utah/opt/fltk-1.1.10/bin
 export PATH=${PATH}:/c/utah/opt/fltk-1.1.10/fluid
-export PATH=${PATH}:/c/utah/opt/qutecsound/bin
 export PATH=${PATH}:/c/utah/opt/musicxml-v2/win32/codeblocks
 export PATH=${PATH}:/c/utah/opt/gtk/bin
 export PATH=${PATH}:/c/utah/opt/MinGW/msys/1.0/bin
-export PATH=/c/utah/opt/Qt/mingw/bin:${PATH}
-export PATH=/c/utah/opt/Qt/Desktop/Qt/4.7.4/mingw/bin:${PATH}
+export PATH=${PATH}:/c/utah/opt/scite
+export PATH=${PATH}:/c/utah/opt/Qt/QtCreator/bin
+export PATH=${PATH}:/c/utah/opt/qcs-build-desktop/bin
 export PATH=/c/utah/opt/PythonQt-build-desktop/lib:${PATH}
-export PATH=${PATH}:/c/utah/opt/MiKTeX-2.9/miktex/bin
 export PATH=${PATH}:/c/utah/opt/MiKTeX-2.9/miktex/bin
 export RAWWAVE_PATH=D:/utah/home/mkg/csound/csound5/Opcodes/stk/rawwaves
 export OPCODEDIR64=D:/utah/home/mkg/csound/csound5
