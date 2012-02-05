@@ -686,9 +686,9 @@ SectionGroup "Front ends"
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       # CsoundQt
-      File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtCore4.dll
-      File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtGui4.dll
-      File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtXml4.dll
+      File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtCore4.dll
+      File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtGui4.dll
+      File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtXml4.dll
 !ifdef FLOAT
       File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f.exe
 !else
@@ -843,15 +843,15 @@ SectionGroup "Csound interfaces"
         SetOutPath $INSTDIR\bin
           File ..\..\csnd.dll
           # CsoundQt
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtCore4.dll
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtGui4.dll
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtXml4.dll
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtNetwork4.dll
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtOpenGL4.dll
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtSql4.dll
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtSvg4.dll
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtWebKit4.dll
-          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\phonon4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtCore4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtGui4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtXml4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtNetwork4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtOpenGL4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtSql4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtSvg4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtWebKit4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\phonon4.dll
           File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt_QtAll.dll
           File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt.dll
     !ifdef FLOAT
