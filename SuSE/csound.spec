@@ -53,11 +53,12 @@ test -f custom.py || cp custom.py.mkg custom.py
 
 %build
 %if %_lib == "lib64"
-args="Word64=1"
+args="Word64=1 Lib64=1"
 %else
 args=""
 %endif
-scons prefix=%{_prefix} buildRelease=1 $args \
+scons prefix=%{_prefix} buildRelease=1 useDouble=1 useOSC=1 \
+  buildVirtual=1 buildBeats=1 $args \
   customCCFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \
   customCXXFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 
