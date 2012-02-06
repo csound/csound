@@ -84,8 +84,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     OPARMS  *O = csound->oparms;
     char    *s;
     char    *sortedscore = NULL;
-    char    *xtractedscore = "score.xtr";
-    FILE    *scorin = NULL, *scorout = NULL, *xfile = NULL;
+    //    char    *xtractedscore = "score.xtr";
+    FILE    *xfile = NULL;
     int     n;
     int     csdFound = 0;
     char    *fileDir;
