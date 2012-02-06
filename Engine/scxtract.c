@@ -22,11 +22,13 @@
 */
 
 #include "csoundCore.h"                            /*  SCXTRACT.C  */
+#include "corfile.h"
 
 extern void readxfil(CSOUND *, FILE *), extract(CSOUND *), swrite(CSOUND *);
 extern void sfree(CSOUND *csound);
 extern int  sread(CSOUND *csound);
 extern void sread_init(CSOUND *csound);
+extern void swritestr(CSOUND *csound);
 
 /* called from xmain.c or some other main */
 /*   extracts events from each score sect */

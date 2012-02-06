@@ -14,7 +14,7 @@
 
 Summary:       A sound synthesis language and library
 Name:          csound
-Version:       5.15.0
+Version:       5.16.1
 Release:       5%{?dist}
 URL:           http://csound.sourceforge.net/
 License:       LGPLv2+
@@ -36,8 +36,8 @@ BuildRequires: gettext
 BuildRequires: gcc-c++ boost-devel
 
 Source0: http://downloads.sourceforge.net/csound/Csound%{version}.tar.gz
-Source1: http://downloads.sourceforge.net/csound/Csound5.15-manual-src.tar.gz
-Source2: http://downloads.sourceforge.net/csound/Csound5.15_manual_html.zip
+Source1: http://downloads.sourceforge.net/csound/Csound5.16-manual-src.tar.gz
+Source2: http://downloads.sourceforge.net/csound/Csound5.16_manual_html.zip
 
 Patch0: csound-5.12.1-fixpython.patch
 Patch1: csound-5.13.0-no-usr-local.patch

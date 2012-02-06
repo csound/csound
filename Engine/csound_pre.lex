@@ -39,7 +39,7 @@ void do_macro(CSOUND *, char *, yyscan_t);
 void do_umacro(CSOUND *, char *, yyscan_t);
 void do_ifdef(CSOUND *, char *, yyscan_t);
 void do_ifdef_skip_code(CSOUND *, yyscan_t);
- static void print_csound_predata(CSOUND *,char *,yyscan_t);
+// static void print_csound_predata(CSOUND *,char *,yyscan_t);
 void csound_pre_line(CORFIL*, yyscan_t);
 
 #include "parse_param.h"
@@ -105,7 +105,7 @@ CONT            \\[ \t]*(;.*)?\n
 {STRCONST}      { corfile_puts(yytext, csound->expanded_orc); }
 {XSTR}          { corfile_puts(yytext, csound->expanded_orc); }
 {MACRONAME}     {
-                   MACRO     *mm, *mfound;
+                   MACRO     *mm, *mfound=NULL;
                    int       i, len, mlen;
                    //print_csound_predata(csound, "Macro call", yyscanner);
                    len = strlen(yytext)-1;
@@ -323,6 +323,8 @@ CONT            \\[ \t]*(;.*)?\n
                   csound->DebugMsg(csound,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
+                  if (UNLIKELY(PARM->depth > 1024))
+                    csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
                   csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n", __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
@@ -549,6 +551,8 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     i = 0;
     mm->body = (char*) mmalloc(csound, 100);
     while ((c = input(yyscanner)) != '#') {
+      if (UNLIKELY(c == EOF))
+        csound->Die(csound, Str("define macro with args: unexpected EOF"));
       mm->body[i++] = c;
       if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
@@ -582,6 +586,8 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     while ((c = input(yyscanner)) != '#');
     mm->body = (char*) mmalloc(csound, 100);
     while ((c = input(yyscanner)) != '#') {
+      if (UNLIKELY(c == EOF))
+        csound->Die(csound, Str("define macro: unexpected EOF"));
       mm->body[i++] = c;
       if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
@@ -849,6 +855,7 @@ int main(void)
 }
 #endif
 
+#if 0
 static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
@@ -872,5 +879,6 @@ static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
            yyg->yylineno_r, yyg->yy_flex_debug_r, yyg->yytext_r, yyg->yytext_r, yyg->yy_more_flag, yyg->yy_more_len);
     csound->DebugMsg(csound,"*********\n");
 }
+#endif
 
 

@@ -2851,6 +2851,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     return gen49raw(ff, ftp);
 }
 
+#if 0
 static CS_NOINLINE FUNC *gen49_defer_load(CSOUND *csound, int fno)
 {
     FGDATA  ff;
@@ -2876,6 +2877,7 @@ static CS_NOINLINE FUNC *gen49_defer_load(CSOUND *csound, int fno)
     }
     return csound->flist[fno];
 }
+#endif
 
 static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
 {
