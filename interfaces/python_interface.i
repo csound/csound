@@ -115,7 +115,7 @@ static void PythonMessageCallback(CSOUND *in, int attr,
     Csound *p = (Csound *) csoundGetHostData(in);
     pycbdata *pydata = (pycbdata *)p->pydata;
     PyObject *pyfunc = pydata->mfunc, *arg;
-    char *mbuf = new char[sizeof(format)*10 + 256], *ch;
+    char *mbuf = new char[sizeof(format)*10 + 256];
     vsprintf(mbuf, format, valist);
     //if(ch = strrchr(mbuf, '\n')) *ch = '\0';
    if (strlen(mbuf) > 1){
@@ -312,8 +312,9 @@ static void pythonMessageCallback(CSOUND *csound,
       }
 
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->mfunc == NULL)
+    if(pydata->mfunc == NULL) {
         if(!PyEval_ThreadsInitialized())  PyEval_InitThreads();
+    }
     else Py_XDECREF(pydata->mfunc);
         pydata->mfunc = pyfunc;
         self->SetMessageCallback(PythonMessageCallback);
@@ -323,8 +324,9 @@ static void pythonMessageCallback(CSOUND *csound,
   void SetInputValueCallback(PyObject *pyfunc){
      // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->invalfunc == NULL)
+    if(pydata->invalfunc == NULL) {
        if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    }
     else Py_XDECREF(pydata->invalfunc);
         pydata->invalfunc = pyfunc;
         self->SetInputValueCallback(PythonInValueCallback);
@@ -347,8 +349,9 @@ static void pythonMessageCallback(CSOUND *csound,
   void SetExternalMidiInOpenCallback(PyObject *pyfunc){
      // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->midiinopenfunc == NULL)
+    if(pydata->midiinopenfunc == NULL) {
         if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    }
     else Py_XDECREF(pydata->midiinopenfunc);
         pydata->midiinopenfunc = pyfunc;
         self->SetExternalMidiInOpenCallback(PythonMidiInOpen);
@@ -358,8 +361,9 @@ static void pythonMessageCallback(CSOUND *csound,
 void SetExternalMidiInCloseCallback(PyObject *pyfunc){
      // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->midiinclosefunc == NULL)
+    if(pydata->midiinclosefunc == NULL) {
         if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    }
     else Py_XDECREF(pydata->midiinclosefunc);
         pydata->midiinopenfunc = pyfunc;
         self->SetExternalMidiInCloseCallback(PythonMidiInClose);
@@ -370,8 +374,9 @@ void SetExternalMidiInCloseCallback(PyObject *pyfunc){
 void SetExternalMidiReadCallback(PyObject *pyfunc){
      // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->midireadfunc == NULL)
+    if(pydata->midireadfunc == NULL) {
         if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    }
     else Py_XDECREF(pydata->midireadfunc);
         pydata->midiinopenfunc = pyfunc;
         self->SetExternalMidiReadCallback(PythonMidiRead);

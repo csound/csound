@@ -14,7 +14,7 @@
 
 Summary:       A sound synthesis language and library
 Name:          csound
-Version:       5.16.0
+Version:       5.16.1
 Release:       5%{?dist}
 URL:           http://csound.sourceforge.net/
 License:       LGPLv2+
