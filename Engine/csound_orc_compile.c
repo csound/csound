@@ -143,10 +143,9 @@ static void intyperr(CSOUND *csound, int n, char *s, char *opname,
             n+1, s, t, expect, opname, line);
 }
 
+#if 0
 static void lblrequest(CSOUND *csound, char *s)
 {
-    int     req;
-
     /* for (req=0; req<ST(lblcnt); req++) */
     /*   if (strcmp(ST(lblreq)[req].label,s) == 0) */
     /*     return; */
@@ -159,6 +158,7 @@ static void lblrequest(CSOUND *csound, char *s)
     /* ST(lblreq)[req].reqline = ST(curline); */
     /* ST(lblreq)[req].label =s; */
 }
+#endif
 
 static inline void resetouts(CSOUND *csound)
 {
@@ -292,7 +292,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
       csound->DebugMsg(csound, "%s(%d): treqd: %c\n", __FILE__, __LINE__, treqd);
       if (treqd == 'l') {             /* if arg takes lbl  */
         csound->DebugMsg(csound, "treqd = l");
-        lblrequest(csound, s);        /*      req a search */
+        //        lblrequest(csound, s);        /*      req a search */
         continue;                     /*      chk it later */
       }
       tfound = argtyp2(csound, s);     /* else get arg type */

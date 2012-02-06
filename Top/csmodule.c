@@ -350,9 +350,8 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
-static int csoundCheckOpcodeDeny(CSOUND *csound, const char *fname)
+static int csoundCheckOpcodeDeny(const char *fname)
 {
-    (void *)csound;
     /* Check to see if the fname is on the do-not-load list */
     char buff[256];
     char *p, *deny;
@@ -733,7 +732,7 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       }
       /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
-      if (csoundCheckOpcodeDeny(csound, fname)) {
+      if (csoundCheckOpcodeDeny(fname)) {
         csound->Warning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }

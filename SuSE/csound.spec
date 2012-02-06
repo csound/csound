@@ -24,7 +24,7 @@ BuildRequires:  alsa-devel fdupes fluidsynth-devel gcc-c++ jack-devel liblo-deve
 BuildRequires:  fltk-devel libjpeg-devel libpng-devel xorg-x11-devel
 %endif
 Summary:        Computer Sound Synthesis and Composition Program
-Version:        5.15.0
+Version:        5.16.1
 Release:        130
 License:        GFDL-1.2 ; LGPL-2.1+ ; MIT
 Group:          Productivity/Multimedia/Sound/Utilities
@@ -53,11 +53,12 @@ test -f custom.py || cp custom.py.mkg custom.py
 
 %build
 %if %_lib == "lib64"
-args="Word64=1"
+args="Word64=1 Lib64=1"
 %else
 args=""
 %endif
-scons prefix=%{_prefix} buildRelease=1 $args \
+scons prefix=%{_prefix} buildRelease=1 useDouble=1 useOSC=1 \
+  buildVirtual=1 buildBeats=1 $args \
   customCCFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \
   customCXXFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 
