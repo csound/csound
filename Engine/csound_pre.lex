@@ -323,6 +323,8 @@ CONT            \\[ \t]*(;.*)?\n
                   csound->DebugMsg(csound,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
+                  if (UNLIKELY(PARM->depth > 1024))
+                    csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
                   csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n", __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
@@ -549,6 +551,8 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     i = 0;
     mm->body = (char*) mmalloc(csound, 100);
     while ((c = input(yyscanner)) != '#') {
+      if (UNLIKELY(c == EOF))
+        csound->Die(csound, Str("define macro with args: unexpected EOF"));
       mm->body[i++] = c;
       if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
@@ -582,6 +586,8 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     while ((c = input(yyscanner)) != '#');
     mm->body = (char*) mmalloc(csound, 100);
     while ((c = input(yyscanner)) != '#') {
+      if (UNLIKELY(c == EOF))
+        csound->Die(csound, Str("define macro: unexpected EOF"));
       mm->body[i++] = c;
       if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
