@@ -501,6 +501,7 @@ skipAssoc:
 	# link.lnk target.file [parameters [icon.file [icon_index_number [start_options [keyboard_shortcut [description]]]]]]
 	CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Csound.lnk" "cmd" "/K $INSTDIR\bin\csound.exe" "" "" "" "" "Csound"
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\pa_devs.lnk" "cmd" "/K $INSTDIR\bin\pa_devs.exe" "" "" "" "" "List PortAudio devices"
 !ifdef NONFREE
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\README.lnk" "$INSTDIR\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
 !else
@@ -544,6 +545,7 @@ skipAssoc:
       File C:\utah\opt\fltk-1.1.10\src\mgwfltknox_images-1.1.dll
       # PortAudio
       #File C:\utah\opt\portaudio\portaudio.dll
+      File C:\utah\opt\portaudio\pa_devs.exe
       # PortMIDI
       File C:\utah\opt\portmidi\libportmidi.dll
       #File C:\utah\opt\portmidi\porttime.dll
@@ -887,6 +889,7 @@ Section "Uninstall"
   	RMDir /r $INSTDIR
   	!insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
   	Delete "$SMPROGRAMS\$MUI_TEMP\Csound.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\pa_devs.lnk"
 	Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Tutorial.lnk"
