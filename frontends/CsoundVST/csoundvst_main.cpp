@@ -24,6 +24,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+extern "C" void RunCsoundVST(const char *);
+
 int main(int argc, char **argv)
 {
   const char *filename = 0;
