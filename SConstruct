@@ -2436,7 +2436,7 @@ else:
         acEnvironment['LINKFLAGS'].remove(flag)
     if getPlatform() == 'linux':
         acEnvironment.Append(LIBS = ['util', 'dl', 'm'])
-        acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        #acEnvironment.Append(SHLINKFLAGS = '--no-export-dynamic')
         acEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         acEnvironment.Append(LIBS = ['fltk_images'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
@@ -2562,7 +2562,7 @@ else:
     vstEnvironment.Append(LIBS = libCsoundLibs)
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
-        vstEnvironment.Append(SHLINKFLAGS = '-Wl,--no-export-all-symbols')
+        #vstEnvironment.Append(SHLINKFLAGS = '-Wl,--no-export-dynamic')
         vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
     elif getPlatform() == 'darwin':
