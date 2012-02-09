@@ -107,25 +107,25 @@ static int hilbertset(CSOUND *csound, HILBERT *p)
     /* pole values taken from Bernie Hutchins, "Musical Engineer's Handbook" */
     double poles[12] = {0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
                         1.2524, 5.5671, 22.3423, 89.6271, 364.7914, 2770.1114};
-    double polefreq[12], rc[12], alpha[12], beta[12];
+    double polefreq, rc, alpha, beta;
     /* calculate coefficients for allpass filters, based on sampling rate */
     for (j=0; j<12; j++) {
       /*      p->coef[j] = (1 - (15 * PI * pole[j]) / csound->esr) /
               (1 + (15 * PI * pole[j]) / csound->esr); */
-      polefreq[j] = poles[j] * 15.0;
-      rc[j] = 1.0 / (2.0 * PI * polefreq[j]);
-      alpha[j] = 1.0 / rc[j];
-      beta[j] = (1.0 - (alpha[j] * 0.5 * (double)csound->onedsr)) /
-                (1.0 + (alpha[j] * 0.5 * (double)csound->onedsr));
+      polefreq = poles[j] * 15.0;
+      rc = 1.0 / (2.0 * PI * polefreq);
+      alpha = 1.0 / rc;
+      alpha = alpha * 0.5 * (double)csound->onedsr;
+      beta = (1.0 - alpha) / (1.0 + alpha);
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
-      p->coef[j] = -(MYFLT)beta[j];
+      p->coef[j] = -(MYFLT)beta;
     }
     return OK;
 }
 
 static int hilbert(CSOUND *csound, HILBERT *p)
 {
-    MYFLT xn1 = FL(0.0), yn1 = FL(0.0), xn2 = FL(0.0), yn2 = FL(0.0);
+    MYFLT xn1, yn1, xn2, yn2;
     MYFLT *out1, *out2, *in;
     MYFLT *coef;
     int n, nsmps = csound->ksmps;
@@ -395,8 +395,9 @@ static int phaser2set(CSOUND *csound, PHASER2 *p)
     csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux2);
     p->nm1 = (MYFLT *) p->aux1.auxp;
     p->nm2 = (MYFLT *) p->aux2.auxp;
-    for (j=0; j< loop; j++)
-      p->nm1[j] = p->nm2[j] = FL(0.0);
+    /* *** This is unnecessary as AuxAlloc zeros *** */
+    /* for (j=0; j< loop; j++) */
+    /*   p->nm1[j] = p->nm2[j] = FL(0.0); */
     return OK;
 }
 
@@ -429,6 +430,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
       ksep = -ksep;
 
     for (n=0; n<nsmps; n++) {
+      MYFLT kk = FL(1.0);
       xn = in[n] + feedback * fbgain;
       /* The following code is used to determine
        * how the frequencies of the notches are calculated.
@@ -439,8 +441,11 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
       for (j=0; j < p->loop; j++) {
         if (p->modetype == 1)
           freq = kbf + (kbf * ksep * j);
-        else
-          freq = kbf * csound->intpow(ksep,(int32)j);
+        else {
+          freq = kbf * kk;
+          kk *= ksep;
+          //freq = kbf * csound->intpow(ksep,(int32)j);
+        }
         /* Note similarities of following equations to
          * equations in resonr/resonz. The 2nd-order
          * allpass filter used here is similar to the
