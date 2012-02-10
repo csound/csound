@@ -941,7 +941,7 @@ PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
       corfile_rewind(inf);
       corfile_rm(&csound->scstr);
       csound->scstr = inf;
-      nxtevt->op = csound->scstr->body[0];
+      nxtevt->op = NULL;
       atEOF = 0;
     }
     if (csound->scfp != NULL)
