@@ -1458,13 +1458,16 @@ else:
 	luaWrapperEnvironment = csoundWrapperEnvironment.Clone()
         if getPlatform() != 'win32':
             csoundWrapperEnvironment.Append(CPPPATH=['/usr/include/lua5.1'])
-        csoundLuaInterface = luaWrapperEnvironment.SharedObject(
-            'interfaces/lua_interface.i',
-            SWIGFLAGS = [swigflags, '-module', 'luaCsnd', '-lua', '-outdir', '.'])
         if getPlatform() == 'win32':
-            luaWrapperEnvironment.Prepend(LIBS = ['csnd','lua51'])
-        else:
-            luaWrapperEnvironment.Prepend(LIBS = ['csnd','lua'])
+            csoundLuaInterface = luaWrapperEnvironment.SharedObject(
+		    'interfaces/lua_interface.i',
+		    SWIGFLAGS = [swigflags, '-module', 'luaCsnd', '-lua51', '-outdir', '.'])
+	    luaWrapperEnvironment.Prepend(LIBS = ['csnd','luaj51'])
+	else:
+	    csoundLuaInterface = luaWrapperEnvironment.SharedObject(
+			'interfaces/lua_interface.i',
+			SWIGFLAGS = [swigflags, '-module', 'luaCsnd', '-outdir', '.'])
+            luaWrapperEnvironment.Prepend(LIBS = ['csnd','luajit-5.1'])
        	luaWrapper = makeLuaModule(luaWrapperEnvironment, 'luaCsnd', [csoundLuaInterface])
 	Depends(luaWrapper, csoundLuaInterface)
 
@@ -2177,8 +2180,9 @@ else:
     
     if getPlatform() == 'linux':
        if(luaFound == 1):
-         luaEnvironment.Append(LIBS = ['lua51'])
+         luaEnvironment.Append(LIBS = ['luajit-5.1'])
          luaEnvironment.Append(LIBS = ['util', 'dl', 'm'])
+         luaEnvironment.Append(CPPPATH = '/usr/local/include/luajit-2.0')
     elif getPlatform() == 'win32':
        if(luaFound == 1):
         luaEnvironment.Append(LIBS = ['lua51'])
@@ -2536,7 +2540,7 @@ else:
        	  luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('luaCsnd lua51 CsoundAC csnd fltk_images'))
        else:
        	  luaCsoundACWrapperEnvironment.Prepend(LIBS = [luaWrapper])
-       	  luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('lua CsoundAC csnd fltk_images'))
+       	  luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('luajit-5.1 CsoundAC csnd fltk_images'))
        luaCsoundACWrapper = luaCsoundACWrapperEnvironment.SharedObject(
        	 'frontends/CsoundAC/luaCsoundAC.i', SWIGFLAGS = [swigflags, Split('-lua ')])
        luaCsoundACWrapperEnvironment.Clean('.', 'frontends/CsoundAC/luaCsoundAC_wrap.h')
