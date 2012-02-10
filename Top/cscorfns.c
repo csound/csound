@@ -390,6 +390,8 @@ PUBLIC EVLIST * cscoreListGetSection(CSOUND *csound)
 
     a = cscoreListCreate(csound, NSLOTS);
     p = &a->e[1];
+    if (csound->scstr == NULL || csound->scstr->body[0] == '\0')
+      return a;
     while ((e = cscoreGetEvent(csound)) != NULL) {
       if (e->op == 's' || e->op == 'e')
         break;
@@ -797,7 +799,9 @@ static void makecurrent(CSOUND *csound, FILE *fp)
           atEOF = infp->atEOF;
           csound->warped = infp->warped;
           if (nxtevt->op == '\0')
-            if (!(rdscor(csound, nxtevtblk))) {
+            if (csound->scstr == NULL ||
+                csound->scstr->body[0] == '\0' ||
+                !(rdscor(csound, nxtevtblk))) {
               nxtevt->op = '\0';
               atEOF = 1;
             }
@@ -929,6 +933,17 @@ PUBLIC FILE *cscoreFileGetCurrent(CSOUND *csound)
 
 PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 {
+    if (fp != NULL) {
+      CORFIL *inf = corfile_create_w();
+      int c;
+      fseek(fp, 0, SEEK_SET);
+      while ((c=getc(fp))!=EOF) corfile_putc(c, inf);
+      corfile_rewind(inf);
+      corfile_rm(&csound->scstr);
+      csound->scstr = inf;
+      nxtevt->op = csound->scstr->body[0];
+      atEOF = 0;
+    }
     if (csound->scfp != NULL)
       savinfdata(csound,
                  csound->scfp, nxtevt, curuntil, wasend, csound->warped, atEOF);
