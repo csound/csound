@@ -76,12 +76,10 @@ namespace csound
     cppSound->perform();
   }
 
-
-
   void MusicModel::clear()
   {
     Node::clear();
-    MusicModel::clear();
+    Composition::clear();
     cppSound->removeScore();
   }
 
