@@ -416,6 +416,8 @@ static int getscochar(CSOUND *csound, int expand)
           csound->DebugMsg(csound,"%s(%d): creating\n", __FILE__, __LINE__, nn->body);
 #endif
           while ((c = getscochar(csound, 1))!= term && c != trm1) {
+            if (UNLIKELY(c==EOF))
+              scorerr(csound, Str("Syntax error in macro call"));
             corfile_putc(c, nn->body);
           }
           corfile_rewind(nn->body);
@@ -1620,12 +1622,17 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           }
         }
         mm->acnt = arg;
-        while ((c = getscochar(csound, 1)) != '#');   /* Skip to next # */
+        while ((c = getscochar(csound, 1)) != '#') {   /* Skip to next # */
+          if (UNLIKELY(c==EOF))
+            scorerr(csound, Str("Syntax error in macro definition"));
+        }
         mm->body = corfile_create_w();
 #ifdef MACDEBUG
         csound->DebugMsg(csound,"%s(%d): macro %s %p\n", __FILE__, __LINE__, mname, mm->body);
 #endif
         while ((c = getscochar(csound, 0)) != '#') {  /* Do not expand here!! */
+          if (UNLIKELY(c==EOF))
+            scorerr(csound, Str("Syntax error in macro definition"));
           corfile_putc(c, mm->body);
           if (c=='\\') {
             corfile_putc(getscochar(csound, 0), mm->body);    /* Allow escaped # */
