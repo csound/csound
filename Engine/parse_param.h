@@ -35,6 +35,7 @@ typedef struct pre_parm_s {
     IFDEFSTACK      *ifdefStack;
     unsigned char   isIfndef;
     unsigned char   isInclude;
+    unsigned char   isString;
     unsigned char   clearBufferAfterEOF;
     uint16_t        line;
     uint32_t        locn;
