@@ -125,7 +125,22 @@ CONT            \\[ \t]*(;.*)?\n
                   corfile_putc('"', csound->expanded_orc);
                   PARM->isString = !PARM->isString;
                 }
-{XSTR}          { corfile_puts(yytext, csound->expanded_orc); }
+{XSTR}          {
+                  char c, *str = yytext;
+                  if (PARM->isString == 1)
+                    yyless(2);
+                  while ((c = *str++) != '\0') {
+                    switch(c) {
+                    case '\r': if (*str == '\n') continue;
+                    case '\n':
+                      csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                           yyscanner);
+                      break;
+                    default: break;
+                    }
+                  }
+                  corfile_puts(yytext, csound->expanded_orc);
+                }
 {MACRONAME}     {
                    MACRO     *mm, *mfound=NULL;
                    int       i, len, mlen;
