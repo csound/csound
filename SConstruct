@@ -1450,6 +1450,7 @@ else:
         option = '-I' + option
         csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
     swigflags = csoundWrapperEnvironment['SWIGFLAGS']
+    print 'swigflags:', swigflags
     luaWrapper = None
     if not (luaFound and commonEnvironment['buildLuaWrapper'] != '0'):
         print 'CONFIGURATION DECISION: Not building Lua wrapper to Csound C++ interface library.'
@@ -1461,12 +1462,12 @@ else:
         if getPlatform() == 'win32':
             csoundLuaInterface = luaWrapperEnvironment.SharedObject(
 		    'interfaces/lua_interface.i',
-		    SWIGFLAGS = [swigflags, '-module', 'luaCsnd', '-lua51', '-outdir', '.'])
+		    SWIGFLAGS = [swigflags, '-lua', '-module', 'luaCsnd', '-lua51', '-outdir', '.'])
 	    luaWrapperEnvironment.Prepend(LIBS = ['csnd','luaj51'])
 	else:
 	    csoundLuaInterface = luaWrapperEnvironment.SharedObject(
 			'interfaces/lua_interface.i',
-			SWIGFLAGS = [swigflags, '-module', 'luaCsnd', '-outdir', '.'])
+			SWIGFLAGS = [swigflags, '-lua', '-module', 'luaCsnd', '-outdir', '.'])
             luaWrapperEnvironment.Prepend(LIBS = ['csnd','luajit-5.1'])
        	luaWrapper = makeLuaModule(luaWrapperEnvironment, 'luaCsnd', [csoundLuaInterface])
 	Depends(luaWrapper, csoundLuaInterface)
