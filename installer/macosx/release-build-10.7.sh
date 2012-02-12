@@ -1,9 +1,9 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual
-export PACKAGE_NAME=csound5.16-OSX10.7-universal.pkg
-export DMG_DIR="Csound 5.16"
-export DMG_NAME="csound5.16-OSX10.7-universal.dmg"
+export PACKAGE_NAME=csound5.16.1-OSX10.7-universal.pkg
+export DMG_DIR="Csound 5.16.1"
+export DMG_NAME="csound5.16.1-OSX10.7-universal.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
@@ -206,7 +206,10 @@ cp /usr/local/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
 #cp /usr/local/lib/libpng12.0.dylib $SUPLIBS
 #cp /usr/local/lib/libmpadec.dylib $SUPPORT_LIBS_DIR
 #cp /usr/local/lib/libluajit.dylib $SUPLIBS
-
+cp /usr/local/lib/libFLAC.8.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 
 echo "...setting permissions..."
 
