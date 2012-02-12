@@ -12,7 +12,7 @@ lua_exec {{
 local ffi = require("ffi")
 local math = require("math")
 local string = require("string")
-local csoundApi = ffi.load('csound64.dll.5.2')
+local csoundApi = ffi.load('csound64')
 -- Declare the parts of the Csound API that we need.
 ffi.cdef[[
     int csoundGetKsmps(void *);
