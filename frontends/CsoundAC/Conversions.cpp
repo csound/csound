@@ -314,7 +314,7 @@ namespace csound
     double theta = PI_ * (x / 4.0);
     return(sqrt(2.0) / 2.0) * (cos(theta) + sin(theta));
   }
-  const double Conversions::round(double value)
+  double Conversions::round(double value)
   {
     return floor(value + 0.5);
   }

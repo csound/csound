@@ -99,7 +99,7 @@ namespace csound
     static double amplitudeToMidi(double Amplitude);
     static double midiToGain(double Midi);
     static double leftPan(double x);
-    static const double round(double value);
+    static double round(double value);
     static double temper(double octave, double tonesPerOctave);
     static double phaseToTableLengths(double Phase, double TableSampleCount);
     static double hzToMidi(double Hz, bool rounded);
