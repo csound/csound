@@ -17,6 +17,7 @@ customSWIGFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
+    customCPPPATH.append('/usr/include')
     customCPPPATH.append('/usr/include/fltk-1.1')
     customLIBPATH.append('/usr/lib/fltk-1.1')
     customCPPPATH.append('/usr/share/musicxml-v2/src/elements')
@@ -25,10 +26,11 @@ if sys.platform[:5] == 'linux':
     customCPPPATH.append('/usr/share/musicxml-v2/src/lib')
     customCPPPATH.append('/usr/share/musicxml-v2/src/visitors')
     customLIBPATH.append('/usr/share/musicxml-v2')
-    customCPPPATH.append('/home/mkg/share/LuaJIT-1.1.5/src')
-    customLIBPATH.append('/home/mkg/share/LuaJIT-1.1.5/src')
+    customCPPPATH.append('/usr/include/luajit-2.0')
+    customCPPPATH.append('/usr/include/lua5.1')
     customCPPPATH.append('/home/mkg/csound5/frontends/CsoundVST')    
     customCPPPATH.append('/home/mkg/csound5/frontends/CsoundVST/vstsdk2.4')    
+    customCPPPATH.append('/usr/include/tcl8.5')
 elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
@@ -77,8 +79,8 @@ elif sys.platform[:3] == 'win':
     #customCPPPATH.append('C:/Python24/include')
     #customLIBPATH.append('C:/Python24/Libs')    
     #customLIBPATH.append('D:/utah/msys/1.0/local/lib')
-    customCPPPATH.append('C:/Python25/include')
-    customLIBPATH.append('C:/Python25/Libs')    
+    #customCPPPATH.append('C:/Python25/include')
+    #customLIBPATH.append('C:/Python25/Libs')    
     ###############################################################
     # If you want to build vst4cs you need the include
     # path to the VST SDK header files. Add them there:
