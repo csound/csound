@@ -46,7 +46,7 @@ void Composition::render()
 
 void Composition::renderAll()
 {
-    //clear();
+    clear();
     generate();
     performAll();
 }
