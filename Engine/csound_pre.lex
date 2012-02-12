@@ -58,7 +58,8 @@ void csound_pre_line(CORFIL*, yyscan_t);
 
 WHITE           ^[ \t]*
 NEWLINE         (\n|\r\n?)
-STRCONST        \"[^\"]*\"
+STSTR           \"
+ESCAPE          \\.
 XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
@@ -92,18 +93,54 @@ CONT            \\[ \t]*(;.*)?\n
                   corfile_putc('\n', csound->expanded_orc); 
                   csound_pre_line(csound->expanded_orc, yyscanner);
                 }
-"//"            { comment(yyscanner);
-                  corfile_putc('\n', csound->expanded_orc); 
-                  csound_pre_line(csound->expanded_orc, yyscanner);
+"//"            {
+                  if (PARM->isString != 1) {
+                    comment(yyscanner);
+                    corfile_putc('\n', csound->expanded_orc); 
+                    csound_pre_line(csound->expanded_orc, yyscanner);
+                  }
+                  else {
+                    corfile_puts(yytext, csound->expanded_orc);
+                  }
                 }
-";"             { comment(yyscanner); 
-                  corfile_putc('\n', csound->expanded_orc); 
-                  csound_pre_line(csound->expanded_orc, yyscanner);
+";"             {
+                  if (PARM->isString != 1) {
+                    comment(yyscanner); 
+                    corfile_putc('\n', csound->expanded_orc); 
+                    csound_pre_line(csound->expanded_orc, yyscanner);
+                  }
+                  else {
+                    corfile_puts(yytext, csound->expanded_orc);
+                  }
                   //corfile_putline(csound_preget_lineno(yyscanner), csound->expanded_orc);
                 }
-{STCOM}         { do_comment(yyscanner); }
-{STRCONST}      { corfile_puts(yytext, csound->expanded_orc); }
-{XSTR}          { corfile_puts(yytext, csound->expanded_orc); }
+{STCOM}         {
+                  if (PARM->isString != 1)
+                    do_comment(yyscanner);
+                  else
+                    corfile_puts(yytext, csound->expanded_orc);
+                }
+{ESCAPE}        { corfile_puts(yytext, csound->expanded_orc); }
+{STSTR}         {
+                  corfile_putc('"', csound->expanded_orc);
+                  PARM->isString = !PARM->isString;
+                }
+{XSTR}          {
+                  char c, *str = yytext;
+                  if (PARM->isString == 1)
+                    yyless(2);
+                  while ((c = *str++) != '\0') {
+                    switch(c) {
+                    case '\r': if (*str == '\n') continue;
+                    case '\n':
+                      csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                           yyscanner);
+                      break;
+                    default: break;
+                    }
+                  }
+                  corfile_puts(yytext, csound->expanded_orc);
+                }
 {MACRONAME}     {
                    MACRO     *mm, *mfound=NULL;
                    int       i, len, mlen;
@@ -308,7 +345,12 @@ CONT            \\[ \t]*(;.*)?\n
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
                  }
-{INCLUDE}       BEGIN(incl);
+{INCLUDE}       {
+                  if (PARM->isString != 1)
+                    BEGIN(incl);
+                  else
+                    corfile_puts(yytext, csound->expanded_orc);
+                }
 <incl>[ \t]*     /* eat the whitespace */
 <incl>.         { /* got the include file name */
                   do_include(csound, yytext[0], yyscanner);
@@ -367,7 +409,12 @@ CONT            \\[ \t]*(;.*)?\n
                   /*            y, PARM->macros); */
                   csound_pre_line(csound->orchstr, yyscanner);
                 }
-{DEFINE}       BEGIN(macro);
+{DEFINE}        {
+                  if (PARM->isString != 1)
+                    BEGIN(macro);
+                  else
+                    corfile_puts(yytext, csound->expanded_orc);
+                }
 <macro>[ \t]*    /* eat the whitespace */
 <macro>{MACRO}  {
                   yytext[yyleng-1] = '\0';
@@ -384,7 +431,12 @@ CONT            \\[ \t]*(;.*)?\n
                   //print_csound_predata(csound,"After do_macro", yyscanner);
                   BEGIN(INITIAL);
                 }
-{UNDEF}        BEGIN(umacro);
+{UNDEF}         {
+                  if (PARM->isString != 1)
+                    BEGIN(umacro);
+                  else
+                    corfile_puts(yytext, csound->expanded_orc);
+                }
 <umacro>[ \t]*    /* eat the whitespace */
 <umacro>{IDENT}  {
                   /* csound->DebugMsg(csound,"Undefine macro %s\n", yytext); */
@@ -393,12 +445,17 @@ CONT            \\[ \t]*(;.*)?\n
                 }
 
 {IFDEF}         {
-                  PARM->isIfndef = (yytext[3] == 'n');  /* #ifdef or #ifndef */
-                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
-                                       yyscanner);
-                  corfile_putc('\n', csound->expanded_orc);
-                  csound_pre_line(csound->expanded_orc, yyscanner);
-                  BEGIN(ifdef);
+                  if (PARM->isString != 1) {
+                    PARM->isIfndef = (yytext[3] == 'n');  /* #ifdef or #ifndef */
+                    csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                         yyscanner);
+                    corfile_putc('\n', csound->expanded_orc);
+                    csound_pre_line(csound->expanded_orc, yyscanner);
+                    BEGIN(ifdef);
+                  }
+                  else {
+                    corfile_puts(yytext, csound->expanded_orc);
+                  }
                 }
 <ifdef>[ \t]*     /* eat the whitespace */
 <ifdef>{IDENT}  {
@@ -406,33 +463,43 @@ CONT            \\[ \t]*(;.*)?\n
                   BEGIN(INITIAL);
                 }
 {ELSE}          { 
-                  if (PARM->ifdefStack == NULL) {
-                    csound->Message(csound, Str("#else without #if\n"));
-                    csound->LongJmp(csound, 1); 
+                  if (PARM->isString != 1) {
+                    if (PARM->ifdefStack == NULL) {
+                      csound->Message(csound, Str("#else without #if\n"));
+                      csound->LongJmp(csound, 1); 
+                    }
+                    else if (PARM->ifdefStack->isElse) {
+                      csound->Message(csound, Str("#else after #else\n"));
+                      csound->LongJmp(csound, 1);
+                    }
+                    PARM->ifdefStack->isElse = 1;
+                    csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                         yyscanner);
+                    corfile_putc('\n', csound->expanded_orc);
+                    csound_pre_line(csound->expanded_orc, yyscanner);
+                    do_ifdef_skip_code(csound, yyscanner);
                   }
-                  else if (PARM->ifdefStack->isElse) {
-                    csound->Message(csound, Str("#else after #else\n"));
-                    csound->LongJmp(csound, 1);
+                  else {
+                    corfile_puts(yytext, csound->expanded_orc);
                   }
-                  PARM->ifdefStack->isElse = 1;
-                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
-                                       yyscanner);
-                  corfile_putc('\n', csound->expanded_orc);
-                  csound_pre_line(csound->expanded_orc, yyscanner);
-                  do_ifdef_skip_code(csound, yyscanner);
                 }
 {END}           {
-                  IFDEFSTACK *pp = PARM->ifdefStack;
-                  if (UNLIKELY(pp == NULL)) {
-                    csound->Message(csound, Str("Unmatched #end\n"));
-                    csound->LongJmp(csound, 1);
+                  if (PARM->isString != 1) {
+                    IFDEFSTACK *pp = PARM->ifdefStack;
+                    if (UNLIKELY(pp == NULL)) {
+                      csound->Message(csound, Str("Unmatched #end\n"));
+                      csound->LongJmp(csound, 1);
+                    }
+                    PARM->ifdefStack = pp->prv;
+                    csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                         yyscanner);
+                    corfile_putc('\n', csound->expanded_orc);
+                    csound_pre_line(csound->expanded_orc, yyscanner);
+                    mfree(csound, pp);
                   }
-                  PARM->ifdefStack = pp->prv;
-                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
-                                       yyscanner);
-                  corfile_putc('\n', csound->expanded_orc);
-                  csound_pre_line(csound->expanded_orc, yyscanner);
-                  mfree(csound, pp);
+                  else {
+                    corfile_puts(yytext, csound->expanded_orc);
+                  }
                 }
 .               { corfile_putc(yytext[0], csound->expanded_orc); }
 
