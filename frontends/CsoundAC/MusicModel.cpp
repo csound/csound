@@ -51,7 +51,6 @@ namespace csound
   void MusicModel::render()
   {
     generate();
-    createCsoundScore(csoundScoreHeader);
     perform();
   }
 
@@ -73,6 +72,7 @@ namespace csound
 
   void MusicModel::perform()
   {
+    createCsoundScore(csoundScoreHeader);
     cppSound->perform();
   }
 
