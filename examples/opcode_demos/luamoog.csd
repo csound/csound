@@ -10,7 +10,7 @@ nchnls =    1
 local ffi = require("ffi")
 local math = require("math")
 local string = require("string")
-local csoundApi = ffi.load('csound64.dll.5.2')
+local csoundApi = ffi.load('csound64')
 ffi.cdef[[
     int csoundGetKsmps(void *);
     double csoundGetSr(void *);
