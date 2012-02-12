@@ -1695,6 +1695,9 @@ makePlugin(pluginEnvironment, 'scansyn',
 makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
 ##makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
 
+# Cellular automaton
+makePlugin(pluginEnvironment, 'cellular', ['Opcodes/cellular.c'])
+
 #############################################################################
 #
 # Plugins with External Dependencies
