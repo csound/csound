@@ -263,6 +263,11 @@ find_package(OpenMP)
 
 # First, required stuff
 find_library(LIBSNDFILE_LIBRARY sndfile)
+
+if(NOT LIBSNDFILE_LIBRARY AND WIN32)
+find_library(LIBSNDFILE_LIBRARY sndfile-1)
+endif()
+
 if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
 endif()
