@@ -34,6 +34,8 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 
 make_plugin(fareygen fareygen.c)
 
+make_plugin(cellular cellular.c)
+
 # temporarily do not build on Windows until these opcodes are fixed
 # to compile
 if(NOT WIN32) 
