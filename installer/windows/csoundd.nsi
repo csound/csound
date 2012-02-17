@@ -911,7 +911,7 @@ startMenuDeleteLoop:
     	IfErrors startMenuDeleteLoopDone
     	StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
 startMenuDeleteLoopDone:
-	Push $INSTDIR
+	Push $INSTDIR\bin
   	Call un.RemoveFromPath
   	Push "CSOUNDRC"
   	Call un.DeleteEnvStr 
