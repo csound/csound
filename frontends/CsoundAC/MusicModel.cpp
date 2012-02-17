@@ -183,5 +183,33 @@ namespace csound
     return (Node *)this;
   }
 
+  /**
+   * Pass the invoking program's command-line arguments to processArgs()
+   * and it will perform the following commands:
+   *
+   * --csound        Render generated score using set Csound orchestra.
+   * --dir           Sets directory in which to render files (must come first;
+   *                 default is cwd).
+   * --midi          Render generated score as MIDI file and play it (default).
+   * --pianoteq      Play generated MIDI sequence file with Pianoteq.
+   * --pianoteq-wav  Render score to soundfile using Pianoteq,
+   *                 post-process it, and play it.
+   * --playmidi      Play generated MIDI filev
+   *                 post-process it, and play it.
+   * --playwav       Play rendered normalized output soundfile.
+   * --post          Post-process Csound output soundfile:
+   *                 normalize, CD, MP3, tag, and play it.
+   */
+  void MusicModel::processArgs(const std::vector<std::string> &args)
+  {
+    for (size_t i = 0, n = args.size(); i < n; ++i)
+    {
+      const std::string &arg = args[i];
+      if (arg == "--csound") 
+	{
+	}
+    }
+  }
+
 }
 
