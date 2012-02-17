@@ -193,7 +193,7 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
 
     bmax = 0.0000001;
     if (fabs((double)*max) > bmax) {
-      while ((i = (int)(fabs(*max) / bmax)))
+      while ((i = (int)(FABS(*max) / bmax)))
         bmax = bmax * 10.0;
     }
     if (fabs(bmin) > fabs(bmax))
