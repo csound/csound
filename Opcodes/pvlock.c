@@ -70,13 +70,15 @@ static int sinit(CSOUND *csound, DATASPACE *p)
     size = decim*sizeof(int);
     if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
       csound->AuxAlloc(csound, size, &p->framecount[i]);
-    memset(p->framecount[i].auxp,0,size);
+    else 
+      memset(p->framecount[i].auxp,0,size);
     size = decim*sizeof(MYFLT)*N;
     if (p->outframe[i].auxp == NULL || p->outframe[i].size < size)
       csound->AuxAlloc(csound, size, &p->outframe[i]);
-    memset(p->outframe[i].auxp,0,size);
+    else
+      memset(p->outframe[i].auxp,0,size);
     }
-   size = N*sizeof(MYFLT);
+    size = N*sizeof(MYFLT);
     if (p->win.auxp == NULL || p->win.size < size)
       csound->AuxAlloc(csound, size, &p->win);
 

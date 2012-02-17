@@ -301,7 +301,8 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     size = csound->ksmps*sizeof(MYFLT);
     if (p->aux.auxp == NULL || p->aux.size < size)
         csound->AuxAlloc(csound, size, &p->aux);
-    memset(p->aux.auxp, 0, sizeof(MYFLT)*csound->ksmps);
+    else
+      memset(p->aux.auxp, 0, size);
 
     /* allocate memory for the grain pool and initialize it*/
     if (UNLIKELY(*p->max_grains < FL(1.0)))

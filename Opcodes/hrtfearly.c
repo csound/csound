@@ -474,35 +474,53 @@ static int early_init(CSOUND *csound, early *p)
     /* allocate memory, reuse if possible: interpolation buffers */
     if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
+    else
+      memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
+    
     if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
+    else
+      memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
+
     if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
+    else
+      memset(p->lowl2.auxp, 0, irlength * sizeof(MYFLT));
+
     if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
+    else
+      memset(p->lowr2.auxp, 0, irlength * sizeof(MYFLT));
+
     if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
+    else
+      memset(p->highl1.auxp, 0, irlength * sizeof(MYFLT));
+
     if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
+    else      
+      memset(p->highr1.auxp, 0, irlength * sizeof(MYFLT));
+
     if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
+    else
+      memset(p->highl2.auxp, 0, irlength * sizeof(MYFLT));
+
     if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
+    else
+      memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
+
     if (!p->hrtflinterp.auxp || p->hrtflinterp.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtflinterp);
+    else
+      memset(p->hrtflinterp.auxp, 0, irlength * sizeof(MYFLT));
+
     if (!p->hrtfrinterp.auxp || p->hrtfrinterp.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtfrinterp);
-
-    memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowl2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowr2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highl1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highl2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highr1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->hrtflinterp.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->hrtfrinterp.auxp, 0, irlength * sizeof(MYFLT));
+    else
+      memset(p->hrtfrinterp.auxp, 0, irlength * sizeof(MYFLT));
 
     /* hrtf processing buffers */
     if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(MYFLT))

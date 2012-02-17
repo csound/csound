@@ -381,7 +381,7 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
 
 static int phaser2set(CSOUND *csound, PHASER2 *p)
 {
-    int modetype, j;
+    int modetype;
     int loop;
 
     p->modetype = modetype = (int)*p->mode;
