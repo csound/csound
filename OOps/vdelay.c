@@ -992,9 +992,10 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
         p->z[i] = FL(0.0);
       }
       csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->caux);
-      for (i = 0; i < n; i++) {
-        ((MYFLT*) p->caux.auxp)[i] = FL(0.0);
-      }
+      /* unnecessary as Auxlloc clears to 0 */
+      /* for (i = 0; i < n; i++) { */
+      /*   ((MYFLT*) p->caux.auxp)[i] = FL(0.0); */
+      /* } */
       p->pcbuf_cur[0] = p->cbuf_cur[0] = (MYFLT*)p->caux.auxp;
       for (i = 0; i < p->numCombs; i++) {
         p->pcbuf_cur[i + 1] = p->cbuf_cur[i + 1] =
@@ -1021,9 +1022,10 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
         n += a_time;
       }
       csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aaux);
-      for (i = 0; i < n; i++) {
-        ((MYFLT*) p->aaux.auxp)[i] = FL(0.0);
-      }
+      /* unnecessary as AuxAlloc clears */
+      /* for (i = 0; i < n; i++) { */
+      /*   ((MYFLT*) p->aaux.auxp)[i] = FL(0.0); */
+      /* } */
       p->pabuf_cur[0] = p->abuf_cur[0] = (MYFLT*) p->aaux.auxp;
       for (i = 0; i < p->numAlpas; i++) {
         p->pabuf_cur[i + 1] = p->abuf_cur[i + 1] =

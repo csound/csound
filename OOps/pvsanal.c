@@ -140,7 +140,7 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
       double *s = c+NB;
       p->cosine = c;
       p->sine = s;
-      c[0] = 1.0; s[0] = 0.0;
+      c[0] = 1.0; s[0] = 0.0; // assignment to s unnecessary as auxalloc zeros
         /*
           direct computation of c and s may be better for large n
           c[i] = cos(2*M_PI*i/n);

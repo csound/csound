@@ -54,7 +54,7 @@ static int nlfiltset(CSOUND *csound, NLFILT *p)
         p->delay.size<MAX_DELAY * sizeof(MYFLT)) {        /* get newspace    */
       csound->AuxAlloc(csound, MAX_DELAY * sizeof(MYFLT), &p->delay);
     }
-    else{
+    else {
       memset(p->delay.auxp, 0, MAX_DELAY * sizeof(MYFLT));
     }
     p->point = 0;
