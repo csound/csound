@@ -1094,8 +1094,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         case LIN_:
         case EXP_:
           val = *p->kout;
-          if (val < min) val=min;
-          else if(val>max) val=max;
+          if (min < max) {
+            if (val < min) val=min;
+            else if(val>max) val=max;
+          }
+          else {
+            if (val < max) val=max;
+            else if(val>min) val=min;
+          }
           break;
         default: val = ((Fl_Valuator *)v.WidgAddress)->value();
         }
@@ -1278,8 +1284,14 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 
       MYFLT val = fld->value, valtab = fld->value, min=fld->min,
         max=fld->max, range,base;
-      if (val < min) val = min;
-      else if (val >max) val = max;
+      if (min < max) {
+        if (val < min) val = min;
+        else if (val >max) val = max;
+      }
+      else {
+        if (val < max) val=max;
+        else if(val>min) val=min;
+      }
 
       if (opcode_name == "FLjoy") {
         switch(fld->exp) {
