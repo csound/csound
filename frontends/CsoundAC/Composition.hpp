@@ -25,21 +25,21 @@
 %module CsoundAC
 %{
 #include "Score.hpp"
-%}
+  %}
 #else
 #include "Score.hpp"
 #endif
 
 namespace csound
 {
-/**
- * Base class for user-defined musical compositions.
- * Contains a Score object for collecting generated Events
- * such as notes and control messages.
- */
-class Composition
-{
-public:
+  /**
+   * Base class for user-defined musical compositions.
+   * Contains a Score object for collecting generated Events
+   * such as notes and control messages.
+   */
+  class Composition
+  {
+  public:
     Composition();
     virtual ~Composition();
     /**
@@ -209,7 +209,20 @@ public:
     virtual void setAlbum(std::string value);
     virtual std::string getLicense() const;
     virtual void setLicense(std::string value);
-    protected:
+    /**
+     * Pass the invoking program's command-line arguments to processArgs()
+     * and it will perform with possibly back-end-dependent options.
+     * Default implementation calls the std::string overload.
+     */
+    virtual void processArgs(int argc, const char **argv);
+    /**
+     * Pass the invoking program's command-line arguments to processArgs()
+     * and it will perform with possibly back-end-dependent options.
+     * Additional arguments can be added to the args before the call.
+     * Default implementation calls renderAll().
+     */
+    virtual void processArgs(const std::vector<std::string> &args);
+  protected:
     Score score;
     double tonesPerOctave;
     bool conformPitches;
@@ -220,7 +233,7 @@ public:
     std::string copyright;
     std::string album;
     std::string license;
-};
+  };
 }
 #endif
 
