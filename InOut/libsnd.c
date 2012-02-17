@@ -222,14 +222,14 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       return;
 
     for (n=0; n<m; n++) {
-        int   tmp = ((ST(dither) * 15625) + 1) & 0xFFFF;
-        int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
-        MYFLT result;
-        ST(dither) = rnd;
-        rnd = (rnd+tmp)>>1;           /* triangular distribution */
-        result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
-        result /= ((MYFLT) 0x7fff);
-        buf[n] += result;
+      int   tmp = ((ST(dither) * 15625) + 1) & 0xFFFF;
+      int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
+      MYFLT result;
+      ST(dither) = rnd;
+      rnd = (rnd+tmp)>>1;           /* triangular distribution */
+      result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
+      result /= ((MYFLT) 0x7fff);
+      buf[n] += result;
     }
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
