@@ -998,15 +998,16 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
    if (p->ceps.auxp == NULL ||
       p->ceps.size < sizeof(MYFLT) * (N+2))
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->ceps);
-  memset(p->ceps.auxp, 0, sizeof(MYFLT)*(N+2));
-  if (p->fenv.auxp == NULL ||
-      p->fenv.size < sizeof(MYFLT) * (N+2))
-    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
-  if (p->fexc.auxp == NULL ||
-      p->fexc.size < sizeof(MYFLT) * (N+2))
-    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fexc);
+   else
+     memset(p->ceps.auxp, 0, sizeof(MYFLT)*(N+2));
+   if (p->fenv.auxp == NULL ||
+       p->fenv.size < sizeof(MYFLT) * (N+2))
+     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
+   if (p->fexc.auxp == NULL ||
+       p->fexc.size < sizeof(MYFLT) * (N+2))
+     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fexc);
 
-    return OK;
+   return OK;
 }
 
 static int pvsvoc_process(CSOUND *csound, pvsvoc *p)

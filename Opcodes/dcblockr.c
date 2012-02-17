@@ -92,6 +92,7 @@ static int dcblock2set(CSOUND *csound, DCBlock2* p)
         p->delay1.size < (order-1)*2*sizeof(double))
       csound->AuxAlloc(csound, (order-1)*2*sizeof(double),
                        &p->delay1);
+
     if (p->iirdelay1.auxp == NULL ||
         p->iirdelay1.size < (order)*sizeof(double))
       csound->AuxAlloc(csound,

@@ -471,14 +471,16 @@ int pitchafset(CSOUND *csound, PITCHAF *p){
   int siz = (int)(csound->GetSr(csound)/ (*p->iflow));
   if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
     csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
+  else
+    memset(p->buff1.auxp, 0, p->buff1.size);
   if (p->buff2.auxp == NULL ||p-> buff2.size < siz*sizeof(MYFLT))
     csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff2);
+  else
+    memset(p->buff2.auxp, 0, p->buff2.size);
   if (p->cor.auxp == NULL || p->cor.size < siz*sizeof(MYFLT))
     csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->cor);
-
-  memset(p->buff1.auxp, 0, p->buff1.size);
-  memset(p->buff2.auxp, 0, p->buff2.size);
-  memset(p->cor.auxp, 0, p->cor.size);
+  else
+    memset(p->cor.auxp, 0, p->cor.size);
   p->lag = 0;
   p->pitch = FL(0.0);
   p->len = siz;

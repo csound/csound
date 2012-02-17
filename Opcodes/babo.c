@@ -155,7 +155,7 @@ BaboMemory_create(CSOUND *csound, BaboMemory *this, size_t size_in_floats)
 
     csound->AuxAlloc(csound, size_in_bytes, &this->memptr);
 
-    memset(this->memptr.auxp, 0, size_in_bytes);
+    //memset(this->memptr.auxp, 0, size_in_bytes);
 
     this->samples = size_in_floats;
 
