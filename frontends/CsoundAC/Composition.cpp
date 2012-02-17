@@ -379,4 +379,19 @@ void Composition::translateToNotation(const std::vector<std::string> partNames, 
     std::sprintf(buffer, "lilypond -fpdf %s.ly", getTitle().c_str());
     result = std::system(buffer);
 }
+
+  void Composition::processArgs(int argc, const char **argv)
+  {
+    std::vector<std::string> args;
+    for (int i = 0; i < argc; ++i) 
+      {
+	args.push_back(argv[i]);
+      }
+    processArgs(args);
+  }
+
+  void Composition::processArgs(const std::vector<std::string> &args)
+  {
+    renderAll();
+  }
 }
