@@ -167,7 +167,7 @@ gitonewheel6            ftgen                   0, 0, 65537,     8     -.8, 336,
                         ; Table for Reed Physical Model
 gireedtable             ftgen                   0, 0, 256,       7,     1, 80, 1, 156, -1, 40, -1
                         ; Tables for simple granular synthesis
-gigrtab                 ftgen                   0, 0, 65537,    10,     1, 0.3, .1 0, .2, .02, 0, .1, .04
+gigrtab                 ftgen                   0, 0, 65537,    10,     1, .3, .1, 0, .2, .02, 0, .1, .04
 giwintab                ftgen                   0, 0, 65537,    10,     1, 0, .5, 0, .33, 0, .25, 0, .2, 0, .167
                         ; Tables for waveshaping drone
 giharmonics             ftgen                   0, 0, 65537,    10,     1,   0,   2,   0,   0,   1 
@@ -541,7 +541,7 @@ amp2                    =                       aamp2 * (1 + adev2)
 aamp3                   linseg                  0,.001,3000,.001,1000,.0017,12000,.0013,3700,.001,12500,.0018,3000,.0012,1200,.001,1400,.0017,6000,.0023,200,.001,3000,.001,1200,.0015,8000,.001,1800,.0015,6000,.08,1200,.2,200,.2,40,.2,10,.4,0,1,0
 adevamp3                linseg                  0, .02, .8, idur - .02, 0
 adev3                   poscil                  adevamp3, 70, gisine ,0
-amp3                    =                       aamp3 * (1 + adev3),
+amp3                    =                       aamp3 * (1 + adev3)
 awt1                    poscil                  amp1, kfreq, gisine
 awt2                    poscil                  amp2, 2.7 * kfreq, gisine
 awt3                    poscil                  amp3, 4.95 * kfreq, gisine
@@ -1027,7 +1027,7 @@ asignal                 =                       kenvelope * (agleft + adelayleft
 asignal1                butterhp                asignal, 32.0
 asignal2                balance                 asignal1, asignal
 aleft, aright		    Pan			            p7, asignal2 * iamplitude
-p3, aleft, aright	    Declick			        0       .006, p3, 0.06, aleft, aright
+p3, aleft, aright	    Declick			        0.006, p3, 0.06, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
                         endin
@@ -1903,7 +1903,7 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         ; Low level implementation
                         ; of the classic Karplus-Strong algorithm
                         ; fixed pitches : no vibratos or glissandi !
-                        ; implemented by Josep M Comajuncosas / Aug´98
+                        ; implemented by Josep M Comajuncosas / Aug\B498
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ; Initialised with a wide pulse (buzz)
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
