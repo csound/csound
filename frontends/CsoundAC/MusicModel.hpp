@@ -37,6 +37,8 @@
 using namespace boost::numeric;
 #endif
 
+class CsoundPerformanceThread;
+
 namespace csound
 {
   /**
@@ -66,6 +68,9 @@ namespace csound
      * invokes generate(), invokes createCsoundScore(), and invokes perform().
      */
     virtual void render();
+    virtual void stop();
+    virtual void join();
+    virtual CsoundPerformanceThread *getCsoundPerformanceThread();
     /**
      * Uses csound to perform the current score.
      */
@@ -191,6 +196,10 @@ namespace csound
      * Prepended to generated score.
      */
     std::string csoundScoreHeader;
+    /**
+     * Enables rendering in a separate thread, e.g. in a GUI application.
+     */
+    CsoundPerformanceThread *csoundPerformanceThread;
   };
 }
 
