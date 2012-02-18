@@ -43,7 +43,7 @@ namespace csound
    * A ScoreModel that uses Csound to render generated scores,
    * via the CppSound class.
    */
-  class MusicModel :
+  class SILENCE_PUBLIC MusicModel :
     public ScoreModel
   {
   public:

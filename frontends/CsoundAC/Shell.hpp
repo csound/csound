@@ -54,7 +54,7 @@ namespace csound
    * so if Python is not present, this module
    * will still link and load, but not function.
    */
-  class Shell
+  class SILENCE_PUBLIC Shell
   {
   protected:
     static void *pythonLibrary;
