@@ -2453,7 +2453,7 @@ else:
     elif getPlatform() == 'darwin':
         acEnvironment.Append(LIBS = ['fltk'])
         acEnvironment.Append(LIBS = ['dl', 'm', 'fltk_images', 'png', 'jpeg'])
-        acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        #acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         acEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         acEnvironment['SHLIBSUFFIX'] = '.dylib'
     elif getPlatform() == 'win32':
