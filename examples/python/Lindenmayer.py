@@ -44,7 +44,7 @@ filename = os.path.abspath('Lindenmayer.py')
 print 'Filename:', filename
 model.setConformPitches(True)
 csound.load('../CsoundAC.csd')
-csound.setCommand("csound --old-parser -m3 -RWZdfo" + filename + ".wav " + filename + ".orc " + filename + ".sco")
+csound.setCommand("csound -m3 -RWZdfo" + filename + ".wav " + filename + ".orc " + filename + ".sco")
 csound.setFilename(filename)
 score = model.getScore()
 print 'Events in generated score:', len(score)

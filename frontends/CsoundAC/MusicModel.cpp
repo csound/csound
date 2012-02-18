@@ -21,11 +21,13 @@
 #include "Exception.hpp"
 #include "Composition.hpp"
 #include "System.hpp"
+#include "csPerfThread.hpp"
 
 namespace csound
 {
   MusicModel::MusicModel() :
-    cppSound(&cppSound_)
+    cppSound(&cppSound_),
+    csoundPerformanceThread(0)
   {
   }
 
@@ -73,7 +75,8 @@ namespace csound
   void MusicModel::perform()
   {
     createCsoundScore(csoundScoreHeader);
-    cppSound->perform();
+    csoundPerformanceThread = new CsoundPerformanceThread(cppSound);
+    csoundPerformanceThread->Play();
   }
 
   void MusicModel::clear()
@@ -265,6 +268,27 @@ namespace csound
 	    translateMaster();
 	  }
       }
+  }
+  void MusicModel::stop()
+  {
+    if (csoundPerformanceThread)
+      {
+	csoundPerformanceThread->Stop();
+	csoundPerformanceThread->Join();
+	csoundPerformanceThread = 0;
+      }
+  }
+  void MusicModel::join()
+  {
+    if (csoundPerformanceThread)
+      {	
+	csoundPerformanceThread->Join();
+	csoundPerformanceThread = 0;
+      }
+  }
+  CsoundPerformanceThread *MusicModel::getCsoundPerformanceThread()
+  {
+    return csoundPerformanceThread;
   }
 }
 
