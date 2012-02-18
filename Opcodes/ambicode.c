@@ -29,7 +29,7 @@ typedef struct {
     OPDS    h;                                      /* required header */
     MYFLT   *mw, *mx, *my, *mz, *mr, *ms, *mt, *mu, *mv, *mk,
             *ml, *mm, *mn, *mo, *mp, *mq;           /* addr outarg */
-  MYFLT   *asig, *kalpha, *kbeta, *kin[4];          /* addr inargs */
+    MYFLT   *asig, *kalpha, *kbeta, *kin[4];          /* addr inargs */
     /* private dataspace */
     double  w, x, y, z, r, s, t, u, v, k, l, m, n, o, p, q;
 } AMBIC;

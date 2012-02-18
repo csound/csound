@@ -41,7 +41,7 @@ namespace csound
    * Utility class for storing voice-leading operations
    * within a VoiceleadNode for future application.
    */
-  class VoiceleadingOperation
+  class SILENCE_PUBLIC VoiceleadingOperation
   {
   public:
     VoiceleadingOperation();
@@ -106,7 +106,7 @@ namespace csound
     bool avoidParallels;
   };
 
-  std::ostream &operator << (std::ostream &stream, const VoiceleadingOperation &operation);
+  std::ostream SILENCE_PUBLIC &operator << (std::ostream &stream, const VoiceleadingOperation &operation);
 
   /**
    * This node class imposes
@@ -138,7 +138,7 @@ namespace csound
    * The consistent combinations of operations are thus:
    * PT, PTV, PTL, C, CV, CL, K, KV, KL, Q, QV, QL, V, and L.
    */
-  class VoiceleadingNode :
+  class SILENCE_PUBLIC VoiceleadingNode :
     public Node
   {
   public:

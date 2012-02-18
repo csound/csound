@@ -50,7 +50,7 @@ using namespace MusicXML2;
 namespace csound
 {
 
-void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord)
+void SILENCE_PUBLIC printChord(std::ostream &stream, std::string label, const std::vector<double> &chord)
 {
     if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
         return;
@@ -65,7 +65,7 @@ void printChord(std::ostream &stream, std::string label, const std::vector<doubl
     stream << "]" << std::endl;
 }
 
-void printChord(std::string label, const std::vector<double> &chord)
+void SILENCE_PUBLIC printChord(std::string label, const std::vector<double> &chord)
 {
     if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
         return;

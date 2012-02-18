@@ -63,9 +63,9 @@ using namespace boost::numeric;
 
 namespace csound
 {
-  extern void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord);
+  extern void SILENCE_PUBLIC printChord(std::ostream &stream, std::string label, const std::vector<double> &chord);
 
-  struct Turtle
+  struct SILENCE_PUBLIC Turtle
   {
     Event note;
     Event step;
@@ -170,7 +170,7 @@ namespace csound
     }
   };
 
-  struct Command
+  struct SILENCE_PUBLIC Command
   {
     char operation;
     char target;
@@ -302,7 +302,7 @@ namespace csound
    * </ul>
    */
 
-  class ChordLindenmayer :
+  class SILENCE_PUBLIC ChordLindenmayer :
     public VoiceleadingNode
   {
   public:

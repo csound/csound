@@ -34,7 +34,7 @@ int ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
     MYFLT powerOf = *p->powerOf;
     if (UNLIKELY(in == FL(0.0) && powerOf == FL(0.0)))
       return csound->PerfError(csound, Str("NaN in pow\n"));
-    else if (p->norm!=NULL)
+    else if (p->norm!=NULL && *p->norm != FL(0.0))
       *p->sr = POWER(in, powerOf) / *p->norm;
     else
       *p->sr = POWER(in, powerOf);
