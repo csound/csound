@@ -170,7 +170,14 @@ namespace csound
 
   std::string MusicModel::getCsoundCommand() const
   {
-    return cppSound->getCommand();
+    std::string command = cppSound->getCommand();
+    if (command.size() == 0)
+      {
+	char buffer[0x200];
+	std::sprintf(buffer, "csound --midi-key=4 midi-velocity=5 -m99 -RWdfo %s temp.orc temp.sco", getOutputSoundfileName().c_str());
+	command = buffer;
+      }
+    return command;
   }
 
   long MusicModel::getThis()
@@ -187,29 +194,77 @@ namespace csound
    * Pass the invoking program's command-line arguments to processArgs()
    * and it will perform the following commands:
    *
+   * --midi          Render generated score as MIDI file and play it.
    * --csound        Render generated score using set Csound orchestra.
-   * --dir           Sets directory in which to render files (must come first;
-   *                 default is cwd).
-   * --midi          Render generated score as MIDI file and play it (default).
    * --pianoteq      Play generated MIDI sequence file with Pianoteq.
    * --pianoteq-wav  Render score to soundfile using Pianoteq,
    *                 post-process it, and play it.
    * --playmidi      Play generated MIDI filev
-   *                 post-process it, and play it.
    * --playwav       Play rendered normalized output soundfile.
    * --post          Post-process Csound output soundfile:
    *                 normalize, CD, MP3, tag, and play it.
    */
   void MusicModel::processArgs(const std::vector<std::string> &args)
   {
-    for (size_t i = 0, n = args.size(); i < n; ++i)
-    {
-      const std::string &arg = args[i];
-      if (arg == "--csound") 
-	{
-	}
-    }
+    std::map<std::string, std::string> argsmap;
+    for (size_t i = 0, n = args.size(); i < n; )
+      {
+	if (args[i].find("--") == 0) 
+	  {
+	    const std::string key = args[i];
+	    ++i;
+	    if (args[i].find("--") == std::string::npos) 
+	      {
+		std::string value = args[i];
+		++i;
+		argsmap[key] = value;
+	      }
+	    else
+	      {
+		argsmap[key] = "";
+	      }
+	  }
+      }
+    char command[0x200];
+    bool postPossible = false;
+    if (argsmap.find("--midi") != argsmap.end())
+      {
+	generate();
+	cppSound->save(getMidiFilename().c_str());
+      }
+    if (argsmap.find("--csound") != argsmap.end())
+      {
+	postPossible = true;
+	render();
+      }
+    if (argsmap.find("--pianoteq") != argsmap.end())
+      {
+	std::sprintf(command, "Pianoteq --midi %s", getMidiFilename().c_str());
+	int result = std::system(command);
+      }
+    if (argsmap.find("--pianoteq-wav") != argsmap.end())
+      {
+	postPossible = true;
+	std::sprintf(command, "Pianoteq --headless --midi %s --rate 48000 --wav %s", getMidiFilename().c_str(), getOutputSoundfileName().c_str());
+	int result = std::system(command);
+      }
+    if (argsmap.find("--playmidi") != argsmap.end())
+      {
+	std::sprintf(command, "%s %s", argsmap["--playmidi"].c_str(), getMidiFilename().c_str());
+	int result = std::system(command);
+      }
+    if (argsmap.find("--playwav") != argsmap.end())
+      {
+	std::sprintf(command, "%s %s", argsmap["--playwav"].c_str(), getOutputSoundfileName().c_str());
+	int result = std::system(command);
+      }
+    if (argsmap.find("--post") != argsmap.end())
+      {
+	if (postPossible) 
+	  {
+	    translateMaster();
+	  }
+      }
   }
-
 }
 

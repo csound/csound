@@ -111,63 +111,63 @@ std::string Composition::generateFilename()
     return buffer;
 }
 
-std::string Composition::getMidiFilename()
+std::string Composition::getMidiFilename() const
 {
     std::string name = getFilename();
     name.append(".mid");
     return name;
 }
 
-std::string Composition::getOutputSoundfileName()
+std::string Composition::getOutputSoundfileName() const
 {
     std::string name = getFilename();
     name.append(".wav");
     return name;
 }
 
-std::string Composition::getNormalizedSoundfileName()
+std::string Composition::getNormalizedSoundfileName() const
 {
     std::string name = getFilename();
     name.append(".norm.wav");
     return name;
 }
 
-std::string Composition::getCdSoundfileName()
+std::string Composition::getCdSoundfileName() const
 {
     std::string name = getFilename();
     name.append(".cd.wav");
     return name;
 }
 
-std::string Composition::getMp3SoundfileName()
+std::string Composition::getMp3SoundfileName() const
 {
     std::string name = getFilename();
     name.append(".mp3");
     return name;
 }
 
-std::string Composition::getMusicXmlFilename()
+std::string Composition::getMusicXmlFilename() const
 {
     std::string name = getFilename();
     name.append(".xml");
     return name;
 }
 
-std::string Composition::getFomusFilename()
+std::string Composition::getFomusFilename() const
 {
     std::string name = getFilename();
     name.append(".fms");
     return name;
 }
 
-std::string Composition::getLilypondFilename()
+std::string Composition::getLilypondFilename() const
 {
     std::string name = getFilename();
     name.append(".ly");
     return name;
 }
 
-std::string Composition::makeTimestamp()
+std::string Composition::makeTimestamp() 
 {
     time_t time_ = 0;
     time(&time_);

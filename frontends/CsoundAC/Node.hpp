@@ -45,7 +45,7 @@ namespace csound
    * Nodes can transform silence::Events produced by child nodes.
    * Nodes can produce silence::Events.
    */
-  class Node
+  class SILENCE_PUBLIC Node
   {
   protected:
     ublas::matrix<double> localCoordinates;
@@ -88,7 +88,7 @@ namespace csound
   /**
    * Removes all duplicate events produced by the child nodes of this.
    */
-  class RemoveDuplicates : public Node
+  class SILENCE_PUBLIC RemoveDuplicates : public Node
   {
     public:
     virtual void produceOrTransform(Score &score,
