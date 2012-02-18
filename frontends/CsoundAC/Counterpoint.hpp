@@ -73,7 +73,7 @@
 using namespace boost::numeric;
 #endif
 
-class Counterpoint
+class SILENCE_PUBLIC Counterpoint
 {
 public:
   void (*messageCallback)(CSOUND *csound, int attribute, const char *format, va_list valist);

@@ -55,7 +55,7 @@ namespace csound
    * All loudness conversions are driven by sample word size, which must be set before use;
    * the default is 4 (float samples).
    */
-  class Conversions
+  class SILENCE_PUBLIC Conversions
   {
     static bool initialized_;
     static std::map<std::string, double> pitchClassSetsForNames;
