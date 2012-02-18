@@ -71,6 +71,7 @@ if(BUILD_CSOUND_AC)
         include(${SWIG_USE_FILE})
         set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
         include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+	list(APPEND CMAKE_SWIG_FLAGS "-includeall" "-verbose")
     endif()
 
     if(BUILD_CSOUND_AC_PYTHON_INTERFACE)
