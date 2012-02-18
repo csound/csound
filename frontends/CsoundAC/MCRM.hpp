@@ -34,7 +34,7 @@
 
 namespace csound
 {
-  class MCRM :
+  class SILENCE_PUBLIC MCRM :
     public ScoreNode
   {
     // Hutchinson operator.
