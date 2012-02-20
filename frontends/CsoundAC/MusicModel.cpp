@@ -21,13 +21,11 @@
 #include "Exception.hpp"
 #include "Composition.hpp"
 #include "System.hpp"
-#include "csPerfThread.hpp"
 
 namespace csound
 {
   MusicModel::MusicModel() :
-    cppSound(&cppSound_),
-    csoundPerformanceThread(0)
+    cppSound(&cppSound_)
   {
   }
 
@@ -74,9 +72,9 @@ namespace csound
 
   void MusicModel::perform()
   {
+    cppSound->setCommand(getCsoundCommand());
     createCsoundScore(csoundScoreHeader);
-    csoundPerformanceThread = new CsoundPerformanceThread(cppSound);
-    csoundPerformanceThread->Play();
+    cppSound->perform();
   }
 
   void MusicModel::clear()
@@ -173,14 +171,14 @@ namespace csound
 
   std::string MusicModel::getCsoundCommand() const
   {
-    std::string command = cppSound->getCommand();
-    if (command.size() == 0)
+    std::string command_ = cppSound->getCommand();
+    if (command_.size() == 0)
       {
 	char buffer[0x200];
 	std::sprintf(buffer, "csound --midi-key=4 midi-velocity=5 -m99 -RWdfo %s temp.orc temp.sco", getOutputSoundfileName().c_str());
-	command = buffer;
+	command_ = buffer;
       }
-    return command;
+    return command_;
   }
 
   long MusicModel::getThis()
@@ -271,24 +269,7 @@ namespace csound
   }
   void MusicModel::stop()
   {
-    if (csoundPerformanceThread)
-      {
-	csoundPerformanceThread->Stop();
-	csoundPerformanceThread->Join();
-	csoundPerformanceThread = 0;
-      }
-  }
-  void MusicModel::join()
-  {
-    if (csoundPerformanceThread)
-      {	
-	csoundPerformanceThread->Join();
-	csoundPerformanceThread = 0;
-      }
-  }
-  CsoundPerformanceThread *MusicModel::getCsoundPerformanceThread()
-  {
-    return csoundPerformanceThread;
+    cppSound->stop();
   }
 }
 
