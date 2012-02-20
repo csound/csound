@@ -228,12 +228,14 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    csound->Message(csound, Str("diskin2: opened '%s':\n"
-                                "         %d Hz, %d channel(s), "
-                                "%ld sample frames\n"),
-                    csound->GetFileName(fd),
-                    (int)sfinfo.samplerate, (int)sfinfo.channels,
-                    (int32) sfinfo.frames);
+    if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
+      csound->Message(csound, Str("diskin2: opened '%s':\n"
+                                  "         %d Hz, %d channel(s), "
+                                  "%ld sample frames\n"),
+                      csound->GetFileName(fd),
+                      (int)sfinfo.samplerate, (int)sfinfo.channels,
+                      (int32) sfinfo.frames);
+    }
     /* check number of channels in file (must equal the number of outargs) */
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return csound->InitError(csound,
