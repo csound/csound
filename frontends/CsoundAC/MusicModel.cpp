@@ -175,7 +175,9 @@ namespace csound
     if (command_.size() == 0)
       {
 	char buffer[0x200];
-	std::sprintf(buffer, "csound --midi-key=4 midi-velocity=5 -m99 -RWdfo %s temp.orc temp.sco", getOutputSoundfileName().c_str());
+	std::sprintf(buffer, 
+		     "csound --midi-key=4 --midi-velocity=5 -m99 -RWdfo %s temp.orc temp.sco", 
+		     getOutputSoundfileName().c_str());
 	command_ = buffer;
       }
     return command_;
