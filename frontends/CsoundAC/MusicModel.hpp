@@ -37,8 +37,6 @@
 using namespace boost::numeric;
 #endif
 
-class CsoundPerformanceThread;
-
 namespace csound
 {
   /**
@@ -69,8 +67,6 @@ namespace csound
      */
     virtual void render();
     virtual void stop();
-    virtual void join();
-    virtual CsoundPerformanceThread *getCsoundPerformanceThread();
     /**
      * Uses csound to perform the current score.
      */
@@ -167,8 +163,6 @@ namespace csound
      * and it will perform the following commands:
      *
      * --csound        Render generated score using set Csound orchestra.
-     * --dir           Sets directory in which to render files (must come first;
-     *                 default is cwd).
      * --midi          Render generated score as MIDI file and play it (default).
      * --pianoteq      Play generated MIDI sequence file with Pianoteq.
      * --pianoteq-wav  Render score to soundfile using Pianoteq,
@@ -196,10 +190,6 @@ namespace csound
      * Prepended to generated score.
      */
     std::string csoundScoreHeader;
-    /**
-     * Enables rendering in a separate thread, e.g. in a GUI application.
-     */
-    CsoundPerformanceThread *csoundPerformanceThread;
   };
 }
 

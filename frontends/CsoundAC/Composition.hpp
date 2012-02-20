@@ -214,7 +214,7 @@ namespace csound
      * and it will perform with possibly back-end-dependent options.
      * Default implementation calls the std::string overload.
      */
-    virtual void processArgs(int argc, const char **argv);
+    virtual void processArgv(int argc, const char **argv);
     /**
      * Pass the invoking program's command-line arguments to processArgs()
      * and it will perform with possibly back-end-dependent options.
