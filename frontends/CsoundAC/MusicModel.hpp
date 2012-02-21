@@ -43,7 +43,7 @@ namespace csound
    * A ScoreModel that uses Csound to render generated scores,
    * via the CppSound class.
    */
-  class MusicModel :
+  class SILENCE_PUBLIC MusicModel :
     public ScoreModel
   {
   public:
@@ -66,6 +66,7 @@ namespace csound
      * invokes generate(), invokes createCsoundScore(), and invokes perform().
      */
     virtual void render();
+    virtual void stop();
     /**
      * Uses csound to perform the current score.
      */
@@ -157,6 +158,22 @@ namespace csound
      * (convenience wrapper for CppSound::getCommand()).
      */
     virtual std::string getCsoundCommand() const;
+    /**
+     * Pass the invoking program's command-line arguments to processArgs()
+     * and it will perform the following commands:
+     *
+     * --csound        Render generated score using set Csound orchestra.
+     * --midi          Render generated score as MIDI file and play it (default).
+     * --pianoteq      Play generated MIDI sequence file with Pianoteq.
+     * --pianoteq-wav  Render score to soundfile using Pianoteq,
+     *                 post-process it, and play it.
+     * --playmidi      Play generated MIDI filev
+     *                 post-process it, and play it.
+     * --playwav       Play rendered normalized output soundfile.
+     * --post          Post-process Csound output soundfile:
+     *                 normalize, CD, MP3, tag, and play it.
+     */
+    virtual void processArgs(const std::vector<std::string> &args);
   protected:
     /**
      * Self-contained Csound object.
@@ -173,6 +190,7 @@ namespace csound
      * Prepended to generated score.
      */
     std::string csoundScoreHeader;
+    bool go;
   };
 }
 

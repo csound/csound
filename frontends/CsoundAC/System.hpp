@@ -40,7 +40,7 @@
 
 namespace csound
 {
-  class Logger
+  class SILENCE_PUBLIC Logger
   {
   public:
     Logger();
@@ -53,7 +53,7 @@ namespace csound
   /**
    * Abstraction layer for a minimal set of system services.
    */
-  class System
+  class SILENCE_PUBLIC System
   {
     static void *userdata_;
     static int messageLevel;
