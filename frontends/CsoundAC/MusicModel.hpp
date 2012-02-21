@@ -190,6 +190,7 @@ namespace csound
      * Prepended to generated score.
      */
     std::string csoundScoreHeader;
+    bool go;
   };
 }
 
