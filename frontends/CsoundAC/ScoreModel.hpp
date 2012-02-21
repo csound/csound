@@ -49,7 +49,7 @@ namespace csound {
  * with the coordinate system of its parent to derive a new local coordinate system,
  * which is applied to all child events.
  */
-class ScoreModel :
+class SILENCE_PUBLIC ScoreModel :
                         public Composition,
                         public Node {
 public:

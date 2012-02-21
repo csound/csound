@@ -25,7 +25,8 @@
 namespace csound
 {
   MusicModel::MusicModel() :
-    cppSound(&cppSound_)
+    cppSound(&cppSound_),
+    go(false)
   {
   }
 
@@ -72,6 +73,8 @@ namespace csound
 
   void MusicModel::perform()
   {
+    go = true;
+    cppSound->setCommand(getCsoundCommand());
     createCsoundScore(csoundScoreHeader);
     cppSound->perform();
   }
@@ -126,16 +129,16 @@ namespace csound
   }
 
   void MusicModel::arrange(int oldInstrumentNumber,
-                            int newInstrumentNumber,
-                            double gain)
+			   int newInstrumentNumber,
+			   double gain)
   {
     score.arrange(oldInstrumentNumber, newInstrumentNumber, gain);
   }
 
   void MusicModel::arrange(int oldInstrumentNumber,
-                            int newInstrumentNumber,
-                            double gain,
-                            double pan)
+			   int newInstrumentNumber,
+			   double gain,
+			   double pan)
   {
     score.arrange(oldInstrumentNumber, newInstrumentNumber, gain, pan);
   }
@@ -150,7 +153,7 @@ namespace csound
   {
     int csoundInstrumentNumber = cppSound->getInstrumentNumber(csoundInstrumentName);
     arrange(silenceInstrumentNumber, csoundInstrumentNumber, gain);
-   }
+  }
 
   void MusicModel::arrange(int silenceInstrumentNumber, std::string csoundInstrumentName, double gain, double pan)
   {
@@ -170,7 +173,16 @@ namespace csound
 
   std::string MusicModel::getCsoundCommand() const
   {
-    return cppSound->getCommand();
+    std::string command_ = cppSound->getCommand();
+    if (command_.size() == 0)
+      {
+	char buffer[0x200];
+	std::sprintf(buffer, 
+		     "csound --midi-key=4 --midi-velocity=5 -m99 -RWdfo %s temp.orc temp.sco", 
+		     getOutputSoundfileName().c_str());
+	command_ = buffer;
+      }
+    return command_;
   }
 
   long MusicModel::getThis()
@@ -183,5 +195,71 @@ namespace csound
     return (Node *)this;
   }
 
+  void MusicModel::processArgs(const std::vector<std::string> &args)
+  {
+    std::map<std::string, std::string> argsmap;
+    for (size_t i = 0, n = args.size(); i < n; )
+      {
+	if (args[i].find("--") == 0) 
+	  {
+	    const std::string key = args[i];
+	    ++i;
+	    if (args[i].find("--") == std::string::npos) 
+	      {
+		std::string value = args[i];
+		++i;
+		argsmap[key] = value;
+	      }
+	    else
+	      {
+		argsmap[key] = "";
+	      }
+	  }
+      }
+    char command[0x200];
+    go = true;
+    bool postPossible = false;
+    if ((argsmap.find("--midi") != argsmap.end()) && go)
+      {
+	generate();
+	cppSound->save(getMidiFilename().c_str());
+      }
+    if ((argsmap.find("--csound") != argsmap.end()) && go)
+      {
+	postPossible = true;
+	render();
+      }
+    if ((argsmap.find("--pianoteq") != argsmap.end()) && go)
+      {
+	std::sprintf(command, "Pianoteq --midi %s", getMidiFilename().c_str());
+	int result = std::system(command);
+      }
+    if ((argsmap.find("--pianoteq-wav") != argsmap.end()) && go)
+      {
+	postPossible = true;
+	std::sprintf(command, "Pianoteq --headless --midi %s --rate 48000 --wav %s", getMidiFilename().c_str(), getOutputSoundfileName().c_str());
+	int result = std::system(command);
+      }
+    if ((argsmap.find("--playmidi") != argsmap.end()) && go)
+      {
+	std::sprintf(command, "%s %s", argsmap["--playmidi"].c_str(), getMidiFilename().c_str());
+	int result = std::system(command);
+      }
+    if ((argsmap.find("--playwav") != argsmap.end()) && go)
+      {
+	std::sprintf(command, "%s %s", argsmap["--playwav"].c_str(), getOutputSoundfileName().c_str());
+	int result = std::system(command);
+      }
+    if ((argsmap.find("--post") != argsmap.end()) && go && postPossible)
+      {
+	translateMaster();
+      }
+  }
+  void MusicModel::stop()
+  {
+    std::cout << "MusicModel::stop()..." << std::endl;
+    go = false;
+    cppSound->stop();
+  }
 }
 

@@ -36,7 +36,7 @@ namespace csound
   /**
    * Simplifies constructing complex hocketted scores.
    */
-  class Hocket :
+  class SILENCE_PUBLIC Hocket :
     public ScoreNode
   {
   public:

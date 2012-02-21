@@ -1121,8 +1121,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
           case LIN_: case EXP_:
             val = *fld->sldbnk[j].out;
             min = fld->sldbnk[j].min; max = fld->sldbnk[j].max;
-            if (val < min) val = min;
-            if (val > max) val = max;
+            if (min < max) {
+              if (val < min) val=min;
+              else if(val>max) val=max;
+            }
+            else {
+              if (val < max) val=max;
+              else if(val>min) val=min;
+            }
             break;
           default:
             val = ((Fl_Valuator *) ((Fl_Group*)v.WidgAddress)->
@@ -1144,8 +1150,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
           case LIN_: case EXP_:
             val = *fld->sldbnk[j].out;
             min = fld->sldbnk[j].min; max = fld->sldbnk[j].max;
-            if (val < min) val = min;
-            if (val > max) val = max;
+            if (min < max) {
+              if (val < min) val=min;
+              else if(val>max) val=max;
+            }
+            else {
+              if (val < max) val=max;
+              else if(val>min) val=min;
+            }
             break;
           default:
             val = ((Fl_Valuator *) ((Fl_Group*) v.WidgAddress)->child(j))->value();
@@ -1162,8 +1174,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         case LIN_:
         case EXP_:
           val = *p->kout;
-          if (val < min) val=min;
-          else if(val>max) val=max;
+          if (min < max) {
+            if (val < min) val=min;
+            else if(val>max) val=max;
+          }
+          else {
+            if (val < max) val=max;
+            else if(val>min) val=min;
+          }
           break;
         default: val = ((Fl_Valuator *)v.WidgAddress)->value();
         }
@@ -1178,8 +1196,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         case LIN_:
         case EXP_:
           val = *p->kout;
-          if (val < min) val=min;
-          else if(val>max) val=max;
+          if (min < max) {
+            if (val < min) val=min;
+            else if(val>max) val=max;
+          }
+          else {
+            if (val < max) val=max;
+            else if(val>min) val=min;
+          }
           break;
         default: val = ((Fl_Valuator *)v.WidgAddress)->value();
         }
@@ -1189,8 +1213,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         FLTEXT *p = (FLTEXT *) (v.opcode);
         fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
         val = *p->kout; min = fld->min = *p->imin; max = fld->max = *p->imax;
-        if (val < min) val=min;
-        else if (val>max) val=max;
+        if (min < max) {
+          if (val < min) val=min;
+          else if(val>max) val=max;
+        }
+        else {
+          if (val < max) val=max;
+          else if(val>min) val=min;
+        }
         fld->value = val;
         fld->exp = LIN_;
       }
@@ -1203,8 +1233,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         case LIN_:
         case EXP_:
           val = *p->koutx;
-          if (val < min) val=min;
-          else if(val>max) val=max;
+          if (min < max) {
+            if (val < min) val=min;
+            else if(val>max) val=max;
+          }
+          else {
+            if (val < max) val=max;
+            else if(val>min) val=min;
+          }
           break;
         default:
           val = ((Fl_Positioner *)v.WidgAddress)->xvalue();
@@ -1215,8 +1251,14 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         switch (fld->exp2) {
         case LIN_: case EXP_:
           val = *p->kouty;
-          if (val < min) val=min;
-          else if(val>max) val=max;
+          if (min < max) {
+            if (val < min) val=min;
+            else if(val>max) val=max;
+          }
+          else {
+            if (val < max) val=max;
+            else if(val>min) val=min;
+          }
           break;
         default:
           val = ((Fl_Positioner *)v.WidgAddress)->yvalue();
@@ -1430,7 +1472,10 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         case LIN_:
           if (opcode_name == "FLbox" || opcode_name == "FLvalue" ) continue;
           else if (opcode_name == "FLtext" &&
-                   *((FLTEXT *)opcode)->itype == 1) continue;
+                   *((FLTEXT *)opcode)->itype == 1) {
+            ((Fl_Valuator*) o)->value(val);
+            continue;
+          }
           ((Fl_Valuator*) o)->value(val);
           break;
         case EXP_:
@@ -1531,7 +1576,7 @@ extern "C" {
           Fl_lock(csound);
           n = fl_choice("%s", Str("Saving could overwrite the old file.\n"
                                   "Are you sure you want to save ?"),
-                        Str("No"), Str("Yes"), (char*)NULL); // should thing be "" ?
+                        Str("No"), Str("Yes"), (const char*)""); // used to be NULL
           Fl_unlock(csound);
           if (!n)
             return OK;
