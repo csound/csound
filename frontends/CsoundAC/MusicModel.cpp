@@ -25,7 +25,8 @@
 namespace csound
 {
   MusicModel::MusicModel() :
-    cppSound(&cppSound_)
+    cppSound(&cppSound_),
+    go(false)
   {
   }
 
@@ -72,6 +73,7 @@ namespace csound
 
   void MusicModel::perform()
   {
+    go = true;
     cppSound->setCommand(getCsoundCommand());
     createCsoundScore(csoundScoreHeader);
     cppSound->perform();
@@ -127,16 +129,16 @@ namespace csound
   }
 
   void MusicModel::arrange(int oldInstrumentNumber,
-                            int newInstrumentNumber,
-                            double gain)
+			   int newInstrumentNumber,
+			   double gain)
   {
     score.arrange(oldInstrumentNumber, newInstrumentNumber, gain);
   }
 
   void MusicModel::arrange(int oldInstrumentNumber,
-                            int newInstrumentNumber,
-                            double gain,
-                            double pan)
+			   int newInstrumentNumber,
+			   double gain,
+			   double pan)
   {
     score.arrange(oldInstrumentNumber, newInstrumentNumber, gain, pan);
   }
@@ -151,7 +153,7 @@ namespace csound
   {
     int csoundInstrumentNumber = cppSound->getInstrumentNumber(csoundInstrumentName);
     arrange(silenceInstrumentNumber, csoundInstrumentNumber, gain);
-   }
+  }
 
   void MusicModel::arrange(int silenceInstrumentNumber, std::string csoundInstrumentName, double gain, double pan)
   {
@@ -193,20 +195,6 @@ namespace csound
     return (Node *)this;
   }
 
-  /**
-   * Pass the invoking program's command-line arguments to processArgs()
-   * and it will perform the following commands:
-   *
-   * --midi          Render generated score as MIDI file and play it.
-   * --csound        Render generated score using set Csound orchestra.
-   * --pianoteq      Play generated MIDI sequence file with Pianoteq.
-   * --pianoteq-wav  Render score to soundfile using Pianoteq,
-   *                 post-process it, and play it.
-   * --playmidi      Play generated MIDI filev
-   * --playwav       Play rendered normalized output soundfile.
-   * --post          Post-process Csound output soundfile:
-   *                 normalize, CD, MP3, tag, and play it.
-   */
   void MusicModel::processArgs(const std::vector<std::string> &args)
   {
     std::map<std::string, std::string> argsmap;
@@ -229,48 +217,48 @@ namespace csound
 	  }
       }
     char command[0x200];
+    go = true;
     bool postPossible = false;
-    if (argsmap.find("--midi") != argsmap.end())
+    if ((argsmap.find("--midi") != argsmap.end()) && go)
       {
 	generate();
 	cppSound->save(getMidiFilename().c_str());
       }
-    if (argsmap.find("--csound") != argsmap.end())
+    if ((argsmap.find("--csound") != argsmap.end()) && go)
       {
 	postPossible = true;
 	render();
       }
-    if (argsmap.find("--pianoteq") != argsmap.end())
+    if ((argsmap.find("--pianoteq") != argsmap.end()) && go)
       {
 	std::sprintf(command, "Pianoteq --midi %s", getMidiFilename().c_str());
 	int result = std::system(command);
       }
-    if (argsmap.find("--pianoteq-wav") != argsmap.end())
+    if ((argsmap.find("--pianoteq-wav") != argsmap.end()) && go)
       {
 	postPossible = true;
 	std::sprintf(command, "Pianoteq --headless --midi %s --rate 48000 --wav %s", getMidiFilename().c_str(), getOutputSoundfileName().c_str());
 	int result = std::system(command);
       }
-    if (argsmap.find("--playmidi") != argsmap.end())
+    if ((argsmap.find("--playmidi") != argsmap.end()) && go)
       {
 	std::sprintf(command, "%s %s", argsmap["--playmidi"].c_str(), getMidiFilename().c_str());
 	int result = std::system(command);
       }
-    if (argsmap.find("--playwav") != argsmap.end())
+    if ((argsmap.find("--playwav") != argsmap.end()) && go)
       {
 	std::sprintf(command, "%s %s", argsmap["--playwav"].c_str(), getOutputSoundfileName().c_str());
 	int result = std::system(command);
       }
-    if (argsmap.find("--post") != argsmap.end())
+    if ((argsmap.find("--post") != argsmap.end()) && go && postPossible)
       {
-	if (postPossible) 
-	  {
-	    translateMaster();
-	  }
+	translateMaster();
       }
   }
   void MusicModel::stop()
   {
+    std::cout << "MusicModel::stop()..." << std::endl;
+    go = false;
     cppSound->stop();
   }
 }
