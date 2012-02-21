@@ -51,7 +51,7 @@ model.addChild(rescale)
 model.setTonesPerOctave(12.0)
 model.generate()
 
-csound.load("./CsoundAC.csd")
+csound.load("../CsoundAC.csd")
 csound.setCommand("csound -RWdfo StrangeAttractor.wav StrangeAttractor.orc StrangeAttractor.sco")
 score = model.getScore()
 print 'Events in generated score:', len(score)

@@ -48,9 +48,9 @@ namespace csound
 {
   typedef unsigned char csound_u_char;
 
-  class MidiFile;
+  class SILENCE_PUBLIC MidiFile;
 
-  class Chunk
+  class SILENCE_PUBLIC Chunk
   {
   public:
     int id;
@@ -70,7 +70,7 @@ namespace csound
     virtual void markChunkEnd(std::ostream &stream);
   };
 
-  class MidiHeader : public Chunk
+  class SILENCE_PUBLIC MidiHeader : public Chunk
   {
   public:
     short type;
@@ -88,7 +88,7 @@ namespace csound
   /**
    * This class is used to store ALL Midi messages.
    */
-  class MidiEvent : public std::vector<csound_u_char>
+  class SILENCE_PUBLIC MidiEvent : public std::vector<csound_u_char>
   {
   public:
     int ticks;
@@ -116,7 +116,7 @@ namespace csound
     friend bool operator < (const MidiEvent &a, const MidiEvent &b);
   };
 
-  class MidiTrack : public Chunk, public std::vector<MidiEvent>
+  class SILENCE_PUBLIC MidiTrack : public Chunk, public std::vector<MidiEvent>
   {
   public:
     MidiTrack();
@@ -126,7 +126,7 @@ namespace csound
     MidiTrack &operator = (const MidiTrack &a);
   };
 
-  class TempoMap : public std::map<int, double>
+  class SILENCE_PUBLIC TempoMap : public std::map<int, double>
   {
   public:
     double getCurrentSecondsPerTick(int tick);
@@ -135,7 +135,7 @@ namespace csound
   /**
    * Reads and writes format 0 and format 1 standard MIDI files.
    */
-  class MidiFile
+  class SILENCE_PUBLIC MidiFile
   {
   public:
     typedef enum {
@@ -236,9 +236,9 @@ namespace csound
     virtual void dump(std::ostream &stream);
   };
 
-  bool operator < (const MidiEvent &a, const MidiEvent &b);
+  bool SILENCE_PUBLIC operator < (const MidiEvent &a, const MidiEvent &b);
 
-  struct MidiEventComparator
+  struct SILENCE_PUBLIC MidiEventComparator
   {
     bool operator()(const MidiEvent &a, const MidiEvent &b)
     {

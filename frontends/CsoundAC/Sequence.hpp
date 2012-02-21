@@ -36,7 +36,7 @@ namespace csound
   /**
    * Node that creates a temporal sequence of child nodes.
    */
-  class Sequence :
+  class SILENCE_PUBLIC Sequence :
     public Node
   {
   public:

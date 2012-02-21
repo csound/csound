@@ -350,9 +350,15 @@ Function un.RemoveFromPath
             WriteRegExpandStr ${NT_all_env} "PATH" $3
             Goto un_write_path_NT_resume
          un_write_path_NT_current:
-            WriteRegExpandStr ${NT_current_env} "PATH" $3
-         un_write_path_NT_resume:
-         SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+			StrLen $0 $3
+			IntCmp $0 0 unDeletePath
+               WriteRegExpandStr ${NT_current_env} "PATH" $3
+			   Goto un_write_path_NT_resume
+ 			unDeletePath:
+			   DeleteRegValue ${NT_current_env} "PATH"
+        un_write_path_NT_resume:
+           SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+
    unRemoveFromPath_done:
    Pop $4
    Pop $3
@@ -360,6 +366,48 @@ Function un.RemoveFromPath
    Pop $1
    Pop $0
 FunctionEnd
+
+;====================================================
+; RemoveFromPythonPath - Remove a given dir from the python path
+;     Input: head of the stack
+;====================================================
+Function un.RemoveFromPythonPath
+   Exch $0
+   Push $1
+   Push $2
+   Push $3
+   
+   StrLen $2 $0
+   ReadEnvStr $1 "PYTHONPATH"
+   Push $1
+   Push $0	  
+   Call un.StrStr ; Find $0 in $1
+   Pop $0 ; pos of our dir
+   IntCmp $0 -1 unRemoveFromPythonPath_done
+      ; else, it is in python path		 
+      StrCpy $3 $1 $0 ; $3 now has the part of the python path before our dir
+      IntOp $2 $2 + $0 ; $2 now contains the pos after our dir in the python path (';')
+      IntOp $2 $2 + 1 ; $2 now containts the pos after our dir and the semicolon.
+      StrLen $0 $1
+      StrCpy $1 $1 $0 $2
+      StrCpy $3 "$3$1"
+ 
+	  StrLen $0 $3
+	  IntCmp $0 0 unDeletePythonPath
+	     WriteRegExpandStr ${WriteEnvStr_RegKey} "PYTHONPATH" $3
+		 Goto un_write_pythonpath_NT_resume
+	  unDeletePythonPath:
+	     DeleteRegValue ${WriteEnvStr_RegKey} "PYTHONPATH"
+      un_write_pythonpath_NT_resume:
+	     SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+
+   unRemoveFromPythonPath_done:
+   Pop $3
+   Pop $2
+   Pop $1
+   Pop $0
+FunctionEnd
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Uninstall sutff
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -911,16 +959,16 @@ startMenuDeleteLoop:
     	IfErrors startMenuDeleteLoopDone
     	StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
 startMenuDeleteLoopDone:
-	Push $INSTDIR
+	Push $INSTDIR\bin
   	Call un.RemoveFromPath
   	Push "CSOUNDRC"
   	Call un.DeleteEnvStr 
 	Push ${OPCODEDIR_ENV}
   	Call un.DeleteEnvStr 
-!ifdef NONFREE
-        Push "RAWWAVE_PATH"
-       	Call un.DeleteEnvStr 
-!endif
+    Push "RAWWAVE_PATH"
+    Call un.DeleteEnvStr 
+	Push ";$INSTDIR\bin"
+	Call un.RemoveFromPythonPath
 	Push "SFOUTYP"
   	Call un.DeleteEnvStr
   	DeleteRegKey /ifempty HKCU "Software\${PRODUCT}"

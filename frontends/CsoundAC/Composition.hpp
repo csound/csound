@@ -25,21 +25,21 @@
 %module CsoundAC
 %{
 #include "Score.hpp"
-%}
+  %}
 #else
 #include "Score.hpp"
 #endif
 
 namespace csound
 {
-/**
- * Base class for user-defined musical compositions.
- * Contains a Score object for collecting generated Events
- * such as notes and control messages.
- */
-class Composition
-{
-public:
+  /**
+   * Base class for user-defined musical compositions.
+   * Contains a Score object for collecting generated Events
+   * such as notes and control messages.
+   */
+  class SILENCE_PUBLIC Composition
+  {
+  public:
     Composition();
     virtual ~Composition();
     /**
@@ -68,42 +68,42 @@ public:
      * Returns a soundfile name based on the filename
      * of this, by appending ".wav" to the filename.
      */
-    virtual std::string getOutputSoundfileName();
+    virtual std::string getOutputSoundfileName() const;
     /**
      * Returns a soundfile name based on the filename
      * of this, by appending ".norm.wav" to the filename.
      */
-    virtual std::string getNormalizedSoundfileName();
+    virtual std::string getNormalizedSoundfileName() const;
     /**
      * Returns a soundfile name for a CD audio track based on the filename
      * of this, by appending ".cd.wav" to the filename.
      */
-    virtual std::string getCdSoundfileName();
+    virtual std::string getCdSoundfileName() const;
     /**
      * Returns a soundfile name for an MP3 file based on the filename
      * of this, by appending ".mp3" to the filename.
      */
-    virtual std::string getMp3SoundfileName();
+    virtual std::string getMp3SoundfileName() const;
     /**
      * Returns a MIDI filename based on the filename
      * of this, by appending ".mid" to the filename.
      */
-    virtual std::string getMidiFilename();
+    virtual std::string getMidiFilename() const;
     /**
      * Returns a MusicXML filename based on the filename
      * of this, by appending ".xml" to the filename.
      */
-    virtual std::string getMusicXmlFilename();
+    virtual std::string getMusicXmlFilename() const;
     /**
      * Returns a MusicXML filename based on the filename
      * of this, by appending ".fms" to the filename.
      */
-    virtual std::string getFomusFilename();
+    virtual std::string getFomusFilename() const;
     /**
      * Returns a MusicXML filename based on the filename
      * of this, by appending ".ly" to the filename.
      */
-    virtual std::string getLilypondFilename();
+    virtual std::string getLilypondFilename() const;
     /**
      * Generate performance events and store them in the score.
      * Must be overidden in derived classes.
@@ -209,7 +209,20 @@ public:
     virtual void setAlbum(std::string value);
     virtual std::string getLicense() const;
     virtual void setLicense(std::string value);
-    protected:
+    /**
+     * Pass the invoking program's command-line arguments to processArgs()
+     * and it will perform with possibly back-end-dependent options.
+     * Default implementation calls the std::string overload.
+     */
+    virtual void processArgv(int argc, const char **argv);
+    /**
+     * Pass the invoking program's command-line arguments to processArgs()
+     * and it will perform with possibly back-end-dependent options.
+     * Additional arguments can be added to the args before the call.
+     * Default implementation calls renderAll().
+     */
+    virtual void processArgs(const std::vector<std::string> &args);
+  protected:
     Score score;
     double tonesPerOctave;
     bool conformPitches;
@@ -220,7 +233,7 @@ public:
     std::string copyright;
     std::string album;
     std::string license;
-};
+  };
 }
 #endif
 
