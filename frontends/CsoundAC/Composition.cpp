@@ -120,15 +120,15 @@ namespace csound
 
   std::string Composition::getOutputSoundfileName() const
   {
-    if (outputFilename.size() > 0) 
+    if (outputFilename.empty()) 
       {
-	return outputFilename;
+	std::string name_ = getFilename();
+	name_.append(".wav");
+	return name_;
       }
     else
       {
-	std::string name = getFilename();
-	name.append(".wav");
-	return name;
+ 	return outputFilename;
       }
   }
 
@@ -405,5 +405,10 @@ namespace csound
   void Composition::setOutputSoundfileName(std::string name)
   {
     outputFilename = name;
+  }
+
+  void Composition::clearOutputSoundfileName()
+  {
+    outputFilename.clear();
   }
 }
