@@ -229,6 +229,7 @@ namespace csound
      * Sets a non-default output name (could be an audio device not a file).
      */
     virtual void setOutputSoundfileName(std::string name);
+    virtual void clearOutputSoundfileName();
   protected:
     Score score;
     double tonesPerOctave;
