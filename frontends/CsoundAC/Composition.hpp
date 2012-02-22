@@ -66,7 +66,10 @@ namespace csound
     virtual std::string getTimestamp() const;
     /**
      * Returns a soundfile name based on the filename
-     * of this, by appending ".wav" to the filename.
+     * of this, by appending ".wav" to the filename, 
+     * which is the default, or a non-default ouput name
+     * which need not be a file but must be set using
+     * setOutputSoundfileName().
      */
     virtual std::string getOutputSoundfileName() const;
     /**
@@ -222,6 +225,11 @@ namespace csound
      * Default implementation calls renderAll().
      */
     virtual void processArgs(const std::vector<std::string> &args);
+    /**
+     * Sets a non-default output name (could be an audio device not a file).
+     */
+    virtual void setOutputSoundfileName(std::string name);
+    virtual void clearOutputSoundfileName();
   protected:
     Score score;
     double tonesPerOctave;
@@ -233,6 +241,7 @@ namespace csound
     std::string copyright;
     std::string album;
     std::string license;
+    std::string outputFilename;
   };
 }
 #endif
