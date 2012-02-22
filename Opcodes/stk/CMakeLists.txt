@@ -3,29 +3,50 @@ option(BUILD_STK_OPCODES "Build the stk opcodes" ON)
 if(BUILD_STK_OPCODES)
     find_library(STK_LIBRARY stk)
     if(STK_LIBRARY)
-        make_plugin(stk-ops stkOpcodes.cpp "stk")
-        set_target_properties(stk-ops PROPERTIES
-            OUTPUT_NAME stk)
+        find_path(STK_INCLUDE_DIR Stk.h
+            /usr/include/stk
+            /usr/local/include/stk)
+        
+        check_deps(BUILD_STK_OPCODES STK_INCLUDE_DIR)
+        if(STK_INCLUDE_DIR)
+            include_directories(${STK_INCLUDE_DIR})
+
+            make_plugin(stk-ops stkOpcodes.cpp "stk")
+
+            set_target_properties(stk-ops PROPERTIES
+                OUTPUT_NAME stk)
+        endif()
     else()
-        set(stk_srcs
+
+        set(stk_remove_srcs
             src/InetWvIn.cpp    src/InetWvOut.cpp
             src/Mutex.cpp       src/RtAudio.cpp
             src/RtMidi.cpp
             src/RtWvIn.cpp      src/RtWvOut.cpp
             src/Socket.cpp      src/TcpClient.cpp
             src/TcpServer.cpp   src/Thread.cpp
-            src/UdpSocket.cpp
-            stkOpcodes.cpp)
+            src/UdpSocket.cpp)
+        
+        file(GLOB stk_srcs RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*)
+	       
+        list(REMOVE_ITEM stk_srcs ${stk_remove_srcs})
 
+        list(APPEND ${stk_srcs} stkOpcodes.cpp)
+  
         # Assume that if this file exists, then we have the sources
         find_file(STK_FOUND
             NAMES src/InetWvIn.cpp
             HINTS ${CMAKE_CURRENT_SOURCE_DIR})
-        check_deps(BUILD_STK_OPCODES STK_FOUND)
+
+        find_path(STK_INCLUDE_DIR Stk.h ./include)            
+
+        check_deps(BUILD_STK_OPCODES STK_FOUND STK_INCLUDE_DIR)
 
         if(BUILD_STK_OPCODES)
 
             include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+            include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/stk)
+            include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
             make_plugin(stk "${stk_srcs}")
 
