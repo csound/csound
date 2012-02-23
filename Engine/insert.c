@@ -371,7 +371,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       MYFLT value = (MYFLT) ip->m_pitch;
       pfields[index] = value;
       if (O->msglevel & WARNMSG) {
-        csound->Message(csound, "  midiKey:         pfield: %3d  value: %.3f\n",
+        csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
                         pfield, (int) pfields[index]);
       }
     }
