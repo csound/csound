@@ -219,6 +219,7 @@ CONT            \\[ \t]*(;.*)?\n
                  }
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
+                   char      *mname;
                    int c, i, j;
                    /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
                    yytext[yyleng-1] = '\0';
@@ -232,6 +233,7 @@ CONT            \\[ \t]*(;.*)?\n
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
                    }
+                   mname = yytext;
                    /* Need to read from macro definition */
                    csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
@@ -280,11 +282,12 @@ CONT            \\[ \t]*(;.*)?\n
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] =
-                     (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
+                     (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
                    yy_scan_string(mm->body, yyscanner);
                  }
 {MACRONAMEDA}    {
                    MACRO     *mm = PARM->macros;
+                   char      *mname;
                    int c, i, j;
                    /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
                    yytext[yyleng-2] = '\0';
@@ -298,6 +301,7 @@ CONT            \\[ \t]*(;.*)?\n
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
                    }
+                   mname = yytext;
                    /* Need to read from macro definition */
                    csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
@@ -342,7 +346,7 @@ CONT            \\[ \t]*(;.*)?\n
                    }
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[PARM->depth] = 
-                     (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
+                     (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
                    yy_scan_string(mm->body, yyscanner);
                  }
 {INCLUDE}       {

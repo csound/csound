@@ -2658,6 +2658,8 @@ extern "C" {
       remove_tmpfiles(csound);
       rlsmemfiles(csound);
       memRESET(csound);
+      while (csound->filedir[n])        /* Clear source directory */
+        free(csound->filedir[n++]);
       /**
        * Copy everything EXCEPT the function pointers.
        * We do it by saving them and copying them back again...
@@ -2678,9 +2680,6 @@ extern "C" {
       memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
       csound->memalloc_db = saved_env->memalloc_db;
       free(saved_env);
-      while (csound->filedir[n])        /* Clear source directoiry */
-        free(csound->filedir[n++]);
-   
   }
 
   PUBLIC int csoundGetDebug(CSOUND *csound)
