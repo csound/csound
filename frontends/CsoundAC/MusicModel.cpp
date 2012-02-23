@@ -77,6 +77,9 @@ namespace csound
     cppSound->setCommand(getCsoundCommand());
     createCsoundScore(csoundScoreHeader);
     cppSound->perform();
+    // The Csound command is managed from MusicModel,
+    // not from CppSound. So we clear out what we set.
+    cppSound->setCommand("");
   }
 
   void MusicModel::clear()
