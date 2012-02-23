@@ -77,6 +77,9 @@ namespace csound
     cppSound->setCommand(getCsoundCommand());
     createCsoundScore(csoundScoreHeader);
     cppSound->perform();
+    // The Csound command is managed from MusicModel,
+    // not from CppSound. So we clear out what we set.
+    cppSound->setCommand("");
   }
 
   void MusicModel::clear()
@@ -178,7 +181,7 @@ namespace csound
       {
 	char buffer[0x200];
 	std::sprintf(buffer, 
-		     "csound --midi-key=4 --midi-velocity=5 -m99 -RWdfo %s temp.orc temp.sco", 
+		     "csound --midi-key=4 --midi-velocity=5 -m167 -RWdfo %s temp.orc temp.sco", 
 		     getOutputSoundfileName().c_str());
 	command_ = buffer;
       }

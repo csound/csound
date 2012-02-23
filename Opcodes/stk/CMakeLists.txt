@@ -31,7 +31,7 @@ if(BUILD_STK_OPCODES)
 	       
         list(REMOVE_ITEM stk_srcs ${stk_remove_srcs})
 
-        list(APPEND ${stk_srcs} stkOpcodes.cpp)
+        list(APPEND stk_srcs stkOpcodes.cpp)
   
         # Assume that if this file exists, then we have the sources
         find_file(STK_FOUND
