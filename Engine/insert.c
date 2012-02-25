@@ -1804,7 +1804,7 @@ static void instance(CSOUND *csound, int insno)
     const OENTRY  *ep;
     LBLBLK    **lopdsp;
     LARGNO    *largp;
-    int       n, cnt, pextent, opnum;
+    int       n, cnt, pextent, opnum, pextra;
     char      *nxtopds, *opdslim;
     MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
     int       *ndxp;
@@ -1823,7 +1823,8 @@ static void instance(CSOUND *csound, int insno)
     if (O->midiKeyPch>n) n = O->midiKeyPch;
     if (O->midiVelocity>n) n = O->midiVelocity;
     if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
-    pextent = sizeof(INSDS) + tp->pextrab + (n-3)*sizeof(MYFLT *);      /* alloc new space,  */
+    pextra = n-3;
+    pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *);      /* alloc new space,  */
     ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->localen + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
@@ -1922,7 +1923,7 @@ static void instance(CSOUND *csound, int insno)
           fltp = gbloffbas + indx;
         else
           fltp = lcloffbas + (-indx);
-        argpp[n] = fltp;
+        argpp[n] = fltp + pextra;
       }
       for ( ; ep->outypes[n] != (char) 0; n++)  /* if more outypes, pad */
         argpp[n] = NULL;
