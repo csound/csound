@@ -21,6 +21,8 @@
 #include "Exception.hpp"
 #include "Composition.hpp"
 #include "System.hpp"
+#include <cstdio>
+#include <cstdlib>
 
 namespace csound
 {
@@ -179,10 +181,13 @@ namespace csound
     std::string command_ = cppSound->getCommand();
     if (command_.size() == 0)
       {
+	const char *temp_path = std::getenv("TEMP");
+	std::string orcname = std::tmpnam(0);
+	std::string sconame = std::tmpnam(0);
 	char buffer[0x200];
 	std::sprintf(buffer, 
-		     "csound --midi-key=4 --midi-velocity=5 -m167 -RWdfo %s temp.orc temp.sco", 
-		     getOutputSoundfileName().c_str());
+		     "csound --midi-key=4 --midi-velocity=5 -m167 -RWdfo %s %s%s.orc %s%s.sco", 
+		     getOutputSoundfileName().c_str(), temp_path, orcname.c_str(), temp_path, sconame.c_str());
 	command_ = buffer;
       }
     return command_;
