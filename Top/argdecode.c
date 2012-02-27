@@ -424,8 +424,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp (s, "nodisplays"))) {
       O->displays = 0;                  /* no func displays */
-      O->graphsoff = 1;
-      O->postscript = 0;
       return 1;
     }
     else if (!(strcmp (s, "displays"))) {
@@ -1028,8 +1026,6 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             break;
           case 'd':
             O->displays = 0;              /* no func displays */
-            O->graphsoff = 1;
-            O->postscript = 0;                  
             break;
           case 'g':
             O->graphsoff = 1;             /* don't use graphics */
