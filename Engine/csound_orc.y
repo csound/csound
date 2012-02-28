@@ -178,7 +178,8 @@ extern int csound_orcget_lineno(void *);
 
 orcfile           : rootstatement
                         {
-                            *astTree = *((TREE *)$1);
+                            if ($1 != NULL)
+                              *astTree = *((TREE *)$1);
                             csound->synterrcnt = csound_orcnerrs;
                             //print_tree(csound, "ALL", $1);
                         }

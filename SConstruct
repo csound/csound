@@ -1462,8 +1462,8 @@ else:
         if getPlatform() == 'win32':
             csoundLuaInterface = luaWrapperEnvironment.SharedObject(
 		    'interfaces/lua_interface.i',
-		    SWIGFLAGS = [swigflags, '-lua', '-module', 'luaCsnd', '-lua51', '-outdir', '.'])
-	    luaWrapperEnvironment.Prepend(LIBS = ['csnd','luaj51'])
+		    SWIGFLAGS = [swigflags, '-lua', '-module', 'luaCsnd', '-outdir', '.'])
+	    luaWrapperEnvironment.Prepend(LIBS = ['csnd','lua51'])
 	else:
 	    csoundLuaInterface = luaWrapperEnvironment.SharedObject(
 			'interfaces/lua_interface.i',
