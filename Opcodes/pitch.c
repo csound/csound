@@ -1806,7 +1806,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
       double dur = (double)**argp++;
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
-      MYFLT d = dur * csound->ekr;
+      MYFLT d = dur * csound->esr;
       if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
         segp->cnt = 0;
       else
