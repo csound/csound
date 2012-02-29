@@ -303,7 +303,6 @@ void otran(CSOUND *csound)
     ST(poolcount) = 0;
     ST(nconsts) = NCONSTS;
     ST(constTbl) = (int*) mcalloc(csound, (256 + NCONSTS) * sizeof(int));
-    setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
     constndx(csound, "0");
 
     while ((tp = getoptxt(csound, &init)) != NULL) {
