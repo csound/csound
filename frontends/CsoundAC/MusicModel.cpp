@@ -182,6 +182,10 @@ namespace csound
     if (command_.size() == 0)
       {
 	const char *temp_path = std::getenv("TEMP");
+	if (temp_path == 0) 
+	  {
+	    temp_path = "";
+	  }
 	std::string orcname = std::tmpnam(0);
 	std::string sconame = std::tmpnam(0);
 	char buffer[0x200];
