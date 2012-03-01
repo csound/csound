@@ -1326,7 +1326,9 @@ extern "C" {
 #ifdef PARCS
   static int inline nodePerf(CSOUND *csound, int index)
   {
-      struct instr_semantics_t *instr = NULL;
+#if (TRACE&4) == 4
+      struct instr_semantics_t *instr;
+#endif
       INSDS *insds = NULL;
       OPDS  *opstart = NULL;
       int update_hdl = -1;
@@ -1342,7 +1344,9 @@ extern "C" {
         }
 
         if (node->hdr.type == DAG_NODE_INDV) {
+#if (TRACE&4) == 4
           instr = node->instr;
+#endif
           insds = node->insds;
           played_count++;
 
@@ -1361,9 +1365,12 @@ extern "C" {
           int node_ctr = 0;
           while (node_ctr < node->count) {
             DAG_NODE *play_node = node->nodes[node_ctr];
+#if (TRACE&4) == 4
             instr = play_node->instr;
+#endif
             insds = play_node->insds;
-            TRACE_1("DAG_NODE_LIST: node->nodes=%p: play_node = %p, instr=%p, insds=%p\n",
+            TRACE_1("DAG_NODE_LIST: node->nodes=%p: play_node = %p, "
+                    "instr=%p, insds=%p\n",
                     node->nodes, play_node, instr, insds);
 
             TRACE_2("[%i] Playing: %s [%p]\n", index, instr->name, insds);
@@ -1478,7 +1485,7 @@ extern "C" {
   int kperf(CSOUND *csound)
   {
 #ifdef PARCS
-      void *barrier1, *barrier2;
+      /* void *barrier1, *barrier2; */
       INSDS *ip;
 #endif /* PARCS */
       /* update orchestra time */
@@ -1549,8 +1556,8 @@ extern "C" {
 #endif
       }
 #else /* PARCS */
-      barrier1 = csound->multiThreadedBarrier1;
-      barrier2 = csound->multiThreadedBarrier2;
+      /* barrier1 = csound->multiThreadedBarrier1; */
+      /* barrier2 = csound->multiThreadedBarrier2; */
       ip = csound->actanchor.nxtact;
 
       if (ip != NULL) {
