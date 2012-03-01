@@ -961,8 +961,8 @@ extern "C" {
       if (!(flags & CSOUNDINIT_NO_SIGNAL_HANDLER)) {
         install_signal_handler();
       }
-      if (!(flags & CSOUNDINIT_NO_ATEXIT))
 #if !defined(WIN32)
+      if (!(flags & CSOUNDINIT_NO_ATEXIT))
         atexit(destroy_all_instances);
 #endif
       /*aops_init_tables();*/
