@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key-oct=4 --midi-velocity=5 temp.orc temp.sco
+csound -f -h -+rtmidi=null --old-parser -M0 -d -n -m7 --midi-key-oct=4 --midi-velocity=5 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,8 +35,8 @@ nchnls                  =                       2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Waveform for the string-pad
-giwave                  ftgen                   1, 0, 8193,     10,     1, 0.5, 0.33, 0.25,  0.0, 0.1,  0.1, 0.1
-gisine                  ftgen                   2, 0, 65537,    10,     1
+giwave                  ftgen                   0, 0, 8193,     10,     1, 0.5, 0.33, 0.25,  0.0, 0.1,  0.1, 0.1
+gisine                  ftgen                   0, 0, 65537,    10,     1
 giharpsichord           ftgen                   0, 0, 8193,     7,      -1, 1024, 1, 1024, -1 ; Kelley harpsichord.
 gicosine                ftgen                   0, 0, 65537,    11,     1 ; Cosine wave. Get that noise down on the most widely used table!
 giexponentialrise       ftgen                   0, 0, 8193,     5,      0.001, 513, 1 ; Exponential rise.
@@ -58,7 +58,7 @@ gitonewheel3            ftgen                   0, 0, 8193,     7,      0, 110, 
 gitonewheel4            ftgen                   0, 0, 8193,     7,      0, 80, 0.2, 16, 1, 64, 1, 16, 0.2, 80, 0
 ; Distortion Tables
 gitonewheel5            ftgen                   0, 0, 8193,     8,      -.8, 336, -.78,  800, -.7, 5920, 0.7,  800, 0.78, 336, 0.8
-gitonewheel6            ftgen                   0, 0, 8193,     8       -.8, 336, -.76, 3000, -.7, 1520, 0.7, 3000, 0.76, 336, 0.8
+gitonewheel6            ftgen                   0, 0, 8193,     8,       -.8, 336, -.76, 3000, -.7, 1520, 0.7, 3000, 0.76, 336, 0.8
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Instruments
@@ -348,7 +348,7 @@ af3                     reson                   asig, 440, 80
 aout                    balance                 0.6 * af1+ af2 + 0.6 * af3 + 0.4 * asig, asigcomp
 kexp                    expseg                  1.0, iattack, 2.0, isustain, 1.0, irelease, 1.0
 kenv                    =                       kexp - 1.0
-asig1                   =                       aout * ileftgain * kenv * kdamping,
+asig1                   =                       aout * ileftgain * kenv * kdamping
 asig2                   =                       aout* irightgain * kenv * kdamping
 						outs					asig1, asig2
                         endin
@@ -494,7 +494,7 @@ amp2                    =                       aamp2 * (1 + kdev2)
 aamp3                   linsegr                  0,.001,3000,.001,1000,.0017,12000,.0013,3700,.001,12500,.0018,3000,.0012,1200,.001,1400,.0017,6000,.0023,200,.001,3000,.001,1200,.0015,8000,.001,1800,.0015,6000,.08,1200,.2,200,.2,40,.2,10,.4,0,1,0
 kdevamp3                linsegr                  0, 0.02, 0.8, idur - 0.02, 0
 kdev3                   oscili                  kdevamp3, 70, gisine ,0
-amp3                    =                       aamp3 * (1 + kdev3),
+amp3                    =                       aamp3 * (1 + kdev3)
 
 awt1                    oscili                  amp1, ifreq, gisine
 awt2                    oscili                  amp2, 2.7 * ifreq, gisine
@@ -903,7 +903,7 @@ af3                     reson                   asig, 440, 80
 aout                    balance                 0.6 * af1+ af2 + 0.6 * af3 + 0.4 * asig, asigcomp
 kexp                    expseg                  1.0, iattack, 2.0, isustain, 1.0, irelease, 1.0
 kenv                    =                       kexp - 1.0
-asig1                   =                       aout * ileftgain * kenv * kdamping,
+asig1                   =                       aout * ileftgain * kenv * kdamping
 asig2                   =                       aout* irightgain * kenv * kdamping
 						outs					asig1, asig2
                         endin
@@ -1220,6 +1220,7 @@ asig2                   =                       asignal * irightgain * kdamping
 </CsInstruments>
 <CsScore>
 f 0 3600
+
 
 </CsScore>
 </CsoundSynthesizer>
