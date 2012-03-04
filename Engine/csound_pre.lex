@@ -75,8 +75,8 @@ DEFINE          #[ \t]*define
 UNDEF           "#undef"
 IFDEF           #ifn?def
 ELSE            #else[ \t]*(;.*)?$
-END             #end(if)?[ \t]*(;.*)?\n
-CONT            \\[ \t]*(;.*)?\n
+END             #end(if)?[ \t]*(;.*)?(\n|\r\n?)
+CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 
 %x incl
 %x macro
@@ -512,7 +512,13 @@ void comment(yyscan_t yyscanner)              /* Skip until nextline */
 {
     char c;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
-    while ((c = input(yyscanner)) != '\n' && c != '\r'); /* skip */
+    while ((c = input(yyscanner)) != '\n' && c != '\r') { /* skip */
+      if (c == EOF) {
+        YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
+          YY_BUFFER_EOF_PENDING;
+        return;
+      }
+    }
     if (c == '\r' && (c = input(yyscanner)) != '\n')
       unput(c);
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
