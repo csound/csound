@@ -519,23 +519,51 @@ void comment(yyscan_t yyscanner)              /* Skip until nextline */
         return;
       }
     }
-    if (c == '\r' && (c = input(yyscanner)) != '\n')
-      unput(c);
+    if (c == '\r' && (c = input(yyscanner)) != '\n') {
+      if (c != EOF)
+        unput(c);
+      else
+        YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
+          YY_BUFFER_EOF_PENDING;
+    }
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
 }
 
 void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
 {
     char c;
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     for (;;) {
       c = input(yyscanner);
-      if (UNLIKELY(c=='\n')) /* skip */
-          csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+      if (UNLIKELY(c == '\r')) { /* skip */
+        if ((c = input(yyscanner)) != '\n')
+          unput(c);
+        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+      }
+      else if (UNLIKELY(c=='\n')) { /* skip */
+        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+      }
+      if (c == EOF) {
+        YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
+          YY_BUFFER_EOF_PENDING;
+        return;
+      }
       if (c != '*') continue;
       while ((c=input(yyscanner))=='*');
       if (c=='/') return;
-      if (UNLIKELY(c=='\n'))
+      if (UNLIKELY(c == '\r')) {
+        if ((c = input(yyscanner)) != '\n')
+          unput(c);
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+      }
+      else if (UNLIKELY(c=='\n')) {
+        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+      }
+      if (c == EOF) {
+        YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
+          YY_BUFFER_EOF_PENDING;
+        return;
+      }
     }
 }
 
