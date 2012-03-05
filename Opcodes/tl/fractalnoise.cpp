@@ -44,25 +44,25 @@ inline void *aligned_calloc(size_t nmemb, size_t size)
 
 /* ABSTRACT USER INTERFACE */
 
-struct Meta 
+struct Meta
 {
     void declare (const char* key, const char* value) { }
 };
 
 class UserInterface
 {
-  bool	fStopped;
+  bool  fStopped;
 public:
   UserInterface() : fStopped(false) {}
   virtual ~UserInterface() {}
   virtual void addButton(char* label, MYFLT* zone) = 0;
   virtual void addToggleButton(char* label, MYFLT* zone) = 0;
   virtual void addCheckButton(char* label, MYFLT* zone) = 0;
-  virtual void addVerticalSlider(char* label, MYFLT* zone, MYFLT init, 
-				 MYFLT min, MYFLT max, MYFLT step) = 0;
-  virtual void addHorizontalSlider(char* label, MYFLT* zone, MYFLT init, 
-				   MYFLT min, MYFLT max, MYFLT step) = 0;
-  virtual void addNumEntry(char* label, MYFLT* zone, MYFLT init, MYFLT min, 
+  virtual void addVerticalSlider(char* label, MYFLT* zone, MYFLT init,
+                                 MYFLT min, MYFLT max, MYFLT step) = 0;
+  virtual void addHorizontalSlider(char* label, MYFLT* zone, MYFLT init,
+                                   MYFLT min, MYFLT max, MYFLT step) = 0;
+  virtual void addNumEntry(char* label, MYFLT* zone, MYFLT init, MYFLT min,
                            MYFLT max, MYFLT step) = 0;
   virtual void openFrameBox(char* label) = 0;
   virtual void openTabBox(char* label) = 0;
@@ -78,7 +78,7 @@ class csUI : public UserInterface {
 private:
   MYFLT* args[2];
   int ctrlCount;
-  
+
   void addZone(MYFLT* zone) {
       args[ctrlCount++] = zone;
   }
@@ -149,65 +149,65 @@ public:
 
 class mydsp : public dsp {
   private:
-	int 	iConst0;
-	MYFLT 	fConst1;
-	MYFLT 	fConst2;
-	int 	iRec8[2];
-	MYFLT 	fConst3;
-	MYFLT 	fConst4;
-	MYFLT 	fConst5;
-	MYFLT 	fConst6;
-	MYFLT 	fConst7;
-	MYFLT 	fConst8;
-	MYFLT 	fRec7[3];
-	MYFLT 	fslider0;
-	MYFLT 	fConst9;
-	MYFLT 	fConst10;
-	MYFLT 	fConst11;
-	MYFLT 	fConst12;
-	MYFLT 	fConst13;
-	MYFLT 	fConst14;
-	MYFLT 	fRec6[3];
-	MYFLT 	fConst15;
-	MYFLT 	fConst16;
-	MYFLT 	fConst17;
-	MYFLT 	fConst18;
-	MYFLT 	fConst19;
-	MYFLT 	fConst20;
-	MYFLT 	fRec5[3];
-	MYFLT 	fConst21;
-	MYFLT 	fConst22;
-	MYFLT 	fConst23;
-	MYFLT 	fConst24;
-	MYFLT 	fConst25;
-	MYFLT 	fConst26;
-	MYFLT 	fRec4[3];
-	MYFLT 	fConst27;
-	MYFLT 	fConst28;
-	MYFLT 	fConst29;
-	MYFLT 	fConst30;
-	MYFLT 	fConst31;
-	MYFLT 	fConst32;
-	MYFLT 	fRec3[3];
-	MYFLT 	fConst33;
-	MYFLT 	fConst34;
-	MYFLT 	fConst35;
-	MYFLT 	fConst36;
-	MYFLT 	fConst37;
-	MYFLT 	fConst38;
-	MYFLT 	fRec2[3];
-	MYFLT 	fConst39;
-	MYFLT 	fConst40;
-	MYFLT 	fConst41;
-	MYFLT 	fConst42;
-	MYFLT 	fConst43;
-	MYFLT 	fConst44;
-	MYFLT 	fRec1[3];
-	MYFLT 	fRec0[2];
-	MYFLT 	fslider1;
+        int     iConst0;
+        MYFLT   fConst1;
+        MYFLT   fConst2;
+        int     iRec8[2];
+        MYFLT   fConst3;
+        MYFLT   fConst4;
+        MYFLT   fConst5;
+        MYFLT   fConst6;
+        MYFLT   fConst7;
+        MYFLT   fConst8;
+        MYFLT   fRec7[3];
+        MYFLT   fslider0;
+        MYFLT   fConst9;
+        MYFLT   fConst10;
+        MYFLT   fConst11;
+        MYFLT   fConst12;
+        MYFLT   fConst13;
+        MYFLT   fConst14;
+        MYFLT   fRec6[3];
+        MYFLT   fConst15;
+        MYFLT   fConst16;
+        MYFLT   fConst17;
+        MYFLT   fConst18;
+        MYFLT   fConst19;
+        MYFLT   fConst20;
+        MYFLT   fRec5[3];
+        MYFLT   fConst21;
+        MYFLT   fConst22;
+        MYFLT   fConst23;
+        MYFLT   fConst24;
+        MYFLT   fConst25;
+        MYFLT   fConst26;
+        MYFLT   fRec4[3];
+        MYFLT   fConst27;
+        MYFLT   fConst28;
+        MYFLT   fConst29;
+        MYFLT   fConst30;
+        MYFLT   fConst31;
+        MYFLT   fConst32;
+        MYFLT   fRec3[3];
+        MYFLT   fConst33;
+        MYFLT   fConst34;
+        MYFLT   fConst35;
+        MYFLT   fConst36;
+        MYFLT   fConst37;
+        MYFLT   fConst38;
+        MYFLT   fRec2[3];
+        MYFLT   fConst39;
+        MYFLT   fConst40;
+        MYFLT   fConst41;
+        MYFLT   fConst42;
+        MYFLT   fConst43;
+        MYFLT   fConst44;
+        MYFLT   fRec1[3];
+        MYFLT   fRec0[2];
+        MYFLT   fslider1;
   public:
-	static void metadata(Meta* m)
-        { 
+        static void metadata(Meta* m)
+        {
             m->declare("name", "Fractal Noise");
             m->declare("author", "Tito Latini");
             m->declare("license", "GNU LGPL");
@@ -223,12 +223,12 @@ class mydsp : public dsp {
             m->declare("math.lib/copyright", "GRAME");
             m->declare("math.lib/version", "1.0");
             m->declare("math.lib/license", "LGPL");
-	}
+        }
 
-	virtual int getNumInputs()  { return 0; }
-	virtual int getNumOutputs() { return 1; }
-	static  void classInit(int samplingFreq) { }
-	virtual void instanceInit(int samplingFreq)
+        virtual int getNumInputs()  { return 0; }
+        virtual int getNumOutputs() { return 1; }
+        static  void classInit(int samplingFreq) { }
+        virtual void instanceInit(int samplingFreq)
         {
             fSamplingFreq = samplingFreq;
             iConst0 = min(192000, max(1, fSamplingFreq));
@@ -287,13 +287,13 @@ class mydsp : public dsp {
             for (int i=0; i<3; i++) fRec1[i] = 0;
             for (int i=0; i<2; i++) fRec0[i] = 0;
             fslider1 = FL(1.0);
-	}
-	virtual void init(int samplingFreq)
+        }
+        virtual void init(int samplingFreq)
         {
             classInit(samplingFreq);
             instanceInit(samplingFreq);
-	}
-	virtual void buildUserInterface(UserInterface* userInterface)
+        }
+        virtual void buildUserInterface(UserInterface* userInterface)
         {
             userInterface->openVerticalBox((char*)"fractalnoise");
             userInterface->addVerticalSlider((char*)"amp", &fslider1, FL(1.0),
@@ -301,7 +301,7 @@ class mydsp : public dsp {
             userInterface->addVerticalSlider((char*)"beta", &fslider0, FL(1.75),
                                          FL(0.0), FL(10.0), FL(0.01));
             userInterface->closeBox();
-	}
+        }
         virtual void compute (CSOUND* csound, MYFLT* output)
         {
             int     nn = csound->ksmps;
@@ -366,7 +366,7 @@ class mydsp : public dsp {
               fRec7[2] = fRec7[1]; fRec7[1] = fRec7[0];
               iRec8[1] = iRec8[0];
             }
-	}
+        }
 };
 
 //typedef struct mydsp FaustCode;
@@ -408,7 +408,7 @@ extern "C"
     }
 
     static OENTRY localops[] = {
-      { (char*)"fractalnoise", sizeof(FRACTALNOISE), 5, (char*)"a", (char*)"kk", 
+      { (char*)"fractalnoise", sizeof(FRACTALNOISE), 5, (char*)"a", (char*)"kk",
         (SUBR)fractalnoise_init, NULL, (SUBR)fractalnoise_process },
       { 0, 0, 0, 0, 0, 0, 0, 0, }
     };

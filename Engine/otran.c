@@ -135,7 +135,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         break;
       case 't':
           t_incnt++; *otypes++ = *types;
-          break;              
+          break;
       case 'i':
       case 'o':
       case 'p':
@@ -183,7 +183,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         break;
       case 't':
         t_outcnt++; *otypes++ = *types;
-        break;              
+        break;
       case 'i':
         i_outcnt++; *otypes++ = *types;
         break;
@@ -211,14 +211,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     a_inlist = S_inlist + S_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
     f_inlist = k_inlist + k_incnt + 1;
-    t_inlist = f_inlist + f_incnt + 1;    
+    t_inlist = f_inlist + f_incnt + 1;
     i = 0; types = inm->intypes;
     while (*types) {
       switch (*types++) {
         case 'a': *a_inlist++ = i; break;
         case 'k': *k_inlist++ = i; break;
         case 'f': *f_inlist++ = i; break;
-        case 't': *t_inlist++ = i; break;      
+        case 't': *t_inlist++ = i; break;
         case 'K': *k_inlist++ = i;      /* also updated at i-time */
         case 'i':
         case 'o':
@@ -234,14 +234,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     a_outlist = S_outlist + S_outcnt + 1;
     k_outlist = a_outlist + a_outcnt + 1;
     f_outlist = k_outlist + k_outcnt + 1;
-    t_outlist = f_outlist + f_outcnt + 1;    
+    t_outlist = f_outlist + f_outcnt + 1;
     i = 0; types = inm->outtypes;
     while (*types) {
       switch (*types++) {
         case 'a': *a_outlist++ = i; break;
         case 'k': *k_outlist++ = i; break;
         case 'f': *f_outlist++ = i; break;
-        case 't': *t_outlist++ = i; break;      
+        case 't': *t_outlist++ = i; break;
         case 'K': *k_outlist++ = i;     /* also updated at i-time */
         case 'i': *i_outlist++ = i; break;
         case 'S': *S_outlist++ = i; break;
@@ -990,14 +990,14 @@ int lgexist(CSOUND *csound, const char *s)
 {
     unsigned char h = name_hash(csound, s);
     NAME          *p;
- 
-    
+
+
 
     for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
     if (p != NULL)
       return 1;
     for (p = ST(lclNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
-  
+
     return (p == NULL ? 0 : 1);
 
 }
@@ -1459,4 +1459,3 @@ void oload(CSOUND *p)
     if (UNLIKELY(init0(p) != 0))
       csoundDie(p, Str("header init errors"));
 }
-

@@ -4,7 +4,7 @@ struct MACRO;
 
 typedef struct MACRON {
   int             n;
-  unsigned int    line; 
+  unsigned int    line;
   struct MACRO    *s;
 } MACRON;
 
@@ -27,7 +27,7 @@ typedef struct IFDEFSTACK_ {
 } IFDEFSTACK;
 
 
-typedef struct pre_parm_s {  
+typedef struct pre_parm_s {
     void            *yyscanner;
     MACRO           *macros;
     MACRON alt_stack[MAX_INCLUDE_DEPTH];
@@ -41,7 +41,7 @@ typedef struct pre_parm_s {
     uint32_t        locn;
     uint32_t        llocn;
     uint16_t        depth;
-    uint8_t         lstack[1024]; 
+    uint8_t         lstack[1024];
 } PRE_PARM;
 
 typedef struct parse_parm_s {

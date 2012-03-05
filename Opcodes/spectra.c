@@ -22,7 +22,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 #include <math.h>
 #include "cwindow.h"
@@ -1254,4 +1254,3 @@ static OENTRY spectra_localops[] = {
 };
 
 LINKAGE1(spectra_localops)
-

@@ -76,7 +76,7 @@ MYFLT csoundPow2(CSOUND *csound, MYFLT a){
 
 /*static inline MYFLT pow2(MYFLT a)
 {
-    int n = (int)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;  
+    int n = (int)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;
     return ((MYFLT) (1 << (n >> 12)) * powerof2[n & (POW2TABSIZI-1)]);
 }*/
 
@@ -162,7 +162,7 @@ typedef struct {
     OPDS    h;
     TABDAT  *tab;
 } TABDEL;
-  
+
 static int tabdel(CSOUND *csound, void *p)
 {
     TABDAT *t = ((TABDEL*)p)->tab;
@@ -177,7 +177,7 @@ int tinit(CSOUND *csound, INITT *p)
     MYFLT val = *p->value;
     TABDAT *t = p->a;
     int i;
- 
+
     t->size = size;
     mfree(csound, t->data);
     t->data = mmalloc(csound, sizeof(MYFLT)*(size+1));
@@ -195,7 +195,7 @@ int tassign(CSOUND *csound, ASSIGNT *p)
 {
     TABDAT *t = p->tab;
     int ind = MYFLT2LRND(*p->ind);
-    if (ind<0 || ind>t->size) 
+    if (ind<0 || ind>t->size)
       return csound->PerfError(csound,
                                Str("Index %d out of range [0,%d] in t[]\n"),
                                ind, t->size);
@@ -214,7 +214,7 @@ int tabref(CSOUND *csound, TABREF *p)
 {
     int ind = MYFLT2LRND(*p->ind);
     TABDAT *t = p->tab;
-     if (ind<0 || ind>t->size) 
+     if (ind<0 || ind>t->size)
       return csound->PerfError(csound,
                                Str("Index %d out of range [0,%d] in t[]\n"),
                                ind, t->size);
@@ -1804,7 +1804,7 @@ int is_NaNa(CSOUND *csound, ASSIGN *p)
     int k, nsmps = csound->ksmps;
     MYFLT *a = p->a;
     *p->r = FL(0.0);
-    for (k=0; k<nsmps; k++) 
+    for (k=0; k<nsmps; k++)
       *p->r += isnan(a[k]);
     return OK;
 }

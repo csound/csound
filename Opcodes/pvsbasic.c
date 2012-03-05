@@ -105,7 +105,7 @@ static int pvsgain(CSOUND *csound, PVSGAIN *p)
         p->fout->framecount = p->fa->framecount;
         p->lastframe = p->fout->framecount;
     }
-    return OK;    
+    return OK;
 }
 
 
@@ -2144,7 +2144,7 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
 
 }
 
-typedef struct pvs2tab_t { 
+typedef struct pvs2tab_t {
     OPDS h;
     MYFLT *framecount;
     TABDAT *ans;
@@ -2162,16 +2162,16 @@ int pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
 }
 
 int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
- 
+
   int size = p->ans->size, N = p->fsig->N, i;
   float *fsig = (float *) p->fsig->frame.auxp;
   for(i = 0; i < size && i < N+2; i++)
-      p->ans->data[i] = (MYFLT) fsig[i];   
+      p->ans->data[i] = (MYFLT) fsig[i];
   *p->framecount = (MYFLT) p->fsig->framecount;
-  return OK; 
+  return OK;
 }
 
-typedef struct tab2pvs_t { 
+typedef struct tab2pvs_t {
     OPDS h;
     PVSDAT *fout;
     TABDAT *in;
@@ -2205,11 +2205,11 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 {
     int size = p->in->size, i;
     float *fout = (float *) p->fout->frame.auxp;
-  
+
     if (p->lastframe < p->fout->framecount){
       for (i = 0; i < size; i++){
-        fout[i] = (float) p->in->data[i]; 
-      } 
+        fout[i] = (float) p->in->data[i];
+      }
       p->lastframe = p->fout->framecount;
     }
     return OK;
@@ -2229,7 +2229,7 @@ static OENTRY localops[] = {
    (SUBR) pvsshift},
   {"pvsfilter", sizeof(PVSFILTER), 3, "f", "fffp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
-  {"pvscale", sizeof(PVSSCALE), 3, "f", "fkOPO", 
+  {"pvscale", sizeof(PVSSCALE), 3, "f", "fkOPO",
               (SUBR) pvsscaleset, (SUBR) pvsscale},
   {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkOPO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
@@ -2265,4 +2265,3 @@ int pvsbasic_init_(CSOUND *csound)
   return csound->AppendOpcodes(csound, &(localops[0]),
                                (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

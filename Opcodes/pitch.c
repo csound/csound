@@ -1892,7 +1892,7 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
     }
     val = p->curval;                      /* sav the cur value    */
-    if (LIKELY(p->segsrem)) {             /* if no more segs putk */ 
+    if (LIKELY(p->segsrem)) {             /* if no more segs putk */
       NSEG  *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
         while (p->segsrem > 1) {          /* if release flag new  */

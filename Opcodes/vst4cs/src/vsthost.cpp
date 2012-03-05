@@ -857,11 +857,11 @@ bool VSTPlugin::OnOutputConnected(AEffect *effect, long output)
   return true;
 }
 
-long VSTPlugin::Master(AEffect *effect, 
-                       long opcode, 
+long VSTPlugin::Master(AEffect *effect,
+                       long opcode,
                        long index,
-                       long value, 
-                       void *ptr, 
+                       long value,
+                       void *ptr,
                        float opt)
 {
   VSTPlugin *plugin = 0;
@@ -965,4 +965,3 @@ long VSTPlugin::Master(AEffect *effect,
   }
   return 0;
 }
-

@@ -75,7 +75,7 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
           for (i=0; i<nsmps; ++i)
             outptr[i] = inptr[i] * ogain;
         }
-      else 
+      else
         memset(outptr, 0, nsmps*sizeof(MYFLT));
       outptr += nsmps;
     }

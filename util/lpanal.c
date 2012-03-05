@@ -842,7 +842,7 @@ static void gauss(LPC* thislp,
    /* csound->Message(csound,Str("Row %d or %d have maximum of %g\n"),
                       i, thislp->poleCount, amax);
       csound->Die(csound, Str("gauss: ill-conditioned"));
-   */ 
+   */
          for (ii=i; ii < thislp->poleCount;++ii) a[ii][i] = 1.0e-20; /* VL: fix for very low values */
        }
       if (i != istar) {
@@ -1215,4 +1215,3 @@ int lpanal_init_(CSOUND *csound)
     }
     return retval;
 }
-

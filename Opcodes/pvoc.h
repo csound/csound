@@ -23,8 +23,8 @@
 #define CSOUND_PVOC_H
 
 // #include "csdl.h"
-#include "csoundCore.h"        
-#include "interlocks.h" 
+#include "csoundCore.h"
+#include "interlocks.h"
 
 typedef struct PVOC_GLOBALS_ PVOC_GLOBALS;
 
@@ -56,4 +56,3 @@ static inline PVOC_GLOBALS *PVOC_GetGlobals(CSOUND *csound)
 }
 
 #endif  /* CSOUND_PVOC_H */
-

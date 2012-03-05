@@ -114,7 +114,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     psize = sizeof(AudioDeviceID);
     AudioObjectGetPropertyData(kAudioObjectSystemObject,
                                &prop, 0, NULL, &psize, &dev);
-    
+
     if(isInput) cdata->defdevin = dev;
     else cdata->defdevout = dev;
 
@@ -178,22 +178,22 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       bufframes = csound->GetInputBufferSize(csound)/nchnls;
     }
 
-    /* although the SR is set in the stream properties, 
+    /* although the SR is set in the stream properties,
        we also need to set the device to match */
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
     psize = sizeof(double);
     AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
-    
+
     double sr;
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
     if(sr != srate) {
-       csound->Die(csound, 
+       csound->Die(csound,
             "could not set SR, tried %.1f, got %.1f \n", srate, sr);
-    } 
+    }
 
     HALOutput = AudioComponentFindNext(NULL, &cd);
     if(isInput){
-      AudioComponentInstanceNew(HALOutput, &(cdata->inunit));    
+      AudioComponentInstanceNew(HALOutput, &(cdata->inunit));
       enableIO = 1;
       AudioUnitSetProperty(cdata->inunit, kAudioOutputUnitProperty_EnableIO,
                            kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
@@ -203,7 +203,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       psize = sizeof(AudioDeviceID);
       /* for input, select device AFTER enabling IO */
       AudioUnitSetProperty(cdata->inunit,kAudioOutputUnitProperty_CurrentDevice,
-                           kAudioUnitScope_Global, isInput, &dev, psize); 
+                           kAudioUnitScope_Global, isInput, &dev, psize);
       aunit = &(cdata->inunit);
     } else {
       AudioComponentInstanceNew(HALOutput, &(cdata->outunit));
@@ -508,14 +508,14 @@ static void rtclose_(CSOUND *csound)
       };
       UInt32 psize = sizeof(AudioDeviceID);
       AudioObjectSetPropertyData(kAudioObjectSystemObject,
-                               &prop, 0, NULL, psize, &cdata->defdevin); 
+                               &prop, 0, NULL, psize, &cdata->defdevin);
       }
-      if(cdata->defdevout) { 
+      if(cdata->defdevout) {
       AudioObjectPropertyAddress prop = {
      kAudioHardwarePropertyDefaultOutputDevice,
       kAudioObjectPropertyScopeGlobal,
       kAudioObjectPropertyElementMaster
-      };   
+      };
       UInt32 psize = sizeof(AudioDeviceID);
       AudioObjectSetPropertyData(kAudioObjectSystemObject,
                                &prop, 0, NULL, psize, &cdata->defdevout);

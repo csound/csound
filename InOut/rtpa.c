@@ -30,7 +30,7 @@
 #endif
 #include <portaudio.h>
 
-#define NO_FULLDUPLEX_PA_LOCK   0   
+#define NO_FULLDUPLEX_PA_LOCK   0
 
 typedef struct PaAlsaStreamInfo {
     unsigned long   size;
@@ -355,12 +355,12 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
 
-   
+
     if (pabs->complete == 1) {
         return paComplete;
     }
-    
-#ifdef WIN32    
+
+#ifdef WIN32
 if (pabs->paStream == NULL
       || pabs->paused
 ) {
@@ -378,13 +378,13 @@ return paContinue;
       /*#  ifdef WIN32 */
       err = csound->WaitThreadLock(pabs->paLock, (size_t) pabs->paLockTimeout);
     /*#  else
-    err = csound->WaitThreadLock(pabs->paLock, (size_t) 500); 
+    err = csound->WaitThreadLock(pabs->paLock, (size_t) 500);
 #  endif
     #else
       csound->WaitThreadLock(pabs->paLock, (size_t) 500);
       err = 0;
      #endif*/
- 
+
     if (pabs->mode & 1) {
       int n = pabs->inBufSamples;
       int i = 0;
@@ -407,7 +407,7 @@ return paContinue;
         paClearOutputBuffer(pabs, paOutput);
       }
     }
-   
+
    paClearOutputBuffer(pabs, pabs->outputBuffer);
    csound->NotifyThreadLock(pabs->clientLock);
 
@@ -499,7 +499,7 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
     *(p->GetRtRecordUserData(p)) = (void*) pabs;
 
     pabs->complete = 0;
-    
+
     return 0;
 }
 
@@ -523,7 +523,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
     *(p->GetRtPlayUserData(p)) = (void*) pabs;
 
     pabs->complete = 0;
-    
+
     return (paBlockingReadWriteOpen(p));
 }
 
@@ -536,7 +536,7 @@ static void rtclose_(CSOUND *csound)
                                                              "_rtpaGlobals");
     if (pabs == NULL)
       return;
-   
+
     pabs->complete = 1;
 
     if (pabs->paStream != NULL) {
@@ -551,7 +551,7 @@ static void rtclose_(CSOUND *csound)
         csound->NotifyThreadLock(pabs->clientLock);
 //        Pa_Sleep(80);
       }
-      
+
       Pa_StopStream(stream);
       Pa_CloseStream(stream);
 //      Pa_Sleep(80);
@@ -833,4 +833,3 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
-

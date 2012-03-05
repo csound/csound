@@ -181,7 +181,7 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
 
     if (p1 <= FL(0.0))
       return OK;    /* not triggered */
-    
+
     insno = (int) p1;
     if (UNLIKELY(insno < 1 || insno > (int) csound->maxinsno ||
                  csound->instrtxtp[insno] == NULL)) {
@@ -318,4 +318,3 @@ int loop_ge_p(CSOUND *csound, LOOP_OPS *p)
       csound->pds = p->l->prvp;
     return OK;
 }
-

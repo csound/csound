@@ -22,7 +22,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 #include "soundio.h"
 
@@ -677,4 +677,3 @@ static OENTRY loscilx_localops[] = {
 };
 
 LINKAGE1(loscilx_localops)
-

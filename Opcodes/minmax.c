@@ -31,7 +31,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 #include <math.h>
 
@@ -313,4 +313,3 @@ static OENTRY minmax_localops[] = {
 };
 
 LINKAGE1(minmax_localops)
-

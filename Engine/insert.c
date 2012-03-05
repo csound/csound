@@ -431,7 +431,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     else if (O->midiVelocityAmp) {
       int pfield = O->midiVelocityAmp;
-      int index = pfield - 1; 
+      int index = pfield - 1;
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_veloc;
       value = value * value / FL(16239.0);
@@ -442,17 +442,17 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
                         pfield, pfields[index]);
       }
     }
-    /* 
-       the code above assumes &p1 is a pointer to an array of N pfields, but 
+    /*
+       the code above assumes &p1 is a pointer to an array of N pfields, but
        this is wrong. It overwrites memory and uses it for passing p-field
        values. When the overwritten memory is taken to be a pointer in the
        loop below, the loop does not stop at the end of the opcode list
-       and causes iopadr to be garbage, leading to a segfault. 
-       This happens where there is exactly one opcode in an instrument. 
-       It is a nasty bug that needs to be fixed. 
-        
+       and causes iopadr to be garbage, leading to a segfault.
+       This happens where there is exactly one opcode in an instrument.
+       It is a nasty bug that needs to be fixed.
+
        A possible solution is to  allocate always a minimum of 5 p-fields (see line
-       approx 1809 below). The extra p-fields appear to be hanging at the end of 
+       approx 1809 below). The extra p-fields appear to be hanging at the end of
        an INSDS structure, and &p1 appears to be a legal array start address.
        This allows p4 and p5 to be mapped, but no further p-fields (possibly).
 
@@ -1103,7 +1103,7 @@ int xinset(CSOUND *csound, XIN *p)
     *(tmp++) = NULL;            /* put delimiter */
     /* ... same for k-rate */
     while (*++ndx_list >= 0) {
-      *(tmp++) = *(bufs + *ndx_list);   /* "from" address */   
+      *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
       *(tmp++) = *(p->args + *ndx_list);/* "to" address */
     }
     *(tmp++) = NULL;            /* put delimiter */
@@ -1111,23 +1111,23 @@ int xinset(CSOUND *csound, XIN *p)
      while (*++ndx_list >= 0) {
        void *in, *out;
        in = (void *)*(bufs + *ndx_list);
-       *(tmp++) = (MYFLT *) in;   
+       *(tmp++) = (MYFLT *) in;
        out = (void *) *(p->args + *ndx_list);
        *(tmp++) = (MYFLT *) out;
-       memcpy(out, in, sizeof(PVSDAT));    
+       memcpy(out, in, sizeof(PVSDAT));
     }
      *(tmp++) = NULL;
     /* tsigs: similar to avove */
      while (*++ndx_list >= 0) {
        void *in, *out;
        in = (void *)*(bufs + *ndx_list);
-       *(tmp++) = (MYFLT *) in;   
+       *(tmp++) = (MYFLT *) in;
        out = (void *) *(p->args + *ndx_list);
        *(tmp++) = (MYFLT *) out;
-       memcpy(out, in, sizeof(TABDAT));   
+       memcpy(out, in, sizeof(TABDAT));
     }
      *(tmp++) = NULL;
-   
+
     /* fix for case when xout is omitted */
     *(tmp++) = NULL;  *(tmp++) = NULL;  *(tmp++) = NULL; *tmp = NULL;
     return OK;
@@ -1139,7 +1139,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     OPCODINFO   *inm;
     int16       *ndx_list;
     MYFLT       **tmp, **bufs;
-    
+
     (void) csound;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     inm = buf->opcode_info;
@@ -1167,7 +1167,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     tmp += 4;  /* VL: this was 2, now 4 with fsigs and tsigs added */
     if (*tmp || *(tmp + 1))
     return OK;
-   
+
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     while (*++ndx_list >= 0) {
       *(tmp++) = *(p->args + *ndx_list);/* "from" address */
@@ -1180,23 +1180,23 @@ int xoutset(CSOUND *csound, XOUT *p)
       *(tmp++) = *(bufs + *ndx_list);   /* "to" address */
     }
     *(tmp++) = NULL;                /* put delimiter */
- 
+
     /* fsigs: we'll need to do extra work */
     while (*++ndx_list >= 0) {
       void *in, *out;
       in =  (void *) *(p->args + *ndx_list);
       *(tmp++) = (MYFLT *) in;
-      out = (void *) *(bufs + *ndx_list); 
+      out = (void *) *(bufs + *ndx_list);
       *(tmp++) = (MYFLT *) out;
       memcpy(out, in, sizeof(PVSDAT));
     }
-    *(tmp++) = NULL; 
+    *(tmp++) = NULL;
    /* tsigs: as above */
     while (*++ndx_list >= 0) {
       void *in, *out;
       in =  (void *) *(p->args + *ndx_list);
       *(tmp++) = (MYFLT *) in;
-      out = (void *) *(bufs + *ndx_list); 
+      out = (void *) *(bufs + *ndx_list);
       *(tmp++) = (MYFLT *) out;
       memcpy(out, in, sizeof(TABDAT));
     }
@@ -1593,16 +1593,16 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           ptr1 = *tmp; *(*(++tmp)) = *ptr1;
         }
         /* VL: fsigs in need to be dealt with here */
-        while (*(++tmp)) {                
-         ptr1 = *tmp; 
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
+        while (*(++tmp)) {
+         ptr1 = *tmp;
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
          }
         /* and tsigs */
-        while (*(++tmp)) {                
-         ptr1 = *tmp; 
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
+        while (*(++tmp)) {
+         ptr1 = *tmp;
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
          }
-        
+
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
@@ -1630,15 +1630,15 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           ptr1 = *tmp; *(*(++tmp)) = *ptr1;
         }
         /* VL: fsigs in need to be dealt with here */
-        while (*(++tmp)) {                
-         ptr1 = *tmp; 
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
+        while (*(++tmp)) {
+         ptr1 = *tmp;
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
          }
         /* and tsigs */
-        while (*(++tmp)) {                
-         ptr1 = *tmp; 
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-         } 
+        while (*(++tmp)) {
+         ptr1 = *tmp;
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
+         }
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
@@ -1658,20 +1658,20 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     /* k-rate outputs are copied only in the last sub-kperiod, */
     /* so we do it now */
     while (*(++tmp)) {                  /* k-rate */
-      ptr1 = *tmp; 
+      ptr1 = *tmp;
       *(*(++tmp)) = *ptr1;
     }
     /* VL: fsigs out need to be dealt with here */
-     while (*(++tmp)) {                
+     while (*(++tmp)) {
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(PVSDAT));
     }
      /* tsigs  */
-    while (*(++tmp)) {                
+    while (*(++tmp)) {
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(TABDAT));
     }
-    
+
     /* restore globals */
     csound->ksmps = g_ksmps;
     csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
@@ -1694,13 +1694,13 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     OPDS    *saved_pds = csound->pds;
     int     n;
     MYFLT   **tmp, *ptr1, *ptr2;
-    
+
      if (!(csound->pds = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
 
-    //csound->Message(csound, "end input\n"); /* FOR SOME REASON the opcode has no perf code */ 
+    //csound->Message(csound, "end input\n"); /* FOR SOME REASON the opcode has no perf code */
     /* IV - Nov 16 2002: update release flag */
     p->ip->relesing = p->parent_ip->relesing;
-   
+
     tmp = p->buf->iobufp_ptrs;
     if (csound->ksmps != 1) {           /* generic case for kr != sr */
 
@@ -1712,23 +1712,23 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
           *(ptr2++) = *(ptr1++);
         } while (--n);
       }
-   
+
       while (*(++tmp)) {                /* k-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
       }
-  
+
       /* VL: fsigs in need to be dealt with here */
-       while (*(++tmp)) {                
-         ptr1 = *tmp; 
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-         } 
+       while (*(++tmp)) {
+         ptr1 = *tmp;
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
+         }
        /* VL: tsigs */
-        while (*(++tmp)) {                
-         ptr1 = *tmp; 
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-         } 
-       
-        
+        while (*(++tmp)) {
+         ptr1 = *tmp;
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
+         }
+
+
       /*  run each opcode  */
       do {
         (*csound->pds->opadr)(csound, csound->pds);
@@ -1745,22 +1745,22 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     else {                      /* special case for kr == sr */
       /* copy inputs */
       while (*tmp) {                    /* a-rate */
-        ptr1 = *(tmp++); 
+        ptr1 = *(tmp++);
         *(*(tmp++)) = *ptr1;
       }
       while (*(++tmp)) {                /* k-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
       }
       /* VL: fsigs in need to be dealt with here */
-       while (*(++tmp)) {                
-         ptr1 = *tmp; 
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
+       while (*(++tmp)) {
+         ptr1 = *tmp;
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
          }
        /* VL: tsigs */
-       while (*(++tmp)) {                
-         ptr1 = *tmp; 
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-         } 
+       while (*(++tmp)) {
+         ptr1 = *tmp;
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
+         }
       /*  run each opcode  */
       do {
         (*csound->pds->opadr)(csound, csound->pds);
@@ -1774,15 +1774,15 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       ptr1 = *tmp; *(*(++tmp)) = *ptr1;
     }
     /* VL: fsigs out need to be dealt with here */
-     while (*(++tmp)) {                
+     while (*(++tmp)) {
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(PVSDAT));
        }
      /* tsigs */
-    while (*(++tmp)) {                
+    while (*(++tmp)) {
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(TABDAT));
-       } 
+       }
  endop:
     /* restore globals */
     csound->pds = saved_pds;
@@ -2041,5 +2041,3 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       }
     return NOTOK;
 }
-
-
