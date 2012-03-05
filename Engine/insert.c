@@ -1922,8 +1922,8 @@ static void instance(CSOUND *csound, int insno)
         if (indx > 0)                           /* cvt index to lcl/gbl adr */
           fltp = gbloffbas + indx;
         else
-          fltp = lcloffbas + (-indx);
-        argpp[n] = fltp + pextra;
+          fltp = lcloffbas + (-indx) + pextra;
+        argpp[n] = fltp;
       }
       for ( ; ep->outypes[n] != (char) 0; n++)  /* if more outypes, pad */
         argpp[n] = NULL;
