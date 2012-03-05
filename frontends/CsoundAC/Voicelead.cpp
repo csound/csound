@@ -299,7 +299,7 @@ namespace csound
       double pc_ = pc(chord[i]);
       if (std::find(uniquepcs.begin(), uniquepcs.end(), pc_) == uniquepcs.end()) {
         uniquepcs.push_back(pc_);
-      } 
+      }
     }
     sort(uniquepcs);
     return uniquepcs;
@@ -770,10 +770,10 @@ namespace csound
     return result;
   }
 
-  bool Voicelead::addOctave(const std::vector<double> 
-                            &lowestVoicing, 
-                            std::vector<double> &newVoicing, 
-                            size_t maximumPitch, 
+  bool Voicelead::addOctave(const std::vector<double>
+                            &lowestVoicing,
+                            std::vector<double> &newVoicing,
+                            size_t maximumPitch,
                             size_t divisionsPerOctave)
   {
     for (size_t voice = 0, voices = lowestVoicing.size(); voice < voices; voice++) {

@@ -153,7 +153,7 @@ namespace csound
                    modality,
                    base,
                    range);
-      } else if ((operation.V != DBL_MAX) && (!operation.L)) {  
+      } else if ((operation.V != DBL_MAX) && (!operation.L)) {
         System::inform("Operation: QV\n");
         score.setQV(priorOperation.begin,
                     operation.begin,
@@ -394,13 +394,13 @@ namespace csound
     operations[time].avoidParallels = avoidParallels;
   }
 
-  void VoiceleadingNode::produceOrTransform(Score &score, 
-                                            size_t beginAt, 
-                                            size_t endAt, 
+  void VoiceleadingNode::produceOrTransform(Score &score,
+                                            size_t beginAt,
+                                            size_t endAt,
                                             const ublas::matrix<double> &compositeCoordinates)
   {
     transform(score, rescaleTimes);
-    // Apply the global transformation of coordinate system 
+    // Apply the global transformation of coordinate system
     // to all child events produced by this node.
     size_t finalEndAt = score.size();
     for (size_t i = endAt; i < finalEndAt; i++) {
@@ -428,7 +428,7 @@ namespace csound
       }
       ops.push_back(&it->second);
     }
-    
+
     if (rescaleTimes_) {
       if (operationMaxTime > 0.0) {
         timeScale = scoreMaxTime / operationMaxTime;

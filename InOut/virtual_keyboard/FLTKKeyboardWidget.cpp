@@ -135,12 +135,12 @@ FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
     setProgramNames();
 
     octaveChoice->clear();
- 
+
     for(unsigned int i = 1; i < 8; i++) {
             octave[0] = i + 48;
             octaveChoice->add(octave);
     }
- 
+
     octaveChoice->value(4);
 
     this->bankChoice->callback((Fl_Callback*)bankChange, this);

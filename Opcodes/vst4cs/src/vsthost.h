@@ -114,16 +114,16 @@ class VSTPlugin {
   virtual bool IsSynth();
   virtual bool AddMIDI(int data, int deltaFrames, int detune);
   virtual void SendMidi();
-  virtual void processReplacing(float **inputs, 
+  virtual void processReplacing(float **inputs,
                                 float **outputs,
                                 long sampleframes);
-  virtual void process(float **inputs, 
-                       float **outputs, 
+  virtual void process(float **inputs,
+                       float **outputs,
                        long sampleframes);
-  virtual long Dispatch(long opCode, 
-                        long index=0, 
-                        long value=0, 
-                        void *ptr=0, 
+  virtual long Dispatch(long opCode,
+                        long index=0,
+                        long value=0,
+                        void *ptr=0,
                         float opt=0);
   virtual void Log(const char *format, ...);
   virtual void Debug(const char *format, ...);
@@ -142,17 +142,17 @@ class VSTPlugin {
   {
     return Dispatch(effGetChunk, isPreset, 0, ptr);
   }
-  long EffGetProgram() 
-  { 
-    return Dispatch(effGetProgram); 
+  long EffGetProgram()
+  {
+    return Dispatch(effGetProgram);
   }
-  void EffSetProgram(long lValue) 
-  { 
-    Dispatch(effSetProgram, 0, lValue); 
+  void EffSetProgram(long lValue)
+  {
+    Dispatch(effSetProgram, 0, lValue);
   }
-  void EffGetProgramName(char *ptr) 
-  { 
-    Dispatch(effGetProgramName, 0, 0, ptr); 
+  void EffGetProgramName(char *ptr)
+  {
+    Dispatch(effGetProgramName, 0, 0, ptr);
   }
   static std::map<long, std::string> &masterOpcodes()
   {
@@ -197,4 +197,3 @@ inline void VSTPlugin::process(float **ins, float **outs, long frames)
 }
 
 #endif
-

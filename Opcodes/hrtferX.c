@@ -51,7 +51,7 @@
  ***************************************************************/
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 #include <stdio.h>
 #include <math.h>
@@ -499,4 +499,3 @@ static OENTRY hrtferX_localops[] = {
 };
 
 LINKAGE1(hrtferX_localops)
-

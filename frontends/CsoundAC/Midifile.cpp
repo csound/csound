@@ -381,7 +381,7 @@ namespace csound
     }
     return false;
   }
-  
+
   bool MidiEvent::isNoteOff() const
   {
     if(getStatusNybble() == MidiFile::CHANNEL_NOTE_OFF) {
@@ -396,7 +396,7 @@ namespace csound
     }
     return false;
   }
-  
+
   bool MidiEvent::matchesNoteOffEvent(const MidiEvent &offEvent) const
   {
     if(!isNoteOn()) {

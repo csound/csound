@@ -22,7 +22,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 
 #include <math.h>
@@ -102,6 +102,3 @@ static OENTRY pan2_localops[] =
 };
 
 LINKAGE1(pan2_localops)
-
-
-

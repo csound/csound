@@ -90,7 +90,7 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
 }
 
 /** Verifies and optimise; constant fold and opcodes and args are correct*/
-static TREE * verify_tree1(CSOUND *csound, TREE *root) 
+static TREE * verify_tree1(CSOUND *csound, TREE *root)
 {
     TREE *ans, *last;
     double lval, rval;
@@ -110,7 +110,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
           last = last->next;
         }
       }
-      if (root->right->type == T_FUNCTION &&                 
+      if (root->right->type == T_FUNCTION &&
           (strcmp(root->right->value->lexeme, "i") == 0)) {  /* i() function */
         root->right = optimize_ifun(csound, root->right);
       }
@@ -121,7 +121,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
       }
       root->right = verify_tree1(csound, root->right);
       if (root->left) {
-        if (root->left->type == T_FUNCTION &&                 
+        if (root->left->type == T_FUNCTION &&
             (strcmp(root->left->value->lexeme, "i") == 0)) {  /* i() function */
           root->left = optimize_ifun(csound, root->left);
         }
@@ -145,7 +145,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
               (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             ans->next = root->next;
-            //Memory leak!! 
+            //Memory leak!!
             //mfree(csound, root); mfree(csound root->right);
             return ans;
           case '-':
@@ -154,7 +154,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
               (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             ans->next = root->next;
-            //Memory leak!! 
+            //Memory leak!!
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
           case '*':
@@ -163,7 +163,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
               (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             ans->next = root->next;
-            //Memory leak!! 
+            //Memory leak!!
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
           case '/':
@@ -172,7 +172,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
               (char*)mrealloc(csound, ans->value->lexeme, 24);
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             ans->next = root->next;
-            //Memory leak!! 
+            //Memory leak!!
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
             /* case S_NEQ: */
@@ -218,7 +218,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
     return root;
 }
 
-TREE * verify_tree(CSOUND *csound, TREE *root) 
+TREE * verify_tree(CSOUND *csound, TREE *root)
 {
     TREE *original=root, *last = NULL;
     while (root) {
@@ -260,7 +260,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     /*  csound->Message(csound, Str("error: %s (\"\\n\")"), */
     /*                 str); */
     /*  csound->Message(csound, Str(" line %d:\n>>> "), */
-    /*     	     csound_orcget_lineno(yyscanner)); */
+    /*               csound_orcget_lineno(yyscanner)); */
     /* } */
     /* else { */
     /*  csound->Message(csound, Str("\nerror: %s  (token \"%s\")"), */

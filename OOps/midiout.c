@@ -308,13 +308,13 @@ int out_controller (CSOUND *csound, OUT_CONTR *p)
       value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
       value = (value < 128) ?  value : 127;
       value = (value > -1) ?  value : 0;
-      if (value != p->last_value || *p->chn != p->lastchn || *p->num != p->lastctrl) { 
+      if (value != p->last_value || *p->chn != p->lastchn || *p->num != p->lastctrl) {
         /* csound->Message(csound, "out contr value: %d\n", value); */
         control_change(csound, (int)*p->chn-1,(int)*p->num ,value);
         p->last_value = value;
         p->lastchn = *p->chn;
         p->lastctrl = *p->num;
-        } 
+        }
     }
     return OK;
 }
@@ -363,11 +363,11 @@ int out_progchange (CSOUND *csound, OUT_PCHG *p)
       prog_num =  (int)((*p->prog_num - min) * FL(127.0) / (*p->max - min));
       prog_num = prog_num < 128 ?  prog_num : 127;
       prog_num = prog_num > -1  ?  prog_num : 0;
-      if (prog_num != p->last_prog_num || *p->chn != p->lastchn) { 
+      if (prog_num != p->last_prog_num || *p->chn != p->lastchn) {
         program_change(csound, (int)*p->chn-1, prog_num);
         p->last_prog_num = prog_num;
         p->lastchn = *p->chn;
-        } 
+        }
     }
     return OK;
 }
@@ -392,7 +392,7 @@ int out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
         p->last_value = value;
         p->lastchn = *p->chn;
         p->lastctrl = *p->msb_num;
-         } 
+         }
     }
     return OK;
 }
@@ -550,4 +550,3 @@ int mdelay(CSOUND *csound, MDELAY *p)                   /*gab-A6 fixed*/
     }
     return OK;
 }
-

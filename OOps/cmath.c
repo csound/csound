@@ -335,7 +335,7 @@ int kexprndi(CSOUND *csound, PRANDI *p)
     if (UNLIKELY(p->phs >= MAXLEN)) {         /* when phs overflows,  */
       p->phs &= PHMASK;                       /*      mod the phs     */
       p->num1 = p->num2;                      /*      & new num vals  */
-      p->num2 = exprand(csound, *p->arg1); 
+      p->num2 = exprand(csound, *p->arg1);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -457,7 +457,7 @@ int kgaussi(CSOUND *csound, PRANDI *p)
     if (UNLIKELY(p->phs >= MAXLEN)) {           /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       p->num1 = p->num2;                        /*      & new num vals  */
-      p->num2 = gaussrand(csound, *p->arg1); 
+      p->num2 = gaussrand(csound, *p->arg1);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -540,7 +540,7 @@ int kcauchyi(CSOUND *csound, PRANDI *p)
     if (UNLIKELY(p->phs >= MAXLEN)) {         /* when phs overflows,  */
       p->phs &= PHMASK;                       /*      mod the phs     */
       p->num1 = p->num2;                      /*      & new num vals  */
-      p->num2 = cauchrand(csound, *p->arg1); 
+      p->num2 = cauchrand(csound, *p->arg1);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -706,4 +706,3 @@ int gen21_rand(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
-

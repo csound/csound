@@ -97,12 +97,12 @@
 //     k3(2) = (G*(M(1) + h2*k2(1) - (M(2) + h2*k2(2))) + M(3) + h2*k2(3))/C2;
 //     k3(3) = (-(M(2) + h2*k2(2) + R0*(M(3) + h2*k2(3))))/L;
 //     % Round Four
-//     k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) + 
+//     k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) +
 //              h*k3(1),sys_variables))/C1;
 //     k4(2) = (G*(M(1) + h*k3(1) - (M(2) + h*k3(2))) + M(3) + h*k3(3))/C2;
 //     k4(3) = (-(M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;
 // %Finishes integration and assigns values to M(1),
-//     M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6); 
+//     M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
 //                                           %M(2) and M(3)
 //     TimeSeries(3,i+1) = M(1);  %TimeSeries 3 is V1
 //     TimeSeries(2,i+1) = M(2);  %TimeSeries 2 is V2
@@ -131,7 +131,7 @@ public:
   MYFLT *V1;
   // INPUTS
   // % L,R0,C2,G,Ga,Gb,E,C1,a,b,c,d
-  // sys_variables = [system_vars(5:12),system_vars(23:26)]; 
+  // sys_variables = [system_vars(5:12),system_vars(23:26)];
   // % x0,y0,z0,dataset_size,step_size
   // integ_variables = [system_vars(14:16),system_vars(1:2)];
   // function TimeSeries = chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,
@@ -208,9 +208,9 @@ public:
     d = 0.0;
     ksmps = csound->GetKsmps(csound);
     warn(csound, "ChuasOscillatorCubic::init: L: %f  R0: %f  C2: %f  G: %f"
-         "  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n", 
+         "  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n",
          *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
-    warn(csound, "ChuasOscillatorCubic::init: a: %f  b: %f  c: %f  d: %f\n", 
+    warn(csound, "ChuasOscillatorCubic::init: a: %f  b: %f  c: %f  d: %f\n",
          a, b, c, d);
     return OK;
   }
@@ -343,7 +343,7 @@ public:
 //     k1(3) = -beta*M(2) - gammaloc*M(3);
 //     % Round Two
 //     temp = M(1) + h2*k1(1);
-//     k2(1) = alpha*(M(2) + h2*k1(2) - bnorplus1*temp - 
+//     k2(1) = alpha*(M(2) + h2*k1(2) - bnorplus1*temp -
 //             (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
 //     k2(2) = k1(2) + h2*(k1(1) - k1(2) + k1(3));
 //     k2(3) = omch2*k1(3) - bh2*k1(2);
@@ -355,7 +355,7 @@ public:
 //     k3(3) = k1(3) - bh2*k2(2) - ch2*k2(3);
 //     % Round Four
 //     temp = M(1) + h*k3(1);
-//     k4(1) = alpha*(M(2) + h*k3(2) - bnorplus1*temp - 
+//     k4(1) = alpha*(M(2) + h*k3(2) - bnorplus1*temp -
 //             (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
 //     k4(2) = k1(2) + h*(k3(1) - k3(2) + k3(3));
 //     k4(3) = k1(3) - bh*k3(2) - ch*k3(3);
@@ -616,4 +616,3 @@ extern "C"
     return 0;
   }
 }
-

@@ -395,7 +395,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     }
     orcompact(csound);
     corfile_rm(&csound->scstr);
-  
+
     /* print stats only if musmon was actually run */
     if (UNLIKELY(csound->musmonGlobals != NULL)) {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
@@ -417,12 +417,12 @@ PUBLIC int csoundCleanup(CSOUND *csound)
                               csound->perferrcnt);
       print_benchmark_info(csound, Str("end of performance"));
     }
-     
+
     /* close line input (-L) */
     RTclose(csound);
     /* close MIDI input */
     MidiClose(csound);
- 
+
     /* IV - Feb 03 2005: do not need to call rtclose from here, */
     /* as sfclosein/sfcloseout will do that. */
     if (!csound->enableHostImplementedAudioIO) {
@@ -435,7 +435,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->remoteGlobals) remote_Cleanup(csound);
     if (csound->oparms->ringbell)
       cs_beep(csound);
-   
+
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
@@ -724,7 +724,7 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
 {
     int n, insno = chn->insno;
     if (mep->type == NOTEON_TYPE && mep->dat2) {      /* midi note ON: */
-      if (UNLIKELY((n = MIDIinsert(csound, insno, chn, mep)))) { 
+      if (UNLIKELY((n = MIDIinsert(csound, insno, chn, mep)))) {
         /* alloc,init,activ */
         csound->Message(csound,
                         Str("\t\t   T%7.3f - note deleted. "), csound->curp2);
@@ -1268,4 +1268,3 @@ PUBLIC int csoundRegisterSenseEventCallback(CSOUND *csound,
 
     return 0;
 }
-
