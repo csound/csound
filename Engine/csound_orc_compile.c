@@ -162,7 +162,7 @@ static void lblrequest(CSOUND *csound, char *s)
 
 static inline void resetouts(CSOUND *csound)
 {
-    csound->acount = csound->kcount = csound->icount = 
+    csound->acount = csound->kcount = csound->icount =
       csound->Bcount = csound->bcount = 0;
 }
 
@@ -489,9 +489,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           }
           /* VL 14/12/11 : calling lgbuild here seems to be problematic for
              undef arg checks */
-	  else {
-	    lgbuild(csound, arg, 1);
-	  } 
+          else {
+            lgbuild(csound, arg, 1);
+          }
 
 
         }
@@ -533,7 +533,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
 
         //        csound->Message(csound, "Opcode InTypes: %s\n", ep->intypes);
         //        csound->Message(csound, "Opcode OutTypes: %s\n", ep->outypes);
-  
+
         set_xincod(csound, tp, ep, root->line);
         set_xoutcod(csound, tp, ep, root->line);
 
@@ -842,7 +842,7 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
           ip->lclkcnt = (ip->lclkcnt + 1) & (~1);
     }
 
-    ip->lclfixed = ip->lclkcnt + 
+    ip->lclfixed = ip->lclkcnt +
                    ip->lclwcnt * Wfloats * ip->lclpcnt * Pfloats;*/
 
     ip->mdepends = ip->mdepends >> 4;
@@ -931,7 +931,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum) {
     csound->instrtxtp[instrNum] = instrtxt;
 }
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) 
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
 {
     OPCODINFO *opinfo = csound->opcodeInfo;
     if (UNLIKELY(opinfo == NULL)) {
@@ -953,7 +953,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
 /**
  * Compile the given TREE node into structs for Csound to use
  */
-void csound_orc_compile(CSOUND *csound, TREE *root) 
+void csound_orc_compile(CSOUND *csound, TREE *root)
 {
 //    csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
@@ -1218,7 +1218,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
         csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
       if (UNLIKELY((thread = csound->opcodlst[opnum].thread) & 06 ||
                    (!thread && bp->t.pftype != 'b'))) {
-        csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n", 
+        csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                bp->t.opcod, thread, bp->t.pftype);
         synterr(csound, Str("perf-pass statements illegal in header blk\n"));
       }
@@ -1826,7 +1826,7 @@ char argtyp2(CSOUND *csound, char *s)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char c = *s;    /*   also set lgprevdef if !c && !p && !S */
 
-    /* VL: added this to make sure the object exists before we try to read 
+    /* VL: added this to make sure the object exists before we try to read
        from it */
     if (UNLIKELY(csound->otranGlobals == NULL)) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
@@ -1882,4 +1882,3 @@ int file_to_int(CSOUND *csound, const char *name)
     }
     return n;
 }
-

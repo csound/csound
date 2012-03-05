@@ -228,13 +228,13 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     }
     /* get net amp */
     sum = FL(0.0);
-    
+
     for (i = -halfwinsize; i <= halfwinsize; i++)
       sum += *(analwinhalf + i);
     sum = FL(2.0) / sum;  /* factor of 2 comes in later in trig identity */
     for (i = -halfwinsize; i <= halfwinsize; i++)
       *(analwinhalf + i) *= sum;
-    
+
 
   /*    p->invR = (float)(FL(1.0) / csound->esr); */
     p->RoverTwoPi = (float)(p->arate / TWOPI_F);
@@ -384,7 +384,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
 
       /* add in filter center freq.*/
       /* *i1 */ anal[ii+1]  = angleDif * p->RoverTwoPi + ((MYFLT) i * p->Fexact);
-     
+
     }
     /* } */
     /* else must be PVOC_COMPLEX */
@@ -681,7 +681,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     int32 halfwinsize,buflen;
     int i,nBins,Mf,Lf;
     double IO;
-      
+
     /* get params from input fsig */
     /* we TRUST they are legal */
     int32 N = p->fsig->N;
@@ -722,34 +722,34 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     csound->AuxAlloc(csound, nBins * sizeof(MYFLT), &p->oldOutPhase);
     csound->AuxAlloc(csound, buflen * sizeof(MYFLT), &p->output);
 
-  
+
 
 
     synwinhalf = (MYFLT *) (p->synwinbuf.auxp) + halfwinsize;
- 
-    
-  
+
+
+
     /* synthesis windows */
     if (M <= N) {
       if (UNLIKELY(PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK))
         return NOTOK;
-  
+
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
-       
 
-       sum = FL(0.0); 
+
+       sum = FL(0.0);
         for (i = -halfwinsize; i <= halfwinsize; i++)
            sum += *(synwinhalf + i);
          sum = FL(2.0) / sum;
 
        for (i = -halfwinsize; i <= halfwinsize; i++)
         *(synwinhalf + i) *= sum;
-      
-         sum = FL(0.0); 
+
+         sum = FL(0.0);
    /* no timescaling, so I(nterpolation) will always = D(ecimation) = overlap */
         for (i = -halfwinsize; i <= halfwinsize; i+=overlap)
-          sum += *(synwinhalf + i) * *(synwinhalf + i); 
+          sum += *(synwinhalf + i) * *(synwinhalf + i);
     }
     else {
      /* have to make analysis window to get amp scaling */
@@ -761,8 +761,8 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
 
     for (i = 1; i <= halfwinsize; i++)
       analwinhalf[-i] = analwinhalf[i - Mf];
-    
-      // sinc function 
+
+      // sinc function
       if (Mf)
         *analwinhalf *= (MYFLT)(dN * sin(PI*0.5/dN) / ( PI*0.5));
       for (i = 1; i <= halfwinsize; i++)
@@ -770,9 +770,9 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
           (dN * sin((double)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
       for (i = 1; i <= halfwinsize; i++)
         *(analwinhalf - i) = *(analwinhalf + i - Mf);
-    
+
      /* get net amp */
-    sum = FL(0.0); 
+    sum = FL(0.0);
     for (i = -halfwinsize; i <= halfwinsize; i++)
     sum += *(analwinhalf + i);
     sum = FL(2.0) / sum;  /* factor of 2 comes in later in trig identity */
@@ -792,16 +792,16 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
     }
-   
-   
+
+
    if (!(N & (N - 1L)))
      sum = csound->GetInverseRealFFTScale(csound, (int) N) / sum;
     else
       sum = FL(1.0) / sum;
-   
+
   for (i = -halfwinsize; i <= halfwinsize; i++)
       *(synwinhalf + i) *= sum;
- 
+
 /*  p->invR = FL(1.0) / csound->esr; */
     p->RoverTwoPi = p->arate / TWOPI_F;
     p->TwoPioverR = TWOPI_F / p->arate;
@@ -1101,4 +1101,3 @@ static void vonhann(MYFLT *win, int winLen, int even)
         win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
     }
 }
-

@@ -34,7 +34,7 @@
 /* Minor changes by John Fitch Dec 1995                 */
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 #include "grain4.h"
 #include <math.h>
@@ -436,4 +436,3 @@ static OENTRY grain4_localops[] = {
 };
 
 LINKAGE1(grain4_localops)
-

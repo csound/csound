@@ -22,7 +22,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 
 
@@ -85,7 +85,7 @@ static int tabmult(CSOUND *csound, TABARITH *p)
       ans->data[i] = l->data[i] * r->data[i];
     return OK;
 }
- 
+
 static int tabqset(CSOUND *csound, TABQUERY *p)
 {
     if (LIKELY(p->tab->data)) return OK;
@@ -103,7 +103,7 @@ static int tabmax(CSOUND *csound, TABQUERY *p)
     *p->ans = ans;
     return OK;
 }
-  
+
 static int tabmin(CSOUND *csound, TABQUERY *p)
 {
     TABDAT *t = p->tab;
@@ -115,7 +115,7 @@ static int tabmin(CSOUND *csound, TABQUERY *p)
     *p->ans = ans;
     return OK;
 }
-  
+
 static int tabsum(CSOUND *csound, TABQUERY *p)
 {
     TABDAT *t = p->tab;
@@ -127,7 +127,7 @@ static int tabsum(CSOUND *csound, TABQUERY *p)
     *p->ans = ans;
     return OK;
 }
-  
+
 static int tabscaleset(CSOUND *csound, TABSCALE *p)
 {
     if (LIKELY(p->tab->data)) return OK;
@@ -177,7 +177,7 @@ static int tabcopy_set(CSOUND *csound, TABCPY *p)
     int sizes,sized;
     if (UNLIKELY(p->src->data==NULL))
       return csound->InitError(csound, Str("t-variable not initialised"));
-    if (UNLIKELY(p->dst->data==NULL)) 
+    if (UNLIKELY(p->dst->data==NULL))
       return csound->InitError(csound, Str("t-variable not initialised"));
     sizes = p->src->size;
     sized = p->dst->size;
@@ -216,7 +216,7 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
     int tlen = p->tab->size;
     if (UNLIKELY(p->tab->data==NULL))
       return csound->PerfError(csound, Str("t-var not initialised"));
-    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) 
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
         return csound->PerfError(csound, Str("No table for copy2ftab"));
     fsize = ftp->flen;
     fdata = ftp->ftable;
@@ -241,10 +241,7 @@ static OENTRY tabvars_localops[] =
 };
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
-//          randomly repeats (holds) values based on a probability parameter    
+//          randomly repeats (holds) values based on a probability parameter
 
 
 LINKAGE1(tabvars_localops)
-
-
-

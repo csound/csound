@@ -74,6 +74,10 @@ int main(int argc, char **argv)
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
     str = (char *)malloc(hdr.headersize-sizeof(LPHEADER)+4);
+    if (str==NULL) {
+      printf("memory allocation failure\n");
+      exit(1);
+    }
     fread(&hdr, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf);
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);

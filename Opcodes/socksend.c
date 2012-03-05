@@ -81,7 +81,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     /* } */
     p->wp = 0;
 
-    p->sock = socket(AF_INET, SOCK_DGRAM, 0); 
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
@@ -137,7 +137,7 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
         ch.benchar[1] = 0xFF & (val >> 8);
         outs[wp] = ch.bensht;
       }
-      else 
+      else
        out[wp] = asig[i];
     }
     p->wp = wp;
@@ -319,4 +319,3 @@ static OENTRY socksend_localops[] = {
 };
 
 LINKAGE1(socksend_localops)
-

@@ -46,7 +46,7 @@
 /**********************************************************/
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 #include "phisem.h"
 #include <math.h>
@@ -1249,4 +1249,3 @@ static OENTRY phisem_localops[] = {
 };
 
 LINKAGE1(phisem_localops)
-

@@ -222,7 +222,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
             }
             /* keep amp, freq, and phase values for next time */
             if (contin) {
-             
+
               amps[k] = ampnext;
               freqs[k] = freqnext;
               phases[k] = phase;
@@ -395,7 +395,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
             }
             /* keep amp, freq, and phase values for next time */
             if (contin) {
-             
+
               amps[k] = ampnext;
               freqs[k] = freqnext;
               phases[k] = phasenext;
@@ -1239,4 +1239,3 @@ int psynth_init_(CSOUND *csound)
   return csound->AppendOpcodes(csound, &(localops[0]),
                                (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

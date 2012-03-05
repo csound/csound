@@ -41,7 +41,7 @@ static int cell_set(CSOUND *csound,CELL *p)
     FUNC        *ftp;
     int elements;
     MYFLT *currLine, *initVec = NULL;
-	
+
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
@@ -61,7 +61,7 @@ static int cell_set(CSOUND *csound,CELL *p)
     }
     else
       return csound->InitError(csound, Str("cell: invalid rule table"));
-    
+
     if (p->auxch.auxp == NULL)
       csound->AuxAlloc(csound, elements * sizeof(MYFLT) * 2, &p->auxch);
     currLine = (p->currLine = (MYFLT *) p->auxch.auxp);
@@ -89,14 +89,14 @@ static int cell(CSOUND *csound,CELL *p)
       p->NewOld += 1;
       p->NewOld %= 2;
       actual   = &(p->currLine[elements * p->NewOld]);
-// Cellular Engine		
+// Cellular Engine
       for (j=0; j < elements; j++) {
         jm1 = (j < 1) ? elements-1 : j-1;
         outVec[j] = previous[j];
         actual[j] = ruleVec[(int)(previous[jm1]*4 + previous[j]*2 +
-                                  previous[(j+1) % elements])]; 
+                                  previous[(j+1) % elements])];
       }
-      
+
     } else {
       int elements =  p->elements;
       MYFLT *actual = &(p->currLine[elements * !(p->NewOld)]);
@@ -112,9 +112,9 @@ static int cell(CSOUND *csound,CELL *p)
 #define S sizeof
 
 static OENTRY localops[] = {
-	{"cell",  S(CELL),  3|TB, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
-	};
+  {"cell",  S(CELL),  3|TB, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
+};
 
-LINKAGE 
+LINKAGE
 
 // Author: Gleb Rogozinsky, October 2011
