@@ -19,6 +19,7 @@
 /Engine/csound_orclex.c
 /Engine/csound_orcparse.[hc]
 /Engine/csound_orcparse.output
+/Engine/csound_prelex.c
 
 # gettext output files are all placed in subdirs
 /po/*/

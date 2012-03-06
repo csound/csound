@@ -78,17 +78,24 @@ int main(int argc, char **argv)
       printf("memory allocation failure\n");
       exit(1);
     }
-    fread(&hdr, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf);
+    if (hdr.headersize-sizeof(LPHEADER)+4 !=
+        fread(&hdr, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf)) {
+      printf("Ill formed data\n");
+      exit(1);
+    }
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
-    coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
+    coef = (MYFLT *)malloc(hdr.npoles*sizeof(MYFLT));
     if (coef==NULL) {
       printf("memory allocation failure\n");
       exit(1);
     }
     for (i = 0; i<hdr.nvals; i++) {
-      fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf);
+      if (hdr.npoles != fread(coef, sizeof(MYFLT), hdr.npoles, inf)) {
+        printf("Ill formed data\n");
+        exit(1);
+      }
       for (j=0; j<hdr.npoles; j++)
         fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));
     }
