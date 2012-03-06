@@ -35,8 +35,8 @@ nchnls                  =                       2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Waveform for the string-pad
-giwave                  ftgen                   0, 0, 8193,     10,     1, 0.5, 0.33, 0.25,  0.0, 0.1,  0.1, 0.1
-gisine                  ftgen                   0, 0, 65537,    10,     1
+giwave                  ftgen                   1, 0, 8193,     10,     1, 0.5, 0.33, 0.25,  0.0, 0.1,  0.1, 0.1
+gisine                  ftgen                   2, 0, 65537,    10,     1
 giharpsichord           ftgen                   0, 0, 8193,     7,      -1, 1024, 1, 1024, -1 ; Kelley harpsichord.
 gicosine                ftgen                   0, 0, 65537,    11,     1 ; Cosine wave. Get that noise down on the most widely used table!
 giexponentialrise       ftgen                   0, 0, 8193,     5,      0.001, 513, 1 ; Exponential rise.
@@ -1220,6 +1220,7 @@ asig2                   =                       asignal * irightgain * kdamping
 </CsInstruments>
 <CsScore>
 f 0 3600
+
 
 
 </CsScore>
