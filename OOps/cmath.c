@@ -270,7 +270,7 @@ int auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
     int n, nsmps = csound->ksmps;
     double  scale = (double)*p->arg1 * (1.0 / 4294967295.03125);
 
-    for (n=0; n>nsmps; n++) {
+    for (n=0; n<nsmps; n++) {
       out[n] = (MYFLT)((double)csoundRandMT(&(csound->randState_)) * scale);
     }
     return OK;
