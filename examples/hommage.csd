@@ -1,7 +1,5 @@
 <CsoundSynthesizer>
-
 <CsOptions>
--odac 
 </CsOptions>
 
 <CsInstruments>
@@ -368,13 +366,120 @@ i3 125   6   -20    800  850  1.1  1.3    6  6   -1  .5    22    3  500 0 0
 </CsScore>
 
 </CsoundSynthesizer>
+<bsbPanel>
+ <label>Widgets</label>
+ <objectName/>
+ <x>755</x>
+ <y>61</y>
+ <width>297</width>
+ <height>497</height>
+ <visible>true</visible>
+ <uuid/>
+ <bgcolor mode="nobackground">
+  <r>212</r>
+  <g>208</g>
+  <b>200</b>
+ </bgcolor>
+ <bsbObject version="2" type="BSBVSlider">
+  <objectName>slider1</objectName>
+  <x>5</x>
+  <y>5</y>
+  <width>20</width>
+  <height>100</height>
+  <uuid>{c337f225-a9f2-4de2-9e9d-e5cef5316d07}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>-3</midicc>
+  <minimum>0.00000000</minimum>
+  <maximum>1.00000000</maximum>
+  <value>0.00000000</value>
+  <mode>lin</mode>
+  <mouseControl act="jump">continuous</mouseControl>
+  <resolution>-1.00000000</resolution>
+  <randomizable group="0">false</randomizable>
+ </bsbObject>
+ <bsbObject version="2" type="BSBVSlider">
+  <objectName>slider2</objectName>
+  <x>45</x>
+  <y>5</y>
+  <width>20</width>
+  <height>100</height>
+  <uuid>{dfc06bbd-8563-4f7e-8ae3-845b96d54c38}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>-3</midicc>
+  <minimum>0.00000000</minimum>
+  <maximum>1.00000000</maximum>
+  <value>0.00000000</value>
+  <mode>lin</mode>
+  <mouseControl act="jump">continuous</mouseControl>
+  <resolution>-1.00000000</resolution>
+  <randomizable group="0">false</randomizable>
+ </bsbObject>
+ <bsbObject version="2" type="BSBVSlider">
+  <objectName>slider3</objectName>
+  <x>85</x>
+  <y>5</y>
+  <width>20</width>
+  <height>100</height>
+  <uuid>{e3c628a3-55e7-4178-8529-2a65308e2429}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>-3</midicc>
+  <minimum>0.00000000</minimum>
+  <maximum>1.00000000</maximum>
+  <value>0.00000000</value>
+  <mode>lin</mode>
+  <mouseControl act="jump">continuous</mouseControl>
+  <resolution>-1.00000000</resolution>
+  <randomizable group="0">false</randomizable>
+ </bsbObject>
+ <bsbObject version="2" type="BSBVSlider">
+  <objectName>slider4</objectName>
+  <x>125</x>
+  <y>5</y>
+  <width>20</width>
+  <height>100</height>
+  <uuid>{d594b856-3e0f-4f15-9838-6cffc5f12288}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>-3</midicc>
+  <minimum>0.00000000</minimum>
+  <maximum>1.00000000</maximum>
+  <value>0.00000000</value>
+  <mode>lin</mode>
+  <mouseControl act="jump">continuous</mouseControl>
+  <resolution>-1.00000000</resolution>
+  <randomizable group="0">false</randomizable>
+ </bsbObject>
+ <bsbObject version="2" type="BSBVSlider">
+  <objectName>slider5</objectName>
+  <x>165</x>
+  <y>5</y>
+  <width>20</width>
+  <height>100</height>
+  <uuid>{a710f9ee-5cc2-4dea-91b6-187b0dd8eac5}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>-3</midicc>
+  <minimum>0.00000000</minimum>
+  <maximum>1.00000000</maximum>
+  <value>0.00000000</value>
+  <mode>lin</mode>
+  <mouseControl act="jump">continuous</mouseControl>
+  <resolution>-1.00000000</resolution>
+  <randomizable group="0">false</randomizable>
+ </bsbObject>
+</bsbPanel>
+<bsbPresets>
+</bsbPresets>
 <MacOptions>
 Version: 3
 Render: Real
 Ask: Yes
 Functions: ioObject
 Listing: Window
-WindowBounds: 1040 71 400 535
+WindowBounds: 755 61 297 497
 CurrentView: io
 IOViewEdit: On
 Options:
@@ -387,4 +492,3 @@ ioSlider {85, 5} {20, 100} 0.000000 1.000000 0.000000 slider3
 ioSlider {125, 5} {20, 100} 0.000000 1.000000 0.000000 slider4
 ioSlider {165, 5} {20, 100} 0.000000 1.000000 0.000000 slider5
 </MacGUI>
-
