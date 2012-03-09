@@ -215,7 +215,7 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 //{
 //    /* int val, res; */
 //    /* res = sem_getvalue(sem, &val); */
-//    /* csound->DebugMsg(csound, "before sem_grow: %d %i\t", 
+//    /* csound->DebugMsg(csound, "before sem_grow: %d %i\t",
 //               val, csp_thread_index_get(csound)); */
 //    sem_post(sem);
 //    /* res = sem_getvalue(sem, &val); */
@@ -249,7 +249,7 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 //void csp_semaphore_release_print(CSOUND *csound, sem_t *sem)
 //{
 //    int val, res;
-//    if (UNLIKELY(sem == NULL)) 
+//    if (UNLIKELY(sem == NULL))
 //      csound->Die(csound, "Invalid NULL Parameter sem");
 //    res = sem_getvalue(sem, &val);
 //    csound->DebugMsg(csound, "sem_release_print: %d %p\n",
@@ -264,14 +264,14 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 #pragma mark Set
 
 /* static prototypes */
-static int set_element_delloc(CSOUND *csound, 
+static int set_element_delloc(CSOUND *csound,
                               struct set_element_t **set_element);
 static int set_element_alloc(CSOUND *csound,
-                             struct set_element_t **set_element, 
+                             struct set_element_t **set_element,
                              char *data);
 static int set_is_set(CSOUND *csound, struct set_t *set);
 #if 0
-static int 
+static int
   set_element_is_set_element(CSOUND *csound,
                              struct set_element_t *set_element);
 #endif
@@ -358,7 +358,7 @@ static int set_is_set(CSOUND *csound, struct set_t *set)
 }
 
 #if 0
-static int 
+static int
   set_element_is_set_element(CSOUND *csound,
                              struct set_element_t *set_element)
 {
@@ -410,7 +410,7 @@ static int set_update_cache(CSOUND *csound, struct set_t *set)
     if (set->count > 0) {
       struct set_element_t *ele;
       int ctr = 0;
-      set->cache = 
+      set->cache =
         csound->Malloc(csound,
                        sizeof(struct set_element_t *) * set->count);
       ele = set->head;

@@ -359,7 +359,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
         csound->orchstr = incore;
         return TRUE;
       }
-      else 
+      else
         corfile_puts(buffer, incore);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
@@ -381,7 +381,7 @@ static int createScore(CSOUND *csound, FILE *unf)
         csound->scorestr = incore;
         return TRUE;
       }
-      else 
+      else
         corfile_puts(buffer, incore);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
@@ -800,7 +800,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         result = r && result;
       }
       else if (blank_buffer(csound, buffer)) continue;
-      else if (started && strchr(p, '<') == buffer){ 
+      else if (started && strchr(p, '<') == buffer){
         csoundMessage(csound, Str("unknown CSD tag: %s\n"), buffer);
       }
     }
@@ -818,4 +818,3 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     csoundFileClose(csound, fd);
     return result;
 }
-

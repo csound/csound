@@ -57,12 +57,12 @@ typedef struct _cdata {
 /* coremidi callback, called when MIDI data is available */
 void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 {
-    cdata *data = (cdata *)refcon;  
-    MIDIdata *mdata = data->mdata; 
+    cdata *data = (cdata *)refcon;
+    MIDIdata *mdata = data->mdata;
     int *p = &data->p, i, j;
     MIDIPacket *packet = &((MIDIPacketList *)pktlist)->packet[0];
     Byte *curpack;
-  
+
     for (i = 0; i < pktlist->numPackets; i++) {
       for (j=0; j < packet->length; j+=3) {
         curpack = packet->data+j;
@@ -72,11 +72,11 @@ void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
         if(*p == DSIZE) *p = 0;
       }
       packet = MIDIPacketNext(packet);
-    } 
+    }
 
 }
 
-/* csound MIDI input open callback, sets the device for input */ 
+/* csound MIDI input open callback, sets the device for input */
 static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
     int k, endpoints, dest;
@@ -92,7 +92,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
     refcon->mdata = mdata;
     refcon->p = 0;
     refcon->q = 0;
-     
+
     /* MIDI client */
     cname = CFStringCreateWithCString(NULL, "my client", defaultEncoding);
     ret = MIDIClientCreate(cname, NULL, NULL, &mclient);
@@ -104,7 +104,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
         /* sources, we connect to all available input sources */
         endpoints = MIDIGetNumberOfSources();
         csound->Message(csound, "%d MIDI sources in system \n", endpoints);
-        if(!strcmp(dev,"all")) { 
+        if(!strcmp(dev,"all")) {
           csound->Message(csound, "receiving from all sources \n");
           for(k=0; k < endpoints; k++){
             endpoint = MIDIGetSource(k);
@@ -112,7 +112,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
             MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
             MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
             csound->Message(csound, "connecting midi device %d: %s \n", k,
-                            CFStringGetCStringPtr(name, defaultEncoding)); 
+                            CFStringGetCStringPtr(name, defaultEncoding));
           }
         }
         else{
@@ -128,7 +128,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
           else
             csound->Message(csound,
                             "MIDI device number %d is out-of-range, "
-                            "not connected \n", k);         
+                            "not connected \n", k);
         }
 
       }
@@ -137,7 +137,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
     *userData = (void*) refcon;
     if(name) CFRelease(name);
     if(pname) CFRelease(pname);
-    if(cname) CFRelease(cname); 
+    if(cname) CFRelease(cname);
     /* report success */
     return 0;
 }
@@ -159,15 +159,15 @@ static int MidiDataRead(CSOUND *csound, void *userData,
     cdata *data = (cdata *)userData;
     MIDIdata *mdata = data->mdata;
     int *q = &data->q, st, d1, d2, n = 0;
-    
+
     /* check if there is new data in circular queue */
     while (mdata[*q].flag) {
       st = (int) mdata[*q].status;
       d1 = (int) mdata[*q].data1;
       d2 = (int) mdata[*q].data2;
-         
+
       if (st < 0x80) goto next;
-          
+
       if (st >= 0xF0 &&
           !(st == 0xF8 || st == 0xFA || st == 0xFB ||
             st == 0xFC || st == 0xFF)) goto next;
@@ -190,15 +190,15 @@ static int MidiDataRead(CSOUND *csound, void *userData,
         *mbuf++ = (unsigned char) d1;
         *mbuf++ = (unsigned char) d2;
         break;
-      } 
+      }
       /* mark as read */
     next:
       mdata[*q].flag = 0;
       (*q)++;
       if(*q==DSIZE) *q = 0;
-      
+
     }
-    
+
     /* return the number of bytes read */
     return n;
 }

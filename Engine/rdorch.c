@@ -1933,7 +1933,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       }
       tfound = argtyp(csound, s);     /* else get arg type */
       /* IV - Oct 31 2002 */
-      
+
       tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
       if (UNLIKELY(!(tfound_m & (ARGTYP_c|ARGTYP_p)) &&
                    !ST(lgprevdef) && *s != '"')) {

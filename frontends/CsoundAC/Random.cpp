@@ -126,9 +126,9 @@ namespace csound
       }
     return transformation;
   }
-  void Random::produceOrTransform(Score &score, 
-                                  size_t beginAt, 
-                                  size_t endAt, 
+  void Random::produceOrTransform(Score &score,
+                                  size_t beginAt,
+                                  size_t endAt,
                                   const ublas::matrix<double> &compositeCoordinates)
   {
     createDistribution(distribution);
@@ -149,7 +149,7 @@ namespace csound
               }
             score.push_back(transformedEvent);
           }
-        // Apply the global transformation of coordinate system 
+        // Apply the global transformation of coordinate system
         // to all child events produced by this node.
         size_t finalEndAt = score.size();
         for (size_t i = endAt; i < finalEndAt; i++) {
@@ -170,4 +170,3 @@ namespace csound
     mersenneTwister.seed((unsigned int) s);
   }
 }
-

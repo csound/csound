@@ -411,7 +411,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     Mtwelve = abs((int)(delaytime / 12) - meanfpsamps);
     Mtwentyfour = abs((int)(delaytime / 24) - meanfpsamps);
     M = Mtwelve < Mtwentyfour ? (Msix < Mtwelve ? 6 : 12) : 24;
-    
+
     csound->Message(csound, "%d \n", M);
 
     delaytime /= M;
@@ -442,7 +442,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
         if(delaytimeint < 410)
           delaytimeint = 410;
       }
-   
+
     /* allocate memory based on M: number of delays */
     if (!p->delays.auxp || p->delays.size < M * sizeof(int))
       csound->AuxAlloc(csound, M * sizeof(int), &p->delays);
@@ -476,7 +476,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
           test = (i > 15 ? i : 15) - 15;
         else
           test = (i > 16 ? i : 16) - 16;
-        
+
         if(primes[i] > delaytimeint || primes[test] > meanfpordersamps)
           {
             basedelay = i - 1;
@@ -592,7 +592,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
           csound->AuxAlloc(csound, delaysp[22] * sizeof(MYFLT), &p->del11tf);
         if (!p->del12tf.auxp || p->del12tf.size < delaysp[23] * sizeof(MYFLT))
           csound->AuxAlloc(csound, delaysp[23] * sizeof(MYFLT), &p->del12tf);
-        
+
         memset(p->del1tf.auxp, 0, delaysp[12] * sizeof(MYFLT));
         memset(p->del2tf.auxp, 0, delaysp[13] * sizeof(MYFLT));
         memset(p->del3tf.auxp, 0, delaysp[14] * sizeof(MYFLT));
@@ -649,7 +649,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
             powerp[0] = powerp[0] + SQUARE(bufflp[0]) + SQUARE(buffrp[0]);
             powerp[1] = powerp[1] + SQUARE(bufflp[1]) + SQUARE(buffrp[1]);
           }
-        
+
         for(j = 2; j < irlength; j += 2)
           {
             if(skipdouble)
@@ -664,7 +664,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
     for(i = 0; i < irlength; i++)
       HRTFavep[i] = SQRT(powerp[i] / FL(710.0));
-    
+
     fpindexl = (float *)fpl->beginp;
     fpindexr = (float *)fpr->beginp;
     skip = 0;
@@ -687,7 +687,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
             bufflp[j] = fpindexl[skip + j];
             buffrp[j] = fpindexr[skip + j];
           }
-        
+
         /* back to rectangular to find numerator: need complex nos */
         /* 0Hz and Nyq ok as real */
         if(skipdouble)
@@ -955,7 +955,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
     inmatlpp = (MYFLT *)p->inmatlp.auxp;
     dellpp = (MYFLT *)p->dellp.auxp;
     outmatp = (MYFLT *)p->outmat.auxp;
-    
+
     gip = (MYFLT *)p->gi.auxp;
     aip = (MYFLT *)p->ai.auxp;
 
@@ -1067,7 +1067,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
            gi ( 1 - ai / 1 - ai pow(z,-1)
            op = gi - gi ai x(n) + ai del
            del = op */
-                
+
         for(j = 0; j < M; j++)
           {
             inmatlpp[j] = (gip[j] * (1 - aip[j]) * inmatp[j]) +
@@ -1124,14 +1124,14 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
             del11tfp[ytf2] = outmatp[22] + sigin;
             del12tfp[ztf2] = outmatp[23] + sigin;
           }
-                
+
         u = (u != delaysp[0] - 1 ? u + 1 : 0);
         v = (v != delaysp[1] - 1 ? v + 1 : 0);
         w = (w != delaysp[2] - 1 ? w + 1 : 0);
         x = (x != delaysp[3] - 1 ? x + 1 : 0);
         y = (y != delaysp[4] - 1 ? y + 1 : 0);
         z = (z != delaysp[5] - 1 ? z + 1 : 0);
-                
+
         if(M == 12 || M == 24)
           {
             ut = (ut != delaysp[6] - 1 ? ut + 1 : 0);
@@ -1160,7 +1160,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         /* output, increment counter */
         //                      outl[i] = hrtflp[counter];
         //                      outr[i] = hrtfrp[counter];
-                
+
         outl[i] = hrtflp[counter] * (csound->e0dbfs / FL(32767.0));
         outr[i] = hrtfrp[counter] * (csound->e0dbfs / FL(32767.0));
 
@@ -1236,7 +1236,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
                 hrtflp[j] = hrtflp[j]/(sr / FL(38000.0));
                 hrtfrp[j] = hrtfrp[j]/(sr / FL(38000.0));
               }
-                    
+
             for(j = 0; j < irlength; j++)
               {
                 hrtflp[j] = hrtflp[j] + (j < overlapsize ?
@@ -1255,7 +1255,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
             counter = 0;
           }       /* end of irlength loop */
       }       /* end of ksmps loop */
-        
+
     /* keep for next time */
     p->counter = counter;
 
@@ -1289,7 +1289,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         p->ytf2 = ytf2;
         p->ztf2 = ztf2;
       }
-        
+
     p->inoldl = inoldl;
     p->inoldr = inoldr;
 

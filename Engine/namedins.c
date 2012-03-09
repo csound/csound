@@ -538,7 +538,7 @@ char *strsav_string(CSOUND *csound, char *s)
          sp->sp =
           (char*)mcalloc(csound, sp->size = n+STRSPACE);
          csound->DebugMsg(csound,
-                        "internal message: strsav: buffer length now %d\n", 
+                        "internal message: strsav: buffer length now %d\n",
                         sp->size);
 
        }
@@ -1119,4 +1119,3 @@ int csoundLoadAllPluginOpcodes(CSOUND *csound)
 #ifdef __cplusplus
 }
 #endif
-

@@ -115,19 +115,19 @@ namespace csound
     static int swapInt(int Source);
     static short swapShort(short Source);
     /**
-     * Translate the string value to a boolean value, 
+     * Translate the string value to a boolean value,
      * returning the default if the string value is empty.
      */
     static bool stringToBool(std::string value, bool default_=false);
     static std::string boolToString(bool value);
     /**
-     * Translate the string value to an integer value, 
+     * Translate the string value to an integer value,
      * returning the default if the string value is empty.
      */
     static int stringToInt(std::string value, int default_=0);
     static std::string intToString(int value);
     /**
-     * Translate the string value to a double-precision value, 
+     * Translate the string value to a double-precision value,
      * returning the default if the string value is empty.
      */
     static double stringToDouble(std::string value, double default_=0.0);

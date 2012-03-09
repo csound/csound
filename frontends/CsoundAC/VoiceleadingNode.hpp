@@ -118,7 +118,7 @@ namespace csound
    * prime chord (P),
    * transpose (T),
    * unordered pitch-class set (C, equivalent to PT),
-   * contextual inversion (K), 
+   * contextual inversion (K),
    * contextual transposition (Q),
    * voicing (V) within a specified range of pitches,
    * and voice-lead (L).
@@ -234,7 +234,7 @@ namespace csound
      * or the end of the score, whichever comes first,
      * conform notes produced by this node or its children
      * to the specified prime chord and transposition.
-     * Note that C (equivalent to PT) specifies what musicians normally 
+     * Note that C (equivalent to PT) specifies what musicians normally
      * call a chord.
      */
     virtual void C(double time, double C_);
@@ -265,14 +265,14 @@ namespace csound
     virtual void CL(double time, std::string C_, bool avoidParallels = true);
     /**
      * Find the C of the previous segment, and contextually invert it; apply
-     * the resulting C to the current segment. Contextual inversion is 
+     * the resulting C to the current segment. Contextual inversion is
      * that inversion of C in which the first two pitch-classes are exchanged.
      */
     virtual void K(double time);
     /**
      * Find the C of the previous segment, and contextually invert it; apply
-     * the resulting C to the current segment with voicing V. Contextual 
-     * inversion is that inversion of C in which the first two pitch-classes 
+     * the resulting C to the current segment with voicing V. Contextual
+     * inversion is that inversion of C in which the first two pitch-classes
      * are exchanged.
      */
     virtual void KV(double time, double V_);
@@ -280,28 +280,28 @@ namespace csound
      * Find the C of the previous segment, and contextually invert it; apply
      * the resulting C to the current segment, using the closest voiceleading
      * from the pitches of the previous segment.
-     * Contextual inversion is that inversion of C in which the first two 
+     * Contextual inversion is that inversion of C in which the first two
      * pitch-classes are exchanged.
      */
     virtual void KL(double time, bool avoidParallels = true);
     /**
-     * Find the C of the previous segment, and contextually transpose it; 
-     * apply the resulting C to the current segment. Contextual transposition 
+     * Find the C of the previous segment, and contextually transpose it;
+     * apply the resulting C to the current segment. Contextual transposition
      * transposes C up by Q if C is an I-form, and down by Q if C is a T-form.
      */
     virtual void Q(double time, double Q_);
     /**
-     * Find the C of the previous segment, and contextually transpose it; 
-     * apply the resulting C to the current segment with voicing V. 
-     * Contextual transposition transposes C up by Q if C is an I-form, 
+     * Find the C of the previous segment, and contextually transpose it;
+     * apply the resulting C to the current segment with voicing V.
+     * Contextual transposition transposes C up by Q if C is an I-form,
      * and down by Q if C is a T-form.
      */
     virtual void QV(double time, double Q_, double V_);
     /**
-     * Find the C of the previous segment, and contextually transpose it; 
-     * apply the resulting C to the current segment, using the closest 
+     * Find the C of the previous segment, and contextually transpose it;
+     * apply the resulting C to the current segment, using the closest
      * voiceleading from the pitches of the previous segment.
-     * Contextual transposition transposes C up by Q if C is an I-form, 
+     * Contextual transposition transposes C up by Q if C is an I-form,
      * and down by Q if C is a T-form.
      */
     virtual void QL(double time, double Q_, bool avoidParallels = true);
@@ -320,7 +320,7 @@ namespace csound
      * to the beginning of the next operation
      * or the end of the score, whichever comes first,
      * conform notes produced by this node or its children
-     * to the smoothest voice-leading from the pitches 
+     * to the smoothest voice-leading from the pitches
      * of the previous segment.
      * Optionally, parallel fifths can be avoided.
      * Note that L specifies what musicians normally call
@@ -338,4 +338,3 @@ namespace csound
   };
 }
 #endif
-

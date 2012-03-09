@@ -49,12 +49,12 @@
 
 typedef struct {
   OPDS h;                                     /* common to all opcodes */
-  
+
   MYFLT *aout1, *aout2;                       /* output args */
   MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;       /* input args  */
   MYFLT *kcps, *ifn1, *ifn2;                  /* input args  */
   MYFLT *iphs1, *iphs2;                       /* input args  */
-  
+
   MYFLT phase1, phase2;                       /* phase of oscillators       */
   MYFLT sig1, sig2;                           /* a-rate oscillators outputs */
   MYFLT siz1, siz2;                           /* size of funtion tables     */
@@ -63,4 +63,3 @@ typedef struct {
                                               /* pointers (0 for i-rate and */
                                               /* k-rate, 1 for a-rate args  */
 } CROSSFM;
-

@@ -72,9 +72,12 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
            "BlockAlign,BitsPerSample,cbSize\n");
     {
       int fmt1, fmt2, fmt3, fmt4, fmt5;
-      fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
+      if (7!=fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
              &fmt1, &fmt2, &fmt.nSamplesPerSec,
-             &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5);
+                    &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5)) {
+        printf("ill formed inout\n");
+        exit(1);
+      }
       fmt.wFormatTag = fmt1;
       fmt.nChannels = fmt2;
       fmt.nBlockAlign = fmt3;
@@ -86,10 +89,13 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
             "AnalysisRate,WindowParam\n");
     {
       int data1, data2, data3, data4;
-      fscanf(inf, "%d,%d,%d,%d,%d,%d,%d,%d,%g,%g\n",
-             &data1,&data2,&data3,&data4,&data.nAnalysisBins,
-             &data.dwWinlen, &data.dwOverlap,&data.dwFrameAlign,
-             &data.fAnalysisRate, &data.fWindowParam);
+      if(10!=fscanf(inf, "%d,%d,%d,%d,%d,%d,%d,%d,%g,%g\n",
+                    &data1,&data2,&data3,&data4,&data.nAnalysisBins,
+                    &data.dwWinlen, &data.dwOverlap,&data.dwFrameAlign,
+                    &data.fAnalysisRate, &data.fWindowParam)) {
+        printf("Ill formed data\n");
+        exit(1);
+      }
       data.wWordFormat = data1;
       data.wAnalFormat = data2;
       data.wSourceFormat = data3;
@@ -116,6 +122,10 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       float *frame =
         (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));
       int i;
+      if (frame==NULL) {
+        csound->Message(csound, Str("Memory failure\n"));
+        exit(1);
+      }
       for (i=1;;i++) {
         int j;
         for (j=0; j<data.nAnalysisBins*2; j++) {

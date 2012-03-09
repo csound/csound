@@ -521,7 +521,7 @@ struct JackoState
       result = pthread_mutex_init(&conditionMutex, 0);
       result = pthread_cond_init(&csoundCondition, 0);
       result = pthread_cond_init(&closeCondition, 0);
-      // Create a thread to run the close routine. It will immediately 
+      // Create a thread to run the close routine. It will immediately
       // block until it is signaled.
       result = pthread_create(&closeThread, 0, &JackoState::closeRoutine_, this);
       std::memset(&jack_position, 0, sizeof(jack_position_t));

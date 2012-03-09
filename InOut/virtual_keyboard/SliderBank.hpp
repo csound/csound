@@ -35,7 +35,7 @@ class WheelSlider: public Fl_Value_Slider
 {
     int handle(int);
 public:
-    WheelSlider(int x, int y, int w, int h, const char *l=0) : 
+    WheelSlider(int x, int y, int w, int h, const char *l=0) :
       Fl_Value_Slider (x,y,w,h,l) {}
 };
 

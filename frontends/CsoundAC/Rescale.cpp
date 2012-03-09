@@ -57,13 +57,13 @@ namespace csound
   {
     for(int i = 0; i < Event::ELEMENT_COUNT; i++)
       {
-        score_.setScale(score_, 
-                        i, 
-                        score.rescaleMinima[i], 
-                        score.rescaleRanges[i], 
-                        beginAt, 
-                        endAt, 
-                        score.scaleTargetMinima[i], 
+        score_.setScale(score_,
+                        i,
+                        score.rescaleMinima[i],
+                        score.rescaleRanges[i],
+                        beginAt,
+                        endAt,
+                        score.scaleTargetMinima[i],
                         score.scaleTargetRanges[i]);
       }
   }

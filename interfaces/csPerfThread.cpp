@@ -525,12 +525,12 @@ int CsoundPerformanceThread::Join()
 {
     int retval;
     retval = status;
- 
+
     if (perfThread) {
       retval = csoundJoinThread(perfThread);
       perfThread = (void*) 0;
     }
-    
+
     // delete any pending messages
     {
       CsoundPerformanceThreadMessage *msg;
@@ -574,4 +574,3 @@ void CsoundPerformanceThread::FlushMessageQueue()
       csoundNotifyThreadLock(flushLock);
     }
 }
-

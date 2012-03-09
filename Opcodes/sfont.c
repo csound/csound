@@ -30,7 +30,7 @@
    directive switch.  */
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -2562,4 +2562,3 @@ int sfont_ModuleInit(CSOUND *csound)
     }
     return err;
 }
-

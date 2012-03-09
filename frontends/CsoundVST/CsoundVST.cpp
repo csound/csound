@@ -227,6 +227,18 @@ uintptr_t CsoundVST::performanceThreadRoutine()
   //*fltkFlags = 274;
   //*fltkFlags = 286;
   *fltkFlags = 256 + 16 + 8 + 4 + 2;
+  // It used to be possible to compile with an empty orc and sco without
+  // crashing, but not any longer. So we test for a valid orc (contains
+  // "instr" and "endin").
+  const std::string &testorc = getOrchestra();
+  if ((testorc.find("instr") == std::string::npos) ||
+      (testorc.find("endin") == std::string::npos))
+    {
+      Message("Csound orchestra missing or invalid.\n");
+      reset();
+      stop();
+      return 0;
+    }
   if(getIsVst())
     {
       Message("Compiling for VST performance.\n");
@@ -452,7 +464,7 @@ void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFram
             {
               csoundFrameI = 0;
               performKsmps(true);
-           }
+            }
         }
     }
   else
@@ -471,31 +483,31 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32
 {
   if(getIsGo())
     {
-    synchronizeScore();
-    MYFLT *csoundInput = GetSpin();
-    MYFLT *csoundOutput = GetSpout();
-    size_t csoundLastFrame = GetKsmps() - 1;
-    size_t channelN = GetNchnls();
-    size_t channelI;
-    for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
-      {
-        for(channelI = 0; channelI < channelN; channelI++)
-          {
-            csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
-          }
-        for(channelI = 0; channelI < channelN; channelI++)
-          {
-            hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] *  outputScale;
-            csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
-          }
-        csoundFrameI++;
-        if(csoundFrameI > csoundLastFrame)
-          {
-            csoundFrameI = 0;
-            performKsmps(true);
-          }
-      }
-  }
+      synchronizeScore();
+      MYFLT *csoundInput = GetSpin();
+      MYFLT *csoundOutput = GetSpout();
+      size_t csoundLastFrame = GetKsmps() - 1;
+      size_t channelN = GetNchnls();
+      size_t channelI;
+      for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
+        {
+          for(channelI = 0; channelI < channelN; channelI++)
+            {
+              csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
+            }
+          for(channelI = 0; channelI < channelN; channelI++)
+            {
+              hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] *  outputScale;
+              csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
+            }
+          csoundFrameI++;
+          if(csoundFrameI > csoundLastFrame)
+            {
+              csoundFrameI = 0;
+              performKsmps(true);
+            }
+        }
+    }
   else
     {
       for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
@@ -798,4 +810,3 @@ extern "C"
     csoundVST->fltkrun();
   }
 }
-

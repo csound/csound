@@ -656,7 +656,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
 static int flooper3_init(CSOUND *csound, flooper3 *p)
 {
     int len,i,p2s,lomod;
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);  
+    p->sfunc = csound->FTnp2Find(csound, p->ifn);
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,Str("function table not found\n"));
     }
@@ -832,7 +832,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
       }
       else if (mode == 2){
         out[i] = 0;
-        
+
         tndx0 = ndx[0]>>lobits;
         frac0 = (ndx[0] & lomask)*lodiv;
         if (init && tndx0 < loop_start + crossfade) {
@@ -870,7 +870,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
           count  += ei;
         }
 
-        
+
         tndx1 = ndx[1]>>lobits;
         frac1 = (ndx[1] & lomask)*lodiv;
         if (tndx1 > loop_end - crossfade) {

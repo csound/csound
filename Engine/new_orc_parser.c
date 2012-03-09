@@ -67,7 +67,7 @@ void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
     csound->DebugMsg(csound,"********* Extra Pre Data %p *********\n", x);
     csound->DebugMsg(csound,"macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
            "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
-           x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, 
+           x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef,
            x->isInclude, x->clearBufferAfterEOF, x->line);
     csound->DebugMsg(csound,"******************\n");
 }
@@ -107,7 +107,7 @@ int new_orc_parser(CSOUND *csound)
         sprintf(bb, "#line %d\n", csound->orcLineOffset);
         corfile_puts(bb, csound->expanded_orc);
       }
-      csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n", 
+      csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n",
               corfile_body(csound->orchstr));
       //csound->DebugMsg(csound,"FILE: %s \n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
@@ -174,14 +174,14 @@ int new_orc_parser(CSOUND *csound)
 
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
-      }     
+      }
 #ifdef PARCS
       if (LIKELY(O->numThreads > 1)) {
         /* calculate the weights for the instruments */
         csp_weights_calculate(csound, astTree);
       }
 #endif /* PARCS */
-      
+
       astTree = csound_orc_optimize(csound, astTree);
       csound_orc_compile(csound, astTree);
 
@@ -190,4 +190,3 @@ int new_orc_parser(CSOUND *csound)
     }
     return retVal;
 }
-
