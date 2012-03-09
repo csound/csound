@@ -181,7 +181,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #define BARRIER_SERIAL_THREAD (-1)
 
-#if !defined(HAVE_PTHREAD_BARRIER_INIT) 
+#if !defined(HAVE_PTHREAD_BARRIER_INIT)
 #ifndef __MACH__
 
 typedef struct barrier {

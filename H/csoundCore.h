@@ -35,7 +35,7 @@
 #endif /* PARCS */
 #include <stdarg.h>
 #include <setjmp.h>
- 
+
 /*
 #include <sndfile.h>
 JPff:  But this gives warnings in many files as rewriteheader expects
@@ -1347,7 +1347,7 @@ typedef struct {
     struct global_var_lock_t **global_var_lock_cache;
     int           global_var_lock_count;
     int           opcode_weight_cache_ctr;
-    struct opcode_weight_cache_entry_t 
+    struct opcode_weight_cache_entry_t
                   *opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
     int           opcode_weight_have_cache;
     struct        dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
@@ -1381,11 +1381,11 @@ typedef struct {
 
 #define LINKAGE1(name)                                         \
 long name##_init(CSOUND *csound, OENTRY **ep)           \
-{   (void) csound; *ep = name; return (long) (sizeof(name));  } 
+{   (void) csound; *ep = name; return (long) (sizeof(name));  }
 
 #define FLINKAGE1(name)                                                 \
 NGFENS* name##_init(CSOUND *csound)                         \
-{   (void) csound; return name;                                     } 
+{   (void) csound; return name;                                     }
 
 #ifdef __cplusplus
 }

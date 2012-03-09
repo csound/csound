@@ -103,7 +103,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
            /* seemed to crash, but not anymore... */
           csound->RegisterResetCallback(csound, NULL, widget_reset);
           csound->Message(csound, "graph init \n");
-         
+
         }
 #ifdef LINUX
       }
@@ -150,4 +150,3 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int)sizeof(MYFLT));
 }
-

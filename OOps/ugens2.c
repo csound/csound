@@ -87,11 +87,11 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         b *= R;
         if (UNLIKELY(phase >= 1.0)) {
           phase -= 1.0;
-          b = pow(R, 1+phase); 
+          b = pow(R, 1+phase);
         }
         else if (UNLIKELY(phase < 0.0)) {
           phase += 1.0;
-          b = pow(R, 1+phase); 
+          b = pow(R, 1+phase);
         }
       }
     }
@@ -104,11 +104,11 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         b *= R;
         if (UNLIKELY(phase >= 1.0)) {
           phase -= 1.0;
-          b =  pow(R, 1+phase); 
+          b =  pow(R, 1+phase);
         }
         else if (UNLIKELY(phase < 0.0)) {
           phase += 1.0;
-          b = pow(R, 1+phase); 
+          b = pow(R, 1+phase);
         }
       }
     }
@@ -144,8 +144,8 @@ int phsor(CSOUND *csound, PHSOR *p)
         incr = (double)(cps[n] * onedsr);
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (UNLIKELY((MYFLT)phase >= 1.0)) /* VL convert to MYFLT 
-                                              to avoid rounded output 
+        if (UNLIKELY((MYFLT)phase >= 1.0)) /* VL convert to MYFLT
+                                              to avoid rounded output
                                               exceeding 1.0 on float version */
           phase -= 1.0;
         else if (UNLIKELY((MYFLT)phase < 0.0))
@@ -1589,4 +1589,3 @@ int oscaa3(CSOUND *csound, OSC   *p)
  err1:
     return csound->PerfError(csound, Str("oscil3: not initialised"));
 }
-

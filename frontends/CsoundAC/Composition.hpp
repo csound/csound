@@ -66,7 +66,7 @@ namespace csound
     virtual std::string getTimestamp() const;
     /**
      * Returns a soundfile name based on the filename
-     * of this, by appending ".wav" to the filename, 
+     * of this, by appending ".wav" to the filename,
      * which is the default, or a non-default ouput name
      * which need not be a file but must be set using
      * setOutputSoundfileName().
@@ -133,7 +133,7 @@ namespace csound
      */
     virtual void performMaster();
     /**
-     * Convenience function that calls rescaleOutputSoundfile(), 
+     * Convenience function that calls rescaleOutputSoundfile(),
      * translateToCdAudio(), and translateToMp3().
      */
     virtual void translateMaster();
@@ -196,9 +196,9 @@ namespace csound
     virtual bool getConformPitches() const;
     /**
      * Saves the generated score in Fomus format
-     * and uses Fomus and Lilypond to translate that 
+     * and uses Fomus and Lilypond to translate that
      * to a PDF of music notation. A meter of 4/4
-     * and a tempo of MM 120 is assumed. 
+     * and a tempo of MM 120 is assumed.
      * A vector of part names may be supplied.
      */
     virtual void translateToNotation(const std::vector<std::string> partNames = std::vector<std::string>(), std::string header = "");
@@ -245,4 +245,3 @@ namespace csound
   };
 }
 #endif
-

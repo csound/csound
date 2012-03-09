@@ -206,7 +206,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      buffer = handle->data;
    N = p->fout->N;
    overlap = p->fout->overlap;
-   
+
    if (p->scnt >= overlap){
      float *frame1, *frame2;
      strt /= (sr/N);
@@ -215,7 +215,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      end = (int)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
      frames = handle->frames-1;
      pos = *p->ktime*(sr/overlap);
-     
+
      if (p->iclear) memset(fout, 0, sizeof(float)*(N+2));
      while (pos >= frames) pos -= frames;
      while (pos < 0) pos += frames;
@@ -274,19 +274,19 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     buffer = handle->data;
     N = p->fout->N;
     overlap = p->fout->overlap;
-   
-    
+
+
     if (p->scnt >= overlap) {
       float *frame1, *frame2;
       frames = handle->frames-1;
       ftab = csound->FTFind(csound, p->strt);
-      if (ftab->flen < N/2+1) 
+      if (ftab->flen < N/2+1)
         csound->PerfError(csound,
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
       ftab = csound->FTFind(csound, p->end);
-      if (ftab->flen < N/2+1) 
+      if (ftab->flen < N/2+1)
         csound->PerfError(csound,
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
@@ -321,7 +321,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 
 #define S(x)    sizeof(x)
 
-/* static */ 
+/* static */
 static OENTRY pvsbuffer_localops[] = {
   {"pvsbuffer", S(PVSBUFFER), 3, "ik", "fi",
    (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},

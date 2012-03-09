@@ -29,7 +29,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"        
+#include "csoundCore.h"
 #include "interlocks.h"
 #include <assert.h>
 #include <math.h>
@@ -69,7 +69,7 @@ typedef struct {
 #define ROOT27 (5.1961524227066318806)
 #define ROOT135d16 (0.72618437741389066597) /* sqrt(135.0/256.0) */
 
-static int ibformenc(CSOUND * csound, AMBIC * p) 
+static int ibformenc(CSOUND * csound, AMBIC * p)
 {
     /* All we do in here is police our parameters. */
     switch (p->OUTOCOUNT) {
@@ -160,8 +160,8 @@ abformenc(CSOUND * csound, AMBIC * p) {
 static int
 ibformdec(CSOUND * csound, AMBID * p) {
     /* All we do in here is police our parameters. */
-    if (UNLIKELY(p->INOCOUNT != 1 + 4 && 
-                 p->INOCOUNT != 1 + 9 && 
+    if (UNLIKELY(p->INOCOUNT != 1 + 4 &&
+                 p->INOCOUNT != 1 + 9 &&
                  p->INOCOUNT != 1 + 16)) {
       return csound->InitError(csound,
                                Str("The number of input arguments is not valid."));
@@ -217,7 +217,7 @@ abformdec(CSOUND * csound, AMBID * p) {
 
     sampleCount = csound->ksmps;
     assert(p->INOCOUNT >= 5);
-    
+
     switch ((int)*(p->isetup)) {
     case 1: /* Stereo */
       assert(p->OUTOCOUNT == 2);
@@ -462,7 +462,7 @@ abformdec(CSOUND * csound, AMBID * p) {
     default:
       assert(0);
     }
-    
+
     return OK;
 
 }
@@ -479,4 +479,3 @@ static OENTRY ambicode1_localops[] = {
 };
 
 LINKAGE1(ambicode1_localops)
-

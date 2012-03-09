@@ -39,7 +39,7 @@ extern "C"
  * Author: Michael Gogins
  * 1 September 2011
  *
- * These opcodes require LuaJIT 2.0 or later with FFI to be installed with 
+ * These opcodes require LuaJIT 2.0 or later with FFI to be installed with
  * Csound. They allow users to define new opcodes in Lua, a modern language
  * with simple sytax, full lexical scoping, support for classes, and support
  * for functional programming. These opcodes are designed to be thread-safe.
@@ -47,7 +47,7 @@ extern "C"
  */
 
 /**
- * Stores Lua references to opcode subroutines for greater efficiency of 
+ * Stores Lua references to opcode subroutines for greater efficiency of
  * calling.
  */
 struct keys_t
@@ -59,7 +59,7 @@ struct keys_t
     int noteoff_key;
 };
 
-/** 
+/**
  * Thread-safe storage for Lua references to opcode subroutines.
  */
 keys_t &manageLuaReferenceKeys(const lua_State *L, const std::string &opcode, char operation = 'O')
@@ -88,7 +88,7 @@ keys_t &manageLuaReferenceKeys(const lua_State *L, const std::string &opcode, ch
 
 /**
  * Thread-safe storage for Lua states (virtual machines). There is one Lua state
- * per thread, rather than per instance of Csound, in case one instance of Csound 
+ * per thread, rather than per instance of Csound, in case one instance of Csound
  * is running multiple threads with multiple instances of a Lua opcode.
  */
 lua_State *manageLuaState(char operation = 'O')
@@ -169,21 +169,21 @@ public:
 };
 
 /**
- * lua_iopcall Sname, ...  Calls a Lua opcode at i-rate only. Any number of 
- *                         output and/or input arguments may be passed. 
- *                         All arguments must be passed on the right-hand 
+ * lua_iopcall Sname, ...  Calls a Lua opcode at i-rate only. Any number of
+ *                         output and/or input arguments may be passed.
+ *                         All arguments must be passed on the right-hand
  *                         side and outputs are returned in the argument.
  *                         Requires opname_init to be defined in Lua.
  *
- * lua_ikopcall Sname, ... Calls a Lua opcode at i-rate and k-rate. Any number of 
- *                         output and/or input arguments may be passed. 
- *                         All arguments must be passed on the right-hand 
+ * lua_ikopcall Sname, ... Calls a Lua opcode at i-rate and k-rate. Any number of
+ *                         output and/or input arguments may be passed.
+ *                         All arguments must be passed on the right-hand
  *                         side and outputs are returned in the argument.
  *                         Requires opname_init and opname_kontrol to be defined in Lua.
  *
- * lua_iaopcall Sname, ... Calls a Lua opcode at i-rate and a-rate. Any number of 
- *                         output and/or input arguments may be passed. 
- *                         All arguments must be passed on the right-hand 
+ * lua_iaopcall Sname, ... Calls a Lua opcode at i-rate and a-rate. Any number of
+ *                         output and/or input arguments may be passed.
+ *                         All arguments must be passed on the right-hand
  *                         side and outputs are returned in the argument.
  *                         Requires opname_init and opname_audio to be defined in Lua.
  *
@@ -283,21 +283,21 @@ public:
 };
 
 /**
- * lua_iopcall_off Sname, ...  Calls a Lua opcode at i-rate only. Any number of 
- *                             output and/or input arguments may be passed. 
- *                             All arguments must be passed on the right-hand 
+ * lua_iopcall_off Sname, ...  Calls a Lua opcode at i-rate only. Any number of
+ *                             output and/or input arguments may be passed.
+ *                             All arguments must be passed on the right-hand
  *                             side and outputs are returned in the argument.
  *                             Requires opname_init to be defined in Lua.
  *
- * lua_ikopcall_off Sname, ... Calls a Lua opcode at i-rate and k-rate. Any number of 
- *                             output and/or input arguments may be passed. 
- *                             All arguments must be passed on the right-hand 
+ * lua_ikopcall_off Sname, ... Calls a Lua opcode at i-rate and k-rate. Any number of
+ *                             output and/or input arguments may be passed.
+ *                             All arguments must be passed on the right-hand
  *                             side and outputs are returned in the argument.
  *                             Requires opname_init and opname_kontrol to be defined in Lua.
  *
- * lua_iaopcall_off Sname, ... Calls a Lua opcode at i-rate and a-rate. Any number of 
- *                             output and/or input arguments may be passed. 
- *                             All arguments must be passed on the right-hand 
+ * lua_iaopcall_off Sname, ... Calls a Lua opcode at i-rate and a-rate. Any number of
+ *                             output and/or input arguments may be passed.
+ *                             All arguments must be passed on the right-hand
  *                             side and outputs are returned in the argument.
  *                             Requires opname_init and opname_audio to be defined in Lua.
  *
@@ -423,9 +423,9 @@ public:
 };
 
 /**
- * lua_opdef Sname, Scode -- Define an opcode in Lua at i-rate. The opcode can 
- *                           take any number of output and/or input arguments 
- *                           of any type. 
+ * lua_opdef Sname, Scode -- Define an opcode in Lua at i-rate. The opcode can
+ *                           take any number of output and/or input arguments
+ *                           of any type.
  *
  * Opcode that effectively defines new opcodes in Lua. The Lua code must
  * define all functions that will be called from Csound,

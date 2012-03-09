@@ -120,15 +120,15 @@ namespace csound
 
   std::string Composition::getOutputSoundfileName() const
   {
-    if (outputFilename.empty()) 
+    if (outputFilename.empty())
       {
-	std::string name_ = getFilename();
-	name_.append(".wav");
-	return name_;
+        std::string name_ = getFilename();
+        name_.append(".wav");
+        return name_;
       }
     else
       {
- 	return outputFilename;
+        return outputFilename;
       }
   }
 
@@ -174,7 +174,7 @@ namespace csound
     return name;
   }
 
-  std::string Composition::makeTimestamp() 
+  std::string Composition::makeTimestamp()
   {
     time_t time_ = 0;
     time(&time_);
@@ -251,11 +251,11 @@ namespace csound
   {
     char buffer[0x100];
     std::snprintf(buffer,
-		  0x100,
-		  "sox %s -V3 -b 32 -e floating-point %s gain -n %f\n",
-		  getOutputSoundfileName().c_str(),
-		  getNormalizedSoundfileName().c_str(),
-		  levelDb);
+                  0x100,
+                  "sox %s -V3 -b 32 -e floating-point %s gain -n %f\n",
+                  getOutputSoundfileName().c_str(),
+                  getNormalizedSoundfileName().c_str(),
+                  levelDb);
     int result = std::system(buffer);
     System::inform("Composition::normalizeOutputSoundfile(): %s", buffer);
     tagFile(*this, getNormalizedSoundfileName());
@@ -265,9 +265,9 @@ namespace csound
   {
     char buffer[0x100];
     std::snprintf(buffer, 0x100, "sox %s -V3 -b 16 %s gain -n %f rate 44100\n",
-		  getOutputSoundfileName().c_str(),
-		  getCdSoundfileName().c_str(),
-		  levelDb);
+                  getOutputSoundfileName().c_str(),
+                  getCdSoundfileName().c_str(),
+                  levelDb);
     System::inform("Composition::translateToCdAudio(): %s", buffer);
     int result = std::system(buffer);
     tagFile(*this, getCdSoundfileName());
@@ -277,14 +277,14 @@ namespace csound
   {
     char buffer[0x100];
     std::snprintf(buffer,
-		  0x100,
-		  "lame --verbose --disptime 2 --nohist --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
-		  getTitle().c_str(),
-		  getArtist().c_str(),
-		  getAlbum().c_str(),
-		  getCopyright().c_str(),
-		  getCdSoundfileName().c_str(),
-		  getMp3SoundfileName().c_str());
+                  0x100,
+                  "lame --verbose --disptime 2 --nohist --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
+                  getTitle().c_str(),
+                  getArtist().c_str(),
+                  getAlbum().c_str(),
+                  getCopyright().c_str(),
+                  getCdSoundfileName().c_str(),
+                  getMp3SoundfileName().c_str());
     System::inform("Composition::translateToMp3(): %s", buffer);
     int result = std::system(buffer);
   }
@@ -359,24 +359,24 @@ namespace csound
     }
     if (partNames.size() > 0) {
       for (size_t partI = 0, partN = partNames.size(); partI < partN; ++partI) {
-	std::sprintf(buffer, "part <id = %d name = %s>\n", partI, partNames[partI].c_str());
-	stream << buffer;
+        std::sprintf(buffer, "part <id = %d name = %s>\n", partI, partNames[partI].c_str());
+        stream << buffer;
       }
     } else {
       for (size_t partI = 0, partN = 100; partI < partN; ++partI) {
-	std::sprintf(buffer, "part <id = %d name = Part%d>\n", partI, partI);
-	stream << buffer;
+        std::sprintf(buffer, "part <id = %d name = Part%d>\n", partI, partI);
+        stream << buffer;
       }
     }
     for (size_t eventI = 0, eventN = score.size(); eventI < eventN; ++eventI) {
       const Event &event = score[eventI];
       if (event.isNoteOn()) {
-	double duration = event.getDuration() * 32.0;
-	duration = Conversions::round(duration);
-	if (duration > 0) {
-	  std::sprintf(buffer, "part %g time %g dur %g pitch %g;\n", event.getInstrument() + 1, event.getTime() * 32.0, duration, event.getKey());
-	  stream << buffer;
-	}
+        double duration = event.getDuration() * 32.0;
+        duration = Conversions::round(duration);
+        if (duration > 0) {
+          std::sprintf(buffer, "part %g time %g dur %g pitch %g;\n", event.getInstrument() + 1, event.getTime() * 32.0, duration, event.getKey());
+          stream << buffer;
+        }
       }
     }
     stream.close();
@@ -390,9 +390,9 @@ namespace csound
   void Composition::processArgv(int argc, const char **argv)
   {
     std::vector<std::string> args;
-    for (int i = 0; i < argc; ++i) 
+    for (int i = 0; i < argc; ++i)
       {
-	args.push_back(argv[i]);
+        args.push_back(argv[i]);
       }
     processArgs(args);
   }
