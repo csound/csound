@@ -206,7 +206,7 @@ typedef struct  {
 /* by Francois Pinot, jan. 2011    */
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *min, *max, *xcps, *mode, *fstval; 
+        MYFLT   *ar, *min, *max, *xcps, *mode, *fstval;
         int16   cpscod;
         int32   phs;
         MYFLT   num1, num2, dfdmax;
@@ -232,4 +232,3 @@ typedef struct {
 } RANDOM3;
 
 #endif /* UGGAB_H */
-

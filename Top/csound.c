@@ -2633,9 +2633,9 @@ extern "C" {
       void      *p1, *p2;
       uintptr_t length;
       int n = 0;
-     
+
       csoundCleanup(csound);
- 
+
       /* call registered reset callbacks */
       while (csound->reset_list != NULL) {
         resetCallback_t *p = (resetCallback_t*) csound->reset_list;
@@ -2646,12 +2646,12 @@ extern "C" {
       /* call local destructor routines of external modules */
       /* should check return value... */
       csoundDestroyModules(csound);
- 
+
       /* IV - Feb 01 2005: clean up configuration variables and */
       /* named dynamic "global" variables of Csound instance */
       csoundDeleteAllConfigurationVariables(csound);
       csoundDeleteAllGlobalVariables(csound);
- 
+
 #ifdef CSCORE
       cscoreRESET(csound);
 #endif
@@ -3721,4 +3721,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-

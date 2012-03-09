@@ -85,7 +85,7 @@ namespace csound
     virtual double sample() const;
     virtual ublas::matrix<double> getRandomCoordinates() const;
     virtual void createDistribution(std::string distribution);
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, 
+    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt,
                                     const ublas::matrix<double> &compositeCoordinates);
     static void seed(int s);
   };

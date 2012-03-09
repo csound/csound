@@ -78,7 +78,7 @@ namespace csound
     virtual void load(MidiFile &midiFile);
     /**
      * Save as a MIDI file, format 1 (.mid) file,
-     * or as a partwise MusicXML (.xml) file, 
+     * or as a partwise MusicXML (.xml) file,
      * or as a Fomus music notation (.fms) file.
      * Only sounding data is saved.
      */
@@ -294,24 +294,24 @@ namespace csound
      */
     virtual void setVoicing(size_t begin, size_t end, const std::vector<double> &voicing, double range, size_t divisionsPerOctave = 12);
     /**
-     * Find the non-unique pitch-class set of the prior segment; 
-     * invert the set such that the inversion's first two pitch-classes 
+     * Find the non-unique pitch-class set of the prior segment;
+     * invert the set such that the inversion's first two pitch-classes
      * are exchanged from the origina; conform the pitches of the
      * current segment to that inversion.
      */
     virtual void setK(size_t priorBegin, size_t begin, size_t end, double base, double range);
     /**
-     * Find the non-unique pitch-class set of the prior segment; 
-     * invert the set such that the inversion's first two pitch-classes 
-     * are exchanged from the original; conform the pitches of the 
+     * Find the non-unique pitch-class set of the prior segment;
+     * invert the set such that the inversion's first two pitch-classes
+     * are exchanged from the original; conform the pitches of the
      * current segment to that inversion, with voicing V.
      */
     virtual void setKV(size_t priorBegin, size_t begin, size_t end, double V, double base, double range);
     /**
-     * Find the non-unique pitch-class set of the prior segment; 
-     * invert the set such that the inversion's first two pitch-classes 
-     * are exchanged from the original; conform the pitches of the 
-     * current segment to that inversion, using the closest voice-leading 
+     * Find the non-unique pitch-class set of the prior segment;
+     * invert the set such that the inversion's first two pitch-classes
+     * are exchanged from the original; conform the pitches of the
+     * current segment to that inversion, using the closest voice-leading
      * from the pitches of the prior segment, optionally avoiding parallel fifths.
      */
     virtual void setKL(size_t priorBegin, size_t begin, size_t end, double base, double range, bool avoidParallels = true);
@@ -332,7 +332,7 @@ namespace csound
     /**
      * Find the non-unique pitch-class set of the prior segment; transpose the set up by Q
      * if the set is a T-form of the context, or down by Q if the set is an I-form of the context;
-     * then conform the pitches of the segment to that set, using the closest voice-leading 
+     * then conform the pitches of the segment to that set, using the closest voice-leading
      * from the pitches of the prior segment, optionally avoiding parallel fifths.
      * The context will be reduced or doubled as required to match the cardinality of the set.
      */

@@ -211,7 +211,7 @@ static int posc_set(CSOUND *csound, POSC *p)
 {
     FUNC *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)) 
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
       return csound->InitError(csound, Str("table not found in poscil"));
     p->ftp        = ftp;
     p->tablen     = ftp->flen;
@@ -1889,4 +1889,3 @@ int uggab_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

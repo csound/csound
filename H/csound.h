@@ -1415,7 +1415,7 @@ extern "C" {
 # define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 
 #elif defined(MACOSX)
-  
+
 #ifndef SWIG
 
 #include <libkern/OSAtomic.h>
@@ -1968,4 +1968,3 @@ extern "C" {
 #endif
 
 #endif  /* CSOUND_H */
-

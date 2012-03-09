@@ -507,14 +507,14 @@ static void csoundapi_tabset(t_csoundapi *x, t_symbol *tab, t_float f)
   if(cstabsize != -1) {
     pdarray =  (t_garray *) pd_findbyclass(tab, garray_class);
     if( pdarray != NULL) {
-    garray_getfloatwords(pdarray, &pdarraysize, &pdarray_vec);  
+    garray_getfloatwords(pdarray, &pdarraysize, &pdarray_vec);
     size = cstabsize <= pdarraysize ? cstabsize : pdarraysize;
     for(i = 0; i < size; i++) {
       cstable[i] = (MYFLT) pdarray_vec[i].w_float;
     }
     }
     else {
-      post ("csoundapi~: could not find array\n"); 
+      post ("csoundapi~: could not find array\n");
       return;
     }
   } else post("csoundapi~: csound table %d not found \n", (int) f);
@@ -533,12 +533,12 @@ static void csoundapi_tabget(t_csoundapi *x,  t_symbol *tab, t_float f)
     if( pdarray != NULL) {
     garray_getfloatwords(pdarray, &pdarraysize, &pdarray_vec);
     size = cstabsize <= pdarraysize ? cstabsize : pdarraysize;
-    for(i = 0; i < size; i++) 
+    for(i = 0; i < size; i++)
       pdarray_vec[i].w_float = (t_float) cstable[i];
       garray_redraw(pdarray);
     }
     else {
-      post ("csoundapi~: could not find array\n"); 
+      post ("csoundapi~: could not find array\n");
       return;
     }
   } else post("csoundapi~: csound table %d not found \n", (int) f);
@@ -866,4 +866,3 @@ static void csoundapi_bend(t_csoundapi *x, t_floatarg bend, t_floatarg chan)
 
   MIDI_FINISH;
 }
-

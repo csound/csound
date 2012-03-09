@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
    printf("csoundCompile returned an error\n");
    return 1;
  }
- 
+
  return 0;
 }
 
@@ -188,4 +188,3 @@ class PUBLIC CsoundPerformanceThread {
 };
 
 #endif  // CSOUND_CSPERFTHREAD_HPP
-

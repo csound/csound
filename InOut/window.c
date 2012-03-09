@@ -153,7 +153,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     MYFLT   *fp, *fplim;
     MYFLT   max, min, absmax, fval;
     int     pol;
-     
+
     if (!csound->oparms->displays)  return;   /* displays disabled? return */
     fp = wdptr->fdata;
     fplim = fp + wdptr->npts;
@@ -177,7 +177,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     else if (pol == (int16)POSPOL && min < FL(0.0)) pol = (int16)BIPOL;
     else if (pol == (int16)NEGPOL && max > FL(0.0)) pol = (int16)BIPOL;
     wdptr->polarity = pol;
-    
+
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);
 
@@ -186,4 +186,3 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     if (csound->oparms->postscript)
       PS_DrawGraph(csound, wdptr);
 }
-

@@ -949,7 +949,7 @@ LorisMorpher::LorisMorpher( LORISMORPH * params ) :
 #ifdef DEBUG_LORISGENS
     std::cerr << "** Morph will use " << labelMap.size() << " labeled Partials, ";
     std::cerr << src_unlabeled.size() << " unlabeled source Partials, and ";
-    std::cerr << tgt_unlabeled.size() << " unlabeled target Partials." 
+    std::cerr << tgt_unlabeled.size() << " unlabeled target Partials."
               << std::endl;
 #endif
 
@@ -1011,7 +1011,7 @@ LorisMorpher::updateEnvelopes( void )
         if ( itgt < 0 && isrc < 0 )
           {
 #ifdef DEBUG_LORISGENS
-            std::cerr << 
+            std::cerr <<
               "HEY!!!! The labelMap had a pair of bogus indices in it at pos "
                       << envidx << std::endl;
 #endif
@@ -1155,4 +1155,3 @@ extern "C"
 
   csound --opcode-lib=.libs/lorisgens.so tryit.csd
 */
-

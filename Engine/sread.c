@@ -668,7 +668,7 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
 #ifdef MACDEBUG
       csound->DebugMsg(csound,"%s(%d) reset point to %d\n", __FILE__, __LINE__,
              ST(repeat_point_n)[ST(repeat_index)], i);
-      csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__, 
+      csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__,
              ST(repeat_mm_n)[ST(repeat_index)]->body->body,
              ST(repeat_mm_n)[ST(repeat_index)]->body->p,
              ST(repeat_mm_n)[ST(repeat_index)]->body->len);
@@ -684,7 +684,7 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
         corfile_puts(buffer, ST(repeat_mm_n)[ST(repeat_index)]->body);
         corfile_rewind(ST(repeat_mm_n)[ST(repeat_index)]->body);
 #ifdef MACDEBUG
-        csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__, 
+        csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__,
                ST(repeat_mm_n)[ST(repeat_index)]->body->body,
                ST(repeat_mm_n)[ST(repeat_index)]->body->p,
                ST(repeat_mm_n)[ST(repeat_index)]->body->len);
@@ -998,7 +998,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           flushlin(csound);     /* Ignore rest of line */
           ST(repeat_point_n)[ST(repeat_index)] =
             corfile_tell(ST(str)->cf);
-          
+
           /* { does not start a new section - akozar */
           /* ST(clock_base) = FL(0.0);
           ST(warp_factor) = FL(1.0);
@@ -1110,7 +1110,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           else mfree(csound, ST(names)[j].file);
           ST(names)[ST(next_name)].posit = corfile_tell(ST(str)->cf);
           ST(names)[ST(next_name)].line = ST(str)->line;
-          ST(names)[ST(next_name)].file = 
+          ST(names)[ST(next_name)].file =
             mmalloc(csound, strlen(corfile_body(ST(str)->cf)) + 1);
           strcpy(ST(names)[ST(next_name)].file, corfile_body(ST(str)->cf));
           if (csound->oparms->msglevel & TIMEMSG)
@@ -1850,4 +1850,3 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
     }
     return x;
 }
-

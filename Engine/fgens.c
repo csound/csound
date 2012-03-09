@@ -2137,7 +2137,7 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
       p3 = *valp++;
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
-      width = (int) ((p3/tot_prob) * ff->flen +FL(0.5)); 
+      width = (int) ((p3/tot_prob) * ff->flen +FL(0.5));
       inc = (p2-p1) / (MYFLT) (width-1);
       for ( k=0; k < width; k++) {
         *fp++ = p1+(inc*k);
@@ -2567,11 +2567,11 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->end1 = ftp->flenfrms;          /* Greg Sullivan */
 #endif      /* HAVE_LIBSNDFILE >= 1013 */
     /* read sound with opt gain */
-   
+
     if (UNLIKELY((inlocs=getsndin(csound, fd, ftp->ftable, table_length, p)) < 0)) {
       return fterror(ff, Str("GEN1 read error"));
     }
-    
+
     if (p->audrem > 0 && !truncmsg && p->framesrem > ff->flen) {
       /* Reduce msg */
       csound->Warning(csound, Str("GEN1: aiff file truncated by ftable size"));
@@ -2584,7 +2584,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     if (def) {
       MYFLT *tab = (MYFLT *) ftp->ftable;
       ftresdisp(ff, ftp);       /* VL: 11.01.05  for deferred alloc tables */
-      tab[ff->flen] = tab[0];  /* guard point */ 
+      tab[ff->flen] = tab[0];  /* guard point */
       ftp->flen -= 1;  /* exclude guard point */
     }
     return OK;
@@ -3190,7 +3190,7 @@ int resize_table(CSOUND *csound, RESIZE *p)
     }
     if ((ftp = csound->FTFind(csound, p->fn)) == NULL)
       return NOTOK;
-    if (ftp->flen<fsize) 
+    if (ftp->flen<fsize)
       ftp = (FUNC*) csound->ReAlloc(csound, ftp, sizeof(FUNC)+sizeof(MYFLT)*fsize);
     ftp->flen = fsize;
     csound->flist[fno] = ftp;
