@@ -1297,7 +1297,7 @@ pluginEnvironment.Append(LIBS = Split('sndfile'))
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
-        -framework CoreMidi -framework CoreFoundation -framework CoreServices -framework CoreAudio
+        -framework CoreMIDI -framework CoreFoundation -framework CoreServices -framework CoreAudio
     '''))
     # pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
@@ -1826,7 +1826,7 @@ else:
     vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
-        csoundProgramEnvironment.Append(LINKFLAGS = Split('''-framework Carbon -framework CoreAudio -framework CoreMidi'''))
+        csoundProgramEnvironment.Append(LINKFLAGS = Split('''-framework Carbon -framework CoreAudio -framework CoreMIDI'''))
 
 if (not (commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
@@ -2009,7 +2009,7 @@ else:
         vst4Environment = vstEnvironment.Clone()
         vst4Environment.Append(LIBS = ['fltk'])
         vst4Environment.Append(LIBS = ['stdc++'])
-        vst4Environment.Append(LINKFLAGS=['-framework', 'carbon', '-framework',
+        vst4Environment.Append(LINKFLAGS=['-framework', 'Carbon', '-framework',
                                           'ApplicationServices'])
         vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
         vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
@@ -2753,7 +2753,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
         csWinEnvironment.Append(CXXFLAGS = ['-fno-rtti'])
         csWinEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
         csWinEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework CoreAudio -framework CoreMidi
+            -framework Carbon -framework CoreAudio -framework CoreMIDI
             -framework ApplicationServices
         '''))
         appDir = 'frontends/winsound/Winsound.app/Contents/MacOS'

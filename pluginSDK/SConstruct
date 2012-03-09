@@ -279,7 +279,7 @@ pluginEnvironment = commonEnvironment.Copy()
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
-        -framework CoreMidi -framework CoreFoundation -framework CoreAudio
+        -framework CoreMIDI -framework CoreFoundation -framework CoreAudio
     '''))
     # pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
