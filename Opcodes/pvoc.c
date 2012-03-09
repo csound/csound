@@ -36,7 +36,7 @@ int     pvinterpset(CSOUND *, void *), pvinterp(CSOUND *, void *);
 static OENTRY pvoc_localops[] = {
 { "pvoc",      S(PVOC),      5, "a",  "kkToooo", pvset, NULL, pvoc            },
 { "tableseg",  S(TABLESEG),  TR|3, "",   "iin",     tblesegset, ktableseg, NULL  },
-{ "ktableseg", S(TABLESEG),  _DP_|TR|3, "",   "iin",  tblesegset, ktableseg, NULL  },
+{ "ktableseg", S(TABLESEG),  _QQ|TR|3, "",   "iin",  tblesegset, ktableseg, NULL  },
 { "tablexseg", S(TABLESEG),  TW|3, "",   "iin",     tblesegset, ktablexseg, NULL },
 { "vpvoc",     S(VPVOC),     TR|5, "a",  "kkToo",   vpvset, NULL, vpvoc          },
 { "pvread",    S(PVREAD),    3, "kk", "kTi",     pvreadset, pvread, NULL      },

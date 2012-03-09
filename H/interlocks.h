@@ -34,6 +34,6 @@
 #define CB (0x3000)
 
 #define SB (0x4000)
+#define _QQ (0x8000)
 
-#define _DP_ (0x8000)
 

@@ -1986,6 +1986,18 @@ int prealloc(CSOUND *csound, AOP *p)
     return OK;
 }
 
+int active_alloc(CSOUND *csound, ACTIVE *p)
+{
+    int     n;
+
+    n = (int) strarg2opcno(csound, p->r, (p->XSTRCODE & 1),
+                                   (*p->b == FL(0.0) ? 0 : 1));
+    if (UNLIKELY(n < 1))
+      return NOTOK;
+    *p->ans = (MYFLT)csound->instrtxtp[n]->active;
+    return OK;
+}
+
 int delete_instr(CSOUND *csound, DELETEIN *p)
 {
     int       n;
