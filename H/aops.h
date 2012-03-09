@@ -85,6 +85,11 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    MYFLT   *ans, *r, *b;
+} ACTIVE;
+
+typedef struct {
+    OPDS    h;
     MYFLT   *r, *a, *b, *def;
 } DIVZ;
 

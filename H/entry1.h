@@ -316,7 +316,7 @@ int     lp2_set(CSOUND *, void *), lp2(CSOUND *, void *);
 int     phaser2set(CSOUND *, void *), phaser2(CSOUND *, void *);
 int     phaser1set(CSOUND *, void *), phaser1(CSOUND *, void *);
 int     balnset(CSOUND *, void *), balance(CSOUND *, void *);
-int     prealloc(CSOUND *, void *);
+int     prealloc(CSOUND *, void *), active_alloc(CSOUND*, void*);
 int     cpsxpch(CSOUND *, void *), cps2pch(CSOUND *, void *);
 int     cpstmid(CSOUND *, void *);
 int     cpstun(CSOUND *, void *), cpstun_i(CSOUND *, void *);
