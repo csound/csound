@@ -35,5 +35,5 @@
 
 #define SB (0x4000)
 
-#define DP (0x8000)
+#define _DP_ (0x8000)
 
