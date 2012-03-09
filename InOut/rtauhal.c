@@ -21,7 +21,6 @@
   02111-1307 USA
 */
 
-#include <CoreMidi/CoreMidi.h>
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/AudioHardware.h>
 #include <CoreFoundation/CoreFoundation.h>

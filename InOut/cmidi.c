@@ -24,7 +24,7 @@
 /* Realtime MIDI using coremidi */
 
 
-#include <CoreMidi/CoreMidi.h>
+#include <CoreMIDI/CoreMIDI.h>
 #include <CoreAudio/HostTime.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include "csdl.h"                               /*      CMIDI.C         */
