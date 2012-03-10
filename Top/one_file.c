@@ -110,7 +110,8 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
         //        if (UNLIKELY(mytmpnam(buf) == NULL))
         //          csound->Die(csound, Str(" *** cannot create temporary file"));
         int fd;
-        strcpy(buf, "/tmp/csoundXXXXXX");
+        char *tmpdir = getenv("TMPDIR");
+        sprintf(buf, "%s/csound-XXXXXX", (tmpdir[0] != '\0' ? tmpdir : "/tmp"));
         if (UNLIKELY((fd = mkstemp(buf)) < 0))
           csound->Die(csound, Str(" *** cannot create temporary file"));
         close(fd);
