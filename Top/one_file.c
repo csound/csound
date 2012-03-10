@@ -114,6 +114,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
         if (UNLIKELY((fd = mkstemp(buf)) < 0))
           csound->Die(csound, Str(" *** cannot create temporary file"));
         close(fd);
+        unlink(buf);
 #else
         {
           char  *s = (char*) csoundGetEnv(csound, "SFDIR");
