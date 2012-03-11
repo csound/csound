@@ -274,7 +274,7 @@ commandOptions.Add('includeP5Glove',
      '0')
 commandOptions.Add('buildBeats',
      'Set to 1 if building beats score language',
-     '0')
+     '1')
 commandOptions.Add('buildcatalog',
      'Set to 1 if building opcode/library catalogue',
      '0')
@@ -2814,14 +2814,14 @@ else:
     csBeatsEnvironment.Append(LINKFLAGS = ['-lm'])
     csBeatsEnvironment.Append(YACCFLAGS = ['-d'])
     #csBeatsEnvironment.Append(LEXFLAGS = ['-Pbeats'])
-    byb = csBeatsEnvironment.CFile(target = 'frontends/beats/beats.tab.c',
-                               source = 'frontends/beats/beats.y')
-    blb = csBeatsEnvironment.CFile(target = 'frontends/beats/lex.yy.c',
-                               source = 'frontends/beats/beats.l')
+    byb = csBeatsEnvironment.CFile(target = 'frontends/csbeats/beats.tab.c',
+                               source = 'frontends/csbeats/beats.y')
+    blb = csBeatsEnvironment.CFile(target = 'frontends/csbeats/lex.yy.c',
+                               source = 'frontends/csbeats/beats.l')
     bb = csBeatsEnvironment.Program('csbeats',
-                                    ['frontends/beats/main.c', 
-                                     'frontends/beats/lex.yy.c', 
-                                     'frontends/beats/beats.tab.c'])
+                                    ['frontends/csbeats/main.c', 
+                                     'frontends/csbeats/lex.yy.c', 
+                                     'frontends/csbeats/beats.tab.c'])
     executables.append(bb)
 
 if not (commonEnvironment['buildcatalog'] != '0'):
