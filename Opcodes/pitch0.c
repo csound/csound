@@ -49,12 +49,19 @@ int instcount(CSOUND *csound, INSTCNT *p)
     int n = (int) csound->strarg2insno(csound, p->ins, p->XSTRCODE);
     if (n<0 || n > csound->maxinsno || csound->instrtxtp[n] == NULL)
       *p->cnt = FL(0.0);
+    else if (n==0) {
+      int tot = 1;
+      for (n=1; n<=csound->maxinsno; n++)
+        if (csound->instrtxtp[n]) 
+          tot += ((*p->opt) ? csound->instrtxtp[n]->instcnt : 
+                              csound->instrtxtp[n]);
+      *p->cnt = (MYFLT)tot;
+    }
     else {
       *p->cnt = ((*p->opt) ?
                  (MYFLT) csound->instrtxtp[n]->instcnt :
                  (MYFLT) csound->instrtxtp[n]->active);
     }
-
 
     return OK;
 }
