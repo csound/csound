@@ -618,7 +618,8 @@ OENTRY opcodlst_1[] = {
 { "limit.k",  S(LIMIT), 2, "k",     "xkk",  NULL,           (SUBR)klimit, NULL },
 { "limit.a",  S(LIMIT), 4, "a",     "xkk",  NULL,           NULL,  (SUBR)limit },
 { "prealloc", S(AOP),   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  },
-{ "active", S(ACTIVE),  1, "i",     "To",   (SUBR)active_alloc, NULL, NULL  },
+{ "active_i", S(ACTIVE),1, "i",     "T",    (SUBR)active_alloc, NULL, NULL  },
+{ "active", S(ACTIVE),  2, "k",     "U",    NULL, (SUBR)active_alloc,  NULL },
 /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
 { "inh",    S(INH),     4,      "aaaaaa","",    NULL,   NULL,   inh     },
 { "ino",    S(INO),     4,      "aaaaaaaa","",  NULL,   NULL,   ino     },

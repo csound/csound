@@ -85,7 +85,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ans, *r, *b;
+    MYFLT   *ans, *r;
 } ACTIVE;
 
 typedef struct {
