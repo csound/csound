@@ -407,7 +407,6 @@
 ./Opcodes/pitchtrack.c
 ./Opcodes/pluck.c
 ./Opcodes/pluck.h
-./Opcodes/ppp.c
 ./Opcodes/psynth.c
 ./Opcodes/ptrigtbl.h
 ./Opcodes/pvadd.c
