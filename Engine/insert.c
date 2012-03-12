@@ -1986,39 +1986,6 @@ int prealloc(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int active_alloc(CSOUND *csound, ACTIVE *p)
-{
-    int     n;
-
-    if (UNLIKELY(*p->r==FL(0.0))) {
-      int32 tot = 0;
-      for (n=1; n<csound->maxinsno; n++) {
-        if (csound->instrtxtp[n])
-          tot += csound->instrtxtp[n]->active;
-      }
-      *p->ans = (MYFLT)tot;
-      return OK;
-    }
-    if ((p->XSTRCODE & 1)) {
-        n = named_instr_find(csound, (char*) p);
-    }
-    else {      /* numbered instrument */
-      n = (int32) *((MYFLT*) p);
-        if (UNLIKELY(n < 1 || n > csound->maxinsno ||
-                     !csound->instrtxtp[n])) {
-          *p->ans = FL(0.0);
-          return OK;
-        }
-    }
-
-    if (UNLIKELY(n < 1)) {
-      *p->ans = FL(0.0);
-      return OK;
-    }
-    *p->ans = (MYFLT)csound->instrtxtp[n]->active;
-    return OK;
-}
-
 int delete_instr(CSOUND *csound, DELETEIN *p)
 {
     int       n;
