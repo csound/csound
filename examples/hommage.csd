@@ -12,7 +12,8 @@ nchnls= 2
 
 instr 1
 
-
+ii   active       0
+print ii
 kfreq    expon      p5, p3, p6
 kinterval expon      p7, p3, p8    
 kglissdur line     p9, p3, p10
@@ -114,6 +115,8 @@ endin
 
 instr 2
 
+ii   active       2
+print ii
 
 kfreq    expon      p5, p3, p6
 kinterval expon      p7, p3, p8    
@@ -230,6 +233,8 @@ endin
 
 instr 3
 
+ii   active       0
+print ii
 
 kfreq0    expon      p5, p3, p6
 kinterval expon      p7, p3, p8    
