@@ -260,8 +260,6 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 /***********************************************************************
  * set data structure
  */
-#pragma mark -
-#pragma mark Set
 
 /* static prototypes */
 static int set_element_delloc(CSOUND *csound,

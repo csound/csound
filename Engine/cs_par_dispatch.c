@@ -91,8 +91,6 @@ static uint32_t hash_string(char *str, uint32_t hash_size)
 /***********************************************************************
  * Global Var Lock Inserts
  */
-#pragma mark -
-#pragma mark Global Var Lock Inserts
 
 /* global variables lock support */
 struct global_var_lock_t {
@@ -353,8 +351,6 @@ int globalunlock(CSOUND *csound, GLOBAL_LOCK_UNLOCK *p)
 /***********************************************************************
  * weighting
  */
-#pragma mark -
-#pragma mark Instr weightings
 
 /* static struct instr_weight_info_t
    *instr_weight_info_alloc(CSOUND *csound)
@@ -524,8 +520,6 @@ void csp_orc_sa_opcode_dump(CSOUND *csound, TREE *root)
 /***********************************************************************
  * weights structure
  */
-#pragma mark -
-#pragma mark weights structure
 
 struct opcode_weight_cache_entry_t {
   uint32_t                            hash_val;
@@ -915,8 +909,6 @@ void csp_weights_load(CSOUND *csound)
 /***********************************************************************
  * weighting decision
  */
-#pragma mark -
-#pragma mark dag weighting decision
 
 /* static struct instr_weight_info_t *weight_info; */
 
@@ -996,8 +988,6 @@ int inline csp_parallel_compute_should(CSOUND *csound, DAG *dag)
 /***********************************************************************
  * dag2 data structure
  */
-#pragma mark -
-#pragma mark Dag2
 
 /* prototypes for dag2 */
 static void dag_node_2_alloc(CSOUND *csound, DAG_NODE **dag_node,
@@ -1863,8 +1853,6 @@ void csp_dag_print(CSOUND *csound, DAG *dag)
 /**********************************************************************************************
  * dag2 optimization structure
  */
-#pragma mark -
-#pragma mark Dag2 optimization
 
 static uint64_t dag_opt_counter;
 
@@ -2189,8 +2177,6 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 /**********************************************************************************************
  * dag2 cache structure
  */
-#pragma mark -
-#pragma mark Dag2 Cache
 
 /* #ifdef LINEAR_CACHE */
 

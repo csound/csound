@@ -65,7 +65,7 @@ static int call_system(CSOUND *csound, SYSTEM *p)
         return OK;
       else {
         system((char*)p->commandLine);
-        exit(1);
+        exit(0);
       }
     }
     else {
