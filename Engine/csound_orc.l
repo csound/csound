@@ -478,6 +478,6 @@ char *csound_orcget_current_pointer(void *yyscanner)
 
 int csound_orcget_locn(void *yyscanner)
 {
-    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+//    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->locn;
 }
