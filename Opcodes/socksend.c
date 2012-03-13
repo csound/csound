@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
@@ -42,7 +43,7 @@ typedef struct {
     MYFLT   *asig, *ipaddress, *port, *buffersize;
     MYFLT   *format;
     AUXCH   aux;
-    int     sock, conn;
+    int     sock;
     int     bsize, wp;
     int     ff, bwidth;
     struct sockaddr_in server_addr;
@@ -53,7 +54,7 @@ typedef struct {
     MYFLT   *asigl, *asigr, *ipaddress, *port, *buffersize;
     MYFLT   *format;
     AUXCH   aux;
-    int     sock, conn;
+    int     sock;
     int     bsize, wp;
     int     ff, bwidth;
     struct sockaddr_in server_addr;
@@ -244,7 +245,6 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
 /* TCP version */
 static int init_ssend(CSOUND *csound, SOCKSEND *p)
 {
-    socklen_t clilen;
 #ifdef WIN32
     WSADATA wsaData = {0};
     int err;
@@ -277,23 +277,16 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     /* the port we are going to listen on, in network byte order */
     p->server_addr.sin_port = htons((int) *p->port);
 
-    /* associate the socket with the address and port */
-    if (UNLIKELY(bind
-        (p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr))
-                 < 0)) {
-      return csound->InitError(csound, Str("bind failed"));
+again:
+    if (connect(p->sock, (struct sockaddr *) &p->server_addr,
+                sizeof(p->server_addr)) < 0) {
+#ifdef ECONNREFUSED
+      if (errno == ECONNREFUSED)
+        goto again;
+#endif
+      return csound->InitError(csound, Str("connect failed (%d)"), errno);
     }
 
-    /* start the socket listening for new connections -- may wait */
-    if (UNLIKELY(listen(p->sock, 5) < 0)) {
-      return csound->InitError(csound, Str("listen failed"));
-    }
-    clilen = sizeof(p->server_addr);
-    p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
-
-    if (UNLIKELY(p->conn < 0)) {
-      return csound->InitError(csound, Str("accept failed"));
-    }
     return OK;
 }
 
@@ -301,9 +294,12 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 {
     int     n = sizeof(MYFLT) * csound->ksmps;
 
-    if (UNLIKELY(n != write(p->conn, p->asig, sizeof(MYFLT) * csound->ksmps))) {
+    if (n != write(p->sock, p->asig, n)) {
+      csound->Message(csound, "Expected %d got %d\n",
+                      (int) (sizeof(MYFLT) * csound->ksmps), n);
       return csound->PerfError(csound, Str("write to socket failed"));
     }
+
     return OK;
 }
 
