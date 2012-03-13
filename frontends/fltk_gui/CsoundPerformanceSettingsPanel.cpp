@@ -53,6 +53,7 @@ static char *csoundMessages;
 static char startText[180];
 static char endText[180];
 static bool relevantText;
+static int  errors = 0;
 
 static void getCsoundMessages(CSOUND *csound, int attr,
                                      const char *format, va_list valist)
@@ -506,8 +507,10 @@ void CsoundPerformanceSettingsPanel::querySoundDevices()
       c.Reset();
       strcpy(csoundMessagesIn, csoundMessages);
       strcpy(csoundMessages, "\0");
-      (void)system("rm ________temp.csd");
-
+      if (system("rm ________temp.csd")<0) {
+        errors++;
+        fprintf(stderr, "Failed to remove temp file\n");
+      }
       /* Set output device names */
       char *tmp;
       char *tmp2 = (char *) calloc (80, sizeof(char));
@@ -703,7 +706,10 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
         }
       }
       fclose(f);
-      (void)system("amidi -l > _csound5guitmpfile.txt");
+      if (system("amidi -l > _csound5guitmpfile.txt")<0) {
+        errors++;
+        fprintf(stderr, "amidi failed\n");
+      }
       f = fopen("_csound5guitmpfile.txt", "r");
       line = (char *) calloc (128, sizeof(char));
       if (f)  {
@@ -760,7 +766,10 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
         }
       }
       fclose(f);
-      (void)system("rm _csound5guitmpfile.txt");
+      if (system("rm _csound5guitmpfile.txt")<0) {
+        errors++;
+        fprintf(stderr, "failed to remove txt file\n");
+      }
     }
     else
 #endif //LINUX
@@ -817,7 +826,10 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
       c.Reset();
       strcpy(csoundMessagesIn, csoundMessages);
       strcpy(csoundMessages, "\0");
-      (void)system("rm ________temp.csd");
+      if (system("rm ________temp.csd")<0) {
+        errors++;
+        fprintf(stderr, "Failed to remobve temp file\n");
+      }
 
       /* Set output device names */
       char *tmp;
