@@ -87,8 +87,8 @@ OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
 XSTR            "{{"
 EXSTR           "}}"
-LINE            ^"#line"
-FILE            ^"#source"
+LINE            ^[ \t]*"#line"
+FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
 %x line
 %x src
