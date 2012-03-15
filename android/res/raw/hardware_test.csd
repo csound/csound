@@ -35,7 +35,7 @@ a1 moogladder a1, kcutoff, kresonance
 
 aL, aR reverbsc a1, a1, .72, 5000
 
-outs aL, aR
+out aL, aR
 
 
 endin
