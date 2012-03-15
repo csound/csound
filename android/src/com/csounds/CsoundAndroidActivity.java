@@ -33,6 +33,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.csounds.BaseCsoundActivity;
 import com.csounds.tests.AccelerometerActivity;
 import com.csounds.tests.ButtonTestActivity;
 import com.csounds.tests.CsoundHaikuIVActivity;
