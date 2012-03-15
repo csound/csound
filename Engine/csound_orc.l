@@ -87,8 +87,8 @@ OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
 XSTR            "{{"
 EXSTR           "}}"
-LINE            ^"#line"
-FILE            ^"#source"
+LINE            ^[ \t]*"#line"
+FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
 %x line
 %x src
@@ -478,6 +478,6 @@ char *csound_orcget_current_pointer(void *yyscanner)
 
 int csound_orcget_locn(void *yyscanner)
 {
-    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+//    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->locn;
 }

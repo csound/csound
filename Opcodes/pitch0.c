@@ -46,15 +46,26 @@ int mute_inst(CSOUND *csound, MUTE *p)
 
 int instcount(CSOUND *csound, INSTCNT *p)
 {
-    int n = (int) csound->strarg2insno(csound, p->ins, p->XSTRCODE);
+    int n;
+    if (p->XSTRCODE)
+      n = (int) csound->strarg2insno(csound, p->ins, p->XSTRCODE);
+    else
+      n = *p->ins;
     if (n<0 || n > csound->maxinsno || csound->instrtxtp[n] == NULL)
       *p->cnt = FL(0.0);
+    else if (n==0) {  /* Count all instruments */
+      int tot = 1;
+      for (n=1; n<csound->maxinsno; n++)
+        if (csound->instrtxtp[n]) /* If it exists */
+          tot += ((*p->opt) ? csound->instrtxtp[n]->instcnt :
+                              csound->instrtxtp[n]->active);
+      *p->cnt = (MYFLT)tot;
+    }
     else {
       *p->cnt = ((*p->opt) ?
                  (MYFLT) csound->instrtxtp[n]->instcnt :
                  (MYFLT) csound->instrtxtp[n]->active);
     }
-
 
     return OK;
 }

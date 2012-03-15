@@ -1247,7 +1247,7 @@ static OENTRY spectra_localops[] = {
 { "active.i", S(INSTCNT),1,     "i",    "To",    (SUBR)instcount, NULL, NULL },
 { "active.k", S(INSTCNT),2,     "k",    "Uo",    NULL, (SUBR)instcount, NULL },
 { "p.i", S(PFUN),        1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
-{ "p.k", S(PFUNK),       3,     "k",    "k",     (SUBR)pfunk_init, (SUBR)pfunk, NULL },
+{ "p.k", S(PFUNK),       3,     "k",    "k", (SUBR)pfunk_init, (SUBR)pfunk, NULL },
 { "mute", S(MUTE), 1,          "",      "To",   (SUBR)mute_inst             },
 { "median", S(MEDFILT),  5,     "a", "akio", (SUBR)medfiltset, NULL, (SUBR)medfilt},
 { "mediank", S(MEDFILT), 5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},

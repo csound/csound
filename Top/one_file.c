@@ -110,10 +110,16 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
         //        if (UNLIKELY(mytmpnam(buf) == NULL))
         //          csound->Die(csound, Str(" *** cannot create temporary file"));
         int fd;
-        strcpy(buf, "/tmp/csoundXXXXXX");
+        char *tmpdir = getenv("TMPDIR");
+        if (tmpdir != NULL && tmpdir[0] != '\0')
+          snprintf(buf, nBytes, "%s/csound-XXXXXX", tmpdir);
+        else
+          strcpy(buf, "/tmp/csound-XXXXXX");
+        umask(0077); /* ensure exclusive access on buggy implementations of mkstemp */
         if (UNLIKELY((fd = mkstemp(buf)) < 0))
           csound->Die(csound, Str(" *** cannot create temporary file"));
         close(fd);
+        unlink(buf);
 #else
         {
           char  *s = (char*) csoundGetEnv(csound, "SFDIR");

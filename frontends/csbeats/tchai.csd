@@ -18,7 +18,7 @@ instr 101,102,103
 endin
  
 </CsInstruments>
-<CsScore bin="beats">
+<CsScore bin="csbeats">
 ; by Brian Baughn 3-14-05
 ; bbaughn@berklee.net
 

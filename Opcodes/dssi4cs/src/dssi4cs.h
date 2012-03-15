@@ -23,8 +23,8 @@
 #include "dssi.h"
 
 /* When changing these remember to change dssiaudio function */
-#define DSSI4CS_MAX_IN_CHANNELS 4
-#define DSSI4CS_MAX_OUT_CHANNELS 4
+#define DSSI4CS_MAX_IN_CHANNELS 9
+#define DSSI4CS_MAX_OUT_CHANNELS 9
 
 enum PluginType {LADSPA, DSSI};
 
