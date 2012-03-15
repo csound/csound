@@ -178,10 +178,14 @@ int openSLPlayOpen(open_sl_params *params)
 
     // realize the output mix
     result = (*params->outputMixObject)->Realize(params->outputMixObject, SL_BOOLEAN_FALSE);
+    int chnls = params->csound->GetNchnls(params->csound);
+    int speakers;
+      if(chnls == 1) speakers =  SL_SPEAKER_FRONT_CENTER;
+      else speakers = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT;
 
-    SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM, params->csound->GetNchnls(params->csound), sr,
+    SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM, chnls , sr,
         SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16,
-        SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT, SL_BYTEORDER_LITTLEENDIAN};
+       speakers, SL_BYTEORDER_LITTLEENDIAN};
 
     SLDataSource audioSrc = {&loc_bufq, &format_pcm};
 
