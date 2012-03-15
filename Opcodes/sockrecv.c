@@ -50,7 +50,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *asig, *ipaddress, *port;
     AUXCH   aux, tmp;
-    int     sock;
+    int     sock, conn;
     struct sockaddr_in server_addr;
 } SOCKRECVT;
 
@@ -307,6 +307,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
 /* TCP version */
 static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 {
+    socklen_t clilen;
 #ifdef WIN32
     WSADATA wsaData = {0};
     int err;
@@ -337,16 +338,23 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     /* the port we are going to listen on, in network byte order */
     p->server_addr.sin_port = htons((int) *p->port);
 
-again:
-    if (connect(p->sock, (struct sockaddr *) &p->server_addr,
-                sizeof(p->server_addr)) < 0) {
-#ifdef ECONNREFUSED
-      if (errno == ECONNREFUSED)
-        goto again;
-#endif
-      return csound->InitError(csound, Str("connect failed (%d)"), errno);
+    /* associate the socket with the address and port */
+    if (UNLIKELY(bind
+        (p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr))
+                 < 0)) {
+      return csound->InitError(csound, Str("bind failed"));
     }
 
+    /* start the socket listening for new connections -- may wait */
+    if (UNLIKELY(listen(p->sock, 5) < 0)) {
+      return csound->InitError(csound, Str("listen failed"));
+    }
+    clilen = sizeof(p->server_addr);
+    p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
+
+    if (UNLIKELY(p->conn < 0)) {
+      return csound->InitError(csound, Str("accept failed"));
+    }
     return OK;
 }
 
@@ -354,12 +362,9 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     int     n = sizeof(MYFLT) * csound->ksmps;
 
-    if (n != read(p->sock, p->asig, n)) {
-      csound->Message(csound, "Expected %d got %d\n",
-                      (int) (sizeof(MYFLT) * csound->ksmps), n);
+    if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * csound->ksmps))) {
       return csound->PerfError(csound, Str("read from socket failed"));
     }
-
     return OK;
 }
 

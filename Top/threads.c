@@ -33,10 +33,6 @@
 #include "csoundCore.h"
 #include "csGblMtx.h"
 
-static CS_NOINLINE void notImplementedWarning_(const char *name)
-{
-    fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
-}
 
 #if defined(WIN32)
 #include <windows.h>
@@ -90,6 +86,11 @@ PUBLIC void csoundSleep(size_t milliseconds)
 }
 
 #elif defined(mac_classic)
+
+static CS_NOINLINE void notImplementedWarning_(const char *name)
+{
+    fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
+}
 
 PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 {
@@ -549,6 +550,11 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
 /* ------------------------------------------------------------------------ */
 
 #else
+
+static CS_NOINLINE void notImplementedWarning_(const char *name)
+{
+    fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
+}
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)

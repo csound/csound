@@ -587,6 +587,16 @@ int dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 {
     /* TODO not realtime safe, try to make it so. */
     int     Number = *p->iDSSIhandle;
+    int     icnt = csound->GetInputArgCnt(p) - 1;
+    int     ocnt = csound->GetOutputArgCnt(p);
+
+    if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
+      csound->Die(csound, Str("DSSI4CS: number of audio input channels is greater than %d"),
+                  DSSI4CS_MAX_IN_CHANNELS);
+
+    if (UNLIKELY(ocnt > DSSI4CS_MAX_OUT_CHANNELS))
+      csound->Die(csound, Str("DSSI4CS: number of audio output channels is greater than %d"),
+                  DSSI4CS_MAX_OUT_CHANNELS);
 
 #ifdef DEBUG
     csound->Message(csound,
@@ -669,7 +679,7 @@ int dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 
     p->NumInputPorts = ConnectedInputPorts;
     p->NumOutputPorts = ConnectedOutputPorts;
-    if ((p->NumInputPorts) < (csound->GetInputArgCnt(p) - 1)) {
+    if ((p->NumInputPorts) < icnt) {
       if (p->NumInputPorts == 0)
         csound->Message(csound, "DSSI4CS: Plugin '%s' has %i audio input ports "
                                 "audio input discarded.\n",
@@ -679,7 +689,7 @@ int dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
                                          "has %i audio input ports.",
                                          Descriptor->Name, p->NumOutputPorts);
     }
-    if (p->NumOutputPorts < csound->GetOutputArgCnt(p))
+    if (p->NumOutputPorts < ocnt)
       return csound->InitError(csound, "DSSI4CS: Plugin '%s' "
                                        "has %i audio output ports.",
                                        Descriptor->Name, p->NumOutputPorts);
@@ -1048,7 +1058,7 @@ static OENTRY dssi_localops[] = {
     {"dssiactivate", sizeof(DSSIACTIVATE), 3, "", "ik",
      (SUBR) dssiactivate_init, (SUBR) dssiactivate, NULL }
     ,
-    {"dssiaudio", sizeof(DSSIAUDIO), 5, "mmmm", "iy", (SUBR) dssiaudio_init,
+    {"dssiaudio", sizeof(DSSIAUDIO), 5, "mmmmmmmmm", "iMMMMMMMMM", (SUBR) dssiaudio_init,
      NULL, (SUBR) dssiaudio }
     ,
     {"dssictls", sizeof(DSSICTLS), 3, "", "iikk", (SUBR) dssictls_init,
