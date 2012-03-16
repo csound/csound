@@ -529,8 +529,8 @@ elif getPlatform() == 'win32':
         commonEnvironment.Prepend(CCFLAGS = ["-Wall"])
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
-        commonEnvironment.Append(SHLINKFLAGS = Split(' -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
-        commonEnvironment.Append(LINKFLAGS = Split(' -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
+        commonEnvironment.Append(SHLINKFLAGS = Split('-Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
+        commonEnvironment.Append(LINKFLAGS = Split('-Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
     else:
         commonEnvironment.Append(CCFLAGS =  '/DMSVC')
         commonEnvironment.Append(CXXFLAGS = '/EHsc')
@@ -885,6 +885,9 @@ if getPlatform() == 'darwin':
         tmp = OSXFrameworkBaseDir + '/Versions/%s'
         OSXFrameworkCurrentVersion = tmp % csoundLibraryVersion
 
+if getPlatform() == "win32":
+    Tool('lex')(commonEnvironment)
+    Tool('yacc')(commonEnvironment)
 csoundLibraryEnvironment = commonEnvironment.Clone()
 
 if commonEnvironment['buildMultiCore'] != '0':
@@ -894,9 +897,6 @@ if commonEnvironment['buildMultiCore'] != '0':
 if commonEnvironment['buildNewParser'] != '0':
     if commonEnvironment['buildMultiCore'] != '0':
       csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
-      if getPlatform() == "win32":
-        Tool('lex')(csoundLibraryEnvironment)
-        Tool('yacc')(csoundLibraryEnvironment)
     print 'CONFIGURATION DECISION: Building with new parser enabled'
     reportflag='--report=itemset'
     csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', reportflag, '-p','csound_orc'])
@@ -2810,7 +2810,7 @@ if not (commonEnvironment['buildBeats'] != '0'):
     print 'CONFIGURATION DECISION: Not building beats score frontend.'
 else:
     print "CONFIGURATION DECISION: Building beats score frontend"
-    csBeatsEnvironment = Environment(ENV = os.environ)
+    csBeatsEnvironment = commonEnvironment.Clone()
     csBeatsEnvironment.Append(LINKFLAGS = ['-lm'])
     csBeatsEnvironment.Append(YACCFLAGS = ['-d'])
     #csBeatsEnvironment.Append(LEXFLAGS = ['-Pbeats'])
@@ -2820,8 +2820,8 @@ else:
                                source = 'frontends/csbeats/beats.l')
     bb = csBeatsEnvironment.Program('csbeats',
                                     ['frontends/csbeats/main.c', 
-                                     'frontends/csbeats/lex.yy.c', 
-                                     'frontends/csbeats/beats.tab.c'])
+                                    byb, 
+                                    blb])
     executables.append(bb)
 
 if not (commonEnvironment['buildcatalog'] != '0'):

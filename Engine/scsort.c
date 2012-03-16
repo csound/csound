@@ -68,8 +68,16 @@ void scsortstr(CSOUND *csound, CORFIL *scin)
       swritestr(csound);
       m++;
     }
-    if (m==0) corfile_puts("f0 2147483647.0\ne\n", csound->scstr);
-    else corfile_puts("e\n", csound->scstr);
+    if (m==0) {
+      char *f_stmt = (char*)malloc(32*sizeof(char));
+      sprintf(f_stmt, "f0 %d\ne\n", 
+              (int)((2147483648 / csound->tran_sr) * csound->tran_ksmps));
+      corfile_puts(f_stmt, csound->scstr);
+      free(f_stmt);
+    }
+    else {
+      corfile_puts("e\n", csound->scstr);
+    }
     corfile_flush(csound->scstr);
     sfree(csound);              /* return all memory used */
 }
