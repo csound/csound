@@ -97,19 +97,46 @@ BAR             [Bb][Aa][Rr]
 "R"             { last_note = -3; return T_NOTE;}
 "Z"             { last_note = -3; return T_NOTE;}
 
-"ed"            { last_duration = 0.75; return T_DURATION;}
-"et"		{ last_duration = (1.0 / 3.0); return T_DURATION;}
 "e"		{ last_duration = 0.5; return T_DURATION;}
-"hd"		{ last_duration = 3.0; return T_DURATION;}
-"ht"		{ last_duration = (4.0/3.0); return T_DURATION;}
+"e."            { last_duration = 0.75; return T_DURATION;}
+"e.."           { last_duration = 0.875; return T_DURATION;}
+"ed"            { last_duration = 0.75; return T_DURATION;}
+"edd"           { last_duration = 0.875; return T_DURATION;}
+"eq"		{ last_duration = (4.0/5.0)*0.5; return T_DURATION;}
+"es"		{ last_duration = (8.0/7.0)*0.5; return T_DURATION;}
+"et"		{ last_duration = (1.0 / 3.0); return T_DURATION;}
 "h"		{ last_duration = 2.0; return T_DURATION;}
-"qd"		{ last_duration = 1.5; return T_DURATION;}
-"qt"		{ last_duration = (2.0/3.0); return T_DURATION;}
+"h."		{ last_duration = 3.0; return T_DURATION;}
+"h.."		{ last_duration = 3.5; return T_DURATION;}
+"hd"		{ last_duration = 3.0; return T_DURATION;}
+"hdd"		{ last_duration = 3.5; return T_DURATION;}
+"hq"		{ last_duration = (4.0/5.0)*2.0; return T_DURATION;}
+"hs"		{ last_duration = (8.0/7.0)*2.0; return T_DURATION;}
+"ht"		{ last_duration = (4.0/3.0); return T_DURATION;}
 "q"		{ last_duration = 1.0; return T_DURATION;}
-"sd"		{ last_duration = 0.375; return T_DURATION;}
-"st"		{ last_duration = (1.0 / 6.0); return T_DURATION;}
+"q."		{ last_duration = 1.5; return T_DURATION;}
+"q.."		{ last_duration = 1.75; return T_DURATION;}
+"qd"		{ last_duration = 1.5; return T_DURATION;}
+"qdd"		{ last_duration = 1.75; return T_DURATION;}
+"qq"		{ last_duration = (4.0/5.0); return T_DURATION;}
+"qs"		{ last_duration = (8.0/7.0); return T_DURATION;}
+"qt"		{ last_duration = (2.0/3.0); return T_DURATION;}
 "s"		{ last_duration = 0.25; return T_DURATION;}
+"s."		{ last_duration = 0.375; return T_DURATION;}
+"s.."		{ last_duration = 0.4375; return T_DURATION;}
+"sd"		{ last_duration = 0.375; return T_DURATION;}
+"sdd"		{ last_duration = 0.4375; return T_DURATION;}
+"sq"		{ last_duration = (4.0/5.0)*0.25; return T_DURATION;}
+"ss"		{ last_duration = (8.0/7.0)*0.25; return T_DURATION;}
+"st"		{ last_duration = (1.0 / 6.0); return T_DURATION;}
 "th"		{ last_duration = 0.125; return T_DURATION;}
+"th."		{ last_duration = 1.5*0.125; return T_DURATION;}
+"th.."		{ last_duration = 1.75*0.125; return T_DURATION;}
+"thd"		{ last_duration = 1.5*0.125; return T_DURATION;}
+"thdd"		{ last_duration = 1.75*0.125; return T_DURATION;}
+"thq"		{ last_duration = (4.0/5.0)*0.125; return T_DURATION;}
+"ths"		{ last_duration = (8.0/7.0)*0.125; return T_DURATION;}
+"tht"		{ last_duration = (2.0 / 3.0)*0.125; return T_DURATION;}
 "w"		{ last_duration = 4.0; return T_DURATION;}
 
 "fff"           { last_integer =  0; return T_DYN; }
@@ -120,6 +147,7 @@ BAR             [Bb][Aa][Rr]
 "p"             { last_integer = -5; return T_DYN; }
 "pp"            { last_integer = -6; return T_DYN; }
 "ppp"           { last_integer = -7; return T_DYN; }
+"pppp"          { last_integer = -8; return T_DYN; }
 
 "m"             { return T_m;}
 "b"             { return T_b;}
