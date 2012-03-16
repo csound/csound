@@ -47,7 +47,7 @@
 #define CS_PACKAGE_VERSION  VERSION
 #define CS_VERSION          (5)
 #define CS_SUBVER           (16)
-#define CS_PATCHLEVEL       (80)
+#define CS_PATCHLEVEL       (90)
 
 #define CS_APIVERSION       2   /* should be increased anytime a new version
                                    contains changes that an older host will
