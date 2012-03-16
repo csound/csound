@@ -32,6 +32,9 @@
 #elif defined(NeXT) || defined(__MACH__)
 #define IOBUFSAMPS   1024   /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   4096   /* default samps in hardware buffer,  -B settable */
+#elif defined(ANDROID)
+#define IOBUFSAMPS   2048   /* default sampframes in audio iobuf, -b settable */
+#define IODACSAMPS   4096   /* default samps in hardware buffer,  -B settable */
 #else
 #define IOBUFSAMPS   256    /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   1024   /* default samps in hardware buffer,  -B settable */

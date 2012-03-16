@@ -59,6 +59,7 @@ public class CsoundObj {
 	private Thread thread;
 	private boolean audioInEnabled = false;
 	private boolean messageLoggingEnabled = false;
+	int retVal = 0;
 
 	private CsoundCallbackWrapper callbacks;
 
@@ -97,12 +98,20 @@ public class CsoundObj {
 		return cachedSlider;
 	}
 
+	public CsoundValueCacheable addButton(Button button, String channelName,int type) {
+		CachedButton cachedButton = new CachedButton(button, channelName, type);
+		valuesCache.add(cachedButton);
+
+		return cachedButton;
+	}
+	
 	public CsoundValueCacheable addButton(Button button, String channelName) {
 		CachedButton cachedButton = new CachedButton(button, channelName);
 		valuesCache.add(cachedButton);
 
 		return cachedButton;
 	}
+
 
 	// -(id<ValueCacheable>)addButton:(UIButton*)uiButton
 	// forChannelName:(NSString*)channelName;
@@ -180,6 +189,10 @@ public class CsoundObj {
 		return csound.GetKsmps();
 	}
 
+	public int getError(){
+     return retVal;
+	}
+	
 	// -(float*)getInputChannelPtr:(NSString*)channelName;
 	// -(float*)getOutputChannelPtr:(NSString*)channelName;
 	// -(NSData*)getOutSamples;
@@ -190,15 +203,11 @@ public class CsoundObj {
 
 		AndroidCsound c = new AndroidCsound();
 		csound = c;
-		int retVal = c.PreCompile();
+		retVal = c.PreCompile();
 
 		Log.d("CsoundAndroid", "Return Value: " + retVal);
 
-		int minSize = AudioTrack.getMinBufferSize((int) c.GetSr(),
-				AudioFormat.CHANNEL_CONFIGURATION_STEREO,
-				AudioFormat.ENCODING_PCM_16BIT);
-
-		retVal = c.Compile(f.getAbsolutePath(), "-b" + 2048);
+		retVal = c.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
 
 		if (retVal == 0) {
@@ -232,6 +241,11 @@ public class CsoundObj {
 				listener.csoundObjComplete(this);
 			}
 
+		} else {			
+			for (CsoundObjCompletionListener listener : completionListeners) {
+				listener.csoundObjComplete(this);
+			}
+			
 		}
 
 	}
