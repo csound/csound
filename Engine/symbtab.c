@@ -139,6 +139,7 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "ampdbfs", T_FUNCTION);
     add_token(csound, "dbamp", T_FUNCTION);
     add_token(csound, "dbfsamp", T_FUNCTION);
+    add_token_p(csound, "ftcps", T_FUNCTION, TR);
     add_token_p(csound, "ftlen", T_FUNCTION, TR);
     add_token_p(csound, "ftsr", T_FUNCTION, TR);
     add_token_p(csound, "ftlptim", T_FUNCTION, TR);
