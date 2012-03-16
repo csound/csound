@@ -62,6 +62,7 @@ public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObj
 					File f = createTempFile(csd);
 					csoundObj.addSlider(fSlider, "slider", 0.,
 							1.);
+					csoundObj.addCompletionListener(SimpleTest1Activity.this);
 					csoundObj.startCsound(f);
 				} else {
 					csoundObj.stopCsound();

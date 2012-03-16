@@ -25,58 +25,106 @@
 
 package com.csounds.valueCacheable;
 
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.widget.Button;
 
 import com.csounds.CsoundObj;
 
 import csnd.CsoundMYFLTArray;
-import csnd.csndConstants;
 
 public class CachedButton extends AbstractValueCacheable {
 
 	private CsoundObj csoundObj;
 	private Button button;
 	private String channelName;
-	CsoundMYFLTArray ptr;
+	private int type;
+	CsoundMYFLTArray ptr, ptrX, ptrY;
+	double xpos, ypos;
 	
 	boolean selected = false;
 	boolean cacheDirty = false;
 	
-
-	public CachedButton(Button button, String channelName) {
+	public CachedButton(Button button, String channelName){
 		this.button = button;
 		this.channelName = channelName;
+		this.type = 0; 
+	}
+	
+	public CachedButton(Button button, String channelName, int type) {
+		this.button = button;
+		this.channelName = channelName;
+		this.type = type;
 	}
 	
 	@Override
 	public void setup(CsoundObj csoundObj) {
 		this.csoundObj = csoundObj;
-		button.setOnClickListener(new OnClickListener() {
-			
+		
+		if(type == 0){	
+		button.setOnClickListener(new OnClickListener() {	
 			@Override
 			public void onClick(View v) {
 				selected = true;
 				cacheDirty = true;
 			}
 		});
+		}
+		else {
+			button.setOnTouchListener(new OnTouchListener(){	
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					final int action = event.getAction() & MotionEvent.ACTION_MASK;
+					switch (action){
+					case MotionEvent.ACTION_DOWN:
+					case MotionEvent.ACTION_POINTER_DOWN:
+					button.setPressed(true);
+					selected = true;
+					break;
+					case MotionEvent.ACTION_POINTER_UP:
+					case MotionEvent.ACTION_UP:
+					selected = false;
+					button.setPressed(false);
+					break;
+					case MotionEvent.ACTION_MOVE:
+					break;
+					}
+					if (selected){
+					xpos = event.getX()/v.getWidth();
+					ypos = 1. - (event.getY()/v.getHeight());
+					} else xpos = ypos = 0.;
+					return true;
+				}
+			});
+			ptrX = csoundObj.getInputChannelPtr(channelName + ".x");
+			ptrY = csoundObj.getInputChannelPtr(channelName + ".y");
+		}
 		ptr = csoundObj.getInputChannelPtr(channelName);
 	}
 	
+	
 	@Override
 	public void updateValuesToCsound() {
+		if(type == 0){
 		if (csoundObj != null && cacheDirty) {
-			ptr.SetValue(0, (selected ? 1 : 0));
-			
+			ptr.SetValue(0, (selected ? 1. : 0.));		
 			cacheDirty = selected;
 			selected = false;
 		}
+		} else {
+			ptr.SetValue(0, (selected ? 1. : 0.));		
+			ptrX.SetValue(0, xpos);	
+			ptrY.SetValue(0, ypos);	
+		}
+		
 	}
 
 	@Override
 	public void cleanup() {
-		button.setOnClickListener(null);
+		if(type==0) button.setOnClickListener(null);
+		else button.setOnTouchListener(null);
 		ptr.Clear();
 		ptr = null;
 	}
