@@ -1442,7 +1442,7 @@ void oload(CSOUND *p)
     if (O->Beatmode && O->cmdTempo > 0) {
       /* if performing from beats, set the initial tempo */
       p->curBeat_inc = (double) O->cmdTempo / (60.0 * (double) p->ekr);
-      p->ibeatTime = (int)(p->esr*60.0 / (double) O->cmdTempo);
+      p->ibeatTime = (int64_t)(p->esr*60.0 / (double) O->cmdTempo);
     }
     else {
       p->curBeat_inc = 1.0 / (double) p->ekr;

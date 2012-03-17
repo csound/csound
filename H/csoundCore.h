@@ -1062,12 +1062,12 @@ typedef struct {
     /** start time of current section    */
     double        timeOffs, beatOffs;
     /** current time in seconds, inc. per kprd */
-    long          icurTime;   /* Current time in samples */
+    int64_t       icurTime;   /* Current time in samples */
     double        curTime_inc;
     /** current time in beats, inc per kprd */
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
-    long          ibeatTime;   /* Beat time in samples */
+    int64_t       ibeatTime;   /* Beat time in samples */
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t spoutlock, spinlock;
 #else
@@ -1186,7 +1186,7 @@ typedef struct {
     EVTNODE       *OrcTrigEvts;             /* List of events to be started */
     EVTNODE       *freeEvtNodes;
     int           csoundIsScorePending_;
-    int           advanceCnt;
+    int64_t       advanceCnt;
     int           initonly;
     int           evt_poll_cnt;
     int           evt_poll_maxcnt;
@@ -1209,7 +1209,7 @@ typedef struct {
     void          **cfgVariableDB;
     double        prvbt, curbt, nxtbt;
     double        curp2, nxtim;
-    int           cyclesRemaining;
+    int64_t       cyclesRemaining;
     EVTBLK        evt;
     void          *memalloc_db;
     MGLOBAL       *midiGlobals;
