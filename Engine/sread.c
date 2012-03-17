@@ -795,7 +795,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
     mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
     mm->name = (char*)mmalloc(csound,4);
     strcpy(mm->name, "INF");
-    mm->body = corfile_create_r("2147483647.0");
+    mm->body = corfile_create_r("800000000000.0");
 #ifdef MACDEBUG
     csound->DebugMsg(csound,"%s(%d): INF %p\n", __FILE__, __LINE__, mm->body);
 #endif
@@ -1836,7 +1836,7 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
     char    *p;
     MYFLT   x = (MYFLT) strtod(s, &p);
 
-    if (*p=='z') return FL(INF); /* Infinity or 7 years */
+    if (*p=='z') return FL(800000000000.0); /* 25367 years */
     if (UNLIKELY(s == p || !(*p == '\0' || isspace(*p)))) {
       csound->Message(csound, Str("sread: illegal number format:  "));
       p = s;
