@@ -37,6 +37,12 @@
     double base_time = 0;
     double last_base_time = 0;
     double bpm;
+    int pnum;
+    double *p;
+    int largestp = 10;
+    int *pmax;
+    int largestinst = 10;
+
     int permeasure;
     int instrument;
     double pitch = -1.0;
@@ -47,6 +53,8 @@
     extern int yyline;
     extern FILE* myout;
     extern int debug;
+    extern int yylex(void);
+    extern void yyerror (char *);
 %}
 %token  S_NL
 %token  S_EQ
@@ -63,6 +71,7 @@
 %token  T_b
 %token  T_QUIT
 %token  T_BAR
+%token  T_PARA
 
 %%
 
@@ -71,7 +80,7 @@ goal	: goal statement {}
         ;
 
 statement : S_NL                                { }
-        | T_QUIT                                { fprintf(myout ,"e\n"); return; }
+        | T_QUIT                                { fprintf(myout ,"e\n"); return 0; }
         | T_BEATS S_EQ T_INTEGER S_NL		{ base_time = last_base_time; bpm = (double)last_integer; printf(";;;setting bpm=%f\n", bpm);}
         | T_PERMEASURE S_EQ T_INTEGER S_NL 	{ permeasure = last_integer; printf(";;;setting permeasure=%d\n", permeasure);}
         | T_BAR S_NL                            { onset0 += permeasure; }
@@ -82,6 +91,11 @@ statement : S_NL                                { }
                       instrument, onset0, onset1, last_onset0, last_onset1);
               fprintf(stderr, "length,last=%f,%f pitch,last=%f,%f amp,last=%d,%d\n",
                       length,last_length, pitch, last_pitch, ampl, last_ampl);
+            }
+            if (instrument>largestinst) {
+              int tmp = largestinst+1;
+              pmax = realloc(pmax, (largestinst=instrument+5)*sizeof(int));
+              memset(&pmax[tmp], '\0', (largestinst-tmp)*sizeof(int));
             }
             if (onset0<0) onset0 = last_onset0;
             if (onset1<0) onset1 = last_onset1;
@@ -136,6 +150,17 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
                              onset1 += 1; };
         | T_DYN            { ampl = last_integer; }
 //        | S_PLS            { onset0 = last_onset1; onset1 += last_length; }
+        | T_PARA '=' T_FLOAT { 
+            if (pnum>pmax[instrument]) {
+              pmax[instrument] = pnum;
+            }
+            if (pnum>largestp) { 
+              int tmp = largestp;
+              p = (double*)realloc(p, (largestp=pnum+1)+sizeof(double));
+              memset(&p[tmp+1], '\0', (largestp-tmp)*sizeof(double));
+            }
+            p[pnum] = last_float;
+          }
         ;
 
 %%
