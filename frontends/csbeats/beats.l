@@ -35,6 +35,7 @@ int yyline = 0;
  extern double bpm;
  int next_instr=0;
  extern int instrument;
+ extern int pnum;
 %}
 
 INTGR           [0-9]+
@@ -105,6 +106,7 @@ BAR             [Bb][Aa][Rr]
 "eq"		{ last_duration = (4.0/5.0)*0.5; return T_DURATION;}
 "es"		{ last_duration = (8.0/7.0)*0.5; return T_DURATION;}
 "et"		{ last_duration = (1.0 / 3.0); return T_DURATION;}
+"et."		{ last_duration = (1.0 / 3.0)*1.5; return T_DURATION;}
 "h"		{ last_duration = 2.0; return T_DURATION;}
 "h."		{ last_duration = 3.0; return T_DURATION;}
 "h.."		{ last_duration = 3.5; return T_DURATION;}
@@ -113,6 +115,7 @@ BAR             [Bb][Aa][Rr]
 "hq"		{ last_duration = (4.0/5.0)*2.0; return T_DURATION;}
 "hs"		{ last_duration = (8.0/7.0)*2.0; return T_DURATION;}
 "ht"		{ last_duration = (4.0/3.0); return T_DURATION;}
+"ht."		{ last_duration = (4.0/3.0)*1.5; return T_DURATION;}
 "q"		{ last_duration = 1.0; return T_DURATION;}
 "q."		{ last_duration = 1.5; return T_DURATION;}
 "q.."		{ last_duration = 1.75; return T_DURATION;}
@@ -121,6 +124,7 @@ BAR             [Bb][Aa][Rr]
 "qq"		{ last_duration = (4.0/5.0); return T_DURATION;}
 "qs"		{ last_duration = (8.0/7.0); return T_DURATION;}
 "qt"		{ last_duration = (2.0/3.0); return T_DURATION;}
+"qt."		{ last_duration = (2.0/3.0)*1.5; return T_DURATION;}
 "s"		{ last_duration = 0.25; return T_DURATION;}
 "s."		{ last_duration = 0.375; return T_DURATION;}
 "s.."		{ last_duration = 0.4375; return T_DURATION;}
@@ -129,6 +133,7 @@ BAR             [Bb][Aa][Rr]
 "sq"		{ last_duration = (4.0/5.0)*0.25; return T_DURATION;}
 "ss"		{ last_duration = (8.0/7.0)*0.25; return T_DURATION;}
 "st"		{ last_duration = (1.0 / 6.0); return T_DURATION;}
+"st."		{ last_duration = (1.0 / 6.0)*1.5; return T_DURATION;}
 "th"		{ last_duration = 0.125; return T_DURATION;}
 "th."		{ last_duration = 1.5*0.125; return T_DURATION;}
 "th.."		{ last_duration = 1.75*0.125; return T_DURATION;}
@@ -137,6 +142,7 @@ BAR             [Bb][Aa][Rr]
 "thq"		{ last_duration = (4.0/5.0)*0.125; return T_DURATION;}
 "ths"		{ last_duration = (8.0/7.0)*0.125; return T_DURATION;}
 "tht"		{ last_duration = (2.0 / 3.0)*0.125; return T_DURATION;}
+"tht."		{ last_duration = (2.0 / 3.0)*0.125*1.5; return T_DURATION;}
 "w"		{ last_duration = 4.0; return T_DURATION;}
 
 "fff"           { last_integer =  0; return T_DYN; }
@@ -148,6 +154,8 @@ BAR             [Bb][Aa][Rr]
 "pp"            { last_integer = -6; return T_DYN; }
 "ppp"           { last_integer = -7; return T_DYN; }
 "pppp"          { last_integer = -8; return T_DYN; }
+
+p[0-9]+         { pnum = atoi(&yytext[1]); return T_PARA; }
 
 "m"             { return T_m;}
 "b"             { return T_b;}
