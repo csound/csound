@@ -24,7 +24,7 @@
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
-#define VERSION "5.16"
+#define VERSION "5.17"
 
 /* Define to the full name of this package. */
 #ifndef PARCS
