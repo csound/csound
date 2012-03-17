@@ -148,7 +148,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     tp->durslp = FL(0.0);                     /* clear last durslp */
     if (UNLIKELY(++tp > (TSEG*) csound->tplim))
       goto error3;
-    tp->betbas = FL(999999.9);                /* and cap with large betval */
+    tp->betbas = FL(9223372036854775807.0);   /* and cap with large betval */
     return(1);
 
  error1:
