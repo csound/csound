@@ -2,6 +2,7 @@
 # spec file for package csound
 #
 # Copyright (c) 2011 SUSE LINUX Products GmbH, Nuernberg, Germany.
+#           (c) 2012 Csound Developers
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -24,8 +25,8 @@ BuildRequires:  alsa-devel fdupes fluidsynth-devel gcc-c++ jack-devel liblo-deve
 BuildRequires:  fltk-devel libjpeg-devel libpng-devel xorg-x11-devel
 %endif
 Summary:        Computer Sound Synthesis and Composition Program
-Version:        5.17.0
-Release:        133
+Version:        5.17.1
+Release:        134
 License:        GFDL-1.2 ; LGPL-2.1+ ; MIT
 Group:          Productivity/Multimedia/Sound/Utilities
 Source:         Csound%{version}.tar.bz2
