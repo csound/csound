@@ -26,8 +26,6 @@
 package com.csounds.tests;
 
 import java.io.File;
-import java.text.MessageFormat;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -42,7 +40,6 @@ import com.csounds.BaseCsoundActivity;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
 import com.csounds.R;
-import com.csounds.valueCacheable.CsoundValueCacheable;
 
 public class ButtonTestActivity extends BaseCsoundActivity implements
 		CsoundObjCompletionListener {

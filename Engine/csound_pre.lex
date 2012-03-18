@@ -852,7 +852,7 @@ void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM* qq)
      add_math_const_macro(csound, qq,"2_SQRTPI", "1.12837916709551257390");
      add_math_const_macro(csound, qq, "SQRT2", "1.41421356237309504880");
      add_math_const_macro(csound, qq,"SQRT1_2","0.70710678118654752440");
-     add_math_const_macro(csound, qq, "INF",   "2147483647.0"); /* ~7 years */
+     add_math_const_macro(csound, qq, "INF",   "800000000000.0"); /* ~25367 years */
 }
 
 void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)

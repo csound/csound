@@ -103,7 +103,7 @@ int     csoundCheckOpcodePluginFile(CSOUND *, const char *);
 int     csoundLoadAllPluginOpcodes(CSOUND *);
 int     csoundLoadAndInitModule(CSOUND *, const char *);
 void    csoundNotifyFileOpened(CSOUND *, const char *, int, int, int);
-int     insert_score_event_at_sample(CSOUND *, EVTBLK *, long);
+int     insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);
 
 /**
  * Register a function to be called at note deactivation.
