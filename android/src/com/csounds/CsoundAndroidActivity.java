@@ -1,6 +1,7 @@
 /* 
  
  CsoundBaseActivity.java:
+
  
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
  
@@ -25,6 +26,7 @@
 
 package com.csounds;
 
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -48,10 +50,12 @@ public class CsoundAndroidActivity extends BaseCsoundActivity {
 
 	String[] testNames = new String[] { "Simple Test 1", "Simple Test 2", "Button Test", 
 			"Ping Pong Delay", "Harmonizer", "Accelerometer", "Csound Haiku IV", "MultiTouch XY", "Waveview"};
+	@SuppressWarnings("rawtypes")
 	Class[] activities = new Class[] { SimpleTest1Activity.class, SimpleTest2Activity.class, 
 			ButtonTestActivity.class, PingPongDelayActivity.class, HarmonizerActivity.class, 
 			AccelerometerActivity.class, CsoundHaikuIVActivity.class, MultiTouchXYActivity.class,
 			WaveviewTestActivity.class};
+	
 	
 	/** Called when the activity is first created. */
 	@Override
