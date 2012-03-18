@@ -319,7 +319,7 @@ static int getscochar(CSOUND *csound, int expand)
     c = corfile_getc(ST(str)->cf);
     if (c == EOF) {
       if (ST(str) == &ST(inputs)[0]) {
-        corfile_ungetc(ST(str)->cf);      /* to ensure repeated EOF */
+        corfile_putc('\n', ST(str)->cf);  /* to ensure repeated EOF */
         return EOF;
       }
       if (ST(str)->mac == 0) {
