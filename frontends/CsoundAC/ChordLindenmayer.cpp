@@ -140,30 +140,7 @@ namespace csound
 
   void ChordLindenmayer::tieOverlappingNotes()
   {
-    // If the score contains two notes of the same pitch
-    // and loudness greater than 0 that overlap in time,
-    // extend the earlier note and discard the later note.
-    // Retain the instrument number of the earlier note.
-    score.sort();
-    for (int laterI = score.size() - 1; laterI > 1; --laterI) {
-      Event &laterEvent = score[laterI];
-      for (int earlierI = laterI - 1; earlierI > 0; --earlierI) {
-        Event &earlierEvent = score[earlierI];
-        if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
-          continue;
-        }
-        if (earlierEvent.getVelocity() <= 0.0 || laterEvent.getVelocity() <= 0.0) {
-          continue;
-        }
-        if (earlierEvent.getOffTime() < laterEvent.getTime()) {
-          continue;
-        }
-        // Ok, must be tied.
-        earlierEvent.setOffTime(laterEvent.getOffTime());
-        score.erase(score.begin() + laterI);
-        break;
-      }
-    }
+    score.tieOverlappingNotes();
   }
 
   void ChordLindenmayer::applyVoiceleadingOperations()

@@ -342,6 +342,17 @@ namespace csound
      * stretch or shrink musical time.
      */
     virtual void setDuration(double targetDuration);
+    /**
+     * If the score contains two notes of the same pitch
+     * and loudness greater than 0 that overlap in time,
+     * extend the earlier note and discard the later note.
+     */
+    virtual void tieOverlappingNotes(bool considerInstrumentNumber = false);
+    /**
+     * Confirm pitches in this score to the closest pitch in the indicated 
+     * system of equal temperament.
+     */
+    virtual void temper(double tonesPerOctave = 12.0);
   };
 }
 #endif
