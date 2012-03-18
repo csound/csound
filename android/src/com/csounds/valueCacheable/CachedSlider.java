@@ -86,7 +86,7 @@ public class CachedSlider extends AbstractValueCacheable{
 		cachedValue = (percent * (maxValue - minValue)) + minValue;
 		cacheDirty = true;
 		
-		ptr = csoundObj.getInputChannelPtr(channelName);
+		ptr = this.csoundObj.getInputChannelPtr(channelName);
 
 	}
 	

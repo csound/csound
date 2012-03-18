@@ -59,6 +59,7 @@ public class CsoundObj {
 	private Thread thread;
 	private boolean audioInEnabled = false;
 	private boolean messageLoggingEnabled = false;
+	private boolean useAudioTrack = false;
 	int retVal = 0;
 
 	private CsoundCallbackWrapper callbacks;
@@ -66,6 +67,12 @@ public class CsoundObj {
 	public CsoundObj() {
 		valuesCache = new ArrayList<CsoundValueCacheable>();
 		completionListeners = new ArrayList<CsoundObjCompletionListener>();
+	}
+	
+	public CsoundObj(boolean useAudioTrack) {
+		valuesCache = new ArrayList<CsoundValueCacheable>();
+		completionListeners = new ArrayList<CsoundObjCompletionListener>();
+		this.useAudioTrack = useAudioTrack;
 	}
 
 	/* VALUE CACHEABLE */
@@ -170,7 +177,10 @@ public class CsoundObj {
 				setPriority(Thread.MAX_PRIORITY);
 				// android.os.Process
 				// .setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-				runCsoundOpenSL(csdFile);
+				if(useAudioTrack == false)
+				  runCsoundOpenSL(csdFile);
+				else
+				  runCsoundAudioTrack(csdFile);
 			}
 		};
 		thread.start();
@@ -250,7 +260,7 @@ public class CsoundObj {
 
 	}
 
-	private void runCsound(File f) {
+	private void runCsoundAudioTrack(File f) {
 
 		csound = new Csound();
 
@@ -264,9 +274,9 @@ public class CsoundObj {
 				}
 
 			};
-			// callbacks.SetMessageCallback();
+			callbacks.SetMessageCallback();
 		}
-		int retVal = csound.PreCompile();
+		retVal = csound.PreCompile();
 		csound.SetHostImplementedAudioIO(1, 0);
 
 		Log.d("CsoundAndroid", "Return Value: " + retVal);
@@ -363,8 +373,7 @@ public class CsoundObj {
 			Log.d("CsoundObj", "Multiplier: " + multiplier + " : "
 					+ recMultiplier);
 
-			int performRetVal = 0;
-
+			
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.updateValuesToCsound();
 			}
@@ -384,9 +393,7 @@ public class CsoundObj {
 					} else {
 						audioIn.SetValue(i, sample);
 					}
-
 				}
-
 			}
 
 			while (csound.PerformKsmps() == 0 && !stopped) {
@@ -431,11 +438,8 @@ public class CsoundObj {
 						} else {
 							audioIn.SetValue(i, sample);
 						}
-
 					}
-
 				}
-
 			}
 
 			audioTrack.stop();
@@ -460,7 +464,10 @@ public class CsoundObj {
 			}
 
 		}
-
-	}
-
+		else {
+			for (CsoundObjCompletionListener listener : completionListeners) {
+				listener.csoundObjComplete(this);
+			}
+		}
+	} 		
 }

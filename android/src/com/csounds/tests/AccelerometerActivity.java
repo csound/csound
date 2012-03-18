@@ -26,23 +26,15 @@
 package com.csounds.tests;
 
 import java.io.File;
-import java.text.MessageFormat;
-
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
 import com.csounds.BaseCsoundActivity;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
 import com.csounds.R;
-import com.csounds.valueCacheable.CsoundValueCacheable;
 
 public class AccelerometerActivity extends BaseCsoundActivity implements
 		CsoundObjCompletionListener {
