@@ -1279,4 +1279,38 @@ void Score::remove(size_t index)
 {
     erase(begin() + index);
 }
+void Score::tieOverlappingNotes(bool considerInstrumentNumber)
+{
+    sort();
+    for (int laterI = size() - 1; laterI > 1; --laterI) {
+        Event &laterEvent = (*this)[laterI];
+        for (int earlierI = laterI - 1; earlierI > 0; --earlierI) {
+            Event &earlierEvent = (*this)[earlierI];
+            if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
+              continue;
+            }
+            if (earlierEvent.getVelocity() <= 0.0 || laterEvent.getVelocity() <= 0.0) {
+              continue;
+            }
+            if (earlierEvent.getOffTime() < laterEvent.getTime()) {
+              continue;
+            }
+            if (considerInstrumentNumber && (earlierEvent.getChannel() != laterEvent.getChannel())) {
+                continue;
+            }
+            // Ok, must be tied.
+            earlierEvent.setOffTime(laterEvent.getOffTime());
+            erase(begin() + laterI);
+            break;
+        }
+    }
 }
+
+void Score::temper(double tonesPerOctave)
+{
+    for (size_t i = 0, n = size(); i < n; ++i) {
+        (*this)[i].temper(tonesPerOctave);
+    }
+}
+}
+
