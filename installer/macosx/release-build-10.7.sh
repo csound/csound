@@ -1,9 +1,9 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual
-export PACKAGE_NAME=csound5.17.0-OSX10.7-universal.pkg
-export DMG_DIR="Csound 5.17.0"
-export DMG_NAME="csound5.17.0-OSX10.7-universal.dmg"
+export PACKAGE_NAME=csound5.17.1-OSX10.7-universal.pkg
+export DMG_DIR="Csound 5.17.1"
+export DMG_NAME="csound5.17.1-OSX10.7-universal.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
