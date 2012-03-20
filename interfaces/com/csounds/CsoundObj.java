@@ -51,7 +51,8 @@ public class CsoundObj {
     private Thread thread;
     private boolean audioInEnabled = false;
     private boolean messageLoggingEnabled = false;
-    int retVal = 0;
+    private boolean useJavaSound = true;
+    private int retVal = 0;
 
     private CsoundCallbackWrapper callbacks;
 
@@ -60,6 +61,11 @@ public class CsoundObj {
 	completionListeners = new ArrayList<CsoundObjCompletionListener>();
     }
 	
+   public CsoundObj(boolean useJavaSound) {
+	valuesCache = new ArrayList<CsoundValueCacheable>();
+	completionListeners = new ArrayList<CsoundObjCompletionListener>();
+        this.useJavaSound = useJavaSound;
+    }
 
     /* VALUE CACHEABLE */
 
