@@ -237,17 +237,18 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                                                        PARM->xstrmax+=80);
                       csound->DebugMsg(csound,"Extending xstr buffer\n");
                   }
-//                  csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
+                  //csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
                   PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
 
-<xstr>.     { if (PARM->xstrptr+2==PARM->xstrmax) {
+<xstr>"\r"     { }
+<xstr>.         { if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                       csound->DebugMsg(csound,"Extending xstr buffer\n");
                   }
-//                  csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
+                  //csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
                   PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
