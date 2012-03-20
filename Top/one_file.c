@@ -436,6 +436,8 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
         sprintf(sys, "%s %s %s", prog, extname, ST(sconame));
         if (UNLIKELY(system(sys) != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
+          remove(extname);
+          remove(ST(sconame));
           return FALSE;
         }
         remove(extname);
