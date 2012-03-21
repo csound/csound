@@ -1517,7 +1517,7 @@ else:
         libs.append(javaWrapper)
         jcsnd = javaWrapperEnvironment.Java(
             target = './interfaces', source = './interfaces',
-            JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+            JAVACFLAGS = ['-source', '5', '-target', '5'])
         try:
             os.mkdir('interfaces/csnd', 0755)
         except:
@@ -2272,7 +2272,7 @@ def addOSXResourceFork(env, baseName, dirName):
         else:
             fileName = baseName
         env.Command(('%s/resources' % fileName).replace('/', '_'), fileName,
-                    "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
+                    "Rez -i APPL -o $SOURCE cs5.r")
 
 csoundProgramSources = ['frontends/csound/csound_main.c']
 if getPlatform() == 'linux':
@@ -2694,7 +2694,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         SHLIBPREFIX = '')
     if getPlatform() == 'darwin':
         csTclEnvironment.Command('cswish_resources', 'cswish',
-                                 "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
+                                 "Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
         #if commonEnvironment['dynamicCsoundLibrary'] == '1':
         #  if commonEnvironment['useDouble'] == '0': 
         #    tcloc = 'CsoundLib.framework/Resources/TclTk/'
