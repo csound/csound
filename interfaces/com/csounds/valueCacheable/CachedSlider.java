@@ -25,6 +25,8 @@
 
 package com.csounds.valueCacheable;
 import javax.swing.JSlider;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 import com.csounds.CsoundObj;
 import csnd.CsoundMYFLTArray;
 
@@ -43,34 +45,15 @@ public class CachedSlider extends AbstractValueCacheable{
 		this.maxValue = max;
 		
 		slider.addChangeListener(new SliderChangeListener());
-
-                class SliderChangeListener implements ChangeListener {
-			
-			@Override
-			public void onStateChanged(ChangeEvent e) {
-				
-                                    if (!source.getValueIsAdjusting()) {
-                                        double progres = source.getValue();
-					double percent = progress / (double) slider.getMax();
-					double value = (percent * (maxValue - minValue)) + minValue;
-					
-					if(value != cachedValue) {
-						cachedValue = value;
-						cacheDirty = true;
-					}
-				    
-				
-				    }
-			}
-		}
+	}
 
 	@Override
 	public void setup(CsoundObj csoundObj) {
 		this.csoundObj = csoundObj;
 		
-		double percent = slider.getValue() / (double)slider.getMax();
-		cachedValue = (percent * (maxValue - minValue)) + minValue;
-		cacheDirty = true;
+		//double percent = slider.getValue() / (double)slider.getMax();
+		//cachedValue = (percent * (maxValue - minValue)) + minValue;
+		//cacheDirty = true;
 		
 		ptr = this.csoundObj.getInputChannelPtr(channelName);
 
@@ -86,10 +69,30 @@ public class CachedSlider extends AbstractValueCacheable{
 
 	@Override
 	public void cleanup() {
-		seekBar.setOnSeekBarChangeListener(null);
+	//	seekBar.setOnSeekBarChangeListener(null);
 		ptr.Clear();
 		ptr = null;
 	}
 	
+
+
+        class SliderChangeListener implements ChangeListener {
+			
+		public void stateChanged(ChangeEvent e) {
+				
+                           //if (!source.getValueIsAdjusting()) {
+                                //double progress = source.getValue();
+				//double percent = progress / (double) slider.getMax();
+				//double value = (percent * (maxValue - minValue)) + minValue;
+					
+				//if(value != cachedValue) {
+				//	cachedValue = value;
+				//	cacheDirty = true;
+				//}
+				    
+				
+			    //}
+		}
+	}
 	
 }
