@@ -31,7 +31,6 @@ import javax.swing.JSlider;
 import javax.swing.JButton;
 import javax.sound.sampled.*;
 
-import com.csounds.valueCacheable.CachedAccelerometer;
 import com.csounds.valueCacheable.CachedButton;
 import com.csounds.valueCacheable.CachedSlider;
 import com.csounds.valueCacheable.CsoundValueCacheable;
@@ -52,7 +51,8 @@ public class CsoundObj {
     private boolean audioInEnabled = false;
     private boolean messageLoggingEnabled = false;
     private boolean useJavaSound = true;
-    private int retVal = 0;
+    int retVal = 0;
+
 
     private CsoundCallbackWrapper callbacks;
 
@@ -177,9 +177,9 @@ public class CsoundObj {
     private void runCsound(File f) {
 
 	csound = new Csound();
-	retVal = c.PreCompile();
+	retVal = csound.PreCompile();
 
-	retVal = c.Compile(f.getAbsolutePath());
+	retVal = csound.Compile(f.getAbsolutePath());
 
 	if (retVal == 0) {
 	    for (CsoundValueCacheable cacheable : valuesCache) {
@@ -190,7 +190,7 @@ public class CsoundObj {
 		cacheable.updateValuesToCsound();
 	    }
 
-	    while (c.PerformKsmps() == 0 && !stopped) {
+	    while (csound.PerformKsmps() == 0 && !stopped) {
 		for (CsoundValueCacheable cacheable : valuesCache) {
 		    cacheable.updateValuesFromCsound();
 		}
@@ -199,9 +199,9 @@ public class CsoundObj {
 		}
 	    }
 
-	    c.Stop();
-	    c.Cleanup();
-	    c.Reset();
+	    csound.Stop();
+	    csound.Cleanup();
+	    csound.Reset();
 
 	    for (CsoundValueCacheable cacheable : valuesCache) {
 		cacheable.cleanup();
@@ -250,10 +250,16 @@ public class CsoundObj {
 	    byte[] byteBuffer = new byte[buffsizeBytes];
 	    AudioFormat format = new AudioFormat((float) csound.GetSr(), 16, csound.GetNchnls(),true,false);
 	    DataLine.Info targetInfo = new DataLine.Info(SourceDataLine.class, format, buffsizeBytes);
-	    SourceDataLine line = (SourceDataLine) AudioSystem.getLine(targetInfo);
-	    double conv = 32768.0/csp.Get0dBFS();
+	    SourceDataLine line; 	
+	  
+	    double conv = 32768.0/csound.Get0dBFS();
 	    short sample;
-	    line.open(format, buffsizeBytes);
+            try {	
+	        line = (SourceDataLine) AudioSystem.getLine(targetInfo);
+	    	line.open(format, buffsizeBytes);
+            } catch (Exception e) {
+		return;
+            } 
 
 	    for (CsoundValueCacheable cacheable : valuesCache) {
 		cacheable.updateValuesToCsound();

@@ -24,7 +24,7 @@
  */
 
 package com.csounds.valueCacheable;
-import import javax.swing.JButton;
+import javax.swing.JButton;
 import com.csounds.CsoundObj;
 import csnd.CsoundMYFLTArray;
 
@@ -36,8 +36,11 @@ public class CachedButton extends AbstractValueCacheable {
 	CsoundMYFLTArray ptr;
 	boolean selected = false;
 	boolean cacheDirty = false;
+	int type = 0;
+	int xpos = 0;
+ 	int ypos = 0;
 	
-	public CachedButton(Button button, String channelName){
+	public CachedButton(JButton button, String channelName){
 		this.button = button;
 		this.channelName = channelName;
 	}
@@ -55,22 +58,21 @@ public class CachedButton extends AbstractValueCacheable {
 	@Override
 	public void updateValuesToCsound() {
 		if(type == 0){
-		if (csoundObj != null && cacheDirty) {
-			ptr.SetValue(0, (selected ? 1. : 0.));		
-			cacheDirty = selected;
-			selected = false;
-		}
+			if (csoundObj != null && cacheDirty) {
+				ptr.SetValue(0, (selected ? 1. : 0.));		
+				cacheDirty = selected;
+				selected = false;
+			}
 		} else {
 			ptr.SetValue(0, (selected ? 1. : 0.));		
-			ptrX.SetValue(0, xpos);	
-			ptrY.SetValue(0, ypos);	
+			//ptrX.SetValue(0, xpos);	
+			//ptrY.SetValue(0, ypos);	
 		}
-		
 	}
 
 	@Override
 	public void cleanup() {
-		else button.addActionListener(null);
+		//button.removeActionListener(this);
 		ptr.Clear();
 		ptr = null;
 	}
