@@ -43,7 +43,7 @@ public class CsoundHaikuIVActivity extends BaseCsoundActivity {
 
 		String csd = getResourceFileAsString(R.raw.iv);
 		File f = createTempFile(csd);
-		csoundObj.setMessageLoggingEnabled(true);
+		//csoundObj.setMessageLoggingEnabled(true);
 		csoundObj.startCsound(f);
 		
 	}
