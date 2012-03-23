@@ -1,6 +1,6 @@
 /* 
  
- HarmonizerActivity.java:
+ PingPongDelayActivity.java:
  
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
  
@@ -23,45 +23,48 @@
  
  */
 
-package com.csounds.tests;
+package com.csounds.examples.tests;
 
 import java.io.File;
-import android.os.Bundle;
 
+import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
-import com.csounds.BaseCsoundActivity;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
-import com.csounds.R;
+import com.csounds.examples.BaseCsoundActivity;
+import com.csounds.examples.R;
 
-
-public class HarmonizerActivity extends BaseCsoundActivity implements
+public class PingPongDelayActivity extends BaseCsoundActivity implements
 		CsoundObjCompletionListener {
 
 	ToggleButton startStopButton = null;
 
-	SeekBar harmonyPitchSlider;
-	SeekBar gainSlider;
-
+	SeekBar leftDelaySlider;
+	SeekBar leftFeedbackSlider;
+	SeekBar rightDelaySlider;
+	SeekBar rightFeedbackSlider;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.harmonizer);
+		setContentView(R.layout.ping_pong_delay);
 
 		startStopButton = (ToggleButton) findViewById(R.id.onOffButton);
 
-		harmonyPitchSlider = (SeekBar) findViewById(R.id.harmony_pitch_slider);
-		gainSlider = (SeekBar) findViewById(R.id.gain_slider);
-		
+		leftDelaySlider = (SeekBar) findViewById(R.id.left_delay_slider);
+		leftFeedbackSlider = (SeekBar) findViewById(R.id.left_feedback_slider);
+		rightDelaySlider = (SeekBar) findViewById(R.id.right_delay_slider);
+		rightFeedbackSlider = (SeekBar) findViewById(R.id.right_feedback_slider);
 
-		setSeekBarValue(harmonyPitchSlider, 0, 1, .5);
-		setSeekBarValue(gainSlider, .5, 3, 1.5);
+		setSeekBarValue(leftDelaySlider, 50, 3000, 300);
+		setSeekBarValue(leftFeedbackSlider, 0, .8, .5);
+		setSeekBarValue(rightDelaySlider, 50, 3000, 300);
+		setSeekBarValue(rightFeedbackSlider, 0, .8, .5);
 
 		startStopButton
 				.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -70,14 +73,18 @@ public class HarmonizerActivity extends BaseCsoundActivity implements
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						if (isChecked) {
-							String csd = getResourceFileAsString(R.raw.harmonizer);
+							String csd = getResourceFileAsString(R.raw.ping_pong_delay);
 							File f = createTempFile(csd);
 
-							csoundObj.addSlider(harmonyPitchSlider,
-									"slider", 0, 1);
-							csoundObj.addSlider(gainSlider,
-									"gain", .5, 3);
-							
+							csoundObj.addSlider(leftDelaySlider,
+									"leftDelayTime", 50, 3000);
+							csoundObj.addSlider(leftFeedbackSlider,
+									"leftFeedback", 0, .8);
+							csoundObj.addSlider(rightDelaySlider,
+									"rightDelayTime", 50, 3000);
+							csoundObj.addSlider(rightFeedbackSlider,
+									"rightFeedback", 0, .8);
+
 							csoundObj.setAudioInEnabled(true);
 							csoundObj.startCsound(f);
 						} else {

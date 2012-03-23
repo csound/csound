@@ -1,6 +1,6 @@
 /* 
  
- SimpleTest2Activity.java:
+ ButtonTestActivity.java:
  
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
  
@@ -23,29 +23,33 @@
  
  */
 
-package com.csounds.tests;
+package com.csounds.examples.tests;
 
 import java.io.File;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
-import com.csounds.BaseCsoundActivity;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
-import com.csounds.R;
-import com.csounds.valueCacheable.CsoundValueCacheable;
+import com.csounds.examples.BaseCsoundActivity;
+import com.csounds.examples.R;
 
-public class SimpleTest2Activity extends BaseCsoundActivity implements
+public class ButtonTestActivity extends BaseCsoundActivity implements
 		CsoundObjCompletionListener {
-
+	
 	ToggleButton startStopButton = null;
 
-	SeekBar noteRateSlider;
+	Button eventButton;
+	Button valueButton;
+	
 	SeekBar durationSlider;
 	SeekBar attackSlider;
 	SeekBar decaySlider;
@@ -56,18 +60,19 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.simple_test_2);
+		setContentView(R.layout.button_test);
 
 		startStopButton = (ToggleButton) findViewById(R.id.onOffButton);
 
-		noteRateSlider = (SeekBar) findViewById(R.id.noteRateSlider);
+		eventButton = (Button) findViewById(R.id.eventButton);
+		valueButton = (Button) findViewById(R.id.valueButton);
+		
 		durationSlider = (SeekBar) findViewById(R.id.durationSlider);
 		attackSlider = (SeekBar) findViewById(R.id.attackSlider);
 		decaySlider = (SeekBar) findViewById(R.id.decaySlider);
 		sustainSlider = (SeekBar) findViewById(R.id.sustainSlider);
 		releaseSlider = (SeekBar) findViewById(R.id.releaseSlider);
 
-		setSeekBarValue(noteRateSlider, 1, 4, 1.5);
 		setSeekBarValue(durationSlider, .5, 4, 1.5);
 		setSeekBarValue(attackSlider, .001, 2, .05);
 		setSeekBarValue(decaySlider, .05, 2, .05);
@@ -81,11 +86,9 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						if (isChecked) {
-							String csd = getResourceFileAsString(R.raw.test2);
+							String csd = getResourceFileAsString(R.raw.button_test);
 							File f = createTempFile(csd);
 
-							csoundObj.addSlider(noteRateSlider, "noteRate", 1,
-									4);
 							csoundObj.addSlider(durationSlider, "duration", .5,
 									4);
 							csoundObj.addSlider(attackSlider, "attack", 0, 2);
@@ -93,6 +96,26 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 							csoundObj.addSlider(sustainSlider, "sustain", 0, 1);
 							csoundObj.addSlider(releaseSlider, "release", 0, 4);
 
+							csoundObj.addButton(valueButton, "button1");
+							
+							eventButton.setOnClickListener(new OnClickListener() {
+								
+								@Override
+								public void onClick(View v) {
+									
+									Log.d("TEST", "Event Button");
+									
+									float value = durationSlider.getProgress() / (float)durationSlider.getMax();
+									float min = .5f;
+									float max = 4f;
+									float range = max - min;
+									value = (value * range) + min;
+									String event = String.format("i2 0 %f", value);
+									
+									csoundObj.sendScore(event);
+								}
+							});
+							
 							csoundObj.startCsound(f);
 						} else {
 							csoundObj.stopCsound();
@@ -101,30 +124,6 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 					}
 				});
 
-		csoundObj.addValueCacheable(new CsoundValueCacheable() {
-
-			@Override
-			public void updateValuesToCsound() {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void updateValuesFromCsound() {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void setup(CsoundObj csoundObj) {
-				Log.d("CsoundAndroidActivity", "ValueCacheable setup called");
-			}
-
-			@Override
-			public void cleanup() {
-				Log.d("CsoundAndroidActivity", "ValueCacheable cleanup called");
-			}
-		});
 	}
 
 	@Override
