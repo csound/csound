@@ -24,7 +24,7 @@
  */
 
 
-package com.csounds;
+package com.csounds.examples;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,6 +37,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.widget.SeekBar;
+
+import com.csounds.CsoundObj;
 
 public class BaseCsoundActivity extends Activity {
 	

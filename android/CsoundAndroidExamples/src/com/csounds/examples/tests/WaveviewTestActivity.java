@@ -23,7 +23,7 @@
  
  */
 
-package com.csounds.tests;
+package com.csounds.examples.tests;
 
 import java.io.File;
 
@@ -34,9 +34,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ToggleButton;
 
-import com.csounds.BaseCsoundActivity;
 import com.csounds.CsoundObj;
-import com.csounds.R;
+import com.csounds.examples.BaseCsoundActivity;
+import com.csounds.examples.R;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
 import csnd.Csound;

@@ -23,14 +23,14 @@ CsoundHaikuIVActivity.java:
  
  */
 
-package com.csounds.tests;
+package com.csounds.examples.tests;
 
 import java.io.File;
 
 import android.os.Bundle;
 
-import com.csounds.BaseCsoundActivity;
-import com.csounds.R;
+import com.csounds.examples.BaseCsoundActivity;
+import com.csounds.examples.R;
 
 public class CsoundHaikuIVActivity extends BaseCsoundActivity {
 

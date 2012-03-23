@@ -1,6 +1,6 @@
 /* 
  
- AccelerometerActivity.java:
+ HarmonizerActivity.java:
  
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
  
@@ -23,43 +23,62 @@
  
  */
 
-package com.csounds.tests;
+package com.csounds.examples.tests;
 
 import java.io.File;
+
 import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
-import com.csounds.BaseCsoundActivity;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
-import com.csounds.R;
+import com.csounds.examples.BaseCsoundActivity;
+import com.csounds.examples.R;
 
-public class AccelerometerActivity extends BaseCsoundActivity implements
+
+public class HarmonizerActivity extends BaseCsoundActivity implements
 		CsoundObjCompletionListener {
-	
+
 	ToggleButton startStopButton = null;
+
+	SeekBar harmonyPitchSlider;
+	SeekBar gainSlider;
+
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.accelerometer_test);
+		setContentView(R.layout.harmonizer);
 
 		startStopButton = (ToggleButton) findViewById(R.id.onOffButton);
+
+		harmonyPitchSlider = (SeekBar) findViewById(R.id.harmony_pitch_slider);
+		gainSlider = (SeekBar) findViewById(R.id.gain_slider);
+		
+
+		setSeekBarValue(harmonyPitchSlider, 0, 1, .5);
+		setSeekBarValue(gainSlider, .5, 3, 1.5);
 
 		startStopButton
 				.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
+					@Override
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						if (isChecked) {
-							String csd = getResourceFileAsString(R.raw.hardware_test);
+							String csd = getResourceFileAsString(R.raw.harmonizer);
 							File f = createTempFile(csd);
 
-							csoundObj.enableAccelerometer(AccelerometerActivity.this);
+							csoundObj.addSlider(harmonyPitchSlider,
+									"slider", 0, 1);
+							csoundObj.addSlider(gainSlider,
+									"gain", .5, 3);
 							
+							csoundObj.setAudioInEnabled(true);
 							csoundObj.startCsound(f);
 						} else {
 							csoundObj.stopCsound();

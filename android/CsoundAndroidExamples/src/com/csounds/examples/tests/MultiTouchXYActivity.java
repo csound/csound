@@ -23,7 +23,7 @@
  
  */
 
-package com.csounds.tests;
+package com.csounds.examples.tests;
 
 import java.io.File;
 
@@ -32,10 +32,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
-import com.csounds.BaseCsoundActivity;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
-import com.csounds.R;
+import com.csounds.examples.BaseCsoundActivity;
+import com.csounds.examples.R;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
 import csnd.CsoundMYFLTArray;
