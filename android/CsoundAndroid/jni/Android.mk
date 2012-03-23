@@ -2,11 +2,11 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-CSOUND_SRC_ROOT := ../..
-LIBSNDFILE_SRC_DIR := $(LOCAL_PATH)/../../../android/libsndfile-android/jni/
+CSOUND_SRC_ROOT := ../../..
+LIBSNDFILE_SRC_DIR := $(LOCAL_PATH)/../../../../android/libsndfile-android/jni/
 
 LOCAL_MODULE   := csoundandroid
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../H $(LOCAL_PATH)/../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../Engine $(LOCAL_PATH)/../../interfaces
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
 LOCAL_CFLAGS := -O3 -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H 
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 ###
