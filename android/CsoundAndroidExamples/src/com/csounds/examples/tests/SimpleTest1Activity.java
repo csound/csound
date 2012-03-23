@@ -23,21 +23,21 @@
  
  */
 
-package com.csounds.tests;
+package com.csounds.examples.tests;
 
 import java.io.File;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.CompoundButton;
-import android.widget.SeekBar;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
-import com.csounds.BaseCsoundActivity;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
-import com.csounds.R;
+import com.csounds.examples.BaseCsoundActivity;
+import com.csounds.examples.R;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
 public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObjCompletionListener {

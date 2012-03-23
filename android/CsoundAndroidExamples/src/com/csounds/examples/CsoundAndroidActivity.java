@@ -24,7 +24,7 @@
  
  */
 
-package com.csounds;
+package com.csounds.examples;
 
 
 import android.content.Intent;
@@ -35,16 +35,16 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.csounds.BaseCsoundActivity;
-import com.csounds.tests.AccelerometerActivity;
-import com.csounds.tests.ButtonTestActivity;
-import com.csounds.tests.CsoundHaikuIVActivity;
-import com.csounds.tests.HarmonizerActivity;
-import com.csounds.tests.MultiTouchXYActivity;
-import com.csounds.tests.PingPongDelayActivity;
-import com.csounds.tests.SimpleTest1Activity;
-import com.csounds.tests.SimpleTest2Activity;
-import com.csounds.tests.WaveviewTestActivity;
+import com.csounds.examples.BaseCsoundActivity;
+import com.csounds.examples.tests.AccelerometerActivity;
+import com.csounds.examples.tests.ButtonTestActivity;
+import com.csounds.examples.tests.CsoundHaikuIVActivity;
+import com.csounds.examples.tests.HarmonizerActivity;
+import com.csounds.examples.tests.MultiTouchXYActivity;
+import com.csounds.examples.tests.PingPongDelayActivity;
+import com.csounds.examples.tests.SimpleTest1Activity;
+import com.csounds.examples.tests.SimpleTest2Activity;
+import com.csounds.examples.tests.WaveviewTestActivity;
 
 public class CsoundAndroidActivity extends BaseCsoundActivity {
 
