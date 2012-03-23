@@ -281,7 +281,7 @@ public class CsoundObj {
 
 		Log.d("CsoundAndroid", "Return Value: " + retVal);
 
-		retVal = csound.Compile(f.getAbsolutePath(), "-b" + 4096);
+		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
 
 		if (retVal == 0) {
