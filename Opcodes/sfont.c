@@ -1952,8 +1952,10 @@ static void splitDefaults(splitType *split)
 
 static int chunk_read(FILE *fil, CHUNK *chunk)
 {
-    fread(chunk->ckID,1,4, fil);
-    fread(&chunk->ckSize,4,1,fil);
+    if (UNLIKELY(1 != fread(chunk->ckID,1,4, fil)))
+      return 0;
+    if (UNLIKELY(4 != fread(&chunk->ckSize,4,1,fil)))
+      return 0;
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) malloc( chunk->ckSize);
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);

@@ -789,7 +789,9 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     /* do we need to worry about ~/ on *nix systems ? */
     /* we have a relative path or just a filename */
     cwd = mmalloc(csound, 512);
-    getcwd(cwd, 512);
+    if (UNLIKELY(getcwd(cwd, 512)==NULL)) {
+      csoundDie(csound, "Current directory path name too long\n");
+    }
 
     if (lastIndex == NULL) {
         return cwd;

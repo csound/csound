@@ -601,7 +601,7 @@ bexpr     : '(' bexpr ')'       { $$ = $2; }
           | bexpr S_OR error
           | '!' bexpr %prec S_UNOT { $$ = make_node(csound, LINE,LOCN,
                                                     S_UNOT, $2, NULL); }
-          | '!' error           { $$ = NULL }
+          | '!' error           { $$ = NULL; }
           ;
 
 expr      : bexpr '?' expr ':' expr %prec '?'
@@ -621,12 +621,12 @@ iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
             {
                 $$ = make_node(csound,LINE,LOCN, S_UMINUS, NULL, $2);
             }
-          | '-' error           { $$ = NULL }
+          | '-' error           { $$ = NULL; }
           | '+' iexp %prec S_UMINUS
             {
                 $$ = $2;
             }
-          | '+' error           { $$ = NULL }
+          | '+' error           { $$ = NULL; }
           | iterm               { $$ = $1; }
           ;
 
@@ -663,10 +663,10 @@ ifac      : ident               { $$ = $1; }
           | iexp S_BITSHIFT_RIGHT error
           | '~' iexp %prec S_UMINUS
             { $$ = make_node(csound, LINE,LOCN, '~', NULL, $2);}
-          | '~' error         { $$ = NULL }
+          | '~' error         { $$ = NULL; }
           | '(' expr ')'      { $$ = $2; }
-          | '(' expr error    { $$ = NULL }
-          | '(' error         { $$ = NULL }
+          | '(' expr error    { $$ = NULL; }
+          | '(' error         { $$ = NULL; }
           | function '(' exprlist ')'
             {
                 $1->left = NULL;
