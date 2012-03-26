@@ -22,6 +22,8 @@
     02111-1307 USA
 */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
     int last_note;
     int last_integer;
     double last_float;
