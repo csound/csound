@@ -57,11 +57,11 @@ static int urand_run(CSOUND *csound, URANDOM *p)
     int ur = p->ur;
     /* union ieee754_double x; */
     int64_t x;
-    read(ur, &x, sizeof(int64_t));
+    if (UNLIKELY(read(ur, &x, sizeof(int64_t))!=sizeof(int64_t))) return NOTOK;
 
-    /* x.ieee.exponent = x.ieee.exponent& 0x377; */
-    /* printf("Debug: %s(%d): %g %d %03x %05x %08x\n", __FILE__, __LINE__, x.d, */
-    /*        x.ieee.negative, x.ieee.exponent, x.ieee.mantissa0, x.ieee.mantissa1); */
+/* x.ieee.exponent = x.ieee.exponent& 0x377; */
+/* printf("Debug: %s(%d): %g %d %03x %05x %08x\n", __FILE__, __LINE__, x.d, */
+/*        x.ieee.negative, x.ieee.exponent, x.ieee.mantissa0, x.ieee.mantissa1); */
     *p->ar = p->mul *((MYFLT)x/(MYFLT)0x7fffffffffffffff) + p->add;
     return OK;
 }
