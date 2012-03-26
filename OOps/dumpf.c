@@ -139,7 +139,7 @@ int kdmp4set(CSOUND *csound, KDUMP4 *p)
 
 static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk)
 {
-    char  buf1[128], outbuf[256];
+    char  buf1[256], outbuf[256];
     int   len = 0;
 
     switch(format) {               /* place formatted kvals into outbuf */
@@ -192,7 +192,9 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk)
       break;
     default: csound->Die(csound, Str("unknown kdump format"));
     }
-    fwrite(outbuf, 1, len, ofd);                /* now write the buffer */
+    if (UNLIKELY(fwrite(outbuf, 1, len, ofd)!=1)) { /* now write the buffer */
+      csound->PerfError(csound, "write failure in dumpk");
+    }
 }
 
 int kdump(CSOUND *csound, KDUMP *p)
@@ -370,16 +372,15 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
     case 1: {
       int8_t *bp = (int8_t*)inbuf;
       len = nk;
-      fread(inbuf, 1, len, ifd);        /* now read the buffer */
-      while (nk--) {
+      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      while (nk--)
         *kp++ = (MYFLT)*bp++;
-        break;
-      }
+      break;
     }
     case 4: {
       int16_t *bp = (int16_t*)inbuf;
       len = nk * 2;
-      fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -387,7 +388,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
     case 5: {
       int32_t *bp = (int32_t*)inbuf;
       len = nk * 4;
-      fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -395,7 +396,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
     case 6: {
       float *bp = (float*)inbuf;
       len = nk * sizeof(float);
-      fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -538,7 +539,9 @@ int kreads(CSOUND *csound, KREADS *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      fgets(p->lasts, csound->strVarMaxLen,  p->f);
+      if (UNLIKELY(fgets(p->lasts, csound->strVarMaxLen,  p->f)==NULL)) {
+        csound->PerfError(csound, "Read failure in readks");
+      }
     }
     strncpy((char*) p->str, p->lasts, csound->strVarMaxLen);
     return OK;

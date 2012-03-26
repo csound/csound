@@ -354,7 +354,8 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
 #endif  
     if (p->XSTRCODE & 2) {
 #ifndef WIN32
-      write((int)*p->port, p->toWrite, strlen((char *)p->toWrite));
+      if (UNLIKELY(write((int)*p->port, p->toWrite, strlen((char *)p->toWrite))<0))
+        return NOTOK;
 #else
       int nbytes;
       WriteFile(port,p->toWrite, strlen((char *)p->toWrite),
@@ -364,7 +365,8 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
     else {
       unsigned char b = *p->toWrite;
 #ifndef WIN32
-      write((int)*p->port, &b, 1);
+      if (UNLIKELY(write((int)*p->port, &b, 1)<0))
+        return NOTOK;
 #else
       int nbytes;
       WriteFile(port, &b, 1, (PDWORD)&nbytes, NULL);

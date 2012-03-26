@@ -2739,11 +2739,12 @@ extern "C" {
   {
       Fl_Pack *o = new Fl_Pack ((int) *p->ix, (int) *p->iy,
                                 (int) *p->iwidth, (int) *p->iheight);
-      Fl_Boxtype borderType;
+      Fl_Boxtype borderType = FL_FLAT_BOX;
       int iborder = (int)*p->iborder;
       // fl_window->resizable(o);
-      if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX;
-      else borderType = BOX_TABLE[iborder];
+      if (!((iborder<0 || iborder>7)))
+          borderType = BOX_TABLE[iborder];
+      o->box(borderType);       // JPff added March 2012
       o->type((int)*p->itype);
       o->spacing((int)*p->ispace);
 

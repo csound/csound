@@ -138,7 +138,7 @@ int express(CSOUND *csound, char *s)
       else if (nontermin(c)) {        /* if not just a termin char */
         if (c == '.' || (c >= '0' && c <= '9')) {
           char  *tmp = --s;
-          (void) strtod(s, &tmp);     /*      copy constant        */
+          double tt = strtod(s, &tmp);     /*      copy constant   */
           while (++s < tmp)
             *t++ = *s;
           /* also copy any trailing characters after a constant,   */
