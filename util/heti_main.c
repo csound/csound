@@ -34,6 +34,7 @@
 #define END  32767
 
 #include <stdint.h>
+#  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 
 typedef int_least32_t int32;
 typedef int_least16_t int16;
@@ -89,8 +90,9 @@ int main(int argc, char **argv)
       int16 end = END;
       x = getnum(infd, &term);
       if (term == '\0') break;
-      fwrite(&x, 1, sizeof(int16), outf);
-      if (term == '\n')  fwrite(&end, 1, sizeof(int16), outf);
+      if (UNLIKELY(fwrite(&x, 1, sizeof(int16), outf)!=1)) exit(1);
+      if (term == '\n')
+        if (UNLIKELY(fwrite(&end, 1, sizeof(int16), outf)!=1) exit(1);
     }
     fclose(outf);
     fclose(infd);

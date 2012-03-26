@@ -713,10 +713,11 @@ struct JackoState
       int result = 0;
       // Wait until signaled to actually shut down the Jack client.
       result = pthread_mutex_lock(&conditionMutex);
-      result = pthread_cond_wait(&closeCondition, &conditionMutex);
-      result = pthread_mutex_unlock(&conditionMutex);
+      result |= pthread_cond_wait(&closeCondition, &conditionMutex);
+      result |= pthread_mutex_unlock(&conditionMutex);
       close();
-      return (void *) result;
+      return (result==?NULL : &closeRoutine);
+      //return (void *) result;   // This is not right as sizes do not match
   }
   static void *closeRoutine_(void *userdata)
   {

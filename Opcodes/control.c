@@ -70,7 +70,10 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
     int i;
 
     p->csound->Message(p->csound, "TCL/Tk\n");
-    pipe(p->pip1); pipe(p->pip2);
+    if (UNLIKELY(pipe(p->pip1) || pipe(p->pip2))) {
+      printf("Failed to create pipes");
+      return;
+    }
     if ((p->wish_pid = fork()) < 0)
       return;
     if (p->wish_pid == 0) {     /* Child process */
@@ -99,7 +102,10 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
     p->csound->RegisterResetCallback(p->csound, (void*) p,
                                      (int (*)(CSOUND *, void *)) kill_wish);
     fprintf(p->wish_cmd, "source nsliders.tk\n");
-    fgets(p->cmd, 100, p->wish_res);
+    if (UNLIKELY(NULL==fgets(p->cmd, 100, p->wish_res))) {
+      printf("Failed to read from child");
+      return;
+    };
     p->csound->Message(p->csound, "Wish %s\n", p->cmd);
     p->values = (int*) calloc(8, sizeof(int));
     p->minvals = (int*) calloc(8, sizeof(int));
@@ -147,7 +153,10 @@ static void readvalues(CONTROL_GLOBALS *p)
                                 /* Read all changes */
     while (select(p->pip1[0] + 1, &rfds, NULL, NULL, &tv)) {
       int n, val;
-      fscanf(p->wish_res, "%d %d", &n, &val);
+      if (UNLIKELY(2!=fscanf(p->wish_res, "%d %d", &n, &val))) {
+        printf("Failed to read from child");
+        return;
+      }
       if (n > 0) p->values[n] = val;
       else if (n == 0) p->buttons[val] = 1;
       else p->checks[-n] = val;

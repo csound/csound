@@ -516,7 +516,7 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
     }
     else { /* binary format */
       for (j = 0; j < p->INOCOUNT - 3; j++) {
-        fwrite(args[j], sizeof(MYFLT), 1, rfil);
+        if (UNLIKELY(1!=fwrite(args[j], sizeof(MYFLT), 1, rfil))) return NOTOK;
       }
     }
     return OK;
@@ -583,7 +583,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     }
     else { /* binary format */
       for (j = 0; j < p->INOCOUNT - 3; j++) {
-        fwrite(args[j], sizeof(MYFLT), 1, rfil);
+        if (UNLIKELY(1!=fwrite(args[j], sizeof(MYFLT), 1, rfil))) return NOTOK;
       }
     }
     p->done = 0;
