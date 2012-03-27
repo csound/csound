@@ -703,8 +703,8 @@ struct JackoState
         // thread. Doing this inside the Jack process callback
         // takes too long and may cause other problems.
         result = pthread_mutex_lock(&conditionMutex);
-        result = pthread_cond_signal(&closeCondition);
-        result = pthread_mutex_unlock(&conditionMutex);
+        result |= pthread_cond_signal(&closeCondition);
+        result |= pthread_mutex_unlock(&conditionMutex);
         return result;
       }
   }
@@ -723,7 +723,7 @@ struct JackoState
   static void *closeRoutine_(void *userdata)
   {
       return ((JackoState *)userdata)->closeRoutine();
-  }
+  }\
   void startTransport()
   {
       midiInputQueue.clear();

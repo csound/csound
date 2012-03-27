@@ -89,8 +89,11 @@ static int het_import(CSOUND *csound, int argc, char **argv)
       int16 end = END;
       x = getnum(infd, &term);
       if (term == '\0') break;
-      fwrite(&x, 1, sizeof(int16), outf);
-      if (term == '\n')  fwrite(&end, 1, sizeof(int16), outf);
+      if (UNLIKELY(1!=fwrite(&x, sizeof(int16), 1, outf)))
+        fprintf(stderr, "Write failure\n");
+      if (term == '\n')
+        if (UNLIKELY(1!=fwrite(&end, sizeof(int16), 1, outf)))
+          fprintf(stderr, "Write failure\n");
     }
     fclose(outf);
     fclose(infd);
