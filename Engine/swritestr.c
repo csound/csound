@@ -39,9 +39,11 @@ static char   *fpnum(CSOUND *,char *, int, int);
 
 static void fltout(CSOUND *csound, MYFLT n)
 {
-    char buffer[1024];
+    char *c, buffer[1024];
     sprintf(buffer, "%.6f", n);
-    corfile_puts(buffer, csound->scstr);
+    /* corfile_puts(buffer, csound->scstr); */
+    for (c = buffer; *c != '\0'; c++)
+      corfile_putc(*c, csound->scstr);
 }
 
 void swritestr(CSOUND *csound)
