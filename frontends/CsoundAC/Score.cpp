@@ -367,7 +367,9 @@ void Score::save(std::ostream &stream)
 					 pitch, 
 					 loudness,  
 					 duration);
-	seq.add(note);
+	// Does nothing if the track exists.
+	seq.add_track(channel);
+	seq.add_event(note, channel);
       }
     }
     seq.write(std::cout, false);
