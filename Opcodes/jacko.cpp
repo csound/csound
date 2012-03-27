@@ -716,8 +716,9 @@ struct JackoState
       result |= pthread_cond_wait(&closeCondition, &conditionMutex);
       result |= pthread_mutex_unlock(&conditionMutex);
       close();
-      return (result==?NULL : &closeRoutine);
-      //return (void *) result;   // This is not right as sizes do not match
+      void *result_ = 0;
+      memcpy(&result_, &result, std::min(sizeof(result), sizeof(result_)));
+      return result_;
   }
   static void *closeRoutine_(void *userdata)
   {
