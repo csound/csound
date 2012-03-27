@@ -2479,6 +2479,9 @@ else:
     frontends/CsoundAC/allegrosmfrd.cpp
     frontends/CsoundAC/allegrosmfwr.cpp
     frontends/CsoundAC/allegrowr.cpp
+    frontends/CsoundAC/mfmidi.cpp
+    frontends/CsoundAC/strparse.cpp
+    frontends/CsoundAC/trace.cpp
     frontends/CsoundAC/Cell.cpp
     frontends/CsoundAC/ChordLindenmayer.cpp
     frontends/CsoundAC/Composition.cpp
