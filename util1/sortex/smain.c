@@ -23,6 +23,10 @@
 
 #include "csound.h"                                    /*   SMAIN.C  */
 
+#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__) || defined(__EMX__)
+#include <signal.h>
+#endif
+
 static void msg_callback(CSOUND *csound,
                          int attr, const char *fmt, va_list args)
 {
@@ -37,6 +41,9 @@ int main(void)                          /* stdio stub for standalone scsort */
     int    err;
 
     csound = csoundCreate(NULL);
+#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__) || defined(__EMX__)
+    signal(SIGPIPE, SIG_DFL);
+#endif
     csoundSetMessageCallback(csound, msg_callback);
     csoundPreCompile(csound);
     err = csoundScoreSort(csound, stdin, stdout);
