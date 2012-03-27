@@ -75,7 +75,7 @@ namespace csound
      */
     virtual void load(std::string filename);
     virtual void load(std::istream &stream);
-    virtual void load(MidiFile &midiFile);
+    //virtual void load(MidiFile &midiFile);
     /**
      * Save as a MIDI file, format 1 (.mid) file,
      * or as a partwise MusicXML (.xml) file,

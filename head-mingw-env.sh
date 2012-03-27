@@ -34,5 +34,7 @@ export RAWWAVE_PATH=D:/utah/home/mkg/csound/csound5/Opcodes/stk/rawwaves
 export OPCODEDIR64=D:/utah/home/mkg/csound/csound5
 export PYTHONPATH=D:/utah/home/mkg/csound/csound5
 export PATH=/c/utah/opt/MinGW/bin:${PATH}
+export LUA_PATH=${LUA_PATH}";D:/utah/home/mkg/csound/csound5/?.lua"
+export LUA_CPATH=${LUA_CPATH}";D:/utah/home/mkg/csound/csound5/?.dll;D:/utah/home/mkg/csound/csound5/lua?.dll"
 echo $PATH
 
