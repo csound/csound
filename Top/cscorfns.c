@@ -172,6 +172,10 @@ PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int nslots)
     int   needsiz = sizeof(EVLIST) + nslots * sizeof(EVENT *);
     int   minfreesiz = needsiz + sizeof(CSHDR);
 
+    if (minfreesiz > MAXALLOC) {
+      csound->Message(csound, Str("Not enough memory\n"));
+      exit(1);
+    }
     if (nxtfree != NULL && nxtfree->size >= minfreesiz)
       newblk = nxtfree;
     else newblk = getfree(csound, minfreesiz);
@@ -199,6 +203,10 @@ PUBLIC EVENT * cscoreCreateEvent(CSOUND *csound, int pcnt)
     int   needsiz = sizeof(EVENT) + pcnt * sizeof(MYFLT);
     int   minfreesiz = needsiz + sizeof(CSHDR);
 
+    if (minfreesiz > MAXALLOC) {
+      csound->Message(csound, Str("Not enough memory\n"));
+      exit(1);
+    }
     if (nxtfree != NULL && nxtfree->size >= minfreesiz)
       newblk = nxtfree;
     else newblk = getfree(csound, minfreesiz);
