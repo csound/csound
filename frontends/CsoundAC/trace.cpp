@@ -7,7 +7,9 @@
 
 #include "stdarg.h"
 #include "stdio.h"
+#if defined(MSVC)
 #include "crtdbg.h"
+#endif
 
 
 void trace(char *format, ...)
@@ -15,9 +17,13 @@ void trace(char *format, ...)
     char msg[256];
     va_list args;
     va_start(args, format);
+#if defined(MSVC)
     _vsnprintf_s(msg, 256, _TRUNCATE, format, args);
+#else
+    vsnprintf(msg, 256, format, args);
+#endif
     va_end(args);
-#ifdef _DEBUG
+#if (defined(MSVC) && defined(_DEBUG))
     _CrtDbgReport(_CRT_WARN, NULL, NULL, NULL, msg);
 #else
     printf(msg);
