@@ -75,13 +75,17 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
-    fread(&hdr, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf);
+    if (UNLIKELY(fread(&hdr, sizeof(char),
+                       hdr.headersize-sizeof(LPHEADER)+4, inf)!=
+                 hdr.headersize-sizeof(LPHEADER)+4))
+      csound->Message(csound, Str("Read faailure\n"));
     for (i=0; i<(signed int)hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
     coef = (MYFLT *)csound->Malloc(csound,(hdr.npoles+hdr.nvals)*sizeof(MYFLT));
     for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
-      fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf);
+      if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf)!=hdr.npoles))
+        csound->Message(csound, Str("Read faailure\n"));
       for (j=0; j<hdr.npoles; j++)
         fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));
     }

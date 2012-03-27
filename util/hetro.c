@@ -603,7 +603,8 @@ static int filedump(HET *thishet, CSOUND *csound)
                                  NULL, "", CSFTYPE_HETRO, 0) == NULL)
       return quit(csound, Str("cannot create output file\n"));
 
-    write(ofd, (char*)&thishet->hmax, sizeof(thishet->hmax)); /* Write header */
+    if (UNLIKELY(write(ofd, (char*)&thishet->hmax, sizeof(thishet->hmax))<0))
+      csound->Message(csound,Str("Write failure\n")); /* Write header */
 
     for (pnt=0; pnt < thishet->num_pts; pnt++) {
       ampsum = 0.0;
@@ -685,7 +686,8 @@ static int filedump(HET *thishet, CSOUND *csound)
       *fp++ = END;
       mpoints = ((mp - magout) / 2) - 1;
       nbytes = (mp - magout) * sizeof(int16);
-      write(ofd, (char *)magout, nbytes);
+      if (UNLIKELY(write(ofd, (char *)magout, nbytes)<0))
+        csound->Message(csound, Str("Write failure\n"));
 #ifdef DEBUG
       {
         int i;
@@ -697,7 +699,8 @@ static int filedump(HET *thishet, CSOUND *csound)
       lenfil += nbytes;
       fpoints = ((fp - frqout) / 2) - 1;
       nbytes = (fp - frqout) * sizeof(int16);
-      write(ofd, (char *)frqout, nbytes);
+      if (UNLIKELY(write(ofd, (char *)frqout, nbytes)<0))
+        csound->Message(csound, Str("Write failure\n"));
 #ifdef DEBUG
       {
         int i;
