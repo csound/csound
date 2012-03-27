@@ -27,6 +27,7 @@
 #include "scot.h"
 
 #define Str(x)  (x)
+#  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 
 static  char    curline[MAXLINE + 1];   /* current line of infile */
 static  int     inx,                    /* column # */
@@ -1398,8 +1399,10 @@ void initf(FILE *inf, FILE *outf, char *fil)
     infile = inf;
     outfile = outf;
     infilename = fil;
-    fgets(curline, MAXLINE, infile);
-
+    if (UNLIKELY(NULL == fgets(curline, MAXLINE, infile))) {
+      fprintf(stderr, "Read failure\n");
+      exit(1);
+    }
 #ifdef DEBUG
     printf("1: %s", curline);
 #endif

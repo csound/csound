@@ -67,9 +67,12 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
-    fscanf(inf,
+    if (UNLIKELY(EOF == fscanf(inf,
            "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
-           "BlockAlign,BitsPerSample,cbSize\n");
+                               "BlockAlign,BitsPerSample,cbSize\n"))) {
+      csound->Message(csound, Str("Not a PV file\n"));
+      exit(1);
+    }
     {
       int fmt1, fmt2, fmt3, fmt4, fmt5;
       if (7!=fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
@@ -84,9 +87,12 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       fmt.wBitsPerSample = fmt4;
       fmt.cbSize = fmt5;
     }
-    fscanf(inf, "WordFormat,AnalFormat,SourceFormat,WindowType,"
+    if (UNLIKELY(EOF == fscanf(inf, "WordFormat,AnalFormat,SourceFormat,WindowType,"
             "AnalysisBins,Winlen,Overlap,FrameAlign,"
-            "AnalysisRate,WindowParam\n");
+            "AnalysisRate,WindowParam\n"))) {
+      csound->Message(csound, Str("Not a PV file\n"));
+      exit(1);
+    }
     {
       int data1, data2, data3, data4;
       if(10!=fscanf(inf, "%d,%d,%d,%d,%d,%d,%d,%d,%g,%g\n",
