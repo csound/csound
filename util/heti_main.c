@@ -92,7 +92,7 @@ int main(int argc, char **argv)
       if (term == '\0') break;
       if (UNLIKELY(fwrite(&x, 1, sizeof(int16), outf)!=1)) exit(1);
       if (term == '\n')
-        if (UNLIKELY(fwrite(&end, 1, sizeof(int16), outf)!=1) exit(1);
+        if (UNLIKELY(fwrite(&end, 1, sizeof(int16), outf)!=1)) exit(1);
     }
     fclose(outf);
     fclose(infd);

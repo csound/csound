@@ -2473,6 +2473,12 @@ else:
         acEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundAcSources = Split('''
+    frontends/CsoundAC/allegro.cpp
+    frontends/CsoundAC/allegrord.cpp
+    frontends/CsoundAC/allegroserial.cpp
+    frontends/CsoundAC/allegrosmfrd.cpp
+    frontends/CsoundAC/allegrosmfwr.cpp
+    frontends/CsoundAC/allegrowr.cpp
     frontends/CsoundAC/Cell.cpp
     frontends/CsoundAC/ChordLindenmayer.cpp
     frontends/CsoundAC/Composition.cpp

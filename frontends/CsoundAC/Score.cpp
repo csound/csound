@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "CppSound.hpp"
-#include "Midifile.hpp"
+// #include "Midifile.hpp"
 #include "Score.hpp"
 #include "System.hpp"
 #include "Conversions.hpp"
@@ -31,6 +31,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+#include <allegro.h>
 
 #if defined(HAVE_MUSICXML2)
 #if defined(EXP)
@@ -172,9 +174,25 @@ void Score::load(std::string filename)
 
 void Score::load(std::istream &stream)
 {
-    MidiFile midiFile;
-    midiFile.read(stream);
-    load(midiFile);
+  Alg_seq seq(stream, true);
+  seq.convert_to_seconds();
+  Alg_iterator iterator(&seq, false);
+  iterator.begin();
+  for(;;) {
+    Alg_event *event = iterator.next();
+    if (!event) {
+      break;
+    }
+    append(event->get_start_time(),
+	   event->get_duration(),
+	   double(144),
+	   double(event->chan),
+	   event->get_pitch(),
+	   event->get_loud());	     
+  }
+  // MidiFile midiFile;
+  // midiFile.read(stream);
+  // load(midiFile);
 }
 
 #if defined(HAVE_MUSICXML2)
@@ -333,8 +351,28 @@ void Score::save(std::string filename)
 
 void Score::save(std::ostream &stream)
 {
-    save(midifile);
-    midifile.write(stream);
+    Alg_seq seq;
+    for (size_t i = 0, n = size(); i < n; ++i) {
+      const Event &event = at(i);
+      if (event.isNoteOn()) {
+	int channel = event.getChannel();
+	double time = event.getTime();
+	double duration = event.getDuration();
+	float pitch = event.getKey();
+	float loudness = event.getVelocity();
+	int identifier = i;
+	Alg_note *note = seq.create_note(time, 
+					 channel,  
+					 identifier, 
+					 pitch, 
+					 loudness,  
+					 duration);
+	seq.add(note);
+      }
+    }
+    seq.smf_write(stream);
+  // save(midifile);
+  // midifile.write(stream);
 }
 
 static double max(double a, double b)
@@ -470,7 +508,7 @@ void Score::rescale(Event &event)
         }
     }
 }
-
+/*
 void Score::load(MidiFile &midiFile)
 {
     std::vector<Event>::clear();
@@ -504,7 +542,9 @@ void Score::load(MidiFile &midiFile)
     findScale();
     sort();
 }
+*/
 
+/*
 void Score::save(MidiFile &midiFile)
 {
     findScale();
@@ -555,6 +595,7 @@ void Score::save(MidiFile &midiFile)
     }
     midiFile.midiHeader.trackCount = midiFile.midiTracks.size();
 }
+  */
 
 void Score::dump(std::ostream &stream)
 {
