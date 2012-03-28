@@ -2823,12 +2823,12 @@ else:
     csBeatsEnvironment.Append(LINKFLAGS = ['-lm'])
     csBeatsEnvironment.Append(YACCFLAGS = ['-d'])
     #csBeatsEnvironment.Append(LEXFLAGS = ['-Pbeats'])
-    byb = csBeatsEnvironment.CFile(target = 'frontends/csbeats/beats.tab.c',
-                               source = 'frontends/csbeats/beats.y')
-    blb = csBeatsEnvironment.CFile(target = 'frontends/csbeats/lex.yy.c',
-                               source = 'frontends/csbeats/beats.l')
+    byb = csBeatsEnvironment.CFile(target = 'frontends/beats/beats.tab.c',
+                               source = 'frontends/beats/beats.y')
+    blb = csBeatsEnvironment.CFile(target = 'frontends/beats/lex.yy.c',
+                               source = 'frontends/beats/beats.l')
     bb = csBeatsEnvironment.Program('csbeats',
-                                    ['frontends/csbeats/main.c', 
+                                    ['frontends/beats/main.c', 
                                     byb, 
                                     blb])
     executables.append(bb)

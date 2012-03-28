@@ -367,12 +367,13 @@ void Score::save(std::ostream &stream)
 					 pitch, 
 					 loudness,  
 					 duration);
-	// Does nothing if the track exists.
+	// Does nothing if the track already exists.
 	seq.add_track(channel);
 	seq.add_event(note, channel);
       }
     }
-    seq.write(std::cout, false);
+    // Write with time in seconds.
+    seq.write(std::cout, true);
     seq.smf_write(stream);
   // save(midifile);
   // midifile.write(stream);
