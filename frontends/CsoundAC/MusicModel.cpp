@@ -233,7 +233,7 @@ namespace csound
     if ((argsmap.find("--midi") != argsmap.end()) && go)
       {
         generate();
-        cppSound->save(getMidiFilename().c_str());
+        getScore().save(getMidiFilename().c_str());
       }
     if ((argsmap.find("--csound") != argsmap.end()) && go)
       {
