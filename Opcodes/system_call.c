@@ -64,7 +64,7 @@ static int call_system(CSOUND *csound, SYSTEM *p)
       if ((*p->res = fork()))
         return OK;
       else {
-        if UNLIKELY((system((char*)p->commandLine)<0)) exit(1);
+        if (UNLIKELY(system((char*)p->commandLine)<0)) exit(1);
         exit(0);
       }
     }
