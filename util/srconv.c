@@ -374,16 +374,17 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       }
       /* register file to be closed by csoundReset() */
       (void) csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
-      fscanf(tvfp, "%d", &tvlen);
+      if (UNLIKELY(fscanf(tvfp, "%d", &tvlen) != 1))
+          csound->Message(csound, Str("Read failure\n"));
       fxval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
       fyval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
       i0 = fxval;
       i1 = fyval;
       for (i = 0; i < tvlen; i++, i0++, i1++) {
 #ifdef USE_DOUBLE
-        if ((fscanf(tvfp, "%lf %lf", i0, i1)) == EOF) {
+        if ((fscanf(tvfp, "%lf %lf", i0, i1)) != 2) {
 #else
-        if ((fscanf(tvfp, "%f %f", i0, i1)) == EOF) {
+        if ((fscanf(tvfp, "%f %f", i0, i1)) != 2) {
 #endif
           sprintf(err_msg, Str("srconv: too few x-y pairs "
                                "in time-vary function file"));

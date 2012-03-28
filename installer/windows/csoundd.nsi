@@ -576,6 +576,8 @@ skipAssoc:
       # Csound itself.
       File ..\..\csound.exe
       File ..\..\cs.exe
+      File ..\..\csbeats.exe
+      File ..\..\csb64enc.exe
 !ifdef FLOAT
       File ..\..\csound32.dll.5.2
 !else
@@ -740,9 +742,9 @@ SectionGroup "Front ends"
       File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtGui4.dll
       File C:\utah\opt\Qt\Desktop\Qt\4.8.0\mingw\bin\QtXml4.dll
 !ifdef FLOAT
-      File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f.exe
+      File C:\utah\opt\qutecsound\bin\CsoundQt-f.exe
 !else
-      File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d.exe
+      File C:\utah\opt\qutecsound\bin\CsoundQt-d.exe
 !endif
   SectionEnd
 !ifdef NONFREE
@@ -905,9 +907,9 @@ SectionGroup "Csound interfaces"
           File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt_QtAll.dll
           File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt.dll
     !ifdef FLOAT
-          File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f-py.exe
+          File C:\utah\opt\qutecsound\bin\CsoundQt-f-py.exe
     !else
-          File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d-py.exe
+          File C:\utah\opt\qutecsound\bin\CsoundQt-d-py.exe
     !endif
       SectionEnd
   SectionGroupEnd 

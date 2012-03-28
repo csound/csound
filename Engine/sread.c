@@ -228,10 +228,10 @@ static void print_input_backtrace(CSOUND *csound, int needLFs,
                 (lastsource == 0 ? csound->scoLineOffset + curr->line - 1 :
                  csound->scoLineOffset + curr->line), csound->csdname, lf);
       }
-      else {
-        msgfunc(csound, m, (lastsource == 0 ? curr->line - 1 : curr->line),
-                corfile_tell(curr->cf), lf);  /* #include is one line before */
-      }
+      /* else { */
+      /*   msgfunc(csound, m, (lastsource == 0 ? curr->line - 1 : curr->line), */
+      /*           corfile_tell(curr->cf), lf);  /\* #include is one line before *\/ */
+      /* } */
     } while (!lastsource);
     curr--;
     return;

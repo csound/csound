@@ -2473,6 +2473,15 @@ else:
         acEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundAcSources = Split('''
+    frontends/CsoundAC/allegro.cpp
+    frontends/CsoundAC/allegrord.cpp
+    frontends/CsoundAC/allegroserial.cpp
+    frontends/CsoundAC/allegrosmfrd.cpp
+    frontends/CsoundAC/allegrosmfwr.cpp
+    frontends/CsoundAC/allegrowr.cpp
+    frontends/CsoundAC/mfmidi.cpp
+    frontends/CsoundAC/strparse.cpp
+    frontends/CsoundAC/trace.cpp
     frontends/CsoundAC/Cell.cpp
     frontends/CsoundAC/ChordLindenmayer.cpp
     frontends/CsoundAC/Composition.cpp
@@ -2814,12 +2823,12 @@ else:
     csBeatsEnvironment.Append(LINKFLAGS = ['-lm'])
     csBeatsEnvironment.Append(YACCFLAGS = ['-d'])
     #csBeatsEnvironment.Append(LEXFLAGS = ['-Pbeats'])
-    byb = csBeatsEnvironment.CFile(target = 'frontends/csbeats/beats.tab.c',
-                               source = 'frontends/csbeats/beats.y')
-    blb = csBeatsEnvironment.CFile(target = 'frontends/csbeats/lex.yy.c',
-                               source = 'frontends/csbeats/beats.l')
+    byb = csBeatsEnvironment.CFile(target = 'frontends/beats/beats.tab.c',
+                               source = 'frontends/beats/beats.y')
+    blb = csBeatsEnvironment.CFile(target = 'frontends/beats/lex.yy.c',
+                               source = 'frontends/beats/beats.l')
     bb = csBeatsEnvironment.Program('csbeats',
-                                    ['frontends/csbeats/main.c', 
+                                    ['frontends/beats/main.c', 
                                     byb, 
                                     blb])
     executables.append(bb)

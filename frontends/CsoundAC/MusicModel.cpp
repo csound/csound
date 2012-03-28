@@ -213,23 +213,19 @@ namespace csound
     std::map<std::string, std::string> argsmap;
     for (size_t i = 0, n = args.size(); i < n; ++i)
       {
-        if (args[i].find("--") == 0)
-          {
-            const std::string key = args[i];
-	    std::string value;
-            ++i;
-            if (args[i].find("--") == std::string::npos)
-              {
-                value = args[i];
-                ++i;
-              }
-            else
-              {
-                value = "";
-              }
-	    System::inform("argument[%2d]: %s =  %s\n", i, key.c_str(), value.c_str());
-	    argsmap[key] = value;
-          }
+	const std::string token = args[i];
+	std::string key;
+	std::string value = "";
+	if (token.find("--") == 0) 
+	  {
+	    key = token;
+	  }
+	else
+	  {
+	    value = token;
+	  }
+	argsmap[key] = value;
+	System::inform("argument[%2d]: %s =  %s\n", i, key.c_str(), value.c_str());
       }
     char command[0x200];
     go = true;
@@ -237,7 +233,7 @@ namespace csound
     if ((argsmap.find("--midi") != argsmap.end()) && go)
       {
         generate();
-        cppSound->save(getMidiFilename().c_str());
+        getScore().save(getMidiFilename().c_str());
       }
     if ((argsmap.find("--csound") != argsmap.end()) && go)
       {
