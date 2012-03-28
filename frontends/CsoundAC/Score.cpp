@@ -317,7 +317,7 @@ void Score::save(std::string filename)
     System::inform("BEGAN Score::save(%s)...\n", filename.c_str());
     std::ofstream stream;
     //stream.open(filename.c_str(), std::ios_base::binary);
-    stream.open(filename.c_str(), std::ifstream::binary);
+    stream.open(filename.c_str(), std::ios::out | std::ios::binary);
     if (filename.find(".mid") != std::string::npos ||
             filename.find(".MID") != std::string::npos) {
         save(stream);
@@ -363,13 +363,16 @@ void Score::save(std::ostream &stream)
 	int identifier = i;
 	Alg_note *note = seq.create_note(time, 
 					 channel,  
-					 identifier, 
+					 pitch, 
 					 pitch, 
 					 loudness,  
 					 duration);
-	seq.add(note);
+	// Does nothing if the track exists.
+	seq.add_track(channel);
+	seq.add_event(note, channel);
       }
     }
+    seq.write(std::cout, false);
     seq.smf_write(stream);
   // save(midifile);
   // midifile.write(stream);
