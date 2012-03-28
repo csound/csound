@@ -102,14 +102,10 @@ void corfile_ungetc(CORFIL *f)
 
 MYFLT corfile_get_flt(CORFIL *f)
 {
-    int n;
+    int n = f->p;
     MYFLT ans;
-#ifdef USE_DOUBLE
-    sscanf(&f->body[f->p], "%lf%n", &ans, &n);
-#else
-    sscanf(&f->body[f->p], "%f%n", &ans, &n);
-#endif
-    f->p += n;
+    while(!isspace(f->body[++f->p]));
+    ans = (MYFLT) atof(&f->body[n]);
     return ans;
 }
 
