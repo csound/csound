@@ -155,7 +155,7 @@ BAR             [Bb][Aa][Rr]
 "ppp"           { last_integer = -7; return T_DYN; }
 "pppp"          { last_integer = -8; return T_DYN; }
 
-p[0-9]+         { pnum = atoi(&yytext[1]); return T_PARA; }
+P[1-9][0-9]*    { pnum = atoi(&yytext[1]); return T_PARA; }
 
 "m"             { return T_m;}
 "b"             { return T_b;}

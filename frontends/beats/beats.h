@@ -38,4 +38,4 @@ extern double bpm;
 extern int permeasure;
 extern int yydebug;
 extern int yyparse(void);
-
+extern void print_instr_structure(void);
