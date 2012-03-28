@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "beats.h"
+
     int last_note;
     int last_integer;
     double last_float;
@@ -57,6 +59,7 @@
     extern int debug;
     extern int yylex(void);
     extern void yyerror (char *);
+
 %}
 %token  S_NL
 %token  S_EQ
@@ -95,9 +98,14 @@ statement : S_NL                                { }
                       length,last_length, pitch, last_pitch, ampl, last_ampl);
             }
             if (instrument>largestinst) {
+              int i;
               int tmp = largestinst+1;
-              pmax = realloc(pmax, (largestinst=instrument+5)*sizeof(int));
-              memset(&pmax[tmp], '\0', (largestinst-tmp)*sizeof(int));
+              instr = realloc(instr, (largestinst=instrument+5)*sizeof(INSTR));
+              for (i=tmp; i<largestinst; i++) {
+                instr[i].p = (double*) calloc(6, sizeof(double));
+                instr[i].largest = 5;
+                instr[i].n = i;
+              }
             }
             if (onset0<0) onset0 = last_onset0;
             if (onset1<0) onset1 = last_onset1;
@@ -153,15 +161,12 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
         | T_DYN            { ampl = last_integer; }
 //        | S_PLS            { onset0 = last_onset1; onset1 += last_length; }
         | T_PARA '=' T_FLOAT { 
-            if (pnum>pmax[instrument]) {
-              pmax[instrument] = pnum;
+            if (pnum>instr[instrument].largest) {
+              instr[instrument].largest = pnum;
+              instr[instrument].p =
+                (double*)realloc(instr[instrument].p, sizeof(double)*(pnum+1));
             }
-            if (pnum>largestp) { 
-              int tmp = largestp;
-              p = (double*)realloc(p, (largestp=pnum+1)+sizeof(double));
-              memset(&p[tmp+1], '\0', (largestp-tmp)*sizeof(double));
-            }
-            p[pnum] = last_float;
+            instr[instrument].p[pnum] = last_float;
           }
         ;
 

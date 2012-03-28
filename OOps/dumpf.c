@@ -192,8 +192,8 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk)
       break;
     default: csound->Die(csound, Str("unknown kdump format"));
     }
-    if (UNLIKELY(fwrite(outbuf, 1, len, ofd)!=1)) { /* now write the buffer */
-      csound->PerfError(csound, "write failure in dumpk");
+    if (UNLIKELY(fwrite(outbuf, len, 1, ofd)!=1)) { /* now write the buffer */
+      csound->PerfError(csound, Str("write failure in dumpk"));
     }
 }
 

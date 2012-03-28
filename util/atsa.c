@@ -1942,11 +1942,13 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
     header.typ = (double) type;
     /* write header */
     fseek(outfile, 0, SEEK_SET);
-    fwrite(&header, 1, sizeof(ATS_HEADER), outfile);
+    if (UNLIKELY(1!=fwrite(&header, 1, sizeof(ATS_HEADER), outfile)))
+      fprintf(stderr, Str("Write failure\n"));
     /* write frame data */
     for (frm = 0; frm < sound->frames; frm++) {
       daux = sound->time[0][frm];
-      fwrite(&daux, 1, sizeof(double), outfile);
+      if (UNLIKELY(1!=fwrite(&daux, 1, sizeof(double), outfile)))
+        fprintf(stderr, Str("Write failure\n"));
       for (i = 0; i < sound->partials; i++) {
         /* we ouput data in increasing frequency order
          * and we check for dead partials
@@ -1956,12 +1958,15 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
           par = sound->av[i].track;
           /* output data to file */
           daux = sound->amp[par][frm];
-          fwrite(&daux, 1, sizeof(double), outfile);
+          if (UNLIKELY(1!=fwrite(&daux, 1, sizeof(double), outfile)))
+            fprintf(stderr, Str("Write failure\n"));
           daux = sound->frq[par][frm];
-          fwrite(&daux, 1, sizeof(double), outfile);
+          if (UNLIKELY(1!=fwrite(&daux, 1, sizeof(double), outfile)))
+            fprintf(stderr, Str("Write failure\n"));
           if (type == 2 || type == 4) {
             daux = sound->pha[par][frm];
-            fwrite(&daux, 1, sizeof(double), outfile);
+            if (UNLIKELY(1!=fwrite(&daux, 1, sizeof(double), outfile)))
+              fprintf(stderr, Str("Write failure\n"));
           }
         }
       }
@@ -1969,7 +1974,8 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
       if (type == 3 || type == 4) {
         for (i = 0; i < ATSA_CRITICAL_BANDS; i++) {
           daux = sound->band_energy[i][frm];
-          fwrite(&daux, 1, sizeof(double), outfile);
+          if (UNLIKELY(1!=fwrite(&daux, 1, sizeof(double), outfile)))
+            fprintf(stderr, Str("Write failure\n"));
         }
       }
     }
@@ -2154,7 +2160,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       i_tmp =
           (ATSA_MGAPLEN < anargs->frames) ? ATSA_MGAPLEN : anargs->frames - 1;
       csound->Warning(csound,
-                      Str("min. gap length %d out of bounds, " "forced to: %d"),
+                      Str("min. gap length %d out of bounds, forced to: %d"),
                       anargs->min_gap_len, i_tmp);
       anargs->min_gap_len = i_tmp;
     }

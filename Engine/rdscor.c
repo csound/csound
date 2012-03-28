@@ -29,7 +29,7 @@ static void dumpline(CSOUND *);
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
 {
     int     c;
-    while ((c = corfile_getc(csound->scstr)) != '0' && c != '\n')
+    while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n')
         ;
 }
 
