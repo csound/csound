@@ -27,8 +27,6 @@
 # Output executables
 atsa
 atsa.exe
-beats
-beats.exe
 cs
 cs.exe
 csb64enc

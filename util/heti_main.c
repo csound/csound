@@ -34,7 +34,11 @@
 #define END  32767
 
 #include <stdint.h>
+#if defined(HAVE_GCC3)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
+#else
+#  define UNLIKELY(x)   x
+#endif
 
 typedef int_least32_t int32;
 typedef int_least16_t int16;
