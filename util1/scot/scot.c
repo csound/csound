@@ -27,7 +27,11 @@
 #include "scot.h"
 
 #define Str(x)  (x)
+#if defined(HAVE_GCC3)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
+#else
+#  define UNLIKELY(x)   x
+#endif
 
 static  char    curline[MAXLINE + 1];   /* current line of infile */
 static  int     inx,                    /* column # */
