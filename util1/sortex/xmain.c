@@ -23,6 +23,10 @@
 
 #include "csound.h"                                /*   XMAIN.C  */
 
+#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__) || defined(__EMX__)
+#include <signal.h>
+#endif
+
 int main(int ac, char **av)         /* stdio stub for standalone extract */
 {                                   /*     first opens the control xfile */
     CSOUND  *csound;
@@ -30,6 +34,9 @@ int main(int ac, char **av)         /* stdio stub for standalone extract */
     int     err = 1;
 
     csound = csoundCreate(NULL);
+#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__) || defined(__EMX__)
+    signal(SIGPIPE, SIG_DFL);
+#endif
     csoundPreCompile(csound);
     if (ac != 2) {
       fprintf(stderr, "usage: extract xfile <in >out\n");

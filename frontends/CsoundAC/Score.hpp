@@ -24,7 +24,7 @@
 %module CsoundAC
 %{
 #include "Event.hpp"
-#include "Midifile.hpp"
+  // #include "Midifile.hpp"
 #include <iostream>
 #include <vector>
   %}
@@ -32,7 +32,7 @@
 %include "std_vector.i"
 #else
 #include "Event.hpp"
-#include "Midifile.hpp"
+ // #include "Midifile.hpp"
 #include <iostream>
 #include <vector>
 #endif
@@ -75,7 +75,7 @@ namespace csound
      */
     virtual void load(std::string filename);
     virtual void load(std::istream &stream);
-    virtual void load(MidiFile &midiFile);
+    //virtual void load(MidiFile &midiFile);
     /**
      * Save as a MIDI file, format 1 (.mid) file,
      * or as a partwise MusicXML (.xml) file,
@@ -90,7 +90,7 @@ namespace csound
     /**
      * Save as a MIDI file, format 1.
      */
-    virtual void save(MidiFile &midiFile);
+    //virtual void save(MidiFile &midiFile);
     static void getScale(std::vector<Event> &score, int dimension, size_t beginAt, size_t endAt, double &minimum, double &range);
     static void setScale(std::vector<Event> &score, int dimension, bool rescaleMinimum, bool rescaleRange, size_t beginAt, size_t endAt, double targetMinimum, double targetRange);
     virtual void findScale();

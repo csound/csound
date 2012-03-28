@@ -189,7 +189,8 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
       outbuf[Hlenpadded] = outbuf[1];
       outbuf[1] = outbuf[Hlenpadded + 1L] = FL(0.0);
       /* write straight out, just the indep vals */
-      fwrite(outbuf, 1, cvh->dataBsize/nchanls, ofd);
+      if (UNLIKELY(1!=fwrite(outbuf, cvh->dataBsize/nchanls, 1, ofd)))
+        fprintf(stderr, Str("Write failure\n"));
       for (j = Hlenpadded - Hlen; j > 0; j--)
         fp2[j] = FL(0.0);
       fp2 = outbuf;
