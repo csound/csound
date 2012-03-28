@@ -57,15 +57,16 @@ check_deps(BUILD_CSBEATS FLEX_EXECUTABLE BISON_EXECUTABLE)
 
 if(BUILD_CSBEATS)
     
-    BISON_TARGET(csbeats_PARSER csbeats/beats.y ${CMAKE_CURRENT_BINARY_DIR}/beats.tab.c)
-    FLEX_TARGET(csbeats_SCANNER csbeats/beats.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.c)
+    BISON_TARGET(csbeats_PARSER beats/beats.y ${CMAKE_CURRENT_BINARY_DIR}/beats.tab.c)
+    FLEX_TARGET(csbeats_SCANNER beats/beats.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.c)
 
     ADD_FLEX_BISON_DEPENDENCY(csbeats_SCANNER csbeats_PARSER)
 
     include_directories(${CMAKE_CURRENT_BINARY_DIR})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/beats)
 
     set(csbeats_SRCS
-	${CMAKE_CURRENT_SOURCE_DIR}/csbeats/main.c
+	${CMAKE_CURRENT_SOURCE_DIR}/beats/main.c
         ${FLEX_csbeats_SCANNER_OUTPUTS}
         ${BISON_csbeats_PARSER_OUTPUTS})
 
