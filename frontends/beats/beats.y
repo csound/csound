@@ -158,29 +158,37 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
         | T_PARA S_EQ T_FLOAT { 
             if (instrument>maxinstr) extend_instruments();
             //print_instr_structure();
-            if (pnum>instr[instrument].largest) {
-              int i;
-              instr[instrument].p =
-                (double*)realloc(instr[instrument].p, sizeof(double)*(pnum+1));
-              for (i=instr[instrument].largest+1; i<=pnum; i++)
-                instr[instrument].p[i]=0.0;
-              instr[instrument].largest = pnum;
+            if (pnum<6)
+              fprintf(stderr, "p field %d ignored as less than 6\n", pnum);
+            else {
+              if (pnum>instr[instrument].largest) {
+                int i;
+                instr[instrument].p =
+                  (double*)realloc(instr[instrument].p, sizeof(double)*(pnum+1));
+                for (i=instr[instrument].largest+1; i<=pnum; i++)
+                  instr[instrument].p[i]=0.0;
+                instr[instrument].largest = pnum;
+              }
+              instr[instrument].p[pnum] = last_float;
             }
-            instr[instrument].p[pnum] = last_float;
             //print_instr_structure();
           }
         | T_PARA S_EQ T_INTEGER { 
             if (instrument>maxinstr) extend_instruments();
             //print_instr_structure();
-            if (pnum>instr[instrument].largest) {
-              int i;
-              instr[instrument].p =
-                (double*)realloc(instr[instrument].p, sizeof(double)*(pnum+1));
-              for (i=instr[instrument].largest+1; i<=pnum; i++)
-                instr[instrument].p[i]=0.0;
-              instr[instrument].largest = pnum;
+            if (pnum<6)
+              fprintf(stderr, "p field %d ignored as less than 6\n", pnum);
+            else {
+              if (pnum>instr[instrument].largest) {
+                int i;
+                instr[instrument].p =
+                  (double*)realloc(instr[instrument].p, sizeof(double)*(pnum+1));
+                for (i=instr[instrument].largest+1; i<=pnum; i++)
+                  instr[instrument].p[i]=0.0;
+                instr[instrument].largest = pnum;
+              }
+              instr[instrument].p[pnum] = (double)last_integer;
             }
-            instr[instrument].p[pnum] = (double)last_integer;
             //print_instr_structure();
           }
         ;
