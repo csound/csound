@@ -48,10 +48,10 @@ CORFIL *corfile_create_r(const char *text)
 
 void corfile_putc(int c, CORFIL *f)
 {
-    if (f->p+1 >= f->len)
+    f->body[f->p++] = c;
+    if (f->p >= f->len)
       f->body = (char*) realloc(f->body, f->len+=100);
-    f->body[f->p] = c;
-    f->body[++f->p] = '\0';
+    f->body[f->p] = '\0';
 }
 
 void corfile_puts(char *s, CORFIL *f)
