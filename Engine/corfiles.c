@@ -119,7 +119,7 @@ MYFLT corfile_get_flt(CORFIL *f)
 {
     int n = f->p;
     MYFLT ans;
-    while(!isspace(f->body[++f->p]));
+    while (!isspace(f->body[++f->p]));
     ans = (MYFLT) atof(&f->body[n]);
     return ans;
 }

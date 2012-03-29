@@ -150,7 +150,9 @@ BAR             [Bb][Aa][Rr]
 "f"             { last_integer = -2; return T_DYN; }
 "mf"            { last_integer = -3; return T_DYN; }
 "mp"            { last_integer = -4; return T_DYN; }
-"p"             { last_integer = -5; return T_DYN; }
+p[0-9]*       { if (yyleng==1) { last_integer = -5; return T_DYN; }
+                  else { pnum = atoi(&yytext[1]); return T_PARA; }
+                }
 "pp"            { last_integer = -6; return T_DYN; }
 "ppp"           { last_integer = -7; return T_DYN; }
 "pppp"          { last_integer = -8; return T_DYN; }
@@ -162,7 +164,9 @@ P[1-9][0-9]*    { pnum = atoi(&yytext[1]); return T_PARA; }
 
 "i"|"I"         { next_instr = 1; return T_INSTR;}
 
-{INTGR}         { last_integer = atoi(yytext); if (next_instr) { instrument = last_integer; next_instr = 0;} return T_INTEGER;}
+{INTGR}         { last_integer = atoi(yytext); 
+                  if (next_instr) { instrument = last_integer; next_instr = 0;}
+                  return T_INTEGER;}
 {FLOAT}         { last_float = atof(yytext); return T_FLOAT;}
 .               { fprintf(stderr, "Unknown character %c(%.2x)\n",
                           yytext[0], yytext[0]);}
