@@ -95,7 +95,7 @@ statement : S_NL                                { }
               fprintf(stderr, "length,last=%f,%f pitch,last=%f,%f amp,last=%d,%d\n",
                       length,last_length, pitch, last_pitch, ampl, last_ampl);
             }
-            print_instr_structure();
+            //print_instr_structure();
             if (instrument>maxinstr) extend_instruments();
             if (onset0<0) onset0 = last_onset0;
             if (onset1<0) onset1 = last_onset1;
@@ -157,7 +157,7 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
 //        | S_PLS            { onset0 = last_onset1; onset1 += last_length; }
         | T_PARA S_EQ T_FLOAT { 
             if (instrument>maxinstr) extend_instruments();
-            print_instr_structure();
+            //print_instr_structure();
             if (pnum>instr[instrument].largest) {
               int i;
               instr[instrument].p =
@@ -167,11 +167,11 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
               instr[instrument].largest = pnum;
             }
             instr[instrument].p[pnum] = last_float;
-            print_instr_structure();
+            //print_instr_structure();
           }
         | T_PARA S_EQ T_INTEGER { 
             if (instrument>maxinstr) extend_instruments();
-            print_instr_structure();
+            //print_instr_structure();
             if (pnum>instr[instrument].largest) {
               int i;
               instr[instrument].p =
@@ -181,7 +181,7 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
               instr[instrument].largest = pnum;
             }
             instr[instrument].p[pnum] = (double)last_integer;
-            print_instr_structure();
+            //print_instr_structure();
           }
         ;
 
