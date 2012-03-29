@@ -912,7 +912,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
         // otherwise, look up and return the already created function table's number.
         if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
           *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
-          warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
+          // warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
           // std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
         } else {
           FUNC *func = 0;
@@ -1090,21 +1090,21 @@ extern "C"
     {
       aoutletsForCsoundsForSourceOutletIds[csound].clear();
       ainletsForCsoundsForSinkInletIds[csound].clear();
-      for (size_t i = 0, n = aoutletVectorsForCsounds[csound].size(); i < n; i++) {
-        delete aoutletVectorsForCsounds[csound][i];
-      }
+      //for (size_t i = 0, n = aoutletVectorsForCsounds[csound].size(); i < n; i++) {
+      //  delete aoutletVectorsForCsounds[csound][i];
+      //}
       aoutletVectorsForCsounds[csound].clear();
       koutletsForCsoundsForSourceOutletIds[csound].clear();
       kinletsForCsoundsForSinkInletIds[csound].clear();
-      for (size_t i = 0, n = koutletVectorsForCsounds[csound].size(); i < n; i++) {
-        delete koutletVectorsForCsounds[csound][i];
-      }
+      //for (size_t i = 0, n = koutletVectorsForCsounds[csound].size(); i < n; i++) {
+      //  delete koutletVectorsForCsounds[csound][i];
+      //}
       koutletVectorsForCsounds[csound].clear();
       foutletsForCsoundsForSourceOutletIds[csound].clear();
       finletsForCsoundsForSinkInletIds[csound].clear();
-      for (size_t i = 0, n = foutletVectorsForCsounds[csound].size(); i < n; i++) {
-        delete foutletVectorsForCsounds[csound][i];
-      }
+      //for (size_t i = 0, n = foutletVectorsForCsounds[csound].size(); i < n; i++) {
+      //  delete foutletVectorsForCsounds[csound][i];
+      //}
       foutletVectorsForCsounds[csound].clear();
       connectionsForCsounds[csound].clear();
     }
