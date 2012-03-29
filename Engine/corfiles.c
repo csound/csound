@@ -24,6 +24,7 @@
 #include "csoundCore.h"     /*                              CORFILES.C      */
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 extern int csoundFileClose(CSOUND*, void*);
 
