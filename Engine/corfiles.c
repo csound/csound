@@ -56,11 +56,25 @@ void corfile_putc(int c, CORFIL *f)
 
 void corfile_puts(char *s, CORFIL *f)
 {
-    int slen = strlen(s);
-    while (f->p+slen+1>=f->len)
-      f->body = (char*) realloc(f->body, f->len+=100);
-    strcat(f->body, s);
-    f->p += slen;
+    char *c;
+    int n;
+    /* skip and count the NUL chars to the end */
+    for (n=0; f->p > 0 && f->body[f->p-1] == '\0'; n++, f->p--);
+    /* append the string */
+    for (c = s; *c != '\0'; c++) {
+      f->body[f->p++] = *c;
+      if (f->p >= f->len)
+        f->body = (char*) realloc(f->body, f->len+=100);
+    }
+    if (n > 0) {
+      /* put the extra NUL chars to the end */
+      while(--n >= 0) {
+        f->body[f->p++] = '\0';
+        if (f->p >= f->len)
+          f->body = (char*) realloc(f->body, f->len+=100);
+      }
+    }
+    f->body[f->p] = '\0';
 }
 
 void corfile_flush(CORFIL *f)
