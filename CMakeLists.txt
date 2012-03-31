@@ -5,7 +5,7 @@ project (Csound)
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
 # Project definitions
-set(APIVERSION "5.2")
+set(APIVERSION "6.0")
 
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
