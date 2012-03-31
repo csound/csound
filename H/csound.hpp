@@ -454,6 +454,11 @@ public:
   {
     return csoundScoreEvent(csound, type, pFields, numFields);
   }
+  virtual int ScoreEventAbsolute(char type, const MYFLT *pFields,
+				 long numFields, double time_ofs)
+  {
+    return csoundScoreEventAbsolute(csound, type, pFields, numFields, time_ofs);
+  }
   // MIDI
   virtual void SetExternalMidiInOpenCallback(
       int (*func)(CSOUND *, void **, const char *))
