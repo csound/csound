@@ -798,6 +798,8 @@ typedef struct {
                                                      MYFLT value));
     int (*ScoreEvent)(CSOUND *,
                       char type, const MYFLT *pFields, long numFields);
+    int (*ScoreEventAbsolute)(CSOUND *,
+                      char type, const MYFLT *pFields, long numFields, double time_ofs);
     void (*SetExternalMidiInOpenCallback)(CSOUND *,
                 int (*func)(CSOUND *, void **, const char *));
     void (*SetExternalMidiReadCallback)(CSOUND *,

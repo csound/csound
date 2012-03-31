@@ -954,6 +954,9 @@ extern "C" {
     PUBLIC int csoundScoreEvent(CSOUND *,
             char type, const MYFLT *pFields, long numFields);
 
+    PUBLIC int csoundScoreEventAbsolute(CSOUND *,
+            char type, const MYFLT *pfields, long numFields, double time_ofs);
+
     /*
      * MIDI
      */
