@@ -148,6 +148,7 @@ extern "C" {
     csoundSetInputValueCallback,
     csoundSetOutputValueCallback,
     csoundScoreEvent,
+    csoundScoreEventAbsolute,
     csoundSetExternalMidiInOpenCallback,
     csoundSetExternalMidiReadCallback,
     csoundSetExternalMidiInCloseCallback,
@@ -2103,8 +2104,22 @@ extern "C" {
         evt.p[i + 1] = pfields[i];
       //memcpy(&evt.p[1],pfields, numFields*sizeof(MYFLT));
       return insert_score_event_at_sample(csound, &evt, csound->icurTime);
-      }
+  }
 
+  PUBLIC int csoundScoreEventAbsolute(CSOUND *csound, char type,
+                                      const MYFLT *pfields, long numFields,
+                                      double time_ofs)
+  {
+      EVTBLK  evt;
+      int     i;
+
+      evt.strarg = NULL;
+      evt.opcod = type;
+      evt.pcnt = (int16) numFields;
+      for (i = 0; i < (int) numFields; i++)
+        evt.p[i + 1] = pfields[i];
+      return insert_score_event(csound, &evt, time_ofs);
+  }
 
   /*
    *    REAL-TIME AUDIO
