@@ -547,7 +547,7 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
     do {
       h = strhash_tabl_8[(unsigned char) *(s++) ^ h];
     } while (isalnum((unsigned char) *s) ||
-             *s == (char) '_' || *s == (char) '.');
+             *s == (char) '_' || *s == (char) '-' || *s == (char) '.');
     if (*s != (char) 0)
       return CSOUND_ERROR;
     /* create new empty database on first call */
