@@ -103,7 +103,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
       return NULL;
     }
 
-    if (UNLIKELY(1!=fread(header, 1, hs, fp)))
+    if (UNLIKELY(hs!=fread(header, 1, hs, fp)))
       csound->InitError(csound,
                         Str("imageload: file %s is not in PNG format.\n"),
                         filename);
