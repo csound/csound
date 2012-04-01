@@ -116,7 +116,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
     MYFLT       **argp;
     double val;
 
-    nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
+    nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1; /* count segs & alloc if nec */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(SEG), &p->auxch);
@@ -430,7 +430,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
     MYFLT       d, **argp, val, dur, nxtval;
     int         n=0;
 
-    nsegs = p->INOCOUNT >> 1;                   /* count segs & alloc if nec */
+    nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1; /* count segs & alloc if nec */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
@@ -474,7 +474,7 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
     MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
     int         n=0;
 
-    nsegs = p->INOCOUNT >> 1;                   /* count segs & alloc if nec */
+    nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1; /* count segs & alloc if nec */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
@@ -524,7 +524,7 @@ int xsgset2b(CSOUND *csound, EXPSEG2 *p)
     MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
     int         n;
 
-    nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
+    nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1; /* count segs & alloc if nec */
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(XSEG) > (unsigned int)p->auxch.size) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
@@ -575,7 +575,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
     MYFLT       d, **argp, val, dur, nxtval;
     int         n;
 
-    nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
+    nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1; /* count segs & alloc if nec */
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(XSEG) > (unsigned int)p->auxch.size) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
@@ -741,7 +741,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
     MYFLT   **argp, prvpt;
 
     p->xtra = -1;
-    nsegs = p->INOCOUNT >> 1;               /* count segs & alloc if nec */
+    nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1; /* count segs & alloc if nec */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(SEG) > (unsigned int)p->auxch.size) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(SEG), &p->auxch);
