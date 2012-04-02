@@ -232,20 +232,6 @@ void synterr(CSOUND *csound, const char *s, ...)
    * This function may not be necessary at all in the end if some of this is
    * done in the parser
    */
-#ifdef never
-  if (ST(linadr) != NULL && (cp = ST(linadr)[ST(curline)]) != NULL
-      && !csound->oparms->newParser
-      ) {
-    csound->MessageS(csound, CSOUNDMSG_ERROR,
-                     Str(", line %d:\n"), CURLINE);
-    do {
-      csound->MessageS(csound, CSOUNDMSG_ERROR, "%c", (c = *cp++));
-    } while (c != '\n');
-  }
-  else {
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
-  }
-#endif
   csound->synterrcnt++;
 }
 
