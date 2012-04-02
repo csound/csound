@@ -201,7 +201,6 @@ typedef struct {
     int     numThreads;
     int     syntaxCheckOnly;
     int     useCsdLineCounts;
-    int     newParser; /* SYY - July 30, 2006: for --new-parser */
     int     calculateWeights;
   } OPARMS;
 
