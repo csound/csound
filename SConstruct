@@ -237,9 +237,6 @@ commandOptions.Add('withMSVC',
 commandOptions.Add('withSunStudio',
     'On Solaris, set to 1 to build with Sun Studio, or set to 0 to build with gcc',
     '1')
-commandOptions.Add('buildNewParser',
-    'Enable building new parser (requires Flex/Bison)',
-    '1')
 commandOptions.Add('NewParserDebug',
     'Enable tracing of new parser',
     '0')
@@ -891,30 +888,25 @@ if getPlatform() == "win32":
 csoundLibraryEnvironment = commonEnvironment.Clone()
 
 if commonEnvironment['buildMultiCore'] != '0':
-    if commonEnvironment['buildNewParser'] != '0':
-      csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
+    csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
 
-if commonEnvironment['buildNewParser'] != '0':
-    if commonEnvironment['buildMultiCore'] != '0':
+if commonEnvironment['buildMultiCore'] != '0':
       csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
-    print 'CONFIGURATION DECISION: Building with new parser enabled'
-    reportflag='--report=itemset'
-    csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', reportflag, '-p','csound_orc'])
-    csoundLibraryEnvironment.Append(LEXFLAGS = ['-B'])
-    csoundLibraryEnvironment.Append(CPPFLAGS = ['-DENABLE_NEW_PARSER'])
-    csoundLibraryEnvironment.Append(CPPPATH = ['Engine'])
-    yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
+reportflag='--report=itemset'
+csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', reportflag, '-p','csound_orc'])
+csoundLibraryEnvironment.Append(LEXFLAGS = ['-B'])
+csoundLibraryEnvironment.Append(CPPPATH = ['Engine'])
+yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
                                source = 'Engine/csound_orc.y')
-    lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
+lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
                                source = 'Engine/csound_orc.l')
-    preBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_prelex.c',
+preBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_prelex.c',
                                source = 'Engine/csound_pre.lex')
-    if commonEnvironment['NewParserDebug'] != '0':
+if commonEnvironment['NewParserDebug'] != '0':
         print 'CONFIGURATION DECISION: Building with new parser debugging'
         csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARSER_DEBUG=1'])
-    else: print 'CONFIGURATION DECISION: Not building with new parser debugging'
-else:
-    print 'CONFIGURATION DECISION: Not building with new parser'
+else: print 'CONFIGURATION DECISION: Not building with new parser debugging'
+
 
 csoundLibraryEnvironment.Append(CPPFLAGS = ['-D__BUILDING_LIBCSOUND'])
 if commonEnvironment['buildRelease'] != '0':
@@ -997,8 +989,7 @@ csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Clone()
 if buildOSXFramework:
     csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Clone()
     # create directory structure for the framework
-    if commonEnvironment['buildNewParser'] != '0':
-       csoundFrameworkEnvironment.Append(LINKFLAGS=["-Wl,-single_module"])
+    csoundFrameworkEnvironment.Append(LINKFLAGS=["-Wl,-single_module"])
     tmp = [OSXFrameworkBaseDir]
     tmp += ['%s/Versions' % OSXFrameworkBaseDir]
     tmp += [OSXFrameworkCurrentVersion]
@@ -1220,11 +1211,9 @@ libCsoundSources += oldpvoc
 libCsoundSources += gabnewopc
  
 if commonEnvironment['buildMultiCore'] != '0':
-    if commonEnvironment['buildNewParser'] != '0':
       libCsoundSources += MultiCoreSources
 
-if commonEnvironment['buildNewParser'] != '0':
-    libCsoundSources += newParserSources
+libCsoundSources += newParserSources
 
 csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
 if commonEnvironment['dynamicCsoundLibrary'] == '1':

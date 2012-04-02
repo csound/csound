@@ -27,9 +27,7 @@
 #include "csmodule.h"
 #include "corfile.h"
 
-#ifdef ENABLE_NEW_PARSER
 #include "csound_orc.h"
-#endif
 
 #ifdef PARCS
 #include "cs_par_base.h"
@@ -51,10 +49,9 @@ extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
 extern  OENTRY  opcodlst_1[];
 extern  uintptr_t  kperfThread(void * cs);
-#if defined(ENABLE_NEW_PARSER)
 extern void cs_init_math_constants_macros(CSOUND *csound,void *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, NAMES *nn);
-#endif
+extern int new_orc_parser(CSOUND *);
 
 static void create_opcodlst(CSOUND *csound)
 {
@@ -316,9 +313,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       if (csound->orchstr==NULL)
         csound->Die(csound,
                     Str("Failed to open input file %s\n"), csound->orchname);
-#ifdef ENABLE_NEW_PARSER
-      if (O->newParser) corfile_puts("\n#exit\n", csound->orchstr);
-#endif
+      corfile_puts("\n#exit\n", csound->orchstr);
       corfile_putc('\0', csound->orchstr);
       corfile_putc('\0', csound->orchstr);
       //csound->orchname = NULL;
@@ -332,22 +327,9 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
 
-#ifdef ENABLE_NEW_PARSER
-    if (O->newParser) {
-      int new_orc_parser(CSOUND *);
-      if (new_orc_parser(csound)) {
-        csoundDie(csound, Str("Stopping on parser failure\n"));
-      }
+    if (new_orc_parser(csound)) {
+      csoundDie(csound, Str("Stopping on parser failure\n"));
     }
-    else {
-      csound->Message(csound, "********************\n");
-      csound->Message(csound, "* USING OLD PARSER *\n");
-      csound->Message(csound, "********************\n");
-      otran(csound);                  /* read orcfile, setup desblks & spaces */
-    }
-#else
-    otran(csound);                  /* read orcfile, setup desblks & spaces */
-#endif
 #if defined(USE_OPENMP)
     if (csound->oparms->numThreads > 1) {
       omp_set_num_threads(csound->oparms->numThreads);
@@ -384,8 +366,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         fclose(ff);
       }
     }
-    if (csound->xfilename != NULL) {            /* optionally extract */
-      if (!(xfile = fopen(csound->xfilename, "r")))
+if (csound->xfilename != NULL) {            /* optionally extract */
+  if (!(xfile = fopen(csound->xfilename, "r")))
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
       csoundNotifyFileOpened(csound, csound->xfilename,
                              CSFTYPE_EXTRACT_PARMS, 0, 0);
