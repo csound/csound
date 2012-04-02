@@ -47,10 +47,9 @@ CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
 void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
 CS_NORETURN void    csoundLongJmp(CSOUND *, int retval);
 void    putop(CSOUND *, TEXT *);
-void    rdorchfile(CSOUND *);
-char    argtyp(CSOUND *, char *);
+/* void    rdorchfile(CSOUND *); */
+/* char    argtyp(CSOUND *, char *); */
 TEXT    *getoptxt(CSOUND *, int *);
-int     express(CSOUND *, char *);
 int     lgexist(CSOUND *, const char *);
 void    oload(CSOUND *);
 void    reverbinit(CSOUND *);
