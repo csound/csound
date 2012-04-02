@@ -449,7 +449,6 @@
 ./Opcodes/sf.h
 ./Opcodes/sfont.c
 ./Opcodes/sfont.h
-./Opcodes/sft.c
 ./Opcodes/sftype.h
 ./Opcodes/shaker.c
 ./Opcodes/shaker.h
@@ -463,7 +462,6 @@
 ./Opcodes/sockrecv.c
 ./Opcodes/socksend.c
 ./Opcodes/space.c
-./Opcodes/space_cm.c
 ./Opcodes/space.h
 ./Opcodes/spat3d.c
 ./Opcodes/spat3d.h
