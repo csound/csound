@@ -201,10 +201,8 @@ typedef struct {
     int     numThreads;
     int     syntaxCheckOnly;
     int     useCsdLineCounts;
-#ifdef ENABLE_NEW_PARSER
     int     newParser; /* SYY - July 30, 2006: for --new-parser */
     int     calculateWeights;
-#endif /* ENABLE_NEW_PARSE */
   } OPARMS;
 
   typedef struct arglst {

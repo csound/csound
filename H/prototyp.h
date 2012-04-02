@@ -47,7 +47,7 @@ CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
 void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
 CS_NORETURN void    csoundLongJmp(CSOUND *, int retval);
 void    putop(CSOUND *, TEXT *);
-void    rdorchfile(CSOUND *), otran(CSOUND *);
+void    rdorchfile(CSOUND *);
 char    argtyp(CSOUND *, char *);
 TEXT    *getoptxt(CSOUND *, int *);
 int     express(CSOUND *, char *);

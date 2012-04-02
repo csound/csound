@@ -118,12 +118,13 @@ int set_rt_priority(int argc, char **argv)
 {
     int     rtmode;
     struct sched_param p;
-    int     i, err, not_root, priority, wd_enabled = 0;
+    int     i, err, priority, wd_enabled = 0;
+    /* int     not_root; */
 
-    if ((int) geteuid() == 0)
-      not_root = 0;
-    else
-      not_root = 1;
+    /* if ((int) geteuid() == 0) */
+    /*   not_root = 0; */
+    /* else */
+    /*   not_root = 1; */
 
     memset(&p, 0, sizeof(struct sched_param));
     priority = sched_get_priority_max(SCHED_RR);

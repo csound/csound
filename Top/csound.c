@@ -59,9 +59,7 @@ extern "C" {
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
-#ifdef ENABLE_NEW_PARSER
 #include "csound_orc.h"
-#endif
 #ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
@@ -655,7 +653,6 @@ extern "C" {
       1,            /*    numThreads        */
       0,            /*    syntaxCheckOnly   */
       1,            /*    useCsdLineCounts  */
-      1,            /*    newParser   */
       0,            /*    calculateWeights   */
     },
     0L, 0L,         /*  instxtcount, optxtsize  */
@@ -2639,7 +2636,6 @@ extern "C" {
   } resetCallback_t;
 
   extern void cscoreRESET(CSOUND *);
-  extern void tranRESET(CSOUND *);
   extern void memRESET(CSOUND *);
 
   PUBLIC void csoundReset(CSOUND *csound)
@@ -2670,7 +2666,6 @@ extern "C" {
 #ifdef CSCORE
       cscoreRESET(csound);
 #endif
-      tranRESET(csound);
 
       csound->oparms_.odebug = 0;
       /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
