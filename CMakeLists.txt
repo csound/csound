@@ -205,7 +205,6 @@ endif()
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
 
-option(BUILD_NEW_PARSER "Enable building new parser (requires Flex/Bison)" ON)
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 
 option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
@@ -313,9 +312,15 @@ foreach(header ${HEADERS_TO_CHECK})
 endforeach()
 
 # Flex/Bison for the new parser
-if(BUILD_NEW_PARSER)
-    find_package(FLEX)
-    find_package(BISON)
+find_package(FLEX)
+find_package(BISON)
+
+if(NOT FLEX_EXECUTABLE)
+    message(FATAL_ERROR "Csound requires the flex executable")
+endif()
+
+if(NOT BISON_EXECUTABLE)
+    message(FATAL_ERROR "Csound requires the bison executable")
 endif()
 
 ## MAIN TARGETS ##
@@ -365,7 +370,6 @@ set(libcsound_SRCS
     Engine/corfiles.c
     Engine/entry1.c
     Engine/envvar.c
-    Engine/express.c
     Engine/extract.c
     Engine/fgens.c
     Engine/insert.c
@@ -575,77 +579,74 @@ list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} $
 
 # Handling New Parser
 
-check_deps(BUILD_NEW_PARSER FLEX_EXECUTABLE BISON_EXECUTABLE)
-if(BUILD_NEW_PARSER)
-    add_custom_target(NewParser echo "Creating parser.c")
+add_custom_target(NewParser echo "Creating parser.c")
 
-    set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
-    set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
+set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
+set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
 
-    set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.l)
-    set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
+set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.l)
+set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 
-    set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
-    set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
+set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
+set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
 
-    add_custom_command(
-        SOURCE ${LEX_SRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT} 
-        TARGET NewParser
-        OUTPUTS ${LEX_OUT})
+add_custom_command(
+    SOURCE ${LEX_SRC}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT} 
+    TARGET NewParser
+    OUTPUTS ${LEX_OUT})
 
-    add_custom_command(
-        SOURCE ${PRELEX_SRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SRC} > ${PRELEX_OUT} 
-        TARGET NewParser
-        OUTPUTS ${PRELEX_OUT})
+add_custom_command(
+    SOURCE ${PRELEX_SRC}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SRC} > ${PRELEX_OUT} 
+    TARGET NewParser
+    OUTPUTS ${PRELEX_OUT})
 
-    add_custom_command(
-        SOURCE ${YACC_SRC}
-        COMMAND ${BISON_EXECUTABLE}
-        ARGS -pcsound_orc -d --report=itemset -o ${YACC_OUT} ${YACC_SRC} 
-        TARGET NewParser
-        DEPENDS ${LEX_OUT}
-        OUTPUTS ${YACC_OUT})
+add_custom_command(
+    SOURCE ${YACC_SRC}
+    COMMAND ${BISON_EXECUTABLE}
+    ARGS -pcsound_orc -d --report=itemset -o ${YACC_OUT} ${YACC_SRC} 
+    TARGET NewParser
+    DEPENDS ${LEX_OUT}
+    OUTPUTS ${YACC_OUT})
+
+list(APPEND libcsound_SRCS 
+    ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
+    Engine/csound_orc_semantics.c
+    Engine/csound_orc_expressions.c
+    Engine/csound_orc_optimize.c
+    Engine/csound_orc_compile.c
+    Engine/new_orc_parser.c
+    Engine/symbtab.c)
+
+set_source_files_properties(${YACC_OUT} GENERATED)
+set_source_files_properties(${LEX_OUT} GENERATED)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
     
-    list(APPEND libcsound_SRCS 
-                ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
-                Engine/csound_orc_semantics.c
-                Engine/csound_orc_expressions.c
-                Engine/csound_orc_optimize.c
-                Engine/csound_orc_compile.c
-                Engine/new_orc_parser.c
-                Engine/symbtab.c)
+list(APPEND libcsound_CFLAGS -DENABLE_NEW_PARSER)
 
-    set_source_files_properties(${YACC_OUT} GENERATED)
-    set_source_files_properties(${LEX_OUT} GENERATED)
-
-    include_directories(${CMAKE_CURRENT_BINARY_DIR})
-    
-    list(APPEND libcsound_CFLAGS -DENABLE_NEW_PARSER)
-    
-    if(NEW_PARSER_DEBUG)
-        message(STATUS "Building with new parser debugging")
-        list(APPEND libcsound_CFLAGS -DPARSER_DEBUG=1)
-    else()
-        message(STATUS "Not building with new parser debugging")
-    endif()
-    
-    if(BUILD_MULTI_CORE)
-        message(STATUS "Building with multicore")
-        
-        list(APPEND libcsound_SRCS
-            Engine/cs_par_base.c
-            Engine/cs_par_orc_semantic_analysis.c
-            Engine/cs_par_dispatch.c)
-        
-        list(APPEND libcsound_CFLAGS -DPARCS)
-        
-    else()
-        message(STATUS "Not building with multicore")
-    endif()
-    
+if(NEW_PARSER_DEBUG)
+    message(STATUS "Building with new parser debugging")
+    list(APPEND libcsound_CFLAGS -DPARSER_DEBUG=1)
+else()
+    message(STATUS "Not building with new parser debugging")
 endif()
+
+if(BUILD_MULTI_CORE)
+    message(STATUS "Building with multicore")
+    
+    list(APPEND libcsound_SRCS
+        Engine/cs_par_base.c
+        Engine/cs_par_orc_semantic_analysis.c
+        Engine/cs_par_dispatch.c)
+    
+    list(APPEND libcsound_CFLAGS -DPARCS)
+    
+else()
+    message(STATUS "Not building with multicore")
+endif()
+    
 
 
 if(USE_DOUBLE)
