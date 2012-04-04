@@ -306,7 +306,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       mfree(csound, fileDir);
     }
 
-    if (csound->orchstr==NULL) {
+     if (csound->orchstr==NULL) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
@@ -366,8 +366,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         fclose(ff);
       }
     }
-if (csound->xfilename != NULL) {            /* optionally extract */
-  if (!(xfile = fopen(csound->xfilename, "r")))
+    if (csound->xfilename != NULL) {            /* optionally extract */
+      if (!(xfile = fopen(csound->xfilename, "r")))
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
       csoundNotifyFileOpened(csound, csound->xfilename,
                              CSFTYPE_EXTRACT_PARMS, 0, 0);
