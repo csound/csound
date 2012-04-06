@@ -204,8 +204,7 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       minorVersion = (n & 0xFF00) >> 8;
       majorVersion = (n & (~0xFFFF)) >> 16;
       if (majorVersion != (int) CS_APIVERSION ||
-          (minorVersion > (int) CS_APISUBVER) ||
-          (minorVersion <= 5)) { /* NOTE **** REFACTOR *** */
+          (minorVersion > (int) CS_APISUBVER)) { /* NOTE **** REFACTOR *** */
         csound->Warning(csound, Str("not loading '%s' (incompatible "
                                     "with this version of Csound (%d.%d/%d.%d)"),
                         fname, majorVersion,minorVersion,
