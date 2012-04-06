@@ -56,23 +56,20 @@ const uint32_t csScoSortMask = 4;
 const uint32_t csMidiScoMask = 8;
 const uint32_t csPlayScoMask = 16;
 
-typedef struct namelst {
-  char           *name;
-  struct namelst *next;
-} NAMELST;
 
-typedef struct {
-    NAMELST *toremove;
-    char    orcname[L_tmpnam + 4];
-    char    sconame[L_tmpnam + 4];
-    char    midname[L_tmpnam + 4];
-    int     midiSet;
-    int     csdlinecount;
-    char    *orcstr;
-    char    *scostr;
-} ONE_FILE_GLOBALS;
+/* typedef struct { */
+/*     NAMELST *toremove; */
+/*     char    orcname[L_tmpnam + 4]; */
+/*     char    sconame[L_tmpnam + 4]; */
+/*     char    midname[L_tmpnam + 4]; */
+/*     int     midiSet; */
+/*     int     csdlinecount; */
+/*     char    *orcstr; */
+/*     char    *scostr; */
+/* } ONE_FILE_GLOBALS; */
 
-#define ST(x)   (((ONE_FILE_GLOBALS*) csound->oneFileGlobals)->x)
+//#define ST(x)   (((ONE_FILE_GLOBALS*) csound->oneFileGlobals)->x)
+#define STA(x)   (csound->onefileStatics.x)
 
 #if !defined(WIN32)
 char *mytmpnam(char *name)
@@ -166,17 +163,16 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
 
 static void alloc_globals(CSOUND *csound)
 {
-    if (UNLIKELY(csound->oneFileGlobals == NULL)) {
-      csound->oneFileGlobals = mcalloc(csound, sizeof(ONE_FILE_GLOBALS));
+    /* if (UNLIKELY(csound->oneFileGlobals == NULL)) { */
+    /*   csound->oneFileGlobals = mcalloc(csound, sizeof(ONE_FILE_GLOBALS)); */
       /* count lines from 0 so that it adds OK to orc/sco counts */
-      ST(csdlinecount) = 0;
-    }
+    STA(csdlinecount) = 0;
 }
 
 char *get_sconame(CSOUND *csound)
 {
     alloc_globals(csound);
-    return ST(sconame);
+    return STA(sconame);
 }
 
 static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
@@ -191,7 +187,7 @@ static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
       }
       if (ch == '\n' || ch == '\r') {   /* end of line ? */
-        ++(ST(csdlinecount));           /* count the lines */
+        ++(STA(csdlinecount));           /* count the lines */
         *(s++) = '\n';                  /* convert */
         if (ch == '\r') {
           ch = getc(stream);
@@ -209,18 +205,18 @@ static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
 void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
 {                               /* use one fn to delete all temporary files */
     alloc_globals(csound);
-    while (ST(toremove) != NULL) {
-      NAMELST *nxt = ST(toremove)->next;
+    while (STA(toremove) != NULL) {
+      NAMELST *nxt = STA(toremove)->next;
 #ifdef BETA
       csoundMessage(csound, Str("Removing temporary file %s ...\n"),
-                            ST(toremove)->name);
+                            STA(toremove)->name);
 #endif
-      if (remove(ST(toremove)->name))
+      if (remove(STA(toremove)->name))
         csoundMessage(csound, Str("WARNING: could not remove %s\n"),
-                              ST(toremove)->name);
-      mfree(csound, ST(toremove)->name);
-      mfree(csound, ST(toremove));
-      ST(toremove) = nxt;
+                              STA(toremove)->name);
+      mfree(csound, STA(toremove)->name);
+      mfree(csound, STA(toremove));
+      STA(toremove) = nxt;
     }
 }
 
@@ -231,8 +227,8 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     tmp = (NAMELST*) mmalloc(csound, sizeof(NAMELST));
     tmp->name = (char*) mmalloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
-    tmp->next = ST(toremove);
-    ST(toremove) = tmp;
+    tmp->next = STA(toremove);
+    STA(toremove) = tmp;
 }
 
 /* readingCsOptions should be non-zero when readOptions() is called
@@ -339,7 +335,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
     if (UNLIKELY(readingCsOptions))
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
     else
-      ST(csdlinecount) = 0;
+      STA(csdlinecount) = 0;
  return FALSE;
 }
 
@@ -351,7 +347,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     CORFIL *incore = corfile_create_w();
     char  buffer[CSD_MAX_LINE_LEN];
 
-    csound->orcLineOffset = ST(csdlinecount)+1;
+    csound->orcLineOffset = STA(csdlinecount)+1;
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;
@@ -376,7 +372,7 @@ static int createScore(CSOUND *csound, FILE *unf)
     CORFIL *incore = corfile_create_w();
     char   buffer[CSD_MAX_LINE_LEN];
 
-    csound->scoLineOffset = ST(csdlinecount);
+    csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;
@@ -414,7 +410,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     *q = '\0';
     strcpy(prog, p+5); /* after "<CsExScore " */
     /* Generate score name */
-    csoundTmpFileName(csound, ST(sconame), ".sco");
+    csoundTmpFileName(csound, STA(sconame), ".sco");
     csoundTmpFileName(csound, extname, ".ext");
     fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
                                 CSFTYPE_SCORE, 1);
@@ -425,21 +421,21 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     if (UNLIKELY(fd == NULL))
       return FALSE;
 
-    csound->scoLineOffset = ST(csdlinecount);
+    csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       if (strstr(p, "</CsScore>") == p) {
         char sys[1024];
         csoundFileClose(csound, fd);
-        sprintf(sys, "%s %s %s", prog, extname, ST(sconame));
+        sprintf(sys, "%s %s %s", prog, extname, STA(sconame));
         if (UNLIKELY(system(sys) != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
           remove(extname);
-          remove(ST(sconame));
+          remove(STA(sconame));
           return FALSE;
         }
         remove(extname);
-        add_tmpfile(csound, ST(sconame));           /* IV - Feb 03 2005 */
+        add_tmpfile(csound, STA(sconame));           /* IV - Feb 03 2005 */
         return TRUE;
       }
       else fputs(buffer, scof);
@@ -457,11 +453,11 @@ static void read_base64(CSOUND *csound, FILE *in, FILE *out)
     while ((c = getc(in)) != '=' && c != '<') {
       while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
         if (c == '\n') {               /* count lines */
-          ++(ST(csdlinecount));
+          ++(STA(csdlinecount));
           c = getc(in);
         }
         else if (c == '\r') {
-          ++(ST(csdlinecount));
+          ++(STA(csdlinecount));
           c = getc(in);
           if (c == '\n') c = getc(in); /* DOS format */
         }
@@ -513,18 +509,18 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
     char  buffer[CSD_MAX_LINE_LEN];
 
     /* Generate MIDI file name */
-    csoundTmpFileName(csound, ST(midname), ".mid");
-    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL,
+    csoundTmpFileName(csound, STA(midname), ".mid");
+    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, STA(midname), "wb", NULL,
                                 CSFTYPE_STD_MIDI, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
-                        ST(midname));
+                        STA(midname));
     }
     csound->tempStatus |= csMidiScoMask;
     read_base64(csound, unf, midf);
     csoundFileClose(csound, fd);
-    add_tmpfile(csound, ST(midname));               /* IV - Feb 03 2005 */
-    ST(midiSet) = TRUE;
+    add_tmpfile(csound, STA(midname));               /* IV - Feb 03 2005 */
+    STA(midiSet) = TRUE;
     while (TRUE) {
       if (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
         p = buffer;
@@ -722,8 +718,8 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       return 0;
     }
     alloc_globals(csound);
-    ST(orcname)[0] = ST(sconame)[0] = ST(midname)[0] = '\0';
-    ST(midiSet) = FALSE;
+    STA(orcname)[0] = STA(sconame)[0] = STA(midname)[0] = '\0';
+    STA(midiSet) = FALSE;
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
 #endif
@@ -737,10 +733,10 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||
                strstr(p, "</CsoundSynthesiser>") == p) {
-        *pname = ST(orcname);
-        *score = ST(sconame);
-        if (ST(midiSet)) {
-          csound->oparms->FMidiname = ST(midname);
+        *pname = STA(orcname);
+        *score = STA(sconame);
+        if (STA(midiSet)) {
+          csound->oparms->FMidiname = STA(midname);
           csound->oparms->FMidiin = 1;
         }
         csoundFileClose(csound, fd);
@@ -815,10 +811,10 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
                     Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
       result = FALSE;
     }
-    *pname = ST(orcname);
-    *score = ST(sconame);
-    if (ST(midiSet)) {
-      csound->oparms->FMidiname = ST(midname);
+    *pname = STA(orcname);
+    *score = STA(sconame);
+    if (STA(midiSet)) {
+      csound->oparms->FMidiname = STA(midname);
       csound->oparms->FMidiin = 1;
     }
     csoundFileClose(csound, fd);

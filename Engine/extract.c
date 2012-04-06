@@ -24,26 +24,27 @@
 #include "csoundCore.h"
 #include "sysdep.h"                                 /*    EXTRACT.C   */
 
-#define INSMAX  4096
+//#define INSMAX  4096
 
 extern  int     realtset(CSOUND *, SRTBLK *);
 extern  MYFLT   realt(CSOUND *, MYFLT);
 
 static  void    include(CSOUND *, SRTBLK *);
 
-typedef struct {
-    char    inslst[INSMAX];         /*   values set by readxfil         */
-    int     sectno, a0done;
-    int     onsect, offsect;        /*      "       "       "           */
-    MYFLT   onbeat, offbeat;        /*      "       "       "           */
-    MYFLT   ontime, offtime;        /* set by readxfil, mod by w-stmnt  */
-    SRTBLK  *frstout, *prvout;      /* links for building new outlist   */
-    SRTBLK  a0;
-    SRTBLK  f0;
-    SRTBLK  e;
-} EXTRACT_GLOBALS;
+/* typedef struct { */
+/*     char    inslst[INSMAX];         /\*   values set by readxfil         *\/ */
+/*     int     sectno, a0done; */
+/*     int     onsect, offsect;        /\*      "       "       "           *\/ */
+/*     MYFLT   onbeat, offbeat;        /\*      "       "       "           *\/ */
+/*     MYFLT   ontime, offtime;        /\* set by readxfil, mod by w-stmnt  *\/ */
+/*     SRTBLK  *frstout, *prvout;      /\* links for building new outlist   *\/ */
+/*     SRTBLK  a0; */
+/*     SRTBLK  f0; */
+/*     SRTBLK  e; */
+/* } EXTRACT_GLOBALS; */
 
-#define ST(x)   (((EXTRACT_GLOBALS*) ((CSOUND*) csound)->extractGlobals)->x)
+//#define ST(x)   (((EXTRACT_GLOBALS*) ((CSOUND*) csound)->extractGlobals)->x)
+#define STA(x)   (csound->extractStatics.x)
 
 static  const   SRTBLK a0 = {
     NULL, NULL, 0, 3, FL(0.0), FL(0.0), FL(0.0), FL(0.0), FL(0.0),
@@ -62,14 +63,14 @@ static  const   SRTBLK e = {
 
 static void alloc_globals(CSOUND *csound)
 {
-    if (csound->extractGlobals == NULL) {
-      csound->extractGlobals = csound->Calloc(csound, sizeof(EXTRACT_GLOBALS));
-      ST(onbeat) = ST(offbeat) = FL(0.0);
-      ST(ontime) = ST(offtime) = FL(0.0);
-      memcpy(&ST(a0), &a0, sizeof(SRTBLK));
-      memcpy(&ST(f0), &f0, sizeof(SRTBLK));
-      memcpy(&ST(e), &e, sizeof(SRTBLK));
-    }
+/* if (csound->extractGlobals == NULL) { */
+/*   csound->extractGlobals = csound->Calloc(csound, sizeof(EXTRACT_GLOBALS)); */
+      STA(onbeat) = STA(offbeat) = FL(0.0);
+      STA(ontime) = STA(offtime) = FL(0.0);
+      memcpy(&STA(a0), &a0, sizeof(SRTBLK));
+      memcpy(&STA(f0), &f0, sizeof(SRTBLK));
+      memcpy(&STA(e), &e, sizeof(SRTBLK));
+    /* } */
 }
 
 void readxfil(CSOUND *csound, FILE *xfp)    /* read the extract control file */
@@ -80,8 +81,8 @@ void readxfil(CSOUND *csound, FILE *xfp)    /* read the extract control file */
     alloc_globals(csound);
     all = 1;
     flag = 'i';                                 /* default -i flag supplied */
-    ST(onsect) = 1;     ST(onbeat) = FL(0.0);   /* other default vals   */
-    ST(offsect) = 999;  ST(offbeat) = FL(0.0);
+    STA(onsect) = 1;     STA(onbeat) = FL(0.0);   /* other default vals   */
+    STA(offsect) = 999;  STA(offbeat) = FL(0.0);
     while (fscanf(xfp, "%s", s) != EOF) {
       char *c = s;
       int i;
@@ -96,32 +97,32 @@ void readxfil(CSOUND *csound, FILE *xfp)    /* read the extract control file */
         switch (flag) {
         case 'i':
           sscanf(s, "%d", &i);
-          ST(inslst)[i] = 1;
+          STA(inslst)[i] = 1;
           all = 0;
           break;
         case 'f':
 #if defined(USE_DOUBLE)
-          sscanf(s, "%d:%lf", &ST(onsect), &ST(onbeat));
+          sscanf(s, "%d:%lf", &STA(onsect), &STA(onbeat));
 #else
-          sscanf(s, "%d:%f", &ST(onsect), &ST(onbeat));
+          sscanf(s, "%d:%f", &STA(onsect), &STA(onbeat));
 #endif
           break;
         case 't':
-          ST(offsect) = ST(onsect);       /* default offsect */
+          STA(offsect) = STA(onsect);       /* default offsect */
 #if defined(USE_DOUBLE)
-          sscanf(s, "%d:%lf", &ST(offsect), &ST(offbeat));
+          sscanf(s, "%d:%lf", &STA(offsect), &STA(offbeat));
 #else
-          sscanf(s, "%d:%f", &ST(offsect), &ST(offbeat));
+          sscanf(s, "%d:%f", &STA(offsect), &STA(offbeat));
 #endif
         }
       }
     }
     if (all) {
       char *ip;
-      for (ip = &ST(inslst)[0]; ip < &ST(inslst)[INSMAX]; *ip++ = 1);
+      for (ip = &STA(inslst)[0]; ip < &STA(inslst)[INSMAX]; *ip++ = 1);
     }
-    ST(ontime) = ST(a0).newp3 = ST(a0).p3val = ST(onbeat);
-    ST(offtime) = ST(f0).newp2 = ST(f0).p2val = ST(offbeat);
+    STA(ontime) = STA(a0).newp3 = STA(a0).p3val = STA(onbeat);
+    STA(offtime) = STA(f0).newp2 = STA(f0).p2val = STA(offbeat);
 }
 
 void extract(CSOUND *csound) /* extract instr events within the time period */
@@ -134,13 +135,13 @@ void extract(CSOUND *csound) /* extract instr events within the time period */
 
     if ((bp = csound->frstbp) == NULL)      /* if null file         */
       return;
-    if (++ST(sectno) > ST(offsect)) {       /* or later section,    */
+    if (++STA(sectno) > STA(offsect)) {       /* or later section,    */
       csound->frstbp = NULL;
       return;                               /*      return          */
     }
 
-    ST(frstout) = ST(prvout) = NULL;
-    if (ST(sectno) < ST(onsect)) {          /* for sects preceding, */
+    STA(frstout) = STA(prvout) = NULL;
+    if (STA(sectno) < STA(onsect)) {          /* for sects preceding, */
       do {
         switch (bp->text[0]) {
         case 'f':                           /* include f's at time 0 */
@@ -164,83 +165,83 @@ void extract(CSOUND *csound) /* extract instr events within the time period */
         switch(bp->text[0]) {
         case 'w':
           warped = realtset(csound, bp);
-          if (ST(sectno) == ST(onsect) && warped)
-            ST(ontime) = ST(a0).newp3 = realt(csound, ST(onbeat));
-          if (ST(sectno) == ST(offsect) && warped)
-            ST(offtime) = ST(f0).newp2 = realt(csound, ST(offbeat));
+          if (STA(sectno) == STA(onsect) && warped)
+            STA(ontime) = STA(a0).newp3 = realt(csound, STA(onbeat));
+          if (STA(sectno) == STA(offsect) && warped)
+            STA(offtime) = STA(f0).newp2 = realt(csound, STA(offbeat));
           include(csound, bp);
           break;
         case 't':
           include(csound, bp);
           break;
         case 'f':
-        casef: if (ST(sectno) == ST(onsect) && bp->newp2 < ST(ontime))
-          bp->newp2 = ST(ontime);
-        else if (ST(sectno) == ST(offsect) && bp->newp2 > ST(offtime))
+        casef: if (STA(sectno) == STA(onsect) && bp->newp2 < STA(ontime))
+          bp->newp2 = STA(ontime);
+        else if (STA(sectno) == STA(offsect) && bp->newp2 > STA(offtime))
           break;
-        if (ST(sectno) == ST(onsect) && !ST(a0done)) {
-          if (ST(onbeat) > 0)
-            include(csound, &ST(a0));
-          ST(a0done)++;
+        if (STA(sectno) == STA(onsect) && !STA(a0done)) {
+          if (STA(onbeat) > 0)
+            include(csound, &STA(a0));
+          STA(a0done)++;
         }
         include(csound, bp);
         break;
         case 'i':
-          if (!ST(inslst)[bp->insno])   /* skip insnos not required */
+          if (!STA(inslst)[bp->insno])   /* skip insnos not required */
             break;
           if (bp->newp3 < 0)            /* treat indef dur like f */
             goto casef;
         case 'a':turnoff = bp->newp2 + bp->newp3;   /* i and a: */
-          if (ST(sectno) == ST(onsect)) {
-            if (turnoff < ST(ontime))
+          if (STA(sectno) == STA(onsect)) {
+            if (turnoff < STA(ontime))
               break;
-            if ((anticip = ST(ontime) - bp->newp2) > 0) {
+            if ((anticip = STA(ontime) - bp->newp2) > 0) {
               if ((bp->newp3 -= anticip) < FL(0.001))
                 break;
-              bp->p3val -= ST(onbeat) - bp->p2val;
-              bp->newp2 = ST(ontime);
-              bp->p2val = ST(onbeat);
+              bp->p3val -= STA(onbeat) - bp->p2val;
+              bp->newp2 = STA(ontime);
+              bp->p2val = STA(onbeat);
             }
           }
-          if (ST(sectno) == ST(offsect)) {
-            if (bp->newp2 >= ST(offtime))
+          if (STA(sectno) == STA(offsect)) {
+            if (bp->newp2 >= STA(offtime))
               break;
-            if (turnoff > ST(offtime)) {
-              bp->newp3 = ST(offtime) - bp->newp2;
-              bp->p3val = ST(offbeat) - bp->p2val;
+            if (turnoff > STA(offtime)) {
+              bp->newp3 = STA(offtime) - bp->newp2;
+              bp->p3val = STA(offbeat) - bp->p2val;
             }
           }
-          if (ST(sectno) == ST(onsect) && !ST(a0done)) {
-            if (ST(onbeat) > 0)
-              include(csound, &ST(a0));
-            ST(a0done)++;
+          if (STA(sectno) == STA(onsect) && !STA(a0done)) {
+            if (STA(onbeat) > 0)
+              include(csound, &STA(a0));
+            STA(a0done)++;
           }
           include(csound, bp);
           break;
         case 's':
         case 'e':
-          if (ST(sectno) == ST(offsect)) {
-            include(csound, &ST(f0));
-            include(csound, &ST(e));
+          if (STA(sectno) == STA(offsect)) {
+            include(csound, &STA(f0));
+            include(csound, &STA(e));
           }
           else include(csound, bp);
           break;
         }
       } while ((bp = bp->nxtblk) != NULL);
     }
-    csound->frstbp = ST(frstout);
-    if (ST(prvout) != NULL)
-      ST(prvout)->nxtblk = NULL;
+    csound->frstbp = STA(frstout);
+    if (STA(prvout) != NULL)
+      STA(prvout)->nxtblk = NULL;
 }
 
 /* wire a srtblk into the outlist */
 
 static void include(CSOUND *csound, SRTBLK *bp)
 {
-    if (ST(frstout) == NULL)                /* first one is special */
-      ST(frstout) = bp;
-    else ST(prvout)->nxtblk = bp;           /* others just add onto list */
-    bp->prvblk = ST(prvout);                /* maintain the backptr      */
-    ST(prvout) = bp;                        /* and get ready for next    */
+    if (STA(frstout) == NULL)                /* first one is special */
+      STA(frstout) = bp;
+    else STA(prvout)->nxtblk = bp;           /* others just add onto list */
+    bp->prvblk = STA(prvout);                /* maintain the backptr      */
+    STA(prvout) = bp;                        /* and get ready for next    */
 }
 
