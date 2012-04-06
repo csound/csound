@@ -71,26 +71,6 @@ void tranRESET(CSOUND *csound)
     //csound->otranGlobals = NULL;
 }
 
-void putop(CSOUND *csound, TEXT *tp)
-{
-    int n, nn;
-
-    if ((n = tp->outlist->count) != 0) {
-      nn = 0;
-      while (n--)
-        csound->Message(csound, "%s\t", tp->outlist->arg[nn++]);
-    }
-    else
-      csound->Message(csound, "\t");
-    csound->Message(csound, "%s\t", tp->opcod);
-    if ((n = tp->inlist->count) != 0) {
-      nn = 0;
-      while (n--)
-        csound->Message(csound, "%s\t", tp->inlist->arg[nn++]);
-    }
-    csound->Message(csound, "\n");
-}
-
 static NAME *lclnamset(CSOUND *csound, char *s)
 {
     unsigned char h = name_hash(csound, s);
