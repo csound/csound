@@ -57,7 +57,7 @@ util/xtrct.c
 */
 
 #include "csound.h"
-
+#include "cscore.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1305,7 +1305,16 @@ typedef struct marked_sections {
     void          *extractGlobals;
     void          *oneFileGlobals;
     void          *lineventGlobals;
-    void          *musmonGlobals;
+    struct musmonStatics {
+      int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
+      int16   srngflg;
+      int16   sectno;
+      int     lplayed;
+      int     segamps, sormsg;
+      EVENT   **ep, **epend;      /* pointers for stepping through lplay list */
+      EVENT   *lsect;
+    } musmonStatics;
+    //void          *musmonGlobals;
     struct libsndStatics {
       SNDFILE       *outfile;
       SNDFILE       *infile;

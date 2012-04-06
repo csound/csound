@@ -581,7 +581,13 @@ extern "C" {
     NULL,           /*  extractGlobals      */
     NULL,           /*  oneFileGlobals      */
     NULL,           /*  lineventGlobals     */
-    NULL,           /*  musmonGlobals       */
+    {
+      {0,0}, {0,0},  /* srngcnt, orngcnt    */
+      0, 0, 0, 0, 0, /* srngflg, sectno, lplayed, segamps, sormsg */
+      NULL, NULL,    /* ep, epend           */
+      NULL           /* lsect               */
+    },
+    //NULL,           /*  musmonGlobals       */
     {
       NULL,         /*  outfile             */
       NULL,         /*  infile              */
