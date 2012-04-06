@@ -55,22 +55,27 @@
 void csound_aops_init_tables(CSOUND *csound)
 {
     int   i;
-    if(csound->cpsocfrc==NULL)csound->cpsocfrc = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*OCTRES);
-    if(csound->powerof2==NULL) csound->powerof2 = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*POW2TABSIZI);
+    if (csound->cpsocfrc==NULL)
+      csound->cpsocfrc = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*OCTRES);
+    if (csound->powerof2==NULL) 
+      csound->powerof2 = (MYFLT *) csound->Malloc(csound,
+                                                  sizeof(MYFLT)*POW2TABSIZI);
     for (i = 0; i < OCTRES; i++)
       csound->cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
     for (i = 0; i < POW2TABSIZI; i++)
-      csound->powerof2[i] = POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
+      csound->powerof2[i] =
+        POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
 }
 
 
-MYFLT csoundPow2(CSOUND *csound, MYFLT a){
-
-  if(a > POW2MAX) a = POW2MAX;
-  else if(a < -POW2MAX) a = -POW2MAX;
-    int n = (int)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;   /* 4096 * 15 */
+MYFLT csoundPow2(CSOUND *csound, MYFLT a)
+{
+    int n;
+    if (a > POW2MAX) a = POW2MAX;
+    else if (a < -POW2MAX) a = -POW2MAX;
+    /* 4096 * 15 */
+    n = (int)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;
     return ((MYFLT) (1UL << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]);
-
 }
 
 
