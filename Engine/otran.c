@@ -71,30 +71,6 @@ void tranRESET(CSOUND *csound)
     //csound->otranGlobals = NULL;
 }
 
-
-static int pnum(char *s)        /* check a char string for pnum format  */
-                                /*   and return the pnum ( >= 0 )       */
-{                               /* else return -1                       */
-    int n;
-
-    if (*s == 'p' || *s == 'P')
-      if (sscanf(++s, "%d", &n))
-        return(n);
-    return(-1);
-}
-
-static inline unsigned int MYFLT_hash(const MYFLT *x)
-{
-    const unsigned char *c = (const unsigned char*) x;
-    size_t              i;
-    unsigned int        h = 0U;
-
-    for (i = (size_t) 0; i < sizeof(MYFLT); i++)
-      h = (unsigned int) strhash_tabl_8[(unsigned int) c[i] ^ h];
-
-    return h;
-}
-
 void putop(CSOUND *csound, TEXT *tp)
 {
     int n, nn;
