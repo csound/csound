@@ -57,7 +57,7 @@ util/xtrct.c
 */
 
 #include "csound.h"
-
+#include "cscore.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1305,8 +1305,37 @@ typedef struct marked_sections {
     void          *extractGlobals;
     void          *oneFileGlobals;
     void          *lineventGlobals;
-    void          *musmonGlobals;
-    void          *libsndGlobals;
+    struct musmonStatics {
+      int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
+      int16   srngflg;
+      int16   sectno;
+      int     lplayed;
+      int     segamps, sormsg;
+      EVENT   **ep, **epend;      /* pointers for stepping through lplay list */
+      EVENT   *lsect;
+    } musmonStatics;
+    //void          *musmonGlobals;
+    struct libsndStatics {
+      SNDFILE       *outfile;
+      SNDFILE       *infile;
+      char          *sfoutname;           /* soundout filename            */
+      MYFLT         *inbuf;
+      MYFLT         *outbuf;              /* contin sndio buffers         */
+      MYFLT         *outbufp;             /* MYFLT pntr                   */
+      uint32        inbufrem;
+      uint32        outbufrem;            /* in monosamps                 */
+                                          /* (see openin, iotranset)      */
+      unsigned int  inbufsiz,  outbufsiz; /* alloc in sfopenin/out        */
+      int           isfopen;              /* (real set in sfopenin)       */
+      int           osfopen;              /* (real set in sfopenout)      */
+      int           pipdevin, pipdevout;  /* 0: file, 1: pipe, 2: rtaudio */
+      uint32        nframes               /* = 1UL */;
+      FILE          *pin, *pout;
+#ifndef SOME_FILE_DAY
+      int           dither;
+#endif
+    } libsndStatics;
+    //    void          *libsndGlobals;
     void          (*spinrecv)(CSOUND *);
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
