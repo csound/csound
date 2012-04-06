@@ -1333,3 +1333,40 @@ void close_all_files(CSOUND *csound)
       csoundFileClose(csound, csound->open_files);
 }
 
+/* The fromScore parameter should be 1 if opening a score include file,
+   0 if opening an orchestra include file */
+void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
+                 char *env, int fromScore)
+{
+  void *fd;
+  int  csftype = (fromScore ? CSFTYPE_SCO_INCLUDE : CSFTYPE_ORC_INCLUDE);
+
+  /* First try to open name given */
+  fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", NULL,
+                         csftype, 0);
+  if (fd != NULL)
+    return fd;
+  /* if that fails try in base directory */
+  if (basename != NULL) {
+    char *dir, *name_full;
+    if ((dir = csoundSplitDirectoryFromPath(csound, basename)) != NULL) {
+      name_full = csoundConcatenatePaths(csound, dir, name);
+      fd = csound->FileOpen2(csound, fp, CSFILE_STD, name_full, "rb", NULL,
+                             csftype, 0);
+      mfree(csound, dir);
+      mfree(csound, name_full);
+      if (fd != NULL)
+        return fd;
+    }
+  }
+  /* or use env argument */
+  fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", env,
+                         csftype, 0);
+  return fd;
+}
+
+
+
+
+
+
