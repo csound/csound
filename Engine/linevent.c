@@ -43,7 +43,7 @@
 # endif
 #endif
 
-#define LBUFSIZ   32768
+//#define LBUFSIZ   32768
 #define LF        '\n'
 
 typedef struct {
@@ -56,16 +56,17 @@ typedef struct {
 
 static void sensLine(CSOUND *csound, void *userData);
 
-#define ST(x)   (((LINEVENT_GLOBALS*) ((CSOUND*) csound)->lineventGlobals)->x)
+//#define ST(x)   (((LINEVENT_GLOBALS*) ((CSOUND*) csound)->lineventGlobals)->x)
+#define STA(x)   (csound->lineventStatics.x)
 
 void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 {                                   /*     callable once from musmon.c        */
     OPARMS  *O = csound->oparms;
-    csound->lineventGlobals = (LINEVENT_GLOBALS*)
-                               csound->Calloc(csound, sizeof(LINEVENT_GLOBALS));
-    ST(prve).opcod = ' ';
-    ST(Linebufend) = ST(Linebuf) + LBUFSIZ;
-    ST(Linep) = ST(Linebuf);
+    /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
+    /*                            csound->Calloc(csound, sizeof(LINEVENT_GLOBALS)); */
+    STA(prve).opcod = ' ';
+    STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
+    STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
 #ifdef SYMANTEC
       console_options.top += 10;
@@ -73,10 +74,10 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       console_options.title = "\pRT Line_events";
       console_options.nrows = 10;
       console_options.ncols = 50;
-      ST(Linecons) = fopenc();
-      cshow(ST(Linecons));
+      STA(Linecons) = fopenc();
+      cshow(STA(Linecons));
 #elif defined(mills_macintosh)
-      ST(Linecons) = stdin;
+      STA(Linecons) = stdin;
       setvbuf(stdin, NULL, _IONBF, 0);
 #else
   #if defined(DOSGCC) || defined(__WATCOMC__) || defined(WIN32) || \
@@ -84,8 +85,8 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       setvbuf(stdin, NULL, _IONBF, 0);
    /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
   #else
-      ST(stdmode) = fcntl(csound->Linefd, F_GETFL, 0);
-      if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, ST(stdmode) | O_NDELAY) < 0))
+      STA(stdmode) = fcntl(csound->Linefd, F_GETFL, 0);
+      if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, STA(stdmode) | O_NDELAY) < 0))
         csoundDie(csound, Str("-L stdin fcntl failed"));
   #endif
 #endif
@@ -111,7 +112,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       if (UNLIKELY((csound->Linefd=open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
         csoundDie(csound, Str("Cannot open %s"), O->Linename);
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
-                    ST(stdmode), csound->Linefd);
+                    STA(stdmode), csound->Linefd);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
 }
 
@@ -121,14 +122,14 @@ int _pclose(FILE*);
 
 void RTclose(CSOUND *csound)
 {
-    if (csound->oparms->Linein == 0 || csound->lineventGlobals == NULL)
+    if (csound->oparms->Linein == 0)
       return;
     csound->oparms->Linein = 0;
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
-                            ST(stdmode), csound->Linefd);
+                            STA(stdmode), csound->Linefd);
 #if defined(mills_macintosh) || defined(SYMANTEC)
-    if (ST(Linecons) != NULL)
-      fclose(ST(Linecons));
+    if (STA(Linecons) != NULL)
+      fclose(STA(Linecons));
 #else
   #ifdef PIPES
     if (csound->oparms->Linename[0] == '|')
@@ -141,12 +142,12 @@ void RTclose(CSOUND *csound)
   #if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && \
       !defined(mills_macintosh)
       else
-        fcntl(csound->Linefd, F_SETFL, ST(stdmode));
+        fcntl(csound->Linefd, F_SETFL, STA(stdmode));
   #endif
     }
 #endif      /* !(mills_macintosh || SYMANTEC) */
-    csound->Free(csound, csound->lineventGlobals);
-    csound->lineventGlobals = NULL;
+//csound->Free(csound, csound->lineventGlobals);
+//csound->lineventGlobals = NULL;
 }
 
 /* does string segment contain LF? */
@@ -169,15 +170,15 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
     if ((err = setjmp(csound->exitjmp)) != 0) {
       memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
-      csound->lineventGlobals = NULL;
+      //csound->lineventGlobals = NULL;
       return -1;
     }
-    csound->lineventGlobals =
-        (LINEVENT_GLOBALS*) mcalloc(csound, sizeof(LINEVENT_GLOBALS));
+    /* csound->lineventGlobals = */
+    /*     (LINEVENT_GLOBALS*) mcalloc(csound, sizeof(LINEVENT_GLOBALS)); */
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
-    ST(prve).opcod = ' ';
-    ST(Linebufend) = ST(Linebuf) + LBUFSIZ;
-    ST(Linep) = ST(Linebuf);
+    STA(prve).opcod = ' ';
+    STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
+    STA(Linep) = STA(Linebuf);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
 
     return 0;
@@ -190,21 +191,21 @@ PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
 {
     int32  size = (int32) strlen(message);
 
-    if (!csound->lineventGlobals) {
+    //if (!csound->lineventGlobals) {
       if (linevent_alloc(csound) != 0)
         return;
-    }
+      //}
     if (!size)
       return;
-    if (UNLIKELY((ST(Linep) + size) >= ST(Linebufend))) {
+    if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       csoundErrorMsg(csound, Str("LineBuffer Overflow - "
                                  "Input Data has been Lost"));
       return;
     }
-    memcpy(ST(Linep), message, size);
-    if (ST(Linep)[size - 1] != (char) '\n')
-      ST(Linep)[size++] = (char) '\n';
-    ST(Linep) += size;
+    memcpy(STA(Linep), message, size);
+    if (STA(Linep)[size - 1] != (char) '\n')
+      STA(Linep)[size++] = (char) '\n';
+    STA(Linep) += size;
 }
 
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
@@ -216,19 +217,19 @@ static void sensLine(CSOUND *csound, void *userData)
     int     c, n, pcnt;
 
     while (1) {
-      Linend = ST(Linep);
+      Linend = STA(Linep);
       if (csound->Linefd >= 0) {
 #if defined(mills_macintosh) || defined(SYMANTEC)
         n = fread((void *) Linend, (size_t) 1,
-                  (size_t) (ST(Linebufend) - Linend), ST(Linecons));
+                  (size_t) (STA(Linebufend) - Linend), STA(Linecons));
 #else
-        n = read(csound->Linefd, Linend, ST(Linebufend) - Linend);
+        n = read(csound->Linefd, Linend, STA(Linebufend) - Linend);
 #endif
         Linend += (n > 0 ? n : 0);
       }
-      if (Linend <= ST(Linebuf))
+      if (Linend <= STA(Linebuf))
         break;
-      Linestart = ST(Linebuf);
+      Linestart = STA(Linebuf);
       cp = Linestart;
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
@@ -289,11 +290,11 @@ static void sensLine(CSOUND *csound, void *userData)
           if (c == '.' &&                       /*  if lone dot,       */
               ((n = cp[1]) == ' ' || n == '\t' || n == LF)) {
             if (UNLIKELY(e.opcod != 'i' ||
-                         ST(prve).opcod != 'i' || pcnt > ST(prve).pcnt)) {
+                         STA(prve).opcod != 'i' || pcnt > STA(prve).pcnt)) {
               csound->ErrorMsg(csound, Str("dot carry has no reference"));
               goto Lerr;
             }                                   /*        pfld carry   */
-            e.p[pcnt] = ST(prve).p[pcnt];
+            e.p[pcnt] = STA(prve).p[pcnt];
             if (UNLIKELY(e.p[pcnt] == SSTRCOD)) {
               csound->ErrorMsg(csound, Str("cannot carry string p-field"));
               goto Lerr;
@@ -315,10 +316,10 @@ static void sensLine(CSOUND *csound, void *userData)
         }
         e.pcnt = pcnt;                          /*   &  record pfld count    */
         if (e.opcod == 'i') {                   /* do carries for instr data */
-          memcpy((void*) &ST(prve), (void*) &e,
+          memcpy((void*) &STA(prve), (void*) &e,
                  (size_t) ((char*) &(e.p[pcnt + 1]) - (char*) &e));
           /* FIXME: how to carry string args ? */
-          ST(prve).strarg = NULL;
+          STA(prve).strarg = NULL;
         }
         if (UNLIKELY(pcnt >= PMAX && c != LF)) {
           csound->ErrorMsg(csound, Str("too many pfields"));
@@ -337,18 +338,18 @@ static void sensLine(CSOUND *csound, void *userData)
                                  Linestart, n + 1, "^");  /* mark the error */
         Linestart = (++cp);
       }
-      if (Linestart != &(ST(Linebuf)[0])) {
+      if (Linestart != &(STA(Linebuf)[0])) {
         int len = (int) (Linend - Linestart);
         /* move any remaining characters to the beginning of the buffer */
         for (n = 0; n < len; n++)
-          ST(Linebuf)[n] = Linestart[n];
-        n = (int) (Linestart - &(ST(Linebuf)[0]));
-        ST(Linep) -= n;
+          STA(Linebuf)[n] = Linestart[n];
+        n = (int) (Linestart - &(STA(Linebuf)[0]));
+        STA(Linep) -= n;
         Linend -= n;
       }
-      if (Linend == ST(Linep))      /* return if no more data is available  */
+      if (Linend == STA(Linep))      /* return if no more data is available  */
         break;
-      ST(Linep) = Linend;                       /* accum the chars          */
+      STA(Linep) = Linend;                       /* accum the chars          */
     }
 }
 

@@ -1304,7 +1304,15 @@ typedef struct marked_sections {
     //    void          *sreadGlobals;
     void          *extractGlobals;
     void          *oneFileGlobals;
-    void          *lineventGlobals;
+#define LBUFSIZ   32768
+    struct lineventStatics {
+      char    *Linep, *Linebufend;
+      FILE    *Linecons;
+      int     stdmode;
+      EVTBLK  prve;
+      char    Linebuf[LBUFSIZ];
+    } lineventStatics;
+    //void          *lineventGlobals;
     struct musmonStatics {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
       int16   srngflg;
