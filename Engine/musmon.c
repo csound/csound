@@ -29,7 +29,6 @@
 #include "oload.h"
 #include "remote.h"
 #include <math.h>
-# include "cscore.h"
 #include "corfile.h"
 
 #define SEGAMPS AMPLMSG
@@ -55,17 +54,18 @@ typedef struct evt_cb_func {
     struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
 
-typedef struct {
-    int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
-    int16   srngflg;
-    int16   sectno;
-    int     lplayed;
-    int     segamps, sormsg;
-    EVENT   **ep, **epend;      /* pointers for stepping through lplay list */
-    EVENT   *lsect;
-} MUSMON_GLOBALS;
+/* typedef struct { */
+/*     int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS]; */
+/*     int16   srngflg; */
+/*     int16   sectno; */
+/*     int     lplayed; */
+/*     int     segamps, sormsg; */
+/*     EVENT   **ep, **epend;      /\* pointers for stepping through lplay list *\/ */
+/*     EVENT   *lsect; */
+/* } MUSMON_GLOBALS; */
 
-#define ST(x)   (((MUSMON_GLOBALS*) csound->musmonGlobals)->x)
+//#define ST(x)   (((MUSMON_GLOBALS*) csound->musmonGlobals)->x)
+#define STA(x)   (csound->musmonStatics.x)
 
 /* IV - Jan 28 2005 */
 void print_benchmark_info(CSOUND *csound, const char *s)
@@ -195,8 +195,8 @@ int musmon(CSOUND *csound)
                             CS_PACKAGE_VERSION, __DATE__);
 #endif
 #endif
-    if (LIKELY(csound->musmonGlobals == NULL))
-      csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
+    /* if (LIKELY(csound->musmonGlobals == NULL)) */
+    /*   csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR;INCDIR");
@@ -219,8 +219,8 @@ int musmon(CSOUND *csound)
     csound->Message(csound, Str("orch now loaded\n"));
 
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
-    ST(segamps) = O->msglevel & SEGAMPS;
-    ST(sormsg) = O->msglevel & SORMSG;
+    STA(segamps) = O->msglevel & SEGAMPS;
+    STA(sormsg) = O->msglevel & SORMSG;
 
     if (O->Linein)
       RTLineset(csound);                /* if realtime input expected   */
@@ -275,9 +275,9 @@ int musmon(CSOUND *csound)
     corfile_flush(O->playscore);
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
-      if (ST(lsect) == NULL) {
-        ST(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
-        ST(lsect)->op = 'l';
+      if (STA(lsect) == NULL) {
+        STA(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
+        STA(lsect)->op = 'l';
       }
       csound->Message(csound, Str("using Cscore processing\n"));
       /* override stdout in */
@@ -293,7 +293,7 @@ int musmon(CSOUND *csound)
         fclose(csound->scfp);
         csound->scfp = NULL;
       }
-      if (ST(lplayed))
+      if (STA(lplayed))
         return 0;
 
       /*  read from cscore.out */
@@ -324,7 +324,7 @@ int musmon(CSOUND *csound)
       O->usingcscore = 0;
     }
 
-    csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
+    csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
@@ -397,28 +397,28 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     corfile_rm(&csound->scstr);
 
     /* print stats only if musmon was actually run */
-    if (UNLIKELY(csound->musmonGlobals != NULL)) {
+    /* NOT SURE HOW   ************************** */
+    {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])
           csound->omaxamp[n] = csound->smaxamp[n];
         if (csound->maxamp[n] > csound->omaxamp[n])
           csound->omaxamp[n] = csound->maxamp[n];
-        ST(orngcnt)[n] += (ST(srngcnt)[n] + csound->rngcnt[n]);
+        STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
       }
       for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
         print_maxamp(csound, *maxp++);
       if (csound->oparms->outformat != AE_FLOAT) {
         csound->Message(csound, Str("\n\t   overall samples out of range:"));
-        for (rngp = ST(orngcnt), n = csound->nchnls; n--; )
+        for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
           csound->Message(csound, "%9d", *rngp++);
       }
       csound->Message(csound, Str("\n%d errors in performance\n"),
-                              csound->perferrcnt);
+                      csound->perferrcnt);
       print_benchmark_info(csound, Str("end of performance"));
     }
-
-    /* close line input (-L) */
+/* close line input (-L) */
     RTclose(csound);
     /* close MIDI input */
     MidiClose(csound);
@@ -450,13 +450,13 @@ void cs_beep(CSOUND *csound)
 
 int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 {
-    if (csound->musmonGlobals == NULL)
-      csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
-    ST(lplayed) = 1;
-    if (!ST(sectno))
-      csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
-    ST(ep) = &a->e[1];                  /* from 1st evlist member */
-    ST(epend) = ST(ep) + a->nevents;    /*   to last              */
+    /* if (csound->musmonGlobals == NULL) */
+    /*   csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
+    STA(lplayed) = 1;
+    if (!STA(sectno))
+      csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    STA(ep) = &a->e[1];                  /* from 1st evlist member */
+    STA(epend) = STA(ep) + a->nevents;    /*   to last              */
     while (csoundPerform(csound) == 0)  /* play list members      */
       ;
     return OK;
@@ -498,7 +498,7 @@ static void print_amp_values(CSOUND *csound, int score_evt)
     int32          *rngp, *srngp;
     int           n;
 
-    if (ST(segamps) || (p->rngflg && ST(sormsg))) {
+    if (STA(segamps) || (p->rngflg && STA(sormsg))) {
       if (score_evt)
         p->Message(p, "B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
                       p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
@@ -518,12 +518,12 @@ static void print_amp_values(CSOUND *csound, int score_evt)
     }
     if (p->rngflg) {
       p->rngflg = 0;
-      ST(srngflg)++;
+      STA(srngflg)++;
     }
     for (n = p->nchnls,
          maxp = p->maxamp - 1, smaxp = p->smaxamp - 1,
          maxps = p->maxpos - 1, smaxps = p->smaxpos - 1,
-         rngp = p->rngcnt, srngp = ST(srngcnt); n--; ) {
+         rngp = p->rngcnt, srngp = STA(srngcnt); n--; ) {
       ++maxps; ++smaxps;
       if (*++maxp > *++smaxp) {
         *smaxp = *maxp;
@@ -549,24 +549,24 @@ static void section_amps(CSOUND *csound, int enable_msgs)
 
     if (enable_msgs) {
       if (enable_msgs == 1)
-        p->Message(p, Str("end of section %d\t sect peak amps:"), ST(sectno));
+        p->Message(p, Str("end of section %d\t sect peak amps:"), STA(sectno));
       else if (enable_msgs == 2)
         p->Message(p, Str("end of lplay event list\t      peak amps:"));
       for (n = p->nchnls, maxp = p->smaxamp; n--; )
         print_maxamp(p, *maxp++);               /* IV - Jul 9 2002 */
       p->Message(p, "\n");
-      if (UNLIKELY(ST(srngflg))) {
+      if (UNLIKELY(STA(srngflg))) {
         p->Message(p, Str("\t number of samples out of range:"));
-        for (n = p->nchnls, srngp = ST(srngcnt); n--; )
+        for (n = p->nchnls, srngp = STA(srngcnt); n--; )
           p->Message(p, "%9d", *srngp++);
         p->Message(p, "\n");
       }
     }
-    ST(srngflg) = 0;
+    STA(srngflg) = 0;
     for (n = p->nchnls,
          smaxp = p->smaxamp - 1, maxp = p->omaxamp - 1,
          smaxps = p->smaxpos - 1, maxps = p->omaxpos - 1,
-         srngp = ST(srngcnt), rngp = ST(orngcnt); n--; ) {
+         srngp = STA(srngcnt), rngp = STA(orngcnt); n--; ) {
       ++maxps; ++smaxps;
       if (UNLIKELY(*++smaxp > *++maxp)) {
         *maxp = *smaxp;                 /* keep ovrl maxamps */
@@ -880,10 +880,10 @@ int sensevents(CSOUND *csound)
         /* else read next score event */
         if (UNLIKELY(O->usingcscore)) {           /*    get next lplay event      */
           /* FIXME: this may be non-portable */
-          if (ST(ep) < ST(epend))                       /* nxt event    */
-            memcpy((void*) e, (void*) &((*ST(ep)++)->strarg), sizeof(EVTBLK));
+          if (STA(ep) < STA(epend))                       /* nxt event    */
+            memcpy((void*) e, (void*) &((*STA(ep)++)->strarg), sizeof(EVTBLK));
           else                                          /* else lcode   */
-            memcpy((void*) e, (void*) &(ST(lsect)->strarg), sizeof(EVTBLK));
+            memcpy((void*) e, (void*) &(STA(lsect)->strarg), sizeof(EVTBLK));
         } else
           if (!(rdscor(csound, e)))           /* or rd nxt evt from scstr */
             e->opcod = 'e';
@@ -1009,7 +1009,7 @@ int sensevents(CSOUND *csound)
       return 1;
     }
     /* for s, or e after s */
-    if (retval == 1 || (retval == 2 && ST(sectno) > 1)) {
+    if (retval == 1 || (retval == 2 && STA(sectno) > 1)) {
       delete_pending_rt_events(csound);
       if (O->Beatmode)
         csound->curbt = csound->curBeat;
@@ -1023,7 +1023,7 @@ int sensevents(CSOUND *csound)
       orcompact(csound);                      /*   rtn inactiv spc */
       if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
         rlsmemfiles(csound);                  /*    purge memfiles */
-      csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
+      csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
       goto retest;                            /*   & back for more */
     }
     return 2;                   /* done with entire score */
@@ -1223,8 +1223,8 @@ void musmon_rewind_score(CSOUND *csound)
         settempo(csound, FL(60.0));
       /* update section/overall amplitudes, reset to section 1 */
       section_amps(csound, 1);
-      ST(sectno) = 1;
-      csound->Message(csound, Str("SECTION %d:\n"), ST(sectno));
+      STA(sectno) = 1;
+      csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
     }
 
     /* apply score offset if non-zero */
