@@ -1364,9 +1364,3 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
                          csftype, 0);
   return fd;
 }
-
-
-
-
-
-

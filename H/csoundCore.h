@@ -1306,7 +1306,27 @@ typedef struct marked_sections {
     void          *oneFileGlobals;
     void          *lineventGlobals;
     void          *musmonGlobals;
-    void          *libsndGlobals;
+    struct libsndStatics {
+      SNDFILE       *outfile;
+      SNDFILE       *infile;
+      char          *sfoutname;           /* soundout filename            */
+      MYFLT         *inbuf;
+      MYFLT         *outbuf;              /* contin sndio buffers         */
+      MYFLT         *outbufp;             /* MYFLT pntr                   */
+      uint32        inbufrem;
+      uint32        outbufrem;            /* in monosamps                 */
+                                          /* (see openin, iotranset)      */
+      unsigned int  inbufsiz,  outbufsiz; /* alloc in sfopenin/out        */
+      int           isfopen;              /* (real set in sfopenin)       */
+      int           osfopen;              /* (real set in sfopenout)      */
+      int           pipdevin, pipdevout;  /* 0: file, 1: pipe, 2: rtaudio */
+      uint32        nframes               /* = 1UL */;
+      FILE          *pin, *pout;
+#ifndef SOME_FILE_DAY
+      int           dither;
+#endif
+    } libsndStatics;
+    //    void          *libsndGlobals;
     void          (*spinrecv)(CSOUND *);
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
