@@ -581,8 +581,33 @@ extern "C" {
     NULL,           /*  extractGlobals      */
     NULL,           /*  oneFileGlobals      */
     NULL,           /*  lineventGlobals     */
-    NULL,           /*  musmonGlobals       */
-    NULL,           /*  libsndGlobals       */
+    {
+      {0,0}, {0,0},  /* srngcnt, orngcnt    */
+      0, 0, 0, 0, 0, /* srngflg, sectno, lplayed, segamps, sormsg */
+      NULL, NULL,    /* ep, epend           */
+      NULL           /* lsect               */
+    },
+    //NULL,           /*  musmonGlobals       */
+    {
+      NULL,         /*  outfile             */
+      NULL,         /*  infile              */
+      NULL,         /*  sfoutname;          */
+      NULL,         /*  inbuf               *
+      NULL,         /*  outbuf              */
+      NULL,         /*  outbufp             */
+      0,            /*  inbufrem            */
+      0,            /*  outbufrem           */
+      0,0,          /*  inbufsiz,  outbufsiz */
+      0,            /*  isfopen             */
+      0,            /*  osfopen             */
+      0,            /*  pipdevin, pipdevout */
+      0,            /*  nframes             */
+      NULL, NULL,   /*  pin, pout           */
+#ifndef SOME_FILE_DAY
+      0,            /*dither                */
+#endif
+    },
+    //NULL,           /*  libsndGlobals       */
     (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
     (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
