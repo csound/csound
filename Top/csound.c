@@ -580,7 +580,18 @@ extern "C" {
     },
     NULL,           /*  extractGlobals      */
     NULL,           /*  oneFileGlobals      */
-    NULL,           /*  lineventGlobals     */
+    {
+      NULL, NULL,   /* Linep, Linebufend    */
+      NULL,         /* Linecons             */
+      0,            /* stdmode              */
+      {
+        NULL, 0, 0, 0.0, 0.0, { 0.0 },
+        {NULL},
+        {0, 0, 0},
+      },            /* EVTBLK  prve         */
+      { 0 },        /* Linebuf              */
+    },
+    //NULL,           /*  lineventGlobals     */
     {
       {0,0}, {0,0},  /* srngcnt, orngcnt    */
       0, 0, 0, 0, 0, /* srngflg, sectno, lplayed, segamps, sormsg */
