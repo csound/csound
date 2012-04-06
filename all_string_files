@@ -21,7 +21,6 @@
 ./Engine/new_orc_parser.c
 ./Engine/otran.c
 ./Engine/parse_param.h
-./Engine/rdorch.c
 ./Engine/rdscor.c
 ./Engine/scsort.c
 ./Engine/scxtract.c

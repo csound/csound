@@ -379,7 +379,6 @@ set(libcsound_SRCS
     Engine/musmon.c
     Engine/namedins.c
     Engine/otran.c
-    Engine/rdorch.c
     Engine/rdscor.c
     Engine/scsort.c
     Engine/scxtract.c
