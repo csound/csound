@@ -1239,6 +1239,29 @@ typedef struct {
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *otranGlobals;
     void          *rdorchGlobals;
+    struct _sreadStatics {
+      int     op;                     /* opcode of current event              */
+      int     warpin;                 /* input format sensor                  */
+      int     linpos;                 /* line position sensor                 */
+      int     lincnt;                 /* count of lines/section in scorefile  */
+      MYFLT   prvp2 /* = -FL(1.0) */;     /* Last event time                  */
+      MYFLT   clock_base /* = FL(0.0) */;
+      MYFLT   warp_factor /* = FL(1.0) */;
+      char    *curmem;
+      char    *memend;                /* end of cur memblk                    */
+#define NAMELEN 40              /* array size of repeat macro names */
+#define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
+      char    repeat_name_n[RPTDEPTH][NAMELEN];
+      int     repeat_cnt_n[RPTDEPTH];
+      int32   repeat_point_n[RPTDEPTH];
+      int     repeat_inc_n /* = 1 */;
+      int     repeat_index;
+     /* Variable for repeat sections */
+      char    repeat_name[NAMELEN];
+      int     repeat_cnt;
+      int32   repeat_point;
+      int     repeat_inc /* = 1 */;
+    } sreadStatics;
     void          *sreadGlobals;
     void          *extractGlobals;
     void          *oneFileGlobals;
