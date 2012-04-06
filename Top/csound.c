@@ -525,8 +525,8 @@ extern "C" {
     0,              /*  namedGlobalsCurrLimit */
     0,              /*  namedGlobalsMaxLimit */
     NULL,           /*  cfgVariableDB       */
-    0.0, 0.0, 0.0,  /*  prvbt, curbt, nxtbt */
-    0.0, 0.0,       /*  curp2, nxtim        */
+    FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
+    FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
     { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, NULL },   /*  evt     */
     NULL,           /*  memalloc_db         */
@@ -556,7 +556,24 @@ extern "C" {
     0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
     0,              /*  strVarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
-    NULL,           /*  otranGlobals        */
+    {
+      {NULL}, {NULL}, /* gblNames, lclNames */
+      NULL, NULL,   /*  nullist, nulloffs   */
+      0, 0, 0,      /*  lclkcnt, lclwcnt, lclfixed */
+      0, 0, 0, 0,   /*  lclpcnt, lclscnt, lclacnt, lclnxtpcnt */
+      0, 0, 0, 0,   /*  lclnxtkcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt */
+      0, 0, 0, 0,   /*  gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt */
+      0, 0, 0, 0,   /*  gblfixed, gblkcount, gblacount, gblscount */
+      NULL, NULL, 0, /* nxtargoffp, argofflim, lclpmax */
+      NULL,         /*  strpool */
+      0, 0, 0,      /*  poolcount, strpool_cnt, argoffsize */
+      0, NULL,      /*  nconsts, constTbl */
+      NULL,         /*  typemask_tabl */
+      NULL, NULL,   /*  typemask_tabl_in, typemask_tabl_out */
+      0,            /*  lgprevdef */
+      { NULL }       /*  filedir[101] */
+    },
+    //NULL,           /*  otranGlobals        */
     {  
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
       0, 0, 0, 0,   /*  op warpin linpos lincnt */
@@ -578,14 +595,26 @@ extern "C" {
        "",          /*  repeat_name[NAMELEN] */
        0,0,0        /*  repeat_cnt, repeat_point, repeat_inc */
     },
-    NULL,           /*  extractGlobals      */
-    NULL,           /*  oneFileGlobals      */
+    {
+      { '\0'},      /*  inslst        */
+      0, 0, 0, 0,   /*  sectno, a0done, onsect, offsect */
+      FL(0.0), FL(0.0), FL(0.0), FL(0.0), /* onbeat, offbeat, ontime, offtime */
+      NULL, NULL,   /*  frstout, prvout   */
+      { 0 }, { 0 }, { 0 },/*  a0, f0, e   */
+    },
+    //NULL,           /*  extractGlobals      */
+    {
+      NULL, 
+      {'\0'},{'\0'}, {'\0'}, /* orcname, sconame, midname */
+      0, 0, NULL, NULL /* midiSet, csdlinecount, orcstr, scostr */
+    },
+    //NULL,           /*  oneFileGlobals      */
     {
       NULL, NULL,   /* Linep, Linebufend    */
       NULL,         /* Linecons             */
       0,            /* stdmode              */
       {
-        NULL, 0, 0, 0.0, 0.0, { 0.0 },
+        NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
         {NULL},
         {0, 0, 0},
       },            /* EVTBLK  prve         */

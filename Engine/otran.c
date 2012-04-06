@@ -32,27 +32,27 @@
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
 
-typedef struct NAME_ {
-    char          *namep;
-    struct NAME_  *nxt;
-    int           type, count;
-} NAME;
+/* typedef struct NAME_ { */
+/*     char          *namep; */
+/*     struct NAME_  *nxt; */
+/*     int           type, count; */
+/* } NAME; */
 
-typedef struct {
-    NAME      *gblNames[256], *lclNames[256];   /* for 8 bit hash */
-    ARGLST    *nullist;
-    ARGOFFS   *nulloffs;
-    int       lclkcnt, lclwcnt, lclfixed;
-    int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt;
-    int       lclnxtkcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt;
-    int       gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt;
-    int       gblfixed, gblkcount, gblacount, gblscount;
-    int       *nxtargoffp, *argofflim, lclpmax;
-    char      **strpool;
-    int32      poolcount, strpool_cnt, argoffsize;
-    int       nconsts;
-    int       *constTbl;
-} OTRAN_GLOBALS;
+/* typedef struct { */
+/*     NAME      *gblNames[256], *lclNames[256];   /\* for 8 bit hash *\/ */
+/*     ARGLST    *nullist; */
+/*     ARGOFFS   *nulloffs; */
+/*     int       lclkcnt, lclwcnt, lclfixed; */
+/*     int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt; */
+/*     int       lclnxtkcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt; */
+/*     int       gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt; */
+/*     int       gblfixed, gblkcount, gblacount, gblscount; */
+/*     int       *nxtargoffp, *argofflim, lclpmax; */
+/*     char      **strpool; */
+/*     int32      poolcount, strpool_cnt, argoffsize; */
+/*     int       nconsts; */
+/*     int       *constTbl; */
+/* } OTRAN_GLOBALS; */
 
 static  int     gexist(CSOUND *, char *), gbloffndx(CSOUND *, char *);
 static  int     lcloffndx(CSOUND *, char *);
@@ -68,7 +68,8 @@ static  void    delete_global_namepool(CSOUND *);
 static  void    delete_local_namepool(CSOUND *);
 
 #define txtcpy(a,b) memcpy(a,b,sizeof(TEXT));
-#define ST(x)   (((OTRAN_GLOBALS*) ((CSOUND*) csound)->otranGlobals)->x)
+//#define ST(x)   (((OTRAN_GLOBALS*) ((CSOUND*) csound)->otranGlobals)->x)
+#define STA(x)   (csound->otranStatics.x)
 
 #define KTYPE   1
 #define WTYPE   2
@@ -99,7 +100,7 @@ void tranRESET(CSOUND *csound)
     csound->oplstend = NULL;
     if (p != NULL)
       free(p);
-    csound->otranGlobals = NULL;
+    //csound->otranGlobals = NULL;
 }
 
 
@@ -134,18 +135,18 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
     lblsp = labels;
     larg = (LBLARG *)mmalloc(csound, (csound->ngotos) * sizeof(LBLARG));
     largp = larg;
-    ST(lclkcnt) = tp->lclkcnt;
-    ST(lclwcnt) = tp->lclwcnt;
-    ST(lclfixed) = tp->lclfixed;
-    ST(lclpcnt) = tp->lclpcnt;
-    ST(lclscnt) = tp->lclscnt;
-    ST(lclacnt) = tp->lclacnt;
+    STA(lclkcnt) = tp->lclkcnt;
+    STA(lclwcnt) = tp->lclwcnt;
+    STA(lclfixed) = tp->lclfixed;
+    STA(lclpcnt) = tp->lclpcnt;
+    STA(lclscnt) = tp->lclscnt;
+    STA(lclacnt) = tp->lclacnt;
     delete_local_namepool(csound);              /* clear lcl namlist */
-    ST(lclnxtkcnt) = 0;                         /*   for rebuilding  */
-    ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
-    ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
-    ST(lclpmax) = tp->pmax;                     /* set pmax for plgndx */
-    ndxp = ST(nxtargoffp);
+    STA(lclnxtkcnt) = 0;                         /*   for rebuilding  */
+    STA(lclnxtwcnt) = STA(lclnxtacnt) = 0;
+    STA(lclnxtpcnt) = STA(lclnxtscnt) = 0;
+    STA(lclpmax) = tp->pmax;                     /* set pmax for plgndx */
+    ndxp = STA(nxtargoffp);
     optxt = (OPTXT *)tp;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
@@ -171,8 +172,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
       }
       ep = &(csound->opcodlst[opnum]);
       if (UNLIKELY(O->odebug)) csound->Message(csound, "%s argndxs:", ep->opname);
-      if ((outlist = ttp->outlist) == ST(nullist) || !outlist->count)
-        ttp->outoffs = ST(nulloffs);
+      if ((outlist = ttp->outlist) == STA(nullist) || !outlist->count)
+        ttp->outoffs = STA(nulloffs);
       else {
         ttp->outoffs = outoffs = (ARGOFFS *) ndxp;
         outoffs->count = n = outlist->count;
@@ -183,8 +184,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
           if (UNLIKELY(O->odebug)) csound->Message(csound, "\t%d", indx);
         }
       }
-      if ((inlist = ttp->inlist) == ST(nullist) || !inlist->count)
-        ttp->inoffs = ST(nulloffs);
+      if ((inlist = ttp->inlist) == STA(nullist) || !inlist->count)
+        ttp->inoffs = STA(nulloffs);
       else {
         ttp->inoffs = inoffs = (ARGOFFS *) ndxp;
         inoffs->count = inlist->count;
@@ -233,7 +234,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
         }
       csoundDie(csound, Str("target label '%s' not found"), s);
     }
-    ST(nxtargoffp) = ndxp;
+    STA(nxtargoffp) = ndxp;
     mfree(csound, labels);
     mfree(csound, larg);
 }
@@ -272,9 +273,9 @@ static int plgndx(CSOUND *csound, char *s)
     else if ((n = pnum(s)) >= 0)
       indx = -n;
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') || gexist(csound, s))
-      indx = (int) (ST(poolcount) + 1 + gbloffndx(csound, s));
+      indx = (int) (STA(poolcount) + 1 + gbloffndx(csound, s));
     else
-      indx = -(ST(lclpmax) + 1 + lcloffndx(csound, s));
+      indx = -(STA(lclpmax) + 1 + lcloffndx(csound, s));
 /*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
     return(indx);
 }
@@ -290,20 +291,20 @@ static int strconstndx(CSOUND *csound, const char *s)
       return 0;
     }
     /* check if a copy of the string is already stored */
-    for (i = 0; i < ST(strpool_cnt); i++) {
-      if (strcmp(s, ST(strpool)[i]) == 0)
+    for (i = 0; i < STA(strpool_cnt); i++) {
+      if (strcmp(s, STA(strpool)[i]) == 0)
         return i;
     }
     /* not found, store new string */
-    cnt = ST(strpool_cnt)++;
+    cnt = STA(strpool_cnt)++;
     if (!(cnt & 0x7F)) {
       /* extend list */
-      if (!cnt) ST(strpool) = csound->Malloc(csound, 0x80 * sizeof(MYFLT*));
-      else      ST(strpool) = csound->ReAlloc(csound, ST(strpool),
+      if (!cnt) STA(strpool) = csound->Malloc(csound, 0x80 * sizeof(MYFLT*));
+      else      STA(strpool) = csound->ReAlloc(csound, STA(strpool),
                                               (cnt + 0x80) * sizeof(MYFLT*));
     }
-    ST(strpool)[cnt] = (char*) csound->Malloc(csound, strlen(s) + 1);
-    strcpy(ST(strpool)[cnt], s);
+    STA(strpool)[cnt] = (char*) csound->Malloc(csound, strlen(s) + 1);
+    strcpy(STA(strpool)[cnt], s);
     /* and return index */
     return cnt;
 }
@@ -342,36 +343,36 @@ static int constndx(CSOUND *csound, const char *s)
     }
     /* calculate hash value (0 to 255) */
     h = (int) MYFLT_hash(&newval);
-    n = ST(constTbl)[h];                        /* now search constpool */
+    n = STA(constTbl)[h];                        /* now search constpool */
     prv = 0;
     while (n) {
       if (csound->pool[n - 256] == newval) {    /* if val is there      */
         if (prv) {
           /* move to the beginning of the chain, so that */
           /* frequently searched values are found faster */
-          ST(constTbl)[prv] = ST(constTbl)[n];
-          ST(constTbl)[n] = ST(constTbl)[h];
-          ST(constTbl)[h] = n;
+          STA(constTbl)[prv] = STA(constTbl)[n];
+          STA(constTbl)[n] = STA(constTbl)[h];
+          STA(constTbl)[h] = n;
         }
         return (n - 256);                       /*    return w. index   */
       }
       prv = n;
-      n = ST(constTbl)[prv];
+      n = STA(constTbl)[prv];
     }
-    n = ST(poolcount)++;
-    if (UNLIKELY(n >= ST(nconsts))) {
-      ST(nconsts) = ((ST(nconsts) + (ST(nconsts) >> 3)) | (NCONSTS - 1)) + 1;
+    n = STA(poolcount)++;
+    if (UNLIKELY(n >= STA(nconsts))) {
+      STA(nconsts) = ((STA(nconsts) + (STA(nconsts) >> 3)) | (NCONSTS - 1)) + 1;
       if (csound->oparms->msglevel)
         csound->Message(csound, Str("extending Floating pool to %d\n"),
-                                ST(nconsts));
-      csound->pool = (MYFLT*) mrealloc(csound, csound->pool, ST(nconsts)
+                                STA(nconsts));
+      csound->pool = (MYFLT*) mrealloc(csound, csound->pool, STA(nconsts)
                                                              * sizeof(MYFLT));
-      ST(constTbl) = (int*) mrealloc(csound, ST(constTbl), (256 + ST(nconsts))
+      STA(constTbl) = (int*) mrealloc(csound, STA(constTbl), (256 + STA(nconsts))
                                                            * sizeof(int));
     }
     csound->pool[n] = newval;                   /* else enter newval    */
-    ST(constTbl)[n + 256] = ST(constTbl)[h];    /*   link into chain    */
-    ST(constTbl)[h] = n + 256;
+    STA(constTbl)[n + 256] = STA(constTbl)[h];    /*   link into chain    */
+    STA(constTbl)[h] = n + 256;
 
     return n;                                   /*   and return new ndx */
 }
@@ -404,7 +405,7 @@ static int gexist(CSOUND *csound, char *s)
     unsigned char h = name_hash(csound, s);
     NAME          *p;
 
-    for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    for (p = STA(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
     return (p == NULL ? 0 : 1);
 }
 
@@ -417,10 +418,10 @@ int lgexist(CSOUND *csound, const char *s)
 
 
 
-    for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    for (p = STA(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
     if (p != NULL)
       return 1;
-    for (p = ST(lclNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    for (p = STA(lclNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
 
     return (p == NULL ? 0 : 1);
 
@@ -431,7 +432,7 @@ int lgexist(CSOUND *csound, const char *s)
 static void gblnamset(CSOUND *csound, char *s)
 {
     unsigned char h = name_hash(csound, s);
-    NAME          *p = ST(gblNames)[h];
+    NAME          *p = STA(gblNames)[h];
                                                 /* search gbl namelist: */
     for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
     if (p != NULL)                              /* if name is there     */
@@ -440,15 +441,15 @@ static void gblnamset(CSOUND *csound, char *s)
     if (UNLIKELY(p == NULL))
       csound->Die(csound, Str("gblnamset(): memory allocation failure"));
     p->namep = s;                               /* else record newname  */
-    p->nxt = ST(gblNames)[h];
-    ST(gblNames)[h] = p;
+    p->nxt = STA(gblNames)[h];
+    STA(gblNames)[h] = p;
     if (*s == '#')  s++;
     if (*s == 'g')  s++;
     switch ((int) *s) {                         /*   and its type-count */
-      case 'a': p->type = ATYPE; p->count = ST(gblnxtacnt)++; break;
-      case 'S': p->type = STYPE; p->count = ST(gblnxtscnt)++; break;
-      case 'f': p->type = PTYPE; p->count = ST(gblnxtpcnt)++; break;
-      default:  p->type = KTYPE; p->count = ST(gblnxtkcnt)++;
+      case 'a': p->type = ATYPE; p->count = STA(gblnxtacnt)++; break;
+      case 'S': p->type = STYPE; p->count = STA(gblnxtscnt)++; break;
+      case 'f': p->type = PTYPE; p->count = STA(gblnxtpcnt)++; break;
+      default:  p->type = KTYPE; p->count = STA(gblnxtkcnt)++;
     }
 }
 
@@ -459,7 +460,7 @@ static void gblnamset(CSOUND *csound, char *s)
 static NAME *lclnamset(CSOUND *csound, char *s)
 {
     unsigned char h = name_hash(csound, s);
-    NAME          *p = ST(lclNames)[h];
+    NAME          *p = STA(lclNames)[h];
                                                 /* search lcl namelist: */
     for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
     if (p != NULL)                              /* if name is there     */
@@ -468,15 +469,15 @@ static NAME *lclnamset(CSOUND *csound, char *s)
     if (UNLIKELY(p == NULL))
       csound->Die(csound, Str("lclnamset(): memory allocation failure"));
     p->namep = s;                               /* else record newname  */
-    p->nxt = ST(lclNames)[h];
-    ST(lclNames)[h] = p;
+    p->nxt = STA(lclNames)[h];
+    STA(lclNames)[h] = p;
     if (*s == '#')  s++;
     switch (*s) {                               /*   and its type-count */
-      case 'w': p->type = WTYPE; p->count = ST(lclnxtwcnt)++; break;
-      case 'a': p->type = ATYPE; p->count = ST(lclnxtacnt)++; break;
-      case 'f': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
-      case 'S': p->type = STYPE; p->count = ST(lclnxtscnt)++; break;
-      default:  p->type = KTYPE; p->count = ST(lclnxtkcnt)++; break;
+      case 'w': p->type = WTYPE; p->count = STA(lclnxtwcnt)++; break;
+      case 'a': p->type = ATYPE; p->count = STA(lclnxtacnt)++; break;
+      case 'f': p->type = PTYPE; p->count = STA(lclnxtpcnt)++; break;
+      case 'S': p->type = STYPE; p->count = STA(lclnxtscnt)++; break;
+      default:  p->type = KTYPE; p->count = STA(lclnxtkcnt)++; break;
     }
     return p;
 }
@@ -487,15 +488,15 @@ static NAME *lclnamset(CSOUND *csound, char *s)
 static int gbloffndx(CSOUND *csound, char *s)
 {
     unsigned char h = name_hash(csound, s);
-    NAME          *p = ST(gblNames)[h];
+    NAME          *p = STA(gblNames)[h];
 
     for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
     if (UNLIKELY(p == NULL))
       csoundDie(csound, Str("unexpected global name"));
     switch (p->type) {
-      case ATYPE: return (ST(gblfixed) + p->count);
-      case STYPE: return (ST(gblfixed) + ST(gblacount) + p->count);
-      case PTYPE: return (ST(gblkcount) + p->count * (int) Pfloats);
+      case ATYPE: return (STA(gblfixed) + p->count);
+      case STYPE: return (STA(gblfixed) + STA(gblacount) + p->count);
+      case PTYPE: return (STA(gblkcount) + p->count * (int) Pfloats);
     }
     return p->count;
 }
@@ -508,11 +509,11 @@ static int lcloffndx(CSOUND *csound, char *s)
     NAME    *np = lclnamset(csound, s);         /* rebuild the table    */
     switch (np->type) {                         /* use cnts to calc ndx */
       case KTYPE: return np->count;
-      case WTYPE: return (ST(lclkcnt) + np->count * Wfloats);
-      case ATYPE: return (ST(lclfixed) + np->count);
-      case PTYPE: return (ST(lclkcnt) + ST(lclwcnt) * Wfloats
+      case WTYPE: return (STA(lclkcnt) + np->count * Wfloats);
+      case ATYPE: return (STA(lclfixed) + np->count);
+      case PTYPE: return (STA(lclkcnt) + STA(lclwcnt) * Wfloats
                                       + np->count * (int) Pfloats);
-      case STYPE: return (ST(lclfixed) + ST(lclacnt) + np->count);
+      case STYPE: return (STA(lclfixed) + STA(lclacnt) + np->count);
       default:    csoundDie(csound, Str("unknown nametype"));
     }
     return 0;
@@ -522,13 +523,13 @@ static void delete_global_namepool(CSOUND *csound)
 {
     int i;
 
-    if (csound->otranGlobals == NULL)
-      return;
+    /* if (csound->otranGlobals == NULL) */
+    /*   return; */
     for (i = 0; i < 256; i++) {
-      while (ST(gblNames)[i] != NULL) {
-        NAME  *nxt = ST(gblNames)[i]->nxt;
-        free(ST(gblNames)[i]);
-        ST(gblNames)[i] = nxt;
+      while (STA(gblNames)[i] != NULL) {
+        NAME  *nxt = STA(gblNames)[i]->nxt;
+        free(STA(gblNames)[i]);
+        STA(gblNames)[i] = nxt;
       }
     }
 }
@@ -537,13 +538,13 @@ static void delete_local_namepool(CSOUND *csound)
 {
     int i;
 
-    if (csound->otranGlobals == NULL)
-      return;
+    /* if (csound->otranGlobals == NULL) */
+    /*   return; */
     for (i = 0; i < 256; i++) {
-      while (ST(lclNames)[i] != NULL) {
-        NAME  *nxt = ST(lclNames)[i]->nxt;
-        free(ST(lclNames)[i]);
-        ST(lclNames)[i] = nxt;
+      while (STA(lclNames)[i] != NULL) {
+        NAME  *nxt = STA(lclNames)[i]->nxt;
+        free(STA(lclNames)[i]);
+        STA(lclNames)[i] = nxt;
       }
     }
 }
@@ -600,8 +601,8 @@ static int create_strconst_ndx_list(CSOUND *csound, int **lst, int offs)
     char    **strpool;
     int     strpool_cnt, ndx, i;
 
-    strpool_cnt = ST(strpool_cnt);
-    strpool = ST(strpool);
+    strpool_cnt = STA(strpool_cnt);
+    strpool = STA(strpool);
     /* strpool_cnt always >= 1 because of empty string at index 0 */
     ndx_lst = (int*) csound->Malloc(csound, strpool_cnt * sizeof(int));
     for (i = 0, ndx = offs; i < strpool_cnt; i++) {
@@ -618,8 +619,8 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
     char    **strpool, *s;
     int     strpool_cnt, ndx, i;
 
-    strpool_cnt = ST(strpool_cnt);
-    strpool = ST(strpool);
+    strpool_cnt = STA(strpool_cnt);
+    strpool = STA(strpool);
     if (strpool == NULL)
       return;
     for (ndx = i = 0; i < strpool_cnt; i++) {
@@ -628,8 +629,8 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
       ndx += strlen_to_samples(strpool[i]);
     }
     /* original pool is no longer needed */
-    ST(strpool) = NULL;
-    ST(strpool_cnt) = 0;
+    STA(strpool) = NULL;
+    STA(strpool_cnt) = 0;
     for (i = 0; i < strpool_cnt; i++)
       csound->Free(csound, strpool[i]);
     csound->Free(csound, strpool);

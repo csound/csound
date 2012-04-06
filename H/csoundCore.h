@@ -758,6 +758,17 @@ typedef struct marked_sections {
     char        *file;
 } MARKED_SECTIONS;
 
+typedef struct namelst {
+  char           *name;
+  struct namelst *next;
+} NAMELST;
+
+typedef struct NAME__ {
+    char          *namep;
+    struct NAME__  *nxt;
+    int           type, count;
+} NAME;
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1264,9 +1275,28 @@ typedef struct marked_sections {
     int           argcnt_offs, opcode_is_assign, assign_type;
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    void          *otranGlobals;
+    struct {
+      NAME      *gblNames[256], *lclNames[256];   /* for 8 bit hash */
+      ARGLST    *nullist;
+      ARGOFFS   *nulloffs;
+      int       lclkcnt, lclwcnt, lclfixed;
+      int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt;
+      int       lclnxtkcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt;
+      int       gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt;
+      int       gblfixed, gblkcount, gblacount, gblscount;
+      int       *nxtargoffp, *argofflim, lclpmax;
+      char      **strpool;
+      int32      poolcount, strpool_cnt, argoffsize;
+      int       nconsts;
+      int       *constTbl;
+      int32     *typemask_tabl;
+      int32     *typemask_tabl_in, *typemask_tabl_out;
+      int       lgprevdef;
+      char      *filedir[101];
+    } otranStatics;
+    //void          *otranGlobals;
     //void          *rdorchGlobals;
-    struct _sreadStatics {
+    struct  {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
       int     op;                     /* opcode of current event              */
@@ -1302,8 +1332,30 @@ typedef struct marked_sections {
       S_MACRO   *repeat_mm;
     } sreadStatics;
     //    void          *sreadGlobals;
-    void          *extractGlobals;
-    void          *oneFileGlobals;
+#define INSMAX  4096
+    struct {
+      char    inslst[INSMAX];         /*   values set by readxfil         */
+      int     sectno, a0done;
+      int     onsect, offsect;        /*      "       "       "           */
+      MYFLT   onbeat, offbeat;        /*      "       "       "           */
+      MYFLT   ontime, offtime;        /* set by readxfil, mod by w-stmnt  */
+      SRTBLK  *frstout, *prvout;      /* links for building new outlist   */
+      SRTBLK  a0;
+      SRTBLK  f0;
+      SRTBLK  e;
+    } extractStatics;
+//void          *extractGlobals;
+    struct {
+      NAMELST *toremove;
+      char    orcname[L_tmpnam + 4];
+      char    sconame[L_tmpnam + 4];
+      char    midname[L_tmpnam + 4];
+      int     midiSet;
+      int     csdlinecount;
+      char    *orcstr;
+      char    *scostr;
+    } onefileStatics;
+    //void          *oneFileGlobals;
 #define LBUFSIZ   32768
     struct lineventStatics {
       char    *Linep, *Linebufend;
