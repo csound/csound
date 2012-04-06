@@ -558,6 +558,19 @@ extern "C" {
     (MYFLT*) NULL,  /*  gbloffbas           */
     NULL,           /*  otranGlobals        */
     NULL,           /*  rdorchGlobals       */
+    {  
+      0, 0, 0, 0,   /*  op warpin linpos lincnt */
+      FL(0.0), FL(0.0), FL(0.0), /* prvp2 clock_base warp_factor */
+      NULL,         /*  curmem              */
+      NULL,         /*  memend;             */
+
+      {""},        /*  repeat_name_n[RPTDEPTH][NAMELEN] */
+       {0},         /*  repeat_cnt_n[RPTDEPTH] */
+       {0},         /*  repeat_point_n[RPTDEPTH] */
+       0, 0,        /*  repeat_inc_n, repeat_index */
+       "",          /*  repeat_name[NAMELEN] */
+       0,0,0        /*  repeat_cnt, repeat_point, repeat_inc */
+    },
     NULL,           /*  sreadGlobals        */
     NULL,           /*  extractGlobals      */
     NULL,           /*  oneFileGlobals      */
