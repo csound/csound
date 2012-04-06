@@ -1,3 +1,14 @@
+[CSOUND 6 TODOs]
+
+1) remove old parser
+2) analyze and assess changes for CSOUND struct
+3) Introduce Context Struct
+4) xtratim
+5)reparsing with active CSOUND instance
+
+
+[ OLDER TODOs]
+
 POWER OF TWO ISSUES
 -------------------
 
