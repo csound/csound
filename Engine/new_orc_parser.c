@@ -29,8 +29,6 @@
 #include "parse_param.h"
 #include "corfile.h"
 
-#define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
-
 extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
