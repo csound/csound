@@ -28,26 +28,26 @@
 # include <sys/types.h>
 #endif
 
-typedef struct {
-    SNDFILE       *outfile;
-    SNDFILE       *infile;
-    char          *sfoutname;           /* soundout filename            */
-    MYFLT         *inbuf;
-    MYFLT         *outbuf;              /* contin sndio buffers         */
-    MYFLT         *outbufp;             /* MYFLT pntr                   */
-    uint32        inbufrem;
-    uint32        outbufrem;            /* in monosamps                 */
-                                        /* (see openin, iotranset)      */
-    unsigned int  inbufsiz,  outbufsiz; /* alloc in sfopenin/out        */
-    int           isfopen;              /* (real set in sfopenin)       */
-    int           osfopen;              /* (real set in sfopenout)      */
-    int           pipdevin, pipdevout;  /* 0: file, 1: pipe, 2: rtaudio */
-    uint32        nframes               /* = 1UL */;
-    FILE          *pin, *pout;
-#ifndef SOME_FILE_DAY
-    int           dither;
-#endif
-} LIBSND_GLOBALS;
+/* typedef struct { */
+/*     SNDFILE       *outfile; */
+/*     SNDFILE       *infile; */
+/*     char          *sfoutname;           /\* soundout filename            *\/ */
+/*     MYFLT         *inbuf; */
+/*     MYFLT         *outbuf;              /\* contin sndio buffers         *\/ */
+/*     MYFLT         *outbufp;             /\* MYFLT pntr                   *\/ */
+/*     uint32        inbufrem; */
+/*     uint32        outbufrem;            /\* in monosamps                 *\/ */
+/*                                         /\* (see openin, iotranset)      *\/ */
+/*     unsigned int  inbufsiz,  outbufsiz; /\* alloc in sfopenin/out        *\/ */
+/*     int           isfopen;              /\* (real set in sfopenin)       *\/ */
+/*     int           osfopen;              /\* (real set in sfopenout)      *\/ */
+/*     int           pipdevin, pipdevout;  /\* 0: file, 1: pipe, 2: rtaudio *\/ */
+/*     uint32        nframes               /\* = 1UL *\/; */
+/*     FILE          *pin, *pout; */
+/* #ifndef SOME_FILE_DAY */
+/*     int           dither; */
+/* #endif */
+/* } LIBSND_GLOBALS; */
 
 #ifdef PIPES
 # if defined(SGI) || defined(LINUX) || defined(__BEOS__) || defined(NeXT) ||  \
@@ -62,14 +62,14 @@ extern  int     _pclose(FILE *);
 static  void    sndwrterr(CSOUND *, int, int);
 static  void    sndfilein_noscale(CSOUND *csound);
 
-#define ST(x)   (((LIBSND_GLOBALS*) csound->libsndGlobals)->x)
+//#define ST(x)   (((LIBSND_GLOBALS*) csound->libsndGlobals)->x)
+#define STA(x)   (csound->libsndStatics.x)
 
 static void alloc_globals(CSOUND *csound)
 {
-    if (csound->libsndGlobals == NULL) {
-      csound->libsndGlobals = csound->Calloc(csound, sizeof(LIBSND_GLOBALS));
-      ST(nframes) = (uint32)1;
-    }
+    /* if (csound->libsndGlobals == NULL) { */
+    /*   csound->libsndGlobals = csound->Calloc(csound, sizeof(LIBSND_GLOBALS)); */
+    STA(nframes) = (uint32)1;
 }
 
 /* The interface requires 2 functions:
@@ -86,18 +86,18 @@ static void spoutsf(CSOUND *csound)
     int     n, chn = 0, spoutrem = csound->nspout;
     MYFLT   *sp = csound->spout;
     MYFLT   absamp;
-    uint32  nframes = ST(nframes);
+    uint32  nframes = STA(nframes);
 
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
-    if ((n = spoutrem) > (int) ST(outbufrem))
-      n = (int)ST(outbufrem);
+    if ((n = spoutrem) > (int) STA(outbufrem))
+      n = (int)STA(outbufrem);
     spoutrem -= n;
-    ST(outbufrem) -= n;
+    STA(outbufrem) -= n;
     do {
       absamp = *sp++;
-      if (ST(osfopen))
-        *ST(outbufp)++ = absamp * csound->dbfs_to_float;
+      if (STA(osfopen))
+        *STA(outbufp)++ = absamp * csound->dbfs_to_float;
       if (absamp < FL(0.0))
         absamp = -absamp;
       if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
@@ -116,16 +116,16 @@ static void spoutsf(CSOUND *csound)
         nframes++;
     } while (--n);
 
-    if (!ST(outbufrem)) {
-      if (ST(osfopen)) {
+    if (!STA(outbufrem)) {
+      if (STA(osfopen)) {
         csound->nrecs++;
-        csound->audtran(csound, ST(outbuf), ST(outbufsiz)); /* Flush buffer */
-        ST(outbufp) = (MYFLT*) ST(outbuf);
+        csound->audtran(csound, STA(outbuf), STA(outbufsiz)); /* Flush buffer */
+        STA(outbufp) = (MYFLT*) STA(outbuf);
       }
-      ST(outbufrem) = csound->oparms_.outbufsamps;
+      STA(outbufrem) = csound->oparms_.outbufsamps;
       if (spoutrem) goto nchk;
     }
-    ST(nframes) = nframes;
+    STA(nframes) = nframes;
 }
 
 /* special version of spoutsf for "raw" floating point files */
@@ -135,18 +135,18 @@ static void spoutsf_noscale(CSOUND *csound)
     int     n, chn = 0, spoutrem = csound->nspout;
     MYFLT   *sp = csound->spout;
     MYFLT   absamp;
-    uint32  nframes = ST(nframes);
+    uint32  nframes = STA(nframes);
 
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
-    if ((n = spoutrem) > (int) ST(outbufrem))
-      n = (int)ST(outbufrem);
+    if ((n = spoutrem) > (int) STA(outbufrem))
+      n = (int)STA(outbufrem);
     spoutrem -= n;
-    ST(outbufrem) -= n;
+    STA(outbufrem) -= n;
     do {
       absamp = *sp++;
-      if (ST(osfopen))
-        *ST(outbufp)++ = absamp;
+      if (STA(osfopen))
+        *STA(outbufp)++ = absamp;
       if (absamp < FL(0.0))
         absamp = -absamp;
       if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
@@ -157,16 +157,16 @@ static void spoutsf_noscale(CSOUND *csound)
         chn = 0, nframes++;
     } while (--n);
 
-    if (!ST(outbufrem)) {
-      if (ST(osfopen)) {
+    if (!STA(outbufrem)) {
+      if (STA(osfopen)) {
         csound->nrecs++;
-        csound->audtran(csound, ST(outbuf), ST(outbufsiz)); /* Flush buffer */
-        ST(outbufp) = (MYFLT*) ST(outbuf);
+        csound->audtran(csound, STA(outbuf), STA(outbufsiz)); /* Flush buffer */
+        STA(outbufp) = (MYFLT*) STA(outbuf);
       }
-      ST(outbufrem) = csound->oparms_.outbufsamps;
+      STA(outbufrem) = csound->oparms_.outbufsamps;
       if (spoutrem) goto nchk;
     }
-    ST(nframes) = nframes;
+    STA(nframes) = nframes;
 }
 
 /* diskfile write option for audtran's */
@@ -177,14 +177,14 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     OPARMS  *O = csound->oparms;
     int     n;
 
-    if (UNLIKELY(ST(outfile) == NULL))
+    if (UNLIKELY(STA(outfile) == NULL))
       return;
-    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+    n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader((void *)ST(outfile));
+      rewriteheader((void *)STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -218,25 +218,25 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
 
-    if (UNLIKELY(ST(outfile) == NULL))
+    if (UNLIKELY(STA(outfile) == NULL))
       return;
 
     for (n=0; n<m; n++) {
-      int   tmp = ((ST(dither) * 15625) + 1) & 0xFFFF;
+      int   tmp = ((STA(dither) * 15625) + 1) & 0xFFFF;
       int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
       MYFLT result;
-      ST(dither) = rnd;
+      STA(dither) = rnd;
       rnd = (rnd+tmp)>>1;           /* triangular distribution */
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7fff);
       buf[n] += result;
     }
-    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+    n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(ST(outfile));
+      rewriteheader(STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -270,25 +270,25 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
 
-    if (UNLIKELY(ST(outfile) == NULL))
+    if (UNLIKELY(STA(outfile) == NULL))
       return;
 
     for (n=0; n<m; n++) {
-      int   tmp = ((ST(dither) * 15625) + 1) & 0xFFFF;
+      int   tmp = ((STA(dither) * 15625) + 1) & 0xFFFF;
       int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
       MYFLT result;
-      ST(dither) = rnd;
+      STA(dither) = rnd;
       rnd = (rnd+tmp)>>1;           /* triangular distribution */
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7f);
       buf[n] += result;
     }
-    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+    n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(ST(outfile));
+      rewriteheader(STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -322,23 +322,23 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
 
-    if (UNLIKELY(ST(outfile) == NULL))
+    if (UNLIKELY(STA(outfile) == NULL))
       return;
 
     for (n=0; n<m; n++) {
-        int   rnd = ((ST(dither) * 15625) + 1) & 0xFFFF;
+        int   rnd = ((STA(dither) * 15625) + 1) & 0xFFFF;
         MYFLT result;
-        ST(dither) = rnd;
+        STA(dither) = rnd;
         result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
         result /= ((MYFLT) 0x7fff);
         buf[n] += result;
     }
-    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+    n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(ST(outfile));
+      rewriteheader(STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -372,23 +372,23 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
 
-    if (UNLIKELY(ST(outfile) == NULL))
+    if (UNLIKELY(STA(outfile) == NULL))
       return;
 
     for (n=0; n<m; n++) {
-      int   rnd = ((ST(dither) * 15625) + 1) & 0xFFFF;
+      int   rnd = ((STA(dither) * 15625) + 1) & 0xFFFF;
       MYFLT result;
-      ST(dither) = rnd;
+      STA(dither) = rnd;
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7f);
       buf[n] += result;
     }
-    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+    n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(ST(outfile));
+      rewriteheader(STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -421,7 +421,7 @@ static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
 
     (void) csound;
     n = inbufsize / (int) sizeof(MYFLT);
-    i = (int) sf_read_MYFLT(ST(infile), inbuf, n);
+    i = (int) sf_read_MYFLT(STA(infile), inbuf, n);
     if (UNLIKELY(i < 0))
       return inbufsize;
     memset(&inbuf[i], 0, (n-i)*sizeof(MYFLT));
@@ -480,19 +480,19 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     int     isfd = 0;   /* stdin */
 
     alloc_globals(csound);
-    ST(inbufrem) = (uint32) 0;    /* start with empty buffer */
+    STA(inbufrem) = (uint32) 0;    /* start with empty buffer */
     sfname = O->infilename;
     if (UNLIKELY(sfname == NULL || sfname[0] == '\0'))
       csound->Die(csound, Str("error: no input file name"));
 
     if (strcmp(sfname, "stdin") == 0) {
-      ST(pipdevin) = 1;
+      STA(pipdevin) = 1;
     }
 #ifdef PIPES
     else if (sfname[0] == '|') {
-      ST(pin) = _popen(sfname + 1, "r");
-      isfd = fileno(ST(pin));
-      ST(pipdevin) = 1;
+      STA(pin) = _popen(sfname + 1, "r");
+      isfd = fileno(STA(pin));
+      STA(pipdevin) = 1;
     }
 #endif
     else {
@@ -511,15 +511,15 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
           csoundDie(csound, Str("Failed to initialise real time audio input"));
         /*  & redirect audio gets  */
         csound->audrecv = csound->rtrecord_callback;
-        ST(pipdevin) = 2;       /* no backward seeks !     */
+        STA(pipdevin) = 2;       /* no backward seeks !     */
         goto inset;             /* no header processing    */
       }
     }
     /* open file */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    if (ST(pipdevin)) {
-      ST(infile) = sf_open_fd(isfd, SFM_READ, &sfinfo, 0);
-      if (UNLIKELY(ST(infile) == NULL)) {
+    if (STA(pipdevin)) {
+      STA(infile) = sf_open_fd(isfd, SFM_READ, &sfinfo, 0);
+      if (UNLIKELY(STA(infile) == NULL)) {
         /* open failed: possibly raw file, but cannot seek back to try again */
         csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
       }
@@ -528,17 +528,17 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       fullName = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
       if (UNLIKELY(fullName == NULL))                     /* if not found */
         csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
-      ST(infile) = sf_open(fullName, SFM_READ, &sfinfo);
-      if (ST(infile) == NULL) {
+      STA(infile) = sf_open(fullName, SFM_READ, &sfinfo);
+      if (STA(infile) == NULL) {
         /* open failed: maybe raw file ? */
         memset(&sfinfo, 0, sizeof(SF_INFO));
         sfinfo.samplerate = (int) (csound->esr + FL(0.5));
         sfinfo.channels = csound->nchnls;
         /* FIXME: assumes input sample format is same as output */
         sfinfo.format = TYPE2SF(TYP_RAW) | FORMAT2SF(O->outformat);
-        ST(infile) = sf_open(fullName, SFM_READ, &sfinfo);  /* try again */
+        STA(infile) = sf_open(fullName, SFM_READ, &sfinfo);  /* try again */
       }
-      if (UNLIKELY(ST(infile) == NULL))
+      if (UNLIKELY(STA(infile) == NULL))
         csoundDie(csound, Str("isfinit: cannot open %s"), fullName);
       /* only notify the host if we opened a real file, not stdin or a pipe */
       csoundNotifyFileOpened(csound, fullName,
@@ -567,9 +567,9 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
 
  inset:
     /* calc inbufsize reqd */
-    ST(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
-    ST(inbuf) = (MYFLT*) mcalloc(csound, ST(inbufsiz)); /* alloc inbuf space */
-    if (ST(pipdevout) == 2)
+    STA(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
+    STA(inbuf) = (MYFLT*) mcalloc(csound, STA(inbufsiz)); /* alloc inbuf space */
+    if (STA(pipdevout) == 2)
       csound->Message(csound,
                       Str("reading %d sample blks of %d-bit floats from %s \n"),
                       O->inbufsamps * O->sfsampsize, sizeof(MYFLT)*8, sfname);
@@ -579,7 +579,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
                     O->inbufsamps * (int) sfsampsize(FORMAT2SF(O->informat)),
                     getstrformat(O->informat), sfname, type2string(fileType));
     }
-    ST(isfopen) = 1;
+    STA(isfopen) = 1;
 }
 
 void sfopenout(CSOUND *csound)                  /* init for sound out       */
@@ -600,16 +600,16 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       else
         O->outfilename = "test";
     }
-    ST(sfoutname) = fName = O->outfilename;
+    STA(sfoutname) = fName = O->outfilename;
 
     if (strcmp(fName, "stdout") == 0) {
-      ST(pipdevout) = 1;
+      STA(pipdevout) = 1;
     }
 #ifdef PIPES
     else if (fName[0] == '|') {
-      ST(pout) = _popen(fName+1, "w");
-      osfd = fileno(ST(pout));
-      ST(pipdevout) = 1;
+      STA(pout) = _popen(fName+1, "w");
+      osfd = fileno(STA(pout));
+      STA(pipdevout) = 1;
       if (O->filetyp == TYP_AIFF || O->filetyp == TYP_WAV) {
         csound->Message(csound, Str("Output file type changed to IRCAM "
                                     "for use in pipe\n"));
@@ -634,12 +634,12 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
           csoundDie(csound, Str("Failed to initialise real time audio output"));
         /*  & redirect audio puts  */
         csound->audtran = csound->rtplay_callback;
-        ST(outbufrem) = parm.bufSamp_SW * parm.nChannels;
-        ST(pipdevout) = 2;      /* no backward seeks !   */
+        STA(outbufrem) = parm.bufSamp_SW * parm.nChannels;
+        STA(pipdevout) = 2;      /* no backward seeks !   */
         goto outset;            /* no header needed      */
       }
       else if (strcmp(fName, "null") == 0) {
-        ST(outfile) = NULL;
+        STA(outfile) = NULL;
         if (csound->dither_output && csound->oparms->outformat!=AE_FLOAT) {
           if (csound->oparms->outformat==AE_SHORT)
             if (csound->dither_output==1)
@@ -666,16 +666,16 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     sfinfo.channels = csound->nchnls;
     sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     /* open file */
-    if (ST(pipdevout)) {
-      ST(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+    if (STA(pipdevout)) {
+      STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
     }
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
       if (UNLIKELY(fullName == NULL))
         csoundDie(csound, Str("sfinit: cannot open %s"), fName);
-      ST(sfoutname) = fullName;
-      ST(outfile) = sf_open(fullName, SFM_WRITE, &sfinfo);
-      if (UNLIKELY(ST(outfile) == NULL))
+      STA(sfoutname) = fullName;
+      STA(outfile) = sf_open(fullName, SFM_WRITE, &sfinfo);
+      if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open %s"), fullName);
       /* only notify the host if we opened a real file, not stdout or a pipe */
       csoundNotifyFileOpened(csound, fullName,
@@ -683,8 +683,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     }
     /* IV - Feb 22 2005: clip integer formats */
     if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
-      sf_command(ST(outfile), SFC_SET_CLIPPING, NULL, SF_TRUE);
-    sf_command(ST(outfile), SFC_SET_ADD_PEAK_CHUNK,
+      sf_command(STA(outfile), SFC_SET_CLIPPING, NULL, SF_TRUE);
+    sf_command(STA(outfile), SFC_SET_ADD_PEAK_CHUNK,
                NULL, (csound->peakchunks ? SF_TRUE : SF_FALSE));
 #ifdef SOME_FINE_DAY
     if (csound->dither_output) {        /* This may not be written yet!! */
@@ -693,7 +693,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       ditherInfo.type = SFD_TRIANGULAR_PDF | SFD_DEFAULT_LEVEL;
       ditherInfo.level = 1.0;
       ditherInfo.name = (char*) NULL;
-      sf_command(ST(outfile), SFC_SET_DITHER_ON_WRITE,
+      sf_command(STA(outfile), SFC_SET_DITHER_ON_WRITE,
                  &ditherInfo, sizeof(SF_DITHER_INFO));
     }
 #endif
@@ -715,66 +715,66 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       csound->audtran = writesf;
     /* Write any tags. */
     if ((s = csound->SF_id_title) != NULL && *s != '\0')
-      sf_set_string(ST(outfile), SF_STR_TITLE, s);
+      sf_set_string(STA(outfile), SF_STR_TITLE, s);
     if ((s = csound->SF_csd_licence) == NULL || *s == '\0')
       s = csound->SF_id_copyright;
     if (s != NULL && *s != '\0')
-      sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
+      sf_set_string(STA(outfile), SF_STR_COPYRIGHT, s);
     if ((s = csound->SF_id_software) != NULL && *s != '\0')
-      sf_set_string(ST(outfile), SF_STR_SOFTWARE, s);
+      sf_set_string(STA(outfile), SF_STR_SOFTWARE, s);
     if ((s = csound->SF_id_artist) != NULL && *s != '\0')
-      sf_set_string(ST(outfile), SF_STR_ARTIST, s);
+      sf_set_string(STA(outfile), SF_STR_ARTIST, s);
     if ((s = csound->SF_id_comment) != NULL && *s != '\0')
-      sf_set_string(ST(outfile), SF_STR_COMMENT, s);
+      sf_set_string(STA(outfile), SF_STR_COMMENT, s);
     if ((s = csound->SF_id_date) != NULL && *s != '\0')
-      sf_set_string(ST(outfile), SF_STR_DATE, s);
+      sf_set_string(STA(outfile), SF_STR_DATE, s);
     /* file is now open */
-    ST(osfopen) = 1;
+    STA(osfopen) = 1;
 
  outset:
     O->sfsampsize = (int) sfsampsize(FORMAT2SF(O->outformat));
     /* calc outbuf size & alloc bufspace */
-    ST(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
-    ST(outbufp) = ST(outbuf) = mmalloc(csound, ST(outbufsiz));
-    if (ST(pipdevout) == 2)
+    STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
+    STA(outbufp) = STA(outbuf) = mmalloc(csound, STA(outbufsiz));
+    if (STA(pipdevout) == 2)
       csound->Message(csound,
                       Str("writing %d sample blks of %d-bit floats to %s \n"),
-                      O->outbufsamps, sizeof(MYFLT)*8, ST(sfoutname));
+                      O->outbufsamps, sizeof(MYFLT)*8, STA(sfoutname));
     else {
      csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
-                    getstrformat(O->outformat), ST(sfoutname));
+                    getstrformat(O->outformat), STA(sfoutname));
 
     if (O->sfheader == 0)
       csound->Message(csound, Str(" (raw)\n"));
     else
       csound->Message(csound, " (%s)\n", type2string(O->filetyp));
     }
-    ST(osfopen) = 1;
-    ST(outbufrem) = O->outbufsamps;
+    STA(osfopen) = 1;
+    STA(outbufrem) = O->outbufsamps;
 }
 
 void sfclosein(CSOUND *csound)
 {
     alloc_globals(csound);
-    if (!ST(isfopen))
+    if (!STA(isfopen))
       return;
-    if (ST(pipdevin) == 2 && (!ST(osfopen) || ST(pipdevout) != 2)) {
+    if (STA(pipdevin) == 2 && (!STA(osfopen) || STA(pipdevout) != 2)) {
       /* close only if not open for output too */
       csound->rtclose_callback(csound);
     }
-    else if (ST(pipdevin) != 2) {
-      if (ST(infile) != NULL)
-        sf_close(ST(infile));
+    else if (STA(pipdevin) != 2) {
+      if (STA(infile) != NULL)
+        sf_close(STA(infile));
 #ifdef PIPES
-      if (ST(pin) != NULL) {
-        _pclose(ST(pin));
-        ST(pin) = NULL;
+      if (STA(pin) != NULL) {
+        _pclose(STA(pin));
+        STA(pin) = NULL;
       }
 #endif
-      ST(infile) = NULL;
+      STA(infile) = NULL;
     }
-    ST(isfopen) = 0;
+    STA(isfopen) = 0;
 }
 
 void sfcloseout(CSOUND *csound)
@@ -783,49 +783,49 @@ void sfcloseout(CSOUND *csound)
     int     nb;
 
     alloc_globals(csound);
-    if (!ST(osfopen))
+    if (!STA(osfopen))
       return;
-    if ((nb = (O->outbufsamps - ST(outbufrem)) * sizeof(MYFLT)) > 0) {
+    if ((nb = (O->outbufsamps - STA(outbufrem)) * sizeof(MYFLT)) > 0) {
       /* flush outbuffer */
       csound->nrecs++;
-      csound->audtran(csound, ST(outbuf), nb);
+      csound->audtran(csound, STA(outbuf), nb);
     }
-    if (ST(pipdevout) == 2 && (!ST(isfopen) || ST(pipdevin) != 2)) {
+    if (STA(pipdevout) == 2 && (!STA(isfopen) || STA(pipdevin) != 2)) {
       /* close only if not open for input too */
       csound->rtclose_callback(csound);
     }
-    if (ST(pipdevout) == 2)
+    if (STA(pipdevout) == 2)
       goto report;
-    if (ST(outfile) != NULL) {
-      if (!ST(pipdevout))
-        sf_command(ST(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
-      sf_close(ST(outfile));
-      ST(outfile) = NULL;
+    if (STA(outfile) != NULL) {
+      if (!STA(pipdevout))
+        sf_command(STA(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
+      sf_close(STA(outfile));
+      STA(outfile) = NULL;
     }
 #ifdef PIPES
-    if (ST(pout) != NULL) {
-      _pclose(ST(pout));
-      ST(pout) = NULL;
+    if (STA(pout) != NULL) {
+      _pclose(STA(pout));
+      STA(pout) = NULL;
     }
 #endif
 
  report:
-    if (ST(pipdevout) == 2) {
+    if (STA(pipdevout) == 2) {
       csound->Message(csound,
                       Str("%ld %d sample blks of %d-bit floats written to %s\n"),
                       csound->nrecs, O->outbufsamps,
-                      sizeof(MYFLT)*8, ST(sfoutname));
+                      sizeof(MYFLT)*8, STA(sfoutname));
     }
     else {
       csound->Message(csound, Str("%ld %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
-                      getstrformat(O->outformat), ST(sfoutname));
+                      getstrformat(O->outformat), STA(sfoutname));
       if (O->sfheader == 0)
         csound->Message(csound, Str(" (raw)\n"));
       else
         csound->Message(csound, " (%s)\n", type2string(O->filetyp));
     }
-    ST(osfopen) = 0;
+    STA(osfopen) = 0;
 }
 
 /* report soundfile write(osfd) error   */
@@ -838,7 +838,7 @@ static void sndwrterr(CSOUND *csound, int nret, int nput)
                      nret, nput);
     csound->ErrorMsg(csound,
                      Str("(disk may be full...\n closing the file ...)"));
-    ST(outbufrem) = csound->oparms->outbufsamps;  /* consider buf is flushed */
+    STA(outbufrem) = csound->oparms->outbufsamps;  /* consider buf is flushed */
     sfcloseout(csound);                           /* & try to close the file */
     csound->Die(csound, Str("\t... closed\n"));
 }
@@ -848,7 +848,7 @@ void sfnopenout(CSOUND *csound)
     alloc_globals(csound);
     csound->Message(csound, Str("not writing to sound disk\n"));
     /* init counter, though not writing */
-    ST(outbufrem) = csound->oparms->outbufsamps;
+    STA(outbufrem) = csound->oparms->outbufsamps;
 }
 
 static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
@@ -857,19 +857,19 @@ static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
     int     i, n, nsmps, bufpos;
 
     nsmps = csound->nspin;
-    bufpos = (int) O->inbufsamps - (int) ST(inbufrem);
+    bufpos = (int) O->inbufsamps - (int) STA(inbufrem);
     for (i = 0; i<nsmps; i++) {
-      if ((int) ST(inbufrem) < 1) {
-        ST(inbufrem) = 0U;
+      if ((int) STA(inbufrem) < 1) {
+        STA(inbufrem) = 0U;
         do {
-          n = ((int) O->inbufsamps - (int) ST(inbufrem)) * (int) sizeof(MYFLT);
-          n = csound->audrecv(csound, ST(inbuf) + (int) ST(inbufrem), n);
-          ST(inbufrem) += (unsigned int) (n / (int) sizeof(MYFLT));
-        } while ((int) ST(inbufrem) < (int) O->inbufsamps);
+          n = ((int) O->inbufsamps - (int) STA(inbufrem)) * (int) sizeof(MYFLT);
+          n = csound->audrecv(csound, STA(inbuf) + (int) STA(inbufrem), n);
+          STA(inbufrem) += (unsigned int) (n / (int) sizeof(MYFLT));
+        } while ((int) STA(inbufrem) < (int) O->inbufsamps);
         bufpos = 0;
       }
-      csound->spin[i] = ST(inbuf)[bufpos++] * scaleFac;
-      ST(inbufrem)--;
+      csound->spin[i] = STA(inbuf)[bufpos++] * scaleFac;
+      STA(inbufrem)--;
     }
 }
 
@@ -911,34 +911,30 @@ void iotranset(CSOUND *csound)
     O = csound->oparms;
     csound->audrecv = audrecv_dummy;
     csound->audtran = audtran_dummy;
-    ST(inbufrem) = (unsigned int) O->inbufsamps;
-    ST(outbufrem) = (unsigned int) O->outbufsamps;
+    STA(inbufrem) = (unsigned int) O->inbufsamps;
+    STA(outbufrem) = (unsigned int) O->outbufsamps;
     if (!csound->hostRequestedBufferSize) {
       O->sfread = 0;
       O->sfwrite = 0;
-      ST(osfopen) = 0;
+      STA(osfopen) = 0;
       return;
     }
-    ST(inbufsiz) = (unsigned int) (O->inbufsamps * (int) sizeof(MYFLT));
-    ST(inbuf) = (MYFLT*) mcalloc(csound, ST(inbufsiz));
-    ST(outbufsiz) = (unsigned int) (O->outbufsamps * (int) sizeof(MYFLT));
-    ST(outbuf) = (MYFLT*) mcalloc(csound, ST(outbufsiz));
-    ST(outbufp) = ST(outbuf);
+    STA(inbufsiz) = (unsigned int) (O->inbufsamps * (int) sizeof(MYFLT));
+    STA(inbuf) = (MYFLT*) mcalloc(csound, STA(inbufsiz));
+    STA(outbufsiz) = (unsigned int) (O->outbufsamps * (int) sizeof(MYFLT));
+    STA(outbuf) = (MYFLT*) mcalloc(csound, STA(outbufsiz));
+    STA(outbufp) = STA(outbuf);
     O->sfread = 1;
     O->sfwrite = 1;
-    ST(osfopen) = 1;
+    STA(osfopen) = 1;
 }
 
 PUBLIC MYFLT *csoundGetInputBuffer(CSOUND *csound)
 {
-    if (csound->libsndGlobals == NULL)
-      return NULL;
-    return ST(inbuf);
+    return STA(inbuf);
 }
 
 PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *csound)
 {
-    if (csound->libsndGlobals == NULL)
-      return NULL;
-    return ST(outbuf);
+    return STA(outbuf);
 }
