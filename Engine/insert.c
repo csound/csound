@@ -57,6 +57,26 @@ int init0(CSOUND *csound)
     return csound->inerrcnt;                        /*   return errcnt      */
 }
 
+static void putop(CSOUND *csound, TEXT *tp)
+{
+    int n, nn;
+
+    if ((n = tp->outlist->count) != 0) {
+      nn = 0;
+      while (n--)
+        csound->Message(csound, "%s\t", tp->outlist->arg[nn++]);
+    }
+    else
+      csound->Message(csound, "\t");
+    csound->Message(csound, "%s\t", tp->opcod);
+    if ((n = tp->inlist->count) != 0) {
+      nn = 0;
+      while (n--)
+        csound->Message(csound, "%s\t", tp->inlist->arg[nn++]);
+    }
+    csound->Message(csound, "\n");
+}
+
 static void set_xtratim(CSOUND *csound, INSDS *ip)
 {
     if (ip->relesing)
