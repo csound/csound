@@ -731,6 +731,33 @@ typedef struct {
   extern const uint32_t csPlayScoMask;
 
 #endif  /* __BUILDING_LIBCSOUND */
+
+#define MARGS   (3)
+typedef struct S_MACRO {          /* To store active macros */
+    char        *name;          /* Use is by name */
+    int         acnt;           /* Count of arguments */
+    CORFIL      *body;          /* The text of the macro */
+    struct S_MACRO *next;         /* Chain of active macros */
+    int         margs;          /* ammount of space for args */
+    char        *arg[MARGS];    /* With these arguments */
+} S_MACRO;
+
+typedef struct in_stack_s {     /* Stack of active inputs */
+    int16       is_marked_repeat;     /* 1 if this input created by 'n' stmnt */
+    int16       args;                 /* Argument count for macro */
+    CORFIL      *cf;                  /* In core file */
+    void        *fd;                  /* for closing stream */
+    S_MACRO       *mac;
+    int         line;
+} IN_STACK;
+
+typedef struct marked_sections {
+    char        *name;
+    int32       posit;
+    int         line;
+    char        *file;
+} MARKED_SECTIONS;
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1238,8 +1265,10 @@ typedef struct {
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *otranGlobals;
-    void          *rdorchGlobals;
+    //void          *rdorchGlobals;
     struct _sreadStatics {
+      SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
+      char    *sp, *nxp;              /* string pntrs into srtblk text        */
       int     op;                     /* opcode of current event              */
       int     warpin;                 /* input format sensor                  */
       int     linpos;                 /* line position sensor                 */
@@ -1249,20 +1278,30 @@ typedef struct {
       MYFLT   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
+      S_MACRO   *macros;
+      int     next_name /* = -1 */;
+      IN_STACK  *inputs, *str;
+      int     input_size, input_cnt;
+      int     pop;                    /* Number of macros to pop              */
+      int     ingappop /* = 1 */;     /* Are we in a popable gap?             */
+      int     linepos /* = -1 */;
+      MARKED_SECTIONS names[30], *current_name;
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
       char    repeat_name_n[RPTDEPTH][NAMELEN];
       int     repeat_cnt_n[RPTDEPTH];
       int32   repeat_point_n[RPTDEPTH];
       int     repeat_inc_n /* = 1 */;
+      S_MACRO   *repeat_mm_n[RPTDEPTH];
       int     repeat_index;
      /* Variable for repeat sections */
       char    repeat_name[NAMELEN];
       int     repeat_cnt;
       int32   repeat_point;
       int     repeat_inc /* = 1 */;
+      S_MACRO   *repeat_mm;
     } sreadStatics;
-    void          *sreadGlobals;
+    //    void          *sreadGlobals;
     void          *extractGlobals;
     void          *oneFileGlobals;
     void          *lineventGlobals;
