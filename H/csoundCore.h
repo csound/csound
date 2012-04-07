@@ -1292,7 +1292,6 @@ typedef struct NAME__ {
       int32     *typemask_tabl;
       int32     *typemask_tabl_in, *typemask_tabl_out;
       int       lgprevdef;
-      char      *filedir[101];
     } otranStatics;
     //void          *otranGlobals;
     //void          *rdorchGlobals;
@@ -1315,7 +1314,7 @@ typedef struct NAME__ {
       int     pop;                    /* Number of macros to pop              */
       int     ingappop /* = 1 */;     /* Are we in a popable gap?             */
       int     linepos /* = -1 */;
-      MARKED_SECTIONS names[30], *current_name;
+      MARKED_SECTIONS names[30];
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
       char    repeat_name_n[RPTDEPTH][NAMELEN];
@@ -1352,8 +1351,6 @@ typedef struct NAME__ {
       char    midname[L_tmpnam + 4];
       int     midiSet;
       int     csdlinecount;
-      char    *orcstr;
-      char    *scostr;
     } onefileStatics;
     //void          *oneFileGlobals;
 #define LBUFSIZ   32768
