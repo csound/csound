@@ -1,6 +1,7 @@
 [CSOUND 6 TODOs]
 
 1) remove old parser
+          Largely done --JPff
 2) analyze and assess changes for CSOUND struct
 3) Introduce Context Struct
 4) xtratim
