@@ -539,21 +539,7 @@ extern "C" {
     NULL,           /*  FFT_table_2         */
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
     /* express.c */
-    0L,             /*  polmax              */
-    0L,             /*  toklen              */
-    NULL,           /*  tokenstring         */
-    NULL,           /*  polish              */
-    NULL,           /*  token               */
-    NULL,           /*  tokend              */
-    NULL,           /*  tokens              */
-    NULL,           /*  tokenlist           */
-    TOKMAX,         /*  toklength           */
     0, 0, 0, 0, 0,  /*  acount, kcount, icount, Bcount, bcount */
-    (char*) NULL,   /*  stringend           */
-    NULL, NULL,     /*  revp, pushp         */
-    NULL, NULL,     /*  argp, endlist       */
-    (char*) NULL,   /*  assign_outarg       */
-    0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
     0,              /*  strVarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
     {
@@ -754,8 +740,8 @@ extern "C" {
     NULL,           /* multiThreadedBarrier2 */
     0,              /* multiThreadedComplete */
     NULL,           /* multiThreadedThreadInfo */
-    NULL,           /* multiThreadedStart */
-    NULL,           /* multiThreadedEnd */
+    //NULL,           /* multiThreadedStart */
+    //NULL,           /* multiThreadedEnd */
 #ifdef PARCS
     NULL,           /* weight_info */
     NULL,           /* weight_dump */
@@ -788,8 +774,7 @@ extern "C" {
     300,             /* Count for generated labels */
     NULL,            /* pow2 table */
     NULL,            /* cps conv table */
-    NULL,            /* output of preprocessor */
-    { NULL, NULL, NULL}/* for location directory */
+    NULL            /* output of preprocessor */
   };
 
   /* from threads.c */

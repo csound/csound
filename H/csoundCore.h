@@ -687,16 +687,10 @@ typedef struct {
     struct opcodinfo *prv;
   } OPCODINFO;
 
-  typedef struct polish {
-    char    opcod[12];
-    int     incount;
-    char    *arg[4];     /* Was [4][12] */
-  } POLISH;
-
-  typedef struct token {
-    char    *str;
-    int16   prec;
-  } TOKEN;
+  /* typedef struct token { */
+  /*   char    *str; */
+  /*   int16   prec; */
+  /* } TOKEN; */
 
   typedef struct names {
     char    *mac;
@@ -1259,20 +1253,7 @@ typedef struct NAME__ {
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
-    int32          polmax;
-    int32          toklen;
-    char          *tokenstring;
-    POLISH        *polish;
-    TOKEN         *token;
-    TOKEN         *tokend;
-    TOKEN         *tokens;
-    TOKEN         **tokenlist;
-    int           toklength;
     int           acount, kcount, icount, Bcount, bcount;
-    char          *stringend;
-    TOKEN         **revp, **pushp, **argp, **endlist;
-    char          *assign_outarg;
-    int           argcnt_offs, opcode_is_assign, assign_type;
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     struct {
@@ -1480,8 +1461,8 @@ typedef struct NAME__ {
     void          *multiThreadedBarrier2;
     int           multiThreadedComplete;
     THREADINFO    *multiThreadedThreadInfo;
-    INSDS         *multiThreadedStart;
-    INSDS         *multiThreadedEnd;
+    /* INSDS         *multiThreadedStart; */
+    /* INSDS         *multiThreadedEnd; */
 #ifdef PARCS
     char                *weight_info;
     char                *weight_dump;
@@ -1506,14 +1487,14 @@ typedef struct NAME__ {
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */
-    char*         csdname;       /* original CSD name; do not free() */
+    char*         csdname;     
+  /* original CSD name; do not free() */
     int           parserUdoflag;
     int           parserNamedInstrFlag;
     int           tran_nchnlsi;
     int           scnt0;        /* Count of extra strings */
     char          *sstrbuf0[3]; /* For extra strings in scores */
     int           sstrlen0[3];  /* lengths for extra strings */
-    int           genlabs;      /* Count for generated labels */
     MYFLT         *powerof2;    /* pow2 table */
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
