@@ -571,7 +571,6 @@ extern "C" {
       NULL,         /*  typemask_tabl */
       NULL, NULL,   /*  typemask_tabl_in, typemask_tabl_out */
       0,            /*  lgprevdef */
-      { NULL }       /*  filedir[101] */
     },
     //NULL,           /*  otranGlobals        */
     {  
@@ -586,7 +585,7 @@ extern "C" {
       0,0,0,        /*  input_size, input_cnt, pop */
       0,            /*  ingappop            */
       0,            /*  linepos             */
-      { NULL}, NULL, /* names, current_name */
+      { NULL},       /* names               */
       {""},         /*  repeat_name_n[RPTDEPTH][NAMELEN] */
        {0},         /*  repeat_cnt_n[RPTDEPTH] */
        {0},         /*  repeat_point_n[RPTDEPTH] */
@@ -606,7 +605,7 @@ extern "C" {
     {
       NULL, 
       {'\0'},{'\0'}, {'\0'}, /* orcname, sconame, midname */
-      0, 0, NULL, NULL /* midiSet, csdlinecount, orcstr, scostr */
+      0, 0           /* midiSet, csdlinecount */
     },
     //NULL,           /*  oneFileGlobals      */
     {
