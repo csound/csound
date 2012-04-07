@@ -16,3 +16,5 @@ cp ../docs/csound_ios_manual.pdf .
 # COPYING HEADERS
 
 cp -R ../Csound\ iOS\ Examples .
+cp Csound\ iOS\ Examples/LICENSE.TXT .
+
