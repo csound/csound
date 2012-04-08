@@ -62,9 +62,10 @@ void csound_aops_init_tables(CSOUND *csound)
                                                   sizeof(MYFLT)*POW2TABSIZI);
     for (i = 0; i < OCTRES; i++)
       csound->cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
-    for (i = 0; i < POW2TABSIZI; i++)
+    for (i = 0; i < POW2TABSIZI; i++) {
       csound->powerof2[i] =
         POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
+    }
 }
 
 
