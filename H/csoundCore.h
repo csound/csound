@@ -1211,7 +1211,7 @@ typedef struct NAME__ {
     int           inerrcnt, synterrcnt, perferrcnt;
     INSTRTXT      instxtanchor;
     INSDS         actanchor;
-    int32          rngcnt[MAXCHNLS];
+    int32         rngcnt[MAXCHNLS];
     int16         rngflg, multichan;
     void          *evtFuncChain;
     EVTNODE       *OrcTrigEvts;             /* List of events to be started */

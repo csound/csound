@@ -65,8 +65,8 @@ static void alloc_globals(CSOUND *csound)
 {
 /* if (csound->extractGlobals == NULL) { */
 /*   csound->extractGlobals = csound->Calloc(csound, sizeof(EXTRACT_GLOBALS)); */
-      STA(onbeat) = STA(offbeat) = FL(0.0);
-      STA(ontime) = STA(offtime) = FL(0.0);
+      /* STA(onbeat) = STA(offbeat) = FL(0.0); */
+      /* STA(ontime) = STA(offtime) = FL(0.0); */
       memcpy(&STA(a0), &a0, sizeof(SRTBLK));
       memcpy(&STA(f0), &f0, sizeof(SRTBLK));
       memcpy(&STA(e), &e, sizeof(SRTBLK));

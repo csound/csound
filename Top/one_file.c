@@ -161,7 +161,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
     return buf;
 }
 
-static void alloc_globals(CSOUND *csound)
+static inline void alloc_globals(CSOUND *csound)
 {
     /* if (UNLIKELY(csound->oneFileGlobals == NULL)) { */
     /*   csound->oneFileGlobals = mcalloc(csound, sizeof(ONE_FILE_GLOBALS)); */

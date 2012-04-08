@@ -108,21 +108,21 @@ extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 //#define ST(x)   (((SREAD_GLOBALS*) csound->sreadGlobals)->x)
 #define STA(x)  (csound->sreadStatics.x)
 
-static void sread_alloc_globals(CSOUND *csound)
-{
+/* static void sread_alloc_globals(CSOUND *csound) */
+/* { */
     /* if (LIKELY(csound->sreadGlobals != NULL)) */
     /*   return; */
     /* csound->sreadGlobals = (SREAD_GLOBALS*) */
     /*                             csound->Calloc(csound, sizeof(SREAD_GLOBALS)); */
-    STA(prvp2) = -FL(1.0);
-    STA(clock_base) = FL(0.0);
-    STA(warp_factor) = FL(1.0);
-    STA(next_name) = -1;
-    STA(ingappop) = 1;
-    STA(linepos) = -1;
-    STA(repeat_inc_n) = 1;
-    STA(repeat_inc) = 1;
-}
+    /* STA(prvp2) = -FL(1.0); */
+    /* STA(clock_base) = FL(0.0); */
+    /* STA(warp_factor) = FL(1.0); */
+    /* STA(next_name) = -1; */
+    /* STA(ingappop) = 1; */
+    /* STA(linepos) = -1; */
+    /* STA(repeat_inc_n) = 1; */
+    /* STA(repeat_inc) = 1; */
+/* } */
 
 static intptr_t expand_nxp(CSOUND *csound)
 {
@@ -804,7 +804,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
 
 void sread_init(CSOUND *csound)
 {
-    sread_alloc_globals(csound);
+    /* sread_alloc_globals(csound); */
     STA(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
     STA(input_size) = 20;
     STA(input_cnt) = 0;
@@ -818,7 +818,7 @@ void sread_init(CSOUND *csound)
 
 void sread_initstr(CSOUND *csound)
 {
-    sread_alloc_globals(csound);
+    /* sread_alloc_globals(csound); */
     STA(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
     STA(input_size) = 20;
     STA(input_cnt) = 0;
@@ -835,7 +835,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
     int  rtncod;                /* return code to calling program:      */
                                 /*   1 = section read                   */
                                 /*   0 = end of file                    */
-    sread_alloc_globals(csound);
+    /* sread_alloc_globals(csound); */
     STA(bp) = STA(prvibp) = csound->frstbp = NULL;
     STA(nxp) = NULL;
     STA(warpin) = 0;
@@ -1490,7 +1490,7 @@ static void salcblk(CSOUND *csound)
 
 void sfree(CSOUND *csound)       /* free all sorter allocated space */
 {                                /*    called at completion of sort */
-    sread_alloc_globals(csound);
+    /* sread_alloc_globals(csound); */
     if (STA(curmem) != NULL) {
       mfree(csound, STA(curmem));
       STA(curmem) = NULL;
