@@ -558,27 +558,26 @@ extern "C" {
       NULL, NULL,   /*  typemask_tabl_in, typemask_tabl_out */
       0,            /*  lgprevdef */
     },
-    //NULL,           /*  otranGlobals        */
     {  
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
       0, 0, 0, 0,   /*  op warpin linpos lincnt */
-      FL(0.0), FL(0.0), FL(0.0), /* prvp2 clock_base warp_factor */
+      -FL(1.0), FL(0.0), -FL(1.0), /* prvp2 clock_base warp_factor */
       NULL,         /*  curmem              */
       NULL,         /*  memend              */
       NULL,         /*  macros              */
-      0,            /*  next_name           */
+      -1,           /*  next_name           */
       NULL, NULL,   /*  inputs, str         */
       0,0,0,        /*  input_size, input_cnt, pop */
-      0,            /*  ingappop            */
-      0,            /*  linepos             */
-      { NULL},       /* names               */
+      1,            /*  ingappop            */
+      -1,           /*  linepos             */
+      { NULL},      /* names               */
       {""},         /*  repeat_name_n[RPTDEPTH][NAMELEN] */
-       {0},         /*  repeat_cnt_n[RPTDEPTH] */
-       {0},         /*  repeat_point_n[RPTDEPTH] */
-       0, 0,        /*  repeat_inc_n, repeat_index */
-      {NULL},       /*  repeat_mm_n */
-       "",          /*  repeat_name[NAMELEN] */
-       0,0,0        /*  repeat_cnt, repeat_point, repeat_inc */
+      {0},          /*  repeat_cnt_n[RPTDEPTH] */
+      {0},          /*  repeat_point_n[RPTDEPTH] */
+      1, {NULL}, 0, /*  repeat_inc_n,repeat_mm_n repeat_index */
+      "",          /*  repeat_name[NAMELEN] */
+      0,0,1,        /*  repeat_cnt, repeat_point, repeat_inc */
+      NULL,         /*  repeat_mm */
     },
     {
       { '\0'},      /*  inslst        */
@@ -587,13 +586,11 @@ extern "C" {
       NULL, NULL,   /*  frstout, prvout   */
       { 0 }, { 0 }, { 0 },/*  a0, f0, e   */
     },
-    //NULL,           /*  extractGlobals      */
     {
       NULL, 
-      {'\0'},{'\0'}, {'\0'}, /* orcname, sconame, midname */
+      {'\0'}, {'\0'}, {'\0'}, /* orcname, sconame, midname */
       0, 0           /* midiSet, csdlinecount */
     },
-    //NULL,           /*  oneFileGlobals      */
     {
       NULL, NULL,   /* Linep, Linebufend    */
       NULL,         /* Linecons             */
@@ -602,10 +599,9 @@ extern "C" {
         NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
         {NULL},
         {0, 0, 0},
-      },            /* EVTBLK  prve         */
+      },            /* EVTBLK  prve         *
       { 0 },        /* Linebuf              */
     },
-    //NULL,           /*  lineventGlobals     */
     {
       {0,0}, {0,0},  /* srngcnt, orngcnt    */
       0, 0, 0, 0, 0, /* srngflg, sectno, lplayed, segamps, sormsg */
@@ -626,13 +622,12 @@ extern "C" {
       0,            /*  isfopen             */
       0,            /*  osfopen             */
       0,            /*  pipdevin, pipdevout */
-      0,            /*  nframes             */
+      1U,           /*  nframes             */
       NULL, NULL,   /*  pin, pout           */
 #ifndef SOME_FILE_DAY
       0,            /*dither                */
 #endif
     },
-    //NULL,           /*  libsndGlobals       */
     (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
     (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
@@ -700,7 +695,7 @@ extern "C" {
       0, 1, 1, 0,   /*    sfread, ...       */
       0, 0, 0, 0,   /*    inbufsamps, ...   */
       0,            /*    sfsampsize        */
-      1,            /*    displays          */
+      1,            /*    displa          */
       0, 0, 135, /*    disp.. graphsoff ... */
       0, 0, 0,      /*    Beatmode, ...     */
       0, 0,         /*    usingcscore, ...  */
@@ -728,7 +723,7 @@ extern "C" {
     0L, 0L,         /*  poolcount, gblfixed     */
     0L, 0L,         /*  gblacount, gblscount    */
     (CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
-    csoundDoCallback_,  /*  doCsoundCallback    */
+     csoundDoCallback_,  /*  doCsoundCallback    */
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
     csound_str_hash_32, /*  strHash32           */
     {0, 0, {0}}, /* REMOT_BUF */
@@ -771,7 +766,6 @@ extern "C" {
     0,              /* Count of extra strings */
     {NULL, NULL, NULL}, /* For extra strings in scores */
     {0, 0, 0},      /* For extra strings in scores */
-    300,             /* Count for generated labels */
     NULL,            /* pow2 table */
     NULL,            /* cps conv table */
     NULL            /* output of preprocessor */
