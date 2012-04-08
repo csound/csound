@@ -42,7 +42,8 @@ mp3dec_t mp3dec_init(void)
 int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
-    int64_t tmp; int r;
+    int64_t tmp;
+    int r;
 
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
@@ -89,7 +90,8 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       mp3->stream_position = mp3->in_buffer_used;
     } else {
       int32_t n = sizeof(mp3->in_buffer);
-      if (mp3->stream_size && (n > mp3->stream_size)) n = (int32_t)mp3->stream_size;
+      if (mp3->stream_size && (n > mp3->stream_size))
+        n = (int32_t)mp3->stream_size;
       n = read(fd, mp3->in_buffer, n);
       if (n < 0) n = 0;
       mp3->stream_position = mp3->in_buffer_used = n;
