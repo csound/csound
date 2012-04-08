@@ -561,7 +561,7 @@ extern "C" {
     {  
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
       0, 0, 0, 0,   /*  op warpin linpos lincnt */
-      -FL(1.0), FL(0.0), -FL(1.0), /* prvp2 clock_base warp_factor */
+      -FL(1.0), FL(0.0), FL(1.0), /* prvp2 clock_base warp_factor */
       NULL,         /*  curmem              */
       NULL,         /*  memend              */
       NULL,         /*  macros              */
