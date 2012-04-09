@@ -1,7 +1,12 @@
 option(BUILD_PD_CLASS "Build the puredata csoundapi~ class" ON)
+option(BUILD_TCLCSOUND "Build the tcl interface and clients" ON)
+option(BUILD_CSBEATS "Build the beats score frontend" ON)
+option(BUILD_WINSOUND "Build the Winsound Frontent. REquies FLTK headers and libs." OFF)
 
 find_package(FLEX)
 find_package(BISON)
+find_package(FLTK)
+
 
 check_include_file(m_pd.h PD_HEADER)
 
@@ -20,9 +25,6 @@ make_plugin(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}")
 set_target_properties(csladspa PROPERTIES PREFIX "")
 
 # TCL interface
-
-option(BUILD_TCLCSOUND "Build the tcl interface and clients" ON)
-
 if(BUILD_TCLCSOUND)
     set(TCL_VERSION "" CACHE STRING "Try a specific tcl/tk version first")
     set(TCL_LIBRARY "tcl${TCL_VERSION}")
@@ -52,7 +54,6 @@ endif()
 
 # CSBeats
 
-option(BUILD_CSBEATS "Build the beats score frontend" ON)
 check_deps(BUILD_CSBEATS FLEX_EXECUTABLE BISON_EXECUTABLE)
 
 if(BUILD_CSBEATS)
@@ -74,6 +75,7 @@ if(BUILD_CSBEATS)
     
 endif()
 
+#PD Interface
 check_deps(BUILD_PD_CLASS PD_HEADER)
 if(BUILD_PD_CLASS)
     if(LINUX)
@@ -92,6 +94,28 @@ if(BUILD_PD_CLASS)
 
     install(TARGETS ${pdname}
         LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR})
+
+endif()
+
+
+#WinSound
+check_deps(BUILD_WINSOUND FLTK_FOUND)
+if(BUILD_WINSOUND)
+    set(WINSOUND_FL ${CMAKE_CURRENT_SOURCE_DIR}/winsound/winsound.fl)
+    set(WINSOUND_CXX ${CMAKE_CURRENT_BINARY_DIR}/winsound.cxx)
+    set(WINSOUND_H ${CMAKE_CURRENT_BINARY_DIR}/winsound.h)
+    set_source_files_properties(${WINSOUND_CXX} GENERATED)
+    set_source_files_properties(${WINSOUND_H} GENERATED)
+    add_custom_target(winsound_fl COMMAND fluid -c -o ${WINSOUND_CXX} -h ${WINSOUND_H} ${WINSOUND_FL}) 
+    
+    set(WINSOUND_SRCS ${WINSOUND_CXX} winsound/main.cxx)
+
+    make_executable(winsound "${WINSOUND_SRCS}" "${FLTK_LIBRARIES}")
+    add_dependencies(winsound winsound_fl)    
+    include_directories(${FLTK_INCLUDE_DIR})
+    include_directories(${CMAKE_CURRENT_BINARY_DIR})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/winsound)
+
 
 endif()
 
