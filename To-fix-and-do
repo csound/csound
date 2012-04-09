@@ -18,11 +18,7 @@
 [These are not all checked and need investigation]
 instxtcount  1  // set in Engine/csound_orc_compile.c but not used
 optxtsize  1 // set in Engine/csound_orc_compile.c but not used
-opcode_weight_cache_ctr  1 // incremented in Engine/cs_par_dispatch.c
 tran_nchnlsi  1 // in Engine/csound_orc_compile
-maxpos 1  // in musmon
-smaxpos  1  // in musmon
-omaxpos  1  // in musmon
 sstrlen0  1 // Unfinished multiple strings
 
 [ OLDER TODOs]
