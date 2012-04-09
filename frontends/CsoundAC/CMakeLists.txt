@@ -1,13 +1,13 @@
 # Build CsoundAC
 
-option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorithmic composition (needs C++ interface)" ON)
+option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorithmic composition (needs C++ interface)" OFF)
 option(BUILD_CSOUND_AC_PYTHON_INTERFACE "Build the Csound AC Python interface" ON)
 option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
 
 
 find_package(Boost)
 find_library(MUSICXML_LIBRARY musicxml2)
-find_package(FLTK)
+#find_package(FLTK)
 find_package(SWIG)
 find_package(PythonLibs)
 find_package(Lua51)
