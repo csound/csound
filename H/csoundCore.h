@@ -1402,7 +1402,7 @@ typedef struct NAME__ {
     int           pvNumFiles;
     int           pvErrorCode;
     /* database for deferred loading of opcode plugin libraries */
-    void          *pluginOpcodeFiles, *pluginOpcodeDB;
+    //    void          *pluginOpcodeFiles;
     int           enableHostImplementedAudioIO;
     int           hostRequestedBufferSize;
     /* engineState is sum of:

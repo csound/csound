@@ -452,16 +452,16 @@ int find_opcode(CSOUND *csound, char *opname)
         return n;
       n = csound->opcodlst[n].prvnum;
     }
-    if (csound->pluginOpcodeDB != NULL) {
-      CsoundPluginOpcode_t  *p;
-      /* not found, check for deferred plugin loading */
-      p = ((CsoundPluginOpcode_t**) csound->pluginOpcodeDB)[h];
-      while (p) {
-        if (!sCmp(opname, p->opname))
-          return loadPluginOpcode(csound, p->fp, opname, h);
-        p = p->nxt;
-      }
-    }
+    /* if (csound->pluginOpcodeDB != NULL) { */
+    /*   CsoundPluginOpcode_t  *p; */
+    /*   /\* not found, check for deferred plugin loading *\/ */
+    /*   p = ((CsoundPluginOpcode_t**) csound->pluginOpcodeDB)[h]; */
+    /*   while (p) { */
+    /*     if (!sCmp(opname, p->opname)) */
+    /*       return loadPluginOpcode(csound, p->fp, opname, h); */
+    /*     p = p->nxt; */
+    /*   } */
+    /* } */
 
     return 0;
 }
@@ -1040,6 +1040,7 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 /* returns non-zero if 'fname' (not full path) */
 /* is marked for deferred loading */
 
+#if 0 
 int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
 {
 #if !(defined(LINUX) || defined(__unix__) || defined(__MACH__))
@@ -1115,6 +1116,7 @@ int csoundLoadAllPluginOpcodes(CSOUND *csound)
     /* report any errors */
     return (err == 0 || err == CSOUND_MEMORY ? err : CSOUND_ERROR);
 }
+#endif
 
 #ifdef __cplusplus
 }
