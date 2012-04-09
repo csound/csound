@@ -46,13 +46,13 @@
 //#define LBUFSIZ   32768
 #define LF        '\n'
 
-typedef struct {
-    char    *Linep, *Linebufend;
-    FILE    *Linecons;
-    int     stdmode;
-    EVTBLK  prve;
-    char    Linebuf[LBUFSIZ];
-} LINEVENT_GLOBALS;
+/* typedef struct { */
+/*     char    *Linep, *Linebufend; */
+/*     FILE    *Linecons; */
+/*     int     stdmode; */
+/*     EVTBLK  prve; */
+/*     char    Linebuf[LBUFSIZ]; */
+/* } LINEVENT_GLOBALS; */
 
 static void sensLine(CSOUND *csound, void *userData);
 
