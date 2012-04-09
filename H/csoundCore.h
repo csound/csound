@@ -1233,7 +1233,6 @@ typedef struct NAME__ {
     int           maxfnum;
     GEN           *gensub;
     int           genmax;
-    int           ftldno;
     void          **namedGlobals;
     int           namedGlobalsCurrLimit;
     int           namedGlobalsMaxLimit;
@@ -1276,7 +1275,7 @@ typedef struct NAME__ {
     } otranStatics;
     //void          *otranGlobals;
     //void          *rdorchGlobals;
-    struct  {
+    struct sreadStatics__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
       int     op;                     /* opcode of current event              */
@@ -1313,7 +1312,7 @@ typedef struct NAME__ {
     } sreadStatics;
     //    void          *sreadGlobals;
 #define INSMAX  4096
-    struct {
+    struct extractStatics__ {
       char    inslst[INSMAX];         /*   values set by readxfil         */
       int     sectno, a0done;
       int     onsect, offsect;        /*      "       "       "           */

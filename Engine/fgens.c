@@ -81,6 +81,8 @@ typedef struct namedgen {
 
 #define tpd360  (FL(0.0174532925199433))
 
+#define FTAB_SEARCH_BASE (100)
+
 static CS_NOINLINE int  fterror(const FGDATA *, const char *, ...);
 static CS_NOINLINE void ftresdisp(const FGDATA *, FUNC *);
 static CS_NOINLINE FUNC *ftalloc(const FGDATA *);
@@ -120,7 +122,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     if (!ff.fno) {
       if (!mode)
         return 0;                               /*  fno = 0: return,        */
-      ff.fno = csound->ftldno;
+      ff.fno = FTAB_SEARCH_BASE;
       do {                                      /*      or automatic number */
         ++ff.fno;
       } while (ff.fno <= csound->maxfnum && csound->flist[ff.fno] != NULL);
