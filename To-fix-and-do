@@ -1,7 +1,7 @@
 [CSOUND 6 TODOs]
 
 1) remove old parser
-          Largely done --JPff
+          Believed done includinf detritus --JPff
 
 2) analyze and assess changes for CSOUND struct
   There is a list below of fields not in API that are only used once
@@ -13,7 +13,6 @@
 5)reparsing with active CSOUND instance
 
 [These are ot all checked and need investigation]
-ftldno  1  // Engine/fgens
 opcodedirWasOK  1  // sewt to 0 and tested never reset
 instxtcount  1  // set in Engine/csound_orc_compile.c but not used
 optxtsize  1 // set in Engine/csound_orc_compile.c but not used
@@ -22,7 +21,6 @@ tran_nchnlsi  1 // in Engine/csound_orc_compile
 maxpos 1  // in musmon
 smaxpos  1  // in musmon
 omaxpos  1  // in musmon
-rngflg  1  // only in libsnd
 sstrlen0  1 // Unfinished multiple strings
 
 [ OLDER TODOs]

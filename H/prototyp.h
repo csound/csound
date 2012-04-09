@@ -95,7 +95,7 @@ int     check_rtaudio_name(char *fName, char **devName, int isOutput);
 int     csoundLoadOpcodeDB(CSOUND *, const char *);
 void    csoundDestroyOpcodeDB(CSOUND *);
 int     csoundCheckOpcodePluginFile(CSOUND *, const char *);
-int     csoundLoadAllPluginOpcodes(CSOUND *);
+  //int     csoundLoadAllPluginOpcodes(CSOUND *);
 int     csoundLoadAndInitModule(CSOUND *, const char *);
 void    csoundNotifyFileOpened(CSOUND *, const char *, int, int, int);
 int     insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);

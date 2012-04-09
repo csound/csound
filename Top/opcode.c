@@ -67,9 +67,9 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     int     i, cnt = 0;
 
     (*lstp) = NULL;
-    i = csoundLoadAllPluginOpcodes(csound);
-    if (i != 0)
-      return i;
+    /* i = csoundLoadAllPluginOpcodes(csound); */
+    /* if (i != 0) */
+    /*   return i; */
     ep = (OENTRY*) csound->opcodlst;
     if (UNLIKELY(ep == NULL))
       return -1;

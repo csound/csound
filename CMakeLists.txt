@@ -307,6 +307,7 @@ set(HEADERS_TO_CHECK
 foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
     string(TOUPPER ${header} tmp)
+
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
     check_include_file(${header} HAVE_${upper_header})
 endforeach()
@@ -623,8 +624,6 @@ set_source_files_properties(${LEX_OUT} GENERATED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
     
-list(APPEND libcsound_CFLAGS -DENABLE_NEW_PARSER)
-
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging")
     list(APPEND libcsound_CFLAGS -DPARSER_DEBUG=1)

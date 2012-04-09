@@ -655,8 +655,7 @@ extern "C" {
     NULL,           /*  pvFileTable         */
     0,              /*  pvNumFiles          */
     0,              /*  pvErrorCode         */
-    NULL,           /*  pluginOpcodeFiles   */
-    NULL,           /*  pluginOpcodeDB      */
+    //    NULL,           /*  pluginOpcodeFiles   */
     0,              /*  enableHostImplementedAudioIO  */
     0,              /*  hostRequestedBufferSize       */
     0,              /*  engineState         */
