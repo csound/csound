@@ -7,6 +7,7 @@
 #include "winsound.h"
 #include <errno.h>
 #include <stdarg.h>
+#include <unistd.h>
 #if defined(MSVC)
 #include <direct.h>
 #endif

@@ -111,6 +111,7 @@ if(BUILD_WINSOUND)
     set(WINSOUND_SRCS ${WINSOUND_CXX} winsound/main.cxx)
 
     make_executable(winsound "${WINSOUND_SRCS}" "${FLTK_LIBRARIES}")
+    target_link_libraries (winsound ${CSOUNDLIB})
     add_dependencies(winsound winsound_fl)    
     include_directories(${FLTK_INCLUDE_DIR})
     include_directories(${CMAKE_CURRENT_BINARY_DIR})
