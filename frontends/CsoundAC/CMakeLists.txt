@@ -7,7 +7,7 @@ option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
 
 find_package(Boost)
 find_library(MUSICXML_LIBRARY musicxml2)
-find_package(FLTK)
+#find_package(FLTK)
 find_package(SWIG)
 find_package(PythonLibs)
 find_package(Lua51)
