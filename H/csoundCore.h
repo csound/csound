@@ -1473,7 +1473,7 @@ typedef struct NAME__ {
     struct global_var_lock_t *global_var_lock_root;
     struct global_var_lock_t **global_var_lock_cache;
     int           global_var_lock_count;
-    int           opcode_weight_cache_ctr;
+    //    int           opcode_weight_cache_ctr;
     struct opcode_weight_cache_entry_t
                   *opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
     int           opcode_weight_have_cache;

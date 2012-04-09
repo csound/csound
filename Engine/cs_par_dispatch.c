@@ -675,7 +675,7 @@ static void opcode_weight_entry_add(CSOUND *csound,
     if (found == 0) {
       TRACE_0("Allocing %s\n", name);
       opcode_weight_entry_alloc(csound, &curr, name, weight, hash_val);
-      csound->opcode_weight_cache_ctr++;
+      // Not used??      csound->oopcode_weight_cache_ctr++;
 
       curr->next = csound->opcode_weight_cache[hash_val];
       csound->opcode_weight_cache[hash_val] = curr;

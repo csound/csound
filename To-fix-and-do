@@ -12,8 +12,10 @@
 
 5)reparsing with active CSOUND instance
 
-[These are ot all checked and need investigation]
-opcodedirWasOK  1  // sewt to 0 and tested never reset
+6)  Investigate the CSGLOBALS_USE_TREE option 
+
+
+[These are not all checked and need investigation]
 instxtcount  1  // set in Engine/csound_orc_compile.c but not used
 optxtsize  1 // set in Engine/csound_orc_compile.c but not used
 opcode_weight_cache_ctr  1 // incremented in Engine/cs_par_dispatch.c
