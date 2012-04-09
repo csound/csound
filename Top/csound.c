@@ -745,7 +745,7 @@ extern "C" {
     NULL,           /* global_var_lock_root */
     NULL,           /* global_var_lock_cache */
     0,              /* global_var_lock_count */
-    0,              /* opcode_weight_cache_ctr */
+    //    0,              /* opcode_weight_cache_ctr */
     {NULL,NULL},    /* opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE] */
     0,              /* opcode_weight_have_cache */
     {NULL,NULL},    /* ache[DAG_2_CACHE_SIZE] */

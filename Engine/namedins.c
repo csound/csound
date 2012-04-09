@@ -43,14 +43,14 @@ typedef struct CsoundOpcodePluginFile_s {
     int                         isLoaded;
 } CsoundOpcodePluginFile_t;
 
-typedef struct CsoundPluginOpcode_s {
-    /* opcode name */
-    char                        *opname;
-    /* pointer to next link in chain */
-    struct CsoundPluginOpcode_s *nxt;
-    /* associated plugin library */
-    CsoundOpcodePluginFile_t    *fp;
-} CsoundPluginOpcode_t;
+/* typedef struct CsoundPluginOpcode_s { */
+/*     /\* opcode name *\/ */
+/*     char                        *opname; */
+/*     /\* pointer to next link in chain *\/ */
+/*     struct CsoundPluginOpcode_s *nxt; */
+/*     /\* associated plugin library *\/ */
+/*     CsoundOpcodePluginFile_t    *fp; */
+/* } CsoundPluginOpcode_t; */
 
 /* do not touch this ! */
 
