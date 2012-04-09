@@ -7,6 +7,8 @@ option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
 option(BUILD_PYTHON_OPCODES "Build the Python opcodes" ON)
 option(BUILD_LUA_OPCODES "Build the Lua opcodes" ON)
+option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON) 
+option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -19,7 +21,8 @@ check_include_file(lo/lo.h OSC_HEADER)
 find_package(PNG)
 find_package(PythonLibs)
 find_package(Lua51)
-
+check_include_file(wiiuse.h WIIUSE_H)
+find_library(WIIUSE_LIB wiiuse)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
@@ -35,6 +38,8 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(fareygen fareygen.c)
 
 make_plugin(cellular cellular.c)
+
+make_plugin(serial serial.c)
 
 # temporarily do not build on Windows until these opcodes are fixed
 # to compile
@@ -119,6 +124,12 @@ if(BUILD_LUA_OPCODES)
     make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
 endif()
 
+check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
+if(BUILD_WIIMOTE_OPCODES)
+    make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
+endif()
+
+
 # OGG Opcode previously was built only for OLPC
 #if(VORBISFILE_LIBRARY)
 #    set(vorbis_LIBS ${libcsound_LIBS} ${VORBISFILE_LIBRARY})
@@ -139,13 +150,7 @@ endif()
 #make_plugin(sfont sfont.c m)
 #set_target_properties(sfont
 #    PROPERTIES COMPILER_FLAGS "${sfont_FLAGS}")
-
     
-          
-
-#if wiifound==1:
-#  WiiEnvironment = pluginEnvironment.Clone()
-#  makePlugin(WiiEnvironment, 'wiimote', ['wiimote.c'])
 #if p5gfound==1:
 #  P5GEnvironment = pluginEnvironment.Clone()
 #  makePlugin(P5GEnvironment, 'p5g', ['p5glove.c'])
