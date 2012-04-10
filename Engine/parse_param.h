@@ -34,9 +34,7 @@ typedef struct pre_parm_s {
     unsigned int macro_stack_ptr;
     IFDEFSTACK      *ifdefStack;
     unsigned char   isIfndef;
-    unsigned char   isInclude;
     unsigned char   isString;
-    unsigned char   clearBufferAfterEOF;
     uint16_t        line;
     uint32_t        locn;
     uint32_t        llocn;
@@ -50,7 +48,6 @@ typedef struct parse_parm_s {
     MACRO           *macros;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
-    unsigned char   clearBufferAfterEOF;
 } PARSE_PARM;
 
 void    cs_init_math_constants_macros(CSOUND*, PRE_PARM*);

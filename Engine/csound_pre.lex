@@ -378,9 +378,6 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
                   csound_pre_line(csound->expanded_orc, yyscanner);
-                  if (PARM->clearBufferAfterEOF)
-                    PARM->clearBufferAfterEOF =
-                      PARM->isInclude = 0;
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
@@ -602,7 +599,6 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-    PARM->isInclude = PARM->clearBufferAfterEOF = 1;
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);
     corfile_rm(&cf);
