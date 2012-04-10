@@ -201,11 +201,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   (*lvalp)->type = ENDIN_TOKEN;
                   return ENDIN_TOKEN; }
 "opcode"        {
-                  PARM->clearBufferAfterEOF = 0;
                   return UDOSTART_DEFINITION;
                 }
 "endop"         {
-                  PARM->clearBufferAfterEOF = 0;
                   *lvalp = new_token(csound, UDOEND_TOKEN); return UDOEND_TOKEN;
                 }
 
