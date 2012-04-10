@@ -63,10 +63,9 @@ void csp_weights_calculate(CSOUND *, TREE *);
 void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
 {
     csound->DebugMsg(csound,"********* Extra Pre Data %p *********\n", x);
-    csound->DebugMsg(csound,"macros = %p, macro_stack_ptr = %u, ifdefStack=%p, isIfndef=%d\n"
-           "isInclude=%d, clearBufferAfterEOF=%d, line=%d\n",
-           x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef,
-           x->isInclude, x->clearBufferAfterEOF, x->line);
+    csound->DebugMsg(csound,"macros = %p, macro_stack_ptr = %u, ifdefStack=%p,\n"
+           "isIfndef=%d\n, line=%d\n",
+           x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, x->line);
     csound->DebugMsg(csound,"******************\n");
 }
 
