@@ -9,7 +9,8 @@ cd ..
 
 # COPYING HEADERS
 
-export HEADER_DIR="$OUT_DIR/headers"
+export HEADER_DIR="$OUT_DIR/headers/"
+echo "HEADER_DIR: $HEADER_DIR"
 cp H/cfgvar.h "$HEADER_DIR"
 cp H/cscore.h "$HEADER_DIR"
 cp H/csdl.h "$HEADER_DIR"
