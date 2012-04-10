@@ -396,7 +396,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
 
 /**
  * Create an Opcode (OPTXT) from the AST node given. Called from
- * create_udo and create_instrument.
+ * create_instrument.
  */
 OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
 {
@@ -574,18 +574,6 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
     }
 
     return retOptxt;
-}
-
-
-
-/**
- * Create a UDO (INSTRTXT) from the AST node given. Called from
- * csound_orc_compile.
- */
-INSTRTXT *create_udo(CSOUND *csound, TREE *root)
-{
-    INSTRTXT *ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
-    return ip;
 }
 
 /**
@@ -1248,6 +1236,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
     /* align to 8 bytes for "spectral" types */
     if ((int) sizeof(MYFLT) < 8 && STA(gblnxtpcnt))
       STA(gblkcount) = (STA(gblkcount) + 1) & (~1);
+    printf("%d: %d %d %d\n", __LINE__,  csound->gblacount, STA(gblacount), STA(gblnxtacnt));
     STA(gblacount) = STA(gblnxtacnt);
     STA(gblscount) = STA(gblnxtscnt);
 
@@ -1294,11 +1283,12 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
       instxtcount += 1;
       optxtcount += ip->optxtcount;
     }
-    csound->instxtcount = instxtcount;
+    //    csound->instxtcount = instxtcount;
     csound->optxtsize = instxtcount * sizeof(INSTRTXT)
                         + optxtcount * sizeof(OPTXT);
     csound->poolcount = STA(poolcount);
     csound->gblfixed = STA(gblnxtkcnt) + STA(gblnxtpcnt) * (int) Pfloats;
+    printf("%d: %d %d %d\n", __LINE__,  csound->gblacount, STA(gblacount),STA(gblnxtacnt));
     csound->gblacount = STA(gblnxtacnt);
     csound->gblscount = STA(gblnxtscnt);
     /* clean up */

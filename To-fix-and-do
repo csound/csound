@@ -1,19 +1,20 @@
 [CSOUND 6 TODOs]
 
-1) remove old parser
+1)  remove old parser
           Believed done includinf detritus --JPff
 
-2) analyze and assess changes for CSOUND struct
-  There is a list below of fields not in API that are only used once
+2)  analyze and assess changes for CSOUND struct
+          There is a list below of fields not in API that are only used once
 
-3) Introduce Context Struct
+3)  Introduce Context Struct
 
-4) xtratim
+4)  xtratim
 
-5)reparsing with active CSOUND instance
+5)  reparsing with active CSOUND instance
 
 6)  Investigate the CSGLOBALS_USE_TREE option 
 
+7)  Should OENTRY table be hashed or tree?
 
 [These are not all checked and need investigation]
 instxtcount  1  // set in Engine/csound_orc_compile.c but not used
@@ -21,6 +22,7 @@ optxtsize  1 // set in Engine/csound_orc_compile.c but not used
 tran_nchnlsi  1 // in Engine/csound_orc_compile
 sstrlen0  1 // Unfinished multiple strings
 
+gblacount etc replicated in otran structure and CSOUND
 [ OLDER TODOs]
 
 POWER OF TWO ISSUES
