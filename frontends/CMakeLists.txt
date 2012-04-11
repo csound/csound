@@ -14,6 +14,7 @@ check_include_file(m_pd.h PD_HEADER)
 set(CS_MAIN_SRCS csound/csound_main.c)
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     list(APPEND CS_MAIN_SRCS csound/sched.c)
+    list(APPEND CSOUNDLIB -lpthread)
 endif()
 
 # We need a different name to avoid clashes with float libcsound
