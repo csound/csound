@@ -469,7 +469,7 @@ int find_opcode(CSOUND *csound, char *opname)
 /* -------------------------------------------------------------------- */
 /* These functions replace the functionality of strsav() in rdorch.c.   */
 
-#define STRSPACE    (1000)               /* number of bytes in a buffer  */
+#define STRSPACE    (2000)               /* number of bytes in a buffer  */
 
 typedef struct strsav_t {
         struct strsav_t *nxt;           /* pointer to next structure    */
