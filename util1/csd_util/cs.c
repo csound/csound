@@ -94,14 +94,14 @@ int is_csd(char *s)
 
 void split_filename(char *fullname, char *dir, char *bas)
 {
-    int n, m;
+    int m;
     /* if no filename was given */
     if (fullname == NULL || strlen(fullname) == 0) {
       *dir = '\0';
       *bas = '\0';
       return;
     }
-    n = m = strlen(fullname);
+    m = strlen(fullname);
     while (--m >= 0 &&
            fullname[m] != '/' && fullname[m] != '\\' && fullname[m] != ':');
     /* directory name */
