@@ -36,27 +36,37 @@ namespace csound
   {
   }
 
-  void Composition::render()
+  int Composition::render()
   {
     clear();
-    generate();
+    int errorStatus = generate();
     timestamp = makeTimestamp();
-    perform();
+    if (errorStatus) {
+      return errorStatus;
+    }
+    errorStatus = perform();
+    return errorStatus;
   }
 
-  void Composition::renderAll()
+  int Composition::renderAll()
   {
     clear();
-    generate();
-    performAll();
+    int errorStatus = generate();
+    if (errorStatus) {
+      return errorStatus;
+    }
+    errorStatus = performAll();
+    return errorStatus;
   }
 
-  void Composition::perform()
+  int Composition::perform()
   {
+    return 0;
   }
 
-  void Composition::generate()
+  int Composition::generate()
   {
+    return 0;
   }
 
   void Composition::clear()
@@ -189,34 +199,34 @@ namespace csound
     return timestamp;
   }
 
-  void tagFile(Composition &composition, std::string filename)
+  int Composition::tagFile(std::string filename) const
   {
     std::string command = "bwfmetaedit";
-    command = command + " --OriginationDate=" + composition.getTimestamp().substr(0, 10);
-    command = command + " --ICRD=" + composition.getTimestamp().substr(0, 10);
-    if (composition.getTitle().length() > 1) {
-      command = command + " --Description=" + composition.getTitle();
-      command = command + " --INAM=" + composition.getTitle();
+    command = command + " --OriginationDate=" + getTimestamp().substr(0, 10);
+    command = command + " --ICRD=" + getTimestamp().substr(0, 10);
+    if (getTitle().length() > 1) {
+      command = command + " --Description=" + getTitle();
+      command = command + " --INAM=" + getTitle();
     }
-    if (composition.getCopyright().length() > 1) {
-      command = command + " --ICOP=" + composition.getCopyright();
+    if (getCopyright().length() > 1) {
+      command = command + " --ICOP=" + getCopyright();
     }
-    if (composition.getArtist().length() > 1) {
-      command = command + " --Originator=" + composition.getArtist();
-      command = command + " --IART=" + composition.getArtist();
+    if (getArtist().length() > 1) {
+      command = command + " --Originator=" + getArtist();
+      command = command + " --IART=" + getArtist();
     }
-    if (composition.getAlbum().length() > 1) {
-      command = command + " --IPRD=" + composition.getAlbum();
+    if (getAlbum().length() > 1) {
+      command = command + " --IPRD=" + getAlbum();
     }
-    if (composition.getLicense().length() > 1) {
-      command = command + " --ICMT=" + composition.getLicense();
+    if (getLicense().length() > 1) {
+      command = command + " --ICMT=" + getLicense();
     }
     command = command + " " + filename.c_str();
     System::inform("tagFile(): %s\n", command.c_str());
-    int result = std::system(command.c_str());
+    return std::system(command.c_str());
   }
 
-  void Composition::performMaster()
+  int Composition::performMaster()
   {
     System::inform("BEGAN Composition::performMaster()...\n");
     timestamp = makeTimestamp();
@@ -225,29 +235,44 @@ namespace csound
     //score.save(getMusicXmlFilename());
     // Would often take too long!...
     //translateToNotation();
-    perform();
+    int errorStatus = perform();
     System::inform("ENDED Composition::performMaster().\n");
+    return errorStatus;
   }
 
-  void Composition::performAll()
+  int Composition::performAll()
   {
     System::inform("BEGAN Composition::performAll()...\n");
-    performMaster();
-    translateMaster();
+    int errorStatus = performMaster();
+    if (errorStatus) {
+      return errorStatus;
+    }
+    errorStatus = translateMaster();
     System::inform("ENDED Composition::performAll().\n");
+    return errorStatus;
   }
 
-  void Composition::translateMaster()
+  int Composition::translateMaster()
   {
     System::inform("ENDED Composition::translateMaster().\n");
-    tagFile(*this, getOutputSoundfileName());
-    normalizeOutputSoundfile();
-    translateToCdAudio();
-    translateToMp3();
+    int errorStatus = tagFile(getOutputSoundfileName());
+    if (errorStatus) {
+      return errorStatus;
+    }
+    errorStatus = normalizeOutputSoundfile();
+    if (errorStatus) {
+      return errorStatus;
+    }
+    errorStatus = translateToCdAudio();
+    if (errorStatus) {
+      return errorStatus;
+    }
+    errorStatus = translateToMp3();
     System::inform("ENDED Composition::translateMaster().\n");
+    return errorStatus;
   }
 
-  void Composition::normalizeOutputSoundfile(double levelDb)
+  int Composition::normalizeOutputSoundfile(double levelDb)
   {
     char buffer[0x100];
     std::snprintf(buffer,
@@ -256,12 +281,16 @@ namespace csound
                   getOutputSoundfileName().c_str(),
                   getNormalizedSoundfileName().c_str(),
                   levelDb);
-    int result = std::system(buffer);
+    int errorStatus = std::system(buffer);
+    if (errorStatus) {
+      return errorStatus;
+    }
     System::inform("Composition::normalizeOutputSoundfile(): %s", buffer);
-    tagFile(*this, getNormalizedSoundfileName());
+    errorStatus = tagFile(getNormalizedSoundfileName());
+    return errorStatus;
   }
 
-  void Composition::translateToCdAudio(double levelDb)
+  int Composition::translateToCdAudio(double levelDb)
   {
     char buffer[0x100];
     std::snprintf(buffer, 0x100, "sox %s -V3 -b 16 %s gain -n %f rate 44100\n",
@@ -269,11 +298,15 @@ namespace csound
                   getCdSoundfileName().c_str(),
                   levelDb);
     System::inform("Composition::translateToCdAudio(): %s", buffer);
-    int result = std::system(buffer);
-    tagFile(*this, getCdSoundfileName());
+    int errorStatus = std::system(buffer);
+    if (errorStatus) {
+      return errorStatus;
+    }
+    errorStatus = tagFile(getCdSoundfileName());
+    return errorStatus;
   }
 
-  void Composition::translateToMp3(double bitrate, double levelDb)
+  int Composition::translateToMp3(double bitrate, double levelDb)
   {
     char buffer[0x100];
     std::snprintf(buffer,
@@ -286,7 +319,8 @@ namespace csound
                   getCdSoundfileName().c_str(),
                   getMp3SoundfileName().c_str());
     System::inform("Composition::translateToMp3(): %s", buffer);
-    int result = std::system(buffer);
+    int errorStatus = std::system(buffer);
+    return errorStatus;
   }
 
   std::string Composition::getArtist() const
@@ -339,7 +373,7 @@ namespace csound
     license = value;
   }
 
-  void Composition::translateToNotation(const std::vector<std::string> partNames, std::string header)
+  int Composition::translateToNotation(const std::vector<std::string> partNames, std::string header)
   {
     std::string filename = getFomusFilename();
     std::ofstream stream;
@@ -381,25 +415,29 @@ namespace csound
     }
     stream.close();
     std::sprintf(buffer, "fomus -i %s -o %s.ly", getFomusFilename().c_str(), getTitle().c_str());
-    int result;
-    result = std::system(buffer);
+    int errorStatus;
+    errorStatus = std::system(buffer);
+    if (errorStatus) {
+      return errorStatus;
+    }
     std::sprintf(buffer, "lilypond -fpdf %s.ly", getTitle().c_str());
-    result = std::system(buffer);
+    errorStatus = std::system(buffer);
+    return errorStatus;
   }
 
-  void Composition::processArgv(int argc, const char **argv)
+  int Composition::processArgv(int argc, const char **argv)
   {
     std::vector<std::string> args;
     for (int i = 0; i < argc; ++i)
       {
         args.push_back(argv[i]);
       }
-    processArgs(args);
+    return processArgs(args);
   }
 
-  void Composition::processArgs(const std::vector<std::string> &args)
+  int Composition::processArgs(const std::vector<std::string> &args)
   {
-    renderAll();
+    return renderAll();
   }
 
   void Composition::setOutputSoundfileName(std::string name)

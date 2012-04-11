@@ -111,15 +111,15 @@ namespace csound
      * Generate performance events and store them in the score.
      * Must be overidden in derived classes.
      */
-    virtual void generate();
+    virtual int generate();
     /**
      * Convenience function that calls clear(), generate(), perform().
      */
-    virtual void render();
+    virtual int render();
     /**
      * Convenience function that calls clear(), generate(), performAll().
      */
-    virtual void renderAll();
+    virtual int renderAll();
     /**
      * Performs the current score to create an output soundfile,
      * which should be tagged with author, timestamp, copyright,
@@ -127,36 +127,36 @@ namespace csound
      * The default implementation does nothing.
      * Must be overridden in derived classes.
      */
-    virtual void perform();
+    virtual int perform();
     /**
      * Convenience function that calls saveMidi(), saveMusicXML(), and perform().
      */
-    virtual void performMaster();
+    virtual int performMaster();
     /**
      * Convenience function that calls rescaleOutputSoundfile(),
      * translateToCdAudio(), and translateToMp3().
      */
-    virtual void translateMaster();
+    virtual int translateMaster();
     /**
      * Convenience function that calls performMaster(),
      * and translateMaster().
      */
-    virtual void performAll();
+    virtual int performAll();
     /**
      * Assuming the score has been rendered,
      * uses sox to translate the output soundfile to a normalized soundfile.
      */
-    virtual void normalizeOutputSoundfile(double levelDb = -3.0);
+    virtual int normalizeOutputSoundfile(double levelDb = -3.0);
     /**
      * Assuming the score has been rendered,
      * uses sox to translate the output soundfile to normalized CD-audio format.
      */
-    virtual void translateToCdAudio(double levelDb = -3.0);
+    virtual int translateToCdAudio(double levelDb = -3.0);
     /**
      * Assuming the score has been rendered,
      * uses sox and LAME to translate the output soundfile to normalized MP3 format.
      */
-    virtual void translateToMp3(double bitrate = 256.01, double levelDb = -3.0);
+    virtual int translateToMp3(double bitrate = 256.01, double levelDb = -3.0);
     /**
      * Clear all contents of this. Probably should be overridden
      * in derived classes.
@@ -201,7 +201,7 @@ namespace csound
      * and a tempo of MM 120 is assumed.
      * A vector of part names may be supplied.
      */
-    virtual void translateToNotation(const std::vector<std::string> partNames = std::vector<std::string>(), std::string header = "");
+    virtual int translateToNotation(const std::vector<std::string> partNames = std::vector<std::string>(), std::string header = "");
     virtual std::string getArtist() const;
     virtual void setArtist(std::string value);
     virtual std::string getTitle() const;
@@ -212,19 +212,20 @@ namespace csound
     virtual void setAlbum(std::string value);
     virtual std::string getLicense() const;
     virtual void setLicense(std::string value);
+    virtual int tagFile(std::string filename) const;
     /**
      * Pass the invoking program's command-line arguments to processArgs()
      * and it will perform with possibly back-end-dependent options.
      * Default implementation calls the std::string overload.
      */
-    virtual void processArgv(int argc, const char **argv);
+    virtual int processArgv(int argc, const char **argv);
     /**
      * Pass the invoking program's command-line arguments to processArgs()
      * and it will perform with possibly back-end-dependent options.
      * Additional arguments can be added to the args before the call.
      * Default implementation calls renderAll().
      */
-    virtual void processArgs(const std::vector<std::string> &args);
+    virtual int processArgs(const std::vector<std::string> &args);
     /**
      * Sets a non-default output name (could be an audio device not a file).
      */
