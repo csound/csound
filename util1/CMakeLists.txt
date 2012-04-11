@@ -4,6 +4,9 @@ make_utility(scsort      sortex/smain.c)
 make_utility(extract     sortex/xmain.c)
 
 if(CMAKE_COMPILER_IS_GNUCC)
+    if(HAVE_UNISTD_H)
+      add_definitions("-DHAVE_UNISTD_H")
+    endif()
     make_utility(cs         csd_util/cs.c)
     
     set(csb64enc_SRCS 
