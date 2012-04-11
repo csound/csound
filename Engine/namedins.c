@@ -409,28 +409,28 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
 /* ----------------------------------------------------------------------- */
 /* the following functions are for efficient management of the opcode list */
 
-static CS_NOINLINE int loadPluginOpcode(CSOUND *csound,
-                                        CsoundOpcodePluginFile_t *fp,
-                                        const char *opname, int h)
-{
-    int     n;
+/* static CS_NOINLINE int loadPluginOpcode(CSOUND *csound, */
+/*                                         CsoundOpcodePluginFile_t *fp, */
+/*                                         const char *opname, int h) */
+/* { */
+/*     int     n; */
 
-    if (fp->isLoaded != 0)
-      return 0;
-    n = csoundLoadAndInitModule(csound, fp->fullName);
-    if (UNLIKELY(n != 0)) {
-      fp->isLoaded = -1;
-      if (n != CSOUND_ERROR)
-        csound->LongJmp(csound, (n == CSOUND_MEMORY ? n : CSOUND_ERROR));
-      return 0;
-    }
-    fp->isLoaded = 1;
-    n = ((int*) csound->opcode_list)[h];
-    while (n && sCmp(csound->opcodlst[n].opname, opname))
-      n = csound->opcodlst[n].prvnum;
+/*     if (fp->isLoaded != 0) */
+/*       return 0; */
+/*     n = csoundLoadAndInitModule(csound, fp->fullName); */
+/*     if (UNLIKELY(n != 0)) { */
+/*       fp->isLoaded = -1; */
+/*       if (n != CSOUND_ERROR) */
+/*         csound->LongJmp(csound, (n == CSOUND_MEMORY ? n : CSOUND_ERROR)); */
+/*       return 0; */
+/*     } */
+/*     fp->isLoaded = 1; */
+/*     n = ((int*) csound->opcode_list)[h]; */
+/*     while (n && sCmp(csound->opcodlst[n].opname, opname)) */
+/*       n = csound->opcodlst[n].prvnum; */
 
-    return n;
-}
+/*     return n; */
+/* } */
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
