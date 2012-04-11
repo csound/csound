@@ -306,7 +306,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       mfree(csound, fileDir);
     }
 
-     if (csound->orchstr==NULL) {
+    if (csound->orchstr==NULL) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
