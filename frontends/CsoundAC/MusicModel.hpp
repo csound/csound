@@ -50,7 +50,7 @@ namespace csound
     MusicModel();
     virtual ~MusicModel();
     virtual void initialize();
-    virtual void generate();
+    virtual int generate();
     virtual long getThis();
     virtual Node *getThisNode();
     /**
@@ -65,12 +65,12 @@ namespace csound
      * appends optional text to it,
      * invokes generate(), invokes createCsoundScore(), and invokes perform().
      */
-    virtual void render();
+    virtual int render();
     virtual void stop();
     /**
      * Uses csound to perform the current score.
      */
-    virtual void perform();
+    virtual int perform();
     /**
      * Clear all contents of this.
      */
@@ -169,11 +169,11 @@ namespace csound
      *                 post-process it, and play it.
      * --playmidi      Play generated MIDI filev
      *                 post-process it, and play it.
-     * --playwav       Play rendered normalized output soundfile.
+     * --playwav       Play rendered or normalized output soundfile.
      * --post          Post-process Csound output soundfile:
      *                 normalize, CD, MP3, tag, and play it.
      */
-    virtual void processArgs(const std::vector<std::string> &args);
+    virtual int processArgs(const std::vector<std::string> &args);
   protected:
     /**
      * Self-contained Csound object.
@@ -190,7 +190,6 @@ namespace csound
      * Prepended to generated score.
      */
     std::string csoundScoreHeader;
-    bool go;
   };
 }
 

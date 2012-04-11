@@ -46,7 +46,17 @@ if(BUILD_CSOUND_AC)
         StrangeAttractor.cpp
         System.cpp
         Voicelead.cpp
-        VoiceleadingNode.cpp)
+		VoiceleadingNode.cpp
+		allegro.cpp
+		allegrord.cpp
+		allegroserial.cpp
+		allegrosmfrd.cpp
+		allegrosmfwr.cpp
+		allegrowr.cpp
+		cmake_install.cmake
+		mfmidi.cpp
+		strparse.cpp
+		trace.cpp)
     
     add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
     set_target_properties(libCsoundAC PROPERTIES

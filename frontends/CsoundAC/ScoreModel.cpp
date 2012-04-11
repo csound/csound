@@ -37,13 +37,14 @@ namespace csound
   {
   }
 
-  void ScoreModel::generate()
+  int ScoreModel::generate()
   {
     if (children.size()) {
       score.clear();
     }
     traverse(getLocalCoordinates(), score);
     System::message("Generated %d events.\n", score.size());
+    return 0;
   }
 
   void ScoreModel::clear()

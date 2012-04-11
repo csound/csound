@@ -60,7 +60,7 @@ public:
          * Generates a score based on a music graph defined
          * by the child nodes of this.
          */
-        virtual void generate();
+        virtual int generate();
         /**
          * Clears the score.
          */
