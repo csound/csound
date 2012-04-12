@@ -72,7 +72,7 @@ endif()
 check_deps(BUILD_DSSI_OPCODES LADSPA_H)
 if(BUILD_DSSI_OPCODES)
     set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
-    make_plugin(dssi4cs "${dssi_SRC}" )
+    make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
 check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_H)
