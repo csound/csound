@@ -32,6 +32,7 @@ include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
+include(CheckLibraryExists)
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
@@ -216,6 +217,7 @@ option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 
 option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
+option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -297,6 +299,7 @@ find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
+check_library_exists(m lrint "" HAVE_LRINT)
 
 set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
@@ -311,6 +314,11 @@ foreach(header ${HEADERS_TO_CHECK})
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
     check_include_file(${header} HAVE_${upper_header})
 endforeach()
+
+check_deps(USE_LRINT HAVE_LRINT)
+if(USE_LRINT)
+    add_definitions("-DUSE_LRINT")
+endif()
 
 # Flex/Bison for the new parser
 find_package(FLEX)
