@@ -218,6 +218,7 @@ option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" 
 
 option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
+option(BUILD_RELEASE "Build for release" ON)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -230,6 +231,16 @@ endif(USE_DOUBLE)
 if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
     add_definitions("-fvisibility=hidden")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fvisibility=hidden")
+endif()
+
+if(BUILD_RELEASE)
+    add_definitions("-D_CSOUND_RELEASE_")
+    if(LINUX)
+        set(DEFAULT_OPCODEDIR "${CMAKE_INSTALL_PREFIX}/${PLUGIN_INSTALL_DIR}")
+        add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
+    endif()
+else()
+    add_definitions("-DBETA")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
