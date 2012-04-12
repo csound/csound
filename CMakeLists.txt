@@ -33,6 +33,7 @@ include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
+include(CMakeParseArguments)
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
@@ -144,6 +145,39 @@ function(check_deps option)
     endif()
 endfunction(check_deps)
 
+# Shortcut to add compiler flags
+# Mandatory arguments: the flags to add (should be passed before optional keywords
+# Optional keywords:
+# LINKER: add to linker instead of compile flags (LDFLAGS vs CFLAGS)
+# TARGETS <target1> <target2> ...
+#           if specified, will add the flags to a target instead
+#           of the global namespace
+function(add_compiler_flags)
+    set(bool_options LINKER)
+    set(multi_val_args TARGETS)
+    cmake_parse_arguments(FLAGS "${bool_options}" "" "${multi_val_args}" ${ARGN})
+
+    if(FLAGS_TARGETS)
+        foreach(target ${FLAGS_TARGETS})
+            if(FLAGS_LINKER)
+                set(property COMPILE_FLAGS)
+            else()
+                set(property LINK_FLAGS)
+            endif()
+            get_target_property(propval ${target} ${property})
+            set_target_properties(${FLAGS_TARGETS} PROPERTIES
+                ${property} "${propval} ${FLAGS_UNPARSED_ARGUMENTS}")
+        endforeach()
+    else()
+        if(FLAGS_LINKER)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_UNPARSED_ARGUMENTS}")
+            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${FLAGS_UNPARSED_ARGUMENTS}")
+            set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${FLAGS_UNPARSED_ARGUMENTS}")
+        else()
+            add_definitions("${FLAGS_UNPARSED_ARGUMENTS}")
+        endif()
+    endif()
+endfunction(add_compiler_flags)
 
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
