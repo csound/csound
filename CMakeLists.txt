@@ -804,10 +804,7 @@ if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
-expand_list(expanded_libcsound_CFLAGS ${libcsound_CFLAGS})
-set_property(
-    TARGET ${CSOUNDLIB}
-    PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
+add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
 
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
 
@@ -820,9 +817,7 @@ if(BUILD_STATIC_LIBRARY)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
-    set_property(
-        TARGET ${CSOUNDLIB_STATIC}
-        PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
+    add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB_STATIC})
 
     target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
 

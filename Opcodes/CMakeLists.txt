@@ -108,8 +108,7 @@ check_deps(BUILD_IMAGE_OPCODES PNG_FOUND)
 if(BUILD_IMAGE_OPCODES)
     include_directories(${PNG_INCLUDE_DIR})
     make_plugin(image imageOpcodes.c "${PNG_LIBRARIES}")
-    set_target_properties(image
-        PROPERTIES COMPILER_FLAGS "${PNG_DEFINITIONS}")
+    add_compiler_flags(${PNG_DEFINITIONS} TARGETS image)
 endif()
 
 check_deps(BUILD_PYTHON_OPCODES PYTHONLIBS_FOUND)
