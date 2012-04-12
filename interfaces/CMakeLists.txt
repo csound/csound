@@ -31,8 +31,7 @@ if(BUILD_CXX_INTERFACE)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
     if(${libcsnd_CFLAGS})
-         set_target_properties(libcsnd PROPERTIES
-             COMPILE_FLAGS ${libcsnd_CFLAGS})
+        add_compiler_flags(${libcsnd_CFLAGS} TARGETS libcsnd)
     endif()
 
     install(TARGETS libcsnd
