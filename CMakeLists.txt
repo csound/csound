@@ -21,13 +21,6 @@ set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
-# Include this after the install path definitions so we can override them here.
-find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
-if(CUSTOM_CMAKE)
-    message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
-    include(${CUSTOM_CMAKE})
-endif()
-
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -184,6 +177,16 @@ function(add_compiler_flags)
         endif()
     endif()
 endfunction(add_compiler_flags)
+
+
+# Include this after the install path definitions so we can override them here.
+# Also after function definitions so we can use them there
+find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
+if(CUSTOM_CMAKE)
+    message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
+    include(${CUSTOM_CMAKE})
+endif()
+
 
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
