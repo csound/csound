@@ -279,6 +279,7 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
     add_definitions("-Wno-format")
+    add_compiler_flags("-g")
 endif()
 
 #if(USE_DOUBLE)
