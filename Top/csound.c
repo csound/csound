@@ -2726,6 +2726,8 @@ extern "C" {
 #ifdef CSCORE
       cscoreRESET(csound);
 #endif
+      if (csound->opcodlst != NULL)
+        free(csound->opcodlst);
 
       csound->oparms_.odebug = 0;
       /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
