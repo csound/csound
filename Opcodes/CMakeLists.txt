@@ -117,10 +117,12 @@ if(BUILD_PYTHON_OPCODES)
     make_plugin(py py/pythonopcodes.c ${PYTHON_LIBRARIES})
 endif()
 
-check_deps(BUILD_LUA_OPCODES LUA51_FOUND)
+check_deps(BUILD_LUA_OPCODES LUA51_FOUND OPENMP_FOUND)
 if(BUILD_LUA_OPCODES)
     include_directories(${LUA_INCLUDE_DIR})
     make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
+    add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
+    add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
 endif()
 
 check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
