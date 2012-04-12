@@ -1,12 +1,11 @@
 option(BUILD_PD_CLASS "Build the puredata csoundapi~ class" ON)
 option(BUILD_TCLCSOUND "Build the tcl interface and clients" ON)
 option(BUILD_CSBEATS "Build the beats score frontend" ON)
-option(BUILD_WINSOUND "Build the Winsound Frontent. REquies FLTK headers and libs." OFF)
+option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and libs." OFF)
 
 find_package(FLEX)
 find_package(BISON)
 find_package(FLTK)
-
 
 check_include_file(m_pd.h PD_HEADER)
 
