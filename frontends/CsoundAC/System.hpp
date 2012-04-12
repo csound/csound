@@ -252,7 +252,7 @@ namespace csound
   /**
    * Encapsulates a thread monitor, such as a Windows event handle.
    */
-  class ThreadLock
+  class SILENCE_PUBLIC ThreadLock
   {
     void *lock;
   public:
