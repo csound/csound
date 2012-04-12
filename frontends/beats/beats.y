@@ -215,8 +215,9 @@ static void extend_instruments(void)
     instr = (INSTR*)realloc(instr, tmp*sizeof(INSTR));
     maxinstr = instrument;
     for (i=tmp; i<=maxinstr; i++) {
-      instr[i].p = (double*) calloc(6, sizeof(double));
-      instr[i].largest = 5;
-      instr[i].n = i;
+      INSTR ins = (INSTR)instr[i];
+      ins.p = (double*) calloc(6, sizeof(double));
+      ins.largest = 5;
+      ins.n = i;
     }
 }
