@@ -167,6 +167,6 @@ namespace csound
 #endif
   };
 
-  bool operator < (const Event& a, const Event &b);
+  bool SILENCE_PUBLIC operator < (const Event& a, const Event &b);
 }
 #endif

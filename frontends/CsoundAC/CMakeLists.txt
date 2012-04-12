@@ -7,7 +7,7 @@ option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
 
 find_package(Boost)
 find_library(MUSICXML_LIBRARY musicxml2)
-#find_package(FLTK)
+find_package(FLTK)
 find_package(SWIG)
 find_package(PythonLibs)
 find_package(Lua51)
@@ -67,10 +67,10 @@ if(BUILD_CSOUND_AC)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
-    target_link_libraries(libCsoundAC libcsnd ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
+    target_link_libraries(libCsoundAC libcsnd ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${CSOUNDLIB})
     
     if(MUSICXML_LIBRARY) 
-        target_link_libraries(CsoundAC MUSICXML_LIBRARY)
+        target_link_libraries(libCsoundAC ${MUSICXML_LIBRARY})
     endif()
 
     install(TARGETS libCsoundAC
@@ -92,7 +92,7 @@ if(BUILD_CSOUND_AC)
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME CsoundAC)
         swig_add_module(CsoundAC python CsoundAC.i)
-        swig_link_libraries(CsoundAC libCsoundAC ${PYTHON_LIBRARIES})
+        swig_link_libraries(CsoundAC libCsoundAC libcsnd "${CSOUNDLIB}" ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARIES})
 
         set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
@@ -115,7 +115,7 @@ if(BUILD_CSOUND_AC)
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME luaCsoundAC)
         SWIG_ADD_MODULE(luaCsoundAC lua luaCsoundAC.i)
-        SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC ${LUA_LIBRARIES})
+        SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd "${CSOUNDLIB}" ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${LUA_LIBRARIES})
 
         set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
