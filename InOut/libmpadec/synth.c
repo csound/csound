@@ -49,7 +49,7 @@ static void dct64(MYFLT *outptr0, MYFLT *outptr1, MYFLT *samples)
   MYFLT tmp1[32], tmp2[32];
 
   {
-    register MYFLT *in = samples;
+    MYFLT *in = samples;
 
     tmp1[0] = in[0] + in[31];
     tmp1[1] = in[1] + in[30];
@@ -272,7 +272,7 @@ static void dct64(MYFLT *outptr0, MYFLT *outptr1, MYFLT *samples)
     tmp1[29] += tmp1[31];
   }
   {
-    register MYFLT tmp, *out0 = outptr0, *out1 = outptr1;
+    MYFLT tmp, *out0 = outptr0, *out1 = outptr1;
 
     out0[16*16] = tmp1[0];
     out0[12*16] = tmp1[4];
@@ -321,7 +321,7 @@ static void dct64(MYFLT *outptr0, MYFLT *outptr1, MYFLT *samples)
 
 static void synth_full(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buffer)
 {
-  register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
+  struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
   unsigned bo;
   MYFLT *b0, (*buf)[0x110];
 
@@ -341,12 +341,12 @@ static void synth_full(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
     dct64(buf[0] + mpa->synth_bufoffs, buf[1] + (mpa->synth_bufoffs + 1), bandptr);
   }
   {
-    register int i;
-    register MYFLT *out = buffer;
-    register MYFLT *win = mpa->tables.decwin + (16 - bo);
+    int i;
+    MYFLT *out = buffer;
+    MYFLT *win = mpa->tables.decwin + (16 - bo);
 
     for (i = 16; i; i--, win += 32, b0 += 16) {
-      register MYFLT sum = win[0]*b0[0];
+      MYFLT sum = win[0]*b0[0];
       sum -= win[1]*b0[1];
       sum += win[2]*b0[2];
       sum -= win[3]*b0[3];
@@ -365,7 +365,7 @@ static void synth_full(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
       *out++ = sum;
     }
     {
-      register MYFLT sum = win[0]*b0[0];
+      MYFLT sum = win[0]*b0[0];
       sum += win[2]*b0[2];
       sum += win[4]*b0[4];
       sum += win[6]*b0[6];
@@ -379,7 +379,7 @@ static void synth_full(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
     win += (bo << 1);
     for (i = 15; i; i--, win -= 32, b0 -= 16)
     {
-      register MYFLT sum = -win[-1]*b0[0];
+      MYFLT sum = -win[-1]*b0[0];
       sum -= win[-2]*b0[1];
       sum -= win[-3]*b0[2];
       sum -= win[-4]*b0[3];
@@ -402,7 +402,7 @@ static void synth_full(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
 
 static void synth_half(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buffer)
 {
-  register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
+  struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
   unsigned bo;
   MYFLT *b0, (*buf)[0x110];
 
@@ -423,12 +423,12 @@ static void synth_half(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
           buf[1] + (mpa->synth_bufoffs + 1), bandptr);
   }
   {
-    register int i;
-    register MYFLT *out = buffer;
-    register MYFLT *win = mpa->tables.decwin + (16 - bo);
+    int i;
+    MYFLT *out = buffer;
+    MYFLT *win = mpa->tables.decwin + (16 - bo);
 
     for (i = 8; i; i--, win += 64, b0 += 32) {
-      register MYFLT sum = win[0]*b0[0];
+      MYFLT sum = win[0]*b0[0];
       sum -= win[1]*b0[1];
       sum += win[2]*b0[2];
       sum -= win[3]*b0[3];
@@ -447,7 +447,7 @@ static void synth_half(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
       *out++ = sum;
     }
     {
-      register MYFLT sum = win[0]*b0[0];
+      MYFLT sum = win[0]*b0[0];
       sum += win[2]*b0[2];
       sum += win[4]*b0[4];
       sum += win[6]*b0[6];
@@ -461,7 +461,7 @@ static void synth_half(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
     win += (bo << 1);
     for (i = 7; i; i--, win -= 64, b0 -= 32)
     {
-      register MYFLT sum = -win[-1]*b0[0];
+      MYFLT sum = -win[-1]*b0[0];
       sum -= win[-2]*b0[1];
       sum -= win[-3]*b0[2];
       sum -= win[-4]*b0[3];
@@ -489,13 +489,13 @@ static void synth_half(mpadec_t mpadec, MYFLT *bandptr, int channel, MYFLT *buff
 static void synth_full16lmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((int8_t *)out)[1] = (int8_t)(tmp >> 8);
@@ -507,13 +507,13 @@ static void synth_full16lmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full16lms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[0] = ((uint8_t *)out)[2] = (uint8_t)tmp;
     ((int8_t *)out)[1] = ((int8_t *)out)[3] = (int8_t)(tmp >> 8);
@@ -523,14 +523,14 @@ static void synth_full16lms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full16lss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((int8_t *)out)[1] = (int8_t)(tmp >> 8);
@@ -542,13 +542,13 @@ static void synth_full16lss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full16bmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767;
     else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[1] = (uint8_t)tmp;
@@ -561,13 +561,13 @@ static void synth_full16bmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full16bms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((int8_t *)out)[0] = ((int8_t *)out)[2] = (int8_t)(tmp >> 8);
@@ -577,14 +577,14 @@ static void synth_full16bms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full16bss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[1] = (uint8_t)tmp;
     ((int8_t *)out)[0] = (int8_t)(tmp >> 8);
@@ -596,13 +596,13 @@ static void synth_full16bss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full24lmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 3) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
@@ -616,13 +616,13 @@ static void synth_full24lmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full24lms(mpadec_t mpadec, MYFLT *bandptr, 
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 6) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = ((uint8_t *)out)[3] = (uint8_t)tmp;
@@ -634,14 +634,14 @@ static void synth_full24lms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full24lss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT; i++, out += 6) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
@@ -655,13 +655,13 @@ static void synth_full24lss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full24bmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 3) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
@@ -675,13 +675,13 @@ static void synth_full24bmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full24bms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 6) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = ((uint8_t *)out)[5] = (uint8_t)tmp;
@@ -693,14 +693,14 @@ static void synth_full24bms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full24bss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT; i++, out += 6) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
@@ -714,13 +714,13 @@ static void synth_full24bss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr, 
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
@@ -735,13 +735,13 @@ static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32lms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp;
@@ -754,14 +754,14 @@ static void synth_full32lms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32lss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
@@ -776,13 +776,13 @@ static void synth_full32lss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32bmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
@@ -797,13 +797,13 @@ static void synth_full32bmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32bms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp;
@@ -816,14 +816,14 @@ static void synth_full32bms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32bss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
@@ -838,18 +838,21 @@ static void synth_full32bss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32flmm(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[0] = (uint8_t)tmp;
-    ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[2] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[3] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[0] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[1] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[2] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[3] = (int8_t)(tmp.i >> 24);
   }
 }
 
@@ -858,37 +861,43 @@ static void synth_full32flmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32flms(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp;
-    ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[3] = ((int8_t *)out)[7] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[3] = ((int8_t *)out)[7] = (int8_t)(tmp.i >> 24);
   }
 }
 
 static void synth_full32flss(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[0] = (uint8_t)tmp;
-    ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[2] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[3] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[0] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[1] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[2] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[3] = (int8_t)(tmp.i >> 24);
   }
 }
 
@@ -897,18 +906,21 @@ static void synth_full32flss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32fbmm(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[3] = (uint8_t)tmp;
-    ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[1] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[0] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[3] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[2] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[1] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[0] = (int8_t)(tmp.i >> 24);
   }
 }
 
@@ -917,37 +929,43 @@ static void synth_full32fbmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_full32fbms(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp;
-    ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[0] = ((int8_t *)out)[4] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[0] = ((int8_t *)out)[4] = (int8_t)(tmp.i >> 24);
   }
 }
 
 static void synth_full32fbss(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT];
 
   synth_full(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[3] = (uint8_t)tmp;
-    ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[1] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[0] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[3] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[2] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[1] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[0] = (int8_t)(tmp.i >> 24);
   }
 }
 
@@ -958,13 +976,13 @@ static void synth_full32fbss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half16lmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out++) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((int8_t *)out)[1] = (int8_t)(tmp >> 8);
@@ -976,13 +994,13 @@ static void synth_half16lmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half16lms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[0] = ((uint8_t *)out)[2] = (uint8_t)tmp;
     ((int8_t *)out)[1] = ((int8_t *)out)[3] = (int8_t)(tmp >> 8);
@@ -992,14 +1010,14 @@ static void synth_half16lms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half16lss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((int8_t *)out)[1] = (int8_t)(tmp >> 8);
@@ -1011,13 +1029,13 @@ static void synth_half16lss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half16bmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out++) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[1] = (uint8_t)tmp;
     ((int8_t *)out)[0] = (int8_t)(tmp >> 8);
@@ -1029,13 +1047,13 @@ static void synth_half16bmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half16bms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((int8_t *)out)[0] = ((int8_t *)out)[2] = (int8_t)(tmp >> 8);
@@ -1045,14 +1063,14 @@ static void synth_half16bms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half16bss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int16_t *out = (int16_t *)buffer;
+  int i;
+  int16_t *out = (int16_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 32767) tmp = 32767; else if (tmp < -32768) tmp = -32768;
     ((uint8_t *)out)[1] = (uint8_t)tmp;
     ((int8_t *)out)[0] = (int8_t)(tmp >> 8);
@@ -1064,13 +1082,13 @@ static void synth_half16bss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half24lmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 3) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
@@ -1084,13 +1102,13 @@ static void synth_half24lmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half24lms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = ((uint8_t *)out)[3] = (uint8_t)tmp;
@@ -1102,14 +1120,14 @@ static void synth_half24lms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half24lss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
@@ -1123,13 +1141,13 @@ static void synth_half24lss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half24bmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 3) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
@@ -1143,13 +1161,13 @@ static void synth_half24bmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half24bms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = ((uint8_t *)out)[5] = (uint8_t)tmp;
@@ -1161,14 +1179,14 @@ static void synth_half24bms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half24bss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register uint8_t *out = (uint8_t *)buffer;
+  int i;
+  uint8_t *out = (uint8_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
-    register int32_t tmp = LROUND(buf[i]);
+    int32_t tmp = LROUND(buf[i]);
     if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
@@ -1182,13 +1200,13 @@ static void synth_half24bss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32lmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out++) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
@@ -1203,13 +1221,13 @@ static void synth_half32lmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32lms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp;
@@ -1222,14 +1240,14 @@ static void synth_half32lms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32lss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
@@ -1244,13 +1262,13 @@ static void synth_half32lss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32bmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out++) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
@@ -1265,13 +1283,13 @@ static void synth_half32bmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32bms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp;
@@ -1284,14 +1302,14 @@ static void synth_half32bms(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32bss(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
-  register int i;
-  register int32_t *out = (int32_t *)buffer;
+  int i;
+  int32_t *out = (int32_t *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    register int64_t tmp = LLROUND(buf[i]);
+    int64_t tmp = LLROUND(buf[i]);
     if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
@@ -1306,18 +1324,21 @@ static void synth_half32bss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32flmm(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out++) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[0] = (uint8_t)tmp;
-    ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[2] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[3] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[0] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[1] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[2] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[3] = (int8_t)(tmp.i >> 24);
   }
 }
 
@@ -1326,37 +1347,43 @@ static void synth_half32flmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32flms(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp;
-    ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[3] = ((int8_t *)out)[7] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[3] = ((int8_t *)out)[7] = (int8_t)(tmp.i >> 24);
   }
 }
 
 static void synth_half32flss(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[0] = (uint8_t)tmp;
-    ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[2] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[3] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[0] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[1] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[2] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[3] = (int8_t)(tmp.i >> 24);
   }
 }
 
@@ -1365,18 +1392,21 @@ static void synth_half32flss(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32fbmm(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out++) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[3] = (uint8_t)tmp;
-    ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[1] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[0] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[3] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[2] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[1] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[0] = (int8_t)(tmp.i >> 24);
   }
 }
 
@@ -1385,37 +1415,43 @@ static void synth_half32fbmm(mpadec_t mpadec, MYFLT *bandptr,
 static void synth_half32fbms(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp;
-    ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[0] = ((int8_t *)out)[4] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32_t i;
+      float   f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[0] = ((int8_t *)out)[4] = (int8_t)(tmp.i >> 24);
   }
 }
 
 static void synth_half32fbss(mpadec_t mpadec, MYFLT *bandptr,
                              int channel, uint8_t *buffer)
 {
-  register int i;
-  register float *out = (float *)buffer;
+  int i;
+  float *out = (float *)buffer;
   MYFLT buf[SBLIMIT/2];
 
   synth_half(mpadec, bandptr, channel, buf);
   if (channel) out++;
   for (i = 0; i < SBLIMIT/2; i++, out += 2) {
-    int32_t tmp;
-    *((float *)(&tmp)) = (float)buf[i];
-    ((uint8_t *)out)[3] = (uint8_t)tmp;
-    ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
-    ((uint8_t *)out)[1] = (uint8_t)(tmp >> 16);
-    ((int8_t *)out)[0] = (int8_t)(tmp >> 24);
+    union tmp__ {
+      int32 i;
+      float f;
+    } tmp;
+    tmp.f = (float)buf[i];
+    ((uint8_t *)out)[3] = (uint8_t)tmp.i;
+    ((uint8_t *)out)[2] = (uint8_t)(tmp.i >> 8);
+    ((uint8_t *)out)[1] = (uint8_t)(tmp.i >> 16);
+    ((int8_t *)out)[0] = (int8_t)(tmp.i >> 24);
   }
 }
 

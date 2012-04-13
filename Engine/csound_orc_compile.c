@@ -90,15 +90,12 @@ void tranRESET(CSOUND *csound)
     csound->oplstend = NULL;
     if (p != NULL)
       free(p);
-    //csound->otranGlobals = NULL;
 }
 
 static void delete_global_namepool(CSOUND *csound)
 {
     int i;
 
-    /* if (csound->otranGlobals == NULL) */
-    /*   return; */
     for (i = 0; i < 256; i++) {
       while (STA(gblNames)[i] != NULL) {
         NAME  *nxt = STA(gblNames)[i]->nxt;
@@ -1790,8 +1787,6 @@ static void delete_local_namepool(CSOUND *csound)
 {
     int i;
 
-    /* if (csound->otranGlobals == NULL) */
-    /*   return; */
     for (i = 0; i < 256; i++) {
       while (STA(lclNames)[i] != NULL) {
         NAME  *nxt = STA(lclNames)[i]->nxt;
