@@ -977,8 +977,8 @@ typedef struct NAME__ {
                                            int (*func)(CSOUND *, void *));
     void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
     /* Do not use FileOpen in new code; it has been replaced by FileOpen2 */
-    void *(*FileOpen)(CSOUND *,
-                      void *, int, const char *, void *, const char *);
+    /* void *(*FileOpen)(CSOUND *, */
+    /*                   void *, int, const char *, void *, const char *); */
     char *(*GetFileName)(void *);
     int (*FileClose)(CSOUND *, void *);
     /* PVOC-EX system */

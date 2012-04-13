@@ -260,7 +260,7 @@ extern "C" {
     csoundRegisterDeinitCallback,
     csoundRegisterResetCallback,
     csoundCreateFileHandle,
-    csoundFileOpen,
+    //csoundFileOpen,
     csoundGetFileName,
     csoundFileClose,
     pvoc_createfile,
