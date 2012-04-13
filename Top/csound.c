@@ -598,7 +598,7 @@ extern "C" {
         NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
         {NULL},
         {0, 0, 0},
-      },            /* EVTBLK  prve         *
+      },            /* EVTBLK  prve         */
       { 0 },        /* Linebuf              */
     },
     {
@@ -612,7 +612,7 @@ extern "C" {
       NULL,         /*  outfile             */
       NULL,         /*  infile              */
       NULL,         /*  sfoutname;          */
-      NULL,         /*  inbuf               *
+      NULL,         /*  inbuf               */
       NULL,         /*  outbuf              */
       NULL,         /*  outbufp             */
       0,            /*  inbufrem            */
