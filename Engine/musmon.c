@@ -54,17 +54,6 @@ typedef struct evt_cb_func {
     struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
 
-/* typedef struct { */
-/*     int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS]; */
-/*     int16   srngflg; */
-/*     int16   sectno; */
-/*     int     lplayed; */
-/*     int     segamps, sormsg; */
-/*     EVENT   **ep, **epend;      /\* pointers for stepping through lplay list *\/ */
-/*     EVENT   *lsect; */
-/* } MUSMON_GLOBALS; */
-
-//#define ST(x)   (((MUSMON_GLOBALS*) csound->musmonGlobals)->x)
 #define STA(x)   (csound->musmonStatics.x)
 
 /* IV - Jan 28 2005 */
@@ -195,8 +184,6 @@ int musmon(CSOUND *csound)
                             CS_PACKAGE_VERSION, __DATE__);
 #endif
 #endif
-    /* if (LIKELY(csound->musmonGlobals == NULL)) */
-    /*   csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR;INCDIR");
@@ -362,6 +349,15 @@ static void delete_pending_rt_events(CSOUND *csound)
     csound->OrcTrigEvts = NULL;
 }
 
+static void cs_beep(CSOUND *csound)
+{
+#ifdef mac_classic
+    SysBeep(30L);
+#else
+    csound->Message(csound, Str("\a\tbeep!\n"));
+#endif
+}
+
 PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
@@ -437,15 +433,6 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       cs_beep(csound);
 
     return dispexit(csound);    /* hold or terminate the display output     */
-}
-
-void cs_beep(CSOUND *csound)
-{
-#ifdef mac_classic
-    SysBeep(30L);
-#else
-    csound->Message(csound, Str("%c\tbeep!\n"), '\007');
-#endif
 }
 
 int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
@@ -923,7 +910,8 @@ int sensevents(CSOUND *csound)
       else {
         csound->cyclesRemaining =
           RNDINT64((csound->nxtim*csound->esr - csound->icurTime) / csound->ksmps);
-        csound->nxtim = (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
+        csound->nxtim =
+          (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
       }
     }
 
@@ -1013,7 +1001,8 @@ int sensevents(CSOUND *csound)
       delete_pending_rt_events(csound);
       if (O->Beatmode)
         csound->curbt = csound->curBeat;
-      csound->curp2 = csound->nxtim = csound->timeOffs = csound->icurTime/csound->esr;
+      csound->curp2 = csound->nxtim =
+        csound->timeOffs = csound->icurTime/csound->esr;
       csound->prvbt = csound->nxtbt = csound->beatOffs = csound->curbt;
       section_amps(csound, 1);
     }
