@@ -32,7 +32,6 @@
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
 
-static  NAME    *lclnamset(CSOUND *, char *);
 static  void    delete_global_namepool(CSOUND *);
 static  void    delete_local_namepool(CSOUND *);
 
@@ -71,31 +70,6 @@ void tranRESET(CSOUND *csound)
     //csound->otranGlobals = NULL;
 }
 
-static NAME *lclnamset(CSOUND *csound, char *s)
-{
-    unsigned char h = name_hash(csound, s);
-    NAME          *p = STA(lclNames)[h];
-                                                /* search lcl namelist: */
-    for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
-    if (p != NULL)                              /* if name is there     */
-      return p;                                 /*    return ptr        */
-    p = (NAME*) malloc(sizeof(NAME));
-    if (UNLIKELY(p == NULL))
-      csound->Die(csound, Str("lclnamset(): memory allocation failure"));
-    p->namep = s;                               /* else record newname  */
-    p->nxt = STA(lclNames)[h];
-    STA(lclNames)[h] = p;
-    if (*s == '#')  s++;
-    switch (*s) {                               /*   and its type-count */
-      case 'w': p->type = WTYPE; p->count = STA(lclnxtwcnt)++; break;
-      case 'a': p->type = ATYPE; p->count = STA(lclnxtacnt)++; break;
-      case 'f': p->type = PTYPE; p->count = STA(lclnxtpcnt)++; break;
-      case 'S': p->type = STYPE; p->count = STA(lclnxtscnt)++; break;
-      default:  p->type = KTYPE; p->count = STA(lclnxtkcnt)++; break;
-    }
-    return p;
-}
-
 static void delete_global_namepool(CSOUND *csound)
 {
     int i;
@@ -130,7 +104,7 @@ static void delete_local_namepool(CSOUND *csound)
 
 /* get size of string in MYFLT units */
 
-static int strlen_to_samples(const char *s)
+static inline int strlen_to_samples(const char *s)
 {
     int n = (int) strlen(s);
     n = (n + (int) sizeof(MYFLT)) / (int) sizeof(MYFLT);
@@ -139,7 +113,7 @@ static int strlen_to_samples(const char *s)
 
 /* convert string constant */
 
-static void unquote_string(char *dst, const char *src)
+void unquote_string(char *dst, const char *src)
 {
     int i, j, n = (int) strlen(src) - 1;
     for (i = 1, j = 0; i < n; i++) {
