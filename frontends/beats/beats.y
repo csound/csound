@@ -81,7 +81,7 @@ goal	: goal statement {}
         ;
 
 statement : S_NL                                { }
-        | T_QUIT                                { fprintf(myout ,"e\n"); return 0; }
+        | T_QUIT                                { return 0; }
         | T_BEATS S_EQ T_INTEGER S_NL		{ base_time = last_base_time; bpm = (double)last_integer; 
                                                   fprintf(myout, ";;;setting bpm=%f\n", bpm);}
         | T_PERMEASURE S_EQ T_INTEGER S_NL 	{ permeasure = last_integer; fprintf(myout,";;;setting permeasure=%d\n", permeasure);}
