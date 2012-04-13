@@ -1013,9 +1013,6 @@ char *csoundFindOutputFile(CSOUND *csound,
 /**
  * Open a file and return handle.
  *
- * This function has been replaced by csoundFileOpenWithType().
- * Please do not use it in new code.
- *
  * CSOUND *csound:
  *   Csound instance pointer
  * void *fd:
@@ -1043,33 +1040,17 @@ char *csoundFindOutputFile(CSOUND *csound,
  *   list of environment variables for search path (see csoundFindInputFile()
  *   for details); if NULL, the specified name is used as it is, without any
  *   conversion or search.
+ * int csFileType:
+ *   A value from the enumeration CSOUND_FILETYPES (see soundCore.h)
+ * int isTemporary:
+ *   1 if this file will be deleted when Csound is finished.
+ *   Otherwise, 0.
  * return value:
  *   opaque handle to the opened file, for use with csoundGetFileName() or
  *   csoundFileClose(), or storing in FDCH.fd.
  *   On failure, NULL is returned.
  */
 
-void *csoundFileOpen(CSOUND *csound, void *fd, int type,
-                     const char *name, void *param, const char *env)
-{
-    return csoundFileOpenWithType(csound, fd, type, name, param, env,
-                                  CSFTYPE_UNKNOWN, 0);
-}
-
-/**
- * Open a file and return handle.
- *
- * Same as csoundFileOpen() with two additional parameters describing the
- * type of file being opened and whether it is a temporary file.  This
- * function replaces csoundFileOpen().  This additional information is
- * used as metadata to be passed to the host application's FileOpenCallback.
- *
- * int csFileType:
- *   A value from the enumeration CSOUND_FILETYPES (see soundCore.h)
- * int isTemporary:
- *   1 if this file will be deleted when Csound is finished.
- *   Otherwise, 0.
- */
 void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env,
                      int csFileType, int isTemporary)
