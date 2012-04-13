@@ -76,6 +76,7 @@ static  int     pnum(char *s) ;
 static  int     lgexist2(CSOUND *csound, const char *s);
 
 extern void     print_tree(CSOUND *, char *, TREE *);
+extern void     unquote_string(char *, const char *);
 
 void close_instrument(CSOUND *csound, INSTRTXT * ip);
 
@@ -1738,38 +1739,38 @@ static int strlen_to_samples(const char *s)
 
 /* convert string constant */
 
-static void unquote_string(char *dst, const char *src)
-{
-    int i, j, n = (int) strlen(src) - 1;
-    for (i = 1, j = 0; i < n; i++) {
-      if (src[i] != '\\')
-        dst[j++] = src[i];
-      else {
-        switch (src[++i]) {
-        case 'a':   dst[j++] = '\a';  break;
-        case 'b':   dst[j++] = '\b';  break;
-        case 'f':   dst[j++] = '\f';  break;
-        case 'n':   dst[j++] = '\n';  break;
-        case 'r':   dst[j++] = '\r';  break;
-        case 't':   dst[j++] = '\t';  break;
-        case 'v':   dst[j++] = '\v';  break;
-        case '"':   dst[j++] = '"';   break;
-        case '\\':  dst[j++] = '\\';  break;
-        default:
-          if (src[i] >= '0' && src[i] <= '7') {
-            int k = 0, l = (int) src[i] - '0';
-            while (++k < 3 && src[i + 1] >= '0' && src[i + 1] <= '7')
-              l = (l << 3) | ((int) src[++i] - '0');
-            dst[j++] = (char) l;
-          }
-          else {
-            dst[j++] = '\\'; i--;
-          }
-        }
-      }
-    }
-    dst[j] = '\0';
-}
+/* static void unquote_string(char *dst, const char *src) */
+/* { */
+/*     int i, j, n = (int) strlen(src) - 1; */
+/*     for (i = 1, j = 0; i < n; i++) { */
+/*       if (src[i] != '\\') */
+/*         dst[j++] = src[i]; */
+/*       else { */
+/*         switch (src[++i]) { */
+/*         case 'a':   dst[j++] = '\a';  break; */
+/*         case 'b':   dst[j++] = '\b';  break; */
+/*         case 'f':   dst[j++] = '\f';  break; */
+/*         case 'n':   dst[j++] = '\n';  break; */
+/*         case 'r':   dst[j++] = '\r';  break; */
+/*         case 't':   dst[j++] = '\t';  break; */
+/*         case 'v':   dst[j++] = '\v';  break; */
+/*         case '"':   dst[j++] = '"';   break; */
+/*         case '\\':  dst[j++] = '\\';  break; */
+/*         default: */
+/*           if (src[i] >= '0' && src[i] <= '7') { */
+/*             int k = 0, l = (int) src[i] - '0'; */
+/*             while (++k < 3 && src[i + 1] >= '0' && src[i + 1] <= '7') */
+/*               l = (l << 3) | ((int) src[++i] - '0'); */
+/*             dst[j++] = (char) l; */
+/*           } */
+/*           else { */
+/*             dst[j++] = '\\'; i--; */
+/*           } */
+/*         } */
+/*       } */
+/*     } */
+/*     dst[j] = '\0'; */
+/* } */
 
 static int create_strconst_ndx_list(CSOUND *csound, int **lst, int offs)
 {
