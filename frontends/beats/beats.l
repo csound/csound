@@ -200,8 +200,8 @@ void comment1(void)
 
 int yywrap(void)
 {
-    extern FILE *myout;
-    fprintf(myout, "e\n");
+    /* extern FILE *myout; */
+    /* fprintf(myout, "e\n"); */
     return 1;
 }
 
