@@ -4,10 +4,13 @@ option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorith
 option(BUILD_CSOUND_AC_PYTHON_INTERFACE "Build the Csound AC Python interface" ON)
 option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
 
-
 find_package(Boost)
 find_library(MUSICXML_LIBRARY musicxml2)
+IF(APPLE)
+find_library(FLTK libfltk)
+ELSE(APPLE)
 find_package(FLTK)
+ENDIF(APPLE)
 find_package(SWIG)
 find_package(PythonLibs)
 find_package(Lua51)
