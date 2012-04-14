@@ -165,10 +165,7 @@ typedef struct {
 #define RAWMSG  0x40
 #define TIMEMSG 0x80
 #define IGN(X)  (void) X
-/* VL: this is a silly redefinition that can only
-   cause confusion
-#define printf  use_csoundMessage_instead_of_printf
-*/
+
   typedef struct CORFIL {
     char    *body;
     int     len;
@@ -261,7 +258,7 @@ typedef struct {
     int     active;                 /* To count activations for control */
     int     maxalloc;
     MYFLT   cpuload;                /* % load this instrumemnt makes */
-    struct opcodinfo *opcode_info;  /* IV - Nov 10 2002 */
+    struct opcodinfo *opcode_info;  /* UDO info (when instrs are UDOs) */
     char    *insname;               /* instrument name */
     int     instcnt;                /* Count number of instances ever */
   } INSTRTXT;
@@ -437,7 +434,7 @@ typedef struct {
     int     (*kopadr)(CSOUND *, void *p);
     int     (*aopadr)(CSOUND *, void *p);
     void    *useropinfo;    /* user opcode parameters */
-    int     prvnum;         /* IV - Oct 31 2002 */
+    int     prvnum;         
   } OENTRY;
 
   typedef struct lblblk {
@@ -678,6 +675,9 @@ typedef struct {
     MYFLT   prvtempo;
   } TEMPO;
 
+  /* Holds UDO information, when an instrument is
+     defined as a UDO
+  */
   typedef struct opcodinfo {
     int32    instno;
     char    *name, *intypes, *outtypes;
