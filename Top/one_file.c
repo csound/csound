@@ -436,7 +436,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w();
         fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
-                            "r", NULL, CSFTYPE_UNKNOWN, 0);
+                                    "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
           remove(STA(sconame));
           return FALSE;
