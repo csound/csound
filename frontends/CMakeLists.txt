@@ -81,7 +81,7 @@ if(BUILD_PD_CLASS)
     if(LINUX)
         set(pdname "csoundapi~.pd_linux")
     elseif(APPLE)
-        set(pdname "csoundapi~.pd_darwin")
+       set(pdname "csoundapi~.pd_darwin")
     elseif(WIN32)
         set(pdname "csoundapi~.dll")
     endif()
@@ -91,7 +91,10 @@ if(BUILD_PD_CLASS)
     set_target_properties(${pdname} PROPERTIES
         PREFIX ""
         SUFFIX "")
-
+    if(APPLE)
+    set_target_properties(${pdname}  PROPERTIES "LINK_FLAGS"
+    "-flat_namespace -undefined suppress")
+    ENDIF(APPLE)
     install(TARGETS ${pdname}
         LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR})
 
