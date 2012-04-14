@@ -30,7 +30,6 @@
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "pstream.h"
-/*extern MYFLT cpsocfrc[]; */       /* Needed by CPSOCTL */
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -356,30 +355,27 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         break;
       }
     }
-    ip->nxtact = nxtp;
-    ip->prvact = prvp;
-    prvp->nxtact = ip;
+    ip->nxtact       = nxtp;
+    ip->prvact       = prvp;
+    prvp->nxtact     = ip;
     ip->actflg++;                         /* and mark the instr active */
-    ip->m_chnbp = chn;                    /* rec address of chnl ctrl blk */
-    ip->m_pitch = (unsigned char) mep->dat1;    /* rec MIDI data   */
-    ip->m_veloc = (unsigned char) mep->dat2;
-    ip->xtratim = 0;
-    ip->m_sust = 0;
-    ip->relesing = 0;
-    ip->offbet = -1.0;
-    ip->offtim = -1.0;              /* set indef duration */
-    ip->opcod_iobufs = NULL;        /* IV - Sep 8 2002:            */
-    ip->p1 = (MYFLT) insno;         /* set these required p-fields */
-    ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
-    ip->p3 = FL(-1.0);
+    ip->m_chnbp      = chn;               /* rec address of chnl ctrl blk */
+    ip->m_pitch      = (unsigned char) mep->dat1;    /* rec MIDI data   */
+    ip->m_veloc      = (unsigned char) mep->dat2;
+    ip->xtratim      = 0;
+    ip->m_sust       = 0;
+    ip->relesing     = 0;
+    ip->offbet       = -1.0;
+    ip->offtim       = -1.0;              /* set indef duration */
+    ip->opcod_iobufs = NULL;              /* IV - Sep 8 2002:            */
+    ip->p1           = (MYFLT) insno;     /* set these required p-fields */
+    ip->p2           = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
+    ip->p3           = FL(-1.0);
     if (tp->psetdata != NULL) {
       MYFLT *pfld = &ip->p3;              /* if pset data present */
       MYFLT *pdat = tp->psetdata + 2;
       int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
       memcpy(pfld, pdat, nn*sizeof(MYFLT));
-/*       do { */
-/*         *pfld++ = *pdat++; */
-/*       } while (--nn); */
     }
 
     /* MIDI channel message note on routing overrides pset: */

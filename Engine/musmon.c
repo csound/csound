@@ -865,7 +865,7 @@ int sensevents(CSOUND *csound)
       }
       else {
         /* else read next score event */
-        if (UNLIKELY(O->usingcscore)) {           /*    get next lplay event      */
+        if (UNLIKELY(O->usingcscore)) {       /*    get next lplay event  */
           /* FIXME: this may be non-portable */
           if (STA(ep) < STA(epend))                       /* nxt event    */
             memcpy((void*) e, (void*) &((*STA(ep)++)->strarg), sizeof(EVTBLK));
