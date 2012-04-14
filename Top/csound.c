@@ -620,7 +620,7 @@ extern "C" {
       0,0,          /*  inbufsiz,  outbufsiz */
       0,            /*  isfopen             */
       0,            /*  osfopen             */
-      0,            /*  pipdevin, pipdevout */
+      0,0,          /*  pipdevin, pipdevout */
       1U,           /*  nframes             */
       NULL, NULL,   /*  pin, pout           */
 #ifndef SOME_FILE_DAY
