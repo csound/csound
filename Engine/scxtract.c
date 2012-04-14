@@ -1,7 +1,7 @@
 /*
     scxtract.c:
 
-    Copyright (C) 1991 Barry Vercoe
+    Copyright (C) 1991 Barry Vercoe; 2012 John ffitch
 
     This file is part of Csound.
 
@@ -24,7 +24,7 @@
 #include "csoundCore.h"                            /*  SCXTRACT.C  */
 #include "corfile.h"
 
-extern void readxfil(CSOUND *, FILE *), extract(CSOUND *), swrite(CSOUND *);
+extern void readxfil(CSOUND *, FILE *), extract(CSOUND *);
 extern void sfree(CSOUND *csound);
 extern int  sread(CSOUND *csound);
 extern void sread_init(CSOUND *csound);
@@ -33,29 +33,6 @@ extern void swritestr(CSOUND *csound);
 /* called from xmain.c or some other main */
 /*   extracts events from each score sect */
 /*   according to the controlling xfile   */
-
-#ifdef OLD_CODE
-int scxtract(CSOUND *csound, FILE *scin, FILE * scout, FILE *xfile)
-{
-    int     n;
-
-    readxfil(csound, xfile);
-    csound->scorein = scin;
-    csound->scoreout = scout;
-    csound->sectcnt = 0;
-    sread_init(csound);
-
-    while ((n = sread(csound)) > 0) {
-      /*  allout();   */
-      /*  textout();  */
-      extract(csound);
-      swrite(csound);
-    }
-
-    sfree(csound);              /* return all memory used */
-    return 0;
-}
-#endif
 
 extern void sread_initstr(CSOUND *);
 int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
