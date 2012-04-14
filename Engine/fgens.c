@@ -36,8 +36,6 @@
 
 extern double besseli(double);
 
-/* Start of moving static data into a single structure */
-
 static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
 static int gen03(FGDATA *, FUNC *), gen04(FGDATA *, FUNC *);
@@ -324,10 +322,10 @@ int csoundFTDelete(CSOUND *csound, int tableNum)
 {
     FUNC  *ftp;
 
-    if ((unsigned int) (tableNum - 1) >= (unsigned int) csound->maxfnum)
+    if (UNLIKELY((unsigned int) (tableNum - 1) >= (unsigned int) csound->maxfnum))
       return -1;
     ftp = csound->flist[tableNum];
-    if (ftp == NULL)
+    if (UNLIKELY(ftp == NULL))
       return -1;
     csound->flist[tableNum] = NULL;
     csound->Free(csound, ftp);
@@ -820,7 +818,7 @@ static int gen11(FGDATA *ff, FUNC *ftp)
       rtnp1 = rtn * r;
       if ((absr =  FABS(r)) > FL(0.999) && absr < FL(1.001))
         scale = FL(1.0) / n;
-      else scale = (FL(1.0) - absr) / (FL(1.0) - (MYFLT) fabs(rtn));
+      else scale = (FL(1.0) - absr) / (FL(1.0) - FABS(rtn));
       for (phs = 0; fp <= finp; phs++) {
         x = (double) phs * tpdlen;
         numer = (MYFLT)cos(x*k) - r * (MYFLT)cos(x*km1) - rtn*(MYFLT)cos(x*kpn)
@@ -875,7 +873,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
     MYFLT   xamp, xintvl, scalfac, sum, prvm;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX)
+    if (UNLIKELY(ff->e.pcnt>=PMAX))
       csound->Warning(csound, Str("using extended arguments\n"));
     if (UNLIKELY((nh = ff->e.pcnt - 6) <= 0)) {
       return fterror(ff, Str("insufficient arguments"));

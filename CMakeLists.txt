@@ -447,7 +447,6 @@ set(libcsound_SRCS
     Engine/scxtract.c
     Engine/sort.c
     Engine/sread.c
-    Engine/swrite.c
     Engine/swritestr.c
     Engine/twarp.c
     InOut/libsnd.c
