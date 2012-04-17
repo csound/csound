@@ -623,9 +623,7 @@ extern "C" {
       0,0,          /*  pipdevin, pipdevout */
       1U,           /*  nframes             */
       NULL, NULL,   /*  pin, pout           */
-#ifndef SOME_FILE_DAY
       0,            /*dither                */
-#endif
     },
     (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
