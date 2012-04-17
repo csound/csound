@@ -42,7 +42,7 @@ extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 /* IV - Feb 19 2005 */
 
-static void set_stdin_assign(CSOUND *csound, int type, int state)
+static inline void set_stdin_assign(CSOUND *csound, int type, int state)
 {
     if (state)
       csound->stdin_assign_flg |= type;
@@ -50,7 +50,7 @@ static void set_stdin_assign(CSOUND *csound, int type, int state)
       csound->stdin_assign_flg &= (~type);
 }
 
-static void set_stdout_assign(CSOUND *csound, int type, int state)
+static inline void set_stdout_assign(CSOUND *csound, int type, int state)
 {
     if (state)
       csound->stdout_assign_flg |= type;

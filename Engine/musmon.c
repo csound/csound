@@ -354,7 +354,7 @@ static void cs_beep(CSOUND *csound)
 #ifdef mac_classic
     SysBeep(30L);
 #else
-    csound->Message(csound, Str("\a\tbeep!\n"));
+    csound->Message(csound, Str("%c\tbeep!\n"), '\a');
 #endif
 }
 
