@@ -360,19 +360,19 @@ statement : ident '=' expr NEWLINE
               TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
               ans->right = appendToTree(csound, $4, appendToTree(csound, $6, make_leaf(csound,LINE,LOCN, INTEGER_TOKEN, make_int(csound, "1"))));
-              print_tree(csound, "Tablegen", ans);
+              //print_tree(csound, "Tablegen", ans);
               $$ = ans;
           }
           | T_IDENT_T '=' T_IDENT_T '[' iexp ':' iexp ']' NEWLINE
           {
-              ORCTOKEN *op = lookup_token(csound, "tabslice", NULL);
+              ORCTOKEN *op = lookup_token(csound, "#tabslice", NULL);
               TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
               ans->right = 
                 appendToTree(csound, 
                              make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$3),
                              appendToTree(csound, $5, $7));
-              print_tree(csound, "Tableslice", ans);
+              //print_tree(csound, "Tableslice", ans);
               $$ = ans;
           }
           | T_IDENT_T '[' iexp ']' '=' expr NEWLINE
