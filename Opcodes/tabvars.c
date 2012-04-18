@@ -369,7 +369,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p){
       data = p->tab->data = (MYFLT *) p->auxch.auxp;
       p->tab->size = size;
     }
- else size = p->tab->size;
+ else size = size < p->tab->size ? size : p->tab->size;
   
  opc = csound->opcodlst;
  for(n=0; opc < csound->oplstend; opc++, n++)
@@ -390,6 +390,43 @@ static int tabmap_set(CSOUND *csound, TABMAP *p){
 
 }
 
+static int tabmap_perf(CSOUND *csound, TABMAP *p){
+
+  MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
+  char func[64]; 
+  int n, size;
+  OENTRY *opc  = NULL;
+  EVAL  eval;
+
+  strcpy(func,  (char *)p->str);
+  strcat(func, ".k");
+
+  if(p->tabin->data == NULL)  
+       return csound->PerfError(csound, Str("tvar not initialised"));
+  if (UNLIKELY(p->tab->data==NULL))
+       return csound->PerfError(csound, Str("tvar not initialised"));
+  else size = size < p->tab->size ? size : p->tab->size;
+  
+ opc = csound->opcodlst;
+ for(n=0; opc < csound->oplstend; opc++, n++)
+   if(!strcmp(func, opc->opname)) break;
+
+ if(opc == csound->oplstend)
+   return csound->PerfError(csound, Str("%s not found, %d opcdoes"), func, n);
+  
+  for(n=0; n < size; n++){
+      eval.a = &tabin[n];
+      eval.r = &data[n];
+      opc->kopadr(csound, (void *) &eval);
+  }
+ 
+ return OK;
+
+
+}
+
+
+
 
 static OENTRY tabvars_localops[] =
 {
@@ -401,7 +438,8 @@ static OENTRY tabvars_localops[] =
   { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
   { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
   { "tabgen", sizeof(TABGEN), 1, "t", "iii", (SUBR) tabgen_set, NULL, NULL},
-  { "tabmap", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
+  { "tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
+  { "tabmap", sizeof(TABMAP), 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf, NULL},
   { "#tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
   { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },  
   { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab }
