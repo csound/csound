@@ -354,12 +354,27 @@ statement : ident '=' expr NEWLINE
               ans->right = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$3);
               $$ = ans;
           }
+          | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ',' iexp']' NEWLINE
+          {
+              ORCTOKEN *op = lookup_token(csound, "tabgen", NULL);
+              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
+              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+              ans->right = appendToTree(csound, $4, appendToTree(csound, $6, $8));
+              //print_tree(csound, "Tablegen", ans);
+              $$ = ans;
+
+          }
           | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ']' NEWLINE
           {
               ORCTOKEN *op = lookup_token(csound, "tabgen", NULL);
               TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = appendToTree(csound, $4, appendToTree(csound, $6, make_leaf(csound,LINE,LOCN, INTEGER_TOKEN, make_int(csound, "1"))));
+              ans->right = 
+                appendToTree(csound, $4, 
+                             appendToTree(csound, $6, 
+                                          make_leaf(csound,LINE,LOCN,
+                                                    INTEGER_TOKEN,
+                                                    make_int(csound, "1"))));
               //print_tree(csound, "Tablegen", ans);
               $$ = ans;
           }
