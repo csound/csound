@@ -1255,7 +1255,7 @@ typedef struct NAME__ {
     int           acount, kcount, icount, Bcount, bcount;
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    struct {
+    struct otranStatics__ {
       NAME      *gblNames[256], *lclNames[256];   /* for 8 bit hash */
       ARGLST    *nullist;
       ARGOFFS   *nulloffs;
@@ -1273,8 +1273,6 @@ typedef struct NAME__ {
       int32     *typemask_tabl_in, *typemask_tabl_out;
       int       lgprevdef;
     } otranStatics;
-    //void          *otranGlobals;
-    //void          *rdorchGlobals;
     struct sreadStatics__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
@@ -1310,7 +1308,6 @@ typedef struct NAME__ {
       int     repeat_inc /* = 1 */;
       S_MACRO   *repeat_mm;
     } sreadStatics;
-    //    void          *sreadGlobals;
 #define INSMAX  4096
     struct extractStatics__ {
       char    inslst[INSMAX];         /*   values set by readxfil         */
@@ -1323,8 +1320,7 @@ typedef struct NAME__ {
       SRTBLK  f0;
       SRTBLK  e;
     } extractStatics;
-//void          *extractGlobals;
-    struct {
+    struct onefileStatics__ {
       NAMELST *toremove;
       char    orcname[L_tmpnam + 4];
       char    sconame[L_tmpnam + 4];
@@ -1332,17 +1328,15 @@ typedef struct NAME__ {
       int     midiSet;
       int     csdlinecount;
     } onefileStatics;
-    //void          *oneFileGlobals;
 #define LBUFSIZ   32768
-    struct lineventStatics {
+    struct lineventStatics__ {
       char    *Linep, *Linebufend;
       FILE    *Linecons;
       int     stdmode;
       EVTBLK  prve;
       char    Linebuf[LBUFSIZ];
     } lineventStatics;
-    //void          *lineventGlobals;
-    struct musmonStatics {
+    struct musmonStatics__ {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
       int16   srngflg;
       int16   sectno;
@@ -1351,8 +1345,7 @@ typedef struct NAME__ {
       EVENT   **ep, **epend;      /* pointers for stepping through lplay list */
       EVENT   *lsect;
     } musmonStatics;
-    //void          *musmonGlobals;
-    struct libsndStatics {
+    struct libsndStatics__ {
       SNDFILE       *outfile;
       SNDFILE       *infile;
       char          *sfoutname;           /* soundout filename            */
@@ -1368,11 +1361,8 @@ typedef struct NAME__ {
       int           pipdevin, pipdevout;  /* 0: file, 1: pipe, 2: rtaudio */
       uint32        nframes               /* = 1UL */;
       FILE          *pin, *pout;
-#ifndef SOME_FILE_DAY
       int           dither;
-#endif
     } libsndStatics;
-    //    void          *libsndGlobals;
     void          (*spinrecv)(CSOUND *);
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
@@ -1412,10 +1402,11 @@ typedef struct NAME__ {
      *   8 (CS_STATE_CLN):  csoundCleanup needs to be called
      *  16 (CS_STATE_JMP):  csoundLongJmp was called
      */
-    int           engineState;
-    int           stdin_assign_flg;
-    int           stdout_assign_flg;
-    int           orcname_mode;         /* 0: normal, 1: ignore, 2: fail */
+    char          engineState;
+    /* stdXX_assign_flags  can be {1,2,4,8} */
+    char          stdin_assign_flg;
+    char          stdout_assign_flg;
+    char          orcname_mode;         /* 0: normal, 1: ignore, 2: fail */
     void          *csmodule_db;
     char          *dl_opcodes_oplibs;
     char          *SF_csd_licence;
