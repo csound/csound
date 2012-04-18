@@ -56,7 +56,7 @@ static int tabarithset(CSOUND *csound, TABARITH *p)
 {
   if (LIKELY(p->left->data && p->right->data)){
     if(p->ans->data == NULL) {
-      /* size is the smallest of the two */  
+      /* size is the smallest of the two */
       int size = p->left->size < p->right->size ? p->left->size : p->right->size;
       csound->AuxAlloc(csound,sizeof(MYFLT)*size, &p->auxch);
       p->ans->data = (MYFLT *)p->auxch.auxp;
@@ -75,7 +75,7 @@ static int tabadd(CSOUND *csound, TABARITH *p)
     int size    = ans->size;
     int i;
 
-    if (UNLIKELY(p->ans->data == NULL || 
+    if (UNLIKELY(p->ans->data == NULL ||
           p->left->data==NULL || p->right->data==NULL))
          return csound->PerfError(csound, Str("t-variable not initialised"));
 
@@ -95,7 +95,7 @@ static int tabmult(CSOUND *csound, TABARITH *p)
     int size    = ans->size;
     int i;
 
-    if (UNLIKELY(p->ans->data == NULL || 
+    if (UNLIKELY(p->ans->data == NULL ||
           p->left->data== NULL || p->right->data==NULL))
          return csound->PerfError(csound, Str("t-variable not initialised"));
 
@@ -175,7 +175,7 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
     MYFLT tmax;
     int i;
     MYFLT range;
-    
+
    if (UNLIKELY(t->data == NULL))
          return csound->PerfError(csound, Str("t-variable not initialised"));
     tmin = t->data[strt];
@@ -231,7 +231,7 @@ static int tabcopy_set(CSOUND *csound, TABCPY *p)
 
 static int tabcopy(CSOUND *csound, TABCPY *p)
 {
-   if (UNLIKELY(p->dst->data==NULL || p->src->data==NULL)) 
+   if (UNLIKELY(p->dst->data==NULL || p->src->data==NULL))
        return csound->InitError(csound, Str("t-variable not initialised"));
     memmove(p->dst->data, p->src->data, p->len);
     return OK;
@@ -243,7 +243,7 @@ static int tab2ftab(CSOUND *csound, TABCOPY *p)
     int fsize;
     MYFLT *fdata;
     int tlen = p->tab->size;
-    if (UNLIKELY(p->tab->data==NULL)) 
+    if (UNLIKELY(p->tab->data==NULL))
       return csound->PerfError(csound, Str("t-var not initialised"));
     if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
         return csound->PerfError(csound, Str("No table for copy2ftab"));
@@ -273,7 +273,7 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
     if (UNLIKELY(size < 0))
       csound->InitError(csound,
                         Str("inconsistent start, end and increment parameters"));
-  
+
     if (UNLIKELY(p->tab->data==NULL)) {
       csound->AuxAlloc(csound, sizeof(MYFLT)*size, &p->auxch);
       data = p->tab->data = (MYFLT *) p->auxch.auxp;
@@ -282,7 +282,7 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
     else size = p->tab->size;
 
     for (i=0; i < size; i++) {
-      data[i] = start; 
+      data[i] = start;
       start += incr;
     }
 
@@ -337,7 +337,7 @@ static int tabslice_set(CSOUND *csound, TABSLICE *p){
       p->tab->size = size;
     }
     else size = p->tab->size;
-    memcpy(data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size); 
+    memcpy(data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size);
     return OK;
 }
 
@@ -349,82 +349,84 @@ typedef struct {
     int    len;
 } TABMAP;
 
-static int tabmap_set(CSOUND *csound, TABMAP *p){
+static int tabmap_set(CSOUND *csound, TABMAP *p)
+{
+    MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
+    char func[64];
+    int n, size;
+    OENTRY *opc  = NULL;
+    EVAL  eval;
 
-  MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
-  char func[64]; 
-  int n, size;
-  OENTRY *opc  = NULL;
-  EVAL  eval;
+    strcpy(func,  (char *)p->str);
+    strcat(func, ".i");
 
-  strcpy(func,  (char *)p->str);
-  strcat(func, ".i");
-
-  if(p->tabin->data == NULL)  
+    if (UNLIKELY(p->tabin->data == NULL))
        return csound->InitError(csound, Str("tvar not initialised"));
- 
-  size = p->tabin->size;
- if (UNLIKELY(p->tab->data==NULL)) {
+
+    size = p->tabin->size;
+    if (UNLIKELY(p->tab->data==NULL)) {
       csound->AuxAlloc(csound, sizeof(MYFLT)*size, &p->auxch);
       data = p->tab->data = (MYFLT *) p->auxch.auxp;
       p->tab->size = size;
     }
- else size = size < p->tab->size ? size : p->tab->size;
-  
- opc = csound->opcodlst;
- for(n=0; opc < csound->oplstend; opc++, n++)
-   if(!strcmp(func, opc->opname)) break;
+    else size = size < p->tab->size ? size : p->tab->size;
 
- if(opc == csound->oplstend)
-   return csound->InitError(csound, Str("%s not found, %d opcdoes"), func, n);
-   
-      /* int     (*iopadr)(CSOUND *, void *p); */
-  for(n=0; n < size; n++){
+    opc = csound->opcodlst;
+    for (n=0; opc < csound->oplstend; opc++, n++)
+      if(!strcmp(func, opc->opname)) break;
+
+    if (UNLIKELY(opc == csound->oplstend))
+      return csound->InitError(csound, Str("%s not found, %d opcdoes"), func, n);
+
+    /* int     (*iopadr)(CSOUND *, void *p); */
+    for (n=0; n < size; n++) {
       eval.a = &tabin[n];
       eval.r = &data[n];
       opc->iopadr(csound, (void *) &eval);
-  }
- 
- return OK;
+    }
 
-
+    return OK;
 }
 
-static int tabmap_perf(CSOUND *csound, TABMAP *p){
+static int tabmap_perf(CSOUND *csound, TABMAP *p)
+{
+    MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
+    char func[64];
+    int n, size;
+    OENTRY *opc  = NULL;
+    EVAL  eval;
 
-  MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
-  char func[64]; 
-  int n, size;
-  OENTRY *opc  = NULL;
-  EVAL  eval;
+    strcpy(func,  (char *)p->str);
+    strcat(func, ".k");
 
-  strcpy(func,  (char *)p->str);
-  strcat(func, ".k");
+    if (UNLIKELY(p->tabin->data == NULL))
+      return csound->PerfError(csound, Str("tvar not initialised"));
+    if (UNLIKELY(p->tab->data==NULL))
+      return csound->PerfError(csound, Str("tvar not initialised"));
+    else size = size < p->tab->size ? size : p->tab->size;
 
-  if(p->tabin->data == NULL)  
-       return csound->PerfError(csound, Str("tvar not initialised"));
-  if (UNLIKELY(p->tab->data==NULL))
-       return csound->PerfError(csound, Str("tvar not initialised"));
-  else size = size < p->tab->size ? size : p->tab->size;
-  
- opc = csound->opcodlst;
- for(n=0; opc < csound->oplstend; opc++, n++)
-   if(!strcmp(func, opc->opname)) break;
+    opc = csound->opcodlst;
+    for(n=0; opc < csound->oplstend; opc++, n++)
+      if(!strcmp(func, opc->opname)) break;
 
- if(opc == csound->oplstend)
-   return csound->PerfError(csound, Str("%s not found, %d opcdoes"), func, n);
-  
-  for(n=0; n < size; n++){
+    if (UNLIKELY(opc == csound->oplstend))
+      return csound->PerfError(csound, Str("%s not found, %d opcdoes"), func, n);
+
+    for (n=0; n < size; n++) {
       eval.a = &tabin[n];
       eval.r = &data[n];
       opc->kopadr(csound, (void *) &eval);
-  }
- 
- return OK;
+    }
 
-
+    return OK;
 }
 
+int tablength(CSOUND *csopund, TABQUERY *p)
+{
+    if (UNLIKELY(p->tab==NULL)) *p->ans = -FL(1.0);
+    else *p->ans = p->tab->size;
+    return OK;
+}
 
 
 
@@ -441,8 +443,10 @@ static OENTRY tabvars_localops[] =
   { "tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
   { "tabmap", sizeof(TABMAP), 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf, NULL},
   { "#tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
-  { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },  
-  { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab }
+  { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },
+  { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab },
+  { "lentab.i", sizeof(TABQUERY), 1, "i", "t", (SUBR) tablength },
+  { "lentab.k", sizeof(TABQUERY), 2, "k", "t", NULL, (SUBR) tablength }
 
 };
 // reverse, scramble, mirror, stutter, rotate, ...
