@@ -24,7 +24,7 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
-
+#include "aops.h"
 
 typedef struct {
     OPDS h;
@@ -338,7 +338,54 @@ static int tabslice_set(CSOUND *csound, TABSLICE *p){
  return OK;
 }
 
+typedef struct {
+    OPDS h;
+    TABDAT *tab, *tabin;
+    MYFLT *str;
+    AUXCH auxch;
+    int    len;
+} TABMAP;
 
+static int tabmap_set(CSOUND *csound, TABMAP *p){
+
+  MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
+  char func[64]; 
+  int n, size;
+  OENTRY *opc  = NULL;
+  EVAL  eval;
+
+  strcpy(func,  (char *)p->str);
+  strcat(func, ".i");
+
+  if(p->tabin->data == NULL)  
+       return csound->InitError(csound, Str("tvar not initialised"));
+ 
+  size = p->tabin->size;
+ if (UNLIKELY(p->tab->data==NULL)) {
+      csound->AuxAlloc(csound, sizeof(MYFLT)*size, &p->auxch);
+      data = p->tab->data = (MYFLT *) p->auxch.auxp;
+      p->tab->size = size;
+    }
+ else size = p->tab->size;
+  
+ opc = csound->opcodlst;
+ for(n=0; opc < csound->oplstend; opc++, n++)
+   if(!strcmp(func, opc->opname)) break;
+
+ if(opc == csound->oplstend)
+   return csound->InitError(csound, Str("%s not found, %d opcdoes"), func, n);
+   
+      /* int     (*iopadr)(CSOUND *, void *p); */
+  for(n=0; n < size; n++){
+      eval.a = &tabin[n];
+      eval.r = &data[n];
+      opc->iopadr(csound, (void *) &eval);
+  }
+ 
+ return OK;
+
+
+}
 
 
 static OENTRY tabvars_localops[] =
@@ -352,6 +399,7 @@ static OENTRY tabvars_localops[] =
   { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
   { "tabgen", sizeof(TABGEN), 1, "t", "iii", (SUBR) tabgen_set, NULL, NULL},
   { "tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
+  { "tabmap", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
   { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },  
   { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab }
 
