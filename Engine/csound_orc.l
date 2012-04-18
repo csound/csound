@@ -117,6 +117,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 ":"             { return ':'; }
 ","             { return ','; }
 "!"             { return '!'; }
+"->"            { return S_ELIPSIS; }
 "!="            { return S_NEQ; }
 "&&"            { return S_AND; }
 "||"            { return S_OR; }
