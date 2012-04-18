@@ -445,7 +445,8 @@ static OENTRY tabvars_localops[] =
   { "#tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
   { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },
   { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab },
-  { "lentab.i", sizeof(TABQUERY), 1, "i", "t", (SUBR) tablength }
+  { "lentab.i", sizeof(TABQUERY), 1, "i", "t", (SUBR) tablength },
+  { "lentab.k", sizeof(TABQUERY), 1, "k", "t", NULL, (SUBR) tablength }
 
 };
 // reverse, scramble, mirror, stutter, rotate, ...
