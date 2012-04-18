@@ -263,28 +263,30 @@ typedef struct {
 } TABGEN;
 
 
-static int tabgen_set(CSOUND *csound, TABGEN *p){
-
-  MYFLT *data =  p->tab->data;
-  MYFLT start = *p->start;
-  MYFLT end   = *p->end;
-  MYFLT incr  = *p->incr;
-  int i,size =  (end - start)/incr + 1;
-  if(size < 0) csound->InitError(csound, Str("inconsistent start, end and increment parameters"));
+static int tabgen_set(CSOUND *csound, TABGEN *p)
+{
+    MYFLT *data =  p->tab->data;
+    MYFLT start = *p->start;
+    MYFLT end   = *p->end;
+    MYFLT incr  = *p->incr;
+    int i,size =  (end - start)/incr + 1;
+    if (UNLIKELY(size < 0))
+      csound->InitError(csound,
+                        Str("inconsistent start, end and increment parameters"));
   
- if (UNLIKELY(p->tab->data==NULL)) {
+    if (UNLIKELY(p->tab->data==NULL)) {
       csound->AuxAlloc(csound, sizeof(MYFLT)*size, &p->auxch);
       data = p->tab->data = (MYFLT *) p->auxch.auxp;
       p->tab->size = size;
     }
- else size = p->tab->size;
+    else size = p->tab->size;
 
- for(i=0; i < size; i++){
-   data[i] = start; 
-   start += incr;
- }
+    for (i=0; i < size; i++) {
+      data[i] = start; 
+      start += incr;
+    }
 
- return OK;
+    return OK;
 }
 
 static int ftab2tab(CSOUND *csound, TABCOPY *p)
