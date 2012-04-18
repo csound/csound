@@ -263,28 +263,30 @@ typedef struct {
 } TABGEN;
 
 
-static int tabgen_set(CSOUND *csound, TABGEN *p){
-
-  MYFLT *data =  p->tab->data;
-  MYFLT start = *p->start;
-  MYFLT end   = *p->end;
-  MYFLT incr  = *p->incr;
-  int i,size =  (end - start)/incr + 1;
-  if(size < 0) csound->InitError(csound, Str("inconsistent start, end and increment parameters"));
+static int tabgen_set(CSOUND *csound, TABGEN *p)
+{
+    MYFLT *data =  p->tab->data;
+    MYFLT start = *p->start;
+    MYFLT end   = *p->end;
+    MYFLT incr  = *p->incr;
+    int i,size =  (end - start)/incr + 1;
+    if (UNLIKELY(size < 0))
+      csound->InitError(csound,
+                        Str("inconsistent start, end and increment parameters"));
   
- if (UNLIKELY(p->tab->data==NULL)) {
+    if (UNLIKELY(p->tab->data==NULL)) {
       csound->AuxAlloc(csound, sizeof(MYFLT)*size, &p->auxch);
       data = p->tab->data = (MYFLT *) p->auxch.auxp;
       p->tab->size = size;
     }
- else size = p->tab->size;
+    else size = p->tab->size;
 
- for(i=0; i < size; i++){
-   data[i] = start; 
-   start += incr;
- }
+    for (i=0; i < size; i++) {
+      data[i] = start; 
+      start += incr;
+    }
 
- return OK;
+    return OK;
 }
 
 static int ftab2tab(CSOUND *csound, TABCOPY *p)
@@ -321,21 +323,22 @@ typedef struct {
 
 static int tabslice_set(CSOUND *csound, TABSLICE *p){
 
-  MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
-  int start = (int) *p->start;
-  int end   = (int) *p->end;
-  int size = end - start;
-  if(size < 0) csound->InitError(csound, Str("inconsistent start, end parameters"));
-  if(size > p->tabin->size)  
-       csound->InitError(csound, Str("slice larger than original size"));
- if (UNLIKELY(p->tab->data==NULL)) {
+    MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
+    int start = (int) *p->start;
+    int end   = (int) *p->end;
+    int size = end - start;
+    if (UNLIKELY(size < 0))
+      csound->InitError(csound, Str("inconsistent start, end parameters"));
+    if (UNLIKELY(size > p->tabin->size)  )
+      csound->InitError(csound, Str("slice larger than original size"));
+    if (UNLIKELY(p->tab->data==NULL)) {
       csound->AuxAlloc(csound, sizeof(MYFLT)*size, &p->auxch);
       data = p->tab->data = (MYFLT *) p->auxch.auxp;
       p->tab->size = size;
     }
- else size = p->tab->size;
- memcpy(data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size); 
- return OK;
+    else size = p->tab->size;
+    memcpy(data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size); 
+    return OK;
 }
 
 typedef struct {
@@ -398,8 +401,8 @@ static OENTRY tabvars_localops[] =
   { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
   { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
   { "tabgen", sizeof(TABGEN), 1, "t", "iii", (SUBR) tabgen_set, NULL, NULL},
-  { "tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
   { "tabmap", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
+  { "#tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
   { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },  
   { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab }
 
