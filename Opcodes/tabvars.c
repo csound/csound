@@ -75,6 +75,10 @@ static int tabadd(CSOUND *csound, TABARITH *p)
     int size    = ans->size;
     int i;
 
+    if (UNLIKELY(p->ans->data == NULL || 
+          p->left->data==NULL || p->right->data==NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
     if (l->size<size) size = l->size;
     if (r->size<size) size = r->size;
     if (ans->size<size) size = ans->size;
@@ -90,6 +94,10 @@ static int tabmult(CSOUND *csound, TABARITH *p)
     TABDAT *r   = p->right;
     int size    = ans->size;
     int i;
+
+    if (UNLIKELY(p->ans->data == NULL || 
+          p->left->data== NULL || p->right->data==NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
 
     if (l->size<size) size = l->size;
     if (r->size<size) size = r->size;
@@ -109,8 +117,12 @@ static int tabmax(CSOUND *csound, TABQUERY *p)
 {
     TABDAT *t = p->tab;
     int i, size = t->size;
-    MYFLT ans = t->data[0];
+    MYFLT ans;
 
+    if (UNLIKELY(t->data == NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    ans = t->data[0];
     for (i=1; i<=size; i++)
       if (t->data[i]>ans) ans = t->data[i];
     *p->ans = ans;
@@ -121,8 +133,11 @@ static int tabmin(CSOUND *csound, TABQUERY *p)
 {
     TABDAT *t = p->tab;
     int i, size = t->size;
-    MYFLT ans = t->data[0];
+    MYFLT ans;
 
+    if (UNLIKELY(t->data == NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+    ans = t->data[0];
     for (i=1; i<=size; i++)
       if (t->data[i]<ans) ans = t->data[i];
     *p->ans = ans;
@@ -133,7 +148,11 @@ static int tabsum(CSOUND *csound, TABQUERY *p)
 {
     TABDAT *t = p->tab;
     int i, size = t->size;
-    MYFLT ans = FL(0.0);
+    MYFLT ans;
+
+    if (UNLIKELY(t->data == NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+    ans = FL(0.0);
 
     for (i=1; i<=size; i++)
       ans += t->data[i];
@@ -152,10 +171,15 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
     MYFLT min = *p->kmin, max = *p->kmax;
     int strt = (int)MYFLT2LRND(*p->kstart), end = (int)MYFLT2LRND(*p->kend);
     TABDAT *t = p->tab;
-    MYFLT tmin = t->data[strt];
-    MYFLT tmax = tmin;
+    MYFLT tmin;
+    MYFLT tmax;
     int i;
     MYFLT range;
+    
+   if (UNLIKELY(t->data == NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+    tmin = t->data[strt];
+    tmax = tmin;
 
     // Correct start an dening points
     if (end<0) end = t->size;
@@ -207,6 +231,8 @@ static int tabcopy_set(CSOUND *csound, TABCPY *p)
 
 static int tabcopy(CSOUND *csound, TABCPY *p)
 {
+   if (UNLIKELY(p->dst->data==NULL || p->src->data==NULL)) 
+       return csound->InitError(csound, Str("t-variable not initialised"));
     memmove(p->dst->data, p->src->data, p->len);
     return OK;
 }
@@ -243,7 +269,7 @@ static int tabgen_set(CSOUND *csound, TABGEN *p){
   MYFLT start = *p->start;
   MYFLT end   = *p->end;
   MYFLT incr  = *p->incr;
-  int i,size =  (p->end - p->start)/incr + 1;
+  int i,size =  (end - start)/incr + 1;
   if(size < 0) csound->InitError(csound, Str("inconsistent start, end and increment parameters"));
   
  if (UNLIKELY(p->tab->data==NULL)) {
@@ -267,6 +293,8 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
     int         fsize;
     MYFLT       *fdata;
     int tlen;
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+        return csound->PerfError(csound, Str("No table for copy2ftab"));
     fsize = ftp->flen;
     if (UNLIKELY(p->tab->data==NULL)) {
       // return csound->PerfError(csound, Str("t-var not initialised"));
@@ -274,8 +302,7 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
       p->tab->data = (MYFLT *) p->auxch.auxp;
       p->tab->size = fsize;
     }
-    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-        return csound->PerfError(csound, Str("No table for copy2ftab"));
+
     tlen = p->tab->size;
     fdata = ftp->ftable;
     if (fsize<tlen) tlen = fsize;
@@ -289,7 +316,7 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
 
 static OENTRY tabvars_localops[] =
 {
-  { "plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabadd },
+  { "plustab",  sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabadd },
   { "multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabmult },
   { "maxtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
   { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
