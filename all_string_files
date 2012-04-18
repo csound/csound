@@ -19,14 +19,12 @@
 ./Engine/musmon.c
 ./Engine/namedins.c
 ./Engine/new_orc_parser.c
-./Engine/otran.c
 ./Engine/parse_param.h
 ./Engine/rdscor.c
 ./Engine/scsort.c
 ./Engine/scxtract.c
 ./Engine/sort.c
 ./Engine/sread.c
-./Engine/swrite.c
 ./Engine/swritestr.c
 ./Engine/symbtab.c
 ./Engine/twarp.c
@@ -155,8 +153,8 @@
 ./frontends/tclcsound/tclcsound.c
 ./frontends/tclcsound/tclcsound.h
 ./frontends/winsound/main.cxx
-./frontends/winsound/winsound.cxx
-./frontends/winsound/winsound.h
+./frontends/winsound.cxx
+./frontends/winsound.h
 ./H/aops.h
 ./H/bus.h
 ./H/cfgvar.h
@@ -273,10 +271,8 @@
 ./interfaces/csPerfThread.hpp
 ./interfaces/filebuilding.cpp
 ./interfaces/filebuilding.h
-./interfaces/java_interface_wrap.h
 ./interfaces/pyMsgCb.cpp
 ./interfaces/pyMsgCb_stub.cpp
-./interfaces/python_interface_wrap.h
 ./interfaces/Soundfile.cpp
 ./interfaces/Soundfile.hpp
 ./OOps/aops.c
