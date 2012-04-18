@@ -297,8 +297,9 @@ static OENTRY tabvars_localops[] =
   { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
   { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
   { "tabgen", sizeof(TABGEN), 1, "t", "iii", (SUBR) tabgen_set, NULL, NULL},
-  { "copy2ftab", sizeof(TABCOPY), TW|1, "", "tk", NULL, (SUBR) tab2ftab },  /* thread should be 2 instead of 1 ? */
-  { "copy2ttab", sizeof(TABCOPY), TR|1, "", "tk", NULL, (SUBR) ftab2tab }
+  { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },  
+  { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab }
+
 };
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically

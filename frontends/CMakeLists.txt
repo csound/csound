@@ -59,7 +59,7 @@ check_deps(BUILD_CSBEATS FLEX_EXECUTABLE BISON_EXECUTABLE)
 if(BUILD_CSBEATS)
     
     BISON_TARGET(csbeats_PARSER beats/beats.y ${CMAKE_CURRENT_BINARY_DIR}/beats.tab.c)
-    FLEX_TARGET(csbeats_SCANNER beats/beats.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.c)
+    FLEX_TARGET(csbeats_SCANNER beats/beats.l ${CMAKE_CURRENT_BINARY_DIR}/beatslex.yy.c)
 
     ADD_FLEX_BISON_DEPENDENCY(csbeats_SCANNER csbeats_PARSER)
 

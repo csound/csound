@@ -196,7 +196,7 @@ int musmon(CSOUND *csound)
     oload(csound);              /* set globals and run inits */
 
     /* kperf() will not call csoundYield() more than 250 times per second */
-    csound->evt_poll_cnt = 0;
+    csound->evt_poll_cnt    = 0;
     csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 250.0);
     /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O->Midiin || O->FMidiin || O->RMidiin) {
@@ -207,17 +207,17 @@ int musmon(CSOUND *csound)
 
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     STA(segamps) = O->msglevel & SEGAMPS;
-    STA(sormsg) = O->msglevel & SORMSG;
+    STA(sormsg)  = O->msglevel & SORMSG;
 
     if (O->Linein)
       RTLineset(csound);                /* if realtime input expected   */
 
     if (csound->enableHostImplementedAudioIO &&
         csound->hostRequestedBufferSize) {
-      int bufsize = (int) csound->hostRequestedBufferSize;
-      int ksmps = (int) csound->ksmps;
-      bufsize = (bufsize + (ksmps >> 1)) / ksmps;
-      bufsize = (bufsize ? bufsize * ksmps : ksmps);
+      int bufsize    = (int) csound->hostRequestedBufferSize;
+      int ksmps      = (int) csound->ksmps;
+      bufsize        = (bufsize + (ksmps >> 1)) / ksmps;
+      bufsize        = (bufsize ? bufsize * ksmps : ksmps);
       O->outbufsamps = O->inbufsamps = bufsize;
     }
     else {
@@ -246,7 +246,7 @@ int musmon(CSOUND *csound)
     }
     csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
                             (int) O->outbufsamps);
-    O->inbufsamps *= csound->inchnls;    /* now adjusted for n channels  */
+    O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     iotranset(csound);          /* point recv & tran to audio formatter */
       /* open audio file or device for input first, and then for output */
@@ -354,7 +354,7 @@ static void cs_beep(CSOUND *csound)
 #ifdef mac_classic
     SysBeep(30L);
 #else
-    csound->Message(csound, Str("\a\tbeep!\n"));
+    csound->Message(csound, Str("%c\tbeep!\n"), '\a');
 #endif
 }
 
@@ -1200,11 +1200,11 @@ void musmon_rewind_score(CSOUND *csound)
       csound->nxtbt = csound->curbt = csound->prvbt = 0.0;
       csound->nxtim = csound->curp2 = 0.0;
       csound->beatOffs = csound->timeOffs = 0.0;
-      csound->curBeat = 0.0;
+      csound->curBeat  = 0.0;
       csound->icurTime = 0L;
       csound->cyclesRemaining = 0;
       csound->evt.strarg = NULL;
-      csound->evt.opcod = '\0';
+      csound->evt.opcod  = '\0';
       /* reset tempo */
       if (csound->oparms->Beatmode)
         settempo(csound, (MYFLT) csound->oparms->cmdTempo);
