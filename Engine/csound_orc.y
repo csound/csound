@@ -112,6 +112,8 @@
 
 %token T_INSTLIST
 %token S_ELIPSIS
+%token T_MAPI
+%token T_MAPK
 
 %start orcfile
 %left '?'
@@ -388,6 +390,18 @@ statement : ident '=' expr NEWLINE
                              make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$3),
                              appendToTree(csound, $5, $7));
               //print_tree(csound, "Tableslice", ans);
+              $$ = ans;
+          }
+          | T_IDENT_T '=' mapop '(' T_IDENT_T ',' STRING_TOKEN ')' NEWLINE
+          {
+              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, $3);
+              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+              ans->right = 
+                appendToTree(csound, 
+                             make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$5),
+                             make_leaf(csound,LINE,LOCN, 
+                                       STRING_TOKEN, (ORCTOKEN *)$7));
+              //print_tree(csound, "tabmap", ans);
               $$ = ans;
           }
           | T_IDENT_T '[' iexp ']' '=' expr NEWLINE
@@ -723,6 +737,11 @@ function  : T_FUNCTION  {
 #endif
              $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, (ORCTOKEN *)$1); 
                 }
+
+mapop     : T_MAPI {
+              $$ = make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap_i"); }
+          | T_MAPK {
+              $$ = make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap"); }
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
                                              SRATE_TOKEN, (ORCTOKEN *)$1); }
