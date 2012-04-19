@@ -151,6 +151,7 @@
 #endif
 #include "csoundCore.h"
 #include <ctype.h>
+#include <string.h>
 #include "namedins.h"
 
 #include "csound_orc.h"
@@ -176,6 +177,7 @@ extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LOCN csound_orcget_locn(scanner)
 extern int csound_orcget_locn(void *);
 extern int csound_orcget_lineno(void *);
+ extern ORCTOKEN *make_string(CSOUND *, char *);
 %}
 %%
 
@@ -392,15 +394,21 @@ statement : ident '=' expr NEWLINE
               //print_tree(csound, "Tableslice", ans);
               $$ = ans;
           }
-          | T_IDENT_T '=' mapop '(' T_IDENT_T ',' STRING_TOKEN ')' NEWLINE
+          | T_IDENT_T '=' mapop '(' T_IDENT_T ',' T_FUNCTION ')' NEWLINE
           {
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, $3);
+              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$3);
+              char buff[256];
+              TREE *str;
+              buff[0]='"'; buff[1]='\0'; strcat(buff, ((ORCTOKEN *)$7)->lexeme);
+              strcat(buff,"\"");
+              //printf("buff=%s<<\n", buff);
+              str = make_leaf(csound,LINE,LOCN,STRING_TOKEN, 
+                              make_string(csound, buff));
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
               ans->right = 
                 appendToTree(csound, 
                              make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$5),
-                             make_leaf(csound,LINE,LOCN, 
-                                       STRING_TOKEN, (ORCTOKEN *)$7));
+                             str);
               //print_tree(csound, "tabmap", ans);
               $$ = ans;
           }
@@ -739,9 +747,9 @@ function  : T_FUNCTION  {
                 }
 
 mapop     : T_MAPI {
-              $$ = make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap_i"); }
+              $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap_i"); }
           | T_MAPK {
-              $$ = make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap"); }
+              $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap"); }
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
                                              SRATE_TOKEN, (ORCTOKEN *)$1); }
