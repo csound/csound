@@ -403,7 +403,7 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
       return csound->PerfError(csound, Str("tvar not initialised"));
     if (UNLIKELY(p->tab->data==NULL))
       return csound->PerfError(csound, Str("tvar not initialised"));
-    else size = size < p->tab->size ? size : p->tab->size;
+    size = size < p->tab->size ? size : p->tab->size;
 
     opc = csound->opcodlst;
     for(n=0; opc < csound->oplstend; opc++, n++)
@@ -440,8 +440,9 @@ static OENTRY tabvars_localops[] =
   { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
   { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
   { "tabgen", sizeof(TABGEN), 1, "t", "iii", (SUBR) tabgen_set, NULL, NULL},
-  { "tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
-  { "tabmap", sizeof(TABMAP), 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf, NULL},
+  { "#tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
+  //{ "tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
+  { "#tabmap", sizeof(TABMAP), 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf},
   { "#tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
   { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },
   { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab },
