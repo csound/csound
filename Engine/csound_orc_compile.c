@@ -367,8 +367,6 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
       s = tp->inlist->arg[n];
 
       if (n >= nreqd) {               /* det type required */
-        csound->DebugMsg(csound, "%s(%d): type required: %c\n",
-                         __FILE__, __LINE__, types[nreqd-1]);
         switch (types[nreqd-1]) {
         case 'M':
         case 'N':
@@ -379,7 +377,6 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
         }
       }
       else treqd = types[n];          /*       or given)   */
-      csound->DebugMsg(csound, "%s(%d): treqd: %c\n", __FILE__, __LINE__, treqd);
       if (treqd == 'l') {             /* if arg takes lbl  */
         csound->DebugMsg(csound, "treqd = l");
         //        lblrequest(csound, s);        /*      req a search */
@@ -388,8 +385,6 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
       tfound = argtyp2(csound, s);     /* else get arg type */
       /* IV - Oct 31 2002 */
       tfound_m = STA(typemask_tabl)[(unsigned char) tfound];
-      csound->DebugMsg(csound, "%s(%d): treqd: %c, tfound %c\n",
-                       __FILE__, __LINE__,treqd, tfound);
       csound->DebugMsg(csound, "treqd %c, tfound_m %d STA(lgprevdef) %d\n",
                        treqd, tfound_m);
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !STA(lgprevdef) && *s != '"') {
@@ -1325,7 +1320,6 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
     /* align to 8 bytes for "spectral" types */
     if ((int) sizeof(MYFLT) < 8 && STA(gblnxtpcnt))
       STA(gblkcount) = (STA(gblkcount) + 1) & (~1);
-    printf("%d: %d %d %d\n", __LINE__,  csound->gblacount, STA(gblacount), STA(gblnxtacnt));
     STA(gblacount) = STA(gblnxtacnt);
     STA(gblscount) = STA(gblnxtscnt);
 
@@ -1377,7 +1371,6 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
                         + optxtcount * sizeof(OPTXT);
     csound->poolcount = STA(poolcount);
     csound->gblfixed = STA(gblnxtkcnt) + STA(gblnxtpcnt) * (int) Pfloats;
-    printf("%d: %d %d %d\n", __LINE__,  csound->gblacount, STA(gblacount),STA(gblnxtacnt));
     csound->gblacount = STA(gblnxtacnt);
     csound->gblscount = STA(gblnxtscnt);
     /* clean up */

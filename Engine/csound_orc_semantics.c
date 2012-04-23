@@ -534,6 +534,18 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
         csound->Message(csound,"S_UMINUS:(%d:%d)\n", l->line, l->locn); break;
     case T_INSTLIST:
         csound->Message(csound,"T_INSTLIST:(%d:%d)\n", l->line, l->locn); break;
+    case T_TADD:
+      csound->Message(csound,"T_TADD:(%d:%d)\n", l->line, l->locn); break;
+    case T_SUB:
+      csound->Message(csound,"T_SUB:(%d:%d)\n", l->line, l->locn); break;
+    case S_TUMINUS:
+      csound->Message(csound,"S_TUMINUS:(%d:%d)\n", l->line, l->locn); break;
+    case T_TMUL:
+      csound->Message(csound,"T_TMUL:(%d:%d)\n", l->line, l->locn); break;
+    case T_TDIV:
+      csound->Message(csound,"T_TDIV:(%d:%d)\n", l->line, l->locn); break;
+    case T_TREM:
+      csound->Message(csound,"T_TREM:(%d:%d)\n", l->line, l->locn); break;
     default:
       csound->Message(csound,"unknown:%d(%d:%d)\n", l->type, l->line, l->locn);
     }
@@ -723,17 +735,35 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"",
                       l->value->lexeme); break;
     case S_UMINUS:
-        csound->Message(csound,"name=\"S_UMINUS\""); break;
+      csound->Message(csound,"name=\"S_UMINUS\""); break;
     case T_INSTLIST:
-        csound->Message(csound,"name=\"T_INSTLIST\""); break;
+      csound->Message(csound,"name=\"T_INSTLIST\""); break;
     case UDO_TOKEN:
-        csound->Message(csound,"name=\"UDO_TOKEN\""); break;
+      csound->Message(csound,"name=\"UDO_TOKEN\""); break;
     case UDO_ANS_TOKEN:
-        csound->Message(csound,"name=\"UDO_ANS_TOKEN\" signature=\"%s\"",
-                        l->value->lexeme); break;
+      csound->Message(csound,"name=\"UDO_ANS_TOKEN\" signature=\"%s\"",
+                      l->value->lexeme); break;
     case UDO_ARGS_TOKEN:
-        csound->Message(csound,"name=\"UDO_ARGS_TOKEN\" signature=\"%s\"",
-                        l->value->lexeme); break;
+      csound->Message(csound,"name=\"UDO_ARGS_TOKEN\" signature=\"%s\"",
+                      l->value->lexeme); break;
+    case S_ELIPSIS:
+      csound->Message(csound,"name=\"S_ELIPSIS\""); break;
+    case T_MAPI:
+      csound->Message(csound,"name=\"T_MAPI\""); break;
+    case T_MAPK:
+      csound->Message(csound,"name=\"T_MAPK\""); break;
+    case T_TADD:
+      csound->Message(csound,"name=\"T_TADD\""); break;
+    case T_SUB:
+      csound->Message(csound,"name=\"T_SUB\""); break;
+    case S_TUMINUS:
+      csound->Message(csound,"name=\"S_TUMINUS\""); break;
+    case T_TMUL:
+      csound->Message(csound,"name=\"T_TMUL\""); break;
+    case T_TDIV:
+      csound->Message(csound,"name=\"T_TDIV\""); break;
+    case T_TREM:
+      csound->Message(csound,"name=\"T_TREM\""); break;
     default:
       csound->Message(csound,"name=\"unknown\"(%d)", l->type);
     }

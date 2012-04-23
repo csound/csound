@@ -114,6 +114,15 @@
 %token S_ELIPSIS
 %token T_MAPI
 %token T_MAPK
+%token T_TADD
+%token T_SUB
+%token S_TUMINUS
+%token T_TMUL
+%token T_TDIV
+%token T_TREM
+%token T_TIMUL
+%token T_TIDIV
+%token T_TIREM
 
 %start orcfile
 %left '?'
@@ -350,13 +359,14 @@ statement : ident '=' expr NEWLINE
                                     csp_orc_sa_globals_find(csound, ans->right));
 #endif
                 }
-          | T_IDENT_T '=' T_IDENT_T NEWLINE
+          | T_IDENT_T '=' texp NEWLINE
           {
               ORCTOKEN *op = lookup_token(csound, "#copytab", NULL);
               TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$3);
+              ans->right =$3;
               $$ = ans;
+              print_tree(csound, "T assign\n", ans);
           }
           | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ',' iexp']' NEWLINE
           {
@@ -745,6 +755,41 @@ function  : T_FUNCTION  {
 #endif
              $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, (ORCTOKEN *)$1); 
                 }
+
+texp      : texp '+' texp  { $$ = make_node(csound, LINE,LOCN, T_TADD, $1, $3); }
+          | texp '+' error
+          | texp '-' texp  { $$ = make_node(csound ,LINE,LOCN, T_SUB, $1, $3); }
+          | texp '-' error
+          | '-' texp %prec S_UMINUS
+            {
+                $$ = make_node(csound,LINE,LOCN, S_TUMINUS, NULL, $2);
+            }
+          | '-' error           { $$ = NULL; }
+          | '+' texp %prec S_UMINUS { $$ = $2; }
+          | '+' error           { $$ = NULL; }
+          | tterm               { $$ = $1; }
+          ;
+
+tterm     : texp '*' texp    { $$ = make_node(csound, LINE,LOCN, T_TMUL, $1, $3); }
+          | texp '*' iexp    { $$ = make_node(csound, LINE,LOCN, T_TIMUL, $1, $3); }
+          | texp '*' error
+          | texp '/' texp    { $$ = make_node(csound, LINE,LOCN, T_TDIV, $1, $3); }
+          | texp '/' iexp    { $$ = make_node(csound, LINE,LOCN, T_TIDIV, $1, $3); }
+          | texp '/' error
+          | texp '%' texp    { $$ = make_node(csound, LINE,LOCN, T_TREM, $1, $3); }
+          | texp '%' iexp    { $$ = make_node(csound, LINE,LOCN, T_TIREM, $1, $3); }
+          | texp '%' error
+          | tfac             { $$ = $1; }
+          ;
+
+tfac      : T_IDENT_T
+          {
+              $$ = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+          }
+          | '(' expr ')'      { $$ = $2; }
+          | '(' expr error    { $$ = NULL; }
+          | '(' error         { $$ = NULL; }
+          ;
 
 mapop     : T_MAPI {
               $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap_i"); }
