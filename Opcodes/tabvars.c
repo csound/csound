@@ -25,12 +25,20 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "aops.h"
+extern MYFLT MOD(MYFLT a, MYFLT bb);
 
 typedef struct {
     OPDS h;
     TABDAT *ans, *left, *right;
     AUXCH auxch;
 } TABARITH;
+
+typedef struct {
+    OPDS h;
+    TABDAT *ans, *left;
+    MYFLT *right;
+    AUXCH auxch;
+} TABARITH1;
 
 typedef struct {
     OPDS h;
@@ -54,10 +62,25 @@ typedef struct {
 
 static int tabarithset(CSOUND *csound, TABARITH *p)
 {
-  if (LIKELY(p->left->data && p->right->data)){
+  if (LIKELY(p->left->data && p->right->data)) {
     if(p->ans->data == NULL) {
       /* size is the smallest of the two */
       int size = p->left->size < p->right->size ? p->left->size : p->right->size;
+      csound->AuxAlloc(csound,sizeof(MYFLT)*size, &p->auxch);
+      p->ans->data = (MYFLT *)p->auxch.auxp;
+      p->ans->size = size;
+    }
+    return OK;
+  }
+  else return csound->InitError(csound, Str("t-variable not initialised"));
+}
+
+static int tabarithset1(CSOUND *csound, TABARITH *p)
+{
+  if (LIKELY(p->left->data)) {
+    if(p->ans->data == NULL) {
+      /* size is the smallest of the two */
+      int size = p->left->size;
       csound->AuxAlloc(csound,sizeof(MYFLT)*size, &p->auxch);
       p->ans->data = (MYFLT *)p->auxch.auxp;
       p->ans->size = size;
@@ -87,6 +110,43 @@ static int tabadd(CSOUND *csound, TABARITH *p)
     return OK;
 }
 
+static int tabsub(CSOUND *csound, TABARITH *p)
+{
+    TABDAT *ans = p->ans;
+    TABDAT *l   = p->left;
+    TABDAT *r   = p->right;
+    int size    = ans->size;
+    int i;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+          p->left->data==NULL || p->right->data==NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    if (l->size<size) size = l->size;
+    if (r->size<size) size = r->size;
+    if (ans->size<size) size = ans->size;
+    for (i=0; i<=size; i++)
+      ans->data[i] = l->data[i] - r->data[i];
+    return OK;
+}
+
+static int tabneg(CSOUND *csound, TABARITH *p)
+{
+    TABDAT *ans = p->ans;
+    TABDAT *l   = p->left;
+    int size    = ans->size;
+    int i;
+
+    if (UNLIKELY(p->ans->data == NULL || p->left->data==NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    if (l->size<size) size = l->size;
+    if (ans->size<size) size = ans->size;
+    for (i=0; i<=size; i++)
+      ans->data[i] = - l->data[i];
+    return OK;
+}
+
 static int tabmult(CSOUND *csound, TABARITH *p)
 {
     TABDAT *ans = p->ans;
@@ -104,6 +164,106 @@ static int tabmult(CSOUND *csound, TABARITH *p)
     if (ans->size<size) size = ans->size;
     for (i=0; i<=size; i++)
       ans->data[i] = l->data[i] * r->data[i];
+    return OK;
+}
+
+static int tabdiv(CSOUND *csound, TABARITH *p)
+{
+    TABDAT *ans = p->ans;
+    TABDAT *l   = p->left;
+    TABDAT *r   = p->right;
+    int size    = ans->size;
+    int i;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+          p->left->data== NULL || p->right->data==NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    if (l->size<size) size = l->size;
+    if (r->size<size) size = r->size;
+    if (ans->size<size) size = ans->size;
+    for (i=0; i<=size; i++)
+      if (LIKELY(r->data[i]!=0))
+        ans->data[i] = l->data[i] / r->data[i];
+      else return csound->PerfError(csound, Str("division by zero in t-var"));
+    return OK;
+}
+
+static int tabrem(CSOUND *csound, TABARITH *p)
+{
+    TABDAT *ans = p->ans;
+    TABDAT *l   = p->left;
+    TABDAT *r   = p->right;
+    int size    = ans->size;
+    int i;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+          p->left->data== NULL || p->right->data==NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    if (l->size<size) size = l->size;
+    if (r->size<size) size = r->size;
+    if (ans->size<size) size = ans->size;
+    for (i=0; i<=size; i++)
+      ans->data[i] = MOD(l->data[i], r->data[i]);
+    return OK;
+}
+
+static int tabimult(CSOUND *csound, TABARITH1 *p)
+{
+    TABDAT *ans = p->ans;
+    TABDAT *l   = p->left;
+    MYFLT r     = *p->right;
+    int size    = ans->size;
+    int i;
+
+    if (UNLIKELY(p->ans->data == NULL || p->left->data== NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    if (l->size<size) size = l->size;
+    if (ans->size<size) size = ans->size;
+    for (i=0; i<=size; i++)
+      ans->data[i] = l->data[i] * r;
+    return OK;
+}
+
+static int tabidiv(CSOUND *csound, TABARITH1 *p)
+{
+    TABDAT *ans = p->ans;
+    TABDAT *l   = p->left;
+    MYFLT r     = *p->right;
+    int size    = ans->size;
+    int i;
+
+    if (UNLIKELY(r==FL(0.0)))
+      return csound->PerfError(csound, Str("division by zero i t-var"));
+    if (UNLIKELY(p->ans->data == NULL || p->left->data== NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    if (l->size<size) size = l->size;
+    if (ans->size<size) size = ans->size;
+    for (i=0; i<=size; i++)
+      ans->data[i] = l->data[i] / r;
+    return OK;
+}
+
+static int tabirem(CSOUND *csound, TABARITH1 *p)
+{
+    TABDAT *ans = p->ans;
+    TABDAT *l   = p->left;
+    MYFLT r     = *p->right;
+    int size    = ans->size;
+    int i;
+
+    if (UNLIKELY(r==FL(0.0)))
+      return csound->PerfError(csound, Str("division by zero i t-var"));
+    if (UNLIKELY(p->ans->data == NULL || p->left->data== NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    if (l->size<size) size = l->size;
+    if (ans->size<size) size = ans->size;
+    for (i=0; i<=size; i++)
+      ans->data[i] = MOD(l->data[i], r);
     return OK;
 }
 
@@ -432,8 +592,15 @@ int tablength(CSOUND *csopund, TABQUERY *p)
 
 static OENTRY tabvars_localops[] =
 {
-  { "plustab",  sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabadd },
-  { "multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabmult },
+  { "##plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
+  { "##suntab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
+  { "##negtab",  sizeof(TABARITH), 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
+  { "##multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
+  { "##divtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
+  { "##remtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem },
+  { "##multitab", sizeof(TABARITH1), 3, "t", "ti", (SUBR)tabarithset1, (SUBR)tabimult },
+  { "##divitab",  sizeof(TABARITH1), 3, "t", "ti", (SUBR)tabarithset1, (SUBR)tabidiv },
+  { "##remitab",  sizeof(TABARITH1), 3, "t", "ti", (SUBR)tabarithset1, (SUBR)tabirem },
   { "maxtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
   { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
   { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
