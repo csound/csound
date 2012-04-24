@@ -56,6 +56,7 @@ if(USE_AUDIOUNIT)
     find_library(COREAUDIO_LIBRARY CoreAudio)
 endif()
 if(USE_FLTK OR BUILD_VIRTUAL_KEYBOARD)
+    set(FLTK_SKIP_OPENGL true)
     find_package(FLTK)
 endif()
 
