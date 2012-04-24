@@ -491,7 +491,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
     int opnum;
     int n, nreqd;;
 
-    /* printf("%d(%d): tree=%p\n", __FILE__, __LINE__, root); */
+    /* printf("%d(%d): tree=%p\n", __FILE__, __LINE_xxxxxxxxxxx_, root); */
     /* print_tree(csound, "create_opcode", root); */
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
