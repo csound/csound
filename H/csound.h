@@ -607,6 +607,8 @@ extern "C" {
      */
     PUBLIC int csoundCompileOrc(CSOUND *csound, TREE *root);
 
+    PUBLIC int csoundReadScore(CSOUND *csound, char *str);
+
     /**
      * Compiles Csound input files (such as an orchestra and score)
      * as directed by the supplied command-line arguments,

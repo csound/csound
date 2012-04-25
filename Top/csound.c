@@ -130,6 +130,7 @@ extern "C" {
     csoundCreate,
     csoundParseOrc,
     csoundCompileOrc,
+    csoundReadScore,
     csoundCompile,
     csoundPerform,
     csoundPerformKsmps,
@@ -376,7 +377,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL
+      NULL, NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
@@ -1749,6 +1750,19 @@ extern "C" {
       }
       csound->spoutran(csound);               /*      send to audio_out  */
       return 0;
+  }
+
+  PUBLIC int csoundReadScore(CSOUND *csound, char *str)
+  {
+      if(csound->scorestr != NULL &&
+         csound->scorestr->body != NULL)
+        corfile_rewind(csound->scorestr);
+      else
+        csound->scorestr = corfile_create_w();
+      corfile_puts(str, csound->scorestr);
+      corfile_flush(csound->scorestr);
+      scsortstr(csound, csound->scorestr);
+      return CSOUND_SUCCESS;
   }
 
   PUBLIC int csoundPerformKsmps(CSOUND *csound)

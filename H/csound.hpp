@@ -142,6 +142,10 @@ public:
   {
     return csoundCompileOrc(csound, root);
   }
+  virtual int ReadScore(CSOUND *csound, char *str)
+  {
+    return csoundReadScore(csound, str);
+  }
   virtual int Compile(int argc, char **argv)
   {
     return csoundCompile(csound, argc, argv);
