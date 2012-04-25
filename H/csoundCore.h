@@ -776,6 +776,8 @@ typedef struct NAME__ {
     void *(*GetHostData)(CSOUND *);
     void (*SetHostData)(CSOUND *, void *hostData);
     CSOUND *(*Create)(void *hostData);
+    TREE (*ParseOrc)(CSOUND *, char *str);
+    int (*CompileOrc)(CSOUND *, TREE *root);
     int (*Compile)(CSOUND *, int argc, char **argv);
     int (*Perform)(CSOUND *);
     int (*PerformKsmps)(CSOUND *);
