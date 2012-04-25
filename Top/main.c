@@ -47,33 +47,9 @@ extern  char    *get_sconame(CSOUND *);
 extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
-extern  OENTRY  opcodlst_1[];
 extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound,void *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, NAMES *nn);
-
-static void create_opcodlst(CSOUND *csound)
-{
-    OENTRY  *saved_opcodlst = csound->opcodlst;
-    int     old_cnt = 0, err;
-
-    if (saved_opcodlst != NULL) {
-      csound->opcodlst = NULL;
-      if (csound->oplstend != NULL)
-        old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
-      csound->oplstend = NULL;
-      memset(csound->opcode_list, 0, sizeof(int) * 256);
-    }
-    /* Basic Entry1 stuff */
-    err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
-    /* Add opcodes registered by host application */
-    if (old_cnt)
-      err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
-    if (saved_opcodlst != NULL)
-      free(saved_opcodlst);
-    if (err)
-      csoundDie(csound, Str("Error allocating opcode list"));
-}
 
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
@@ -89,7 +65,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
     if (csound->engineState != CS_STATE_PRE) {
-      csound->printerrormessagesflag = (void*)1234;
       if ((n = csoundPreCompile(csound)) != CSOUND_SUCCESS)
         return n;
     }
@@ -97,42 +72,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-
-    init_pvsys(csound);
-    /* utilities depend on this as well as orchs; may get changed by an orch */
-    dbfs_init(csound, DFLT_DBFS);
-    csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
-    csoundInitTimerStruct(csound->csRtClock);
-    csound->engineState |= CS_STATE_COMP | CS_STATE_CLN;
-
-#ifndef USE_DOUBLE
-#ifdef BETA
-    csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
-                            CS_PACKAGE_VERSION, __DATE__);
-#else
-    csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
-                            CS_PACKAGE_VERSION, __DATE__);
-#endif
-#else
-#ifdef BETA
-    csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
-                            CS_PACKAGE_VERSION, __DATE__);
-#else
-    csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
-                            CS_PACKAGE_VERSION, __DATE__);
-#endif
-#endif
-    {
-      char buffer[128];
-      sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
-      csound->Message(csound, "%s\n", buffer);
-    }
-
-    /* do not know file type yet */
-    O->filetyp = -1;
-    O->sfheader = 0;
-    csound->peakchunks = 1;
-    create_opcodlst(csound);
 
     if (--argc <= 0) {
       dieu(csound, Str("insufficient arguments"));
