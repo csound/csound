@@ -142,7 +142,7 @@ public:
   {
     return csoundCompileOrc(csound, root);
   }
-  virtual int ReadScore(CSOUND *csound, char *str)
+  virtual int ReadScore(char *str)
   {
     return csoundReadScore(csound, str);
   }
