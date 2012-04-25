@@ -134,6 +134,14 @@ public:
     return csoundGetEnv(csound, name);
   }
   // performance
+  virtual TREE *ParseOrc(char *str)
+  {
+    return csoundParseOrc(csound, str);
+  }
+  virtual int CompileOrc(TREE *root)
+  {
+    return csoundCompileOrc(csound, root);
+  }
   virtual int Compile(int argc, char **argv)
   {
     return csoundCompile(csound, argc, argv);
