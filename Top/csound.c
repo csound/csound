@@ -128,6 +128,8 @@ extern "C" {
     csoundGetHostData,
     csoundSetHostData,
     csoundCreate,
+    csoundParseOrc,
+    csoundCompileOrc,
     csoundCompile,
     csoundPerform,
     csoundPerformKsmps,
@@ -374,7 +376,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
