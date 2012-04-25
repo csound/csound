@@ -1754,6 +1754,7 @@ extern "C" {
 
   PUBLIC int csoundReadScore(CSOUND *csound, char *str)
   {
+      OPARMS  *O = csound->oparms;
       if(csound->scorestr != NULL &&
          csound->scorestr->body != NULL)
         corfile_rewind(csound->scorestr);
@@ -1762,6 +1763,8 @@ extern "C" {
       corfile_puts(str, csound->scorestr);
       corfile_flush(csound->scorestr);
       scsortstr(csound, csound->scorestr);
+      /* copy sorted score name */
+      O->playscore = csound->scstr;
       return CSOUND_SUCCESS;
   }
 
