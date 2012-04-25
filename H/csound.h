@@ -472,6 +472,26 @@ extern "C" {
       MYFLT   *data;
     } TABDAT;
 
+    typedef struct ORCTOKEN {
+        int              type;
+        char             *lexeme;
+        int              value;
+        double           fvalue;
+        struct ORCTOKEN  *next;
+    } ORCTOKEN;
+
+    typedef struct TREE {
+        int           type;
+        ORCTOKEN      *value;
+        int           rate;
+        int           len;
+        int           line;
+        int           locn;
+        struct TREE   *left;
+        struct TREE   *right;
+        struct TREE   *next;
+    } TREE;
+
     typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
             const char *channelName,
             MYFLT *channelValuePtr,
@@ -579,6 +599,13 @@ extern "C" {
     /*
      * PERFORMANCE
      */
+
+    PUBLIC TREE *csoundParseOrc(CSOUND *csound, char *str);
+
+    /**
+     * Compile the given TREE node into structs for Csound to use
+     */
+    PUBLIC int csoundCompileOrc(CSOUND *csound, TREE *root);
 
     /**
      * Compiles Csound input files (such as an orchestra and score)
