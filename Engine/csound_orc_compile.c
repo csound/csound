@@ -1026,7 +1026,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
 /**
  * Compile the given TREE node into structs for Csound to use
  */
-void csound_orc_compile(CSOUND *csound, TREE *root)
+PUBLIC int csoundCompileOrc(CSOUND *csound, TREE *root)
 {
 //    csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
@@ -1381,7 +1381,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root)
     /* End code from otran */
 
     /* csound->Message(csound, "End Compiling AST\n"); */
-
+    return CSOUND_SUCCESS;
 }
 
 

@@ -1,18 +1,6 @@
 #ifndef __CSOUND_ORC_H
 
 #define __CSOUND_ORC_H
-#include "tok.h"
-typedef struct TREE {
-  int           type;
-  ORCTOKEN         *value;
-  int           rate;
-  int           len;
-  int           line;
-  int           locn;
-  struct TREE   *left;
-  struct TREE   *right;
-  struct TREE   *next;
-} TREE;
 #include "csound_orcparse.h"
 #include "csoundCore.h"
 
