@@ -97,6 +97,30 @@ extern "C" {
 
   extern void close_all_files(CSOUND *);
 
+  extern OENTRY  opcodlst_1[];
+  static void create_opcodlst(CSOUND *csound)
+  {
+      OENTRY  *saved_opcodlst = csound->opcodlst;
+      int     old_cnt = 0, err;
+
+      if (saved_opcodlst != NULL) {
+        csound->opcodlst = NULL;
+        if (csound->oplstend != NULL)
+          old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
+        csound->oplstend = NULL;
+        memset(csound->opcode_list, 0, sizeof(int) * 256);
+      }
+      /* Basic Entry1 stuff */
+      err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
+      /* Add opcodes registered by host application */
+      if (old_cnt)
+        err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
+      if (saved_opcodlst != NULL)
+        free(saved_opcodlst);
+      if (err)
+        csoundDie(csound, Str("Error allocating opcode list"));
+  }
+
   static const CSOUND cenviron_ = {
     /* ----------------- interface functions (322 total) ----------------- */
     csoundGetVersion,
@@ -1078,7 +1102,9 @@ extern "C" {
       char    *s;
       int     i, max_len;
       int     n;
+      OPARMS  *O = p->oparms;
 
+      p->printerrormessagesflag = (void*)1234;
       if ((n = setjmp(p->exitjmp)) != 0) {
         return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
       }
@@ -1213,7 +1239,44 @@ extern "C" {
           free(p->delayederrormessages);
           p->delayederrormessages = NULL;
         }
-        return err;
+        if (err != CSOUND_SUCCESS)
+          return err;
+        init_pvsys(p);
+        /* utilities depend on this as well as orchs; may get changed by an orch */
+        dbfs_init(p, DFLT_DBFS);
+        p->csRtClock = (RTCLOCK*) p->Calloc(p, sizeof(RTCLOCK));
+        csoundInitTimerStruct(p->csRtClock);
+        p->engineState |= CS_STATE_COMP | CS_STATE_CLN;
+
+#ifndef USE_DOUBLE
+#ifdef BETA
+        p->Message(p, Str("Csound version %s beta (float samples) %s\n"),
+                            CS_PACKAGE_VERSION, __DATE__);
+#else
+        p->Message(p, Str("Csound version %s (float samples) %s\n"),
+                            CS_PACKAGE_VERSION, __DATE__);
+#endif
+#else
+#ifdef BETA
+        p->Message(p, Str("Csound version %s beta (double samples) %s\n"),
+                        CS_PACKAGE_VERSION, __DATE__);
+#else
+        p->Message(p, Str("Csound version %s (double samples) %s\n"),
+                        CS_PACKAGE_VERSION, __DATE__);
+#endif
+#endif
+        {
+          char buffer[128];
+          sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+          p->Message(p, "%s\n", buffer);
+        }
+
+        /* do not know file type yet */
+        O->filetyp = -1;
+        O->sfheader = 0;
+        p->peakchunks = 1;
+        create_opcodlst(p);
+        return CSOUND_SUCCESS;
       }
   }
 
