@@ -51,7 +51,6 @@ extern  OENTRY  opcodlst_1[];
 extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound,void *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, NAMES *nn);
-extern int new_orc_parser(CSOUND *);
 
 static void create_opcodlst(CSOUND *csound)
 {
@@ -86,6 +85,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     int     n;
     int     csdFound = 0;
     char    *fileDir;
+    TREE    *root;
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
     if (csound->engineState != CS_STATE_PRE) {
@@ -327,9 +327,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
 
-    if (new_orc_parser(csound)) {
-      csoundDie(csound, Str("Stopping on parser failure\n"));
-    }
+    root = csoundParseOrc(csound, NULL);
+    csoundCompileOrc(csound, root);
 #if defined(USE_OPENMP)
     if (csound->oparms->numThreads > 1) {
       omp_set_num_threads(csound->oparms->numThreads);
