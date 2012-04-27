@@ -777,7 +777,8 @@ typedef struct NAME__ {
     void (*SetHostData)(CSOUND *, void *hostData);
     CSOUND *(*Create)(void *hostData);
     TREE *(*ParseOrc)(CSOUND *, char *str);
-    int (*CompileOrc)(CSOUND *, TREE *root);
+    int (*CompileTree)(CSOUND *, TREE *root);
+    int (*CompileOrc)(CSOUND *, char *str);
     int (*ReadScore)(CSOUND *, char *str);
     int (*Compile)(CSOUND *, int argc, char **argv);
     int (*Perform)(CSOUND *);
