@@ -361,10 +361,10 @@ statement : ident '=' expr NEWLINE
                 }
           | T_IDENT_T '=' texp NEWLINE
           {
-              ORCTOKEN *op = lookup_token(csound, "#copytab", NULL);
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
+              //ORCTOKEN *op = lookup_token(csound, "=", NULL);
+              TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right =$3;
+              ans->right = $3;
               $$ = ans;
               print_tree(csound, "T assign\n", ans);
           }

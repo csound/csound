@@ -37,6 +37,7 @@ extern "C" {
 #endif
 #include "csoundCore.h"
 #include "csmodule.h"
+#include "corfile.h"
 #include "csGblMtx.h"
 #include <stdarg.h>
 #include <signal.h>
@@ -2668,7 +2669,6 @@ extern "C" {
   {
       char    *s;
       int     i, max_len;
-      int     n;
       OPARMS  *O = csound->oparms;
 
       csoundReset_(csound);
@@ -2735,12 +2735,14 @@ extern "C" {
                                         "Title tag in output soundfile "
                                         "(no spaces)", NULL);
       csound->SF_id_copyright = (char*) csound->SF_id_title + (int) i;
-      csoundCreateConfigurationVariable(csound, "id_copyright", csound->SF_id_copyright,
+      csoundCreateConfigurationVariable(csound, "id_copyright",
+                                        csound->SF_id_copyright,
                                         CSOUNDCFG_STRING, 0, NULL, &max_len,
                                         "Copyright tag in output soundfile"
                                         " (no spaces)", NULL);
       csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
-      csoundCreateConfigurationVariable(csound, "id_software", csound->SF_id_software,
+      csoundCreateConfigurationVariable(csound, "id_software", 
+                                        csound->SF_id_software,
                                         CSOUNDCFG_STRING, 0, NULL, &max_len,
                                         "Software tag in output soundfile"
                                         " (no spaces)", NULL);
@@ -2751,7 +2753,8 @@ extern "C" {
                                         "(no spaces)",
                                         NULL);
       csound->SF_id_comment = (char*) csound->SF_id_artist + (int) i;
-      csoundCreateConfigurationVariable(csound, "id_comment", csound->SF_id_comment,
+      csoundCreateConfigurationVariable(csound, "id_comment", 
+                                        csound->SF_id_comment,
                                         CSOUNDCFG_STRING, 0, NULL, &max_len,
                                         "Comment tag in output soundfile"
                                         " (no spaces)", NULL);
@@ -2766,11 +2769,13 @@ extern "C" {
         int   maxVal = 10000;
         MYFLT minValF = FL(0.0);
         /* max. length of string variables */
-        csoundCreateConfigurationVariable(csound, "max_str_len", &(csound->strVarMaxLen),
+        csoundCreateConfigurationVariable(csound, "max_str_len",
+                                          &(csound->strVarMaxLen),
                                           CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
                                           "Maximum length of string variables + 1",
                                           NULL);
-        csoundCreateConfigurationVariable(csound, "msg_color", &(csound->enableMsgAttr),
+        csoundCreateConfigurationVariable(csound, "msg_color", 
+                                          &(csound->enableMsgAttr),
                                           CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                           "Enable message attributes (colors etc.)",
                                           NULL);
@@ -2793,7 +2798,8 @@ extern "C" {
       /* this function returns an error value that may be worth checking */
       {
         int err = csoundInitStaticModules(csound);
-        if (csound->delayederrormessages && csound->printerrormessagesflag==NULL) {
+        if (csound->delayederrormessages && 
+            csound->printerrormessagesflag==NULL) {
           csound->Warning(csound, csound->delayederrormessages);
           free(csound->delayederrormessages);
           csound->delayederrormessages = NULL;
@@ -2801,7 +2807,8 @@ extern "C" {
         if (UNLIKELY(err==CSOUND_ERROR))
           csound->Die(csound, "Failed during csoundInitStaticModules");
         err = csoundLoadModules(csound);
-        if (csound->delayederrormessages && csound->printerrormessagesflag==NULL) {
+        if (csound->delayederrormessages && 
+            csound->printerrormessagesflag==NULL) {
           csound->Warning(csound, csound->delayederrormessages);
           free(csound->delayederrormessages);
           csound->delayederrormessages = NULL;
