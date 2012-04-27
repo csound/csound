@@ -606,7 +606,7 @@ static OENTRY tabvars_localops[] =
   { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
   { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
   { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
-  { "tabgen", sizeof(TABGEN), 1, "t", "iii", (SUBR) tabgen_set, NULL, NULL},
+  { "tabgen", sizeof(TABGEN), 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
   { "#tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
   //{ "tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
   { "#tabmap", sizeof(TABMAP), 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf},
