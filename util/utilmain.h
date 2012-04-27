@@ -34,8 +34,7 @@ static int csoundUtilMain(const char *name, int argc, char **argv)
     int     n = -1;
 
     if ((csound = csoundCreate(NULL)) != NULL) {
-      if ((n = csoundPreCompile(csound)) == 0)
-        n = csoundRunUtility(csound, name, argc, argv);
+      n = csoundRunUtility(csound, name, argc, argv);
       csoundDestroy(csound);
     }
     return (n == CSOUND_EXITJMP_SUCCESS ? 0 : n);

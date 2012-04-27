@@ -213,7 +213,6 @@ uintptr_t CsoundVST::performanceThreadRoutine()
   exportForPerformance();
   Message("Saved as: '%s' and '%s'.\n", getOrcFilename().c_str(), getScoFilename().c_str());
   reset();
-  PreCompile();
   // FLTK flags is the sum of any of the following values:
   //   1:  disable widget opcodes by setting up dummy opcodes instead
   //   2:  disable FLTK graphs

@@ -46,28 +46,25 @@ uintptr_t CsoundUtility::threadFunc(void *userData)
     }
     csoundSetMessageCallback(p->csound,
                              &CsoundGUIConsole::messageCallback_Thread);
-    if (csoundPreCompile(p->csound) == 0) {
-      if (csoundCreateGlobalVariable(p->csound, "_csound5gui_utility",
-                                                sizeof(CsoundUtility*)) == 0) {
-        vector<char *>   argv_;
-        int                   argc_;
-        *((CsoundUtility**)
-              csoundQueryGlobalVariable(p->csound, "_csound5gui_utility")) = p;
-        for (argc_ = 0; argc_ < (int) p->args.size(); argc_++)
-          argv_.push_back(const_cast<char *>(p->args[argc_].c_str()));
-        argv_.push_back((char*) 0);
-        csoundSetIsGraphable(p->csound, 1);     // disable FLTK graphs
-        csoundSetYieldCallback(p->csound, &CsoundUtility::yieldCallback);
-        if (p->runUtility_(argc_, &(argv_.front())) < 0)
-          p->status = -1;
-        else
-          p->status = 1;
-      }
-      else
+    if (csoundCreateGlobalVariable(p->csound, "_csound5gui_utility",
+                                   sizeof(CsoundUtility*)) == 0) {
+      vector<char *>   argv_;
+      int                   argc_;
+      *((CsoundUtility**)
+            csoundQueryGlobalVariable(p->csound, "_csound5gui_utility")) = p;
+      for (argc_ = 0; argc_ < (int) p->args.size(); argc_++)
+        argv_.push_back(const_cast<char *>(p->args[argc_].c_str()));
+      argv_.push_back((char*) 0);
+      csoundSetIsGraphable(p->csound, 1);     // disable FLTK graphs
+      csoundSetYieldCallback(p->csound, &CsoundUtility::yieldCallback);
+      if (p->runUtility_(argc_, &(argv_.front())) < 0)
         p->status = -1;
+      else
+        p->status = 1;
     }
     else
       p->status = -1;
+
     csoundDestroy(p->csound);
     p->csound = (CSOUND*) 0;
     p->args.clear();

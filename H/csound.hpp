@@ -113,10 +113,6 @@ public:
     return csound;
   }
   // csound.h interface
-  virtual int PreCompile()
-  {
-    return csoundPreCompile(csound);
-  }
   virtual int InitializeCscore(FILE *insco, FILE *outsco)
   {
     return csoundInitializeCscore(csound, insco, outsco);
