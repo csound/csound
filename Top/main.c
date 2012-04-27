@@ -61,7 +61,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     int     n;
     int     csdFound = 0;
     char    *fileDir;
-    TREE    *root;
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
     if (csound->engineState != CS_STATE_PRE) {
@@ -266,8 +265,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
 
-    root = csoundParseOrc(csound, NULL);
-    csoundCompileOrc(csound, root);
+    csoundCompileOrc(csound, NULL);
 #if defined(USE_OPENMP)
     if (csound->oparms->numThreads > 1) {
       omp_set_num_threads(csound->oparms->numThreads);

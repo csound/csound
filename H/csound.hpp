@@ -138,9 +138,13 @@ public:
   {
     return csoundParseOrc(csound, str);
   }
-  virtual int CompileOrc(TREE *root)
+  virtual int CompileTree(TREE *root)
   {
-    return csoundCompileOrc(csound, root);
+    return csoundCompileTree(csound, root);
+  }
+  virtual int CompileOrc(char *str)
+  {
+    return csoundCompileOrc(csound, str);
   }
   virtual int ReadScore(char *str)
   {

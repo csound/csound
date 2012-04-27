@@ -1026,7 +1026,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
 /**
  * Compile the given TREE node into structs for Csound to use
  */
-PUBLIC int csoundCompileOrc(CSOUND *csound, TREE *root)
+PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 {
 //    csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
@@ -1384,6 +1384,12 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, TREE *root)
     return CSOUND_SUCCESS;
 }
 
+PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
+{
+    TREE *root = csoundParseOrc(csound, str);
+    int retVal = csoundCompileTree(csound, root);
+    return retVal;
+}
 
 /* prep an instr template for efficient allocs  */
 /* repl arg refs by offset ndx to lcl/gbl space */
