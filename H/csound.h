@@ -605,7 +605,9 @@ extern "C" {
     /**
      * Compile the given TREE node into structs for Csound to use
      */
-    PUBLIC int csoundCompileOrc(CSOUND *csound, TREE *root);
+    PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
+
+    PUBLIC int csoundCompileOrc(CSOUND *csound, char *str);
 
     PUBLIC int csoundReadScore(CSOUND *csound, char *str);
 
