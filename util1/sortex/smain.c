@@ -45,7 +45,6 @@ int main(void)                          /* stdio stub for standalone scsort */
     signal(SIGPIPE, SIG_DFL);
 #endif
     csoundSetMessageCallback(csound, msg_callback);
-    csoundPreCompile(csound);
     err = csoundScoreSort(csound, stdin, stdout);
     csoundDestroy(csound);
 

@@ -24,7 +24,6 @@ int AndroidCsound::PreCompile()
 
 __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","PreCompile()"); 
 
-     int retVal = Csound::PreCompile(); 
 __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","set callbacks"); 
       csoundSetPlayopenCallback(csound, androidplayopen_);
       csoundSetRecopenCallback(csound, androidrecopen_);
@@ -34,7 +33,7 @@ __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","set callbacks");
       csoundSetMessageCallback(csound, androidMessageCallbac);
 __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","callbacks set"); 
 
-    return retVal; 
+    return 0; 
 };
 
 void AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {

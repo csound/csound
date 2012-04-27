@@ -245,19 +245,17 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
     cmdl[i] = "-d";
     x->argnum = argc + 2;
     x->cmdl = cmdl;
-    x->result = csoundPreCompile(x->csound);
-    if (x->result == CSOUND_SUCCESS) {
-      csoundSetHostImplementedAudioIO(x->csound, 1, 0);
-      csoundSetInputValueCallback(x->csound, in_channel_value_callback);
-      csoundSetOutputValueCallback(x->csound, out_channel_value_callback);
 
-      csoundSetExternalMidiInOpenCallback(x->csound, open_midi_callback);
-      csoundSetExternalMidiReadCallback(x->csound, read_midi_callback);
-      csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
+    csoundSetHostImplementedAudioIO(x->csound, 1, 0);
+    csoundSetInputValueCallback(x->csound, in_channel_value_callback);
+    csoundSetOutputValueCallback(x->csound, out_channel_value_callback);
 
-      csoundSetMessageCallback(x->csound, message_callback);
-      x->result = csoundCompile(x->csound, x->argnum, cmdl);
-    }
+    csoundSetExternalMidiInOpenCallback(x->csound, open_midi_callback);
+    csoundSetExternalMidiReadCallback(x->csound, read_midi_callback);
+    csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
+
+    csoundSetMessageCallback(x->csound, message_callback);
+    x->result = csoundCompile(x->csound, x->argnum, cmdl);
 
     if (!x->result) {
       x->end = 0;
@@ -390,16 +388,13 @@ static void csoundapi_reset(t_csoundapi *x)
     }
 
     csoundReset(x->csound);
-    x->result = csoundPreCompile(x->csound);
-    if (x->result == CSOUND_SUCCESS) {
-      csoundSetHostImplementedAudioIO(x->csound, 1, 0);
+    csoundSetHostImplementedAudioIO(x->csound, 1, 0);
 
-      csoundSetExternalMidiInOpenCallback(x->csound, open_midi_callback);
-      csoundSetExternalMidiReadCallback(x->csound, read_midi_callback);
-      csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
+    csoundSetExternalMidiInOpenCallback(x->csound, open_midi_callback);
+    csoundSetExternalMidiReadCallback(x->csound, read_midi_callback);
+    csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
 
-      x->result = csoundCompile(x->csound, x->argnum, x->cmdl);
-    }
+    x->result = csoundCompile(x->csound, x->argnum, x->cmdl);
 
     if (!x->result) {
       x->end = 0;
@@ -463,16 +458,14 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
   cmdl[i] = "-d";
   x->argnum = argc + 2;
   x->cmdl = cmdl;
-  x->result = csoundPreCompile(x->csound);
-  if (x->result == CSOUND_SUCCESS) {
-    csoundSetHostImplementedAudioIO(x->csound, 1, 0);
 
-    csoundSetExternalMidiInOpenCallback(x->csound, open_midi_callback);
-    csoundSetExternalMidiReadCallback(x->csound, read_midi_callback);
-    csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
+  csoundSetHostImplementedAudioIO(x->csound, 1, 0);
 
-    x->result = csoundCompile(x->csound, x->argnum, cmdl);
-  }
+  csoundSetExternalMidiInOpenCallback(x->csound, open_midi_callback);
+  csoundSetExternalMidiReadCallback(x->csound, read_midi_callback);
+  csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
+
+  x->result = csoundCompile(x->csound, x->argnum, cmdl);
 
   if (!x->result) {
     x->end = 0;

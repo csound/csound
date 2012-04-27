@@ -525,13 +525,6 @@ extern "C" {
     PUBLIC CSOUND *csoundCreate(void *hostData);
 
     /**
-     * Reset and prepare an instance of Csound for compilation.
-     * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
-     * CSOUND_MEMORY if an error occured.
-     */
-    PUBLIC int csoundPreCompile(CSOUND *);
-
-    /**
      * csoundInitializeCscore() prepares an instance of Csound for Cscore
      * processing outside of running an orchestra (i.e. "standalone Cscore").
      * It is an alternative to csoundPreCompile(), csoundCompile(), and
@@ -904,6 +897,12 @@ extern "C" {
 
     PUBLIC void csoundMessageV(CSOUND *,
             int attr, const char *format, va_list args);
+
+    PUBLIC void csoundSetDefaultMessageCallback(
+            void (*csoundMessageCallback_)(CSOUND *,
+                    int attr,
+                    const char *format,
+                    va_list valist));
 
     /**
      * Sets a function to be called by Csound to print an informational message.

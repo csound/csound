@@ -469,10 +469,6 @@ void CsoundGUIMain::startPerformance()
   csoundSetMessageCallback(csound,
                            &CsoundGUIConsole::messageCallback_Thread);
   csoundSetYieldCallback(csound, &CsoundGUIMain::yieldCallback);
-  if (csoundPreCompile(csound) != 0) {
-    csoundReset(csound);
-    return;
-  }
   csPerf = CreateCsoundPerformance(csound,
                                    currentPerformanceSettings.useThreads);
   if (!csPerf) {
