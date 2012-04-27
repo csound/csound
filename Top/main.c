@@ -62,16 +62,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     int     csdFound = 0;
     char    *fileDir;
 
-    /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
-    if (csound->engineState != CS_STATE_PRE) {
-      if ((n = csoundPreCompile(csound)) != CSOUND_SUCCESS)
-        return n;
-    }
-
-    if ((n = setjmp(csound->exitjmp)) != 0) {
-      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
-
     if (--argc <= 0) {
       dieu(csound, Str("insufficient arguments"));
     }
@@ -258,13 +248,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
-    /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
-    /* instrument numbers are known at the score read/sort stage */
-    csoundLoadExternals(csound);    /* load plugin opcodes */
-    /* IV - Jan 31 2005: initialise external modules */
-    if (csoundInitModules(csound) != 0)
-      csound->LongJmp(csound, 1);
-
     csoundCompileOrc(csound, NULL);
 #if defined(USE_OPENMP)
     if (csound->oparms->numThreads > 1) {

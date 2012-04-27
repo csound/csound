@@ -45,8 +45,7 @@ int main(int argc, char **argv)
 
     if ((csound = csoundCreate(NULL)) != NULL) {
       csoundSetMessageCallback(csound, messageCallback_);
-      if ((n = csoundPreCompile(csound)) == 0)
-        n = csoundRunUtility(csound, "pvlook", argc, argv);
+      n = csoundRunUtility(csound, "pvlook", argc, argv);
       csoundDestroy(csound);
     }
     return (n == CSOUND_EXITJMP_SUCCESS ? 0 : n);
