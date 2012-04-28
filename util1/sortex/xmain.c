@@ -37,7 +37,6 @@ int main(int ac, char **av)         /* stdio stub for standalone extract */
 #if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__) || defined(__EMX__)
     signal(SIGPIPE, SIG_DFL);
 #endif
-    csoundPreCompile(csound);
     if (ac != 2) {
       fprintf(stderr, "usage: extract xfile <in >out\n");
       goto err_return;

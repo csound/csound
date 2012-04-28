@@ -67,9 +67,7 @@ if(BUILD_STK_OPCODES)
                 list(APPEND stkdefs "__LITTLE_ENDIAN__")
             endif()
 
-
-            set_target_properties(stk PROPERTIES
-                COMPILE_DEFINITIONS "${stkdefs}")
+            add_compiler_flags(${stkdefs} TARGETS stk)
 
         endif()
     endif()

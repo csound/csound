@@ -369,20 +369,18 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
 static int createScore(CSOUND *csound, FILE *unf)
 {
     char   *p;
-    CORFIL *incore = corfile_create_w();
     char   buffer[CSD_MAX_LINE_LEN];
 
+    if (csound->scorestr == NULL)
+      csound->scorestr = corfile_create_w();
     csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;
-      if (strstr(p, "</CsScore>") == p) {
-        corfile_flush(incore);
-        csound->scorestr = incore;
+      if (strstr(p, "</CsScore>") == p)
         return TRUE;
-      }
       else
-        corfile_puts(buffer, incore);
+        corfile_puts(buffer, csound->scorestr);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;
@@ -435,7 +433,18 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
           return FALSE;
         }
         remove(extname);
-        add_tmpfile(csound, STA(sconame));           /* IV - Feb 03 2005 */
+        if (csound->scorestr == NULL)
+          csound->scorestr = corfile_create_w();
+        fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
+                                    "r", NULL, CSFTYPE_SCORE, 0);
+        if (UNLIKELY(fd == NULL)) {
+          remove(STA(sconame));
+          return FALSE;
+        }
+        while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, scof)!= NULL)
+          corfile_puts(buffer, csound->scorestr);
+        csoundFileClose(csound, fd);
+        remove(STA(sconame));
         return TRUE;
       }
       else fputs(buffer, scof);
@@ -733,6 +742,8 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||
                strstr(p, "</CsoundSynthesiser>") == p) {
+        if (csound->scorestr != NULL)
+          corfile_flush(csound->scorestr);
         *pname = STA(orcname);
         *score = STA(sconame);
         if (STA(midiSet)) {

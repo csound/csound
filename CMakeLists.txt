@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.3)
 
 project (Csound)
 
@@ -21,17 +21,12 @@ set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
-# Include this after the install path definitions so we can override them here.
-find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
-if(CUSTOM_CMAKE)
-    message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
-    include(${CUSTOM_CMAKE})
-endif()
-
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
+include(CheckLibraryExists)
+include(CMakeParseArguments)
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
@@ -143,6 +138,55 @@ function(check_deps option)
     endif()
 endfunction(check_deps)
 
+# Shortcut to add compiler flags
+# Mandatory arguments: the flags to add, should be passed before optional keywords, can be
+#                      passed as lists or space-separated
+# Optional keywords:
+# LINKER: add to linker instead of compile flags (LDFLAGS vs CFLAGS)
+# TARGETS <target1> <target2> ...
+#           if specified, will add the flags to a target instead
+#           of the global namespace
+function(add_compiler_flags)
+    set(bool_options LINKER)
+    set(multi_val_args TARGETS)
+    cmake_parse_arguments(FLAGS "${bool_options}" "" "${multi_val_args}" ${ARGN})
+
+    expand_list(FLAGS ${FLAGS_UNPARSED_ARGUMENTS})
+
+    if(FLAGS_TARGETS)
+        foreach(target ${FLAGS_TARGETS})
+            if(NOT FLAGS_LINKER)
+                set(property "COMPILE_FLAGS")
+            else()
+                set(property "LINK_FLAGS")
+            endif()
+            get_target_property(propval ${target} ${property})
+            if(NOT propval)
+                set(propval "")
+            endif()
+            set_target_properties(${target} PROPERTIES
+                ${property} "${propval} ${FLAGS}")
+        endforeach()
+    else()
+        if(FLAGS_LINKER)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS}")
+            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${FLAGS}")
+            set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${FLAGS}")
+        else()
+            add_definitions("${FLAGS}")
+        endif()
+    endif()
+endfunction(add_compiler_flags)
+
+
+# Include this after the install path definitions so we can override them here.
+# Also after function definitions so we can use them there
+find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
+if(CUSTOM_CMAKE)
+    message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
+    include(${CUSTOM_CMAKE})
+endif()
+
 
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
@@ -216,6 +260,8 @@ option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 
 option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
+option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
+option(BUILD_RELEASE "Build for release" ON)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -226,12 +272,23 @@ if(USE_DOUBLE)
     add_definitions("-DUSE_DOUBLE")
 endif(USE_DOUBLE)
 if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
-    add_definitions("-fvisibility=hidden")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fvisibility=hidden")
+    add_compiler_flags("-fvisibility=hidden")
+    add_compiler_flags("-fvisibility=hidden" LINKER)
+endif()
+
+if(BUILD_RELEASE)
+    add_definitions("-D_CSOUND_RELEASE_")
+    if(LINUX)
+        set(DEFAULT_OPCODEDIR "${CMAKE_INSTALL_PREFIX}/${PLUGIN_INSTALL_DIR}")
+        add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
+    endif()
+else()
+    add_definitions("-DBETA")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
     add_definitions("-Wno-format")
+    add_compiler_flags("-g")
 endif()
 
 #if(USE_DOUBLE)
@@ -297,6 +354,7 @@ find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
+check_library_exists(m lrint "" HAVE_LRINT)
 
 set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
@@ -311,6 +369,11 @@ foreach(header ${HEADERS_TO_CHECK})
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
     check_include_file(${header} HAVE_${upper_header})
 endforeach()
+
+check_deps(USE_LRINT HAVE_LRINT)
+if(USE_LRINT)
+    add_definitions("-DUSE_LRINT")
+endif()
 
 # Flex/Bison for the new parser
 find_package(FLEX)
@@ -379,13 +442,11 @@ set(libcsound_SRCS
     Engine/memfiles.c
     Engine/musmon.c
     Engine/namedins.c
-    Engine/otran.c
     Engine/rdscor.c
     Engine/scsort.c
     Engine/scxtract.c
     Engine/sort.c
     Engine/sread.c
-    Engine/swrite.c
     Engine/swritestr.c
     Engine/twarp.c
     InOut/libsnd.c
@@ -744,10 +805,7 @@ if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
-expand_list(expanded_libcsound_CFLAGS ${libcsound_CFLAGS})
-set_property(
-    TARGET ${CSOUNDLIB}
-    PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
+add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
 
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
 
@@ -760,9 +818,7 @@ if(BUILD_STATIC_LIBRARY)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
-    set_property(
-        TARGET ${CSOUNDLIB_STATIC}
-        PROPERTY COMPILE_FLAGS "${expanded_libcsound_CFLAGS}")
+    add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB_STATIC})
 
     target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
 

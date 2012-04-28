@@ -31,8 +31,7 @@ if(BUILD_CXX_INTERFACE)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
     if(${libcsnd_CFLAGS})
-         set_target_properties(libcsnd PROPERTIES
-             COMPILE_FLAGS ${libcsnd_CFLAGS})
+        add_compiler_flags(${libcsnd_CFLAGS} TARGETS libcsnd)
     endif()
 
     install(TARGETS libcsnd
@@ -76,6 +75,11 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME csnd)
+
+        set(SWIG_MODULE_csnd_EXTRA_DEPS ../H/csound.h ../H/cfgvar.h ../H/csound.hpp
+                                        cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
+                                        CppSound.hpp filebuilding.h Soundfile.hpp)
+
         SWIG_ADD_MODULE(csnd python python_interface.i)
         SWIG_LINK_LIBRARIES(csnd ${swigpython_LIBS})
     
@@ -100,6 +104,11 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
 
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES CPLUSPLUS ON)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i SWIG_FLAGS "-package" "csnd")
+
+        set(SWIG_MODULE__jcsound_EXTRA_DEPS ../H/csound.h ../H/cfgvar.h ../H/csound.hpp
+                                        cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
+                                        CppSound.hpp filebuilding.h Soundfile.hpp)
+
         SWIG_ADD_MODULE(_jcsound java java_interface.i)
         SWIG_LINK_LIBRARIES(_jcsound ${swigjava_LIBS})
 
@@ -131,6 +140,12 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SET_SOURCE_FILES_PROPERTIES(lua_interface.i
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME luaCsnd)
+
+
+        set(SWIG_MODULE_luaCsnd_EXTRA_DEPS ../H/csound.h ../H/cfgvar.h ../H/csound.hpp
+                                        cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
+                                        CppSound.hpp filebuilding.h Soundfile.hpp)
+
         SWIG_ADD_MODULE(luaCsnd lua lua_interface.i)
         SWIG_LINK_LIBRARIES(luaCsnd ${swiglua_LIBS})
     

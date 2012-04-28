@@ -24,32 +24,13 @@
 #include "csoundCore.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
 
-extern void sort(CSOUND*), twarp(CSOUND*), swrite(CSOUND*), swritestr(CSOUND*);
+extern void sort(CSOUND*), twarp(CSOUND*), swritestr(CSOUND*);
 extern void sfree(CSOUND *csound);
 extern void sread_init(CSOUND *csound);
 extern int  sread(CSOUND *csound);
 
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */
-
-#ifdef OLD_CODE
-void scsort(CSOUND *csound, FILE *scin, FILE *scout)
-{
-    int     n;
-
-    csound->scorein = scin;
-    csound->scoreout = scout;
-
-    csound->sectcnt = 0;
-    sread_init(csound);
-    while ((n = sread(csound)) > 0) {
-      sort(csound);
-      twarp(csound);
-      swrite(csound);
-    }
-    sfree(csound);              /* return all memory used */
-}
-#endif
 
 extern void sread_initstr(CSOUND *);
 void scsortstr(CSOUND *csound, CORFIL *scin)

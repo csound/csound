@@ -1281,7 +1281,6 @@ int tclcsound_initialise(Tcl_Interp * interp)
     pdata->pvsoutchan = NULL;
     pdata->interp = interp;
     pdata->mbuf = Tcl_Alloc(10000000);
-    csoundPreCompile(pdata->instance);
     csoundSetInputValueCallback(pdata->instance, in_channel_value_callback);
     csoundSetOutputValueCallback(pdata->instance, out_channel_value_callback);
     csoundSetYieldCallback(pdata->instance, PvsChannelCallback) ;
