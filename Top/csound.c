@@ -569,7 +569,7 @@ extern "C" {
     NULL,           /*  FFT_table_2         */
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
     /* express.c */
-    0, 0, 0, 0, 0,  /*  acount, kcount, icount, Bcount, bcount */
+    0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     0,              /*  strVarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
     {

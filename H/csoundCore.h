@@ -1256,7 +1256,7 @@ typedef struct NAME__ {
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
-    int           acount, kcount, icount, Bcount, bcount;
+    int           acount, kcount, icount, Bcount, bcount, tcount;
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     struct otranStatics__ {
