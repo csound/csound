@@ -366,7 +366,7 @@ statement : ident '=' expr NEWLINE
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
               ans->right = $3;
               $$ = ans;
-              print_tree(csound, "T assign\n", ans);
+              //print_tree(csound, "T assign\n", ans);
           }
           | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ',' iexp']' NEWLINE
           {

@@ -351,10 +351,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
     int nreqd = strlen(types);
     char      tfound = '\0', treqd;
 
-    printf("ep: %s (%s %s)\n", ep->opname, ep->intypes, ep->outypes);
     if (n > nreqd) {                 /* IV - Oct 24 2002: end of new code */
-      printf("n=%d nreqd=%d treqd=%c ep->opname=%s\n",
-             n, nreqd, types[nreqd-1], ep->opname);
       if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
         int incnt = -1;                       /* Should count args */
         if (!(incnt & 01))                    /* require odd */
@@ -494,8 +491,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
     int opnum;
     int n, nreqd;;
 
-    printf("%d(%d): tree=%p\n", __FILE__, __LINE__, root);
-    print_tree(csound, "create_opcode", root);
+    //printf("%d(%d): tree=%p\n", __FILE__, __LINE__, root);
+    //print_tree(csound, "create_opcode", root);
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
 
