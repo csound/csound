@@ -35,6 +35,8 @@
 
 class CsoundVstFltk;
 
+const char *nameForOpcode(int opcode);
+
 class Preset
 {
 public:
@@ -47,16 +49,13 @@ class CsoundVST :
   public AudioEffectX
 {
 public:
-  enum
-    {
+    enum {
       kNumInputs = 2
     };
-  enum
-    {
+    enum {
       kNumOutputs = 2
     };
-  enum
-    {
+    enum {
       kNumPrograms = 10
     };
   static double inputScale;
@@ -77,6 +76,7 @@ public:
   float vstCurrentSampleBlockEnd;
   float vstCurrentSamplePosition;
   float vstPriorSamplePosition;
+    char *CSOUNDVST_PRINT_OPCODES;
   CsoundVstFltk *csoundVstFltk;
   std::list<VstMidiEvent> midiEventQueue;
   std::vector<Preset> bank;
@@ -127,6 +127,10 @@ public:
   virtual void fltkflush();
   virtual void fltkwait();
   virtual int fltkrun();
+    /**
+     * Override to permit logging opcode dispatches for diagnostic purposes.
+     */
+    virtual VstIntPtr dispatcher (VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt);
   static int midiDeviceOpen(CSOUND *csound, void **userData,
                             const char *devName);
   static int midiRead(CSOUND *csound, void *userData,

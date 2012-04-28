@@ -24,16 +24,99 @@
 #include <cstring>
 #include <cstdlib>
 
-static char *dupstr(const char *string)
+const char *getNameForOpcode(int opcode)
 {
-  if (string == 0) {
-    return 0;
+    static bool initialized = false;
+    static std::map<int, const char*> namesForOpcodes;
+    if (!initialized) {
+        namesForOpcodes[effOpen] = "effOpen"; // = 0,		///< no arguments  @see AudioEffect::open
+        namesForOpcodes[effClose] = "effClose"; //,			///< no arguments  @see AudioEffect::close
+        namesForOpcodes[effSetProgram] = "effSetProgram"; //,		///< [value]: new program number  @see AudioEffect::setProgram
+        namesForOpcodes[effGetProgram] = "effGetProgram"; //,		///< [return value]: current program number  @see AudioEffect::getProgram
+        namesForOpcodes[effSetProgramName] = "effSetProgramName"; //,	///< [ptr]: char* with new program name, limited to #kVstMaxProgNameLen  @see AudioEffect::setProgramName
+        namesForOpcodes[effGetProgramName] = "effGetProgramName"; //,	///< [ptr]: char buffer for current program name, limited to #kVstMaxProgNameLen  @see AudioEffect::getProgramName
+        namesForOpcodes[effGetParamLabel] = "effGetParamLabel"; //,	///< [ptr]: char buffer for parameter label, limited to #kVstMaxParamStrLen  @see AudioEffect::getParameterLabel
+        namesForOpcodes[effGetParamDisplay] = "effGetParamDisplay"; //,	///< [ptr]: char buffer for parameter display, limited to #kVstMaxParamStrLen  @see AudioEffect::getParameterDisplay
+        namesForOpcodes[effGetParamName] = "effGetParamName"; //,	///< [ptr]: char buffer for parameter name, limited to #kVstMaxParamStrLen  @see AudioEffect::getParameterName
+        namesForOpcodes[effGetVu] = "effGetVu"; //),	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effSetSampleRate] = "effSetSampleRate"; //,	///< [opt]: new sample rate for audio processing  @see AudioEffect::setSampleRate
+        namesForOpcodes[effSetBlockSize] = "effSetBlockSize"; //,	///< [value]: new maximum block size for audio processing  @see AudioEffect::setBlockSize
+        namesForOpcodes[effMainsChanged] = "effMainsChanged"; //,	///< [value]: 0 means "turn off", 1 means "turn on"  @see AudioEffect::suspend @see AudioEffect::resume
+        namesForOpcodes[effEditGetRect] = "effEditGetRect"; //,		///< [ptr]: #ERect** receiving pointer to editor size  @see ERect @see AEffEditor::getRect
+        namesForOpcodes[effEditOpen] = "effEditOpen"; //,		///< [ptr]: system dependent Window pointer, e.g. HWND on Windows  @see AEffEditor::open
+        namesForOpcodes[effEditClose] = "effEditClose"; //,		///< no arguments @see AEffEditor::close
+        namesForOpcodes[effEditDraw] = "effEditDraw"; //),	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effEditMouse] = "effEditMouse"; //),	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effEditKey] = "effEditKey"; //),	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effEditIdle] = "effEditIdle"; //,		///< no arguments @see AEffEditor::idle
+        namesForOpcodes[effEditTop] = "effEditTop"; //),	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effEditSleep] = "effEditSleep"; //),	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effIdentify] = "effIdentify"; //),	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effGetChunk] = "effGetChunk"; //,		///< [ptr]: void** for chunk data address [index]: 0 for bank, 1 for program  @see AudioEffect::getChunk
+        namesForOpcodes[effSetChunk] = "effSetChunk"; //,		///< [ptr]: chunk data [value]: byte size [index]: 0 for bank, 1 for program  @see AudioEffect::setChunk
+        namesForOpcodes[effNumOpcodes] = "effNumOpcodes"; //
+        namesForOpcodes[effProcessEvents] = "effProcessEvents"; // = effSetChunk + 1		///< [ptr]: #VstEvents*  @see AudioEffectX::processEvents
+        namesForOpcodes[effCanBeAutomated] = "effCanBeAutomated"; //						///< [index]: parameter index [return value]: 1=true0=false  @see AudioEffectX::canParameterBeAutomated
+        namesForOpcodes[effString2Parameter] = "effString2Parameter"; //					///< [index]: parameter index [ptr]: parameter string [return value]: true for success  @see AudioEffectX::string2parameter
+        namesForOpcodes[effGetNumProgramCategories] = "effGetNumProgramCategories"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effGetProgramNameIndexed] = "effGetProgramNameIndexed"; //				///< [index]: program index [ptr]: buffer for program namelimited to #kVstMaxProgNameLen [return value]: true for success  @see AudioEffectX::getProgramNameIndexed
+        namesForOpcodes[effCopyProgram] = "effCopyProgram"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effConnectInput] = "effConnectInput"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effConnectOutput] = "effConnectOutput"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effGetInputProperties] = "effGetInputProperties"; //					///< [index]: input index [ptr]: #VstPinProperties* [return value]: 1 if supported  @see AudioEffectX::getInputProperties
+        namesForOpcodes[effGetOutputProperties] = "effGetOutputProperties"; //				///< [index]: output index [ptr]: #VstPinProperties* [return value]: 1 if supported  @see AudioEffectX::getOutputProperties
+        namesForOpcodes[effGetPlugCategory] = "effGetPlugCategory"; //					///< [return value]: category  @see VstPlugCategory @see AudioEffectX::getPlugCategory
+        namesForOpcodes[effGetCurrentPosition] = "effGetCurrentPosition"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effGetDestinationBuffer] = "effGetDestinationBuffer"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effOfflineNotify] = "effOfflineNotify"; //						///< [ptr]: #VstAudioFile array [value]: count [index]: start flag  @see AudioEffectX::offlineNotify
+        namesForOpcodes[effOfflinePrepare] = "effOfflinePrepare"; //						///< [ptr]: #VstOfflineTask array [value]: count  @see AudioEffectX::offlinePrepare
+        namesForOpcodes[effOfflineRun] = "effOfflineRun"; //							///< [ptr]: #VstOfflineTask array [value]: count  @see AudioEffectX::offlineRun
+        namesForOpcodes[effProcessVarIo] = "effProcessVarIo"; //						///< [ptr]: #VstVariableIo*  @see AudioEffectX::processVariableIo
+        namesForOpcodes[effSetSpeakerArrangement] = "effSetSpeakerArrangement"; //				///< [value]: input #VstSpeakerArrangement* [ptr]: output #VstSpeakerArrangement*  @see AudioEffectX::setSpeakerArrangement
+        namesForOpcodes[effSetBlockSizeAndSampleRate] = "effSetBlockSizeAndSampleRate"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effSetBypass] = "effSetBypass"; //							///< [value]: 1 = bypass0 = no bypass  @see AudioEffectX::setBypass
+        namesForOpcodes[effGetEffectName] = "effGetEffectName"; //						///< [ptr]: buffer for effect namelimited to #kVstMaxEffectNameLen  @see AudioEffectX::getEffectName
+        namesForOpcodes[effGetErrorText] = "effGetErrorText"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effGetVendorString] = "effGetVendorString"; //					///< [ptr]: buffer for effect vendor stringlimited to #kVstMaxVendorStrLen  @see AudioEffectX::getVendorString
+        namesForOpcodes[effGetProductString] = "effGetProductString"; //					///< [ptr]: buffer for effect vendor stringlimited to #kVstMaxProductStrLen  @see AudioEffectX::getProductString
+        namesForOpcodes[effGetVendorVersion] = "effGetVendorVersion"; //					///< [return value]: vendor-specific version  @see AudioEffectX::getVendorVersion
+        namesForOpcodes[effVendorSpecific] = "effVendorSpecific"; //						///< no definitionvendor specific handling  @see AudioEffectX::vendorSpecific
+        namesForOpcodes[effCanDo] = "effCanDo"; //								///< [ptr]: "can do" string [return value]: 0: "don't know" -1: "no" 1: "yes"  @see AudioEffectX::canDo
+        namesForOpcodes[effGetTailSize] = "effGetTailSize"; //						///< [return value]: tail size (for example the reverb time of a reverb plug-in); 0 is default (return 1 for 'no tail')
+        namesForOpcodes[effIdle] = "effIdle"; //)				///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effGetIcon] = "effGetIcon"; //)			///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effSetViewPosition] = "effSetViewPosition"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effGetParameterProperties] = "effGetParameterProperties"; //				///< [index]: parameter index [ptr]: #VstParameterProperties* [return value]: 1 if supported  @see AudioEffectX::getParameterProperties
+        namesForOpcodes[effKeysRequired] = "effKeysRequired"; //)	///< \deprecated deprecated in VST 2.4
+        namesForOpcodes[effGetVstVersion] = "effGetVstVersion"; //						///< [return value]: VST version  @see AudioEffectX::getVstVersion
+        namesForOpcodes[effEditKeyDown] = "effEditKeyDown"; //						///< [index]: ASCII character [value]: virtual key [opt]: modifiers [return value]: 1 if key used  @see AEffEditor::onKeyDown
+        namesForOpcodes[effEditKeyUp] = "effEditKeyUp"; //							///< [index]: ASCII character [value]: virtual key [opt]: modifiers [return value]: 1 if key used  @see AEffEditor::onKeyUp
+        namesForOpcodes[effSetEditKnobMode] = "effSetEditKnobMode"; //					///< [value]: knob mode 0: circular, 1: circular relativ, 2: linear (CKnobMode in VSTGUI)  @see AEffEditor::setKnobMode
+        namesForOpcodes[effGetMidiProgramName] = "effGetMidiProgramName"; //					///< [index]: MIDI channel [ptr]: #MidiProgramName* [return value]: number of used programs0 if unsupported  @see AudioEffectX::getMidiProgramName
+        namesForOpcodes[effGetCurrentMidiProgram] = "effGetCurrentMidiProgram"; //				///< [index]: MIDI channel [ptr]: #MidiProgramName* [return value]: index of current program  @see AudioEffectX::getCurrentMidiProgram
+        namesForOpcodes[effGetMidiProgramCategory] = "effGetMidiProgramCategory"; //				///< [index]: MIDI channel [ptr]: #MidiProgramCategory* [return value]: number of used categories, 0 if unsupported  @see AudioEffectX::getMidiProgramCategory
+        namesForOpcodes[effHasMidiProgramsChanged] = "effHasMidiProgramsChanged"; //				///< [index]: MIDI channel [return value]: 1 if the #MidiProgramName(s) or #MidiKeyName(s) have changed  @see AudioEffectX::hasMidiProgramsChanged
+        namesForOpcodes[effGetMidiKeyName] = "effGetMidiKeyName"; //						///< [index]: MIDI channel [ptr]: #MidiKeyName* [return value]: true if supported, false otherwise  @see AudioEffectX::getMidiKeyName
+        namesForOpcodes[effBeginSetProgram] = "effBeginSetProgram"; //					///< no arguments  @see AudioEffectX::beginSetProgram
+        namesForOpcodes[effEndSetProgram] = "effEndSetProgram"; //						///< no arguments  @see AudioEffectX::endSetProgram
+        namesForOpcodes[effGetSpeakerArrangement] = "effGetSpeakerArrangement"; //				///< [value]: input #VstSpeakerArrangement* [ptr]: output #VstSpeakerArrangement*  @see AudioEffectX::getSpeakerArrangement
+        namesForOpcodes[effShellGetNextPlugin] = "effShellGetNextPlugin"; //					///< [ptr]: buffer for plug-in name, limited to #kVstMaxProductStrLen [return value]: next plugin's uniqueID  @see AudioEffectX::getNextShellPlugin
+        namesForOpcodes[effStartProcess] = "effStartProcess"; //						///< no arguments  @see AudioEffectX::startProcess
+        namesForOpcodes[effStopProcess] = "effStopProcess"; //						///< no arguments  @see AudioEffectX::stopProcess
+        namesForOpcodes[effSetTotalSampleToProcess] = "effSetTotalSampleToProcess"; //		    ///< [value]: number of samples to process, offline only!  @see AudioEffectX::setTotalSampleToProcess
+        namesForOpcodes[effSetPanLaw] = "effSetPanLaw"; //							///< [value]: pan law [opt]: gain  @see VstPanLawType @see AudioEffectX::setPanLaw
+        namesForOpcodes[effBeginLoadBank] = "effBeginLoadBank"; //						///< [ptr]: #VstPatchChunkInfo* [return value]: -1: bank can't be loaded, 1: bank can be loaded, 0: unsupported  @see AudioEffectX::beginLoadBank
+        namesForOpcodes[effBeginLoadProgram] = "effBeginLoadProgram"; //					///< [ptr]: #VstPatchChunkInfo* [return value]: -1: prog can't be loaded, 1: prog can be loaded, 0: unsupported  @see AudioEffectX::beginLoadProgram
+        namesForOpcodes[effSetProcessPrecision] = "effSetProcessPrecision"; //				///< [value]: @see VstProcessPrecision  @see AudioEffectX::setProcessPrecision
+        namesForOpcodes[effGetNumMidiInputChannels] = "effGetNumMidiInputChannels"; //			///< [return value]: number of used MIDI input channels (1-15)  @see AudioEffectX::getNumMidiInputChannels
+        namesForOpcodes[effGetNumMidiOutputChannels] = "effGetNumMidiOutputChannels"; //			///< [return value]: number of used MIDI output channels (1-15)  @see AudioEffectX::getNumMidiOutputChannels
+    }
+    std::map<int, const char *>::iterator it = namesForOpcodes.find(opcode);
+    if (it == namesForOpcodes.end()) {
+        return "No name for this opcode.";
+    } else {
+        return it->second;
   }
-  size_t len = std::strlen(string);
-  char *copy = (char *)std::malloc(len + 1);
-  std::strncpy(copy, string, len);
-  copy[len] = '\0';
-  return copy;
 }
 
 double CsoundVST::inputScale = 32767.0;
@@ -54,10 +137,12 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   vstCurrentSampleBlockEnd(0),
   vstCurrentSamplePosition(0),
   vstPriorSamplePosition(0),
+    CSOUNDVST_PRINT_OPCODES(0),
   csoundVstFltk(0)
 {
-  if (fltkWaitThreadId == 0)
-    {
+    CSOUNDVST_PRINT_OPCODES = std::getenv("CSOUNDVST_PRINT_OPCODES");
+    Message("CSOUNDVST_PRINT_OPCODES: 0x%p\n", CSOUNDVST_PRINT_OPCODES);
+    if (fltkWaitThreadId == 0) {
       Fl::lock();
       fltkWaitThreadId == csoundGetCurrentThreadId();
     }
@@ -70,22 +155,17 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   csoundVstFltk = new CsoundVstFltk(this);
   int number = 0;
   csoundVstFltk->preferences.get("IsSynth", number, 0);
-  if(audioMaster)
-    {
-      if(number)
-        {
+    if(audioMaster) {
+        if(number) {
           AudioEffectX::isSynth(true);
-        }
-      else
-        {
+        } else {
           AudioEffectX::isSynth(false);
         }
     }
   programsAreChunks(true);
   curProgram = 0;
   bank.resize(kNumPrograms);
-  for(size_t i = 0; i < bank.size(); i++)
-    {
+    for(size_t i = 0; i < bank.size(); i++) {
       char buffer[0x24];
       sprintf(buffer, "Program%d", (int)(i + 1));
       bank[i].name = buffer;
@@ -107,10 +187,12 @@ CsoundVST::CsoundVST() :
   vstCurrentSampleBlockEnd(0),
   vstCurrentSamplePosition(0),
   vstPriorSamplePosition(0),
+    CSOUNDVST_PRINT_OPCODES(0),
   csoundVstFltk(0)
 {
-  if (fltkWaitThreadId == 0)
-    {
+    CSOUNDVST_PRINT_OPCODES = std::getenv("CSOUNDVST_PRINT_OPCODES");
+    Message("CSOUNDVST_PRINT_OPCODES: 0x%p\n", CSOUNDVST_PRINT_OPCODES);
+    if (fltkWaitThreadId == 0) {
       Fl::lock();
       fltkWaitThreadId == csoundGetCurrentThreadId();
     }
@@ -122,8 +204,7 @@ CsoundVST::CsoundVST() :
   csoundVstFltk = new CsoundVstFltk(this);
   bank.resize(kNumPrograms);
   curProgram = 0;
-  for(size_t i = 0; i < bank.size(); i++)
-    {
+    for(size_t i = 0; i < bank.size(); i++) {
       char buffer[0x24];
       sprintf(buffer, "Program%d", i + 1);
       bank[i].name = buffer;
@@ -232,27 +313,22 @@ uintptr_t CsoundVST::performanceThreadRoutine()
   // "instr" and "endin").
   const std::string &testorc = getOrchestra();
   if ((testorc.find("instr") == std::string::npos) ||
-      (testorc.find("endin") == std::string::npos))
-    {
+            (testorc.find("endin") == std::string::npos)) {
       Message("Csound orchestra missing or invalid.\n");
       reset();
       stop();
       return 0;
     }
-  if(getIsVst())
-    {
+    if(getIsVst()) {
       Message("Compiling for VST performance.\n");
       SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
       SetExternalMidiReadCallback(&CsoundVST::midiRead);
-      if(compile())
-        {
+        if(compile()) {
           Message("Csound compilation failed.\n");
           reset();
           stop();
         }
-    }
-  else
-    {
+    } else {
       Message("Classic performance.\n");
       perform();
     }
@@ -291,14 +367,11 @@ static int nonThreadYieldCallback(CSOUND *)
 int CsoundVST::performance()
 {
   int result = true;
-  if(getIsVst())
-    {
+    if(getIsVst()) {
       Message("VST performance.\n");
       SetYieldCallback(nonThreadYieldCallback);
       performanceThreadRoutine();
-    }
-  else if(getIsMultiThreaded())
-    {
+    } else if(getIsMultiThreaded()) {
       Message("Multi-threaded performance.\n");
       SetYieldCallback(threadYieldCallback);
       void *result_ = csoundCreateThread(performanceThreadRoutine_, this);
@@ -308,9 +381,7 @@ int CsoundVST::performance()
         result = false;
       }
       Message("Created Csound performance thread.\n");
-    }
-  else
-    {
+    } else {
       Message("Single-threaded performance.\n");
       SetYieldCallback(nonThreadYieldCallback);
       performanceThreadRoutine();
@@ -323,8 +394,7 @@ void CsoundVST::open()
   Message("BEGAN CsoundVST::open()...\n");
   SetHostData(this);
   std::string filename_ = getFilename();
-  if(filename_.length() > 0)
-    {
+    if(filename_.length() > 0) {
       setFilename(filename_);
     }
   // setFLTKThreadLocking(false);
@@ -348,9 +418,7 @@ void CsoundVST::reset()
 
 void CsoundVST::setProgram(VstInt32 program)
 {
-  //Message("RECEIVED CsoundVST::setProgram(%d)...\n", program);
-  if(program < kNumPrograms && program >= 0)
-    {
+    if(program < kNumPrograms && program >= 0) {
       curProgram = program;
       setText(bank[curProgram].text);
     }
@@ -358,13 +426,11 @@ void CsoundVST::setProgram(VstInt32 program)
 
 void CsoundVST::suspend()
 {
-  Message("RECEIVED CsoundVST::suspend()...\n");
   stop();
 }
 
 void CsoundVST::resume()
 {
-  Message("RECEIVED CsoundVST::resume()...\n");
   CsoundVstFltk *ed = (CsoundVstFltk *)getEditor();
   if (ed) {
     if (ed->isOpen()) {
@@ -377,21 +443,15 @@ void CsoundVST::resume()
 
 VstInt32 CsoundVST::processEvents(VstEvents *vstEvents)
 {
-  if(getIsGo())
-    {
-      //Message("CsoundVST::processEvents: %d events.\n", vstEvents->numEvents);
-      for(int i = 0; i < vstEvents->numEvents; i++)
-        {
-          if(vstEvents->events[i]->type == kVstMidiType)
-            {
+    if(getIsGo()) {
+        for(int i = 0; i < vstEvents->numEvents; i++) {
+            if(vstEvents->events[i]->type == kVstMidiType) {
               VstMidiEvent *vstMidiEvent = (VstMidiEvent *)vstEvents->events[i];
               midiEventQueue.push_back(*vstMidiEvent);
             }
         }
       return 1;
-    }
-  else
-    {
+    } else {
       return 0;
     }
 }
@@ -440,39 +500,30 @@ int CsoundVST::midiRead(CSOUND *csound, void *userData,
 
 void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFrameN)
 {
-  if(getIsGo())
-    {
+    if(getIsGo()) {
       synchronizeScore();
       MYFLT *csoundInput = GetSpin();
       MYFLT *csoundOutput = GetSpout();
       size_t csoundLastFrame = GetKsmps() - 1;
       size_t channelN = GetNchnls();
       size_t channelI;
-      for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
-        {
-          for(channelI = 0; channelI < channelN; channelI++)
-            {
+        for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) {
+            for(channelI = 0; channelI < channelN; channelI++) {
               csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
             }
-          for(channelI = 0; channelI < channelN; channelI++)
-            {
+            for(channelI = 0; channelI < channelN; channelI++) {
               hostOutput[channelI][hostFrameI] += csoundOutput[(csoundFrameI * channelN) + channelI] * outputScale;
               csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
             }
           csoundFrameI++;
-          if(csoundFrameI > csoundLastFrame)
-            {
+            if(csoundFrameI > csoundLastFrame) {
               csoundFrameI = 0;
               performKsmps(true);
             }
         }
-    }
-  else
-    {
-      for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
-        {
-          for (channelI = 0; channelI < kNumOutputs; channelI++)
-            {
+    } else {
+        for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) {
+            for (channelI = 0; channelI < kNumOutputs; channelI++) {
               hostOutput[channelI][hostFrameI] += hostInput[channelI][hostFrameI];
             }
         }
@@ -481,39 +532,30 @@ void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFram
 
 void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32 hostFrameN)
 {
-  if(getIsGo())
-    {
+    if(getIsGo()) {
       synchronizeScore();
       MYFLT *csoundInput = GetSpin();
       MYFLT *csoundOutput = GetSpout();
       size_t csoundLastFrame = GetKsmps() - 1;
       size_t channelN = GetNchnls();
       size_t channelI;
-      for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
-        {
-          for(channelI = 0; channelI < channelN; channelI++)
-            {
+        for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) {
+            for(channelI = 0; channelI < channelN; channelI++) {
               csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
             }
-          for(channelI = 0; channelI < channelN; channelI++)
-            {
+            for(channelI = 0; channelI < channelN; channelI++) {
               hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] *  outputScale;
               csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
             }
           csoundFrameI++;
-          if(csoundFrameI > csoundLastFrame)
-            {
+            if(csoundFrameI > csoundLastFrame) {
               csoundFrameI = 0;
               performKsmps(true);
             }
         }
-    }
-  else
-    {
-      for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
-        {
-          for (channelI = 0; channelI < kNumOutputs; channelI++)
-            {
+    } else {
+        for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) {
+            for (channelI = 0; channelI < kNumOutputs; channelI++) {
               hostOutput[channelI][hostFrameI] = hostInput[channelI][hostFrameI];
             }
         }
@@ -524,27 +566,20 @@ void CsoundVST::synchronizeScore()
 {
   vstPriorSamplePosition = vstCurrentSamplePosition;
   VstTimeInfo *vstTimeInfo = getTimeInfo(kVstTransportPlaying);
-  if ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying)
-    {
+    if ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying) {
       vstSr = double(vstTimeInfo->sampleRate);
       vstCurrentSamplePosition = (int) vstTimeInfo->samplePos;
       vstCurrentSampleBlockStart = vstTimeInfo->samplePos / vstSr;
       if((vstCurrentSamplePosition && !vstPriorSamplePosition) ||
-         (vstCurrentSamplePosition < vstPriorSamplePosition))
-        {
-          if(getIsGo())
-            {
+                (vstCurrentSamplePosition < vstPriorSamplePosition)) {
+            if(getIsGo()) {
               SetScorePending(1);
               RewindScore();
               SetScoreOffsetSeconds(vstCurrentSampleBlockStart);
-              Message("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
             }
         }
-    }
-  else
-    {
-      if(getIsGo())
-        {
+    } else {
+        if(getIsGo()) {
           SetScorePending(0);
         }
     }
@@ -552,8 +587,7 @@ void CsoundVST::synchronizeScore()
 
 bool CsoundVST::getInputProperties(VstInt32 index, VstPinProperties* properties)
 {
-  if(index < kNumInputs)
-    {
+    if(index < kNumInputs) {
       sprintf(properties->label, "My %d In", index + 1);
       properties->flags = kVstPinIsStereo | kVstPinIsActive;
       return true;
@@ -563,8 +597,7 @@ bool CsoundVST::getInputProperties(VstInt32 index, VstPinProperties* properties)
 
 bool CsoundVST::getOutputProperties(VstInt32 index, VstPinProperties* properties)
 {
-  if(index < kNumOutputs)
-    {
+    if(index < kNumOutputs) {
       sprintf(properties->label, "My %d Out", index + 1);
       properties->flags = kVstPinIsStereo | kVstPinIsActive;
       return true;
@@ -574,9 +607,8 @@ bool CsoundVST::getOutputProperties(VstInt32 index, VstPinProperties* properties
 
 bool CsoundVST::getProgramNameIndexed(VstInt32 category, VstInt32 index, char* text)
 {
-  if(index < kNumPrograms)
-    {
-      strcpy(text, bank[curProgram].name.c_str());
+    if(index < kNumPrograms) {
+        strcpy(text, bank[index].name.c_str());
       return true;
     }
   return false;
@@ -602,17 +634,13 @@ bool CsoundVST::getProductString(char* text)
 
 VstInt32 CsoundVST::canDo(char* text)
 {
-  Message("RECEIVED CsoundVST::canDo('%s')...\n", text);
-  if(strcmp(text, "receiveVstTimeInfo") == 0)
-    {
+    if(strcmp(text, "receiveVstTimeInfo") == 0) {
       return 1;
     }
-  if(strcmp(text, "receiveVstEvents") == 0)
-    {
+    if(strcmp(text, "receiveVstEvents") == 0) {
       return 1;
     }
-  if(strcmp(text, "receiveVstMidiEvent") == 0)
-    {
+    if(strcmp(text, "receiveVstMidiEvent") == 0) {
       return 1;
     }
   return 0;
@@ -620,22 +648,18 @@ VstInt32 CsoundVST::canDo(char* text)
 
 bool CsoundVST::keysRequired()
 {
-  Message("RECEIVED CsoundVST::keysRequired...\n");
   return 1;
 }
 
 VstInt32 CsoundVST::getProgram()
 {
-  Message("RECEIVED CsoundVST::getProgram...\n");
   //bank[curProgram].text = getText();
   return curProgram;
 }
 
 bool CsoundVST::copyProgram(VstInt32 destination)
 {
-  Message("RECEIVED CsoundVST::copyProgram(%d)...\n", destination);
-  if(destination < kNumPrograms)
-    {
+    if(destination < kNumPrograms) {
       bank[destination] = bank[curProgram];
       return true;
     }
@@ -644,28 +668,23 @@ bool CsoundVST::copyProgram(VstInt32 destination)
 
 VstInt32 CsoundVST::getChunk(void** data, bool isPreset)
 {
-  Message("BEGAN CsoundVST::getChunk(%d)...\n", (int) isPreset);
   ((CsoundVstFltk *)getEditor())->updateModel();
   VstInt32 returnValue = 0;
   static std::string bankBuffer;
   bank[curProgram].text = getText();
-  if(isPreset)
-    {
-      *data = (void *)bank[curProgram].text.c_str();
-      returnValue = (VstInt32) strlen((char *)*data) + 1;
-    }
-  else
-    {
+    if(isPreset) {
+        bankBuffer = bank[curProgram].text;
+        *data = (void *)bankBuffer.c_str();
+        returnValue = bankBuffer.size();
+    } else {
       std::ostringstream stream;
       int n = bank.size();
       stream << n << "\n";
-      for(std::vector<Preset>::iterator it = bank.begin(); it != bank.end(); ++it)
-        {
+        for(std::vector<Preset>::iterator it = bank.begin(); it != bank.end(); ++it) {
           Preset &preset = (*it);
           stream << preset.name.c_str() << "\n";
           stream << preset.text.size() << "\n";
-          for(std::string::iterator jt = preset.text.begin(); jt != preset.text.end(); ++jt)
-            {
+            for(std::string::iterator jt = preset.text.begin(); jt != preset.text.end(); ++jt) {
               stream.put(*jt);
             }
           stream << "\n";
@@ -674,35 +693,29 @@ VstInt32 CsoundVST::getChunk(void** data, bool isPreset)
       *data = (void *)bankBuffer.c_str();
       returnValue = bankBuffer.size();
     }
-  Message("ENDED CsoundVST::getChunk, returned %d...\n", returnValue);
   return returnValue;
 }
 
 VstInt32 CsoundVST::setChunk(void* data, VstInt32 byteSize, bool isPreset)
 {
-  Message("RECEIVED CsoundVST::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
   VstInt32 returnValue = 0;
-  if(isPreset)
-    {
-      bank[curProgram].text = dupstr((const char *)data);
-      setText(bank[curProgram].text);
+    if(isPreset) {
+        Preset preset;
+        preset.text.resize(byteSize);
+        for(int j = 0; j < byteSize; j++) {
+            preset.text[j] = ((const char *)data)[j];
+        }
+        bank[curProgram] = preset;
       returnValue = byteSize;
-    }
-  else
-    {
-#if defined(__GNUC__)
+    } else {
       std::string inputBuffer = (const char *)data;
       std::istringstream stream(inputBuffer);
-#else
-      std::istringstream stream(dupstr((const char *)data), byteSize);
-#endif
       std::string buffer;
       stream >> buffer;
       stream >> std::ws;
       int n = atoi(buffer.c_str());
       bank.resize(n);
-      for(int i = 0; i < n; i++)
-        {
+        for(int i = 0; i < n; i++) {
           Preset preset;
           stream >> preset.name;
           stream >> std::ws;
@@ -711,8 +724,7 @@ VstInt32 CsoundVST::setChunk(void* data, VstInt32 byteSize, bool isPreset)
           int length = atoi(buffer.c_str());
           preset.text.resize(length);
           char c;
-          for(int j = 0; j < length; j++)
-            {
+            for(int j = 0; j < length; j++) {
               stream.get(c);
               preset.text[j] = c;
             }
@@ -721,15 +733,13 @@ VstInt32 CsoundVST::setChunk(void* data, VstInt32 byteSize, bool isPreset)
       returnValue = byteSize;
     }
   setProgram(curProgram);
-  ((CsoundVstFltk *)getEditor())->updateModel();
+    ((CsoundVstFltk *)getEditor())->update();
   return returnValue;
 }
 
 std::string CsoundVST::getText()
 {
-  //Message("BEGAN CsoundVST::getText...\n");
   std::string buffer = getCSD();
-  //Message("ENDED CsoundVST::getText.\n");
   return buffer;
 }
 
@@ -781,14 +791,26 @@ void CsoundVST::fltkwait()
 int CsoundVST::fltkrun()
 {
   int status = -100;
-  //Message("BEGAN CsoundVST::run()...\n");
   if (!getIsVst()) {
     status = Fl::run();
   } else {
     Message("Sorry, can't run FLTK if running as a VST plugin.\n");
   }
-  //Message("ENDED CsoundVST::fltkrun().\n");
   return status;
+}
+
+VstIntPtr CsoundVST::dispatcher(VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt)
+{
+    if (CSOUNDVST_PRINT_OPCODES) {
+        switch(opcode) {
+        case 19:
+        case 25:
+            break;
+        default:
+            Message("dispatcher(%4d %-30s %6d 0x%p 0x%p %9.4f)\n", opcode, getNameForOpcode(opcode), index, value, ptr, opt);
+        }
+    }
+    return AudioEffectX::dispatcher(opcode, index, value, ptr, opt);
 }
 
 extern "C"
