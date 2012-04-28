@@ -284,6 +284,12 @@ typedef struct {
     void    *auxp, *endp;
   } AUXCH;
 
+   typedef struct {
+      int     size;             /* 0...size-1 */
+      MYFLT   *data;
+      AUXCH   aux;
+   } TABDAT;
+
   typedef struct monblk {
     int16   pch;
     struct monblk *prv;

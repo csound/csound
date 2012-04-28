@@ -359,15 +359,15 @@ typedef struct _pvst {
   MYFLT  *wrap, *offset;
   MYFLT  *fftsize, *hsize, *dbthresh;
   uint32 scnt;
-  int tscale;
-  MYFLT accum;
+  int    tscale;
+  MYFLT  accum;
   double pos;
-  float factor, fund, rotfac, scale;
-  AUXCH bwin[MAXOUTS];
-  AUXCH fwin[MAXOUTS], nwin[MAXOUTS];
-  AUXCH win;
-  int nchans;
-  int init;
+  float  factor, fund, rotfac, scale;
+  AUXCH  bwin[MAXOUTS];
+  AUXCH  fwin[MAXOUTS], nwin[MAXOUTS];
+  AUXCH  win;
+  int    nchans;
+  int    init;
 } PVST;
 
 int pvstanalset(CSOUND *csound, PVST *p)
