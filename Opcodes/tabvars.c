@@ -57,32 +57,37 @@ typedef struct {
     MYFLT  *kstart, *kend;
 } TABSCALE;
 
+static inline void tabensure(CSOUND *csound, TABDAT *p, int size)
+{
+    int32 ss = sizeof(MYFLT)*size;
+    if (p->aux.auxp==NULL || p->aux.size<ss) {
+      csound->AuxAlloc(csound, ss, &p->aux);
+      p->data = (MYFLT*)(p->aux.auxp);      
+    }
+}
+
 static int tabarithset(CSOUND *csound, TABARITH *p)
 {
-  if (LIKELY(p->left->data && p->right->data)) {
-    if (p->ans->data == NULL) {
+    if (LIKELY(p->left->data && p->right->data)) {
       /* size is the smallest of the two */
       int size = p->left->size < p->right->size ? p->left->size : p->right->size;
-      p->ans->data = (MYFLT *)csound->Malloc(csound,sizeof(MYFLT)*(size+1));
+      tabensure(csound, p->ans, size);
       p->ans->size = size;
+      return OK;
     }
-    return OK;
-  }
-  else return csound->InitError(csound, Str("t-variable not initialised"));
+    else return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
 static int tabarithset1(CSOUND *csound, TABARITH *p)
 {
-  if (LIKELY(p->left->data)) {
-    if (p->ans->data == NULL) {
+    if (LIKELY(p->left->data)) {
       /* size is the smallest of the two */
       int size = p->left->size;
-      p->ans->data = (MYFLT *)csound->Malloc(csound,sizeof(MYFLT)*(size+1));
+      tabensure(csound, p->ans, size);
       p->ans->size = size;
+      return OK;
     }
-    return OK;
-  }
-  else return csound->InitError(csound, Str("t-variable not initialised"));
+    else return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
 static int tabadd(CSOUND *csound, TABARITH *p)
@@ -100,7 +105,7 @@ static int tabadd(CSOUND *csound, TABARITH *p)
     if (l->size<size) size = l->size;
     if (r->size<size) size = r->size;
     if (ans->size<size) size = ans->size;
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       ans->data[i] = l->data[i] + r->data[i];
     return OK;
 }
@@ -120,7 +125,7 @@ static int tabsub(CSOUND *csound, TABARITH *p)
     if (l->size<size) size = l->size;
     if (r->size<size) size = r->size;
     if (ans->size<size) size = ans->size;
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       ans->data[i] = l->data[i] - r->data[i];
     return OK;
 }
@@ -137,7 +142,7 @@ static int tabneg(CSOUND *csound, TABARITH *p)
 
     if (l->size<size) size = l->size;
     if (ans->size<size) size = ans->size;
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       ans->data[i] = - l->data[i];
     return OK;
 }
@@ -159,7 +164,7 @@ static int tabmult(CSOUND *csound, TABARITH *p)
     if (r->size<size) size = r->size;
     if (ans->size<size) size = ans->size;
     if (ans->data==NULL) 
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       ans->data[i] = l->data[i] * r->data[i];
     return OK;
 }
@@ -179,7 +184,7 @@ static int tabdiv(CSOUND *csound, TABARITH *p)
     if (l->size<size) size = l->size;
     if (r->size<size) size = r->size;
     if (ans->size<size) size = ans->size;
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       if (LIKELY(r->data[i]!=0))
         ans->data[i] = l->data[i] / r->data[i];
       else return csound->PerfError(csound, Str("division by zero in t-var"));
@@ -201,7 +206,7 @@ static int tabrem(CSOUND *csound, TABARITH *p)
     if (l->size<size) size = l->size;
     if (r->size<size) size = r->size;
     if (ans->size<size) size = ans->size;
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       ans->data[i] = MOD(l->data[i], r->data[i]);
     return OK;
 }
@@ -219,7 +224,7 @@ static int tabimult(CSOUND *csound, TABARITH1 *p)
 
     if (l->size<size) size = l->size;
     if (ans->size<size) size = ans->size;
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       ans->data[i] = l->data[i] * r;
     return OK;
 }
@@ -239,7 +244,7 @@ static int tabidiv(CSOUND *csound, TABARITH1 *p)
 
     if (l->size<size) size = l->size;
     if (ans->size<size) size = ans->size;
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       ans->data[i] = l->data[i] / r;
     return OK;
 }
@@ -259,7 +264,7 @@ static int tabirem(CSOUND *csound, TABARITH1 *p)
 
     if (l->size<size) size = l->size;
     if (ans->size<size) size = ans->size;
-    for (i=0; i<=size; i++)
+    for (i=0; i<size; i++)
       ans->data[i] = MOD(l->data[i], r);
     return OK;
 }
@@ -280,7 +285,7 @@ static int tabmax(CSOUND *csound, TABQUERY *p)
          return csound->PerfError(csound, Str("t-variable not initialised"));
 
     ans = t->data[0];
-    for (i=1; i<=size; i++)
+    for (i=1; i<size; i++)
       if (t->data[i]>ans) ans = t->data[i];
     *p->ans = ans;
     return OK;
@@ -293,9 +298,9 @@ static int tabmin(CSOUND *csound, TABQUERY *p)
     MYFLT ans;
 
     if (UNLIKELY(t->data == NULL))
-         return csound->PerfError(csound, Str("t-variable not initialised"));
+      return csound->PerfError(csound, Str("t-variable not initialised"));
     ans = t->data[0];
-    for (i=1; i<=size; i++)
+    for (i=1; i<size; i++)
       if (t->data[i]<ans) ans = t->data[i];
     *p->ans = ans;
     return OK;
@@ -309,9 +314,9 @@ static int tabsum(CSOUND *csound, TABQUERY *p)
 
     if (UNLIKELY(t->data == NULL))
          return csound->PerfError(csound, Str("t-variable not initialised"));
-    ans = FL(0.0);
+    ans = t->data[0];
 
-    for (i=1; i<=size; i++)
+    for (i=1; i<size; i++)
       ans += t->data[i];
     *p->ans = ans;
     return OK;
@@ -338,7 +343,7 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
     tmin = t->data[strt];
     tmax = tmin;
 
-    // Correct start an dening points
+    // Correct start and ending points
     if (end<0) end = t->size;
     else if (end>t->size) end = t->size;
     else if (end<0) end = 0;
@@ -363,26 +368,16 @@ typedef struct {
     OPDS h;
     TABDAT *dst;
     TABDAT *src;
-    AUXCH auxch;
     int    len;
 } TABCPY;
 
 static int tabcopy_set(CSOUND *csound, TABCPY *p)
 {
-    int sizes,sized;
+    //int sizes,sized;
     if (UNLIKELY(p->src->data==NULL))
       return csound->InitError(csound, Str("t-variable not initialised"));
-    if (UNLIKELY(p->dst->data==NULL)) {
-      // return csound->InitError(csound, Str("t-variable not initialised"));
-      csound->AuxAlloc(csound, sizeof(MYFLT)*p->src->size, &p->auxch);
-      p->dst->data = (MYFLT *) p->auxch.auxp;
-      p->len = (p->dst->size = p->src->size)*sizeof(MYFLT);
-      memmove(p->dst->data, p->src->data, p->len);
-    } else{
-     sizes = p->src->size;
-     sized = p->dst->size;
-     p->len = sizeof(MYFLT)*(sizes>sized ? sized : sizes);
-    }
+    tabensure(csound, p->dst, p->src->size);
+    memmove(p->dst->data, p->src->data, p->len);
     return OK;
 }
 
@@ -415,7 +410,6 @@ typedef struct {
     OPDS h;
     TABDAT *tab;
     MYFLT *start, *end, *incr;
-    AUXCH auxch;
     int    len;
 } TABGEN;
 
@@ -430,10 +424,10 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
     if (UNLIKELY(size < 0))
       csound->InitError(csound,
                         Str("inconsistent start, end and increment parameters"));
-
+    tabensure(csound, p->tab, size);
     if (UNLIKELY(p->tab->data==NULL)) {
-      csound->AuxAlloc(csound, sizeof(MYFLT)*(size+1), &p->auxch);
-      data = p->tab->data = (MYFLT *) p->auxch.auxp;
+      tabensure(csound, p->tab, size);
+      data = p->tab->data;
       p->tab->size = size;
     }
     else size = p->tab->size;
@@ -454,15 +448,14 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
     int         fsize;
     MYFLT       *fdata;
     int tlen;
+
     if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
         return csound->PerfError(csound, Str("No table for copy2ftab"));
     fsize = ftp->flen;
     if (UNLIKELY(p->tab->data==NULL)) {
-      // return csound->PerfError(csound, Str("t-var not initialised"));
-      p->tab->data = (MYFLT *)csound->Malloc(csound, sizeof(MYFLT)*fsize);
-      p->tab->size = fsize-1;
+      tabensure(csound, p->tab, fsize);
+      p->tab->size = fsize;
     }
-
     tlen = p->tab->size;
     fdata = ftp->ftable;
     if (fsize<tlen) tlen = fsize;
@@ -472,9 +465,8 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
 
 typedef struct {
     OPDS h;
-  TABDAT *tab, *tabin;
+    TABDAT *tab, *tabin;
     MYFLT *start, *end;
-    AUXCH auxch;
     int    len;
 } TABSLICE;
 
@@ -490,8 +482,7 @@ static int tabslice_set(CSOUND *csound, TABSLICE *p){
     if (UNLIKELY(size > p->tabin->size)  )
       csound->InitError(csound, Str("slice larger than original size"));
     if (UNLIKELY(p->tab->data==NULL)) {
-      csound->AuxAlloc(csound, sizeof(MYFLT)*size, &p->auxch);
-      data = p->tab->data = (MYFLT *) p->auxch.auxp;
+      tabensure(csound, p->tab, size);
       p->tab->size = size;
     }
     else size = p->tab->size;
@@ -503,7 +494,6 @@ typedef struct {
     OPDS h;
     TABDAT *tab, *tabin;
     MYFLT *str;
-    AUXCH auxch;
     int    len;
 } TABMAP;
 
@@ -523,8 +513,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
 
     size = p->tabin->size;
     if (UNLIKELY(p->tab->data==NULL)) {
-      csound->AuxAlloc(csound, sizeof(MYFLT)*size, &p->auxch);
-      data = p->tab->data = (MYFLT *) p->auxch.auxp;
+      tabensure(csound, p->tab, size);
       p->tab->size = size;
     }
     else size = size < p->tab->size ? size : p->tab->size;

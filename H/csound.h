@@ -467,11 +467,6 @@ extern "C" {
         float*          frame;
     } PVSDATEXT;
 
-    typedef struct {
-      int     size;
-      MYFLT   *data;
-    } TABDAT;
-
     typedef struct ORCTOKEN {
         int              type;
         char             *lexeme;
