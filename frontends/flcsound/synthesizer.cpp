@@ -104,7 +104,6 @@ Synthesizer::Synthesizer()
 #if defined SINGLE_INSTANCE_CSOUND
   s_synth = this;
 #endif
-  csoundPreCompile(m_csound);
 }
 
 Synthesizer::~Synthesizer()

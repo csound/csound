@@ -113,10 +113,6 @@ public:
     return csound;
   }
   // csound.h interface
-  virtual int PreCompile()
-  {
-    return csoundPreCompile(csound);
-  }
   virtual int InitializeCscore(FILE *insco, FILE *outsco)
   {
     return csoundInitializeCscore(csound, insco, outsco);
@@ -134,6 +130,22 @@ public:
     return csoundGetEnv(csound, name);
   }
   // performance
+  virtual TREE *ParseOrc(char *str)
+  {
+    return csoundParseOrc(csound, str);
+  }
+  virtual int CompileTree(TREE *root)
+  {
+    return csoundCompileTree(csound, root);
+  }
+  virtual int CompileOrc(char *str)
+  {
+    return csoundCompileOrc(csound, str);
+  }
+  virtual int ReadScore(char *str)
+  {
+    return csoundReadScore(csound, str);
+  }
   virtual int Compile(int argc, char **argv)
   {
     return csoundCompile(csound, argc, argv);

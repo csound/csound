@@ -37,6 +37,7 @@ extern "C" {
 #endif
 #include "csoundCore.h"
 #include "csmodule.h"
+#include "corfile.h"
 #include "csGblMtx.h"
 #include <stdarg.h>
 #include <signal.h>
@@ -94,8 +95,34 @@ extern "C" {
   static int  defaultCsoundExitGraph(CSOUND *);
   static int  defaultCsoundYield(CSOUND *);
   static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
+  static void csoundReset_(CSOUND *);
 
   extern void close_all_files(CSOUND *);
+
+  void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
+  extern OENTRY  opcodlst_1[];
+  static void create_opcodlst(CSOUND *csound)
+  {
+      OENTRY  *saved_opcodlst = csound->opcodlst;
+      int     old_cnt = 0, err;
+
+      if (saved_opcodlst != NULL) {
+        csound->opcodlst = NULL;
+        if (csound->oplstend != NULL)
+          old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
+        csound->oplstend = NULL;
+        memset(csound->opcode_list, 0, sizeof(int) * 256);
+      }
+      /* Basic Entry1 stuff */
+      err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
+      /* Add opcodes registered by host application */
+      if (old_cnt)
+        err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
+      if (saved_opcodlst != NULL)
+        free(saved_opcodlst);
+      if (err)
+        csoundDie(csound, Str("Error allocating opcode list"));
+  }
 
   static const CSOUND cenviron_ = {
     /* ----------------- interface functions (322 total) ----------------- */
@@ -104,6 +131,10 @@ extern "C" {
     csoundGetHostData,
     csoundSetHostData,
     csoundCreate,
+    csoundParseOrc,
+    csoundCompileTree,
+    csoundCompileOrc,
+    csoundReadScore,
     csoundCompile,
     csoundPerform,
     csoundPerformKsmps,
@@ -260,7 +291,7 @@ extern "C" {
     csoundRegisterDeinitCallback,
     csoundRegisterResetCallback,
     csoundCreateFileHandle,
-    csoundFileOpen,
+    //csoundFileOpen,
     csoundGetFileName,
     csoundFileClose,
     pvoc_createfile,
@@ -350,7 +381,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL
+      NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
@@ -527,7 +558,7 @@ extern "C" {
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, NULL },   /*  evt     */
+    { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, NULL, {0,0,0}},   /*  evt */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */
@@ -598,7 +629,7 @@ extern "C" {
         NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
         {NULL},
         {0, 0, 0},
-      },            /* EVTBLK  prve         *
+      },            /* EVTBLK  prve         */
       { 0 },        /* Linebuf              */
     },
     {
@@ -612,7 +643,7 @@ extern "C" {
       NULL,         /*  outfile             */
       NULL,         /*  infile              */
       NULL,         /*  sfoutname;          */
-      NULL,         /*  inbuf               *
+      NULL,         /*  inbuf               */
       NULL,         /*  outbuf              */
       NULL,         /*  outbufp             */
       0,            /*  inbufrem            */
@@ -620,12 +651,10 @@ extern "C" {
       0,0,          /*  inbufsiz,  outbufsiz */
       0,            /*  isfopen             */
       0,            /*  osfopen             */
-      0,            /*  pipdevin, pipdevout */
+      0,0,          /*  pipdevin, pipdevout */
       1U,           /*  nframes             */
       NULL, NULL,   /*  pin, pout           */
-#ifndef SOME_FILE_DAY
       0,            /*dither                */
-#endif
     },
     (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
@@ -1070,156 +1099,6 @@ extern "C" {
   /* random.c */
   extern void csound_init_rand(CSOUND *);
 
-  /**
-   * Reset and prepare an instance of Csound for compilation.
-   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
-   * CSOUND_MEMORY if an error occured.
-   */
-  PUBLIC int csoundPreCompile(CSOUND *p)
-  {
-      char    *s;
-      int     i, max_len;
-      int     n;
-
-      if ((n = setjmp(p->exitjmp)) != 0) {
-        return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-      }
-      /* reset instance */
-      csoundReset(p);
-      /* copy system environment variables */
-      i = csoundInitEnv(p);
-      if (UNLIKELY(i != CSOUND_SUCCESS)) {
-        p->engineState |= CS_STATE_JMP;
-        return i;
-      }
-      csound_init_rand(p);
-      /* allow selecting real time audio module */
-      max_len = 21;
-      csoundCreateGlobalVariable(p, "_RTAUDIO", (size_t) max_len);
-      s = csoundQueryGlobalVariable(p, "_RTAUDIO");
-      strcpy(s, "PortAudio");
-      csoundCreateConfigurationVariable(p, "rtaudio", s, CSOUNDCFG_STRING,
-                                        0, NULL, &max_len,
-                                        "Real time audio module name", NULL);
-
-      /* initialise real time MIDI */
-      p->midiGlobals = (MGLOBAL*) mcalloc(p, sizeof(MGLOBAL));
-      p->midiGlobals->Midevtblk = (MEVENT*) NULL;
-      p->midiGlobals->MidiInOpenCallback = DummyMidiInOpen;
-      p->midiGlobals->MidiReadCallback = DummyMidiRead;
-      p->midiGlobals->MidiInCloseCallback = (int (*)(CSOUND *, void *)) NULL;
-      p->midiGlobals->MidiOutOpenCallback = DummyMidiOutOpen;
-      p->midiGlobals->MidiWriteCallback = DummyMidiWrite;
-      p->midiGlobals->MidiOutCloseCallback = (int (*)(CSOUND *, void *)) NULL;
-      p->midiGlobals->MidiErrorStringCallback = (const char *(*)(int)) NULL;
-      p->midiGlobals->midiInUserData = NULL;
-      p->midiGlobals->midiOutUserData = NULL;
-      p->midiGlobals->midiFileData = NULL;
-      p->midiGlobals->midiOutFileData = NULL;
-      p->midiGlobals->bufp = &(p->midiGlobals->mbuf[0]);
-      p->midiGlobals->endatp = p->midiGlobals->bufp;
-      csoundCreateGlobalVariable(p, "_RTMIDI", (size_t) max_len);
-      s = csoundQueryGlobalVariable(p, "_RTMIDI");
-      strcpy(s, "portmidi");
-      csoundCreateConfigurationVariable(p, "rtmidi", s, CSOUNDCFG_STRING,
-                                        0, NULL, &max_len,
-                                        "Real time MIDI module name", NULL);
-      max_len = 256;  /* should be the same as in csoundCore.h */
-      csoundCreateConfigurationVariable(p, "mute_tracks",
-                                        &(p->midiGlobals->muteTrackList[0]),
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Ignore events (other than tempo changes)"
-                                        " in tracks defined by pattern",
-                                        NULL);
-      csoundCreateConfigurationVariable(p, "raw_controller_mode",
-                                        &(p->midiGlobals->rawControllerMode),
-                                        CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                        "Do not handle special MIDI controllers"
-                                        " (sustain pedal etc.)", NULL);
-      /* sound file tag options */
-      max_len = 201;
-      i = (max_len + 7) & (~7);
-      p->SF_id_title = (char*) mcalloc(p, (size_t) i * (size_t) 6);
-      csoundCreateConfigurationVariable(p, "id_title", p->SF_id_title,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Title tag in output soundfile "
-                                        "(no spaces)", NULL);
-      p->SF_id_copyright = (char*) p->SF_id_title + (int) i;
-      csoundCreateConfigurationVariable(p, "id_copyright", p->SF_id_copyright,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Copyright tag in output soundfile"
-                                        " (no spaces)", NULL);
-      p->SF_id_software = (char*) p->SF_id_copyright + (int) i;
-      csoundCreateConfigurationVariable(p, "id_software", p->SF_id_software,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Software tag in output soundfile"
-                                        " (no spaces)", NULL);
-      p->SF_id_artist = (char*) p->SF_id_software + (int) i;
-      csoundCreateConfigurationVariable(p, "id_artist", p->SF_id_artist,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Artist tag in output soundfile "
-                                        "(no spaces)",
-                                        NULL);
-      p->SF_id_comment = (char*) p->SF_id_artist + (int) i;
-      csoundCreateConfigurationVariable(p, "id_comment", p->SF_id_comment,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Comment tag in output soundfile"
-                                        " (no spaces)", NULL);
-      p->SF_id_date = (char*) p->SF_id_comment + (int) i;
-      csoundCreateConfigurationVariable(p, "id_date", p->SF_id_date,
-                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                        "Date tag in output soundfile "
-                                        "(no spaces)",
-                                        NULL);
-      {
-        int   minVal = 10;
-        int   maxVal = 10000;
-        MYFLT minValF = FL(0.0);
-        /* max. length of string variables */
-        csoundCreateConfigurationVariable(p, "max_str_len", &(p->strVarMaxLen),
-                                          CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
-                                          "Maximum length of string variables + 1",
-                                          NULL);
-        csoundCreateConfigurationVariable(p, "msg_color", &(p->enableMsgAttr),
-                                          CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                          "Enable message attributes (colors etc.)",
-                                          NULL);
-        csoundCreateConfigurationVariable(p, "skip_seconds",
-                                          &(p->csoundScoreOffsetSeconds_),
-                                          CSOUNDCFG_MYFLT, 0, &minValF, NULL,
-                                          "Start score playback at the specified"
-                                          " time, skipping earlier events",
-                                          NULL);
-      }
-      csoundCreateConfigurationVariable(p, "ignore_csopts",
-                                        &(p->disable_csd_options),
-                                        CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                        "Ignore <CsOptions> in CSD files"
-                                        " (default: no)", NULL);
-      p->opcode_list = (int*) mcalloc(p, sizeof(int) * 256);
-      p->engineState |= CS_STATE_PRE;
-      csound_aops_init_tables(p);
-      /* now load and pre-initialise external modules for this instance */
-      /* this function returns an error value that may be worth checking */
-      {
-        int err = csoundInitStaticModules(p);
-        if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
-          p->Warning(p, p->delayederrormessages);
-          free(p->delayederrormessages);
-          p->delayederrormessages = NULL;
-        }
-        if (UNLIKELY(err==CSOUND_ERROR)) return err;
-        err = csoundLoadModules(p);
-        if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
-          p->Warning(p, p->delayederrormessages);
-          free(p->delayederrormessages);
-          p->delayederrormessages = NULL;
-        }
-        return err;
-      }
-  }
-
-
   PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version)
   {
       if (strcmp(name, "CSOUND") != 0)
@@ -1258,7 +1137,7 @@ extern "C" {
         prv->nxt = p->nxt;
       csoundUnLock();
       free(p);
-      csoundReset(csound);
+      csoundReset_(csound);
       if (csound->csoundCallbacks_ != NULL) {
         CsoundCallbackEntry_t *pp, *nxt;
         pp = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
@@ -1688,6 +1567,22 @@ extern "C" {
       return 0;
   }
 
+  PUBLIC int csoundReadScore(CSOUND *csound, char *str)
+  {
+      OPARMS  *O = csound->oparms;
+      if(csound->scorestr != NULL &&
+         csound->scorestr->body != NULL)
+        corfile_rewind(csound->scorestr);
+      else
+        csound->scorestr = corfile_create_w();
+      corfile_puts(str, csound->scorestr);
+      corfile_flush(csound->scorestr);
+      scsortstr(csound, csound->scorestr);
+      /* copy sorted score name */
+      O->playscore = csound->scstr;
+      return CSOUND_SUCCESS;
+  }
+
   PUBLIC int csoundPerformKsmps(CSOUND *csound)
   {
       int done;
@@ -2004,6 +1899,19 @@ extern "C" {
       vfprintf(stderr, format, args);
       fprintf(stderr, "\033[m");
 #endif
+  }
+
+  PUBLIC void csoundSetDefaultMessageCallback(
+                                       void (*csoundMessageCallback)(CSOUND *csound,
+                                                                     int attr,
+                                                                     const char *format,
+                                                                     va_list args))
+  {
+      if (csoundMessageCallback) {
+        msgcallback_ = csoundMessageCallback;
+      } else {
+        msgcallback_ = csoundDefaultMessageCallback;
+      }
   }
 
   PUBLIC void csoundSetMessageCallback(CSOUND *csound,
@@ -2698,7 +2606,7 @@ extern "C" {
   extern void cscoreRESET(CSOUND *);
   extern void memRESET(CSOUND *);
 
-  PUBLIC void csoundReset(CSOUND *csound)
+  PUBLIC void csoundReset_(CSOUND *csound)
   {
       CSOUND    *saved_env;
       void      *p1, *p2;
@@ -2726,6 +2634,8 @@ extern "C" {
 #ifdef CSCORE
       cscoreRESET(csound);
 #endif
+      if (csound->opcodlst != NULL)
+        free(csound->opcodlst);
 
       csound->oparms_.odebug = 0;
       /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
@@ -2757,6 +2667,198 @@ extern "C" {
       memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
       csound->memalloc_db = saved_env->memalloc_db;
       free(saved_env);
+  }
+
+  PUBLIC void csoundReset(CSOUND *csound)
+  {
+      char    *s;
+      int     i, max_len;
+      OPARMS  *O = csound->oparms;
+
+      csoundReset_(csound);
+      if (msgcallback_ != NULL) {
+        csoundSetMessageCallback(csound, msgcallback_);
+      }
+      csound->printerrormessagesflag = (void*)1234;
+      /* copy system environment variables */
+      i = csoundInitEnv(csound);
+      if (UNLIKELY(i != CSOUND_SUCCESS)) {
+        csound->engineState |= CS_STATE_JMP;
+        csound->Die(csound, "Failed during csoundInitEnv");
+      }
+      csound_init_rand(csound);
+      /* allow selecting real time audio module */
+      max_len = 21;
+      csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
+      s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+      strcpy(s, "PortAudio");
+      csoundCreateConfigurationVariable(csound, "rtaudio", s, CSOUNDCFG_STRING,
+                                        0, NULL, &max_len,
+                                        "Real time audio module name", NULL);
+
+      /* initialise real time MIDI */
+      csound->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
+      csound->midiGlobals->Midevtblk = (MEVENT*) NULL;
+      csound->midiGlobals->MidiInOpenCallback = DummyMidiInOpen;
+      csound->midiGlobals->MidiReadCallback = DummyMidiRead;
+      csound->midiGlobals->MidiInCloseCallback = (int (*)(CSOUND *, void *)) NULL;
+      csound->midiGlobals->MidiOutOpenCallback = DummyMidiOutOpen;
+      csound->midiGlobals->MidiWriteCallback = DummyMidiWrite;
+      csound->midiGlobals->MidiOutCloseCallback = (int (*)(CSOUND *, void *)) NULL;
+      csound->midiGlobals->MidiErrorStringCallback = (const char *(*)(int)) NULL;
+      csound->midiGlobals->midiInUserData = NULL;
+      csound->midiGlobals->midiOutUserData = NULL;
+      csound->midiGlobals->midiFileData = NULL;
+      csound->midiGlobals->midiOutFileData = NULL;
+      csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
+      csound->midiGlobals->endatp = csound->midiGlobals->bufp;
+      csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
+      s = csoundQueryGlobalVariable(csound, "_RTMIDI");
+      strcpy(s, "portmidi");
+      csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
+                                        0, NULL, &max_len,
+                                        "Real time MIDI module name", NULL);
+      max_len = 256;  /* should be the same as in csoundCore.h */
+      csoundCreateConfigurationVariable(csound, "mute_tracks",
+                                        &(csound->midiGlobals->muteTrackList[0]),
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Ignore events (other than tempo changes)"
+                                        " in tracks defined by pattern",
+                                        NULL);
+      csoundCreateConfigurationVariable(csound, "raw_controller_mode",
+                                        &(csound->midiGlobals->rawControllerMode),
+                                        CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+                                        "Do not handle special MIDI controllers"
+                                        " (sustain pedal etc.)", NULL);
+      /* sound file tag options */
+      max_len = 201;
+      i = (max_len + 7) & (~7);
+      csound->SF_id_title = (char*) mcalloc(csound, (size_t) i * (size_t) 6);
+      csoundCreateConfigurationVariable(csound, "id_title", csound->SF_id_title,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Title tag in output soundfile "
+                                        "(no spaces)", NULL);
+      csound->SF_id_copyright = (char*) csound->SF_id_title + (int) i;
+      csoundCreateConfigurationVariable(csound, "id_copyright",
+                                        csound->SF_id_copyright,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Copyright tag in output soundfile"
+                                        " (no spaces)", NULL);
+      csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
+      csoundCreateConfigurationVariable(csound, "id_software", 
+                                        csound->SF_id_software,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Software tag in output soundfile"
+                                        " (no spaces)", NULL);
+      csound->SF_id_artist = (char*) csound->SF_id_software + (int) i;
+      csoundCreateConfigurationVariable(csound, "id_artist", csound->SF_id_artist,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Artist tag in output soundfile "
+                                        "(no spaces)",
+                                        NULL);
+      csound->SF_id_comment = (char*) csound->SF_id_artist + (int) i;
+      csoundCreateConfigurationVariable(csound, "id_comment", 
+                                        csound->SF_id_comment,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Comment tag in output soundfile"
+                                        " (no spaces)", NULL);
+      csound->SF_id_date = (char*) csound->SF_id_comment + (int) i;
+      csoundCreateConfigurationVariable(csound, "id_date", csound->SF_id_date,
+                                        CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                        "Date tag in output soundfile "
+                                        "(no spaces)",
+                                        NULL);
+      {
+        int   minVal = 10;
+        int   maxVal = 10000;
+        MYFLT minValF = FL(0.0);
+        /* max. length of string variables */
+        csoundCreateConfigurationVariable(csound, "max_str_len",
+                                          &(csound->strVarMaxLen),
+                                          CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
+                                          "Maximum length of string variables + 1",
+                                          NULL);
+        csoundCreateConfigurationVariable(csound, "msg_color", 
+                                          &(csound->enableMsgAttr),
+                                          CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+                                          "Enable message attributes (colors etc.)",
+                                          NULL);
+        csoundCreateConfigurationVariable(csound, "skip_seconds",
+                                          &(csound->csoundScoreOffsetSeconds_),
+                                          CSOUNDCFG_MYFLT, 0, &minValF, NULL,
+                                          "Start score playback at the specified"
+                                          " time, skipping earlier events",
+                                          NULL);
+      }
+      csoundCreateConfigurationVariable(csound, "ignore_csopts",
+                                        &(csound->disable_csd_options),
+                                        CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+                                        "Ignore <CsOptions> in CSD files"
+                                        " (default: no)", NULL);
+      csound->opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
+      csound->engineState |= CS_STATE_PRE;
+      csound_aops_init_tables(csound);
+      /* now load and pre-initialise external modules for this instance */
+      /* this function returns an error value that may be worth checking */
+      {
+        int err = csoundInitStaticModules(csound);
+        if (csound->delayederrormessages && 
+            csound->printerrormessagesflag==NULL) {
+          csound->Warning(csound, csound->delayederrormessages);
+          free(csound->delayederrormessages);
+          csound->delayederrormessages = NULL;
+        }
+        if (UNLIKELY(err==CSOUND_ERROR))
+          csound->Die(csound, "Failed during csoundInitStaticModules");
+        err = csoundLoadModules(csound);
+        if (csound->delayederrormessages && 
+            csound->printerrormessagesflag==NULL) {
+          csound->Warning(csound, csound->delayederrormessages);
+          free(csound->delayederrormessages);
+          csound->delayederrormessages = NULL;
+        }
+        if (err != CSOUND_SUCCESS)
+          csound->Die(csound, "Failed during csoundLoadModules");
+        init_pvsys(csound);
+        /* utilities depend on this as well as orchs; may get changed by an orch */
+        dbfs_init(csound, DFLT_DBFS);
+        csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
+        csoundInitTimerStruct(csound->csRtClock);
+        csound->engineState |= CS_STATE_COMP | CS_STATE_CLN;
+
+#ifndef USE_DOUBLE
+#ifdef BETA
+        csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
+                            CS_PACKAGE_VERSION, __DATE__);
+#else
+        csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
+                            CS_PACKAGE_VERSION, __DATE__);
+#endif
+#else
+#ifdef BETA
+        csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
+                        CS_PACKAGE_VERSION, __DATE__);
+#else
+        csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
+                        CS_PACKAGE_VERSION, __DATE__);
+#endif
+#endif
+        {
+          char buffer[128];
+          sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+          csound->Message(csound, "%s\n", buffer);
+        }
+
+        /* do not know file type yet */
+        O->filetyp = -1;
+        O->sfheader = 0;
+        csound->peakchunks = 1;
+        create_opcodlst(csound);
+
+        csoundLoadExternals(csound);
+        if (csoundInitModules(csound) != 0)
+          csound->LongJmp(csound, 1);
+      }
   }
 
   PUBLIC int csoundGetDebug(CSOUND *csound)

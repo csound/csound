@@ -54,17 +54,6 @@ typedef struct evt_cb_func {
     struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
 
-/* typedef struct { */
-/*     int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS]; */
-/*     int16   srngflg; */
-/*     int16   sectno; */
-/*     int     lplayed; */
-/*     int     segamps, sormsg; */
-/*     EVENT   **ep, **epend;      /\* pointers for stepping through lplay list *\/ */
-/*     EVENT   *lsect; */
-/* } MUSMON_GLOBALS; */
-
-//#define ST(x)   (((MUSMON_GLOBALS*) csound->musmonGlobals)->x)
 #define STA(x)   (csound->musmonStatics.x)
 
 /* IV - Jan 28 2005 */
@@ -195,8 +184,6 @@ int musmon(CSOUND *csound)
                             CS_PACKAGE_VERSION, __DATE__);
 #endif
 #endif
-    /* if (LIKELY(csound->musmonGlobals == NULL)) */
-    /*   csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR;INCDIR");
@@ -209,7 +196,7 @@ int musmon(CSOUND *csound)
     oload(csound);              /* set globals and run inits */
 
     /* kperf() will not call csoundYield() more than 250 times per second */
-    csound->evt_poll_cnt = 0;
+    csound->evt_poll_cnt    = 0;
     csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 250.0);
     /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O->Midiin || O->FMidiin || O->RMidiin) {
@@ -220,17 +207,17 @@ int musmon(CSOUND *csound)
 
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     STA(segamps) = O->msglevel & SEGAMPS;
-    STA(sormsg) = O->msglevel & SORMSG;
+    STA(sormsg)  = O->msglevel & SORMSG;
 
     if (O->Linein)
       RTLineset(csound);                /* if realtime input expected   */
 
     if (csound->enableHostImplementedAudioIO &&
         csound->hostRequestedBufferSize) {
-      int bufsize = (int) csound->hostRequestedBufferSize;
-      int ksmps = (int) csound->ksmps;
-      bufsize = (bufsize + (ksmps >> 1)) / ksmps;
-      bufsize = (bufsize ? bufsize * ksmps : ksmps);
+      int bufsize    = (int) csound->hostRequestedBufferSize;
+      int ksmps      = (int) csound->ksmps;
+      bufsize        = (bufsize + (ksmps >> 1)) / ksmps;
+      bufsize        = (bufsize ? bufsize * ksmps : ksmps);
       O->outbufsamps = O->inbufsamps = bufsize;
     }
     else {
@@ -259,7 +246,7 @@ int musmon(CSOUND *csound)
     }
     csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
                             (int) O->outbufsamps);
-    O->inbufsamps *= csound->inchnls;    /* now adjusted for n channels  */
+    O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     iotranset(csound);          /* point recv & tran to audio formatter */
       /* open audio file or device for input first, and then for output */
@@ -362,6 +349,15 @@ static void delete_pending_rt_events(CSOUND *csound)
     csound->OrcTrigEvts = NULL;
 }
 
+static void cs_beep(CSOUND *csound)
+{
+#ifdef mac_classic
+    SysBeep(30L);
+#else
+    csound->Message(csound, Str("%c\tbeep!\n"), '\a');
+#endif
+}
+
 PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
@@ -437,15 +433,6 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       cs_beep(csound);
 
     return dispexit(csound);    /* hold or terminate the display output     */
-}
-
-void cs_beep(CSOUND *csound)
-{
-#ifdef mac_classic
-    SysBeep(30L);
-#else
-    csound->Message(csound, Str("%c\tbeep!\n"), '\007');
-#endif
 }
 
 int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
@@ -878,7 +865,7 @@ int sensevents(CSOUND *csound)
       }
       else {
         /* else read next score event */
-        if (UNLIKELY(O->usingcscore)) {           /*    get next lplay event      */
+        if (UNLIKELY(O->usingcscore)) {       /*    get next lplay event  */
           /* FIXME: this may be non-portable */
           if (STA(ep) < STA(epend))                       /* nxt event    */
             memcpy((void*) e, (void*) &((*STA(ep)++)->strarg), sizeof(EVTBLK));
@@ -923,7 +910,8 @@ int sensevents(CSOUND *csound)
       else {
         csound->cyclesRemaining =
           RNDINT64((csound->nxtim*csound->esr - csound->icurTime) / csound->ksmps);
-        csound->nxtim = (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
+        csound->nxtim =
+          (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
       }
     }
 
@@ -1013,7 +1001,8 @@ int sensevents(CSOUND *csound)
       delete_pending_rt_events(csound);
       if (O->Beatmode)
         csound->curbt = csound->curBeat;
-      csound->curp2 = csound->nxtim = csound->timeOffs = csound->icurTime/csound->esr;
+      csound->curp2 = csound->nxtim =
+        csound->timeOffs = csound->icurTime/csound->esr;
       csound->prvbt = csound->nxtbt = csound->beatOffs = csound->curbt;
       section_amps(csound, 1);
     }
@@ -1211,11 +1200,11 @@ void musmon_rewind_score(CSOUND *csound)
       csound->nxtbt = csound->curbt = csound->prvbt = 0.0;
       csound->nxtim = csound->curp2 = 0.0;
       csound->beatOffs = csound->timeOffs = 0.0;
-      csound->curBeat = 0.0;
+      csound->curBeat  = 0.0;
       csound->icurTime = 0L;
       csound->cyclesRemaining = 0;
       csound->evt.strarg = NULL;
-      csound->evt.opcod = '\0';
+      csound->evt.opcod  = '\0';
       /* reset tempo */
       if (csound->oparms->Beatmode)
         settempo(csound, (MYFLT) csound->oparms->cmdTempo);

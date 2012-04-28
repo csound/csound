@@ -119,18 +119,17 @@ int main(int argc, char **argv)
         return -1;
       }
     }
+    /* if logging to file, set message callback */
+    if (logFile != NULL)
+      csoundSetDefaultMessageCallback(msg_callback);
+    else if (nomessages)
+      csoundSetDefaultMessageCallback(nomsg_callback);
 
     /* initialise Csound library */
     csoundInitialize(&argc, &argv, 0);
 
     /*  Create Csound. */
     csound = csoundCreate(NULL);
-
-    /* if logging to file, set message callback */
-    if (logFile != NULL)
-      csoundSetMessageCallback(csound, msg_callback);
-    else if (nomessages)
-      csoundSetMessageCallback(csound, nomsg_callback);
 
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);

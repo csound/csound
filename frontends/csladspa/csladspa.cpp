@@ -111,7 +111,6 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   cmdl[4] = (char *) kr_override.c_str();
 
   csound =  new Csound;
-  csound->PreCompile();
   result = csound->Compile(5,cmdl);
   spout = csound->GetSpout();
   spin  = csound->GetSpin();

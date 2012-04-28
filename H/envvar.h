@@ -157,9 +157,6 @@ extern "C" {
   /**
    * Open a file and return handle.
    *
-   * This function has been replaced by csoundFileOpenWithType().
-   * Please do not use it in new code.
-   *
    * CSOUND *csound:
    *   Csound instance pointer
    * void *fd:
@@ -187,27 +184,15 @@ extern "C" {
    *   list of environment variables for search path (see csoundFindInputFile()
    *   for details); if NULL, the specified name is used as it is, without any
    *   conversion or search.
-   * return value:
-   *   opaque handle to the opened file, for use with csoundGetFileName() or
-   *   csoundFileClose(), or storing in FDCH.fd.
-   *   On failure, NULL is returned.
-   */
-  void *csoundFileOpen(CSOUND *csound, void *fd, int type,
-                       const char *name, void *param, const char *env);
-
-  /**
-   * Open a file and return handle.
-   *
-   * Same as csoundFileOpen() with two additional parameters describing the
-   * type of file being opened and whether it is a temporary file.  This
-   * function replaces csoundFileOpen().  This additional information is
-   * used as metadata to be passed to the host application's FileOpenCallback.
-   *
    * int csFileType:
    *   A value from the enumeration CSOUND_FILETYPES (see CsoundCore.h)
    * int isTemporary:
    *   1 if this file will be deleted when Csound is finished.
    *   Otherwise, 0.
+   * return value:
+   *   opaque handle to the opened file, for use with csoundGetFileName() or
+   *   csoundFileClose(), or storing in FDCH.fd.
+   *   On failure, NULL is returned.
    */
   void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
                                const char *name, void *param, const char *env,
@@ -217,9 +202,9 @@ extern "C" {
    * Allocate a file handle for an existing file already opened with open(),
    * fopen(), or sf_open(), for later use with csoundFileClose() or
    * csoundGetFileName(), or storing in an FDCH structure.
-   * Files registered this way (or opened with csoundFileOpen()) are also
+   * Files registered this way are also
    * automatically closed by csoundReset().
-   * Parameters and return value are similar to csoundFileOpen(), except
+   * Parameters and return value are similar to csoundFileOpenithType(), except
    * fullName is the name that will be returned by a later call to
    * csoundGetFileName().
    */

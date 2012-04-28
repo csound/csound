@@ -276,13 +276,10 @@ public class CsoundObj {
 			};
 			callbacks.SetMessageCallback();
 		}
-		retVal = csound.PreCompile();
 		csound.SetHostImplementedAudioIO(1, 0);
 
-		Log.d("CsoundAndroid", "Return Value: " + retVal);
-
 		retVal = csound.Compile(f.getAbsolutePath());
-		Log.d("CsoundAndroid", "Return Value2: " + retVal);
+		Log.d("CsoundAndroid", "Return Value: " + retVal);
 
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {

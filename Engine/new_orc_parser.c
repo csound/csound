@@ -52,7 +52,6 @@ extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
-extern void csound_orc_compile(CSOUND *, TREE *);
 #ifdef PARCS
 extern TREE *csp_locks_insert(CSOUND *csound, TREE *root);
 void csp_locks_cache_build(CSOUND *);
@@ -80,9 +79,9 @@ uint32_t make_location(PRE_PARM *qq)
     return loc;
 }
 
-int new_orc_parser(CSOUND *csound)
+TREE *csoundParseOrc(CSOUND *csound, char *str)
 {
-    int retVal;
+    int err;
     OPARMS *O = csound->oparms;
     {
       PRE_PARM    qq;
@@ -92,9 +91,12 @@ int new_orc_parser(CSOUND *csound)
       csound_preset_extra(&qq, qq.yyscanner);
       qq.line = csound->orcLineOffset;
       csound->expanded_orc = corfile_create_w();
-      {
+      file_to_int(csound, "**unknown**");
+      if (str == NULL) {
         char bb[80];
-        file_to_int(csound, "**unknown**");
+        if (csound->orchstr==NULL)
+          csound->Die(csound,
+                      Str("Failed to open input file %s\n"), csound->orchname);
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
         /* We know this is the start so stack is empty so far */
@@ -103,6 +105,17 @@ int new_orc_parser(CSOUND *csound)
         corfile_puts(bb, csound->expanded_orc);
         sprintf(bb, "#line %d\n", csound->orcLineOffset);
         corfile_puts(bb, csound->expanded_orc);
+      }
+      else {
+        if (csound->orchstr == NULL ||
+            corfile_body(csound->orchstr) == NULL)
+          csound->orchstr = corfile_create_w();
+        else
+          corfile_reset(csound->orchstr);
+        corfile_puts(str, csound->orchstr);
+        corfile_puts("\n#exit\n", csound->orchstr);
+        corfile_putc('\0', csound->orchstr);
+        corfile_putc('\0', csound->orchstr);
       }
       csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n",
               corfile_body(csound->orchstr));
@@ -134,20 +147,20 @@ int new_orc_parser(CSOUND *csound)
       csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
                              corfile_tell(csound->expanded_orc), pp.yyscanner);
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
-      retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
+      err = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
       corfile_rm(&csound->expanded_orc);
-      if (csound->synterrcnt) retVal = 3;
-      if (LIKELY(retVal == 0)) {
+      if (csound->synterrcnt) err = 3;
+      if (LIKELY(err == 0)) {
         csound->Message(csound, "Parsing successful!\n");
       }
       else {
-        if (retVal == 1){
+        if (err == 1){
           csound->Message(csound, "Parsing failed due to invalid input!\n");
         }
-        else if (retVal == 2){
+        else if (err == 2){
           csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
         }
-        else if (retVal == 3){
+        else if (err == 3){
           csound->Message(csound, "Parsing failed due to %d syntax error%s!\n",
                           csound->synterrcnt, csound->synterrcnt==1?"":"s");
         }
@@ -179,11 +192,12 @@ int new_orc_parser(CSOUND *csound)
       }
 #endif /* PARCS */
 
-      astTree = csound_orc_optimize(csound, astTree);
-      csound_orc_compile(csound, astTree);
-
     ending:
       csound_orclex_destroy(pp.yyscanner);
+      if(err)
+        csoundDie(csound, Str("Stopping on parser failure\n"));
+
+      astTree = csound_orc_optimize(csound, astTree);
+      return astTree;
     }
-    return retVal;
 }

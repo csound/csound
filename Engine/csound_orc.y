@@ -111,6 +111,18 @@
 %token OD_TOKEN
 
 %token T_INSTLIST
+%token S_ELIPSIS
+%token T_MAPI
+%token T_MAPK
+%token T_TADD
+%token T_SUB
+%token S_TUMINUS
+%token T_TMUL
+%token T_TDIV
+%token T_TREM
+%token T_TIMUL
+%token T_TIDIV
+%token T_TIREM
 
 %start orcfile
 %left '?'
@@ -148,6 +160,7 @@
 #endif
 #include "csoundCore.h"
 #include <ctype.h>
+#include <string.h>
 #include "namedins.h"
 
 #include "csound_orc.h"
@@ -173,6 +186,7 @@ extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LOCN csound_orcget_locn(scanner)
 extern int csound_orcget_locn(void *);
 extern int csound_orcget_lineno(void *);
+ extern ORCTOKEN *make_string(CSOUND *, char *);
 %}
 %%
 
@@ -345,12 +359,67 @@ statement : ident '=' expr NEWLINE
                                     csp_orc_sa_globals_find(csound, ans->right));
 #endif
                 }
-          | T_IDENT_T '=' T_IDENT_T NEWLINE
+          | T_IDENT_T '=' texp NEWLINE
           {
-              ORCTOKEN *op = lookup_token(csound, "#copytab", NULL);
+              //ORCTOKEN *op = lookup_token(csound, "=", NULL);
+              TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
+              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+              ans->right = $3;
+              $$ = ans;
+              print_tree(csound, "T assign\n", ans);
+          }
+          | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ',' iexp']' NEWLINE
+          {
+              ORCTOKEN *op = lookup_token(csound, "tabgen", NULL);
               TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$3);
+              ans->right = appendToTree(csound, $4, appendToTree(csound, $6, $8));
+              //print_tree(csound, "Tablegen", ans);
+              $$ = ans;
+
+          }
+          | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ']' NEWLINE
+          {
+              ORCTOKEN *op = lookup_token(csound, "tabgen", NULL);
+              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
+              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+              ans->right = 
+                appendToTree(csound, $4, 
+                             appendToTree(csound, $6, 
+                                          make_leaf(csound,LINE,LOCN,
+                                                    INTEGER_TOKEN,
+                                                    make_int(csound, "1"))));
+              //print_tree(csound, "Tablegen", ans);
+              $$ = ans;
+          }
+          | T_IDENT_T '=' T_IDENT_T '[' iexp ':' iexp ']' NEWLINE
+          {
+              ORCTOKEN *op = lookup_token(csound, "#tabslice", NULL);
+              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
+              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+              ans->right = 
+                appendToTree(csound, 
+                             make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$3),
+                             appendToTree(csound, $5, $7));
+              //print_tree(csound, "Tableslice", ans);
+              $$ = ans;
+          }
+          | T_IDENT_T '=' mapop '(' T_IDENT_T ',' T_FUNCTION ')' NEWLINE
+          {
+              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$3);
+              char buff[256];
+              TREE *str;
+              buff[0]='"'; buff[1]='\0'; strcat(buff, ((ORCTOKEN *)$7)->lexeme);
+              strcat(buff,"\"");
+              //printf("buff=%s<<\n", buff);
+              str = make_leaf(csound,LINE,LOCN,STRING_TOKEN, 
+                              make_string(csound, buff));
+              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+              ans->right = 
+                appendToTree(csound, 
+                             make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$5),
+                             str);
+              //print_tree(csound, "tabmap", ans);
               $$ = ans;
           }
           | T_IDENT_T '[' iexp ']' '=' expr NEWLINE
@@ -686,6 +755,46 @@ function  : T_FUNCTION  {
 #endif
              $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, (ORCTOKEN *)$1); 
                 }
+
+texp      : texp '+' texp  { $$ = make_node(csound, LINE,LOCN, T_TADD, $1, $3); }
+          | texp '+' error
+          | texp '-' texp  { $$ = make_node(csound ,LINE,LOCN, T_SUB, $1, $3); }
+          | texp '-' error
+          | '-' texp %prec S_UMINUS
+            {
+                $$ = make_node(csound,LINE,LOCN, S_TUMINUS, NULL, $2);
+            }
+          | '-' error           { $$ = NULL; }
+          | '+' texp %prec S_UMINUS { $$ = $2; }
+          | '+' error           { $$ = NULL; }
+          | tterm               { $$ = $1; }
+          ;
+
+tterm     : texp '*' texp    { $$ = make_node(csound, LINE,LOCN, T_TMUL, $1, $3); }
+          | texp '*' iexp    { $$ = make_node(csound, LINE,LOCN, T_TIMUL, $1, $3); }
+          | texp '*' error
+          | texp '/' texp    { $$ = make_node(csound, LINE,LOCN, T_TDIV, $1, $3); }
+          | texp '/' iexp    { $$ = make_node(csound, LINE,LOCN, T_TIDIV, $1, $3); }
+          | texp '/' error
+          | texp '%' texp    { $$ = make_node(csound, LINE,LOCN, T_TREM, $1, $3); }
+          | texp '%' iexp    { $$ = make_node(csound, LINE,LOCN, T_TIREM, $1, $3); }
+          | texp '%' error
+          | tfac             { $$ = $1; }
+          ;
+
+tfac      : T_IDENT_T
+          {
+              $$ = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+          }
+          | '(' expr ')'      { $$ = $2; }
+          | '(' expr error    { $$ = NULL; }
+          | '(' error         { $$ = NULL; }
+          ;
+
+mapop     : T_MAPI {
+              $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap_i"); }
+          | T_MAPK {
+              $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap"); }
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
                                              SRATE_TOKEN, (ORCTOKEN *)$1); }
