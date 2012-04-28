@@ -47,6 +47,7 @@ char *create_out_arg(CSOUND *csound, char outype)
     case 'k': sprintf(s, "#k%d", csound->kcount++); break;
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
+    case 't': sprintf(s, "#t%d", csound->tcount++); break;
     default:  sprintf(s, "#i%d", csound->icount++); break;
     }
     return s;
@@ -76,6 +77,10 @@ char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2)
     else if (arg1 == 'k' || arg2 == 'k') {
       strncat(op,".kk",80);
       outype = 'k';
+    }
+    else if (arg1 == 't' || arg2 == 't') {
+      //strncat(op,".kk",80);
+      outype = 't';
     }
     else {
       strncat(op,".ii",80);
