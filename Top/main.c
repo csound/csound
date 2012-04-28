@@ -62,6 +62,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     int     csdFound = 0;
     char    *fileDir;
 
+    if ((n = setjmp(csound->exitjmp)) != 0) {
+      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+
     if (--argc <= 0) {
       dieu(csound, Str("insufficient arguments"));
     }
