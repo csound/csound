@@ -254,6 +254,14 @@ static int is_expression_node(TREE *node)
     case '~':
     case '?':
     case S_TABREF:
+    case T_TADD:
+    case S_TUMINUS:
+    case T_TMUL:
+    case T_TDIV:
+    case T_TREM:
+    case T_TIMUL:
+    case T_TIDIV:
+    case T_TIREM:
       return 1;
     }
    return 0;
@@ -400,23 +408,23 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
 
      switch(root->type) {
     case '+':
-      strncpy(op, "add", 80);
+      strncpy(op, "##add", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '-':
-      strncpy(op, "sub", 80);
+      strncpy(op, "##sub", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '*':
-      strncpy(op, "mul", 80);
+      strncpy(op, "##mul", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '%':
-      strncpy(op, "mod", 80);
+      strncpy(op, "##mod", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '/':
-      strncpy(op, "div", 80);
+      strncpy(op, "##div", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '^':
@@ -443,7 +451,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       break;
     case T_FUNCTION: /* assumes on single arg input */
       c = arg2;
-      if (c == 'p' || c == 'c')   c = 'i';
+      if (c == 'p' || c == 'c' || c == 't')   c = 'i';
       sprintf(op, "%s.%c", root->value->lexeme, c);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found OP: %s\n", op);
@@ -466,32 +474,32 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
         csound->Message(csound, "HANDLING UNARY MINUS!");
       root->left = create_minus_token(csound);
       arg1 = 'i';
-      strncpy(op, "mul", 80);
+      strncpy(op, "##mul", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '|':
-      strncpy(op, "or", 80);
+      strncpy(op, "##or", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '&':
-      strncpy(op, "and", 80);
+      strncpy(op, "##and", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case S_BITSHIFT_RIGHT:
-      strncpy(op, "shr", 80);
+      strncpy(op, "##shr", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case S_BITSHIFT_LEFT:
-      strncpy(op, "shl", 80);
+      strncpy(op, "##shl", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '#':
-      strncpy(op, "xor", 80);
+      strncpy(op, "##xor", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case '~':
       { int outype = 'i';
-        strncpy(op, "not.", 80);
+        strncpy(op, "##not.", 80);
         if (arg2 == 'a') {
           strncat(op, "a", 80);
           outype = 'a';
@@ -505,6 +513,42 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
         outarg = create_out_arg(csound, outype);
       }
       break;
+     case T_TADD:
+      strncpy(op, "##plustab", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+     case T_SUB:
+      strncpy(op, "##subtab", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+     case S_TUMINUS:
+      strncpy(op, "##negtab", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+     case T_TMUL:
+      strncpy(op, "##multtab", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+     case T_TDIV:
+      strncpy(op, "##divtab", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+     case T_TREM:
+      strncpy(op, "##remtab", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+     case T_TIMUL:
+      strncpy(op, "##mulitab", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+     case T_TIDIV:
+      strncpy(op, "##divitabtab", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+     case T_TIREM:
+       strncpy(op, "##remitab", 80);
+       outarg = set_expression_type(csound, op, arg1, arg2);
+       break;
     }
     opTree = create_opcode_token(csound, op);
     if (root->left != NULL) {

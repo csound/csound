@@ -69,7 +69,6 @@ int main(int argc, char **argv)
     csoundInitialize(&argc, &argv, CSOUNDINIT_NO_SIGNAL_HANDLER);
     csound = csoundCreate(NULL);
     csoundSetMessageCallback(csound, mytextNull);
-    csoundPreCompile(csound);
     csoundSetMessageCallback(csound, mytextOutput);
     csoundSetYieldCallback(csound, yieldCallback);
     mw->show();
@@ -206,28 +205,27 @@ void cs_compile_run(void)
           Fl::wait(0);
         }
       };
-      res = csoundPreCompile(csound);
 //       {
 //         int n;
 //         printf("nxt=%d\n", nxt);
 //         for (n=0; n<nxt; n++) printf("%d: \"%s\"\n", n, argv[n]);
 //       }
-      if (res == 0) {
+
         // set default, but allow to be overridden by .csoundrc or <CsOptions>
 #if defined(WIN32)
-        csoundParseConfigurationVariable(csound, "rtaudio", "pa_cb");
+      csoundParseConfigurationVariable(csound, "rtaudio", "pa_cb");
 #elif defined(LINUX)
-        csoundParseConfigurationVariable(csound, "rtaudio", "alsa");
+      csoundParseConfigurationVariable(csound, "rtaudio", "alsa");
 #elif defined(OSX)
-        csoundParseConfigurationVariable(csound, "rtaudio", "CoreAudio");
+      csoundParseConfigurationVariable(csound, "rtaudio", "CoreAudio");
 #else
 #endif
-        // disable threading in widgets plugin, and also graphs for safety
-        // (the latter is only needed with a static FLTK library)
-        csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
-        *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 30;
-        res = csoundCompile(csound, nxt, argv);
-      }
+      // disable threading in widgets plugin, and also graphs for safety
+      // (the latter is only needed with a static FLTK library)
+      csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
+      *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 30;
+      res = csoundCompile(csound, nxt, argv);
+
       if (chdir(olddir)) {
           text->insert(strerror(errno));
           text->show_insert_position();
@@ -261,7 +259,6 @@ void cs_util_sndinfo(void)
       textw->show();
       argv[0] = (char*)"sndinfo";
       argv[1] = (char *)sndinfo_file->value();
-      csoundPreCompile(csound);
       csoundRunUtility(csound, "sndinfo", 2, argv);
       csoundReset(csound);
     }
@@ -365,7 +362,6 @@ void cs_util_het(void)
       else if (het_c4->value()) argv[nxt++] = (char*)"-c4";
       argv[nxt++] = (char *)het_analin->value();
       argv[nxt++] = (char *)het_analout->value();
-      csoundPreCompile(csound);
       csoundRunUtility(csound, "hetro", nxt, argv);
       csoundReset(csound);
     }
@@ -441,7 +437,6 @@ void cs_util_lpc(void)
       else if (lpc_c4->value()) argv[nxt++] = (char*)"-c4";
       argv[nxt++] = (char *)lpc_analin->value();
       argv[nxt++] = (char *)lpc_analout->value();
-      csoundPreCompile(csound);
       csoundRunUtility(csound, "lpanal", nxt, argv);
       csoundReset(csound);
     }
@@ -514,7 +509,6 @@ void cs_util_pvc(void)
       else if (pvc_c4->value()) argv[nxt++] = (char*)"-c4";
       argv[nxt++] = (char *)pvc_analin->value();
       argv[nxt++] = (char *)pvc_analout->value();
-      csoundPreCompile(csound);
       csoundRunUtility(csound, "pvanal", nxt, argv);
       csoundReset(csound);
     }
@@ -566,7 +560,6 @@ void cs_util_cvl(void)
       else if (cvl_c4->value()) argv[nxt++] = (char*)"-c4";
       argv[nxt++] = (char *)cvl_analin->value();
       argv[nxt++] = (char *)cvl_analout->value();
-      csoundPreCompile(csound);
       csoundRunUtility(csound, "cvanal", nxt, argv);
       csoundReset(csound);
     }
@@ -616,7 +609,6 @@ void cs_util_pinfo(void)
       }
       if (plk_i->value()) argv[nxt++] = (char*)"-i";
       argv[nxt++] = (char *)plk_analin->value();
-      csoundPreCompile(csound);
       csoundRunUtility(csound, "pvlook", nxt, argv);
       csoundReset(csound);
     }
@@ -714,7 +706,6 @@ void cs_util_dnoise(void)
       argv[nxt++] = (char*)"-o"; argv[nxt++] = (char *)dns_analout->value();
       argv[nxt++] = (char*)"-i"; argv[nxt++] = (char *)dns_noise->value();
       argv[nxt++] = (char *)dns_analin->value();
-      csoundPreCompile(csound);
       csoundRunUtility(csound, "dnoise", nxt, argv);
       csoundReset(csound);
     }

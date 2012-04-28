@@ -117,6 +117,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 ":"             { return ':'; }
 ","             { return ','; }
 "!"             { return '!'; }
+"->"            { return S_ELIPSIS; }
 "!="            { return S_NEQ; }
 "&&"            { return S_AND; }
 "||"            { return S_OR; }
@@ -137,6 +138,8 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "~"             { return '~'; }
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
+"@i"            { return T_MAPI; }
+"@k"            { return T_MAPK; }
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
@@ -422,52 +425,6 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     ans->fvalue = n;
     return ans;
 }
-
-#if 0
-/* Functions for working with grabbing input one line at a time */
-/* These two functions assume reading from a file */
-
-int get_next_line(struct yyguts_t * yyg)
-{
-    char *p;
-    void *yyscanner = yyg;
-
-    PARM->nBuffer = 0;
-
-    p = fgets(yyextra->buffer, lMaxBuffer, yyin);
-    csound->DebugMsg(csound,"get_next_line: %s\n", yyextra->buffer);
-    if (UNLIKELY(p == NULL)) {
-      if (ferror(yyin))
-        return -1;
-      return 1;
-    }
-
-    csound_orcset_lineno(1+csound_orcget_lineno(yyg),yyg);
-
-    PARM->lBuffer = strlen(yyextra->buffer);
-
-    return 0;
-}
-
-int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
-{
-    int frc;
-    void *yyscanner = yyg;
-    if (UNLIKELY( feof(yyin)  ))
-      return 0;
-    csound->DebugMsg(csound,"get_next_char: %s\n", yyextra->buffer);
-    while (  PARM->nBuffer >= PARM->lBuffer  ) {
-      frc = get_next_line(yyg);
-      if (UNLIKELY(  frc != 0  ))
-        return 0;
-    }
-
-    b[0] = yyextra->buffer[PARM->nBuffer];
-    PARM->nBuffer += 1;
-
-    return b[0]=='\0'?0:1;
-}
-#endif
 
 char *csound_orcget_current_pointer(void *yyscanner)
 {

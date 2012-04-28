@@ -472,6 +472,26 @@ extern "C" {
       MYFLT   *data;
     } TABDAT;
 
+    typedef struct ORCTOKEN {
+        int              type;
+        char             *lexeme;
+        int              value;
+        double           fvalue;
+        struct ORCTOKEN  *next;
+    } ORCTOKEN;
+
+    typedef struct TREE {
+        int           type;
+        ORCTOKEN      *value;
+        int           rate;
+        int           len;
+        int           line;
+        int           locn;
+        struct TREE   *left;
+        struct TREE   *right;
+        struct TREE   *next;
+    } TREE;
+
     typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
             const char *channelName,
             MYFLT *channelValuePtr,
@@ -503,13 +523,6 @@ extern "C" {
      * to callback routines.
      */
     PUBLIC CSOUND *csoundCreate(void *hostData);
-
-    /**
-     * Reset and prepare an instance of Csound for compilation.
-     * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
-     * CSOUND_MEMORY if an error occured.
-     */
-    PUBLIC int csoundPreCompile(CSOUND *);
 
     /**
      * csoundInitializeCscore() prepares an instance of Csound for Cscore
@@ -579,6 +592,17 @@ extern "C" {
     /*
      * PERFORMANCE
      */
+
+    PUBLIC TREE *csoundParseOrc(CSOUND *csound, char *str);
+
+    /**
+     * Compile the given TREE node into structs for Csound to use
+     */
+    PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
+
+    PUBLIC int csoundCompileOrc(CSOUND *csound, char *str);
+
+    PUBLIC int csoundReadScore(CSOUND *csound, char *str);
 
     /**
      * Compiles Csound input files (such as an orchestra and score)
@@ -873,6 +897,12 @@ extern "C" {
 
     PUBLIC void csoundMessageV(CSOUND *,
             int attr, const char *format, va_list args);
+
+    PUBLIC void csoundSetDefaultMessageCallback(
+            void (*csoundMessageCallback_)(CSOUND *,
+                    int attr,
+                    const char *format,
+                    va_list valist));
 
     /**
      * Sets a function to be called by Csound to print an informational message.
