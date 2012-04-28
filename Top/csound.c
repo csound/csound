@@ -1907,7 +1907,11 @@ extern "C" {
                                                                      const char *format,
                                                                      va_list args))
   {
-      msgcallback_ = csoundMessageCallback;
+      if (csoundMessageCallback) {
+        msgcallback_ = csoundMessageCallback;
+      } else {
+        msgcallback_ = csoundDefaultMessageCallback;
+      }
   }
 
   PUBLIC void csoundSetMessageCallback(CSOUND *csound,
