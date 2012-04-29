@@ -574,17 +574,29 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           }
           /* VL 14/12/11 : calling lgbuild here seems to be problematic for
              undef arg checks */
-          else {
-            lgbuild(csound, arg, 1);
-          }
+          /* else { */
+          /*   lgbuild(csound, arg, 1); */
+          /* } */
 
 
         }
 
         /* update_lclcount(csound, ip, root->right); */
 
-        argcount = 0;
+      }
+      /* update_lclcount(csound, ip, root->left); */
 
+
+      /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
+
+      {
+        OENTRY *ep = csound->opcodlst + tp->opnum;
+        int argcount = 0;
+        //        csound->Message(csound, "Opcode InTypes: %s\n", ep->intypes);
+        //        csound->Message(csound, "Opcode OutTypes: %s\n", ep->outypes);
+
+        set_xincod(csound, tp, ep, root->line);
+ 
         /* OUTARGS */
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
 
@@ -607,19 +619,6 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           }
 
         }
-      }
-      /* update_lclcount(csound, ip, root->left); */
-
-
-      /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
-
-      {
-        OENTRY *ep = csound->opcodlst + tp->opnum;
-
-        //        csound->Message(csound, "Opcode InTypes: %s\n", ep->intypes);
-        //        csound->Message(csound, "Opcode OutTypes: %s\n", ep->outypes);
-
-        set_xincod(csound, tp, ep, root->line);
         set_xoutcod(csound, tp, ep, root->line);
 
         if (root->right != NULL) {
