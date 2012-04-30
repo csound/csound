@@ -46,6 +46,7 @@ static void msg_callback(CSOUND *csound,
     if ((attr & CSOUNDMSG_TYPE_MASK) != CSOUNDMSG_REALTIME) {
       vfprintf(logFile, format, args);
       fflush(logFile);
+      return;
      }
     #if defined(WIN32) || defined(MAC)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
