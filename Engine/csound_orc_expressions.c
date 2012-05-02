@@ -267,6 +267,7 @@ static int is_expression_node(TREE *node)
     case T_TIMUL:
     case T_TIDIV:
     case T_TIREM:
+    case S_A2K:
       return 1;
     }
    return 0;
@@ -553,6 +554,10 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
      case T_TIREM:
        strncpy(op, "##remitab", 80);
        outarg = set_expression_type(csound, op, arg1, arg2);
+       break;
+     case S_A2K:
+       strncpy(op, "vaget", 80);
+       outarg = create_out_arg(csound, 'k');
        break;
     }
     opTree = create_opcode_token(csound, op);
