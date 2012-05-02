@@ -360,6 +360,26 @@ statement : ident '=' expr NEWLINE
                                     csp_orc_sa_globals_find(csound, ans->right));
 #endif
                 }
+          | T_IDENT_A '[' iexp ']' '=' iexp NEWLINE
+          {
+              ORCTOKEN *op = lookup_token(csound, "vaset", NULL);
+              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE0, op);
+              ans->left = NULL;
+              ans->right = 
+                appendToTree(csound, $6,
+                             appendToTree(csound, $3,
+                                          make_leaf(csound,LINE,LOCN,
+                                                    T_IDENT_A, (ORCTOKEN *)$1)));
+                  /* ans->value->lexeme = get_assignment_type(csound,
+                     ans->left->value->lexeme, ans->right->value->lexeme); */
+              print_tree(csound, "K2A Assign\n", ans);
+              $$ = ans;
+#ifdef PARCS
+              csp_orc_sa_global_read_add_list(csound,
+                                              csp_orc_sa_globals_find(csound,
+                                                                      ans->right));
+#endif
+          }
           | T_IDENT_T '=' texp NEWLINE
           {
               //ORCTOKEN *op = lookup_token(csound, "=", NULL);

@@ -559,33 +559,33 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
        strncpy(op, "vaget", 80);
        outarg = create_out_arg(csound, 'k');
        break;
-    }
-    opTree = create_opcode_token(csound, op);
-    if (root->left != NULL) {
-      opTree->right = root->left;
-      opTree->right->next = root->right;
-      opTree->left = create_ans_token(csound, outarg);
-      opTree->line = line;
-      opTree->locn = locn;
-      //print_tree(csound, "making expression", opTree);
-    }
-    else {
-      opTree->right = root->right;
-      opTree->left = create_ans_token(csound, outarg);
-      opTree->line = line;
-      opTree->locn = locn;
-    }
+     }
+     opTree = create_opcode_token(csound, op);
+     if (root->left != NULL) {
+       opTree->right = root->left;
+       opTree->right->next = root->right;
+       opTree->left = create_ans_token(csound, outarg);
+       opTree->line = line;
+       opTree->locn = locn;
+       //print_tree(csound, "making expression", opTree);
+     }
+     else {
+       opTree->right = root->right;
+       opTree->left = create_ans_token(csound, outarg);
+       opTree->line = line;
+       opTree->locn = locn;
+     }
 
-    if (anchor == NULL) {
-      anchor = opTree;
-    }
-    else {
-      last = anchor;
-      while (last->next != NULL) {
-        last = last->next;
-      }
-      last->next = opTree;
-    }
+     if (anchor == NULL) {
+       anchor = opTree;
+     }
+     else {
+       last = anchor;
+       while (last->next != NULL) {
+         last = last->next;
+       }
+       last->next = opTree;
+     }
     mfree(csound, op);
     return anchor;
 }
