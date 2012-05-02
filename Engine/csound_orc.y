@@ -123,6 +123,7 @@
 %token T_TIMUL
 %token T_TIDIV
 %token T_TIREM
+%token S_A2K
 
 %start orcfile
 %left '?'
@@ -718,6 +719,18 @@ ifac      : ident               { $$ = $1; }
                              make_leaf(csound, LINE,LOCN,
                                        T_IDENT_T, (ORCTOKEN*)$1), $3);
           }
+          | T_IDENT_A '[' iexp ']'
+          {
+              $$ = make_node(csound,LINE,LOCN, S_A2K, $3, 
+                             make_leaf(csound, LINE,LOCN,
+                                       T_IDENT_A, (ORCTOKEN*)$1));
+          }
+          | T_IDENT_GA '[' iexp ']'
+          {
+              $$ = make_node(csound,LINE,LOCN, S_A2K, $3, 
+                             make_leaf(csound, LINE,LOCN,
+                                       T_IDENT_GA, (ORCTOKEN*)$1));
+          }
           | iexp '|' iexp        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
           | iexp '|' error
           | iexp '&' iexp        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
@@ -785,6 +798,9 @@ tterm     : texp '*' texp    { $$ = make_node(csound, LINE,LOCN, T_TMUL, $1, $3)
 tfac      : T_IDENT_T
           {
               $$ = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+          }
+          | '[' iexp S_ELIPSIS iexp ',' iexp']'
+          {
           }
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error    { $$ = NULL; }

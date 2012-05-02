@@ -609,6 +609,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_TASSIGN\""); break;
     case S_TABREF:
       csound->Message(csound,"name=\"S_TABREF\""); break;
+    case S_A2K:
+      csound->Message(csound,"name=\"S_A2K\""); break;
     case S_GT:
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
