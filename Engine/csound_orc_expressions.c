@@ -410,7 +410,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       arg1 = argtyp2(csound, root->left->value->lexeme);
     }
     arg2 = argtyp2(csound, root->right->value->lexeme);
-    printf("arg1=%.2x(%c); arg2=%.2x(%c)\n", arg1, arg1, arg2, arg2);
+    //printf("arg1=%.2x(%c); arg2=%.2x(%c)\n", arg1, arg1, arg2, arg2);
     op = mcalloc(csound, 80);
 
     switch(root->type) {
@@ -457,7 +457,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       outarg = create_out_arg(csound, 'k');
       break;
     case S_TABRANGE:
-      strncpy(op, "tabgen", 80);
+      strncpy(op, "#tabgen", 80);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found TABGEN: %s\n", op);
       outarg = create_out_arg(csound, 't');
