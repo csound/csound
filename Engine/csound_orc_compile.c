@@ -385,8 +385,8 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
       tfound = argtyp2(csound, s);     /* else get arg type */
       /* IV - Oct 31 2002 */
       tfound_m = STA(typemask_tabl)[(unsigned char) tfound];
-      csound->DebugMsg(csound, "treqd %c, tfound_m %d STA(lgprevdef) %d\n",
-                       treqd, tfound_m);
+      //csound->DebugMsg(csound, "treqd %c, tfound_m %d STA(lgprevdef) %d\n",
+      //                 treqd, tfound_m);
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !STA(lgprevdef) && *s != '"') {
         synterr(csound,
                 Str("input arg '%s' used before defined (in opcode %s),"
@@ -426,7 +426,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
       }
       }
     }
-    csound->DebugMsg(csound, "xincod = %d", tp->xincod);
+    //csound->DebugMsg(csound, "xincod = %d", tp->xincod);
 }
 
 void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)

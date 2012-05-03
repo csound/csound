@@ -258,6 +258,7 @@ static int is_expression_node(TREE *node)
     case '#':
     case '~':
     case '?':
+    case S_TABRANGE:
     case S_TABREF:
     case T_TADD:
     case S_TUMINUS:
@@ -409,10 +410,10 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       arg1 = argtyp2(csound, root->left->value->lexeme);
     }
     arg2 = argtyp2(csound, root->right->value->lexeme);
-
+    printf("arg1=%.2x(%c); arg2=%.2x(%c)\n", arg1, arg1, arg2, arg2);
     op = mcalloc(csound, 80);
 
-     switch(root->type) {
+    switch(root->type) {
     case '+':
       strncpy(op, "##add", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
@@ -454,6 +455,12 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found TABREF: %s\n", op);
       outarg = create_out_arg(csound, 'k');
+      break;
+    case S_TABRANGE:
+      strncpy(op, "tabgen", 80);
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "Found TABGEN: %s\n", op);
+      outarg = create_out_arg(csound, 't');
       break;
     case T_FUNCTION: /* assumes on single arg input */
       c = arg2;
@@ -575,7 +582,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
        opTree->line = line;
        opTree->locn = locn;
      }
-
+     if (root->type==S_TABRANGE) handle_optional_args(csound, opTree);
      if (anchor == NULL) {
        anchor = opTree;
      }
@@ -600,8 +607,8 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn)
     TREE *anchor = NULL, *last;
     TREE * opTree;
 
-    /*   if (UNLIKELY(PARSER_DEBUG)) */
-    csound->Message(csound, "Creating boolean expression\n");
+    if (UNLIKELY(PARSER_DEBUG)) 
+      csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
       anchor = create_boolean_expression(csound, root->left, line, locn);
