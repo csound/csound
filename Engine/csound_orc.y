@@ -390,30 +390,6 @@ statement : ident '=' expr NEWLINE
               $$ = ans;
               //print_tree(csound, "T assign\n", ans);
           }
-          | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ',' iexp']' NEWLINE
-          {
-              ORCTOKEN *op = lookup_token(csound, "tabgen", NULL);
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
-              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = appendToTree(csound, $4, appendToTree(csound, $6, $8));
-              //print_tree(csound, "Tablegen", ans);
-              $$ = ans;
-
-          }
-          | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ']' NEWLINE
-          {
-              ORCTOKEN *op = lookup_token(csound, "tabgen", NULL);
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
-              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = 
-                appendToTree(csound, $4, 
-                             appendToTree(csound, $6, 
-                                          make_leaf(csound,LINE,LOCN,
-                                                    INTEGER_TOKEN,
-                                                    make_int(csound, "1"))));
-              //print_tree(csound, "Tablegen", ans);
-              $$ = ans;
-          }
           | T_IDENT_T '=' T_IDENT_T '[' iexp ':' iexp ']' NEWLINE
           {
               ORCTOKEN *op = lookup_token(csound, "#tabslice", NULL);
@@ -819,6 +795,12 @@ tterm     : texp '*' texp    { $$ = make_node(csound, LINE,LOCN, T_TMUL, $1, $3)
 tfac      : T_IDENT_T
           {
               $$ = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+          }
+          | '[' iexp S_ELIPSIS iexp ',' iexp ']'
+          {
+              TREE *ans = make_node(csound,LINE,LOCN, S_TABRANGE,
+                                    $2, appendToTree(csound, $4, $6));
+              $$ = ans;
           }
           | '[' iexp S_ELIPSIS iexp ']'
           {
