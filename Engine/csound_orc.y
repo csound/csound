@@ -1,4 +1,4 @@
- /*
+/*
     csound_orc.y:
 
     Copyright (C) 2006, 2007
@@ -124,6 +124,7 @@
 %token T_TIDIV
 %token T_TIREM
 %token S_A2K
+%token S_TABRANGE
 
 %start orcfile
 %left '?'
@@ -372,7 +373,7 @@ statement : ident '=' expr NEWLINE
                                                     T_IDENT_A, (ORCTOKEN *)$1)));
                   /* ans->value->lexeme = get_assignment_type(csound,
                      ans->left->value->lexeme, ans->right->value->lexeme); */
-              print_tree(csound, "K2A Assign\n", ans);
+              //print_tree(csound, "K2A Assign\n", ans);
               $$ = ans;
 #ifdef PARCS
               csp_orc_sa_global_read_add_list(csound,
@@ -819,8 +820,11 @@ tfac      : T_IDENT_T
           {
               $$ = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
           }
-          | '[' iexp S_ELIPSIS iexp ',' iexp']'
+          | '[' iexp S_ELIPSIS iexp ']'
           {
+              TREE *ans = make_node(csound,LINE,LOCN, S_TABRANGE, $2, $4);
+              //print_tree(csound, "Tablegen", ans);
+              $$ = ans;
           }
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error    { $$ = NULL; }
