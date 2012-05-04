@@ -125,6 +125,7 @@
 %token T_TIREM
 %token S_A2K
 %token S_TABRANGE
+%token S_TABSLICE
 
 %start orcfile
 %left '?'
@@ -389,18 +390,6 @@ statement : ident '=' expr NEWLINE
               ans->right = $3;
               $$ = ans;
               //print_tree(csound, "T assign\n", ans);
-          }
-          | T_IDENT_T '=' T_IDENT_T '[' iexp ':' iexp ']' NEWLINE
-          {
-              ORCTOKEN *op = lookup_token(csound, "#tabslice", NULL);
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
-              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = 
-                appendToTree(csound, 
-                             make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$3),
-                             appendToTree(csound, $5, $7));
-              //print_tree(csound, "Tableslice", ans);
-              $$ = ans;
           }
           | T_IDENT_T '=' mapop '(' T_IDENT_T ',' T_FUNCTION ')' NEWLINE
           {
@@ -795,6 +784,12 @@ tterm     : texp '*' texp    { $$ = make_node(csound, LINE,LOCN, T_TMUL, $1, $3)
 tfac      : T_IDENT_T
           {
               $$ = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
+          }
+          | T_IDENT_T '[' iexp ':' iexp ']' NEWLINE
+          {
+              TREE *ans = make_node(csound,LINE,LOCN, S_TABSLICE,
+                                    $1, appendToTree(csound, $3, $5));
+              $$ = ans;
           }
           | '[' iexp S_ELIPSIS iexp ',' iexp ']'
           {
