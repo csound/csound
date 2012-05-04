@@ -3861,7 +3861,9 @@ extern "C" {
       csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
       csMsgStruct *p;
       int         len = 0;
+      va_list     args_save;
 
+      va_copy(args_save, args);
       switch (attr & CSOUNDMSG_TYPE_MASK) {
       case CSOUNDMSG_ERROR:
       case CSOUNDMSG_REALTIME:
@@ -3874,7 +3876,8 @@ extern "C" {
       p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
       p->nxt = (csMsgStruct*) 0;
       p->attr = attr;
-      vsprintf(&(p->s[0]), fmt, args);
+      vsprintf(&(p->s[0]), fmt, args_save);
+      va_end(args_save);
       csoundLockMutex(pp->mutex_);
       if (pp->firstMsg == (csMsgStruct*) 0)
         pp->firstMsg = p;
