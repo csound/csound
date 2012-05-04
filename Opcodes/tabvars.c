@@ -62,7 +62,8 @@ static inline void tabensure(CSOUND *csound, TABDAT *p, int size)
     int32 ss = sizeof(MYFLT)*size;
     if (p->aux.auxp==NULL || p->aux.size<ss) {
       csound->AuxAlloc(csound, ss, &p->aux);
-      p->data = (MYFLT*)(p->aux.auxp);      
+      p->data = (MYFLT*)(p->aux.auxp);
+      p->size = size;
     }
 }
 
@@ -421,24 +422,26 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
     MYFLT end   = *p->end;
     MYFLT incr  = *p->incr;
     int i,size =  (end - start)/incr + 1;
-    printf("TABGEN: start, end, incr = %f, %f, %f\n", start, end, incr);
+
+    printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
     if (UNLIKELY(size < 0))
       csound->InitError(csound,
                         Str("inconsistent start, end and increment parameters"));
     tabensure(csound, p->tab, size);
     if (UNLIKELY(p->tab->data==NULL)) {
       tabensure(csound, p->tab, size);
-      data = p->tab->data;
       p->tab->size = size;
     }
-    else size = p->tab->size;
-    //printf("size=%d\n[", size);
+    else
+      size = p->tab->size;
+    data =  p->tab->data;
+    printf("size=%d\n[", size);
     for (i=0; i < size; i++) {
       data[i] = start;
-      //printf("%f ", start);
+      printf("%f ", start);
       start += incr;
     }
-    //printf("]\n");
+    printf("]\n");
 
     return OK;
 }
@@ -474,20 +477,22 @@ typedef struct {
 
 static int tabslice_set(CSOUND *csound, TABSLICE *p){
 
-    MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
+    MYFLT *tabin = p->tabin->data;
     int start = (int) *p->start;
     int end   = (int) *p->end;
     int size = end - start;
     if (UNLIKELY(size < 0))
       csound->InitError(csound, Str("inconsistent start, end parameters"));
-    if (UNLIKELY(size > p->tabin->size)  )
+    if (UNLIKELY(size > p->tabin->size)) {
+      printf("size=%d old tab size = %d\n", size, p->tabin->size);
       csound->InitError(csound, Str("slice larger than original size"));
+    }
     if (UNLIKELY(p->tab->data==NULL)) {
       tabensure(csound, p->tab, size);
       p->tab->size = size;
     }
     else size = p->tab->size;
-    memcpy(data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size);
+    memcpy(p->tab->data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size);
     return OK;
 }
 
