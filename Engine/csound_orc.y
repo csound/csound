@@ -391,24 +391,6 @@ statement : ident '=' expr NEWLINE
               $$ = ans;
               //print_tree(csound, "T assign\n", ans);
           }
-          | T_IDENT_T '=' mapop '(' T_IDENT_T ',' T_FUNCTION ')' NEWLINE
-          {
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$3);
-              char buff[256];
-              TREE *str;
-              buff[0]='"'; buff[1]='\0'; strcat(buff, ((ORCTOKEN *)$7)->lexeme);
-              strcat(buff,"\"");
-              //printf("buff=%s<<\n", buff);
-              str = make_leaf(csound,LINE,LOCN,STRING_TOKEN, 
-                              make_string(csound, buff));
-              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = 
-                appendToTree(csound, 
-                             make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$5),
-                             str);
-              //print_tree(csound, "tabmap", ans);
-              $$ = ans;
-          }
           | T_IDENT_T '[' iexp ']' '=' expr NEWLINE
           {
               TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$5);
@@ -803,15 +785,29 @@ tfac      : T_IDENT_T
               //print_tree(csound, "Tablegen", ans);
               $$ = ans;
           }
+          | mapop '(' T_IDENT_T ',' T_FUNCTION ')'
+          {
+              char buff[256];
+              TREE *str, *var;
+              buff[0]='"'; buff[1]='\0'; strcat(buff, ((ORCTOKEN *)$5)->lexeme);
+              strcat(buff,"\"");
+              printf("buff=%s<<\n", buff);
+              str = make_leaf(csound,LINE,LOCN,STRING_TOKEN, 
+                              make_string(csound, buff));
+              var = make_leaf(csound, LINE,LOCN,T_IDENT_T, (ORCTOKEN *)$3);
+              print_tree(csound, "t-var", var);
+              $$ = 
+                make_node(csound,LINE,LOCN, (int)$1, var, str);
+              print_tree(csound, "mapop", $$);
+          }
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error    { $$ = NULL; }
           | '(' error         { $$ = NULL; }
           ;
 
-mapop     : T_MAPI {
-              $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap_i"); }
-          | T_MAPK {
-              $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap"); }
+mapop     : T_MAPI { $$ = T_MAPI; }
+          | T_MAPK { $$ = T_MAPK; }
+          ;
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
                                              SRATE_TOKEN, (ORCTOKEN *)$1); }

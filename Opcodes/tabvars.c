@@ -505,7 +505,7 @@ typedef struct {
 
 static int tabmap_set(CSOUND *csound, TABMAP *p)
 {
-    MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
+    MYFLT *data, *tabin = p->tabin->data;
     char func[64];
     int n, size;
     OENTRY *opc  = NULL;
@@ -523,6 +523,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
       p->tab->size = size;
     }
     else size = size < p->tab->size ? size : p->tab->size;
+    data =  p->tab->data;
 
     opc = csound->opcodlst;
     for (n=0; opc < csound->oplstend; opc++, n++)
