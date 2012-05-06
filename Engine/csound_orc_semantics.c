@@ -440,6 +440,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_TABRANGE:(%d:%d)\n", l->line, l->locn); break;
     case S_TABREF:
       csound->Message(csound,"S_TABREF:(%d:%d)\n", l->line, l->locn); break;
+    case T_MAPK:
+      csound->Message(csound,"T_MAPK:(%d:%d)\n", l->line, l->locn); break;
+    case T_MAPI:
+      csound->Message(csound,"T_MAPI:(%d:%d)\n", l->line, l->locn); break;
     case S_GT:
       csound->Message(csound,"S_GT:(%d:%d)\n", l->line, l->locn); break;
     case S_GE:

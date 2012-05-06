@@ -261,6 +261,8 @@ static int is_expression_node(TREE *node)
     case S_TABSLICE:
     case S_TABRANGE:
     case S_TABREF:
+    case T_MAPK:
+    case T_MAPI:
     case T_TADD:
     case S_TUMINUS:
     case T_TMUL:
@@ -463,6 +465,18 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       strncpy(op, "#tabslice", 80);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found TABSLICE: %s\n", op);
+      outarg = create_out_arg(csound, 't');
+      break;
+    case T_MAPK:
+      strncpy(op, "#tabmap", 80);
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "Found TABMAP: %s\n", op);
+      outarg = create_out_arg(csound, 't');
+      break;
+    case T_MAPI:
+      strncpy(op, "#tabmapo_i", 80);
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "Found TABMAP: %s\n", op);
       outarg = create_out_arg(csound, 't');
       break;
     case T_FUNCTION: /* assumes on single arg input */
