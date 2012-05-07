@@ -411,12 +411,19 @@ unsigned int CountCSD(char **csdnames)
   int             i = 0;
   size_t    indx = 0;
   char ladspa_path[1024] = "";
+  const char *src = NULL;
 
-#ifndef MACOSX
-  strcpy(ladspa_path, getenv("LADSPA_PATH"));
+#ifdef MACOSX
+  src = "/Library/Audio/Plug-Ins/LADSPA";
 #else
-  strcpy(ladspa_path, "/Library/Audio/Plug-Ins/LADSPA");
+  src = getenv("LADSPA_PATH");
 #endif
+
+  if(src) {
+    strncpy(ladspa_path, src, 1024);
+    ladspa_path[1023] = '\0';
+  }
+
   // if no LADSPA_PATH attempt to open
   // current directory
   if(strlen(ladspa_path) == 0) dip = opendir(".");
