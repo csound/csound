@@ -106,7 +106,7 @@ void corfile_flush(CORFIL *f)
     f->len = strlen(f->body)+1;
     new = (char*)realloc(f->body, f->len);
     if (new==NULL) {
-      fprint(stderr, "Out of Memory\n");
+      fprintf(stderr, "Out of Memory\n");
       exit(7);
     }
     f->body = new;
