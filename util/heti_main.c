@@ -85,6 +85,7 @@ int main(int argc, char **argv)
     outf = fopen(argv[2], "wb");
     if (outf == NULL) {
       printf("Cannot open output hetro file %s\n", argv[2]);
+      fclose(infd);
       return 1;
     }
 
