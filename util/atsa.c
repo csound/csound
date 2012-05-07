@@ -1509,7 +1509,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     fft.size = N;
     fft.rate = file_sampling_rate;
     fft.data = (MYFLT *) csound->Malloc(csound, (N + 2) * sizeof(MYFLT));
-    threshold = AMP_DB(ATSA_NOISE_THRESHOLD);
+    threshold = /*AMP_DB*/(ATSA_NOISE_THRESHOLD);
     frames = sound->frames;
     fft_mag = (double) file_sampling_rate / (double) N;
     band_limits =
