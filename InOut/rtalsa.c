@@ -490,13 +490,13 @@ static void list_devices(CSOUND *csound)
         csound->Message(csound, " \"hw:%i,%i\" - %s",card, num, temp );
       }
     }
+    fclose(f);
     free(line);
     free(line_);
 }
 
 static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
-{
-    DEVPARAMS *dev;
+{    DEVPARAMS *dev;
     void      **userDataPtr;
     int       retval;
 

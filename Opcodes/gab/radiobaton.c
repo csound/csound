@@ -162,7 +162,7 @@ static int rbatonPercPad_set (CSOUND *csound, RB_PERCPAD *p)
 static int rbatonPercPad(CSOUND *csound, RB_PERCPAD *p)
 {
     int status, data1, data2;
-    MYFLT *args[9];
+    MYFLT *args[10];
 
     if (p->local_buf_index != csound->midiGlobals->MIDIINbufIndex) {
       MGLOBAL* mg = csound->midiGlobals;
