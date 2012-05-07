@@ -1585,8 +1585,16 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         }
         while (isspace((c = getscochar(csound, 1))));
         while (isNameChar(c, i)) {
+          char  *new;
           mname[i++] = c;
-          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
+          if (i==mlen) {
+            new = (char *)realloc(mname, mlen+=40);
+            if (new==NULL) {
+              fprintf(stderr, "Out of Memory\n");
+              exit(7);
+            }
+            mname = new;
+          }
           c = getscochar(csound, 1);
         }
         mname[i] = '\0';
@@ -1599,8 +1607,16 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
             while (isspace((c = getscochar(csound, 1))));
             i = 0;
             while (isNameChar(c, i)) {
+              char *new;
               mname[i++] = c;
-              if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
+              if (i==mlen) {
+                new = (char *)realloc(mname, mlen+=40);
+                if (new==NULL) {
+                  fprintf(stderr, "Out of Memory\n");
+                  exit(7);
+                }
+                mname = new;
+              }
               c = getscochar(csound, 1);
             }
             mname[i] = '\0';
@@ -1663,8 +1679,16 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         delim = c;
         i = 0;
         while ((c=getscochar(csound, 1))!=delim) {
+          char *new;
           mname[i++] = c;
-          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
+          if (i==mlen) {
+            new = (char *)realloc(mname, mlen+=40);
+            if (new==NULL) {
+              fprintf(stderr, "Out of Memory\n");
+              exit(7);
+            }
+            mname = new;
+          }
         }
         mname[i]='\0';
         while ((c=getscochar(csound, 1))!='\n');
@@ -1700,8 +1724,16 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         }
         while (isspace((c = getscochar(csound, 1))));
         while (isNameChar(c, i)) {
+          char *new;
           mname[i++] = c;
-          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
+          if (i==mlen) {
+            new = (char *)realloc(mname, mlen+=40);
+            if (new==NULL) {
+              fprintf(stderr, "Out of Memory\n");
+              exit(7);
+            }
+            mname = new;
+          }
           c = getscochar(csound, 1);
         }
         mname[i] = '\0';

@@ -167,9 +167,15 @@ static int SfLoad(CSOUND *csound, SFLOAD *p) /* open a file and return its handl
           (int (*)(const void *, const void * )) compare);
     csound->Free(csound,fname);
     if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
+      SFBANK *new;
       globals->maxSFndx += 5;
-      globals->sfArray = (SFBANK *)realloc(globals->sfArray,
-                                           globals->maxSFndx*sizeof(SFBANK));
+      new = (SFBANK *)realloc(globals->sfArray,
+                              globals->maxSFndx*sizeof(SFBANK));
+      if (new==NULL) {
+        fprintf(stderr, "Out of Memory\n");
+        exit(7);
+      }
+      globals->sfArray = new;
       csound->Warning(csound, Str("Extending soundfonts"));
     }
     return OK;
