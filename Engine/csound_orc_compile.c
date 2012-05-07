@@ -385,8 +385,8 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
       tfound = argtyp2(csound, s);     /* else get arg type */
       /* IV - Oct 31 2002 */
       tfound_m = STA(typemask_tabl)[(unsigned char) tfound];
-      //csound->DebugMsg(csound, "treqd %c, tfound_m %d STA(lgprevdef) %d\n",
-      //                 treqd, tfound_m);
+      csound->DebugMsg(csound, "treqd %c, tfound_m %d STA(lgprevdef) %d\n",
+                       treqd, tfound_m);
       if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !STA(lgprevdef) && *s != '"') {
         synterr(csound,
                 Str("input arg '%s' used before defined (in opcode %s),"
@@ -400,30 +400,32 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
         tp->xincod_str |= (1 << n);
       /* IV - Oct 31 2002: simplified code */
       if (!(tfound_m & STA(typemask_tabl_in)[(unsigned char) treqd])) {
-      /* check for exceptional types */
-      switch (treqd) {
-      case 'Z':                             /* indef kakaka ... */
-        if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
-          intyperr(csound, n, s, ep->opname, tfound, treqd, line);
-        break;
-      case 'x':
-        treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
-      case 's':                             /* a- or k-rate */
-      treqd_m |= ARGTYP_a | ARGTYP_k;
-      if (tfound_m & treqd_m) {
-        if (tfound == 'a' && tp->outlist->count != 0) {
-          long outyp_m =                  /* ??? */
-            STA(typemask_tabl)[(unsigned char) argtyp2(csound,
-                                                     tp->outlist->arg[0])];
-          if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
-        }
-        else
+        /* check for exceptional types */
+        switch (treqd) {
+        case 'Z':                             /* indef kakaka ... */
+          if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
+            intyperr(csound, n, s, ep->opname, tfound, treqd, line);
           break;
-      }
-      default:
-        intyperr(csound, n, s, ep->opname, tfound, treqd, line);
-        break;
-      }
+        case 'x':
+          treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
+        case 's':                             /* a- or k-rate */
+          treqd_m |= ARGTYP_a | ARGTYP_k;
+          printf("treqd_m=%d tfound_m=%d tfound=%c count=%d\n",
+                 treqd_m, tfound_m, tfound, tp->outlist->count);
+          if (tfound_m & treqd_m) {
+            if (tfound == 'a' && tp->outlist->count != 0) {
+              long outyp_m =                  /* ??? */
+                STA(typemask_tabl)[(unsigned char) argtyp2(csound,
+                                                           tp->outlist->arg[0])];
+              if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
+            }
+            else
+              break;
+          }
+        default:
+          intyperr(csound, n, s, ep->opname, tfound, treqd, line);
+          break;
+        }
       }
     }
     //csound->DebugMsg(csound, "xincod = %d", tp->xincod);
@@ -1959,31 +1961,7 @@ void oload(CSOUND *p)
     p->e0dbfs = p->tran_0dbfs;
     p->ksmps = (int) ((ensmps = p->tran_ksmps) + FL(0.5));
     ip = p->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
-    optxt = (OPTXT *) ip;
-    while ((optxt = optxt->nxtop) !=  NULL) {
-      TEXT  *ttp = &optxt->t;
-      ARGOFFS *inoffp, *outoffp;
-      int opnum = ttp->opnum;
-      if (opnum == ENDIN) break;
-      if (opnum == LABEL) continue;
-      outoffp = ttp->outoffs;           /* use unexpanded ndxes */
-      inoffp = ttp->inoffs;             /* to find sr.. assigns */
-      if (outoffp->count == 1 && inoffp->count == 1) {
-        int rindex = (int) outoffp->indx[0] - (int) p->poolcount;
-        if (rindex > 0 && rindex <= 6) {
-          MYFLT conval = p->pool[inoffp->indx[0] - 1];
-          switch (rindex) {
-            case 1:  p->esr = conval;   break;  /* & use those values */
-            case 2:  p->ekr = conval;   break;  /*  to set params now */
-            case 3:  p->ksmps = (int) ((ensmps = conval) + FL(0.5)); break;
-            case 4:  p->nchnls = (int) (conval + FL(0.5));  break;
-            case 5:  p->inchnls = (int) (conval + FL(0.5));  break;
-            case 6:
-            default: p->e0dbfs = conval; break;
-          }
-        }
-      }
-    }
+
     /* why I want oload() to return an error value.... */
     if (UNLIKELY(p->e0dbfs <= FL(0.0)))
       p->Die(p, Str("bad value for 0dbfs: must be positive."));
