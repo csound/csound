@@ -576,9 +576,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           }
           /* VL 14/12/11 : calling lgbuild here seems to be problematic for
              undef arg checks */
-          /* else { */
-          /*   lgbuild(csound, arg, 1); */
-          /* } */
+          else {
+            lgbuild(csound, arg, 1);
+          }
 
 
         }
@@ -597,15 +597,16 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
         //        csound->Message(csound, "Opcode InTypes: %s\n", ep->intypes);
         //        csound->Message(csound, "Opcode OutTypes: %s\n", ep->outypes);
 
+        for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
+          arg = outargs->value->lexeme;
+          tp->outlist->arg[argcount++] = strsav_string(csound, arg);
+        }
         set_xincod(csound, tp, ep, root->line);
  
         /* OUTARGS */
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
 
           arg = outargs->value->lexeme;
-
-          tp->outlist->arg[argcount++] =
-            strsav_string(csound, arg);
 
           if ((n = pnum(arg)) >= 0) {
             if (n > ip->pmax)  ip->pmax = n;
