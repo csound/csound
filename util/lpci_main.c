@@ -63,11 +63,14 @@ int main(int argc, char **argv)
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
       fprintf(stderr, "Cannot open output file %s\n", argv[2]);
+      fclose(inf);
       return 1;
     }
     if (fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
         (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2)) {
       fprintf(stderr, "Failed to read LPC header\n");
+      fclose(inf);
+      fclose(outf);
       return 1;
     }
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
