@@ -127,10 +127,16 @@ static void ensure_slider(CONTROL_GLOBALS *p, int n)
     if (p->wish_pid == 0)
       start_tcl_tk(p);
     if (n > p->max_sliders) {
+      int *val, *min, *max;
       int i, nn = n + 1;
-      p->values  = (int*) realloc(p->values, nn * sizeof(int));
-      p->minvals = (int*) realloc(p->minvals, nn * sizeof(int));
-      p->maxvals = (int*) realloc(p->maxvals, nn * sizeof(int));
+      val  = (int*) realloc(p->values, nn * sizeof(int));
+      min  = (int*) realloc(p->minvals, nn * sizeof(int));
+      max  = (int*) realloc(p->maxvals, nn * sizeof(int));
+      if (!val || !min || !max) {
+        fprintf(stderr, "Out of Memory\n");
+        exit(7);
+      }
+      p->values = val; p->minvals = min; p->maxvals = max;
       for (i = p->max_sliders + 1; i < nn; i++) {
         p->values[i] = 0; p->minvals[i] = 0; p->maxvals[i] = 127;
       }
@@ -226,7 +232,12 @@ static int button_set(CSOUND *csound, CNTRL *p)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_button) {
-      pp->buttons = (int*) realloc(pp->buttons, (n + 1) * sizeof(int));
+      int* new  = (int*) realloc(pp->buttons, (n + 1) * sizeof(int));
+      if (new==NULL) {
+        fprintf(stderr, "Out of Memory\n");
+        exit(7);
+      }
+      pp->buttons = new;
       do {
         pp->buttons[++(pp->max_button)] = 0;
       } while (pp->max_button < n);
@@ -253,7 +264,12 @@ static int check_set(CSOUND *csound, CNTRL *p)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_check) {
-      pp->checks = (int*) realloc(pp->checks, (n + 1) * sizeof(int));
+      int* new = (int*) realloc(pp->checks, (n + 1) * sizeof(int));
+      if (new==NULL) {
+        fprintf(stderr, "Out of Memory\n");
+        exit(7);
+      }
+      pp->checks = new;
       do {
         pp->checks[++(pp->max_check)] = 0;
       } while (pp->max_check < n);

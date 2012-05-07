@@ -181,29 +181,41 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                          scanflt(csound, ++pp))
                     /* p4....  */
                     if (pp >= plim) {
+                      MYFLT *new;
                       MYFLT *q;
                       int c=1;
                       csound->DebugMsg(csound, "Extra p-fields (%d %d %d %d)\n",
-                              (int)e->p[1],(int)e->p[2],
-                              (int)e->p[3],(int)e->p[4]);
-                      e->c.extra = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
+                                       (int)e->p[1],(int)e->p[2],
+                                       (int)e->p[3],(int)e->p[4]);
+                      new = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
+                      if (new==NULL) {
+                        fprintf(stderr, "Out of Mdemory\n");
+                        exit(7);
+                      }
+                      e->c.extra = new;
                       e->c.extra[0] = PMAX-2;
                       q = e->c.extra;
                       while ((corfile_getc(csound->scstr) != '\n') &&
                              (scanflt(csound, &q[c++]))) {
                         if (c > (int) e->c.extra[0]) {
-                          csound->DebugMsg(csound, "and more extra p-fields [%d](%d)%d\n",
-                                  c, (int) e->c.extra[0],
-                                  sizeof(MYFLT)*((int)e->c.extra[0]+PMAX) );
-                          q = e->c.extra =
+                          csound->DebugMsg(csound,
+                                           "and more extra p-fields [%d](%d)%d\n",
+                                           c, (int) e->c.extra[0],
+                                           sizeof(MYFLT)*((int)e->c.extra[0]+PMAX));
+                          new =
                             (MYFLT *)realloc(e->c.extra,
-                                 sizeof(MYFLT)*((int) e->c.extra[0]+PMAX));
+                                             sizeof(MYFLT)*((int) e->c.extra[0]+PMAX));
+                          if (new==NULL) {
+                            fprintf(stderr, "Out of Mdemory\n");
+                            exit(7);
+                          }
+                          q = e->c.extra = new;
                           e->c.extra[0] = e->c.extra[0]+PMAX-1;
                         }
                       }
                       e->c.extra[0] = c;
                       /* flushline(csound); */
-                       goto setp;
+                      goto setp;
                     }
       setp:
         if (!csound->csoundIsScorePending_ && e->opcod == 'i') {

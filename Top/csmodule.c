@@ -259,9 +259,14 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
         strcpy(csound->delayederrormessages, ERRSTR);
       }
       else {
-        csound->delayederrormessages =
+        char *new = 
           realloc(csound->delayederrormessages,
                   strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
+        if (new==NULL) {
+          free(csound->delayederrormessages);
+          return CSOUND_ERROR;
+        }
+        csound->delayederrormessages = new;
         strcat(csound->delayederrormessages, "\nWARNING: ");
         strcat(csound->delayederrormessages, ERRSTR);
       }

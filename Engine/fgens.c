@@ -1528,18 +1528,24 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     y = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
     z = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
 #if defined(USE_DOUBLE)
-    while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF) {
+    while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF)
 #else
-    while (fscanf( filp, "%f%f%f", &z[i], &x[i], &y[i])!= EOF) {
+    while (fscanf( filp, "%f%f%f", &z[i], &x[i], &y[i])!= EOF)
 #endif
-      i++;
-      if (i>=arraysize) {
-        arraysize += 1000;
-        x = (MYFLT*)realloc(x, arraysize*sizeof(MYFLT));
-        y = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
-        z = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
+      {
+        i++;
+        if (i>=arraysize) {
+          MYFLT* newx, *newy, *newz;
+          arraysize += 1000;
+          newx = (MYFLT*)realloc(x, arraysize*sizeof(MYFLT));
+          newy = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
+          newz = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
+          if (!newx || !newy || !newx) {
+            fprintf(stderr, "Out of Memory\n");
+            exit(7);
+          }
+        }
       }
-    }
     --i;
 
     ff->flen      = (int32) (z[i] * resolution * 2);
