@@ -62,6 +62,7 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
       outf = fopen(argv[2], "w");
     if (outf == NULL) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
+      fclose(inf);
       return 1;
     }
 

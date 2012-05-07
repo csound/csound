@@ -60,11 +60,14 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
+      fclose(inf);
       return 1;
     }
     if (fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
         (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2)) {
       csound->Message(csound, Str("Failed to read LPC header\n"));
+      fclose(outf);
+      fclose(inf);
       return 1;
     }
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",

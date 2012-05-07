@@ -80,6 +80,7 @@ static int het_import(CSOUND *csound, int argc, char **argv)
     outf = fopen(argv[2], "wb");
     if (outf == NULL) {
       csound->Message(csound, Str("Cannot open output hetro file %s\n"), argv[2]);
+      fclose(infd);
       return 1;
     }
 
