@@ -76,6 +76,7 @@ int main(int argc, char **argv)
     if (argc < 3) outsco = stdout;
     else if (!(outsco = fopen(argv[2], "w"))) {
       fprintf(stderr, "Cannot open the output score '%s'\n", argv[2]);
+      fclose(insco);
       return -1;
     }
 
