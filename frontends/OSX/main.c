@@ -185,7 +185,7 @@ void Compile(globals *g)
     text[actualsize] = '\0';
     dir = SetWorkingDirectory(g);
     if (DEBUG)
-      fprintf(stderr, "text event: %s %d\n");
+      fprintf(stderr, "text event: %s %d\n", text, actualsize);
     tmp[0] = "csound";
     TextSplitter(text, &tmp[1], &args);
     for (i = 1; i < args + 1; i++)

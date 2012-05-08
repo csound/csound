@@ -954,6 +954,7 @@ static int gen15(FGDATA *ff, FUNC *ftp)
       csound->Warning(csound, Str("using extended arguments\n"));
     hsin = (MYFLT*)malloc(sizeof(MYFLT)*((1+ff->e.pcnt)/2));
     if (UNLIKELY(nargs & 01)) {
+      free(hsin);
       return fterror(ff, Str("uneven number of args"));
     }
     nh = (nargs - 2) >>1;

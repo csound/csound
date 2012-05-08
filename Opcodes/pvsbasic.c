@@ -2066,8 +2066,8 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
     int coefs = (int) *p->coefs;
     FUNC  *ft = csound->FTnp2Find(csound, p->ftab);
-    int size = ft->flen;
-    MYFLT *ftab = ft->ftable;
+    int size;
+    MYFLT *ftab;
 
     if (ft == NULL) {
       csound->PerfError(csound, "could not find table number %d\n", (int) *p->ftab);
