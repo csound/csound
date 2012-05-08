@@ -459,12 +459,12 @@ int VSTPlugin::Instantiate(const char *libraryName_)
   }
   Debug("Found 'main' function at 0x%x.\n", main);
   aeffect = main((audioMasterCallback) VSTPlugin::Master);
-  aeffect->user = this;
   if (!aeffect) {
     Log("VST plugin: unable to create effect.\n");
     csound->CloseLibrary(libraryHandle);
     return VSTINSTANCE_ERR_REJECTED;
   }
+  aeffect->user = this;
   Debug("Created effect '%x'.\n", aeffect);
   if (aeffect->magic != kEffectMagic) {
     Log("VST plugin: Instance query rejected by 0x%x\n", aeffect);
