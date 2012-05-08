@@ -2854,10 +2854,7 @@ extern "C" {
         O->sfheader = 0;
         csound->peakchunks = 1;
         create_opcodlst(csound);
-
         csoundLoadExternals(csound);
-        if (csoundInitModules(csound) != 0)
-          csound->LongJmp(csound, 1);
       }
   }
 
