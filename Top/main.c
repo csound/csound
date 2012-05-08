@@ -252,6 +252,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
+    if (csoundInitModules(csound) != 0)
+      csound->LongJmp(csound, 1);
     csoundCompileOrc(csound, NULL);
 #if defined(USE_OPENMP)
     if (csound->oparms->numThreads > 1) {
