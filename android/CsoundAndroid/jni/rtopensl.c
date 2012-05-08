@@ -88,9 +88,9 @@ void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
     short* openslBuffer;
 
     params = (open_sl_params *) *(csound->GetRtPlayUserData(csound));
-    openslBuffer = params->outputBuffer[params->currentOutputBuffer];
     if (params == NULL)
       return;
+    openslBuffer = params->outputBuffer[params->currentOutputBuffer];
     do {     
       openslBuffer[params->currentOutputIndex++] = (short) (buffer[i]*CONV16BIT);
       if (params->currentOutputIndex >= params->outBufSamples) {
@@ -291,12 +291,12 @@ int androidrtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
     int     i = 0, j = 0, samples = nbytes / (int) sizeof(MYFLT);
     short *openslBuffer; int nchnls = csound->GetNchnls(csound);
     params = (open_sl_params*) *(csound->GetRtRecordUserData(csound));
-    openslBuffer = params->inputBuffer[params->currentInputBuffer];
 
     if (params == NULL) {
       memset(buffer, 0, nbytes);
       return nbytes;
     } 
+    openslBuffer = params->inputBuffer[params->currentInputBuffer];
     do {
       if (params->currentInputIndex >= params->inBufSamples) {
 	  csound->WaitThreadLock(params->clientLockIn, (size_t) 1000);
