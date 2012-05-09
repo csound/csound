@@ -613,6 +613,8 @@ extern "C" {
      */
     PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
 
+    PUBLIC int csoundStart(CSOUND *csound);
+
     /**
      * Senses input events and performs audio output until the end of score
      * is reached (positive return value), an error occurs (negative return
