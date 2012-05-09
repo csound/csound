@@ -201,6 +201,10 @@ public:
     argv[6] = (char*) 0;
     return csoundCompile(csound, 6, &(argv[0]));
   }
+  virtual int Start()
+  {
+    return csoundStart(csound);
+  }
   virtual int Perform()
   {
     return csoundPerform(csound);

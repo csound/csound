@@ -787,6 +787,7 @@ typedef struct NAME__ {
     int (*CompileOrc)(CSOUND *, char *str);
     int (*ReadScore)(CSOUND *, char *str);
     int (*Compile)(CSOUND *, int argc, char **argv);
+    int (*Start)(CSOUND *);
     int (*Perform)(CSOUND *);
     int (*PerformKsmps)(CSOUND *);
     int (*PerformBuffer)(CSOUND *);
