@@ -859,7 +859,7 @@ static void csoundapi_polytouch(t_csoundapi *x, t_floatarg note,
     MIDI_FINISH;
 }
 
-cStatic void csoundapi_touch(t_csoundapi *x, t_floatarg vel, t_floatarg chan)
+static void csoundapi_touch(t_csoundapi *x, t_floatarg vel, t_floatarg chan)
 {
     MIDI_COMMON;
 
