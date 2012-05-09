@@ -136,6 +136,7 @@ extern "C" {
     csoundCompileOrc,
     csoundReadScore,
     csoundCompile,
+    csoundStart,
     csoundPerform,
     csoundPerformKsmps,
     csoundPerformBuffer,
@@ -380,8 +381,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
