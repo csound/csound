@@ -34,7 +34,7 @@ namespace csound
   {
   }
 
-  void Cell::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &compositeCoordinates)
+  void Cell::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &compositeCoordinates)
   {
     //  Find the total duration of notes produced by the child nodes of this.
     if(score.empty())

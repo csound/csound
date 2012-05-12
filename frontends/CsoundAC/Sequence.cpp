@@ -31,12 +31,12 @@ namespace csound
   {
   }
 
-  ublas::matrix<double> Sequence::traverse(const ublas::matrix<double> &globalCoordinates, Score &score)
+  Eigen::MatrixXd Sequence::traverse(const Eigen::MatrixXd &globalCoordinates, Score &score)
   {
     // Obtain the composite transformation of coordinate system
     // by post-concatenating the local transformation of coordinate system
     // with the global, or enclosing, transformation of coordinate system.
-    ublas::matrix<double> compositeCoordinates = ublas::prod(getLocalCoordinates(), globalCoordinates);
+    Eigen::MatrixXd compositeCoordinates = getLocalCoordinates() * globalCoordinates;
     // Make a bookmark for the current end of the score.
     //    size_t beginAt = score.size();
     // Descend into each of the child nodes.

@@ -71,7 +71,7 @@
 #include <vector>
 #include <cstring>
 #include <complex>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
@@ -87,8 +87,8 @@ namespace csound
   {
     SNDFILE *sndfile;
     SF_INFO sf_info;
-    boost::numeric::ublas::matrix<double> grainOutput;
-    boost::numeric::ublas::matrix<double> grainBuffer;
+    Eigen::MatrixXd grainOutput;
+    Eigen::MatrixXd grainBuffer;
     size_t sampleCount;
     double startTimeSeconds;
   protected:

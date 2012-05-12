@@ -31,8 +31,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
   %}
 #else
 #include "Silence.hpp"
@@ -40,9 +39,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
@@ -106,7 +103,7 @@ namespace csound
     virtual void interpret(std::string command, bool render);
     virtual int getDimension (char dimension) const;
     virtual void rewrite();
-    virtual ublas::matrix<double> createRotation (int dimension1, int dimension2, double angle) const;
+    virtual Eigen::MatrixXd createRotation (int dimension1, int dimension2, double angle) const;
     virtual void updateActual(Event &event);
     virtual void initialize();
   public:
