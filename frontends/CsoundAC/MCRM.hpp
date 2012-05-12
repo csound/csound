@@ -38,9 +38,9 @@ namespace csound
     public ScoreNode
   {
     // Hutchinson operator.
-    std::vector< ublas::matrix<double> > transformations;
+    std::vector< Eigen::MatrixXd > transformations;
     // Pseudo-Markov operator.
-    ublas::matrix<double> weights;
+    Eigen::MatrixXd weights;
     // Depth of recursion.
     int depth;
     // Recursive iteration.
@@ -57,7 +57,7 @@ namespace csound
     virtual void produceOrTransform(Score &score,
                                     size_t beginAt,
                                     size_t endAt,
-                                    const ublas::matrix<double> &coordinates);
+                                    const Eigen::MatrixXd &coordinates);
   };
 }
 #endif

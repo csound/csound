@@ -28,7 +28,6 @@
   %}
 #else
 #include "ScoreNode.hpp"
-using namespace boost::numeric;
 #endif
 
 namespace csound
@@ -44,8 +43,8 @@ namespace csound
     int startingIndex;
     Hocket();
     virtual ~Hocket();
-    virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates, Score &score);
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates, Score &score);
+    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &coordinates);
   };
 }
 #endif

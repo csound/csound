@@ -176,25 +176,25 @@ namespace csound
                     n = Conversions::stringToDouble(action.substr(3));
                   }
                 double a = angle * n;
-                ublas::matrix<double> rotation = createRotation (d1, d2, a);
+		Eigen::MatrixXd rotation = createRotation (d1, d2, a);
                 std::cerr << "Orientation before rotation: " << std::endl;
-                for (size_t i = 0; i < turtleOrientation.size(); i++)
+                for (int i = 0; i < turtleOrientation.size(); i++)
                   {
                     std::cerr << format("%9.3f ") % turtleOrientation(i);
                   }
                 std::cerr << std::endl;
                 std::cerr << "Rotation for angle " << a << ":" << std::endl;
-                for (size_t i = 0; i < rotation.size1(); i++)
+                for (int i = 0; i < rotation.rows(); i++)
                   {
-                    for (size_t j = 0; j < rotation.size2(); j++ )
+                    for (int j = 0; j < rotation.cols(); j++ )
                       {
                         std::cerr << format("%9.3f ") % rotation(i, j);
                       }
                     std::cerr << std::endl;
                   }
-                turtleOrientation = ublas::prod(rotation, turtleOrientation);
+                turtleOrientation = rotation * turtleOrientation;
                 std::cerr << "Orientation after rotation: " << std::endl;
-                for (size_t i = 0; i < turtleOrientation.size(); i++)
+                for (int i = 0; i < turtleOrientation.size(); i++)
                   {
                     std::cerr << format("%9.3f ") % turtleOrientation(i);
                   }
@@ -319,9 +319,9 @@ namespace csound
     return -1;
   }
 
-  ublas::matrix<double> Lindenmayer::createRotation (int dimension1, int dimension2, double angle) const
+  Eigen::MatrixXd Lindenmayer::createRotation (int dimension1, int dimension2, double angle) const
   {
-    ublas::matrix<double> rotation_ = ublas::identity_matrix<double>(Event::ELEMENT_COUNT);
+    Eigen::MatrixXd rotation_ = Eigen::MatrixXd::Identity(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
     rotation_(dimension1,dimension1) =  std::cos(angle);
     rotation_(dimension1,dimension2) = -std::sin(angle);
     rotation_(dimension2,dimension1) =  std::sin(angle);

@@ -26,11 +26,12 @@
 %{
 #include "Node.hpp"
 #include "Score.hpp"
+#include <eigen3/Eigen/Dense>
   %}
 #else
 #include "Node.hpp"
 #include "Score.hpp"
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
@@ -48,7 +49,7 @@ namespace csound
     std::string importFilename;
     ScoreNode();
     virtual ~ScoreNode();
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &coordinates);
     virtual Score &getScore();
   };
 }
