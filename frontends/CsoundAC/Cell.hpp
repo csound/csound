@@ -25,10 +25,11 @@
 %module CsoundAC
 %{
 #include "ScoreNode.hpp"
+#include <eigen3/Eigen/Dense>
   %}
 #else
 #include "ScoreNode.hpp"
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
@@ -37,7 +38,7 @@ namespace csound
    * Score node that simplifies building up repetitive
    * and overlapping motivic cells, such as used in Minimalism.
    */
-  class SILENCE_PUBLIC Cell :
+  class Cell :
     public ScoreNode
   {
   public:
@@ -46,7 +47,7 @@ namespace csound
     double durationSeconds;
     Cell();
     virtual ~Cell();
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &coordinates);
   };
 }
 #endif

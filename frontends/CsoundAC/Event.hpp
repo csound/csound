@@ -31,7 +31,7 @@
 #include <sstream>
 #include <algorithm>
 #include <utility>
-#include <boost/numeric/ublas/vector.hpp>
+#include <eigen3/Eigen/Dense>
   %}
 %include "std_string.i"
 %include "std_vector.i"
@@ -45,8 +45,7 @@
 #include <sstream>
 #include <algorithm>
 #include <utility>
-#include <boost/numeric/ublas/vector.hpp>
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
@@ -70,7 +69,7 @@ namespace csound
    * for use with Csound's -L or line event option.
    */
   class SILENCE_PUBLIC Event :
-    public ublas::vector<double>
+    public Eigen::VectorXd
   {
   public:
     typedef enum
@@ -97,7 +96,7 @@ namespace csound
     Event();
     Event(const Event &a);
     Event(std::string text);
-    Event(const ublas::vector<double, ublas::unbounded_array<double> > &a);
+    Event(const Eigen::VectorXd &a);
     Event(double time, double duration, double status, double instrument, double key, double velocity, double phase, double pan, double depth, double height, double pitches);
     Event(const std::vector<double> &v);
     virtual ~Event();
@@ -160,13 +159,13 @@ namespace csound
     virtual void clearProperties();
     virtual void createNoteOffEvent(Event &event) const;
     virtual Event &operator = (const Event &a);
-    virtual Event &operator = (const ublas::vector<double> &a);
+    virtual Event &operator = (const Eigen::VectorXd &a);
 #ifndef SWIG
     static int SORT_ORDER[];
     static const char *labels[];
 #endif
   };
 
-  bool SILENCE_PUBLIC operator < (const Event& a, const Event &b);
+  bool operator < (const Event& a, const Event &b);
 }
 #endif

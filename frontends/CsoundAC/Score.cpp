@@ -360,7 +360,6 @@ void Score::save(std::ostream &stream)
 	double duration = event.getDuration();
 	float pitch = event.getKey();
 	float loudness = event.getVelocity();
-	int identifier = i;
 	Alg_note *note = seq.create_note(time, 
 					 channel,  
 					 pitch, 

@@ -31,7 +31,6 @@
 #include <boost/random.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <cmath>
-using namespace boost::numeric;
 #endif
 
 namespace csound
@@ -83,10 +82,10 @@ namespace csound
     Random();
     virtual ~Random();
     virtual double sample() const;
-    virtual ublas::matrix<double> getRandomCoordinates() const;
+    virtual Eigen::MatrixXd getRandomCoordinates() const;
     virtual void createDistribution(std::string distribution);
     virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt,
-                                    const ublas::matrix<double> &compositeCoordinates);
+                                    const Eigen::MatrixXd &compositeCoordinates);
     static void seed(int s);
   };
 }

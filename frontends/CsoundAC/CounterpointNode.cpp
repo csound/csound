@@ -2,7 +2,6 @@
 #include "CounterpointNode.hpp"
 #include "System.hpp"
 #include "Conversions.hpp"
-#include <boost/numeric/ublas/operation.hpp>
 
 namespace csound
 {
@@ -20,7 +19,11 @@ namespace csound
   {
   }
 
-  void CounterpointNode::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
+  void CounterpointNode::produceOrTransform(Score 
+					    &score, 
+					    size_t beginAt, 
+					    size_t endAt, 
+					    const Eigen::MatrixXd &globalCoordinates)
   {
     // Make a local copy of the child notes.
     Score source;
@@ -116,14 +119,12 @@ namespace csound
       }
     // Get the right coordinate system going.
     System::message("Total notes in generated counterpoint: %d\n", generated.size());
-    ublas::matrix<double> localCoordinates = getLocalCoordinates();
-    ublas::matrix<double> compositeCoordinates = getLocalCoordinates();
-    ublas::axpy_prod(globalCoordinates, localCoordinates, compositeCoordinates);
+    Eigen::MatrixXd localCoordinates = getLocalCoordinates();
+    Eigen::MatrixXd compositeCoordinates = globalCoordinates * getLocalCoordinates();
     Event e;
     for (int i = 0, n = generated.size(); i < n; i++)
       {
-        ublas::axpy_prod(compositeCoordinates, generated[i], e);
-        generated[i] = e;
+	generated[i] = compositeCoordinates * generated[i];
       }
     // Put the generated counterpoint (back?) into the target score.
     score.insert(score.end(), generated.begin(), generated.end());

@@ -25,17 +25,16 @@
 %module CsoundAC
 %{
 #include "Score.hpp"
+#include <eigen3/Eigen/Dense>
 #include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-  %}
+%}
 %include "std_string.i"
 %include "std_vector.i"
 %template(NodeVector) std::vector<csound::Node*>;
 #else
 #include "Score.hpp"
+#include <eigen3/Eigen/Dense>
 #include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-using namespace boost::numeric;
 #endif
 
 namespace csound
@@ -48,7 +47,7 @@ namespace csound
   class SILENCE_PUBLIC Node
   {
   protected:
-    ublas::matrix<double> localCoordinates;
+    Eigen::MatrixXd localCoordinates;
   public:
     /**
      * Child Nodes, if any.
@@ -59,13 +58,13 @@ namespace csound
     /**
      * Returns the local transformation of coordinate system.
      */
-    virtual ublas::matrix<double> getLocalCoordinates() const;
+    virtual Eigen::MatrixXd  getLocalCoordinates() const;
     /**
      * The default implementation postconcatenates its own local coordinate system
      * with the global coordinates, then passes the score and the product of coordinate systems
      * to each child, thus performing a depth-first traversal of the music graph.
      */
-    virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates,
+    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates,
                                            Score &score);
     /**
      * The default implementation does nothing.
@@ -76,8 +75,8 @@ namespace csound
     virtual void produceOrTransform(Score &score,
                                     size_t beginAt,
                                     size_t endAt,
-                                    const ublas::matrix<double> &compositeCordinates);
-    virtual ublas::matrix<double> createTransform();
+                                    const Eigen::MatrixXd &compositeCordinates);
+    virtual Eigen::MatrixXd createTransform();
     virtual void clear();
     virtual double &element(size_t row, size_t column);
     virtual void setElement(size_t row, size_t column, double value);
@@ -94,7 +93,7 @@ namespace csound
     virtual void produceOrTransform(Score &score,
                                     size_t beginAt,
                                     size_t endAt,
-                                    const ublas::matrix<double> &compositeCordinates);
+                                    const Eigen::MatrixXd &compositeCordinates);
 
   };
 }

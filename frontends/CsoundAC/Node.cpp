@@ -22,38 +22,38 @@
 
 namespace csound
 {
-Node::Node()
-{
+  Node::Node()
+  {
     localCoordinates.resize(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
     localCoordinates = createTransform();
-}
+  }
 
-Node::~Node()
-{
-}
+  Node::~Node()
+  {
+  }
 
-ublas::matrix<double> Node::createTransform()
-{
-    ublas::matrix<double> matrix = ublas::identity_matrix<double>(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
+  Eigen::MatrixXd Node::createTransform()
+  {
+    Eigen::MatrixXd matrix = Eigen::MatrixXd::Identity(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
     return matrix;
-}
+  }
 
-ublas::matrix<double> Node::getLocalCoordinates() const
-{
+  Eigen::MatrixXd Node::getLocalCoordinates() const
+  {
     return localCoordinates;
-}
+  }
 
-ublas::matrix<double> Node::traverse(const ublas::matrix<double> &globalCoordinates, Score &score)
-{
+  Eigen::MatrixXd Node::traverse(const Eigen::MatrixXd &globalCoordinates, Score &score)
+  {
     // Obtain the composite transformation of coordinate system
     // by post-concatenating the local transformation of coordinate system
     // with the global, or enclosing, transformation of coordinate system.
-    ublas::matrix<double> compositeCoordinates = ublas::prod(getLocalCoordinates(), globalCoordinates);
+    Eigen::MatrixXd compositeCoordinates = getLocalCoordinates() * globalCoordinates;
     // Make a bookmark for the current end of the score.
     size_t beginAt = score.size();
     // Descend into each of the child nodes.
     for(std::vector<Node*>::iterator i = children.begin(); i != children.end(); ++i) {
-        (*i)->traverse(compositeCoordinates, score);
+      (*i)->traverse(compositeCoordinates, score);
     }
     // Make a bookmark for the new end of the score,
     // thus enclosing all Events that may have been produced or transformed
@@ -64,50 +64,50 @@ ublas::matrix<double> Node::traverse(const ublas::matrix<double> &globalCoordina
     produceOrTransform(score, beginAt, endAt, compositeCoordinates);
     // Return the composite transformation of coordinate system.
     return compositeCoordinates;
-}
+  }
 
-void Node::clear()
-{
+  void Node::clear()
+  {
     Node *node = 0;
     for(std::vector<Node*>::iterator i = children.begin(); i != children.end(); ++i) {
-        node = *i;
-        node->clear();
+      node = *i;
+      node->clear();
     }
     children.clear();
-}
+  }
 
-void Node::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
-{
-}
+  void Node::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &globalCoordinates)
+  {
+  }
 
-double &Node::element(size_t row, size_t column)
-{
+  double &Node::element(size_t row, size_t column)
+  {
     return localCoordinates(row, column);
-}
+  }
 
-void Node::setElement(size_t row, size_t column, double value)
-{
+  void Node::setElement(size_t row, size_t column, double value)
+  {
     localCoordinates(row, column) = value;
-}
+  }
 
-void Node::addChild(Node *node)
-{
+  void Node::addChild(Node *node)
+  {
     children.push_back(node);
-}
+  }
 
-void RemoveDuplicates::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
-{
+  void RemoveDuplicates::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &globalCoordinates)
+  {
     std::set<std::string> uniqueEvents;
     Score newScore;
     for (size_t i = 0, n = score.size(); i < n; ++i) {
-        const Event &event = score[i];
-        std::string istatement = event.toCsoundIStatement();
-        if (uniqueEvents.find(istatement) == uniqueEvents.end()) {
-            newScore.push_back(event);
-            uniqueEvents.insert(istatement);
-        }
+      const Event &event = score[i];
+      std::string istatement = event.toCsoundIStatement();
+      if (uniqueEvents.find(istatement) == uniqueEvents.end()) {
+	newScore.push_back(event);
+	uniqueEvents.insert(istatement);
+      }
     }
     score = newScore;
-}
+  }
 
 }

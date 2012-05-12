@@ -199,7 +199,7 @@ namespace csound
         std::string sconame = std::tmpnam(0);
         char buffer[0x200];
         std::sprintf(buffer,
-                     "csound --midi-key=4 --midi-velocity=5 -m167 -RWdfo %s %s%s.orc %s%s.sco",
+                     "csound --midi-key=4 --midi-velocity=5 -m195 -RWdfo %s %s%s.orc %s%s.sco",
                      getOutputSoundfileName().c_str(), temp_path, orcname.c_str(), temp_path, sconame.c_str());
         command_ = buffer;
       }
@@ -286,6 +286,7 @@ namespace csound
     System::inform("ENDED MusicModel::processArgv().\n");
     return errorStatus;
   }
+
   void MusicModel::stop()
   {
     std::cout << "MusicModel::stop()..." << std::endl;

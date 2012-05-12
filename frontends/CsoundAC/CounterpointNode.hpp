@@ -37,7 +37,6 @@
 #include "Node.hpp"
 #include "Counterpoint.hpp"
 #include <cmath>
-using namespace boost::numeric;
 #endif
 
 namespace csound
@@ -67,7 +66,7 @@ namespace csound
     std::vector<int> voiceBeginnings;
     CounterpointNode();
     virtual ~CounterpointNode();
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates);
+    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &globalCoordinates);
   };
 }
 #endif
