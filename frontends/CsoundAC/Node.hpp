@@ -25,16 +25,16 @@
 %module CsoundAC
 %{
 #include "Score.hpp"
-#include <eigen3/Eigen/Dense>
 #include <vector>
+#include <eigen3/Eigen/Dense>
 %}
 %include "std_string.i"
 %include "std_vector.i"
 %template(NodeVector) std::vector<csound::Node*>;
 #else
 #include "Score.hpp"
-#include <eigen3/Eigen/Dense>
 #include <vector>
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
@@ -67,18 +67,29 @@ namespace csound
     virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates,
                                            Score &score);
     /**
+     * This function is called by the traverse() function.
      * The default implementation does nothing.
-     * Derived nodes that produce notes from scratch should
-     * transform them using the composite transformation of
-     * coordinate system, which is passed in from the traverse() function.
+     * If a derived node produces new Events, then it must transform them by 
+     * the composite coordinates, then append them to the collecting score.
+     * If a derived node transforms Events produced by child Nodes, then it 
+     * must transform only Events in the collecting score starting at the 
+     * startAt index and continuing up to, but not including, the endAt index.
+     * These bookmarks, in turn, must be set in the Traverse function by 
+     * all Nodes that produce events.
      */
-    virtual void produceOrTransform(Score &score,
+    virtual void produceOrTransform(Score &collectingScore,
                                     size_t beginAt,
                                     size_t endAt,
                                     const Eigen::MatrixXd &compositeCordinates);
     virtual Eigen::MatrixXd createTransform();
     virtual void clear();
+    /**
+     * Returns a reference to the indicated element of the local transformation of coordinate system.
+     */
     virtual double &element(size_t row, size_t column);
+    /**
+     * Sets the indicated element of the local transformation of coordinate system.
+     */
     virtual void setElement(size_t row, size_t column, double value);
     virtual void addChild(Node *node);
   };

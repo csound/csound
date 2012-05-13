@@ -24,38 +24,38 @@
 
 namespace csound
 {
-  Hocket::Hocket()
-  {
-  }
+Hocket::Hocket()
+{
+}
 
-  Hocket::~Hocket()
-  {
-  }
+Hocket::~Hocket()
+{
+}
 
-  Eigen::MatrixXd Hocket::traverse(const Eigen::MatrixXd &globalCoordinates, Score &score)
-  {
-    this->score.std::vector<Event>::clear();
-    size_t beginAt = this->score.size();
+Eigen::MatrixXd Hocket::traverse(const Eigen::MatrixXd &globalCoordinates,
+        Score &collectingScore)
+{
+    size_t beginAt = collectingScore.size();
+    score.std::vector<Event>::clear();
     Eigen::MatrixXd compositeCoordinates = getLocalCoordinates() * globalCoordinates;
-    for(std::vector<Node*>::iterator it = children.begin(); it != children.end(); ++it)
-      {
+    for(std::vector<Node*>::iterator it = children.begin(); it != children.end(); ++it) {
         Node *child = *it;
-        child->traverse(compositeCoordinates, this->score);
-      }
-    size_t endAt = this->score.size();
-    produceOrTransform(score, beginAt, endAt, compositeCoordinates);
+        child->traverse(compositeCoordinates, score);
+    }
+    size_t endAt = collectingScore.size();
+    produceOrTransform(collectingScore, beginAt, endAt, compositeCoordinates);
     return compositeCoordinates;
-  }
+}
 
-  void Hocket::produceOrTransform(Score &score, 
-				  size_t beginAt, 
-				  size_t endAt, 
-				  const Eigen::MatrixXd &coordinates)
-  {
-    std::sort(this->score.begin(), this->score.end());
-    for(size_t i = startingIndex, n = this->score.size(); i < n; i += modulus)
-      {
-        score.push_back(this->score[i]);
-      }
-  }
+void Hocket::produceOrTransform(Score &collectingScore,
+        size_t beginAt,
+        size_t endAt,
+        const Eigen::MatrixXd &compositeCoordinates)
+{
+    std::sort(score.begin(), score.end());
+    for(size_t i = startingIndex, n = score.size(); i < n; i += modulus) {
+        Eigen::VectorXd product = compositeCoordinates * score[i];
+        collectingScore.push_back(product);
+    }
+}
 }
