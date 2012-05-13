@@ -5,26 +5,26 @@
 
 namespace csound
 {
-  CounterpointNode::CounterpointNode() :  generationMode(GenerateCounterpoint),
-                                          musicMode(Counterpoint::Aeolian),
-                                          species(Counterpoint::Two),
-                                          voices(2),
-                                          secondsPerPulse(0.5)
-  {
+CounterpointNode::CounterpointNode() :  generationMode(GenerateCounterpoint),
+    musicMode(Counterpoint::Aeolian),
+    species(Counterpoint::Two),
+    voices(2),
+    secondsPerPulse(0.5)
+{
     FillRhyPat();
     Counterpoint::messageCallback = System::getMessageCallback();
-  }
+}
 
-  CounterpointNode::~CounterpointNode()
-  {
-  }
+CounterpointNode::~CounterpointNode()
+{
+}
 
-  void CounterpointNode::produceOrTransform(Score 
-					    &score, 
-					    size_t beginAt, 
-					    size_t endAt, 
-					    const Eigen::MatrixXd &globalCoordinates)
-  {
+void CounterpointNode::produceOrTransform(Score
+        &score,
+        size_t beginAt,
+        size_t endAt,
+        const Eigen::MatrixXd &globalCoordinates)
+{
     // Make a local copy of the child notes.
     Score source;
     source.insert(source.begin(), score.begin() + beginAt, score.begin() + endAt);
@@ -40,55 +40,45 @@ namespace csound
     std::vector< std::vector<int> > chords;
     double time = -1;
     double oldTime = 0;
-    for (size_t i = 0; i < source.size(); i++)
-      {
+    for (size_t i = 0; i < source.size(); i++) {
         oldTime = time;
         time = std::floor((source[i].getTime() / secondsPerPulse) + 0.5) * secondsPerPulse;
-        if (oldTime != time)
-          {
+        if (oldTime != time) {
             std::vector<int> newchord;
             chords.push_back(newchord);
-          }
+        }
         chords.back().push_back(int(source[i].getKey()));
-      }
-    for(size_t i = 0, n = chords.size(); i < n; i++)
-      {
+    }
+    for(size_t i = 0, n = chords.size(); i < n; i++) {
         int bestfit = chords[i].front();
         int oldDifference = 0;
-        for(size_t j = 1; j < chords[i].size(); j++)
-          {
+        for(size_t j = 1; j < chords[i].size(); j++) {
             int difference = std::abs(bestfit - chords[i][j]);
             oldDifference = difference;
-            if (difference > 0 && difference < oldDifference)
-              {
+            if (difference > 0 && difference < oldDifference) {
                 bestfit = chords[i][j];
-              }
-          }
+            }
+        }
         cantus.push_back(bestfit);
-      }
+    }
     System::message("Cantus firmus notes: %d\n", source.size());
-    if(voiceBeginnings.size() > 0)
-      {
+    if(voiceBeginnings.size() > 0) {
         voicebeginnings.resize(voices);
-        for (size_t i = 0; i < voices; i++)
-          {
+        for (size_t i = 0; i < voices; i++) {
             voicebeginnings[i] = voiceBeginnings[i];
             System::message("Voice %d begins at key %d\n", (i + 1), voicebeginnings[i]);
-          }
-      }
-    else
-      {
+        }
+    } else {
         voicebeginnings.resize(voices);
         int range = HighestSemitone - LowestSemitone;
         int voicerange = range / (voices + 1);
         System::message("Cantus begins at key %d\n", cantus[0]);
         int c = cantus[0];
-        for (size_t i = 0; i < voices; i++)
-          {
+        for (size_t i = 0; i < voices; i++) {
             voicebeginnings[i] = c + ((i + 1) * voicerange);
             System::message("Voice %d begins at key %d\n", (i + 1), voicebeginnings[i]);
-          }
-      }
+        }
+    }
     // Generate the counterpoint.
     counterpoint(musicMode, &voicebeginnings[0], voices, cantus.size(), species, &cantus[0]);
     // Translate the counterpoint back to a Score.
@@ -101,11 +91,9 @@ namespace csound
     double z = 0.;
     double pcs = 4095.0;
     Score generated;
-    for(size_t voice = 0; voice <= voices; voice++)
-      {
+    for(size_t voice = 0; voice <= voices; voice++) {
         double time = 0;
-        for(int note = 1; note <= TotalNotes[voice]; note++)
-          {
+        for(int note = 1; note <= TotalNotes[voice]; note++) {
             time = double(Onset(note,voice));
             time *= secondsPerPulse;
             duration = double(Dur(note,voice));
@@ -115,20 +103,19 @@ namespace csound
             pcs = Conversions::midiToPitchClass(key);
             System::message("%f %f %f %f %f %f %f %f %f %f %f\n", time, duration, double(144), double(voice), key, velocity, phase, x, y, z, pcs);
             generated.append(time, duration, double(144), double(voice), key, velocity, phase, x, y, z, pcs);
-          }
-      }
+        }
+    }
     // Get the right coordinate system going.
     System::message("Total notes in generated counterpoint: %d\n", generated.size());
     Eigen::MatrixXd localCoordinates = getLocalCoordinates();
     Eigen::MatrixXd compositeCoordinates = globalCoordinates * getLocalCoordinates();
     Event e;
-    for (int i = 0, n = generated.size(); i < n; i++)
-      {
-	generated[i] = compositeCoordinates * generated[i];
-      }
+    for (int i = 0, n = generated.size(); i < n; i++) {
+        generated[i] = compositeCoordinates * generated[i];
+    }
     // Put the generated counterpoint (back?) into the target score.
     score.insert(score.end(), generated.begin(), generated.end());
     // Free up memory that was used.
     Counterpoint::clear();
-  }
+}
 }
