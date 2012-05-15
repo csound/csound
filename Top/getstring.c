@@ -73,7 +73,7 @@ void init_getstring(void)
 
 PUBLIC char *csoundLocalizeString(const char *s)
 {
-    return dgettext("csound5", s);
+    return dgettext("csound6", s);
 }
 
 static const char *language_names[] = {"", /* Default */

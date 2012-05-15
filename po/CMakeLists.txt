@@ -11,7 +11,7 @@ function(compile_po code _infile)
         )
     INSTALL(FILES ${_mofile}
         DESTINATION ${LOCALE_INSTALL_DIR}/${code}/LC_MESSAGES/
-        RENAME "csound5.mo"
+        RENAME "csound6.mo"
         )
     add_custom_target(${code}.mo ALL DEPENDS ${_mofile})
     add_dependencies(translations ${code}.mo)
