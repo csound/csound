@@ -178,18 +178,6 @@ function(add_compiler_flags)
     endif()
 endfunction(add_compiler_flags)
 
-# Utility function for processing PO files with msgfmt
-function(processMsgfmt baseName target)
-    set(gtFile "po/${baseName}.po")
-    set(ttFile "po/${target}/LC_MESSAGES/csound5.mo")
-
-    add_custom_command(
-        SOURCE ${gtFile} 
-        COMMAND msgfmt ARGS -o ${ttFile} ${gtFile} 
-        TARGET ${CSOUNDLIB} 
-        OUTPUTS "${BUILD_DIR}/${ttFile}")
-endfunction(processMsgfmt)
-
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
@@ -758,17 +746,6 @@ if(USE_GETTEXT)
         list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
     endif()
     list(APPEND libcsound_CFLAGS -DGNU_GETTEXT)
-
-    processMsgfmt('french', 'fr')
-    processMsgfmt('american', 'en_US')
-    processMsgfmt('csound', 'en_GB')
-    processMsgfmt('es_CO', 'es_CO')
-    ##  The following are incomplete
-    processMsgfmt('german', 'de')
-    processMsgfmt('italian', 'it')
-    processMsgfmt('romanian', 'ro')
-    processMsgfmt('russian', 'ru')
-
 else()
     message(STATUS "Not using localization")
 endif()
