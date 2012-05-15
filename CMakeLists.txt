@@ -709,9 +709,17 @@ endif()
 
 
 if(USE_DOUBLE)
-    set(CSOUNDLIB "csound64")
+    if(APPLE)
+        set(CSOUNDLIB "CsoundLib64")
+    else()
+        set(CSOUNDLIB "csound64")
+    endif()
 else()
-    set(CSOUNDLIB "csound")
+    if(APPLE)
+        set(CSOUNDLIB "CsoundLib")
+    else()
+        set(CSOUNDLIB "csound")
+    endif()
 endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
@@ -724,10 +732,16 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     LINK_INTERFACE_LIBRARIES ""
     SOVERSION ${APIVERSION})
 
+if(APPLE)
+    set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
+    set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
+endif()
+
 # Add the install target
 install(TARGETS ${CSOUNDLIB}
     LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+    FRAMEWORK DESTINATION "${CMAKE_SYSTEM_FRAMEWORK_PATH}")
 
 set(libcsound_LIBS 
     ${LIBSNDFILE_LIBRARY}  
