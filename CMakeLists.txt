@@ -724,6 +724,13 @@ endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
+# ADDING HERE TO GRAB LIST OF HEADERS IN CASE OF BUILDING OSX FRAMEWORK
+add_subdirectory(H)
+
+if(APPLE)
+    string(REGEX REPLACE "([^;]+)(;|$)" "H/\\1\\2" csheaders "${csheaders}")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders}")
+endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -735,6 +742,7 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
+    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders}")
 endif()
 
 # Add the install target
@@ -864,7 +872,6 @@ add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(SDIF)
 add_subdirectory(po)
-add_subdirectory(H)
 
 
 # uninstall target
