@@ -96,6 +96,7 @@ typedef uint_least16_t uint16;
   #define EXP exp
   #define LOG log
   #define LOG10 log10
+  #define LOG2 log2
   #define POWER pow
   #define SQRT sqrt
   #define HYPOT hypot
@@ -121,6 +122,7 @@ typedef uint_least16_t uint16;
   #define EXP expf
   #define LOG logf
   #define LOG10 log10f
+  #define LOG2 log2f
   #define POWER powf
   #define SQRT sqrtf
   #define HYPOT hypotf
