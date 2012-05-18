@@ -147,18 +147,6 @@ Eigen::MatrixXd Intercut::traverse(const Eigen::MatrixXd &globalCoordinates,
     return compositeCoordinates;
 }
 
-void Intercut::produceOrTransform(Score &collectingScore,
-        size_t beginAt,
-        size_t endAt,
-        const Eigen::MatrixXd &compositeCoordinates)
-{
-    std::sort(score.begin(), score.end());
-    for (size_t i = 0, n = score.size(); i < n; ++i) {
-        Eigen::VectorXd product = compositeCoordinates * score[i];
-        collectingScore.append(product);
-    }
-}
-
 Stack::Stack() : duration(0.0)
 {
 }
@@ -197,24 +185,17 @@ Eigen::MatrixXd Stack::traverse(const Eigen::MatrixXd &globalCoordinates,
     return compositeCoordinates;
 }
 
-void Stack::produceOrTransform(Score &collectingScore,
-        size_t beginAt,
-        size_t endAt,
-        const Eigen::MatrixXd &compositeCoordinates)
-{
-    std::sort(score.begin(), score.end());
-    for (size_t i = 0, n = score.size(); i < n; ++i) {
-        Eigen::VectorXd product = compositeCoordinates * score[i];
-        collectingScore.push_back(product);
-    }
-}
-
 Koch::Koch()
 {
 }
 
 Koch::~Koch()
 {
+}
+
+  void Koch::setPitchOffsetForLayer(int layer, double offset)
+{
+    pitchOffsetsForLayers[layer] = offset;
 }
 
 Eigen::MatrixXd Koch::traverse(const Eigen::MatrixXd &globalCoordinates,
@@ -236,11 +217,17 @@ Eigen::MatrixXd Koch::traverse(const Eigen::MatrixXd &globalCoordinates,
         upperScore.sort();
         score.clear();
         System::message("level: %4d  upperScore: %8d events.\n", lowerI, upperScore.size());
-        Event firstUpperEvent = upperScore.front();
+	upperScore.findScale();
+        Event upperScoreToOrigin = upperScore.scaleActualMinima;
         Score lowerScore;
         children[lowerI]->traverse(compositeCoordinates, lowerScore);
         lowerScore.sort();
         System::message("level: %4d  lowerScore: %8d events.\n", lowerI, lowerScore.size());
+	double pitchOffset = 0.0;
+	int layer = lowerI + 1;
+	if (pitchOffsetsForLayers.find(layer) != pitchOffsetsForLayers.end()) {
+	  pitchOffset = pitchOffsetsForLayers[layer];
+	}
         for (size_t lowerNoteI = 0, lowerNoteN = lowerScore.size();
                 lowerNoteI < lowerNoteN;
                 ++lowerNoteI) {
@@ -254,9 +241,9 @@ Eigen::MatrixXd Koch::traverse(const Eigen::MatrixXd &globalCoordinates,
             // Duration: Rescale by duration of lower note.
             rescaler(Event::DURATION, Event::DURATION) = durationRatio;
             // Pitch: Move to lower note minus first upper note.
-            rescaler(Event::KEY, Event::HOMOGENEITY) = lowerEvent.getKey() - firstUpperEvent.getKey();
+            rescaler(Event::KEY, Event::HOMOGENEITY) = lowerEvent.getKey() - pitchOffset + upperScoreToOrigin.getKey();
             // Velocity: Move to lower note minus first upper note.
-            rescaler(Event::VELOCITY, Event::HOMOGENEITY) = lowerEvent.getVelocity() - firstUpperEvent.getVelocity();
+            rescaler(Event::VELOCITY, Event::HOMOGENEITY) = lowerEvent.getVelocity() - upperScoreToOrigin.getVelocity();
             for (size_t upperNoteI = 0, upperNoteN = upperScore.size();
                     upperNoteI < upperNoteN;
                     ++upperNoteI) {
@@ -269,18 +256,6 @@ Eigen::MatrixXd Koch::traverse(const Eigen::MatrixXd &globalCoordinates,
     size_t endAt = collectingScore.size();
     produceOrTransform(collectingScore, beginAt, endAt, compositeCoordinates);
     return compositeCoordinates;
-}
-
-void Koch::produceOrTransform(Score &collectingScore,
-        size_t beginAt,
-        size_t endAt,
-        const Eigen::MatrixXd &compositeCoordinates)
-{
-    std::sort(score.begin(), score.end());
-    for (size_t i = 0, n = score.size(); i < n; ++i) {
-        Eigen::VectorXd product = compositeCoordinates * score[i];
-        collectingScore.append(product);
-    }
 }
 
 }

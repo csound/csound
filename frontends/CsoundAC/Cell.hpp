@@ -24,10 +24,12 @@
 #ifdef SWIG
 %module CsoundAC
 %{
+#include <map>
 #include "ScoreNode.hpp"
 #include <eigen3/Eigen/Dense>
 %}
 #else
+#include <map>
 #include "ScoreNode.hpp"
 #include <eigen3/Eigen/Dense>
 #endif
@@ -89,10 +91,6 @@ public:
     virtual ~Intercut();
     virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates,
             Score &collectingScore);
-    virtual void produceOrTransform(Score &collectingScore,
-            size_t beginAt,
-            size_t endAt,
-            const Eigen::MatrixXd &coordinates);
 };
 
 /**
@@ -116,10 +114,6 @@ public:
     virtual ~Stack();
     virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates,
             Score &collectingScore);
-    virtual void produceOrTransform(Score &collectingScore,
-            size_t beginAt,
-            size_t endAt,
-            const Eigen::MatrixXd &coordinates);
 };
 
 /**
@@ -130,14 +124,12 @@ class SILENCE_PUBLIC Koch :
     public ScoreNode
 {
 public:
+  std::map<int, double> pitchOffsetsForLayers;
     Koch();
     virtual ~Koch();
     virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates,
             Score &collectingScore);
-    virtual void produceOrTransform(Score &collectingScore,
-            size_t beginAt,
-            size_t endAt,
-            const Eigen::MatrixXd &coordinates);
+    virtual void setPitchOffsetForLayer(int layer, double pitch);
 };
 }
 #endif
