@@ -54,8 +54,8 @@ namespace csound
     int startingIndex;
     Hocket();
     virtual ~Hocket();
-    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates, Score &score);
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &coordinates);
+    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates, 
+        Score &collectingScore);
   };
 }
 #endif

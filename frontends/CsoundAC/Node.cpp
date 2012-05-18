@@ -67,7 +67,10 @@ Eigen::MatrixXd Node::traverse(const Eigen::MatrixXd &globalCoordinates,
     return compositeCoordinates;
 }
 
-void Node::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &globalCoordinates)
+void Node::produceOrTransform(Score &collectingScore,
+        size_t beginAt,
+        size_t endAt,
+        const Eigen::MatrixXd &globalCoordinates)
 {
 }
 
@@ -96,19 +99,22 @@ void Node::addChild(Node *node)
     children.push_back(node);
 }
 
-void RemoveDuplicates::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &globalCoordinates)
+void RemoveDuplicates::produceOrTransform(Score &collectingScore, 
+    size_t beginAt, 
+    size_t endAt, 
+    const Eigen::MatrixXd &globalCoordinates)
 {
     std::set<std::string> uniqueEvents;
     Score newScore;
-    for (size_t i = 0, n = score.size(); i < n; ++i) {
-        const Event &event = score[i];
+    for (size_t i = 0, n = collectingScore.size(); i < n; ++i) {
+        const Event &event = collectingScore[i];
         std::string istatement = event.toCsoundIStatement();
         if (uniqueEvents.find(istatement) == uniqueEvents.end()) {
             newScore.push_back(event);
             uniqueEvents.insert(istatement);
         }
     }
-    score = newScore;
+    collectingScore = newScore;
 }
 
 }

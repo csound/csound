@@ -47,15 +47,4 @@ Eigen::MatrixXd Hocket::traverse(const Eigen::MatrixXd &globalCoordinates,
     return compositeCoordinates;
 }
 
-void Hocket::produceOrTransform(Score &collectingScore,
-        size_t beginAt,
-        size_t endAt,
-        const Eigen::MatrixXd &compositeCoordinates)
-{
-    std::sort(score.begin(), score.end());
-    for(size_t i = startingIndex, n = score.size(); i < n; i += modulus) {
-        Eigen::VectorXd product = compositeCoordinates * score[i];
-        collectingScore.push_back(product);
-    }
-}
 }
