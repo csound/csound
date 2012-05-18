@@ -21,7 +21,7 @@
 
 namespace csound
 {
-ScoreNode::ScoreNode()
+ScoreNode::ScoreNode() : duration(0.0)
 {
 }
 
@@ -38,10 +38,15 @@ void ScoreNode::produceOrTransform(Score &collectingScore,
         score.std::vector<Event>::clear();
         score.load(importFilename);
     }
-    for(int i = 0, n = score.size(); i < n; ++i) {
+    score.sort();
+    if (duration != 0.0) {
+        score.setDuration(duration);
+    }
+    for (int i = 0, n = score.size(); i < n; ++i) {
         Eigen::VectorXd product = compositeCoordinates * score[i];
         collectingScore.push_back(product);
     }
+
 }
 
 Score &ScoreNode::getScore()
