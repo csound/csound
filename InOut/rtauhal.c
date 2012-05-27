@@ -85,7 +85,8 @@ OSStatus  Csound_Render(void *inRefCon,
 int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                csdata *cdata, int isInput)
 {
-    UInt32  psize, devnum, devnos;
+    UInt32  psize, devnos;
+    int   devnum;
     AudioDeviceID *sysdevs;
     AudioDeviceID dev;
     AudioStreamBasicDescription format;
@@ -548,6 +549,6 @@ int csoundModuleInit(CSOUND *csound)
 
 int csoundModuleCreate(CSOUND *csound)
 {
-    CSOUND *p = csound;
+//    CSOUND *p = csound;
     return 0;
 }
