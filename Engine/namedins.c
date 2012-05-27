@@ -1018,7 +1018,6 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
     if (csound->namedGlobals == NULL)
       return;
     for (i = 0; i < 256; i++) {
-      prvp = (GlobalVariableEntry_t*) NULL;
       p = (GlobalVariableEntry_t*) csound->namedGlobals[i];
       while (p != NULL) {
         prvp = p;
