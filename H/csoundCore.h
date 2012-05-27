@@ -1068,7 +1068,7 @@ typedef struct NAME__ {
     MEMFIL *(*ldmemfile2)(CSOUND *, const char *, int);
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
-    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, long);
+    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t);
     int *(*GetChannelLock)(CSOUND *, const char *name, int type);
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
                                 int (*callback)(CSOUND *, MEMFIL *));
