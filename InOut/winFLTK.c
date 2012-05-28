@@ -141,8 +141,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       }
     }
 
-    if (!(csound->oparms->graphsoff || csound->oparms->postscript))
-      widget_init(csound);
+    widget_init(csound);
     return 0;
 }
 
