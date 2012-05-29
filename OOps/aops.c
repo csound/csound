@@ -568,6 +568,7 @@ LIB1(sinh1,SINH)
 LIB1(cosh1,COSH)
 LIB1(tanh1,TANH)
 LIB1(log101,LOG10)
+LIB1(log21,LOG2)
 
 int atan21(CSOUND *csound, AOP *p)
 {
@@ -599,6 +600,7 @@ LIBA(sinha,SINH)
 LIBA(cosha,COSH)
 LIBA(tanha,TANH)
 LIBA(log10a,LOG10)
+LIBA(log2a,LOG2)
 
 int atan2aa(CSOUND *csound, AOP *p)
 {
