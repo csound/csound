@@ -32,7 +32,7 @@
 #include "csound.h"
 #include "fftlib.h"
 
-#define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */
+/* #define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */ 
 
 /* some useful conversions between a number and its power of 2 */
 
