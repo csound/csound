@@ -36,7 +36,7 @@
 
 /* some useful conversions between a number and its power of 2 */
 
-#define LOG2(a) (MYRECIPLN2*log(a))       /* floating point logarithm base 2 */
+/* #define LOG2(a) (MYRECIPLN2*log(a))       /* floating point logarithm base 2 */
 #define POW2(m) ((uint32) 1 << (m))       /* integer power of 2 for m<32 */
 
 /* fft's with M bigger than this bust primary cache */

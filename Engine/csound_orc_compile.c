@@ -417,7 +417,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
               long outyp_m =                  /* ??? */
                 STA(typemask_tabl)[(unsigned char) argtyp2(csound,
                                                            tp->outlist->arg[0])];
-              if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
+              if (outyp_m & (ARGTYP_a | ARGTYP_w | ARGTYP_f)) break;
             }
             else
               break;
