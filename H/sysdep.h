@@ -79,6 +79,10 @@ typedef uint_least16_t uint16;
 
 #include "float-version.h"
 
+/* Defined here as Android does not have log2 functions */
+#define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */
+#define LOG2(a) (MYRECIPLN2*log(a))       /* floating point logarithm base 2 */
+
 #ifdef USE_DOUBLE
   #define ACOS acos
   #define ASIN asin
@@ -96,7 +100,7 @@ typedef uint_least16_t uint16;
   #define EXP exp
   #define LOG log
   #define LOG10 log10
-  #define LOG2 log2
+  /* #define LOG2 log2 */
   #define POWER pow
   #define SQRT sqrt
   #define HYPOT hypot
@@ -122,7 +126,7 @@ typedef uint_least16_t uint16;
   #define EXP expf
   #define LOG logf
   #define LOG10 log10f
-  #define LOG2 log2f
+  /* #define LOG2 log2f */
   #define POWER powf
   #define SQRT sqrtf
   #define HYPOT hypotf
