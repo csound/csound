@@ -1917,7 +1917,7 @@ static void instance(CSOUND *csound, int insno)
       if ((n = ep->thread & 06) != 0) {         /* thread 2 OR 4:   */
         prvpds = prvpds->nxtp = opds;           /* link into pchain */
         if (!(n & 04) ||
-            (ttp->pftype == 'k' && ep->kopadr != NULL))
+            ((ttp->pftype == 'k' || ttp->pftype == 'c') && ep->kopadr != NULL))
           opds->opadr = ep->kopadr;             /*      krate or    */
         else opds->opadr = ep->aopadr;          /*      arate       */
         if (UNLIKELY(odebug))

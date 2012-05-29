@@ -195,24 +195,24 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
 
 %%
 
-          /* Faster than calling pow */
+          /* Faster than calling pow; positive n only*/
 double int2pow(int n)
 {
-    double ans = 1.0;
-    double xx = 2.0;
+    int ans = 1;
+    int xx = 2;
     while (n!=0) {
       if (n&1) ans = ans * xx;
       n >>= 1;
       xx = xx*xx;
     }
-    return ans;
+    return (double)ans;
 }
 
 static void extend_instruments(void)
 {
     int i;
     int tmp = maxinstr+1;
-    instr = (INSTR*)realloc(instr, tmp*sizeof(INSTR));
+    instr = (INSTR*)realloc(instr, instrument*sizeof(INSTR));
     maxinstr = instrument;
     for (i=tmp; i<=maxinstr; i++) {
       INSTR ins = (INSTR)instr[i];

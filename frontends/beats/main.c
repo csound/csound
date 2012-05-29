@@ -48,6 +48,8 @@ int main(int argc, char **argv)
     bpm = 60;
     permeasure = 4;
     yydebug = 0;
+    yyin = stdin;
+    /* Argument decode:  A litte dodgy.  In csound should have zero args */
     if (argc==3) {
       yyin = fopen(argv[1], "r");
       myout = fopen(argv[2], "w");
@@ -62,6 +64,10 @@ int main(int argc, char **argv)
       myout = stdout;
     } else
       myout = stdout;
+    if (yyin==NULL || myout==NULL) {
+      fprintf(stderr, "Failed to open files\n");
+      exit(1);
+    }
     time(&timep);
     
 #ifndef LINUX

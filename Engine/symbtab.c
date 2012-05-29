@@ -132,6 +132,7 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "cosinv", T_FUNCTION);
     add_token(csound, "taninv", T_FUNCTION);
     add_token(csound, "log10", T_FUNCTION);
+    add_token(csound, "log2", T_FUNCTION);
     add_token(csound, "sinh", T_FUNCTION);
     add_token(csound, "cosh", T_FUNCTION);
     add_token(csound, "tanh", T_FUNCTION);
