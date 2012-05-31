@@ -212,7 +212,7 @@ static void extend_instruments(void)
 {
     int i;
     int tmp = maxinstr+1;
-    instr = (INSTR*)realloc(instr, instrument*sizeof(INSTR));
+    instr = (INSTR*)realloc(instr, instrument*sizeof(INSTR) + 2*sizeof(size_t));
     maxinstr = instrument;
     for (i=tmp; i<=maxinstr; i++) {
       INSTR ins = (INSTR)instr[i];
