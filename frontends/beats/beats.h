@@ -22,14 +22,14 @@
 */
 
 
-    typedef struct {
+    typedef struct instr {
+      struct instr *next;
       int n;                    /* self referencial */
       int largest;
       double *p;
     } INSTR;
 
 extern INSTR *instr;
-extern int maxinstr;
 extern int yyline;
 extern int last_note;
 extern int last_integer;
@@ -39,3 +39,5 @@ extern int permeasure;
 extern int yydebug;
 extern int yyparse(void);
 extern void print_instr_structure(void);
+extern INSTR *find_instr(int);
+
