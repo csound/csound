@@ -1,15 +1,15 @@
 #include "csound_standard_types.h" 
 #include <stdlib.h>
 
-CS_VARIABLE* createAsig(CSOUND* csound, void* args) {
-    int ksmps = csound->ksmps;
+CS_VARIABLE* createAsig(void* csound, void* args) {
+    int ksmps = ((CSOUND*)csound)->ksmps;
     CS_VARIABLE* var = malloc(sizeof (CS_VARIABLE));
     var->memblock = malloc(ksmps * sizeof (double));
     return var;
 }
 
 CS_TYPE_INSTANCE* createTypeInstance(char* varTypeName,  char* varDescription,
-        CS_VARIABLE* (*createVarFunc)(CSOUND*, void*), void* args) {
+        CS_VARIABLE* (*createVarFunc)(void*, void*), void* args) {
     CS_TYPE* type = malloc(sizeof (CS_TYPE));
     type->varTypeName = varTypeName;
     type->varDescription = varDescription;

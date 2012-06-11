@@ -76,6 +76,8 @@ extern "C" {
 #if defined(USE_OPENMP)
 #include <omp.h>
 #endif /* USE_OPENMP */
+    
+#include "csound_standard_types.h"
 
   MYFLT csoundPow2(CSOUND *csound, MYFLT a);
   extern void MakeAscii(CSOUND *, WINDAT *, const char *);
@@ -387,6 +389,7 @@ extern "C" {
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
+    (TYPE_POOL*)NULL, 
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
     DFLT_KSMPS,     /*  ksmps               */
@@ -2853,6 +2856,8 @@ extern "C" {
         O->filetyp = -1;
         O->sfheader = 0;
         csound->peakchunks = 1;
+        csound->typePool = csound->Malloc(csound, sizeof(TYPE_POOL));
+        csoundAddStandardTypes(csound->typePool);
         create_opcodlst(csound);
         csoundLoadExternals(csound);
       }

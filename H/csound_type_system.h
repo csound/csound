@@ -8,8 +8,6 @@
 #ifndef CSOUND_TYPE_SYSTEM_H
 #define	CSOUND_TYPE_SYSTEM_H
 
-#include "csoundCore.h"
-
 #ifdef	__cplusplus
 extern "C" {
 #endif
@@ -30,7 +28,7 @@ extern "C" {
 
     typedef struct cstypeinstance {
         CS_TYPE* varType;
-        CS_VARIABLE* (*createVariable)(CSOUND*, void*);
+        CS_VARIABLE* (*createVariable)(void*, void*);
         void* args ;
         struct cstypeinstance* next;
     } CS_TYPE_INSTANCE;
@@ -42,7 +40,7 @@ extern "C" {
     /* Adds a new type to Csound's type table
        Returns if variable type redefined */
     int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE_INSTANCE* typeInstance);
-    CS_VARIABLE* csoundCreateVariableWithType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* type);
+    CS_VARIABLE* csoundCreateVariableWithType(void* csound, TYPE_POOL* pool, CS_TYPE* type);
     CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
     
     

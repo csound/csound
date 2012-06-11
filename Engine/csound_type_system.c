@@ -47,12 +47,14 @@ int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE_INSTANCE * typeInstance) {
         current->next = typeInstance;
         typeInstance->next = NULL;
     }
+    
+    printf("Adding type with type name: %s\n", typeInstance->varType->varTypeName);
 
 
     return 1;
 }
 
-CS_VARIABLE* csoundCreateVariableWithType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* type) {
+CS_VARIABLE* csoundCreateVariableWithType(void* csound, TYPE_POOL* pool, CS_TYPE* type) {
     CS_TYPE_INSTANCE* current = pool->head;
     while (current != NULL) {
         if (strcmp(type->varTypeName, current->varType->varTypeName) == 0) {
