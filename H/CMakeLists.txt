@@ -15,7 +15,8 @@ set(csheaders
     sysdep.h
     text.h
     version.h
-    float-version.h)
+    float-version.h
+    csound_type_system.h)
 
 # These don't live here... but we list them here to have all headers
 # in one place
