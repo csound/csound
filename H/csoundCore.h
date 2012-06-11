@@ -35,6 +35,7 @@
 #endif /* PARCS */
 #include <stdarg.h>
 #include <setjmp.h>
+#include "csound_type_system.h"
 
 /*
 #include <sndfile.h>
@@ -1089,6 +1090,7 @@ typedef struct NAME__ {
     void          *printerrormessagesflag;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
+    TYPE_POOL*    typePool;
     OPDS          *ids, *pds;
     int           ksmps, global_ksmps, nchnls, spoutactive;
     long          kcounter, global_kcounter;
