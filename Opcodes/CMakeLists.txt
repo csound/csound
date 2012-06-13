@@ -9,6 +9,7 @@ option(BUILD_PYTHON_OPCODES "Build the Python opcodes" ON)
 option(BUILD_LUA_OPCODES "Build the Lua opcodes" ON)
 option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON) 
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
+option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -39,15 +40,21 @@ make_plugin(fareygen fareygen.c)
 
 make_plugin(cellular cellular.c)
 
-make_plugin(serial serial.c)
+if(BUILD_SERIAL_OPCODES)
+   make_plugin(serial serial.c)
+endif()
+
+if(BUILD_PLATEREV_OPCODES)
+   make_plugin(platerev platerev.c)
+endif()
 
 # temporarily do not build on Windows until these opcodes are fixed
 # to compile
-if(NOT WIN32) 
+#if(NOT WIN32) 
     make_plugin(udprecv sockrecv.c)
     make_plugin(udpsend socksend.c)
 
-endif()
+#endif()
 
 set(scansyn_SRCS
     scansyn.c scansynx.c)
@@ -59,6 +66,7 @@ endif()
 
 if(LINUX)
     make_plugin(urandom urandom.c)
+    make_plugin(joystick linuxjoystick.c)
 endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
