@@ -318,9 +318,9 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
         else if (*p=='"') {
           int is_escape = 0;
           char *old;
-          *p=0x18; /* CAN char */
+          *p=0x18; /* CAN char used to mark a removable character */
           while ((*p != '"' || is_escape) && *p != '\0') {
-            if (*p=='"')
+            if (is_escape)
               *old = 0x18;
             is_escape = (*p == '\\' ? !is_escape : 0);
             old = p;
