@@ -316,8 +316,16 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
           break;
         }
         else if (*p=='"') {
+          int is_escape = 0;
+          char *old;
           *p=0x18; /* CAN char */
-          while (*p != '"' && *p != '\0') p++;
+          while ((*p != '"' || is_escape) && *p != '\0') {
+            if (*p=='"')
+              *old = 0x18;
+            is_escape = (*p == '\\' ? !is_escape : 0);
+            old = p;
+            p++;
+          }
           if (*p == '"') *p = '\0';
           break;
         }
