@@ -315,6 +315,12 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
           *p = '\0';
           break;
         }
+        else if (*p=='"') {
+          *p=0x18; /* CAN char */
+          while (*p != '"' && *p != '\0') p++;
+          if (*p == '"') *p = '\0';
+          break;
+        }
         p++;
       }
 #ifdef _DEBUG
