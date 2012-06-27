@@ -28,7 +28,11 @@
 #include <time.h>
 
 #define POW2TABSIZI 4096
-#define POW2MAX   24.0
+#if ULONG_MAX == 18446744073709551615UL
+#  define POW2MAX   (24.0)
+#else
+#  define POW2MAX   (15.0)
+#endif
 #define EIPT3       (25.0/3.0)
 #define LOGTWO      (0.69314718055994530942)
 #define STEPS       (32768)
