@@ -24,10 +24,6 @@
 #define LOWEST_ACCEPTABLE_WT FL(0.0)
 #define CHANNELS 64
 #define MIN_VOL_P_SIDE_LGTH FL(0.01)
-#define FOUR 4
-#define EIGHT 8
-#define SIXTEEN 16
-#define THIRTYTWO 32
 
 typedef struct {
   MYFLT x;
@@ -56,59 +52,17 @@ typedef struct {
   int neg_g_am;
 } LS_SET;
 
-/* VBAP structure for FOUR loudspeaker panning */
+/* VBAP structure of n loudspeaker panning */
 typedef struct {
   OPDS      h;                  /* required header */
-  MYFLT     *out_array[FOUR];
-  MYFLT     *audio, *azi, *ele, *spread;
-
-  MYFLT beg_gains[FOUR];
-  MYFLT curr_gains[FOUR];
-  MYFLT end_gains[FOUR];
-  MYFLT updated_gains[FOUR];
-  int dim;
-  AUXCH aux;
-  LS_SET *ls_sets;
-  int ls_am;
-  int ls_set_am;
-  CART_VEC cart_dir;
-  CART_VEC spread_base;
-  ANG_VEC ang_dir;
-} VBAP_FOUR;
-
-/* VBAP structure of FOUR loudspeaker moving panning */
-typedef struct {
-  OPDS      h;                  /* required header */
-  MYFLT     *out_array[FOUR];
-  MYFLT     *audio, *dur, *spread, *field_am,
-                  *fld[VARGMAX]; /* field_am positive: point to point
-                                             negative: angle velocities */
-  MYFLT beg_gains[FOUR];
-  MYFLT curr_gains[EIGHT];
-  MYFLT end_gains[FOUR];
-  MYFLT updated_gains[FOUR];
-  int dim;
-  AUXCH aux;
-  LS_SET *ls_sets;
-  int ls_am;
-  int ls_set_am;
-  CART_VEC cart_dir;
-  CART_VEC spread_base;
-  ANG_VEC ang_dir, prev_ang_dir, next_ang_dir;
-  int point_change_interval, point_change_counter, curr_fld, next_fld;
-  MYFLT ele_vel;
-} VBAP_FOUR_MOVING;
-
-/* VBAP structure of eight loudspeaker panning */
-typedef struct {
-  OPDS      h;                  /* required header */
-  MYFLT         *out_array[EIGHT];
+  MYFLT         *out_array[CHANNELS];
   MYFLT         *audio, *azi, *ele, *spread;
 
-  MYFLT beg_gains[EIGHT];
-  MYFLT curr_gains[EIGHT];
-  MYFLT end_gains[EIGHT];
-  MYFLT updated_gains[EIGHT];
+  int number;
+  MYFLT beg_gains[CHANNELS];
+  MYFLT curr_gains[CHANNELS];
+  MYFLT end_gains[CHANNELS];
+  MYFLT updated_gains[CHANNELS];
   int dim;
   AUXCH aux;
   LS_SET *ls_sets;
@@ -117,19 +71,19 @@ typedef struct {
   CART_VEC cart_dir;
   CART_VEC spread_base;
   ANG_VEC ang_dir;
-} VBAP_EIGHT;
+} VBAP;
 
-/* VBAP structure of EIGHT loudspeaker moving panning */
+/* VBAP structure of loudspeaker moving panning */
 typedef struct {
   OPDS      h;                  /* required header */
-  MYFLT         *out_array[EIGHT];
+  MYFLT         *out_array[CHANNELS];
   MYFLT         *audio, *dur, *spread, *field_am,
                 *fld[VARGMAX]; /* field_am positive: point to point
                                            negative: angle velocities */
-  MYFLT beg_gains[EIGHT];
-  MYFLT curr_gains[EIGHT];
-  MYFLT updated_gains[EIGHT];
-/*   int counter; */
+  MYFLT beg_gains[CHANNELS];
+  MYFLT curr_gains[CHANNELS];
+  MYFLT updated_gains[CHANNELS];
+  int number;
   int upd_interval;
   int dim;
   AUXCH aux;
@@ -141,102 +95,8 @@ typedef struct {
   ANG_VEC ang_dir, prev_ang_dir, next_ang_dir;
   int point_change_interval, point_change_counter, curr_fld, next_fld;
   MYFLT ele_vel;
-   MYFLT end_gains[EIGHT];
-} VBAP_EIGHT_MOVING;
-
-/* VBAP structure of SIXTEEN loudspeaker panning */
-typedef struct {
-  OPDS      h;                  /* required header */
-  MYFLT     *out_array[SIXTEEN];
-  MYFLT     *audio, *azi, *ele, *spread;
-
-  MYFLT beg_gains[SIXTEEN];
-  MYFLT curr_gains[SIXTEEN];
-  MYFLT end_gains[SIXTEEN];
-  MYFLT updated_gains[SIXTEEN];
-/*   int counter; */
-  int upd_interval;
-  int dim;
-  AUXCH aux;
-  LS_SET *ls_sets;
-  int ls_am;
-  int ls_set_am;
-  CART_VEC cart_dir;
-  CART_VEC spread_base;
-  ANG_VEC ang_dir;
-} VBAP_SIXTEEN;
-
-/* VBAP structure of SIXTEEN loudspeaker moving panning */
-typedef struct {
-  OPDS      h;                  /* required header */
-  MYFLT     *out_array[SIXTEEN];
-  MYFLT     *audio, *dur, *spread, *field_am,
-            *fld[VARGMAX]; /* field_am positive: point to point
-                                       negative: angle velocities */
-  MYFLT beg_gains[SIXTEEN];
-  MYFLT curr_gains[SIXTEEN];
-  MYFLT end_gains[SIXTEEN];
-  MYFLT updated_gains[SIXTEEN];
-/*   int counter; */
-  int upd_interval;
-  int dim;
-  AUXCH aux;
-  LS_SET *ls_sets;
-  int ls_am;
-  int ls_set_am;
-  CART_VEC cart_dir;
-  CART_VEC spread_base;
-  ANG_VEC ang_dir, prev_ang_dir, next_ang_dir;
-  int point_change_interval, point_change_counter, curr_fld, next_fld;
-  MYFLT ele_vel;
-} VBAP_SIXTEEN_MOVING;
-
-/* VBAP structure of THIRTYTWO loudspeaker panning */
-typedef struct {
-  OPDS      h;                  /* required header */
-  MYFLT     *out_array[THIRTYTWO];
-  MYFLT     *audio, *azi, *ele, *spread;
-
-  MYFLT beg_gains[THIRTYTWO];
-  MYFLT curr_gains[THIRTYTWO];
-  MYFLT end_gains[THIRTYTWO];
-  MYFLT updated_gains[THIRTYTWO];
-/*   int counter; */
-  int upd_interval;
-  int dim;
-  AUXCH aux;
-  LS_SET *ls_sets;
-  int ls_am;
-  int ls_set_am;
-  CART_VEC cart_dir;
-  CART_VEC spread_base;
-  ANG_VEC ang_dir;
-} VBAP_THIRTYTWO;
-
-/* VBAP structure of THIRTYTWO loudspeaker moving panning */
-typedef struct {
-  OPDS      h;                  /* required header */
-  MYFLT     *out_array[THIRTYTWO];
-  MYFLT     *audio, *dur, *spread, *field_am,
-             *fld[VARGMAX]; /* field_am positive: point to point
-                                        negative: angle velocities */
-  MYFLT beg_gains[THIRTYTWO];
-  MYFLT curr_gains[THIRTYTWO];
-  MYFLT end_gains[THIRTYTWO];
-  MYFLT updated_gains[THIRTYTWO];
-/*   int counter; */
-  int upd_interval;
-  int dim;
-  AUXCH aux;
-  LS_SET *ls_sets;
-  int ls_am;
-  int ls_set_am;
-  CART_VEC cart_dir;
-  CART_VEC spread_base;
-  ANG_VEC ang_dir, prev_ang_dir, next_ang_dir;
-  int point_change_interval, point_change_counter, curr_fld, next_fld;
-  MYFLT ele_vel;
-} VBAP_THIRTYTWO_MOVING;
+  MYFLT end_gains[CHANNELS];
+} VBAP_MOVING;
 
 typedef struct {
   OPDS      h;                  /* required header */
@@ -281,9 +141,7 @@ extern void cart_to_angle(CART_VEC cvec, ANG_VEC *avec);
 extern void angle_to_cart(ANG_VEC avec, CART_VEC *cvec);
 extern void normalize_wts(OUT_WTS *wts);
 
-extern int vbap_FOUR_control(CSOUND*, VBAP_FOUR *p);
-extern int vbap_EIGHT_control(CSOUND*, VBAP_EIGHT *p);
-extern int vbap_SIXTEEN_control(CSOUND*, VBAP_SIXTEEN *p);
+extern int vbap_control(CSOUND*, VBAP *p);
 
 void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
                    MYFLT *gains, int ls_amount,
@@ -340,21 +198,13 @@ typedef struct {
   MYFLT     ele_vel;
 } VBAP_ZAK_MOVING;
 
-int     vbap_FOUR_init(CSOUND *, VBAP_FOUR *);
-int     vbap_FOUR(CSOUND *, VBAP_FOUR *);
-int     vbap_EIGHT_init(CSOUND *, VBAP_EIGHT *);
-int     vbap_EIGHT(CSOUND *, VBAP_EIGHT *);
-int     vbap_SIXTEEN_init(CSOUND *, VBAP_SIXTEEN *);
-int     vbap_SIXTEEN(CSOUND *, VBAP_SIXTEEN *);
+int     vbap_init(CSOUND *, VBAP *);
+int     vbap(CSOUND *, VBAP *);
 int     vbap_zak_init(CSOUND *, VBAP_ZAK *);
 int     vbap_zak(CSOUND *, VBAP_ZAK *);
 int     vbap_ls_init(CSOUND *, VBAP_LS_INIT *);
-int     vbap_FOUR_moving_init(CSOUND *, VBAP_FOUR_MOVING *);
-int     vbap_FOUR_moving(CSOUND *, VBAP_FOUR_MOVING *);
-int     vbap_EIGHT_moving_init(CSOUND *, VBAP_EIGHT_MOVING *);
-int     vbap_EIGHT_moving(CSOUND *, VBAP_EIGHT_MOVING *);
-int     vbap_SIXTEEN_moving_init(CSOUND *, VBAP_SIXTEEN_MOVING *);
-int     vbap_SIXTEEN_moving(CSOUND *, VBAP_SIXTEEN_MOVING *);
+int     vbap_moving_init(CSOUND *, VBAP_MOVING *);
+int     vbap_moving(CSOUND *, VBAP_MOVING *);
 int     vbap_zak_moving_init(CSOUND *, VBAP_ZAK_MOVING *);
 int     vbap_zak_moving(CSOUND *, VBAP_ZAK_MOVING *);
 

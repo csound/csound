@@ -99,7 +99,7 @@ static int platerev(CSOUND *csound, PLATE *p)
     int i,j, nsmps = csound->ksmps;
     int Ny = p->Ny, Nx = p->Nx;
     int Nx5 = Nx+5;
-    int bc = p->bc;
+    int bc =  *p->bndry;
     double *u = p->u, *u1 = p->u1, *u2 = p->u2;
     double s00 = p->s00, s10 = p->s10, s01 = p->s01,
       s11 = p->s11, s20 = p->s20, s02 = p->s02, 
@@ -209,7 +209,7 @@ static int platerev(CSOUND *csound, PLATE *p)
 }
 
 static OENTRY localops[] = {
-  { "platerev", sizeof(PLATE), 5, "aa", "aaiiiiiiiiiiiiiiiii",
+  { "platerev", sizeof(PLATE), 5, "aa", "aakiiiiiiiiiiiiiiii",
     (SUBR) platerev_init, NULL, (SUBR) platerev
   },
 };
