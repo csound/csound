@@ -24,7 +24,8 @@
 /* vbap.c
 
 assisting functions for VBAP
-functions for loudspeaker table initialization */
+functions for loudspeaker table initialization 
+Re-written to take flexible number of outputs by JPff 2012 */
 
 
 #include "csoundCore.h"
@@ -123,9 +124,6 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
       sets[j].set_gains[2] = FL(1.0);
       }
 
-/*     for (i=0;i<ls_amount;i++) { */
-/*       gains[i]=FL(0.0); */
-/*     } */
     memset(gains, 0, ls_amount*sizeof(MYFLT));
 
     gains[sets[j].ls_nos[0]-1] = sets[j].set_gains[0];
@@ -901,37 +899,21 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 
 /* static */
 static OENTRY vbap_localops[] = {
-  { "vbap4",      S(VBAP_FOUR),             TR|5,  "aaaa",             "akOO",
-    (SUBR) vbap_FOUR_init,          (SUBR) NULL,    (SUBR) vbap_FOUR        },
-  { "vbap8",      S(VBAP_EIGHT),            TR|5,  "aaaaaaaa",         "akOO",
-    (SUBR) vbap_EIGHT_init,         (SUBR) NULL,    (SUBR) vbap_EIGHT       },
-  { "vbap16",     S(VBAP_SIXTEEN),          TR|5,  "aaaaaaaaaaaaaaaa", "akOO",
-    (SUBR) vbap_SIXTEEN_init,       (SUBR) NULL,    (SUBR) vbap_SIXTEEN     },
+  { "vbap",      S(VBAP),           
+    TR|5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "akOO",
+    (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap        },
   { "vbapz",      S(VBAP_ZAK),           ZW|TR|5,  "",                 "iiakOO",
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
   { "vbaplsinit", S(VBAP_LS_INIT), TR|1, "", "iioooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },
-  { "vbap4move",  S(VBAP_FOUR_MOVING),      TR|5,  "aaaa",             "aiiim",
-    (SUBR) vbap_FOUR_moving_init,   (SUBR) NULL,    (SUBR) vbap_FOUR_moving },
-  { "vbap8move",  S(VBAP_EIGHT_MOVING),     TR|5,  "aaaaaaaa",         "aiiim",
-    (SUBR) vbap_EIGHT_moving_init,  (SUBR) NULL,    (SUBR) vbap_EIGHT_moving },
-  { "vbap16move", S(VBAP_SIXTEEN_MOVING),   TR|5,  "aaaaaaaaaaaaaaaa", "aiiim",
-    (SUBR) vbap_SIXTEEN_moving_init, (SUBR) NULL, (SUBR) vbap_SIXTEEN_moving },
+  { "vbapmove", S(VBAP_MOVING),   
+    TR|5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "aiiim",
+    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
   { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR|5,  "",                 "iiaiiim",
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  }
 };
 
 LINKAGE1(vbap_localops)
 
-/* PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
-{
-    create_ls_table(csound, 3);
-    *ep = localops;
-    return (long) sizeof(localops);
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
-}
-*/
