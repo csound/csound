@@ -510,9 +510,7 @@ set(libcsound_SRCS
     Opcodes/hrtfopcodes.c 
     Opcodes/stackops.c 
     Opcodes/vbap.c 
-    Opcodes/vbap_eight.c 
-    Opcodes/vbap_four.c 
-    Opcodes/vbap_sixteen.c
+    Opcodes/vbap_n.c 
     Opcodes/vbap_zak.c  
     Opcodes/vaops.c 
     Opcodes/ugakbari.c 

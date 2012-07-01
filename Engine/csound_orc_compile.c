@@ -1102,7 +1102,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         /* csound->Message(csound, "Assignment found\n"); */
         break;
       case INSTR_TOKEN:
-        /* csound->Message(csound, "Instrument found\n"); */
+        print_tree(csound, "Instrument found\n", current);
 
         resetouts(csound); /* reset #out counts */
         lblclear(csound); /* restart labelist  */
