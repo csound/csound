@@ -76,11 +76,11 @@ gkChebyshevDroneCoefficient10   chnexport               "gkChebyshevDroneCoeffic
 gkChebyshevDroneCoefficient10   init                    0.05
 
 gkReverberationEnabled          chnexport               "gkReverberationEnabled", 1
-gkReverberationEnabled          init                    0
+gkReverberationEnabled          init                    1
 gkReverberationDelay            chnexport               "gkReverberationDelay", 1
-gkReverberationDelay            init                    0.75
+gkReverberationDelay            init                    0.325
 gkReverberationWet          	chnexport               "gkReverberationWet", 1
-gkReverberationWet          	init                    0.25
+gkReverberationWet          	init                    0.15
 
 gkCompressorEnabled             chnexport               "gkCompressorEnabled", 1
 gkCompressorEnabled             init                    0
@@ -166,6 +166,8 @@ gkMasterLevel                   init                    1.5
                                 connect                 "PlainPluckedString",   "outright", "Reverberation",        "inright"
                                 connect                 "PRCBeeThree",          "outleft", 	"Reverberation",        "inleft"
                                 connect                 "PRCBeeThree",          "outright", "Reverberation",        "inright"
+                                connect                 "PRCBeeThreeDelayed",   "outleft", 	"Reverberation",        "inleft"
+                                connect                 "PRCBeeThreeDelayed",   "outright", "Reverberation",        "inright"
                                 connect                 "PRCBowed",             "outleft", 	"Reverberation",        "inleft"
                                 connect                 "PRCBowed",             "outright", "Reverberation",        "inright"
                                 connect                 "Reverberation",        "outleft", 	"Compressor",           "inleft"
@@ -297,6 +299,7 @@ aoutleft                        =                       aampenv * aox
 aoutright                       =                       aampenv * aoy
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   BandedWG
@@ -321,11 +324,12 @@ iattack                         =                       0.005
 isustain                        =                       p3
 irelease                        =                       0.06
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 asignal                         STKBandedWG             ifrequency,1
-aoutleft, aoutright             pan2                    asignal * iamplitude, i_pan
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
                         
                                 instr                   BassModel
@@ -388,9 +392,15 @@ abody2                          =                       abody2 / 50000
 afeedbk                         =                       afiltr
 aout                            =                       afeedbk
 asignal                         =                       50 * koutenv * (aout + kfltenv * (abody1 + abody2))
-aoutleft, aoutright             pan2                    asignal * iamplitude, i_pan
+iattack                         =                       0.005
+isustain                        =                       p3
+irelease                        =                       0.06
+p3                              =                       isustain + iattack + irelease
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   ChebyshevDrone
@@ -423,11 +433,12 @@ aenvelope                       transeg                 0.0, iattack / 2.0, 2.5,
 isinetable                      ftgenonce               0, 0, 65536, 10, 1, 0, .02
 asignal                         poscil3                 1, ihertz, isinetable
 asignal                         chebyshevpoly           asignal, 0, gkChebyshevDroneCoefficient1, gkChebyshevDroneCoefficient2, gkChebyshevDroneCoefficient3, gkChebyshevDroneCoefficient4, gkChebyshevDroneCoefficient5, gkChebyshevDroneCoefficient6, gkChebyshevDroneCoefficient7, gkChebyshevDroneCoefficient8, gkChebyshevDroneCoefficient9, gkChebyshevDroneCoefficient10
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-asignal                         =                       asignal * aenvelope * adamping
-aoutleft, aoutright             pan2                    asignal, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+asignal                         =                       asignal * aenvelope
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   ChebyshevMelody
@@ -457,7 +468,7 @@ adeclick                        linsegr                 0, iattack, 1, isustain,
 kHz                             =                       k(iHz)
 idB                             =                       i_midivelocity
 i1                              =                       iHz
-k100                            randi                   1,10
+k100                            randi                   1,0.05
 isine                           ftgenonce               0, 0, 65536, 10, 1
 k101                            poscil                  1, 5 + k100, isine
 k102                            linseg                  0, .5, 1, p3, 1
@@ -476,22 +487,23 @@ k10                             =                       (k10 - .0001)
 k20                             linseg                  1.485, iattack, 1.5, (isustain + irelease), 1.485
 ; a1-3 are for cheby with p6=1-4
 icook3                          ftgenonce               0, 0, 65536,    10,     1, .4, 0.2, 0.1, 0.1, .05
-a1                              poscil                  k1, k100 - .025, icook3
+a1                              poscil                  k1, k100 - .25, icook3
 ; Tables a1 to fn13, others normalize,
 ip6                             ftgenonce               0, 0, 65536,    -7,    -1, 150, 0.1, 110, 0, 252, 0
 a2                              tablei                  a1, ip6, 1, .5
 a3                              balance                 a2, a1
 ; Try other waveforms as well.
-a4                              foscili                 1, k100 + .04, 1, 2.005, k20, isine
+a4                              foscili                 1, k100 + .04, 1, 2.000, k20, isine
 a5                              poscil                  1, k100, isine
 a6                              =                       ((a3 * .1) + (a4 * .1) + (a5 * .8)) * k10
 a7                              comb                    a6, .5, 1 / i1
 a8                              =                       (a6 * .9) + (a7 * .1)
 asignal        		            balance         	    a8, a1
-asignal                         =                       asignal * adeclick * iamplitude
-aoutleft, aoutright		        pan2			        asignal, i_pan
+asignal                         =                       asignal * iamplitude
+aoutleft, aoutright		        pan2			        asignal * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   DelayedPluckedString
@@ -514,7 +526,7 @@ iattack                         =                       0.02
 isustain                        =                       p3
 irelease                        =                       0.15
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ikeyin                          =                       i_midikey
 ihertz                          =                       cpsmidinn(ikeyin)
 ; Detuning of strings by 4 cents each way.
@@ -528,7 +540,7 @@ igenleft                        =                       isine
 igenright                       =                       icosine
 kvibrato                        oscili                  1.0 / 120.0, 7.0, icosine
 kexponential                    expseg                  1.0, p3 + iattack, 0.0001, irelease, 0.0001
-aenvelope                       =                       (kexponential - 0.0001) * adamping
+aenvelope                       =                       (kexponential - 0.0001) * adeclick
 ag                              pluck                   iamplitude, cpsmidinn(ikeyin + kvibrato), 200, igenleft, 1
 agleft                          pluck                   iamplitude, ihertzleft, 200, igenleft, 1
 agright                         pluck                   iamplitude, ihertzright, 200, igenright, 1
@@ -536,13 +548,14 @@ imsleft                         =                       0.2 * 1000
 imsright                        =                       0.21 * 1000
 adelayleft                      vdelay                  ag * aenvelope, imsleft, imsleft + 100
 adelayright                     vdelay                  ag * aenvelope, imsright, imsright + 100
-asignal                         =                       adamping * (agleft + adelayleft + agright + adelayright)
+asignal                         =                       adeclick * (agleft + adelayleft + agright + adelayright)
                                 ; Highpass filter to exclude speaker cone excursions.
 asignal1                        butterhp                asignal, 32.0
 asignal2                        balance                 asignal1, asignal
-aoutleft, aoutright             pan2                    asignal2 * adamping, i_pan
+aoutleft, aoutright             pan2                    asignal2 * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   EnhancedFMBell
@@ -567,7 +580,7 @@ isustain                        =                       p3
 irelease                        =                       0.25
 i_duraton                       =                       15; isustain + iattack + irelease
 p3                              =                       i_duration
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ifrequency                      =                       cpsmidinn(i_midikey)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude                      =                       ampdb(i_midivelocity) 
@@ -597,9 +610,10 @@ noisend:
 arvb                            nreverb                 acar, 2, 0.1
 aenvelope                       transeg                 1, idur, -3, 0
 asignal                         =                       aenvelope * (acar + arvb) ;+ anoise5
-aoutleft, aoutright             pan2                    asignal, i_pan
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   FenderRhodesModel
@@ -623,7 +637,7 @@ iattack                         =                       0.01
 isustain                        =                       p3
 irelease                        =                       0.125
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 iindex                          =                       4
 icrossfade                      =                       3
 ivibedepth                      =                       0.2
@@ -639,9 +653,10 @@ ivibefn                         =                       isine
 ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) * 6
 asignal                         fmrhode                 iamplitude, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-aoutleft, aoutright		        pan2			        asignal, i_pan
+aoutleft, aoutright		        pan2			        asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   FilteredSines
@@ -669,7 +684,7 @@ isustain                        =                       p3
 irelease                        =                       0.52
 p3                              =                       p3 + iattack + irelease
 i_duration                      =                       p3
-adamping                        linsegr                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ip4                             =                       i_midivelocity
 idb                             =                       ampdb(i_midivelocity) * 4
 ibergeman                       ftgenonce               0, 0, 65536,     10,     0.28, 1, 0.74, 0.66, 0.78, 0.48, 0.05, 0.33, 0.12, 0.08, 0.01, 0.54, 0.19, 0.08, 0.05, 0.16, 0.01, 0.11, 0.3, 0.02, 0.2 ; Bergeman f1
@@ -712,10 +727,11 @@ irightgain                      =                       sqrt(2.0) / 2.0 * (cos(i
 ileftgain                       =                       sqrt(2.0) / 2.0 * (cos(itheta) - sin(itheta))
 a17                             =                       (a15 + a4) * ileftgain * k7
 a18                             =                       (a16 + a4) * irightgain * k7
-aoutleft                        =                       a17 * adamping
-aoutright                       =                       a18 * adamping
+aoutleft                        =                       a17 * adeclick
+aoutright                       =                       a18 * adeclick
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   Flute
@@ -744,7 +760,7 @@ iattack                         =                       0.04
 isustain                        =                       p3
 irelease                        =                       0.15
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ip4                             =                       0
                                 if                      (ip4 == int(ip4 / 2) * 2) goto initslurs
                                 ihold
@@ -786,9 +802,10 @@ anoise                          tone                    anoise1, 200
 a1                              oscili                  kamp, kfreq1, ikellyflute, ireinit
 a2                              oscili                  kamp, kfreq2, ikellyflute, ireinit
 a3                              =                       a1 + a2 + anoise
-aoutleft, aoutright             pan2                    a3 * adamping, i_pan
+aoutleft, aoutright             pan2                    a3 * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   FMModerateIndex
@@ -813,22 +830,23 @@ icarrier                        =                       1
 iratio                          =                       1.25
 ifmamplitude                    =                       8
 index                           =                       5.4
-iattack                         =                       0.02
+iattack                         =                       0.01
 isustain                        =                       p3
 irelease                        =                       0.05
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ifrequencyb                     =                       ifrequency * 1.003
 icarrierb                       =                       icarrier * 1.004
-kindenv                         expseg                  0.000001, iattack, 1, isustain, 0.125, irelease, 0.000001
+kindenv                         transeg                 0, iattack, -4, 1,  isustain, -2, 0.125, irelease, -4, 0
 kindex                          =                       kindenv * index * ifmamplitude
 isine                           ftgenonce               0, 0, 65536,    10,     1
 aouta                           foscili                 1, ifrequency, icarrier, iratio, index, isine
 aoutb                           foscili                 1, ifrequencyb, icarrierb, iratio, index, isine
 asignal                         =                       (aouta + aoutb) * kindenv
-aoutleft, aoutright		        pan2			        asignal * iamplitude, i_pan
+aoutleft, aoutright		        pan2			        asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   FMModerateIndex2
@@ -857,7 +875,7 @@ iattack                         =                       0.02
 isustain                        =                       p3
 irelease                        =                       0.05
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ifrequencyb                     =                       ifrequency * 1.003
 icarrierb                       =                       icarrier * 1.004
 kindenv                         expseg                  0.000001, iattack, 1.0, isustain, 0.0125, irelease, 0.000001
@@ -866,9 +884,10 @@ isine                           ftgenonce               0, 0, 65536,    10,     
 aouta                           foscili                 1, ifrequency, icarrier, iratio, index, isine
 aoutb                           foscili                 1, ifrequencyb, icarrierb, iratio, index, isine
 asignal                         =                       (aouta + aoutb) * kindenv
-aoutleft, aoutright		        pan2			        asignal * iamplitude, i_pan
+aoutleft, aoutright		        pan2			        asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   FMModulatedChorusing
@@ -889,10 +908,10 @@ i_height                        =                       p9
 i_pitchclassset                 =                       p10
 i_homogeneity                   =                       p11
 iattack                         =                       0.333333
-irelease                        =                       0.25
+irelease                        =                       0.1
 isustain                        =                       p3
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 iamplitude                      =                       ampdb(i_midikey) / 1200
 ip6                             =                       0.3
 ip7                             =                       2.2
@@ -918,17 +937,17 @@ ao1                             oscili                  a1, ipch, icosine
 a4                              =                       exp(-0.5 * a3 + ao1)
                                 ; Cosine
 ao2                             oscili                  a2 * ipch, ipch, icosine
+isine                           ftgenonce                   2, 0, 65536,    10,     1
                                 ; Final output left
-isine                          ftgenonce                   2, 0, 65536,    10,     1
-                                
 aoutl                           oscili                  1 * kadsr * a4, ao2 + cpsmidinn(ioct + ishift), isine
                                 ; Final output right
 aoutr                           oscili                  1 * kadsr * a4, ao2 + cpsmidinn(ioct - ishift), isine
 asignal                         =                       aoutl + aoutr
-asignal                         =                       asignal * iamplitude * adamping
-aoutleft, aoutright		        pan2			        asignal, i_pan
+asignal                         =                       asignal * iamplitude
+aoutleft, aoutright		        pan2			        asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   FMWaterBell
@@ -949,7 +968,7 @@ i_height                        =                       p9
 i_pitchclassset                 =                       p10
 i_homogeneity                   =                       p11
 ipch                            =                       cpsmidinn(i_midikey)
-iamplitude                      =                       ampdb(i_midivelocity) 
+iamplitude                      =                       ampdb(i_midivelocity) * 2.0
 ipch2                           =                       ipch
 kpchline 	                    line                    ipch, i_duration, ipch2
 iamp 	                        =                       2
@@ -979,9 +998,15 @@ ifn3                            =                       icosine
 ifn4                            =                       icosine
 ivfn                            =                       icosine
 asignal                         fmbell	                iamp, kpchline, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
-aoutleft, aoutright             pan2                    iamplitude * asignal, i_pan
+iattack                         =                       0.003
+isustain                        =                       p3
+irelease                        =                       0.06
+p3                              =                       isustain + iattack + irelease
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+aoutleft, aoutright             pan2                    iamplitude * asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   Granular
@@ -1048,6 +1073,7 @@ aoutleft                        =                       aoutl * kamp * iamplitud
 aoutright                       =                       aoutr * kamp * iamplitude
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   Guitar
@@ -1072,7 +1098,7 @@ iattack                         =                       0.01
 isustain                        =                       p3
 irelease                        =                       0.05
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ifrequency                      =                       cpsmidinn(p4)
 iamplitude                      =                       ampdb(p5) * 20
 kamp                            linsegr                 0.0, iattack, iamplitude, isustain, iamplitude, irelease, 0.0
@@ -1084,10 +1110,11 @@ af3                             reson                   asig, 440, 80
 aout                            balance                 0.6 * af1+ af2 + 0.6 * af3 + 0.4 * asig, asigcomp
 kexp                            expseg                  1.0, iattack, 2.0, isustain, 1.0, irelease, 1.0
 kenv                            =                       kexp - 1.0
-asignal                         =                       aout * kenv * adamping * kamp
-aoutleft, aoutright             pan2                    asignal, i_pan
+asignal                         =                       aout * kenv * kamp
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   Guitar2
@@ -1112,7 +1139,7 @@ iattack                         =                       0.01
 isustain                        =                       p3
 irelease                        =                       0.05
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 kamp                            linsegr                  0.0, iattack, 1, isustain, 1, irelease, 0.0
 asigcomp                        pluck                   kamp, 440, 440, 0, 1
 asig                            pluck                   kamp, ifrequency, ifrequency, 0, 1
@@ -1122,11 +1149,12 @@ af3                             reson                   asig, 440, 80
 aout                            balance                 0.6 * af1+ af2 + 0.6 * af3 + 0.4 * asig, asigcomp
 kexp                            expseg                  1.0, iattack, 2.0, isustain, 1.0, irelease, 1.0
 kenv                            =                       kexp - 1.0
-asignal                         =                       aout * kenv * adamping
+asignal                         =                       aout * kenv
 asignal                         dcblock                 asignal
-aoutleft, aoutright		        pan2			        asignal * iamplitude, i_pan
+aoutleft, aoutright		        pan2			        asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr 			        Harpsichord
@@ -1161,10 +1189,10 @@ aharp                   	    poscil                  1, kHz, iharptable
 aharp2                  	    balance                 apluck, aharp
 asignal			                =                       (apluck + aharp2) * iamplitude * aenvelope * gkHarpsichordGain
 adeclick                        linsegr                 0, iattack, 1, isustain, 1, irelease, 0
-asignal                         =                       asignal * adeclick
-aoutleft, aoutright             pan2                    asignal, ipan
+aoutleft, aoutright             pan2                    asignal * adeclick, ipan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   HeavyMetalModel
@@ -1189,7 +1217,7 @@ idecay                          =                       2.0
 isustain                        =                       i_duration
 irelease                        =                       0.125
 p3                              =                       iattack + iattack + idecay + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, idecay + isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, idecay + isustain, 1.0, irelease, 0.0
 iindex                          =                       1
 icrossfade                      =                       3
 ivibedepth                      =                       0.02
@@ -1207,10 +1235,11 @@ ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) * 48.0
 adecay                          transeg                 0.0, iattack, 4, 1.0, idecay + isustain, -4, 0.1, irelease, -4, 0.0
 asignal                         fmmetal                 0.1, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-asignal                         =                       asignal * adamping * iamplitude
-aoutleft, aoutright             pan2                    asignal, i_pan
+asignal                         =                       asignal * iamplitude
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   Hypocycloid
@@ -1275,6 +1304,7 @@ irightgain                      =                       sqrt(2.0) / 2.0 * (cos(i
 ileftgain                       =                       sqrt(2.0) / 2.0 * (cos(itheta) - sin(itheta))
                                 outleta                 "outleft",  aoutleft * ileftgain
                                 outleta                 "outright", aoutright * irightgain
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr			        ModerateFM
@@ -1315,10 +1345,11 @@ aoutb                   	    foscili                 1.0, ifrequencyb, icarrierb
 ; Plus amplitude correction.
 asignal               		    =                       (aouta + aoutb) * aindenv
 adeclick                        linsegr                 0, iattack, 1, isustain, 1, irelease, 0
-asignal                         =                       asignal * adeclick * iamplitude
-aoutleft, aoutright             pan2                    asignal, i_pan
+asignal                         =                       asignal * iamplitude
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr 			        ModulatedFM
@@ -1346,7 +1377,7 @@ iHz                             =                       cpsmidinn(i_midikey)
 kHz                             =                       k(iHz)
 idB                             =                       i_midivelocity
 iamplitude                      =                       ampdb(i_midivelocity)
-adamping                        linsegr                 0, iattack, 1, isustain, 1, irelease, 0
+adeclick                        linsegr                 0, iattack, 1, isustain, 1, irelease, 0
 ip6                     	    =                       0.3
 ip7                     	    =                       2.2
 ishift      		    	    =           		    4.0 / 12000.0
@@ -1368,15 +1399,16 @@ ao1                     	    poscil                  a1, kpch, icosine
 a4                      	    =                       exp(-0.5 * a3 + ao1)
 ; Cosine
 ao2                     	    poscil                  a2 * kpch, kpch, icosine
-; Final output left
 isine                  		    ftgenonce               0, 0, 65536, 10, 1
+; Final output left
 aleft                   	    poscil                  a4, ao2 + cpsoct(koct + ishift), isine
 ; Final output right
 aright                  	    poscil                  a4, ao2 + cpsoct(koct - ishift), isine
-asignal                         =                       (aleft + aright) * iamplitude * adamping
-aoutleft, aoutright             pan2                    asignal, i_pan
+asignal                         =                       (aleft + aright) * iamplitude
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   PlainPluckedString
@@ -1399,16 +1431,17 @@ iattack                         =                       0.002
 isustain                        =                       p3
 irelease                        =                       0.075
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) * 6
 aenvelope                       transeg                 0, iattack, -4, iamplitude,  isustain, -4, iamplitude / 10.0, irelease, -4, 0
 asignal1                        pluck                   1, ifrequency, ifrequency * 1.002, 0, 1
 asignal2                        pluck                   1, ifrequency * 1.003, ifrequency, 0, 1
 asignal                         =                       (asignal1 + asignal2) * aenvelope
-aoutleft, aoutright		        pan2			        asignal, i_pan
+aoutleft, aoutright		        pan2			        asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   PRCBeeThree
@@ -1433,10 +1466,55 @@ isustain                        =                       p3
 irelease                        =                       0.06
 p3                              =                       isustain + iattack + irelease
 asignal                         STKBeeThree             ifrequency, 1
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
+                                endin
+                                
+                               instr                   PRCBeeThreeDelayed
+                                //////////////////////////////////////////////////////
+                                // By Michael Gogins.
+                                //////////////////////////////////////////////////////
+i_instrument                    =                       p1
+i_time                          =                       p2
+i_duration                      =                       p3
+i_midikey                       =                       p4
+i_midivelocity                  =                       p5
+i_phase                         =                       p6
+i_pan                           =                       p7
+i_depth                         =                       p8
+i_height                        =                       p9
+i_pitchclassset                 =                       p10
+i_homogeneity                   =                       p11
+ifrequency                      =                       cpsmidinn(i_midikey)
+iamplitude                      =                       ampdb(i_midivelocity) * 6
+iattack                         =                       0.2
+isustain                        =                       p3
+irelease                        =                       0.3
+p3                              =                       isustain + iattack + irelease
+asignal                         STKBeeThree             ifrequency, 1, 2, 3, 1, 0, 11, 0
+amodulator                      oscils                  0.00015, 0.2, 0.0
+                                ; Read delayed signal, first delayr instance:
+adump                           delayr                  4.0 
+adly1                           deltapi                 0.03 + amodulator; associated with first delayr instance
+                                ; Read delayed signal, second delayr instance:
+adump                           delayr                  4.0 
+adly2                           deltapi                 0.029 + amodulator      ; associated with second delayr instance
+                                ; Do some cross-coupled manipulation:
+afdbk1                          =                       0.7 * adly1 + 0.7 * adly2 + asignal
+afdbk2                          =                       -0.7 * adly1 + 0.7 * adly2 + asignal 
+                                ; Feed back signal, associated with first delayr instance:
+                                delayw                  afdbk1 
+                                ; Feed back signal, associated with second delayr instance:
+                                delayw                  afdbk2
+asignal2                        =                       adly1 + adly2
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+aoutleft, aoutright             pan2                    asignal2 * iamplitude * adeclick, i_pan
+                                outleta                 "outleft",  aoutleft
+                                outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
                                 
                                 instr                   PRCBowed
@@ -1463,9 +1541,15 @@ iamplitude                      =                       ampdb(i_midivelocity) * 
                                 ;  11  Vibrato Frequency
                                 ; 128  Volume 
 asignal 		                STKBowed 		        ifrequency, 1.0, 1, 1.8, 2, 120.0, 4, 50.0, 11, 20.0
-aoutleft, aoutright             pan2                    asignal * iamplitude, i_pan
+iattack                         =                       0.005
+isustain                        =                       p3
+irelease                        =                       0.06
+p3                              =                       isustain + iattack + irelease
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
                                 
                                 instr                   STKBandedWG
@@ -1488,9 +1572,15 @@ i_homogeneity                   =                       p11
 ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) * 256
 asignal 		                STKBandedWG 		    ifrequency, 1.0
-aoutleft, aoutright             pan2                    asignal * iamplitude, i_pan
+iattack                         =                       0.005
+isustain                        =                       p3
+irelease                        =                       0.06
+p3                              =                       isustain + iattack + irelease
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
                                 
                                 instr                   STKBeeThree
@@ -1519,10 +1609,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    aphased * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    aphased * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKBlowBotl
@@ -1550,10 +1641,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKBlowHole
@@ -1581,10 +1673,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKBowed
@@ -1618,10 +1711,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKClarinet
@@ -1649,10 +1743,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKDrummer
@@ -1680,10 +1775,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKFlute
@@ -1717,10 +1813,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKFMVoices
@@ -1754,10 +1851,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKHvyMetl
@@ -1791,10 +1889,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKMandolin
@@ -1822,10 +1921,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
                                 
                                 instr                   STKModalBar
@@ -1870,10 +1970,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
                                 
                                  instr                   STKMoog
@@ -1901,10 +2002,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
                                 
                                  instr                   STKPercFlut
@@ -1932,10 +2034,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
                                 
                                 instr                   STKPlucked
@@ -1963,10 +2066,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
                                 
                                 instr                   STKResonate
@@ -2000,10 +2104,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
                                 
                                 instr                   STKRhodey
@@ -2031,10 +2136,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
                                 
                                 instr                   STKSaxofony
@@ -2070,10 +2176,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKShakers
@@ -2131,10 +2238,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKSimple
@@ -2167,10 +2275,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKSitar
@@ -2198,10 +2307,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKTubeBell
@@ -2229,10 +2339,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKVoicForm
@@ -2260,10 +2371,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKWhistle
@@ -2291,10 +2403,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   STKWurley
@@ -2322,10 +2435,11 @@ idampingrelease                 =                       .01
 idampingsustain                 =                       p3
 iduration                       =                       idampingattack + idampingsustain + idampingrelease
 p3                              =                       iduration
-adamping                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
-aoutleft, aoutright             pan2                    asignal * iamplitude * adamping, i_pan
+adeclick                        linsegr                 0, idampingattack, 1, idampingsustain, 1, idampingrelease, 0
+aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin                                
 
                                 instr                   StringPad
@@ -2362,9 +2476,15 @@ asig                            =                           afund + acel1 + acel
                                 ; Cut-off high frequencies depending on midi-velocity
                                 ; (larger velocity implies more brighter sound)
 asignal                         butterlp                asig, (i_midivelocity - 60) * 40 + 900
-aoutleft, aoutright             pan2                    asignal, i_pan
+iattack                         =                       0.005
+isustain                        =                       p3
+irelease                        =                       0.06
+p3                              =                       isustain + iattack + irelease
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   ToneWheelOrgan
@@ -2386,12 +2506,12 @@ i_pitchclassset                 =                       p10
 i_homogeneity                   =                       p11
 ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) / 8.0
-iattack                         =                       0.05
+iattack                         =                       0.02
 isustain                        =                       i_duration
 irelease                        =                       0.1
 i_duration                      =                       iattack + isustain + irelease
 p3                              =                       i_duration
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
                                 ; Rotor Tables
 itonewheel1                     ftgenonce               0, 0, 65536,     10,     1, 0.02, 0.01
 itonewheel2                     ftgenonce               0, 0, 65536,     10,     1, 0, 0.2, 0, 0.1, 0, 0.05, 0, 0.02
@@ -2421,10 +2541,11 @@ a4th                            oscili                  2, 4      * ifqc,  iwhee
 a5th                            oscili                  1, 5.0397 * ifqc,  iwheel4, iphase / (ikey + 28)
 a6th                            oscili                  0, 5.9932 * ifqc,  iwheel4, iphase / (ikey + 31)
 a8th                            oscili                  4, 8      * ifqc,  iwheel4, iphase / (ikey + 36)
-asignal                         =                       iamplitude * adamping * (asubfund + asub3rd + afund + a2nd + a3rd + a4th + a5th + a6th + a8th)
-aoutleft, aoutright             pan2                    asignal, i_pan
+asignal                         =                       iamplitude * (asubfund + asub3rd + afund + a2nd + a3rd + a4th + a5th + a6th + a8th)
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   TubularBellModel
@@ -2446,11 +2567,11 @@ i_pitchclassset                 =                       p10
 i_homogeneity                   =                       p11
 ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) * 4
-iattack                         =                       0.01
+iattack                         =                       0.003
 isustain                        =                       p3
 irelease                        =                       0.125
 p3                              =                       isustain + iattack + irelease
-adamping                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 iindex                          =                       1
 icrossfade                      =                       2
 ivibedepth                      =                       0.2
@@ -2464,9 +2585,10 @@ ifn3                            =                       isine
 ifn4                            =                       isine
 ivibefn                         =                       icosine
 asignal                         fmbell                  1.0, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-aoutleft, aoutright		        pan2			        asignal * iamplitude, i_pan
+aoutleft, aoutright		        pan2	                asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr                   WaveguideGuitar
@@ -2658,10 +2780,11 @@ abkdout	                        filter2                 abkdout, 3, 0, ia0, ia1,
                                 ; resonance due to the top plate = 220Hz
                                 ; resonance due to the inclusion of the back plate = 400Hz (weakest)
 aresbod                         filter2                 (afwdout + abkdout), 5, 4, 0.000000000005398681501844749, .00000000000001421085471520200, -.00000000001076383426834582, -00000000000001110223024625157, .000000000005392353230604385, -3.990098622573566, 5.974971737738533, -3.979630684599723, .9947612723736902
-asignal                         =                       (1500 * (afwav + abkwav + aresbod * .000000000000000000003)) ; * adamping
+asignal                         =                       (1500 * (afwav + abkwav + aresbod * .000000000000000000003)) ; * adeclick
 aoutleft, aoutright             pan2                    asignal * iamplitude, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
                                 
                                 instr                   Xing
@@ -2685,13 +2808,15 @@ iheight                         =                       p9
 ipcs                            =                       p10
 ihomogeneity                    =                       p11
 kgain			    	        =                       1.25
-iattack                         =                       .005
+iHz                             =                       cpsmidinn(ikey)
+kHz                             =                       k(iHz)
+iattack                         =                       (440.0 / iHz) * 0.01
+                                print                   iHz, iattack
 isustain                        =                       p3
 irelease                        =                       .3
 p3                              =                       iattack + isustain + irelease
-iHz                             =                       cpsmidinn(ikey)
-kHz                             =                       k(iHz)
-iamplitude                      =                       ampdb(ivelocity) * 16.
+iduration                       =                       p3
+iamplitude                      =                       ampdb(ivelocity) * 8.
 isine                           ftgenonce               0, 0, 65536,    10,     1
 kfreq                           =                       cpsmidinn(ikey)
 iamp                            =                       1
@@ -2713,12 +2838,14 @@ awt2                            poscil                  amp2, 2.7 * kfreq, isine
 awt3                            poscil                  amp3, 4.95 * kfreq, isine
 asig                            =                       awt1 + awt2 + awt3
 arel                            linenr                  1,0, iduration, .06
-asignal                         =                       asig * arel * (iamp / inorm) * iamplitude * kgain
+; asignal                         =                       asig * arel * (iamp / inorm) * iamplitude * kgain
+asignal                         =                       asig * (iamp / inorm) * iamplitude * kgain
 adeclick                        linsegr                 0, iattack, 1, isustain, 1, irelease, 0
-asignal                         =                       asignal * adeclick
-aoutleft, aoutright		        pan2			        asignal, ipan
+asignal                         =                       asignal
+aoutleft, aoutright		        pan2			        asignal * adeclick, .875;ipan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 instr			        ZakianFlute
@@ -2762,7 +2889,7 @@ p3                              =                       iattack + isustain + ire
 iHz                             =                       ifrequency
 kHz                             =                       k(iHz)
 idB                             =                       i_midivelocity
-adamping                        linsegr                 0, iattack, 1, isustain, 1, irelease, 0
+adeclick77                        linsegr                 0, iattack, 1, isustain, 1, irelease, 0
 ip3                     	    =                       (p3 < 3.0 ? p3 : 3.0)
 ; parameters
 ; p4    overall amplitude scaling factor
@@ -2933,9 +3060,15 @@ asig                    	    =                       asig*(iampscale/inorm)
 kcut                    	    linseg                  0, iattack, ifiltcut, isustain, ifiltcut, idecay, 0     ; lowpass filter for brightness control
 afilt                   	    tone                    asig, kcut
 asignal                    	    balance                 afilt, asig
-aoutleft, aoutright             pan2                    asignal, i_pan
+iattack                         =                       0.005
+isustain                        =                       p3
+irelease                        =                       0.06
+p3                              =                       isustain + iattack + irelease
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+aoutleft, aoutright             pan2                    asignal * adeclick, i_pan
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
+                                prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
 
                                 //////////////////////////////////////////////
