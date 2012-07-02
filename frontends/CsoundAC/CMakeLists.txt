@@ -30,36 +30,36 @@ if(BUILD_CSOUND_AC)
 	allegrosmfrd.cpp
 	allegrosmfwr.cpp
 	allegrowr.cpp
-        Cell.cpp
-        ChordLindenmayer.cpp
+    Cell.cpp
+    ChordLindenmayer.cpp
 	cmake_install.cmake
-        Composition.cpp
-        Conversions.cpp
-        Counterpoint.cpp
+    Composition.cpp
+    Conversions.cpp
+    Counterpoint.cpp
 	CounterpointMain.cpp
-        CounterpointNode.cpp
-        Event.cpp
-        Hocket.cpp
-        ImageToScore.cpp
-        Lindenmayer.cpp
-        MCRM.cpp
+    CounterpointNode.cpp
+    Event.cpp
+    Hocket.cpp
+    ImageToScore.cpp
+    Lindenmayer.cpp
+    MCRM.cpp
 	mfmidi.cpp
-        Midifile.cpp
-        MusicModel.cpp
-        Node.cpp
-        Random.cpp
-        Rescale.cpp
-        Score.cpp
-        ScoreModel.cpp
-        ScoreNode.cpp
-        Sequence.cpp
-        Shell.cpp
-        Soundfile.cpp
-        StrangeAttractor.cpp
+    Midifile.cpp
+    MusicModel.cpp
+    Node.cpp
+    Random.cpp
+    Rescale.cpp
+    Score.cpp
+    ScoreModel.cpp
+    ScoreNode.cpp
+    Sequence.cpp
+    Shell.cpp
+    Soundfile.cpp
+    StrangeAttractor.cpp
 	strparse.cpp
-        System.cpp
+    System.cpp
 	trace.cpp
-        Voicelead.cpp
+    Voicelead.cpp
 	VoiceleadingNode.cpp)
     
     add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
@@ -74,7 +74,7 @@ if(BUILD_CSOUND_AC)
     target_link_libraries(libCsoundAC libcsnd ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
     
     if(MUSICXML_LIBRARY) 
-        target_link_libraries(CsoundAC MUSICXML_LIBRARY)
+        target_link_libraries(libCsoundAC MUSICXML_LIBRARY)
     endif()
 
     install(TARGETS libCsoundAC
