@@ -43,6 +43,15 @@ namespace csound
     Composition();
     virtual ~Composition();
     /**
+     * Returns the directory in which to place the output files of this.
+     */
+    virtual std::string getOutputDirectory() const;
+    /**
+     * Sets the directory in which to place the output files of this.
+     * The directory name must end with a directory separator.
+     */
+    virtual void setOutputDirectory(std::string directory);
+    /**
      * Returns the filename of this, which is used as a base
      * for derived filenames (soundfile, MIDI file, etc.).
      */
@@ -52,6 +61,11 @@ namespace csound
      * title of the composition.
      */
     virtual void setFilename(std::string filename);
+    /**
+     * Returns the complete pathname of the file, i.e.,
+     * the output directory plus the filename.
+     */
+    virtual std::string getFilePathname() const;
     /**
      * Generates a versioned filename.
      */
@@ -235,6 +249,7 @@ namespace csound
     Score score;
     double tonesPerOctave;
     bool conformPitches;
+    std::string outputDirectory;
     std::string filename;
     std::string artist;
     std::string title;

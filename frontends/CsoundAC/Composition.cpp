@@ -104,6 +104,16 @@ namespace csound
     return conformPitches;
   }
 
+  std::string Composition::getOutputDirectory() const
+  {
+    return outputDirectory;
+  }
+
+  void Composition::setOutputDirectory(std::string directory)
+  {
+    outputDirectory = directory;
+  }
+  
   std::string Composition::getFilename() const
   {
     return filename;
@@ -112,6 +122,11 @@ namespace csound
   void Composition::setFilename(std::string filename)
   {
     this->filename = filename;
+  }
+
+  std::string Composition::getFilePathname() const
+  {
+    return outputDirectory + filename;
   }
 
   std::string Composition::generateFilename()
@@ -123,7 +138,7 @@ namespace csound
 
   std::string Composition::getMidiFilename() const
   {
-    std::string name = getFilename();
+    std::string name = getFilePathname();
     name.append(".mid");
     return name;
   }
@@ -132,7 +147,7 @@ namespace csound
   {
     if (outputFilename.empty())
       {
-        std::string name_ = getFilename();
+        std::string name_ = getFilePathname();
         name_.append(".wav");
         return name_;
       }
@@ -144,42 +159,42 @@ namespace csound
 
   std::string Composition::getNormalizedSoundfileName() const
   {
-    std::string name = getFilename();
+    std::string name = getFilePathname();
     name.append(".norm.wav");
     return name;
   }
 
   std::string Composition::getCdSoundfileName() const
   {
-    std::string name = getFilename();
+    std::string name = getFilePathname();
     name.append(".cd.wav");
     return name;
   }
 
   std::string Composition::getMp3SoundfileName() const
   {
-    std::string name = getFilename();
+    std::string name = getFilePathname();
     name.append(".mp3");
     return name;
   }
 
   std::string Composition::getMusicXmlFilename() const
   {
-    std::string name = getFilename();
+    std::string name = getFilePathname();
     name.append(".xml");
     return name;
   }
 
   std::string Composition::getFomusFilename() const
   {
-    std::string name = getFilename();
+    std::string name = getFilePathname();
     name.append(".fms");
     return name;
   }
 
   std::string Composition::getLilypondFilename() const
   {
-    std::string name = getFilename();
+    std::string name = getFilePathname();
     name.append(".ly");
     return name;
   }

@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <utility>
 #include <eigen3/Eigen/Dense>
-  %}
+%}
 %include "std_string.i"
 %include "std_vector.i"
 %template(EventVector) std::vector<csound::Event>;
@@ -166,6 +166,6 @@ namespace csound
 #endif
   };
 
-  bool operator < (const Event& a, const Event &b);
+  bool SILENCE_PUBLIC operator < (const Event& a, const Event &b);
 }
 #endif
