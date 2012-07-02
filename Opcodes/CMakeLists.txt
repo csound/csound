@@ -50,11 +50,10 @@ endif()
 
 # temporarily do not build on Windows until these opcodes are fixed
 # to compile
-#if(NOT WIN32) 
+if(NOT WIN32) 
     make_plugin(udprecv sockrecv.c)
     make_plugin(udpsend socksend.c)
-
-#endif()
+endif()
 
 set(scansyn_SRCS
     scansyn.c scansynx.c)
