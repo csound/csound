@@ -352,6 +352,7 @@ set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
+check_include_file_cxx(eigen3/Eigen/Dense EIGEN3_HEADER)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
 check_library_exists(m lrint "" HAVE_LRINT)
