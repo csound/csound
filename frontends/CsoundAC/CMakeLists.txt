@@ -71,10 +71,10 @@ if(BUILD_CSOUND_AC)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
-    target_link_libraries(libCsoundAC libcsnd ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
+    target_link_libraries(libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
     
     if(MUSICXML_LIBRARY) 
-        target_link_libraries(libCsoundAC MUSICXML_LIBRARY)
+        target_link_libraries(libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
     endif()
 
     install(TARGETS libCsoundAC
