@@ -73,6 +73,46 @@ typedef struct {
   ANG_VEC ang_dir;
 } VBAP;
 
+typedef struct {
+  OPDS      h;                  /* required header */
+  MYFLT         *out_array[CHANNELS];
+  MYFLT         *azi, *ele, *spread;
+
+  int number;
+  MYFLT gains[CHANNELS];
+  int dim;
+  AUXCH aux;
+  LS_SET *ls_sets;
+  int ls_am;
+  int ls_set_am;
+  CART_VEC cart_dir;
+  CART_VEC spread_base;
+  ANG_VEC ang_dir;
+} VBAP1;
+
+/* VBAP structure of loudspeaker moving panning */
+typedef struct {
+  OPDS      h;                  /* required header */
+  MYFLT         *out_array[CHANNELS];
+  MYFLT         *dur, *spread, *field_am,
+                *fld[VARGMAX]; /* field_am positive: point to point
+                                           negative: angle velocities */
+  MYFLT gains[CHANNELS];
+  int number;
+  int upd_interval;
+  int dim;
+  AUXCH aux;
+  LS_SET *ls_sets;
+  int ls_am;
+  int ls_set_am;
+  CART_VEC cart_dir;
+  CART_VEC spread_base;
+  ANG_VEC ang_dir, prev_ang_dir, next_ang_dir;
+  int point_change_interval, point_change_counter, curr_fld, next_fld;
+  MYFLT ele_vel;
+  MYFLT end_gains[CHANNELS];
+} VBAP1_MOVING;
+
 /* VBAP structure of loudspeaker moving panning */
 typedef struct {
   OPDS      h;                  /* required header */
