@@ -207,6 +207,10 @@ int     vbap_moving_init(CSOUND *, VBAP_MOVING *);
 int     vbap_moving(CSOUND *, VBAP_MOVING *);
 int     vbap_zak_moving_init(CSOUND *, VBAP_ZAK_MOVING *);
 int     vbap_zak_moving(CSOUND *, VBAP_ZAK_MOVING *);
+int     vbap1_init(CSOUND *, VBAP1 *);
+int     vbap1(CSOUND *, VBAP1 *);
+int     vbap1_moving_init(CSOUND *, VBAP1_MOVING *);
+int     vbap1_moving(CSOUND *, VBAP1_MOVING *);
 
 static inline MYFLT *get_ls_table(CSOUND *csound)
 {
