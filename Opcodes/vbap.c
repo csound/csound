@@ -903,6 +903,9 @@ static OENTRY vbap_localops[] = {
     TR|5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOO",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap        },
+  { "vbap1",      S(VBAP1),             TR|5,
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",  "kOO",
+    (SUBR) vbap1_init,          (SUBR) NULL,    (SUBR) vbap1       },
   { "vbapz",      S(VBAP_ZAK),           ZW|TR|5,  "",                 "iiakOO",
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
   { "vbaplsinit", S(VBAP_LS_INIT), TR|1, "", "iioooooooooooooooooooooooooooooooo",
@@ -911,6 +914,9 @@ static OENTRY vbap_localops[] = {
     TR|5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "aiiim",
     (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
+  { "vbap1move",  S(VBAP1_MOVING),      TR|5,
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "iiim",
+    (SUBR) vbap1_moving_init,   (SUBR) NULL,    (SUBR) vbap1_moving },
   { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR|5,  "",                 "iiaiiim",
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  }
 };
