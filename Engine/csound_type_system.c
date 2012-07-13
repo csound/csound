@@ -54,15 +54,48 @@ int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE_INSTANCE * typeInstance) {
     return 1;
 }
 
-CS_VARIABLE* csoundCreateVariableWithType(void* csound, TYPE_POOL* pool, CS_TYPE* type) {
+CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name) {
     CS_TYPE_INSTANCE* current = pool->head;
     while (current != NULL) {
         if (strcmp(type->varTypeName, current->varType->varTypeName) == 0) {
             CS_VARIABLE* var = current->createVariable(csound, current->args);
             var->varType = type;
+            var->varName = name;
             return var;
         }
         current = current->next;
     }
     return NULL;
+}
+
+CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, char* name) {
+    
+    CS_VARIABLE* current = pool->head;
+    CS_VARIABLE* returnValue = NULL;
+    
+    if(current != NULL && name != NULL) {
+        while(current != NULL) {
+            if (strcmp(current->varName, name) == 0) {
+                returnValue = current;
+                break;
+            }
+            current = current->next;
+        }
+    }
+    
+    return returnValue;
+}
+
+int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var) {
+    if(pool->head == NULL) {
+        pool->head = var;
+    } else {
+        CS_VARIABLE* varCurrent = pool->head;
+        while(varCurrent->next != NULL) { 
+            varCurrent = varCurrent->next; 
+        }
+        varCurrent->next = var;
+    }
+    
+    return 0;
 }
