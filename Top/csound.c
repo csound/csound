@@ -575,22 +575,6 @@ extern "C" {
     0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     0,              /*  strVarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
-    {
-      {NULL}, {NULL}, /* gblNames, lclNames */
-      NULL, NULL,   /*  nullist, nulloffs   */
-      0, 0, 0,      /*  lclkcnt, lclwcnt, lclfixed */
-      0, 0, 0, 0,   /*  lclpcnt, lclscnt, lclacnt, lclnxtpcnt */
-      0, 0, 0, 0,   /*  lclnxtkcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt */
-      0, 0, 0, 0,   /*  gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt */
-      0, 0, 0, 0,   /*  gblfixed, gblkcount, gblacount, gblscount */
-      NULL, NULL, 0, /* nxtargoffp, argofflim, lclpmax */
-      NULL,         /*  strpool */
-      0, 0, 0,      /*  poolcount, strpool_cnt, argoffsize */
-      0, NULL,      /*  nconsts, constTbl */
-      NULL,         /*  typemask_tabl */
-      NULL, NULL,   /*  typemask_tabl_in, typemask_tabl_out */
-      0,            /*  lgprevdef */
-    },
     {  
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
       0, 0, 0, 0,   /*  op warpin linpos lincnt */

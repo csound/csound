@@ -28,7 +28,6 @@
 #include "csdl.h"                               /*      PMIDI.C         */
 #include "csGblMtx.h"
 #include "midiops.h"
-#include "oload.h"
 #include <portmidi.h>
 #include <porttime.h>
 

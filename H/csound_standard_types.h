@@ -9,7 +9,7 @@
 #define	CSOUND_STANDARD_TYPES_H
 
 #include "csound_type_system.h"
-#include "csoundCore.h"
+#include "csound.h"
 
 #ifdef	__cplusplus
 extern "C" {

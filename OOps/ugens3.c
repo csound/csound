@@ -24,7 +24,6 @@
 #include "csoundCore.h"         /*                              UGENS3.C    */
 #include "ugens3.h"
 #include <math.h>
-#include "oload.h"
 
 int foscset(CSOUND *csound, FOSC *p)
 {
