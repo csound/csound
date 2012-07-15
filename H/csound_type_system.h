@@ -22,7 +22,8 @@ extern "C" {
     typedef struct csvariable {
         char* varName;
         CS_TYPE* varType;
-        void* memblock;
+        int memBlockSize;
+        /* void* memblock; */
         int refCount;
         struct csvariable* next;
     } CS_VARIABLE;
@@ -41,7 +42,7 @@ extern "C" {
     /* Adds a new type to Csound's type table
        Returns if variable type redefined */
     int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE_INSTANCE* typeInstance);
-    CS_VARIABLE* csoundCreateVariableWithType(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name);
+    CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name);
     CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
     
     

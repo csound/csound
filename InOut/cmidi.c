@@ -30,9 +30,6 @@
 #include "csdl.h"                               /*      CMIDI.C         */
 #include "csGblMtx.h"
 #include "midiops.h"
-#include "oload.h"
-
-
 
 
 /* MIDI message queue size */
