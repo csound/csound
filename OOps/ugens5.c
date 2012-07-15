@@ -24,7 +24,6 @@
 #include "csoundCore.h"         /*                      UGENS5.C        */
 #include "ugens5.h"
 #include <math.h>
-#include "oload.h"
 
 /*
  * LPC storage slots

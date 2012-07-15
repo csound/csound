@@ -29,7 +29,6 @@
 #include <math.h>
 #include "csoundCore.h"
 #include "pstream.h"
-#include "oload.h"
 
         double  besseli(double x);
 static  void    hamming(MYFLT *win, int winLen, int even);

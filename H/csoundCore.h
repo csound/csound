@@ -1268,24 +1268,6 @@ typedef struct NAME__ {
     int           acount, kcount, icount, Bcount, bcount, tcount;
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    struct otranStatics__ {
-      NAME      *gblNames[256], *lclNames[256];   /* for 8 bit hash */
-      ARGLST    *nullist;
-      ARGOFFS   *nulloffs;
-      int       lclkcnt, lclwcnt, lclfixed;
-      int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt;
-      int       lclnxtkcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt;
-      int       gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt;
-      int       gblfixed, gblkcount, gblacount, gblscount;
-      int       *nxtargoffp, *argofflim, lclpmax;
-      char      **strpool;
-      int32      poolcount, strpool_cnt, argoffsize;
-      int       nconsts;
-      int       *constTbl;
-      int32     *typemask_tabl;
-      int32     *typemask_tabl_in, *typemask_tabl_out;
-      int       lgprevdef;
-    } otranStatics;
     struct sreadStatics__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */

@@ -30,7 +30,6 @@
 
 #include "soundio.h"
 #include "sndinfUG.h"
-#include "oload.h"      /* for strset */
 #include "pvfileio.h"
 #include "convolve.h"
 
