@@ -144,6 +144,12 @@ typedef struct {
   MYFLT     *f[64];
 } VBAP_LS_INIT;
 
+typedef struct {
+  OPDS      h;                  /* required header */
+  MYFLT     *layout, *dim, *ls_amount;
+  MYFLT     *f[64];
+} VBAP_LS_INIT1;
+
 /* A struct for a loudspeaker instance */
 typedef struct {
   CART_VEC coords;
