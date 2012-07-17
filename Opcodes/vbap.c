@@ -558,7 +558,7 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
     }
 }
 
-static int vbap_ls_init_sr (CSOUND *csound, int dim, int count, 
+static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count, 
                             MYFLT **f, int layout)
      /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
         according to current dimension. The inversion matrices are
@@ -612,13 +612,9 @@ static int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
 
 int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
 {
-    return vbap_ls_init_sr(csound, (int) *p->dim, (int) *p->ls_amount, p->f, 0);
-}
-
-int vbap_ls_init1 (CSOUND *csound, VBAP_LS_INIT1 *p)
-{
-    return vbap_ls_init_sr(csound, (int) *p->dim, (int) *p->ls_amount,
-                           p->f, (int)*p->layout);
+    int dim = (int) *p->dim;
+    int layout = (int)((*p->dim-dim)*100);
+    return vbap_ls_init_sr(csound, dim, (int) *p->ls_amount, p->f, layout);
 }
 
 static void calculate_3x3_matrixes(CSOUND *csound,
@@ -925,8 +921,6 @@ static OENTRY vbap_localops[] = {
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
   { "vbaplsinit", S(VBAP_LS_INIT), TR|1, "", "iioooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },
-  { "vbaplsinit1", S(VBAP_LS_INIT), TR|1, "", "iiioooooooooooooooooooooooooooooooo",
-    (SUBR) vbap_ls_init1,           (SUBR) NULL,    (SUBR) NULL             },
   { "vbapmove", S(VBAP_MOVING),   
     TR|5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "aiiim",
