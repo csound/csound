@@ -144,12 +144,6 @@ typedef struct {
   MYFLT     *f[64];
 } VBAP_LS_INIT;
 
-typedef struct {
-  OPDS      h;                  /* required header */
-  MYFLT     *layout, *dim, *ls_amount;
-  MYFLT     *f[64];
-} VBAP_LS_INIT1;
-
 /* A struct for a loudspeaker instance */
 typedef struct {
   CART_VEC coords;
@@ -258,9 +252,4 @@ int     vbap1(CSOUND *, VBAP1 *);
 int     vbap1_moving_init(CSOUND *, VBAP1_MOVING *);
 int     vbap1_moving(CSOUND *, VBAP1_MOVING *);
 
-/* static inline MYFLT *get_ls_table(CSOUND *csound) */
-/* { */
-/*     return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, */
-/*                                                         "vbap_ls_table")); */
-/* } */
 
