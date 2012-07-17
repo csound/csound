@@ -54,9 +54,9 @@ typedef struct {
 
 /* VBAP structure of n loudspeaker panning */
 typedef struct {
-  OPDS      h;                  /* required header */
+  OPDS          h;                  /* required header */
   MYFLT         *out_array[CHANNELS];
-  MYFLT         *audio, *azi, *ele, *spread;
+  MYFLT         *audio, *azi, *ele, *spread, *layout;
 
   int number;
   MYFLT beg_gains[CHANNELS];
@@ -76,7 +76,7 @@ typedef struct {
 typedef struct {
   OPDS      h;                  /* required header */
   MYFLT         *out_array[CHANNELS];
-  MYFLT         *azi, *ele, *spread;
+  MYFLT         *azi, *ele, *spread, *layout;
 
   int number;
   MYFLT gains[CHANNELS];
@@ -195,7 +195,7 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir, MYFLT spread, CART_
 /* VBAP structure for ZAK loudspeaker panning */
 typedef struct {
   OPDS      h;                  /* required header */
-  MYFLT     *numb, *ndx, *audio, *azi, *ele, *spread;
+  MYFLT     *numb, *ndx, *audio, *azi, *ele, *spread, *layout;
   int       n;
   MYFLT     *out_array;
   AUXCH     auxch;
@@ -252,9 +252,9 @@ int     vbap1(CSOUND *, VBAP1 *);
 int     vbap1_moving_init(CSOUND *, VBAP1_MOVING *);
 int     vbap1_moving(CSOUND *, VBAP1_MOVING *);
 
-static inline MYFLT *get_ls_table(CSOUND *csound)
-{
-    return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
-                                                        "vbap_ls_table"));
-}
+/* static inline MYFLT *get_ls_table(CSOUND *csound) */
+/* { */
+/*     return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, */
+/*                                                         "vbap_ls_table")); */
+/* } */
 
