@@ -359,15 +359,15 @@ typedef struct _pvst {
   MYFLT  *wrap, *offset;
   MYFLT  *fftsize, *hsize, *dbthresh;
   uint32 scnt;
-  int    tscale;
-  MYFLT  accum;
+  int tscale;
+  MYFLT accum;
   double pos;
-  float  factor, fund, rotfac, scale;
-  AUXCH  bwin[MAXOUTS];
-  AUXCH  fwin[MAXOUTS], nwin[MAXOUTS];
-  AUXCH  win;
-  int    nchans;
-  int    init;
+  float factor, fund, rotfac, scale;
+  AUXCH bwin[MAXOUTS];
+  AUXCH fwin[MAXOUTS], nwin[MAXOUTS];
+  AUXCH win;
+  int nchans;
+  int init;
 } PVST;
 
 int pvstanalset(CSOUND *csound, PVST *p)
@@ -447,7 +447,8 @@ int pvstanal(CSOUND *csound, PVST *p)
       /* audio samples are stored in a function table */
       ft = csound->FTnp2Find(csound,p->knum);
       if (ft == NULL){
-        csound->PerfError(csound, "could not find table number %d\n", (int) *p->knum);
+        csound->PerfError(csound, 
+                          "could not find table number %d\n", (int) *p->knum);
         return NOTOK;
 
       }
@@ -1770,7 +1771,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
                          &p->fout->frame);
 
       if (p->delframes.auxp == NULL ||
-          p->delframes.size <   (N + 2) * sizeof(MYFLT) * csound->ksmps * delayframes)
+          p->delframes.size < (N + 2) * sizeof(MYFLT) * csound->ksmps * delayframes)
         csound->AuxAlloc(csound,
                          (N + 2) * sizeof(MYFLT) * csound->ksmps * delayframes,
                          &p->delframes);
@@ -1786,7 +1787,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
           csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
         if (p->delframes.auxp == NULL ||
-          p->delframes.size <   (N + 2) * sizeof(float) * csound->ksmps * delayframes)
+          p->delframes.size < (N + 2) * sizeof(float) * csound->ksmps * delayframes)
           csound->AuxAlloc(csound, (N + 2) * sizeof(float) * delayframes,
                            &p->delframes);
       }
@@ -2073,7 +2074,6 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
       csound->PerfError(csound, "could not find table number %d\n", (int) *p->ftab);
       return NOTOK;
     }
-
     size = ft->flen;
     ftab = ft->ftable;
 
@@ -2253,11 +2253,16 @@ static OENTRY localops[] = {
    (SUBR) pvsdiskinproc, NULL},
   {"pvstanal", sizeof(PVST), 3, "FFFFFFFFFFFFFFFF", "kkkkPPoooP",(SUBR) pvstanalset,
    (SUBR) pvstanal, NULL},
-  {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", (SUBR) pvswarpset, (SUBR) pvswarp},
-  {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
-  {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk", (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
-  {"pvs2tab", sizeof(PVS2TAB_T), 3, "k", "tf", (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
-  {"tab2pvs", sizeof(TAB2PVS_T), 3, "f", "toop", (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
+  {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", 
+                               (SUBR) pvswarpset, (SUBR) pvswarp},
+  {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO", 
+                               (SUBR) pvsenvwset, (SUBR) pvsenvw},
+  {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk", 
+                               (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
+  {"pvs2tab", sizeof(PVS2TAB_T), 3, "k", "tf", 
+                               (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
+  {"tab2pvs", sizeof(TAB2PVS_T), 3, "f", "toop", 
+                               (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
 };
 
 int pvsbasic_init_(CSOUND *csound)
