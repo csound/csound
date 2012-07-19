@@ -26,70 +26,82 @@
 #include <math.h>
 
 typedef struct {
-    OPDS	h;
-    MYFLT       *al, *ar;
-    MYFLT       *ainl, *ainr;
+    OPDS        h;
+    MYFLT       *aout[40];
+    MYFLT       *tabins;
+    MYFLT       *tabout;
     MYFLT       *bndry;
     MYFLT       *asp;
     MYFLT       *stiff;
     MYFLT       *decay;
     MYFLT       *loss;
-    MYFLT       *lfreq, *lradius, *lphase;
-    MYFLT       *rfreq, *rradius, *rphase;
-    MYFLT       *olfreq, *olradius, *olphase;
-    MYFLT       *orfreq, *orradius, *orphase;
+    MYFLT       *ain[40];
  // Internals
     double       s00, s10, s01, s11, s20, s02, t00, t01, t10;
-    int          Nx, Ny;
+    int          nin, nout, Nx, Ny;
     double       *u, *u1, *u2;
     AUXCH        auxch;
-    double       bc, L, dy, dt;
-    double       in_param[6], out_param[6]; 
+    double       L, dy, dt;
+    double       *in_param, *out_param;
+    double       ci[40], si[40], co[40], so[40];
  } PLATE;
 
 
 static int platerev_init(CSOUND *csound, PLATE *p)
 {
+    FUNC *inp, *outp;
     double a = *p->asp;
     double dt = (p->dt = 1.0/csound->esr); /* time step */
     double sig = (csound->esr+csound->esr)*
-      (POWER(10.0, FL(3.0)*dt/(*p->decay))-FL(1.0)); /* loss constant */
+                 (POWER(10.0, FL(3.0)*dt/(*p->decay))-FL(1.0)); /* loss constant */
     double b2 = *p->loss;
     double dxmin = 2.0*sqrt(dt*(b2+hypot(*p->loss, *p->stiff)));
     int Nx = (p->Nx = floor(1.0/dxmin));
     int Nx5 = Nx+5;
-    double dx = 1.0/Nx;
+    double dx = 1.0/(double)Nx;
     int Ny = (p->Ny = floor(a*Nx));
     double dy = (p->dy = *p->asp/Ny);
     double alf = dx/dy;
     double mu = dt*(*p->stiff)*Nx*Nx;
+    double mu2 = mu*mu;
     double eta = 1.0/(1.0+sig*dt);
     double V = 2.0*b2*dt*Nx*Nx;
+    int qq;
 
-    p->in_param[0] = *p->lfreq; 
-    p->in_param[1] = *p->lradius;
-    p->in_param[2] = *p->lphase;
-    p->in_param[3] = *p->rfreq;
-    p->in_param[4] = *p->rradius;
-    p->in_param[5] = *p->rphase;
-    p->out_param[0] = *p->olfreq; p->out_param[1] = *p->olradius;
-    p->out_param[2] = *p->olphase; p->out_param[3] = *p->orfreq;
-    p->out_param[4] = *p->orradius; p->out_param[5] = *p->orphase;
+    p->nin = (int) (p->INOCOUNT) - 7; p->nout = (int) (p->OUTOCOUNT);
+    if (UNLIKELY((inp = csound->FTnp2Find(csound,p->tabins)) == NULL ||
+                 inp->flen < 3*p->nin)) {
+      return csound->InitError(csound, "Missing input table or too short");
+    }
+    if (UNLIKELY((outp = csound->FTnp2Find(csound,p->tabout)) == NULL ||
+                 outp->flen < 3*p->nout)) {
+      return csound->InitError(csound, "Missing output table or too short");
+    }
+    p->in_param = inp->ftable;
+    p->out_param = outp->ftable;
     p->L = (a<1.0 ? a : 1.0);
     csound->AuxAlloc(csound, 3*Nx5*(Ny+5)*sizeof(double), &p->auxch);
     p->u = (double*)p->auxch.auxp;
     p->u1 = p->u+Nx5*(Ny+5);
     p->u2 = p->u1+Nx5*(Ny+5);
-    p->s00 = 2.0*eta*(1.0-mu*mu*(3.0+4.0*alf*alf+3.0*alf*alf*alf*alf)-
+    p->s00 = 2.0*eta*(1.0-mu2*(3.0+4.0*alf*alf+3.0*alf*alf*alf*alf)-
                             V*(1.0+alf*alf));
-    p->s10 = (4.0*mu*mu*(1.0+alf*alf)+V)*eta;
-    p->s01 = alf*alf*(4.0*mu*mu*(1.0+alf*alf)+V)*eta;
-    p->s11 = -2.0*mu*mu*eta*alf*alf;
-    p->s20 = -eta*mu*mu;
-    p->s02 = -eta*alf*alf*alf*alf*mu*mu;
+    p->s10 = (4.0*mu2*(1.0+alf*alf)+V)*eta;
+    p->s01 = alf*alf*(4.0*mu2*(1.0+alf*alf)+V)*eta;
+    p->s11 = -2.0*mu2*eta*alf*alf;
+    p->s02 = (p->s20 = -eta*mu2)*alf*alf*alf*alf;
     p->t00 = (-(1.0-sig*dt)+2.0*V*(1.0+alf*alf))*eta;
     p->t10 = -V*eta;
     p->t01 = -V*eta*alf*alf;
+    for (qq=0; qq<p->nin; qq++) {
+      p->ci[qq] = cos(p->in_param[3*qq+2]);
+      p->si[qq] = sin(p->in_param[3*qq+2]);
+    }
+    for (qq=0; qq<p->nout; qq++) {
+      p->co[qq] = cos(p->out_param[3*qq+2]);
+      p->so[qq] = sin(p->out_param[3*qq+2]);
+    }
+
     return OK;
 }
 
@@ -99,118 +111,136 @@ static int platerev(CSOUND *csound, PLATE *p)
     int i,j, nsmps = csound->ksmps;
     int Ny = p->Ny, Nx = p->Nx;
     int Nx5 = Nx+5;
-    int bc =  *p->bndry;
+    int bc =  (int) MYFLT2LONG(*p->bndry);
     double *u = p->u, *u1 = p->u1, *u2 = p->u2;
     double s00 = p->s00, s10 = p->s10, s01 = p->s01,
-      s11 = p->s11, s20 = p->s20, s02 = p->s02, 
-      t00 = p->t00, t10 = p->t10, t01 = p->t01;
+           s11 = p->s11, s20 = p->s20, s02 = p->s02,
+           t00 = p->t00, t10 = p->t10, t01 = p->t01;
     double dt = p->dt, dy = p->dy;
     int n, qq;
-    double uin[2];
+    MYFLT *uin;
+    double wi[40], wo[40], sdi[40], cdi[40], sdo[40], cdo[40];
 
+    for (qq=0; qq<p->nin; qq++) {
+      double delta = TWOPI*p->in_param[3*qq]*dt;
+      cdi[qq] = cos(delta);
+      sdi[qq] = sin(delta);
+      wi[qq] = p->L*0.5*p->in_param[3*qq+1];
+    }
+    for (qq=0; qq<p->nout; qq++) {
+      double delta = TWOPI*p->out_param[3*qq]*dt;
+      cdo[qq] = cos(delta);
+      sdo[qq] = sin(delta);
+      wo[qq] = (p->L*0.5)*p->out_param[3*qq+1];
+    }
     for (n=0; n<nsmps; n++) {
       /* interior grid points*/
       /*u = conv2(u1,S,'same')+conv2(u2,T,'same'); */
       for (j=2; j<Ny+3; j++)  /* Loop from 2,3,...Nf, Nf+1, Nf+2 */
-         for (i=2; i<Nx+3; i++) {
-           int ij = i+Nx5*j;
-           u[ij] = s00*u1[ij]+
-                   s10*(u1[ij-Nx5]+u1[ij+Nx5])+
-                   s20*(u1[ij-2*Nx5]+u1[ij+2*Nx5])+
-                   s01*(u1[ij-1]+u1[ij+1])+
-                   s02*(u1[ij-2]+u1[ij+2])+
-                   s11*(u1[ij-1-Nx5]+u1[ij+1+Nx5]+
-                        u1[ij-1+Nx5]+u1[ij+1-Nx5]);
-           u[ij] += t00*u2[ij]+
-                    t10*(u2[ij-Nx5]+u2[ij+Nx5])+
-                    t01*(u2[ij-1]+u2[ij+1]);
-         }
-                                /* boundary grid points*/
-       if (bc==1) {             /* clamped*/
-         int jj = Nx5*j;
-         for (j=0; j<Ny+5; j++) {
-           u[0+jj] = u[2+jj] = u[Nx+2+jj] = u[Nx+4+jj] = 0.0;
-         }
-         for (j=2; j<Ny+3; j++) {
-           u[1+jj] = u[3+jj];
-           u[Nx+3+jj] = u[Nx+1+jj];
-         }
-         for (i=0; i<Nx+5; i++) {
-           u[i+Nx5*0] = u[i+Nx5*2] = u[i+Nx5*(Ny+2)] = u[i+Nx5*(Ny+4)] = 0.0;
-         }
-         for (i=2; i<Nx+3; i++) {
-           u[i+Nx5*1] = u[i+Nx5*3]; 
-           u[i+Nx5*(Ny+3)] = u[i+Nx5*(Ny+1)]; 
-         }
-         u[1+Nx5*1] = u[1+Nx5*(Ny+3)] = u[Nx+3+Nx5*1] = u[Nx+3+Nx5*(Ny+3)] = 0.0;
-       }
-       else if (bc==2) {           /* pivoting*/
-         int jj = Nx5*j;
-         for (j=0; j<Ny+5; j++) {
-           u[0+jj] = u[2+jj] = u[Nx+2+jj] = u[Nx+4+jj] = 0.0;
-         }
-         for (j=2; j<Ny+3; j++) {
-           u[1+jj] = -u[3+jj];
-           u[Nx+3+jj] = -u[Nx+1+jj];
-         }
-         for (i=0; i<Nx+5; i++) {
-           u[i+Nx5*0] = u[i+Nx5*2] = u[i+Nx5*(Ny+2)] = u[i+Nx5*(Ny+4)] = 0.0;
-         }
-         for (i=2; i<Nx+3; i++) {
-           u[i+Nx5*1] = -u[i+Nx5*3]; 
-           u[i+Nx5*(Ny+3)] = -u[i+Nx5*(Ny+1)]; 
-         }
-       }
-       /* insert excitation*/
-       uin[0]=p->ainl[n]; 
-       uin[1]=p->ainr[n]; 
-       for (qq=0; qq<2; qq++) {
-         double w = p->L*0.5*p->in_param[3*qq+1];
-         double v = 2.0*PI*p->in_param[3*qq]*(n+1)*dt+p->in_param[3*qq+2];
-         double xid = 0.5+w*cos(v);
-         double yid = (*p->asp)*0.5+w*sin(v);
-         int xi = (int)(floor(xid*Nx))+2;
-         int yi = (int)(floor(yid/dy))+2;
-         double xf = xid*Nx-(double)(xi-2);
-         double yf = yid/dy-(double)(yi-2);
-         double xyf = xf*yf;
-         yi = Nx5*yi;
-         u[xi+yi]       += (1.0-xf-yf+xyf)*uin[qq];
-         u[xi+1+yi]     += (xf-xyf)*uin[qq];
-         u[xi+1+Nx5+yi] += xyf*uin[qq];
-         u[xi+Nx5+yi]   += (yf-xyf)*uin[qq];
-       }
-       //        %%%% readout */
-        for (qq=0; qq<2; qq++) {
-          double w = (p->L*0.5)*p->out_param[3*qq+1];
-          double v = 2.0*PI*p->out_param[3*qq]*(n+1)*dt+p->out_param[3*qq+2];
-          double xod = 0.5+w*cos(v);
-          double yod = *p->asp*0.5+w*sin(v);
-          int xo = (int)(floor(xod*Nx))+2;
-          int yo = (int)(floor(yod/dy))+2;
-          double xf = xod*Nx-(double)(xo-2);
-          double yf = yod/dy-(double)(yo-2);
-          double xyf = xf*yf;
-          yo = yo*Nx5;
-          (qq==0?p->al:p->ar)[n] = ((1.0-xf-yf+xyf)*u[xo+yo]+
-                                    (yf-xyf)*u[xo+Nx5+yo]+
-                                    (xf-xyf)*u[xo+1+yo]+
-                                    xyf*u[xo+1+Nx5+yo])/5.0;
+        for (i=2; i<Nx+3; i++) {
+          int ij = i+Nx5*j;
+          u[ij] = s00*u1[ij]+
+                  s10*(u1[ij-Nx5]+u1[ij+Nx5])+
+                  s20*(u1[ij-2*Nx5]+u1[ij+2*Nx5])+
+                  s01*(u1[ij-1]+u1[ij+1])+
+                  s02*(u1[ij-2]+u1[ij+2])+
+                  s11*(u1[ij-1-Nx5]+u1[ij+1+Nx5]+
+                       u1[ij-1+Nx5]+u1[ij+1-Nx5]);
+          u[ij] += t00*u2[ij]+
+                   t10*(u2[ij-Nx5]+u2[ij+Nx5])+
+                   t01*(u2[ij-1]+u2[ij+1]);
         }
-       {
-         double *tmp = u2;      /* cycle U*/
-         u2 = u1;
-         u1 = u;
-         u = tmp;
-       }
+      /* boundary grid points*/
+      if (bc==1) {             /* clamped*/
+        int jj = Nx5*j;
+        for (j=0; j<Ny+5; j++) {
+          u[0+jj] = u[2+jj] = u[Nx+2+jj] = u[Nx+4+jj] = 0.0;
+        }
+        for (j=2; j<Ny+3; j++) {
+          u[1+jj] = u[3+jj];
+          u[Nx+3+jj] = u[Nx+1+jj];
+        }
+        for (i=0; i<Nx+5; i++) {
+          u[i+Nx5*0] = u[i+Nx5*2] = u[i+Nx5*(Ny+2)] = u[i+Nx5*(Ny+4)] = 0.0;
+        }
+        for (i=2; i<Nx+3; i++) {
+          u[i+Nx5*1] = u[i+Nx5*3];
+          u[i+Nx5*(Ny+3)] = u[i+Nx5*(Ny+1)];
+        }
+        u[1+Nx5*1] = u[1+Nx5*(Ny+3)] = u[Nx+3+Nx5*1] = u[Nx+3+Nx5*(Ny+3)] = 0.0;
+      }
+      else if (bc==2) {           /* pivoting*/
+        int jj = Nx5*j;
+        for (j=0; j<Ny+5; j++) {
+          u[0+jj] = u[2+jj] = u[Nx+2+jj] = u[Nx+4+jj] = 0.0;
+        }
+        for (j=2; j<Ny+3; j++) {
+          u[1+jj] = -u[3+jj];
+          u[Nx+3+jj] = -u[Nx+1+jj];
+        }
+        for (i=0; i<Nx+5; i++) {
+          u[i+Nx5*0] = u[i+Nx5*2] = u[i+Nx5*(Ny+2)] = u[i+Nx5*(Ny+4)] = 0.0;
+        }
+        for (i=2; i<Nx+3; i++) {
+          u[i+Nx5*1] = -u[i+Nx5*3];
+          u[i+Nx5*(Ny+3)] = -u[i+Nx5*(Ny+1)];
+        }
+      }
+      /* else completely free */
+      /* insert excitation*/
+      for (qq=0; qq<p->nin; qq++) {
+        double w = wi[qq];
+        double cv = p->ci[qq]*cdi[qq] - p->si[qq]*sdi[qq];
+        double sv = p->ci[qq]*sdi[qq] + p->si[qq]*cdi[qq];
+        double xid = (0.5+w*cv)*Nx;
+        double yid = ((*p->asp)*0.5+w*sv)/dy;
+        int xi = (int)(floor(xid))+2;
+        int yi = (int)(floor(yid))+2;
+        double xf = xid-(double)(xi-2);
+        double yf = yid-(double)(yi-2);
+        double xyf = xf*yf;
+        uin=p->ain[qq];
+        p->ci[qq] = cv; p->si[qq] = sv;
+        yi = Nx5*yi + xi;
+        u[yi]       += (1.0-xf-yf+xyf)*uin[n];
+        u[1+yi]     += (xf-xyf)*uin[n];
+        u[1+Nx5+yi] += xyf*uin[n];
+        u[Nx5+yi]   += (yf-xyf)*uin[n];
+      }
+      /*        %%%% readout */
+      for (qq=0; qq<p->nout; qq++) {
+        double w = wo[qq];
+        double cv = p->co[qq]*cdo[qq] - p->so[qq]*sdo[qq];
+        double sv = p->co[qq]*sdo[qq] + p->so[qq]*cdo[qq];
+        double xod = (0.5+w*cv)*Nx;
+        double yod = (*p->asp*0.5+w*sv)/dy;
+        int xo = (int)(floor(xod))+2;
+        int yo = (int)(floor(yod))+2;
+        double xf = xod-(double)(xo-2);
+        double yf = yod-(double)(yo-2);
+        double xyf = xf*yf;
+        p->co[qq] = cv; p->so[qq] = sv;
+        yo = yo*Nx5 + xo;
+        (p->aout[qq])[n] = (MYFLT)((1.0-xf-yf+xyf)*u[yo]+
+                                   (yf-xyf)*u[Nx5+yo]+
+                                   (xf-xyf)*u[1+yo]+
+                                   xyf*u[1+Nx5+yo])/FL(25.0);
+      }
+      {
+        double *tmp = u2;      /* cycle U*/
+        u2 = u1;
+        u1 = u;
+        u = tmp;
+      }
     }
     p->u = u; p->u1 = u1; p->u2 = u2;
     return OK;
 }
 
 static OENTRY localops[] = {
-  { "platerev", sizeof(PLATE), 5, "aa", "aakiiiiiiiiiiiiiiii",
-    (SUBR) platerev_init, NULL, (SUBR) platerev
+  { "platerev", sizeof(PLATE), 5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+                                  "iikiiiiy",
+                                  (SUBR) platerev_init, NULL, (SUBR) platerev
   },
 };
 

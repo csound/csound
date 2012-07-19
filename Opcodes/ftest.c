@@ -116,18 +116,18 @@ static int wavetable(FGDATA *ff, FUNC *ftp)
     MYFLT   order = ff->e.p[6];
     MYFLT   resc = ff->e.p[7];
     int     ffilno = (int)ff->e.p[5];
-    int     i, j, steps, newLen, *pnewLen;
+    int     i, steps, newLen, *pnewLen;
     int     nargs = ff->e.pcnt - 4;
-    int     orderArray[steps];
-    int     *pOrder = orderArray;
+    int     *pOrder, *xfree;
     FUNC    *srcfil = csound->flist[ffilno];
-    MYFLT   mirr[srcfil->flen];
+    MYFLT   *mirr;
     WAVELET wave, *pwaveS;
 
     if (UNLIKELY(nargs < 3))
       csound->Warning(csound, Str("insufficient arguments"));
     fp_filter = srcfil->ftable;
     newLen  = srcfil->flen;
+    mirr = (MYFLT*)malloc(sizeof(MYFLT)*srcfil->flen);
     pnewLen = &newLen;
     pwaveS  = &wave;
     pwaveS->pSF  = fp_filter;
@@ -142,6 +142,7 @@ static int wavetable(FGDATA *ff, FUNC *ftp)
     pBuf = (MYFLT*)calloc(ftp->flen, sizeof(MYFLT));
     *pInp = FL(1.0);
     steps = (int)LOG2(ftp->flen/srcfil->flen);
+    xfree = pOrder = (int*)malloc(sizeof(int)*steps);
     /* DEC to BIN */
     for (i = 0; i < steps; i++)
       pOrder[i] = ((int)order>>i) & 0x1;
@@ -151,10 +152,10 @@ static int wavetable(FGDATA *ff, FUNC *ftp)
     for (i = 0; i < *pnewLen; i++)
       fp[i] = pInp[i];
     free(pBuf); free(pInp);
+    free(xfree); free(mirr);
     if (resc!=FL(0.0)) ff->e.p[4] = -ff->e.p[4];
     return OK;
 }
-
 
 static NGFENS ftest_fgens[] = {
    { "tanh", tanhtable },
@@ -165,4 +166,3 @@ static NGFENS ftest_fgens[] = {
 };
 
 FLINKAGE1(ftest_fgens)
-
