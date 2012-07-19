@@ -224,7 +224,8 @@ static int rezzy(CSOUND *csound, REZZY *p)
     /* Try to keep the resonance under control     */
     if (rez < 1.0) rez = 1.0;
     if (*p->mode == FL(0.0)) {    /* Low Pass */
-      if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {/* Only need to calculate once */
+      if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
+        /* Only need to calculate once */
         double c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
         double rez2 = rez/(1.0 + exp(fco/11000.0));
         double b;
@@ -264,7 +265,8 @@ static int rezzy(CSOUND *csound, REZZY *p)
     }
     else { /* High Pass Rezzy */
       double c=0.0, rez2=0.0;
-      if (UNLIKELY(p->fcocod==0 && p->rezcod==0)) {/* Only need to calculate once */
+      if (UNLIKELY(p->fcocod==0 && p->rezcod==0)) {
+        /* Only need to calculate once */
         double b;
         c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
         rez2 = rez/(1.0 + sqrt(sqrt(1.0/c)));
@@ -548,7 +550,7 @@ static int vco(CSOUND *csound, VCO *p)
         v2 = (v1 < (maxd - 1L) ? v1 + 1L : 0L);
         out1 = buf[v1] + fv1 * (buf[v2] - buf[v1]);
 
-        if (UNLIKELY(++indx == maxd)) indx = 0;             /* Advance current pointer */
+        if (UNLIKELY(++indx == maxd)) indx = 0;  /* Advance current pointer */
         /* End of VDelay */
 
         /* Integrate twice and ouput */
@@ -786,7 +788,8 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
     npts1 = (int32)(*p->del1 * csound->esr) - npts2 -npts3;
 
     if (UNLIKELY(((int32)(*p->del1 * csound->esr)) <=
-                 ((int32)(*p->del2 * csound->esr) + (int32)(*p->del3 * csound->esr)))) {
+                 ((int32)(*p->del2 * csound->esr) + 
+                  (int32)(*p->del3 * csound->esr)))) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     npts = npts1 + npts2 + npts3;

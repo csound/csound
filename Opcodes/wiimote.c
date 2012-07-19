@@ -80,7 +80,11 @@ typedef struct {
     MYFLT     *num;
  } WIIRANGE;
 
-#define WIIMOTE_STATE_CONNECTED         (0x0008)
+#ifdef WIIUSE_0_12
+#  define WIIMOTE_STATE_CONNECTED          (0x0008)
+#else
+#  define WIIMOTE_STATE_CONNECTED          (0x0010)
+#endif
 
 int wiimote_find(CSOUND *csound, WIIMOTE *p)
 {
@@ -116,7 +120,7 @@ int wiimote_find(CSOUND *csound, WIIMOTE *p)
       return csound->InitError(csound, Str("unable to open wiimote\n"));
     }
     /* Initialise ranges */
-    for (i=0; i<max_wiimotes; i++) {
+    for (i=0; i<n; i++) {
       wiiuse_set_leds(wiimotes[i], WIIMOTE_LED_1<<i);
       wiirange[i].axis_x_min    = FL(0.0);
       wiirange[i].axis_x_scale  = FL(1.0);
@@ -136,7 +140,7 @@ int wiimote_find(CSOUND *csound, WIIMOTE *p)
       wiiuse_motion_sensing(wiimotes[i], 1);
     }
     p->wii = wiimotes;
-    p->max_wiimotes = max_wiimotes;
+    p->max_wiimotes = n;
     *p->res = FL(1.0);
     return OK;
 }
@@ -207,8 +211,10 @@ int wii_data(CSOUND *csound, WIIMOTE *p)
     wiirange_t *wiir = p->wiir;
     int n = (int)*p->num;
     int kontrol = (int)(*p->kControl+FL(0.5));
-    if (UNLIKELY(n>=MAX_WIIMOTES || !(wii[n]->state & WIIMOTE_STATE_CONNECTED)))
+    if (UNLIKELY(n>=MAX_WIIMOTES || !(wii[n]->state & WIIMOTE_STATE_CONNECTED))) {
+      printf("state of wii %d is %x\n", n, wii[n]->state);
       return csound->PerfError(csound, Str("wiimote %d does not exist"), n);
+    }
     if (kontrol<0) {
       printf("%f -- %.4x: "
              "tilt=[%f %f];\nforce=(%f %f %f)\n",

@@ -469,7 +469,8 @@ static int partials_process(CSOUND * csound, _PARTS * p)
 
 static OENTRY localops[] =
   {
-    { "partials", sizeof(_PARTS), 3, "f", "ffkkki", (SUBR) partials_init, (SUBR) partials_process }
+    { "partials", sizeof(_PARTS), 3, "f", "ffkkki", 
+                            (SUBR) partials_init, (SUBR) partials_process }
   };
 
 int partials_init_(CSOUND *csound)
