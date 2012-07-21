@@ -613,7 +613,7 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
 int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
 {
     int dim = (int) *p->dim;
-    int layout = (int)((*p->dim-dim)*100);
+    int layout = (int)((*p->dim-(MYFLT)dim)*100);
     return vbap_ls_init_sr(csound, dim, (int) *p->ls_amount, p->f, layout);
 }
 
@@ -914,7 +914,7 @@ static OENTRY vbap_localops[] = {
     TR|5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOOo",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap        },
-  { "vbap1",      S(VBAP1),             TR|5,
+  { "vbapg",      S(VBAP1),             TR|5,
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",  "kOOo",
     (SUBR) vbap1_init,          (SUBR) NULL,    (SUBR) vbap1       },
   { "vbapz",      S(VBAP_ZAK),           ZW|TR|5,  "",                 "iiakOOo",

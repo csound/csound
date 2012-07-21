@@ -219,8 +219,10 @@ int wii_data(CSOUND *csound, WIIMOTE *p)
       printf("%f -- %.4x: "
              "tilt=[%f %f];\nforce=(%f %f %f)\n",
              100.0*wii[n]->battery_level, wii[n]->btns,
-             wiir[n].pitch_min+wiir[n].pitch_scale*(FL(90.0)+(MYFLT)wii[n]->orient.pitch),
-             wiir[n].roll_min+wiir[n].roll_scale*(FL(90.0)-(MYFLT)wii[n]->orient.roll),
+             wiir[n].pitch_min+wiir[n].pitch_scale*(FL(90.0)+
+                                                    (MYFLT)wii[n]->orient.pitch),
+             wiir[n].roll_min+wiir[n].roll_scale*(FL(90.0)-
+                                                  (MYFLT)wii[n]->orient.roll),
              wii[n]->gforce.x, wii[n]->gforce.y, wii[n]->gforce.z);
       *p->res = FL(0.0);
       return OK;
@@ -291,11 +293,13 @@ int wii_data(CSOUND *csound, WIIMOTE *p)
       return OK;
     case WII_NUNCHUK_PITCH:
       *p->res = wiir[n].nunchuk_pitch_min+
-        wiir[n].nunchuk_pitch_scale*(FL(90.0)-(MYFLT)wii[n]->exp.nunchuk.orient.pitch);
+        wiir[n].nunchuk_pitch_scale*(FL(90.0)-
+                                     (MYFLT)wii[n]->exp.nunchuk.orient.pitch);
       return OK;
     case WII_NUNCHUK_ROLL:
       *p->res = wiir[n].nunchuk_roll_min+
-        wiir[n].nunchuk_roll_scale*(FL(90.0)-(MYFLT)wii[n]->exp.nunchuk.orient.roll);
+        wiir[n].nunchuk_roll_scale*(FL(90.0)-
+                                    (MYFLT)wii[n]->exp.nunchuk.orient.roll);
      return OK;
     /* case 32: */
     /*   *p->res = (MYFLT)wii[n]->exp.nunchuk.axis.z; */

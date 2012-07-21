@@ -27,8 +27,9 @@
 
 typedef struct {
   OPDS  h;
-  MYFLT         *aLeft, *aRight, *aIn, *kAz, *kElev, *ifilno;   /* outputs and inputs */
-  MEMFIL        *mfp;      /* file pointer */
+  MYFLT         *aLeft, *aRight,             /* outputs  */
+                *aIn, *kAz, *kElev, *ifilno; /* and inputs */
+  MEMFIL        *mfp;                        /* file pointer */
   int16         *fpbegin;
   int           oldel_index, oldaz_index;
   int32         incount, outfront, outend, outcount;

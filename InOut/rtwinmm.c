@@ -192,7 +192,8 @@ static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed
     }
 }
 
-static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf, 
+                                     int16_t *outBuf, int *seed)
 {
     MYFLT   tmp_f;
     int     tmp_i;

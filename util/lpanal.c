@@ -575,8 +575,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     /* Space for a array */
     lpc.a = (double (*)[MAXPOLES])
       csound->Malloc(csound, MAXPOLES * MAXPOLES * sizeof(double));
-    lpc.x = (double *)
-      csound->Malloc(csound, lpc.WINDIN * sizeof(double));  /* alloc a double array */
+    lpc.x = (double *) csound->Malloc(csound,   /* alloc a double array */
+                                      lpc.WINDIN * sizeof(double));
 #ifdef TRACE
     csound->FileOpen2(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
                       CSFTYPE_OTHER_TEXT, 0);
@@ -761,21 +761,23 @@ static void alpol(LPC *thislp, MYFLT *sig, double *errn,
     int i, j, k, limit;
 
    /* Transfer signal in x array */
-    for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig){ /*   &  copy sigin into */
+    for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig) {
       *xp = (double) *sig;
     }
 
    /* Build system to be solved */
-    for (i=0; i < thislp->poleCount;++i)  {
+    for (i=0; i < thislp->poleCount;++i) {
       sum = (double) 0.0;
       for (k=thislp->poleCount; k < thislp->WINDIN;++k)
         sum += thislp->x[k-(i+1)] * thislp->x[k];
       v[i] = -sum;
-      if (i != thislp->poleCount - 1)  {
+      if (i != thislp->poleCount - 1) {
         limit = thislp->poleCount - (i+1);
-        for (j=0; j < limit; j++)  {
-          sum += thislp->x[thislp->poleCount-(i+1)-(j+1)] * thislp->x[thislp->poleCount-(j+1)]
-            - thislp->x[thislp->WINDIN-(i+1)-(j+1)] * thislp->x[thislp->WINDIN-(j+1)];
+        for (j=0; j < limit; j++) {
+          sum += thislp->x[thislp->poleCount-(i+1)-(j+1)] *
+            thislp->x[thislp->poleCount-(j+1)]
+            - thislp->x[thislp->WINDIN-(i+1)-(j+1)] *
+            thislp->x[thislp->WINDIN-(j+1)];
           thislp->a[(i+1)+j][j] = thislp->a[j][(i+1)+j] = sum;
         }
       }
@@ -838,13 +840,14 @@ static void gauss(LPC* thislp,
           amax = npq;
         }
       }
-       if (amax < 1.0e-20) {
+      if (amax < 1.0e-20) {
    /* csound->Message(csound,Str("Row %d or %d have maximum of %g\n"),
                       i, thislp->poleCount, amax);
       csound->Die(csound, Str("gauss: ill-conditioned"));
    */
-         for (ii=i; ii < thislp->poleCount;++ii) a[ii][i] = 1.0e-20; /* VL: fix for very low values */
-       }
+        for (ii=i; ii < thislp->poleCount;++ii) 
+          a[ii][i] = 1.0e-20; /* VL: fix for very low values */
+      }
       if (i != istar) {
         for (j=0; j < thislp->poleCount;++j)  {    /* switch rows */
           dum = a[istar][j];
@@ -872,8 +875,9 @@ static void gauss(LPC* thislp,
           a[j][k] = a[j][k] - pivot * a[i][k];
       }
     }                               /* return if last pivot is too small */
+ /* VL: fix for very low values */
     if (fabs(a[thislp->poleCount-1][thislp->poleCount-1]) < 1e-20) {
-      a[thislp->poleCount-1][thislp->poleCount-1] = 1.0e-20; /* VL: fix for very low values */
+      a[thislp->poleCount-1][thislp->poleCount-1] = 1.0e-20;
 
       /*
             csound->Message(csound,"Row %d or %d have maximum of %g\n",

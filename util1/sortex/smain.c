@@ -23,7 +23,8 @@
 
 #include "csound.h"                                    /*   SMAIN.C  */
 
-#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__) || defined(__EMX__)
+#if defined(LINUX) || defined(SGI) || defined(sol) || \
+    defined(__MACH__) || defined(__EMX__)
 #include <signal.h>
 #endif
 
@@ -41,7 +42,8 @@ int main(void)                          /* stdio stub for standalone scsort */
     int    err;
 
     csound = csoundCreate(NULL);
-#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__) || defined(__EMX__)
+#if defined(LINUX) || defined(SGI) || defined(sol) || \
+    defined(__MACH__) || defined(__EMX__)
     signal(SIGPIPE, SIG_DFL);
 #endif
     csoundSetMessageCallback(csound, msg_callback);

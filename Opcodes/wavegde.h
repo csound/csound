@@ -60,12 +60,8 @@ typedef struct {
 } circularBuffer;
 
 /* circular buffer member functions */
-static void circularBufferCircularBuffer(CSOUND *,circularBuffer*,len_t);/* constructor */
-#if 0
-static void circularBufferWrite(circularBuffer*, MYFLT);  /* write a sample */
-static MYFLT circularBufferRead(circularBuffer*);         /* read next sample */
-#endif
-
+static void circularBufferCircularBuffer(CSOUND *,
+                                         circularBuffer*,len_t);/* constructor */
 /* class filter -- recursive filter implementation class */
 typedef struct {
   circularBuffer buffer; /* The filter's delay line */

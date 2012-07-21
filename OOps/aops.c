@@ -52,7 +52,8 @@
     for (i = 0; i < OCTRES; i++)
       cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
     for (i = 0; i < POW2TABSIZI; i++)
-      powerof2[i] = POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
+      powerof2[i] = POWER(FL(2.0),
+                          (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
 }*/
 
 /* initialise the tables, called by csoundPreCompile() */

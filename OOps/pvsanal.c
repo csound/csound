@@ -363,7 +363,9 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
     }
 #endif
     /*if (format==PVS_AMP_FREQ) {*/
-    for (i=ii=0/*,i0=anal,i1=anal+1,oi=oldInPhase*/; i <= N2; i++,ii+=2/*i0+=2,i1+=2, oi++*/) {
+    for (i=ii=0/*,i0=anal,i1=anal+1,oi=oldInPhase*/;
+         i <= N2; 
+         i++,ii+=2/*i0+=2,i1+=2, oi++*/) {
       real = anal[ii] /* *i0 */;
       imag = anal[ii+1] /* *i1 */;
       /**i0*/ anal[ii] = HYPOT(real, imag);

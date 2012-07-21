@@ -48,7 +48,8 @@ typedef struct devparams_ {
     float   srate;
     int     nchns;
     int     isNInterleaved;
-#if defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
+#if defined(MAC_OS_X_VERSION_10_5) && \
+    (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
     AudioDeviceIOProcID     procID;
 #else
   int procID;
@@ -83,7 +84,8 @@ int csoundModuleCreate(CSOUND *csound)
       *def = 0;
     p->CreateConfigurationVariable(csound, "noninterleaved", def,
                                    CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                   "deprecated, noninterleaved audio is automatically detected",
+                                   "deprecated, noninterleaved audio "
+                                   "is automatically detected",
                                    NULL);
 
     if (csound->oparms->msglevel & 0x400)
@@ -301,7 +303,8 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
       else {
         free(dev);
         csound->rtRecord_userdata = NULL;
-        p->Message(csound, Str(" *** CoreAudio: open: could not set buffer size\n"));
+        p->Message(csound,
+                   Str(" *** CoreAudio: open: could not set buffer size\n"));
         return -1;
       }
     }
@@ -346,10 +349,12 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     if (format.mSampleRate != dev->srate) {
       csound->rtRecord_userdata = NULL;
       p->Message(csound,
-                 Str(" *** CoreAudio: open: could not set device parameter sr: %d \n"),
+                 Str(" *** CoreAudio: open: could not set device "
+                     "parameter sr: %d \n"),
                  (int) dev->srate);
       p->Message(csound, Str(" *** CoreAudio: current device sampling rate is:%d \n"
-                             "     try setting the above value in your csound orchestra \n"),
+                             "     try setting the above value in your "
+                             "csound orchestra \n"),
                  (int) format.mSampleRate);
       free(dev);
       return -1;
@@ -404,7 +409,8 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
 
     //
 
-#if defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
+#if defined(MAC_OS_X_VERSION_10_5) && \
+    (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
     AudioDeviceCreateIOProcID(dev->dev,Csound_IOProcEntry,dev,&dev->procID);
 #else
     AudioDeviceAddIOProc(dev->dev, Csound_IOProcEntry, dev);
@@ -559,7 +565,8 @@ static void rtclose_(CSOUND *csound)
       p->Message(csound, Str("coreaudio module: closing device...\n"));
       sleep(1);
       AudioDeviceStop(dev->dev,Csound_IOProcEntry );
-#if defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
+#if defined(MAC_OS_X_VERSION_10_5) && \
+    (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
       AudioDeviceDestroyIOProcID(dev->dev, dev->procID);
 #else
       AudioDeviceRemoveIOProc(dev->dev, Csound_IOProcEntry);

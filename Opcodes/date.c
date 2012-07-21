@@ -73,10 +73,64 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
     return OK;
 }
 
+typedef struct {
+   OPDS h;
+   MYFLT *Scd;
+} GETCWD;
+
+static int getcurdir(CSOUND *csound, GETCWD *p)
+{
+    if (UNLIKELY(
+#if defined(__MACH__) || defined(LINUX)
+                 getcwd
+#else
+                 _getcwd
+#endif
+                 (((char*) p->Scd), csound->strVarMaxLen)==NULL))
+      return csound->InitError(csound, Str("cannot determine current directory"));
+    return OK;
+}
+
+typedef struct {
+  OPDS h;
+  MYFLT *Sline;
+  MYFLT *Sfile;
+  FILE  *fd;
+} READF;
+
+static int readf_delete(CSOUND *csound, void *fd)
+{
+    fclose((FILE*)fd);
+    return OK;
+}
+
+static int readf_init(CSOUND *csound, READF *p)
+{
+    p->fd = fopen((char*)p->Sfile, "r");
+    if (UNLIKELY(p->fd==NULL))
+      return csound->InitError(csound, Str("readf: failed to open file"));
+    return csound->RegisterDeinitCallback(csound, p->fd, readf_delete);
+}
+
+static int readf(CSOUND *csound, READF *p)
+{
+    ((char*) p->Sline)[0] = '\0';
+    if (UNLIKELY(fgets((char*) p->Sline, csound->strVarMaxLen, p->fd)==NULL)) {
+      fclose(p->fd);
+      p->fd = NULL;
+      return csound->PerfError(csound, Str("readf: read failure"));
+    }
+    return OK;
+}
+
+
 static OENTRY date_localops[] =
 {
-    { "date",    sizeof(DATEMYFLT),     1,     "i",    "",(SUBR)datemyfltset, NULL, NULL },
-    { "dates",   sizeof(DATESTRING),    1,     "S",    "j",(SUBR)datestringset, NULL, NULL },
+    { "date",   sizeof(DATEMYFLT),  1, "i",    "", (SUBR)datemyfltset   },
+    { "dates",  sizeof(DATESTRING), 1, "S",    "j", (SUBR)datestringset },
+    { "pwd",    sizeof(GETCWD),     1, "S",    "",  (SUBR)getcurdir     },
+    { "readf",  sizeof(READF),      3, "S",    "S", (SUBR)readf_init, (SUBR)readf }
+
 };
 
 LINKAGE1(date_localops)

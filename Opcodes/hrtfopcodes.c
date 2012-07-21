@@ -2444,7 +2444,8 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                   }
 
                 /* woodworth process */
-                /* ITD formula, check which ear is relevant to calculate angle from */
+                /* ITD formula, check which ear is relevant to calculate
+                   angle from */
                 if(angle > FL(180.0))
                   radianangle = (angle - FL(180.0)) * PI_F / FL(180.0);
                 else
@@ -2502,7 +2503,8 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 
                     freq = (i / 2) * sroverN;
 
-                    /* non linear itd...last value in array = 1.0, so back to itdww */
+                    /* non linear itd...last value in array = 1.0,
+                       so back to itdww */
                     if(p->sr == 96000)
                       {
                         if ((i / 2) < 6)
