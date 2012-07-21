@@ -1142,7 +1142,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c, instrtxt, insno_priority))) {
+                if (UNLIKELY(!named_instr_alloc(csound, c,
+                                                instrtxt, insno_priority))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
                 instrtxt->insname = c;
@@ -1163,7 +1164,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c, instrtxt, insno_priority))) {
+                if (UNLIKELY(!named_instr_alloc(csound, c,
+                                                instrtxt, insno_priority))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
                 instrtxt->insname = c;

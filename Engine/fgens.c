@@ -998,12 +998,12 @@ static int gen15(FGDATA *ff, FUNC *ftp)
       }
     }
     nargs--;
-    ff->e.pcnt = (int16)(nargs + 4);            /* added by F. Pinot 16-01-2012 */
+    ff->e.pcnt = (int16)(nargs + 4); /* added by F. Pinot 16-01-2012 */
     free(hsin);
-    n = gen14(ff, ftp);                         /* now draw ftable   */
-    ftresdisp(ff, ftp);                         /* added by F. Pinot 16-01-2012 */
-    ff->fno--;                                  /* F. Pinot, the first function table */
-                                                /* is scaled and displayed by hfgens */
+    n = gen14(ff, ftp);       /* now draw ftable   */
+    ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
+    ff->fno--;                /* F. Pinot, the first function table */
+                              /* is scaled and displayed by hfgens */
     return n;
 }
 

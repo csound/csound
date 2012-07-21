@@ -1,24 +1,24 @@
 /*
-Brian Carty
-PhD Code August 2010
-binaural reverb: early reflections
+  Brian Carty
+  PhD Code August 2010
+  binaural reverb: early reflections
 
-   This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 
 /* #include "csdl.h" */
@@ -68,7 +68,7 @@ MYFLT filter(MYFLT* sig, MYFLT highcoeff, MYFLT lowcoeff,
     MYFLT freq;
     MYFLT check;
     MYFLT scale, nyqresponse, irttwo, highresponse, lowresponse, cosw,
-          a, b, c, x, y;
+      a, b, c, x, y;
 
     irttwo = FL(1.0) / SQRT(FL(2.0));
 
@@ -79,7 +79,7 @@ MYFLT filter(MYFLT* sig, MYFLT highcoeff, MYFLT lowcoeff,
     scale = lowresponse;
     nyqresponse = highresponse + lowcoeff;
     /* should always be lowpass! */
-    if(nyqresponse > irttwo)
+    if (nyqresponse > irttwo)
       nyqresponse = irttwo;
 
     /* calculate cutoff, according to nyqresponse */
@@ -97,7 +97,7 @@ MYFLT filter(MYFLT* sig, MYFLT highcoeff, MYFLT lowcoeff,
 
     check = FL(2.0) - y;
     /* check for legal acos arg */
-    if(check < -FL(1.0))
+    if (check < -FL(1.0))
       check = -FL(1.0);
     freq = FL(acos(check));
     freq /= twopioversr;
@@ -145,85 +145,85 @@ MYFLT band(MYFLT* sig, MYFLT cfreq, MYFLT bw, MYFLT g, MYFLT *del,
 
 typedef struct
 {
-        OPDS  h;
-        /* out l/r, low rt60, high rt60, amp, delay for latediffuse */
-        MYFLT *outsigl, *outsigr, *irt60low, *irt60high, *imfp;
-        /* input, source, listener, hrtf files, default room, [fadelength,
-           sr, order, threed, headrot, roomsize, wall high and low absorb
-           coeffs, gain for 3 band pass, same for floor and ceiling] */
-        MYFLT *in, *srcx, *srcy, *srcz, *lstnrx, *lstnry, *lstnrz, *ifilel, *ifiler,
-              *idefroom, *ofade, *osr, *porder, *othreed, *Oheadrot,
-              *ormx, *ormy, *ormz, *owlh, *owll, *owlg1, *owlg2, *owlg3, *oflh,
-              *ofll, *oflg1, *oflg2, *oflg3,*oclh, *ocll, *oclg1, *oclg2, *oclg3;
+  OPDS  h;
+  /* out l/r, low rt60, high rt60, amp, delay for latediffuse */
+  MYFLT *outsigl, *outsigr, *irt60low, *irt60high, *imfp;
+  /* input, source, listener, hrtf files, default room, [fadelength,
+     sr, order, threed, headrot, roomsize, wall high and low absorb
+     coeffs, gain for 3 band pass, same for floor and ceiling] */
+  MYFLT *in, *srcx, *srcy, *srcz, *lstnrx, *lstnry, *lstnrz, *ifilel, *ifiler,
+    *idefroom, *ofade, *osr, *porder, *othreed, *Oheadrot,
+    *ormx, *ormy, *ormz, *owlh, *owll, *owlg1, *owlg2, *owlg3, *oflh,
+    *ofll, *oflg1, *oflg2, *oflg3,*oclh, *ocll, *oclg1, *oclg2, *oclg3;
 
-        /* check if relative source has changed, to avoid recalculations */
-        MYFLT srcxv, srcyv, srczv, lstnrxv, lstnryv, lstnrzv;
-        MYFLT srcxk, srcyk, srczk, lstnrxk, lstnryk, lstnrzk;
-        MYFLT rotatev;
+  /* check if relative source has changed, to avoid recalculations */
+  MYFLT srcxv, srcyv, srczv, lstnrxv, lstnryv, lstnrzv;
+  MYFLT srcxk, srcyk, srczk, lstnrxk, lstnryk, lstnrzk;
+  MYFLT rotatev;
 
-        /* processing buffer sizes, depends on sr */
-        int irlength, irlengthpad, overlapsize;
-        MYFLT sr;
-        int counter;
+  /* processing buffer sizes, depends on sr */
+  int irlength, irlengthpad, overlapsize;
+  MYFLT sr;
+  int counter;
 
-        /* crossfade preparation and checks */
-        int fade, fadebuffer;
-        int initialfade;
+  /* crossfade preparation and checks */
+  int fade, fadebuffer;
+  int initialfade;
 
-        /* interpolation buffer declaration */
-        AUXCH lowl1, lowr1, lowl2, lowr2;
-        AUXCH highl1, highr1, highl2, highr2;
-        AUXCH hrtflinterp, hrtfrinterp, hrtflpad, hrtfrpad;
-        AUXCH hrtflpadold, hrtfrpadold;
+  /* interpolation buffer declaration */
+  AUXCH lowl1, lowr1, lowl2, lowr2;
+  AUXCH highl1, highr1, highl2, highr2;
+  AUXCH hrtflinterp, hrtfrinterp, hrtflpad, hrtfrpad;
+  AUXCH hrtflpadold, hrtfrpadold;
 
-        /* convolution and in/output buffers */
-        AUXCH inbuf,inbufpad;
-        AUXCH outlspec, outrspec;
-        AUXCH outlspecold, outrspecold;
-        AUXCH overlapl, overlapr;
-        AUXCH overlaplold, overlaprold;
+  /* convolution and in/output buffers */
+  AUXCH inbuf,inbufpad;
+  AUXCH outlspec, outrspec;
+  AUXCH outlspecold, outrspecold;
+  AUXCH overlapl, overlapr;
+  AUXCH overlaplold, overlaprold;
 
-        /* no of impulses based on order */
-        int impulses, order;
-        int M;
-        /* 3d check*/
-        int threed;
+  /* no of impulses based on order */
+  int impulses, order;
+  int M;
+  /* 3d check*/
+  int threed;
 
-        /* speed of sound*/
-        MYFLT c;
+  /* speed of sound*/
+  MYFLT c;
 
-        /* Image Model*/
-        MYFLT rmx, rmy, rmz;
-        int maxdelsamps;
+  /* Image Model*/
+  MYFLT rmx, rmy, rmz;
+  int maxdelsamps;
 
-        /* for each reflection*/
-        AUXCH hrtflpadspec, hrtfrpadspec, hrtflpadspecold, hrtfrpadspecold;
-        AUXCH outl, outr, outlold, outrold;
-        AUXCH currentphasel, currentphaser;
-        AUXCH dell, delr;
-        AUXCH tempsrcx, tempsrcy, tempsrcz;
-        AUXCH dist;
-        AUXCH dtime;
-        AUXCH amp;
+  /* for each reflection*/
+  AUXCH hrtflpadspec, hrtfrpadspec, hrtflpadspecold, hrtfrpadspecold;
+  AUXCH outl, outr, outlold, outrold;
+  AUXCH currentphasel, currentphaser;
+  AUXCH dell, delr;
+  AUXCH tempsrcx, tempsrcy, tempsrcz;
+  AUXCH dist;
+  AUXCH dtime;
+  AUXCH amp;
 
-        /* temp o/p buffers */
-        AUXCH predell, predelr;
+  /* temp o/p buffers */
+  AUXCH predell, predelr;
 
-        /* processing values that need to be kept for each reflection*/
-        /* dynamic values based on no. fo impulses*/
-        AUXCH oldelevindex, oldangleindex;
-        AUXCH cross, l, delp, skipdel;
-        AUXCH vdt;
+  /* processing values that need to be kept for each reflection*/
+  /* dynamic values based on no. fo impulses*/
+  AUXCH oldelevindex, oldangleindex;
+  AUXCH cross, l, delp, skipdel;
+  AUXCH vdt;
 
-        /* wall details */
-        MYFLT wallcoeflow, wallcoefhigh, wallg1, wallg2, wallg3;
-        MYFLT floorcoeflow, floorcoefhigh, floorg1, floorg2, floorg3;
-        MYFLT ceilingcoeflow, ceilingcoefhigh, ceilingg1, ceilingg2, ceilingg3;
-        /* wall filter q*/
-        MYFLT q;
+  /* wall details */
+  MYFLT wallcoeflow, wallcoefhigh, wallg1, wallg2, wallg3;
+  MYFLT floorcoeflow, floorcoefhigh, floorg1, floorg2, floorg3;
+  MYFLT ceilingcoeflow, ceilingcoefhigh, ceilingg1, ceilingg2, ceilingg3;
+  /* wall filter q*/
+  MYFLT q;
 
-        /* file pointers*/
-        float *fpbeginl, *fpbeginr;
+  /* file pointers*/
+  float *fpbeginl, *fpbeginr;
 
 } early;
 
@@ -276,22 +276,22 @@ static int early_init(CSOUND *csound, early *p)
     int order = (int)*p->porder;
 
     /* fade length: default 8, max 24, min 1 (fade is a local variable)*/
-    if(fade < 1 || fade > 24)
+    if (fade < 1 || fade > 24)
       fade = 8;
     p->fade = fade;
 
     /* threed defaults to 2d! */
-    if(threed < 0 || threed > 1)
+    if (threed < 0 || threed > 1)
       threed = 0;
     p->threed = threed;
 
     /* order: max 4, default 1 */
-    if(order < 0 || order > 4)
+    if (order < 0 || order > 4)
       order = 1;
     p->order = order;
 
     /* sr, defualt 44100 */
-    if(sr != 44100 && sr != 48000 && sr != 96000)
+    if (sr != 44100 && sr != 48000 && sr != 96000)
       sr = 44100;
     p->sr = sr;
 
@@ -301,18 +301,16 @@ static int early_init(CSOUND *csound, early *p)
                           "with HRTF processing SR of: %.0f\n\n"), sr);
 
     /* setup as per sr */
-    if(sr == 44100 || sr == 48000)
-      {
-        irlength = 128;
-        irlengthpad = 256;
-        overlapsize = (irlength - 1);
-      }
-    else if(sr == 96000)
-      {
-        irlength = 256;
-        irlengthpad = 512;
-        overlapsize = (irlength - 1);
-      }
+    if (sr == 44100 || sr == 48000) {
+      irlength = 128;
+      irlengthpad = 256;
+      overlapsize = (irlength - 1);
+    }
+    else if (sr == 96000) {
+      irlength = 256;
+      irlengthpad = 512;
+      overlapsize = (irlength - 1);
+    }
 
     /* copy in string name...*/
     strncpy(filel, (char*) p->ifilel, MAXNAME);
@@ -353,95 +351,89 @@ static int early_init(CSOUND *csound, early *p)
 
     defroom = (int)*p->idefroom;
     /* 3 default rooms allowed*/
-    if(defroom > 3)
+    if (defroom > 3)
       defroom = 1;
 
     /* setup wall coeffs: walls: plasterboard, ceiling: painted plaster,
        floor: carpet
        if any default room is chosen, default parameters for walls/ceiling/floor */
-    if(defroom)
-      {
-        p->wallcoefhigh = FL(0.3);
-        p->wallcoeflow = FL(0.1);
-        p->wallg1 = FL(0.75);
-        p->wallg2 = FL(0.95);
-        p->wallg3 = FL(0.9);
-        p->floorcoefhigh = FL(0.6);
-        p->floorcoeflow = FL(0.1);
-        p->floorg1 = FL(0.95);
-        p->floorg2 = FL(0.6);
-        p->floorg3 = FL(0.35);
-        p->ceilingcoefhigh = FL(0.2);
-        p->ceilingcoeflow = FL(0.1);
-        p->ceilingg1 = FL(1.0);
-        p->ceilingg2 = FL(1.0);
-        p->ceilingg3 = FL(1.0);
-      }
+    if (defroom) {
+      p->wallcoefhigh = FL(0.3);
+      p->wallcoeflow = FL(0.1);
+      p->wallg1 = FL(0.75);
+      p->wallg2 = FL(0.95);
+      p->wallg3 = FL(0.9);
+      p->floorcoefhigh = FL(0.6);
+      p->floorcoeflow = FL(0.1);
+      p->floorg1 = FL(0.95);
+      p->floorg2 = FL(0.6);
+      p->floorg3 = FL(0.35);
+      p->ceilingcoefhigh = FL(0.2);
+      p->ceilingcoeflow = FL(0.1);
+      p->ceilingg1 = FL(1.0);
+      p->ceilingg2 = FL(1.0);
+      p->ceilingg3 = FL(1.0);
+    }
     /* otherwise use values, if valid */
-    else
-      {
-        p->wallcoefhigh = (*p->owlh > FL(0.0) && *p->owlh < FL(1.0)) ?
-          *p->owlh : FL(0.3);
-        p->wallcoeflow = (*p->owll > FL(0.0) && *p->owll < FL(1.0)) ?
-          *p->owll : FL(0.1);
-        p->wallg1 = (*p->owlg1 > FL(0.0) && *p->owlg1 < FL(10.0)) ?
-          *p->owlg1 : FL(0.75);
-        p->wallg2 = (*p->owlg2 > FL(0.0) && *p->owlg2 < FL(10.0)) ?
-          *p->owlg2 : FL(0.95);
-        p->wallg3 = (*p->owlg3 > FL(0.0) && *p->owlg3 < FL(10.0)) ?
-          *p->owlg3 : FL(0.9);
-        p->floorcoefhigh = (*p->oflh > FL(0.0) && *p->oflh < FL(1.0)) ?
-          *p->oflh : FL(0.6);
-        p->floorcoeflow = (*p->ofll > FL(0.0) && *p->ofll < FL(1.0)) ?
-          *p->ofll : FL(0.1);
-        p->floorg1 = (*p->oflg1 > FL(0.0) && *p->oflg1 < FL(10.0)) ?
-          *p->oflg1 : FL(0.95);
-        p->floorg2 = (*p->oflg2 > FL(0.0) && *p->oflg2 < FL(10.0)) ?
-          *p->oflg2 : FL(0.6);
-        p->floorg3 = (*p->oflg3 > FL(0.0) && *p->oflg3 < FL(10.0)) ?
-          *p->oflg3 : FL(0.35);
-        p->ceilingcoefhigh = (*p->oclh > FL(0.0) && *p->oclh < FL(1.0)) ?
-          *p->oclh : FL(0.2);
-        p->ceilingcoeflow = (*p->ocll > FL(0.0) && *p->ocll < FL(1.0)) ?
-          *p->ocll : FL(0.1);
-        p->ceilingg1 = (*p->oclg1 > FL(0.0) && *p->oclg1 < FL(10.0)) ?
-          *p->oclg1 : FL(1.0);
-        p->ceilingg2 = (*p->oclg2 > FL(0.0) && *p->oclg2 < FL(10.0)) ?
-          *p->oclg2 : FL(1.0);
-        p->ceilingg3 = (*p->oclg3 > FL(0.0) && *p->oclg3 < FL(10.0)) ?
-          *p->oclg3 : FL(1.0);
-      }
+    else {
+      p->wallcoefhigh = (*p->owlh > FL(0.0) && *p->owlh < FL(1.0)) ?
+        *p->owlh : FL(0.3);
+      p->wallcoeflow = (*p->owll > FL(0.0) && *p->owll < FL(1.0)) ?
+        *p->owll : FL(0.1);
+      p->wallg1 = (*p->owlg1 > FL(0.0) && *p->owlg1 < FL(10.0)) ?
+        *p->owlg1 : FL(0.75);
+      p->wallg2 = (*p->owlg2 > FL(0.0) && *p->owlg2 < FL(10.0)) ?
+        *p->owlg2 : FL(0.95);
+      p->wallg3 = (*p->owlg3 > FL(0.0) && *p->owlg3 < FL(10.0)) ?
+        *p->owlg3 : FL(0.9);
+      p->floorcoefhigh = (*p->oflh > FL(0.0) && *p->oflh < FL(1.0)) ?
+        *p->oflh : FL(0.6);
+      p->floorcoeflow = (*p->ofll > FL(0.0) && *p->ofll < FL(1.0)) ?
+        *p->ofll : FL(0.1);
+      p->floorg1 = (*p->oflg1 > FL(0.0) && *p->oflg1 < FL(10.0)) ?
+        *p->oflg1 : FL(0.95);
+      p->floorg2 = (*p->oflg2 > FL(0.0) && *p->oflg2 < FL(10.0)) ?
+        *p->oflg2 : FL(0.6);
+      p->floorg3 = (*p->oflg3 > FL(0.0) && *p->oflg3 < FL(10.0)) ?
+        *p->oflg3 : FL(0.35);
+      p->ceilingcoefhigh = (*p->oclh > FL(0.0) && *p->oclh < FL(1.0)) ?
+        *p->oclh : FL(0.2);
+      p->ceilingcoeflow = (*p->ocll > FL(0.0) && *p->ocll < FL(1.0)) ?
+        *p->ocll : FL(0.1);
+      p->ceilingg1 = (*p->oclg1 > FL(0.0) && *p->oclg1 < FL(10.0)) ?
+        *p->oclg1 : FL(1.0);
+      p->ceilingg2 = (*p->oclg2 > FL(0.0) && *p->oclg2 < FL(10.0)) ?
+        *p->oclg2 : FL(1.0);
+      p->ceilingg3 = (*p->oclg3 > FL(0.0) && *p->oclg3 < FL(10.0)) ?
+        *p->oclg3 : FL(1.0);
+    }
 
     /* medium room */
-    if(defroom == 1)
-      {
-        rmx = 10;
-        rmy = 10;
-        rmz = 3;
-      }
+    if (defroom == 1) {
+      rmx = 10;
+      rmy = 10;
+      rmz = 3;
+    }
     /* small */
-    else if(defroom == 2)
-      {
-        rmx = 3;
-        rmy = 4;
-        rmz = 3;
-      }
+    else if (defroom == 2) {
+      rmx = 3;
+      rmy = 4;
+      rmz = 3;
+    }
     /* large */
-    else if(defroom == 3)
-      {
-        rmx = 20;
-        rmy = 25;
-        rmz = 7;
-      }
+    else if (defroom == 3) {
+      rmx = 20;
+      rmy = 25;
+      rmz = 7;
+    }
 
     /* read values if they exist, use medium if not valid (must be at
        least a 2*2*2 room! */
-    else
-      {
-        rmx = *p->ormx >= FL(2.0) ? *p->ormx : 10;
-        rmy = *p->ormy >= FL(2.0) ? *p->ormy : 10;
-        rmz = *p->ormz >= FL(2.0) ? *p->ormz : 4;
-      }
+    else {
+      rmx = *p->ormx >= FL(2.0) ? *p->ormx : 10;
+      rmy = *p->ormy >= FL(2.0) ? *p->ormy : 10;
+      rmz = *p->ormz >= FL(2.0) ? *p->ormz : 4;
+    }
 
     /* store */
     p->rmx = rmx;
@@ -449,12 +441,12 @@ static int early_init(CSOUND *csound, early *p)
     p->rmz = rmz;
 
     /* how many sources? */
-    if(threed)
+    if (threed)
       {
         for(i = 1; i <= order; i++)
           {
             impulses += (4 * i);
-            if(i <= (order - 1))
+            if (i <= (order - 1))
               /* sources = 2d impulses for order, plus 2 * each
                  preceding no of impulses
                  eg order 2: 2d = 1 + 4 + 8 = 13, 3d + 2*5 + 2 = 25*/
@@ -731,7 +723,7 @@ static int early_init(CSOUND *csound, early *p)
     /* use hypotenuse rule to get max dist */
     /* could calculate per order, but designed for low order use */
     maxdist = (SQRT(SQUARE(rmx) + SQUARE(rmy)));
-    if(threed)
+    if (threed)
       maxdist = (SQRT(SQUARE(maxdist)+SQUARE(rmz)));
     maxdist = maxdist * (order + 1);
 
@@ -815,7 +807,7 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT *hrtflpadold = (MYFLT *)p->hrtflpadold.auxp;
     MYFLT *hrtfrpadold = (MYFLT *)p->hrtfrpadold.auxp;
 
-    /* pointers into HRTF files: floating point data(even in 64 bit csound)*/
+    /* pointers into HRTF files: floating point data(even in 64 bit csound) */
     float *fpindexl = (float *)p->fpbeginl;
     float *fpindexr = (float *)p->fpbeginr;
 
@@ -941,29 +933,29 @@ static int early_process(CSOUND *csound, early *p)
 
     /* check for legal src/lstnr locations */
     /* restricted to being inside room! */
-    if(srcx > (rmx - FL(0.1)))
+    if (srcx > (rmx - FL(0.1)))
       srcx = rmx - FL(0.1);
-    if(srcx < FL(0.1))
+    if (srcx < FL(0.1))
       srcx = FL(0.1);
-    if(srcy > (rmy - FL(0.1)))
+    if (srcy > (rmy - FL(0.1)))
       srcy = rmy - FL(0.1);
-    if(srcy < FL(0.1))
+    if (srcy < FL(0.1))
       srcy = FL(0.1);
-    if(srcz > (rmz - FL(0.1)))
+    if (srcz > (rmz - FL(0.1)))
       srcz = rmz - FL(0.1);
-    if(srcz < FL(0.1))
+    if (srcz < FL(0.1))
       srcz = FL(0.1);
-    if(lstnrx > (rmx - FL(0.1)))
+    if (lstnrx > (rmx - FL(0.1)))
       lstnrx = rmx - FL(0.1);
-    if(lstnrx < FL(0.1))
+    if (lstnrx < FL(0.1))
       lstnrx = FL(0.1);
-    if(lstnry > (rmy - FL(0.1)))
+    if (lstnry > (rmy - FL(0.1)))
       lstnry = rmy - FL(0.1);
-    if(lstnry < FL(0.1))
+    if (lstnry < FL(0.1))
       lstnry = FL(0.1);
-    if(lstnrz > (rmz - FL(0.1)))
+    if (lstnrz > (rmz - FL(0.1)))
       lstnrz = rmz - FL(0.1);
-    if(lstnrz < FL(0.1))
+    if (lstnrz < FL(0.1))
       lstnrz = FL(0.1);
 
     /* k rate computations: sources, distances, delays, amps
@@ -972,853 +964,825 @@ static int early_process(CSOUND *csound, early *p)
 
     /* only update if relative source updates! improves speed in
        static sources by a factor of 2-3! */
-    if(srcx != p->srcxk || srcy != p->srcyk || srcz != p->srczk ||
-       lstnrx != p->lstnrxk || lstnry != p->lstnryk || lstnrz != p->lstnrzk)
-      {
-        p->srcxk = srcx;
-        p->srcyk = srcy;
-        p->srczk = srcz;
-        p->lstnrxk = lstnrx;
-        p->lstnryk = lstnry;
-        p->lstnrzk = lstnrz;
+    if (srcx != p->srcxk || srcy != p->srcyk || srcz != p->srczk ||
+        lstnrx != p->lstnrxk || lstnry != p->lstnryk || lstnrz != p->lstnrzk) {
+      p->srcxk = srcx;
+      p->srcyk = srcy;
+      p->srczk = srcz;
+      p->lstnrxk = lstnrx;
+      p->lstnryk = lstnry;
+      p->lstnrzk = lstnrz;
 
-        for(xc = -order; xc <= order; xc++)
-          {
-            for(yc = abs(xc) - order; yc <= order - abs(xc); yc++)
-              {
-                /* only scroll through z plane if 3d required...*/
-                if(threed)
-                  {
-                    lowz = abs(yc) - (order - abs(xc));
-                    highz = (order - abs(xc)) - abs(yc);
-                  }
-                else
-                  {
-                    lowz = 0;
-                    highz = 0;
-                  }
-                for(zc = lowz; zc <= highz; zc++)
-                  {
-                    /* to avoid recalculation, especially at audio rate
-                       for delay, later on */
-                    formxpow = (int)pow(-1.0, xc);
-                    formypow = (int)pow(-1.0, yc);
-                    formzpow = (int)pow(-1.0, zc);
-                    formx = (xc + (1 - formxpow)/2) * rmx;
-                    formy = (yc + (1 - formypow)/2) * rmy;
-                    formz = (zc + (1 - formzpow)/2) * rmz;
-
-                    /* image */
-                    tempsrcx[M] = formxpow * srcx + formx;
-                    tempsrcy[M] = formypow * srcy + formy;
-                    tempsrcz[M] = formzpow * srcz + formz;
-
-                    /* Calculate delay here using source and listener location */
-                    dist[M] = (SQRT(SQUARE(tempsrcx[M] - lstnrx) +
-                                    SQUARE(tempsrcy[M] - lstnry) +
-                                    SQUARE(tempsrcz[M] - lstnrz)));
-
-                    /* in seconds... */
-                    dtime[M] = dist[M] / c;
-
-                    /* furthest allowable distance....max amp = 1. */
-                    tempdist = (dist[M] < FL(0.45) ? FL(0.45) : dist[M]);
-
-                    /* high amp value may cause clipping on early
-                       reflections...reduce overall amp if so...*/
-                    /* SPL inverse distance law */
-                    amp[M] = FL(0.45) / tempdist;
-
-                    /* vdels for distance processing: */
-                    vdt[M] = dtime[M] * sr;
-                    if(vdt[M] > maxdelsamps)
-                      vdt[M] = (MYFLT)maxdelsamps;
-
-                    M++;
-                    M = M % impulses;
-                  }
-              }
+      for (xc = -order; xc <= order; xc++) {
+        for (yc = abs(xc) - order; yc <= order - abs(xc); yc++) {
+          /* only scroll through z plane if 3d required...*/
+          if (threed) {
+            lowz = abs(yc) - (order - abs(xc));
+            highz = (order - abs(xc)) - abs(yc);
           }
+          else {
+            lowz = 0;
+            highz = 0;
+          }
+          for (zc = lowz; zc <= highz; zc++) {
+            /* to avoid recalculation, especially at audio rate
+               for delay, later on */
+            formxpow = (int)pow(-1.0, xc);
+            formypow = (int)pow(-1.0, yc);
+            formzpow = (int)pow(-1.0, zc);
+            formx = (xc + (1 - formxpow)/2) * rmx;
+            formy = (yc + (1 - formypow)/2) * rmy;
+            formz = (zc + (1 - formzpow)/2) * rmz;
+
+            /* image */
+            tempsrcx[M] = formxpow * srcx + formx;
+            tempsrcy[M] = formypow * srcy + formy;
+            tempsrcz[M] = formzpow * srcz + formz;
+
+            /* Calculate delay here using source and listener location */
+            dist[M] = (SQRT(SQUARE(tempsrcx[M] - lstnrx) +
+                            SQUARE(tempsrcy[M] - lstnry) +
+                            SQUARE(tempsrcz[M] - lstnrz)));
+
+            /* in seconds... */
+            dtime[M] = dist[M] / c;
+            
+            /* furthest allowable distance....max amp = 1. */
+            tempdist = (dist[M] < FL(0.45) ? FL(0.45) : dist[M]);
+
+            /* high amp value may cause clipping on early
+               reflections...reduce overall amp if so...*/
+            /* SPL inverse distance law */
+            amp[M] = FL(0.45) / tempdist;
+
+            /* vdels for distance processing: */
+            vdt[M] = dtime[M] * sr;
+            if (vdt[M] > maxdelsamps)
+              vdt[M] = (MYFLT)maxdelsamps;
+            
+            M++;
+            M = M % impulses;
+          }
+        }
       }
+    }
 
     /* a rate... */
-    for(j=0;j<n;j++)
-      {
-        /* input */
-        inbuf[counter] = in[j];
+    for (j=0;j<n;j++) {
+      /* input */
+      inbuf[counter] = in[j];
 
-        /* output */
-        outltot = 0.0;
-        outrtot = 0.0;
+      /* output */
+      outltot = 0.0;
+      outrtot = 0.0;
 
-        /* for each reflection */
-        for(M = 0; M < impulses; M++)
-          {
-            /* a rate vdel: */
-            rp = delp[M] - vdt[M];
-            rp = (rp >= 0 ? (rp < maxdelsamps ? rp : rp - maxdelsamps) :
-                  rp + maxdelsamps);
-            frac = rp - (int)rp;
-            /* shift into correct part of buffer */
-            pos = (int)rp + skipdel[M];
-            /* write to l and r del lines */
-            dell[delp[M] + skipdel[M]] = predell[counter + M * irlength] * amp[M];
-            delr[delp[M] + skipdel[M]] = predelr[counter + M * irlength] * amp[M];
-            /* read, at variable interpolated speed */
-            outltot += dell[pos] +
-              frac*(dell[(pos + 1 < (maxdelsamps + skipdel[M]) ?
-                          pos + 1 : skipdel[M])] - dell[pos]);
-            outrtot += delr[pos] +
-              frac*(delr[(pos + 1 < (maxdelsamps + skipdel[M]) ?
-                          pos + 1 : skipdel[M])] - delr[pos]);
-            delp[M] = (delp[M] != maxdelsamps - 1 ? delp[M] + 1 : 0);
+      /* for each reflection */
+      for (M = 0; M < impulses; M++) {
+        /* a rate vdel: */
+        rp = delp[M] - vdt[M];
+        rp = (rp >= 0 ? (rp < maxdelsamps ? rp : rp - maxdelsamps) :
+              rp + maxdelsamps);
+        frac = rp - (int)rp;
+        /* shift into correct part of buffer */
+        pos = (int)rp + skipdel[M];
+        /* write to l and r del lines */
+        dell[delp[M] + skipdel[M]] = predell[counter + M * irlength] * amp[M];
+        delr[delp[M] + skipdel[M]] = predelr[counter + M * irlength] * amp[M];
+        /* read, at variable interpolated speed */
+        outltot += dell[pos] +
+          frac*(dell[(pos + 1 < (maxdelsamps + skipdel[M]) ?
+                      pos + 1 : skipdel[M])] - dell[pos]);
+        outrtot += delr[pos] +
+          frac*(delr[(pos + 1 < (maxdelsamps + skipdel[M]) ?
+                      pos + 1 : skipdel[M])] - delr[pos]);
+        delp[M] = (delp[M] != maxdelsamps - 1 ? delp[M] + 1 : 0);
 
-            outsigl[j] = outltot;
-            outsigr[j] = outrtot;
-          }
-        counter++;
+        outsigl[j] = outltot;
+        outsigr[j] = outrtot;
+      }
+      counter++;
 
-        /* used to ensure fade does not happen on first run */
-        if(initialfade < (irlength + 2))
-          initialfade++;
+      /* used to ensure fade does not happen on first run */
+      if (initialfade < (irlength + 2))
+        initialfade++;
 
-        /* 'hrtf buffer' rate */
-        if(counter == irlength)
-          {
-            /* reset */
-            M = 0;
-            /* run according to formula */
-            for(xc = -order; xc <= order; xc++)
-              {
-                for(yc = abs(xc) - order; yc <= order - abs(xc); yc++)
-                  {
-                    /* only scroll through z plane if 3d required... */
-                    if(threed)
-                      {
-                        lowz = abs(yc) - (order - abs(xc));
-                        highz = (order - abs(xc)) - abs(yc);
-                      }
+      /* 'hrtf buffer' rate */
+      if (counter == irlength) {
+        /* reset */
+        M = 0;
+        /* run according to formula */
+        for (xc = -order; xc <= order; xc++) {
+          for (yc = abs(xc) - order; yc <= order - abs(xc); yc++) {
+            /* only scroll through z plane if 3d required... */
+            if (threed) {
+              lowz = abs(yc) - (order - abs(xc));
+              highz = (order - abs(xc)) - abs(yc);
+            }
+            else {
+              lowz = 0;
+              highz = 0;
+            }
+            for (zc = lowz; zc <= highz; zc++) {
+              /* zero */
+              crossout = 0;
+              crossfade = 0;
+
+              /* avoid unnecessary processing if relative
+                 source location has not changed */
+              if (srcx != p->srcxv || srcy != p->srcyv ||
+                  srcz != p->srczv || lstnrx != p->lstnrxv ||
+                  lstnry != p->lstnryv || lstnrz != p->lstnrzv ||
+                  rotate != p->rotatev) {
+                /* if first process complete (128 samps in) and
+                   source is too close to listener: warning, do not
+                   process duda and martens range dependence
+                   jasa 98: 5 times radius: near field...hrtf
+                   changes! */
+                if (dist[M] < FL(0.45) && initialfade > irlength)
+                  ;       /* do not process... */
+                else {
+                  /* to avoid case where atan2 is invalid */
+                  tempx = tempsrcx[M] - lstnrx;
+                  tempy = tempsrcy[M] - lstnry;
+                  if (tempx == 0 && tempy == 0)
+                    angle = 0;
+                  else {
+                    /* - to invert anticlockwise to clockwise */
+                    angle = (-(ATAN2(tempy, tempx)) * 180.0 / PI_F);
+                    /* add 90 to go from y axis (front) */
+                    angle = angle + 90.0;
+                  }
+
+                  /* xy point will be same as source, z same as
+                     listener: a workable triangle */
+                  newpntx = tempsrcx[M];
+                  newpnty = tempsrcy[M];
+                  newpntz = lstnrz;
+
+                  /* ab: source to listener, ac: source to new point
+                     under/over source, bc listener to new point */
+                  /* a = source, b = listener, c = new point */
+                  ab = (SQRT(SQUARE(tempsrcx[M] - lstnrx) +
+                             SQUARE(tempsrcy[M] - lstnry) +
+                             SQUARE(tempsrcz[M] - lstnrz)));
+                  ac = (SQRT(SQUARE(tempsrcx[M] - newpntx) +
+                             SQUARE(tempsrcy[M] - newpnty) +
+                             SQUARE(tempsrcz[M] - newpntz)));
+                  bc = (SQRT(SQUARE(lstnrx - newpntx) +
+                             SQUARE(lstnry - newpnty) +
+                             SQUARE(lstnrz - newpntz)));
+
+                  /* elev: when bc == 0 -> source + listener at
+                     same x,y point (may happen in first run,
+                     checked after that) angle = 0, elev = 0 if
+                     at same point,
+                     or source may be directly above/below */
+                  if (bc == FL(0.0)) {
+                    /* source at listener */
+                    if (ac == FL(0.0))
+                      elev = FL(0.0);
+                    /* source above listener */
                     else
-                      {
-                        lowz = 0;
-                        highz = 0;
+                      elev = FL(90.0);
+                  }
+                  else {
+                    /* cosine rule */
+                    coselev = ((SQUARE(bc) +
+                                SQUARE(ab) -
+                                SQUARE(ac)) / (2.0 * ab * bc));
+                    elev = (ACOS(coselev)* 180.0 / PI_F);
+                  }
+
+                  /* if z coefficient of source < listener:
+                     source below listener...*/
+                  if (tempsrcz[M] < lstnrz) elev *= -1;
+
+                  if (elev > FL(90.0))
+                    elev = FL(90.0);
+                  if (elev < FL(-40.0))
+                    elev = FL(-40.0);
+
+                  /* two nearest elev indices
+                     to avoid recalculating */
+                  elevindexstore = (elev - minelev) / elevincrement;
+                  elevindexlow = (int)elevindexstore;
+
+                  if (elevindexlow < 13)
+                    elevindexhigh = elevindexlow + 1;
+                  /* highest index reached */
+                  else
+                    elevindexhigh = elevindexlow;
+
+                  /* get percentage value for interpolation */
+                  elevindexhighper = elevindexstore - elevindexlow;
+
+                  /* head rotation */
+                  angle -= rotate;
+
+                  while(angle < FL(0.0))
+                    angle += FL(360.0);
+                  while(angle >= FL(360.0))
+                    angle -= FL(360.0);
+
+                  /* as above,lookup index, used to check
+                     for crossfade */
+                  elevindex = (int)(elevindexstore + 0.5);
+
+                  angleindex = (int)(angle /
+                                     (360.0 /
+                                      elevationarray[elevindex]) +
+                                     0.5);
+                  angleindex = angleindex % elevationarray[elevindex];
+
+                  /* avoid recalculation */
+                  angleindexlowstore = angle /
+                    (FL(360.0) /
+                     elevationarray[elevindexlow]);
+                  angleindexhighstore = angle /
+                    (FL(360.0) / elevationarray[elevindexhigh]);
+
+                  /* 4 closest indices, 2 low and 2 high */
+                  angleindex1 = (int)angleindexlowstore;
+
+                  angleindex2 = angleindex1 + 1;
+                  angleindex2 = angleindex2 %
+                    elevationarray[elevindexlow];
+
+                  angleindex3 = (int)angleindexhighstore;
+
+                  angleindex4 = angleindex3 + 1;
+                  angleindex4 = angleindex4 %
+                    elevationarray[elevindexhigh];
+
+                  /* angle percentages for interp */
+                  angleindex2per = angleindexlowstore - angleindex1;
+                  angleindex4per = angleindexhighstore - angleindex3;
+
+                  /* crossfade happens if index changes:nearest
+                     measurement changes, 1st step: store old
+                     values */
+                  if (oldelevindex[M] != elevindex ||
+                      oldangleindex[M] != angleindex) {
+                    if (initialfade > irlength) {
+                      /* warning on overlapping fades */
+                      if (cross[M]) {
+                        printf(Str("\nWARNING: fades are "
+                                   "overlapping: this could "
+                                   "lead to noise: reduce "
+                                   "fade size or change "
+                                   "trajectory\n\n"));
+                        cross[M] = 0;
                       }
-                    for(zc = lowz; zc <= highz; zc++)
-                      {
-                        /* zero */
-                        crossout = 0;
-                        crossfade = 0;
-
-                        /* avoid unnecessary processing if relative
-                           source location has not changed */
-                        if(srcx != p->srcxv || srcy != p->srcyv ||
-                           srcz != p->srczv || lstnrx != p->lstnrxv ||
-                           lstnry != p->lstnryv || lstnrz != p->lstnrzv ||
-                           rotate != p->rotatev)
-                          {
-                            /* if first process complete (128 samps in) and
-                               source is too close to listener: warning, do not
-                               process duda and martens range dependence
-                               jasa 98: 5 times radius: near field...hrtf
-                               changes! */
-                            if(dist[M] < FL(0.45) && initialfade > irlength)
-                              ;       /* do not process... */
-                            else
-                              {
-                                /* to avoid case where atan2 is invalid */
-                                tempx = tempsrcx[M] - lstnrx;
-                                tempy = tempsrcy[M] - lstnry;
-                                if(tempx == 0 && tempy == 0)
-                                  angle = 0;
-                                else
-                                  {
-                                    /* - to invert anticlockwise to clockwise */
-                                    angle = (-(ATAN2(tempy, tempx)) * 180.0 / PI_F);
-                                    /* add 90 to go from y axis (front) */
-                                    angle = angle + 90.0;
-                                  }
-
-                                /* xy point will be same as source, z same as
-                                   listener: a workable triangle */
-                                newpntx = tempsrcx[M];
-                                newpnty = tempsrcy[M];
-                                newpntz = lstnrz;
-
-                                /* ab: source to listener, ac: source to new point
-                                   under/over source, bc listener to new point */
-                                /* a = source, b = listener, c = new point */
-                                ab = (SQRT(SQUARE(tempsrcx[M] - lstnrx) +
-                                           SQUARE(tempsrcy[M] - lstnry) +
-                                           SQUARE(tempsrcz[M] - lstnrz)));
-                                ac = (SQRT(SQUARE(tempsrcx[M] - newpntx) +
-                                           SQUARE(tempsrcy[M] - newpnty) +
-                                           SQUARE(tempsrcz[M] - newpntz)));
-                                bc = (SQRT(SQUARE(lstnrx - newpntx) +
-                                           SQUARE(lstnry - newpnty) +
-                                           SQUARE(lstnrz - newpntz)));
-
-                                /* elev: when bc == 0 -> source + listener at
-                                   same x,y point (may happen in first run,
-                                   checked after that) angle = 0, elev = 0 if
-                                   at same point,
-                                   or source may be directly above/below */
-                                if(bc == FL(0.0))
-                                  {
-                                    /* source at listener */
-                                    if(ac == FL(0.0))
-                                      elev = FL(0.0);
-                                    /* source above listener */
-                                    else
-                                      elev = FL(90.0);
-                                  }
-                                else
-                                  {
-                                    /* cosine rule */
-                                    coselev = ((SQUARE(bc) +
-                                                SQUARE(ab) -
-                                                SQUARE(ac)) / (2.0 * ab * bc));
-                                    elev = (ACOS(coselev)* 180.0 / PI_F);
-                                  }
-
-                                /* if z coefficient of source < listener:
-                                   source below listener...*/
-                                if(tempsrcz[M] < lstnrz) elev *= -1;
-
-                                if(elev > FL(90.0))
-                                  elev = FL(90.0);
-                                if(elev < FL(-40.0))
-                                  elev = FL(-40.0);
-
-                                /* two nearest elev indices
-                                   to avoid recalculating */
-                                elevindexstore = (elev - minelev) / elevincrement;
-                                elevindexlow = (int)elevindexstore;
-
-                                if(elevindexlow < 13)
-                                  elevindexhigh = elevindexlow + 1;
-                                /* highest index reached */
-                                else
-                                  elevindexhigh = elevindexlow;
-
-                                /* get percentage value for interpolation */
-                                elevindexhighper = elevindexstore - elevindexlow;
-
-                                /* head rotation */
-                                angle -= rotate;
-
-                                while(angle < FL(0.0))
-                                  angle += FL(360.0);
-                                while(angle >= FL(360.0))
-                                  angle -= FL(360.0);
-
-                                /* as above,lookup index, used to check
-                                   for crossfade */
-                                elevindex = (int)(elevindexstore + 0.5);
-
-                                angleindex = (int)(angle /
-                                                   (360.0 /
-                                                    elevationarray[elevindex]) +
-                                                   0.5);
-                                angleindex = angleindex % elevationarray[elevindex];
-
-                                /* avoid recalculation */
-                                angleindexlowstore = angle /
-                                  (FL(360.0) /
-                                   elevationarray[elevindexlow]);
-                                angleindexhighstore = angle /
-                                  (FL(360.0) / elevationarray[elevindexhigh]);
-
-                                /* 4 closest indices, 2 low and 2 high */
-                                angleindex1 = (int)angleindexlowstore;
-
-                                angleindex2 = angleindex1 + 1;
-                                angleindex2 = angleindex2 %
-                                  elevationarray[elevindexlow];
-
-                                angleindex3 = (int)angleindexhighstore;
-
-                                angleindex4 = angleindex3 + 1;
-                                angleindex4 = angleindex4 %
-                                  elevationarray[elevindexhigh];
-
-                                /* angle percentages for interp */
-                                angleindex2per = angleindexlowstore - angleindex1;
-                                angleindex4per = angleindexhighstore - angleindex3;
-
-                                /* crossfade happens if index changes:nearest
-                                   measurement changes, 1st step: store old
-                                   values */
-                                if (oldelevindex[M] != elevindex ||
-                                    oldangleindex[M] != angleindex)
-                                  {
-                                    if(initialfade > irlength)
-                                      {
-                                        /* warning on overlapping fades */
-                                        if(cross[M])
-                                          {
-                                            printf(Str("\nWARNING: fades are "
-                                                       "overlapping: this could "
-                                                       "lead to noise: reduce "
-                                                       "fade size or change "
-                                                       "trajectory\n\n"));
-                                            cross[M] = 0;
-                                          }
-                                        /* reset l */
-                                        l[M] = 0;
-                                        crossfade = 1;
-                                        for(i = 0; i < irlengthpad; i++)
-                                          {
-                                            hrtflpadspecold[irlengthpad * M + i] =
-                                              hrtflpadspec[irlengthpad * M + i];
-                                            hrtfrpadspecold[irlengthpad * M + i] =
-                                              hrtfrpadspec[irlengthpad * M + i];
-                                          }
-                                      }
-
-                                    skip = 0;
-                                    /* store current phase */
-                                    if(angleindex > elevationarray[elevindex] / 2)
-                                      {
-                                        for(i = 0; i < elevindex; i ++)
-                                          skip +=((int)(elevationarray[i] / 2)
-                                                  + 1) * irlength;
-                                        for (i = 0;
-                                             i < (elevationarray[elevindex] -
-                                                  angleindex);
-                                             i++)
-                                          skip += irlength;
-                                        for(i = 0; i < irlength; i++)
-                                          {
-                                            currentphasel[irlength * M + i] =
-                                              fpindexr[skip + i];
-                                            currentphaser[irlength * M + i] =
-                                              fpindexl[skip + i];
-                                          }
-                                      }
-                                    else
-                                      {
-                                        for(i = 0; i < elevindex; i ++)
-                                          skip +=((int)(elevationarray[i] / 2)
-                                                  + 1) * irlength;
-                                        for (i = 0; i < angleindex; i++)
-                                          skip += irlength;
-                                        for(i = 0; i < irlength; i++)
-                                          {
-                                            currentphasel[irlength * M + i] =
-                                              fpindexl[skip+i];
-                                            currentphaser[irlength * M + i] =
-                                              fpindexr[skip+i];
-                                          }
-                                      }
-                                  }
-
-                                /* for next check */
-                                oldelevindex[M] = elevindex;
-                                oldangleindex[M] = angleindex;
-
-                                /* read 4 nearest HRTFs */
-                                /* switch l and r */
-                                skip = 0;
-                                if(angleindex1 > elevationarray[elevindexlow] / 2)
-                                  {
-                                    for(i = 0; i < elevindexlow; i ++)
-                                      skip +=((int)(elevationarray[i] / 2)
-                                              + 1) * irlength;
-                                    for (i = 0;
-                                         i < (elevationarray[elevindexlow] -
-                                              angleindex1);
-                                         i++)
-                                      skip += irlength;
-                                    for(i = 0; i < irlength; i++)
-                                      {
-                                        lowl1[i] = fpindexr[skip+i];
-                                        lowr1[i] = fpindexl[skip+i];
-                                      }
-                                  }
-                                else
-                                  {
-                                    for(i = 0; i < elevindexlow; i ++)
-                                      skip +=((int)(elevationarray[i] / 2)
-                                              + 1) * irlength;
-                                    for (i = 0; i < angleindex1; i++)
-                                      skip += irlength;
-                                    for(i = 0; i < irlength; i++)
-                                      {
-                                        lowl1[i] = fpindexl[skip+i];
-                                        lowr1[i] = fpindexr[skip+i];
-                                      }
-                                  }
-
-                                skip = 0;
-                                if(angleindex2 > elevationarray[elevindexlow] / 2)
-                                  {
-                                    for(i = 0; i < elevindexlow; i ++)
-                                      skip +=((int)(elevationarray[i] / 2)
-                                              + 1) * irlength;
-                                    for (i = 0;
-                                         i < (elevationarray[elevindexlow] -
-                                              angleindex2);
-                                         i++)
-                                      skip += irlength;
-                                    for(i = 0; i < irlength; i++)
-                                      {
-                                        lowl2[i] = fpindexr[skip+i];
-                                        lowr2[i] = fpindexl[skip+i];
-                                      }
-                                  }
-                                else
-                                  {
-                                    for(i = 0; i < elevindexlow; i ++)
-                                      skip +=((int)(elevationarray[i] / 2)
-                                              + 1) * irlength;
-                                    for (i = 0; i < angleindex2; i++)
-                                      skip += irlength;
-                                    for(i = 0; i < irlength; i++)
-                                      {
-                                        lowl2[i] = fpindexl[skip+i];
-                                        lowr2[i] = fpindexr[skip+i];
-                                      }
-                                  }
-
-                                skip = 0;
-                                if(angleindex3 > elevationarray[elevindexhigh] / 2)
-                                  {
-                                    for(i = 0; i < elevindexhigh; i ++)
-                                      skip +=((int)(elevationarray[i] / 2)
-                                              + 1) * irlength;
-                                    for (i = 0;
-                                         i < (elevationarray[elevindexhigh] -
-                                              angleindex3);
-                                         i++)
-                                      skip += irlength;
-                                    for(i = 0; i < irlength; i++)
-                                      {
-                                        highl1[i] = fpindexr[skip+i];
-                                        highr1[i] = fpindexl[skip+i];
-                                      }
-                                  }
-                                else
-                                  {
-                                    for(i = 0; i < elevindexhigh; i ++)
-                                      skip +=((int)(elevationarray[i] / 2)
-                                              + 1) * irlength;
-                                    for (i = 0; i < angleindex3; i++)
-                                      skip += irlength;
-                                    for(i = 0; i < irlength; i++)
-                                      {
-                                        highl1[i] = fpindexl[skip+i];
-                                        highr1[i] = fpindexr[skip+i];
-                                      }
-                                  }
-
-                                skip = 0;
-                                if(angleindex4 > elevationarray[elevindexhigh] / 2)
-                                  {
-                                    for(i = 0; i < elevindexhigh; i ++)
-                                      skip +=((int)(elevationarray[i] / 2)
-                                              + 1) * irlength;
-                                    for (i = 0;
-                                         i < (elevationarray[elevindexhigh] -
-                                              angleindex4);
-                                         i++)
-                                      skip += irlength;
-                                    for(i = 0; i < irlength; i++)
-                                      {
-                                        highl2[i] = fpindexr[skip+i];
-                                        highr2[i] = fpindexl[skip+i];
-                                      }
-                                  }
-                                else
-                                  {
-                                    for(i = 0; i < elevindexhigh; i ++)
-                                      skip +=((int)(elevationarray[i] / 2)
-                                              + 1) * irlength;
-                                    for (i = 0; i < angleindex4; i++)
-                                      skip += irlength;
-                                    for(i = 0; i < irlength; i++)
-                                      {
-                                        highl2[i] = fpindexl[skip+i];
-                                        highr2[i] = fpindexr[skip+i];
-                                      }
-                                  }
-
-                                /* magnitude interpolation */
-                                /* 0hz and Nyq */
-                                magllow = (FABS(lowl1[0])) +
-                                  ((FABS(lowl2[0]) - FABS(lowl1[0]))) *
-                                  angleindex2per;
-                                maglhigh = (FABS(highl1[0])) +
-                                  ((FABS(highl2[0]) - FABS(highl1[0]))) *
-                                  angleindex4per;
-                                magrlow = (FABS(lowr1[0])) +
-                                  ((FABS(lowr2[0]) - FABS(lowr1[0]))) *
-                                  angleindex2per;
-                                magrhigh = (FABS(highr1[0])) +
-                                  ((FABS(highr2[0]) - FABS(highr1[0]))) *
-                                  angleindex4per;
-                                magl = magllow + (maglhigh - magllow) *
-                                  elevindexhighper;
-                                magr = magrlow + (magrhigh - magrlow) *
-                                  elevindexhighper;
-                                if(currentphasel[M * irlength] < FL(0.0))
-                                  hrtflinterp[0] = - magl;
-                                else
-                                  hrtflinterp[0] = magl;
-                                if(currentphaser[M * irlength] < FL(0.0))
-                                  hrtfrinterp[0] = - magr;
-                                else
-                                  hrtfrinterp[0] = magr;
-
-                                magllow = (FABS(lowl1[1])) +
-                                  ((FABS(lowl2[1]) - FABS(lowl1[1]))) *
-                                  angleindex2per;
-                                maglhigh = (FABS(highl1[1]))
-                                  + ((FABS(highl2[1]) - FABS(highl1[1]))) *
-                                  angleindex4per;
-                                magrlow = (FABS(lowr1[1])) +
-                                  ((FABS(lowr2[1]) - FABS(lowr1[1]))) *
-                                  angleindex2per;
-                                magrhigh = (FABS(highr1[1])) +
-                                  ((FABS(highr2[1]) - FABS(highr1[1]))) *
-                                  angleindex4per;
-                                magl = magllow + (maglhigh - magllow) *
-                                  elevindexhighper;
-                                magr = magrlow + (magrhigh - magrlow) *
-                                  elevindexhighper;
-                                if(currentphasel[M * irlength + 1] < FL(0.0))
-                                  hrtflinterp[1] = - magl;
-                                else
-                                  hrtflinterp[1] = magl;
-                                if(currentphaser[M * irlength + 1] < FL(0.0))
-                                  hrtfrinterp[1] = - magr;
-                                else
-                                  hrtfrinterp[1] = magr;
-
-                                /* other values are complex, in fftw format */
-                                for(i = 2; i < irlength; i += 2)
-                                  {
-                                    /* interpolate high and low magnitudes */
-                                    magllow = lowl1[i] + (lowl2[i] - lowl1[i]) *
-                                      angleindex2per;
-                                    maglhigh = highl1[i] + (highl2[i] - highl1[i]) *
-                                      angleindex4per;
-
-                                    magrlow = lowr1[i] + (lowr2[i] - lowr1[i]) *
-                                      angleindex2per;
-                                    magrhigh = highr1[i] + (highr2[i] - highr1[i]) *
-                                      angleindex4per;
-
-                                    /* interpolate high and low results,
-                                       use current phase */
-                                    magl = magllow +  (maglhigh - magllow) *
-                                      elevindexhighper;
-                                    phasel = currentphasel[M * irlength + i + 1];
-
-                                    /* polar to rectangular */
-                                    hrtflinterp[i] = magl * FL(cos(phasel));
-                                    hrtflinterp[i + 1] = magl * FL(sin(phasel));
-
-                                    magr = magrlow + (magrhigh - magrlow) *
-                                      elevindexhighper;
-                                    phaser = currentphaser[M * irlength + i + 1];
-
-                                    hrtfrinterp[i] = magr * FL(cos(phaser));
-                                    hrtfrinterp[i + 1] = magr * FL(sin(phaser));
-                                  }
-
-                                csound->InverseRealFFT(csound, hrtflinterp,
-                                                       irlength);
-                                csound->InverseRealFFT(csound, hrtfrinterp,
-                                                       irlength);
-
-                                /* wall filters... */
-                                /* all 4 walls are the same! (trivial to
-                                   make them different...) */
-                                /* x axis, wall1 (left) */
-                                wallreflections =
-                                  (int)abs((int)(xc * .5 - .25 +
-                                                 (0.25 * pow(-1.0, xc))));
-                                /* wall2, x (right) */
-                                wallreflections +=
-                                  (int)abs((int)(xc * .5 + .25 -
-                                                 (0.25 * pow(-1.0, xc))));
-                                /* yaxis, wall3 (bottom) */
-                                wallreflections +=
-                                  (int)abs((int)(yc * .5 - .25 +
-                                                 (0.25 * pow(-1.0, yc))));
-                                /* yaxis, wall 4 (top) */
-                                wallreflections +=
-                                  (int)abs((int)(yc * .5 + .25 -
-                                                 (0.25 * pow(-1.0, yc))));
-                                if(threed)
-                                  {
-                                    /* floor (negative z) */
-                                    floorreflections =
-                                      (int)abs((int)(zc * .5 - .25 +
-                                                     (0.25 * pow(-1.0, zc))));
-                                    /* ceiling (positive z) */
-                                    ceilingreflections =
-                                      (int)abs((int)(zc * .5 + .25
-                                                     - (0.25 * pow(-1.0, zc))));
-                                  }
-
-                                /* fixed parameters on bands etc (to limit no of
-                                   inputs), but these could trivially be variable */
-                                /* note: delay values can be reused: zeroed every
-                                   time as only used in
-                                   processing hrtf, once every irlength, so not
-                                   used continuously...*/
-                                /* if processing was continuous, would need
-                                   separate mem for each filter, store for
-                                   next run etc...*/
-                                for(i = 0; i < wallreflections; i++)
-                                  {
-                                    delsinglel = delsingler = FL(0.0);
-                                    filter(hrtflinterp, p->wallcoefhigh,
-                                           p->wallcoeflow, &delsinglel,
-                                           irlength, sr);
-                                    filter(hrtfrinterp, p->wallcoefhigh,
-                                           p->wallcoeflow, &delsingler,
-                                           irlength, sr);
-                                    deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                    band(hrtflinterp, FL(250.0), FL(250.0) / p->q, p->wallg1, deldoublel, irlength, sr);
-                                    band(hrtfrinterp, FL(250.0), FL(250.0) / p->q, p->wallg1, deldoubler, irlength, sr);
-                                    deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                    band(hrtflinterp, FL(1000.0), FL(1000.0) / p->q, p->wallg2, deldoublel, irlength, sr);
-                                    band(hrtfrinterp, FL(1000.0), FL(1000.0) / p->q, p->wallg2, deldoubler, irlength, sr);
-                                    deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                    band(hrtflinterp, FL(4000.0), FL(4000.0) / p->q, p->wallg3, deldoublel, irlength, sr);
-                                    band(hrtfrinterp, FL(4000.0), FL(4000.0) / p->q, p->wallg3, deldoubler, irlength, sr);
-                                  }
-                                if(threed)
-                                  {
-                                    for(i = 0; i < floorreflections; i++)
-                                      {
-                                        delsinglel = delsingler = FL(0.0);
-                                        filter(hrtflinterp, p->floorcoefhigh, p->floorcoeflow, &delsinglel, irlength, sr);
-                                        filter(hrtfrinterp, p->floorcoefhigh, p->floorcoeflow, &delsingler, irlength, sr);
-                                        deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                        band(hrtflinterp, FL(250.0), FL(250.0) / p->q, p->floorg1, deldoublel, irlength, sr);
-                                        band(hrtfrinterp, FL(250.0), FL(250.0) / p->q, p->floorg1, deldoubler, irlength, sr);
-                                        deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                        band(hrtflinterp, FL(1000.0), FL(1000.0) / p->q, p->floorg2, deldoublel, irlength, sr);
-                                        band(hrtfrinterp, FL(1000.0), FL(1000.0) / p->q, p->floorg2, deldoubler, irlength, sr);
-                                        deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                        band(hrtflinterp, FL(4000.0), FL(4000.0) / p->q, p->floorg3, deldoublel, irlength, sr);
-                                        band(hrtfrinterp, FL(4000.0), FL(4000.0) / p->q, p->floorg3, deldoubler, irlength, sr);
-                                      }
-                                    for(i = 0; i < ceilingreflections; i++)
-                                      {
-                                        delsinglel = delsingler = FL(0.0);
-                                        filter(hrtflinterp, p->ceilingcoefhigh, p->ceilingcoeflow, &delsinglel, irlength, sr);
-                                        filter(hrtfrinterp, p->ceilingcoefhigh, p->ceilingcoeflow, &delsingler, irlength, sr);
-                                        deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                        band(hrtflinterp, FL(250.0), FL(250.0) / p->q, p->ceilingg1, deldoublel, irlength, sr);
-                                        band(hrtfrinterp, FL(250.0), FL(250.0) / p->q, p->ceilingg1, deldoubler, irlength, sr);
-                                        deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                        band(hrtflinterp, FL(1000.0), FL(1000.0) / p->q, p->ceilingg2, deldoublel, irlength, sr);
-                                        band(hrtfrinterp, FL(1000.0), FL(1000.0) / p->q, p->ceilingg2, deldoubler, irlength, sr);
-                                        deldoublel[0] = deldoublel[1] = deldoubler[0] = deldoubler[1] = 0.0;
-                                        band(hrtflinterp, FL(4000.0), FL(4000.0) / p->q, p->ceilingg3, deldoublel, irlength, sr);
-                                        band(hrtfrinterp, FL(4000.0), FL(4000.0) / p->q, p->ceilingg3, deldoubler, irlength, sr);
-                                      }
-                                  }
-
-                                for(i = 0; i < irlength; i++)
-                                  {
-                                    hrtflpad[i] = hrtflinterp[i];
-                                    hrtfrpad[i] = hrtfrinterp[i];
-                                  }
-
-                                for(i = irlength; i < irlengthpad; i++)
-                                  {
-                                    hrtflpad[i] = FL(0.0);
-                                    hrtfrpad[i] = FL(0.0);
-                                  }
-
-                                /* back to freq domain */
-                                csound->RealFFT(csound, hrtflpad, irlengthpad);
-                                csound->RealFFT(csound, hrtfrpad, irlengthpad);
-
-                                /* store */
-                                for(i = 0; i < irlengthpad; i++)
-                                  {
-                                    hrtflpadspec[M * irlengthpad + i] = hrtflpad[i];
-                                    hrtfrpadspec[M * irlengthpad + i] = hrtfrpad[i];
-                                  }
-                              }
-                          }       /* end of source / listener relative
-                                     change process */
-
-                        /* look after overlap add */
-                        for(i = 0; i < overlapsize ; i++)
-                          {
-                            overlapl[i] = outl[M * irlengthpad + i + irlength];
-                            overlapr[i] = outr[M * irlengthpad + i + irlength];
-                            if(crossfade)
-                              {
-                                overlaplold[i] =
-                                  outl[M * irlengthpad + i + irlength];
-                                overlaprold[i] =
-                                  outr[M * irlengthpad + i + irlength];
-                              }
-                            /* overlap will be previous fading out signal */
-                            if(cross[M])
-                              {
-                                overlaplold[i] =
-                                  outlold[M * irlengthpad + i + irlength];
-                                overlaprold[i] =
-                                  outrold[M * irlengthpad + i + irlength];
-                              }
-                          }
-
-                        /* insert insig */
-                        for (i = 0; i <  irlength; i++)
-                          inbufpad[i] = inbuf[i];
-
-                        for (i = irlength; i <  irlengthpad; i++)
-                          inbufpad[i] = FL(0.0);
-
-                        csound->RealFFT(csound, inbufpad, irlengthpad);
-
-                        for(i = 0; i < irlengthpad; i ++)
-                          {
-                            hrtflpad[i] = hrtflpadspec[M * irlengthpad + i];
-                            hrtfrpad[i] = hrtfrpadspec[M * irlengthpad + i];
-                          }
-
-                        /* convolution: spectral multiplication */
-                        csound->RealFFTMult(csound, outlspec, hrtflpad,
-                                            inbufpad, irlengthpad, FL(1.0));
-                        csound->RealFFTMult(csound, outrspec, hrtfrpad,
-                                            inbufpad, irlengthpad, FL(1.0));
-
-                        csound->InverseRealFFT(csound, outlspec, irlengthpad);
-                        csound->InverseRealFFT(csound, outrspec, irlengthpad);
-
-                        /* scale */
-                        for(i = 0; i < irlengthpad; i++)
-                          {
-                            outlspec[i] = outlspec[i]/(sr/FL(38000.0));
-                            outrspec[i] = outrspec[i]/(sr/FL(38000.0));
-                          }
-
-                        /* store */
-                        for(i = 0; i < irlengthpad; i++)
-                          {
-                            outl[M * irlengthpad + i] = outlspec[i];
-                            outr[M * irlengthpad + i] = outrspec[i];
-                          }
-
-                        /* setup for fades */
-                        if(crossfade || cross[M])
-                          {
-                            crossout = 1;
-
-                            /* need to put these values into a buffer for processing */
-                            for(i = 0; i < irlengthpad; i++)
-                              {
-                                hrtflpadold[i] =
-                                  hrtflpadspecold[M * irlengthpad + i];
-                                hrtfrpadold[i] =
-                                  hrtfrpadspecold[M * irlengthpad + i];
-                              }
-
-                            /* convolution */
-                            csound->RealFFTMult(csound, outlspecold, hrtflpadold,
-                                                inbufpad, irlengthpad, FL(1.0));
-                            csound->RealFFTMult(csound, outrspecold, hrtfrpadold,
-                                                inbufpad, irlengthpad, FL(1.0));
-
-                            /* ifft, back to time domain */
-                            csound->InverseRealFFT(csound, outlspecold,
-                                                   irlengthpad);
-                            csound->InverseRealFFT(csound, outrspecold,
-                                                   irlengthpad);
-
-                            /* scale */
-                            for(i = 0; i < irlengthpad; i++)
-                              {
-                                outlspecold[i] = outlspecold[i]/(sr/FL(38000.0));
-                                outrspecold[i] = outrspecold[i]/(sr/FL(38000.0));
-                              }
-
-                            /* o/p real values */
-                            for(i = 0; i < irlengthpad; i++)
-                              {
-                                outlold[M * irlengthpad + i] = outlspecold[i];
-                                outrold[M * irlengthpad + i] = outrspecold[i];
-                              }
-
-                            cross[M]++;
-                            cross[M] = cross[M] % fade;
-                          }
-
-                        if(crossout)
-                          for(i = 0; i < irlength; i++)
-                            {
-                              predell[i + M * irlength] =
-                                (outlspecold[i] +
-                                 (i < overlapsize ? overlaplold[i] : FL(0.0))) *
-                                FL(1. - (FL(l[M]) / fadebuffer)) +
-                                (outlspec[i] +
-                                 (i < overlapsize ? overlapl[i] : FL(0.0))) *
-                                (FL(l[M]) / fadebuffer);
-                              predelr[i + M * irlength] =
-                                (outrspecold[i] +
-                                 (i < overlapsize ? overlaprold[i] : FL(0.0))) *
-                                FL(1. - (FL(l[M]) / fadebuffer)) +
-                                (outrspec[i] +
-                                 (i < overlapsize ? overlapr[i] : FL(0.0))) *
-                                (FL(l[M]) / fadebuffer);
-                              l[M]++;
-                            }
-                        else
-                          for(i = 0; i < irlength; i++)
-                            {
-                              predell[i + M * irlength] =
-                                outlspec[i] +
-                                (i < overlapsize ? overlapl[i] : FL(0.0));
-                              predelr[i + M * irlength] =
-                                outrspec[i] +
-                                (i < overlapsize ? overlapr[i] : FL(0.0));
-                            }
-
-                        M++;
-                        M = M % impulses;
-
-                      } /* z */
-                  } /* y */
-              } /* x */
-
-            counter = 0;
-            /* need to store these values here, as storing them after check
-               would not allow each impulse to be processed! */
-            p->srcxv = srcx;
-            p->srcyv = srcy;
-            p->srczv = srcz;
-            p->lstnrxv = lstnrx;
-            p->lstnryv = lstnry;
-            p->lstnrzv = lstnrz;
-            p->rotatev = rotate;
-
-          }       /* end of counter == irlength */
-
-        /* update */
-        p->counter = counter;
-        p->initialfade = initialfade;
-
-      } /* end of ksmps loop */
+                      /* reset l */
+                      l[M] = 0;
+                      crossfade = 1;
+                      for (i = 0; i < irlengthpad; i++) {
+                        hrtflpadspecold[irlengthpad * M + i] =
+                          hrtflpadspec[irlengthpad * M + i];
+                        hrtfrpadspecold[irlengthpad * M + i] =
+                          hrtfrpadspec[irlengthpad * M + i];
+                      }
+                    }
+
+                    skip = 0;
+                    /* store current phase */
+                    if (angleindex > elevationarray[elevindex] / 2) {
+                      for (i = 0; i < elevindex; i ++)
+                        skip +=((int)(elevationarray[i] / 2)
+                                + 1) * irlength;
+                      for (i = 0;
+                           i < (elevationarray[elevindex] -
+                                angleindex);
+                           i++)
+                        skip += irlength;
+                      for (i = 0; i < irlength; i++) {
+                        currentphasel[irlength * M + i] =
+                          fpindexr[skip + i];
+                        currentphaser[irlength * M + i] =
+                          fpindexl[skip + i];
+                      }
+                    }
+                    else {
+                      for (i = 0; i < elevindex; i ++)
+                        skip +=((int)(elevationarray[i] / 2)
+                                + 1) * irlength;
+                      for (i = 0; i < angleindex; i++)
+                        skip += irlength;
+                      for (i = 0; i < irlength; i++) {
+                        currentphasel[irlength * M + i] =
+                          fpindexl[skip+i];
+                        currentphaser[irlength * M + i] =
+                          fpindexr[skip+i];
+                      }
+                    }
+                  }
+
+                  /* for next check */
+                  oldelevindex[M] = elevindex;
+                  oldangleindex[M] = angleindex;
+
+                  /* read 4 nearest HRTFs */
+                  /* switch l and r */
+                  skip = 0;
+                  if (angleindex1 > elevationarray[elevindexlow] / 2) {
+                    for (i = 0; i < elevindexlow; i ++)
+                      skip +=((int)(elevationarray[i] / 2)
+                              + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexlow] -
+                              angleindex1);
+                         i++)
+                      skip += irlength;
+                    for (i = 0; i < irlength; i++) {
+                      lowl1[i] = fpindexr[skip+i];
+                      lowr1[i] = fpindexl[skip+i];
+                    }
+                  }
+                  else {
+                    for (i = 0; i < elevindexlow; i ++)
+                      skip +=((int)(elevationarray[i] / 2)
+                              + 1) * irlength;
+                    for (i = 0; i < angleindex1; i++)
+                      skip += irlength;
+                    for (i = 0; i < irlength; i++) {
+                      lowl1[i] = fpindexl[skip+i];
+                      lowr1[i] = fpindexr[skip+i];
+                    }
+                  }
+
+                  skip = 0;
+                  if (angleindex2 > elevationarray[elevindexlow] / 2) {
+                    for (i = 0; i < elevindexlow; i ++)
+                      skip +=((int)(elevationarray[i] / 2)
+                              + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexlow] -
+                              angleindex2);
+                         i++)
+                      skip += irlength;
+                    for (i = 0; i < irlength; i++) {
+                      lowl2[i] = fpindexr[skip+i];
+                      lowr2[i] = fpindexl[skip+i];
+                    }
+                  }
+                  else {
+                    for (i = 0; i < elevindexlow; i ++)
+                      skip +=((int)(elevationarray[i] / 2)
+                              + 1) * irlength;
+                    for (i = 0; i < angleindex2; i++)
+                      skip += irlength;
+                    for (i = 0; i < irlength; i++) {
+                      lowl2[i] = fpindexl[skip+i];
+                      lowr2[i] = fpindexr[skip+i];
+                    }
+                  }
+
+                  skip = 0;
+                  if (angleindex3 > elevationarray[elevindexhigh] / 2) {
+                    for (i = 0; i < elevindexhigh; i ++)
+                      skip +=((int)(elevationarray[i] / 2)
+                              + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexhigh] -
+                              angleindex3);
+                         i++)
+                      skip += irlength;
+                    for (i = 0; i < irlength; i++) {
+                      highl1[i] = fpindexr[skip+i];
+                      highr1[i] = fpindexl[skip+i];
+                    }
+                  }
+                  else {
+                    for (i = 0; i < elevindexhigh; i ++)
+                      skip +=((int)(elevationarray[i] / 2)
+                              + 1) * irlength;
+                    for (i = 0; i < angleindex3; i++)
+                      skip += irlength;
+                    for (i = 0; i < irlength; i++) {
+                      highl1[i] = fpindexl[skip+i];
+                      highr1[i] = fpindexr[skip+i];
+                    }
+                  }
+
+                  skip = 0;
+                  if (angleindex4 > elevationarray[elevindexhigh] / 2) {
+                    for (i = 0; i < elevindexhigh; i ++)
+                      skip +=((int)(elevationarray[i] / 2)
+                              + 1) * irlength;
+                    for (i = 0;
+                         i < (elevationarray[elevindexhigh] -
+                              angleindex4);
+                         i++)
+                      skip += irlength;
+                    for (i = 0; i < irlength; i++) {
+                      highl2[i] = fpindexr[skip+i];
+                      highr2[i] = fpindexl[skip+i];
+                    }
+                  }
+                  else {
+                    for (i = 0; i < elevindexhigh; i ++)
+                      skip +=((int)(elevationarray[i] / 2)
+                              + 1) * irlength;
+                    for (i = 0; i < angleindex4; i++)
+                      skip += irlength;
+                    for (i = 0; i < irlength; i++) {
+                      highl2[i] = fpindexl[skip+i];
+                      highr2[i] = fpindexr[skip+i];
+                    }
+                  }
+
+                  /* magnitude interpolation */
+                  /* 0hz and Nyq */
+                  magllow = (FABS(lowl1[0])) +
+                    ((FABS(lowl2[0]) - FABS(lowl1[0]))) *
+                    angleindex2per;
+                  maglhigh = (FABS(highl1[0])) +
+                    ((FABS(highl2[0]) - FABS(highl1[0]))) *
+                    angleindex4per;
+                  magrlow = (FABS(lowr1[0])) +
+                    ((FABS(lowr2[0]) - FABS(lowr1[0]))) *
+                    angleindex2per;
+                  magrhigh = (FABS(highr1[0])) +
+                    ((FABS(highr2[0]) - FABS(highr1[0]))) *
+                    angleindex4per;
+                  magl = magllow + (maglhigh - magllow) *
+                    elevindexhighper;
+                  magr = magrlow + (magrhigh - magrlow) *
+                    elevindexhighper;
+                  if (currentphasel[M * irlength] < FL(0.0))
+                    hrtflinterp[0] = - magl;
+                  else
+                    hrtflinterp[0] = magl;
+                  if (currentphaser[M * irlength] < FL(0.0))
+                    hrtfrinterp[0] = - magr;
+                  else
+                    hrtfrinterp[0] = magr;
+
+                  magllow = (FABS(lowl1[1])) +
+                    ((FABS(lowl2[1]) - FABS(lowl1[1]))) *
+                    angleindex2per;
+                  maglhigh = (FABS(highl1[1]))
+                    + ((FABS(highl2[1]) - FABS(highl1[1]))) *
+                    angleindex4per;
+                  magrlow = (FABS(lowr1[1])) +
+                    ((FABS(lowr2[1]) - FABS(lowr1[1]))) *
+                    angleindex2per;
+                  magrhigh = (FABS(highr1[1])) +
+                    ((FABS(highr2[1]) - FABS(highr1[1]))) *
+                    angleindex4per;
+                  magl = magllow + (maglhigh - magllow) *
+                    elevindexhighper;
+                  magr = magrlow + (magrhigh - magrlow) *
+                    elevindexhighper;
+                  if (currentphasel[M * irlength + 1] < FL(0.0))
+                    hrtflinterp[1] = - magl;
+                  else
+                    hrtflinterp[1] = magl;
+                  if (currentphaser[M * irlength + 1] < FL(0.0))
+                    hrtfrinterp[1] = - magr;
+                  else
+                    hrtfrinterp[1] = magr;
+
+                  /* other values are complex, in fftw format */
+                  for (i = 2; i < irlength; i += 2) {
+                    /* interpolate high and low magnitudes */
+                    magllow = lowl1[i] + (lowl2[i] - lowl1[i]) *
+                      angleindex2per;
+                    maglhigh = highl1[i] + (highl2[i] - highl1[i]) *
+                      angleindex4per;
+
+                    magrlow = lowr1[i] + (lowr2[i] - lowr1[i]) *
+                      angleindex2per;
+                    magrhigh = highr1[i] + (highr2[i] - highr1[i]) *
+                      angleindex4per;
+
+                    /* interpolate high and low results,
+                       use current phase */
+                    magl = magllow +  (maglhigh - magllow) *
+                      elevindexhighper;
+                    phasel = currentphasel[M * irlength + i + 1];
+
+                    /* polar to rectangular */
+                    hrtflinterp[i] = magl * FL(cos(phasel));
+                    hrtflinterp[i + 1] = magl * FL(sin(phasel));
+
+                    magr = magrlow + (magrhigh - magrlow) *
+                      elevindexhighper;
+                    phaser = currentphaser[M * irlength + i + 1];
+
+                    hrtfrinterp[i] = magr * FL(cos(phaser));
+                    hrtfrinterp[i + 1] = magr * FL(sin(phaser));
+                  }
+
+                  csound->InverseRealFFT(csound, hrtflinterp,
+                                         irlength);
+                  csound->InverseRealFFT(csound, hrtfrinterp,
+                                         irlength);
+
+                  /* wall filters... */
+                  /* all 4 walls are the same! (trivial to
+                     make them different...) */
+                  /* x axis, wall1 (left) */
+                  wallreflections =
+                    (int)abs((int)(xc * .5 - .25 +
+                                   (0.25 * pow(-1.0, xc))));
+                  /* wall2, x (right) */
+                  wallreflections +=
+                    (int)abs((int)(xc * .5 + .25 -
+                                   (0.25 * pow(-1.0, xc))));
+                  /* yaxis, wall3 (bottom) */
+                  wallreflections +=
+                    (int)abs((int)(yc * .5 - .25 +
+                                   (0.25 * pow(-1.0, yc))));
+                  /* yaxis, wall 4 (top) */
+                  wallreflections +=
+                    (int)abs((int)(yc * .5 + .25 -
+                                   (0.25 * pow(-1.0, yc))));
+                  if (threed) {
+                    /* floor (negative z) */
+                    floorreflections =
+                      (int)abs((int)(zc * .5 - .25 +
+                                     (0.25 * pow(-1.0, zc))));
+                    /* ceiling (positive z) */
+                    ceilingreflections =
+                      (int)abs((int)(zc * .5 + .25
+                                     - (0.25 * pow(-1.0, zc))));
+                  }
+
+                  /* fixed parameters on bands etc (to limit no of
+                     inputs), but these could trivially be variable */
+                  /* note: delay values can be reused: zeroed every
+                     time as only used in
+                     processing hrtf, once every irlength, so not
+                     used continuously...*/
+                  /* if processing was continuous, would need
+                     separate mem for each filter, store for
+                     next run etc...*/
+                  for (i = 0; i < wallreflections; i++) {
+                    delsinglel = delsingler = FL(0.0);
+                    filter(hrtflinterp, p->wallcoefhigh,
+                           p->wallcoeflow, &delsinglel,
+                           irlength, sr);
+                    filter(hrtfrinterp, p->wallcoefhigh,
+                           p->wallcoeflow, &delsingler,
+                           irlength, sr);
+                    deldoublel[0] = deldoublel[1] = 
+                      deldoubler[0] = deldoubler[1] = 0.0;
+                    band(hrtflinterp, FL(250.0), FL(250.0) / p->q,
+                         p->wallg1, deldoublel, irlength, sr);
+                    band(hrtfrinterp, FL(250.0), FL(250.0) / p->q,
+                         p->wallg1, deldoubler, irlength, sr);
+                    deldoublel[0] = deldoublel[1] = 
+                      deldoubler[0] = deldoubler[1] = 0.0;
+                    band(hrtflinterp, FL(1000.0), 
+                         FL(1000.0) / p->q, p->wallg2, 
+                         deldoublel, irlength, sr);
+                    band(hrtfrinterp, FL(1000.0), 
+                         FL(1000.0) / p->q, p->wallg2, 
+                         deldoubler, irlength, sr);
+                    deldoublel[0] = deldoublel[1] =
+                      deldoubler[0] = deldoubler[1] = 0.0;
+                    band(hrtflinterp, FL(4000.0),
+                         FL(4000.0) / p->q, p->wallg3,
+                         deldoublel, irlength, sr);
+                    band(hrtfrinterp, FL(4000.0),
+                         FL(4000.0) / p->q, p->wallg3,
+                         deldoubler, irlength, sr);
+                  }
+                  if (threed) {
+                    for (i = 0; i < floorreflections; i++) {
+                      delsinglel = delsingler = FL(0.0);
+                      filter(hrtflinterp, p->floorcoefhigh,
+                             p->floorcoeflow, &delsinglel,
+                             irlength, sr);
+                      filter(hrtfrinterp, p->floorcoefhigh, p->floorcoeflow,
+                             &delsingler, irlength, sr);
+                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
+                        deldoubler[1] = 0.0;
+                      band(hrtflinterp, FL(250.0), FL(250.0) / p->q, p->floorg1,
+                           deldoublel, irlength, sr);
+                      band(hrtfrinterp, FL(250.0), FL(250.0) / p->q, p->floorg1,
+                           deldoubler, irlength, sr);
+                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
+                        deldoubler[1] = 0.0;
+                      band(hrtflinterp, FL(1000.0), FL(1000.0) / p->q, p->floorg2,
+                           deldoublel, irlength, sr);
+                      band(hrtfrinterp, FL(1000.0), FL(1000.0) / p->q, p->floorg2,
+                           deldoubler, irlength, sr);
+                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
+                        deldoubler[1] = 0.0;
+                      band(hrtflinterp, FL(4000.0), FL(4000.0) / p->q, p->floorg3,
+                           deldoublel, irlength, sr);
+                      band(hrtfrinterp, FL(4000.0), FL(4000.0) / p->q, p->floorg3,
+                           deldoubler, irlength, sr);
+                    }
+                    for (i = 0; i < ceilingreflections; i++) {
+                      delsinglel = delsingler = FL(0.0);
+                      filter(hrtflinterp, p->ceilingcoefhigh, p->ceilingcoeflow,
+                             &delsinglel, irlength, sr);
+                      filter(hrtfrinterp, p->ceilingcoefhigh, p->ceilingcoeflow,
+                             &delsingler, irlength, sr);
+                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
+                        deldoubler[1] = 0.0;
+                      band(hrtflinterp, FL(250.0), FL(250.0) / p->q, p->ceilingg1,
+                           deldoublel, irlength, sr);
+                      band(hrtfrinterp, FL(250.0), FL(250.0) / p->q, p->ceilingg1,
+                           deldoubler, irlength, sr);
+                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
+                        deldoubler[1] = 0.0;
+                      band(hrtflinterp, FL(1000.0), FL(1000.0) / p->q,
+                           p->ceilingg2, deldoublel, irlength, sr);
+                      band(hrtfrinterp, FL(1000.0), FL(1000.0) / p->q,
+                           p->ceilingg2, deldoubler, irlength, sr);
+                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
+                        deldoubler[1] = 0.0;
+                      band(hrtflinterp, FL(4000.0), FL(4000.0) / p->q,
+                           p->ceilingg3, deldoublel, irlength, sr);
+                      band(hrtfrinterp, FL(4000.0), FL(4000.0) / p->q,
+                           p->ceilingg3, deldoubler, irlength, sr);
+                    }
+                  }
+
+                  for (i = 0; i < irlength; i++) {
+                    hrtflpad[i] = hrtflinterp[i];
+                    hrtfrpad[i] = hrtfrinterp[i];
+                  }
+
+                  for (i = irlength; i < irlengthpad; i++) {
+                    hrtflpad[i] = FL(0.0);
+                    hrtfrpad[i] = FL(0.0);
+                  }
+
+                  /* back to freq domain */
+                  csound->RealFFT(csound, hrtflpad, irlengthpad);
+                  csound->RealFFT(csound, hrtfrpad, irlengthpad);
+
+                  /* store */
+                  for (i = 0; i < irlengthpad; i++) {
+                    hrtflpadspec[M * irlengthpad + i] = hrtflpad[i];
+                    hrtfrpadspec[M * irlengthpad + i] = hrtfrpad[i];
+                  }
+                }
+              }       /* end of source / listener relative
+                         change process */
+
+              /* look after overlap add */
+              for (i = 0; i < overlapsize ; i++) {
+                overlapl[i] = outl[M * irlengthpad + i + irlength];
+                overlapr[i] = outr[M * irlengthpad + i + irlength];
+                if (crossfade) {
+                  overlaplold[i] =
+                    outl[M * irlengthpad + i + irlength];
+                  overlaprold[i] =
+                    outr[M * irlengthpad + i + irlength];
+                }
+                /* overlap will be previous fading out signal */
+                if (cross[M]) {
+                  overlaplold[i] =
+                    outlold[M * irlengthpad + i + irlength];
+                  overlaprold[i] =
+                    outrold[M * irlengthpad + i + irlength];
+                }
+              }
+
+              /* insert insig */
+              for (i = 0; i <  irlength; i++)
+                inbufpad[i] = inbuf[i];
+
+              for (i = irlength; i <  irlengthpad; i++)
+                inbufpad[i] = FL(0.0);
+
+              csound->RealFFT(csound, inbufpad, irlengthpad);
+
+              for (i = 0; i < irlengthpad; i ++) {
+                hrtflpad[i] = hrtflpadspec[M * irlengthpad + i];
+                hrtfrpad[i] = hrtfrpadspec[M * irlengthpad + i];
+              }
+
+              /* convolution: spectral multiplication */
+              csound->RealFFTMult(csound, outlspec, hrtflpad,
+                                  inbufpad, irlengthpad, FL(1.0));
+              csound->RealFFTMult(csound, outrspec, hrtfrpad,
+                                  inbufpad, irlengthpad, FL(1.0));
+
+              csound->InverseRealFFT(csound, outlspec, irlengthpad);
+              csound->InverseRealFFT(csound, outrspec, irlengthpad);
+
+              /* scale */
+              for (i = 0; i < irlengthpad; i++) {
+                outlspec[i] = outlspec[i]/(sr/FL(38000.0));
+                outrspec[i] = outrspec[i]/(sr/FL(38000.0));
+              }
+
+              /* store */
+              for (i = 0; i < irlengthpad; i++) {
+                outl[M * irlengthpad + i] = outlspec[i];
+                outr[M * irlengthpad + i] = outrspec[i];
+              }
+
+              /* setup for fades */
+              if (crossfade || cross[M]) {
+                crossout = 1;
+
+                /* need to put these values into a buffer for processing */
+                for (i = 0; i < irlengthpad; i++) {
+                  hrtflpadold[i] =
+                    hrtflpadspecold[M * irlengthpad + i];
+                  hrtfrpadold[i] =
+                    hrtfrpadspecold[M * irlengthpad + i];
+                }
+
+                /* convolution */
+                csound->RealFFTMult(csound, outlspecold, hrtflpadold,
+                                    inbufpad, irlengthpad, FL(1.0));
+                csound->RealFFTMult(csound, outrspecold, hrtfrpadold,
+                                    inbufpad, irlengthpad, FL(1.0));
+
+                /* ifft, back to time domain */
+                csound->InverseRealFFT(csound, outlspecold,
+                                       irlengthpad);
+                csound->InverseRealFFT(csound, outrspecold,
+                                       irlengthpad);
+
+                /* scale */
+                for (i = 0; i < irlengthpad; i++) {
+                  outlspecold[i] = outlspecold[i]/(sr/FL(38000.0));
+                  outrspecold[i] = outrspecold[i]/(sr/FL(38000.0));
+                }
+
+                /* o/p real values */
+                for (i = 0; i < irlengthpad; i++) {
+                  outlold[M * irlengthpad + i] = outlspecold[i];
+                  outrold[M * irlengthpad + i] = outrspecold[i];
+                }
+
+                cross[M]++;
+                cross[M] = cross[M] % fade;
+              }
+
+              if (crossout)
+                for (i = 0; i < irlength; i++) {
+                  predell[i + M * irlength] =
+                    (outlspecold[i] +
+                     (i < overlapsize ? overlaplold[i] : FL(0.0))) *
+                    FL(1. - (FL(l[M]) / fadebuffer)) +
+                    (outlspec[i] +
+                     (i < overlapsize ? overlapl[i] : FL(0.0))) *
+                    (FL(l[M]) / fadebuffer);
+                  predelr[i + M * irlength] =
+                    (outrspecold[i] +
+                     (i < overlapsize ? overlaprold[i] : FL(0.0))) *
+                    FL(1. - (FL(l[M]) / fadebuffer)) +
+                    (outrspec[i] +
+                     (i < overlapsize ? overlapr[i] : FL(0.0))) *
+                    (FL(l[M]) / fadebuffer);
+                  l[M]++;
+                }
+              else
+                for (i = 0; i < irlength; i++) {
+                  predell[i + M * irlength] =
+                    outlspec[i] +
+                    (i < overlapsize ? overlapl[i] : FL(0.0));
+                  predelr[i + M * irlength] =
+                    outrspec[i] +
+                    (i < overlapsize ? overlapr[i] : FL(0.0));
+                }
+
+              M++;
+              M = M % impulses;
+
+            } /* z */
+          } /* y */
+        } /* x */
+
+        counter = 0;
+        /* need to store these values here, as storing them after check
+           would not allow each impulse to be processed! */
+        p->srcxv = srcx;
+        p->srcyv = srcy;
+        p->srczv = srcz;
+        p->lstnrxv = lstnrx;
+        p->lstnryv = lstnry;
+        p->lstnrzv = lstnrz;
+        p->rotatev = rotate;
+
+      }       /* end of counter == irlength */
+
+      /* update */
+      p->counter = counter;
+      p->initialfade = initialfade;
+
+    } /* end of ksmps loop */
 
     return OK;
 }
 
 static OENTRY hrtfearly_localops[] =
-{
   {
-    "hrtfearly",   sizeof(early), 5, "aaiii", "axxxxxxSSioopoOoooooooooooooooooo",
-    (SUBR)early_init, NULL, (SUBR)early_process
-  }
-};
+    {
+      "hrtfearly",   sizeof(early), 5, "aaiii", "axxxxxxSSioopoOoooooooooooooooooo",
+      (SUBR)early_init, NULL, (SUBR)early_process
+    }
+  };
 
 LINKAGE1(hrtfearly_localops)

@@ -36,7 +36,8 @@ int csoundAddUtility(CSOUND *csound, const char *name,
                                      int (*UtilFunc)(CSOUND*, int, char**))
 {
     csUtility_t *p;
-    /* csound->Message(csound, "csoundAddUtility: name: %s  function: 0x%p\n", name, UtilFunc); */
+    /* csound->Message(csound, "csoundAddUtility: name: %s  function: 0x%p\n", 
+                       name, UtilFunc); */
     if (csound == NULL || name == NULL || name[0] == '\0' || UtilFunc == NULL)
       return -1;
     p = (csUtility_t*) csound->utility_db;

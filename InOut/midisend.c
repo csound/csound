@@ -44,7 +44,8 @@ static const unsigned char midiOutFile_header[25] = {
     0x00, 0x00, 0x00, 0x06,     /* header length                */
     0x00, 0x00,                 /* file type                    */
     0x00, 0x01,                 /* number of tracks             */
-    0x19, 0x78,                 /* tick time (1/25 sec / 120), VL this was 0xE7, which was wrong, changed to 0x19 0x78*/
+    0x19, 0x78,                 /* tick time (1/25 sec / 120),  */
+      /*VL this was 0xE7, which was wrong, changed to 0x19 0x78 */
     0x4D, 0x54, 0x72, 0x6B,     /* "MTrk"                       */
     0x00, 0x00, 0x00, 0x00,     /* track length (updated later) */
     /* -------------------------------------------------------- */
@@ -67,7 +68,8 @@ static CS_NOINLINE void
     s = csound->icurTime/csound->esr;
     if (csound->ids == NULL && csound->pds != NULL)
       s -= csound->ksmps/csound->esr;
-    s *=  13040.;  /* VL NOV 11: this was 3000.0, which was wrong; 13040.0 was arrived at by experimentation */
+    s *=  13040.;  /* VL NOV 11: this was 3000.0, which was wrong; 
+                      13040.0 was arrived at by experimentation */
 #ifdef HAVE_C99
     t = (unsigned int) lrint(s);
 #else

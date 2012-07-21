@@ -79,7 +79,8 @@ static int compress(CSOUND *csound, CMPRS *p)
     MYFLT       *ar, *ainp, *cinp;
     int32        nsmps = csound->ksmps;
     int         n;
-    MYFLT scal = 32768./csound->e0dbfs;  /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
+    /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
+    MYFLT scal = 32768./csound->e0dbfs; 
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
