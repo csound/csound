@@ -276,9 +276,12 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     else frameIncr = frameSize/ovlp;
 
     if (ovlp < 2 || ovlp > 64) {
-      csound->Message(csound, Str("WARNING: pvanal: %d might be a bad window overlap index\n"),
-                              (int) ovlp);
-      /* return -1; */ /* VL: removed this restriction, which sounds a bit drastic */
+      csound->Message(csound, 
+                      Str("WARNING: pvanal: %d might be a bad window "
+                          "overlap index\n"),
+                      (int) ovlp);
+      /* return -1; */
+      /* VL: removed this restriction, which sounds a bit drastic */
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
     csound->Message(csound, Str("%ld infrsize, %ld infrInc\n"),

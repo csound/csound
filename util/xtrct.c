@@ -67,7 +67,8 @@ static void usage(CSOUND *csound, char *mesg, ...)
     csound->Message(csound, "Legal flags are:\n");
     csound->Message(csound,Str("-o fname\tsound output filename\n"));
     csound->Message(csound,Str("-N\t\tnotify (ring the bell) when done\n"));
-    csound->Message(csound,Str("-S integer\tsample number at which to start file\n"));
+    csound->Message(csound,Str("-S integer\tsample number at which"
+                               " to start file\n"));
     csound->Message(csound,Str("-Z integer\tsample number at which to end file\n"));
     csound->Message(csound,Str("-Q integer\tnumber of samples to read\n"));
 
@@ -266,7 +267,8 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     else if (xtrc.numsamps < 0) xtrc.numsamps =xtrc. p->getframes - xtrc.sample;
 
     if (xtrc.sample<0) xtrc.sample = 0;
-    csound->Message(csound,Str("Extracting from sample %ld for %ld samples (%.5f secs)\n"),
+    csound->Message(csound,
+                    Str("Extracting from sample %ld for %ld samples (%.5f secs)\n"),
                     xtrc.sample, xtrc.numsamps, (MYFLT)xtrc.numsamps/xtrc.p->sr);
 
     xtrc.outputs = xtrc.p->nchanls;

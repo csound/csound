@@ -370,7 +370,8 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 /* UDO code below was from otran, broken out and modified for new parser by
  * SYY
  */
-/* VL -- I have made the modifications below to allow for f-sigs & t-sigs and on line 224 and 238*/
+/* VL -- I have made the modifications below to allow for f-sigs & 
+         t-sigs and on line 224 and 238*/
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
 static int parse_opcode_args(CSOUND *csound, OENTRY *opc)

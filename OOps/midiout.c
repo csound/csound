@@ -308,7 +308,9 @@ int out_controller (CSOUND *csound, OUT_CONTR *p)
       value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
       value = (value < 128) ?  value : 127;
       value = (value > -1) ?  value : 0;
-      if (value != p->last_value || *p->chn != p->lastchn || *p->num != p->lastctrl) {
+      if (value != p->last_value ||
+          *p->chn != p->lastchn ||
+          *p->num != p->lastctrl) {
         /* csound->Message(csound, "out contr value: %d\n", value); */
         control_change(csound, (int)*p->chn-1,(int)*p->num ,value);
         p->last_value = value;
@@ -344,7 +346,9 @@ int out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
     value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
     value = value < 128 ?  value : 127;
     value = value > -1  ?  value : 0;
-    if (value != p->last_value  || *p->chn != p->lastchn || *p->num != p->lastctrl) {
+    if (value != p->last_value ||
+        *p->chn != p->lastchn  ||
+        *p->num != p->lastctrl) {
       poly_after_touch(csound, (int)*p->chn-1, (int)*p->num, value);
       p->last_value = value;
       p->lastchn = *p->chn;
@@ -383,7 +387,9 @@ int out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
       value = (value < 16384) ?  value : 16383;
       value = (value > -1) ?  value : 0;
 
-      if (value != p->last_value  || *p->chn != p->lastchn || *p->msb_num != p->lastctrl) {
+      if (value != p->last_value  ||
+          *p->chn != p->lastchn   ||
+          *p->msb_num != p->lastctrl) {
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
         csound->Warning(csound, Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);

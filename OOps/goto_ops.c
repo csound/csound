@@ -195,7 +195,8 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
     ip = &(csound->actanchor);
     ip2 = NULL;
 /*     if ((mode & 4) && !ip->p1){ */
-/*       return csoundPerfError(csound, Str("turnoff2: invalid instrument number")); */
+/*       return csoundPerfError(csound, */
+/*                              Str("turnoff2: invalid instrument number")); */
 /*     }   */
     while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
     if (ip == NULL)

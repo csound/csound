@@ -5,7 +5,7 @@
 
 static EVENT buf;
 
-EVLIST * lcreat(int nslots)                /* allocate array of event pointer slots */
+EVLIST * lcreat(int nslots) /* allocate array of event pointer slots */
 {
     EVLIST *a;
 

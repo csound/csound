@@ -110,11 +110,14 @@ int set_scheduler_priority(CSOUND *csound, int priority)
     memset(&p, 0, sizeof(struct sched_param));
     if (priority < -20 || priority > sched_get_priority_max(SCHED_RR)) {
       csound->Message(csound,
-                      Str("--scheduler: invalid priority value; the allowed range is:"));
+                      Str("--scheduler: invalid priority value; "
+                          "the allowed range is:"));
       csound->Message(csound,Str("  -20 to -1: set nice level"));
-      csound->Message(csound,Str("          0: normal scheduling, but lock memory"));
-      csound->Message(csound,Str("    1 to %d: SCHED_RR with the specified priority "
-                                 "(DANGEROUS)"), sched_get_priority_max(SCHED_RR));
+      csound->Message(csound,Str("          0: normal scheduling, "
+                                 "but lock memory"));
+      csound->Message(csound,Str("    1 to %d: SCHED_RR with the specified "
+                                 "priority (DANGEROUS)"), 
+                      sched_get_priority_max(SCHED_RR));
             return -1;
        }
     /* set scheduling policy and priority */
