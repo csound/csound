@@ -1,3 +1,6 @@
+#ifndef __PARSE_PARAM_H
+#define __PARSE_PARAM_H
+
 #define MARGS   (3)
 #define MAX_INCLUDE_DEPTH 100
 struct MACRO;
@@ -55,3 +58,6 @@ void    cs_init_omacros(CSOUND*, PRE_PARM*, NAMES*);
 
 uint32_t make_location(PRE_PARM *);
 extern uint8_t file_to_int(CSOUND*, char*);
+
+
+#endif
