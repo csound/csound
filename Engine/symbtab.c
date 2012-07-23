@@ -27,7 +27,7 @@
 #include <string.h>
 #include "csoundCore.h"
 #include "tok.h"
-#include "csound_orcparse.h"
+#include "csound_orc.h"
 #include "insert.h"
 #include "namedins.h"
 #include "interlocks.h"

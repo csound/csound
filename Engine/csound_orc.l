@@ -31,9 +31,7 @@
 #include "csoundCore.h"
 #define YYSTYPE TREE*
 #define YYLTYPE ORCTOKEN*
-#include "tok.h"
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
-#include "csound_orcparse.h"
 #include "csound_orc.h"
 #include "corfile.h"
 YYSTYPE *yylval_param;

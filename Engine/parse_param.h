@@ -57,7 +57,6 @@ void    cs_init_math_constants_macros(CSOUND*, PRE_PARM*);
 void    cs_init_omacros(CSOUND*, PRE_PARM*, NAMES*);
 
 uint32_t make_location(PRE_PARM *);
-extern uint8_t file_to_int(CSOUND*, char*);
-
+extern uint8_t file_to_int(CSOUND*, const char*);
 
 #endif
