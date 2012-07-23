@@ -1,6 +1,8 @@
 #ifndef __CSOUND_ORC_H
 
 #define __CSOUND_ORC_H
+#include "parse_param.h"
+#include "tok.h"
 #include "csound_orcparse.h"
 #include "csoundCore.h"
 
