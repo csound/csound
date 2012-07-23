@@ -48,8 +48,8 @@ extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
 extern  uintptr_t  kperfThread(void * cs);
-extern void cs_init_math_constants_macros(CSOUND *csound,void *yyscanner);
-extern void cs_init_omacros(CSOUND *csound, NAMES *nn);
+extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
+extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
 
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {

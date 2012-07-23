@@ -24,9 +24,8 @@
 */
 
 #include "csoundCore.h"
-#include "csound_orcparse.h"
+//#include "csound_orcparse.h"
 #include "csound_orc.h"
-#include "parse_param.h"
 #include "corfile.h"
 
 extern void csound_orcrestart(FILE*, void *);

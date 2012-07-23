@@ -26,7 +26,6 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
-#include "tok.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
