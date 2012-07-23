@@ -189,8 +189,10 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
 void scale_angles(ANG_VEC *avec);
 MYFLT vol_p_side_lgth(int i, int j, int k, ls  lss[CHANNELS]);
 
-void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir, CART_VEC spread_base, MYFLT azi, MYFLT spread);
-void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir, MYFLT spread, CART_VEC *spread_base);
+void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir, 
+                    CART_VEC spread_base, MYFLT azi, MYFLT spread);
+void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir, 
+                     MYFLT spread, CART_VEC *spread_base);
 
 /* VBAP structure for ZAK loudspeaker panning */
 typedef struct {

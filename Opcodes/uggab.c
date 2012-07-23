@@ -584,7 +584,8 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
     FUNC   *ftp;
     MYFLT  loop, end, looplength;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)) return NOTOK;
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
+      return NOTOK;
     if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
       csound->Warning(csound, Str("losc: no sample rate stored in function "
                                   "assuming=sr\n"));
@@ -1473,7 +1474,8 @@ static int jittersa(CSOUND *csound, JITTERS *p)
 static int kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL)) goto err1;
+      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+        goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     *p->out = p->ftp->ftable[(int32)(randGab * MYFLT2LONG(p->ftp->flen))];
@@ -1496,7 +1498,8 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
     int n, nsmps = csound->ksmps, flen;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL)) goto err1;
+      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+        goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     table = p->ftp->ftable;
@@ -1515,7 +1518,8 @@ static int kContinuousUserRand(CSOUND *csound, CURAND *p)
     int32 indx;
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL)) goto err1;
+      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+        goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     findx = (MYFLT) (randGab * MYFLT2LONG(p->ftp->flen));
@@ -1551,7 +1555,8 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
     MYFLT findx, fract,v1,v2;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL)) goto err1;
+      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+        goto err1;
       p->pfn = (int32)*p->tableNum;
     }
 
@@ -1604,7 +1609,8 @@ static int randomi_set(CSOUND *csound, RANDOMI *p)
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
     case 2: /* immediate interpolation between ifirstval and 1st random number */
-        p->num1 = (*p->max - *p->min) ? (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
+        p->num1 = (*p->max - *p->min) ? 
+          (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
         p->num2 = randGab;
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
@@ -1670,7 +1676,8 @@ static int randomh_set(CSOUND *csound, RANDOMH *p)
     int mode = (int)(*p->mode);
     switch (mode) {
     case 2: /* the first output value is ifirstval */
-        p->num1 = (*p->max - *p->min) ? (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
+        p->num1 = (*p->max - *p->min) ? 
+          (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
         break;
     case 3: /* the first output value is a random number within the defined range */
         p->num1 = randGab;

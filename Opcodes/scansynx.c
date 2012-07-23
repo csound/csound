@@ -275,7 +275,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 #else
       /* ***** EXPERIMENTAL ****************************************** */
       /* This version uses a binary bit matrix to save space and time */
-      csound->AuxAlloc(csound, 1L+(len*len*sizeof(int32))/BITS_PER_UNIT, &p->aux_f);
+      csound->AuxAlloc(csound,
+                       1L+(len*len*sizeof(int32))/BITS_PER_UNIT, &p->aux_f);
       p->f = (uint32*)p->aux_f.auxp;
 #endif
       for (i = 0, ilen = 0 ; i != len ; i++, ilen += len) {
@@ -301,7 +302,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         unquote(filnam, csound->currevent->strarg);
       else strcpy(filnam, (char*) p->i_f);
       /* readfile if reqd */
-      if (UNLIKELY((mfp = csound->ldmemfile2(csound, filnam, CSFTYPE_XSCANU_MATRIX)) == NULL)) {
+      if (UNLIKELY((mfp = csound->ldmemfile2(csound, filnam,
+                                             CSFTYPE_XSCANU_MATRIX)) == NULL)) {
         return csound->InitError(csound, Str("SCANU cannot load %s"), filnam);
       }
       else {
