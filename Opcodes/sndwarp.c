@@ -53,11 +53,13 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if (UNLIKELY((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL)) return NOTOK;
+    if (UNLIKELY((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL))
+      return NOTOK;
     p->ftpSamp  = ftpSamp;
     p->sampflen = ftpSamp->flen;
 
-    if (UNLIKELY((ftpWind = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
+    if (UNLIKELY((ftpWind = csound->FTFind(csound, p->ifn)) == NULL))
+      return NOTOK;
     p->ftpWind = ftpWind;
     p->flen    = ftpWind->flen;
 
