@@ -192,37 +192,15 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       struct set_t *ww = NULL;
       csp_set_alloc_string(csound, &ww);
       csp_set_alloc_string(csound, &rr);
-      switch (code&0xfff8) {
-      case ZR:
-        csp_set_add(csound, rr, "##zak");
-        break;
-      case ZW:
-        csp_set_add(csound, ww, "##zak");
-        break;
-      case ZB:
-        csp_set_add(csound, rr, "##zak");
-        csp_set_add(csound, ww, "##zak");
-        break;
-      case TR:
-        csp_set_add(csound, rr, "##tab");
-        break;
-      case TW:
-        csp_set_add(csound, ww, "##tab");
-        break;
-      case TB:
-        csp_set_add(csound, rr, "##tab");
-        csp_set_add(csound, ww, "##tab");
-        break;
-      case CR:
-        csp_set_add(csound, rr, "##chn");
-        break;
-      case CW:
-        csp_set_add(csound, ww, "##chn");
-        break;
-      case CB:
-        csp_set_add(csound, rr, "##chn");
-        csp_set_add(csound, ww, "##chn");
-        break;
+      if (code&ZR) csp_set_add(csound, rr, "##zak");
+      if (code&ZW) csp_set_add(csound, ww, "##zak");
+      if (code&TR) csp_set_add(csound, rr, "##tab");
+      if (code&TW) csp_set_add(csound, ww, "##tab");
+      if (code&CR) csp_set_add(csound, rr, "##chn");
+      if (code&CW) csp_set_add(csound, ww, "##chn");
+      if (code&SB) {
+        csp_set_add(csound, rr, "##stk");
+        csp_set_add(csound, ww, "##stk");
       }
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
     }
