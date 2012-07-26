@@ -170,7 +170,8 @@ int lsgset_bkpt(CSOUND *csound, LINSEG *p)
 int klnseg(CSOUND *csound, LINSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
-    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) 
+      goto err1;                        /* RWD fix */
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
         SEG *segp = p->cursegp;

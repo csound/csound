@@ -60,8 +60,8 @@ PUBLIC int csoundRand31(int *seedVal)
 
 /* Period parameters */
 
-#define N           624
-#define M           397
+#define N           (624)
+#define M           (397)
 #define MATRIX_A    0x9908B0DFU     /* constant vector a */
 #define UPPER_MASK  0x80000000U     /* most significant w-r bits */
 #define LOWER_MASK  0x7FFFFFFFU     /* least significant r bits */
