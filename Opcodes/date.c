@@ -100,19 +100,21 @@ typedef struct {
   int   lineno;
 } READF;
 
-static int readf_delete(CSOUND *csound, void *fd)
+static int readf_delete(CSOUND *csound, void *p)
 {
-    fclose((FILE*)fd);
+    fclose(((READF*)p)->fd);
     return OK;
 }
 
 static int readf_init(CSOUND *csound, READF *p)
 {
-    p->fd = fopen((char*)p->Sfile, "r");
+    char name[1024];
+    csound->strarg2name(csound, name, p->Sfile, "input.", p->XSTRCODE);
+    p->fd = fopen(name, "r");
     p->lineno = 0;
     if (UNLIKELY(p->fd==NULL))
       return csound->InitError(csound, Str("readf: failed to open file"));
-    return csound->RegisterDeinitCallback(csound, p->fd, readf_delete);
+    return csound->RegisterDeinitCallback(csound, p, readf_delete);
 }
 
 static int readf(CSOUND *csound, READF *p)
@@ -129,7 +131,7 @@ static int readf(CSOUND *csound, READF *p)
       else
         return csound->PerfError(csound, Str("readf: read failure"));
     }
-    *p->line = p->lineno++;
+    *p->line = ++p->lineno;
     return OK;
 }
 
@@ -137,7 +139,7 @@ static int readfi(CSOUND *csound, READF *p)
 {
     if (p->fd<=0) 
       if (UNLIKELY(readf_init(csound, p)!= OK))
-        return csound->InitError(csound, Str("readi fail to initialise"));
+        return csound->InitError(csound, Str("readi failed to initialise"));
     return readf(csound, p);
 }
 
@@ -147,8 +149,8 @@ static OENTRY date_localops[] =
     { "date",   sizeof(DATEMYFLT),  1, "i",    "", (SUBR)datemyfltset   },
     { "dates",  sizeof(DATESTRING), 1, "S",    "j", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     1, "S",    "",  (SUBR)getcurdir     },
-    { "readfi", sizeof(READF),      1, "Si",   "S", (SUBR)readfi,       },
-    { "readf",  sizeof(READF),      3, "Sk",   "S", (SUBR)readf_init, (SUBR)readf }
+    { "readfi", sizeof(READF),      1, "Si",   "T", (SUBR)readfi,       },
+    { "readf",  sizeof(READF),      3, "Sk",   "T", (SUBR)readf_init, (SUBR)readf }
 
 };
 
