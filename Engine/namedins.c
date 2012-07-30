@@ -469,97 +469,97 @@ int find_opcode(CSOUND *csound, char *opname)
 /* -------------------------------------------------------------------- */
 /* These functions replace the functionality of strsav() in rdorch.c.   */
 
-#define STRSPACE    (2000)               /* number of bytes in a buffer  */
-
-typedef struct strsav_t {
-        struct strsav_t *nxt;           /* pointer to next structure    */
-        char    s[1];                   /* the string stored            */
-} STRSAV;
-
-typedef struct strsav_space_t {
-        char    *sp;                    /* string space                */
-        int     size;                   /* Size of buffer              */
-        int     splim;                  /* number of bytes allocated   */
-        struct strsav_space_t   *prv;   /* ptr to previous buffer      */
-} STRSAV_SPACE;
-
-#define STRSAV_STR_     ((STRSAV**) (csound->strsav_str))
-#define STRSAV_SPACE_   ((STRSAV_SPACE*) (csound->strsav_space))
-
-/* allocate space for strsav (called once from rdorchfile()) */
-
-void strsav_create(CSOUND *csound)
-{
-    if (csound->strsav_space != NULL) return;   /* already allocated */
-    csound->strsav_str = mcalloc(csound, sizeof(STRSAV*) * 256);
-    csound->strsav_space = mcalloc(csound, sizeof(STRSAV_SPACE));
-    STRSAV_SPACE_->sp = (char*)mcalloc(csound, STRSPACE);
-    STRSAV_SPACE_->size = STRSPACE;
-}
-
-/* Locate string s in database, and return address of stored string (not */
-/* necessarily the same as s). If the string is not defined yet, it is   */
-/* copied to the database (in such cases, it is allowed to free s after  */
-/* the call).                                                            */
-
-char *strsav_string(CSOUND *csound, char *s)
-{
-    STRSAV        *ssp, *prv;
-    int           n;
-    unsigned char h = name_hash(csound, s);   /* calculate hash value */
-
-    /* now find entry in database */
-    ssp = STRSAV_STR_[h];
-    prv = NULL;
-    while (ssp) {
-      if (!sCmp(ssp->s, s)) {
-        if (prv != NULL) {
-          /* move to the beginning of the chain, so that */
-          /* frequently searched strings are found faster */
-          prv->nxt = ssp->nxt;
-          ssp->nxt = STRSAV_STR_[h];
-          STRSAV_STR_[h] = ssp;
-        }
-        return (ssp->s);                /* already defined */
-      }
-      prv = ssp;
-      ssp = prv->nxt;
-    }
-    /* not found, so need to allocate a new entry */
-    n = (int) sizeof(struct strsav_t *) + (int) strlen(s) + 1;  /* n bytes */
-    n = ((n + (int) sizeof(struct strsav_t *) - 1)  /* round up for alignment */
-         / (int) sizeof(struct strsav_t *)) * (int) sizeof(struct strsav_t *);
-    if ((STRSAV_SPACE_->splim + n) > STRSAV_SPACE_->size) {
-      STRSAV_SPACE  *sp;
-      /* not enough space, allocate new buffer */
-       if (UNLIKELY(n > STRSAV_SPACE_->size)) {
-        /* this should not happen */
-         sp = (STRSAV_SPACE*)mcalloc(csound, sizeof(STRSAV_SPACE));
-         sp->sp =
-          (char*)mcalloc(csound, sp->size = n+STRSPACE);
-         csound->DebugMsg(csound,
-                        "internal message: strsav: buffer length now %d\n",
-                        sp->size);
-
-       }
-       else {
-         sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
-         sp->sp =
-           (char*)mcalloc(csound, STRSAV_SPACE_->size = STRSPACE);
-       }
-       sp->prv = STRSAV_SPACE_;
-       csound->strsav_space = sp;
-    }
-    /* use space from buffer */
-    //    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
-    ssp = (STRSAV*)(&(STRSAV_SPACE_->sp)[STRSAV_SPACE_->splim]);
-    STRSAV_SPACE_->splim += n;
-    strcpy(ssp->s, s);          /* save string */
-    /* link into chain */
-    ssp->nxt = STRSAV_STR_[h];
-    STRSAV_STR_[h] = ssp;
-    return (ssp->s);
-}
+//#define STRSPACE    (2000)               /* number of bytes in a buffer  */
+//
+//typedef struct strsav_t {
+//        struct strsav_t *nxt;           /* pointer to next structure    */
+//        char    s[1];                   /* the string stored            */
+//} STRSAV;
+//
+//typedef struct strsav_space_t {
+//        char    *sp;                    /* string space                */
+//        int     size;                   /* Size of buffer              */
+//        int     splim;                  /* number of bytes allocated   */
+//        struct strsav_space_t   *prv;   /* ptr to previous buffer      */
+//} STRSAV_SPACE;
+//
+//#define STRSAV_STR_     ((STRSAV**) (csound->strsav_str))
+//#define STRSAV_SPACE_   ((STRSAV_SPACE*) (csound->strsav_space))
+//
+///* allocate space for strsav (called once from rdorchfile()) */
+//
+//void strsav_create(CSOUND *csound)
+//{
+//    if (csound->strsav_space != NULL) return;   /* already allocated */
+//    csound->strsav_str = mcalloc(csound, sizeof(STRSAV*) * 256);
+//    csound->strsav_space = mcalloc(csound, sizeof(STRSAV_SPACE));
+//    STRSAV_SPACE_->sp = (char*)mcalloc(csound, STRSPACE);
+//    STRSAV_SPACE_->size = STRSPACE;
+//}
+//
+///* Locate string s in database, and return address of stored string (not */
+///* necessarily the same as s). If the string is not defined yet, it is   */
+///* copied to the database (in such cases, it is allowed to free s after  */
+///* the call).                                                            */
+//
+//char *strsav_string(CSOUND *csound, char *s)
+//{
+//    STRSAV        *ssp, *prv;
+//    int           n;
+//    unsigned char h = name_hash(csound, s);   /* calculate hash value */
+//
+//    /* now find entry in database */
+//    ssp = STRSAV_STR_[h];
+//    prv = NULL;
+//    while (ssp) {
+//      if (!sCmp(ssp->s, s)) {
+//        if (prv != NULL) {
+//          /* move to the beginning of the chain, so that */
+//          /* frequently searched strings are found faster */
+//          prv->nxt = ssp->nxt;
+//          ssp->nxt = STRSAV_STR_[h];
+//          STRSAV_STR_[h] = ssp;
+//        }
+//        return (ssp->s);                /* already defined */
+//      }
+//      prv = ssp;
+//      ssp = prv->nxt;
+//    }
+//    /* not found, so need to allocate a new entry */
+//    n = (int) sizeof(struct strsav_t *) + (int) strlen(s) + 1;  /* n bytes */
+//    n = ((n + (int) sizeof(struct strsav_t *) - 1)  /* round up for alignment */
+//         / (int) sizeof(struct strsav_t *)) * (int) sizeof(struct strsav_t *);
+//    if ((STRSAV_SPACE_->splim + n) > STRSAV_SPACE_->size) {
+//      STRSAV_SPACE  *sp;
+//      /* not enough space, allocate new buffer */
+//       if (UNLIKELY(n > STRSAV_SPACE_->size)) {
+//        /* this should not happen */
+//         sp = (STRSAV_SPACE*)mcalloc(csound, sizeof(STRSAV_SPACE));
+//         sp->sp =
+//          (char*)mcalloc(csound, sp->size = n+STRSPACE);
+//         csound->DebugMsg(csound,
+//                        "internal message: strsav: buffer length now %d\n",
+//                        sp->size);
+//
+//       }
+//       else {
+//         sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
+//         sp->sp =
+//           (char*)mcalloc(csound, STRSAV_SPACE_->size = STRSPACE);
+//       }
+//       sp->prv = STRSAV_SPACE_;
+//       csound->strsav_space = sp;
+//    }
+//    /* use space from buffer */
+//    //    ssp = (STRSAV*) ((char*) STRSAV_SPACE_->sp + STRSAV_SPACE_->splim);
+//    ssp = (STRSAV*)(&(STRSAV_SPACE_->sp)[STRSAV_SPACE_->splim]);
+//    STRSAV_SPACE_->splim += n;
+//    strcpy(ssp->s, s);          /* save string */
+//    /* link into chain */
+//    ssp->nxt = STRSAV_STR_[h];
+//    STRSAV_STR_[h] = ssp;
+//    return (ssp->s);
+//}
 
 /* -------- IV - Jan 29 2005 -------- */
 
