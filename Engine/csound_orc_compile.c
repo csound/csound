@@ -1429,8 +1429,9 @@ void debugPrintCsound(CSOUND* csound) {
     
     
     INSTRTXT    *current = &(csound->instxtanchor);
+    current = current->nxtinstxt;
     count = 0;
-    while (current->nxtinstxt != NULL) {
+    while (current != NULL) {
         csound->Message(csound, "Instrument %d\n", count);
         csound->Message(csound, "Variables\n");
         
