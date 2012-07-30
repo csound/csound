@@ -390,6 +390,7 @@ extern "C" {
     NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
     (TYPE_POOL*)NULL, 
+    (CS_VAR_POOL*)NULL,
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
     DFLT_KSMPS,     /*  ksmps               */
@@ -497,8 +498,8 @@ extern "C" {
     NULL, NULL,     /*  chanok, chanoa      */
     FL(0.0),        /*  cpu_power_busy      */
     (char*) NULL,   /*  xfilename           */
-    NLABELS,        /*  nlabels             */
-    NGOTOS,         /*  ngotos              */
+//    NLABELS,        /*  nlabels             */
+//    NGOTOS,         /*  ngotos              */
     1,              /*  peakchunks          */
     0,              /*  keep_tmp            */
     (OENTRY*) NULL, /*  opcodlst            */
@@ -518,6 +519,8 @@ extern "C" {
     {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  pool                */
+    (MYFLT_POOL*)NULL, /* constants pool */
+    (STRING_POOL*)NULL, /* string pool */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
 #if defined(__WATCOMC__) || defined(MSVC) ||defined(__POWERPC__) || defined(mac_classic) || \
@@ -548,8 +551,9 @@ extern "C" {
     DFLT_NCHNLS,    /*  tran_nchnls         */
     NULL,           /*  opcodeInfo          */
     NULL,           /*  instrumentNames     */
-    NULL,           /*  strsav_str          */
-    NULL,           /*  strsav_space        */
+   (STRING_POOL*)NULL, /* string save pool */   
+//    NULL,           /*  strsav_str          */
+//    NULL,           /*  strsav_space        */
     NULL,           /*  flist               */
     0,              /*  maxfnum             */
     NULL,           /*  gensub              */
@@ -573,7 +577,7 @@ extern "C" {
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
     /* express.c */
     0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
-    0,              /*  strVarSamples       */
+    0,              /*  strVpooarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
     {  
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
@@ -733,9 +737,9 @@ extern "C" {
       1,            /*    useCsdLineCounts  */
       0,            /*    calculateWeights   */
     },
-    0L, 0L,         /*  instxtcount, optxtsize  */
-    0L, 0L,         /*  poolcount, gblfixed     */
-    0L, 0L,         /*  gblacount, gblscount    */
+//    0L, 0L,         /*  instxtcount, optxtsize  */
+    //0L, 0L,         /*  poolcount, gblfixed     */
+    //0L, 0L,         /*  gblacount, gblscount    */
     (CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
      csoundDoCallback_,  /*  doCsoundCallback    */
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
@@ -2782,6 +2786,10 @@ extern "C" {
                                         CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                         "Ignore <CsOptions> in CSD files"
                                         " (default: no)", NULL);
+      
+      csound->stringSavePool = string_pool_create(csound);
+      csound->stringPool = string_pool_create(csound);
+      csound->constantsPool = myflt_pool_create(csound);
       csound->opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
       csound->engineState |= CS_STATE_PRE;
       csound_aops_init_tables(csound);
@@ -2840,8 +2848,9 @@ extern "C" {
         O->filetyp = -1;
         O->sfheader = 0;
         csound->peakchunks = 1;
-        csound->typePool = csound->Malloc(csound, sizeof(TYPE_POOL));
-        csoundAddStandardTypes(csound->typePool);
+        csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
+        csound->varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+        csoundAddStandardTypes(csound, csound->typePool);
         create_opcodlst(csound);
         csoundLoadExternals(csound);
       }
@@ -3344,7 +3353,7 @@ extern "C" {
    */
   int csoundGetInputArgCnt(void *p)
   {
-      return (int) ((OPDS*) p)->optext->t.inoffs->count;
+      return (int) ((OPDS*) p)->optext->t.inArgCount;
   }
 
   /**
@@ -3376,9 +3385,9 @@ extern "C" {
   {
 #ifndef PARCS
       if ((unsigned int) n >=
-          (unsigned int) ((OPDS*) p)->optext->t.inoffs->count) {
+          (unsigned int) ((OPDS*) p)->optext->t.inArgCount) {
 #else /* PARCS */
-      if ((unsigned int) n >= (unsigned int) ((OPDS*) p)->optext->t.inoffs->count)
+      if ((unsigned int) n >= (unsigned int) ((OPDS*) p)->optext->t.inArgCount)
 #endif /* PARCS */
         return (char*) NULL;
 #ifndef PARCS
@@ -3392,7 +3401,7 @@ extern "C" {
    */
   int csoundGetOutputArgCnt(void *p)
   {
-      return (int) ((OPDS*) p)->optext->t.outoffs->count;
+      return (int) ((OPDS*) p)->optext->t.outArgCount;
   }
 
   /**
@@ -3424,9 +3433,9 @@ extern "C" {
   {
       if ((unsigned int) n
 #ifndef PARCS
-          >= (unsigned int) ((OPDS*) p)->optext->t.outoffs->count) {
+          >= (unsigned int) ((OPDS*) p)->optext->t.outArgCount) {
 #else /* PARCS */
-          >= (unsigned int) ((OPDS*) p)->optext->t.outoffs->count)
+          >= (unsigned int) ((OPDS*) p)->optext->t.outArgCount)
 #endif /* PARCS */
         return (char*) NULL;
 #ifndef PARCS
