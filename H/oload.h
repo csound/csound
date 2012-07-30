@@ -25,8 +25,8 @@
 #define CSOUND_OLOAD_H
 
 #define NCONSTS 256    /* gbl */                /*      OLOAD.H         */
-#define NLABELS 5      /* lcl */
-#define NGOTOS  40
+//#define NLABELS 5      /* lcl */
+//#define NGOTOS  40
 
 #define LABELOFS    (-0x40000000)
 #define LABELIM     (-0x38000000)
