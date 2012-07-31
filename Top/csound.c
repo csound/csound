@@ -704,8 +704,8 @@ extern "C" {
     1000,           /*  ugens4_rand_16      */
     1000,           /*  ugens4_rand_15      */
     NULL,           /*  schedule_kicked     */
-    (LBLBLK**) NULL, /* lopds               */
-    NULL,           /*  larg                */
+//    (LBLBLK**) NULL, /* lopds               */
+//    NULL,           /*  larg                */
     (MYFLT*) NULL,  /*  disprep_fftcoefs    */
     NULL,           /*  winEPS_globals      */
     {               /*  oparms_             */

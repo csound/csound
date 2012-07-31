@@ -1527,7 +1527,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
 //        }
         //FIXME - label handling
 //        *lblsp++ = ttp->opcod;
-          csound->Message(csound, "Fixme: insprep label: %s\n", ttp->opcod);
+          //csound->Message(csound, "Fixme: insprep label: %s\n", ttp->opcod);
         continue;
       }
       ep = &(csound->opcodlst[opnum]);
@@ -1569,7 +1569,13 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
         argp = inlist->arg;                     /* get inarg indices */
 //        ndxp = inoffs->indx;
         for (n=0; n < inlist->count; n++, argp++) {
+          ARG* arg = NULL;
           if (n < inreqd && ep->intypes[n] == 'l') {
+              arg = csound->Calloc(csound, sizeof(ARG));
+              arg->type = ARG_LABEL;
+              arg->argPtr = mmalloc(csound, strlen(*argp) + 1);
+              strcpy(arg->argPtr, *argp);
+              
 //            if (largp - larg >= csound->ngotos) {
 //              int oldn = csound->ngotos;
 //              csound->ngotos += NGOTOS;
@@ -1583,39 +1589,38 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
 //                mrealloc(csound, larg, csound->ngotos * sizeof(LBLARG));
 //              largp = &larg[oldn];
 //            }
-            if (UNLIKELY(O->odebug))
-              csound->Message(csound, "\t***lbl");  /* if arg is label,  */
-//            largp->lbltxt = *argp;
-//            largp->ndxp = ndxp;                     /*  defer till later */
-//            largp++;
-            csound->Message(csound, "Fixme: in-arg label: %s\n", *argp);
+              if (UNLIKELY(O->odebug))
+                  csound->Message(csound, "\t***lbl");  /* if arg is label,  */
+
+//              csound->Message(csound, "Fixme: in-arg label: %s\n", arg->argPtr);
+          } else {
+            char *s = *argp;
+            arg = createArg(csound, tp, s);
           }
-          else {
-              char *s = *argp;
-              ARG* arg = createArg(csound, tp, s);
-              
-              if(ttp->inArgs == NULL) {
-                  ttp->inArgs = arg;
-              } else {
-                  ARG* current = ttp->inArgs;
-                  while(current->next != NULL) {
-                      current = current->next;
-                  }
-                  current->next = arg;
-                  arg->next = NULL;
-              }
+            
+            if(ttp->inArgs == NULL) {
+                ttp->inArgs = arg;
+            } else {
+                ARG* current = ttp->inArgs;
+                while(current->next != NULL) {
+                    current = current->next;
+                }
+                current->next = arg;
+                arg->next = NULL;
+            }
 //            indx = plgndx(csound, transData, s);
 //            if (UNLIKELY(O->odebug)) csound->Message(csound, "\t%d", indx);
 //            *ndxp = indx;
           }
+          
           ttp->inArgCount = argCount(ttp->inArgs);
-        }
+
       }
 //      if (UNLIKELY(O->odebug)) csound->Message(csound, "\n");
     }
- nxt:
+// nxt:
         /****/
-    csound->Message(csound, "Fixme: insprep label handling\n");
+    //csound->Message(csound, "Fixme: insprep label handling\n");
 //    while (--largp >= larg) {                   /* resolve the lbl refs */
 //      char *s = largp->lbltxt;
 //      char **lp;
