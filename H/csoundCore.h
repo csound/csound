@@ -261,10 +261,7 @@ typedef struct {
                                        opcodes in instr */
     int     mdepends;               /* Opcode type (i/k/a) */
     CS_VAR_POOL* varPool;
-//    int     lclkcnt, dummy01;       /* Storage reqs for this instr */
-//    int     lclwcnt, lclacnt;
-//    int     lclpcnt, lclscnt;
-//    int     lclfixed, optxtcount;
+
     int     optxtcount;
     int16   muted;
 //    int32   localen;
@@ -1449,8 +1446,8 @@ typedef struct NAME__ {
     int           ugens4_rand_16;
     int           ugens4_rand_15;
     void          *schedule_kicked;
-    LBLBLK        **lopds;
-    void          *larg;        /* this is actually LARGNO* */
+//    LBLBLK        **lopds;
+//    void          *larg;        /* this is actually LARGNO* */
     MYFLT         *disprep_fftcoefs;
     void          *winEPS_globals;
     OPARMS        oparms_;

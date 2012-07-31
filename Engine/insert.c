@@ -1816,6 +1816,23 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     return OK;
 }
 
+/* UTILITY FUNCTIONS FOR LABELS */
+
+int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
+    OPTXT* optxt = (OPTXT*) ip;
+    int offset = 0;
+    
+    while ((optxt = optxt->nxtop) != NULL) {
+        TEXT* t = &optxt->t;
+        if(t->opnum == LABEL && strcmp(t->opcod, labelName) == 0) {
+            break;
+        }
+        offset += csound->opcodlst[t->opnum].dsblksiz;
+    }
+    
+    return offset;
+}
+
 /* create instance of an instr template */
 /*   allocates and sets up all pntrs    */
 
@@ -1825,19 +1842,18 @@ static void instance(CSOUND *csound, int insno)
     INSDS     *ip;
     OPTXT     *optxt;
     OPDS      *opds, *prvids, *prvpds;
-    const OENTRY  *ep;
-    LBLBLK    **lopdsp;
-    LARGNO    *largp;
+    const OENTRY  *ep;    
     int       n, cnt, pextent, opnum, pextra;
     char      *nxtopds, *opdslim;
     MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
+    char*     opMemStart;
     int       *ndxp;
     OPARMS    *O = csound->oparms;
     int       odebug = O->odebug;
     ARG*	  arg;
 
-    lopdsp = csound->lopds;
-    largp = (LARGNO*) csound->larg;
+//    lopdsp = csound->lopds;
+//    largp = (LARGNO*) csound->larg;
     tp = csound->instrtxtp[insno];
     /* VL: added 2 extra MYFLT pointers to the memory to account for possible
        use by midi mapping flags */
@@ -1875,7 +1891,7 @@ static void instance(CSOUND *csound, int insno)
     gbloffbas = csound->globalVarPool;
     lcloffbas = &ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
-    nxtopds = (char*) lclbas + tp->varPool->poolSize;
+    opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize;
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))
       csound->Message(csound,
@@ -1904,7 +1920,6 @@ static void instance(CSOUND *csound, int insno)
         LBLBLK  *lblbp = (LBLBLK *) opds;
         lblbp->prvi = prvids;                   /*    save i/p links */
         lblbp->prvp = prvpds;
-        *lopdsp++ = lblbp;                      /*    log the lbl bp */
         continue;                               /*    for later refs */
       }
       if ((ep->thread & 07) == 0) {             /* thread 1 OR 2:  */
@@ -1940,8 +1955,7 @@ static void instance(CSOUND *csound, int insno)
         argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
       else          /* user defined opcodes are a special case */
         argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
-//      ndxp = ttp->outoffs->indx;                /* for outarg codes: */
-//      cnt = ttp->outoffs->count;
+
       arg = ttp->outArgs;
       for(n = 0; arg != NULL; n++) {
     	  MYFLT *fltp;
@@ -1951,36 +1965,32 @@ static void instance(CSOUND *csound, int insno)
     	  } else if(arg->type == ARG_LOCAL) {
     		  fltp = lclbas + var->memBlockIndex;
     	  } else {
-              csound->Message(csound, "FIXME: Unhandled arg type: %d\n", arg->type);
+              csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n", arg->type);
           }
     	  argpp[n] = fltp;
     	  arg = arg->next;
       }
-//      for (n = 0; n < cnt; n++) {
-//        MYFLT *fltp;
-//        int   indx = ndxp[n];
-//        if (indx > 0)                           /* cvt index to lcl/gbl adr */
-//          fltp = gbloffbas + indx;
-//        else
-//          fltp = lcloffbas + (-indx);
-//        argpp[n] = fltp;
-//      }
+
       for ( ; ep->outypes[n] != (char) 0; n++)  /* if more outypes, pad */
         argpp[n] = NULL;
-//      ndxp = ttp->inoffs->indx;                 /* for inarg codes: */
-//      cnt = n + ttp->inoffs->count;
+
       arg = ttp->inArgs;
       for(; arg != NULL; n++, arg = arg->next) {
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         
         if(arg->type == ARG_CONSTANT) {
-            argpp[n] = csound->constantsPool->values + arg->index;
-        } if(arg->type == ARG_GLOBAL) {
+          argpp[n] = csound->constantsPool->values + arg->index;
+        } else if(arg->type == ARG_PFIELD) {
+          argpp[n] = lcloffbas + arg->index;
+          
+        } else if(arg->type == ARG_GLOBAL) {
           argpp[n] = gbloffbas + var->memBlockIndex;
         } else if(arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
         } else if(arg->type == ARG_LABEL) {
-          csound->Message(csound, "FIXME: instance ARG_LABEL\n");
+          argpp[n] = opMemStart + findLabelMemOffset(csound, tp, (char*)arg->argPtr);
+        } else {
+          csound->Message(csound, "FIXME: instance unexpected arg: %d\n", arg->type);
         }
       }
 //      for ( ; n < cnt; n++) {
