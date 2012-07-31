@@ -37,7 +37,7 @@ CS_VARIABLE* createMyflt(void* csound, void* args) {
 CS_VARIABLE* createBool(void* csound, void* args) {
     CSOUND* cs = (CSOUND*)csound;    
     CS_VARIABLE* var = mmalloc(cs, sizeof (CS_VARIABLE));
-    var->memBlockSize = sizeof (int);
+    var->memBlockSize = sizeof (MYFLT);
     return var;
 }
 
