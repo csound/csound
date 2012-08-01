@@ -37,6 +37,7 @@ extern "C" {
         /* void* memblock; */
         int refCount;
         struct csvariable* next;
+        void (*updateMemBlockSize)(void*, struct csvariable*);
     } CS_VARIABLE;
 
 //    typedef struct cstypeinstance {
@@ -70,7 +71,7 @@ extern "C" {
     CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name);
     int csoundFindVariable(CS_VAR_POOL* pool, const char* name);
     int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var);
-    
+    void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
     
 #ifdef	__cplusplus
 }

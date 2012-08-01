@@ -2150,6 +2150,7 @@ void oload(CSOUND *p)
     //gblspace = p->pool + p->poolcount;
     
     // create memblock for global variables
+    recalculateVarPoolMemory(p, p->varPool);
     p->globalVarPool = mcalloc(p, p->varPool->poolSize);
 
     MYFLT* globals = p->globalVarPool;
@@ -2175,6 +2176,7 @@ void oload(CSOUND *p)
     ip = &(p->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
       optxt = (OPTXT *) ip;                     /*   (and set localen)        */
+      recalculateVarPoolMemory(p, ip->varPool);
 //      lclabeg = (int32) (ip->pmax + ip->lclfixed + 1);
 //      lclsbeg = (int32) (lclabeg + ip->lclacnt);
 //      lclsbas = (int32) (lclabeg + (ip->lclacnt * (int32) p->ksmps));
@@ -2202,6 +2204,7 @@ void oload(CSOUND *p)
         int     *ndxp;
         ARG*    arg;
         int     opnum = ttp->opnum;
+          
         if (opnum == ENDIN || opnum == ENDOP) break;    /* IV - Sep 8 2002 */
         if (opnum == LABEL) continue;
 //        aoffp = ttp->outoffs;           /* ------- OUTARGS -------- */

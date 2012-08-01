@@ -19,38 +19,45 @@ CS_TYPE* createTypeInstance(CSOUND* csound, char* varTypeName,  char* varDescrip
     return type;
 }
 
+void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
+    CSOUND* cs = (CSOUND*)csound;
+    int ksmps = cs->ksmps;    
+    var->memBlockSize = ksmps * sizeof (MYFLT);
+}
+
 CS_VARIABLE* createAsig(void* csound, void* args) {
     CSOUND* cs = (CSOUND*)csound;
     int ksmps = cs->ksmps;
-    CS_VARIABLE* var = mmalloc(cs, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = ksmps * sizeof (MYFLT);
+    var->updateMemBlockSize = &updateAsigMemBlock;
     return var;
 }
 
 CS_VARIABLE* createMyflt(void* csound, void* args) {
     CSOUND* cs = (CSOUND*)csound;    
-    CS_VARIABLE* var = mmalloc(cs, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = sizeof (MYFLT);
     return var;
 }
 
 CS_VARIABLE* createBool(void* csound, void* args) {
     CSOUND* cs = (CSOUND*)csound;    
-    CS_VARIABLE* var = mmalloc(cs, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = sizeof (MYFLT);
     return var;
 }
 
 CS_VARIABLE* createWsig(void* csound, void* args) {
     CSOUND* cs = (CSOUND*)csound;    
-    CS_VARIABLE* var = mmalloc(cs, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = Wfloats;
     return var;
 }
 
 CS_VARIABLE* createFsig(void* csound, void* args) {
     CSOUND* cs = (CSOUND*)csound;    
-    CS_VARIABLE* var = mmalloc(cs, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = Pfloats;
     return var;
 }
