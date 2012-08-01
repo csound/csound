@@ -135,3 +135,18 @@ int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var) {
     
     return 0;
 }
+
+void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
+    CS_VARIABLE* current = pool->head;
+    pool->poolSize = 0;
+    
+	while (current != NULL) {
+        if(current->updateMemBlockSize != NULL) {
+            current->updateMemBlockSize(csound, current);
+        }
+        current->memBlockIndex = pool->poolSize / sizeof(MYFLT);
+        pool->poolSize += current->memBlockSize;
+        
+        current = current->next;
+    }
+}
