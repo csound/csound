@@ -64,18 +64,17 @@ STRING_POOL* string_pool_create(CSOUND* csound) {
     return pool;
 }
 
-int string_pool_indexof(STRING_POOL* pool, char* value) {
-    int retVal = -1;
+STRING_VAL* string_pool_find(STRING_POOL* pool, char* value) {
+    STRING_VAL* retVal = NULL;
     
     STRING_VAL* current = pool->values;
 
-    int index = 0;
     while(current != NULL) {
         if(strcmp(value, current->value) == 0) {
-            retVal = index;
+            retVal = current;
             break;
         }
-        index++;
+        current = current->next;
     }
     
     return retVal;
@@ -143,18 +142,18 @@ char* string_pool_save_string(CSOUND* csound, STRING_POOL* pool, char* value) {
     return retVal;
 }
 
-int string_pool_find_or_add(CSOUND* csound, STRING_POOL* pool, char* value) {
+STRING_VAL* string_pool_find_or_add(CSOUND* csound, STRING_POOL* pool, char* value) {
     
-    int index = string_pool_indexof(pool, value);
+    STRING_VAL* retVal = string_pool_find(pool, value);
     
-    if(index < 0) {
+    if(retVal == NULL) {
         STRING_VAL* val = csound->Malloc(csound, sizeof(STRING_VAL));
         val->value = (char*) csound->Malloc(csound, strlen(value) + 1);
         strcpy(val->value, value);
-        //val->size = strlen(value);
 
-        index = string_pool_append_string(pool, val);
+        string_pool_append_string(pool, val);
+        retVal = val;
     }
     
-    return index;
+    return retVal;
 }
