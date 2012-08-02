@@ -1980,6 +1980,8 @@ static void instance(CSOUND *csound, int insno)
         
         if(arg->type == ARG_CONSTANT) {
           argpp[n] = csound->constantsPool->values + arg->index;
+        } else if(arg->type == ARG_STRING) {
+          argpp[n] = (MYFLT*)((STRING_VAL*) var)->value;
         } else if(arg->type == ARG_PFIELD) {
           argpp[n] = lcloffbas + arg->index;
           
