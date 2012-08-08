@@ -167,11 +167,12 @@ void csp_orc_sa_global_write_add_list(CSOUND *csound, struct set_t *set)
 void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
 {
     if (csound->instCurr == NULL) {
-      csound->Message(csound, "add a global read_list without any instruments\n");
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "add a global read_list without any instruments\n");
     }
     else if (UNLIKELY(set == NULL)) {
       csound->Die(csound,
-                  "Invalid NULL parameter set to add to a global read_list\n");
+                  Str("Invalid NULL parameter set to add to a global read_list\n"));
     }
     else {
       struct set_t *new = NULL;
@@ -202,7 +203,7 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
         csp_set_add(csound, rr, "##stk");
         csp_set_add(csound, ww, "##stk");
       }
-      csp_orc_sa_global_read_write_add_list(csound, ww, rr);
+      if (code&_QQ) csound->Message(csound, "opcode deprecated");
     }
 }
 

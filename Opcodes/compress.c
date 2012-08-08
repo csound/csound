@@ -130,8 +130,8 @@ static int compress(CSOUND *csound, CMPRS *p)
       asig = *p->aptr;                  /* get signals from delay line  */
       csig = *p->cptr;
       *p->aptr = ainp[n]*scal;               /*   & replace with incoming    */
-      if ((lsig = cinp[n]*scal) < FL(0.0))
-        lsig = -lsig;                   /*   made abs for control       */
+      lsig = FABS(cinp[n]*scal);
+      //lsig = -lsig;                   /*   made abs for control       */
       *p->cptr = lsig;
       if (p->cptr == p->lmaxp) {        /* if prev ctrl was old lamax   */
         MYFLT *lap, newmax = FL(0.0);
