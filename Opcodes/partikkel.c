@@ -43,7 +43,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 /* here follows routines for maintaining a linked list of grains */
 
 /* initialises a linked list of NODEs */
-static int init_pool(GRAINPOOL *s, unsigned max_grains)
+static void init_pool(GRAINPOOL *s, unsigned max_grains)
 {
     unsigned i;
     NODE **p = &s->grainlist;
@@ -58,7 +58,6 @@ static int init_pool(GRAINPOOL *s, unsigned max_grains)
         node->next = NULL;
         p = &(node->next);
     }
-    return 1;
 }
 
 /* returns pointer to new node */
@@ -103,7 +102,7 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
         int i;
 
         if (UNLIKELY(csound->CreateGlobalVariable(csound, "partikkel",
-                                                  sizeof(PARTIKKEL_GLOBALS)) != 0))
+                                               sizeof(PARTIKKEL_GLOBALS)) != 0))
             return INITERROR("could not allocate globals");
         pg = csound->QueryGlobalVariable(csound, "partikkel");
         pg->rootentry = NULL;
@@ -151,6 +150,7 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
     if (*pe == NULL) {
         *pe = csound->Malloc(csound, sizeof(PARTIKKEL_GLOBALS_ENTRY));
         (*pe)->id = *p->opcodeid;
+        (*pe)->partikkel = p;
         /* allocate table for sync data */
         (*pe)->synctab = csound->Calloc(csound, 2*csound->ksmps*sizeof(MYFLT));
         (*pe)->next = NULL;
@@ -264,6 +264,13 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     p->wavgaintab = *p->waveamps >= FL(0.0)
                     ? csound->FTFind(csound, p->waveamps)
                     : p->globals->zzhhhhz_tab;
+    if (*p->pantable >= FL(0.0)) {
+        p->pantab = csound->FTFind(csound, p->pantable);
+        if (!p->pantab)
+            return INITERROR("unable to load panning function table");
+    } else {
+        p->pantab = NULL; /* use default linear panning function */
+    }
 
     if (UNLIKELY(!p->disttab))
         return INITERROR("unable to load distribution table");
@@ -396,8 +403,19 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
         return_grain(&p->gpool, node);
         return PERFERROR("channel mask specifies non-existing output channel");
     }
-    grain->gain1 = FL(1.0) - (maskchannel - chan);
-    grain->gain2 = maskchannel - chan;
+    /* use panning law table if specified */
+    if (p->pantab != NULL) {
+        unsigned tabsize = p->pantab->flen/8;
+        unsigned i1 = (unsigned)((FL(1.0) - maskchannel + 2*chan)*tabsize);
+        unsigned i2 = (unsigned)(maskchannel*tabsize);
+
+        grain->gain1 = p->pantab->ftable[i1];
+        grain->gain2 = p->pantab->ftable[i2];
+    } else {
+        grain->gain1 = FL(1.0) - (maskchannel - chan);
+        grain->gain2 = maskchannel - chan;
+    }
+
     grain->chan1 = chan;
     grain->chan2 = p->num_outputs > chan + 1 ? chan + 1 : 0;
 
@@ -431,8 +449,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
         curwav->table = i != WAV_TRAINLET ? p->wavetabs[i] : p->costab;
         curwav->gain = wavgains[wavgainsindex + i + 2]*graingain;
 
-        /* check if waveform gets zero volume. if so, let's mark it as unused
-         * and move on to the next one */
+        /* drop wavetables with close to zero gain */
         if (fabs(curwav->gain) < FL(1e-8)) {
             curwav->table = NULL;
             continue;
@@ -637,6 +654,69 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
     return OK;
 }
 
+/* Main synthesis loops */
+/* NOTE: the main synthesis loop is duplicated for both wavetable and
+ * trainlet synthesis for speed */
+static inline void render_wave(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
+                               MYFLT *buf, unsigned stop)
+{
+    unsigned n;
+    double fmenvphase = grain->envphase;
+
+    /* wavetable synthesis */
+    for (n = grain->start; n < stop; ++n) {
+        double tablen = (double)wav->table->flen;
+        unsigned x0;
+        MYFLT frac, fmenv;
+
+        /* make sure phase accumulator stays within bounds */
+        while (UNLIKELY(wav->phase >= tablen))
+            wav->phase -= tablen;
+        while (UNLIKELY(wav->phase < 0.0))
+            wav->phase += tablen;
+
+        /* sample table lookup with linear interpolation */
+        x0 = (unsigned)wav->phase;
+        frac = (MYFLT)(wav->phase - x0);
+        buf[n] += lrp(wav->table->ftable[x0], wav->table->ftable[x0 + 1],
+                      frac)*wav->gain;
+
+        fmenv = grain->fmenvtab->ftable[(size_t)(fmenvphase*FMAXLEN)
+                                        >> grain->fmenvtab->lobits];
+        fmenvphase += grain->envinc;
+        wav->phase += wav->delta + wav->delta*p->fm[n]*grain->fmamp*fmenv;
+        /* apply sweep */
+        wav->delta = wav->delta*wav->sweepdecay + wav->sweepoffset;
+     }
+}
+
+static inline void render_trainlet(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
+                                   MYFLT *buf, unsigned stop)
+{
+    unsigned n;
+    double fmenvphase = grain->envphase;
+
+    /* trainlet synthesis */
+    for (n = grain->start; n < stop; ++n) {
+        MYFLT fmenv;
+
+        while (UNLIKELY(wav->phase >= 1.0))
+            wav->phase -= 1.0;
+        while (UNLIKELY(wav->phase < 0.0))
+            wav->phase += 1.0;
+
+        /* dsf/trainlet synthesis */
+        buf[n] += wav->gain*dsf(p->costab, grain, wav->phase, p->zscale,
+                                p->cosineshift);
+
+        fmenv = grain->fmenvtab->ftable[(size_t)(fmenvphase*FMAXLEN)
+                                        >> grain->fmenvtab->lobits];
+        fmenvphase += grain->envinc;
+        wav->phase += wav->delta + wav->delta*p->fm[n]*grain->fmamp*fmenv;
+        wav->delta = wav->delta*wav->sweepdecay + wav->sweepoffset;
+    }
+}
+
 /* do the actual waveform synthesis */
 static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
 {
@@ -652,65 +732,15 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
         return; /* grain starts at a later kperiod */
     for (i = 0; i < 5; ++i) {
         WAVEDATA *curwav = &grain->wav[i];
-        double fmenvphase = grain->envphase;
-        MYFLT fmenv;
 
         /* check if ftable is to be rendered */
         if (curwav->table == NULL)
             continue;
 
-        /* NOTE: the main synthesis loop is duplicated for both wavetable and
-         * trainlet synthesis for speed */
-        if (i != WAV_TRAINLET) {
-            /* wavetable synthesis */
-            for (n = grain->start; n < stop; ++n) {
-                double tablen = (double)curwav->table->flen;
-                unsigned x0;
-                MYFLT frac;
-
-                /* make sure phase accumulator stays within bounds */
-                while (UNLIKELY(curwav->phase >= tablen))
-                    curwav->phase -= tablen;
-                while (UNLIKELY(curwav->phase < 0.0))
-                    curwav->phase += tablen;
-
-                /* sample table lookup with linear interpolation */
-                x0 = (unsigned)curwav->phase;
-                frac = (MYFLT)(curwav->phase - x0);
-                buf[n] += lrp(curwav->table->ftable[x0],
-                              curwav->table->ftable[x0 + 1],
-                              frac)*curwav->gain;
-
-                fmenv = grain->fmenvtab->ftable[(size_t)(fmenvphase*FMAXLEN)
-                                                >> grain->fmenvtab->lobits];
-                fmenvphase += grain->envinc;
-                curwav->phase += curwav->delta
-                                 + curwav->delta*p->fm[n]*grain->fmamp*fmenv;
-                /* apply sweep */
-                curwav->delta = curwav->delta*curwav->sweepdecay
-                                + curwav->sweepoffset;
-            }
-        } else {
-            /* trainlet synthesis */
-            for (n = grain->start; n < stop; ++n) {
-                while (UNLIKELY(curwav->phase >= 1.0))
-                    curwav->phase -= 1.0;
-                while (UNLIKELY(curwav->phase < 0.0))
-                    curwav->phase += 1.0;
-
-                /* dsf/trainlet synthesis */
-                buf[n] += curwav->gain*dsf(p->costab, grain, curwav->phase,
-                                           p->zscale, p->cosineshift);
-
-                fmenv = grain->fmenvtab->ftable[(size_t)(fmenvphase*FMAXLEN)
-                                                >> grain->fmenvtab->lobits];
-                fmenvphase += grain->envinc;
-                curwav->phase += curwav->delta
-                                 + curwav->delta*p->fm[n]*grain->fmamp*fmenv;
-                curwav->delta = curwav->delta*curwav->sweepdecay
-                                + curwav->sweepoffset;
-            }
-        }
+        if (i != WAV_TRAINLET)
+            render_wave(p, grain, curwav, buf, stop);
+        else
+            render_trainlet(p, grain, curwav, buf, stop);
     }
 
     /* apply envelopes */
@@ -797,7 +827,7 @@ static int partikkel(CSOUND *csound, PARTIKKEL *p)
 }
 
 /* partikkelsync stuff */
-static int partikkelsync_init(CSOUND *csound, PARTIKKELSYNC *p)
+static int partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
 {
     PARTIKKEL_GLOBALS *pg;
     PARTIKKEL_GLOBALS_ENTRY *pe;
@@ -821,7 +851,7 @@ static int partikkelsync_init(CSOUND *csound, PARTIKKELSYNC *p)
     return OK;
 }
 
-static int partikkelsync(CSOUND *csound, PARTIKKELSYNC *p)
+static int partikkelsync(CSOUND *csound, PARTIKKEL_SYNC *p)
 {
     /* write sync pulse data */
     memcpy(p->syncout, p->ge->synctab, csound->ksmps*sizeof(MYFLT));
@@ -835,21 +865,121 @@ static int partikkelsync(CSOUND *csound, PARTIKKELSYNC *p)
     return OK;
 }
 
+static int get_global_entry(CSOUND *csound, PARTIKKEL_GLOBALS_ENTRY **entry,
+                            MYFLT opcodeid, const char *prefix)
+{
+    PARTIKKEL_GLOBALS *pg;
+    PARTIKKEL_GLOBALS_ENTRY *pe;
+
+    pg = csound->QueryGlobalVariable(csound, "partikkel");
+    if (UNLIKELY(pg == NULL))
+        return csound->InitError(csound,
+                                 Str("%s: partikkel not initialized"), prefix);
+    /* try to find entry corresponding to our opcodeid */
+    pe = pg->rootentry;
+    while (pe != NULL && pe->id != opcodeid)
+        pe = pe->next;
+
+    if (UNLIKELY(pe == NULL))
+        return csound->InitError(csound,
+                                 Str("%s: could not find opcode id"), prefix);
+    *entry = pe;
+    return OK;
+}
+
+static int partikkelget_init(CSOUND *csound, PARTIKKEL_GET *p)
+{
+    return get_global_entry(csound, &p->ge, *p->opcodeid, "partikkelget");
+}
+
+static int partikkelget(CSOUND *csound, PARTIKKEL_GET *p)
+{
+    PARTIKKEL *partikkel = p->ge->partikkel;
+
+    switch ((int)*p->index) {
+    case 0:
+        *p->valout = (MYFLT)partikkel->gainmaskindex;
+        break;
+    case 1:
+        *p->valout = (MYFLT)partikkel->wavfreqstartindex;
+        break;
+    case 2:
+        *p->valout = (MYFLT)partikkel->wavfreqendindex;
+        break;
+    case 3:
+        *p->valout = (MYFLT)partikkel->fmampindex;
+        break;
+    case 4:
+        *p->valout = (MYFLT)partikkel->channelmaskindex;
+        break;
+    case 5:
+        *p->valout = (MYFLT)partikkel->wavgainindex;
+        break;
+    }
+    return OK;
+}
+
+static int partikkelset_init(CSOUND *csound, PARTIKKEL_SET *p)
+{
+    return get_global_entry(csound, &p->ge, *p->opcodeid, "partikkelset");
+}
+
+static int partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
+{
+    PARTIKKEL *partikkel = p->ge->partikkel;
+
+    switch ((int)*p->index) {
+    case 0:
+        partikkel->gainmaskindex = (unsigned)*p->value;
+        break;
+    case 1:
+        partikkel->wavfreqstartindex = (unsigned)*p->value;
+        break;
+    case 2:
+        partikkel->wavfreqendindex = (unsigned)*p->value;
+        break;
+    case 3:
+        partikkel->fmampindex = (unsigned)*p->value;
+        break;
+    case 4:
+        partikkel->channelmaskindex = (unsigned)*p->value;
+        break;
+    case 5:
+        partikkel->wavgainindex = (unsigned)*p->value;
+        break;
+    }
+    return OK;
+}
+
 static OENTRY partikkel_localops[] = {
     {
         "partikkel", sizeof(PARTIKKEL), TR|5,
         "ammmmmmm",
-        "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkio",
+        "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkioj",
         (SUBR)partikkel_init,
         (SUBR)NULL,
         (SUBR)partikkel
     },
     {
-        "partikkelsync", sizeof(PARTIKKELSYNC), TR|5,
+        "partikkelsync", sizeof(PARTIKKEL_SYNC), TR|5,
         "am", "i",
         (SUBR)partikkelsync_init,
         (SUBR)NULL,
         (SUBR)partikkelsync
+    },
+    {
+        "partikkelget", sizeof(PARTIKKEL_GET), TR|3,
+        "k", "ki",
+        (SUBR)partikkelget_init,
+        (SUBR)partikkelget,
+        (SUBR)NULL
+    },
+    {
+        "partikkelset", sizeof(PARTIKKEL_SET), TR|3,
+        "", "kki",
+        (SUBR)partikkelset_init,
+        (SUBR)partikkelset,
+        (SUBR)NULL
     }
 };
 

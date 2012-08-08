@@ -1016,11 +1016,11 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
     }
 
     while (opinfo != NULL) {
-        csound->Message(csound, "%s : %s\n", opinfo->name, opname);
-        if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
-            return opinfo;
-        }
-        opinfo = opinfo->prv;   /* Move on: JPff suggestion */
+      //csound->Message(csound, "%s : %s\n", opinfo->name, opname);
+      if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
+        return opinfo;
+      }
+      opinfo = opinfo->prv;   /* Move on: JPff suggestion */
     }
 
     return NULL;
@@ -1665,7 +1665,7 @@ static int constndx(CSOUND *csound, const char *s)
     n = STA(poolcount)++;
     if (n >= STA(nconsts)) {
       STA(nconsts) = ((STA(nconsts) + (STA(nconsts) >> 3)) | (NCONSTS - 1)) + 1;
-      if (UNLIKELY(csound->oparms->msglevel))
+      if (UNLIKELY(PARSER_DEBUG && csound->oparms->msglevel))
         csound->Message(csound, Str("extending Floating pool to %d\n"),
                                 STA(nconsts));
       csound->pool = (MYFLT*) mrealloc(csound, csound->pool, STA(nconsts)

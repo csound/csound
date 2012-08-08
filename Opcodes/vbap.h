@@ -141,7 +141,7 @@ typedef struct {
 typedef struct {
   OPDS      h;                  /* required header */
   MYFLT     *dim, *ls_amount;
-  MYFLT     *f[64];
+  MYFLT     *f[2*CHANNELS];
 } VBAP_LS_INIT;
 
 /* A struct for a loudspeaker instance */

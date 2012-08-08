@@ -170,8 +170,7 @@ int lsgset_bkpt(CSOUND *csound, LINSEG *p)
 int klnseg(CSOUND *csound, LINSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
-    if (UNLIKELY(p->auxch.auxp==NULL)) 
-      goto err1;                        /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
         SEG *segp = p->cursegp;
@@ -312,9 +311,9 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
       segp->cnt = 0;
     if (midip) {
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
-      p->xtra = relestim;/*  VL 4-1-2011 was 
-                             (int32)(*argp[5] * csound->ekr + FL(0.5)); 
-                             this seems to fix it */
+      p->xtra = relestim;
+          /*  VL 4-1-2011 was (int32)(*argp[5] * csound->ekr + FL(0.5)); 
+              this seems to fix it */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int)relestim;
     }
@@ -479,7 +478,7 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
     MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
     int         n=0;
 
- /* count segs & alloc if nec */
+    /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
@@ -530,7 +529,7 @@ int xsgset2b(CSOUND *csound, EXPSEG2 *p)
     MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
     int         n;
 
- /* count segs & alloc if nec */
+    /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(XSEG) > (unsigned int)p->auxch.size) {
@@ -582,7 +581,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
     MYFLT       d, **argp, val, dur, nxtval;
     int         n;
 
- /* count segs & alloc if nec */
+    /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(XSEG) > (unsigned int)p->auxch.size) {
@@ -749,7 +748,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
     MYFLT   **argp, prvpt;
 
     p->xtra = -1;
- /* count segs & alloc if nec */
+    /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(SEG) > (unsigned int)p->auxch.size) {

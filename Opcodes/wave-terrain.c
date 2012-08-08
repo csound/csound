@@ -278,9 +278,10 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "wterrain", S(WAVETER), TR|5,  "a", "kkkkkkii",(SUBR)wtinit, NULL, (SUBR)wtPerf },
-{ "scantable", S(SCANTABLE),TR|5,"a", "kkiiiii",(SUBR)scantinit,
-                            NULL,(SUBR)scantPerf                             },
+{ "wterrain", S(WAVETER), TR|5,  "a", "kkkkkkii",
+                                            (SUBR)wtinit, NULL, (SUBR)wtPerf },
+{ "scantable", S(SCANTABLE),TR|5,"a", "kkiiiii",
+                                         (SUBR)scantinit,NULL,(SUBR)scantPerf},
 { "scanhammer",S(SCANHAMMER),TB|1,"", "iiii", (SUBR)scanhinit, NULL, NULL    }
 };
 

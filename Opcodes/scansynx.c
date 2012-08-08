@@ -113,11 +113,11 @@ static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
     int i, i1, i2;
     FUNC *fi;
     MYFLT *f;
-    MYFLT tab = *p->i_init;
+    MYFLT tab = FABS(*p->i_init);
     int32 len  = p->len;
 
     /* Get table */
-    if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
+    //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
     if (UNLIKELY((fi = csound->FTFind(csound, &tab)) == NULL)) {
       return csound->InitError(csound,
                                Str("scanux: Could not find ifninit ftable"));
@@ -275,8 +275,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 #else
       /* ***** EXPERIMENTAL ****************************************** */
       /* This version uses a binary bit matrix to save space and time */
-      csound->AuxAlloc(csound,
-                       1L+(len*len*sizeof(int32))/BITS_PER_UNIT, &p->aux_f);
+      csound->AuxAlloc(csound, 1L+(len*len*sizeof(int32))/BITS_PER_UNIT, &p->aux_f);
       p->f = (uint32*)p->aux_f.auxp;
 #endif
       for (i = 0, ilen = 0 ; i != len ; i++, ilen += len) {

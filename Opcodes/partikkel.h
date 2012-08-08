@@ -46,9 +46,9 @@ typedef struct {
 #define WAV_TRAINLET 4
 
 /* support structs for the grain pool routines */
-typedef struct NODE_ {
+typedef struct NODE {
     GRAIN grain;
-    struct NODE_ *next;
+    struct NODE *next;
 } NODE;
 
 typedef struct {
@@ -57,10 +57,13 @@ typedef struct {
     unsigned free_nodes;
 } GRAINPOOL;
 
-typedef struct PARTIKKEL_GLOBALS_ENTRY_ {
+struct PARTIKKEL;
+
+typedef struct PARTIKKEL_GLOBALS_ENTRY {
     MYFLT id;
     MYFLT *synctab;
-    struct PARTIKKEL_GLOBALS_ENTRY_ *next;
+    struct PARTIKKEL *partikkel;
+    struct PARTIKKEL_GLOBALS_ENTRY *next;
 } PARTIKKEL_GLOBALS_ENTRY;
 
 typedef struct {
@@ -74,7 +77,7 @@ typedef struct {
     PARTIKKEL_GLOBALS_ENTRY *rootentry;
 } PARTIKKEL_GLOBALS;
 
-typedef struct {
+typedef struct PARTIKKEL {
     OPDS h;
     /* output arrays */
     MYFLT *output1, *output2, *output3, *output4;
@@ -113,6 +116,7 @@ typedef struct {
     MYFLT *wavekey1, *wavekey2, *wavekey3, *wavekey4;
     MYFLT *max_grains;
     MYFLT *opcodeid;
+    MYFLT *pantable;
 
     /* internal variables */
     PARTIKKEL_GLOBALS *globals;
@@ -145,6 +149,7 @@ typedef struct {
     FUNC *wavgaintab;
     unsigned wavgainindex;
     double grainphase, graininc;
+    FUNC *pantab;
 } PARTIKKEL;
 
 typedef struct {
@@ -159,4 +164,25 @@ typedef struct {
     /* internal variables */
     int output_schedphase;
     PARTIKKEL_GLOBALS_ENTRY *ge;
-} PARTIKKELSYNC;
+} PARTIKKEL_SYNC;
+
+typedef struct {
+    OPDS h;
+    /* output */
+    MYFLT *valout;
+
+    /* inputs */
+    MYFLT *index;
+    MYFLT *opcodeid;
+    PARTIKKEL_GLOBALS_ENTRY *ge;
+} PARTIKKEL_GET;
+
+typedef struct {
+    OPDS h;
+    /* inputs */
+    MYFLT *index;
+    MYFLT *value;
+    MYFLT *opcodeid;
+    PARTIKKEL_GLOBALS_ENTRY *ge;
+} PARTIKKEL_SET;
+
