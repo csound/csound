@@ -55,10 +55,7 @@ static void sort_2D_lss(ls lss[CHANNELS], int sorted_lss[CHANNELS],
 static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int ind)
 {
     char name[24];
-    if (ind==0)
-      strcpy(name, "vbap_ls_table");
-    else 
-      sprintf(name, "vbap_ls_table_%d", ind);
+    sprintf(name, "vbap_ls_table_%d", ind);
     csound->DestroyGlobalVariable(csound, name);
     if (UNLIKELY(csound->CreateGlobalVariable(csound, name,
                                               cnt * sizeof(MYFLT)) != 0))
