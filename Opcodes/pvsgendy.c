@@ -89,8 +89,8 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
           MYFLT x = (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
           //          printf("%f\n", x);
           fout[i].re = fin[i].re + mrate * x;
-          fout[i].im = fin[i].im + frate * 
-            (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX/(MYFLT)(i+1);
+          fout[i].im = fin[i].im + 
+            frate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX/(MYFLT)(i+1);
         }
       }
       return OK;

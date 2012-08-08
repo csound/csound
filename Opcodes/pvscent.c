@@ -37,7 +37,8 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
 {
     *p->ans = FL(0.0);
     p->lastframe = 0;
-    if (UNLIKELY(!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE)))
+    if (UNLIKELY(!(p->fin->format==PVS_AMP_FREQ) ||
+                 (p->fin->format==PVS_AMP_PHASE)))
       return csound->InitError(csound,
                                Str("pvscent: format must be amp-phase"
                                    " or amp-freq.\n"));

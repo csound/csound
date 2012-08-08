@@ -756,7 +756,7 @@ int lpformant(CSOUND *csound, LPFORM *p)
     if (bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
     if (bws[j] < 1.0) bws[j] = 1.0;
     if (cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
-    if (cfs[j] < 0) cfs[j] = -cfs[j];
+    cfs[j] = FABS(cfs[j]);
     *p->kcf = cfs[j];
     *p->kbw = bws[j];
 

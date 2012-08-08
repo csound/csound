@@ -102,7 +102,9 @@ typedef struct {
 
 static int readf_delete(CSOUND *csound, void *p)
 {
-    fclose(((READF*)p)->fd);
+    READF *pp = (READF*)p;
+    
+    if (pp->fd) fclose(pp->fd);
     return OK;
 }
 

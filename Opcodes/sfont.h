@@ -54,22 +54,21 @@ typedef struct {
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
-        MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT],
-                attack[MAXSPLT], decay[MAXSPLT],
-                sustain[MAXSPLT], release[MAXSPLT];
+        MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT], attack[MAXSPLT],
+                decay[MAXSPLT], sustain[MAXSPLT], release[MAXSPLT];
         MYFLT   attr[MAXSPLT], decr[MAXSPLT];
         MYFLT   env[MAXSPLT];
 } SFPLAY;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out1, *ivel, *inotnum,*xamp, *xfreq, *ipresethandle, 
+        MYFLT   *out1, *ivel, *inotnum,*xamp, *xfreq, *ipresethandle,
                 *iflag, *ioffset, *ienv;
         int     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
-        MYFLT   attenuation[MAXSPLT],attack[MAXSPLT], decay[MAXSPLT], 
+        MYFLT   attenuation[MAXSPLT],attack[MAXSPLT], decay[MAXSPLT],
                 sustain[MAXSPLT], release[MAXSPLT];
         MYFLT   attr[MAXSPLT], decr[MAXSPLT];
         MYFLT   env[MAXSPLT];
