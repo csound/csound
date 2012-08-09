@@ -38,6 +38,8 @@ typedef struct {
     MYFLT   *fname, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
     int     nargs;
+    int     buf_pos;
+    int     guard_pos;
     FOUT_FILE f;
 } OUTFILE;
 
@@ -46,6 +48,8 @@ typedef struct {
     MYFLT   *fname, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
     int     nargs;
+    int     buf_pos;
+    int     guard_pos;
     FOUT_FILE f;
 } KOUTFILE;
 
