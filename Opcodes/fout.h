@@ -60,6 +60,10 @@ typedef struct {
     int32   currpos;
     int     flag;
     int     nargs;
+    int     buf_pos;
+    int     guard_pos;
+    int     frames;
+    int     remain;
     FOUT_FILE f;
 } INFILE;
 
@@ -70,6 +74,10 @@ typedef struct {
     int32   currpos;
     int     flag;
     int     nargs;
+    int     buf_pos;
+    int     guard_pos;
+    int     frames;
+    int     remain;
     FOUT_FILE f;
 } KINFILE;
 
