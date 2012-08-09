@@ -176,7 +176,6 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       void    *fd;
       int     buf_reqd, do_scale = 0;
 
-      buf_reqd = (int) ((SF_INFO*) fileParams)->channels;
       if (fileType == CSFILE_SND_W) {
         do_scale = ((SF_INFO*) fileParams)->format;
         csFileType = csound->sftype2csfiletype(do_scale);
@@ -201,10 +200,11 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         sf_command(sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
       }
-      /* reallocate buffer if necessary */
-      if ((int) ((SF_INFO*) fileParams)->channels > buf_reqd)
-        buf_reqd = (int) ((SF_INFO*) fileParams)->channels;
-      buf_reqd *= csound->ksmps;
+      if (csound->ksmps >= 512)
+        buf_reqd = csound->ksmps * ((SF_INFO*) fileParams)->channels;
+      else
+        buf_reqd = (1 + (int)(512 / csound->ksmps)) * csound->ksmps
+                   * ((SF_INFO*) fileParams)->channels;
       if (UNLIKELY(buf_reqd > pp->buf_size)) {
         pp->buf_size = buf_reqd;
         pp->buf = (MYFLT*) csound->ReAlloc(csound, pp->buf, sizeof(MYFLT)
@@ -263,14 +263,18 @@ static int outfile(CSOUND *csound, OUTFILE *p)
       }
     }
     else {
-      for (j = k = 0; j < nsmps; j++)
+      for (j = 0, k = p->buf_pos; j < nsmps; j++)
         for (i = 0; i < nargs; i++)
           pp->buf[k++] = p->argums[i][j] * p->scaleFac;
+      p->buf_pos = k;
+      if (p->buf_pos >= p->guard_pos) {
 #ifndef USE_DOUBLE
-      sf_writef_float(p->f.sf, (float*) pp->buf, nsmps);
+        sf_write_float(p->f.sf, (float*) pp->buf, p->buf_pos);
 #else
-      sf_writef_double(p->f.sf, (double*) pp->buf, nsmps);
+        sf_write_double(p->f.sf, (double*) pp->buf, p->buf_pos);
 #endif
+        p->buf_pos = 0;
+      }
     }
     return OK;
 }
@@ -306,6 +310,19 @@ static const int fout_format_table[50] = {
     (SF_FORMAT_PCM_24 | SF_FORMAT_IRCAM), (SF_FORMAT_DOUBLE | SF_FORMAT_IRCAM)
 };
 
+static int fout_flush_callback(CSOUND *csound, void *p_)
+{
+    OUTFILE            *p = (OUTFILE*) p_;
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+
+    if (p->f.sf != NULL && p->buf_pos > 0)
+#ifndef USE_DOUBLE
+      sf_write_float(p->f.sf, (float*) pp->buf, p->buf_pos);
+#else
+      sf_write_double(p->f.sf, (double*) pp->buf, p->buf_pos);
+#endif
+}
+
 static int outfile_set(CSOUND *csound, OUTFILE *p)
 {
     SF_INFO sfinfo;
@@ -323,6 +340,13 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
       sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
     sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
     p->nargs = p->INOCOUNT - 2;
+    p->buf_pos = 0;
+
+    if (csound->ksmps >= 512)
+      p->guard_pos = csound->ksmps * p->nargs;
+    else
+      p->guard_pos = 512 * p->nargs;
+
     sfinfo.channels = p->nargs;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
                        p->fname, p->XSTRCODE, &sfinfo);
@@ -334,22 +358,27 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
     else
       p->scaleFac = FL(1.0);
 
+    csound->RegisterDeinitCallback(csound, p, fout_flush_callback);
     return OK;
 }
 
 static int koutfile(CSOUND *csound, KOUTFILE *p)
 {
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
-    int   i;
+    int   i, k;
     int nargs = p->nargs;
 
-    for (i = 0; i < nargs; i++)
-      pp->buf[i] = p->argums[i][0] * p->scaleFac;
+    for (i = 0, k = p->buf_pos; i < nargs; i++)
+      pp->buf[k++] = p->argums[i][0] * p->scaleFac;
+    p->buf_pos = k;
+    if (p->buf_pos >= p->guard_pos) {
 #ifndef USE_DOUBLE
-    sf_writef_float(p->f.sf, (float*) pp->buf, 1);
+      sf_write_float(p->f.sf, (float*) pp->buf, p->buf_pos);
 #else
-    sf_writef_double(p->f.sf, (double*) pp->buf, 1);
+      sf_write_double(p->f.sf, (double*) pp->buf, p->buf_pos);
 #endif
+      p->buf_pos = 0;
+    }
     return OK;
 }
 
@@ -360,6 +389,13 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     p->nargs = p->INOCOUNT - 2;
+    p->buf_pos = 0;
+
+    if (csound->ksmps >= 512)
+      p->guard_pos = csound->ksmps * p->nargs;
+    else
+      p->guard_pos = 512 * p->nargs;
+
     sfinfo.channels = p->nargs;
     sfinfo.samplerate = (int) MYFLT2LRND(csound->ekr);
     format_ = (int) MYFLT2LRND(*p->iflag);
@@ -377,6 +413,7 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
     else
       p->scaleFac = FL(1.0);
 
+    csound->RegisterDeinitCallback(csound, p, fout_flush_callback);
     return OK;
 }
 
