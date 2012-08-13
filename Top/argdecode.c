@@ -419,6 +419,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->inbufsamps = O->outbufsamps = atoi(s);
       return 1;
     }
+    else if (!(strcmp (s, "orc"))) {
+      csound->use_only_orchfile = 1;    /* orchfile without scorefile */
+      return 1;
+    }
     else if (!(strcmp (s, "cscore"))) {
       O->usingcscore = 1;               /* use cscore processing  */
       return 1;
