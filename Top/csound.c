@@ -691,6 +691,7 @@ extern "C" {
     0,              /*  stdin_assign_flg    */
     0,              /*  stdout_assign_flg   */
     0,              /*  orcname_mode        */
+    0,              /*  use_only_orchfile   */
     NULL,           /*  csmodule_db         */
     (char*) NULL,   /*  dl_opcodes_oplibs   */
     (char*) NULL,   /*  SF_csd_licence      */

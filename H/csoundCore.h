@@ -1418,6 +1418,7 @@ typedef struct NAME__ {
     char          stdin_assign_flg;
     char          stdout_assign_flg;
     char          orcname_mode;         /* 0: normal, 1: ignore, 2: fail */
+    int           use_only_orchfile;
     void          *csmodule_db;
     char          *dl_opcodes_oplibs;
     char          *SF_csd_licence;

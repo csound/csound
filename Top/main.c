@@ -126,7 +126,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* check for CSD file */
     if (csound->orchname == NULL)
       dieu(csound, Str("no orchestra name"));
-    else if ((csound->scorename == NULL || csound->scorename[0] == (char) 0)
+    else if (csound->use_only_orchfile == 0
+             && (csound->scorename == NULL || csound->scorename[0] == (char) 0)
              && csound->orchname[0] != '\0') {
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
       csound->orcname_mode = 0;
@@ -170,7 +171,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
     if (csound->scorename == NULL && csound->scorestr==NULL) {
       /* No scorename yet */
-      csound->scorestr = corfile_create_r("f0 42000\n");
+      csound->scorestr = corfile_create_r("f0 800000000000.0\n");
       corfile_flush(csound->scorestr);
       if (O->RTevents)
         csound->Message(csound, Str("realtime performance using dummy "
@@ -216,7 +217,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (!csoundYield(csound))
       return -1;
     /* IV - Oct 31 2002: now we can read and sort the score */
-    if ((n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
+    if (csound->scorename != NULL &&
+        (n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
         (!strcmp(csound->scorename + (n - 4), ".srt") ||
          !strcmp(csound->scorename + (n - 4), ".xtr"))) {
       csound->Message(csound, Str("using previous %s\n"), csound->scorename);
