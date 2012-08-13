@@ -126,35 +126,30 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* check for CSD file */
     if (csound->orchname == NULL)
       dieu(csound, Str("no orchestra name"));
-    else if (csound->scorename == NULL || csound->scorename[0] == (char) 0) {
-      int   tmp = (int) strlen(csound->orchname) - 4;
-      if (tmp >= 0 && csound->orchname[tmp] == '.' &&
-          tolower(csound->orchname[tmp + 1]) == 'c' &&
-          tolower(csound->orchname[tmp + 2]) == 's' &&
-          tolower(csound->orchname[tmp + 3]) == 'd') {
-        /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
-        csound->orcname_mode = 0;
-        csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
+    else if ((csound->scorename == NULL || csound->scorename[0] == (char) 0)
+             && csound->orchname[0] != '\0') {
+      /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
+      csound->orcname_mode = 0;
+      csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
 
-        /* Add directory of CSD file to search paths before orchname gets
-         * replaced with temp orch name if default paths is enabled */
-        if (!O->noDefaultPaths) {
-          fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
-          csoundAppendEnv(csound, "SADIR", fileDir);
-          csoundAppendEnv(csound, "SSDIR", fileDir);
-          csoundAppendEnv(csound, "INCDIR", fileDir);
-          csoundAppendEnv(csound, "MFDIR", fileDir);
-          mfree(csound, fileDir);
-        }
-
-        csound->csdname = csound->orchname; /* save original CSD name */
-        if (!read_unified_file(csound, &(csound->orchname),
-                                       &(csound->scorename))) {
-          csound->Die(csound, Str("Reading CSD failed ... stopping"));
-        }
-
-        csdFound = 1;
+      /* Add directory of CSD file to search paths before orchname gets
+       * replaced with temp orch name if default paths is enabled */
+      if (!O->noDefaultPaths) {
+	fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+	csoundAppendEnv(csound, "SADIR", fileDir);
+	csoundAppendEnv(csound, "SSDIR", fileDir);
+	csoundAppendEnv(csound, "INCDIR", fileDir);
+	csoundAppendEnv(csound, "MFDIR", fileDir);
+	mfree(csound, fileDir);
       }
+
+      csound->csdname = csound->orchname; /* save original CSD name */
+      if (!read_unified_file(csound, &(csound->orchname),
+                                       &(csound->scorename))) {
+	csound->Die(csound, Str("Reading CSD failed ... stopping"));
+      }
+
+      csdFound = 1;
     }
 
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
