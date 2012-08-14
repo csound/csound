@@ -23,7 +23,7 @@
 
                                                         /* clfilt.h */
 
-#define CL_LIM 40                       /* The limit on the number of biquadratic sections */
+#define CL_LIM 40  /* The limit on the number of biquadratic sections */
 
                                 /* Structure for biquadratic filter */
 typedef struct {

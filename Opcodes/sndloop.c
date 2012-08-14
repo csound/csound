@@ -60,7 +60,8 @@ kpitch - pitch control (transposition ratio)
 
 FLOOPER2
 
-asig flooper2 kamp, kpitch, kloopstart, kloopend, kcrossfade, ifn [, istart, imode, ifenv]
+asig flooper2 kamp, kpitch, kloopstart, kloopend, kcrossfade, 
+              ifn [, istart, imode, ifenv]
 
 Function-table crossfading looper with variable loop parameters and
 different looping modes.
@@ -69,7 +70,8 @@ INIT
 
 ifn - sound source function table. Non-power-of-two and deferred allocation
 tables are allowed.
-istart - playback starting point in secs, only applicable to loop modes 0 & 2 [def:0]
+istart - playback starting point in secs, only applicable to loop modes 0 & 2
+         [def:0]
 imode - loop modes: 0 forward, 1 backward, 2 back-and-forth [def: 0]
 ifenv - if non-zero, crossfade envelope shape table number. 0, the default, sets
 the crossfade to linear.
@@ -905,11 +907,13 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
             loop_start = MYFLT2LRND(*p->loop_start*sr);
             loop_end =   MYFLT2LRND(*p->loop_end*sr);
             p->lstart = loop_start = (loop_start < 0 ? 0 : loop_start);
-            p->lend = loop_end =   (loop_end > len ? len :
-                                    (loop_end < loop_start ? loop_start : loop_end));
+            p->lend = loop_end =
+              (loop_end > len ? len :
+              (loop_end < loop_start ? loop_start : loop_end));
             loopsize = (loop_end - loop_start);
             crossfade =  MYFLT2LRND(*p->crossfade*sr);
-            p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
+            p->cfade = crossfade = 
+              crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
             cvt = (MYFLT)elen/p->cfade;
           }
         }

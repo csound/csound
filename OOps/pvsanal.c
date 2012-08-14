@@ -362,7 +362,9 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
     }
 #endif
     /*if (format==PVS_AMP_FREQ) {*/
-    for (i=ii=0/*,i0=anal,i1=anal+1,oi=oldInPhase*/; i <= N2; i++,ii+=2/*i0+=2,i1+=2, oi++*/) {
+    for (i=ii=0    /*,i0=anal,i1=anal+1,oi=oldInPhase*/; 
+         i <= N2;
+         i++,ii+=2 /*i0+=2,i1+=2, oi++*/) {
       real = anal[ii] /* *i0 */;
       imag = anal[ii+1] /* *i1 */;
       /**i0*/ anal[ii] = HYPOT(real, imag);
@@ -478,7 +480,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
       /* Rectang :Fw_t =     F_t                          */
       /* Hamming :Fw_t = 0.54F_t - 0.23[ F_{t-1}+F_{t+1}] */
       /* Hamming :Fw_t = 0.5 F_t - 0.25[ F_{t-1}+F_{t+1}] */
-      /* Blackman:Fw_t = 0.42F_t - 0.25[ F_{t-1}+F_{t+1}] + 0.04[F_{t-2}+F_{t+2}] */
+      /* Blackman:Fw_t = 0.42F_t - 0.25[ F_{t-1}+F_{t+1}]+0.04[F_{t-2}+F_{t+2}] */
       /* Blackman_exact:Fw_t = 0.42659071367153912296F_t
          - 0.24828030954428202923 [F_{t-1}+F_{t+1}]
          + 0.038424333619948409286 [F_{t-2}+F_{t+2}]      */

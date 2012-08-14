@@ -174,7 +174,8 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
       return csound->InitError(csound,
                                Str("reverbsc: sample rate is out of range"));
     }
-    if (UNLIKELY(*(p->iPitchMod) < FL(0.0) || *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD)) {
+    if (UNLIKELY(*(p->iPitchMod) < FL(0.0) ||
+                 *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD)) {
       return csound->InitError(csound,
                                Str("reverbsc: invalid pitch modulation factor"));
     }

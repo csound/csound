@@ -138,30 +138,36 @@ static const char *longUsageList[] = {
   Str_noop("--postscriptdisplay\tSuppress graphics, use Postscript displays"),
   " ",
   Str_noop("--defer-gen1\t\tDefer GEN01 soundfile loads until performance time"),
-  Str_noop("--iobufsamps=N\t\tSample frames (or -kprds) per software sound I/O buffer"),
+  Str_noop("--iobufsamps=N\t\tSample frames (or -kprds) per software "
+           "sound I/O buffer"),
   Str_noop("--hardwarebufsamps=N\tSamples per hardware sound I/O buffer"),
   Str_noop("--cscore\t\tUse Cscore processing of scorefile"),
+  Str_noop("--orc\t\t\tUse orchfile without scorefile"),
   " ",
   Str_noop("--midifile=FNAME\tRead MIDIfile event stream from file"),
   Str_noop("--midioutfile=FNAME\tWrite MIDI output to file FNAME"),
   Str_noop("--midi-device=FNAME\tRead MIDI realtime events from device"),
   Str_noop("--terminate-on-midi\tTerminate the performance when miditrack is done"),
   " ",
-  Str_noop("--heartbeat=N\t\tPrint a heartbeat style 1, 2 or 3 at each soundfile write"),
+  Str_noop("--heartbeat=N\t\tPrint a heartbeat style 1, 2 or 3 at "
+           "each soundfile write"),
   Str_noop("--notify\t\tNotify (ring the bell) when score or miditrack is done"),
-  Str_noop("--rewrite\t\tContinually rewrite header while writing soundfile (WAV/AIFF)"),
+  Str_noop("--rewrite\t\tContinually rewrite header while writing "
+           "soundfile (WAV/AIFF)"),
   " ",
   Str_noop("--input=FNAME\t\tSound input filename"),
   Str_noop("--output=FNAME\t\tSound output filename"),
   Str_noop("--logfile=FNAME\t\tLog output to file"),
   " ",
   Str_noop("--nosound\t\tNo sound onto disk or device"),
-  Str_noop("--tempo=N\t\tUse uninterpreted beats of the score, initially at tempo N"),
+  Str_noop("--tempo=N\t\tUse uninterpreted beats of the score, initially"
+           " at tempo N"),
   Str_noop("--i-only\t\tI-time only orch run"),
   Str_noop("--syntax-check-only\tStop after checking orchestra and score syntax"),
   Str_noop("--control-rate=N\tOrchestra krate override"),
   Str_noop("--sample-rate=N\t\tOrchestra srate override"),
-  Str_noop("--score-in=FNAME\tRead Line-oriented realtime score events from device"),
+  Str_noop("--score-in=FNAME\tRead Line-oriented realtime score events"
+           " from device"),
   Str_noop("--messagelevel=N\ttty message level, sum of:"),
   Str_noop("--messageolevel=O\ttty message level in octal, of:"),
   Str_noop("\t\t\t\t1=note amps, 2=out-of-range msg, 4=warnings,"),
@@ -412,6 +418,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 17;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no hardware bufsamps"));
       O->inbufsamps = O->outbufsamps = atoi(s);
+      return 1;
+    }
+    else if (!(strcmp (s, "orc"))) {
+      csound->use_only_orchfile = 1;    /* orchfile without scorefile */
       return 1;
     }
     else if (!(strcmp (s, "cscore"))) {

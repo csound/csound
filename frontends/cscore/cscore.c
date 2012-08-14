@@ -35,7 +35,8 @@ void cscore(CSOUND *cs)  /* callable from Csound or standalone cscore  */
       cscoreListFreeEvents(cs, a);                 /* reclaim the space */
     }
 
-    if (a) cscoreListFreeEvents(cs, a);            /* reclaim space from cscoreListGetSection() */
+    if (a) 
+      cscoreListFreeEvents(cs, a); /* reclaim space from cscoreListGetSection() */
     a = cscoreListCreate(cs, 1);
     a = cscoreListAppendStringEvent(cs, a,"e");
     cscoreListPut(cs, a);                          /* end-of-score for summaries */

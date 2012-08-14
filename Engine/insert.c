@@ -1183,7 +1183,8 @@ int xoutset(CSOUND *csound, XOUT *p)
     tmp = buf->iobufp_ptrs;
     /* VL: needs to check if there are not 4 nulls in a sequence, which
        would indicate no a, k, f or t sigs */
-    if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3)) tmp += (inm->perf_incnt << 1);
+    if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3))
+      tmp += (inm->perf_incnt << 1);
     tmp += 4;  /* VL: this was 2, now 4 with fsigs and tsigs added */
     if (*tmp || *(tmp + 1))
     return OK;
@@ -1721,7 +1722,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
      if (!(csound->pds = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
 
-    //csound->Message(csound, "end input\n"); /* FOR SOME REASON the opcode has no perf code */
+    /* FOR SOME REASON the opcode has no perf code */
+    //csound->Message(csound, "end input\n"); 
     /* IV - Nov 16 2002: update release flag */
     p->ip->relesing = p->parent_ip->relesing;
 
@@ -1865,6 +1867,7 @@ static void instance(CSOUND *csound, int insno)
     if (O->midiVelocity>n) n = O->midiVelocity;
     if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
     pextra = n-3;
+      /* alloc new space,  */
     pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *);      /* alloc new space,  */
     ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
     ip->csound = csound;

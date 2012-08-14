@@ -228,18 +228,23 @@ namespace csound
 	if (token.find("--") == 0) 
 	  {
 	    key = token;
+	    System::inform("argument[%2d]: %s\n", i, key.c_str());
 	  }
 	else
 	  {
 	    value = token;
+	    System::inform("argument[%2d]: %s =  %s\n", i, key.c_str(), value.c_str());
 	  }
 	argsmap[key] = value;
-	System::inform("argument[%2d]: %s =  %s\n", i, key.c_str(), value.c_str());
       }
     char command[0x200];
     int errorStatus = 0;
     bool postPossible = false;
     std::string playSoundfileName = getOutputSoundfileName();
+    if ((argsmap.find("--dir") != argsmap.end()) && !errorStatus) 
+      {
+	setOutputDirectory(argsmap["--dir"]);
+      }
     if ((argsmap.find("--midi") != argsmap.end()) && !errorStatus)
       {
         errorStatus = generate();

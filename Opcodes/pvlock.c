@@ -28,11 +28,13 @@
 
 typedef struct dats{
   OPDS h;
-  MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN, *idecim, *konset, *offset, *dbthresh;
+  MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN, 
+        *idecim, *konset, *offset, *dbthresh;
   int cnt, hsize, curframe, N, decim,tscale,nchans;
   double pos;
   MYFLT accum;
-  AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS], nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS];
+  AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS], 
+        nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS];
 } DATASPACE;
 
 

@@ -26,7 +26,6 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
-#include "tok.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
@@ -1255,7 +1254,8 @@ inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
         csp_orc_sa_instr_get_by_num(csound, chain->insno);
       if (current_instr == NULL) {
         current_instr =
-          csp_orc_sa_instr_get_by_name(csound, csound->instrtxtp[chain->insno]->insname);
+          csp_orc_sa_instr_get_by_name(csound,
+                                       csound->instrtxtp[chain->insno]->insname);
         if (current_instr == NULL)
           csound->Die(csound,
                       Str("Failed to find semantic information"
@@ -1850,7 +1850,7 @@ void csp_dag_print(CSOUND *csound, DAG *dag)
 #endif
 }
 
-/**********************************************************************************************
+/********************************************************************
  * dag2 optimization structure
  */
 
@@ -2174,7 +2174,7 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 #endif
 }
 
-/**********************************************************************************************
+/***********************************************************************
  * dag2 cache structure
  */
 
@@ -2197,7 +2197,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 /* #define DAG_2_CACHE_SIZE     100 */
 /* #define DAG_2_DECAY_COMP     1 */
 /* #define DAG_2_MIN_USE_LIMIT  5000 */
-/* /\* aiming for 8 passes of the cache update before a new entry must exist solely on its usage *\/ */
+/* aiming for 8 passes of the cache update before a new entry must exist
+   solely on its usage */
 /* #define DAG_2_MIN_AGE_LIMIT  256 */
 /* #define DAG_2_AGE_START      131072 */
 
@@ -2206,8 +2207,9 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 /* static int csp_dag_cache_entry_alloc(CSOUND *csound, */
 /*                                      struct dag_cache_entry_t **entry, */
 /*                                      INSDS *chain); */
-/* static int csp_dag_cache_compare(CSOUND *csound */
-/*                                  , struct dag_cache_entry_t *entry, INSDS *chain); */
+/* static int csp_dag_cache_compare(CSOUND *csound, */
+/*                                  struct dag_cache_entry_t *entry, */
+/*                                  INSDS *chain); */
 /* static void csp_dag_cache_update(CSOUND *csound); */
 
 /* void csp_dag_cache_print(CSOUND *csound) */
@@ -2230,7 +2232,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 /* } */
 
 /* static int csp_dag_cache_entry_alloc(CSOUND *csound, */
-/*                                      struct dag_cache_entry_t **entry, INSDS *chain) */
+/*                                      struct dag_cache_entry_t **entry, */
+/*                                      INSDS *chain) */
 /* { */
 /*     int ctr = 0; */
 /*     INSDS *current_insds = chain; */
@@ -2248,7 +2251,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 /*     } */
 
 /*     *entry = csound->Malloc(csound, */
-/*                             sizeof(struct dag_cache_entry_t) + sizeof(int16) * ctr); */
+/*                             sizeof(struct dag_cache_entry_t) + */
+/*                             sizeof(int16) * ctr); */
 /*     if (UNLIKELY(*entry == NULL)) { */
 /*       csound->Die(csound, Str("Failed to allocate Dag2 cache")); */
 /*     } */
@@ -2316,14 +2320,17 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 /* } */
 
 /* static int csp_dag_cache_compare(CSOUND *csound, */
-/*                                  struct dag_cache_entry_t *entry, INSDS *chain) */
+/*                                  struct dag_cache_entry_t *entry,
+                                    INSDS *chain) */
 /* { */
 /*     INSDS *current_insds = chain; */
 /*     int32_t ctr = 0; */
 
 /* #ifdef CAUTIOUS */
-/*     if (entry == NULL) csound->Die(csound, Str("Invalid NULL Parameter entry")); */
-/*     if (chain == NULL) csound->Die(csound, Str("Invalid NULL Parameter chain")); */
+/*     if (entry == NULL) csound->Die(csound, 
+                                      Str("Invalid NULL Parameter entry")); */
+/*     if (chain == NULL) csound->Die(csound,
+                                      Str("Invalid NULL Parameter chain")); */
 /* #endif */
 
 /*     while (current_insds != NULL && ctr < entry->instrs) { */

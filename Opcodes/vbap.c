@@ -24,7 +24,8 @@
 /* vbap.c
 
 assisting functions for VBAP
-functions for loudspeaker table initialization */
+functions for loudspeaker table initialization 
+Re-written to take flexible number of outputs by JPff 2012 */
 
 
 #include "csoundCore.h"
@@ -44,20 +45,22 @@ static void add_ldsp_triplet(CSOUND *csound, int i, int j, int k,
                              ls *lss);
 static void calculate_3x3_matrixes(CSOUND *csound,
                                    ls_triplet_chain *ls_triplets,
-                                   ls lss[CHANNELS], int ls_amount);
+                                   ls lss[CHANNELS], int ls_amount, int ind);
 static void choose_ls_tuplets(CSOUND *csound, ls lss[CHANNELS],
                               ls_triplet_chain **ls_triplets,
-                              int ls_amount);
+                              int ls_amount, int ind);
 static void sort_2D_lss(ls lss[CHANNELS], int sorted_lss[CHANNELS],
                         int ls_amount);
 
-static MYFLT *create_ls_table(CSOUND *csound, size_t cnt)
+static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int ind)
 {
-    csound->DestroyGlobalVariable(csound, "vbap_ls_table");
-    if (UNLIKELY(csound->CreateGlobalVariable(csound, "vbap_ls_table",
+    char name[24];
+    sprintf(name, "vbap_ls_table_%d", ind);
+    csound->DestroyGlobalVariable(csound, name);
+    if (UNLIKELY(csound->CreateGlobalVariable(csound, name,
                                               cnt * sizeof(MYFLT)) != 0))
       csound->Die(csound, Str("vbap: error allocating loudspeaker table"));
-    return get_ls_table(csound);
+    return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
 }
 
 void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
@@ -123,9 +126,6 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
       sets[j].set_gains[2] = FL(1.0);
       }
 
-/*     for (i=0;i<ls_amount;i++) { */
-/*       gains[i]=FL(0.0); */
-/*     } */
     memset(gains, 0, ls_amount*sizeof(MYFLT));
 
     gains[sets[j].ls_nos[0]-1] = sets[j].set_gains[0];
@@ -555,33 +555,32 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
     }
 }
 
-int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
+static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count, 
+                            MYFLT **f, int layout)
      /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
         according to current dimension. The inversion matrices are
         stored in transposed form to ease calculation at run time.*/
 {
-    int dim, count;
     struct ls_triplet_chain *ls_triplets = NULL;
     ls lss[CHANNELS];
 
     ANG_VEC a_vector;
     CART_VEC c_vector;
     int i=0,j;
-    int ls_amount;
 
-    dim = (int) *p->dim;
+    //dim = (int) *p->dim;
     csound->Warning(csound, "dim : %d\n",dim);
     if (UNLIKELY(!((dim==2) || (dim == 3)))) {
       csound->Die(csound, Str("Error in loudspeaker dimension."));
     }
-    count = (int) *p->ls_amount;
+    //count = (int) *p->ls_amount;
     for (j=1;j<=count;j++) {
       if (dim == 3) {
-        a_vector.azi= (MYFLT) *p->f[2*j-2];
-        a_vector.ele= (MYFLT) *p->f[2*j-1];
+        a_vector.azi= (MYFLT) *f[2*j-2];
+        a_vector.ele= (MYFLT) *f[2*j-1];
       }
       else if (dim == 2) {
-        a_vector.azi= (MYFLT) *p->f[j-1];
+        a_vector.azi= (MYFLT) *f[j-1];
         a_vector.ele=FL(0.0);
       }
       angle_to_cart_II(&a_vector,&c_vector);
@@ -593,24 +592,31 @@ int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
       lss[i].angles.length = FL(1.0);
       i++;
     }
-    ls_amount = (int)*p->ls_amount;
-    if (UNLIKELY(ls_amount < dim)) {
+    //ls_amount = (int)*p->ls_amount;
+    if (UNLIKELY(count < dim)) {
       csound->Die(csound, Str("Too few loudspeakers"));
     }
 
     if (dim == 3) {
-      choose_ls_triplets(csound, lss, &ls_triplets,ls_amount);
-      calculate_3x3_matrixes(csound, ls_triplets,lss,ls_amount);
+      choose_ls_triplets(csound, lss, &ls_triplets,count);
+      calculate_3x3_matrixes(csound, ls_triplets,lss,count, layout);
     }
     else if (dim ==2) {
-      choose_ls_tuplets(csound, lss, &ls_triplets,ls_amount);
+      choose_ls_tuplets(csound, lss, &ls_triplets,count, layout);
     }
     return OK;
 }
 
+int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
+{
+    int dim = (int) *p->dim;
+    int layout = (int)((*p->dim-(MYFLT)dim)*100);
+    return vbap_ls_init_sr(csound, dim, (int) *p->ls_amount, p->f, layout);
+}
+
 static void calculate_3x3_matrixes(CSOUND *csound,
                                    struct ls_triplet_chain *ls_triplets,
-                                   ls lss[CHANNELS], int ls_amount)
+                                   ls lss[CHANNELS], int ls_amount, int ind)
      /* Calculates the inverse matrices for 3D */
 {
     MYFLT invdet;
@@ -631,7 +637,7 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     }
 
     /* calculations and data storage to a global array */
-    ls_table = create_ls_table(csound, triplet_amount * 12 + 3);
+    ls_table = create_ls_table(csound, triplet_amount * 12 + 3, ind);
     ls_table[0] = FL(3.0);  /* dimension */
     ls_table[1] = (MYFLT) ls_amount;
     ls_table[2] = (MYFLT) triplet_amount;
@@ -687,7 +693,7 @@ static void calculate_3x3_matrixes(CSOUND *csound,
 static void choose_ls_tuplets(CSOUND *csound,
                               ls lss[CHANNELS],
                               ls_triplet_chain **ls_triplets,
-                              int ls_amount)
+                              int ls_amount, int ind)
      /* selects the loudspeaker pairs, calculates the inversion
         matrices and stores the data to a global array */
 {
@@ -744,7 +750,7 @@ static void choose_ls_tuplets(CSOUND *csound,
       csound->Message(csound, "%.1f ", lss[i].angles.azi / atorad);
     csound->Message(csound, "\n");
 #endif
-    ls_table = create_ls_table(csound, amount * 6 + 3 + 100);
+    ls_table = create_ls_table(csound, amount * 6 + 3 + 100, ind);
     ls_table[0] = FL(2.0);  /* dimension */
     ls_table[1] = (MYFLT) ls_amount;
     ls_table[2] = (MYFLT) amount;
@@ -901,37 +907,27 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 
 /* static */
 static OENTRY vbap_localops[] = {
-  { "vbap4",      S(VBAP_FOUR),             TR|5,  "aaaa",             "akOO",
-    (SUBR) vbap_FOUR_init,          (SUBR) NULL,    (SUBR) vbap_FOUR        },
-  { "vbap8",      S(VBAP_EIGHT),            TR|5,  "aaaaaaaa",         "akOO",
-    (SUBR) vbap_EIGHT_init,         (SUBR) NULL,    (SUBR) vbap_EIGHT       },
-  { "vbap16",     S(VBAP_SIXTEEN),          TR|5,  "aaaaaaaaaaaaaaaa", "akOO",
-    (SUBR) vbap_SIXTEEN_init,       (SUBR) NULL,    (SUBR) vbap_SIXTEEN     },
-  { "vbapz",      S(VBAP_ZAK),           ZW|TR|5,  "",                 "iiakOO",
+  { "vbap",      S(VBAP),           
+    TR|5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "akOOo",
+    (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap        },
+  { "vbapg",      S(VBAP1),             TR|5,
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",  "kOOo",
+    (SUBR) vbap1_init,          (SUBR) NULL,    (SUBR) vbap1       },
+  { "vbapz",      S(VBAP_ZAK),           ZW|TR|5,  "",                 "iiakOOo",
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
   { "vbaplsinit", S(VBAP_LS_INIT), TR|1, "", "iioooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },
-  { "vbap4move",  S(VBAP_FOUR_MOVING),      TR|5,  "aaaa",             "aiiim",
-    (SUBR) vbap_FOUR_moving_init,   (SUBR) NULL,    (SUBR) vbap_FOUR_moving },
-  { "vbap8move",  S(VBAP_EIGHT_MOVING),     TR|5,  "aaaaaaaa",         "aiiim",
-    (SUBR) vbap_EIGHT_moving_init,  (SUBR) NULL,    (SUBR) vbap_EIGHT_moving },
-  { "vbap16move", S(VBAP_SIXTEEN_MOVING),   TR|5,  "aaaaaaaaaaaaaaaa", "aiiim",
-    (SUBR) vbap_SIXTEEN_moving_init, (SUBR) NULL, (SUBR) vbap_SIXTEEN_moving },
+  { "vbapmove", S(VBAP_MOVING),   
+    TR|5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "aiiim",
+    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
+  { "vbap1move",  S(VBAP1_MOVING),      TR|5,
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "iiim",
+    (SUBR) vbap1_moving_init,   (SUBR) NULL,    (SUBR) vbap1_moving },
   { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR|5,  "",                 "iiaiiim",
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  }
 };
 
 LINKAGE1(vbap_localops)
 
-/* PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
-{
-    create_ls_table(csound, 3);
-    *ep = localops;
-    return (long) sizeof(localops);
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
-}
-*/

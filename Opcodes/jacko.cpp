@@ -1625,7 +1625,8 @@ extern "C"
     int result = OK;
 #pragma omp critical
     {
-      std::map<CSOUND *, JackoState *>::iterator it = jackoStatesForCsoundInstances.find(csound);
+      std::map<CSOUND *, JackoState *>::iterator it =
+        jackoStatesForCsoundInstances.find(csound);
       if (it != jackoStatesForCsoundInstances.end()) {
         //delete it->second;
         jackoStatesForCsoundInstances.erase(it);

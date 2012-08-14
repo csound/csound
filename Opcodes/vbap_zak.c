@@ -195,6 +195,7 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     MYFLT   *ls_table, *ptr; /* , *gains; */
     LS_SET  *ls_set_ptr;
     int n = p->n = (int)MYFLT2LONG(*p->numb); /* Set size */
+    char name[24];
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
@@ -203,6 +204,8 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     else if (UNLIKELY(indx < 0)) {
       return csound->PerfError(csound, Str("outz index < 0. No output."));
     }
+    if ((int)*p->layout==0) strcpy(name, "vbap_ls_table");
+    else sprintf(name, "vbap_ls_table_%d", (int)*p->layout==0);
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart + (indx * csound->ksmps);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
@@ -210,7 +213,7 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     p->beg_gains     = p->curr_gains + p->n;
     p->end_gains     = p->beg_gains + p->n;
     p->updated_gains = p->end_gains + p->n;
-    ls_table = get_ls_table(csound);
+    ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
     p->dim           = (int) ls_table[0];   /* reading in loudspeaker info */
     p->ls_am         = (int) ls_table[1];
     p->ls_set_am     = (int) ls_table[2];
@@ -510,7 +513,8 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     p->end_gains     = p->beg_gains + p->n;
     p->updated_gains = p->end_gains + p->n;
     /* reading in loudspeaker info */
-    ls_table = get_ls_table(csound);
+    ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
+                                                        "vbap_ls_table"));
     p->dim           = (int) ls_table[0];
     p->ls_am         = (int) ls_table[1];
     p->ls_set_am     = (int) ls_table[2];
