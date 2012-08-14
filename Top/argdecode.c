@@ -142,6 +142,7 @@ static const char *longUsageList[] = {
            "sound I/O buffer"),
   Str_noop("--hardwarebufsamps=N\tSamples per hardware sound I/O buffer"),
   Str_noop("--cscore\t\tUse Cscore processing of scorefile"),
+  Str_noop("--orc\t\t\tUse orchfile without scorefile"),
   " ",
   Str_noop("--midifile=FNAME\tRead MIDIfile event stream from file"),
   Str_noop("--midioutfile=FNAME\tWrite MIDI output to file FNAME"),
