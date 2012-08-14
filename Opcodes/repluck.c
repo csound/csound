@@ -170,7 +170,8 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
     reflect    = FL(1.0) - (FL(1.0) - reflect)/(MYFLT)scale; /* For over sapling */
     upper_rail = (DelayLine*)p->upper.auxp;
     lower_rail = (DelayLine*)p->lower.auxp;
-    pickup     = (int)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len); /* fract delays */
+    /* fractional delays */
+    pickup     = (int)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len);
     pickfrac   = pickup & OVERMSK;
     pickup     = pickup>>OVERSHT;
     if (UNLIKELY(pickup<0 || pickup > p->rail_len)) {

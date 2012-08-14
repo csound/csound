@@ -643,7 +643,8 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         evt->p[1] = (MYFLT) insno;
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
           evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
-        if (UNLIKELY((n = insert(csound, insno, evt)))) {  /* else alloc, init, activate */
+        /* else alloc, init, activate */
+        if (UNLIKELY((n = insert(csound, insno, evt)))) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted.  i%d (%s) had %d init errors"),
                           insno, evt->strarg, n);

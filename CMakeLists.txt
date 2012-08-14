@@ -354,6 +354,7 @@ set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
+check_include_file_cxx(eigen3/Eigen/Dense EIGEN3_HEADER)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
 check_library_exists(m lrint "" HAVE_LRINT)
@@ -515,9 +516,8 @@ set(libcsound_SRCS
     Opcodes/hrtfopcodes.c 
     Opcodes/stackops.c 
     Opcodes/vbap.c 
-    Opcodes/vbap_eight.c 
-    Opcodes/vbap_four.c 
-    Opcodes/vbap_sixteen.c
+    Opcodes/vbap1.c 
+    Opcodes/vbap_n.c 
     Opcodes/vbap_zak.c  
     Opcodes/vaops.c 
     Opcodes/ugakbari.c 

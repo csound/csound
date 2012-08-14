@@ -676,14 +676,23 @@ void Score::sort()
 
 double Score::getDuration()
 {
-    double duration = 0.0;
+    double start = 0.0;
+    double end = 0.0;
     for (int i = 0, n = size(); i < n; ++i) {
-        double offTime = at(i).getOffTime();
-        if (offTime > duration) {
-            duration = offTime;
+        const Event &event = at(i);
+        if (i == 0) {
+            start = event.getTime();
+            end = event.getOffTime();            
+        } else {
+            if (event.getTime() < start) {
+                start = event.getTime();
+            }
+            if (event.getOffTime() > end) {
+                end = event.getOffTime();
+            }
         }
     }
-    return duration;
+    return end - start;
 }
 
 void Score::rescale(int dimension, bool rescaleMinimum, double minimum, bool rescaleRange, double range)
@@ -1325,8 +1334,14 @@ void Score::tieOverlappingNotes(bool considerInstrumentNumber)
     sort();
     for (int laterI = size() - 1; laterI > 1; --laterI) {
         Event &laterEvent = (*this)[laterI];
+        if (!laterEvent.isNote()) {
+            continue;
+        }
         for (int earlierI = laterI - 1; earlierI > 0; --earlierI) {
             Event &earlierEvent = (*this)[earlierI];
+            if (!earlierEvent.isNote()) {
+                continue;
+            }
             if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
                 continue;
             }

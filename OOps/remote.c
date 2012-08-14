@@ -236,7 +236,7 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
     ST(to_addr).sin_port = htons((int) ST(remote_port)); /* port we will listen on,
                                                             network byte order */
     for (i=0; i<10; i++){
-      if (UNLIKELY(connect(rfd, (struct sockaddr *) &ST(to_addr),
+      if (UNLIKELY(connect(rfd, (struct sockaddr *) &ST(to_addr), 
                            sizeof(ST(to_addr))) < 0))
         csound->Message(csound, Str("---> Could not connect \n"));
       else goto conok;
@@ -290,6 +290,7 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
                     &opt,
 #endif
                              sizeof(opt)) < 0 ))
+
       return
         csound->InitError(csound,
                           Str("setting socket option to reuse the addresse \n"));
@@ -303,8 +304,8 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
     inet_aton((const char *)ipadrs, &(ST(local_addr).sin_addr));
 #endif
 /*     ST(local_addr).sin_port = htons((int)REMOT_PORT); */
-    ST(local_addr).sin_port = htons((int) ST(remote_port)); /* port we will listen
-                                                             on, netwrk byt order */
+    ST(local_addr).sin_port = 
+      htons((int) ST(remote_port)); /* port we will listen on, netwrk byt order */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind (socklisten,
               (struct sockaddr *) &ST(local_addr),
@@ -403,7 +404,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
 /*       csound->Message(csound, Str("*** str2: %s own:%s\n"), */
 /*                       (char *)p->str2 , ST(ipadrs)); */
       /* open port to listen */
-      if (UNLIKELY(SVopen(csound, (char *)p->str2) == NOTOK)) {
+      if (UNLIKELY(SVopen(csound, (char *)p->str2) == NOTOK)){ 
         return csound->InitError(csound, Str("Failed to open port to listen"));
       }
     }
@@ -459,7 +460,7 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) {  /* if client is this adrs */
       MYFLT   **argp = p->chnum;
       int  rfd;
-      /* open port to remot */
+        /* open port to remote */
       if (UNLIKELY((rfd = CLopen(csound, (char *)p->str2)) <= 0))
         return NOTOK;
       for (nargs -= 2; nargs--; ) {
@@ -476,7 +477,7 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
     }
     else if (!strcmp(ST(ipadrs), (char *)p->str2)) { /* if server is this adrs */
       /* open port to listen */
-      if (UNLIKELY(SVopen(csound, (char *)p->str2) == NOTOK)) {
+      if (UNLIKELY(SVopen(csound, (char *)p->str2) == NOTOK)){
         return csound->InitError(csound, Str("Failed to open port to listen"));
       }
       csound->oparms->RMidiin = 1;            /* & enable rtevents in */

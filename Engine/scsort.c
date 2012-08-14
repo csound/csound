@@ -49,7 +49,8 @@ void scsortstr(CSOUND *csound, CORFIL *scin)
       swritestr(csound);
       m++;
     }
-    if (m==0) corfile_puts("f0 800000000000.0\ne\n", csound->scstr); /* ~25367 years */
+    if (m==0)
+      corfile_puts("f0 800000000000.0\ne\n", csound->scstr); /* ~25367 years */
     else corfile_puts("e\n", csound->scstr);
     corfile_flush(csound->scstr);
     sfree(csound);              /* return all memory used */

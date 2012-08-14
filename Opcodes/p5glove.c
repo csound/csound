@@ -112,12 +112,13 @@ int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
 
 int p5glove_poll(CSOUND *csound, P5GLOVE *p)
 {
-    /* P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove"); */
+    /* P5Glove *glove = (P5Glove*)csound->QueryGlobalVariable(csound,"p5glove"); */
     /* int res; */
     /* if (glove == NULL) */
     /*   return csound->PerfError(csound, Str("No glove open")); */
     /* res = p5glove_sample(*glove, -1); */
-    /* if (res < 0 && errno == EAGAIN) return OK;//res = p5glove_sample(*glove, -1); */
+    /* if (res < 0 && errno == EAGAIN) return OK;*/
+    /* //res = p5glove_sample(*glove, -1); */
     /* if (UNLIKELY(res < 0)) */
     /*   return csound->PerfError(csound, Str("P5Glove failure")); */
     return OK;
@@ -248,7 +249,8 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
 #define S(x)    sizeof(x)
 
 static OENTRY p5g_localops[] = {
-  {"p5gconnect", S(P5GLOVEINIT), 3, "", "", (SUBR)p5glove_find, (SUBR)p5glove_poll, NULL, (SUBR)p5glove_closer },
+  {"p5gconnect", S(P5GLOVEINIT), 3, "", "", 
+        (SUBR)p5glove_find, (SUBR)p5glove_poll, NULL, (SUBR)p5glove_closer },
   {"p5gdata", S(P5GLOVE), 3, "k", "k", (SUBR)p5g_data_init, (SUBR)p5g_data }
 };
 

@@ -69,7 +69,7 @@ int oscils_set(CSOUND *csound, OSCILS *p)
     int     iflg;
 
     iflg = (int) (*(p->iflg) + FL(0.5)) & 0x07; /* check flags */
-    if (iflg & 1) return OK;                    /* skip init, nothing to do */
+    if (UNLIKELY(iflg & 1)) return OK;          /* skip init, nothing to do */
     p->use_double = (iflg & 2 ? 1 : 0);         /* use doubles internally */
     init_sine_gen((double)*(p->iamp), (double)(*(p->icps) * csound->tpidsr),
                   (double)(*(p->iphs) * TWOPI_F),
@@ -118,14 +118,14 @@ int oscils(CSOUND *csound, OSCILS *p)
 
 int lphasor_set(CSOUND *csound, LPHASOR *p)
 {
-    if (*(p->istor) != FL(0.0)) return OK;               /* nothing to do */
+    if (UNLIKELY(*(p->istor) != FL(0.0))) return OK;       /* nothing to do */
 
     p->phs = (double)*(p->istrt);                          /* start phase */
     p->lps = (double)*(p->ilps);                           /* loop start */
     p->lpe = (double)*(p->ilpe);                           /* loop end */
-    p->loop_mode = (int) (*(p->imode) + FL(0.5)) & 0x03;    /* loop mode */
-    if (p->lpe <= p->lps) p->loop_mode = 0;                 /* disable loop */
-    p->dir = 1;                                             /* direction */
+    p->loop_mode = (int) (*(p->imode) + FL(0.5)) & 0x03;   /* loop mode */
+    if (p->lpe <= p->lps) p->loop_mode = 0;                /* disable loop */
+    p->dir = 1;                                            /* direction */
     return OK;
 }
 
@@ -145,7 +145,7 @@ int lphasor(CSOUND *csound, LPHASOR *p)
     trns = (double)*xtrns;
 
     for (n=0; n<nsmps; n++) {
-      if (XINARG1) trns = (double)*(xtrns++);
+      if (XINARG1) trns = (double)xtrns[n];
       ar[n] = (MYFLT) phs;
       phs += (p->dir ? trns : -trns);
       if (loop_mode) {
@@ -176,7 +176,7 @@ int lphasor(CSOUND *csound, LPHASOR *p)
 int tablexkt_set(CSOUND *csound, TABLEXKT *p)
 {
     p->wsize = (int)(*(p->iwsize) + 0.5);                  /* window size */
-    if (p->wsize < 3) {
+    if (UNLIKELY(p->wsize < 3)) {
       p->wsize = 2;
     }
     else {
@@ -224,7 +224,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     ar = p->ar;
     xndx = p->xndx;
     wrap_ndx = p->wrap_ndx;
-    if ((wsize > 4) && (*(p->kwarp) > FL(1.001))) {
+    if ((wsize > 4) && UNLIKELY((*(p->kwarp) > FL(1.001)))) {
       warp = 1;                     /* enable warp */
       onedwarp = FL(1.0) / *(p->kwarp);
       pidwarp_d = PI / (double)*(p->kwarp);
@@ -259,10 +259,10 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
         while (ndx_i < 0) ndx_i += flen;
       }
       else {                        /* limit */
-        if (ndx_i < 0) {
+        if (UNLIKELY(ndx_i < 0)) {
           ndx_i = 0; ndx_f = FL(0.0);
         }
-        else if (ndx_i >= flen) {
+        else if (UNLIKELY(ndx_i >= flen)) {
           ndx_i = flen; ndx_f = FL(0.0);
         }
       }
