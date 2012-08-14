@@ -247,7 +247,8 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     }
 
     if (UNLIKELY(make_Modal4(csound,
-                             m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK)) return NOTOK;
+                             m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK)) 
+      return NOTOK;
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 0.5; */
     Modal4_setRatioAndReson(csound,m,0, FL(1.00), FL(0.9996)); /* Set all 132.0 */
@@ -360,8 +361,8 @@ int vibraphnset(CSOUND *csound, VIBRAPHN *p)
       return csound->InitError(csound, Str("No table for Vibraphone strike"));
     }
 
-    if (UNLIKELY(make_Modal4(csound,
-                             m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK)) return NOTOK;
+    if (UNLIKELY(make_Modal4(csound, m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK)) 
+      return NOTOK;
 
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 13.33; */
@@ -441,8 +442,8 @@ int agogobelset(CSOUND *csound, VIBRAPHN *p)
       return csound->InitError(csound, Str("No table for Agogobell strike"));
     }
 
-    if (UNLIKELY(make_Modal4(csound,
-                             m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK)) return NOTOK;
+    if (UNLIKELY(make_Modal4(csound, m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK))
+      return NOTOK;
 
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 7.0; */

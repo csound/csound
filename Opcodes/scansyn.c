@@ -64,10 +64,10 @@ static int scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
     int i, i1, i2;
     FUNC *fi;
     MYFLT *f;
-    MYFLT tab = *p->i_init;
+    MYFLT tab = FABS(*p->i_init);
 
     /* Get table */
-    if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
+    //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
     if (UNLIKELY((fi = csound->FTFind(csound, &tab)) == NULL)) {
       return csound->InitError(csound,
                                Str("scanu: Could not find ifninit ftable"));

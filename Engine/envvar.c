@@ -34,9 +34,6 @@
 #if defined(mac_classic) && defined(__MWERKS__)
 #include <unix.h>
 #endif
-#if defined(SYMANTEC)
-extern off_t lseek(int, off_t, int);
-#endif
 
 #include "namedins.h"
 
@@ -66,7 +63,7 @@ static const char *envVar_list[] = {
 #if defined(MSVC)
 #define RD_OPTS  _O_RDONLY | _O_BINARY
 #define WR_OPTS  _O_TRUNC | _O_CREAT | _O_WRONLY | _O_BINARY,_S_IWRITE
-#elif defined(mac_classic) || defined(SYMANTEC) || defined(WIN32)
+#elif defined(mac_classic) || defined(WIN32)
 #define RD_OPTS  O_RDONLY | O_BINARY
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
 #elif defined DOSGCC

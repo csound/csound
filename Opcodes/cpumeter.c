@@ -160,7 +160,8 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
       x_frme = cpu[k].x - cpu[k].x_sav;
       y_frme = cpu[k].y - cpu[k].y_sav;
       z_frme = cpu[k].z - cpu[k].z_sav;
-      tot_frme = u_frme + s_frme + n_frme + i_frme + w_frme + x_frme + y_frme + z_frme;
+      tot_frme = u_frme + s_frme + n_frme + i_frme + 
+                 w_frme + x_frme + y_frme + z_frme;
       if (tot_frme < 1) tot_frme = 1;
       scale = 100.0 / (double)tot_frme;
       //if (p->kk[k]==NULL) break;

@@ -24,42 +24,43 @@ if(BUILD_CSOUND_AC)
     include_directories(${Boost_INCLUDE_DIRS})
     include_directories(${FLTK_INCLUDE_DIR})
     set(libcsoundac_SRCS 
-        Cell.cpp
-        ChordLindenmayer.cpp
-        Composition.cpp
-        Conversions.cpp
-        Counterpoint.cpp
-        CounterpointNode.cpp
-        Event.cpp
-        Hocket.cpp
-        ImageToScore.cpp
-        Lindenmayer.cpp
-        MCRM.cpp
-        Midifile.cpp
-        MusicModel.cpp
-        Node.cpp
-        Random.cpp
-        Rescale.cpp
-        Score.cpp
-        ScoreModel.cpp
-        ScoreNode.cpp
-        Sequence.cpp
-        Shell.cpp
-        Soundfile.cpp
-        StrangeAttractor.cpp
-        System.cpp
-        Voicelead.cpp
-		VoiceleadingNode.cpp
-		allegro.cpp
-		allegrord.cpp
-		allegroserial.cpp
-		allegrosmfrd.cpp
-		allegrosmfwr.cpp
-		allegrowr.cpp
-		cmake_install.cmake
-		mfmidi.cpp
-		strparse.cpp
-		trace.cpp)
+	allegro.cpp
+	allegrord.cpp
+	allegroserial.cpp
+	allegrosmfrd.cpp
+	allegrosmfwr.cpp
+	allegrowr.cpp
+    Cell.cpp
+    ChordLindenmayer.cpp
+	cmake_install.cmake
+    Composition.cpp
+    Conversions.cpp
+    Counterpoint.cpp
+	CounterpointMain.cpp
+    CounterpointNode.cpp
+    Event.cpp
+    Hocket.cpp
+    ImageToScore.cpp
+    Lindenmayer.cpp
+    MCRM.cpp
+	mfmidi.cpp
+    Midifile.cpp
+    MusicModel.cpp
+    Node.cpp
+    Random.cpp
+    Rescale.cpp
+    Score.cpp
+    ScoreModel.cpp
+    ScoreNode.cpp
+    Sequence.cpp
+    Shell.cpp
+    Soundfile.cpp
+    StrangeAttractor.cpp
+	strparse.cpp
+    System.cpp
+	trace.cpp
+    Voicelead.cpp
+	VoiceleadingNode.cpp)
     
     add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
     set_target_properties(libCsoundAC PROPERTIES
@@ -70,10 +71,10 @@ if(BUILD_CSOUND_AC)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
-    target_link_libraries(libCsoundAC libcsnd ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${CSOUNDLIB})
+    target_link_libraries(libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
     
     if(MUSICXML_LIBRARY) 
-        target_link_libraries(libCsoundAC ${MUSICXML_LIBRARY})
+        target_link_libraries(libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
     endif()
 
     install(TARGETS libCsoundAC
@@ -95,8 +96,12 @@ if(BUILD_CSOUND_AC)
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME CsoundAC)
         swig_add_module(CsoundAC python CsoundAC.i)
-        swig_link_libraries(CsoundAC libCsoundAC libcsnd "${CSOUNDLIB}" ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARIES})
-
+        swig_link_libraries(CsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARIES})
+    
+        if(MUSICXML_LIBRARY) 
+            swig_link_libraries(CsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${PYTHON_LIBRARIES})
+        endif()
+        
         set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
@@ -118,7 +123,11 @@ if(BUILD_CSOUND_AC)
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME luaCsoundAC)
         SWIG_ADD_MODULE(luaCsoundAC lua luaCsoundAC.i)
-        SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd "${CSOUNDLIB}" ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${LUA_LIBRARIES})
+        SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${LUA_LIBRARIES})
+    
+        if(MUSICXML_LIBRARY) 
+            SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${LUA_LIBRARIES})
+        endif()
 
         set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}

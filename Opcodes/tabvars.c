@@ -565,7 +565,8 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
     /*   if(!strcmp(func, opc->opname)) break; */
 
     /* if (UNLIKELY(opc == csound->oplstend)) */
-    /*   return csound->PerfError(csound, Str("%s not found, %d opcodes"), func, n); */
+    /*   return csound->PerfError(csound, Str("%s not found, %d opcodes"), 
+                                  func, n); */
 
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
@@ -593,9 +594,12 @@ static OENTRY tabvars_localops[] =
   { "##multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
   { "##divtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
   { "##remtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem },
-  { "##multitab", sizeof(TABARITH1), 3, "t", "ti", (SUBR)tabarithset1, (SUBR)tabimult },
-  { "##divitab",  sizeof(TABARITH1), 3, "t", "ti", (SUBR)tabarithset1, (SUBR)tabidiv },
-  { "##remitab",  sizeof(TABARITH1), 3, "t", "ti", (SUBR)tabarithset1, (SUBR)tabirem },
+  { "##multitab", sizeof(TABARITH1), 3, "t", "ti",
+                                              (SUBR)tabarithset1, (SUBR)tabimult },
+  { "##divitab",  sizeof(TABARITH1), 3, "t", "ti",
+                                               (SUBR)tabarithset1, (SUBR)tabidiv },
+  { "##remitab",  sizeof(TABARITH1), 3, "t", "ti",
+                                               (SUBR)tabarithset1, (SUBR)tabirem },
   { "maxtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
   { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
   { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },

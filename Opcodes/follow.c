@@ -50,9 +50,8 @@ static int follow(CSOUND *csound, FOL *p)
     MYFLT       max = p->max;
     int32       count = p->count;
     for (n=0; n<nsmps; n++) {
-      MYFLT sig = in[n];
+      MYFLT sig = FABS(in[n]);
       if (sig > max) max = sig;
-      else if (sig < -max) max = -sig;
       if (--count == 0L) {
         p->wgh = max;
         max = FL(0.0);
@@ -79,9 +78,9 @@ static int envset(CSOUND *csound, ENV *p)
       p->ga = EXP(- FL(6.90775527898)/(csound->esr* p->lastatt));
     p->lastrel = *p->release;
     if (p->lastrel<=FL(0.0))
-      p->gr = (MYFLT) exp(- FL(69.0775527898)*csound->onedsr);
+      p->gr = EXP(- FL(69.0775527898)*csound->onedsr);
     else
-      p->gr = (MYFLT) exp(- FL(6.90775527898)/(csound->esr* p->lastrel));
+      p->gr = EXP(- FL(6.90775527898)/(csound->esr* p->lastrel));
     p->envelope = FL(0.0);
     return OK;
 }
@@ -92,25 +91,28 @@ static int envext(CSOUND *csound, ENV *p)
     MYFLT       envelope = p->envelope;
     MYFLT       ga, gr;
     MYFLT       *in = p->in, *out = p->out;
-    if (p->lastrel!=*p->attack) {
+    if (p->lastatt!=*p->attack) {
       p->lastatt = *p->attack;
       if (p->lastatt<=FL(0.0))
-        ga = p->ga = EXP(-FL(10000.0)*csound->onedsr);
+        ga = p->ga = EXP(- FL(69.0775527898)*csound->onedsr);
+      // EXP(-FL(10000.0)*csound->onedsr);
       else
-        ga = p->ga = EXP(-FL(1.0)/(csound->esr* p->lastatt));
+        ga = p->ga = EXP(- FL(6.90775527898)/(csound->esr* p->lastatt));
+      //EXP(-FL(1.0)/(csound->esr* p->lastatt));
     }
     else ga = p->ga;
     if (p->lastrel!=*p->release) {
       p->lastrel = *p->release;
       if (p->lastrel<=FL(0.0))
-        gr = p->gr = EXP(-FL(100.0)*csound->onedsr);
+        gr = p->gr = EXP(- FL(69.0775527898)*csound->onedsr);
+      //EXP(-FL(100.0)*csound->onedsr);
       else
-        gr = p->gr = EXP(-FL(1.0)/(csound->esr* p->lastrel));
+        gr = p->gr = EXP(- FL(6.90775527898)/(csound->esr* p->lastrel));
+      //EXP(-FL(1.0)/(csound->esr* p->lastrel));
     }
     else gr = p->gr;
     for (n=0;n<nsmps;n++) {
-      MYFLT inp = in[n];
-      if (inp<FL(0.0)) inp = -inp; /* Absolute value */
+      MYFLT inp = FABS(in[n]);  /* Absolute value */
       if (envelope < inp) {
         envelope = inp + ga*(envelope-inp);
       }

@@ -24,6 +24,7 @@
 */
 
 #include "csoundCore.h"
+#include "parse_param.h"
 #include "csound_orc.h"
 #include <math.h>
 #include <ctype.h>
@@ -1012,11 +1013,11 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
     }
 
     while (opinfo != NULL) {
-        csound->Message(csound, "%s : %s\n", opinfo->name, opname);
-        if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
-            return opinfo;
-        }
-        opinfo = opinfo->prv;   /* Move on: JPff suggestion */
+      //csound->Message(csound, "%s : %s\n", opinfo->name, opname);
+      if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
+        return opinfo;
+      }
+      opinfo = opinfo->prv;   /* Move on: JPff suggestion */
     }
 
     return NULL;
@@ -1117,7 +1118,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         /* csound->Message(csound, "Assignment found\n"); */
         break;
       case INSTR_TOKEN:
-        /* csound->Message(csound, "Instrument found\n"); */
+        print_tree(csound, "Instrument found\n", current);
 
         resetouts(csound); /* reset #out counts */
         lblclear(csound); /* restart labelist  */
@@ -1157,7 +1158,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c, instrtxt, insno_priority))) {
+                if (UNLIKELY(!named_instr_alloc(csound, c,
+                                                instrtxt, insno_priority))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
                 instrtxt->insname = c;
@@ -1178,7 +1180,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c, instrtxt, insno_priority))) {
+                if (UNLIKELY(!named_instr_alloc(csound, c,
+                                                instrtxt, insno_priority))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
                 instrtxt->insname = c;
@@ -1782,7 +1785,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip, char *s)
 /* final poolcount used in plgndx above */
 /* pool may be moved w. ndx still valid */
 
-//static int constndx(CSOUND *csound, TRANS_DATA* transData, const char *s)
+//static int constndx(CSOUND *csound, const char *s)
 //{
 //    MYFLT   newval;
 //    int     h, n, prv;
@@ -1818,7 +1821,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip, char *s)
 //    n = STA(poolcount)++;
 //    if (n >= STA(nconsts)) {
 //      STA(nconsts) = ((STA(nconsts) + (STA(nconsts) >> 3)) | (NCONSTS - 1)) + 1;
-//      if (UNLIKELY(csound->oparms->msglevel))
+//      if (UNLIKELY(PARSER_DEBUG && csound->oparms->msglevel))
 //        csound->Message(csound, Str("extending Floating pool to %d\n"),
 //                                STA(nconsts));
 //      csound->pool = (MYFLT*) mrealloc(csound, csound->pool, STA(nconsts)
@@ -2077,10 +2080,10 @@ char argtyp2(CSOUND *csound, char *s)
 }
 
 /* For diagnostics map file name or macro name to an index */
-int file_to_int(CSOUND *csound, const char *name)
+uint8_t file_to_int(CSOUND *csound, const char *name)
 {
     extern char *strdup(const char *);
-    int n = 0;
+    uint8_t n = 0;
     char **filedir = csound->filedir;
     while (filedir[n] && n<63) {        /* Do we have it already? */
       if (strcmp(filedir[n], name)==0) return n; /* yes */
