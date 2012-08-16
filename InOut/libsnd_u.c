@@ -348,8 +348,8 @@ char *type2string(int x)
       case TYP_OGG:   return "OGG";
 #  endif
 #  if HAVE_LIBSNDFILE >= 1019
-      case TYP_MPC2K:  return "MPC";
-      case TYP_RF64:   return "W64";
+      case TYP_MPC2K:  return "MPC2K";
+      case TYP_RF64:   return "RF64";
 #  endif
 #endif
       default:        return Str("unknown");
@@ -379,6 +379,7 @@ char *getstrformat(int format)  /* used here, and in sfheader.c */
       case  AE_LONG:    return Str("longs");
       case  AE_FLOAT:   return Str("floats");
       case  AE_24INT:   return Str("24bit ints");     /* RWD 5:2001 */
+      case  AE_VORBIS:  return Str("vorbis encoding");
     }
     return Str("unknown");
 }
@@ -427,8 +428,8 @@ int type2csfiletype(int type, int encoding)
       case TYP_OGG:    return CSFTYPE_OGG;
 #  endif
 #  if HAVE_LIBSNDFILE >= 1019
-      case TYP_MPC2K:  return "CSFTYPE_MPC";
-      case TYP_RF64:   return "CSFTYPE_W64";
+      case TYP_MPC2K:  return CSFTYPE_MPC2K;
+      case TYP_RF64:   return CSFTYPE_RF64;
 #  endif
 #endif
       default:         return CSFTYPE_UNKNOWN_AUDIO;
