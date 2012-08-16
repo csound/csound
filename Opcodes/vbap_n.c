@@ -196,9 +196,8 @@ int vbap_init(CSOUND *csound, VBAP *p)
     LS_SET  *ls_set_ptr;
     int cnt = p->number = (int)(p->OUTOCOUNT);
     char name[24];
-    if ((int)*p->layout==0) strcpy(name, "vbap_ls_table");
-    else sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
-    ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
+    sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
+    ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
     p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
     p->ls_am     = (int)ls_table[1];
     p->ls_set_am = (int)ls_table[2];
