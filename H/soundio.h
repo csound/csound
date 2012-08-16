@@ -67,6 +67,7 @@
 #define AE_DWVW_N       SF_FORMAT_DWVW_N
 #define AE_DPCM_8       SF_FORMAT_DPCM_8
 #define AE_DPCM_16      SF_FORMAT_DPCM_16
+#define AE_VORBIS       SF_FORMAT_VORBIS
 
 #define AE_LAST   SF_FORMAT_DPCM_16     /* current last audio encoding value */
 
@@ -98,7 +99,7 @@
 #  endif
 #  if HAVE_LIBSNDFILE >= 1018
 #    define TYP_WVE   (SF_FORMAT_WVE >> 16)
-#    define TYP_OGG   (SF_FORMAT_OFF >> 16)
+#    define TYP_OGG   (SF_FORMAT_OGG >> 16)
 #  endif
 #  if HAVE_LIBSNDFILE >= 1019
 #    define TYP_MPC2K (SF_FORMAT_MPC2K >> 16)

@@ -123,13 +123,14 @@ static const char *shortUsageList[] = {
 
 static const char *longUsageList[] = {
   "--format={wav,aiff,au,raw,paf,svx,nist,voc,ircam,w64,mat4,mat5",
-  "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,WVE,ogg,MPC,W64}",
-  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit}",
+  "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,wve,ogg,mpc2k,rf64}",
+  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit,vorbis}",
   Str_noop("\t\t\tSet output file format"),
   Str_noop("--aiff\t\t\tSet AIFF format"),
   Str_noop("--au\t\t\tSet AU format"),
   Str_noop("--wave\t\t\tSet WAV format"),
   Str_noop("--ircam\t\t\tSet IRCAM format"),
+  Str_noop("--ogg\t\t\tSet OGG/VORBIS format"),
   Str_noop("--noheader\t\tRaw format"),
   Str_noop("--nopeaks\t\tDo not write peak information"),
   " ",
@@ -303,6 +304,10 @@ void set_output_format(OPARMS *O, char c)
       O->outformat = AE_FLOAT;   /* float soundfile (for rescaling) */
       break;
 
+    case 'v':
+      O->outformat = AE_VORBIS;  /* Xiph Vorbis encoding */
+      break;
+
     default:
       return; /* do nothing */
     };
@@ -317,7 +322,7 @@ static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
   { "alaw",   'a' },  { "schar",  'c' },  { "uchar",  '8' },
   { "float",  'f' },  { "long",   'l' },
   { "short",  's' },  { "ulaw",   'u' },  { "24bit",  '3' },
-  { NULL, '\0' }
+  { "vorbis", 'v' },  { NULL, '\0' }
 };
 
 typedef struct {
@@ -341,10 +346,10 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { "flac",   TYP_FLAC  },  { "caf",    TYP_CAF   },
 #  endif
 #  if HAVE_LIBSNDFILE >= 1018
-    { "WVE",    TYP_WVE   },  { "ogg",    TYP_OGG   },
+    { "wve",    TYP_WVE   },  { "ogg",    TYP_OGG   },
 #  endif
 #  if HAVE_LIBSNDFILE >= 1019
-    { "MPC",    TYPE_MPC2K }, { "W64",    TYP_RF64  },
+    { "mpc2k",  TYP_MPC2K },  { "rf64",   TYP_RF64  },
 #  endif
 #endif
     { NULL , -1 }
@@ -523,6 +528,16 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strcmp (s, "ircam"))) {
       O->filetyp = TYP_IRCAM;           /* IRCAM output request */
       return 1;
+    }
+    else if (!(strcmp (s, "ogg"))) {
+#if HAVE_LIBSNDFILE >= 1018
+      O->filetyp = TYP_OGG;             /* OGG output request   */
+      O->outformat = AE_VORBIS;         /* Xiph Vorbis encoding */
+      return 1;
+#else
+      csoundErrorMsg(csound, Str("unknown output format: 'ogg'"));
+      return 0;
+#endif
     }
     /*
       -k N orchestra krate override

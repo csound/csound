@@ -323,83 +323,87 @@ extern "C" {
      */
     typedef enum {
         CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */
-        CSFTYPE_ORCHESTRA = 2,     /* the primary orc file (may be temporary) */
-        CSFTYPE_SCORE = 3,         /* the primary sco file (may be temporary)
+        CSFTYPE_ORCHESTRA,         /* the primary orc file (may be temporary) */
+        CSFTYPE_SCORE,             /* the primary sco file (may be temporary)
                                   or any additional score opened by Cscore */
-        CSFTYPE_ORC_INCLUDE = 4,   /* a file #included by the orchestra */
-        CSFTYPE_SCO_INCLUDE = 5,   /* a file #included by the score */
-        CSFTYPE_SCORE_OUT = 6,     /* used for score.srt, score.xtr, cscore.out */
-        CSFTYPE_SCOT = 7,          /* Scot score input format */
-        CSFTYPE_OPTIONS = 8,       /* for .csoundrc and -@ flag */
-        CSFTYPE_EXTRACT_PARMS = 9, /* extraction file specified by -x */
+        CSFTYPE_ORC_INCLUDE,       /* a file #included by the orchestra */
+        CSFTYPE_SCO_INCLUDE,       /* a file #included by the score */
+        CSFTYPE_SCORE_OUT,         /* used for score.srt, score.xtr, cscore.out */
+        CSFTYPE_SCOT,              /* Scot score input format */
+        CSFTYPE_OPTIONS,           /* for .csoundrc and -@ flag */
+        CSFTYPE_EXTRACT_PARMS,     /* extraction file specified by -x */
 
         /* audio file types that Csound can write (10-19) or read */
-        CSFTYPE_RAW_AUDIO = 10,
-        CSFTYPE_IRCAM = 11,
-        CSFTYPE_AIFF = 12,
-        CSFTYPE_AIFC = 13,
-        CSFTYPE_WAVE = 14,
-        CSFTYPE_AU = 15,
-        CSFTYPE_SD2 = 16,
-        CSFTYPE_W64 = 17,
-        CSFTYPE_WAVEX = 18,
-        CSFTYPE_FLAC = 19,
-        CSFTYPE_CAF = 20,
-        CSFTYPE_AVR = 21,
-        CSFTYPE_HTK = 22,
-        CSFTYPE_MAT4 = 23,
-        CSFTYPE_MAT5 = 24,
-        CSFTYPE_NIST = 25,
-        CSFTYPE_PAF = 26,
-        CSFTYPE_PVF = 27,
-        CSFTYPE_SDS = 28,
-        CSFTYPE_SVX = 29,
-        CSFTYPE_VOC = 30,
-        CSFTYPE_XI = 31,
-        CSFTYPE_UNKNOWN_AUDIO = 32, /* used when opening audio file for reading
+        CSFTYPE_RAW_AUDIO,
+        CSFTYPE_IRCAM,
+        CSFTYPE_AIFF,
+        CSFTYPE_AIFC,
+        CSFTYPE_WAVE,
+        CSFTYPE_AU,
+        CSFTYPE_SD2,
+        CSFTYPE_W64,
+        CSFTYPE_WAVEX,
+        CSFTYPE_FLAC,
+        CSFTYPE_CAF,
+        CSFTYPE_WVE,
+        CSFTYPE_OGG,
+        CSFTYPE_MPC2K,
+        CSFTYPE_RF64,
+        CSFTYPE_AVR,
+        CSFTYPE_HTK,
+        CSFTYPE_MAT4,
+        CSFTYPE_MAT5,
+        CSFTYPE_NIST,
+        CSFTYPE_PAF,
+        CSFTYPE_PVF,
+        CSFTYPE_SDS,
+        CSFTYPE_SVX,
+        CSFTYPE_VOC,
+        CSFTYPE_XI,
+        CSFTYPE_UNKNOWN_AUDIO,     /* used when opening audio file for reading
                                    or temp file written with <CsSampleB> */
 
         /* miscellaneous music formats */
-        CSFTYPE_SOUNDFONT = 33,
-        CSFTYPE_STD_MIDI = 34,     /* Standard MIDI file */
-        CSFTYPE_MIDI_SYSEX = 35,   /* Raw MIDI codes, eg. SysEx dump */
+        CSFTYPE_SOUNDFONT,
+        CSFTYPE_STD_MIDI,          /* Standard MIDI file */
+        CSFTYPE_MIDI_SYSEX,        /* Raw MIDI codes, eg. SysEx dump */
 
         /* analysis formats */
-        CSFTYPE_HETRO = 36,
-        CSFTYPE_PVC = 37,          /* original PVOC format */
-        CSFTYPE_PVCEX = 38,        /* PVOC-EX format */
-        CSFTYPE_CVANAL = 39,
-        CSFTYPE_LPC = 40,
-        CSFTYPE_ATS = 41,
-        CSFTYPE_LORIS = 42,
-        CSFTYPE_SDIF = 43,
-        CSFTYPE_HRTF = 44,
+        CSFTYPE_HETRO,
+        CSFTYPE_PVC,               /* original PVOC format */
+        CSFTYPE_PVCEX,             /* PVOC-EX format */
+        CSFTYPE_CVANAL,
+        CSFTYPE_LPC,
+        CSFTYPE_ATS,
+        CSFTYPE_LORIS,
+        CSFTYPE_SDIF,
+        CSFTYPE_HRTF,
 
         /* Types for plugins and the files they read/write */
-        CSFTYPE_VST_PLUGIN = 45,
-        CSFTYPE_LADSPA_PLUGIN = 46,
-        CSFTYPE_SNAPSHOT = 47,
+        CSFTYPE_VST_PLUGIN,
+        CSFTYPE_LADSPA_PLUGIN,
+        CSFTYPE_SNAPSHOT,
 
         /* Special formats for Csound ftables or scanned synthesis
            matrices with header info */
-        CSFTYPE_FTABLES_TEXT = 48,   /* for ftsave and ftload  */
-        CSFTYPE_FTABLES_BINARY = 49, /* for ftsave and ftload  */
-        CSFTYPE_XSCANU_MATRIX = 50,  /* for xscanu opcode  */
+        CSFTYPE_FTABLES_TEXT,        /* for ftsave and ftload  */
+        CSFTYPE_FTABLES_BINARY,      /* for ftsave and ftload  */
+        CSFTYPE_XSCANU_MATRIX,       /* for xscanu opcode  */
 
         /* These are for raw lists of numbers without header info */
-        CSFTYPE_FLOATS_TEXT = 51,    /* used by GEN23, GEN28, dumpk, readk */
-        CSFTYPE_FLOATS_BINARY = 52,  /* used by dumpk, readk, etc. */
-        CSFTYPE_INTEGER_TEXT = 53,   /* used by dumpk, readk, etc. */
-        CSFTYPE_INTEGER_BINARY = 54, /* used by dumpk, readk, etc. */
+        CSFTYPE_FLOATS_TEXT,         /* used by GEN23, GEN28, dumpk, readk */
+        CSFTYPE_FLOATS_BINARY,       /* used by dumpk, readk, etc. */
+        CSFTYPE_INTEGER_TEXT,        /* used by dumpk, readk, etc. */
+        CSFTYPE_INTEGER_BINARY,      /* used by dumpk, readk, etc. */
 
         /* image file formats */
-        CSFTYPE_IMAGE_PNG = 59,
+        CSFTYPE_IMAGE_PNG,
 
-        /* For files that do not match any of the above */
-        CSFTYPE_POSTSCRIPT = 55,     /* EPS format used by graphs */
-        CSFTYPE_SCRIPT_TEXT = 56,    /* executable script files (eg. Python) */
-        CSFTYPE_OTHER_TEXT = 57,
-        CSFTYPE_OTHER_BINARY = 58,
+        /* For files that don't match any of the above */
+        CSFTYPE_POSTSCRIPT,          /* EPS format used by graphs */
+        CSFTYPE_SCRIPT_TEXT,         /* executable script files (eg. Python) */
+        CSFTYPE_OTHER_TEXT,
+        CSFTYPE_OTHER_BINARY,
 
         /* This should only be used internally by the original FileOpen()
            API call or for temp files written with <CsFileB> */

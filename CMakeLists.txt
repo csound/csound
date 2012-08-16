@@ -326,6 +326,8 @@ endif()
 
 if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
+else()
+    add_definitions("-DHAVE_LIBSNDFILE=1019")
 endif()
 
 find_path(SNDFILE_H_PATH sndfile.h)
