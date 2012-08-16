@@ -2,19 +2,24 @@
 #define CSOUND_H
 /*! \mainpage
  *
- * Csound is a unit generator-based, user-programmable, user-extensible computer music system.
- * It was originally written by Barry Vercoe at the Massachusetts Institute of Technology in 1984
- * as the first C language version of this type of software. Since then Csound has received
- * numerous contributions from researchers, programmers, and musicians from around the world.
+ * Csound is a unit generator-based, user-programmable,
+ * user-extensible computer music system.  It was originally written
+ * by Barry Vercoe at the Massachusetts Institute of Technology in
+ * 1984 as the first C language version of this type of
+ * software. Since then Csound has received numerous contributions
+ * from researchers, programmers, and musicians from around the world.
  *
- * CsoundAC is a Python extension module for doing algorithmic composition, in one which one
- * writes music by programming in Python. Musical events are points in music space with
- * dimensions {time, duration, event type, instrument, pitch as MIDI key, loudness as MIDI
- * velocity, phase, pan, depth, height, pitch-class set, 1}, and pieces are composed by
- * assembling a hierarchical tree of nodes in music space. Each node has its own local
- * transformation of coordinates in music space. Nodes can be empty, contain scores or
- * fragments of scores, generate scores, or transform scores. CsoundAC also contains a Python
- * interface to the Csound API, making it easy to render CsoundAC compositions using Csound.
+ * CsoundAC is a Python extension module for doing algorithmic
+ * composition, in one which one writes music by programming in
+ * Python. Musical events are points in music space with dimensions
+ * {time, duration, event type, instrument, pitch as MIDI key,
+ * loudness as MIDI velocity, phase, pan, depth, height, pitch-class
+ * set, 1}, and pieces are composed by assembling a hierarchical tree
+ * of nodes in music space. Each node has its own local transformation
+ * of coordinates in music space. Nodes can be empty, contain scores
+ * or fragments of scores, generate scores, or transform
+ * scores. CsoundAC also contains a Python interface to the Csound
+ * API, making it easy to render CsoundAC compositions using Csound.
  *
  * \section section_licenses Licenses
  *
@@ -100,10 +105,12 @@
  *
  * \section section_api_example_cpp The CsoundAC C++ API
  *
- * CsoundAC extends the Csound API with C++. There is a C++ class for the Csound API proper (CppSound),
- * another C++ class (CsoundFile) for manipulating Csound files in code, and additional classes for
- * algorithmic composition based on music space. All these C++ classes also have a
- * Python interface in the CsoundAC Python extension module.
+ * CsoundAC extends the Csound API with C++. There is a C++ class for
+ * the Csound API proper (CppSound), another C++ class (CsoundFile)
+ * for manipulating Csound files in code, and additional classes for
+ * algorithmic composition based on music space. All these C++ classes
+ * also have a Python interface in the CsoundAC Python extension
+ * module.
  *
  * You can build CsoundAC into your own software using the CsoundAC shared library and
  * CsoundAC.hpp header file.
@@ -114,12 +121,13 @@
  * manual are now part of the Csound API, and they can be called from a program
  * that calls the Csound library.
  *
- * All of the CScore functions are renamed in the Csound API. For example, createv() is now
- * cscoreCreateEvent(), and lcopy() is now cscoreListCopy().  In addition, each
- * function takes an additional first parameter that is a pointer to a CSOUND
- * instance.  You can find the details in the header file, cscore.h, which may
- * be included with your Csound distribution, or if not, can be found in Csound CVS
- *`on SourceForge.
+ * All of the CScore functions are renamed in the Csound API. For
+ * example, createv() is now cscoreCreateEvent(), and lcopy() is now
+ * cscoreListCopy().  In addition, each function takes an additional
+ * first parameter that is a pointer to a CSOUND instance.  You can
+ * find the details in the header file, cscore.h, which may be
+ * included with your Csound distribution, or if not, can be found in
+ * Csound CVS `on SourceForge.
  *
  * Before you can use any of the Cscore API functions, you must create a CSOUND
  * instance and initialize Cscore by calling csoundInitializeCscore() -- see
@@ -387,7 +395,7 @@ extern "C" {
         /* image file formats */
         CSFTYPE_IMAGE_PNG = 59,
 
-        /* For files that don't match any of the above */
+        /* For files that do not match any of the above */
         CSFTYPE_POSTSCRIPT = 55,     /* EPS format used by graphs */
         CSFTYPE_SCRIPT_TEXT = 56,    /* executable script files (eg. Python) */
         CSFTYPE_OTHER_TEXT = 57,
@@ -768,7 +776,8 @@ extern "C" {
      * this only ever makes sense before calling csoundPerformKsmps().
      * The frame and channel must be in bounds relative to ksmps and nchnls.
      */
-    PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame, int channel, MYFLT sample);
+    PUBLIC void csoundAddSpinSample(CSOUND *csound,
+                                    int frame, int channel, MYFLT sample);
 
     /**
      * Returns the address of the Csound audio output working buffer (spout).
@@ -778,9 +787,10 @@ extern "C" {
     PUBLIC MYFLT *csoundGetSpout(CSOUND *csound);
 
     /**
-     * Returns the indicated sample from the Csound audio output working buffer (spout);
-     * only ever makes sense after calling csoundPerformKsmps().
-     * The frame and channel must be in bounds relative to ksmps and nchnls.
+     * Returns the indicated sample from the Csound audio output
+     * working buffer (spout); only ever makes sense after calling
+     * csoundPerformKsmps().  The frame and channel must be in bounds
+     * relative to ksmps and nchnls.
      */
     PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel);
 
@@ -1463,7 +1473,7 @@ extern "C" {
 #endif
 #else
 
-    /* We don't know the configuration,       */
+    /* We do not know the configuration,      */
     /* so we define these symbols as nothing. */
 # define csoundSpinLock(spinlock)
 # define csoundSpinUnLock(spinlock)
@@ -1824,7 +1834,8 @@ extern "C" {
      * Returns zero on success, CSOUND_ERROR if the index is invalid,
      * and CSOUND_MEMORY if there is not enough memory to estend the bus.
      */
-    PUBLIC int csoundChanIASetSample(CSOUND *, int channel, int frame, MYFLT sample);
+    PUBLIC int csoundChanIASetSample(CSOUND *,
+                                     int channel, int frame, MYFLT sample);
 
     /**
      * Sets the chani opcode MYFLT a-rate value for the indicated frame
@@ -1844,7 +1855,8 @@ extern "C" {
      * fsig framesizes are incompatible
      * CSOUND_MEMORY if there is not enough memory to extend the bus.
      */
-    PUBLIC int csoundChanIASetSample(CSOUND *, int channel, int frame, MYFLT sample);
+    PUBLIC int csoundChanIASetSample(CSOUND *,
+                                     int channel, int frame, MYFLT sample);
 
     /**
      * Sets the chani opcode MYFLT a-rate value for the indicated frame
