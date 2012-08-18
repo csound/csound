@@ -759,7 +759,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
     char *label = (char *)csound->Calloc(csound, 20);
     ORCTOKEN *token;
 
-    sprintf(label, "__synthetic_%ld", count);
+    sprintf(label, "__synthetic_%ld", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
@@ -771,7 +771,7 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
 
-    sprintf(label, "__synthetic_%ld:", count);
+    sprintf(label, "__synthetic_%ld:", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));
