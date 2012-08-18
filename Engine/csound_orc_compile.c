@@ -829,7 +829,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       int32 instrNum = (int32)root->left->value->value; /* Not used! */
 
       c = csound->Malloc(csound, 10); /* arbritrarily chosen number of digits */
-      sprintf(c, "%ld", instrNum);
+      sprintf(c, "%ld", (long)instrNum);
 
       if (PARSER_DEBUG)
           csound->Message(csound,
