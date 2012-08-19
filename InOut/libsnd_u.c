@@ -334,24 +334,14 @@ char *type2string(int x)
       case TYP_PVF:   return "PVF";
       case TYP_XI:    return "XI";
       case TYP_HTK:   return "HTK";
-#ifdef SF_FORMAT_SDS
       case TYP_SDS:   return "SDS";
-#endif
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1011
       case TYP_SD2:   return "SD2";
-#  if HAVE_LIBSNDFILE >= 1013
       case TYP_FLAC:  return "FLAC";
       case TYP_CAF:   return "CAF";
-#  endif
-#  if HAVE_LIBSNDFILE >= 1018
       case TYP_WVE:   return "WVE";
       case TYP_OGG:   return "OGG";
-#  endif
-#  if HAVE_LIBSNDFILE >= 1019
-      case TYP_MPC2K:  return "MPC2K";
-      case TYP_RF64:   return "RF64";
-#  endif
-#endif
+      case TYP_MPC2K: return "MPC2K";
+      case TYP_RF64:  return "RF64";
       default:        return Str("unknown");
     }
 }
@@ -414,24 +404,14 @@ int type2csfiletype(int type, int encoding)
       case TYP_SVX:    return CSFTYPE_SVX;
       case TYP_VOC:    return CSFTYPE_VOC;
       case TYP_XI:     return CSFTYPE_XI;
-#ifdef SF_FORMAT_SDS
       case TYP_SDS:    return CSFTYPE_SDS;
-#endif
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1011
       case TYP_SD2:    return CSFTYPE_SD2;
-#  if HAVE_LIBSNDFILE >= 1013
       case TYP_FLAC:   return CSFTYPE_FLAC;
       case TYP_CAF:    return CSFTYPE_CAF;
-#  endif
-#  if HAVE_LIBSNDFILE >= 1018
       case TYP_WVE:    return CSFTYPE_WVE;
       case TYP_OGG:    return CSFTYPE_OGG;
-#  endif
-#  if HAVE_LIBSNDFILE >= 1019
       case TYP_MPC2K:  return CSFTYPE_MPC2K;
       case TYP_RF64:   return CSFTYPE_RF64;
-#  endif
-#endif
       default:         return CSFTYPE_UNKNOWN_AUDIO;
     }
 }

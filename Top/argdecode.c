@@ -340,18 +340,10 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { "pvf",    TYP_PVF   },  { "xi",     TYP_XI    },
     { "htk",    TYP_HTK   },  { "sds",    TYP_SDS   },
     { "avr",    TYP_AVR   },  { "wavex",  TYP_WAVEX },
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1011
     { "sd2",    TYP_SD2   },
-#  if HAVE_LIBSNDFILE >= 1013
     { "flac",   TYP_FLAC  },  { "caf",    TYP_CAF   },
-#  endif
-#  if HAVE_LIBSNDFILE >= 1018
     { "wve",    TYP_WVE   },  { "ogg",    TYP_OGG   },
-#  endif
-#  if HAVE_LIBSNDFILE >= 1019
     { "mpc2k",  TYP_MPC2K },  { "rf64",   TYP_RF64  },
-#  endif
-#endif
     { NULL , -1 }
 };
 
@@ -530,14 +522,9 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp (s, "ogg"))) {
-#if HAVE_LIBSNDFILE >= 1018
       O->filetyp = TYP_OGG;             /* OGG output request   */
       O->outformat = AE_VORBIS;         /* Xiph Vorbis encoding */
       return 1;
-#else
-      csoundErrorMsg(csound, Str("unknown output format: 'ogg'"));
-      return 0;
-#endif
     }
     /*
       -k N orchestra krate override
