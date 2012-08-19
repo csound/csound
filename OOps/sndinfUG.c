@@ -217,18 +217,14 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
       csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
     if (channel <= 0) {
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1016
       if (sf_command(sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
           == SF_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
-#endif
         if (sf_command(sf, SFC_CALC_NORM_SIGNAL_MAX,
                        &peakVal, sizeof(double)) != 0)
           peakVal = -1.0;
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1016
       }
-#endif
     }
     else {
       double  *peaks;
@@ -238,16 +234,12 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
                                 "of channels in file"));
       nBytes = sizeof(double)* sfinfo.channels;
       peaks = (double*)csound->Malloc(csound, nBytes);
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1016
       if (sf_command(sf, SFC_GET_MAX_ALL_CHANNELS, peaks, nBytes) == SF_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
-#endif
         if (sf_command(sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, nBytes) == 0)
           peakVal = peaks[channel - 1];
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1016
       }
-#endif
       csound->Free(csound, peaks);
     }
     if (UNLIKELY(peakVal < 0.0))
