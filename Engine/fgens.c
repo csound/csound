@@ -2259,6 +2259,10 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
+    else if (UNLIKELY(ftp->lenmask == 0xFFFFFFFF)) {
+      csoundInitError(csound, Str("illegal table length"));
+      return NULL;
+    }
     else if (UNLIKELY(!ftp->lenmask)) {
       csoundInitError(csound,
                       Str("deferred-size ftable %f illegal here"), *argp);
