@@ -238,7 +238,7 @@ int isUDOArgList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aijkftKopS0", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aijkftKOVPopS0", s[len]) == NULL)) {
         /* printf("Invalid char '%c' in '%s'", *p, s); */
         return 0;
       }
@@ -393,6 +393,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       case 'a':
         a_incnt++; *otypes++ = *types;
         break;
+      case 'O':
+        k_incnt++; *otypes++ = 'O'; break;
+      case 'P':
+         k_incnt++;*otypes++ = 'P'; break;
+      case 'V':
+         k_incnt++;*otypes++ = 'V'; break;
       case 'K':
         i_incnt++;              /* also updated at i-time */
       case 'k':
@@ -484,6 +490,9 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     while (*types) {
       switch (*types++) {
         case 'a': *a_inlist++ = i; break;
+        case 'O':
+        case 'P':
+        case 'V':
         case 'k': *k_inlist++ = i; break;
         case 'f': *f_inlist++ = i; break;
         case 't': *t_inlist++ = i; break;
