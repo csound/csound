@@ -460,21 +460,25 @@ static void openJackStreams(RtJackGlobals *p)
       p->outPortBufs[0] = (jack_default_audio_sample_t*) NULL;
 
     /* register callback functions */
-    if (UNLIKELY(jack_set_sample_rate_callback(p->client, sampleRateCallback, (void*) p)
+    if (UNLIKELY(jack_set_sample_rate_callback(p->client,
+                                               sampleRateCallback, (void*) p)
                  != 0))
       rtJack_Error(csound, -1, Str("error setting sample rate callback"));
-    if (UNLIKELY(jack_set_buffer_size_callback(p->client, bufferSizeCallback, (void*) p)
+    if (UNLIKELY(jack_set_buffer_size_callback(p->client,
+                                               bufferSizeCallback, (void*) p)
                  != 0))
       rtJack_Error(csound, -1, Str("error setting buffer size callback"));
 #ifdef LINUX
-    if (UNLIKELY(jack_set_freewheel_callback(p->client, freeWheelCallback, (void*) p)
+    if (UNLIKELY(jack_set_freewheel_callback(p->client,
+                                             freeWheelCallback, (void*) p)
                  != 0))
       rtJack_Error(csound, -1, Str("error setting freewheel callback"));
 #endif
     if (UNLIKELY(jack_set_xrun_callback(p->client, xrunCallback, (void*) p) != 0))
       rtJack_Error(csound, -1, Str("error setting xrun callback"));
     jack_on_shutdown(p->client, shutDownCallback, (void*) p);
-    if (UNLIKELY(jack_set_process_callback(p->client, processCallback, (void*) p) != 0))
+    if (UNLIKELY(jack_set_process_callback(p->client,
+                                           processCallback, (void*) p) != 0))
       rtJack_Error(csound, -1, Str("error setting process callback"));
 
     /* activate client */
@@ -555,7 +559,8 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
     }
     if (isOutput && p->inputEnabled) {
       /* full duplex audio I/O: check consistency of parameters */
-      if (UNLIKELY(p->nChannels != parm->nChannels || p->bufSize != parm->bufSamp_SW))
+      if (UNLIKELY(p->nChannels != parm->nChannels ||
+                   p->bufSize != parm->bufSamp_SW))
         rtJack_Error(csound, -1,
                      Str("input and output parameters are not consistent"));
       if (UNLIKELY(((parm->bufSamp_SW / csound->ksmps) * csound->ksmps)

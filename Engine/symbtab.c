@@ -27,7 +27,7 @@
 #include <string.h>
 #include "csoundCore.h"
 #include "tok.h"
-#include "csound_orcparse.h"
+#include "csound_orc.h"
 #include "insert.h"
 #include "namedins.h"
 #include "interlocks.h"
@@ -132,6 +132,7 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "cosinv", T_FUNCTION);
     add_token(csound, "taninv", T_FUNCTION);
     add_token(csound, "log10", T_FUNCTION);
+    add_token(csound, "log2", T_FUNCTION);
     add_token(csound, "sinh", T_FUNCTION);
     add_token(csound, "cosh", T_FUNCTION);
     add_token(csound, "tanh", T_FUNCTION);
@@ -369,7 +370,8 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 /* UDO code below was from otran, broken out and modified for new parser by
  * SYY
  */
-/* VL -- I have made the modifications below to allow for f-sigs & t-sigs and on line 224 and 238*/
+/* VL -- I have made the modifications below to allow for f-sigs & 
+         t-sigs and on line 224 and 238*/
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
 static int parse_opcode_args(CSOUND *csound, OENTRY *opc)

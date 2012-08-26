@@ -69,7 +69,11 @@ set(csvstheaders
     frontends/CsoundVST/ScoreGeneratorVstUi.h
     )
 
-INSTALL(FILES ${csheaders} DESTINATION ${HEADER_INSTALL_DIR})
+set(csheaders ${csheaders} PARENT_SCOPE)
+
+if(NOT APPLE)
+    INSTALL(FILES ${csheaders} DESTINATION ${HEADER_INSTALL_DIR})
+endif()
 
 IF( BUILD_CSOUND_AC )
     INSTALL(FILES ${csacheaders} DESTINATION ${HEADER_INSTALL_DIR})

@@ -153,7 +153,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 {
     MYFLT      *aLeft, *aRight; /* audio output streams */
     MYFLT      *aIn, *kAz, *kElev; /* audio and control input streams */
-    int        azim, elev, el_index, az_index,oldel_index;
+    int        azim, elev, el_index, az_index;
 #ifdef CLICKS
     int        oldaz_index;
 #endif
@@ -190,7 +190,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     kAz = p->kAz;
     elev = (int) *kElev;
     azim = (int) *kAz;
-    oldel_index = p->oldel_index;
+    //oldel_index = p->oldel_index;
     fpindex = (int16 *) p->fpbegin;
     flip = 0;
 #ifdef CLICKS
@@ -495,7 +495,8 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 }
 
 static OENTRY hrtferX_localops[] = {
-{ "hrtfer",   sizeof(HRTFER),5, "aa", "akkS", (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
+{ "hrtfer",   sizeof(HRTFER),5, "aa", "akkS", 
+                                (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
 };
 
 LINKAGE1(hrtferX_localops)

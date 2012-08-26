@@ -1,4 +1,4 @@
- /*
+/*
     csound_orc.y:
 
     Copyright (C) 2006, 2007
@@ -123,6 +123,9 @@
 %token T_TIMUL
 %token T_TIDIV
 %token T_TIREM
+%token S_A2K
+%token S_TABRANGE
+%token S_TABSLICE
 
 %start orcfile
 %left '?'
@@ -359,6 +362,26 @@ statement : ident '=' expr NEWLINE
                                     csp_orc_sa_globals_find(csound, ans->right));
 #endif
                 }
+          | T_IDENT_A '[' iexp ']' '=' iexp NEWLINE
+          {
+              ORCTOKEN *op = lookup_token(csound, "vaset", NULL);
+              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE0, op);
+              ans->left = NULL;
+              ans->right = 
+                appendToTree(csound, $6,
+                             appendToTree(csound, $3,
+                                          make_leaf(csound,LINE,LOCN,
+                                                    T_IDENT_A, (ORCTOKEN *)$1)));
+                  /* ans->value->lexeme = get_assignment_type(csound,
+                     ans->left->value->lexeme, ans->right->value->lexeme); */
+              //print_tree(csound, "K2A Assign\n", ans);
+              $$ = ans;
+#ifdef PARCS
+              csp_orc_sa_global_read_add_list(csound,
+                                              csp_orc_sa_globals_find(csound,
+                                                                      ans->right));
+#endif
+          }
           | T_IDENT_T '=' texp NEWLINE
           {
               //ORCTOKEN *op = lookup_token(csound, "=", NULL);
@@ -366,61 +389,7 @@ statement : ident '=' expr NEWLINE
               ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
               ans->right = $3;
               $$ = ans;
-              print_tree(csound, "T assign\n", ans);
-          }
-          | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ',' iexp']' NEWLINE
-          {
-              ORCTOKEN *op = lookup_token(csound, "tabgen", NULL);
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
-              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = appendToTree(csound, $4, appendToTree(csound, $6, $8));
-              //print_tree(csound, "Tablegen", ans);
-              $$ = ans;
-
-          }
-          | T_IDENT_T '=' '[' iexp S_ELIPSIS iexp ']' NEWLINE
-          {
-              ORCTOKEN *op = lookup_token(csound, "tabgen", NULL);
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
-              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = 
-                appendToTree(csound, $4, 
-                             appendToTree(csound, $6, 
-                                          make_leaf(csound,LINE,LOCN,
-                                                    INTEGER_TOKEN,
-                                                    make_int(csound, "1"))));
-              //print_tree(csound, "Tablegen", ans);
-              $$ = ans;
-          }
-          | T_IDENT_T '=' T_IDENT_T '[' iexp ':' iexp ']' NEWLINE
-          {
-              ORCTOKEN *op = lookup_token(csound, "#tabslice", NULL);
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, op);
-              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = 
-                appendToTree(csound, 
-                             make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$3),
-                             appendToTree(csound, $5, $7));
-              //print_tree(csound, "Tableslice", ans);
-              $$ = ans;
-          }
-          | T_IDENT_T '=' mapop '(' T_IDENT_T ',' T_FUNCTION ')' NEWLINE
-          {
-              TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$3);
-              char buff[256];
-              TREE *str;
-              buff[0]='"'; buff[1]='\0'; strcat(buff, ((ORCTOKEN *)$7)->lexeme);
-              strcat(buff,"\"");
-              //printf("buff=%s<<\n", buff);
-              str = make_leaf(csound,LINE,LOCN,STRING_TOKEN, 
-                              make_string(csound, buff));
-              ans->left = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
-              ans->right = 
-                appendToTree(csound, 
-                             make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$5),
-                             str);
-              //print_tree(csound, "tabmap", ans);
-              $$ = ans;
+              //print_tree(csound, "T assign\n", ans);
           }
           | T_IDENT_T '[' iexp ']' '=' expr NEWLINE
           {
@@ -718,6 +687,18 @@ ifac      : ident               { $$ = $1; }
                              make_leaf(csound, LINE,LOCN,
                                        T_IDENT_T, (ORCTOKEN*)$1), $3);
           }
+          | T_IDENT_A '[' iexp ']'
+          {
+              $$ = make_node(csound,LINE,LOCN, S_A2K, $3, 
+                             make_leaf(csound, LINE,LOCN,
+                                       T_IDENT_A, (ORCTOKEN*)$1));
+          }
+          | T_IDENT_GA '[' iexp ']'
+          {
+              $$ = make_node(csound,LINE,LOCN, S_A2K, $3, 
+                             make_leaf(csound, LINE,LOCN,
+                                       T_IDENT_GA, (ORCTOKEN*)$1));
+          }
           | iexp '|' iexp        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
           | iexp '|' error
           | iexp '&' iexp        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
@@ -786,15 +767,47 @@ tfac      : T_IDENT_T
           {
               $$ = make_leaf(csound,LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1);
           }
+          | T_IDENT_T '[' iexp ':' iexp ']' NEWLINE
+          {
+              TREE *ans = make_node(csound,LINE,LOCN, S_TABSLICE,
+                                    $1, appendToTree(csound, $3, $5));
+              $$ = ans;
+          }
+          | '[' iexp S_ELIPSIS iexp ',' iexp ']'
+          {
+              TREE *ans = make_node(csound,LINE,LOCN, S_TABRANGE,
+                                    $2, appendToTree(csound, $4, $6));
+              $$ = ans;
+          }
+          | '[' iexp S_ELIPSIS iexp ']'
+          {
+              TREE *ans = make_node(csound,LINE,LOCN, S_TABRANGE, $2, $4);
+              //print_tree(csound, "Tablegen", ans);
+              $$ = ans;
+          }
+          | mapop '(' T_IDENT_T ',' T_FUNCTION ')'
+          {
+              char buff[256];
+              TREE *str, *var;
+              buff[0]='"'; buff[1]='\0'; strcat(buff, ((ORCTOKEN *)$5)->lexeme);
+              strcat(buff,"\"");
+              printf("buff=%s<<\n", buff);
+              str = make_leaf(csound,LINE,LOCN,STRING_TOKEN, 
+                              make_string(csound, buff));
+              var = make_leaf(csound, LINE,LOCN,T_IDENT_T, (ORCTOKEN *)$3);
+              print_tree(csound, "t-var", var);
+              $$ = 
+                make_node(csound,LINE,LOCN, (int)$1, var, str);
+              print_tree(csound, "mapop", $$);
+          }
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error    { $$ = NULL; }
           | '(' error         { $$ = NULL; }
           ;
 
-mapop     : T_MAPI {
-              $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap_i"); }
-          | T_MAPK {
-              $$ = (TREE*)make_leaf(csound, LINE,LOCN,T_OPCODE, "#tabmap"); }
+mapop     : T_MAPI { $$ = T_MAPI; }
+          | T_MAPK { $$ = T_MAPK; }
+          ;
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
                                              SRATE_TOKEN, (ORCTOKEN *)$1); }

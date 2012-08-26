@@ -136,10 +136,10 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
           rval = (root->right->type == INTEGER_TOKEN ?
                   (double)root->right->value->value :root->right->value->fvalue);
           ans = root->left;
-          ans->type = ans->value->type = NUMBER_TOKEN;
           /* **** Something wrong here -- subtraction confuses memory **** */
           switch (root->type) {
           case '+':
+            ans->type = ans->value->type = NUMBER_TOKEN;
             ans->value->fvalue = lval+rval;
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
@@ -149,6 +149,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
             //mfree(csound, root); mfree(csound root->right);
             return ans;
           case '-':
+            ans->type = ans->value->type = NUMBER_TOKEN;
             ans->value->fvalue = lval-rval;
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
@@ -158,6 +159,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
           case '*':
+            ans->type = ans->value->type = NUMBER_TOKEN;
             ans->value->fvalue = lval*rval;
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
@@ -167,6 +169,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
             //mfree(csound, root); mfree(csound, root->right);
             return ans;
           case '/':
+            ans->type = ans->value->type = NUMBER_TOKEN;
             ans->value->fvalue = lval/rval;
             ans->value->lexeme =
               (char*)mrealloc(csound, ans->value->lexeme, 24);
@@ -201,8 +204,9 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
         case S_UMINUS:
           /*print_tree(csound, "root", root);*/
           ans = root->right;
-          ans->value->fvalue = -(ans->type==INTEGER_TOKEN ? ans->value->value
-                                 : ans->value->fvalue);
+          ans->value->fvalue = 
+            -(ans->type==INTEGER_TOKEN ? (double)ans->value->value
+              : ans->value->fvalue);
           ans->value->lexeme =
             (char*)mrealloc(csound, ans->value->lexeme, 24);
           sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
@@ -432,8 +436,14 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_EQ:(%d:%d)\n", l->line, l->locn); break;
     case S_TASSIGN:
       csound->Message(csound,"S_TASSIGN:(%d:%d)\n", l->line, l->locn); break;
+    case S_TABRANGE:
+      csound->Message(csound,"S_TABRANGE:(%d:%d)\n", l->line, l->locn); break;
     case S_TABREF:
       csound->Message(csound,"S_TABREF:(%d:%d)\n", l->line, l->locn); break;
+    case T_MAPK:
+      csound->Message(csound,"T_MAPK:(%d:%d)\n", l->line, l->locn); break;
+    case T_MAPI:
+      csound->Message(csound,"T_MAPI:(%d:%d)\n", l->line, l->locn); break;
     case S_GT:
       csound->Message(csound,"S_GT:(%d:%d)\n", l->line, l->locn); break;
     case S_GE:
@@ -607,8 +617,12 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_EQ\""); break;
     case S_TASSIGN:
       csound->Message(csound,"name=\"S_TASSIGN\""); break;
+    case S_TABRANGE:
+      csound->Message(csound,"name=\"S_TABRANGE\""); break;
     case S_TABREF:
       csound->Message(csound,"name=\"S_TABREF\""); break;
+    case S_A2K:
+      csound->Message(csound,"name=\"S_A2K\""); break;
     case S_GT:
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
@@ -814,43 +828,49 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     if (PARSER_DEBUG) {
       csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
                       ep->opname, incnt, nreqd);
-      //      csound->Message(csound, "ep->intypes = >%s<\n", ep->intypes);
+      csound->Message(csound, "ep->intypes = >%s<\n", ep->intypes);
     }
     if (incnt < nreqd) {         /*  or set defaults: */
       do {
         switch (ep->intypes[incnt]) {
         case 'O':             /* Will this work?  Doubtful code.... */
         case 'o':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN, make_int(csound, "0"));
+          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
+                           make_int(csound, "0"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'P':
         case 'p':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN, make_int(csound, "1"));
+          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
+                           make_int(csound, "1"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'q':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN, make_int(csound, "10"));
+          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN, 
+                           make_int(csound, "10"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
 
         case 'V':
         case 'v':
-          temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN, make_num(csound, ".5"));
+          temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN,
+                           make_num(csound, ".5"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'h':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN, make_int(csound, "127"));
+          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
+                           make_int(csound, "127"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'J':
         case 'j':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN, make_int(csound, "-1"));
+          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
+                           make_int(csound, "-1"));
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;

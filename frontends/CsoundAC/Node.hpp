@@ -26,16 +26,15 @@
 %{
 #include "Score.hpp"
 #include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-  %}
+#include <eigen3/Eigen/Dense>
+%}
 %include "std_string.i"
 %include "std_vector.i"
 %template(NodeVector) std::vector<csound::Node*>;
 #else
 #include "Score.hpp"
 #include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
@@ -48,7 +47,7 @@ namespace csound
   class SILENCE_PUBLIC Node
   {
   protected:
-    ublas::matrix<double> localCoordinates;
+    Eigen::MatrixXd localCoordinates;
   public:
     /**
      * Child Nodes, if any.
@@ -59,27 +58,38 @@ namespace csound
     /**
      * Returns the local transformation of coordinate system.
      */
-    virtual ublas::matrix<double> getLocalCoordinates() const;
+    virtual Eigen::MatrixXd  getLocalCoordinates() const;
     /**
      * The default implementation postconcatenates its own local coordinate system
      * with the global coordinates, then passes the score and the product of coordinate systems
      * to each child, thus performing a depth-first traversal of the music graph.
      */
-    virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates,
+    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates,
                                            Score &score);
     /**
+     * This function is called by the traverse() function.
      * The default implementation does nothing.
-     * Derived nodes that produce notes from scratch should
-     * transform them using the composite transformation of
-     * coordinate system, which is passed in from the traverse() function.
+     * If a derived node produces new Events, then it must transform them by 
+     * the composite coordinates, then append them to the collecting score.
+     * If a derived node transforms Events produced by child Nodes, then it 
+     * must transform only Events in the collecting score starting at the 
+     * startAt index and continuing up to, but not including, the endAt index.
+     * These bookmarks, in turn, must be set in the Traverse function by 
+     * all Nodes that produce events.
      */
-    virtual void produceOrTransform(Score &score,
+    virtual void produceOrTransform(Score &collectingScore,
                                     size_t beginAt,
                                     size_t endAt,
-                                    const ublas::matrix<double> &compositeCordinates);
-    virtual ublas::matrix<double> createTransform();
+                                    const Eigen::MatrixXd &compositeCordinates);
+    virtual Eigen::MatrixXd createTransform();
     virtual void clear();
+    /**
+     * Returns a reference to the indicated element of the local transformation of coordinate system.
+     */
     virtual double &element(size_t row, size_t column);
+    /**
+     * Sets the indicated element of the local transformation of coordinate system.
+     */
     virtual void setElement(size_t row, size_t column, double value);
     virtual void addChild(Node *node);
   };
@@ -94,7 +104,7 @@ namespace csound
     virtual void produceOrTransform(Score &score,
                                     size_t beginAt,
                                     size_t endAt,
-                                    const ublas::matrix<double> &compositeCordinates);
+                                    const Eigen::MatrixXd &compositeCordinates);
 
   };
 }

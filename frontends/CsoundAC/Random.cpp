@@ -18,7 +18,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "Random.hpp"
-#include <boost/numeric/ublas/operation.hpp>
 
 namespace csound
 {
@@ -117,9 +116,9 @@ namespace csound
     if(generator_ == &lognormal_distribution_generator) return (*lognormal_distribution_generator)();
     return 0;
   }
-  ublas::matrix<double> Random::getRandomCoordinates() const
+  Eigen::MatrixXd Random::getRandomCoordinates() const
   {
-    ublas::matrix<double> transformation = getLocalCoordinates();
+    Eigen::MatrixXd transformation = getLocalCoordinates();
     for(int i = 0; i < Event::HOMOGENEITY; i++)
       {
         transformation(i, Event::HOMOGENEITY) *= sample();
@@ -129,7 +128,7 @@ namespace csound
   void Random::produceOrTransform(Score &score,
                                   size_t beginAt,
                                   size_t endAt,
-                                  const ublas::matrix<double> &compositeCoordinates)
+                                  const Eigen::MatrixXd &compositeCoordinates)
   {
     createDistribution(distribution);
     if(eventCount > 0)
@@ -140,7 +139,8 @@ namespace csound
             //  Resample for every generated note.
             Event event(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             Event transformedEvent;
-            ublas::axpy_prod(getRandomCoordinates(), event, transformedEvent);
+            //ublas::axpy_prod(getRandomCoordinates(), event, transformedEvent);
+	    transformedEvent = getRandomCoordinates() * event;
             if (incrementTime)
               {
                 double buffer = fabs(transformedEvent.getTime());
@@ -153,14 +153,14 @@ namespace csound
         // to all child events produced by this node.
         size_t finalEndAt = score.size();
         for (size_t i = endAt; i < finalEndAt; i++) {
-          score[i] = ublas::prod(compositeCoordinates, score[i]);
+          score[i] = compositeCoordinates * score[i];
         }
       }
     else
       {
         for (size_t i = beginAt; i < endAt; i++)
           {
-            score[i] = ublas::prod(getRandomCoordinates(), score[i]);
+            score[i] = getRandomCoordinates() * score[i];
           }
       }
   }

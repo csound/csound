@@ -28,7 +28,7 @@
 #include <string>
 #include <vector>
 #include <boost/random.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
   %}
 %include "std_string.i"
 %include "std_vector.i"
@@ -37,8 +37,7 @@
 #include <string>
 #include <vector>
 #include <boost/random.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound

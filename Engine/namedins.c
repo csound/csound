@@ -596,15 +596,17 @@ static void **extendNamedGlobals(CSOUND *p, int n, int storeIndex)
     oldlimit = p->namedGlobalsCurrLimit;
     p->namedGlobalsCurrLimit += n;
     if (UNLIKELY(p->namedGlobalsCurrLimit > p->namedGlobalsMaxLimit)) {
+      void **new;
       p->namedGlobalsMaxLimit = p->namedGlobalsCurrLimit;
       p->namedGlobalsMaxLimit += (p->namedGlobalsMaxLimit >> 3);
       p->namedGlobalsMaxLimit = (p->namedGlobalsMaxLimit + 15) & (~15);
       ptr = p->namedGlobals;
-      p->namedGlobals = (void**) realloc((void*) p->namedGlobals,
+      new = (void**) realloc((void*) p->namedGlobals,
                                          sizeof(void*)
                                          * (size_t) p->namedGlobalsMaxLimit);
-      if (UNLIKELY(p->namedGlobals == NULL)) {
+      if (UNLIKELY(new == NULL)) {
         p->namedGlobalsCurrLimit = p->namedGlobalsMaxLimit = 0;
+        free(p->namedGlobals);
         return NULL;
       }
       if (p->namedGlobals != ptr && ptr != NULL) {
@@ -1016,7 +1018,6 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
     if (csound->namedGlobals == NULL)
       return;
     for (i = 0; i < 256; i++) {
-      prvp = (GlobalVariableEntry_t*) NULL;
       p = (GlobalVariableEntry_t*) csound->namedGlobals[i];
       while (p != NULL) {
         prvp = p;

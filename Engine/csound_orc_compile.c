@@ -24,6 +24,7 @@
 */
 
 #include "csoundCore.h"
+#include "parse_param.h"
 #include "csound_orc.h"
 #include <math.h>
 #include <ctype.h>
@@ -400,33 +401,35 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
         tp->xincod_str |= (1 << n);
       /* IV - Oct 31 2002: simplified code */
       if (!(tfound_m & STA(typemask_tabl_in)[(unsigned char) treqd])) {
-      /* check for exceptional types */
-      switch (treqd) {
-      case 'Z':                             /* indef kakaka ... */
-        if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
-          intyperr(csound, n, s, ep->opname, tfound, treqd, line);
-        break;
-      case 'x':
-        treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
-      case 's':                             /* a- or k-rate */
-      treqd_m |= ARGTYP_a | ARGTYP_k;
-      if (tfound_m & treqd_m) {
-        if (tfound == 'a' && tp->outlist->count != 0) {
-          long outyp_m =                  /* ??? */
-            STA(typemask_tabl)[(unsigned char) argtyp2(csound,
-                                                     tp->outlist->arg[0])];
-          if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
-        }
-        else
+        /* check for exceptional types */
+        switch (treqd) {
+        case 'Z':                             /* indef kakaka ... */
+          if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
+            intyperr(csound, n, s, ep->opname, tfound, treqd, line);
           break;
-      }
-      default:
-        intyperr(csound, n, s, ep->opname, tfound, treqd, line);
-        break;
-      }
+        case 'x':
+          treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
+        case 's':                             /* a- or k-rate */
+          treqd_m |= ARGTYP_a | ARGTYP_k;
+          printf("treqd_m=%d tfound_m=%d tfound=%c count=%d\n",
+                 treqd_m, tfound_m, tfound, tp->outlist->count);
+          if (tfound_m & treqd_m) {
+            if (tfound == 'a' && tp->outlist->count != 0) {
+              long outyp_m =                  /* ??? */
+                STA(typemask_tabl)[(unsigned char) argtyp2(csound,
+                                                           tp->outlist->arg[0])];
+              if (outyp_m & (ARGTYP_a | ARGTYP_w | ARGTYP_f)) break;
+            }
+            else
+              break;
+          }
+        default:
+          intyperr(csound, n, s, ep->opname, tfound, treqd, line);
+          break;
+        }
       }
     }
-    csound->DebugMsg(csound, "xincod = %d", tp->xincod);
+    //csound->DebugMsg(csound, "xincod = %d", tp->xincod);
 }
 
 void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
@@ -491,8 +494,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
     int opnum;
     int n, nreqd;;
 
-    /* printf("%d(%d): tree=%p\n", __FILE__, __LINE_xxxxxxxxxxx_, root); */
-    /* print_tree(csound, "create_opcode", root); */
+    //printf("%d(%d): tree=%p\n", __FILE__, __LINE__, root);
+    //print_tree(csound, "create_opcode", root);
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
 
@@ -583,15 +586,28 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
 
         /* update_lclcount(csound, ip, root->right); */
 
-        argcount = 0;
+      }
+      /* update_lclcount(csound, ip, root->left); */
 
+
+      /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
+
+      {
+        OENTRY *ep = csound->opcodlst + tp->opnum;
+        int argcount = 0;
+        //        csound->Message(csound, "Opcode InTypes: %s\n", ep->intypes);
+        //        csound->Message(csound, "Opcode OutTypes: %s\n", ep->outypes);
+
+        for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
+          arg = outargs->value->lexeme;
+          tp->outlist->arg[argcount++] = strsav_string(csound, arg);
+        }
+        set_xincod(csound, tp, ep, root->line);
+ 
         /* OUTARGS */
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
 
           arg = outargs->value->lexeme;
-
-          tp->outlist->arg[argcount++] =
-            strsav_string(csound, arg);
 
           if ((n = pnum(arg)) >= 0) {
             if (n > ip->pmax)  ip->pmax = n;
@@ -607,19 +623,6 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           }
 
         }
-      }
-      /* update_lclcount(csound, ip, root->left); */
-
-
-      /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
-
-      {
-        OENTRY *ep = csound->opcodlst + tp->opnum;
-
-        //        csound->Message(csound, "Opcode InTypes: %s\n", ep->intypes);
-        //        csound->Message(csound, "Opcode OutTypes: %s\n", ep->outypes);
-
-        set_xincod(csound, tp, ep, root->line);
         set_xoutcod(csound, tp, ep, root->line);
 
         if (root->right != NULL) {
@@ -826,7 +829,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       int32 instrNum = (int32)root->left->value->value; /* Not used! */
 
       c = csound->Malloc(csound, 10); /* arbritrarily chosen number of digits */
-      sprintf(c, "%ld", instrNum);
+      sprintf(c, "%ld", (long)instrNum);
 
       if (PARSER_DEBUG)
           csound->Message(csound,
@@ -1013,11 +1016,11 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
     }
 
     while (opinfo != NULL) {
-        csound->Message(csound, "%s : %s\n", opinfo->name, opname);
-        if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
-            return opinfo;
-        }
-        opinfo = opinfo->prv;   /* Move on: JPff suggestion */
+      //csound->Message(csound, "%s : %s\n", opinfo->name, opname);
+      if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
+        return opinfo;
+      }
+      opinfo = opinfo->prv;   /* Move on: JPff suggestion */
     }
 
     return NULL;
@@ -1100,7 +1103,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         /* csound->Message(csound, "Assignment found\n"); */
         break;
       case INSTR_TOKEN:
-        /* csound->Message(csound, "Instrument found\n"); */
+        print_tree(csound, "Instrument found\n", current);
 
         resetouts(csound); /* reset #out counts */
         lblclear(csound); /* restart labelist  */
@@ -1140,7 +1143,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c, instrtxt, insno_priority))) {
+                if (UNLIKELY(!named_instr_alloc(csound, c,
+                                                instrtxt, insno_priority))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
                 instrtxt->insname = c;
@@ -1161,7 +1165,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c, instrtxt, insno_priority))) {
+                if (UNLIKELY(!named_instr_alloc(csound, c,
+                                                instrtxt, insno_priority))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
                 instrtxt->insname = c;
@@ -1660,7 +1665,7 @@ static int constndx(CSOUND *csound, const char *s)
     n = STA(poolcount)++;
     if (n >= STA(nconsts)) {
       STA(nconsts) = ((STA(nconsts) + (STA(nconsts) >> 3)) | (NCONSTS - 1)) + 1;
-      if (UNLIKELY(csound->oparms->msglevel))
+      if (UNLIKELY(PARSER_DEBUG && csound->oparms->msglevel))
         csound->Message(csound, Str("extending Floating pool to %d\n"),
                                 STA(nconsts));
       csound->pool = (MYFLT*) mrealloc(csound, csound->pool, STA(nconsts)
@@ -1923,10 +1928,10 @@ char argtyp2(CSOUND *csound, char *s)
 }
 
 /* For diagnostics map file name or macro name to an index */
-int file_to_int(CSOUND *csound, const char *name)
+uint8_t file_to_int(CSOUND *csound, const char *name)
 {
     extern char *strdup(const char *);
-    int n = 0;
+    uint8_t n = 0;
     char **filedir = csound->filedir;
     while (filedir[n] && n<63) {        /* Do we have it already? */
       if (strcmp(filedir[n], name)==0) return n; /* yes */
@@ -1957,34 +1962,11 @@ void oload(CSOUND *p)
     MYFLT   ensmps;
 
     p->esr = p->tran_sr; p->ekr = p->tran_kr;
+    p->nchnls = p->tran_nchnls;
     p->e0dbfs = p->tran_0dbfs;
     p->ksmps = (int) ((ensmps = p->tran_ksmps) + FL(0.5));
     ip = p->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
-    optxt = (OPTXT *) ip;
-    while ((optxt = optxt->nxtop) !=  NULL) {
-      TEXT  *ttp = &optxt->t;
-      ARGOFFS *inoffp, *outoffp;
-      int opnum = ttp->opnum;
-      if (opnum == ENDIN) break;
-      if (opnum == LABEL) continue;
-      outoffp = ttp->outoffs;           /* use unexpanded ndxes */
-      inoffp = ttp->inoffs;             /* to find sr.. assigns */
-      if (outoffp->count == 1 && inoffp->count == 1) {
-        int rindex = (int) outoffp->indx[0] - (int) p->poolcount;
-        if (rindex > 0 && rindex <= 6) {
-          MYFLT conval = p->pool[inoffp->indx[0] - 1];
-          switch (rindex) {
-            case 1:  p->esr = conval;   break;  /* & use those values */
-            case 2:  p->ekr = conval;   break;  /*  to set params now */
-            case 3:  p->ksmps = (int) ((ensmps = conval) + FL(0.5)); break;
-            case 4:  p->nchnls = (int) (conval + FL(0.5));  break;
-            case 5:  p->inchnls = (int) (conval + FL(0.5));  break;
-            case 6:
-            default: p->e0dbfs = conval; break;
-          }
-        }
-      }
-    }
+
     /* why I want oload() to return an error value.... */
     if (UNLIKELY(p->e0dbfs <= FL(0.0)))
       p->Die(p, Str("bad value for 0dbfs: must be positive."));

@@ -47,6 +47,7 @@ char *create_out_arg(CSOUND *csound, char outype)
     case 'k': sprintf(s, "#k%d", csound->kcount++); break;
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
+    case 't': sprintf(s, "#t%d", csound->tcount++); break;
     default:  sprintf(s, "#i%d", csound->icount++); break;
     }
     return s;
@@ -76,6 +77,10 @@ char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2)
     else if (arg1 == 'k' || arg2 == 'k') {
       strncat(op,".kk",80);
       outype = 'k';
+    }
+    else if (arg1 == 't' || arg2 == 't') {
+      //strncat(op,".kk",80);
+      outype = 't';
     }
     else {
       strncat(op,".ii",80);
@@ -253,7 +258,11 @@ static int is_expression_node(TREE *node)
     case '#':
     case '~':
     case '?':
+    case S_TABSLICE:
+    case S_TABRANGE:
     case S_TABREF:
+    case T_MAPK:
+    case T_MAPI:
     case T_TADD:
     case S_TUMINUS:
     case T_TMUL:
@@ -262,6 +271,7 @@ static int is_expression_node(TREE *node)
     case T_TIMUL:
     case T_TIDIV:
     case T_TIREM:
+    case S_A2K:
       return 1;
     }
    return 0;
@@ -403,10 +413,10 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       arg1 = argtyp2(csound, root->left->value->lexeme);
     }
     arg2 = argtyp2(csound, root->right->value->lexeme);
-
+    //printf("arg1=%.2x(%c); arg2=%.2x(%c)\n", arg1, arg1, arg2, arg2);
     op = mcalloc(csound, 80);
 
-     switch(root->type) {
+    switch(root->type) {
     case '+':
       strncpy(op, "##add", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
@@ -445,9 +455,29 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       break;
     case S_TABREF:
       strncpy(op, "##tabref", 80);
-      if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "Found TABREF: %s\n", op);
       outarg = create_out_arg(csound, 'k');
+      break;
+    case S_TABRANGE:
+      strncpy(op, "#tabgen", 80);
+      outarg = create_out_arg(csound, 't');
+      break;
+    case S_TABSLICE:
+      strncpy(op, "#tabslice", 80);
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "Found TABSLICE: %s\n", op);
+      outarg = create_out_arg(csound, 't');
+      break;
+    case T_MAPK:
+      strncpy(op, "#tabmap", 80);
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "Found TABMAP: %s\n", op);
+      outarg = create_out_arg(csound, 't');
+      break;
+    case T_MAPI:
+      strncpy(op, "#tabmapo_i", 80);
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "Found TABMAP: %s\n", op);
+      outarg = create_out_arg(csound, 't');
       break;
     case T_FUNCTION: /* assumes on single arg input */
       c = arg2;
@@ -549,33 +579,37 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
        strncpy(op, "##remitab", 80);
        outarg = set_expression_type(csound, op, arg1, arg2);
        break;
-    }
-    opTree = create_opcode_token(csound, op);
-    if (root->left != NULL) {
-      opTree->right = root->left;
-      opTree->right->next = root->right;
-      opTree->left = create_ans_token(csound, outarg);
-      opTree->line = line;
-      opTree->locn = locn;
-      //print_tree(csound, "making expression", opTree);
-    }
-    else {
-      opTree->right = root->right;
-      opTree->left = create_ans_token(csound, outarg);
-      opTree->line = line;
-      opTree->locn = locn;
-    }
-
-    if (anchor == NULL) {
-      anchor = opTree;
-    }
-    else {
-      last = anchor;
-      while (last->next != NULL) {
-        last = last->next;
-      }
-      last->next = opTree;
-    }
+     case S_A2K:
+       strncpy(op, "vaget", 80);
+       outarg = create_out_arg(csound, 'k');
+       break;
+     }
+     opTree = create_opcode_token(csound, op);
+     if (root->left != NULL) {
+       opTree->right = root->left;
+       opTree->right->next = root->right;
+       opTree->left = create_ans_token(csound, outarg);
+       opTree->line = line;
+       opTree->locn = locn;
+       //print_tree(csound, "making expression", opTree);
+     }
+     else {
+       opTree->right = root->right;
+       opTree->left = create_ans_token(csound, outarg);
+       opTree->line = line;
+       opTree->locn = locn;
+     }
+     if (root->type==S_TABRANGE) handle_optional_args(csound, opTree);
+     if (anchor == NULL) {
+       anchor = opTree;
+     }
+     else {
+       last = anchor;
+       while (last->next != NULL) {
+         last = last->next;
+       }
+       last->next = opTree;
+     }
     mfree(csound, op);
     return anchor;
 }
@@ -590,8 +624,8 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn)
     TREE *anchor = NULL, *last;
     TREE * opTree;
 
-    /*   if (UNLIKELY(PARSER_DEBUG)) */
-    csound->Message(csound, "Creating boolean expression\n");
+    if (UNLIKELY(PARSER_DEBUG)) 
+      csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
       anchor = create_boolean_expression(csound, root->left, line, locn);
@@ -725,7 +759,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
     char *label = (char *)csound->Calloc(csound, 20);
     ORCTOKEN *token;
 
-    sprintf(label, "__synthetic_%ld", count);
+    sprintf(label, "__synthetic_%ld", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
@@ -737,7 +771,7 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
 
-    sprintf(label, "__synthetic_%ld:", count);
+    sprintf(label, "__synthetic_%ld:", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));
@@ -1103,7 +1137,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               break;
             }
             else if (anstype=='k' && argtype=='i') {
-              TREE* opTree = create_opcode_token(csound, "k.i");
+              TREE* opTree = create_opcode_token(csound, "=.k");
               opTree->right = make_leaf(csound, current->line, current->locn,
                                         T_IDENT_K, currentArg->left->value);
               opTree->left = current->left;

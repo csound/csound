@@ -1017,7 +1017,6 @@ static int destroy_entire_db(void **db)
     if (db == NULL)
       return CSOUNDCFG_SUCCESS;
     for (i = 0; i < 256; i++) {
-      prvp = (csCfgVariable_t*) NULL;
       pp = (csCfgVariable_t*) (db[i]);
       while (pp != NULL) {
         prvp = pp;

@@ -1,5 +1,5 @@
 #!/bin/sh
-export RELEASE_DIR=csound-iOS-5.17.6
+export RELEASE_DIR=csound-iOS-5.17.11
 export LIBSNDFILE_LIB=`pwd`/../../iOS/csound-iOS-dependencies/libsndfile.a 
 
 rm -rf $RELEASE_DIR

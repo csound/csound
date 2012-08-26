@@ -358,7 +358,7 @@ extern "C" {
           kill_graph(csound, (uintptr_t) ((void*) n));
           }
        if(ST(menu)){
-             delete ST(menu);
+             delete[] ST(menu);
              ST(menu) = (Fl_Menu_Item *) 0;
        }
 

@@ -78,58 +78,82 @@ static const MYFLT matrix12[144] =
          msix,msix,msix,msix,msix,msix,msix,msix,msix,msix,msix,fsix};
 
 static const MYFLT matrix24[576] =
-        {etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,
-         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw};
+        {etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
+         mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw};
 
 /* for delay line lengths */
 static const int primes[229] =
-        {
-                17,             23,     59,             71,     113,    127,    163,    191,    211,    229,
-                271,    283,    313,    337,    359,    373,    409,    461,    541,    587,
-                631,    691,    709,    773,    829,    863,    919,    971,    1039,   1069,
-                1123,   1171,   1217,   1259,   1303,   1373,   1423,   1483,   1511,   1597,
-                1627,   1669,   1733,   1787,   1847,   1867,   1913,   1951,   2027,   2081,
-                2131,   2179,   2213,   2269,   2333,   2383,   2423,   2467,   2531,   2579,
-                2617,   2671,   2729,   2789,   2837,   2861,   2917,   2999,   3011,   3083,
-                3121,   3169,   3209,   3259,   3331,   3389,   3449,   3469,   3533,   3571,
-                3613,   3671,   3727,   3779,   3821,   3889,   3917,   3989,   4001,   4051,
-                4111,   4177,   4231,   4271,   4337,   4391,   4447,   4483,   4517,   4567,
-                4621,   4691,   4733,   4787,   4817,   4861,   4919,   4967,   5023,   5077,
-                5113,   5167,   5233,   5297,   5309,   5351,   5441,   5483,   5507,   5563,
-                5641,   5683,   5711,   5783,   5821,   5857,   5927,   5981,   6011,   6067,
-                6121,   6173,   6217,   6271,   6317,   6361,   6421,   6473,   6529,   6581,
-                6607,   6661,   6733,   6793,   6841,   6883,   6911,   6961,   7027,   7057,
-                7109,   7177,   7211,   7297,   7349,   7393,   7417,   7481,   7523,   7561,
-                7607,   7673,   7717,   7789,   7841,   7879,   7919,   7963,   8017,   8081,
-                8111,   8167,   8209,   8287,   8317,   8377,   8443,   8467,   8521,   8563,
-                8623,   8677,   8713,   8761,   8831,   8867,   8923,   8963,   9013,   9059,
-                9109,   9187,   9221,   9257,   9323,   9371,   9413,   9461,   9511,   9587,
-                9631,   9679,   9721,   9781,   9803,   9859,   9949,   9973,   10039,  10079,
-                10111,  10177,  10211,  10259,  10333,  10391,  10429,  10459,  10513,  10589,
-                10607,  10663,  10711,  10799,  10831,  10859,  10909,  10979,  11003
-        };
+  {
+    17,      23,     59,     71,    113,    127,    163,    191,    211,    229,
+    271,    283,    313,    337,    359,    373,    409,    461,    541,    587,
+    631,    691,    709,    773,    829,    863,    919,    971,    1039,   1069,
+    1123,   1171,   1217,   1259,   1303,   1373,   1423,   1483,   1511,   1597,
+    1627,   1669,   1733,   1787,   1847,   1867,   1913,   1951,   2027,   2081,
+    2131,   2179,   2213,   2269,   2333,   2383,   2423,   2467,   2531,   2579,
+    2617,   2671,   2729,   2789,   2837,   2861,   2917,   2999,   3011,   3083,
+    3121,   3169,   3209,   3259,   3331,   3389,   3449,   3469,   3533,   3571,
+    3613,   3671,   3727,   3779,   3821,   3889,   3917,   3989,   4001,   4051,
+    4111,   4177,   4231,   4271,   4337,   4391,   4447,   4483,   4517,   4567,
+    4621,   4691,   4733,   4787,   4817,   4861,   4919,   4967,   5023,   5077,
+    5113,   5167,   5233,   5297,   5309,   5351,   5441,   5483,   5507,   5563,
+    5641,   5683,   5711,   5783,   5821,   5857,   5927,   5981,   6011,   6067,
+    6121,   6173,   6217,   6271,   6317,   6361,   6421,   6473,   6529,   6581,
+    6607,   6661,   6733,   6793,   6841,   6883,   6911,   6961,   7027,   7057,
+    7109,   7177,   7211,   7297,   7349,   7393,   7417,   7481,   7523,   7561,
+    7607,   7673,   7717,   7789,   7841,   7879,   7919,   7963,   8017,   8081,
+    8111,   8167,   8209,   8287,   8317,   8377,   8443,   8467,   8521,   8563,
+    8623,   8677,   8713,   8761,   8831,   8867,   8923,   8963,   9013,   9059,
+    9109,   9187,   9221,   9257,   9323,   9371,   9413,   9461,   9511,   9587,
+    9631,   9679,   9721,   9781,   9803,   9859,   9949,   9973,   10039,  10079,
+    10111,  10177,  10211,  10259,  10333,  10391,  10429,  10459,  10513,  10589,
+    10607,  10663,  10711,  10799,  10831,  10859,  10909,  10979,  11003
+  };
 
 typedef struct
 {
@@ -137,9 +161,9 @@ typedef struct
     /* in / out */
     /* outputs l/r and delay required for late del...*/
     MYFLT *outsigl, *outsigr, *idel;
-    /* mean free path and order are optional, meanfp defaults to medium room, opcode
-     can be used as stand alone binaural reverb, or spatially accurate taking
-     meanfp and order from earlies opcode */
+  /* mean free path and order are optional, meanfp defaults to medium
+     room, opcode can be used as stand alone binaural reverb, or
+     spatially accurate taking meanfp and order from earlies opcode */
     MYFLT *insig, *ilowrt60, *ihighrt60, *ifilel, *ifiler, *osr, *omeanfp, *porder;
 
     /* internal data / class variables */
@@ -829,8 +853,9 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
             if(aip[i] > FL(0.99) || aip[i] < -FL(0.99))
               {
-                csound->Message(csound, Str("\nwarning, approaching instability, fixed with "
-                           "a flat late reverb!"));
+                csound->Message(csound,
+                                Str("\nwarning, approaching instability, "
+                                    "fixed with a flat late reverb!"));
                 clipcheck = 1;
                 if(aip[i] > 0.99)
                   rt60high = rt60low;

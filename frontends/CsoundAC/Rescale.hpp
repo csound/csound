@@ -28,7 +28,6 @@
   %}
 #else
 #include "ScoreNode.hpp"
-using namespace boost::numeric;
 #endif
 
 namespace csound
@@ -47,7 +46,7 @@ namespace csound
     Rescale();
     virtual ~Rescale();
     virtual void initialize();
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const Eigen::MatrixXd &coordinates);
     virtual void setRescale(int dimension, bool rescaleMinimum, bool rescaleRange, double targetMinimum, double targetRange);
     virtual void getRescale(int dimension, bool &rescaleMinimum, bool &rescaleRange, double &targetMinimum, double &targetRange);
   };

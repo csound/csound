@@ -26,6 +26,6 @@ void trace(char *format, ...)
 #if (defined(MSVC) && defined(_DEBUG))
     _CrtDbgReport(_CRT_WARN, NULL, NULL, NULL, msg);
 #else
-    printf(msg);
+    printf("%s", msg);
 #endif
 }

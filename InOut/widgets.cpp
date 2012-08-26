@@ -1997,6 +1997,9 @@ extern "C"
         ST(FLtext_align)      = 0;
         ST(FL_ix)             = 10;
         ST(FL_iy)             = 10;
+
+        delete (WIDGET_GLOBALS*)csound->widgetGlobals;
+        csound->widgetGlobals = NULL;
       }
       return 0;
   }

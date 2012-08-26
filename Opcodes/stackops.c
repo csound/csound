@@ -155,7 +155,8 @@ static CS_NOINLINE CsoundArgStack_t *csoundStack_AllocGlobals(CSOUND *csound,
       stackSize = 16777200;
     nBytes = csoundStack_Align((int) sizeof(CsoundArgStack_t));
     nBytes += stackSize;
-    if (UNLIKELY(csound->CreateGlobalVariable(csound, "csArgStack", (size_t) nBytes)
+    if (UNLIKELY(csound->CreateGlobalVariable(csound,
+                                              "csArgStack", (size_t) nBytes)
                  != 0))
       csound->Die(csound, Str("Error allocating argument stack"));
     pp = (CsoundArgStack_t*) csound->QueryGlobalVariable(csound, "csArgStack");
@@ -338,7 +339,8 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
     if (p->argMap[1] != 0) {
       void  *bp;
       int   i, *ofsp;
-      if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[1] > p->pp->freeSpaceEndOffset))
+      if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[1] >
+                   p->pp->freeSpaceEndOffset))
         return csoundStack_OverflowError(p);
       bp = (void*) ((char*) p->pp->dataSpace + (int) p->pp->freeSpaceOffset);
       p->pp->freeSpaceOffset += p->argMap[1];
@@ -463,7 +465,8 @@ static int push_f_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
     int     *ofsp;
     int     offs;
 
-    if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[2] > p->pp->freeSpaceEndOffset))
+    if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[2] >
+                 p->pp->freeSpaceEndOffset))
       return csoundStack_OverflowError(p);
     bp = (void*) ((char*) p->pp->dataSpace + (int) p->pp->freeSpaceOffset);
     p->pp->freeSpaceOffset += p->argMap[2];

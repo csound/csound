@@ -21,39 +21,36 @@
 
 namespace csound
 {
-  ScoreNode::ScoreNode()
-  {
-  }
+ScoreNode::ScoreNode() : duration(0.0)
+{
+}
 
-  ScoreNode::~ScoreNode()
-  {
-  }
+ScoreNode::~ScoreNode()
+{
+}
 
-  void ScoreNode::produceOrTransform(Score &score_,
-                                     size_t beginAt,
-                                     size_t endAt,
-                                     const ublas::matrix<double> &compositeCoordinates)
-  {
-    if(importFilename.length() > 0)
-      {
+void ScoreNode::produceOrTransform(Score &collectingScore,
+        size_t beginAt,
+        size_t endAt,
+        const Eigen::MatrixXd &compositeCoordinates)
+{
+    if(importFilename.length() > 0) {
         score.std::vector<Event>::clear();
         score.load(importFilename);
-      }
-    for(Score::iterator it = score.begin(); it != score.end(); ++it)
-      {
-        const Event &event = *it;
-        score_.push_back(event);
-      }
-    // Apply the global transformation of coordinate system
-    // to all child events produced by this node.
-    size_t finalEndAt = score_.size();
-    for (size_t i = endAt; i < finalEndAt; i++) {
-      score_[i] = ublas::prod(compositeCoordinates, score_[i]);
     }
-  }
+    score.sort();
+    if (duration != 0.0) {
+        score.setDuration(duration);
+    }
+    for (int i = 0, n = score.size(); i < n; ++i) {
+        Eigen::VectorXd product = compositeCoordinates * score[i];
+        collectingScore.push_back(product);
+    }
 
-  Score &ScoreNode::getScore()
-  {
+}
+
+Score &ScoreNode::getScore()
+{
     return score;
-  }
+}
 }

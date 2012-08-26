@@ -24,35 +24,27 @@
 
 namespace csound
 {
-  Hocket::Hocket()
-  {
-  }
+Hocket::Hocket()
+{
+}
 
-  Hocket::~Hocket()
-  {
-  }
+Hocket::~Hocket()
+{
+}
 
-  ublas::matrix<double> Hocket::traverse(const ublas::matrix<double> &globalCoordinates, Score &score)
-  {
-    this->score.std::vector<Event>::clear();
-    size_t beginAt = this->score.size();
-    ublas::matrix<double> compositeCoordinates = ublas::prod(getLocalCoordinates(), globalCoordinates);
-    for(std::vector<Node*>::iterator it = children.begin(); it != children.end(); ++it)
-      {
+Eigen::MatrixXd Hocket::traverse(const Eigen::MatrixXd &globalCoordinates,
+        Score &collectingScore)
+{
+    size_t beginAt = collectingScore.size();
+    score.std::vector<Event>::clear();
+    Eigen::MatrixXd compositeCoordinates = getLocalCoordinates() * globalCoordinates;
+    for(std::vector<Node*>::iterator it = children.begin(); it != children.end(); ++it) {
         Node *child = *it;
-        child->traverse(compositeCoordinates, this->score);
-      }
-    size_t endAt = this->score.size();
-    produceOrTransform(score, beginAt, endAt, compositeCoordinates);
+        child->traverse(compositeCoordinates, score);
+    }
+    size_t endAt = collectingScore.size();
+    produceOrTransform(collectingScore, beginAt, endAt, compositeCoordinates);
     return compositeCoordinates;
-  }
+}
 
-  void Hocket::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates)
-  {
-    std::sort(this->score.begin(), this->score.end());
-    for(size_t i = startingIndex, n = this->score.size(); i < n; i += modulus)
-      {
-        score.push_back(this->score[i]);
-      }
-  }
 }

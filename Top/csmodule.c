@@ -81,7 +81,8 @@
 #if defined(__MACH__)
 #include <TargetConditionals.h>
 #if (TARGET_OS_IPHONE == 0) && (TARGET_IPHONE_SIMULATOR == 0)
-#if defined(MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_6)
+#if defined(MAC_OS_X_VERSION_10_6) && \
+    (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_6)
 #define NEW_MACH_CODE
 #else
 #define OLD_MACH_CODE
@@ -259,9 +260,14 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
         strcpy(csound->delayederrormessages, ERRSTR);
       }
       else {
-        csound->delayederrormessages =
+        char *new = 
           realloc(csound->delayederrormessages,
                   strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
+        if (new==NULL) {
+          free(csound->delayederrormessages);
+          return CSOUND_ERROR;
+        }
+        csound->delayederrormessages = new;
         strcat(csound->delayederrormessages, "\nWARNING: ");
         strcat(csound->delayederrormessages, ERRSTR);
       }
@@ -541,7 +547,8 @@ static OSErr GetFragmentName(CSOUND* csound, FSSpecPtr libr, char* name)
 }
 
 /* Examine each file in theFolder and load it if it is a Csound plugin */
-static OSErr SearchFolderAndLoadPlugins(CSOUND *csound, FSSpecPtr theFolder, int* cserr)
+static OSErr SearchFolderAndLoadPlugins(CSOUND *csound,
+                                        FSSpecPtr theFolder, int* cserr)
 {
     OSErr      err, err2;
     int        result;
@@ -572,13 +579,15 @@ static OSErr SearchFolderAndLoadPlugins(CSOUND *csound, FSSpecPtr theFolder, int
                 catinfo.hFileInfo.ioFlFndrInfo.fdCreator == 'Csnd') {
                 /* this is a Csound plugin library */
                 err2 = FSMakeFSSpec(catinfo.hFileInfo.ioVRefNum,
-                      catinfo.hFileInfo.ioFlParID, catinfo.hFileInfo.ioNamePtr, &spec);
+                                    catinfo.hFileInfo.ioFlParID,
+                                    catinfo.hFileInfo.ioNamePtr, &spec);
                 if (err2 != noErr) continue; /* this really should not happen */
                 err2 = GetFragmentName(csound, &spec, fragname);
                 result = CSOUND_SUCCESS;
                 if (err2 == noErr) result = csoundLoadExternal(csound, fragname);
                 /* record serious errors */
-                if (result != CSOUND_SUCCESS && result != CSOUND_ERROR) *cserr = result;
+                if (result != CSOUND_SUCCESS &&
+                    result != CSOUND_ERROR) *cserr = result;
                 /* continue to search folder when one file fails to load */
             }
         }
@@ -736,7 +745,7 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       }
       /* if (csoundCheckOpcodePluginFile(csound, fname) != 0) */
-      /*   continue;               /\* skip file if marked for deferred loading *\/ */
+      /*   continue;     /\* skip file if marked for deferred loading *\/ */
       sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
 /*       printf("Loading: %s\n", buf); */
       n = csoundLoadExternal(csound, buf);

@@ -28,7 +28,11 @@
 #include <time.h>
 
 #define POW2TABSIZI 4096
-#define POW2MAX   24.0
+#if ULONG_MAX == 18446744073709551615UL
+#  define POW2MAX   (24.0)
+#else
+#  define POW2MAX   (15.0)
+#endif
 #define EIPT3       (25.0/3.0)
 #define LOGTWO      (0.69314718055994530942)
 #define STEPS       (32768)
@@ -48,7 +52,8 @@
     for (i = 0; i < OCTRES; i++)
       cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
     for (i = 0; i < POW2TABSIZI; i++)
-      powerof2[i] = POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
+      powerof2[i] = POWER(FL(2.0),
+                          (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
 }*/
 
 /* initialise the tables, called by csoundPreCompile() */
@@ -568,6 +573,7 @@ LIB1(sinh1,SINH)
 LIB1(cosh1,COSH)
 LIB1(tanh1,TANH)
 LIB1(log101,LOG10)
+LIB1(log21,LOG2)
 
 int atan21(CSOUND *csound, AOP *p)
 {
@@ -599,6 +605,7 @@ LIBA(sinha,SINH)
 LIBA(cosha,COSH)
 LIBA(tanha,TANH)
 LIBA(log10a,LOG10)
+LIBA(log2a,LOG2)
 
 int atan2aa(CSOUND *csound, AOP *p)
 {

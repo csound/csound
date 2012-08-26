@@ -23,29 +23,29 @@ void Counterpoint::initialize(int mostnotes, int mostvoices)
   randx = 1;
   MostNotes = mostnotes;
   MostVoices = mostvoices;
-  Ctrpt.resize(MostNotes, MostVoices, 0.0);
-  Onset.resize(MostNotes, MostVoices, 0.0);
-  Dur.resize(MostNotes, MostVoices, 0.0);
-  TotalNotes.resize(MostVoices, 0.0);
-  BestFit.resize(MostNotes, MostVoices, 0.0);
-  BestFit1.resize(MostNotes, MostVoices, 0.0);
-  BestFit2.resize(MostNotes, MostVoices, 0.0);
-  RhyPat.resize(11, 9, 0.0);
-  RhyNotes.resize(11, 0.0);
-  vbs.resize(MostVoices, 0.0);
+  Ctrpt = Eigen::MatrixXi::Zero(MostNotes, MostVoices);
+  Onset = Eigen::MatrixXi::Zero(MostNotes, MostVoices);
+  Dur = Eigen::MatrixXi::Zero(MostNotes, MostVoices);
+  TotalNotes = Eigen::VectorXi::Zero(MostVoices);
+  BestFit = Eigen::MatrixXi::Zero(MostNotes, MostVoices);
+  BestFit1 = Eigen::MatrixXi::Zero(MostNotes, MostVoices);
+  BestFit2 = Eigen::MatrixXi::Zero(MostNotes, MostVoices);
+  RhyPat = Eigen::VectorXi::Zero(11, 9);
+  RhyNotes  = Eigen::VectorXi::Zero(11);
+  vbs.resize(MostVoices);
 }
 
 void Counterpoint::clear()
 {
-  Ctrpt.resize(0, 0, 0.0);
-  Onset.resize(0, 0, 0.0);
-  Dur.resize(0, 0, 0.0);
-  TotalNotes.resize(0, 0.0);
-  BestFit.resize(0, 0, 0.0);
-  BestFit1.resize(0, 0, 0.0);
-  BestFit2.resize(0, 0, 0.0);
-  RhyPat.resize(0, 0, 0.0);
-  RhyNotes.resize(0, 0.0);
+  Ctrpt.resize(0, 0);
+  Onset.resize(0, 0);
+  Dur.resize(0, 0);
+  TotalNotes.resize(0);
+  BestFit.resize(0, 0);
+  BestFit1.resize(0, 0);
+  BestFit2.resize(0, 0);
+  RhyPat.resize(0, 0);
+  RhyNotes.resize(0);
   vbs.resize(MostVoices, 0.0);
 }
 
@@ -73,7 +73,7 @@ void Counterpoint::counterpoint(int OurMode, int *StartPitches, int CurV, int ca
 
 void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
 {
-  size_t voice = 0;
+  int voice = 0;
   double time = 0;
   double duration = 0;
   double key = 0;
@@ -87,7 +87,7 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
   std::fstream stream(filename.c_str(), std::ios::in | std::ios::out | std::ios::trunc);
   int totalnotes = 0;
   fprintf(stderr, "\n; %s\n", filename.c_str());
-  for(voice = 0; voice < Ctrpt.size2(); voice++)
+  for(voice = 0; voice < Ctrpt.cols(); voice++) 
     {
       time = 0;
       for(size_t note = 1; note <= size_t(TotalNotes[voice]); note++)
@@ -1296,7 +1296,7 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
 
   void Counterpoint::AnySpecies(int OurMode, int *StartPitches, int CurV, int CantusFirmusLength, int Species)
   {
-    int i,j,k,m,v,OldSpecies,CurrentMode,BrLim;
+    int i,j,k,m,v,OldSpecies,BrLim;
     for (i=0;i<MostNotes;i++)
       for (j=1;j<MostVoices;j++)
         {
@@ -1305,7 +1305,7 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
         }
     PenaltyRatio=(1.0-(Species*CurV*.01));
     BrLim=(50*(6-CurV)*(6-Species));
-    CurrentMode=OurMode;
+    (void) OurMode;
     Mode=OurMode;
     TotalTime=((CantusFirmusLength-1)*8);
     TotalNotes[0]=CantusFirmusLength;

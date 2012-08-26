@@ -25,27 +25,37 @@
 %module CsoundAC
 %{
 #include "ScoreNode.hpp"
-  %}
+%}
 #else
 #include "ScoreNode.hpp"
-using namespace boost::numeric;
 #endif
 
 namespace csound
 {
   /**
    * Simplifies constructing complex hocketted scores.
+   * Where N is the moulus, this node produces every Nth note
+   * of the notes produced by the child nodes of this, starting
+   * with note at the starting index.
    */
   class SILENCE_PUBLIC Hocket :
     public ScoreNode
   {
   public:
+    /**
+     * The size of the hocket; 1 is every note, 2 is every other note, 
+     * 3 is every third note, and so on.
+     */
     int modulus;
+    /** 
+     * The index from which to begin hocketting; 0 to begin with the 
+     * first note, 1 to begin with the second note, and so on.
+     */
     int startingIndex;
     Hocket();
     virtual ~Hocket();
-    virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates, Score &score);
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates, 
+        Score &collectingScore);
   };
 }
 #endif

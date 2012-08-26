@@ -76,7 +76,8 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     p->ff = (int)(*p->format);
     p->bsize = bsize = (int) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
-    /*   return csound->InitError(csound, Str("The buffersize must be <= %d samples " */
+    /*   return csound->InitError(csound, 
+                                  Str("The buffersize must be <= %d samples " */
     /*                                        "to fit in a udp-packet."), */
     /*                            (int) (MTU / sizeof(MYFLT))); */
     /* } */
@@ -161,7 +162,8 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     p->ff = (int)(*p->format);
     p->bsize = bsize = (int) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
-    /*   return csound->InitError(csound, Str("The buffersize must be <= %d samples " */
+    /*   return csound->InitError(csound, 
+                                  Str("The buffersize must be <= %d samples " */
     /*                                        "to fit in a udp-packet."), */
     /*                            (int) (MTU / sizeof(MYFLT))); */
     /* } */

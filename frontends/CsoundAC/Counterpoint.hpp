@@ -57,6 +57,7 @@
 #include <cstdarg>
 #include <stdio.h>
 #include <stdlib.h>
+#include <eigen3/Eigen/Dense>
 #include <boost/random.hpp>
 #include <boost/random/variate_generator.hpp>
 %}
@@ -65,12 +66,10 @@
 #include <cstdarg>
 #include <stdio.h>
 #include <stdlib.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
+#include <eigen3/Eigen/Dense>
 #include <boost/random.hpp>
 #include <boost/random/variate_generator.hpp>
 #include "Random.hpp"
-using namespace boost::numeric;
 #endif
 
 class SILENCE_PUBLIC Counterpoint
@@ -87,16 +86,16 @@ public:
       MostVoices_ = 12
     };
   long randx;
-  boost::numeric::ublas::matrix<int> Ctrpt;
-  boost::numeric::ublas::matrix<int> Onset;
-  boost::numeric::ublas::matrix<int> Dur;
-  boost::numeric::ublas::vector<int> TotalNotes;
-  boost::numeric::ublas::matrix<int> BestFit;
-  boost::numeric::ublas::matrix<int> BestFit1;
-  boost::numeric::ublas::matrix<int> BestFit2;
-  boost::numeric::ublas::vector<int> vbs;
-  boost::numeric::ublas::matrix<int> RhyPat;
-  boost::numeric::ublas::vector<int> RhyNotes;
+  Eigen::MatrixXi Ctrpt;
+  Eigen::MatrixXi Onset;
+  Eigen::MatrixXi Dur;
+  Eigen::VectorXi TotalNotes;
+  Eigen::MatrixXi BestFit;
+  Eigen::MatrixXi BestFit1;
+  Eigen::MatrixXi BestFit2;
+  Eigen::VectorXi vbs;
+  Eigen::MatrixXi RhyPat;
+  Eigen::VectorXi RhyNotes;
   int Fits[3];
   virtual void initialize(int mostnotes, int mostvoices);
   virtual void clear();
