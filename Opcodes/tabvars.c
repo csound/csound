@@ -588,8 +588,6 @@ int tablength(CSOUND *csopund, TABQUERY *p)
     return OK;
 }
 
-
-
 static OENTRY tabvars_localops[] =
 {
   { "##plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
