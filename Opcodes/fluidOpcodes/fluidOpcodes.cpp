@@ -48,9 +48,11 @@
 /**
  * This may help avoid problems with the order of static initializations.
  */
-static std::map<CSOUND *, std::vector<fluid_synth_t *> > &getFluidSynthsForCsoundInstances()
+static std::map<CSOUND *, std::vector<fluid_synth_t *> > 
+                &getFluidSynthsForCsoundInstances()
 {
-    static std::map<CSOUND *, std::vector<fluid_synth_t *> > fluidSynthsForCsoundInstances;
+    static std::map<CSOUND *, std::vector<fluid_synth_t *> >
+                fluidSynthsForCsoundInstances;
     return fluidSynthsForCsoundInstances;
 }
 
@@ -146,7 +148,8 @@ public:
                 if (fluidSettings) {
                     delete_fluid_settings(fluidSettings);
                 }
-                result = csound->InitError(csound, Str("error allocating fluid engine\n"));
+                result = csound->InitError(csound,
+                                           Str("error allocating fluid engine\n"));
             } else {
                 //csound_global_mutex_lock();
                 fluid_synth_set_chorus_on(fluidSynth, chorusEnabled);
@@ -205,7 +208,8 @@ public:
             }
             *iInstrumentNumber = (MYFLT) soundFontId;
             if (soundFontId < 0) {
-                csound->InitError(csound, Str("fluid: unable to load %s"), filename);
+                csound->InitError(csound, 
+                                  Str("fluid: unable to load %s"), filename);
             }
             csound->NotifyFileOpened(csound, filepath, CSFTYPE_SOUNDFONT, 0, 0);
             if (soundFontId < 0) {
@@ -216,7 +220,8 @@ public:
                 fluid_preset_t fluidPreset;
                 fluidSoundfont->iteration_start(fluidSoundfont);
                 if (csound->oparms->msglevel & 0x7)
-                    while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) {
+                    while (fluidSoundfont->iteration_next(fluidSoundfont,
+                                                          &fluidPreset)) {
                         log(csound,
                             "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
                             soundFontId,
@@ -419,7 +424,8 @@ public:
     int audio(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_all_out)
         {
-            std::vector<fluid_synth_t *> &fluidSynths = getFluidSynthsForCsoundInstances()[csound];
+            std::vector<fluid_synth_t *> &fluidSynths = 
+              getFluidSynthsForCsoundInstances()[csound];
             for (frame = 0; frame < ksmps; frame++) {
                 aLeftOut[frame] = FL(0.0);
                 aRightOut[frame] = FL(0.0);
@@ -486,7 +492,8 @@ public:
                 switch (midiStatus) {
                 case (int) 0x80:
 noteOff:
-                    result = fluid_synth_noteoff(fluidSynth, midiChannel, midiData1);
+                    result = fluid_synth_noteoff(fluidSynth,
+                                                 midiChannel, midiData1);
                     if (printMsgs)
                         csound->Message(csound,
                                 "result: %d \n Note off: c:%3d k:%3d\n",
@@ -501,7 +508,8 @@ noteOff:
                     result = fluid_synth_noteon(fluidSynth, midiChannel,
                             midiData1, midiData2);
                     if (printMsgs)
-                        log(csound, "result: %d \nNote on: c:%3d k:%3d v:%3d\n",result,
+                        log(csound,
+                            "result: %d \nNote on: c:%3d k:%3d v:%3d\n",result,
                             midiChannel, midiData1, midiData2);
                     break;
                 case (int) 0xA0:
@@ -511,15 +519,19 @@ noteOff:
                             midiChannel, midiData1, midiData2);
                     break;
                 case (int) 0xB0:
-                    result = fluid_synth_cc(fluidSynth, midiChannel, midiData1, midiData2);
+                    result = fluid_synth_cc(fluidSynth, midiChannel,
+                                            midiData1, midiData2);
                     if (printMsgs)
-                        log(csound, "Result: %d Control change: c:%3d c:%3d v:%3d\n",result,
+                        log(csound,
+                            "Result: %d Control change: c:%3d c:%3d v:%3d\n",result,
                             midiChannel, midiData1, midiData2);
                     break;
                 case (int) 0xC0:
-                    result = fluid_synth_program_change(fluidSynth, midiChannel, midiData1);
+                    result = fluid_synth_program_change(fluidSynth,
+                                                        midiChannel, midiData1);
                     if (printMsgs)
-                        log(csound, "Result: %d Program change: c:%3d p:%3d\n",result,
+                        log(csound,
+                            "Result: %d Program change: c:%3d p:%3d\n",result,
                             midiChannel, midiData1);
                     break;
                 case (int) 0xD0:
@@ -531,7 +543,8 @@ noteOff:
                     int pbVal = midiData1 + (midiData2 << 7);
                     fluid_synth_pitch_bend(fluidSynth, midiChannel, pbVal);
                     if (printMsgs)
-                        log(csound, "Result: %d, Pitch bend:     c:%d b:%d\n", result,
+                        log(csound,
+                            "Result: %d, Pitch bend:     c:%d b:%d\n", result,
                             midiChannel, pbVal);
                 }
                 break;
@@ -578,7 +591,8 @@ public:
                                 "either 0, 1, 4, or 7.\n"));
                 result = NOTOK;
             } else {
-                fluid_synth_set_interp_method(fluidSynth, channel, interpolationMethod);
+                fluid_synth_set_interp_method(fluidSynth, channel,
+                                              interpolationMethod);
             }
         }
         return result;

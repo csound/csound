@@ -78,15 +78,13 @@ namespace csound
 
   Event::Event(const Event &a)
   {
-    resize(a.size());
-    *this = a;
+      *this = a;
   }
 
   Event::Event(std::string text)
   {
     initialize();
     std::istringstream stream(text);
-    clear();
     std::vector<double> buffer;
     double f;
     while(!stream.eof())
@@ -95,19 +93,17 @@ namespace csound
         buffer.push_back(f);
       }
     resize(buffer.size());
-    std::copy(buffer.begin(), buffer.end(), begin());
+    *this = buffer;
   }
 
-  Event::Event(const ublas::vector<double> &a)
+  Event::Event(const Eigen::VectorXd &a)
   {
-    resize(a.size());
-    std::copy(a.begin(), a.end(), begin());
+    *this = a;
   }
 
   Event::Event(const std::vector<double> &a)
   {
-    resize(a.size());
-    std::copy(a.begin(), a.end(), begin());
+    *this = a;
   }
 
   Event::Event(double time, double duration, double status, double instrument, double key, double velocity, double phase, double pan, double depth, double height, double pitches)
@@ -301,15 +297,14 @@ namespace csound
 
   Event &Event::operator = (const Event &a)
   {
-    resize(a.size());
-    std::copy(a.begin(), a.end(), begin());
+    Eigen::VectorXd::operator=(a);
+    properties = a.properties;
     return *this;
   }
 
-  Event &Event::operator = (const ublas::vector<double> &a)
+  Event &Event::operator = (const Eigen::VectorXd &a)
   {
-    resize(a.size());
-    std::copy(a.begin(), a.end(), begin());
+    Eigen::VectorXd::operator=(a);
     return *this;
   }
 

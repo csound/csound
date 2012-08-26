@@ -16,7 +16,6 @@ instr  1
 
   a1 pluck kamp, kcps, icps, ifn, imeth
   out a1
-     waste 100000
 endin
 
 instr 2
@@ -25,17 +24,20 @@ instr 2
   ifn = 1
 
   a1 oscil kamp, kcps, ifn
-     waste 100000
   out a1
 endin
 </CsInstruments>
 
 <CsScore>
+#define BAR #2#
+#define FOO #[$BAR + 1]#
 f 1 0 16384 10 1
+{ $FOO 3
 i 1 0 0.1 440
 i 2 0 0.1 220
 i 1 0 0.1 110
 i 2 0 0.1 330
+}
 
 
 e

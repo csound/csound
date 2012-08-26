@@ -1287,7 +1287,8 @@ int tclcsound_initialise(Tcl_Interp * interp)
 
     pdata->threadlock  = csoundCreateMutex(0);
     pdata->messlock = csoundCreateMutex(0);
-   Tcl_CreateCommand(interp, "csGetMessageOutput", (Tcl_CmdProc *) csGetMessageOutput,
+    Tcl_CreateCommand(interp, "csGetMessageOutput",
+                      (Tcl_CmdProc *) csGetMessageOutput,
                       (ClientData) pdata, NULL);
     Tcl_CreateCommand(interp, "csCompile", (Tcl_CmdProc *) csCompile,
                       (ClientData) pdata, NULL);

@@ -62,6 +62,7 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
       outf = fopen(argv[2], "w");
     if (outf == NULL) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
+      csound->PVOC_CloseFile(csound, inf);
       return 1;
     }
 
@@ -95,8 +96,8 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
       csound->Free(csound,frame);
     }
 /*     else { */
-/*       double *frame = (double*) malloc(data.nAnalysisBins * 2 * sizeof(double)); */
-
+/*       double *frame = 
+            (double*) malloc(data.nAnalysisBins * 2 * sizeof(double)); */
 /*       for (; i!=0; i--) { */
 /*         int j; */
 /*         csound->PVOC_GetFrames(csound, inf, frame, 1); */

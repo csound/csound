@@ -954,6 +954,7 @@ static int gen15(FGDATA *ff, FUNC *ftp)
       csound->Warning(csound, Str("using extended arguments\n"));
     hsin = (MYFLT*)malloc(sizeof(MYFLT)*((1+ff->e.pcnt)/2));
     if (UNLIKELY(nargs & 01)) {
+      free(hsin);
       return fterror(ff, Str("uneven number of args"));
     }
     nh = (nargs - 2) >>1;
@@ -997,12 +998,12 @@ static int gen15(FGDATA *ff, FUNC *ftp)
       }
     }
     nargs--;
-    ff->e.pcnt = (int16)(nargs + 4);            /* added by F. Pinot 16-01-2012 */
+    ff->e.pcnt = (int16)(nargs + 4); /* added by F. Pinot 16-01-2012 */
     free(hsin);
-    n = gen14(ff, ftp);                         /* now draw ftable   */
-    ftresdisp(ff, ftp);                         /* added by F. Pinot 16-01-2012 */
-    ff->fno--;                                  /* F. Pinot, the first function table */
-                                                /* is scaled and displayed by hfgens */
+    n = gen14(ff, ftp);       /* now draw ftable   */
+    ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
+    ff->fno--;                /* F. Pinot, the first function table */
+                              /* is scaled and displayed by hfgens */
     return n;
 }
 
@@ -1528,18 +1529,24 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     y = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
     z = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
 #if defined(USE_DOUBLE)
-    while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF) {
+    while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF)
 #else
-    while (fscanf( filp, "%f%f%f", &z[i], &x[i], &y[i])!= EOF) {
+    while (fscanf( filp, "%f%f%f", &z[i], &x[i], &y[i])!= EOF)
 #endif
-      i++;
-      if (i>=arraysize) {
-        arraysize += 1000;
-        x = (MYFLT*)realloc(x, arraysize*sizeof(MYFLT));
-        y = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
-        z = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
+      {
+        i++;
+        if (i>=arraysize) {
+          MYFLT* newx, *newy, *newz;
+          arraysize += 1000;
+          newx = (MYFLT*)realloc(x, arraysize*sizeof(MYFLT));
+          newy = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
+          newz = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
+          if (!newx || !newy || !newx) {
+            fprintf(stderr, "Out of Memory\n");
+            exit(7);
+          }
+        }
       }
-    }
     --i;
 
     ff->flen      = (int32) (z[i] * resolution * 2);
@@ -2252,6 +2259,10 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
+    else if (UNLIKELY(ftp->lenmask == 0xFFFFFFFF)) {
+      csoundInitError(csound, Str("illegal table length"));
+      return NULL;
+    }
     else if (UNLIKELY(!ftp->lenmask)) {
       csoundInitError(csound,
                       Str("deferred-size ftable %f illegal here"), *argp);
@@ -2496,7 +2507,6 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
     {
       SF_INSTRUMENT lpd;
       int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
@@ -2560,12 +2570,6 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         ftp->end1 = ftp->flenfrms;      /* Greg Sullivan */
       }
     }
-#else
-    ftp->cpscvt = FL(0.0);
-    ftp->loopmode1 = 0;
-    ftp->loopmode2 = 0;
-    ftp->end1 = ftp->flenfrms;          /* Greg Sullivan */
-#endif      /* HAVE_LIBSNDFILE >= 1013 */
     /* read sound with opt gain */
 
     if (UNLIKELY((inlocs=getsndin(csound, fd, ftp->ftable, table_length, p)) < 0)) {

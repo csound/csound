@@ -91,8 +91,8 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     int     datasize = p->datasize, envtablesize = p->envtablesize;
 
     pitch  = *p->pitch;
-    fperiod = csound->esr/(*p->fr);
-    if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
+    fperiod = FABS(csound->esr/(*p->fr));
+    //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
@@ -244,8 +244,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
                               loop_start, loop_end, loopsize);     */
 
     pitch  = *p->pitch;
-    fperiod = csound->esr/(*p->fr);
-    if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
+    fperiod = FABS(csound->esr/(*p->fr));
+    //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
@@ -479,8 +479,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     hdatasize = hdataframes*chans;
 
     pitch  = *p->pitch;
-    fperiod = csound->esr/(*p->fr);
-    if (UNLIKELY(fperiod  < FL(0.0))) fperiod = -fperiod;
+    fperiod = FABS(csound->esr/(*p->fr));
+    //if (UNLIKELY(fperiod  < FL(0.0))) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;

@@ -352,6 +352,7 @@ set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
+check_include_file_cxx(eigen3/Eigen/Dense EIGEN3_HEADER)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
 check_library_exists(m lrint "" HAVE_LRINT)
@@ -510,9 +511,8 @@ set(libcsound_SRCS
     Opcodes/hrtfopcodes.c 
     Opcodes/stackops.c 
     Opcodes/vbap.c 
-    Opcodes/vbap_eight.c 
-    Opcodes/vbap_four.c 
-    Opcodes/vbap_sixteen.c
+    Opcodes/vbap1.c 
+    Opcodes/vbap_n.c 
     Opcodes/vbap_zak.c  
     Opcodes/vaops.c 
     Opcodes/ugakbari.c 
@@ -709,13 +709,28 @@ endif()
 
 
 if(USE_DOUBLE)
-    set(CSOUNDLIB "csound64")
+    if(APPLE)
+        set(CSOUNDLIB "CsoundLib64")
+    else()
+        set(CSOUNDLIB "csound64")
+    endif()
 else()
-    set(CSOUNDLIB "csound")
+    if(APPLE)
+        set(CSOUNDLIB "CsoundLib")
+    else()
+        set(CSOUNDLIB "csound")
+    endif()
 endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
+# ADDING HERE TO GRAB LIST OF HEADERS IN CASE OF BUILDING OSX FRAMEWORK
+add_subdirectory(H)
+
+if(APPLE)
+    string(REGEX REPLACE "([^;]+)(;|$)" "H/\\1\\2" csheaders "${csheaders}")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders}")
+endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -724,10 +739,17 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     LINK_INTERFACE_LIBRARIES ""
     SOVERSION ${APIVERSION})
 
+if(APPLE)
+    set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
+    set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
+    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders}")
+endif()
+
 # Add the install target
 install(TARGETS ${CSOUNDLIB}
     LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+    FRAMEWORK DESTINATION "${CMAKE_SYSTEM_FRAMEWORK_PATH}")
 
 set(libcsound_LIBS 
     ${LIBSNDFILE_LIBRARY}  
@@ -850,7 +872,6 @@ add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(SDIF)
 add_subdirectory(po)
-add_subdirectory(H)
 
 
 # uninstall target

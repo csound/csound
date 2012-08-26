@@ -55,7 +55,6 @@
     extern int debug;
     extern int yylex(void);
     extern void yyerror (char *);
-    static void extend_instruments(void);
 %}
 %token  S_NL
 %token  S_EQ
@@ -89,6 +88,7 @@ statement : S_NL                                { }
         | T_BAR T_INTEGER S_NL                  { onset0 = permeasure*(last_integer-1); }
         | T_INSTR T_INTEGER attributes S_NL {
             int i;
+            INSTR *pp = find_instr(instrument);
             if (debug) {
               fprintf(stderr, "instr=%d onset0,onset1,last0,last1=%f,%f,%f,%f\n",
                       instrument, onset0, onset1, last_onset0, last_onset1);
@@ -96,7 +96,6 @@ statement : S_NL                                { }
                       length,last_length, pitch, last_pitch, ampl, last_ampl);
             }
             //print_instr_structure();
-            if (instrument>maxinstr) extend_instruments();
             if (onset0<0) onset0 = last_onset0;
             if (onset1<0) onset1 = last_onset1;
             if (length==0) length = last_length;
@@ -106,8 +105,8 @@ statement : S_NL                                { }
               fprintf(myout,"i%d %f %f %f %d",
                       instrument, base_time+60.0*(onset0+onset1)/bpm,
                       60.0*length/bpm, pitch, ampl);
-              for (i=6; i<=instr[instrument].largest; i++)
-                fprintf(myout, " %f", instr[instrument].p[i]);
+               for (i=6; i<=pp->largest; i++)
+                fprintf(myout, " %f", pp->p[i]);
             }
             else fprintf(myout, ";;rest at %f for %f",
                          base_time+60.0*(onset0+onset1)/bpm,60.0*length/bpm);
@@ -156,38 +155,37 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
         | T_DYN            { ampl = last_integer; }
 //        | S_PLS            { onset0 = last_onset1; onset1 += last_length; }
         | T_PARA S_EQ T_FLOAT { 
-            if (instrument>maxinstr) extend_instruments();
+            INSTR *pp = find_instr(instrument);
             //print_instr_structure();
             if (pnum<6)
               fprintf(stderr, "p field %d ignored as less than 6\n", pnum);
             else {
-              if (pnum>instr[instrument].largest) {
+              if (pnum>pp->largest) {
                 int i;
-                instr[instrument].p =
-                  (double*)realloc(instr[instrument].p, sizeof(double)*(pnum+1));
-                for (i=instr[instrument].largest+1; i<=pnum; i++)
-                  instr[instrument].p[i]=0.0;
-                instr[instrument].largest = pnum;
+                pp->p =
+                  (double*)realloc(pp->p, sizeof(double)*(pnum+1));
+                for (i=pp->largest+1; i<=pnum; i++)
+                  pp->p[i]=0.0;
+                pp->largest = pnum;
               }
-              instr[instrument].p[pnum] = last_float;
+              pp->p[pnum] = last_float;
             }
             //print_instr_structure();
           }
         | T_PARA S_EQ T_INTEGER { 
-            if (instrument>maxinstr) extend_instruments();
+            INSTR *pp = find_instr(instrument);
             //print_instr_structure();
             if (pnum<6)
               fprintf(stderr, "p field %d ignored as less than 6\n", pnum);
             else {
-              if (pnum>instr[instrument].largest) {
+              if (pnum>pp->largest) {
                 int i;
-                instr[instrument].p =
-                  (double*)realloc(instr[instrument].p, sizeof(double)*(pnum+1));
-                for (i=instr[instrument].largest+1; i<=pnum; i++)
-                  instr[instrument].p[i]=0.0;
-                instr[instrument].largest = pnum;
+                pp->p = (double*)realloc(pp->p, sizeof(double)*(pnum+1));
+                for (i=pp->largest+1; i<=pnum; i++)
+                  pp->p[i]=0.0;
+                pp->largest = pnum;
               }
-              instr[instrument].p[pnum] = (double)last_integer;
+              pp->p[pnum] = (double)last_integer;
             }
             //print_instr_structure();
           }
@@ -195,29 +193,17 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
 
 %%
 
-          /* Faster than calling pow */
+          /* Faster than calling pow; positive n only*/
 double int2pow(int n)
 {
-    double ans = 1.0;
-    double xx = 2.0;
+    int ans = 1;
+    int xx = 2;
     while (n!=0) {
       if (n&1) ans = ans * xx;
       n >>= 1;
       xx = xx*xx;
     }
-    return ans;
+    return (double)ans;
 }
 
-static void extend_instruments(void)
-{
-    int i;
-    int tmp = maxinstr+1;
-    instr = (INSTR*)realloc(instr, tmp*sizeof(INSTR));
-    maxinstr = instrument;
-    for (i=tmp; i<=maxinstr; i++) {
-      INSTR ins = (INSTR)instr[i];
-      ins.p = (double*) calloc(6, sizeof(double));
-      ins.largest = 5;
-      ins.n = i;
-    }
-}
+

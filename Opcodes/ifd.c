@@ -58,7 +58,7 @@ typedef struct _ifd {
 static int ifd_init(CSOUND * csound, IFD * p)
 {
 
-    int     hsize, fftsize, hopsize, frames;
+    int     fftsize, hopsize, frames;
     int    *counter, wintype, i;
     MYFLT  *winf, *dwinf;
     double  alpha = 0.0, fac;
@@ -78,7 +78,6 @@ static int ifd_init(CSOUND * csound, IFD * p)
       csound->Die(csound, Str("pvsifd: fftsize should be power-of-two"));
 
     p->frames = frames;
-    hsize = fftsize / 2;
 
     if (p->sigframe.auxp == NULL ||
         frames * fftsize * sizeof(MYFLT) > (unsigned int) p->sigframe.size)
@@ -253,7 +252,8 @@ static int ifd_process(CSOUND * csound, IFD * p)
 
 static OENTRY localops[] =
   {
-    { "pvsifd", sizeof(IFD), 5, "ff", "aiiip", (SUBR) ifd_init, 0, (SUBR) ifd_process}
+    { "pvsifd", sizeof(IFD), 5, "ff", "aiiip", 
+                             (SUBR) ifd_init, 0, (SUBR) ifd_process}
   };
 
 int ifd_init_(CSOUND *csound)

@@ -244,7 +244,8 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
                            /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<2*csound->ksmps)) goto err3;   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<2*csound->ksmps)) 
+      goto err3;   /* minimum post-squeeze windowlength */
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */

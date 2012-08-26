@@ -28,7 +28,6 @@
 %}
 #else
 #include "Silence.hpp"
-using namespace boost::numeric;
 #endif
 
 class Fl_Image;

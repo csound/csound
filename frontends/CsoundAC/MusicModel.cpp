@@ -199,7 +199,7 @@ namespace csound
         std::string sconame = std::tmpnam(0);
         char buffer[0x200];
         std::sprintf(buffer,
-                     "csound --midi-key=4 --midi-velocity=5 -m167 -RWdfo %s %s%s.orc %s%s.sco",
+                     "csound --midi-key=4 --midi-velocity=5 -m195 -RWdfo %s %s%s.orc %s%s.sco",
                      getOutputSoundfileName().c_str(), temp_path, orcname.c_str(), temp_path, sconame.c_str());
         command_ = buffer;
       }
@@ -228,18 +228,23 @@ namespace csound
 	if (token.find("--") == 0) 
 	  {
 	    key = token;
+	    System::inform("argument[%2d]: %s\n", i, key.c_str());
 	  }
 	else
 	  {
 	    value = token;
+	    System::inform("argument[%2d]: %s =  %s\n", i, key.c_str(), value.c_str());
 	  }
 	argsmap[key] = value;
-	System::inform("argument[%2d]: %s =  %s\n", i, key.c_str(), value.c_str());
       }
     char command[0x200];
     int errorStatus = 0;
     bool postPossible = false;
     std::string playSoundfileName = getOutputSoundfileName();
+    if ((argsmap.find("--dir") != argsmap.end()) && !errorStatus) 
+      {
+	setOutputDirectory(argsmap["--dir"]);
+      }
     if ((argsmap.find("--midi") != argsmap.end()) && !errorStatus)
       {
         errorStatus = generate();
@@ -286,6 +291,7 @@ namespace csound
     System::inform("ENDED MusicModel::processArgv().\n");
     return errorStatus;
   }
+
   void MusicModel::stop()
   {
     std::cout << "MusicModel::stop()..." << std::endl;

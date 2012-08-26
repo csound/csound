@@ -28,7 +28,6 @@
   %}
 #else
 #include "ScoreNode.hpp"
-using namespace boost::numeric;
 #endif
 
 namespace csound
@@ -47,7 +46,7 @@ namespace csound
      * The notes produced by the second child node are shifted forward in time by that duration,
      * and so on, to create a strict temporal sequence of child nodes.
      */
-    virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates, Score &score);
+    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates, Score &score);
   };
 }
 #endif

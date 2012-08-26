@@ -26,31 +26,39 @@
 %{
 #include "Node.hpp"
 #include "Score.hpp"
-  %}
+#include <eigen3/Eigen/Dense>
+%}
 #else
 #include "Node.hpp"
 #include "Score.hpp"
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
 {
-  /**
-   * Node class that produces events from the contained score,
-   * which can be built up programmatically or imported from a standard MIDI file.
-   */
-  class SILENCE_PUBLIC ScoreNode :
+/**
+ * Node class that produces events from the contained score,
+ * which can be built up programmatically or imported from a standard MIDI file.
+ */
+class SILENCE_PUBLIC ScoreNode :
     public Node
-  {
-  protected:
+{
+protected:
     Score score;
-  public:
+public:
+    /**
+     * If not 0, the score is rescaled to this duration.
+     */
+    double duration;
     std::string importFilename;
     ScoreNode();
     virtual ~ScoreNode();
-    virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+    virtual void produceOrTransform(Score &collectingScore,
+            size_t beginAt,
+            size_t endAt,
+            const Eigen::MatrixXd &coordinates);
     virtual Score &getScore();
-  };
+};
 }
 #endif
 

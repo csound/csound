@@ -29,7 +29,7 @@
 #include <cstdio>
 #include <map>
 #include <vector>
-  %}
+%}
 %include "std_string.i"
 %include "std_vector.i"
 %template(DoubleVector) std::vector<double>;
@@ -43,20 +43,20 @@
 
 namespace csound
 {
-  /**
-   * Conversions to and from various music and signal processing units.
-   * Note that:
-   * silence::Event represents loudness in MIDI units (0 to 127).
-   * silence::Orchestra represents loudness in gain (0 to 1).
-   * silence::WaveSoundfileOut represents loudness in amplitude (0 to 1 for float samples, 0 to 32767 for short samples).
-   * Loudness can also be represented in positive decibels (0 to 84 for short samples, 0 to whatever for float samples).
-   * For float samples, decibels are assumed to be equivalent to MIDI velocity;
-   * otherwise, MIDI velocity is rescaled according to the maximum dynamic range supported by the sample size.
-   * All loudness conversions are driven by sample word size, which must be set before use;
-   * the default is 4 (float samples).
-   */
-  class SILENCE_PUBLIC Conversions
-  {
+/**
+ * Conversions to and from various music and signal processing units.
+ * Note that:
+ * silence::Event represents loudness in MIDI units (0 to 127).
+ * silence::Orchestra represents loudness in gain (0 to 1).
+ * silence::WaveSoundfileOut represents loudness in amplitude (0 to 1 for float samples, 0 to 32767 for short samples).
+ * Loudness can also be represented in positive decibels (0 to 84 for short samples, 0 to whatever for float samples).
+ * For float samples, decibels are assumed to be equivalent to MIDI velocity;
+ * otherwise, MIDI velocity is rescaled according to the maximum dynamic range supported by the sample size.
+ * All loudness conversions are driven by sample word size, which must be set before use;
+ * the default is 4 (float samples).
+ */
+class SILENCE_PUBLIC Conversions
+{
     static bool initialized_;
     static std::map<std::string, double> pitchClassSetsForNames;
     static std::map<double, std::string> namesForPitchClassSets;
@@ -73,7 +73,7 @@ namespace csound
     static const double floatMaximumAmplitude;
     static int sampleSize;
 #endif
-  public:
+public:
     static double getPI(void);
     static double get2PI(void);
     static double getMiddleCHz(void);
@@ -182,7 +182,14 @@ namespace csound
      * otherwise, 0 dB is full scale.
      */
     static double gainToDb(double inputDb, double gain, bool odbfs = false);
-  };
+    static double EPSILON();
+    static double &epsilonFactor();
+    static bool eq_epsilon(double a, double b);
+    static bool gt_epsilon(double a, double b);
+    static bool lt_epsilon(double a, double b);
+    static bool ge_epsilon(double a, double b);
+    static bool le_epsilon(double a, double b);
+};
 }
 
 #endif

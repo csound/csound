@@ -19,7 +19,6 @@
  */
 #include "CppSound.hpp"
 #include "MCRM.hpp"
-#include <boost/numeric/ublas/operation.hpp>
 
 namespace csound
 {
@@ -77,9 +76,9 @@ namespace csound
       {
         for(size_t s = 0; s < transformations.size(); s++)
           {
-            const ublas::matrix<double> &t = transformations[s];
-            Event e;
-            ublas::axpy_prod(t, event, e);
+	    const Eigen::MatrixXd &t = transformations[s];
+	    Eigen::VectorXd ev = t * event;
+            Event e = ev;
             double w = 0.0;
             if(weight == -1.0)
               {
@@ -87,7 +86,7 @@ namespace csound
               }
             else
               {
-                w = weights(p,s) * weight;
+                w = weights(p, s) * weight;
               }
             iterate(d, s, e, w);
           }
@@ -108,7 +107,7 @@ namespace csound
   void MCRM::produceOrTransform(Score &score,
                                 size_t beginAt,
                                 size_t endAt,
-                                const ublas::matrix<double> &coordinates)
+                                const Eigen::MatrixXd &coordinates)
   {
     generate();
     ScoreNode::produceOrTransform(score, beginAt, endAt, coordinates);

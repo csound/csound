@@ -32,38 +32,46 @@ Node::~Node()
 {
 }
 
-ublas::matrix<double> Node::createTransform()
+Eigen::MatrixXd Node::createTransform()
 {
-    ublas::matrix<double> matrix = ublas::identity_matrix<double>(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
+    Eigen::MatrixXd matrix = Eigen::MatrixXd::Identity(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
     return matrix;
 }
 
-ublas::matrix<double> Node::getLocalCoordinates() const
+Eigen::MatrixXd Node::getLocalCoordinates() const
 {
     return localCoordinates;
 }
 
-ublas::matrix<double> Node::traverse(const ublas::matrix<double> &globalCoordinates, Score &score)
+Eigen::MatrixXd Node::traverse(const Eigen::MatrixXd &globalCoordinates,
+        Score &collectingScore)
 {
+    // Make a bookmark for the current end of the collecting score.
+    size_t beginAt = collectingScore.size();
     // Obtain the composite transformation of coordinate system
     // by post-concatenating the local transformation of coordinate system
     // with the global, or enclosing, transformation of coordinate system.
-    ublas::matrix<double> compositeCoordinates = ublas::prod(getLocalCoordinates(), globalCoordinates);
-    // Make a bookmark for the current end of the score.
-    size_t beginAt = score.size();
+    Eigen::MatrixXd compositeCoordinates = getLocalCoordinates() * globalCoordinates;
     // Descend into each of the child nodes.
     for(std::vector<Node*>::iterator i = children.begin(); i != children.end(); ++i) {
-        (*i)->traverse(compositeCoordinates, score);
+        (*i)->traverse(compositeCoordinates, collectingScore);
     }
-    // Make a bookmark for the new end of the score,
-    // thus enclosing all Events that may have been produced or transformed
-    // by all the child nodes.
-    size_t endAt = score.size();
+    // Make a bookmark for the new end of the collecting score,
+    // thus enclosing all Events that may have been produced
+    // by all the child Nodes.
+    size_t endAt = collectingScore.size();
     // Take the score and optionally transform Events between the bookmarks,
     // or append new Events.
-    produceOrTransform(score, beginAt, endAt, compositeCoordinates);
+    produceOrTransform(collectingScore, beginAt, endAt, compositeCoordinates);
     // Return the composite transformation of coordinate system.
     return compositeCoordinates;
+}
+
+void Node::produceOrTransform(Score &collectingScore,
+        size_t beginAt,
+        size_t endAt,
+        const Eigen::MatrixXd &globalCoordinates)
+{
 }
 
 void Node::clear()
@@ -74,10 +82,6 @@ void Node::clear()
         node->clear();
     }
     children.clear();
-}
-
-void Node::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
-{
 }
 
 double &Node::element(size_t row, size_t column)
@@ -95,19 +99,22 @@ void Node::addChild(Node *node)
     children.push_back(node);
 }
 
-void RemoveDuplicates::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
+void RemoveDuplicates::produceOrTransform(Score &collectingScore, 
+    size_t beginAt, 
+    size_t endAt, 
+    const Eigen::MatrixXd &globalCoordinates)
 {
     std::set<std::string> uniqueEvents;
     Score newScore;
-    for (size_t i = 0, n = score.size(); i < n; ++i) {
-        const Event &event = score[i];
+    for (size_t i = 0, n = collectingScore.size(); i < n; ++i) {
+        const Event &event = collectingScore[i];
         std::string istatement = event.toCsoundIStatement();
         if (uniqueEvents.find(istatement) == uniqueEvents.end()) {
             newScore.push_back(event);
             uniqueEvents.insert(istatement);
         }
     }
-    score = newScore;
+    collectingScore = newScore;
 }
 
 }

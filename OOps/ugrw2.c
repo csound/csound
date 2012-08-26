@@ -163,12 +163,6 @@
  *
  */
 
-/*      ! ! ! !
- *
- *      See the end of this file for details of what other things to
- *      add to entry.c and how to tweak the makefile.
- */
-
 /*---------------------------------------------------------------------------*/
 
 /* kport = portamento
@@ -199,6 +193,8 @@ int kport(CSOUND *csound, KPORT *p)
      * c1 = 1 - c2
      *
      */
+    /* This previous comment is WRONG;  do not be misled -- JPff */
+
     if (UNLIKELY(p->prvhtim != *p->khtim)) {
       p->c2 = POWER(FL(0.5), csound->onedkr / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
@@ -237,6 +233,7 @@ int ktone(CSOUND *csound, KTONE *p)
        * tpidsr = 2 * pi / a sample rate
        * so tpidsr * ksmps = 2 * pi / k rate.
        * We need this since we are filtering at k rate, not a rate. */
+    /* This previous comment is WRONG;  do not be misled -- JPff */
 
       b = FL(2.0) - COS(*p->khp * csound->tpidsr * csound->ksmps);
       p->c2 = b - SQRT(b * b - FL(1.0));
@@ -384,13 +381,13 @@ int kareson(CSOUND *csound, KRESON *p)
     if (UNLIKELY(flag)) {
       c3p1 = p->c3 + FL(1.0);
       c3t4 = p->c3 * FL(4.0);
-      omc3 = 1 - p->c3;
+      omc3 = FL(1.0) - p->c3;
       p->c2 = c3t4 * p->cosf / c3p1;
       c2sqr = p->c2 * p->c2;
       if (p->scale == 1)                        /* i.e. 1 - A(reson) */
         p->c1 = FL(1.0) - omc3 * SQRT(FL(1.0) - c2sqr / c3t4);
       else if (p->scale == 2)                 /* i.e. D - A(reson) */
-        p->c1 = D - SQRT((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        p->c1 = FL(2.0) - SQRT((c3p1*c3p1-c2sqr)*omc3/c3p1);
       else p->c1 = FL(0.0);                        /* cannot tell        */
     }
 
@@ -405,7 +402,7 @@ int kareson(CSOUND *csound, KRESON *p)
       {
         *p->kr = p->c1 * *p->ksig + p->c2 * p->yt1 - p->c3 * p->yt2;
         p->yt2 = p->yt1;
-        p->yt1 = *p->kr - D * *p->ksig; /* yt1 contains yt1-D*xt1 */
+        p->yt1 = *p->kr - (*p->ksig + *p->ksig); /* yt1 contains yt1-D*xt1 */
       }
     return OK;
 }
@@ -415,15 +412,6 @@ int kareson(CSOUND *csound, KRESON *p)
 
 /* limit and ilimit
  */
-
-/* int limitset(CSOUND *csound, LIMIT *p) */
-/*      /\* Because we are using Csounds facility (thread = 7) for deciding */
-/*       * whether this is a or k rate, we must provide an init time setup */
-/*       * function. In this case, we have nothing to do.   *\/ */
-/* { */
-
-/*     return OK; */
-/* } */
 
 /* klimit()
  *
@@ -445,7 +433,7 @@ int klimit(CSOUND *csound, LIMIT *p)
        * the mid point between them.       */
 
       if ( (xlow = *p->xlow) >= (xhigh = *p->xhigh) ) {
-        *p->xdest = FL(0.5) * (xlow + xhigh); /* times 0.2 rather that /2 -- JPff */
+        *p->xdest = FL(0.5) * (xlow + xhigh); /* times 0.5 rather that /2 -- JPff */
       }
       else {
         if (xsig > xhigh)

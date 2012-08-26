@@ -82,7 +82,7 @@ int cpupercent_init(CSOUND *csound, CPUMETER* p)
     for (k = 0; ; k++) {
       if (!fgets(buf, SMLBUFSIZ, p->fp))
         return csound->InitError(csound,Str("failed /proc/stat read"));
-      num = sscanf(buf, "cpu%u %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
+      num = sscanf(buf, "cpu%llu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                    &id, &u, &n, &s, &i, &w, &x, &y, &z);
       if (num<4) break;
     }
@@ -160,7 +160,8 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
       x_frme = cpu[k].x - cpu[k].x_sav;
       y_frme = cpu[k].y - cpu[k].y_sav;
       z_frme = cpu[k].z - cpu[k].z_sav;
-      tot_frme = u_frme + s_frme + n_frme + i_frme + w_frme + x_frme + y_frme + z_frme;
+      tot_frme = u_frme + s_frme + n_frme + i_frme + 
+                 w_frme + x_frme + y_frme + z_frme;
       if (tot_frme < 1) tot_frme = 1;
       scale = 100.0 / (double)tot_frme;
       //if (p->kk[k]==NULL) break;

@@ -843,7 +843,7 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
     next = cscoreCreateEvent(csound, PMAX); /* creat EVENT blk receiving buf */
     next->op = '\0';
     savinfdata(csound, csound->scfp,
-               next, FL(0.0), 1, 0, 0);    /* curuntil 0, wasend, non-warp, not eof */
+               next, FL(0.0), 1, 0, 0);/* curuntil 0, wasend, non-warp, not eof */
     makecurrent(csound, csound->scfp);  /* make all this current         */
 
     return CSOUND_SUCCESS;
@@ -873,7 +873,7 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
     next->op = '\0';
 
     savinfdata(csound, csound->scfp,
-               next, FL(0.0), 1, 0, 0);    /* curuntil 0, wasend, non-warp, not eof */
+               next, FL(0.0), 1, 0, 0);/* curuntil 0, wasend, non-warp, not eof */
     makecurrent(csound, csound->scfp);  /* make all this current         */
 
     return CSOUND_SUCCESS;
