@@ -284,6 +284,12 @@ typedef struct {
     void    *auxp, *endp;
   } AUXCH;
 
+   typedef struct {
+      int     size;             /* 0...size-1 */
+      MYFLT   *data;
+      AUXCH   aux;
+   } TABDAT;
+
   typedef struct monblk {
     int16   pch;
     struct monblk *prv;
@@ -781,6 +787,7 @@ typedef struct NAME__ {
     int (*CompileOrc)(CSOUND *, char *str);
     int (*ReadScore)(CSOUND *, char *str);
     int (*Compile)(CSOUND *, int argc, char **argv);
+    int (*Start)(CSOUND *);
     int (*Perform)(CSOUND *);
     int (*PerformKsmps)(CSOUND *);
     int (*PerformBuffer)(CSOUND *);
@@ -1061,7 +1068,7 @@ typedef struct NAME__ {
     MEMFIL *(*ldmemfile2)(CSOUND *, const char *, int);
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
-    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, long);
+    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t);
     int *(*GetChannelLock)(CSOUND *, const char *name, int type);
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
                                 int (*callback)(CSOUND *, MEMFIL *));
@@ -1256,7 +1263,7 @@ typedef struct NAME__ {
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
-    int           acount, kcount, icount, Bcount, bcount;
+    int           acount, kcount, icount, Bcount, bcount, tcount;
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     struct otranStatics__ {
@@ -1411,6 +1418,7 @@ typedef struct NAME__ {
     char          stdin_assign_flg;
     char          stdout_assign_flg;
     char          orcname_mode;         /* 0: normal, 1: ignore, 2: fail */
+    int           use_only_orchfile;
     void          *csmodule_db;
     char          *dl_opcodes_oplibs;
     char          *SF_csd_licence;

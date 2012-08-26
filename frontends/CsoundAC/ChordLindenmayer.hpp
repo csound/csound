@@ -39,8 +39,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
 %}
 %template(StringMap) std::map<std::string, std::string>;
 #else
@@ -56,9 +55,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #endif
 
 namespace csound
@@ -363,7 +360,7 @@ namespace csound
                               size_t &dimension1,
                               double &scalar,
                               std::vector<double> &vector);
-    virtual ublas::matrix<double> createRotation (int dimension1, int dimension2, double angle) const;
+    virtual Eigen::MatrixXd createRotation (int dimension1, int dimension2, double angle) const;
     /**
      * Returns the result of applying the equivalence class to the value,
      * both in the argument and as the return value; there may be no effect.
@@ -372,7 +369,7 @@ namespace csound
     virtual void produceOrTransform(Score &score,
                                     size_t beginAt,
                                     size_t endAt,
-                                    const ublas::matrix<double> &compositeCordinates);
+                                    const Eigen::MatrixXd &compositeCordinates);
     
   };
 }

@@ -32,7 +32,6 @@
 #include "Composition.hpp"
 #include "Node.hpp"
 #include "Score.hpp"
-using namespace boost::numeric;
 #endif
 
 namespace csound {

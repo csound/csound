@@ -48,8 +48,8 @@ extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
 extern  uintptr_t  kperfThread(void * cs);
-extern void cs_init_math_constants_macros(CSOUND *csound,void *yyscanner);
-extern void cs_init_omacros(CSOUND *csound, NAMES *nn);
+extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
+extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
 
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
@@ -126,35 +126,31 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* check for CSD file */
     if (csound->orchname == NULL)
       dieu(csound, Str("no orchestra name"));
-    else if (csound->scorename == NULL || csound->scorename[0] == (char) 0) {
-      int   tmp = (int) strlen(csound->orchname) - 4;
-      if (tmp >= 0 && csound->orchname[tmp] == '.' &&
-          tolower(csound->orchname[tmp + 1]) == 'c' &&
-          tolower(csound->orchname[tmp + 2]) == 's' &&
-          tolower(csound->orchname[tmp + 3]) == 'd') {
-        /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
-        csound->orcname_mode = 0;
-        csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
+    else if (csound->use_only_orchfile == 0
+             && (csound->scorename == NULL || csound->scorename[0] == (char) 0)
+             && csound->orchname[0] != '\0') {
+      /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
+      csound->orcname_mode = 0;
+      csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
 
-        /* Add directory of CSD file to search paths before orchname gets
-         * replaced with temp orch name if default paths is enabled */
-        if (!O->noDefaultPaths) {
-          fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
-          csoundAppendEnv(csound, "SADIR", fileDir);
-          csoundAppendEnv(csound, "SSDIR", fileDir);
-          csoundAppendEnv(csound, "INCDIR", fileDir);
-          csoundAppendEnv(csound, "MFDIR", fileDir);
-          mfree(csound, fileDir);
-        }
-
-        csound->csdname = csound->orchname; /* save original CSD name */
-        if (!read_unified_file(csound, &(csound->orchname),
-                                       &(csound->scorename))) {
-          csound->Die(csound, Str("Reading CSD failed ... stopping"));
-        }
-
-        csdFound = 1;
+      /* Add directory of CSD file to search paths before orchname gets
+       * replaced with temp orch name if default paths is enabled */
+      if (!O->noDefaultPaths) {
+	fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+	csoundAppendEnv(csound, "SADIR", fileDir);
+	csoundAppendEnv(csound, "SSDIR", fileDir);
+	csoundAppendEnv(csound, "INCDIR", fileDir);
+	csoundAppendEnv(csound, "MFDIR", fileDir);
+	mfree(csound, fileDir);
       }
+
+      csound->csdname = csound->orchname; /* save original CSD name */
+      if (!read_unified_file(csound, &(csound->orchname),
+                                       &(csound->scorename))) {
+	csound->Die(csound, Str("Reading CSD failed ... stopping"));
+      }
+
+      csdFound = 1;
     }
 
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
@@ -172,49 +168,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Die(csound, Str("error: multiple uses of stdout"));
     }
     /* done parsing csoundrc, CSD, and command line options */
-    /* if sound file type is still not known, check SFOUTYP */
-    if (O->filetyp <= 0) {
-      const char  *envoutyp;
-      envoutyp = csoundGetEnv(csound, "SFOUTYP");
-      if (envoutyp != NULL && envoutyp[0] != '\0') {
-        if (strcmp(envoutyp, "AIFF") == 0)
-          O->filetyp = TYP_AIFF;
-        else if (strcmp(envoutyp, "WAV") == 0 || strcmp(envoutyp, "WAVE") == 0)
-          O->filetyp = TYP_WAV;
-        else if (strcmp(envoutyp, "IRCAM") == 0)
-          O->filetyp = TYP_IRCAM;
-        else if (strcmp(envoutyp, "RAW") == 0)
-          O->filetyp = TYP_RAW;
-        else {
-          dieu(csound, Str("%s not a recognised SFOUTYP env setting"),
-                       envoutyp);
-        }
-      }
-      else
-#if !defined(__MACH__) && !defined(mac_classic)
-        O->filetyp = TYP_WAV;   /* default to WAV if even SFOUTYP is unset */
-#else
-        O->filetyp = TYP_AIFF;  /* ... or AIFF on the Mac */
-#endif
-    }
-    /* everything other than a raw sound file has a header */
-    O->sfheader = (O->filetyp == TYP_RAW ? 0 : 1);
-    if (O->Linein || O->Midiin || O->FMidiin)
-      O->RTevents = 1;
-    if (!O->sfheader)
-      O->rewrt_hdr = 0;         /* cannot rewrite header of headerless file */
-    if (O->sr_override || O->kr_override) {
-      if (!O->sr_override || !O->kr_override)
-        dieu(csound, Str("srate and krate overrides must occur jointly"));
-    }
-    if (!O->outformat)                      /* if no audioformat yet  */
-      O->outformat = AE_SHORT;              /*  default to short_ints */
-    O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
-    O->informat = O->outformat;             /* informat default */
 
     if (csound->scorename == NULL && csound->scorestr==NULL) {
       /* No scorename yet */
-      csound->scorestr = corfile_create_r("f0 42000\n");
+      csound->scorestr = corfile_create_r("f0 800000000000.0\n");
       corfile_flush(csound->scorestr);
       if (O->RTevents)
         csound->Message(csound, Str("realtime performance using dummy "
@@ -252,21 +209,16 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
+    if (csoundInitModules(csound) != 0)
+      csound->LongJmp(csound, 1);
     csoundCompileOrc(csound, NULL);
-#if defined(USE_OPENMP)
-    if (csound->oparms->numThreads > 1) {
-      omp_set_num_threads(csound->oparms->numThreads);
-      csound->Message(csound, "OpenMP enabled: requested %d threads.\n",
-                      csound->oparms->numThreads);
-    }
-#endif
-
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound))
       return -1;
     /* IV - Oct 31 2002: now we can read and sort the score */
-    if ((n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
+    if (csound->scorename != NULL &&
+        (n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
         (!strcmp(csound->scorename + (n - 4), ".srt") ||
          !strcmp(csound->scorename + (n - 4), ".xtr"))) {
       csound->Message(csound, Str("using previous %s\n"), csound->scorename);
@@ -317,6 +269,69 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
 
+    return csoundStart(csound);
+}
+
+PUBLIC int csoundStart(CSOUND *csound) // DEBUG
+{
+    OPARMS  *O = csound->oparms;
+    int     n;
+
+    if ((n = setjmp(csound->exitjmp)) != 0) {
+      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+    /* csoundInitModules if csoundCompile is not called */
+    if (csound->orchname == NULL) {
+      if (csoundInitModules(csound) != 0)
+        csound->LongJmp(csound, 1);
+    }
+    /* if sound file type is still not known, check SFOUTYP */
+    if (O->filetyp <= 0) {
+      const char  *envoutyp;
+      envoutyp = csoundGetEnv(csound, "SFOUTYP");
+      if (envoutyp != NULL && envoutyp[0] != '\0') {
+        if (strcmp(envoutyp, "AIFF") == 0)
+          O->filetyp = TYP_AIFF;
+        else if (strcmp(envoutyp, "WAV") == 0 || strcmp(envoutyp, "WAVE") == 0)
+          O->filetyp = TYP_WAV;
+        else if (strcmp(envoutyp, "IRCAM") == 0)
+          O->filetyp = TYP_IRCAM;
+        else if (strcmp(envoutyp, "RAW") == 0)
+          O->filetyp = TYP_RAW;
+        else {
+          dieu(csound, Str("%s not a recognised SFOUTYP env setting"),
+               envoutyp);
+        }
+      }
+      else
+#if !defined(__MACH__) && !defined(mac_classic)
+        O->filetyp = TYP_WAV;   /* default to WAV if even SFOUTYP is unset */
+#else
+      O->filetyp = TYP_AIFF;  /* ... or AIFF on the Mac */
+#endif
+    }
+    /* everything other than a raw sound file has a header */
+    O->sfheader = (O->filetyp == TYP_RAW ? 0 : 1);
+    if (O->Linein || O->Midiin || O->FMidiin)
+      O->RTevents = 1;
+    if (!O->sfheader)
+      O->rewrt_hdr = 0;         /* cannot rewrite header of headerless file */
+    if (O->sr_override || O->kr_override) {
+      if (!O->sr_override || !O->kr_override)
+        dieu(csound, Str("srate and krate overrides must occur jointly"));
+    }
+    if (!O->outformat)                      /* if no audioformat yet  */
+      O->outformat = AE_SHORT;              /*  default to short_ints */
+    O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
+    O->informat = O->outformat;             /* informat default */
+
+#if defined(USE_OPENMP)
+    if (csound->oparms->numThreads > 1) {
+      omp_set_num_threads(csound->oparms->numThreads);
+      csound->Message(csound, "OpenMP enabled: requested %d threads.\n",
+                      csound->oparms->numThreads);
+    }
+#endif
 #ifdef PARCS
     if (O->numThreads > 1) {
       void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
@@ -336,7 +351,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
         t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
         t->next = NULL;
-
+          
         if (current == NULL) {
           csound->multiThreadedThreadInfo = t;
         }
@@ -351,7 +366,5 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csp_parallel_compute_spec_setup(csound);
     }
 #endif
-
-
     return musmon(csound);
 }

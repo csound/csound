@@ -3000,14 +3000,13 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
     char strseg[8192];
     int i = 0, j = 0;
     char *segwaiting = 0;
-
     while (*fmt) {
       if (*fmt == '%') {
         /* if already a segment waiting, then lets print it */
         if (segwaiting) {
           MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]);
-          /* printf("***xx = %f (int)(xx+.5)=%d round=%d\n", */
-          /*        xx, (int)(xx+.5), MYFLT2LRND(xx)); */
+          /* printf("***xx = %f (int)(xx+.5)=%d round=%d mode=%d\n", */
+          /*        xx, (int)(xx+.5), MYFLT2LRND(xx), fegetround()); */
           strseg[i] = '\0';
 
           switch (*segwaiting) {
@@ -3057,7 +3056,9 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
       strseg[i] = '\0';
       if (segwaiting) {
         MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]);
-        switch (*segwaiting) {
+           /* printf("***xx = %f (int)(xx+.5)=%d round=%d mode=%d\n", */
+           /*       xx, (int)(xx+.5), MYFLT2LRND(xx), fegetround()); */
+       switch (*segwaiting) {
         case 'd':
         case 'i':
         case 'o':
@@ -3065,13 +3066,13 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         case 'X':
         case 'u':
         case 'c':
-          sprintf(outstring, strseg, (int)(xx+FL(0.5)));
+          sprintf(outstring, strseg, (int)MYFLT2LRND(xx));
           break;
         case 'h':
-          sprintf(outstring, strseg, (int16)(xx+FL(0.5)));
+          sprintf(outstring, strseg, (int16)MYFLT2LRND(xx));
           break;
         case 'l':
-          sprintf(outstring, strseg, (int32)(xx+FL(0.5)));
+          sprintf(outstring, strseg, (int32)MYFLT2LRND(xx));
           break;
 
         default:

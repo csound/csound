@@ -24,15 +24,13 @@
 %module CsoundAC
 %{
 #include "Event.hpp"
-  // #include "Midifile.hpp"
 #include <iostream>
 #include <vector>
-  %}
+%}
 %include "std_string.i"
 %include "std_vector.i"
 #else
 #include "Event.hpp"
- // #include "Midifile.hpp"
 #include <iostream>
 #include <vector>
 #endif

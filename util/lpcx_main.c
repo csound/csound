@@ -63,18 +63,23 @@ int main(int argc, char **argv)
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
       printf("Cannot open output file %s\n", argv[2]);
+      fclose(inf);
       return 1;
     }
     if (fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
         (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2)) {
       printf("Failed to read LPC header\n");
+      fclose(inf);
+      fclose(outf);
       return 1;
     }
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
     str = (char *)malloc(hdr.headersize-sizeof(LPHEADER)+4);
-    if (UNLIKELY(fread(&hdr, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf)!=hdr.headersize-sizeof(LPHEADER)+4)){
+    if (UNLIKELY(fread(&hdr, sizeof(char),
+                       hdr.headersize-sizeof(LPHEADER)+4, inf)!=
+                 hdr.headersize-sizeof(LPHEADER)+4)){
       fprintf(stderr, "Read failure\n");
       exit(1);
     }
@@ -83,7 +88,7 @@ int main(int argc, char **argv)
     putc('\n', outf);
     coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
     for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
-      if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf) != hdr.npoles)) {
+      if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
         fprintf(stderr, "Read failure\n");
         exit(1);
       }

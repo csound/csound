@@ -420,8 +420,7 @@ int pitch(CSOUND *csound, PITCH *p)
       kval = realbin / specp->nfreqs;           /*     & cvt to true decoct */
 
       if (p->playing == STARTING) {             /* STARTING mode:           */
-        if ((absdiff = kval - p->kvalsav) < FL(0.0))
-          absdiff = -absdiff;
+        absdiff = FABS(kval - p->kvalsav);// < FL(0.0)) absdiff = -absdiff;
         confirms = (int)(absdiff * p->confact); /* get interval dependency  */
         if (UNLIKELY(p->jmpcount < confirms)) {
           p->jmpcount += 1;               /* if not enough confirms,  */
@@ -433,8 +432,7 @@ int pitch(CSOUND *csound, PITCH *p)
           p->kinc = FL(0.0);
         }
       } else {                                  /* PLAYING mode:            */
-        if ((absdiff = kval - p->kval) < FL(0.0))
-          absdiff = -absdiff;
+        absdiff = FABS(kval - p->kval);
         confirms = (int)(absdiff * p->confact); /* get interval dependency  */
         if (p->jmpcount < confirms) {
           p->jmpcount += 1;               /* if not enough confirms,  */
@@ -1467,9 +1465,8 @@ int clip_set(CSOUND *csound, CLIP *p)
 {
     int meth = (int)MYFLT2LONG(*p->imethod);
     p->meth = meth;
-    p->arg = *p->iarg;
+    p->arg = FABS(*p->iarg);
     p->lim = *p->limit;
-    if (p->arg < FL(0.0)) p->arg = - p->arg;
     switch (meth) {
     case 0:                     /* Bram de Jong method */
       if (p->arg > FL(1.0) || p->arg < FL(0.0)) p->arg = FL(0.999);

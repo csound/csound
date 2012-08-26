@@ -981,8 +981,8 @@ static int trfil_process(CSOUND *csound, _PSFIL *p)
         fr = framein[i + 1];
         if (fr > nyq)
           fr = nyq;
-        if (fr < 0)
-          fr = -fr;
+        //if (fr < 0)
+        fr = FABS(fr);
         pos = fr * len / nyq;
         posi = (int) pos;
         frac = pos - posi;

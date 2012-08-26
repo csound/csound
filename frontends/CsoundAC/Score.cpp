@@ -18,7 +18,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "CppSound.hpp"
-// #include "Midifile.hpp"
 #include "Score.hpp"
 #include "System.hpp"
 #include "Conversions.hpp"
@@ -174,25 +173,25 @@ void Score::load(std::string filename)
 
 void Score::load(std::istream &stream)
 {
-  Alg_seq seq(stream, true);
-  seq.convert_to_seconds();
-  Alg_iterator iterator(&seq, false);
-  iterator.begin();
-  for(;;) {
-    Alg_event *event = iterator.next();
-    if (!event) {
-      break;
+    Alg_seq seq(stream, true);
+    seq.convert_to_seconds();
+    Alg_iterator iterator(&seq, false);
+    iterator.begin();
+    for(;;) {
+        Alg_event *event = iterator.next();
+        if (!event) {
+            break;
+        }
+        append(event->get_start_time(),
+               event->get_duration(),
+               double(144),
+               double(event->chan),
+               event->get_pitch(),
+               event->get_loud());
     }
-    append(event->get_start_time(),
-	   event->get_duration(),
-	   double(144),
-	   double(event->chan),
-	   event->get_pitch(),
-	   event->get_loud());	     
-  }
-  // MidiFile midiFile;
-  // midiFile.read(stream);
-  // load(midiFile);
+    // MidiFile midiFile;
+    // midiFile.read(stream);
+    // load(midiFile);
 }
 
 #if defined(HAVE_MUSICXML2)
@@ -353,30 +352,29 @@ void Score::save(std::ostream &stream)
 {
     Alg_seq seq;
     for (size_t i = 0, n = size(); i < n; ++i) {
-      const Event &event = at(i);
-      if (event.isNoteOn()) {
-	int channel = event.getChannel();
-	double time = event.getTime();
-	double duration = event.getDuration();
-	float pitch = event.getKey();
-	float loudness = event.getVelocity();
-	int identifier = i;
-	Alg_note *note = seq.create_note(time, 
-					 channel,  
-					 pitch, 
-					 pitch, 
-					 loudness,  
-					 duration);
-	// Does nothing if the track already exists.
-	seq.add_track(channel);
-	seq.add_event(note, channel);
-      }
+        const Event &event = at(i);
+        if (event.isNoteOn()) {
+            int channel = event.getChannel();
+            double time = event.getTime();
+            double duration = event.getDuration();
+            float pitch = event.getKey();
+            float loudness = event.getVelocity();
+            Alg_note *note = seq.create_note(time,
+                    channel,
+                    pitch,
+                    pitch,
+                    loudness,
+                    duration);
+            // Does nothing if the track already exists.
+            seq.add_track(channel);
+            seq.add_event(note, channel);
+        }
     }
     // Write with time in seconds.
     seq.write(std::cout, true);
     seq.smf_write(stream);
-  // save(midifile);
-  // midifile.write(stream);
+    // save(midifile);
+    // midifile.write(stream);
 }
 
 static double max(double a, double b)
@@ -678,16 +676,23 @@ void Score::sort()
 
 double Score::getDuration()
 {
-    findScale();
-    double duration = 0.0;
-    double duration_ = 0.0;
-    for(Score::iterator it = begin(); it != end(); ++it) {
-        duration_ = it->getTime() + it->getDuration();
-        if(duration_ > duration) {
-            duration = duration_;
+    double start = 0.0;
+    double end = 0.0;
+    for (int i = 0, n = size(); i < n; ++i) {
+        const Event &event = at(i);
+        if (i == 0) {
+            start = event.getTime();
+            end = event.getOffTime();            
+        } else {
+            if (event.getTime() < start) {
+                start = event.getTime();
+            }
+            if (event.getOffTime() > end) {
+                end = event.getOffTime();
+            }
         }
     }
-    return (duration - scaleActualMinima.getTime());
+    return end - start;
 }
 
 void Score::rescale(int dimension, bool rescaleMinimum, double minimum, bool rescaleRange, double range)
@@ -1329,16 +1334,22 @@ void Score::tieOverlappingNotes(bool considerInstrumentNumber)
     sort();
     for (int laterI = size() - 1; laterI > 1; --laterI) {
         Event &laterEvent = (*this)[laterI];
+        if (!laterEvent.isNote()) {
+            continue;
+        }
         for (int earlierI = laterI - 1; earlierI > 0; --earlierI) {
             Event &earlierEvent = (*this)[earlierI];
+            if (!earlierEvent.isNote()) {
+                continue;
+            }
             if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
-              continue;
+                continue;
             }
             if (earlierEvent.getVelocity() <= 0.0 || laterEvent.getVelocity() <= 0.0) {
-              continue;
+                continue;
             }
             if (earlierEvent.getOffTime() < laterEvent.getTime()) {
-              continue;
+                continue;
             }
             if (considerInstrumentNumber && (earlierEvent.getChannel() != laterEvent.getChannel())) {
                 continue;

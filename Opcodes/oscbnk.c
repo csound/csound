@@ -314,7 +314,8 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
 
     if (p->ilfomode & 0x0F) {
       ftp = csound->FTFind(csound, p->args[21]);    /* LFO 2 */
-      if (UNLIKELY((ftp == NULL) || ((p->l2t = ftp->ftable) == NULL))) return NOTOK;
+      if (UNLIKELY((ftp == NULL) || ((p->l2t = ftp->ftable) == NULL)))
+        return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->l2t_mask), &(p->l2t_lobits),
                          &(p->l2t_pfrac));
     }
@@ -325,15 +326,18 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
 
     if (p->ieqmode >= 0) {
       ftp = csound->FTFind(csound, p->args[22]);    /* EQ frequency */
-      if (UNLIKELY((ftp == NULL) || ((p->eqft = ftp->ftable) == NULL))) return NOTOK;
+      if (UNLIKELY((ftp == NULL) || ((p->eqft = ftp->ftable) == NULL)))
+        return NOTOK;
       p->eqft_len = ftp->flen;
 
       ftp = csound->FTFind(csound, p->args[23]);    /* EQ level */
-      if (UNLIKELY((ftp == NULL) || ((p->eqlt = ftp->ftable) == NULL))) return NOTOK;
+      if (UNLIKELY((ftp == NULL) || ((p->eqlt = ftp->ftable) == NULL)))
+        return NOTOK;
       p->eqlt_len = ftp->flen;
 
       ftp = csound->FTFind(csound, p->args[24]);    /* EQ Q */
-      if (UNLIKELY((ftp == NULL) || ((p->eqqt = ftp->ftable) == NULL))) return NOTOK;
+      if (UNLIKELY((ftp == NULL) || ((p->eqqt = ftp->ftable) == NULL)))
+        return NOTOK;
       p->eqqt_len = ftp->flen;
     }
     else {
@@ -343,7 +347,8 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
 
     if (*(p->args[25]) >= FL(1.0)) {        /* parameter table */
       ftp = csound->FTFind(csound, p->args[25]);
-      if (UNLIKELY((ftp == NULL) || ((p->tabl = ftp->ftable) == NULL))) return NOTOK;
+      if (UNLIKELY((ftp == NULL) || ((p->tabl = ftp->ftable) == NULL)))
+        return NOTOK;
       p->tabl_len = ftp->flen;
     }
     else {
@@ -353,7 +358,8 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
 
     if (*(p->args[26]) >= FL(1.0)) {        /* output table */
       ftp = csound->FTFind(csound, p->args[26]);
-      if (UNLIKELY((ftp == NULL) || ((p->outft = ftp->ftable) == NULL))) return NOTOK;
+      if (UNLIKELY((ftp == NULL) || ((p->outft = ftp->ftable) == NULL)))
+        return NOTOK;
       p->outft_len = ftp->flen;
     }
     else {

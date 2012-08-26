@@ -29,7 +29,7 @@
 #include <vector>
 #include <cstdarg>
 #include <ctime>
-  %}
+%}
 #else
 #include "CppSound.hpp"
 #include <string>
@@ -40,33 +40,32 @@
 
 namespace csound
 {
-  class SILENCE_PUBLIC Logger
-  {
-  public:
+class SILENCE_PUBLIC Logger
+{
+public:
     Logger();
     virtual ~Logger();
     virtual void write(const char *text);
-  };
+};
 
-  typedef void (*MessageCallbackType)(CSOUND *csound, int attribute, const char *format, va_list marker);
+typedef void (*MessageCallbackType)(CSOUND *csound, int attribute, const char *format, va_list marker);
 
-  /**
-   * Abstraction layer for a minimal set of system services.
-   */
-  class SILENCE_PUBLIC System
-  {
+/**
+ * Abstraction layer for a minimal set of system services.
+ */
+class SILENCE_PUBLIC System
+{
     static void *userdata_;
     static int messageLevel;
     static void (*messageCallback)(CSOUND *csound, int attribute, const char *format, va_list valist);
     static FILE *logfile;
-  public:
-    enum Level
-      {
+public:
+    enum Level {
         ERROR_LEVEL             = 1,
         WARNING_LEVEL           = 2,
         INFORMATION_LEVEL       = 4,
         DEBUGGING_LEVEL         = 8
-      };
+    };
     /**
      *  Parses a filename into its component parts, which are returned in the arguments.
      *  On Unix and Linux, "drive" is always empty.
@@ -247,15 +246,15 @@ namespace csound
      *  Make some sort of noticeable sound.
      */
     static void beep();
-  };
+};
 
-  /**
-   * Encapsulates a thread monitor, such as a Windows event handle.
-   */
-  class SILENCE_PUBLIC ThreadLock
-  {
+/**
+ * Encapsulates a thread monitor, such as a Windows event handle.
+ */
+class SILENCE_PUBLIC ThreadLock
+{
     void *lock;
-  public:
+public:
     ThreadLock();
     virtual ~ThreadLock();
     /**
@@ -280,7 +279,7 @@ namespace csound
      * Releases one thread that is waiting on the monitor.
      */
     virtual void endWait();
-  };
+};
 }
 #endif
 

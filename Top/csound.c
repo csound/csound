@@ -60,7 +60,7 @@ extern "C" {
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
-#include "csound_orc.h"
+  //#include "csound_orc.h"
 #ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
@@ -136,6 +136,7 @@ extern "C" {
     csoundCompileOrc,
     csoundReadScore,
     csoundCompile,
+    csoundStart,
     csoundPerform,
     csoundPerformKsmps,
     csoundPerformBuffer,
@@ -380,8 +381,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
@@ -517,8 +517,8 @@ extern "C" {
     NULL,           /*  pool                */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-#if defined(__WATCOMC__) || defined(MSVC) ||defined(__POWERPC__) || defined(mac_classic) || \
-  (defined(_WIN32) && defined(__GNUC__))
+#if defined(__WATCOMC__) || defined(MSVC) ||defined(__POWERPC__) || \
+    defined(mac_classic) || (defined(_WIN32) && defined(__GNUC__))
     {0},
 #else
     {{{0}}},        /*  exitjmp of type jmp_buf */
@@ -569,7 +569,7 @@ extern "C" {
     NULL,           /*  FFT_table_2         */
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
     /* express.c */
-    0, 0, 0, 0, 0,  /*  acount, kcount, icount, Bcount, bcount */
+    0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     0,              /*  strVarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
     {
@@ -691,6 +691,7 @@ extern "C" {
     0,              /*  stdin_assign_flg    */
     0,              /*  stdout_assign_flg   */
     0,              /*  orcname_mode        */
+    0,              /*  use_only_orchfile   */
     NULL,           /*  csmodule_db         */
     (char*) NULL,   /*  dl_opcodes_oplibs   */
     (char*) NULL,   /*  SF_csd_licence      */
@@ -841,7 +842,8 @@ extern "C" {
       }
   }
 
-#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__))
+#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
+                         !defined(__BEOS__) && !defined(__MACH__))
   static char *signal_to_string(int sig)
   {
       switch(sig) {
@@ -1287,7 +1289,8 @@ extern "C" {
           insds = node->insds;
           played_count++;
 
-          TRACE_2("DAG_NODE_INDV [%i] Playing: %s [%p]\n", index, instr->name, insds);
+          TRACE_2("DAG_NODE_INDV [%i] Playing: %s [%p]\n", 
+                  index, instr->name, insds);
 
           opstart = (OPDS *)insds;
           while ((opstart = opstart->nxtp) != NULL) {
@@ -1314,8 +1317,8 @@ extern "C" {
 
             opstart = (OPDS *)insds;
             while ((opstart = opstart->nxtp) != NULL) {
-              /* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", opstart, */
-              /*                 opstart->opadr, opstart->optext->t.opcod); */
+            /* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", 
+                       opstart, opstart->opadr, opstart->optext->t.opcod); */
               (*opstart->opadr)(csound, opstart); /* run each opcode */
             }
 
@@ -1902,10 +1905,10 @@ extern "C" {
   }
 
   PUBLIC void csoundSetDefaultMessageCallback(
-                                       void (*csoundMessageCallback)(CSOUND *csound,
-                                                                     int attr,
-                                                                     const char *format,
-                                                                     va_list args))
+                    void (*csoundMessageCallback)(CSOUND *csound,
+                                                  int attr,
+                                                  const char *format,
+                                                  va_list args))
   {
       if (csoundMessageCallback) {
         msgcallback_ = csoundMessageCallback;
@@ -1915,10 +1918,10 @@ extern "C" {
   }
 
   PUBLIC void csoundSetMessageCallback(CSOUND *csound,
-                                       void (*csoundMessageCallback)(CSOUND *csound,
-                                                                     int attr,
-                                                                     const char *format,
-                                                                     va_list args))
+                    void (*csoundMessageCallback)(CSOUND *csound,
+                                                  int attr,
+                                                  const char *format,
+                                                  va_list args))
   {
       /* Protect against a null callback. */
       if (csoundMessageCallback) {
@@ -2041,17 +2044,17 @@ extern "C" {
    */
 
   PUBLIC void csoundSetInputValueCallback(CSOUND *csound,
-                                          void (*inputValueCalback)(CSOUND *csound,
-                                                                    const char *channelName,
-                                                                    MYFLT *value))
+                    void (*inputValueCalback)(CSOUND *csound,
+                                              const char *channelName,
+                                              MYFLT *value))
   {
       csound->InputValueCallback_ = inputValueCalback;
   }
 
   PUBLIC void csoundSetOutputValueCallback(CSOUND *csound,
-                                           void (*outputValueCalback)(CSOUND *csound,
-                                                                      const char *channelName,
-                                                                      MYFLT value))
+                    void (*outputValueCalback)(CSOUND *csound,
+                                               const char *channelName,
+                                               MYFLT value))
   {
       csound->OutputValueCallback_ = outputValueCalback;
   }
@@ -2219,8 +2222,8 @@ extern "C" {
   }
 
   PUBLIC void csoundSetRecopenCallback(CSOUND *csound,
-                                       int (*recopen__)(CSOUND *,
-                                                        const csRtAudioParams *parm))
+                    int (*recopen__)(CSOUND *,
+                                     const csRtAudioParams *parm))
   {
       csound->recopen_callback = recopen__;
   }
@@ -2854,10 +2857,7 @@ extern "C" {
         O->sfheader = 0;
         csound->peakchunks = 1;
         create_opcodlst(csound);
-
         csoundLoadExternals(csound);
-        if (csoundInitModules(csound) != 0)
-          csound->LongJmp(csound, 1);
       }
   }
 
@@ -2954,7 +2954,8 @@ extern "C" {
                     & (~(CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT)))
                    != 0U)) {
 #else /* PARCS */
-                    & (~(CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT))) != 0U))
+                    & (~(CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT)))
+                   != 0U))
 #endif /* PARCS */
         return CSOUND_ERROR;
 #ifndef PARCS
@@ -3017,13 +3018,9 @@ extern "C" {
   }
 
   PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
-#ifndef PARCS
                                         void (*fileOpenCallback)(CSOUND*,
                                                                  const char*,
                                                                  int, int, int))
-#else /* PARCS */
-                                        void (*fileOpenCallback)(CSOUND*, const char*, int, int, int))
-#endif /* PARCS */
   {
       p->FileOpenCallback_ = fileOpenCallback;
   }
@@ -3861,7 +3858,9 @@ extern "C" {
       csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
       csMsgStruct *p;
       int         len = 0;
+      va_list     args_save;
 
+      va_copy(args_save, args);
       switch (attr & CSOUNDMSG_TYPE_MASK) {
       case CSOUNDMSG_ERROR:
       case CSOUNDMSG_REALTIME:
@@ -3874,7 +3873,8 @@ extern "C" {
       p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
       p->nxt = (csMsgStruct*) 0;
       p->attr = attr;
-      vsprintf(&(p->s[0]), fmt, args);
+      vsprintf(&(p->s[0]), fmt, args_save);
+      va_end(args_save);
       csoundLockMutex(pp->mutex_);
       if (pp->firstMsg == (csMsgStruct*) 0)
         pp->firstMsg = p;

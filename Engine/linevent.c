@@ -24,7 +24,7 @@
 #include "csoundCore.h"     /*                              LINEVENT.C      */
 #include "text.h"
 #include <ctype.h>
-#if (defined(mac_classic) && defined(__MWERKS__)) || defined(SYMANTEC)
+#if (defined(mac_classic) && defined(__MWERKS__))
 #include <console.h>
 #endif
 
@@ -63,25 +63,17 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 {                                   /*     callable once from musmon.c        */
     OPARMS  *O = csound->oparms;
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
-    /*                            csound->Calloc(csound, sizeof(LINEVENT_GLOBALS)); */
+    /*                            csound->Calloc(csound, */
+    /*                            sizeof(LINEVENT_GLOBALS)); */
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
-#ifdef SYMANTEC
-      console_options.top += 10;
-      console_options.left += 10;
-      console_options.title = "\pRT Line_events";
-      console_options.nrows = 10;
-      console_options.ncols = 50;
-      STA(Linecons) = fopenc();
-      cshow(STA(Linecons));
-#elif defined(mills_macintosh)
+#if defined(mills_macintosh)
       STA(Linecons) = stdin;
       setvbuf(stdin, NULL, _IONBF, 0);
 #else
-  #if defined(DOSGCC) || defined(__WATCOMC__) || defined(WIN32) || \
-      defined(mills_macintosh)
+  #if defined(DOSGCC) || defined(WIN32) || defined(mills_macintosh)
       setvbuf(stdin, NULL, _IONBF, 0);
    /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
   #else
@@ -100,7 +92,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       else csoundDie(csound, Str("Cannot open %s"), O->Linename);
     }
 #endif
-#if defined(mills_macintosh) || defined(SYMANTEC)
+#if defined(mills_macintosh)
 #define MODE
 #else
 #define MODE ,0
@@ -127,7 +119,7 @@ void RTclose(CSOUND *csound)
     csound->oparms->Linein = 0;
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                             STA(stdmode), csound->Linefd);
-#if defined(mills_macintosh) || defined(SYMANTEC)
+#if defined(mills_macintosh)
     if (STA(Linecons) != NULL)
       fclose(STA(Linecons));
 #else
@@ -139,13 +131,12 @@ void RTclose(CSOUND *csound)
     {
       if (strcmp(csound->oparms->Linename, "stdin") != 0)
         close(csound->Linefd);
-  #if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && \
-      !defined(mills_macintosh)
+  #if !defined(DOSGCC) && !defined(WIN32) && !defined(mills_macintosh)
       else
         fcntl(csound->Linefd, F_SETFL, STA(stdmode));
   #endif
     }
-#endif      /* !(mills_macintosh || SYMANTEC) */
+#endif      /* !(mills_macintosh */
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
@@ -219,7 +210,7 @@ static void sensLine(CSOUND *csound, void *userData)
     while (1) {
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
-#if defined(mills_macintosh) || defined(SYMANTEC)
+#if defined(mills_macintosh)
         n = fread((void *) Linend, (size_t) 1,
                   (size_t) (STA(Linebufend) - Linend), STA(Linecons));
 #else

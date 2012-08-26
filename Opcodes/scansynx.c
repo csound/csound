@@ -113,11 +113,11 @@ static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
     int i, i1, i2;
     FUNC *fi;
     MYFLT *f;
-    MYFLT tab = *p->i_init;
+    MYFLT tab = FABS(*p->i_init);
     int32 len  = p->len;
 
     /* Get table */
-    if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
+    //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
     if (UNLIKELY((fi = csound->FTFind(csound, &tab)) == NULL)) {
       return csound->InitError(csound,
                                Str("scanux: Could not find ifninit ftable"));
@@ -301,7 +301,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         unquote(filnam, csound->currevent->strarg);
       else strcpy(filnam, (char*) p->i_f);
       /* readfile if reqd */
-      if (UNLIKELY((mfp = csound->ldmemfile2(csound, filnam, CSFTYPE_XSCANU_MATRIX)) == NULL)) {
+      if (UNLIKELY((mfp = csound->ldmemfile2(csound, filnam,
+                                             CSFTYPE_XSCANU_MATRIX)) == NULL)) {
         return csound->InitError(csound, Str("SCANU cannot load %s"), filnam);
       }
       else {

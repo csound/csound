@@ -343,7 +343,7 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     MYFLT xn = FL(0.0), yn = FL(0.0);
     MYFLT *out, *in;
     MYFLT feedback;
-    MYFLT coef = *p->kcoef, fbgain = *p->fbgain;
+    MYFLT coef = FABS(*p->kcoef), fbgain = *p->fbgain;
     MYFLT beta, wp;
     int nsmps = csound->ksmps;
     int i, j;
@@ -352,8 +352,7 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     out = p->out;
     in = p->in;
 
-    if (coef <= FL(0.0))
-      coef = -coef;     /* frequency will "fold over" if <= 0 Hz */
+    //if (coef <= FL(0.0)) coef = -coef; /* frequency will "fold over" if <= 0 Hz */
     /* next two lines implement bilinear z-transform, to convert
      * frequency value into a useable coefficient for the
      * allpass filters.

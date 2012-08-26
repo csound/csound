@@ -620,8 +620,8 @@ namespace csound
         break;
       case 'R':
         {
-          boost::numeric::ublas::matrix<double> rotation = createRotation(dimension, dimension1, scalar);
-          turtle.orientation = boost::numeric::ublas::prod(rotation, turtle.orientation);
+	  Eigen::MatrixXd rotation = createRotation(dimension, dimension1, scalar);
+          turtle.orientation = rotation * turtle.orientation;
         }
         break;
       case 'T':
@@ -742,9 +742,9 @@ namespace csound
     return -1;
   }
 
-  ublas::matrix<double> ChordLindenmayer::createRotation (int dimension1, int dimension2, double angle) const
+  Eigen::MatrixXd ChordLindenmayer::createRotation (int dimension1, int dimension2, double angle) const
   {
-    ublas::matrix<double> rotation_ = ublas::identity_matrix<double>(Event::ELEMENT_COUNT);
+    Eigen::MatrixXd rotation_ = Eigen::MatrixXd::Identity(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
     rotation_(dimension1,dimension1) =  std::cos(angle);
     rotation_(dimension1,dimension2) = -std::sin(angle);
     rotation_(dimension2,dimension1) =  std::sin(angle);
@@ -799,7 +799,7 @@ namespace csound
   void ChordLindenmayer::produceOrTransform(Score &collectingScore,
                                             size_t beginAt,
                                             size_t endAt,
-                                            const boost::numeric::ublas::matrix<double> &compositeCoordinates)
+                                            const Eigen::MatrixXd &compositeCoordinates)
   {
     // Begin at the end of the score generated so far.
     size_t collectingScoreI = collectingScore.size();
@@ -808,8 +808,7 @@ namespace csound
     for (size_t scoreI = 0, collectingScoreN = collectingScore.size();
          collectingScoreI < collectingScoreN;
          ++scoreI, ++collectingScoreI) {
-      collectingScore[collectingScoreI] = boost::numeric::ublas::prod(compositeCoordinates,
-                                                                      score[scoreI]);
+      collectingScore[collectingScoreI] = compositeCoordinates * score[scoreI];
     }
   }
 }

@@ -37,7 +37,8 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
 {
     *p->ans = FL(0.0);
     p->lastframe = 0;
-    if (UNLIKELY(!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE)))
+    if (UNLIKELY(!(p->fin->format==PVS_AMP_FREQ) ||
+                 (p->fin->format==PVS_AMP_PHASE)))
       return csound->InitError(csound,
                                Str("pvscent: format must be amp-phase"
                                    " or amp-freq.\n"));
@@ -296,7 +297,8 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 }
 
 static OENTRY localops[] = {
-  { "pvscent", sizeof(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
+  { "pvscent", sizeof(PVSCENT), 3, "s", "f", 
+                           (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
   { "pvspitch", sizeof(PVSPITCH), 3, "kk", "fk",
                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
