@@ -360,7 +360,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
     //xmin = FL(0.0);
     /* xmax = FL(1.0) * wdptr->npts; */
     sprintf(cxmin, "%d", 0);
-    sprintf(cxmax, "%ld", wdptr->npts);
+    sprintf(cxmax, "%ld", (long)wdptr->npts);
 
     ymin = wdptr->min;
     ymax = wdptr->max;

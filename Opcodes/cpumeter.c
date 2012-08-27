@@ -82,7 +82,7 @@ int cpupercent_init(CSOUND *csound, CPUMETER* p)
     for (k = 0; ; k++) {
       if (!fgets(buf, SMLBUFSIZ, p->fp))
         return csound->InitError(csound,Str("failed /proc/stat read"));
-      num = sscanf(buf, "cpu%u %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
+      num = sscanf(buf, "cpu%llu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                    &id, &u, &n, &s, &i, &w, &x, &y, &z);
       if (num<4) break;
     }
