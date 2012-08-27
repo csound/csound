@@ -3,6 +3,7 @@
 
     Copyright (C) 2005 Istvan Varga
               (C) 2009 Andrés Cabrera, Clemens Ladisch
+              (C) 2012 Tito Latini
 
     This file is part of Csound.
 
@@ -96,6 +97,14 @@ typedef struct midiDevFile_ {
     int            bufpos, nbytes, datreq;
     unsigned char  prvStatus, dat1, dat2;
 } midiDevFile;
+
+typedef struct alsaseqMidi_ {
+    snd_seq_t             *seq;
+    snd_midi_event_t      *mev;
+    snd_seq_event_t       sev;
+    snd_seq_client_info_t *cinfo;
+    snd_seq_port_info_t   *pinfo;
+} alsaseqMidi;
 
 static const unsigned char dataBytes[16] = {
     0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 2, 0
@@ -1092,15 +1101,366 @@ static int midi_out_close_file(CSOUND *csound, void *userData)
     return retval;
 }
 
+/* ALSA MIDI Sequencer added by Tito Latini (2012) */
 
+#define ALSASEQ_SYSEX_BUFFER_SIZE  (1024)
 
+static int alsaseq_get_client_id(CSOUND *csound, alsaseqMidi *amidi,
+                                 unsigned int capability, const char *name)
+{
+    snd_seq_client_info_t *client_info = amidi->cinfo;
+    snd_seq_port_info_t   *port_info = amidi->pinfo;
+
+    snd_seq_client_info_set_client(client_info, -1);
+    while (snd_seq_query_next_client(amidi->seq, client_info) >= 0) {
+      int client_id;
+      if ((client_id = snd_seq_client_info_get_client(client_info)) < 0)
+        break;
+      snd_seq_port_info_set_client(port_info, client_id);
+      snd_seq_port_info_set_port(port_info, -1);
+      if (snd_seq_query_next_port(amidi->seq, port_info) < 0)
+        break;
+      if (snd_seq_port_info_get_capability(port_info) & capability) {
+        char *client_name;
+        client_name = (char*) snd_seq_client_info_get_name(client_info);
+        if (strcmp(name, client_name) == 0)
+          return client_id;
+      }
+    }
+    return -1;
+}
+
+/*
+ * my_strchr is a destructive version of strchr that removes the
+ * escape characters '\' from the string s. If escape_all is zero,
+ * '\' is removed only when it is the escape char for c.
+ */
+static char *my_strchr(const char *s, int c, int escape_all)
+{
+    int    refill, success = 0, escape = 0, changed = 0;
+    char   *old = (char*)s;
+
+    for (refill = 1; *s != '\0'; s++) {
+      if (*s == c) {
+        if (escape) {
+          escape = 0;
+          refill = 1;
+        }
+        else {
+          success = 1;
+          break;
+        }
+      }
+      else if (*s == '\\' || *s == 0x18) {
+        /*
+         * CAN char used to mark the escape character during the parsing
+         * of CsOptions. It is useful only in parse_option_as_cfgvar.
+         */
+        escape ^= 1;
+        if (escape_all || *(s+1) == c) {
+          refill = !escape;
+          changed = 1;
+        }
+      }
+      else if (escape) {
+        escape = 0;
+        refill = 1;
+      }
+      if (refill) {
+        /* ETX char used to mark the limits of a string */
+        if (*s != 3 && *s != '\n')
+          *old++ = (*s == 0x18 ? '\\' : *s);
+        else
+          changed = 1;
+      }
+    }
+    if (changed)
+      *old = '\0';
+    return (success ? (char*)s : NULL);
+}
+
+/* Searching for port number after ':' at the end of the string */
+static int get_port_from_string(CSOUND *csound, char *str)
+{
+    int port = 0;
+    char *end, *tmp, *c = str;
+
+    while (1) {
+      c = my_strchr(c, ':', 1);
+      if (c == NULL)
+        break;
+      tmp = c+1;
+      port = strtol(tmp, &end, 10);
+      if (*end == '\0') {
+        *c = '\0';
+        break;
+      }
+      else { /* Not found, continue the search */
+        port = 0;
+        c = tmp;
+      }
+    }
+    return port;
+}
+
+static int alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
+                           unsigned int capability, const char *addr_str)
+{
+    snd_seq_addr_t  in_addr;
+    char            *s, *client_spec, direction_str[5];
+    int             (*amidi_connect)(snd_seq_t*, int, int, int);
+
+    if (capability == SND_SEQ_PORT_CAP_READ) {
+      strcpy(direction_str, "from");
+      amidi_connect = snd_seq_connect_from;
+    }
+    else {
+      strcpy(direction_str, "to");
+      amidi_connect = snd_seq_connect_to;
+    }
+    snd_seq_client_info_alloca(&amidi->cinfo);
+    snd_seq_port_info_alloca(&amidi->pinfo);
+    client_spec = s = (char*) addr_str;
+    while (s != NULL) {
+      int err;
+      if ((s = my_strchr(client_spec, ',', 0)) != NULL)
+        *s = '\0';
+      if (*client_spec <= '9' && *client_spec >= '0') { /* client_id[:port] */
+        err = snd_seq_parse_address(amidi->seq, &in_addr, client_spec);
+        if (err >= 0) {
+          err = amidi_connect(amidi->seq, 0, in_addr.client, in_addr.port);
+          if (err < 0) {
+            csound->ErrorMsg(csound, Str("ALSASEQ: connection failed %s %s (%s)"),
+                             direction_str, client_spec, snd_strerror(err));
+          }
+          else {
+            csound->Message(csound, Str("ALSASEQ: connected %s %d:%d\n"),
+                            direction_str, in_addr.client, in_addr.port);
+          }
+        }
+      }
+      else { /* client_name[:port] */
+        int client, port;
+        port = get_port_from_string(csound, client_spec);
+        client = alsaseq_get_client_id(csound, amidi, capability, client_spec);
+        if (client >= 0) {
+          err = amidi_connect(amidi->seq, 0, client, port);
+          if (err < 0) {
+            csound->ErrorMsg(csound,
+                             Str("ALSASEQ: connection failed %s %s, port %d (%s)"),
+                             direction_str, client_spec, port, snd_strerror(err));
+          }
+          else {
+            csound->Message(csound, Str("ALSASEQ: connected %s %d:%d\n"),
+                            direction_str, client, port);
+          }
+        }
+        else {
+          csound->ErrorMsg(csound,
+                           Str("ALSASEQ: connection failed %s %s, port %d (%s)"),
+                           direction_str, client_spec, port, snd_strerror(client));
+        }
+      }
+      if (s != NULL)
+        client_spec = s+1;
+    }
+    return OK;
+}
+
+static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
+{
+    int              err, client_id, port_id;
+    alsaseqMidi      *amidi;
+    csCfgVariable_t  *cfg;
+    char             *client_name;
+
+    *userData = NULL;
+    amidi = (alsaseqMidi*) malloc(sizeof(alsaseqMidi));
+    if (UNLIKELY(amidi == NULL)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ input: memory allocation failure"));
+      return -1;
+    }
+    memset(amidi, 0, sizeof(alsaseqMidi));
+    err = snd_seq_open(&(amidi->seq), "default",
+                       SND_SEQ_OPEN_DUPLEX, SND_SEQ_NONBLOCK);
+    if (UNLIKELY(err < 0)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ: error opening sequencer (%s)"),
+                       snd_strerror(err));
+      free(amidi);
+      return -1;
+    }
+    csound->Message(csound, Str("ALSASEQ: opened MIDI input sequencer\n"));
+    cfg = csound->QueryConfigurationVariable(csound, "alsaseq_client");
+    client_name = cfg->s.p;
+    err = snd_seq_set_client_name(amidi->seq, client_name);
+    if (UNLIKELY(err < 0)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ: cannot set client name '%s' (%s)"),
+                       client_name, snd_strerror(err));
+      snd_seq_close(amidi->seq);
+      free(amidi);
+      return -1;
+    }
+    err = snd_seq_create_simple_port(amidi->seq, client_name,
+                                     SND_SEQ_PORT_CAP_WRITE |
+                                     SND_SEQ_PORT_CAP_SUBS_WRITE,
+                                     SND_SEQ_PORT_TYPE_MIDI_GENERIC |
+                                     SND_SEQ_PORT_TYPE_APPLICATION);
+    if (UNLIKELY(err < 0)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ: cannot create input port (%s)"),
+                       snd_strerror(err));
+      snd_seq_close(amidi->seq);
+      free(amidi);
+      return -1;
+    }
+    client_id = snd_seq_client_id(amidi->seq);
+    port_id = err;
+    csound->Message(csound, Str("ALSASEQ: created input port '%s' %d:%d\n"),
+                    client_name, client_id, port_id);
+    err = snd_midi_event_new(ALSASEQ_SYSEX_BUFFER_SIZE, &amidi->mev);
+    if (UNLIKELY(err < 0)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ: cannot create midi event (%s)"),
+                       snd_strerror(err));
+      snd_seq_close(amidi->seq);
+      free(amidi);
+      return -1;
+    }
+    snd_midi_event_init(amidi->mev);
+    alsaseq_connect(csound, amidi, SND_SEQ_PORT_CAP_READ, devName);
+    *userData = (void*) amidi;
+    return OK;
+}
+
+static int alsaseq_in_read(CSOUND *csound,
+                           void *userData, unsigned char *buf, int nbytes)
+{
+    int               err;
+    alsaseqMidi       *amidi = (alsaseqMidi*) userData;
+    snd_seq_event_t   *ev;
+    IGN(csound);
+
+    err = snd_seq_event_input(amidi->seq, &ev);
+    if (err <= 0)
+      return 0;
+    else
+      err = snd_midi_event_decode(amidi->mev, buf, nbytes, ev);
+    return err;
+}
+
+static int alsaseq_in_close(CSOUND *csound, void *userData)
+{
+    alsaseqMidi *amidi = (alsaseqMidi*) userData;
+    IGN(csound);
+
+    if (amidi != NULL) {
+      snd_midi_event_free(amidi->mev);
+      snd_seq_close(amidi->seq);
+      free(amidi);
+    }
+    return OK;
+}
+
+static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName)
+{
+    int              err, client_id, port_id;
+    alsaseqMidi      *amidi;
+    csCfgVariable_t  *cfg;
+    char             *client_name;
+
+    *userData = NULL;
+    amidi = (alsaseqMidi*) malloc(sizeof(alsaseqMidi));
+    if (UNLIKELY(amidi == NULL)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ output: memory allocation failure"));
+      return -1;
+    }
+    memset(amidi, 0, sizeof(alsaseqMidi));
+    err = snd_seq_open(&(amidi->seq), "default",
+                       SND_SEQ_OPEN_DUPLEX, SND_SEQ_NONBLOCK);
+    if (UNLIKELY(err < 0)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ: error opening sequencer (%s)"),
+                       snd_strerror(err));
+      free(amidi);
+      return -1;
+    }
+    csound->Message(csound, Str("ALSASEQ: opened MIDI output sequencer\n"));
+    cfg = csound->QueryConfigurationVariable(csound, "alsaseq_client");
+    client_name = cfg->s.p;
+    err = snd_seq_set_client_name(amidi->seq, client_name);
+    if (UNLIKELY(err < 0)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ: cannot set client name '%s' (%s)"),
+                       client_name, snd_strerror(err));
+      snd_seq_close(amidi->seq);
+      free(amidi);
+      return -1;
+    }
+    err = snd_seq_create_simple_port(amidi->seq, client_name,
+                                     SND_SEQ_PORT_CAP_READ |
+                                     SND_SEQ_PORT_CAP_SUBS_READ,
+                                     SND_SEQ_PORT_TYPE_MIDI_GENERIC |
+                                     SND_SEQ_PORT_TYPE_APPLICATION);
+    if (UNLIKELY(err < 0)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ: cannot create output port (%s)"),
+                       snd_strerror(err));
+      snd_seq_close(amidi->seq);
+      free(amidi);
+      return -1;
+    }
+    client_id = snd_seq_client_id(amidi->seq);
+    port_id = err;
+    csound->Message(csound, Str("ALSASEQ: created output port '%s' %d:%d\n"),
+                    client_name, client_id, port_id);
+    err = snd_midi_event_new(ALSASEQ_SYSEX_BUFFER_SIZE, &amidi->mev);
+    if (UNLIKELY(err < 0)) {
+      csound->ErrorMsg(csound, Str("ALSASEQ: cannot create midi event (%s)"),
+                       snd_strerror(err));
+      snd_seq_close(amidi->seq);
+      free(amidi);
+      return -1;
+    }
+    snd_midi_event_init(amidi->mev);
+    snd_seq_ev_clear(&amidi->sev);
+    snd_seq_ev_set_source(&amidi->sev, port_id);
+    snd_seq_ev_set_subs(&amidi->sev);
+    snd_seq_ev_set_direct(&amidi->sev);
+    alsaseq_connect(csound, amidi, SND_SEQ_PORT_CAP_WRITE, devName);
+    *userData = (void*) amidi;
+    return OK;
+}
+
+static int alsaseq_out_write(CSOUND *csound,
+                             void *userData, const unsigned char *buf, int nbytes)
+{
+    alsaseqMidi  *amidi = (alsaseqMidi*) userData;
+    IGN(csound);
+
+    if (nbytes == 0)
+      return 0;
+    snd_midi_event_reset_encode(amidi->mev);
+    nbytes = snd_midi_event_encode(amidi->mev, buf, nbytes, &amidi->sev);
+    snd_seq_event_output(amidi->seq, &amidi->sev);
+    snd_seq_drain_output(amidi->seq);
+    return nbytes;
+}
+
+static int alsaseq_out_close(CSOUND *csound, void *userData)
+{
+    alsaseqMidi  *amidi = (alsaseqMidi*) userData;
+    IGN(csound);
+
+    if (amidi != NULL) {
+      snd_seq_drain_output(amidi->seq);
+      snd_midi_event_free(amidi->mev);
+      snd_seq_close(amidi->seq);
+      free(amidi);
+    }
+    return OK;
+}
 
 /* module interface functions */
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
-
-    int minsched, maxsched, *priority;
+    int minsched, maxsched, *priority, maxlen;
+    char *alsaseq_client;
     csound->CreateGlobalVariable(csound, "::priority", sizeof(int));
     priority = (int *) (csound->QueryGlobalVariable(csound, "::priority"));
     if (priority == NULL)
@@ -1111,7 +1471,14 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                         CSOUNDCFG_INTEGER, 0, &minsched, &maxsched,
                                         Str("RT scheduler priority, alsa module"),
                                         NULL);
-
+    maxlen = 64;
+    alsaseq_client = (char*) calloc(maxlen, sizeof(char));
+    strcpy(alsaseq_client, "Csound");
+    csound->CreateConfigurationVariable(csound, "alsaseq_client",
+                                        (void*) alsaseq_client, CSOUNDCFG_STRING,
+                                        0, NULL, &maxlen,
+                                        Str("ALSASEQ client name (default: Csound)"),
+                                        NULL);
     /* nothing to do, report success */
     if (csound->oparms->msglevel & 0x400)
       csound->Message(csound, Str("ALSA real-time audio and MIDI module "
@@ -1168,6 +1535,16 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiWriteCallback(csound, midi_out_write);
       csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
     }
+    else if (strcmp(&(buf[0]), "alsaseq") == 0) {
+      if (csound->oparms->msglevel & 0x400)
+        csound->Message(csound, Str("rtmidi: ALSASEQ module enabled\n"));
+      csound->SetExternalMidiInOpenCallback(csound, alsaseq_in_open);
+      csound->SetExternalMidiReadCallback(csound, alsaseq_in_read);
+      csound->SetExternalMidiInCloseCallback(csound, alsaseq_in_close);
+      csound->SetExternalMidiOutOpenCallback(csound, alsaseq_out_open);
+      csound->SetExternalMidiWriteCallback(csound, alsaseq_out_write);
+      csound->SetExternalMidiOutCloseCallback(csound, alsaseq_out_close);
+    }
     else if (strcmp(&(buf[0]), "devfile") == 0) {
       csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
@@ -1179,6 +1556,16 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
 
     return 0;
+}
+
+PUBLIC int csoundModuleDestroy(CSOUND *csound)
+{
+    csCfgVariable_t *cfg;
+
+    cfg = csound->QueryConfigurationVariable(csound, "alsaseq_client");
+    if (cfg != NULL && cfg->s.p != NULL)
+      free(cfg->s.p);
+    return OK;
 }
 
 PUBLIC int csoundModuleInfo(void)
