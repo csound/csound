@@ -2259,6 +2259,10 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
+    else if (UNLIKELY(ftp->lenmask == 0xFFFFFFFF)) {
+      csoundInitError(csound, Str("illegal table length"));
+      return NULL;
+    }
     else if (UNLIKELY(!ftp->lenmask)) {
       csoundInitError(csound,
                       Str("deferred-size ftable %f illegal here"), *argp);
@@ -2503,7 +2507,6 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
     {
       SF_INSTRUMENT lpd;
       int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
@@ -2567,12 +2570,6 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         ftp->end1 = ftp->flenfrms;      /* Greg Sullivan */
       }
     }
-#else
-    ftp->cpscvt = FL(0.0);
-    ftp->loopmode1 = 0;
-    ftp->loopmode2 = 0;
-    ftp->end1 = ftp->flenfrms;          /* Greg Sullivan */
-#endif      /* HAVE_LIBSNDFILE >= 1013 */
     /* read sound with opt gain */
 
     if (UNLIKELY((inlocs=getsndin(csound, fd, ftp->ftable, table_length, p)) < 0)) {

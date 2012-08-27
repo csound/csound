@@ -178,8 +178,13 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
       val = (char*) s+2;
       tmp = buf;
       while (*val!='\0') {
-        if (*val != 0x18)  /* CAN char used during the parsing in CsOptions  */
-          *tmp++ = *val;   /* to mark the removable characters '"' and '\'   */
+        /* 
+         * CAN char used during the parsing in CsOptions to mark
+         * the removable characters '\'. ETX char used to mark
+         * the limits of a string.
+         */
+        if (*val != 0x18 && *val != 3)
+          *tmp++ = *val;
         val++;
       }
       *tmp='\0';
