@@ -1206,7 +1206,7 @@ static int get_port_from_string(CSOUND *csound, char *str)
 static int alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
                            unsigned int capability, const char *addr_str)
 {
-    snd_seq_addr_t  in_addr;
+    snd_seq_addr_t  addr;
     char            *s, *client_spec, direction_str[5];
     int             (*amidi_connect)(snd_seq_t*, int, int, int);
 
@@ -1226,16 +1226,16 @@ static int alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
       if ((s = my_strchr(client_spec, ',', 0)) != NULL)
         *s = '\0';
       if (*client_spec <= '9' && *client_spec >= '0') { /* client_id[:port] */
-        err = snd_seq_parse_address(amidi->seq, &in_addr, client_spec);
+        err = snd_seq_parse_address(amidi->seq, &addr, client_spec);
         if (err >= 0) {
-          err = amidi_connect(amidi->seq, 0, in_addr.client, in_addr.port);
+          err = amidi_connect(amidi->seq, 0, addr.client, addr.port);
           if (err < 0) {
             csound->ErrorMsg(csound, Str("ALSASEQ: connection failed %s %s (%s)"),
                              direction_str, client_spec, snd_strerror(err));
           }
           else {
             csound->Message(csound, Str("ALSASEQ: connected %s %d:%d\n"),
-                            direction_str, in_addr.client, in_addr.port);
+                            direction_str, addr.client, addr.port);
           }
         }
       }
