@@ -86,8 +86,12 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         set_target_properties(${SWIG_MODULE_csnd_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-            ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-            LINK_FLAGS "-undefined dynamic_lookup")
+            ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+ 
+	if(APPLE)
+	    set_target_properties(${SWIG_MODULE_csnd_REALE_NAME} PROPERTIES
+                LINK_FLAGS "-undefined dynamic_lookup")
+	endif()
 
         install(TARGETS ${SWIG_MODULE_csnd_REAL_NAME}
             LIBRARY DESTINATION "${PYTHON_MODULE_INSTALL_DIR}"
