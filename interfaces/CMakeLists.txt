@@ -89,7 +89,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
  
 	if(APPLE)
-	    set_target_properties(${SWIG_MODULE_csnd_REALE_NAME} PROPERTIES
+	    set_target_properties(${SWIG_MODULE_csnd_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
 	endif()
 
