@@ -177,6 +177,7 @@
 - (void)dealloc
 {
 	[mChannelName release];
+    [super dealloc];
 }
 
 @end
