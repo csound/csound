@@ -1012,7 +1012,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
 
           switch (*segwaiting) {
           case '%':
-            sprintf(outstring, "%");
+            sprintf(outstring, "%%");
             j--;
             break;
           case 'd':
@@ -1063,7 +1063,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
       if (segwaiting) {
         switch (*segwaiting) {
           case '%':
-            sprintf(outstring, "%");
+            sprintf(outstring, "%%");
             j--;
             break;
         case 'd':

@@ -772,7 +772,7 @@ void sfcloseout(CSOUND *csound)
     if (STA(pipdevout) == 2)
       goto report;
     if (STA(outfile) != NULL) {
-      if (!STA(pipdevout))
+      if (!STA(pipdevout) && O->outformat != AE_VORBIS)
         sf_command(STA(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
       sf_close(STA(outfile));
       STA(outfile) = NULL;
