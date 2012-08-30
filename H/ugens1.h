@@ -60,6 +60,17 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *argums[VARGMAX];
         SEG     *cursegp;
+        int32   nsegs;
+        int32   segsrem, curcnt;
+        double  y1, y2, x, inc;
+        AUXCH   auxch;
+        int32   xtra;
+} COSSEG;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *rslt, *argums[VARGMAX];
+        SEG     *cursegp;
         int32   segsrem, curcnt;
         double  curval, curmlt, curamlt;
         int32   nsegs;

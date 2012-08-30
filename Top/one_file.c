@@ -283,9 +283,15 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
               csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
                         CSD_MAX_ARGS);
             argv[++argc] = ++p;
-            while (*p != '"' && *p != '\0') p++;
-
-            if (*p == '"') *p = '\0';
+            while (*p != '"' && *p != '\0') {
+              if (*p == '\\' && *(p+1) != '\0')
+                p++;
+              p++;
+            }
+            if (*p == '"') {
+              /* ETX char used to mark the limits of a string */
+              *p = (isspace(*(p+1)) ? '\0' : 3);
+            }
             break;
           }
 
@@ -319,16 +325,23 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
         else if (*p=='"') {
           int is_escape = 0;
           char *old;
-          *p=0x18; /* CAN char used to mark a removable character */
+          *p=3; /* ETX char used to mark the limits of a string */
           while ((*p != '"' || is_escape) && *p != '\0') {
             if (is_escape)
-              *old = 0x18;
+              *old = 0x18; /* CAN char used to mark a removable character */
             is_escape = (*p == '\\' ? !is_escape : 0);
             old = p;
             p++;
           }
-          if (*p == '"') *p = '\0';
-          break;
+          if (*p == '"') {
+            if (isspace(*(p+1))) {
+              *p = '\0';
+              break;
+            }
+            else {
+              *p = 3;
+            }
+          }
         }
         p++;
       }

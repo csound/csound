@@ -33,12 +33,8 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
     char    *infilnam, *fname;
     char    channame[32];
     int     retval = 0;
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
     int     instr_info = 0;
-#  if HAVE_LIBSNDFILE >= 1016
     int     bcast_info = 0;
-#  endif
-#endif
     SF_INFO sf_info;
     SNDFILE *hndl;
 
@@ -49,7 +45,6 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
           ++argv, --argc;
         continue;
       }
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
       if (strcmp(infilnam, "-i") == 0) {
         instr_info = 1;
         continue;
@@ -58,7 +53,6 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
         instr_info = atoi(infilnam + 2);
         continue;
       }
-#  if HAVE_LIBSNDFILE >= 1016
       if (strcmp(infilnam, "-b") == 0) {
         bcast_info = 1;
         continue;
@@ -67,8 +61,6 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
         bcast_info = atoi(infilnam + 2);
         continue;
       }
-#  endif
-#endif
       fname = csound->FindInputFile(csound, infilnam, "SFDIR;SSDIR");
       if (fname == NULL) {
         csound->Message(csound, Str("%s:\n\tcould not find\n"), infilnam);
@@ -116,7 +108,6 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
                         (MYFLT) sf_info.frames / sf_info.samplerate);
         csound->Message(csound, Str("\t(%ld sample frames)\n"),
                                 (long) sf_info.frames);
-#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
         if (instr_info) {
           SF_INSTRUMENT inst;
           int     k;
@@ -148,7 +139,6 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
             csound->Message(csound, "\n");
           }
         }
-#  if HAVE_LIBSNDFILE >= 1016
         if (bcast_info) {
           SF_BROADCAST_INFO bext;
 
@@ -175,8 +165,6 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
                             bext.coding_history_size, bext.coding_history);
           }
         }
-#  endif    /* HAVE_LIBSNDFILE >= 1016 */
-#endif      /* HAVE_LIBSNDFILE >= 1013 */
         sf_close(hndl);
       }
     }
