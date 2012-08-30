@@ -716,26 +716,36 @@ static void choose_ls_tuplets(CSOUND *csound,
       /*csound->Message(csound, "%d %d %f %f\n",sorted_lss[i],sorted_lss[i+1],
         lss[sorted_lss[i]].angles.azi,
         lss[sorted_lss[i+1]].angles.azi);*/
-      if ((lss[sorted_lss[i+1]].angles.azi -
-           lss[sorted_lss[i]].angles.azi) <= (PI - 0.175)) {
-        if (calc_2D_inv_tmatrix( lss[sorted_lss[i]].angles.azi,
-                                 lss[sorted_lss[i+1]].angles.azi,
-                                 inv_mat[i]) != 0) {
+      if (LIKELY((lss[sorted_lss[i+1]].angles.azi -
+                  lss[sorted_lss[i]].angles.azi) <= (PI - 0.0175))) {
+        if (LIKELY(calc_2D_inv_tmatrix( lss[sorted_lss[i]].angles.azi,
+                                        lss[sorted_lss[i+1]].angles.azi,
+                                        inv_mat[i]) != 0)) {
           exist[i]=1;
           amount++;
         }
       }
+      else  csound->Warning(csound, Str("Pair of speakers at %f and %f ignored\n"),
+                            lss[sorted_lss[i]].angles.azi*FL(180.0)/PI_F,
+                            lss[sorted_lss[i+1]].angles.azi*FL(180.0)/PI_F);
     }
 
-    if (((6.283 - lss[sorted_lss[ls_amount-1]].angles.azi)
-         +lss[sorted_lss[0]].angles.azi) <= (PI - 0.175)) {
-      if (calc_2D_inv_tmatrix(lss[sorted_lss[ls_amount-1]].angles.azi,
-                              lss[sorted_lss[0]].angles.azi,
-                              inv_mat[ls_amount-1]) != 0) {
+    if (LIKELY(((TWOPI_F - lss[sorted_lss[ls_amount-1]].angles.azi)
+                +lss[sorted_lss[0]].angles.azi) < (PI - 0.0175))) {
+      //printf("less than PI type 2- 0.175\n");
+      if (LIKELY(calc_2D_inv_tmatrix(lss[sorted_lss[ls_amount-1]].angles.azi,
+                                     lss[sorted_lss[0]].angles.azi,
+                                     inv_mat[ls_amount-1]) != 0)) {
         exist[ls_amount-1]=1;
         amount++;
       }
     }
+    else  csound->Warning(csound, Str("Pair of speakers at %f and %f ignored\n"),
+                          lss[sorted_lss[ls_amount-1]].angles.azi*FL(180.0)/PI_F,
+                          lss[sorted_lss[0]].angles.azi*FL(180.0)/PI_F);
+
+    if (UNLIKELY(amount==0)) 
+      csound->InitError(csound, Str("insufficient valid speakers"));
 
 #if 0
     if ( amount*6 + 6 <= 16) ftable_size = 16;
