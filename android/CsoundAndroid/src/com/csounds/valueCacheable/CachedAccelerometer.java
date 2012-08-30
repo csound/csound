@@ -115,9 +115,9 @@ public class CachedAccelerometer extends AbstractValueCacheable implements Senso
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		  x = event.values[0] / sensor.getMaximumRange();
-          y = event.values[1] / sensor.getMaximumRange();
-          z = event.values[2] / sensor.getMaximumRange();
+		x = event.values[0];  
+		y = event.values[1]; 
+		z = event.values[2];
 	}
 
 }
