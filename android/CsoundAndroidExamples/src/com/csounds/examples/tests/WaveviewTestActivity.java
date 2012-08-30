@@ -126,7 +126,7 @@ public class WaveviewTestActivity extends BaseCsoundActivity {
 						for (int i = 0; i < width; i++) {
 							float percent = i / (float) (width);
 							int index = (int) (percent * tableLength);
-							points[i] = (int) ((tableData[index] * middle) + middle);
+							points[i] = (int) ((tableData[index] * -middle) + middle);
 						}
 
 						postInvalidate();
