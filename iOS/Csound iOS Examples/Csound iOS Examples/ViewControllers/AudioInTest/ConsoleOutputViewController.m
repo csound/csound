@@ -103,6 +103,7 @@
 - (void)dealloc
 {
 	[mTextView release];
+    [super dealloc];
 }
 
 @end

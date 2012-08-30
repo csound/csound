@@ -21,15 +21,15 @@ kaccelZ chnget "accelerometerZ"
 ;kattRoll chnget "attitudeRoll" 
 ;kattPitch chnget "attitudePitch" 
 ;kattYaw chnget "attitudeYaw" 
-kaccelX port kaccelX*1000, 0.01
-kaccelY port kaccelY*1000, 0.01
-kaccelZ port kaccelZ*1000, 0.01
+kaccelX port kaccelX / 20, 0.01
+kaccelY port kaccelY / 20, 0.01
+kaccelZ port kaccelZ / 20, 0.01
 
-kcutoff = 5000 + (4000 * kaccelX)
-kresonance = .3 + (.6  * kaccelY)
+kcutoff = 4000 + (2000 * kaccelX)
+kresonance = .6 + (.3  * kaccelY)
 kpch = 880 + kaccelX * 220
 
-a1 vco2 (kaccelZ + .5) * 0.2, kpch
+a1 vco2 (kaccelZ * .2) + .4, kpch
 
 a1 moogladder a1, kcutoff, kresonance
 

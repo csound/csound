@@ -153,7 +153,7 @@
 //			touchX[touchId] = 0;
 //			touchY[touchId] = 0;
 			touchArray[touchId] = nil;
-			[self.csound sendScore:[NSString stringWithFormat:@"i-1.%d 0 0 %d", touchId, nil]];
+			[self.csound sendScore:[NSString stringWithFormat:@"i-1.%d 0 0 %d", touchId, touchId]];
 
 		}
 	}
