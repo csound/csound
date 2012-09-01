@@ -465,7 +465,7 @@ int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
         p->fout->framecount = 1;
         p->lastframe = 0;
       }
-    p->maskfunc = csound->FTFind(csound, p->ifn);
+    p->maskfunc = csound->FTnp2Find(csound, p->ifn);
     if (UNLIKELY(p->maskfunc==NULL))
       return NOTOK;
 
@@ -581,7 +581,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
       csound->Die(csound, Str("pvsftw: bad value for ifna.\n"));
     if (UNLIKELY(*p->ifnf < 0.0f))                /* 0 = notused */
       csound->Die(csound, Str("pvsftw: bad value for ifnf.\n"));
-    p->outfna = csound->FTFind(csound, p->ifna);
+    p->outfna = csound->FTnp2Find(csound, p->ifna);
     if (UNLIKELY(p->outfna==NULL))
       return NOTOK;
     if (UNLIKELY(p->fsrc->sliding))
@@ -601,7 +601,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
 
     /* freq table? */
     if ((int32) *p->ifnf >= 1) {
-      p->outfnf = csound->FTFind(csound, p->ifnf);
+      p->outfnf = csound->FTnp2Find(csound, p->ifnf);
       if (UNLIKELY(p->outfnf==NULL))
         return NOTOK;
       ftablef = p->outfnf->ftable;
@@ -688,7 +688,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
        otherwise, there is no change!
     */
     if ((int32) *p->ifna != 0) {
-      p->infna = csound->FTFind(csound, p->ifna);
+      p->infna = csound->FTnp2Find(csound, p->ifna);
       if (UNLIKELY(p->infna==NULL))
         return NOTOK;
       p->ftablea = p->infna->ftable;
@@ -707,7 +707,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
 
     /* freq table? */
     if ((int32) *p->ifnf >= 1) {
-      p->infnf = csound->FTFind(csound, p->ifnf);
+      p->infnf = csound->FTnp2Find(csound, p->ifnf);
       if (UNLIKELY(p->infnf==NULL))
         return NOTOK;
       p->ftablef = p->infnf->ftable;

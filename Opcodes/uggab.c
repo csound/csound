@@ -1157,7 +1157,7 @@ static int vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
@@ -1235,7 +1235,7 @@ static int vibr_set(CSOUND *csound, VIBR *p)
 #define cpsMaxRate      FL(2.28100)
 #define iphs            FL(0.0)
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->lphs = ((int32)(iphs * FMAXLEN)) & PHMASK;
     }

@@ -55,7 +55,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       stick->initme = 1;
     }
     if (UNLIKELY(*stick->ktable != stick->table)) {
-      if (UNLIKELY((void *)(stick->ftp = csound->FTFind(csound, stick->ktable))
+      if (UNLIKELY((void *)(stick->ftp = csound->FTnp2Find(csound, stick->ktable))
                    == NULL)) {
         csound->Warning(csound, Str("linuxjoystick: No such table %f"),
                         stick->ktable);

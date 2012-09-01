@@ -80,7 +80,7 @@ static int make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound,i)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound,i)) != NULL)
       p->wave = ftp;
     else { /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Modulatr"));
@@ -123,7 +123,7 @@ static int make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTFind(csound,ifn)) != NULL)) p->wave = ftp;
+    if (LIKELY((ftp = csound->FTnp2Find(csound,ifn)) != NULL)) p->wave = ftp;
     else {
       return csound->InitError(csound, Str("No table for Singwave"));
     }
