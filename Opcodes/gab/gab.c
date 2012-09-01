@@ -429,7 +429,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     if (UNLIKELY(count < 1)) count = 1;
     p->count = count;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifreqtbl)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifreqtbl)) != NULL)) {
       p->freqtp = ftp;
     }
     else {
@@ -443,7 +443,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
                                    "than freqtable size!"));
     }
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->iamptbl)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->iamptbl)) != NULL)) {
       p->amptp = ftp;
     }
     else {

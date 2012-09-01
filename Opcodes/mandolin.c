@@ -76,7 +76,7 @@ int mandolinset(CSOUND *csound, MANDOL *p)
 {
     FUNC *ftp;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->soundfile = ftp;
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->soundfile = ftp;
     else {                                      /* Expect pluck wave */
       return csound->InitError(csound, Str("No table for Mandolin"));
     }
