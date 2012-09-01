@@ -34,8 +34,8 @@
 static int wtinit(CSOUND *csound, WAVETER *p)
 {
     /* DECLARE */
-    FUNC *ftpx = csound->FTFind(csound, p->i_tabx);
-    FUNC *ftpy = csound->FTFind(csound, p->i_taby);
+    FUNC *ftpx = csound->FTnp2Find(csound, p->i_tabx);
+    FUNC *ftpy = csound->FTnp2Find(csound, p->i_taby);
 
     /* CHECK */
     if (UNLIKELY((ftpx == NULL)||(ftpy == NULL))) {
@@ -106,8 +106,8 @@ static int scanhinit(CSOUND *csound, SCANHAMMER *p)
   int srcpos = 0;
   int dstpos = (int)MYFLT2LONG(*p->ipos);
 
-  FUNC *fsrc = csound->FTFind(csound, p->isrc); /* Source table */
-  FUNC *fdst = csound->FTFind(csound, p->idst); /* Destination table */
+  FUNC *fsrc = csound->FTnp2Find(csound, p->isrc); /* Source table */
+  FUNC *fdst = csound->FTnp2Find(csound, p->idst); /* Destination table */
 
   if (UNLIKELY(fsrc->flen > fdst->flen)) {
     return csound->InitError(csound, Str(
@@ -138,11 +138,11 @@ static int scanhinit(CSOUND *csound, SCANHAMMER *p)
 static int scantinit(CSOUND *csound, SCANTABLE *p)
 {
     /* DECLARE */
-    FUNC *fpoint = csound->FTFind(csound, p->i_point);
-    FUNC *fmass  = csound->FTFind(csound, p->i_mass);
-    FUNC *fstiff = csound->FTFind(csound, p->i_stiff);
-    FUNC *fdamp  = csound->FTFind(csound, p->i_damp);
-    FUNC *fvel   = csound->FTFind(csound, p->i_vel);
+    FUNC *fpoint = csound->FTnp2Find(csound, p->i_point);
+    FUNC *fmass  = csound->FTnp2Find(csound, p->i_mass);
+    FUNC *fstiff = csound->FTnp2Find(csound, p->i_stiff);
+    FUNC *fdamp  = csound->FTnp2Find(csound, p->i_damp);
+    FUNC *fvel   = csound->FTnp2Find(csound, p->i_vel);
 
     /* CHECK */
     if (UNLIKELY(fpoint == NULL)) {

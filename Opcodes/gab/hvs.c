@@ -60,11 +60,11 @@ static int hvs1_set(CSOUND *csound, HVS1 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iOutTab)) != NULL)
       p->outTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) != NULL)
       p->posTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iSnapTab)) != NULL)
       p->snapTable = ftp->ftable;
     if (*p->inumPointsX < 2 )
       return csound->InitError(csound, Str("hvs1: a line segment must be "
@@ -73,7 +73,7 @@ static int hvs1_set(CSOUND *csound, HVS1 *p)
     if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL)
+      if ((ftp = csound->FTnp2Find(csound, p->iConfigTab)) != NULL)
         p->outTable = ftp->ftable;
       p->iconfFlag = 1;
     }
@@ -142,11 +142,11 @@ static int hvs2_set(CSOUND *csound, HVS2 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iOutTab)) != NULL)
       p->outTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) != NULL)
       p->posTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iSnapTab)) != NULL)
       p->snapTable = ftp->ftable;
     if (*p->inumlinesX < 2 || *p->inumlinesY < 2)
       return csound->InitError(csound, Str("hvs2: a square area must be "
@@ -155,7 +155,7 @@ static int hvs2_set(CSOUND *csound, HVS2 *p)
     if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL) {
+      if ((ftp = csound->FTnp2Find(csound, p->iConfigTab)) != NULL) {
         p->outTable = ftp->ftable;
       }
       p->iconfFlag = 1;
@@ -238,11 +238,11 @@ static int hvs3_set(CSOUND *csound, HVS3 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iOutTab)) != NULL)
       p->outTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) != NULL)
       p->posTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->iSnapTab)) != NULL)
       p->snapTable = ftp->ftable;
     if (*p->inumlinesX < 2 || *p->inumlinesY < 2)
       return csound->InitError(csound, Str("hvs3: a square area must be "
@@ -252,7 +252,7 @@ static int hvs3_set(CSOUND *csound, HVS3 *p)
     if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL)
+      if ((ftp = csound->FTnp2Find(csound, p->iConfigTab)) != NULL)
         p->outTable = ftp->ftable;
       p->iconfFlag = 1;
     }
