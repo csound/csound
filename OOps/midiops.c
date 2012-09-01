@@ -116,7 +116,7 @@ int cpstmid(CSOUND *csound, CPSTABLE *p)
     int basekeymidi;
     MYFLT basefreq, factor, interval;
 
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->tablenum)) == NULL)) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL)) {
       return csound->InitError(csound, Str("cpstabm: invalid modulator table"));
     }
     func = ftp->ftable;
@@ -254,7 +254,7 @@ int ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude */
 
     amp = csound->curip->m_veloc / FL(128.0);     /* amp = normalised veloc */
     if ((fno = (int32)*p->ifn) > 0) {              /* if valid ftable,       */
-      if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
         return NOTOK;                             /*     use amp as index   */
       amp = *(ftp->ftable + (int32)(amp * ftp->flen));
     }

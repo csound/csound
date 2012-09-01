@@ -898,7 +898,7 @@ int itblchkw(CSOUND *csound, TABLEW *p)
      * It also checks for numbers < 0, and table 0 is never valid, so we
      * do not need to check here for the table number being < 1.  */
 
-    if (UNLIKELY((p->ftp = csound->FTFind(csound, p->xfn)) == NULL))
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
       return NOTOK;
     /* Although TABLEW has an integer variable for the table number
      * (p->pfn) we do not need to * write it.  We know that the * k
@@ -1540,7 +1540,7 @@ int itablemix(CSOUND *csound, TABLEMIX *p)
      * csoundFTFind() for init time.
      */
 
-    if (UNLIKELY((p->funcd = csound->FTFind(csound, p->dft)) == NULL)) {
+    if (UNLIKELY((p->funcd = csound->FTnp2Find(csound, p->dft)) == NULL)) {
       return csound->InitError(csound,
                                Str("Destination dft table %.2f not found."),
                                *p->dft);
@@ -1551,7 +1551,7 @@ int itablemix(CSOUND *csound, TABLEMIX *p)
     p->pdft = (int)*p->dft;
 
     /* Source 1 */
-    if (UNLIKELY((p->funcs1 = csound->FTFind(csound, p->s1ft)) == NULL)) {
+    if (UNLIKELY((p->funcs1 = csound->FTnp2Find(csound, p->s1ft)) == NULL)) {
       return csound->InitError(csound,
                                Str("Source 1 s1ft table %.2f not found."),
                                *p->s1ft);
@@ -1559,7 +1559,7 @@ int itablemix(CSOUND *csound, TABLEMIX *p)
     p->ps1ft = (int)*p->s1ft;
 
     /* Source 2 */
-    if (UNLIKELY((p->funcs2 = csound->FTFind(csound, p->s2ft)) == NULL)) {
+    if (UNLIKELY((p->funcs2 = csound->FTnp2Find(csound, p->s2ft)) == NULL)) {
       return csound->InitError(csound,
                                Str("Source 2 s2ft table %.2f not found."),
                                *p->s2ft);
@@ -1793,7 +1793,7 @@ int itablecopy(CSOUND *csound, TABLECOPY *p)
     if (p->pdft != (int)*p->dft) {
       /* Get pointer to the function table data structure.
        * csoundFTFindP() for perf time. csoundFTFind() for init time. */
-      if (UNLIKELY((p->funcd = csound->FTFind(csound, p->dft)) == NULL)) {
+      if (UNLIKELY((p->funcd = csound->FTnp2Find(csound, p->dft)) == NULL)) {
         return csound->InitError(csound,
                                  Str("Destination dft table %.2f not found."),
                                  *p->dft);
@@ -1804,7 +1804,7 @@ int itablecopy(CSOUND *csound, TABLECOPY *p)
     }
     /* Source  */
     if (p->psft != (int)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);

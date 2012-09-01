@@ -36,7 +36,7 @@ typedef struct {
 
 static int tabsuminit(CSOUND *csound, TABSUM *p)
 {
-    if (UNLIKELY((p->ftp = csound->FTFind(csound, p->itab)) == NULL)) {
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
       return csound->InitError(csound, Str("tabsum: No table"));
     }
     return OK;

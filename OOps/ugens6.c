@@ -993,7 +993,7 @@ int panset(CSOUND *csound, PAN *p)
 {
     FUNC  *ftp;
 
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftp = ftp;
     p->xmul = (*p->imode == FL(0.0) ? FL(1.0) : (MYFLT)ftp->flen);
