@@ -235,7 +235,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             if (UNLIKELY(p->XSTRCODE&msk))
               return csound->PerfError(csound, Str("String not expected"));
             /* make sure fn exists */
-            if (LIKELY((ftp=csound->FTFind(csound,arg[i]))!=NULL)) {
+            if (LIKELY((ftp=csound->FTnp2Find(csound,arg[i]))!=NULL)) {
               data = ftp->ftable;
               len = ftp->flen-1;        /* and set it up */
             }

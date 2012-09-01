@@ -194,7 +194,7 @@ int phsor(CSOUND *csound, PHSOR *p)
 
 static int itblchk(CSOUND *csound, TABLE *p)
 {
-    if (UNLIKELY((p->ftp = csound->FTFind(csound, p->xfn)) == NULL))
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
       return NOTOK;
 
     /* Although TABLE has an integer variable for the table number
@@ -1032,7 +1032,7 @@ int oscnset(CSOUND *csound, OSCILN *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->inc = ftp->flen * *p->ifrq * csound->onedsr;
       p->index = FL(0.0);
