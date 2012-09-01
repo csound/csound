@@ -52,7 +52,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     MYFLT       pitch[4];
 
     /* call ftfind() to get the function table...*/
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
     }
     else {
@@ -62,7 +62,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     /* call ftfind() to get the function table for the envelop...*/
     if (*p->ifnenv > 0) {
-      if (LIKELY((ftp_env = csound->FTFind(csound, p->ifnenv)) != NULL)) {
+      if (LIKELY((ftp_env = csound->FTnp2Find(csound, p->ifnenv)) != NULL)) {
         p->ftp_env = ftp_env;
       }
       else {

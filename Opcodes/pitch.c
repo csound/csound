@@ -582,7 +582,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
       count = 1;
     p->count = count;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifreqtbl)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifreqtbl)) != NULL)) {
       p->freqtp = ftp;
     }
     else {
@@ -595,7 +595,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
                     "adsynt: partial count is greater than freqtable size!"));
     }
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->iamptbl)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->iamptbl)) != NULL)) {
       p->amptp = ftp;
     }
     else {

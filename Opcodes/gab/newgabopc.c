@@ -36,7 +36,7 @@ typedef struct {
 static int  mtable1_set(CSOUND *csound, MTABLE1 *p)      /* mtab by G.Maldonado */
 {
     FUNC *ftp;
-    if ((ftp = csound->FTFind(csound, p->xfn)) == NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)
       return csound->InitError(csound, Str("vtable1: incorrect table number"));
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-1;
@@ -236,7 +236,7 @@ static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
 {
     FUNC *ftp;
     int nelems = (int) *p->inumElems;
-    if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->idestTab)) == NULL)
       return csound->InitError(csound,
                                Str("copyTabElems: incorrect destination table number"));
 
@@ -247,7 +247,7 @@ static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
                                    "or number of elements to copy too big"));
 
     p->dTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->isourceTab)) == NULL)
       return csound->InitError(csound,
                                Str("copyTabElems: incorrect source table number"));
 
@@ -291,7 +291,7 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
     FUNC *ftp;
     int nelems = (int) *p->inumElems, dLen, sLen;
     MYFLT *sTable, *dTable;
-    if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->idestTab)) == NULL)
       return csound->InitError(csound,
                                Str("copyTabElems: incorrect destination "
                                    "table number"));
@@ -301,7 +301,7 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
                                Str("copyTabElems: destination table too short "
                                    "or number of elements to copy too big"));
     dTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->isourceTab)) == NULL)
       return csound->InitError(csound,
                                Str("copyTabElems: incorrect source table number"));
     sLen = ftp->flen;
