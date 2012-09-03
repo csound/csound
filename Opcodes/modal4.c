@@ -46,8 +46,8 @@ static int make_Modal4(CSOUND *csound,
       return csound->PerfError(csound, Str("No table for Modal4 case"));
     }
     make_Envelope(&m->envelope);
-        /*  We don't make the excitation wave here yet,   */
-        /*  because we don't know what it's going to be.  */
+        /*  We do not make the excitation wave here yet,   */
+        /*  because we do not know what it's going to be.  */
     make_BiQuad(&m->filters[0]);
     make_BiQuad(&m->filters[1]);
     make_BiQuad(&m->filters[2]);
@@ -247,7 +247,7 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     }
 
     if (UNLIKELY(make_Modal4(csound,
-                             m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK)) 
+                             m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK))
       return NOTOK;
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 0.5; */
@@ -361,7 +361,7 @@ int vibraphnset(CSOUND *csound, VIBRAPHN *p)
       return csound->InitError(csound, Str("No table for Vibraphone strike"));
     }
 
-    if (UNLIKELY(make_Modal4(csound, m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK)) 
+    if (UNLIKELY(make_Modal4(csound, m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK))
       return NOTOK;
 
     p->m4.w_phaseOffset = FL(0.0);

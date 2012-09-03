@@ -77,7 +77,7 @@ typedef struct _atsread {
     /* indicates the maximun frame */
     int     maxFr;
     /* a flag used to indicate if we've steped out of the time range */
-    /* of the data, so we don't print too many warnings */
+    /* of the data, so we do not print too many warnings */
     int     prFlg;
     /* points to the start of the data */
     double  *datastart;
@@ -95,7 +95,7 @@ typedef struct _atsreadnz {
     MYFLT   *kenergy, *ktimpnt, *ifileno, *inzbin; /* outputs (1) and inputs */
     int     maxFr;
     /* a flag used to indicate if we've steped out of the time range */
-    /* of the data, so we don't print too many warnings */
+    /* of the data, so we do not print too many warnings */
     int     prFlg;
     double  *datastart; /* points to the start of the data */
     int     nzbandloc, frmInc;
@@ -117,7 +117,7 @@ typedef struct _atsadd {
 
     double  maxFr;
     /* a flag used to indicate if we've steped out of the time range */
-    /* of the data, so we don't print too many warnings */
+    /* of the data, so we do not print too many warnings */
     int     prFlg;
     double  timefrmInc;
     double  MaxAmp;     /* maximum amplitude in anaylsis file */
@@ -193,7 +193,7 @@ typedef struct _atscross {
 
     double  maxFr;
     /* a flag used to indicate if we've steped out of the time range */
-    /* of the data, so we don't print too many warnings */
+    /* of the data, so we do not print too many warnings */
     int     prFlg;
     double  timefrmInc;
     double  MaxAmp;     /* maximum amplitude in anaylsis file */
