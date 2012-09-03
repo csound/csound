@@ -40,7 +40,7 @@ static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
     int     N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
@@ -89,7 +89,7 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
           MYFLT x = (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
           //          printf("%f\n", x);
           fout[i].re = fin[i].re + mrate * x;
-          fout[i].im = fin[i].im + 
+          fout[i].im = fin[i].im +
             frate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX/(MYFLT)(i+1);
         }
       }
