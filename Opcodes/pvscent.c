@@ -2,7 +2,8 @@
     Calculation of spectral centroid as Beauchamp
 
     (c) John ffitch, 2005
-        (c) Alan OCinneide, 2005
+    (c) Alan OCinneide, 2005
+    (c) V Lazzarin, 2012
 
     This file is part of Csound.
 
@@ -26,11 +27,11 @@
 #include "pstream.h"
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ans;
-        PVSDAT  *fin;
-        uint32  lastframe;
-        MYFLT   old;
+  OPDS    h;
+  MYFLT   *ans;
+  PVSDAT  *fin;
+  uint32  lastframe;
+  MYFLT   old;
 } PVSCENT;
 
 static int pvscentset(CSOUND *csound, PVSCENT *p)
@@ -50,7 +51,7 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     int32 i,N = p->fin->N;
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
-    MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
+    MYFLT j, binsize = csound->esr/(MYFLT)N;
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
       int NB = p->fin->NB;
@@ -59,17 +60,18 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
         d += fin[i].re;
       }
     }
-    else
-      {
-        float *fin = (float *) p->fin->frame.auxp;
-        if (p->lastframe < p->fin->framecount) {
-          for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
-            c += fin[i]*j;         /* This ignores phase */
-            d += fin[i];
-          }
-          p->lastframe = p->fin->framecount;
+    else {
+      float *fin = (float *) p->fin->frame.auxp;
+      if (p->lastframe < p->fin->framecount) {
+        //printf("N=%d binsize=%f\n", N, binsize);
+        for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+          c += fin[i]*j;         /* This ignores phase */
+          d += fin[i];
+          //printf("%d (%f) sig=%f c=%f d=%f\n", i,j,fin[i],c,d);
         }
+        p->lastframe = p->fin->framecount;
       }
+    }
     *p->ans = (d==FL(0.0) ? FL(0.0) : c/d);
     return OK;
 }
@@ -83,7 +85,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
 
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
-      MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
+      MYFLT j, binsize = csound->esr/(MYFLT)N;
       int NB = p->fin->NB;
       for (n=0; n<nsmps; n++) {
         CMPLX *fin = (CMPLX*) p->fin->frame.auxp + n*NB;
@@ -100,7 +102,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
       int32 i,N = p->fin->N;
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
-      MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
+      MYFLT j, binsize = csound->esr/(MYFLT)N;
       float *fin = (float *) p->fin->frame.auxp;
       for (n=0; n<nsmps; n++) {
         if (p->lastframe < p->fin->framecount) {
@@ -120,26 +122,109 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
+typedef struct _cent {
+  OPDS    h;
+  MYFLT   *ans;
+  MYFLT  *asig, *ktrig, *ifftsize;
+  int fsize, count;
+  MYFLT old;
+  AUXCH frame, windowed, win;
+} CENT;
+
+static int cent_i(CSOUND *csound, CENT *p)
+{
+    int fftsize = *p->ifftsize;
+    p->count = 0;
+    p->fsize = 1;
+    while(fftsize >>= 1) p->fsize <<= 1;
+    if (p->fsize < *p->ifftsize) {
+      p->fsize <<= 1;
+      csound->Warning(csound,
+                      Str("centroid requested fftsize = %.0f, actual = %d\n"),
+                      *p->ifftsize, p->fsize);
+    }
+    if (p->frame.auxp == NULL || p->frame.size < p->fsize*sizeof(MYFLT))
+      csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->frame);
+    if (p->windowed.auxp == NULL || p->windowed.size < p->fsize*sizeof(MYFLT))
+      csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->windowed);
+    if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT)) {
+      int i; MYFLT *win;
+      csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->win);
+      win = (MYFLT *) p->win.auxp;
+    for (i=0; i < p->fsize; i++)
+      win[i] = 0.5 - 0.5*cos(i*TWOPI/p->fsize);
+    }
+    p->old = 0;
+    memset(p->frame.auxp, p->fsize*sizeof(MYFLT), 0);
+    memset(p->frame.auxp, p->fsize*sizeof(MYFLT), 0);
+    return OK;
+}
+
+
+static int cent_k(CSOUND *csound, CENT *p)
+{
+    int n = p->count, i,k;
+    int ksmps = csound->GetKsmps(csound);
+    MYFLT *frame = (MYFLT *) p->frame.auxp, *asig = p->asig;
+
+    int fsize = p->fsize;
+    for (i=0; i < ksmps; i++){
+      frame[n] = asig[i];
+      if (n == fsize-1) n=0;
+      else n++;
+    }
+
+    if (*p->ktrig) {
+      MYFLT c = FL(0.0);
+      MYFLT d = FL(0.0);
+      MYFLT *windowed = (MYFLT *) p->windowed.auxp;
+      MYFLT *win = (MYFLT *) p->win.auxp;
+      MYFLT mag, cf, binsize = csound->esr/(MYFLT)fsize;
+      for (i=0,k=n; i < fsize; i++){
+        windowed[i] = frame[k]*win[i];
+        if (k == fsize-1) k=0;
+        else k++;
+      }
+      csound->RealFFT(csound, windowed, fsize);
+      cf=FL(0.5)*binsize;
+      mag = windowed[0];
+      c += mag*cf;
+      d += mag;
+      cf += binsize;
+      for (i=2; i < fsize; i+=2, cf += binsize) {
+        mag = sqrt(windowed[i]*windowed[i] + windowed[i+1]*windowed[i+1]);
+        c += mag*cf;
+        d += mag;
+      }
+      p->old = *p->ans = (d==FL(0.0) ? FL(0.0) : c/d);
+    } else *p->ans = p->old;
+    p->count = n;
+    return OK;
+}
+
+
+
+
 /* PVSPITCH opcode by Ala OCinneide */
 
 typedef struct _pvspitch
 {
-        /* OPDS data structure */
-        OPDS    h;
+  /* OPDS data structure */
+  OPDS    h;
 
-        /* Output */
-        MYFLT   *kfreq;
-        MYFLT   *kamp;
+  /* Output */
+  MYFLT   *kfreq;
+  MYFLT   *kamp;
 
-        /* Inputs */
-        PVSDAT  *fin;
-        MYFLT   *ithreshold;
+  /* Inputs */
+  PVSDAT  *fin;
+  MYFLT   *ithreshold;
 
-        /* Internal arrays */
-        AUXCH peakfreq;
-        AUXCH inharmonic;
+  /* Internal arrays */
+  AUXCH peakfreq;
+  AUXCH inharmonic;
 
-        uint32 lastframe;
+  uint32 lastframe;
 
 } PVSPITCH;
 
@@ -151,7 +236,7 @@ typedef struct _pvspitch
 #define RoundNum(Number)  (int)MYFLT2LRND(Number)
 
 /* Should one use remainder or drem ?? */
-#define Remainder(Numerator, Denominator)  \
+#define Remainder(Numerator, Denominator)               \
   Numerator/Denominator - (int) (Numerator/Denominator)
 
 
@@ -165,9 +250,9 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
     size = sizeof(MYFLT)*(p->fin->N+2);
     if (p->peakfreq.auxp == NULL || p->peakfreq.size < size)
-    csound->AuxAlloc(csound, size, &p->peakfreq);
+      csound->AuxAlloc(csound, size, &p->peakfreq);
     if (p->inharmonic.auxp == NULL || p->inharmonic.size < size)
-    csound->AuxAlloc(csound, size, &p->inharmonic);
+      csound->AuxAlloc(csound, size, &p->inharmonic);
     if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
       return csound->InitError(csound,
                                "PV Frames must be in AMP_FREQ format!\n");
@@ -297,15 +382,15 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 }
 
 static OENTRY localops[] = {
-  { "pvscent", sizeof(PVSCENT), 3, "s", "f", 
-                           (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
+  { "pvscent", sizeof(PVSCENT), 3, "s", "f",
+                             (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
+  { "centroid", sizeof(CENT), 3, "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL},
   { "pvspitch", sizeof(PVSPITCH), 3, "kk", "fk",
-                           (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
+                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
 
 int pvscent_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+  return csound->AppendOpcodes(csound, &(localops[0]),
+                               (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

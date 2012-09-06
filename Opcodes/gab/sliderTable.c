@@ -55,7 +55,7 @@ typedef struct {
         FUNC *outftp, **ftp = p->ftp;                                   \
         MYFLT *chanblock = (MYFLT *)  csound->m_chnbp[chan]->ctl_val;   \
                                                                         \
-        if((outftp = csound->FTFind(csound, p->ioutfn)) != NULL)        \
+        if((outftp = csound->FTnp2Find(csound, p->ioutfn)) != NULL)        \
           p->outTable = outftp->ftable;                                 \
         while (j < 8) {                                                 \
             int t = (int) *sld->ifn;                                    \
@@ -110,7 +110,7 @@ typedef struct {
             default: /* TABLE */                                        \
               value = value; /* unchanged, value must be in the 0 to 1 range, */ \
               /*   representing the phase of the table            */    \
-              if (*sld->ifn > 0)   *ftp = csound->FTFind(csound, sld->ifn); \
+              if (*sld->ifn > 0)   *ftp = csound->FTnp2Find(csound, sld->ifn); \
             }                                                           \
             chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5))); \
             min++; max++; ftp++; j++; sld++;                            \
@@ -268,7 +268,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
       MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                        \
                                                                         \
                                                                         \
-      if((outftp = csound->FTFind(csound, p->ioutfn)) != NULL)          \
+      if((outftp = csound->FTnp2Find(csound, p->ioutfn)) != NULL)          \
         p->outTable = outftp->ftable;                                   \
       while (j < n) {                                                   \
         int t = (int) *sld->ifn;                                        \
@@ -310,7 +310,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
         default: /* TABLE */                                            \
           value = value; /* unchanged, value must be in the 0 to 1 range, */ \
           /* representing the phase of the table */                     \
-          if (*sld->ifn > 0)   *ftp = csound->FTFind(csound, sld->ifn); \
+          if (*sld->ifn > 0)   *ftp = csound->FTnp2Find(csound, sld->ifn); \
           if (value >= 1 || value < 0) {                                \
             sprintf(sbuf, Str("sliderXtable: illegal initvalue at "     \
                               "position %d. When using table indexing," \
@@ -512,7 +512,7 @@ static int sliderKawai_i(CSOUND *csound, SLIDERKAWAI *p)
           sprintf(sbuf, Str("illegal initvalue at position n.%d"), j);
             return csound->InitError(csound, sbuf);
         }
-        if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn);
+        if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Find(csound, sld->ifn);
         else                 *ftp++ = NULL;
         value =  (*(sld++)->initvalue - *min) / (*max++ - *min);
         min++;
@@ -569,7 +569,7 @@ static int ctrl7a_set(CSOUND *csound, CTRL7a *p)
     else p->ctlno = ctlno;
 
     if (*p->ifn > 0) {
-      if (((p->ftp = csound->FTFind(csound, p->ifn)) == NULL))
+      if (((p->ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
         p->flag = 0;  /* invalid ftable */
       else p->flag= 1;
     }

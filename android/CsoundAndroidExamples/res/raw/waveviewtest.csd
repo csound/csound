@@ -10,7 +10,9 @@ sr = 44100
 
 instr 1
 
+aout oscil3 .5, 440, 1
 
+outs aout, aout
 
 endin
 

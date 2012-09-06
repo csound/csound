@@ -390,7 +390,7 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,Str("function table not found\n"));
     }
-    if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
+    if (*p->ifn2 != 0) p->efunc = csound->FTnp2Find(csound, p->ifn2);
     else p->efunc = NULL;
 
     if (*p->iskip == 0){

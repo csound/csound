@@ -117,7 +117,7 @@ int clarinset(CSOUND *csound, CLARIN *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Clarinet"));
     }
@@ -279,7 +279,7 @@ int fluteset(CSOUND *csound, FLUTE *p)
     FUNC        *ftp;
     int32        length;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                   /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Flute"));
     }
@@ -477,7 +477,7 @@ int bowedset(CSOUND *csound, BOWED *p)
     FUNC        *ftp;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
       return csound->InitError(csound, Str("No table for wgbow vibrato"));
     }
@@ -752,7 +752,7 @@ int brassset(CSOUND *csound, BRASS *p)
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Brass"));
     }

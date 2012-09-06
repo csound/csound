@@ -253,7 +253,8 @@ static int rezzy(CSOUND *csound, REZZY *p)
         }
         xn = (double)in[n];             /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
-        yn = (1.0/sqrt(1.0+rez)*xn - (-a-2.0*csq)*ynm1 - csq*ynm2)*invb;
+        //yn = (1.0/sqrt(1.0+rez)*xn - (-a-2.0*csq)*ynm1 - csq*ynm2)*invb;
+        yn = (1.0/sqrt(1.0+rez)*xn - csq*((-a-2.0)*ynm1 + ynm2))*invb;
 
         xnm2 = xnm1; /* Update Xn-2 */
         xnm1 = xn;   /* Update Xn-1 */
@@ -788,7 +789,7 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
     npts1 = (int32)(*p->del1 * csound->esr) - npts2 -npts3;
 
     if (UNLIKELY(((int32)(*p->del1 * csound->esr)) <=
-                 ((int32)(*p->del2 * csound->esr) + 
+                 ((int32)(*p->del2 * csound->esr) +
                   (int32)(*p->del3 * csound->esr)))) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
@@ -1261,30 +1262,32 @@ static int mode(CSOUND *csound, MODE *p)
 {
     int   n = 0, nsmps = csound->ksmps;
 
-    double kfreq = *p->kfreq*2*PI;
+    double kfreq  = *p->kfreq*TWOPI;
     double kalpha = (csound->esr/kfreq);
     double kbeta  = kalpha*kalpha;
+    double d      = 0.5*kalpha;
 
-    double a0 = 1/ (kbeta+kalpha/(2* *p->kq));
-    double a1 = a0 * (1-2*kbeta);
-    double a2 = a0 * (kbeta-kalpha/(2* *p->kq));
+    double a0     = 1.0/ (kbeta+d/(*p->kq));
+    double a1     = a0 * (1.0-2.0*kbeta);
+    double a2     = a0 * (kbeta-d/(*p->kq));
 
     double xn, yn;
+    double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     for (n=0; n<nsmps; n++) {
       xn = (double)p->ain[n];
 
-      yn = a0*p->xnm1 - a1*p->ynm1 - a2*p->ynm2;
+      yn = a0*xnm1 - a1*ynm1 - a2*ynm2;
 
-      p->xnm1 = xn;
-      p->ynm2 = p->ynm1;
-      p->ynm1 = yn;
+      xnm1 = xn;
+      ynm2 = ynm1;
+      ynm1 = yn;
 
-      yn = yn*csound->esr/(2*kfreq);
+      yn = yn*d;
 
       p->aout[n] = (MYFLT)yn;
     }
-
+    p->xnm1 = xnm1;  p->ynm1 = ynm1;  p->ynm2 = ynm2;
     return OK;
 }
 

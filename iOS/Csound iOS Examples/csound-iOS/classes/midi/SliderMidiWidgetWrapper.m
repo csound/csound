@@ -36,6 +36,7 @@
 
 -(void)dealloc {
     [mSlider release];
+    [super dealloc];
 }
 
 -(void)setValueSelector:(NSNumber*)value {
