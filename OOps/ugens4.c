@@ -225,7 +225,7 @@ int plukset(CSOUND *csound, PLUCK *p)
     if (*p->ifn == 0.0)
       for (n=npts; n--; )                       /* f0: fill w. rands */
         *ap++ = (MYFLT) rand16(csound) * DV32768;
-    else if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    else if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
       fp = ftp->ftable;                         /* else from ftable  */
       phs = FL(0.0);
       phsinc = (MYFLT)(ftp->flen/npts);

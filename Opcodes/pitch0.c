@@ -65,6 +65,8 @@ int instcount(CSOUND *csound, INSTCNT *p)
       *p->cnt = ((*p->opt) ?
                  (MYFLT) csound->instrtxtp[n]->instcnt :
                  (MYFLT) csound->instrtxtp[n]->active);
+      if (*p->norel)
+        *p->cnt -= csound->instrtxtp[n]->pending_release;
     }
 
     return OK;

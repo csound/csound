@@ -256,6 +256,7 @@ typedef struct {
                                     /* (pointer to next one is INSDS.nxtact) */
     struct instr * nxtinstxt;       /* Next instrument in orch (num order) */
     int     active;                 /* To count activations for control */
+    int     pending_release;        /* To count instruments in release phase */
     int     maxalloc;
     MYFLT   cpuload;                /* % load this instrumemnt makes */
     struct opcodinfo *opcode_info;  /* UDO info (when instrs are UDOs) */

@@ -101,7 +101,7 @@ static int split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     */
 
     FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
       return csound->InitError(csound, Str("splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
@@ -148,7 +148,7 @@ static int timeseq_set(CSOUND *csound, TIMEDSEQ *p)
     FUNC *ftp;
     MYFLT *table;
     int j;
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))  return NOTOK;
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))  return NOTOK;
     table = p->table = ftp->ftable;
     p->numParm = p->INOCOUNT-2; /* ? */
     for (j = 0; j < ftp->flen; j+= p->numParm) {

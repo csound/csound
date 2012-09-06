@@ -62,7 +62,7 @@ static int urand_run(CSOUND *csound, URANDOM *p)
 /* x.ieee.exponent = x.ieee.exponent& 0x377; */
 /* printf("Debug: %s(%d): %g %d %03x %05x %08x\n", __FILE__, __LINE__, x.d, */
 /*        x.ieee.negative, x.ieee.exponent, x.ieee.mantissa0, x.ieee.mantissa1); */
-    *p->ar = p->mul *((MYFLT)x/(MYFLT)0x7fffffffffffffff) + p->add;
+    *p->ar = p->mul *((MYFLT)x/(MYFLT)INT64_MAX) + p->add;
     return OK;
 }
 
@@ -81,7 +81,7 @@ static int urand_arun(CSOUND *csound, URANDOM *p)
     int n, nsmps = csound->ksmps;
     for (n=0; n<nsmps; n++) {
       if (UNLIKELY(read(ur, &x, sizeof(int64_t))!= sizeof(int64_t))) return NOTOK;
-      ar[n] = p->mul *((MYFLT)x/(MYFLT)0x7fffffffffffffff) + p->add;
+      ar[n] = p->mul *((MYFLT)x/(MYFLT)INT64_MAX) + p->add;
     }
     return OK;
 }

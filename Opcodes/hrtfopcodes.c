@@ -1474,7 +1474,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     p->sroverN = sr/irlength;
 
     /* start indices at correct value (start of file)/ zero indices.
-       (don't need to store here, as only accessing in INIT) */
+       (do not need to store here, as only accessing in INIT) */
     fpindexl = (float *) fpl->beginp;
     fpindexr = (float *) fpr->beginp;
 

@@ -332,7 +332,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
           fout[i] = amp*(frame1[i] + frac*(frame2[i] - frame1[i]));
           fout[i+1] =  frame1[i+1] + frac*(frame2[i+1] - frame1[i+1]);
         }
-      } else  /* don't */
+      } else  /* do not */
         for (i=0; i < N+2; i+=2) {
           fout[i] = amp*(frame1[i]);
           fout[i+1] =  frame1[i+1];
@@ -447,7 +447,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       /* audio samples are stored in a function table */
       ft = csound->FTnp2Find(csound,p->knum);
       if (ft == NULL){
-        csound->PerfError(csound, 
+        csound->PerfError(csound,
                           "could not find table number %d\n", (int) *p->knum);
         return NOTOK;
 
@@ -1933,7 +1933,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
           return csound->InitError(csound, Str("pvstencil: signal format "
                                                "must be amp-phase or amp-freq."));
       }
-    p->func = csound->FTFind(csound, p->ifn);
+    p->func = csound->FTnp2Find(csound, p->ifn);
     if (p->func == NULL)
       return OK;
 
@@ -2071,7 +2071,8 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
     MYFLT *ftab;
 
     if (ft == NULL) {
-      csound->PerfError(csound, "could not find table number %d\n", (int) *p->ftab);
+      csound->PerfError(csound,
+                        Str("could not find table number %d\n"), (int) *p->ftab);
       return NOTOK;
     }
     size = ft->flen;
@@ -2253,15 +2254,15 @@ static OENTRY localops[] = {
    (SUBR) pvsdiskinproc, NULL},
   {"pvstanal", sizeof(PVST), 3, "FFFFFFFFFFFFFFFF", "kkkkPPoooP",(SUBR) pvstanalset,
    (SUBR) pvstanal, NULL},
-  {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", 
+  {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO",
                                (SUBR) pvswarpset, (SUBR) pvswarp},
-  {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO", 
+  {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO",
                                (SUBR) pvsenvwset, (SUBR) pvsenvw},
-  {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk", 
+  {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk",
                                (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
-  {"pvs2tab", sizeof(PVS2TAB_T), 3, "k", "tf", 
+  {"pvs2tab", sizeof(PVS2TAB_T), 3, "k", "tf",
                                (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
-  {"tab2pvs", sizeof(TAB2PVS_T), 3, "f", "toop", 
+  {"tab2pvs", sizeof(TAB2PVS_T), 3, "f", "toop",
                                (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
 };
 

@@ -89,7 +89,7 @@ uintptr_t runp5thread(void *g)
 int p5g_deinit(CSOUND *csound, P5GLOVEINIT *p)
 {
     p->on = 0;
-    return pthread_cancel(p->thread);
+    return pthread_cancel((pthread_t)(p->thread));
 }
 
 int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
@@ -142,6 +142,7 @@ int p5g_data_init(CSOUND *csound, P5GLOVE *p)
     /* if (UNLIKELY(p5g==NULL)) */
     /*   return csound->InitError(csound, Str("No p5glove open")); */
     p->last = 0;
+    return OK;
 }
 
 int p5g_data(CSOUND *csound, P5GLOVE *p)
@@ -249,7 +250,7 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
 #define S(x)    sizeof(x)
 
 static OENTRY p5g_localops[] = {
-  {"p5gconnect", S(P5GLOVEINIT), 3, "", "", 
+  {"p5gconnect", S(P5GLOVEINIT), 3, "", "",
         (SUBR)p5glove_find, (SUBR)p5glove_poll, NULL, (SUBR)p5glove_closer },
   {"p5gdata", S(P5GLOVE), 3, "k", "k", (SUBR)p5g_data_init, (SUBR)p5g_data }
 };
