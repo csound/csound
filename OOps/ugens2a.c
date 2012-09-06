@@ -37,7 +37,7 @@
 
 static int itblchk(CSOUND *csound, TABLE *p)
 {
-    if (UNLIKELY((p->ftp = csound->FTFind(csound, p->xfn)) == NULL))
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
       return csound->InitError(csound, Str("table does not exist"));
 
     /* Although TABLE has an integer variable for the table number

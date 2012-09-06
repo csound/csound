@@ -40,7 +40,7 @@
 static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
     int size;
-    p->efunc = csound->FTFind(csound, p->ifn2);
+    p->efunc = csound->FTnp2Find(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
@@ -179,7 +179,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
 
 static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 {
-    p->efunc = csound->FTFind(csound, p->ifn2);
+    p->efunc = csound->FTnp2Find(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
@@ -387,7 +387,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
       return csound->InitError(csound,
                                Str("diskgrain: invalid number of channels"));
     }
-    p->efunc = csound->FTFind(csound, p->ifn2);
+    p->efunc = csound->FTnp2Find(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 

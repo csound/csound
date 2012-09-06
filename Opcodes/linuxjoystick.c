@@ -55,7 +55,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       stick->initme = 1;
     }
     if (UNLIKELY(*stick->ktable != stick->table)) {
-      if (UNLIKELY((void *)(stick->ftp = csound->FTFind(csound, stick->ktable))
+      if (UNLIKELY((void *)(stick->ftp = csound->FTnp2Find(csound, stick->ktable))
                    == NULL)) {
         csound->Warning(csound, Str("linuxjoystick: No such table %f"),
                         stick->ktable);
@@ -89,7 +89,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         stick->ftp->ftable[ 0 ] = (MYFLT) stick->numk;
         stick->ftp->ftable[ 1 ] = (MYFLT) stick->numb;
         evtmask = 3;
-      } 
+      }
       else {
         stick->timeout = 10000;
         csound->Warning(csound,
@@ -109,14 +109,14 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
                        sizeof(struct js_event)-read_pos);
       if (read_size == -1 && errno == EAGAIN ) {
         getmore = 0;
-      } 
+      }
       else if (read_size < 1) {
-        csound->Warning(csound, "linuxjoystick: read %d closing joystick",
+        csound->Warning(csound, Str("linuxjoystick: read %d closing joystick"),
                         read_size);
         close(stick->devFD);
         stick->devFD = -1;
         getmore = 0;
-      } 
+      }
       else {
         read_pos += read_size;
         if (read_pos == sizeof(struct js_event)) {
@@ -128,7 +128,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
             evtidx = 2 + stick->numk + js.number;
           }
           else {
-            csound->Warning(csound, "unknown joystick event type %i",
+            csound->Warning(csound, Str("unknown joystick event type %i"),
                             js.type);
             return OK;
           }

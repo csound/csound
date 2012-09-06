@@ -473,8 +473,8 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 		/* Audio Session handler */
         AudioSessionInitialize(NULL, NULL, InterruptionListener, &mCsData);
 		AudioSessionSetActive(true);
-//		UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
-//		AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
+		UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
+		AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
 		UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
 		AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
 		

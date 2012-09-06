@@ -39,7 +39,7 @@ static int tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
     numOfTabs = p->numOfTabs =((p->INCOUNT-4)); /* count segs & alloc if nec */
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
-      if (UNLIKELY((ftp = csound->FTFind(csound, *argp++)) == NULL))
+      if (UNLIKELY((ftp = csound->FTnp2Find(csound, *argp++)) == NULL))
         return csound->InitError(csound, Str("tabmorph: invalid table number"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
