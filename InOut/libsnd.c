@@ -643,6 +643,18 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* open file */
     if (STA(pipdevout)) {
       STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+#ifdef PIPES
+      if (STA(outfile) == NULL && O->filetyp != TYP_IRCAM) {
+        csound->Message(csound, Str("Output file type changed to IRCAM "
+                                    "for use in pipe\n"));
+        O->filetyp = TYP_IRCAM;
+        sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
+        STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+      }
+#endif
+      if (UNLIKELY(STA(outfile) == NULL))
+        csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
+                  sf_strerror(NULL));
     }
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
