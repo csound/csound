@@ -150,7 +150,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
   int i, bufsiz, pulserror;
   float *buf;
   pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
-  MYFLT norm = csound->e0dbfs;
+  //MYFLT norm = csound->e0dbfs;
   bufsiz = nbytes/sizeof(MYFLT);
   buf = pulse->buf;
   for (i=0;i<bufsiz;i++) buf[i] = outbuf[i];
@@ -241,7 +241,7 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes)
     int i, bufsiz,pulserror;
     float *buf;
     pulse_params *pulse = (pulse_params*) csound->rtRecord_userdata;
-    MYFLT norm = csound->e0dbfs;
+    //MYFLT norm = csound->e0dbfs;
     bufsiz = nbytes/sizeof(MYFLT);
     buf = pulse->buf;
 
