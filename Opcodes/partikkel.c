@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define frand() (csound->RandMT(&p->randstate)/(double)(0xffffffff))
 
 /* linear interpolation between x and y by z
- * NOTE: arguments evaluated more than once, don't pass anything with side
+ * NOTE: arguments evaluated more than once, do not pass anything with side
  * effects
  */
 #define lrp(x, y, z) ((x) + ((y) - (x))*(z))
@@ -137,7 +137,7 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
     }
     p->globals = pg;
     if ((int)*p->opcodeid == 0) {
-        /* opcodeid 0 means we don't bother with the sync opcode */
+        /* opcodeid 0 means we do not bother with the sync opcode */
         p->globals_entry = NULL;
         return OK;
     }

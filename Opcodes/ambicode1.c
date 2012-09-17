@@ -255,7 +255,7 @@ abformdec(CSOUND * csound, AMBID * p) {
       assert(p->OUTOCOUNT == 5);
       /* This is a second order decoder provided by Bruce Wiggins. It is
          optimised for high frequency use within a dual-band decoder,
-         however it has good a low-frequency response. It isn't quite
+         however it has good a low-frequency response. It is not quite
          'in-phase' but it is not far off. */
       if (p->INOCOUNT == 1 + 4) {
         /* Matrix truncated to first order (not ideal). */

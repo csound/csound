@@ -84,6 +84,7 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
                   csound->ksmps * (double) ip->xtratim)/csound->esr;
     ip->offbet = csound->curBeat + (csound->curBeat_inc * (double) ip->xtratim);
     ip->relesing = 1;
+    csound->instrtxtp[ip->insno]->pending_release++;
 }
 
 /* insert an instr copy into active list */
@@ -579,6 +580,8 @@ static void deact(CSOUND *csound, INSDS *ip)
     if (ip->nxtd != NULL)
       csoundDeinitialiseOpcodes(csound, ip);
     csound->instrtxtp[ip->insno]->active--; /* remove an active instrument */
+    if (ip->xtratim > 0)
+      csound->instrtxtp[ip->insno]->pending_release--;
     csound->cpu_power_busy -= csound->instrtxtp[ip->insno]->cpuload;
     /* IV - Sep 8 2002: free subinstr instances */
     /* that would otherwise result in a memory leak */

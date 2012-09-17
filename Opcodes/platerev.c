@@ -42,7 +42,7 @@ typedef struct {
     double       *u, *u1, *u2;
     AUXCH        auxch;
     double       L, dy, dt;
-    double       *in_param, *out_param;
+    MYFLT        *in_param, *out_param;
     double       ci[40], si[40], co[40], so[40];
  } PLATE;
 
@@ -71,11 +71,11 @@ static int platerev_init(CSOUND *csound, PLATE *p)
     p->nin = (int) (p->INOCOUNT) - 7; p->nout = (int) (p->OUTOCOUNT);
     if (UNLIKELY((inp = csound->FTnp2Find(csound,p->tabins)) == NULL ||
                  inp->flen < 3*p->nin)) {
-      return csound->InitError(csound, "Missing input table or too short");
+      return csound->InitError(csound, Str("Missing input table or too short"));
     }
     if (UNLIKELY((outp = csound->FTnp2Find(csound,p->tabout)) == NULL ||
                  outp->flen < 3*p->nout)) {
-      return csound->InitError(csound, "Missing output table or too short");
+      return csound->InitError(csound, Str("Missing output table or too short"));
     }
     p->in_param = inp->ftable;
     p->out_param = outp->ftable;
@@ -94,12 +94,12 @@ static int platerev_init(CSOUND *csound, PLATE *p)
     p->t10 = -V*eta;
     p->t01 = -V*eta*alf*alf;
     for (qq=0; qq<p->nin; qq++) {
-      p->ci[qq] = cos(p->in_param[3*qq+2]);
-      p->si[qq] = sin(p->in_param[3*qq+2]);
+      p->ci[qq] = cos((double)p->in_param[3*qq+2]);
+      p->si[qq] = sin((double)p->in_param[3*qq+2]);
     }
     for (qq=0; qq<p->nout; qq++) {
-      p->co[qq] = cos(p->out_param[3*qq+2]);
-      p->so[qq] = sin(p->out_param[3*qq+2]);
+      p->co[qq] = cos((double)p->out_param[3*qq+2]);
+      p->so[qq] = sin((double)p->out_param[3*qq+2]);
     }
 
     return OK;
@@ -122,16 +122,16 @@ static int platerev(CSOUND *csound, PLATE *p)
     double wi[40], wo[40], sdi[40], cdi[40], sdo[40], cdo[40];
 
     for (qq=0; qq<p->nin; qq++) {
-      double delta = TWOPI*p->in_param[3*qq]*dt;
+      double delta = TWOPI*(double)p->in_param[3*qq]*dt;
       cdi[qq] = cos(delta);
       sdi[qq] = sin(delta);
-      wi[qq] = p->L*0.5*p->in_param[3*qq+1];
+      wi[qq] = p->L*0.5*(double)p->in_param[3*qq+1];
     }
     for (qq=0; qq<p->nout; qq++) {
-      double delta = TWOPI*p->out_param[3*qq]*dt;
+      double delta = TWOPI*(double)p->out_param[3*qq]*dt;
       cdo[qq] = cos(delta);
       sdo[qq] = sin(delta);
-      wo[qq] = (p->L*0.5)*p->out_param[3*qq+1];
+      wo[qq] = (p->L*0.5)*(double)p->out_param[3*qq+1];
     }
     for (n=0; n<nsmps; n++) {
       /* interior grid points*/

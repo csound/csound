@@ -586,9 +586,17 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       osfd = fileno(STA(pout));
       STA(pipdevout) = 1;
       if (O->filetyp == TYP_AIFF || O->filetyp == TYP_WAV) {
-        csound->Message(csound, Str("Output file type changed to IRCAM "
-                                    "for use in pipe\n"));
-        O->filetyp = TYP_IRCAM;
+        char fmt_name[6];
+        if (O->sfsampsize == 8) {
+          strcpy(fmt_name, "AU");
+          O->filetyp = TYP_AU;
+        }
+        else {
+          strcpy(fmt_name, "IRCAM");
+          O->filetyp = TYP_IRCAM;
+        }
+        csound->Message(csound, Str("Output file type changed to %s "
+                                    "for use in pipe\n"), fmt_name);
       }
     }
 #endif
@@ -615,7 +623,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       }
       else if (strcmp(fName, "null") == 0) {
         STA(outfile) = NULL;
-        if (csound->dither_output && csound->oparms->outformat!=AE_FLOAT) {
+        if (csound->dither_output && csound->oparms->outformat!=AE_FLOAT &&
+            csound->oparms->outformat!=AE_DOUBLE) {
           if (csound->oparms->outformat==AE_SHORT)
             if (csound->dither_output==1)
               csound->audtran = writesf_dither_16;
@@ -643,6 +652,32 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* open file */
     if (STA(pipdevout)) {
       STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+#ifdef PIPES
+      if (STA(outfile) == NULL) {
+        char fmt_name[6];
+        if (O->sfsampsize == 8) {
+          if (O->filetyp == TYP_AU)
+            csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
+                      sf_strerror(NULL));
+          strcpy(fmt_name, "AU");
+          O->filetyp = TYP_AU;
+        }
+        else {
+          if (O->filetyp == TYP_IRCAM)
+            csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
+                      sf_strerror(NULL));
+          strcpy(fmt_name, "IRCAM");
+          O->filetyp = TYP_IRCAM;
+        }
+        csound->Message(csound, Str("Output file type changed to %s "
+                                    "for use in pipe\n"), fmt_name);
+        sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
+        STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+      }
+#endif
+      if (UNLIKELY(STA(outfile) == NULL))
+        csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
+                  sf_strerror(NULL));
     }
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
@@ -678,7 +713,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       csound->spoutran = spoutsf;       /* accumulate output */
     else
       csound->spoutran = spoutsf_noscale;
-    if (csound->dither_output && csound->oparms->outformat!=AE_FLOAT) {
+    if (csound->dither_output && csound->oparms->outformat!=AE_FLOAT &&
+        csound->oparms->outformat!=AE_DOUBLE) {
       if (csound->oparms->outformat==AE_SHORT)
         csound->audtran = writesf_dither_16;
       else if (csound->oparms->outformat==AE_CHAR)
