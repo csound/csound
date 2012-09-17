@@ -368,6 +368,7 @@ char *getstrformat(int format)  /* used here, and in sfheader.c */
       case  AE_SHORT:   return Str("shorts");
       case  AE_LONG:    return Str("longs");
       case  AE_FLOAT:   return Str("floats");
+      case  AE_DOUBLE:  return Str("double floats");
       case  AE_24INT:   return Str("24bit ints");     /* RWD 5:2001 */
       case  AE_VORBIS:  return Str("vorbis encoding");
     }

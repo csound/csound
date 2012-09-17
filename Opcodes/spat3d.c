@@ -848,8 +848,8 @@ static int    spat3dt(CSOUND *csound, SPAT3D *p)
     spat3d_init_wall(p, 0, 0, &wmax,
                      *(p->args[1]), *(p->args[2]), *(p->args[3]));
     p->outftlnth = ((p->outftlnth) >> 2) << 2;      /* table length  */
-    if (UNLIKELY((p->outft == NULL) ||
-                 (p->outftlnth < 4))) return NOTOK; /* no table */
+    if (UNLIKELY((p->outft == NULL) || (p->outftlnth < 4)))
+      return NOTOK;                         /* no table */
 
     /* initialise IR */
 

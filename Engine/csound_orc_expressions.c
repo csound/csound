@@ -951,9 +951,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 gotoToken->next = statements;
                 /* VL: added as means of dealing with empty conditionals,
                    may need revision */
-                if(statements == NULL)
-                   csound->Die(csound,
-                               Str("error: non-existent statement in "
+                if (statements == NULL)
+                   csound->Warning(csound,
+                               Str("Empty statement in "
                                    "conditional, line %d \n"),
                                last->right->line);
                 while (statements->next != NULL) {
