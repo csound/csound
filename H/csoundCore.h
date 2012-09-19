@@ -262,6 +262,11 @@ typedef struct {
     struct opcodinfo *opcode_info;  /* UDO info (when instrs are UDOs) */
     char    *insname;               /* instrument name */
     int     instcnt;                /* Count number of instances ever */
+#ifdef JPFF
+    int     ksmps;                  /* Instrument copy of ksmps */
+    MYFLT   esr, ekr;               /* and of rates */
+    MYFLT   onedsr, tpidsr, pidsr, mpidsr, mtpdsr, sicvt, onedksmps, onedkr, kicvt;
+#endif
   } INSTRTXT;
 
   /**
