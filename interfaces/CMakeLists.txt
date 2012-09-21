@@ -107,8 +107,9 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         INCLUDE_DIRECTORIES(${JNI_INCLUDE_DIRS})
         set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd)
 
+        list(APPEND javaSwigOptions -package csnd)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES CPLUSPLUS ON)
-        SET_SOURCE_FILES_PROPERTIES(java_interface.i SWIG_FLAGS "-package" "csnd")
+        SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES SWIG_FLAGS "${javaSwigOptions}")
 
         set(SWIG_MODULE__jcsound_EXTRA_DEPS ../H/csound.h ../H/cfgvar.h ../H/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
