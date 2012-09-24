@@ -51,7 +51,7 @@ static int biquadset(CSOUND *csound, BIQUAD *p)
 
 static int biquad(CSOUND *csound, BIQUAD *p)
 {
-    int   n = 0, nsmps = csound->ksmps;
+    int   n = 0, nsmps = CS_KSMPS;
     double xn, yn;
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     double a0 = 1.0 / *p->a0, a1 = a0 * *p->a1, a2 = a0 * *p->a2;
@@ -73,7 +73,7 @@ static int biquad(CSOUND *csound, BIQUAD *p)
 
 static int biquada(CSOUND *csound, BIQUAD *p)
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT *out, *in;
     double xn, yn;
     MYFLT *a0 = p->a0, *a1 = p->a1, *a2 = p->a2;
@@ -116,7 +116,7 @@ static int moogvcfset(CSOUND *csound, MOOGVCF *p)
 
 static int moogvcf(CSOUND *csound, MOOGVCF *p)
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT *out, *in;
     double xn;
     MYFLT *fcoptr, *resptr;
@@ -205,7 +205,7 @@ static int rezzyset(CSOUND *csound, REZZY *p)
 
 static int rezzy(CSOUND *csound, REZZY *p)
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
     double fqcadj, a=0.0, /* Initialisations fake */
@@ -317,7 +317,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
 
 static int distort(CSOUND *csound, DISTORT *p)
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out, *in;
     MYFLT pregain = *p->pregain, postgain  = *p->postgain;
     MYFLT shape1 = *p->shape1, shape2 = *p->shape2;
@@ -421,7 +421,7 @@ static int vco(CSOUND *csound, VCO *p)
     MYFLT leaky, rtfqc, amp, fqc;
     MYFLT sicvt2, over2n, scal, num, denom, pulse = FL(0.0), saw = FL(0.0);
     MYFLT sqr = FL(0.0), tri = FL(0.0);
-    int   n, nsmps = csound->ksmps, knh;
+    int   n, nsmps = CS_KSMPS, knh;
 
     /* VDelay Inserted here */
     MYFLT *buf = (MYFLT *)p->aux.auxp;
@@ -626,7 +626,7 @@ static int planet(CSOUND *csound, PLANET *p)
     MYFLT *outx, *outy, *outz;
     MYFLT   sqradius1, sqradius2, radius1, radius2, fric;
     MYFLT xxpyy, dz1, dz2, mass1, mass2, msqror1, msqror2;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     fric = p->friction;
 
@@ -701,7 +701,7 @@ static int pareqset(CSOUND *csound, PAREQ *p)
 static int pareq(CSOUND *csound, PAREQ *p)
 {
     MYFLT xn, yn;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
 
     if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
       double omega = (double)(csound->tpidsr * *p->fc), k, kk, vkk, vk, vkdq, a0;
@@ -847,7 +847,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
     MYFLT   *del1p, *del2p, *del3p;
     MYFLT   in1, g1, g2, g3;
-    int     n, nsmps = csound->ksmps;
+    int     n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
 
@@ -983,7 +983,7 @@ static int lorenz(CSOUND *csound, LORENZ *p)
 {
     MYFLT   *outx, *outy, *outz;
     MYFLT   x, y, z, xx, yy, s, r, b, hstep;
-    int32    n, nsmps = csound->ksmps, skip;
+    int32    n, nsmps = CS_KSMPS, skip;
 
     outx  = p->outx;
     outy  = p->outy;
@@ -1040,7 +1040,7 @@ static int tbvcfset(CSOUND *csound, TBVCF *p)
 
 static int tbvcf(CSOUND *csound, TBVCF *p)
 {
-    int32 n, nsmps = csound->ksmps;
+    int32 n, nsmps = CS_KSMPS;
     MYFLT *out, *in;
     double x;
     MYFLT *fcoptr, *resptr, *distptr, *asymptr;
@@ -1114,7 +1114,7 @@ static int bqrezset(CSOUND *csound, REZZY *p)
 
 static int bqrez(CSOUND *csound, REZZY *p)
 {
-    int32 n, nsmps = csound->ksmps;
+    int32 n, nsmps = CS_KSMPS;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
     double sin2 = 0.0, cos2 = 0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
@@ -1260,7 +1260,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
 
 static int mode(CSOUND *csound, MODE *p)
 {
-    int   n = 0, nsmps = csound->ksmps;
+    int   n = 0, nsmps = CS_KSMPS;
 
     double kfreq  = *p->kfreq*TWOPI;
     double kalpha = (csound->esr/kfreq);

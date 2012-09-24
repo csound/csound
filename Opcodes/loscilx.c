@@ -660,7 +660,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
       else
         p->curPos += p->curPosInc;
 
-    } while (++i < csound->ksmps);
+    } while (++i < CS_KSMPS);
 
     return OK;
  err1:

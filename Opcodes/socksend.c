@@ -113,7 +113,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
 static int send_send(CSOUND *csound, SOCKSEND *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-    int     i, wp, ksmps = csound->ksmps;
+    int     i, wp, ksmps = CS_KSMPS;
     int     buffersize = p->bsize;
     MYFLT   *asig = p->asig;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
@@ -205,7 +205,7 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     int16   *outs = (int16 *) p->aux.auxp;
     int     i;
     int     buffersize = p->bsize;
-    int     wp, ksmps = csound->ksmps;
+    int     wp, ksmps = CS_KSMPS;
     int     ff = p->ff;
 
     /* store the samples of the channels interleaved in the packet */
@@ -294,11 +294,11 @@ again:
 
 static int send_ssend(CSOUND *csound, SOCKSEND *p)
 {
-    int     n = sizeof(MYFLT) * csound->ksmps;
+    int     n = sizeof(MYFLT) * CS_KSMPS;
 
     if (n != write(p->sock, p->asig, n)) {
       csound->Message(csound, Str("Expected %d got %d\n"),
-                      (int) (sizeof(MYFLT) * csound->ksmps), n);
+                      (int) (sizeof(MYFLT) * CS_KSMPS), n);
       return csound->PerfError(csound, Str("write to socket failed"));
     }
 

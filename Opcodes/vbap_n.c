@@ -43,7 +43,7 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     int cnt = p->number;
     vbap_control(csound,p);
     for (i=0; i<cnt; i++) {
@@ -250,7 +250,7 @@ int vbap_moving(CSOUND *csound, VBAP_MOVING *p)
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     int cnt = p->number;
 
     vbap_moving_control(csound,p);

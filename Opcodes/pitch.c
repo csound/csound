@@ -249,7 +249,7 @@ int pitch(CSOUND *csound, PITCH *p)
     double      c1 = p->c1, c2 = p->c2;
 
     MYFLT   a, b, *dftp, SIG, yt1, yt2;
-    int     nocts, n, nsmps = csound->ksmps, winlen;
+    int     nocts, n, nsmps = CS_KSMPS, winlen;
     DOWNDAT *downp = &p->downsig;
     OCTDAT  *octp;
     SPECDAT *specp;
@@ -466,7 +466,7 @@ int macset(CSOUND *csound, SUM *p)
 
 int maca(CSOUND *csound, SUM *p)
 {
-    int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k;
+    int nsmps=CS_KSMPS, count=(int) p->INOCOUNT, j, k;
     MYFLT *ar = p->ar, **args = p->argums;
     for (k=0; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
@@ -479,7 +479,7 @@ int maca(CSOUND *csound, SUM *p)
 
 int mac(CSOUND *csound, SUM *p)
 {
-    int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k;
+    int nsmps=CS_KSMPS, count=(int) p->INOCOUNT, j, k;
     MYFLT *ar = p->ar, **args = p->argums;
     for (k=0; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
@@ -633,7 +633,7 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     MYFLT   amp0, amp, cps0, cps;
     int32    phs, inc, lobits;
     int32    *lphs;
-    int     n, nsmps = csound->ksmps, c, count;
+    int     n, nsmps = CS_KSMPS, c, count;
 
     if (UNLIKELY(p->inerr)) {
       return csound->PerfError(csound, Str("adsynt: not initialised"));
@@ -702,7 +702,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     MYFLT       fract, v1, amp0, amp, *ar, *ftab, *mtab;
     int32       phs, inc, lobits;
     int32       phases[10];
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       tonal, bright, freq, ampscl;
     int         octcnt = p->octcnt;
     MYFLT       octstart, octoffs, octbase;
@@ -802,11 +802,11 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
         interval = maxperi;
     else
         interval = (int32)(srate / *p->iexcps);
-    if (interval < csound->ksmps) {
+    if (interval < CS_KSMPS) {
       if (downsamp)
-        interval = csound->ksmps / downsamp;
+        interval = CS_KSMPS / downsamp;
       else
-        interval = csound->ksmps * upsamp;
+        interval = CS_KSMPS * upsamp;
     }
 
     size = maxperi + interval;
@@ -933,7 +933,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
     MYFLT  newval, delta;
     int32  readp = p->readp;
     int32  interval = size - maxperi;
-    int    nsmps = csound->ksmps;
+    int    nsmps = CS_KSMPS;
     int    i;
     int32  i1, i2;
     MYFLT  val, rms;
@@ -1140,7 +1140,7 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
 
 int phsorbnk(CSOUND *csound, PHSORBNK *p)
 {
-    int     n, nsmps = csound->ksmps;
+    int     n, nsmps = CS_KSMPS;
     MYFLT   *rs;
     double  phase, incr;
     double  *curphs = (double*)p->curphs.auxp;
@@ -1239,7 +1239,7 @@ int pinkish(CSOUND *csound, PINKISH *p)
 {
     MYFLT       *aout, *ain;
     double      c0, c1, c2, c3, c4, c5, c6, nxtin, nxtout;
-    int    n, nsmps = csound->ksmps;
+    int    n, nsmps = CS_KSMPS;
     aout = p->aout;
     ain = p->xin;
 
@@ -1390,7 +1390,7 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
     MYFLT *aout, *amp, scalar;
     int32 *rows, rowIndex, indexMask, randSeed, newRandom;
     int32 runningSum, sum, ampinc;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     aout        = p->aout;
     amp         = p->xin;
@@ -1490,7 +1490,7 @@ int clip_set(CSOUND *csound, CLIP *p)
 int clip(CSOUND *csound, CLIP *p)
 {
     MYFLT *aout = p->aout, *ain = p->ain;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT a = p->arg, k1 = p->k1, k2 = p->k2;
     MYFLT limit = p->lim;
     MYFLT rlim = FL(1.0)/limit;
@@ -1553,11 +1553,11 @@ int impulse_set(CSOUND *csound, IMPULSE *p)
 
 int impulse(CSOUND *csound, IMPULSE *p)
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     int next = p->next;
     MYFLT *ar = p->ar;
     if (next<0) next = -next;
-    if (UNLIKELY(next < csound->ksmps)) {          /* Impulse in this frame */
+    if (UNLIKELY(next < CS_KSMPS)) {          /* Impulse in this frame */
       MYFLT frq = *p->freq;     /* Freq at k-rate */
       int sfreq;                /* Converted to samples */
       if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
@@ -1713,11 +1713,11 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
         p->curx = FL(0.0);
       }
       if (p->alpha == FL(0.0))
-        p->curval += p->curinc*csound->ksmps;   /* advance the cur val  */
+        p->curval += p->curinc*CS_KSMPS;   /* advance the cur val  */
       else
         p->curval = p->cursegp->val + p->curinc *
           (FL(1.0) - EXP(p->curx));
-      p->curx += (MYFLT)csound->ksmps*p->alpha;
+      p->curx += (MYFLT)CS_KSMPS*p->alpha;
     }
     return OK;
 }
@@ -1725,7 +1725,7 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
 int trnseg(CSOUND *csound, TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
@@ -1872,11 +1872,11 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
         p->curx = FL(0.0);
       }
       if (p->alpha == FL(0.0))
-        p->curval += p->curinc*csound->ksmps;   /* advance the cur val  */
+        p->curval += p->curinc*CS_KSMPS;   /* advance the cur val  */
       else
         p->curval = p->cursegp->val + p->curinc *
           (FL(1.0) - EXP(p->curx));
-      p->curx += (MYFLT)csound->ksmps*p->alpha;
+      p->curx += (MYFLT)CS_KSMPS*p->alpha;
     }
     return OK;
 }
@@ -1884,7 +1884,7 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
 int trnsegr(CSOUND *csound, TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
     }
@@ -1965,7 +1965,7 @@ int varicolset(CSOUND *csound, VARI *p)
 
 int varicol(CSOUND *csound, VARI *p)
 {
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       beta = *p->beta;
     MYFLT       sq1mb2 = p->sq1mb2;
     MYFLT       lastx = p->last;
@@ -2012,7 +2012,7 @@ int lpf18set(CSOUND *csound, LPF18 *p)
 
 int lpf18db(CSOUND *csound, LPF18 *p)
 {
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT kfcn = FL(2.0) * *p->fco * csound->onedsr;
     MYFLT kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
                   FL(1.718))*kfcn - FL(0.9984);
@@ -2079,7 +2079,7 @@ int waveset(CSOUND *csound, BARRI *p)
     MYFLT *out = p->ar;
     int   index = p->end;
     MYFLT *insert = (MYFLT*)(p->auxch.auxp) + index;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     if (p->noinsert) goto output;
     for (n=0;n<nsmps;n++) {                        /* Deal with inputs */
       *insert++ = in[n];
@@ -2151,7 +2151,7 @@ int medfilt(CSOUND *csound, MEDFILT *p)
     int maxwind = p->maxwind;
     int kwind = MYFLT2LONG(*p->kwind);
     int index = p->ind;
-    int n, nsmps=csound->ksmps;
+    int n, nsmps=CS_KSMPS;
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, Str("median: not initialised (arate)\n"));
     }

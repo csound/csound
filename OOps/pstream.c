@@ -60,7 +60,7 @@ int fassign(CSOUND *csound, FASSIGN *p)
       csound->Die(csound, Str("fsig = : formats are different.\n"));
     if (p->fsrc->sliding) {
       memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
-             sizeof(MYFLT)*(p->fsrc->N+2)*csound->ksmps);
+             sizeof(MYFLT)*(p->fsrc->N+2)*CS_KSMPS);
       return OK;
     }
     fout = (float *) p->fout->frame.auxp;
@@ -224,7 +224,7 @@ int pvadsyn(CSOUND *csound, PVADS *p)
     if (UNLIKELY(p->outbuf.auxp==NULL)) {
       csound->Die(csound, Str("pvsynth: Not initialised.\n"));
     }
-    for (i=0;i < csound->ksmps;i++)
+    for (i=0;i < CS_KSMPS;i++)
       aout[i] = adsyn_tick(csound, p);
     return OK;
 }
@@ -253,7 +253,7 @@ int pvscrosset(CSOUND *csound, PVSCROSS *p)
     p->fout->format = p->fsrc->sliding;
     if (p->fsrc->sliding) {
       p->fout->NB = p->fsrc->NB;
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                        &p->fout->frame);
       return OK;
     }
@@ -284,7 +284,7 @@ int pvscross(CSOUND *csound, PVSCROSS *p)
       csound->Die(csound, Str("pvscross: mismatch in fdest format\n"));
     if (p->fsrc->sliding) {
       CMPLX *fout, *fsrc, *fdest;
-      int n, nsmps = csound->ksmps;
+      int n, nsmps = CS_KSMPS;
       int NB = p->fsrc->NB;
       for (n=0; n<nsmps; n++) {
         fsrc = (CMPLX *) p->fsrc->frame.auxp +n*NB;    /* RWD all must be 32bit */
@@ -336,7 +336,7 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
     p->arate   = csound->esr / (MYFLT) pp.overlap;
     p->membase = (float*) pp.data;
 
-    if (UNLIKELY(p->overlap < csound->ksmps || p->overlap < 10))
+    if (UNLIKELY(p->overlap < CS_KSMPS || p->overlap < 10))
       csound->InitError(csound, Str("Sliding version not yet available"));
     if (UNLIKELY(p->nframes <= 0))
       csound->Die(csound, Str("pvsfread: file is empty!\n"));
@@ -344,7 +344,7 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
     if (UNLIKELY(p->nframes == 1))
       csound->Die(csound, Str("pvsfread: file has only one frame "
                               "(= impulse response).\n"));
-    if (UNLIKELY(p->overlap < csound->ksmps))
+    if (UNLIKELY(p->overlap < CS_KSMPS))
       csound->Die(csound, Str("pvsfread: analysis frame overlap "
                               "must be >= ksmps\n"));
     p->blockalign = (p->fftsize+2) * p->chans;
@@ -426,7 +426,7 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
       p->fout->framecount++;
       p->lastframe = p->fout->framecount;
     }
-    p->ptr += csound->ksmps;
+    p->ptr += CS_KSMPS;
 
     return OK;
 }
@@ -455,7 +455,7 @@ int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
     p->fout->format  = p->format;
     p->fout->sliding = p->fsrc->sliding;
     if (p->fsrc->sliding) {
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                        &p->fout->frame);
       p->fout->NB = p->fsrc->NB;
     }
@@ -526,7 +526,7 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     if (p->fsrc->sliding) {
       int NB = p->fsrc->NB;
       CMPLX *fout, *fsrc;
-      int n, nsmps=csound->ksmps;
+      int n, nsmps=CS_KSMPS;
       MYFLT amp = FL(1.0);
       for (n=0; n<nsmps; n++) {
         fout = (CMPLX *) p->fout->frame.auxp +n*NB;
@@ -697,7 +697,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
       if (UNLIKELY(flena < nbins))
         csound->Die(csound, Str("pvsftr: amps ftable too small.\n"));
     }
-    if (UNLIKELY(p->overlap < csound->ksmps || p->overlap < 10))
+    if (UNLIKELY(p->overlap < CS_KSMPS || p->overlap < 10))
       csound->InitError(csound, Str("Sliding version not yet available"));
     fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
 

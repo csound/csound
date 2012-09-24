@@ -48,7 +48,7 @@ int foscil(CSOUND *csound, FOSC *p)
     MYFLT   *ar, *ampp, *modp, cps, amp;
     MYFLT   xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
     int32    mphs, cphs, minc, cinc, lobits;
-    int     n, nn=csound->ksmps;
+    int     n, nn=CS_KSMPS;
     MYFLT   sicvt = csound->sicvt;
 
     ar = p->rslt;
@@ -117,7 +117,7 @@ int foscili(CSOUND *csound, FOSC *p)
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
     int32  mphs, cphs, minc, cinc, lobits;
-    int    n, nn=csound->ksmps;
+    int    n, nn=CS_KSMPS;
     MYFLT  sicvt = csound->sicvt;
     MYFLT  *ft;
 
@@ -366,7 +366,7 @@ int loscil(CSOUND *csound, LOSC *p)
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     int32    phs, inc, beg, end;
-    int     nsmps = csound->ksmps, aamp;
+    int     nsmps = CS_KSMPS, aamp;
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -567,7 +567,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     int32    phs, inc, beg, end;
-    int     nsmps = csound->ksmps, aamp;
+    int     nsmps = CS_KSMPS, aamp;
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -855,7 +855,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
     frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
     /* 1024 * msecs of analysis */
     timkincr = (int32)(*p->ksmod*FL(1024000.0)*csound->onedkr);
-    nsmps = csound->ksmps;
+    nsmps = CS_KSMPS;
     memset(p->rslt,0,sizeof(MYFLT)*nsmps);
     curtim = (int16)(p->mksecs >> 10);          /* cvt mksecs to msecs */
     curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */
@@ -869,7 +869,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
       if ((amp = curp->amp)) {            /* for non-zero amp   */
         sinc = (int32)(curp->frq * frqscale);
         phs = curp->phs;
-        nsmps = csound->ksmps;            /*   addin a sinusoid */
+        nsmps = CS_KSMPS;            /*   addin a sinusoid */
         for (n=0; n<nsmps; n++) {
           ar[n] += (ampscale*(MYFLT)csound->isintab[phs]*(MYFLT)amp)/ADSYN_MAXLONG;
           phs += sinc;

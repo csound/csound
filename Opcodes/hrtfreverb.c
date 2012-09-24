@@ -878,7 +878,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
 int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 {
-    int i, j, k, n = csound->ksmps;
+    int i, j, k, n = CS_KSMPS;
 
     /* signals in, out */
     MYFLT *in = p->insig, sigin;

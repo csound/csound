@@ -413,7 +413,7 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     MYFLT   k, a_d = FL(0.0), a1_d, a2_d, b0_d, b1_d, b2_d;
     MYFLT   yn, xnm1, xnm2, ynm1, ynm2;
     OSCBNK_OSC      *o;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     /* clear output signal */
     for (nn = 0; nn < nsmps; nn++) p->args[0][nn] = FL(0.0);
@@ -654,7 +654,7 @@ static void grain2_init_grain(GRAIN2 *p, GRAIN2_OSC *o)
 
 static int grain2(CSOUND *csound, GRAIN2 *p)
 {
-    int         i, nn = csound->ksmps, w_interp, g_interp, f_nolock;
+    int         i, nn = CS_KSMPS, w_interp, g_interp, f_nolock;
     MYFLT       *aout, *ft, *w_ft, grain_frq, frq_scl, pfrac, w_pfrac, f, a, k;
     uint32 n, mask, lobits, w_mask, w_lobits;
     uint32 g_frq, w_frq;
@@ -673,7 +673,7 @@ static int grain2(CSOUND *csound, GRAIN2 *p)
 
     /* clear output signal */
     memset(aout, 0, nn*sizeof(MYFLT));
-    /* for (nn = 0; nn < csound->ksmps; nn++) aout[nn] = FL(0.0); */
+    /* for (nn = 0; nn < CS_KSMPS; nn++) aout[nn] = FL(0.0); */
 
     if (p->nr_osc == -1) {
       return OK;                   /* nothing to render */
@@ -774,12 +774,12 @@ static int grain3set(CSOUND *csound, GRAIN3 *p)
 
     /* allocate space */
 
-    n = ((int32) csound->ksmps + 1L) * (int32) sizeof(uint32);
+    n = ((int32) CS_KSMPS + 1L) * (int32) sizeof(uint32);
     n += (int32) p->ovrlap * (int32) sizeof(GRAIN2_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < n))
       csound->AuxAlloc(csound, n, &(p->auxdata));
     p->phase = (uint32 *) p->auxdata.auxp;
-    p->osc = (GRAIN2_OSC *) ((uint32 *) p->phase + csound->ksmps + 1);
+    p->osc = (GRAIN2_OSC *) ((uint32 *) p->phase + CS_KSMPS + 1);
     p->osc_start = p->osc;
     p->osc_end = p->osc;
     p->osc_max = p->osc + (p->ovrlap - 1);
@@ -825,11 +825,11 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     uint32 *phs, frq, x_ph, x_frq, g_ph, g_frq, w_ph, w_frq;
     GRAIN2_OSC    *o;
     FUNC          *ftp;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     /* clear output */
     memset(p->ar, 0, nsmps*sizeof(MYFLT));
-    /* for (nn = 0; nn < csound->ksmps; nn++) p->ar[nn] = FL(0.0); */
+    /* for (nn = 0; nn < CS_KSMPS; nn++) p->ar[nn] = FL(0.0); */
 
     if (UNLIKELY((p->seed == 0L) || (p->osc == NULL))) goto err1;
 
@@ -1076,7 +1076,7 @@ static int rnd31a(CSOUND *csound, RND31 *p)
 
     if (UNLIKELY(!p->seed)) goto err1;
 
-    nn = csound->ksmps;
+    nn = CS_KSMPS;
     scl = *(p->scl); out = p->out;
     /* random distribution */
     rpow = *(p->rpow);
@@ -1167,7 +1167,7 @@ static int osckkikt(CSOUND *csound, OSCKT *p)
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
     v = *(p->xcps) * csound->onedsr; frq = OSCBNK_PHS2INT(v);
-    nn = csound->ksmps;
+    nn = CS_KSMPS;
     do {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((int32) (phs & mask)) * pfrac;
@@ -1184,7 +1184,7 @@ static int osckaikt(CSOUND *csound, OSCKT *p)
     FUNC    *ftp;
     uint32   n, phs, lobits, mask;
     MYFLT   pfrac, *ft, v, a, *ar, *xcps;
-    int     nn, nsmps=csound->ksmps;
+    int     nn, nsmps=CS_KSMPS;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1229,7 +1229,7 @@ static int oscakikt(CSOUND *csound, OSCKT *p)
     FUNC    *ftp;
     uint32   n, phs, lobits, mask, frq;
     MYFLT   pfrac, *ft, v, *ar, *xamp;
-    int     nn, nsmps = csound->ksmps;
+    int     nn, nsmps = CS_KSMPS;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1260,7 +1260,7 @@ static int oscaaikt(CSOUND *csound, OSCKT *p)
     FUNC    *ftp;
     uint32   n, phs, lobits, mask;
     MYFLT   pfrac, *ft, v, *ar, *xcps, *xamp;
-    int     nn, nsmps=csound->ksmps;
+    int     nn, nsmps=CS_KSMPS;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1307,7 +1307,7 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
     FUNC    *ftp;
     uint32   n, phs, lobits, mask, frq;
     MYFLT   pfrac, *ft, v, *ar;
-    int     nn, nsmps = csound->ksmps;
+    int     nn, nsmps = CS_KSMPS;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1366,7 +1366,7 @@ static int osckts(CSOUND *csound, OSCKTS *p)
     FUNC    *ftp;
     uint32   n, phs, lobits, mask, frq = 0UL;
     MYFLT   pfrac, *ft, v, *ar, *xcps, *xamp, *async;
-    int     nn, nsmps = csound->ksmps, a_amp, a_cps;
+    int     nn, nsmps = CS_KSMPS, a_amp, a_cps;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -2020,7 +2020,7 @@ static int vco2(CSOUND *csound, VCO2 *p)
     lobits = tabl->lobits; mask = tabl->mask; pfrac = tabl->pfrac;
     ftable = tabl->ftable;
 
-    nn = csound->ksmps;
+    nn = CS_KSMPS;
     if (!p->mode) {                     /* - mode 0: simple table playback - */
       do {
         n = phs >> lobits;
@@ -2100,7 +2100,7 @@ static int denorms(CSOUND *csound, DENORMS *p)
     do {
       r = DENORM_RND;
       ar = *args++;
-      nn = csound->ksmps;
+      nn = CS_KSMPS;
       do {
         *ar++ += r;
       } while (--nn);
@@ -2267,7 +2267,7 @@ static int rbjeq(CSOUND *csound, RBJEQ *p)
     /* copy object data to local variables */
     ar = p->ar; asig = p->asig;
     xnm1 = p->xnm1; xnm2 = p->xnm2; ynm1 = p->ynm1; ynm2 = p->ynm2;
-    nn = (int) csound->ksmps;
+    nn = (int) CS_KSMPS;
     switch (p->ftype) {
     case 0:                                     /* lowpass filter */
       if (new_frq || *(p->kQ) != p->old_kQ) {

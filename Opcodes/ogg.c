@@ -105,7 +105,7 @@ int oggread_init (CSOUND *csound, OGGREAD * p)
 int oggread_perf (CSOUND *csound, OGGREAD * p)
 {
     int ret;
-    int i, nsmps=csound->ksmps;
+    int i, nsmps=CS_KSMPS;
 
     for (i = 0; i < nsmps; i++) {
       if (p->doperf == 1) {
