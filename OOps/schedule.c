@@ -334,7 +334,7 @@ int lfoa(CSOUND *csound, LFO *p)
     inc = (int32)((*p->xcps * (MYFLT)MAXPHASE) * csound->onedsr);
     amp = *p->kamp;
     ar = p->res;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<CS_KSMPS; n++) {
       switch (p->lasttype) {
       default:
         return csound->PerfError(csound, Str("LFO: unknown oscilator type %d"),
@@ -494,7 +494,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
     evt.opcod = 'i';
     evt.pcnt = argnum = p->INOCOUNT - 3;
     /* Add current time (see note about kadjust in triginset() above) */
-    starttime = csound->ksmps*(csound->global_kcounter + p->kadjust);
+    starttime = CS_KSMPS*(csound->global_kcounter + p->kadjust);
     /* Copy all arguments to the new event */
     for (i = 1; i < argnum; i++)
       evt.p[i + 1] = *p->args[i];

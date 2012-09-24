@@ -87,7 +87,7 @@ int shakerset(CSOUND *csound, SHAKER *p)
 int shaker(CSOUND *csound, SHAKER *p)
 {
     MYFLT *ar = p->ar;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT shake = amp + amp;
     MYFLT damp = *p->shake_damp;

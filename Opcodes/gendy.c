@@ -182,7 +182,7 @@ static int kgendy(CSOUND *csound, GENDY *p)
 
 static int agendy(CSOUND *csound, GENDY *p)
 {
-    int     knum, n, nn = csound->ksmps;
+    int     knum, n, nn = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
     out  = p->out;
     knum = (int)*p->knum;
@@ -309,7 +309,7 @@ static int kgendyx(CSOUND *csound, GENDYX *p)
 
 static int agendyx(CSOUND *csound, GENDYX *p)
 {
-    int     knum, n, nn = csound->ksmps;
+    int     knum, n, nn = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist, curve;
     out  = p->out;
     knum = (int)*p->knum;
@@ -447,7 +447,7 @@ static int kgendyc(CSOUND *csound, GENDYC *p)
 
 static int agendyc(CSOUND *csound, GENDYC *p)
 {
-    int     knum, remain = csound->ksmps;
+    int     knum, remain = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
     out  = p->out;
     knum = (int)*p->knum;

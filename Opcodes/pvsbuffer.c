@@ -239,7 +239,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      p->scnt -= overlap;
      p->fout->framecount++;
    }
-   p->scnt += csound->ksmps;
+   p->scnt += CS_KSMPS;
 
    return OK;
  err1:
@@ -310,7 +310,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       p->scnt -= overlap;
       p->fout->framecount++;
     }
-    p->scnt += csound->ksmps;
+    p->scnt += CS_KSMPS;
     return OK;
  err1:
     return csound->PerfError(csound, Str("Invalid buffer handle"));

@@ -232,7 +232,7 @@ static int spat3d_init_delay(CSOUND *csound, SPAT3D *p)
 {
     int32    i, j;
 
-    i = ((int32) (p->mdel * csound->esr) + (int32) csound->ksmps + 34L)
+    i = ((int32) (p->mdel * csound->esr) + (int32) CS_KSMPS + 34L)
         * (int32) p->oversamp;
     p->mdel_s = i;
     if (p->o_num == 1) i += 4;      /* extra samples for spat3d */
@@ -292,7 +292,7 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     p->ftable = p->outft = NULL;    /* no ftables */
     p->zout = p->rseed = p->mindep = p->maxdep = p->outftlnth = wmask = 0;
     p->oversamp = 1;                /* oversample */
-    p->bs = (int) csound->ksmps;    /* block size */
+    p->bs = (int) CS_KSMPS;    /* block size */
     p->irlen = 2;                   /* IR length  */
     p->mdist = p->mdel = FL(0.001); /* unit circle dist., max. delay */
     p->mdel_s = p->del_p = 0L;

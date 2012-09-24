@@ -46,12 +46,12 @@ typedef struct {
 } MINMAX;
 
 /* Which implementation is faster ?? */
-static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *data)
+static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
     MYFLT   cur;
-    int     n, nsmps = csound->ksmps;
-    MYFLT   *out = data->accum;
-    MYFLT   *in = data->ain;
+    int     n, nsmps = CS_KSMPS;
+    MYFLT   *out = p->accum;
+    MYFLT   *in = p->ain;
 
     for (n=0; n<nsmps; n++) {
       cur = in[n];
@@ -62,12 +62,12 @@ static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *data)
     return OK;
 }
 
-static int MinAccumulate(CSOUND *csound, MINMAXACCUM *data)
+static int MinAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
     MYFLT   cur;
-    int     n, nsmps = csound->ksmps;
-    MYFLT   *out = data->accum;
-    MYFLT   *in = data->ain;
+    int     n, nsmps = CS_KSMPS;
+    MYFLT   *out = p->accum;
+    MYFLT   *in = p->ain;
 
     for (n=0; n<nsmps; n++) {
       cur = in[n];
@@ -79,11 +79,11 @@ static int MinAccumulate(CSOUND *csound, MINMAXACCUM *data)
 }
 
 /* Absolute value versions of the above */
-static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *data)
+static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
-    int     n, nsmps = csound->ksmps;
-    MYFLT   *out = data->accum;
-    MYFLT   *in = data->ain;
+    int     n, nsmps = CS_KSMPS;
+    MYFLT   *out = p->accum;
+    MYFLT   *in = p->ain;
     MYFLT   inabs;
 
     for (n=0; n<nsmps; n++) {
@@ -95,11 +95,11 @@ static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *data)
     return OK;
 }
 
-static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *data)
+static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
-    int     n, nsmps = csound->ksmps;
-    MYFLT   *out = data->accum;
-    MYFLT   *in = data->ain;
+    int     n, nsmps = CS_KSMPS;
+    MYFLT   *out = p->accum;
+    MYFLT   *in = p->ain;
     MYFLT   inabs;
 
     for (n=0; n<nsmps; n++) {
@@ -112,14 +112,14 @@ static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *data)
 }
 
 /* Multiple input min and max opcodes */
-static int Max_arate(CSOUND *csound, MINMAX *data)
+static int Max_arate(CSOUND *csound, MINMAX *p)
 {
     int     i;
-    int     n, nsmps = csound->ksmps;
-    int     nargs = ((int) data->INOCOUNT) - 1;
-    MYFLT   *out = data->xout;
-    MYFLT   *in1 = data->xin1;
-    MYFLT   **in2 = data->xin2toN;
+    int     n, nsmps = CS_KSMPS;
+    int     nargs = ((int) p->INOCOUNT) - 1;
+    MYFLT   *out = p->xout;
+    MYFLT   *in1 = p->xin1;
+    MYFLT   **in2 = p->xin2toN;
     MYFLT   max, temp;
 
     for (n=0; n<nsmps; n++) {
@@ -135,14 +135,14 @@ static int Max_arate(CSOUND *csound, MINMAX *data)
     return OK;
 }
 
-static int Min_arate(CSOUND *csound, MINMAX *data)
+static int Min_arate(CSOUND *csound, MINMAX *p)
 {
     int     i;
-    int     n, nsmps = csound->ksmps;
-    int     nargs = ((int) data->INOCOUNT) - 1;
-    MYFLT   *out = data->xout;
-    MYFLT   *in1 = data->xin1;
-    MYFLT   **in2 = data->xin2toN;
+    int     n, nsmps = CS_KSMPS;
+    int     nargs = ((int) p->INOCOUNT) - 1;
+    MYFLT   *out = p->xout;
+    MYFLT   *in1 = p->xin1;
+    MYFLT   **in2 = p->xin2toN;
     MYFLT   min, temp;
 
     for (n=0; n<nsmps; n++) {
@@ -159,14 +159,14 @@ static int Min_arate(CSOUND *csound, MINMAX *data)
 }
 
 /* Absolute value versions of multiple input opcodes */
-static int MaxAbs_arate(CSOUND *csound, MINMAX *data)
+static int MaxAbs_arate(CSOUND *csound, MINMAX *p)
 {
     int     i;
-    int     n, nsmps = csound->ksmps;
-    int     nargs = ((int) data->INOCOUNT) - 1;
-    MYFLT   *out = data->xout;
-    MYFLT   *in1 = data->xin1;
-    MYFLT   **in2 = data->xin2toN;
+    int     n, nsmps = CS_KSMPS;
+    int     nargs = ((int) p->INOCOUNT) - 1;
+    MYFLT   *out = p->xout;
+    MYFLT   *in1 = p->xin1;
+    MYFLT   **in2 = p->xin2toN;
     MYFLT   max, temp;
 
     for (n=0; n<nsmps; n++) {
@@ -182,14 +182,14 @@ static int MaxAbs_arate(CSOUND *csound, MINMAX *data)
     return OK;
 }
 
-static int MinAbs_arate(CSOUND *csound, MINMAX *data)
+static int MinAbs_arate(CSOUND *csound, MINMAX *p)
 {
     int     i;
-    int     n, nsmps = csound->ksmps;
-    int     nargs = ((int) data->INOCOUNT) - 1;
-    MYFLT   *out = data->xout;
-    MYFLT   *in1 = data->xin1;
-    MYFLT   **in2 = data->xin2toN;
+    int     n, nsmps = CS_KSMPS;
+    int     nargs = ((int) p->INOCOUNT) - 1;
+    MYFLT   *out = p->xout;
+    MYFLT   *in1 = p->xin1;
+    MYFLT   **in2 = p->xin2toN;
     MYFLT   min, temp;
 
     for (n=0; n<nsmps; n++) {
@@ -206,13 +206,13 @@ static int MinAbs_arate(CSOUND *csound, MINMAX *data)
 }
 
 /* k-rate multiple input min and max opcodes */
-static int Max_krate(CSOUND *csound, MINMAX *data)
+static int Max_krate(CSOUND *csound, MINMAX *p)
 {
     int     i;
-    int     nargs = ((int) data->INOCOUNT) - 1;
-    MYFLT   *out = data->xout;
-    MYFLT   *in1 = data->xin1;
-    MYFLT   **in2 = data->xin2toN;
+    int     nargs = ((int) p->INOCOUNT) - 1;
+    MYFLT   *out = p->xout;
+    MYFLT   *in1 = p->xin1;
+    MYFLT   **in2 = p->xin2toN;
     MYFLT   max, temp;
 
     max = *in1;
@@ -226,13 +226,13 @@ static int Max_krate(CSOUND *csound, MINMAX *data)
     return OK;
 }
 
-static int Min_krate(CSOUND *csound, MINMAX *data)
+static int Min_krate(CSOUND *csound, MINMAX *p)
 {
     int     i;
-    int     nargs = ((int) data->INOCOUNT) - 1;
-    MYFLT   *out = data->xout;
-    MYFLT   *in1 = data->xin1;
-    MYFLT   **in2 = data->xin2toN;
+    int     nargs = ((int) p->INOCOUNT) - 1;
+    MYFLT   *out = p->xout;
+    MYFLT   *in1 = p->xin1;
+    MYFLT   **in2 = p->xin2toN;
     MYFLT   min, temp;
 
     min = *in1;
@@ -247,13 +247,13 @@ static int Min_krate(CSOUND *csound, MINMAX *data)
 }
 
 /* Absolute value versions of k-rate opcodes */
-static int MaxAbs_krate(CSOUND *csound, MINMAX *data)
+static int MaxAbs_krate(CSOUND *csound, MINMAX *p)
 {
     int     i;
-    int     nargs = ((int) data->INOCOUNT) - 1;
-    MYFLT   *out = data->xout;
-    MYFLT   *in1 = data->xin1;
-    MYFLT   **in2 = data->xin2toN;
+    int     nargs = ((int) p->INOCOUNT) - 1;
+    MYFLT   *out = p->xout;
+    MYFLT   *in1 = p->xin1;
+    MYFLT   **in2 = p->xin2toN;
     MYFLT   max, temp;
 
     max = FABS(*in1);
@@ -267,13 +267,13 @@ static int MaxAbs_krate(CSOUND *csound, MINMAX *data)
     return OK;
 }
 
-static int MinAbs_krate(CSOUND *csound, MINMAX *data)
+static int MinAbs_krate(CSOUND *csound, MINMAX *p)
 {
     int     i;
-    int     nargs = ((int) data->INOCOUNT) - 1;
-    MYFLT   *out = data->xout;
-    MYFLT   *in1 = data->xin1;
-    MYFLT   **in2 = data->xin2toN;
+    int     nargs = ((int) p->INOCOUNT) - 1;
+    MYFLT   *out = p->xout;
+    MYFLT   *in1 = p->xin1;
+    MYFLT   **in2 = p->xin2toN;
     MYFLT   min, temp;
 
     min = FABS(*in1);

@@ -109,7 +109,7 @@ static int bar_run(CSOUND *csound, BAR *p)
                                Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
 
-    for (n = 0; n < csound->ksmps; n++) {
+    for (n = 0; n < CS_KSMPS; n++) {
       /* Fix ends */
       if (bcL == 3) {
         w1[1] = 2.0*w1[2]-w1[3];
@@ -343,7 +343,7 @@ int play_pp(CSOUND *csound, CSPP *p)
     int NS = p->NS;
     int N = p->N;
     int step = p->step;
-    int n, t, nsmps = csound->ksmps;
+    int n, t, nsmps = CS_KSMPS;
     double dt = csound->onedsr;
     MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
           *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2,

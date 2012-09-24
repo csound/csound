@@ -186,7 +186,7 @@ int Moog1(CSOUND *csound, MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    int32        n, nsmps = csound->ksmps;
+    int32        n, nsmps = CS_KSMPS;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
 

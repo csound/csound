@@ -93,7 +93,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 
 static int sndwarp(CSOUND *csound, SNDWARP *p)
 {
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       frm_0,frm_1;
     int32       base, longphase;
     MYFLT       frac, frIndx;
@@ -120,7 +120,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
     ftpSamp = p->ftpSamp;
 
     for (i=0; i<overlap; i++) {
-/*       nsmps = csound->ksmps; */
+/*       nsmps = CS_KSMPS; */
 /*       r1 = p->r1; */
 /*       if (p->OUTOCOUNT >1)  r2 = p->r2; */
       resample = p->xresample;
@@ -256,7 +256,7 @@ static int sndwarpstset(CSOUND *csound, SNDWARPST *p)
 
 static int sndwarpst(CSOUND *csound, SNDWARPST *p)
 {
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       frm10,frm11, frm20, frm21;
     int32        base, longphase;
     MYFLT       frac, frIndx;

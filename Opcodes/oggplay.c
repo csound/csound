@@ -86,7 +86,7 @@ int oggplay_init (CSOUND *csound, OGGPLAY * p)
 int oggplay_perf (CSOUND *csound, OGGPLAY * p)
 {
     int ret;
-    int i, nsmps=csound->ksmps;
+    int i, nsmps=CS_KSMPS;
 
 
     for (i = 0; i < nsmps; i++) {

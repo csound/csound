@@ -213,7 +213,7 @@ static int cabasaset(CSOUND *csound, CABASA *p)
 static int cabasa(CSOUND *csound, CABASA *p)
 {
     MYFLT *ar = p->ar;
-    int   n,nsmps = csound->ksmps;
+    int   n,nsmps = CS_KSMPS;
     MYFLT data;
                                 /* Use locals for speed */
     MYFLT shakeEnergy = p->shakeEnergy;
@@ -245,7 +245,7 @@ static int cabasa(CSOUND *csound, CABASA *p)
 
     if (*p->shake_max != FL(0.0)) {
       shakeEnergy = p->shakeEnergy +=
-        csound->ksmps * *p->shake_max * MAX_SHAKE * FL(0.1);
+        CS_KSMPS * *p->shake_max * MAX_SHAKE * FL(0.1);
       if (shakeEnergy > MAX_SHAKE) shakeEnergy = MAX_SHAKE;
     }
 
@@ -312,7 +312,7 @@ static int sekereset(CSOUND *csound, SEKERE *p)
 static int sekere(CSOUND *csound, SEKERE *p)
 {
     MYFLT *ar = p->ar;
-    int   n,nsmps = csound->ksmps;
+    int   n,nsmps = CS_KSMPS;
     MYFLT data;
                                 /* Use locals for speed */
     MYFLT shakeEnergy = p->shakeEnergy;
@@ -344,7 +344,7 @@ static int sekere(CSOUND *csound, SEKERE *p)
 
     if (*p->shake_max != FL(0.0)) {
       shakeEnergy = p->shakeEnergy +=
-        csound->ksmps * *p->shake_max * MAX_SHAKE * FL(0.1);
+        CS_KSMPS * *p->shake_max * MAX_SHAKE * FL(0.1);
       if (shakeEnergy > MAX_SHAKE) shakeEnergy = MAX_SHAKE;
     }
 
@@ -512,7 +512,7 @@ static int guiroset(CSOUND *csound, GUIRO *p)
 static int guiro(CSOUND *csound, GUIRO *p)
 {
     MYFLT *ar = p->ar;
-    int  n,nsmps = csound->ksmps;
+    int  n,nsmps = CS_KSMPS;
     MYFLT lastOutput;
 
     if (*p->num_teeth != FL(0.0) &&
@@ -673,7 +673,7 @@ static int tambourset(CSOUND *csound, TAMBOURINE *p)
 static int tambourine(CSOUND *csound, TAMBOURINE *p)
 {
     MYFLT *ar = p->ar;
-    int  n,nsmps = csound->ksmps;
+    int  n,nsmps = CS_KSMPS;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;
@@ -806,7 +806,7 @@ static int bambooset(CSOUND *csound, BAMBOO *p)
 static int bamboo(CSOUND *csound, BAMBOO *p)
 {
     MYFLT *ar = p->ar;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;
@@ -942,7 +942,7 @@ static int wuterset(CSOUND *csound, WUTER *p)
 static int wuter(CSOUND *csound, WUTER *p)
 {
     MYFLT *ar = p->ar;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT data;
     MYFLT lastOutput;
 
@@ -1123,7 +1123,7 @@ static int sleighset(CSOUND *csound, SLEIGHBELLS *p)
 static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 {
     MYFLT *ar = p->ar;
-    int  n, nsmps = csound->ksmps;
+    int  n, nsmps = CS_KSMPS;
     MYFLT data;
     MYFLT temp_rand;
     MYFLT lastOutput;

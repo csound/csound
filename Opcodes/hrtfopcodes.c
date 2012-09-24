@@ -593,7 +593,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    n = csound->ksmps;
+    n = CS_KSMPS;
 
     for(j = 0; j < n; j++)
       {
@@ -1891,7 +1891,7 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
 
     MYFLT sr = p->sr;
 
-    n = csound->ksmps;
+    n = CS_KSMPS;
 
     for(j = 0; j < n; j++)
       {
@@ -2264,7 +2264,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    n = csound->ksmps;
+    n = CS_KSMPS;
 
     /* ksmps loop */
     for(j = 0; j < n; j++)

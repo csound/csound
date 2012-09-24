@@ -193,7 +193,7 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
 }
 static int cpupercent(CSOUND *csound, CPUMETER* p)
 {
-    p->cnt -= csound->ksmps;
+    p->cnt -= CS_KSMPS;
     if (p->cnt< 0) {
       int n = cpupercent_renew(csound, p);
       p->cnt = p->trig;

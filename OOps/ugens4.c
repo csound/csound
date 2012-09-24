@@ -69,7 +69,7 @@ int buzz(CSOUND *csound, BUZZ *p)
     inc = (int32)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    nn = csound->ksmps;
+    nn = CS_KSMPS;
     for (n=0; n<nn; n++) {
       dwnphs = phs >> lobits;
       denom = ftbl[dwnphs];
@@ -168,7 +168,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     scal =  *ampp * p->rsumr;
     inc = (int32)(*cpsp * csound->sicvt);
     ar = p->ar;
-    nn = csound->ksmps;
+    nn = CS_KSMPS;
     for (n=0; n<nn; n++) {
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * ftbl[phs];
@@ -286,7 +286,7 @@ int pluck(CSOUND *csound, PLUCK *p)
 {
     MYFLT       *ar, *fp;
     int32       phs256, phsinc, ltwopi, offset;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       frac, diff;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD FIX */
@@ -492,7 +492,7 @@ int krand(CSOUND *csound, RAND *p)
 int arand(CSOUND *csound, RAND *p)
 {
     MYFLT       *ar;
-    int16       rndmul = RNDMUL, n, nn = csound->ksmps;
+    int16       rndmul = RNDMUL, n, nn = CS_KSMPS;
     MYFLT       ampscl;
     MYFLT       base = *p->base;
 
@@ -603,7 +603,7 @@ int krandh(CSOUND *csound, RANDH *p)
 int randh(CSOUND *csound, RANDH *p)
 {
     int32       phs = p->phs, inc;
-    int n, nn = csound->ksmps;
+    int n, nn = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
 
@@ -722,7 +722,7 @@ int krandi(CSOUND *csound, RANDI *p)
 int randi(CSOUND *csound, RANDI *p)
 {
     int32       phs = p->phs, inc;
-    int         n, nn = csound->ksmps;
+    int         n, nn = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
 

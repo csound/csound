@@ -128,7 +128,7 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
 int bowedbar(CSOUND *csound, BOWEDBAR *p)
 {
     MYFLT       *ar = p->ar;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     int32 k;
     int i;

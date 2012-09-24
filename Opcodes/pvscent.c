@@ -80,7 +80,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
 {
     MYFLT *a = p->ans;
     if (p->fin->sliding) {
-      int n, nsmps = csound->ksmps;
+      int n, nsmps = CS_KSMPS;
       int32 i,N = p->fin->N;
 
       MYFLT c = FL(0.0);
@@ -97,7 +97,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
       }
     }
     else {
-      int n, nsmps = csound->ksmps;
+      int n, nsmps = CS_KSMPS;
       MYFLT old = p->old;
       int32 i,N = p->fin->N;
       MYFLT c = FL(0.0);

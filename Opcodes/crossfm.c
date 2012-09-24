@@ -63,7 +63,7 @@ int xfm(CSOUND *csound, CROSSFM *p)
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
     int i, n1, n2;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     out1 = p->aout1;
     out2 = p->aout2;
@@ -123,7 +123,7 @@ int xfmi(CSOUND *csound, CROSSFM *p)
     MYFLT sig1, sig2;
     MYFLT x, y1, y2;
     int i, n1, n2;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     out1 = p->aout1;
     out2 = p->aout2;
@@ -186,7 +186,7 @@ int xpm(CSOUND *csound, CROSSFM *p)
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
     int i, n1, n2;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     out1 = p->aout1;
     out2 = p->aout2;
@@ -246,7 +246,7 @@ int xpmi(CSOUND *csound, CROSSFM *p)
     MYFLT sig1, sig2;
     MYFLT x, y1, y2;
     int i, n1, n2;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     out1 = p->aout1;
     out2 = p->aout2;
@@ -309,7 +309,7 @@ int xfmpm(CSOUND *csound, CROSSFM *p)
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
     int i, n1, n2;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     out1 = p->aout1;
     out2 = p->aout2;
@@ -369,7 +369,7 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
     MYFLT sig1, sig2;
     MYFLT x, y1, y2;
     int i, n1, n2;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     out1 = p->aout1;
     out2 = p->aout2;

@@ -128,7 +128,7 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
       nbytes += allpass_nbytes(p, allpass_delays[i][0]);
       nbytes += allpass_nbytes(p, allpass_delays[i][1]);
     }
-    nbytes += (int) sizeof(MYFLT) * (int) csound->ksmps;
+    nbytes += (int) sizeof(MYFLT) * (int) CS_KSMPS;
     /* allocate space if size has changed */
     if (nbytes != (int) p->auxData.size)
       csound->AuxAlloc(csound, (int32) nbytes, &(p->auxData));
@@ -173,7 +173,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     freeVerbComb    *combp;
     freeVerbAllPass *allpassp;
     int             i, n;
-    int             nsmps = csound->ksmps;
+    int             nsmps = CS_KSMPS;
 
     /* check if opcode was correctly initialised */
     if (UNLIKELY(p->auxData.size <= 0L || p->auxData.auxp == NULL)) goto err1;

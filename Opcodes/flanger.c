@@ -52,7 +52,7 @@ static int flanger(CSOUND *csound, FLANGER *p)
     int32 v1;
     MYFLT yt1= p->yt1;
 
-    int n,nsmps = csound->ksmps;
+    int n,nsmps = CS_KSMPS;
 
     for (n=0; n<nsmps; n++) {
                 /*---------------- delay -----------------------*/
@@ -102,7 +102,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     int32   v1;
     /*---------------- filter -----------------------*/
     MYFLT c1, c2, yt1 = p->yt1;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     /*---------------- delay -----------------------*/
     indx = p->left;
@@ -194,7 +194,7 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
 {
     MYFLT *out = p->ar;
     MYFLT *in = p->asig;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT out1,out2, old_out = p->old_out;
     unsigned int maxdM1 = p->maxd-1;
 

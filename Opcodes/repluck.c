@@ -150,7 +150,7 @@ static MYFLT getvalue(DelayLine *dl, int position)
 static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 {
     MYFLT   *ar, *ain;
-    int     n,nsmps=csound->ksmps;
+    int     n,nsmps=CS_KSMPS;
     MYFLT   yp0,ym0,ypM,ymM;
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
@@ -255,7 +255,7 @@ static int streson(CSOUND *csound, STRES *p)
     MYFLT g = *p->ifdbgain;
     MYFLT freq;
     double a, s, w, sample, tdelay, fracdelay;
-    int delay, n, nsmps = csound->ksmps;
+    int delay, n, nsmps = CS_KSMPS;
     int rp = p->rpointer, wp = p->wpointer;
     int size = p->size;
     MYFLT       APdelay = p->APdelay;
