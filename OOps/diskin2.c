@@ -345,13 +345,13 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
     }
     /* clear outputs to zero first */
     for (chn = 0; chn < p->nChannels; chn++)
-      for (nn = 0; nn < csound->ksmps; nn++)
+      for (nn = 0; nn < CS_KSMPS; nn++)
         p->aOut[chn][nn] = FL(0.0);
     /* file read position */
     ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
       case 1:                   /* ---- no interpolation ---- */
-        for (nn = 0; nn < csound->ksmps; nn++) {
+        for (nn = 0; nn < CS_KSMPS; nn++) {
           if (p->pos_frac & ((int64_t)POS_FRAC_SCALE >> 1))
             ndx++;                      /* round to nearest sample */
           diskin2_get_sample(p, ndx, nn, FL(1.0));
@@ -360,7 +360,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
         }
         break;
       case 2:                   /* ---- linear interpolation ---- */
-        for (nn = 0; nn < csound->ksmps; nn++) {
+        for (nn = 0; nn < CS_KSMPS; nn++) {
           a1 = (MYFLT)((int)(p->pos_frac & (int64_t)POS_FRAC_MASK))
                * (FL(1.0) / (MYFLT)POS_FRAC_SCALE);
           a0 = FL(1.0) - a1;
@@ -372,7 +372,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
         }
         break;
       case 4:                   /* ---- cubic interpolation ---- */
-        for (nn = 0; nn < csound->ksmps; nn++) {
+        for (nn = 0; nn < CS_KSMPS; nn++) {
           frac = (MYFLT)((int)(p->pos_frac & (int64_t)POS_FRAC_MASK))
                  * (FL(1.0) / (MYFLT)POS_FRAC_SCALE);
           a3 = frac * frac; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
@@ -413,7 +413,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
           pidwarp_d = c = 0.0;
           winFact = p->winFact;
         }
-        for (nn = 0; nn < csound->ksmps; nn++) {
+        for (nn = 0; nn < CS_KSMPS; nn++) {
           frac_d = (double)((int)(p->pos_frac & (int64_t)POS_FRAC_MASK))
                    * (1.0 / (double)POS_FRAC_SCALE);
           ndx += (int32)(1 - wsized2);
@@ -492,7 +492,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
     }
     /* apply 0dBFS scale */
     for (chn = 0; chn < p->nChannels; chn++)
-      for (nn = 0; nn < csound->ksmps; nn++)
+      for (nn = 0; nn < CS_KSMPS; nn++)
         p->aOut[chn][nn] *= csound->e0dbfs;
     return OK;
  file_error:
@@ -651,7 +651,7 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
 
 int soundin(CSOUND *csound, SOUNDIN_ *p)
 {
-    int nn, nsmps=csound->ksmps, bufPos, i;
+    int nn, nsmps=CS_KSMPS, bufPos, i;
 
     if (UNLIKELY(p->fdch.fd == NULL)) {
       return csound->PerfError(csound, Str("soundin: not initialised"));

@@ -105,11 +105,11 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     }
 
     /* Determine size of circular output buffer */
-    if (Hlen >= csound->ksmps)
-      obufsiz = (int32) CEIL((MYFLT) Hlen / csound->ksmps)
-                * csound->ksmps;
+    if (Hlen >= CS_KSMPS)
+      obufsiz = (int32) CEIL((MYFLT) Hlen / CS_KSMPS)
+                * CS_KSMPS;
     else
-      obufsiz = (int32) CEIL(csound->ksmps / (MYFLT) Hlen) * Hlen;
+      obufsiz = (int32) CEIL(CS_KSMPS / (MYFLT) Hlen) * Hlen;
 
     siz = ((Hlenpadded + 2) + p->nchanls * ((Hlen - 1) + obufsiz)
               + (p->nchanls > 1 ? (Hlenpadded + 2) : 0));
@@ -167,7 +167,7 @@ static void writeFromCircBuf(
 
 static int convolve(CSOUND *csound, CONVOLVE *p)
 {
-    int    nsmpso=csound->ksmps,nsmpsi=csound->ksmps,nsmpso_sav,outcnt_sav;
+    int    nsmpso=CS_KSMPS,nsmpsi=CS_KSMPS,nsmpso_sav,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
     int32  i,j;
     MYFLT  *ar[4];
@@ -194,10 +194,10 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     if (p->auxch.auxp==NULL) goto err1;
   /* First dump as much pre-existing audio in output buffer as possible */
     if (outcnt > 0) {
-      if (outcnt <= csound->ksmps)
+      if (outcnt <= CS_KSMPS)
         i = outcnt;
       else
-        i = csound->ksmps;
+        i = CS_KSMPS;
       nsmpso -= i; outcnt -= i;
       for (chn = nchm1;chn >= 0;chn--) {
         outhead = p->outhead + chn*obufsiz;
@@ -466,7 +466,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
 
     /* allocate circular output sample buffer */
     p->outBufSiz = sizeof(MYFLT) * p->nchanls *
-      (p->Hlen >= csound->ksmps ? p->Hlenpadded : 2*csound->ksmps);
+      (p->Hlen >= CS_KSMPS ? p->Hlenpadded : 2*CS_KSMPS);
     csound->AuxAlloc(csound, p->outBufSiz, &p->output);
     p->outRead = (MYFLT *)p->output.auxp;
 
@@ -474,8 +474,8 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
        empty ksmps pass after a few initial generated buffers.  There is
        probably an equation to figure this out to reduce the delay, but
        I can't seem to figure it out */
-    if (p->Hlen > csound->ksmps) {
-      p->outCount = p->Hlen + csound->ksmps;
+    if (p->Hlen > CS_KSMPS) {
+      p->outCount = p->Hlen + CS_KSMPS;
       p->outWrite = p->outRead + (p->nchanls * p->outCount);
     }
     else {
@@ -487,7 +487,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
 
 static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 {
-    int    nsmpsi = csound->ksmps;
+    int    nsmpsi = CS_KSMPS;
     MYFLT  *ai = p->ain;
     MYFLT  *buf;
     MYFLT  *input = (MYFLT*) p->savedInput.auxp, *workWrite = p->workWrite;
@@ -568,10 +568,10 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 
     /* copy to output if we have enough samples [we always should
        except the first Hlen samples] */
-    if (p->outCount >= csound->ksmps) {
+    if (p->outCount >= CS_KSMPS) {
       int n;
-      p->outCount -= csound->ksmps;
-      for (n=0; n < csound->ksmps; n++) {
+      p->outCount -= CS_KSMPS;
+      for (n=0; n < CS_KSMPS; n++) {
         switch (p->nchanls) {
         case 1:
           *a1++ = *p->outRead++;

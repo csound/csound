@@ -47,7 +47,7 @@ static int dcblockrset(CSOUND *csound, DCBlocker* p)
 static int dcblockr(CSOUND *csound, DCBlocker* p)
 {
     MYFLT       *ar = p->ar;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     double      gain = p->gain;
     double      outputs = p->outputs;
     double      inputs = p->inputs;
@@ -138,7 +138,7 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
     double scale = p->scaler;
     int p1 = p->dp1;
     int p2 = p->dp2;
-    int i,j,del1size, iirdelsize, nsmps = csound->ksmps;
+    int i,j,del1size, iirdelsize, nsmps = CS_KSMPS;
 
     iirdel[0] = (double *) p->iirdelay1.auxp;
     iirdel[1] = (double *) p->iirdelay2.auxp;

@@ -149,7 +149,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
     int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
-    int     ksmps = csound->ksmps, pos = p->pos;
+    int     ksmps = CS_KSMPS, pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
@@ -307,7 +307,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
-    int     ksmps = csound->ksmps, pos = p->pos;
+    int     ksmps = CS_KSMPS, pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT   *outsum = (MYFLT *) p->sum.auxp;
@@ -432,7 +432,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
     int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
-    int     ksmps = csound->ksmps, pos = p->pos;
+    int     ksmps = CS_KSMPS, pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;

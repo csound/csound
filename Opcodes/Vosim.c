@@ -76,7 +76,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
     else {
         p->timrem = (int32)(csound->esr / fundabs);
         if (UNLIKELY(p->timrem == 0)) {
-          p->timrem = csound->ksmps;
+          p->timrem = CS_KSMPS;
           p->pulstogo = 0;
           csound->Warning(csound,
                           Str("vosim: kfund (%f) > sr. Generating ksmps silence."),
@@ -118,7 +118,7 @@ void vosim_pulse(CSOUND* csound, VOSIM *p)
 
 int vosim(CSOUND* csound, VOSIM *p)
 {
-    int32 nsmps = csound->ksmps;
+    int32 nsmps = CS_KSMPS;
     MYFLT *ar = p->ar;
     MYFLT *ftdata;
     int32  lobits;

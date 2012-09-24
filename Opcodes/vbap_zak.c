@@ -45,7 +45,7 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
     MYFLT invfloatn;
     int i,j;
     int n = p->n;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     vbap_zak_control(csound,p);
     for (i=0; i<n; i++) {
@@ -207,7 +207,7 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     if ((int)*p->layout==0) strcpy(name, "vbap_ls_table");
     else sprintf(name, "vbap_ls_table_%d", (int)*p->layout==0);
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = csound->zastart + (indx * csound->ksmps);/* outputs */
+    p->out_array     = csound->zastart + (indx * CS_KSMPS);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;
@@ -263,7 +263,7 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     vbap_zak_moving_control(csound,p);
     for (i=0;i< p->n; i++) {
@@ -506,7 +506,7 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
       return csound->PerfError(csound, Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = csound->zastart + (indx * csound->ksmps);/* outputs */
+    p->out_array     = csound->zastart + (indx * CS_KSMPS);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;

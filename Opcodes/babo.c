@@ -774,7 +774,7 @@ static int
 babo(CSOUND *csound, void *entry)
 {
     BABO    *p          = (BABO *) entry;
-    int     n, nsmps    = csound->ksmps;
+    int     n, nsmps    = CS_KSMPS;
     MYFLT   *outleft    = p->outleft,
             *outright   = p->outright,
             *input      = p->input;

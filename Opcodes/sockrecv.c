@@ -173,7 +173,7 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *asig = p->ptr1;
     MYFLT   *buf = p->buf;
-    int     i, n, ksmps = csound->ksmps;
+    int     i, n, ksmps = CS_KSMPS;
     int     *bufsamps = p->bufsamps;
     int     bufnos = p->bufnos;
 
@@ -270,7 +270,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
     MYFLT   *asigl = p->ptr1;
     MYFLT   *asigr = p->ptr2;
     MYFLT   *buf = p->buf;
-    int     i, n, ksmps = csound->ksmps;
+    int     i, n, ksmps = CS_KSMPS;
     int     *bufsamps = p->bufsamps;
     int     bufnos = p->bufnos;
 
@@ -360,9 +360,9 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 
 static int send_srecv(CSOUND *csound, SOCKRECVT *p)
 {
-    int     n = sizeof(MYFLT) * csound->ksmps;
+    int     n = sizeof(MYFLT) * CS_KSMPS;
 
-    if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * csound->ksmps))) {
+    if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * CS_KSMPS))) {
       return csound->PerfError(csound, Str("read from socket failed"));
     }
     return OK;

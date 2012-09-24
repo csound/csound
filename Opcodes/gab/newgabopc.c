@@ -365,7 +365,7 @@ static int inRange(CSOUND *csound, INRANGE *p)
     for (j = 0; j < narg; j++)
       ara[j] = p->argums[j];
 
-    nsmps = csound->ksmps;
+    nsmps = CS_KSMPS;
     do  {
       int i;
       for (i=0; i<narg; i++)
@@ -393,7 +393,7 @@ static int outRange_i(CSOUND *csound, OUTRANGE *p)
 static int outRange(CSOUND *csound, OUTRANGE *p)
 {
     int j, n, nsmps;
-    int ksmps = csound->ksmps, nchnls = csound->nchnls;
+    int ksmps = CS_KSMPS, nchnls = csound->nchnls;
     MYFLT *ara[VARGMAX];
     int startChan = (int) *p->kstartChan -1;
     MYFLT *sp = csound->spout + startChan;
@@ -471,7 +471,7 @@ static int lposcint(CSOUND *csound, LPOSC *p)
     MYFLT   *out = p->out;
     short   *ft = (short *) p->ftp->ftable, *curr_samp;
     MYFLT   fract;
-    long     n = csound->ksmps;
+    long     n = CS_KSMPS;
     long     loop, end, looplength; /* = p->looplength ; */
 
     if ((loop = (long) *p->kloop) < 0) loop=0;// gab
@@ -501,7 +501,7 @@ static int lposcinta(CSOUND *csound, LPOSC *p)
     MYFLT    *out = p->out,  *amp=p->amp;
     short   *ft = (short *) p->ftp->ftable, *curr_samp;
     MYFLT   fract;
-    long     n, nsmps = csound->ksmps;
+    long     n, nsmps = CS_KSMPS;
     long     loop, end, looplength; /* = p->looplength ; */
 
     if ((loop = (long) *p->kloop) < 0) loop=0;// gab
@@ -531,7 +531,7 @@ static int lposca(CSOUND *csound, LPOSC *p)
     MYFLT   *out = p->out,  *amp=p->amp;
     MYFLT   *ft =  p->ftp->ftable, *curr_samp;
     MYFLT   fract;
-    int32   n, nsmps = csound->ksmps;
+    int32   n, nsmps = CS_KSMPS;
     int32   loop, end, looplength /* = p->looplength */ ;
 
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
@@ -602,7 +602,7 @@ static int lposcinta_stereo(CSOUND *csound, LPOSCINT_ST *p) // stereo lposcinta
     double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
     MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     short   *ft =  p->ft;
-    long    n = csound->ksmps;
+    long    n = CS_KSMPS;
     long     loop, end, looplength;
     if ((loop = (long) *p->kloop) < 0) loop=0;// gab
     else if (loop > p->tablen-3) loop = p->tablen-3;
@@ -631,7 +631,7 @@ static int lposcinta_stereo_no_trasp(CSOUND *csound, LPOSCINT_ST *p)
     long *phs = &p->phs_int, si = (long) *p->freq;
     MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     short   *ft =  p->ft;
-    long    n = csound->ksmps;
+    long    n = CS_KSMPS;
     long     loop, end, looplength /* = p->looplength ; */
       if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
       else if (loop > p->tablen-3) loop = p->tablen-3;
@@ -700,7 +700,7 @@ static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
     double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
     MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;
-    int32    n = csound->ksmps;
+    int32    n = CS_KSMPS;
     int32    loop, end, looplength /* = p->looplength */ ;
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
@@ -728,7 +728,7 @@ static int lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
     long    *phs = &p->phs_int, si = (long) *p->freq;
     MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;
-    long    n = csound->ksmps;
+    long    n = CS_KSMPS;
     long    loop, end, looplength /* = p->looplength */ ;
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;

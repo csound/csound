@@ -73,7 +73,7 @@ static int dam(CSOUND *csound, DAM *p)
     MYFLT *powerBuffer;
     MYFLT power;
     MYFLT tg;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     /* Initialize power value and buffer at first ksamp computed as
      * it depends on kthreshold

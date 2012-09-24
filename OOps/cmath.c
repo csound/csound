@@ -43,7 +43,7 @@ int ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 
 int apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *in = p->in, *out = p->sr;
     MYFLT powerOf = *p->powerOf;
     MYFLT norm = (p->norm!=NULL ? *p->norm : FL(1.0));
@@ -267,7 +267,7 @@ static MYFLT poissrand(CSOUND *csound, MYFLT lambda)
 int auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
 {
     MYFLT   *out = p->out;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     double  scale = (double)*p->arg1 * (1.0 / 4294967295.03125);
 
     for (n=0; n<nsmps; n++) {
@@ -284,7 +284,7 @@ int ikuniform(CSOUND *csound, PRAND *p)
 
 int alinear(CSOUND *csound, PRAND *p)   /* Linear random functions      */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
@@ -301,7 +301,7 @@ int iklinear(CSOUND *csound, PRAND *p)
 
 int atrian(CSOUND *csound, PRAND *p)    /* Triangle random functions  */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
@@ -350,7 +350,7 @@ int iexprndi(CSOUND *csound, PRANDI *p)
 int aexprndi(CSOUND *csound, PRANDI *p)
 {
     int32       phs = p->phs, inc;
-    int         n, nn = csound->ksmps;
+    int         n, nn = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
 
     cpsp = p->xcps;
@@ -378,7 +378,7 @@ int aexprndi(CSOUND *csound, PRANDI *p)
 
 int aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
@@ -395,7 +395,7 @@ int ikexp(CSOUND *csound, PRAND *p)
 
 int abiexp(CSOUND *csound, PRAND *p)    /* Bilateral exponential rand */
 {                                       /* functions */
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
@@ -412,7 +412,7 @@ int ikbiexp(CSOUND *csound, PRAND *p)
 
 int agaus(CSOUND *csound, PRAND *p)     /* Gaussian random functions */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
@@ -429,7 +429,7 @@ int ikgaus(CSOUND *csound, PRAND *p)
 
 int acauchy(CSOUND *csound, PRAND *p)   /* Cauchy random functions */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
@@ -472,7 +472,7 @@ int igaussi(CSOUND *csound, PRANDI *p)
 int agaussi(CSOUND *csound, PRANDI *p)
 {
     int32       phs = p->phs, inc;
-    int         n, nn = csound->ksmps;
+    int         n, nn = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
 
     cpsp = p->xcps;
@@ -506,7 +506,7 @@ int ikcauchy(CSOUND *csound, PRAND *p)
 
 int apcauchy(CSOUND *csound, PRAND *p)  /* +ve Cauchy random functions */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
@@ -555,7 +555,7 @@ int icauchyi(CSOUND *csound, PRANDI *p)
 int acauchyi(CSOUND *csound, PRANDI *p)
 {
     int32       phs = p->phs, inc;
-    int         n, nn = csound->ksmps;
+    int         n, nn = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
 
     cpsp = p->xcps;
@@ -583,7 +583,7 @@ int acauchyi(CSOUND *csound, PRANDI *p)
 
 int abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
     MYFLT arg2 = *p->arg2;
@@ -602,7 +602,7 @@ int ikbeta(CSOUND *csound, PRAND *p)
 
 int aweib(CSOUND *csound, PRAND *p)     /* Weibull randon functions */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
     MYFLT arg2 = *p->arg2;
@@ -620,7 +620,7 @@ int ikweib(CSOUND *csound, PRAND *p)
 
 int apoiss(CSOUND *csound, PRAND *p)    /*      Poisson random funcions */
 {
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 

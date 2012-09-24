@@ -1084,7 +1084,7 @@ int tablew(CSOUND *csound, TABLEW *p)
      * are 0 to 7.  Location 8 is the guard point.  table() does not read
      * the guard point - tabli() does.*/
     int         liwgm;          /* Local copy of iwgm for speed */
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
                                 /*-----------------------------------*/
     /* Assume that TABLEW has been set up correctly. */
@@ -1914,10 +1914,10 @@ int tablera(CSOUND *csound, TABLERA *p)
        * Create error message if this is not so.  We must ensure that
        * the ksmps number of reads can fit within the length of the table. */
 
-      if (UNLIKELY(p->ftp->flen < csound->ksmps)) {
+      if (UNLIKELY(p->ftp->flen < CS_KSMPS)) {
         return csound->PerfError(csound, Str("Table kfn=%.2f length %ld "
                                              "shorter than ksmps %d"),
-                                         *p->kfn, p->ftp->flen, csound->ksmps);
+                                         *p->kfn, p->ftp->flen, CS_KSMPS);
       }
     }
     /* Check that kstart is within the range of the table. */
@@ -1947,10 +1947,10 @@ int tablera(CSOUND *csound, TABLERA *p)
      * cycles of read/write.
      */
 
-    if (UNLIKELY((loopcount = p->ftp->flen - kstart) > csound->ksmps)) {
+    if (UNLIKELY((loopcount = p->ftp->flen - kstart) > CS_KSMPS)) {
       /* If we are not going to exceed the length of the table,
        * then loopcount = ksmps. */
-      loopcount = csound->ksmps;
+      loopcount = CS_KSMPS;
     }
     /* Otherwise it is the number of locations between kstart and
      * the end of the table - as calculated above.     */
@@ -2036,10 +2036,10 @@ int tablewa(CSOUND *csound, TABLEWA *p)
          * Create error message if this is not so.  We must ensure that
          * the ksmps number of reads can fit within the length of the table. */
 
-        if (UNLIKELY(p->ftp->flen < csound->ksmps)) {
+        if (UNLIKELY(p->ftp->flen < CS_KSMPS)) {
             return csound->PerfError(csound, Str("Table kfn=%.2f length %ld "
                                                  "shorter than ksmps %d"),
-                                             *p->kfn, p->ftp->flen, csound->ksmps);
+                                             *p->kfn, p->ftp->flen, CS_KSMPS);
         }
     }
 
@@ -2070,13 +2070,13 @@ int tablewa(CSOUND *csound, TABLEWA *p)
      * cycles of read/write.
      */
 
-    if (UNLIKELY((p->ftp->flen - kstart) > csound->ksmps)) {
+    if (UNLIKELY((p->ftp->flen - kstart) > CS_KSMPS)) {
         /* If we are not going to exceed the length of the table, then
          * loopcount = ksmps.    */
-        loopcount = csound->ksmps;
+        loopcount = CS_KSMPS;
 
         /* Write the kstart i/o variable to be ksmps higher than before. */
-        *p->kstart += csound->ksmps;
+        *p->kstart += CS_KSMPS;
     }
     else {
       loopcount = p->ftp->flen - kstart;
@@ -2159,7 +2159,7 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated.       */
     csound->zalast = (int32) *p->isizea;
-    length = (csound->zalast + 1L) * sizeof(MYFLT) * csound->ksmps;
+    length = (csound->zalast + 1L) * sizeof(MYFLT) * CS_KSMPS;
     csound->zastart = (MYFLT*) mcalloc(csound, length);
     return OK;
 }
@@ -2461,7 +2461,7 @@ int zar(CSOUND *csound, ZAR *p)
 {
     MYFLT       *readloc, *writeloc;
     int32 indx;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     /*-----------------------------------*/
 
@@ -2480,7 +2480,7 @@ int zar(CSOUND *csound, ZAR *p)
     else {
       /* Now read from the array in za space and write to the destination.
        * See notes in zkr() on pointer arithmetic.     */
-      readloc = csound->zastart + (indx * csound->ksmps);
+      readloc = csound->zastart + (indx * CS_KSMPS);
       memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
     }
     return OK;
@@ -2495,7 +2495,7 @@ int zarg(CSOUND *csound, ZARG *p)
     MYFLT       *readloc, *writeloc;
     MYFLT       kgain;          /* Gain control */
     int32        indx;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     /*-----------------------------------*/
 
@@ -2517,7 +2517,7 @@ int zarg(CSOUND *csound, ZARG *p)
       else {
         /* Now read from the array in za space multiply by kgain and write
          * to the destination.       */
-        readloc = csound->zastart + (indx * csound->ksmps);
+        readloc = csound->zastart + (indx * CS_KSMPS);
         for (n=0; n<nsmps; n++) {
           writeloc[n] = readloc[n] * kgain;
         }
@@ -2535,7 +2535,7 @@ int zaw(CSOUND *csound, ZAW *p)
 {
     MYFLT       *readloc, *writeloc;
     int32 indx;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     /* Set up the pointer for the source of data to write.    */
     readloc = p->sig;
@@ -2550,7 +2550,7 @@ int zaw(CSOUND *csound, ZAW *p)
     }
     else {
         /* Now write to the array in za space pointed to by indx.    */
-      writeloc = csound->zastart + (indx * csound->ksmps);
+      writeloc = csound->zastart + (indx * CS_KSMPS);
       memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
     }
     return OK;
@@ -2565,7 +2565,7 @@ int zawm(CSOUND *csound, ZAWM *p)
 {
     MYFLT       *readloc, *writeloc;
     int32 indx;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     /*-----------------------------------*/
 
     /* Set up the pointer for the source of data to write. */
@@ -2581,7 +2581,7 @@ int zawm(CSOUND *csound, ZAWM *p)
     }
     else {
       /* Now write to the array in za space pointed to by indx.    */
-      writeloc = csound->zastart + (indx * csound->ksmps);
+      writeloc = csound->zastart + (indx * CS_KSMPS);
       if (*p->mix == 0) {
         /* Normal write mode.  */
         memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
@@ -2608,7 +2608,7 @@ int zamod(CSOUND *csound, ZAMOD *p)
     MYFLT       *readsig;       /* Array of input floats */
     int32 indx;
     int mflag = 0;             /* non zero if modulation with multiplication  */
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     /* Make a local copy of the pointer to the input signal, so we can auto-
      * increment it. Likewise the location to write the result to.     */
@@ -2633,7 +2633,7 @@ int zamod(CSOUND *csound, ZAMOD *p)
                                Str("zamod kzamod > isizea. Not writing."));
     }
     else {                      /* Now read the values from za space.    */
-      readloc = csound->zastart + (indx * csound->ksmps);
+      readloc = csound->zastart + (indx * CS_KSMPS);
       if (mflag == 0) {
         for (n=0; n<nsmps; n++) {
           writeloc[n] = readsig[n] + readloc[n];
@@ -2674,8 +2674,8 @@ int zacl(CSOUND *csound, ZACL *p)
                                    Str("zacl first > last. Not clearing."));
         }
         else {  /* Now clear the appropriate locations in za space. */
-          loopcount = (last - first + 1) * csound->ksmps;
-          writeloc = csound->zastart + (first * csound->ksmps);
+          loopcount = (last - first + 1) * CS_KSMPS;
+          writeloc = csound->zastart + (first * CS_KSMPS);
           memset(writeloc, 0, loopcount*sizeof(MYFLT));
         }
       }
@@ -3159,7 +3159,7 @@ int peaka(CSOUND *csound, PEAK *p)
     MYFLT   *peak, pp;
     MYFLT   *asigin;
 
-    loop = csound->ksmps;
+    loop = CS_KSMPS;
     asigin = p->xsigin;
     peak = p->kpeakout;
     pp = *peak;
@@ -3221,7 +3221,7 @@ int inz(CSOUND *csound, IOZ *p)
     else if (UNLIKELY(indx < 0)) goto err2;
     else {
       MYFLT *writeloc;
-      int n = csound->ksmps;
+      int n = CS_KSMPS;
       /* Now write to the array in za space pointed to by indx.    */
       writeloc = csound->zastart + (indx * n);
       for (i = 0; i < nchns; i++)
@@ -3249,9 +3249,9 @@ int outz(CSOUND *csound, IOZ *p)
     else if (UNLIKELY(indx < 0)) goto err2;
     else {
       MYFLT *readloc;
-      int n = csound->ksmps;
+      int n = CS_KSMPS;
       /* Now read from the array in za space and write to the output. */
-      readloc = csound->zastart + (indx * csound->ksmps);
+      readloc = csound->zastart + (indx * CS_KSMPS);
       if (!csound->spoutactive) {
         for (i = 0; i < nchns; i++)
           for (nsmps = 0; nsmps < n; nsmps++)

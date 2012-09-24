@@ -159,7 +159,7 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
 int dsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
-    int    n, nsmps = csound->ksmps;
+    int    n, nsmps = CS_KSMPS;
 
     if (!p->nprds) {
       for (n=0; n<nsmps; n++) {
@@ -383,7 +383,7 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
 int dspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     for (n=0; n<nsmps; n++) {

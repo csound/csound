@@ -131,7 +131,7 @@ static void ambicode_set_coefficients(AMBIC *p)
 
 static int aambicode(CSOUND *csound, AMBIC *p)
 {
-    int nn = csound->ksmps;  /* array size from orchestra */
+    int nn = CS_KSMPS;  /* array size from orchestra */
 
     /* init input array pointer */
     MYFLT *inptp = p->asig;
@@ -593,7 +593,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
 
 static int aambideco(CSOUND *csound, AMBID *p)
 {
-    int nn = csound->ksmps;  /* array size from orchestra */
+    int nn = CS_KSMPS;  /* array size from orchestra */
     int i = 0;
 
     /* init input array pointer 0th order */

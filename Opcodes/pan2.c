@@ -51,7 +51,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
     int type = p->type;
     MYFLT *ain = p->asig;
     MYFLT *al = p->aleft, *ar = p->aright;
-    int n, nsmps=csound->ksmps;
+    int n, nsmps=CS_KSMPS;
     switch (type) {
     case 0: {
       MYFLT kangl = PI_F*FL(0.5) * *p->pan;

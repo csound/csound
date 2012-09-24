@@ -929,7 +929,7 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT coselev;
 
     /* processing size! */
-    n = csound->ksmps;
+    n = CS_KSMPS;
 
     /* check for legal src/lstnr locations */
     /* restricted to being inside room! */

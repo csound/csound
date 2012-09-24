@@ -51,7 +51,7 @@ static int svf(CSOUND *csound, SVF *p)
     MYFLT *low, *high, *band, *in, ynm1, ynm2;
     MYFLT low2, high2, band2;
     MYFLT kfco = *p->kfco, kq = *p->kq;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     /* calculate frequency and Q coefficients */
     f1 = FL(2.0) * (MYFLT)sin((double)(kfco * csound->pidsr));
@@ -128,7 +128,7 @@ static int hilbert(CSOUND *csound, HILBERT *p)
     MYFLT xn1, yn1, xn2, yn2;
     MYFLT *out1, *out2, *in;
     MYFLT *coef;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     int j;
 
     coef = p->coef;
@@ -213,7 +213,7 @@ static int resonr(CSOUND *csound, RESONZ *p)
     MYFLT *out, *in;
     double xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     r = exp((double)(kbw * csound->mpidsr));
     c1 = 2.0 * r * cos((double)(kcf * csound->tpidsr));
@@ -266,7 +266,7 @@ static int resonz(CSOUND *csound, RESONZ *p)
     MYFLT *out, *in;
     double xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     r = exp(-(double)(kbw * csound->pidsr));
     c1 = 2.0 * r * cos((double)(csound->tpidsr*kcf));
@@ -345,7 +345,7 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     MYFLT feedback;
     MYFLT coef = FABS(*p->kcoef), fbgain = *p->fbgain;
     MYFLT beta, wp;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     int i, j;
 
     feedback = p->feedback;
@@ -409,7 +409,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
     MYFLT b, a, r, freq;
     MYFLT temp;
     MYFLT *nm1, *nm2, feedback;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     int j;
 
     nm1 = p->nm1;
@@ -489,7 +489,7 @@ static int lp2(CSOUND *csound, LP2 *p)
     MYFLT *out, *in;
     double yn, ynm1, ynm2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     int n;
 
     temp = (double)(csound->mpidsr * kfco / kres);

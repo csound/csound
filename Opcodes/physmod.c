@@ -160,7 +160,7 @@ int clarinset(CSOUND *csound, CLARIN *p)
 int clarin(CSOUND *csound, CLARIN *p)
 {
     MYFLT *ar = p->ar;
-    int   n,nsmps = csound->ksmps;
+    int   n,nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT nGain = *p->noiseGain;
     int v_len = (int)p->vibr->flen;
@@ -337,7 +337,7 @@ int fluteset(CSOUND *csound, FLUTE *p)
 int flute(CSOUND *csound, FLUTE *p)
 {
     MYFLT       *ar = p->ar;
-    int         n,nsmps = csound->ksmps;
+    int         n,nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       temp;
     int         v_len = (int)p->vibr->flen;
@@ -534,7 +534,7 @@ int bowedset(CSOUND *csound, BOWED *p)
 int bowed(CSOUND *csound, BOWED *p)
 {
     MYFLT       *ar = p->ar;
-    int         n,nsmps = csound->ksmps;
+    int         n,nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       maxVel;
     int         freq_changed = 0;
@@ -807,7 +807,7 @@ int brassset(CSOUND *csound, BRASS *p)
 int brass(CSOUND *csound, BRASS *p)
 {
     MYFLT *ar = p->ar;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT maxPressure = p->maxPressure = amp;
     int v_len = (int)p->vibr->flen;

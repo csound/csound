@@ -108,7 +108,7 @@ static int platerev_init(CSOUND *csound, PLATE *p)
 
 static int platerev(CSOUND *csound, PLATE *p)
 {
-    int i,j, nsmps = csound->ksmps;
+    int i,j, nsmps = CS_KSMPS;
     int Ny = p->Ny, Nx = p->Nx;
     int Nx5 = Nx+5;
     int bc =  (int) MYFLT2LONG(*p->bndry);

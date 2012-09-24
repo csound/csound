@@ -48,7 +48,7 @@ int kline(CSOUND *csound, LINE *p)
 int aline(CSOUND *csound, LINE *p)
 {
   double val, inc; MYFLT *ar;
-    int n, nsmps=csound->ksmps;
+    int n, nsmps=CS_KSMPS;
 
     val = p->val;
     inc = p->incr;
@@ -92,7 +92,7 @@ int kexpon(CSOUND *csound, EXPON *p)
 int expon(CSOUND *csound, EXPON *p)
 {
   double val, mlt, inc, nxtval; MYFLT *ar;
-    int n, nsmps=csound->ksmps;
+    int n, nsmps=CS_KSMPS;
 
     val = p->val;
     mlt = p->mlt;
@@ -198,7 +198,7 @@ int klnseg(CSOUND *csound, LINSEG *p)
 int linseg(CSOUND *csound, LINSEG *p)
 {
     double val, ainc; MYFLT *rs = p->rslt;
-    int    n, nsmps=csound->ksmps;
+    int    n, nsmps=CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
 
@@ -381,7 +381,7 @@ int klnsegr(CSOUND *csound, LINSEG *p)
 int linsegr(CSOUND *csound, LINSEG *p)
 {
     MYFLT  val, ainc, *rs = p->rslt;
-    int    n, nsmps=csound->ksmps;
+    int    n, nsmps=CS_KSMPS;
 
     val = p->curval;                        /* sav the cur value    */
     if (LIKELY(p->segsrem)) {               /* if no more segs putk */
@@ -622,7 +622,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 int expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       val, *rs;
     segp = p->cursegp;
     val  = segp->val;
@@ -714,7 +714,7 @@ int kxpseg(CSOUND *csound, EXXPSEG *p)
 int expseg(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       li, val, *rs;
     MYFLT       nxtval;
 
@@ -858,7 +858,7 @@ int kxpsegr(CSOUND *csound, EXPSEG *p)
 int expsegr(CSOUND *csound, EXPSEG *p)
 {
     MYFLT  val, amlt, *rs = p->rslt;
-    int    n, nsmps=csound->ksmps;
+    int    n, nsmps=CS_KSMPS;
 
     val = p->curval;                    /* sav the cur value    */
     if (p->segsrem) {                   /* if no more segs putk */
@@ -954,7 +954,7 @@ int klinen(CSOUND *csound, LINEN *p)
 
 int linen(CSOUND *csound, LINEN *p)
 {
-    int flag=0, n, nsmps=csound->ksmps;
+    int flag=0, n, nsmps=CS_KSMPS;
     MYFLT *rs,*sg,li,val,nxtval=FL(1.0);
 
     val = p->val;
@@ -1044,7 +1044,7 @@ int klinenr(CSOUND *csound, LINENR *p)
 
 int linenr(CSOUND *csound, LINENR *p)
 {
-    int flag=0, n, nsmps=csound->ksmps;
+    int flag=0, n, nsmps=CS_KSMPS;
     MYFLT *rs,*sg,li,val,nxtval=FL(1.0);
 
     val = p->val;
@@ -1208,7 +1208,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
     int32       phs;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       *xamp, *rslt, val, nxtval, li, v1, fract, *ftab;
 
     xamp = p->xamp;
@@ -1364,7 +1364,7 @@ int knvlpxr(CSOUND *csound, ENVLPR *p)
 
 int envlpxr(CSOUND *csound, ENVLPR *p)
 {
-    int    n, nsmps=csound->ksmps;
+    int    n, nsmps=CS_KSMPS;
     int32  rlscnt;
     MYFLT  *xamp, *rslt, val, nxtval, li;
 
@@ -1548,9 +1548,9 @@ int kosseg(CSOUND *csound, COSSEG *p)
 int cosseg(CSOUND *csound, COSSEG *p)
 {
     double val1 = p->y1, val2 = p->y2, x = p->x;
-    double inc = p->inc/csound->ksmps;
+    double inc = p->inc/CS_KSMPS;
     MYFLT *rs = p->rslt;
-    int    n, nsmps=csound->ksmps;
+    int    n, nsmps=CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
 
@@ -1601,9 +1601,9 @@ int cosseg(CSOUND *csound, COSSEG *p)
 int cossegr(CSOUND *csound, COSSEG *p)
 {
     double val1 = p->y1, val2 = p->y2, x = p->x;
-    double inc = p->inc/csound->ksmps;
+    double inc = p->inc/CS_KSMPS;
     MYFLT *rs = p->rslt;
-    int    n, nsmps=csound->ksmps;
+    int    n, nsmps=CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
 
