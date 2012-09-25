@@ -92,7 +92,7 @@ int interp(CSOUND *csound, INTERP *p)
       p->prev = *p->xsig;
     }
     val = p->prev;
-    incr = (*p->xsig - val) * csound->onedksmps;
+    incr = (*p->xsig - val) * CS_ONEDKSMPS;
     for (n=0; n<nsmps; n++) {
       ar[n] = val += incr;
     }

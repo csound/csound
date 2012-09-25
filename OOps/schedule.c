@@ -314,7 +314,7 @@ int lfok(CSOUND *csound, LFO *p)
       res = FL(1.0) - (MYFLT)phs/(MYFLT)MAXPHASE;
       break;
     }
-    phs += (int32)(*p->xcps * MAXPHASE * csound->onedkr);
+    phs += (int32)(*p->xcps * MAXPHASE * CS_ONEDKR);
     phs &= MAXMASK;
     p->phs = phs;
     *p->res = *p->kamp * res;

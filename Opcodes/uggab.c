@@ -335,7 +335,7 @@ static int poscak(CSOUND *csound, POSC *p)
 static int kposc(CSOUND *csound, POSC *p)
 {
     double      phs = p->phs;
-    double      si = *p->freq * p->tablen * csound->onedkr;
+    double      si = *p->freq * p->tablen * CS_ONEDKR;
     MYFLT       *curr_samp = p->ftp->ftable + (int32)phs;
     MYFLT       fract = (MYFLT)(phs - (double)((int32)phs));
 
@@ -544,7 +544,7 @@ static int posc3aa(CSOUND *csound, POSC *p)
 static int kposc3(CSOUND *csound, POSC *p)
 {
     double      phs   = p->phs;
-    double      si    = *p->freq * p->tablen * csound->onedkr;
+    double      si    = *p->freq * p->tablen * CS_ONEDKR;
     MYFLT       *ftab = p->ftp->ftable;
     int         x0    = (int32)phs;
     MYFLT       fract = (MYFLT)(phs - (double)x0);
@@ -836,7 +836,7 @@ static int loopseg(CSOUND *csound, LOOPSEG *p)
 {
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
-    double   phs, si=*p->freq*csound->onedkr;
+    double   phs, si=*p->freq*CS_ONEDKR;
     int nsegs=p->nsegs+1;
     int j;
     if (*p->retrig)
@@ -878,7 +878,7 @@ static int loopxseg(CSOUND *csound, LOOPSEG *p)
     MYFLT exp1 = FL(1.0)/(FL(1.0)-EXP(FL(1.0)));
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
-    double   phs, si=*p->freq*csound->onedkr;
+    double   phs, si=*p->freq*CS_ONEDKR;
     int nsegs=p->nsegs+1;
     int j;
     if (*p->retrig)
@@ -925,7 +925,7 @@ static int looptseg_set(CSOUND *csound, LOOPTSEG *p)
 static int looptseg(CSOUND *csound, LOOPTSEG *p)
 {
     MYFLT beg_seg=FL(0.0), end_seg=FL(0.0), durtot=FL(0.0);
-    double   phs, si=*p->freq*csound->onedkr;
+    double   phs, si=*p->freq*CS_ONEDKR;
     int nsegs=p->nsegs;
     int j;
 
@@ -966,7 +966,7 @@ static int lpshold(CSOUND *csound, LOOPSEG *p)
 {
     MYFLT *argp=p->args;
     MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
-    double   phs, si=*p->freq*csound->onedkr;
+    double   phs, si=*p->freq*CS_ONEDKR;
     int nsegs=p->nsegs+1;
     int j;
 
@@ -1143,7 +1143,7 @@ static int tlineto(CSOUND *csound, LINETO2 *p)
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
-      p->current_time += csound->onedkr;
+      p->current_time += CS_ONEDKR;
       p->val_incremented += p->incr;
     }
     *p->kr = p->val_incremented;
@@ -1168,7 +1168,7 @@ static int vibrato_set(CSOUND *csound, VIBRATO *p)
     p->xcpsFreqRate = randGab *(*p->ampMaxRate - *p->ampMinRate) +
       *p->ampMinRate;
     p->tablen = ftp->flen;
-    p->tablenUPkr = p->tablen * csound->onedkr;
+    p->tablenUPkr = p->tablen * CS_ONEDKR;
     return OK;
 }
 
@@ -1199,7 +1199,7 @@ static int vibrato(CSOUND *csound, VIBRATO *p)
     while (phs < 0.0 )
       phs += p->tablen;
     p->lphs = phs;
-    p->phsAmpRate += (int32)(p->xcpsAmpRate * csound->kicvt);
+    p->phsAmpRate += (int32)(p->xcpsAmpRate * CS_KICVT);
     if (p->phsAmpRate >= MAXLEN) {
       p->xcpsAmpRate =  randGab  * (*p->ampMaxRate - *p->ampMinRate) +
         *p->ampMinRate;
@@ -1208,7 +1208,7 @@ static int vibrato(CSOUND *csound, VIBRATO *p)
       p->num2amp = BiRandGab ;
       p->dfdmaxAmp = (p->num2amp - p->num1amp) / FMAXLEN;
     }
-    p->phsFreqRate += (int32)(p->xcpsFreqRate * csound->kicvt);
+    p->phsFreqRate += (int32)(p->xcpsFreqRate * CS_KICVT);
     if (p->phsFreqRate >= MAXLEN) {
       p->xcpsFreqRate =  randGab  * (*p->cpsMaxRate - *p->cpsMinRate) +
         *p->cpsMinRate;
@@ -1243,7 +1243,7 @@ static int vibr_set(CSOUND *csound, VIBR *p)
     p->xcpsAmpRate = randGab  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
     p->xcpsFreqRate = randGab  * (ampMaxRate - ampMinRate) + ampMinRate;
     p->tablen = ftp->flen;
-    p->tablenUPkr = p->tablen * csound->onedkr;
+    p->tablenUPkr = p->tablen * CS_ONEDKR;
     return OK;
 }
 
@@ -1276,7 +1276,7 @@ static int vibr(CSOUND *csound, VIBR *p)
       phs += p->tablen;
     p->lphs = phs;
 
-    p->phsAmpRate += (int32)(p->xcpsAmpRate * csound->kicvt);
+    p->phsAmpRate += (int32)(p->xcpsAmpRate * CS_KICVT);
     if (p->phsAmpRate >= MAXLEN) {
       p->xcpsAmpRate =  randGab  * (ampMaxRate - ampMinRate) + ampMinRate;
       p->phsAmpRate &= PHMASK;
@@ -1285,7 +1285,7 @@ static int vibr(CSOUND *csound, VIBR *p)
       p->dfdmaxAmp = (p->num2amp - p->num1amp) / FMAXLEN;
     }
 
-    p->phsFreqRate += (int32)(p->xcpsFreqRate * csound->kicvt);
+    p->phsFreqRate += (int32)(p->xcpsFreqRate * CS_KICVT);
     if (p->phsFreqRate >= MAXLEN) {
       p->xcpsFreqRate =  randGab  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
       p->phsFreqRate &= PHMASK;
@@ -1325,15 +1325,15 @@ static int jitter2(CSOUND *csound, JITTER2 *p)
 
     if (p->flag) { /* accept default values */
       *p->out  = (out1* FL(0.5) + out2 * FL(0.3) + out3* FL(0.2)) * *p->gamp;
-      p->phs1 += (int32) (FL(0.82071231913) * csound->kicvt);
-      p->phs2 += (int32) (FL(7.009019029039107) * csound->kicvt);
-      p->phs3 += (int32) (FL(10.0) * csound->kicvt);
+      p->phs1 += (int32) (FL(0.82071231913) * CS_KICVT);
+      p->phs2 += (int32) (FL(7.009019029039107) * CS_KICVT);
+      p->phs3 += (int32) (FL(10.0) * CS_KICVT);
     }
     else {
       *p->out  = (out1* *p->amp1 + out2* *p->amp2 +out3* *p->amp3) * *p->gamp;
-      p->phs1 += (int32)( *p->cps1 * csound->kicvt);
-      p->phs2 += (int32)( *p->cps2 * csound->kicvt);
-      p->phs3 += (int32)( *p->cps3 * csound->kicvt);
+      p->phs1 += (int32)( *p->cps1 * CS_KICVT);
+      p->phs2 += (int32)( *p->cps2 * CS_KICVT);
+      p->phs3 += (int32)( *p->cps3 * CS_KICVT);
     }
     if (p->phs1 >= MAXLEN) {
       p->phs1   &= PHMASK;
@@ -1372,7 +1372,7 @@ static int jitter(CSOUND *csound, JITTER *p)
       goto next;
     }
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->amp;
-    p->phs += (int32)(p->xcps * csound->kicvt);
+    p->phs += (int32)(p->xcps * CS_KICVT);
 
     if (p->phs >= MAXLEN) {
     next:
@@ -1409,7 +1409,7 @@ static int jitters(CSOUND *csound, JITTERS *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*csound->onedkr;
+      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
       if (p->si == 0) p->si = 1; /* Is this necessary? */
       while (p->phs > 1.0)
         p->phs -= 1.0;
@@ -1630,7 +1630,7 @@ static int randomi_set(CSOUND *csound, RANDOMI *p)
 static int krandomi(CSOUND *csound, RANDOMI *p)
 {
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * (*p->max - *p->min) + *p->min;
-    p->phs += (int32)(*p->xcps * csound->kicvt);
+    p->phs += (int32)(*p->xcps * CS_KICVT);
     if (p->phs >= MAXLEN) {
       p->phs   &= PHMASK;
       p->num1   = p->num2;
@@ -1692,7 +1692,7 @@ static int randomh_set(CSOUND *csound, RANDOMH *p)
 static int krandomh(CSOUND *csound, RANDOMH *p)
 {
     *p->ar = p->num1 * (*p->max - *p->min) + *p->min;
-    p->phs += (int32)(*p->xcps * csound->kicvt);
+    p->phs += (int32)(*p->xcps * CS_KICVT);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       p->num1 = randGab;
@@ -1750,7 +1750,7 @@ static int random3(CSOUND *csound, RANDOM3 *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*csound->onedkr;
+      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0     = p->num0 = p->num1;

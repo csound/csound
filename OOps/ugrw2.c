@@ -196,7 +196,7 @@ int kport(CSOUND *csound, KPORT *p)
     /* This previous comment is WRONG;  do not be misled -- JPff */
 
     if (UNLIKELY(p->prvhtim != *p->khtim)) {
-      p->c2 = POWER(FL(0.5), csound->onedkr / *p->khtim);
+      p->c2 = POWER(FL(0.5), CS_ONEDKR / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
       p->prvhtim = *p->khtim;
     }

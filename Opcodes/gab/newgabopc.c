@@ -140,7 +140,7 @@ static int schedk_i(CSOUND *csound, SCHEDK *p)
     O->RTevents = 1;     /* Make sure kperf() looks for RT events */
     /*   O->ksensing = 1; */
     /*   O->OrcEvts  = 1; */    /* - of the appropriate type */
-    if (csound->kcounter > 0 && *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
+    if (CS_KCNT > 0 && *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
       schedk(csound,p);
     return OK;
 }
@@ -181,7 +181,7 @@ static int schedInTime_set(CSOUND *csound, SCHEDINTIME *p)
      p->argums[0]=&p->args2[0];
 
 
-     if (csound->kcounter > 0 && *p->trigger != 0 && p->h.insdshead->p3 == 0) {
+     if (CS_KCNT > 0 && *p->trigger != 0 && p->h.insdshead->p3 == 0) {
        if (*p->argums[3] >= 0) *p->argums[3] = -1; /* start a held note */
        *p->argums[1] += p->frac;
        Sched(csound, p->argums, p->nargs);
