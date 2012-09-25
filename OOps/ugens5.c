@@ -34,7 +34,7 @@
 
 int porset(CSOUND *csound, PORT *p)
 {
-    p->c2 = pow(0.5, (double)csound->onedkr / *p->ihtim);
+    p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
     p->c1 = 1.0 - p->c2;
     if (LIKELY(*p->isig >= FL(0.0)))
       p->yt1 = (double)(*p->isig);
@@ -1020,7 +1020,7 @@ int gain(CSOUND *csound, GAIN *p)
     ar = p->ar;
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff * (double)csound->onedksmps;
+      inc = diff * (double)CS_ONEDKSMPS;
       for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
@@ -1061,7 +1061,7 @@ int balance(CSOUND *csound, BALANCE *p)
     ar = p->ar;
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff * (double)csound->onedksmps;
+      inc = diff * (double)CS_ONEDKSMPS;
       for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;

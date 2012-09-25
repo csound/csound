@@ -343,7 +343,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
         *dftp++ = (MYFLT)c;                  /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = csound->kcounter;     /* time-stamp the output   */
+    specp->ktimstamp = CS_KCNT;     /* time-stamp the output   */
     return OK;
 }
 
@@ -508,7 +508,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 /*         *dftp++ = c;                       /\* store in out spectrum   *\/ */
 /*       } */
 /*     } */
-/*     specp->ktimstamp = csound->kcounter;   /\* time-stamp the output   *\/ */
+/*     specp->ktimstamp = CS_KCNT;   /\* time-stamp the output   *\/ */
 /*     return OK; */
 /* } */
 
@@ -688,7 +688,7 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
 {
     SPECDAT *inspecp = p->wsig;
 
-    if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
+    if (inspecp->ktimstamp == CS_KCNT) {   /* if inspectrum is new: */
       MYFLT *inp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *endp = inp + inspecp->npts;
       MYFLT *inp2, sum, *fp;
@@ -834,7 +834,7 @@ int specsum(CSOUND *csound, SPECSUM *p)
 {
     SPECDAT *specp = p->wsig;
     if (UNLIKELY(specp->auxch.auxp==NULL)) goto err1; /* RWD fix */
-    if (specp->ktimstamp == csound->kcounter) { /* if spectrum is new   */
+    if (specp->ktimstamp == CS_KCNT) { /* if spectrum is new   */
       MYFLT *valp = (MYFLT *) specp->auxch.auxp;
       MYFLT sum = FL(0.0);
       int32 n,npts = specp->npts;                /*   sum all the values */
@@ -889,7 +889,7 @@ int specaddm(CSOUND *csound, SPECADDM *p)
     if (UNLIKELY((p->wsig1->auxch.auxp==NULL) || /* RWD fix */
                  (p->wsig2->auxch.auxp==NULL) ||
                  (p->waddm->auxch.auxp==NULL))) goto err1;
-    if (p->wsig1->ktimstamp == csound->kcounter) {  /* if inspec1 is new:     */
+    if (p->wsig1->ktimstamp == CS_KCNT) {  /* if inspec1 is new:     */
       MYFLT *in1p = (MYFLT *) p->wsig1->auxch.auxp;
       MYFLT *in2p = (MYFLT *) p->wsig2->auxch.auxp;
       MYFLT *outp = (MYFLT *) p->waddm->auxch.auxp;
@@ -899,7 +899,7 @@ int specaddm(CSOUND *csound, SPECADDM *p)
       for (n=0;n<npts;n++) {
         outp[n] = in1p[n] + in2p[n] * mul2;         /* out = in1 + in2 * mul2 */
       }
-      p->waddm->ktimstamp = csound->kcounter;  /* mark the output spec as new */
+      p->waddm->ktimstamp = CS_KCNT;  /* mark the output spec as new */
     }
     return OK;
  err1:
@@ -944,7 +944,7 @@ int specdiff(CSOUND *csound, SPECDIFF *p)
         (p->specsave.auxch.auxp==NULL)
         ||
                  (p->wdiff->auxch.auxp==NULL))) goto err1;
-    if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
+    if (inspecp->ktimstamp == CS_KCNT) {   /* if inspectrum is new: */
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *prvp = (MYFLT *) p->specsave.auxch.auxp;
       MYFLT *difp = (MYFLT *) p->wdiff->auxch.auxp;
@@ -961,7 +961,7 @@ int specdiff(CSOUND *csound, SPECDIFF *p)
         else difp[n] = FL(0.0);               /* else enter zero         */
         prvp[n] = newval;                     /* sav newval for nxt time */
       }
-      p->wdiff->ktimstamp = csound->kcounter; /* mark the output spec as new */
+      p->wdiff->ktimstamp = CS_KCNT; /* mark the output spec as new */
     }
     return OK;
  err1:
@@ -1033,7 +1033,7 @@ int specscal(CSOUND *csound, SPECSCAL *p)
         (p->wscaled->auxch.auxp==NULL)
         ||
         (p->fscale==NULL)) goto err1;
-    if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
+    if (inspecp->ktimstamp == CS_KCNT) {   /* if inspectrum is new: */
       SPECDAT *outspecp = p->wscaled;
       MYFLT *inp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *outp = (MYFLT *) outspecp->auxch.auxp;
@@ -1054,7 +1054,7 @@ int specscal(CSOUND *csound, SPECSCAL *p)
           outp[n] = inp[n] * sclp[n];             /* no thresh: rescale only */
         }
       }
-      outspecp->ktimstamp = csound->kcounter;     /* mark the outspec as new */
+      outspecp->ktimstamp = CS_KCNT;     /* mark the outspec as new */
     }
     return OK;
  err1:
@@ -1098,7 +1098,7 @@ int spechist(CSOUND *csound, SPECHIST *p)
         (p->accumer.auxch.auxp==NULL)
         ||
                  (p->wacout->auxch.auxp==NULL))) goto err1;
-    if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
+    if (inspecp->ktimstamp == CS_KCNT) {   /* if inspectrum is new: */
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *acup = (MYFLT *) p->accumer.auxch.auxp;
       MYFLT *outp = (MYFLT *) p->wacout->auxch.auxp;
@@ -1110,7 +1110,7 @@ int spechist(CSOUND *csound, SPECHIST *p)
         acup[n] = newval;                   /* sav in accumulator   */
         outp[n] = newval;                   /* & copy to output     */
       }
-      p->wacout->ktimstamp = csound->kcounter; /* mark the output spec as new */
+      p->wacout->ktimstamp = CS_KCNT; /* mark the output spec as new */
     }
     return OK;
  err1:
@@ -1160,7 +1160,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
     {
       int32 nn;
       MYFLT *flp = p->coefs;
-      double halftim, reittim = inspecp->ktimprd * csound->onedkr;
+      double halftim, reittim = inspecp->ktimprd * CS_ONEDKR;
       for (nn=0;nn<npts;nn++) {
         if ((halftim = flp[nn]) > 0.)
           flp[nn] = (MYFLT)pow(0.5, reittim/halftim);
@@ -1182,7 +1182,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
 
 int specfilt(CSOUND *csound, SPECFILT *p)
 {
-    if (p->wsig->ktimstamp == csound->kcounter) {   /* if input spec is new,  */
+    if (p->wsig->ktimstamp == CS_KCNT) {   /* if input spec is new,  */
       SPECDAT *inspecp = p->wsig;
       SPECDAT *outspecp = p->wfil;
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
@@ -1198,7 +1198,7 @@ int specfilt(CSOUND *csound, SPECFILT *p)
         outp[n] = curval = persp[n];               /*   output current point  */
         persp[n] = coefp[n] * curval + newp[n];    /*   decay & addin newval  */
       }
-      outspecp->ktimstamp = csound->kcounter;      /* mark output spec as new */
+      outspecp->ktimstamp = CS_KCNT;      /* mark output spec as new */
     }
     return OK;
  err1:

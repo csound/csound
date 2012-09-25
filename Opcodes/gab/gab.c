@@ -523,7 +523,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
       cps = freqtbl[c] * cps0;
       inc = (int32) (cps * csound->sicvt);
       phs = lphs[c];
-      ampIncr = (amp - amp2) * csound->onedksmps;
+      ampIncr = (amp - amp2) * CS_ONEDKSMPS;
       for (n=0; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;

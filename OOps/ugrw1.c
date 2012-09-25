@@ -2701,7 +2701,7 @@ int zacl(CSOUND *csound, ZACL *p)
 int timek(CSOUND *csound, RDTIME *p)
 {
     /* Read the global variable kcounter and turn it into a float.   */
-    *p->rslt = (MYFLT) csound->kcounter;
+    *p->rslt = (MYFLT) CS_KCNT;
     return OK;
 }
 
@@ -2710,7 +2710,7 @@ int timesr(CSOUND *csound, RDTIME *p)
 {
     /* Read the global variable kcounter divide it by the k rate.    */
 
-    *p->rslt = (MYFLT) csound->kcounter * csound->onedkr;
+    *p->rslt = (MYFLT) CS_KCNT * CS_ONEDKR;
     return OK;
 }
 
@@ -2724,7 +2724,7 @@ int timesr(CSOUND *csound, RDTIME *p)
  */
 int instimset(CSOUND *csound, RDTIME *p)
 {
-    p->instartk = csound->kcounter;
+    p->instartk = CS_KCNT;
     *p->rslt = FL(0.0);
     return OK;
 }
@@ -2736,7 +2736,7 @@ int instimset(CSOUND *csound, RDTIME *p)
  */
 int instimek(CSOUND *csound, RDTIME *p)
 {
-    *p->rslt = (MYFLT) (csound->kcounter - p->instartk);
+    *p->rslt = (MYFLT) (CS_KCNT - p->instartk);
     return OK;
 }
 
@@ -2747,7 +2747,7 @@ int instimek(CSOUND *csound, RDTIME *p)
  */
 int instimes(CSOUND *csound, RDTIME *p)
 {
-    *p->rslt = (MYFLT) (csound->kcounter - p->instartk) * csound->onedkr;
+    *p->rslt = (MYFLT) (CS_KCNT - p->instartk) * CS_ONEDKR;
     return OK;
 }
 
@@ -2763,8 +2763,8 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set up ctime so that if it was 0 or negative, it is set to a low value
      * to ensure that the print cycle happens every k cycle.  This low value is
      * 1 / ekr     */
-    if (*p->ptime < csound->onedkr)
-      p->ctime = csound->onedkr;
+    if (*p->ptime < CS_ONEDKR)
+      p->ctime = CS_ONEDKR;
     else
       p->ctime = *p->ptime;
 
@@ -2780,7 +2780,7 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set the initime variable - how many seconds in absolute time
      * when this instance of the instrument was initialised.     */
 
-    p->initime = (MYFLT) csound->kcounter * csound->onedkr;
+    p->initime = (MYFLT) CS_KCNT * CS_ONEDKR;
 
     /* Set cysofar to - 1 so that on the first call to printk - when
      * cycle = 0, then there will be a print cycle.     */
@@ -2804,7 +2804,7 @@ int printk(CSOUND *csound, PRINTK *p)
     /* Initialise variables.    */
     if (UNLIKELY(p->initialised != -1))
       csound->PerfError(csound, Str("printk not initialised"));
-    timel =     ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
+    timel =     ((MYFLT) CS_KCNT * CS_ONEDKR) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.
@@ -2851,15 +2851,15 @@ int printksset(CSOUND *csound, PRINTKS *p)
     char        temp, tempn;
 
     p->initialised = -1;
-    if (*p->ptime < csound->onedkr)
-      p->ctime = csound->onedkr;
+    if (*p->ptime < CS_ONEDKR)
+      p->ctime = CS_ONEDKR;
     else
       p->ctime = *p->ptime;
 
     /* Set the initime variable - how many seconds in absolute time
      * when this instance of the instrument was initialised.     */
 
-    p->initime = (MYFLT) csound->kcounter * csound->onedkr;
+    p->initime = (MYFLT) CS_KCNT * CS_ONEDKR;
 
     /* Set cysofar to - 1 so that on the first call to printk - when
      * cycle = 0, then there will be a print cycle.    */
@@ -3100,7 +3100,7 @@ int printks(CSOUND *csound, PRINTKS *p)
     /*-----------------------------------*/
     if (UNLIKELY(p->initialised != -1))
       csound->PerfError(csound, Str("printks not initialised"));
-    timel =     ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
+    timel =     ((MYFLT) CS_KCNT * CS_ONEDKR) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.     */

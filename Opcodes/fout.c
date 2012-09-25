@@ -521,7 +521,7 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
       case 1:
         {     /* with prefix (i-statement, p1, p2 and p3) */
           int     p1 = (int) p->h.insdshead->p1;
-          double  p2 = (double) csound->kcounter * csound->onedkr;
+          double  p2 = (double) CS_KCNT * CS_ONEDKR;
           double  p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -531,11 +531,11 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
         break;
       case 2: /* with prefix (start at 0 time) */
         if (pp->fout_kreset == 0)
-          pp->fout_kreset = csound->kcounter;
+          pp->fout_kreset = CS_KCNT;
         {
           int p1 = (int) p->h.insdshead->p1;
-          double p2 = (double) (csound->kcounter - pp->fout_kreset)
-                      * csound->onedkr;
+          double p2 = (double) (CS_KCNT - pp->fout_kreset)
+                      * CS_ONEDKR;
           double p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -565,10 +565,10 @@ static int ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     if (p->h.insdshead->xtratim < 1)
       p->h.insdshead->xtratim = 1;
-    p->counter =  csound->kcounter;
+    p->counter =  CS_KCNT;
     p->done = 1;
     if (*p->iflag == 2 && pp->fout_kreset == 0)
-      pp->fout_kreset = csound->kcounter;
+      pp->fout_kreset = CS_KCNT;
     return OK;
 }
 
@@ -595,18 +595,18 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
       case 1:
         {     /* whith prefix (i-statement, p1, p2 and p3) */
           int p1 = (int) p->h.insdshead->p1;
-          double p2 = p->counter * csound->onedkr;
-          double p3 = (double) (csound->kcounter - p->counter)
-                      * csound->onedkr;
+          double p2 = p->counter * CS_ONEDKR;
+          double p3 = (double) (CS_KCNT - p->counter)
+                      * CS_ONEDKR;
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         }
         break;
       case 2: /* with prefix (start at 0 time) */
         {
           int p1 = (int) p->h.insdshead->p1;
-          double p2 = (p->counter - pp->fout_kreset) * csound->onedkr;
-          double p3 = (double) (csound->kcounter - p->counter)
-                      * csound->onedkr;
+          double p2 = (p->counter - pp->fout_kreset) * CS_ONEDKR;
+          double p3 = (double) (CS_KCNT - p->counter)
+                      * CS_ONEDKR;
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         }
         break;

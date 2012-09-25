@@ -333,7 +333,7 @@ int pitch(CSOUND *csound, PITCH *p)
         *dftp++ = c;                          /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = csound->kcounter;      /* time-stamp the output   */
+    specp->ktimstamp = CS_KCNT;      /* time-stamp the output   */
 
  nxt:
                                 /* specptrk */
@@ -1130,7 +1130,7 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
     }
 
     *p->sr = (MYFLT)(phs = curphs[index]);
-    if (UNLIKELY((phs += *p->xcps * csound->onedkr) >= 1.0))
+    if (UNLIKELY((phs += *p->xcps * CS_ONEDKR) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 1.0))
       phs += 1.0;
