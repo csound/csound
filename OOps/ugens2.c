@@ -121,7 +121,7 @@ int kphsor(CSOUND *csound, PHSOR *p)
 {
     double      phs;
     *p->sr = (MYFLT)(phs = p->curphs);
-    if (UNLIKELY((phs += (double)*p->xcps * csound->onedkr) >= 1.0))
+    if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 0.0))
       phs += 1.0;
@@ -967,7 +967,7 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     p->ftp = ftp;
     p->phs = 0;
     p->dcnt = (int32)(*p->idel * csound->ekr);
-    p->kinc = (int32) (csound->kicvt / *p->idur);
+    p->kinc = (int32) (CS_KICVT / *p->idur);
     if (p->kinc==0) p->kinc = 1;
     return OK;
 }
@@ -1102,7 +1102,7 @@ int koscil(CSOUND *csound, OSC *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     phs = p->lphs;
-    inc = (int32) (*p->xcps * csound->kicvt);
+    inc = (int32) (*p->xcps * CS_KICVT);
     *p->sr = ftp->ftable[phs >> ftp->lobits] * *p->xamp;
     phs += inc;
     phs &= PHMASK;
@@ -1232,7 +1232,7 @@ int koscli(CSOUND *csound, OSC   *p)
     ftab = ftp->ftable + (phs >> ftp->lobits);
     v1 = ftab[0];
     *p->sr = (v1 + (ftab[1] - v1) * fract) * *p->xamp;
-    inc = (int32)(*p->xcps * csound->kicvt);
+    inc = (int32)(*p->xcps * CS_KICVT);
     phs += inc;
     phs &= PHMASK;
     p->lphs = phs;
@@ -1390,7 +1390,7 @@ int koscl3(CSOUND *csound, OSC   *p)
                       frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
                       frsq*(FL(0.5)* y1 - y0));
     }
-    inc = (int32)(*p->xcps * csound->kicvt);
+    inc = (int32)(*p->xcps * CS_KICVT);
     phs += inc;
     phs &= PHMASK;
     p->lphs = phs;

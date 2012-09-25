@@ -581,7 +581,7 @@ int krandh(CSOUND *csound, RANDH *p)
 {
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + p->num1 * *p->xamp;     /* rslt = num * amp     */
-    p->phs += (int32)(*p->xcps * csound->kicvt); /* phs += inc           */
+    p->phs += (int32)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
@@ -697,7 +697,7 @@ int krandi(CSOUND *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (int32)(*p->xcps * csound->kicvt); /* phs += inc           */
+    p->phs += (int32)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
