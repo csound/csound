@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2011-12-20 22:46+0000\n"
+"PO-Revision-Date: 2012-10-03 12:59+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: \n"
@@ -132,11 +132,9 @@ msgstr ""
 "l'argument de sortie '%s' est de type illégal (pour opcode %s) ligne %d\n"
 
 #: Engine/csound_orc_compile.c:618
-#, fuzzy, c-format
+#, c-format
 msgid "output name previously used, type 'w' must be uniquely defined, line %d"
-msgstr ""
-"nom de sortie déjà utilisé, le type '%c' doit avoir une définition unique, "
-"ligne %d"
+msgstr "nom de sortie déjà utilisé, le type 'w' doit avoir une définition unique, ligne %d"
 
 #: Engine/csound_orc_compile.c:651
 #, c-format
@@ -1345,7 +1343,7 @@ msgid "SECTION %d:\n"
 msgstr "SECTION %d :\n"
 
 #: Engine/musmon.c:357
-#, fuzzy, c-format
+#, c-format
 msgid "%c\tbeep!\n"
 msgstr "%c\tsignal sonore !\n"
 
@@ -1491,9 +1489,9 @@ msgid "cannot find the specified instrument or opcode"
 msgstr "impossible de trouver l'instrument ou l'opcode spécifié"
 
 #: Engine/new_orc_parser.c:98 Top/main.c:204
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open input file %s\n"
-msgstr "L'ouverture du fichier de sortie %s a échoué"
+msgstr "L'ouverture du fichier de sortie %s a échoué\n"
 
 #: Engine/new_orc_parser.c:128
 msgid "Unmatched #ifdef\n"
@@ -1780,7 +1778,6 @@ msgid "macro error\n"
 msgstr "erreur de macro\n"
 
 #: Engine/sread.c:1601 Engine/sread.c:1610
-#, fuzzy
 msgid "Syntax error in macro definition"
 msgstr "Erreur de syntaxe dans l'appel de macro"
 
@@ -2011,7 +2008,9 @@ msgstr "L'initialisation de la sortie audio en temps réel a échoué"
 msgid ""
 "sfinit: cannot open fd %d\n"
 "%s"
-msgstr "sfinit : impossible d'ouvrir %s"
+msgstr ""
+"sfinit : impossible d'ouvrir %d\n"
+"%s"
 
 #: InOut/libsnd.c:746 InOut/libsnd.c:750
 #, c-format
@@ -2841,9 +2840,8 @@ msgid "rtmidi: ALSA module enabled\n"
 msgstr "rtmiDi : module ALSA activé\n"
 
 #: InOut/rtalsa.c:1540
-#, fuzzy
 msgid "rtmidi: ALSASEQ module enabled\n"
-msgstr "rtmiDi : module ALSA activé\n"
+msgstr "rtmidi : module ALSASEQ activé\n"
 
 #: InOut/rtalsa.c:1549
 msgid "rtmidi: devfile module enabled\n"
@@ -4704,19 +4702,16 @@ msgid "envlpx(krate): not initialised"
 msgstr "envlpx(taux-k) : non initialisé"
 
 #: OOps/ugens1.c:1545 OOps/ugens1.c:1712
-#, fuzzy
 msgid "cosseg not initialised (krate)\n"
-msgstr "linseg non initialisé (taux-k)\n"
+msgstr "cosseg non initialisé (taux-k)\n"
 
 #: OOps/ugens1.c:1598
-#, fuzzy
 msgid "cosseg: not initialised (arate)\n"
-msgstr "linseg : non initialisé (taux-a)\n"
+msgstr "cosseg : non initialisé (taux-a)\n"
 
 #: OOps/ugens1.c:1660
-#, fuzzy
 msgid "cossegr: not initialised (arate)\n"
-msgstr "linseg : non initialisé (taux-a)\n"
+msgstr "cosseg : non initialisé (taux-a)\n"
 
 #: OOps/ugens2.c:48 OOps/ugens2.c:61 Opcodes/shape.c:381
 msgid "init phase truncation\n"
@@ -5448,24 +5443,20 @@ msgstr ""
 "qu'elle vaut 50 Hz\n"
 
 #: Opcodes/cellular.c:49 Opcodes/cellular.c:55
-#, fuzzy
 msgid "cell: invalid num of elements"
-msgstr "cella : nombre d'éléments non valide"
+msgstr "cell : nombre d'éléments non valide"
 
 #: Opcodes/cellular.c:51
-#, fuzzy
 msgid "cell: invalid output table"
-msgstr "cella : table de sortie non valide"
+msgstr "cell : table de sortie non valide"
 
 #: Opcodes/cellular.c:58
-#, fuzzy
 msgid "cell: invalid initial state table"
-msgstr "cella : table d'état initial non valide"
+msgstr "cell : table d'état initial non valide"
 
 #: Opcodes/cellular.c:63
-#, fuzzy
 msgid "cell: invalid rule table"
-msgstr "cella : table de règle non valide"
+msgstr "cell : table de règle non valide"
 
 #: Opcodes/clfilt.c:53
 msgid "filter type not lowpass or highpass in clfilt"
@@ -6058,102 +6049,17 @@ msgstr ""
 msgid "nlfilt: not initialised"
 msgstr "nlfilt : non initialisé"
 
-#: Opcodes/nlfilt.c:160
+#: Opcodes/nlfilt.c:191
+msgid "nlfilt2: not initialised"
+msgstr "nlfilt2 : non initialisé"
+
+#: Opcodes/nlfilt.c:226
 msgid "More arguments than p fields"
 msgstr "Plus d'arguments que p-champs"
 
-#: Opcodes/nlfilt.c:168
+#: Opcodes/nlfilt.c:234
 msgid "buffer overflow in passign"
 msgstr "dépassement de tampon dans passign"
-
-#: Opcodes/ogg.c:53
-msgid "oggread: invalid number of channels"
-msgstr "oggread : nombre de canaux non valide"
-
-#: Opcodes/ogg.c:59
-msgid "oggread: Failed to open file"
-msgstr "oggread : l'ouverture du fichier a échoué"
-
-#: Opcodes/ogg.c:65
-msgid "oggread: Failed to open input as vorbis"
-msgstr "oggread : l'ouverture de l'entrée en vorbis a échoué"
-
-#: Opcodes/ogg.c:70
-msgid ""
-"oggread: number of output args inconsistent with number of file channels"
-msgstr ""
-"oggread : nombre d'args de sortie en contradiction avec le nombre de canaux "
-"du fichier"
-
-#: Opcodes/ogg.c:77
-#, c-format
-msgid "oggread: sample rate of file is %d which coes not match sr (=%f)\n"
-msgstr ""
-"oggread : le taux d'échantillonnage du fichier vaut %d qui ne correspond pas "
-"à sr (=%f)\n"
-
-#: Opcodes/ogg.c:91
-#, c-format
-msgid "oggread: seek file to sec=%f\n"
-msgstr "oggread : positionnement dans le fichier à %f sec\n"
-
-#: Opcodes/ogg.c:96
-#, c-format
-msgid "oggread: seek_point=%f > file_length=%f\n"
-msgstr "oggread : seek_point=%f > file_lenth=%f\n"
-
-#: Opcodes/ogg.c:100
-msgid "oggread: file is not seekable\n"
-msgstr "oggread : le fichier n'est pas en accès aléatoire\n"
-
-#: Opcodes/ogg.c:117
-msgid "oggread: Only one logical bitstream currently supported\n"
-msgstr "oggread : un seul flot numérique logique est actuellement supporté\n"
-
-#: Opcodes/ogg.c:120
-msgid "oggread: Warning hole in data\n"
-msgstr "oggread : avertissement, trou dans les données\n"
-
-#: Opcodes/oggplay.c:35
-msgid "oggplay: invalid number of channels"
-msgstr "oggplay : nombre de canaux non valide"
-
-#: Opcodes/oggplay.c:41
-msgid "oggplay: Failed to open file"
-msgstr "oggplay : l'ouverture du fichier a échoué"
-
-#: Opcodes/oggplay.c:47
-msgid "oggplay: Failed to open input as vorbis"
-msgstr "oggplay : l'ouverture de l'entrée en vorbis a échoué"
-
-#: Opcodes/oggplay.c:52
-msgid ""
-"oggplay: number of output args inconsistent with number of file channels"
-msgstr ""
-"oggplay : nombre d'args de sortie en contradiction avec le nombre de canaux "
-"du fichier"
-
-#: Opcodes/oggplay.c:70
-#, c-format
-msgid "oggplay: seek file to sec=%f \n"
-msgstr "oggplay : positionnement dans le fichier à %f sec\n"
-
-#: Opcodes/oggplay.c:75
-#, c-format
-msgid "oggplay: seek_point=%f > file_length=%f \n"
-msgstr "oggplay : seek_point=%f > file_lenth=%f\n"
-
-#: Opcodes/oggplay.c:79
-msgid "oggplay: file is not seekable \n"
-msgstr "oggplay : le fichier n'est pas en accès aléatoire\n"
-
-#: Opcodes/oggplay.c:99
-msgid "oggplay: Only one logical bitstream currently supported\n"
-msgstr "oggplay : un seul flot numérique logique est actuellement supporté\n"
-
-#: Opcodes/oggplay.c:103
-msgid "oggplay: Warning hole in data\n"
-msgstr "oggplay : avertissement, trou dans les données\n"
 
 #: Opcodes/oscbnk.c:550
 msgid "oscbnk: not initialised"
@@ -6366,14 +6272,14 @@ msgid "partikkelsync: could not find opcode id"
 msgstr "partikkelsync : impossible de trouver l'id de l'opcode"
 
 #: Opcodes/partikkel.c:877
-#, fuzzy, c-format
+#, c-format
 msgid "%s: partikkel not initialized"
-msgstr "spat3di : non initialisé"
+msgstr "%s : partikkel non initialisé"
 
 #: Opcodes/partikkel.c:885
-#, fuzzy, c-format
+#, c-format
 msgid "%s: could not find opcode id"
-msgstr "partikkelsync : impossible de trouver l'id de l'opcode"
+msgstr "%s : impossible de trouver l'id de l'opcode"
 
 #: Opcodes/physmod.c:122
 msgid "No table for Clarinet"
@@ -6872,9 +6778,9 @@ msgid "pvstencil: not initialised"
 msgstr "pvstencil : non initialisé"
 
 #: Opcodes/pvsbasic.c:2075
-#, fuzzy, c-format
+#, c-format
 msgid "could not find table number %d\n"
-msgstr "impossible de trouver l'instr actif %f\n"
+msgstr "la table %d est introuvable\n"
 
 #: Opcodes/pvsbasic.c:2159
 msgid "pvs2tab: signal format must be amp-phase or amp-freq."
@@ -7346,9 +7252,9 @@ msgid "connect failed (%d)"
 msgstr "la connexion a échoué (%d)"
 
 #: Opcodes/socksend.c:300
-#, fuzzy, c-format
+#, c-format
 msgid "Expected %d got %d\n"
-msgstr "PVRead : attendus %d, reçus %ld\n"
+msgstr "%d attendu, %d obtenu\n"
 
 #: Opcodes/space.c:165
 msgid "space: not initialised"
@@ -7648,7 +7554,6 @@ msgid "slice larger than original size"
 msgstr ""
 
 #: Opcodes/tabvars.c:519 Opcodes/tabvars.c:558 Opcodes/tabvars.c:560
-#, fuzzy
 msgid "tvar not initialised"
 msgstr "t-variable : non initialisé"
 
@@ -7756,21 +7661,18 @@ msgid "Min and max the same"
 msgstr "Min et max sont les mêmes"
 
 #: Opcodes/uggab.c:215
-#, fuzzy
 msgid "table not found in poscil"
-msgstr "La table %f n'a pas été trouvée"
+msgstr "table introuvable dans poscil"
 
 #: Opcodes/uggab.c:234 Opcodes/uggab.c:261 Opcodes/uggab.c:290
 #: Opcodes/uggab.c:318
-#, fuzzy
 msgid "poscil: not initialised"
-msgstr "oscil : non initialisé"
+msgstr "poscil : non initialisé"
 
 #: Opcodes/uggab.c:365 Opcodes/uggab.c:412 Opcodes/uggab.c:460
 #: Opcodes/uggab.c:509
-#, fuzzy
 msgid "poscil3: not initialised"
-msgstr "oscil3 : non initialisé"
+msgstr "poscil3 : non initialisé"
 
 #: Opcodes/uggab.c:590
 msgid "losc: no sample rate stored in function assuming=sr\n"
@@ -8128,9 +8030,8 @@ msgid "Pair of speakers at %f and %f ignored\n"
 msgstr ""
 
 #: Opcodes/vbap.c:748
-#, fuzzy
 msgid "insufficient valid speakers"
-msgstr "termes en nombre insuffisant"
+msgstr "nombre de haut-parleurs insuffisant"
 
 #: Opcodes/vbap.c:787
 #, c-format
@@ -8151,9 +8052,8 @@ msgstr ""
 "L'opcode vbaplsinit manque-t-il dans l'orchestre ?"
 
 #: Opcodes/vbap_n.c:328
-#, fuzzy
 msgid "Missing fields in vbapmove\n"
-msgstr "Il manque des champs dans vbap8move\n"
+msgstr "Il manque des champs dans vbapmove\n"
 
 #: Opcodes/vbap_n.c:333 Opcodes/vbap_zak.c:345
 msgid "Warning: Ambiguous transition 180 degrees.\n"
@@ -8166,7 +8066,7 @@ msgstr "Dimension incorrecte\n"
 #: Opcodes/vbap_n.c:520
 #, fuzzy, c-format
 msgid "Have to have at least %d directions in vbapmove"
-msgstr "Il faut au moins %d directions dans vbap8move"
+msgstr "Il faut au moins %d directions dans vbapmove"
 
 #: Opcodes/vbap_n.c:530 Opcodes/vbap_zak.c:554
 msgid "Wrong dimension"
@@ -8532,9 +8432,8 @@ msgid "--ircam\t\t\tSet IRCAM format"
 msgstr "--ircam\t\t\tFixer le format IRCAM"
 
 #: Top/argdecode.c:133
-#, fuzzy
 msgid "--ogg\t\t\tSet OGG/VORBIS format"
-msgstr "--wave\t\t\tFixer le format WAV"
+msgstr "--ogg                   Fixer le format OGG/VORBIS"
 
 #: Top/argdecode.c:134
 msgid "--noheader\t\tRaw format"
@@ -8545,7 +8444,6 @@ msgid "--nopeaks\t\tDo not write peak information"
 msgstr "--nopeaks\t\tNe pas écrire d'information de crête"
 
 #: Top/argdecode.c:137
-#, fuzzy
 msgid "--nodisplays\t\tSuppress all displays"
 msgstr "--nodisplays\t\tsuppression de tout affichage"
 
@@ -8579,9 +8477,8 @@ msgid "--cscore\t\tUse Cscore processing of scorefile"
 msgstr "--cscore\t\ttraitement du fichier de partition par Cscore"
 
 #: Top/argdecode.c:146
-#, fuzzy
 msgid "--orc\t\t\tUse orchfile without scorefile"
-msgstr "--cscore\t\ttraitement du fichier de partition par Cscore"
+msgstr "--orc                   Utilisation d'un fichier orchestre sans partition"
 
 #: Top/argdecode.c:148
 msgid "--midifile=FNAME\tRead MIDIfile event stream from file"
@@ -9924,9 +9821,8 @@ msgstr "Erreur : le son n'est pas optimisé !"
 #: util/atsa.c:1946 util/atsa.c:1951 util/atsa.c:1962 util/atsa.c:1965
 #: util/atsa.c:1969 util/atsa.c:1978 util/cvanal.c:193 util/hetro.c:607
 #: util/hetro.c:690 util/hetro.c:703
-#, fuzzy
 msgid "Write failure\n"
-msgstr "Echec de l'allocation mémoire"
+msgstr "L'écriture a échoué\n"
 
 #: util/atsa.c:2019
 #, c-format
@@ -10887,9 +10783,8 @@ msgid "Failed to read LPC header\n"
 msgstr "La lecture de l'en-tête LPC a échoué\n"
 
 #: util/lpc_export.c:84 util/lpc_export.c:91
-#, fuzzy
 msgid "Read faailure\n"
-msgstr "Echec de l'allocation mémoire"
+msgstr "La lecture a échoué\n"
 
 #: util/lpc_export.c:109
 msgid "translate linear predictive coding file to text file"
@@ -10901,9 +10796,8 @@ msgid "Usage: lpc_import cstext_file lpc_file\n"
 msgstr "Utilisation : lpc_import fichier_cstext fichier_lpc\n"
 
 #: util/lpc_import.c:80 util/lpc_import.c:87 util/srconv.c:378
-#, fuzzy
 msgid "Read failure\n"
-msgstr "Echec de l'allocation mémoire"
+msgstr "La lecture a échoué\n"
 
 #: util/lpc_import.c:105
 msgid "translate text file to linear predictive coding file"
@@ -11230,14 +11124,12 @@ msgid "Usage: pv_import cstext_file pv_file \n"
 msgstr "Utilisation : pv_import fichier_textcsv fichier_pv\n"
 
 #: util/pv_import.c:73 util/pv_import.c:93
-#, fuzzy
 msgid "Not a PV file\n"
-msgstr "%s : n'est pas un fichier son\n"
+msgstr "Pas un fichier PV\n"
 
 #: util/pv_import.c:132
-#, fuzzy
 msgid "Memory failure\n"
-msgstr "Echec de l'allocation mémoire"
+msgstr "Echec de l'allocation mémoire\n"
 
 #: util/pv_import.c:143
 msgid "Sync error\n"
@@ -11704,6 +11596,73 @@ msgstr "extraction depuis la trame d'échantillon %ld (%3.1f secs)\n"
 #: util/xtrct.c:373
 msgid "Extract part of a sound file"
 msgstr "Extraction d'une partie d'un fichier son"
+
+#~ msgid "oggread: invalid number of channels"
+#~ msgstr "oggread : nombre de canaux non valide"
+
+#~ msgid "oggread: Failed to open file"
+#~ msgstr "oggread : l'ouverture du fichier a échoué"
+
+#~ msgid "oggread: Failed to open input as vorbis"
+#~ msgstr "oggread : l'ouverture de l'entrée en vorbis a échoué"
+
+#~ msgid ""
+#~ "oggread: number of output args inconsistent with number of file channels"
+#~ msgstr ""
+#~ "oggread : nombre d'args de sortie en contradiction avec le nombre de "
+#~ "canaux du fichier"
+
+#~ msgid "oggread: sample rate of file is %d which coes not match sr (=%f)\n"
+#~ msgstr ""
+#~ "oggread : le taux d'échantillonnage du fichier vaut %d qui ne correspond "
+#~ "pas à sr (=%f)\n"
+
+#~ msgid "oggread: seek file to sec=%f\n"
+#~ msgstr "oggread : positionnement dans le fichier à %f sec\n"
+
+#~ msgid "oggread: seek_point=%f > file_length=%f\n"
+#~ msgstr "oggread : seek_point=%f > file_lenth=%f\n"
+
+#~ msgid "oggread: file is not seekable\n"
+#~ msgstr "oggread : le fichier n'est pas en accès aléatoire\n"
+
+#~ msgid "oggread: Only one logical bitstream currently supported\n"
+#~ msgstr ""
+#~ "oggread : un seul flot numérique logique est actuellement supporté\n"
+
+#~ msgid "oggread: Warning hole in data\n"
+#~ msgstr "oggread : avertissement, trou dans les données\n"
+
+#~ msgid "oggplay: invalid number of channels"
+#~ msgstr "oggplay : nombre de canaux non valide"
+
+#~ msgid "oggplay: Failed to open file"
+#~ msgstr "oggplay : l'ouverture du fichier a échoué"
+
+#~ msgid "oggplay: Failed to open input as vorbis"
+#~ msgstr "oggplay : l'ouverture de l'entrée en vorbis a échoué"
+
+#~ msgid ""
+#~ "oggplay: number of output args inconsistent with number of file channels"
+#~ msgstr ""
+#~ "oggplay : nombre d'args de sortie en contradiction avec le nombre de "
+#~ "canaux du fichier"
+
+#~ msgid "oggplay: seek file to sec=%f \n"
+#~ msgstr "oggplay : positionnement dans le fichier à %f sec\n"
+
+#~ msgid "oggplay: seek_point=%f > file_length=%f \n"
+#~ msgstr "oggplay : seek_point=%f > file_lenth=%f\n"
+
+#~ msgid "oggplay: file is not seekable \n"
+#~ msgstr "oggplay : le fichier n'est pas en accès aléatoire\n"
+
+#~ msgid "oggplay: Only one logical bitstream currently supported\n"
+#~ msgstr ""
+#~ "oggplay : un seul flot numérique logique est actuellement supporté\n"
+
+#~ msgid "oggplay: Warning hole in data\n"
+#~ msgstr "oggplay : avertissement, trou dans les données\n"
 
 #~ msgid ""
 #~ "vbap system NOT configured.            \n"

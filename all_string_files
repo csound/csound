@@ -380,8 +380,6 @@
 ./Opcodes/newfils.h
 ./Opcodes/nlfilt.c
 ./Opcodes/nlfilt.h
-./Opcodes/ogg.c
-./Opcodes/oggplay.c
 ./Opcodes/oscbnk.c
 ./Opcodes/oscbnk.h
 ./Opcodes/OSC.c
