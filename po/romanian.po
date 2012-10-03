@@ -5781,95 +5781,16 @@ msgstr ""
 msgid "nlfilt: not initialised"
 msgstr ""
 
-#: Opcodes/nlfilt.c:160
+#: Opcodes/nlfilt.c:191
+msgid "nlfilt2: not initialised"
+msgstr ""
+
+#: Opcodes/nlfilt.c:226
 msgid "More arguments than p fields"
 msgstr ""
 
-#: Opcodes/nlfilt.c:168
+#: Opcodes/nlfilt.c:234
 msgid "buffer overflow in passign"
-msgstr ""
-
-#: Opcodes/ogg.c:53
-msgid "oggread: invalid number of channels"
-msgstr ""
-
-#: Opcodes/ogg.c:59
-msgid "oggread: Failed to open file"
-msgstr ""
-
-#: Opcodes/ogg.c:65
-msgid "oggread: Failed to open input as vorbis"
-msgstr ""
-
-#: Opcodes/ogg.c:70
-msgid ""
-"oggread: number of output args inconsistent with number of file channels"
-msgstr ""
-
-#: Opcodes/ogg.c:77
-#, c-format
-msgid "oggread: sample rate of file is %d which coes not match sr (=%f)\n"
-msgstr ""
-
-#: Opcodes/ogg.c:91
-#, c-format
-msgid "oggread: seek file to sec=%f\n"
-msgstr ""
-
-#: Opcodes/ogg.c:96
-#, c-format
-msgid "oggread: seek_point=%f > file_length=%f\n"
-msgstr ""
-
-#: Opcodes/ogg.c:100
-msgid "oggread: file is not seekable\n"
-msgstr ""
-
-#: Opcodes/ogg.c:117
-msgid "oggread: Only one logical bitstream currently supported\n"
-msgstr ""
-
-#: Opcodes/ogg.c:120
-msgid "oggread: Warning hole in data\n"
-msgstr ""
-
-#: Opcodes/oggplay.c:35
-msgid "oggplay: invalid number of channels"
-msgstr ""
-
-#: Opcodes/oggplay.c:41
-msgid "oggplay: Failed to open file"
-msgstr ""
-
-#: Opcodes/oggplay.c:47
-msgid "oggplay: Failed to open input as vorbis"
-msgstr ""
-
-#: Opcodes/oggplay.c:52
-msgid ""
-"oggplay: number of output args inconsistent with number of file channels"
-msgstr ""
-
-#: Opcodes/oggplay.c:70
-#, c-format
-msgid "oggplay: seek file to sec=%f \n"
-msgstr ""
-
-#: Opcodes/oggplay.c:75
-#, c-format
-msgid "oggplay: seek_point=%f > file_length=%f \n"
-msgstr ""
-
-#: Opcodes/oggplay.c:79
-msgid "oggplay: file is not seekable \n"
-msgstr ""
-
-#: Opcodes/oggplay.c:99
-msgid "oggplay: Only one logical bitstream currently supported\n"
-msgstr ""
-
-#: Opcodes/oggplay.c:103
-msgid "oggplay: Warning hole in data\n"
 msgstr ""
 
 #: Opcodes/oscbnk.c:550
