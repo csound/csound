@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2011-12-20 23:56+0000\n"
+"PO-Revision-Date: 2012-10-03 13:47+0100\n"
 "Last-Translator: JPff\n"
 "Language-Team: German\n"
 "Language: \n"
@@ -2728,7 +2728,7 @@ msgstr ""
 #: InOut/rtalsa.c:1372
 #, fuzzy
 msgid "ALSASEQ output: memory allocation failure"
-msgstr "*** Speicherallozierungausfall\n"
+msgstr ""
 
 #: InOut/rtalsa.c:1384
 msgid "ALSASEQ: opened MIDI output sequencer\n"
@@ -3320,9 +3320,8 @@ msgid "Index %d out of range [0,%d] in t[]\n"
 msgstr ""
 
 #: OOps/aops.c:220
-#, fuzzy
 msgid "Vector not initialised\n"
-msgstr "Vector: nicht initialisiert"
+msgstr "Vector: nicht initialisiert\n"
 
 #: OOps/aops.c:724
 msgid "non-looping sample"
@@ -3377,7 +3376,7 @@ msgstr ""
 #: OOps/bus.c:400
 #, fuzzy
 msgid "pvsin: memory allocation failure"
-msgstr "*** Speicherallozierungausfall\n"
+msgstr ""
 
 #: OOps/bus.c:419
 msgid "pvsout: invalid index"
@@ -3386,7 +3385,7 @@ msgstr ""
 #: OOps/bus.c:426
 #, fuzzy
 msgid "pvsout: memory allocation failure"
-msgstr "*** Speicherallozierungausfall\n"
+msgstr ""
 
 #: OOps/bus.c:1079
 msgid "string is too long"
@@ -4506,19 +4505,16 @@ msgid "envlpx(krate): not initialised"
 msgstr "envlpx(krate): nicht initialisiert"
 
 #: OOps/ugens1.c:1545 OOps/ugens1.c:1712
-#, fuzzy
 msgid "cosseg not initialised (krate)\n"
-msgstr "linseg nicht initialisiert (krate)\n"
+msgstr "cosseg nicht initialisiert (krate)\n"
 
 #: OOps/ugens1.c:1598
-#, fuzzy
 msgid "cosseg: not initialised (arate)\n"
-msgstr "linseg: nicht initialisiert (arate)\n"
+msgstr "cosseg: nicht initialisiert (arate)\n"
 
 #: OOps/ugens1.c:1660
-#, fuzzy
 msgid "cossegr: not initialised (arate)\n"
-msgstr "linseg: nicht initialisiert (arate)\n"
+msgstr "cossegr: nicht initialisiert (arate)\n"
 
 #: OOps/ugens2.c:48 OOps/ugens2.c:61 Opcodes/shape.c:381
 msgid "init phase truncation\n"
@@ -5803,9 +5799,8 @@ msgid "nlfilt: not initialised"
 msgstr "nlfilt: nicht initialisiert"
 
 #: Opcodes/nlfilt.c:191
-#, fuzzy
 msgid "nlfilt2: not initialised"
-msgstr "nlfilt: nicht initialisiert"
+msgstr "nlfilt2: nicht initialisiert"
 
 #: Opcodes/nlfilt.c:226
 msgid "More arguments than p fields"
@@ -6025,9 +6020,9 @@ msgid "partikkelsync: could not find opcode id"
 msgstr ""
 
 #: Opcodes/partikkel.c:877
-#, fuzzy, c-format
+#, c-format
 msgid "%s: partikkel not initialized"
-msgstr "spat3di: nicht initialisiert"
+msgstr "%s: partikkel nicht initialisiert"
 
 #: Opcodes/partikkel.c:885
 #, c-format
@@ -6194,11 +6189,8 @@ msgid "Incorrect argument count in transegb"
 msgstr ""
 
 #: Opcodes/pitch.c:1696 Opcodes/pitch.c:1839
-#, fuzzy
 msgid "Error: transeg not initialised (krate)\n"
-msgstr ""
-"\n"
-"Störung: transeg nicht initialisiert (krate)"
+msgstr "Störung: transeg nicht initialisiert (krate)\n"
 
 #: Opcodes/pitch.c:1731 Opcodes/pitch.c:1889
 msgid "transeg: not initialised (arate)\n"
@@ -6209,9 +6201,8 @@ msgid "Incorrect argument count in transegr"
 msgstr ""
 
 #: Opcodes/pitch.c:2156
-#, fuzzy
 msgid "median: not initialised (arate)\n"
-msgstr "linseg: nicht initialisiert (arate)\n"
+msgstr "median: nicht initialisiert (arate)\n"
 
 #: Opcodes/pitch.c:2160 Opcodes/pitch.c:2207
 #, c-format
@@ -6219,9 +6210,8 @@ msgid "median: window (%d)larger than maximum(%d); truncated"
 msgstr ""
 
 #: Opcodes/pitch.c:2203
-#, fuzzy
 msgid "median: not initialised (krate)\n"
-msgstr "linseg nicht initialisiert (krate)\n"
+msgstr "median: nicht initialisiert (krate)\n"
 
 #: Opcodes/pitchtrack.c:370
 #, c-format
@@ -6497,9 +6487,8 @@ msgid "pvshift: not initialised"
 msgstr "pvshift: nicht initialisiert"
 
 #: Opcodes/pvsbasic.c:1749
-#, fuzzy
 msgid "pvswarp: not initialised"
-msgstr "pvsarp: nicht initialisiert\n"
+msgstr "pvswarp: nicht initialisiert"
 
 #: Opcodes/pvsbasic.c:1766
 msgid "pvsblur does not work sliding yet"
@@ -6537,7 +6526,6 @@ msgstr ""
 #: Opcodes/tabvars.c:264 Opcodes/tabvars.c:276 Opcodes/tabvars.c:286
 #: Opcodes/tabvars.c:302 Opcodes/tabvars.c:317 Opcodes/tabvars.c:329
 #: Opcodes/tabvars.c:343 Opcodes/tabvars.c:379 Opcodes/tabvars.c:388
-#, fuzzy
 msgid "t-variable not initialised"
 msgstr "table: nicht initialisiert"
 
@@ -6576,14 +6564,12 @@ msgid "pvsdemix : formats are different.\n"
 msgstr ""
 
 #: Opcodes/pvsdemix.c:180
-#, fuzzy
 msgid "pvsdemix : not initialised \n"
-msgstr "pvsmaska: nicht initialisiert\n"
+msgstr "pvsdemix : nicht initialisiert\n"
 
 #: Opcodes/pvsgendy.c:108
-#, fuzzy
 msgid "pvsgendy: not initialised"
-msgstr "pvsband: nicht initialisiert"
+msgstr "pvsgendy: nicht initialisiert"
 
 #: Opcodes/pvslock.c:36
 msgid "pvslock: signal format must be amp-phase or amp-freq."
@@ -7237,9 +7223,8 @@ msgid "tabsum: No table"
 msgstr ""
 
 #: Opcodes/tabsum.c:55
-#, fuzzy
 msgid "tabsum: Not initialised"
-msgstr "table: nicht initialisiert"
+msgstr "tabsum: nicht initialisiert"
 
 #: Opcodes/tabvars.c:191
 #, fuzzy
@@ -7252,14 +7237,12 @@ msgid "division by zero i t-var"
 msgstr "Abteilung durch null"
 
 #: Opcodes/tabvars.c:400
-#, fuzzy
 msgid "t-var not initialised"
-msgstr "table: nicht initialisiert"
+msgstr "t-var: nicht initialisiert"
 
 #: Opcodes/tabvars.c:402 Opcodes/tabvars.c:457
-#, fuzzy
 msgid "No table for copy2ftab"
-msgstr "Keine Tabelle für dconv"
+msgstr "Keine Tabelle für copy2ftab"
 
 #: Opcodes/tabvars.c:429
 msgid "inconsistent start, end and increment parameters"
@@ -7274,9 +7257,8 @@ msgid "slice larger than original size"
 msgstr ""
 
 #: Opcodes/tabvars.c:519 Opcodes/tabvars.c:558 Opcodes/tabvars.c:560
-#, fuzzy
 msgid "tvar not initialised"
-msgstr "table: nicht initialisiert"
+msgstr "tvar: nicht initialisiert"
 
 #: Opcodes/tabvars.c:534
 #, c-format
@@ -7383,15 +7365,13 @@ msgstr ""
 
 #: Opcodes/uggab.c:234 Opcodes/uggab.c:261 Opcodes/uggab.c:290
 #: Opcodes/uggab.c:318
-#, fuzzy
 msgid "poscil: not initialised"
-msgstr "oscil: nicht initialisiert"
+msgstr "poscil: nicht initialisiert"
 
 #: Opcodes/uggab.c:365 Opcodes/uggab.c:412 Opcodes/uggab.c:460
 #: Opcodes/uggab.c:509
-#, fuzzy
 msgid "poscil3: not initialised"
-msgstr "oscil3: nicht initialisiert"
+msgstr "poscil3: nicht initialisiert"
 
 #: Opcodes/uggab.c:590
 msgid "losc: no sample rate stored in function assuming=sr\n"
