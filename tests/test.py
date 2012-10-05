@@ -183,8 +183,8 @@ if __name__ == "__main__":
                 csoundExecutable = arg[20:]
                 print csoundExecutable
             elif arg.startswith("--opcodedir64="):
-                os.environ['OPCODEDIR64'] = arg[14:]
-                print os.environ['OPCODEDIR64'] 
+                os.environ['OPCODE6DIR64'] = arg[14:]
+                print os.environ['OPCODE6DIR64'] 
     results = runTest()
     if (showUIatClose):
         showUI(results)

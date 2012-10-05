@@ -112,7 +112,7 @@ void cs_compile_run(void)
       prof.set("f",size_f->value());
       prof.set("3",size_24->value());
       prof.set("K",mK->value());
-      argv[0] = (char*)"csound5";
+      argv[0] = (char*)"csound6";
       argv[nxt++] = (char *)orchname->value();
       if (strstr(argv[nxt-1], ".csd")==NULL)
         argv[nxt++] = (char *)scorename->value();

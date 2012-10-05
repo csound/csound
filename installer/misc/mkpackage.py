@@ -10,7 +10,7 @@ CFlags += ' -fomit-frame-pointer -ffast-math'
 # CFlags = '-O0'
 
 # package root directory
-pkgDir      = '../__csound5'
+pkgDir      = '../__csound6'
 # base directory for installation
 instPrefix  = '/usr/local'
 
@@ -28,8 +28,6 @@ libDir2     = libDir + '/csound/lib'
 pluginDir32 = libDir + '/csound/plugins'
 # double precision plugin libraries
 pluginDir64 = libDir + '/csound/plugins64'
-# XMG files
-xmgDir      = instPrefix + '/share/csound/xmg'
 # documentation
 docDir      = instPrefix + '/share/doc/csound'
 # tclcsound.so
@@ -62,7 +60,7 @@ buildOpts += ['buildCsoundVST=0', 'buildLoris=0', 'buildStkOpcodes=0']
 buildOpts += ['useJack=1', 'usePortMIDI=1', 'useALSA=1', 'useOSC=1']
 buildOpts += ['useUDP=1', 'buildNewParser=1', 'useGettext=1'] 
 buildOpts += ['includeMP3=1', 'includeWii=1', 'includeP5Glove=1'] 
-buildOpts += ['buildCsound5GUI=0', 'prefix=%s' % instPrefix]
+buildOpts += ['buildCsound6GUI=0', 'prefix=%s' % instPrefix]
 
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h']
 headerFiles += ['H/csound.hpp', 'H/csoundCore.h', 'H/cwindow.h']
@@ -72,7 +70,6 @@ headerFiles += ['H/version.h']
 headerFiles += ['interfaces/CppSound.hpp', 'interfaces/filebuilding.h']
 headerFiles += ['interfaces/CsoundFile.hpp']
 
-## removed 'csound5gui',
 utils1 = ['csound', 'winsound', 'cstclsh', 'cswish',
           'atsa', 'cvanal', 'dnoise', 'envext', 'extractor',
           'het_export', 'het_import', 'hetro', 'lpanal',
@@ -82,7 +79,7 @@ utils1 = ['csound', 'winsound', 'cstclsh', 'cswish',
 
 utils2 = ['scsort', 'extract', 'cs', 'csb64enc', 'makecsd', 'scot']
 
-docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound5.txt']
+docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound6.txt']
 
 # -----------------------------------------------------------------------------
 
@@ -121,7 +118,6 @@ def makeFrontEnd(utilName, is64bit):
     if is64bit != 0 and utilName != 'CsoundVST':
         precisionSuffix = '64'
     fName = '%s%s/%s%s' % (pkgDir, binDir, utilName, precisionSuffix)
-## Removed 'csound5gui', 
     if utilName in ['csound', 'CsoundVST', 'winsound',
                     'cstclsh', 'cswish', 'pvlook']:
         cmd = '"%s/%s%s"' % (binDir2, utilName, precisionSuffix)
@@ -141,7 +137,7 @@ def makeFrontEnd(utilName, is64bit):
     tmp += 'fi\n'
     tmp += '\n'
     tmp += 'exec %s "$@"\n'
-    print >> f, tmp % (['OPCODEDIR', 'OPCODEDIR64'][is64bit],
+    print >> f, tmp % (['OPCODE6DIR', 'OPCODE6DIR64'][is64bit],
                        [pluginDir32, pluginDir64][is64bit],
                        xmgDir, rawWaveDir, libDir2, libDir2, cmd)
     f.close
@@ -214,13 +210,13 @@ buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'useGettext=1',
               ['useDouble=0', 'dynamicCsoundLibrary=1', 'useGettext=1',
                'buildInterfaces=0', 'buildPDClass=1', 'buildTclcsound=1',
                'buildLoris=1', 'buildStkOpcodes=1', 'buildWinsound=1',
-               'buildCsound5GUI=0', 'buildUtilities=1'],
+               'buildCsound6GUI=0', 'buildUtilities=1'],
               ['useDouble=1', 'dynamicCsoundLibrary=0', 'useGettext=1',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=1', 'dynamicCsoundLibrary=1', 'useGettext=1',
                'buildInterfaces=1', 'buildPDClass=0', 'buildTclcsound=1',
                'buildCsoundVST=0', 'buildLoris=1', 'buildStkOpcodes=1',
-               'buildWinsound=1', 'buildCsound5GUI=0', 'buildUtilities=1']]
+               'buildWinsound=1', 'buildCsound6GUI=0', 'buildUtilities=1']]
 
 for i in range(4):
     cleanup()
@@ -253,7 +249,6 @@ for i in range(4):
         runCmd(['strip', '--strip-unneeded', 'csoundapi~.pd_linux'])
         installFile('csoundapi~.pd_linux', pdDir)
         # executables
-## removed 'csound5gui',
         for j in ['winsound', 'cstclsh', 'cswish', 'pvlook']:
             installXFile('--strip-unneeded', j, binDir2)
         # TclCsound
@@ -280,7 +275,7 @@ for i in range(4):
             installXFile('--strip-unneeded', j, binDir)
         # executables
         installXFile('--strip-unneeded', 'CsoundVST', binDir2)
-## removed 'csound5gui', 
+## removed 'csound6gui', 
         for j in ['winsound', 'cstclsh', 'cswish', 'pvlook']:
             os.rename(j, j + '64')
             installXFile('--strip-unneeded', j + '64', binDir2)
@@ -325,7 +320,7 @@ for i in range(4):
         installXFile('--strip-debug', 'lib_jcsound.so', libDir)
         installFile('csnd.jar', javaDir)
         # LISP interface
-        installFile('interfaces/csound5.lisp', lispDir)
+        installFile('interfaces/csound6.lisp', lispDir)
 
 cleanup()
 

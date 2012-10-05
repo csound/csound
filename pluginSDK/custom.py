@@ -51,7 +51,7 @@ elif sys.platform[:3] == 'win':
     # you need FLTK. If it is not in a standard location,
     # add it here (of course you must build it first):
     customCPPPATH.append('D:/utah/opt/fltk-1.1.7')
-    customLIBPATH.append('D:/utah/opt/csound5/bin')
+    customLIBPATH.append('D:/utah/opt/csound6/bin')
     #customLIBPATH.append('D:/utah/opt/fltk-1.1.7/lib')
     ################################################################
     # If you want to build CsoundVST you need Python and
@@ -98,7 +98,7 @@ elif sys.platform[:3] == 'win':
     customLIBPATH.append('D:/utah/opt/pd-0.38-4-devel-2/bin')
     ################################################################
     # If you want to build the Loris opcodes,
-    # then copy Loris to csound5/Opcodes/Loris. Loris also
+    # then copy Loris to csound6/Opcodes/Loris. Loris also
     # requires FFTW, if it is not in a standard location,
     # add it here (you do need to build it first):
     customCPPPATH.append('D:/utah/opt/fftw-3.0.1/api')

@@ -383,7 +383,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
     return 0;
 }
 #ifdef mac_classic
-/* The following code implements scanning of "OPCODEDIR"
+/* The following code implements scanning of "OPCODE6DIR"
    and auto-loading of plugins for MacOS 9 */
 
 
