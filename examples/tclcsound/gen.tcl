@@ -32,7 +32,7 @@
 # Linux:
 #load ../../tclcsound.so Tclcsound
 
-#csOpcodedir /Users/victor/csound5
+#csOpcodedir /Users/victor/csound6
 
 set orcfile "tcl.orc"
 set scofile "tcl.sco"
