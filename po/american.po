@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2011-12-20 13:18+0000\n"
+"PO-Revision-Date: 2012-10-03 22:03+0100\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (USA)\n"
 "Language: \n"
@@ -1438,7 +1438,7 @@ msgid "cannot find the specified instrument or opcode"
 msgstr "can't find the specified instrument or opcode"
 
 #: Engine/new_orc_parser.c:98 Top/main.c:204
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open input file %s\n"
 msgstr "Can't open input file %s\n"
 
@@ -1725,9 +1725,8 @@ msgid "macro error\n"
 msgstr ""
 
 #: Engine/sread.c:1601 Engine/sread.c:1610
-#, fuzzy
 msgid "Syntax error in macro definition"
-msgstr "Syntax error: can't back up"
+msgstr ""
 
 #: Engine/sread.c:1621
 #, c-format
@@ -1947,7 +1946,9 @@ msgstr "Failed to initialize real time audio output"
 msgid ""
 "sfinit: cannot open fd %d\n"
 "%s"
-msgstr "sfinit: can't open %s"
+msgstr ""
+"sfinit: can't open fd %d\n"
+"%s"
 
 #: InOut/libsnd.c:746 InOut/libsnd.c:750
 #, c-format
@@ -2704,7 +2705,7 @@ msgstr ""
 #: InOut/rtalsa.c:1309
 #, fuzzy, c-format
 msgid "ALSASEQ: cannot create input port (%s)"
-msgstr "can't create output file"
+msgstr "ALSASEQ: can't create input port (%s)"
 
 #: InOut/rtalsa.c:1317
 #, c-format
@@ -2725,9 +2726,9 @@ msgid "ALSASEQ: opened MIDI output sequencer\n"
 msgstr ""
 
 #: InOut/rtalsa.c:1401
-#, fuzzy, c-format
+#, c-format
 msgid "ALSASEQ: cannot create output port (%s)"
-msgstr "can't create output file"
+msgstr "ALSASEQ: can't create output port (%s)"
 
 #: InOut/rtalsa.c:1409
 #, c-format
@@ -4498,19 +4499,16 @@ msgid "envlpx(krate): not initialised"
 msgstr "envlpx(krate): not initialized"
 
 #: OOps/ugens1.c:1545 OOps/ugens1.c:1712
-#, fuzzy
 msgid "cosseg not initialised (krate)\n"
-msgstr "linseg not initialized (krate)\n"
+msgstr "cosseg not initialized (krate)\n"
 
 #: OOps/ugens1.c:1598
-#, fuzzy
 msgid "cosseg: not initialised (arate)\n"
-msgstr "linseg: not initialized (arate)\n"
+msgstr "cosseg: not initialized (arate)\n"
 
 #: OOps/ugens1.c:1660
-#, fuzzy
 msgid "cossegr: not initialised (arate)\n"
-msgstr "linseg: not initialized (arate)\n"
+msgstr "cossegr: not initialized (arate)\n"
 
 #: OOps/ugens2.c:48 OOps/ugens2.c:61 Opcodes/shape.c:381
 msgid "init phase truncation\n"
@@ -5802,7 +5800,7 @@ msgstr "nlfilt: not initialized"
 #: Opcodes/nlfilt.c:191
 #, fuzzy
 msgid "nlfilt2: not initialised"
-msgstr "nlfilt: not initialized"
+msgstr ""
 
 #: Opcodes/nlfilt.c:226
 msgid "More arguments than p fields"
@@ -6020,14 +6018,14 @@ msgid "partikkelsync: could not find opcode id"
 msgstr "partikkelsync: couldn't find opcode id"
 
 #: Opcodes/partikkel.c:877
-#, fuzzy, c-format
+#, c-format
 msgid "%s: partikkel not initialized"
-msgstr "spat3di: not initialized"
+msgstr ""
 
 #: Opcodes/partikkel.c:885
-#, fuzzy, c-format
+#, c-format
 msgid "%s: could not find opcode id"
-msgstr "partikkelsync: couldn't find opcode id"
+msgstr ""
 
 #: Opcodes/physmod.c:122
 msgid "No table for Clarinet"
@@ -6510,9 +6508,9 @@ msgid "pvstencil: not initialised"
 msgstr "pvstencil: not initialized"
 
 #: Opcodes/pvsbasic.c:2075
-#, fuzzy, c-format
+#, c-format
 msgid "could not find table number %d\n"
-msgstr "couldn't find playing instr %f\n"
+msgstr "couldn't find table number %d\n"
 
 #: Opcodes/pvsbasic.c:2159
 msgid "pvs2tab: signal format must be amp-phase or amp-freq."
@@ -7253,7 +7251,6 @@ msgid "slice larger than original size"
 msgstr ""
 
 #: Opcodes/tabvars.c:519 Opcodes/tabvars.c:558 Opcodes/tabvars.c:560
-#, fuzzy
 msgid "tvar not initialised"
 msgstr "t-var not initialized"
 
@@ -7362,15 +7359,13 @@ msgstr ""
 
 #: Opcodes/uggab.c:234 Opcodes/uggab.c:261 Opcodes/uggab.c:290
 #: Opcodes/uggab.c:318
-#, fuzzy
 msgid "poscil: not initialised"
-msgstr "oscil: not initialized"
+msgstr "poscil: not initialized"
 
 #: Opcodes/uggab.c:365 Opcodes/uggab.c:412 Opcodes/uggab.c:460
 #: Opcodes/uggab.c:509
-#, fuzzy
 msgid "poscil3: not initialised"
-msgstr "oscil3: not initialized"
+msgstr "poscil3: not initialized"
 
 #: Opcodes/uggab.c:590
 msgid "losc: no sample rate stored in function assuming=sr\n"
@@ -10641,9 +10636,8 @@ msgid "Usage: pv_import cstext_file pv_file \n"
 msgstr ""
 
 #: util/pv_import.c:73 util/pv_import.c:93
-#, fuzzy
 msgid "Not a PV file\n"
-msgstr "Can't open PV file"
+msgstr "Can't open PV file\n"
 
 #: util/pv_import.c:132
 msgid "Memory failure\n"
