@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Csound 5</string>
+	<string>Csound 6</string>
 	<key>CFBundleIconFile</key>
 	<string>play.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.csounds.csound5</string>
+	<string>com.csounds.csound6</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
