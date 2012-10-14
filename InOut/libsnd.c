@@ -566,14 +566,75 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
 
     alloc_globals(csound);
     if (O->outfilename == NULL) {
-      if (O->filetyp == TYP_WAV)
+      switch (O->filetyp) {
+      case TYP_WAV:
+      case TYP_W64:
+      case TYP_WAVEX:
         O->outfilename = "test.wav";
-      else if (O->filetyp == TYP_AIFF)
+        break;  
+      case TYP_AIFF:
         O->outfilename = "test.aif";
-      else if (O->filetyp == TYP_AU)
+        break;  
+      case TYP_AU:
         O->outfilename = "test.au";
-      else
+        break;   
+      /* case TYP_PAF: */
+      /*   O->outfilename = ""; */
+      /*   break;   */
+      /* case TYP_SVX: */
+      /*   O->outfilename = ""; */
+      /*   break;   */
+      /* case TYP_NIST: */
+      /*   O->outfilename = ""; */
+      /*   break;  */
+      /* case TYP_VOC: */
+      /*   O->outfilename = ""; */
+      /*   break;   */
+      /* case TYP_IRCAM: */
+      /*   O->outfilename = ""; */
+      /*   break; */
+      /* case TYP_MAT4: */
+      /*   O->outfilename = ""; */
+      /*   break;  */
+      /* case TYP_MAT5: */
+      /*   O->outfilename = ""; */
+      /*   break;  */
+      /* case TYP_PVF: */
+      /*   O->outfilename = ""; */
+      /*   break;   */
+      /* case TYP_XI: */
+      /*   O->outfilename = ""; */
+      /*   break;    */
+      /* case TYP_HTK: */
+      /*   O->outfilename = ""; */
+      /*   break;   */
+      /* case TYP_SDS: */
+      /*   O->outfilename = ""; */
+      /*   break;   */
+      /* case TYP_AVR: */
+      /*   O->outfilename = ""; */
+      case TYP_SD2:
+        O->outfilename = "test.sd2";
+        break;
+      case TYP_FLAC:
+        O->outfilename = "test.flac";
+        break; 
+      case TYP_CAF:
+        O->outfilename = "test.caf";
+        break;
+      case TYP_OGG:
+        O->outfilename = "test.ogg";
+        break;  
+      /* case TYP_MPC2K: */
+      /*   O->outfilename = ""; */
+      /*   break; */
+      /* case TYP_RF64: */
+      /*   O->outfilename = ""; */
+      /*   break;  */
+      default:
         O->outfilename = "test";
+        break;
+      }
     }
     STA(sfoutname) = fName = O->outfilename;
 

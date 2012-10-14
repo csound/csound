@@ -55,7 +55,7 @@ static int wtinit(CSOUND *csound, WAVETER *p)
 
 static int wtPerf(CSOUND *csound, WAVETER *p)
 {
-    int i, nsmps=csound->ksmps;
+    int i, nsmps=CS_KSMPS;
     int xloc, yloc;
     MYFLT xc, yc;
     MYFLT amp = *p->kamp;
@@ -198,7 +198,7 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
 
 static int scantPerf(CSOUND *csound, SCANTABLE *p)
 {
-    int i, nsmps = csound->ksmps;
+    int i, nsmps = CS_KSMPS;
     MYFLT force, fc1, fc2;
     int next, last;
 
@@ -246,7 +246,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
         p->newvel[i] = (fvel->ftable[i]
                         - force / (fmass->ftable[i] * csound->ekr))
                        * fdamp->ftable[i];
-        p->newloc[i] = fpoint->ftable[i] + p->newvel[i] * csound->onedkr;
+        p->newloc[i] = fpoint->ftable[i] + p->newvel[i] * CS_ONEDKR;
 
       }
     }

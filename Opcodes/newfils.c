@@ -66,7 +66,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     tune = (1.0 - exp(-(TWOPI*f*fcr))) / thermal;   /* filter tuning  */
     res4 = 4.0*(double)res*acr;
 
-    for (i = 0; i < csound->ksmps; i++) {
+    for (i = 0; i < CS_KSMPS; i++) {
       /* oversampling  */
       for (j = 0; j < 2; j++) {
         /* filter stages  */
@@ -124,7 +124,7 @@ static int statevar_process(CSOUND *csound,statevar *p)
 
     if (q < lim) q = lim;
 
-    for (i=0; i<csound->ksmps;i++) {
+    for (i=0; i<CS_KSMPS;i++) {
       for (j=0;j<ostimes;j++) {
 
         hp = in[i] - q*bpd - lp;
@@ -174,7 +174,7 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     rad1 =  pow(10.0, fsc/(dec*csound->esr));  /* filter radii */
     rad2 =  pow(10.0, fsc/(ris*csound->esr));
 
-    for (i=0;i<csound->ksmps;i++) {
+    for (i=0;i<CS_KSMPS;i++) {
 
       w1  = in[i] + 2.0*rad1*cos(ang)*delay[0] - rad1*rad1*delay[1];
       y1 =  w1 - delay[1];

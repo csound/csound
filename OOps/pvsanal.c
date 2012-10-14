@@ -109,9 +109,9 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
 
     /* Need space for NB complex numbers for each of ksmps */
     if (p->fsig->frame.auxp==NULL ||
-        csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fsig->frame.size)
-      csound->AuxAlloc(csound, csound->ksmps*(N+2)*sizeof(MYFLT),&p->fsig->frame);
-    else memset(p->fsig->frame.auxp, 0, csound->ksmps*(N+2)*sizeof(MYFLT));
+        CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fsig->frame.size)
+      csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fsig->frame);
+    else memset(p->fsig->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     /* Space for remembering samples */
     if (p->input.auxp==NULL ||
         N*sizeof(MYFLT) > (unsigned int)p->input.size)
@@ -172,7 +172,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     int wintype = (int) *p->wintype;
     /* deal with iinit and iformat later on! */
 
-    if (overlap<csound->ksmps || overlap<=10) /* 10 is a guess.... */
+    if (overlap<CS_KSMPS || overlap<=10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
     if (UNLIKELY(N <= 32))
       csound->Die(csound, Str("pvsanal: fftsize of 32 is too small!\n"));
@@ -183,7 +183,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     if (UNLIKELY(overlap > N / 2))
       csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
 #ifdef OPLC
-    if (UNLIKELY(overlap < csound->ksmps))
+    if (UNLIKELY(overlap < CS_KSMPS))
       csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 #endif
     halfwinsize = M/2;
@@ -450,7 +450,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     double *c = p->cosine;
     double *s = p->sine;
     double *h = (double*)p->oldInPhase.auxp;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     int wintype = p->fsig->wintype;
     if (UNLIKELY(data==NULL)) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
@@ -666,10 +666,10 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
     }
     {
       int overlap = (int)*p->overlap;
-      if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
+      if (overlap<CS_KSMPS || overlap<10) /* 10 is a guess.... */
         return pvssanal(csound, p);
     }
-    for (i=0; i < csound->ksmps; i++)
+    for (i=0; i < CS_KSMPS; i++)
       anal_tick(csound,p,ain[i]);
     return OK;
 }
@@ -984,7 +984,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
 int pvssynth(CSOUND *csound, PVSYNTH *p)
 {
     int i, k;
-    int ksmps = csound->ksmps;
+    int ksmps = CS_KSMPS;
     int N = p->fsig->N;
     int NB = p->fsig->NB;
     MYFLT *aout = p->aout;
@@ -1028,7 +1028,7 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
     if (p->fsig->sliding) return pvssynth(csound, p);
-    for (i=0;i < csound->ksmps;i++)
+    for (i=0;i < CS_KSMPS;i++)
       aout[i] = synth_tick(csound, p);
     return OK;
 }

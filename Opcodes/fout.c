@@ -200,10 +200,10 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         sf_command(sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
       }
-      if (csound->ksmps >= 512)
-        buf_reqd = csound->ksmps * ((SF_INFO*) fileParams)->channels;
+      if (CS_KSMPS >= 512)
+        buf_reqd = CS_KSMPS * ((SF_INFO*) fileParams)->channels;
       else
-        buf_reqd = (1 + (int)(512 / csound->ksmps)) * csound->ksmps
+        buf_reqd = (1 + (int)(512 / CS_KSMPS)) * CS_KSMPS
                    * ((SF_INFO*) fileParams)->channels;
       if (UNLIKELY(buf_reqd > pp->buf_size)) {
         pp->buf_size = buf_reqd;
@@ -249,7 +249,7 @@ static int outfile(CSOUND *csound, OUTFILE *p)
 {
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int   i, j, k;
-    int   nsmps = csound->ksmps;
+    int   nsmps = CS_KSMPS;
     int nargs = p->nargs;
 
     if (p->f.sf == NULL) {
@@ -343,8 +343,8 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
     p->nargs = p->INOCOUNT - 2;
     p->buf_pos = 0;
 
-    if (csound->ksmps >= 512)
-      p->guard_pos = csound->ksmps * p->nargs;
+    if (CS_KSMPS >= 512)
+      p->guard_pos = CS_KSMPS * p->nargs;
     else
       p->guard_pos = 512 * p->nargs;
 
@@ -392,8 +392,8 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
     p->nargs = p->INOCOUNT - 2;
     p->buf_pos = 0;
 
-    if (csound->ksmps >= 512)
-      p->guard_pos = csound->ksmps * p->nargs;
+    if (CS_KSMPS >= 512)
+      p->guard_pos = CS_KSMPS * p->nargs;
     else
       p->guard_pos = 512 * p->nargs;
 
@@ -521,7 +521,7 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
       case 1:
         {     /* with prefix (i-statement, p1, p2 and p3) */
           int     p1 = (int) p->h.insdshead->p1;
-          double  p2 = (double) csound->kcounter * csound->onedkr;
+          double  p2 = (double) CS_KCNT * CS_ONEDKR;
           double  p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -531,11 +531,11 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
         break;
       case 2: /* with prefix (start at 0 time) */
         if (pp->fout_kreset == 0)
-          pp->fout_kreset = csound->kcounter;
+          pp->fout_kreset = CS_KCNT;
         {
           int p1 = (int) p->h.insdshead->p1;
-          double p2 = (double) (csound->kcounter - pp->fout_kreset)
-                      * csound->onedkr;
+          double p2 = (double) (CS_KCNT - pp->fout_kreset)
+                      * CS_ONEDKR;
           double p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
@@ -565,10 +565,10 @@ static int ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     if (p->h.insdshead->xtratim < 1)
       p->h.insdshead->xtratim = 1;
-    p->counter =  csound->kcounter;
+    p->counter =  CS_KCNT;
     p->done = 1;
     if (*p->iflag == 2 && pp->fout_kreset == 0)
-      pp->fout_kreset = csound->kcounter;
+      pp->fout_kreset = CS_KCNT;
     return OK;
 }
 
@@ -595,18 +595,18 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
       case 1:
         {     /* whith prefix (i-statement, p1, p2 and p3) */
           int p1 = (int) p->h.insdshead->p1;
-          double p2 = p->counter * csound->onedkr;
-          double p3 = (double) (csound->kcounter - p->counter)
-                      * csound->onedkr;
+          double p2 = p->counter * CS_ONEDKR;
+          double p3 = (double) (CS_KCNT - p->counter)
+                      * CS_ONEDKR;
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         }
         break;
       case 2: /* with prefix (start at 0 time) */
         {
           int p1 = (int) p->h.insdshead->p1;
-          double p2 = (p->counter - pp->fout_kreset) * csound->onedkr;
-          double p3 = (double) (csound->kcounter - p->counter)
-                      * csound->onedkr;
+          double p2 = (p->counter - pp->fout_kreset) * CS_ONEDKR;
+          double p3 = (double) (CS_KCNT - p->counter)
+                      * CS_ONEDKR;
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         }
         break;
@@ -656,10 +656,10 @@ static int infile_set(CSOUND *csound, INFILE *p)
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
 
-    if (csound->ksmps >= 512)
-      p->frames = csound->ksmps;
+    if (CS_KSMPS >= 512)
+      p->frames = CS_KSMPS;
     else
-      p->frames = (int)(512 / csound->ksmps) * csound->ksmps;
+      p->frames = (int)(512 / CS_KSMPS) * CS_KSMPS;
 
     p->guard_pos = p->frames * p->nargs;
     p->buf_pos = p->guard_pos;
@@ -671,7 +671,7 @@ static int infile_act(CSOUND *csound, INFILE *p)
 {
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int   i, j = 0, k;
-    int nsmps = csound->ksmps, nargs = p->nargs;
+    int nsmps = CS_KSMPS, nargs = p->nargs;
 
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
@@ -690,16 +690,16 @@ static int infile_act(CSOUND *csound, INFILE *p)
         for (i = 0; i < nargs; i++)
           p->argums[i][j] = pp->buf[k++] * p->scaleFac;
       p->buf_pos = k;
-      p->remain -= csound->ksmps;
+      p->remain -= CS_KSMPS;
       if (p->remain <= 0 && p->buf_pos < p->guard_pos) {
         p->flag = 0;
-        for (; j < csound->ksmps; j++)
+        for (; j < CS_KSMPS; j++)
           for (i = 0; i < nargs; i++)
             p->argums[i][j] = FL(0.0);
       }
       return OK;
     }
-    for ( ; j < csound->ksmps; j++)
+    for ( ; j < CS_KSMPS; j++)
       for (i = 0; i < nargs; i++)
         p->argums[i][j] = FL(0.0);
 
@@ -733,10 +733,10 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
 
-    if (csound->ksmps >= 512)
-      p->frames = csound->ksmps;
+    if (CS_KSMPS >= 512)
+      p->frames = CS_KSMPS;
     else
-      p->frames = (int)(512 / csound->ksmps) * csound->ksmps;
+      p->frames = (int)(512 / CS_KSMPS) * CS_KSMPS;
 
     p->guard_pos = p->frames * p->nargs;
     p->buf_pos = p->guard_pos;
@@ -861,14 +861,14 @@ static int incr(CSOUND *csound, INCR *p)
     MYFLT *avar = p->avar, *aincr = p->aincr;
     int   n;
 
-    for (n = 0; n < csound->ksmps; n++)
+    for (n = 0; n < CS_KSMPS; n++)
       avar[n] += aincr[n];
     return OK;
 }
 
 static int clear(CSOUND *csound, CLEARS *p)
 {
-    int   nsmps = csound->ksmps, j;
+    int   nsmps = CS_KSMPS, j;
     
     for (j = 0; j < p->INOCOUNT; j++) {
       memset(p->argums[j], 0, sizeof(MYFLT)*nsmps);

@@ -36,7 +36,7 @@ static int pvx_loadfile(CSOUND *, const char *, PVOC *);
 /********************************************/
 
 #define WLN   1                         /* time window is WLN*2*ksmps long  */
-#define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
+#define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
 int pvset(CSOUND *csound, PVOC *p)
 {
@@ -76,7 +76,7 @@ int pvset(CSOUND *csound, PVOC *p)
       }
     }
     p->mems = memsize;
-    p->frPktim = ((MYFLT)csound->ksmps)/((MYFLT) p->frInc);
+    p->frPktim = ((MYFLT)CS_KSMPS)/((MYFLT) p->frInc);
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr/((MYFLT) p->frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
@@ -94,7 +94,7 @@ int pvset(CSOUND *csound, PVOC *p)
     if (UNLIKELY((OPWLEN/2 + 1)>PVWINLEN )) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
-                                       csound->ksmps, (OPWLEN/2 + 1), PVWINLEN,
+                                       CS_KSMPS, (OPWLEN/2 + 1), PVWINLEN,
                                        pvfilnam);
     }
 
@@ -145,7 +145,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
       goto err2;           /* ..so we won't run into buf2Size problems */
-    if (UNLIKELY(outlen<2*csound->ksmps))     /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<2*CS_KSMPS))     /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;       /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -161,7 +161,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     if (*p->igatefun > 0)
       PvAmpGate(buf,size, p->AmpGateFunc, p->PvMaxAmp);
 
-    FrqToPhase(buf, asize, pex * (MYFLT) csound->ksmps, p->asr,
+    FrqToPhase(buf, asize, pex * (MYFLT) CS_KSMPS, p->asr,
                FL(0.5) * ((pex / p->lastPex) - FL(1.0)));
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
@@ -180,19 +180,19 @@ int pvoc(CSOUND *csound, PVOC *p)
       memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
              sizeof(MYFLT) * buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
-    addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
-    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
-    p->opBpos += csound->ksmps;
+    addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
+    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, CS_KSMPS, circBufSize);
+    p->opBpos += CS_KSMPS;
     if (p->opBpos > circBufSize)
       p->opBpos -= circBufSize;
-    addToCircBuf(buf2 + csound->ksmps, p->outBuf,
-                 p->opBpos, buf2Size - csound->ksmps, circBufSize);
+    addToCircBuf(buf2 + CS_KSMPS, p->outBuf,
+                 p->opBpos, buf2Size - CS_KSMPS, circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
     /* scale output */
     scaleFac = p->scale;
     if (pex > FL(1.0))
       scaleFac /= pex;
-    for (i = 0; i < csound->ksmps; i++)
+    for (i = 0; i < CS_KSMPS; i++)
       p->rslt[i] *= scaleFac;
 
     return OK;

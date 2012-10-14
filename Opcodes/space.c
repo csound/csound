@@ -45,15 +45,15 @@ static int spaceset(CSOUND *csound, SPACE *p)
     }
 
     if (p->auxch.auxp == NULL ||
-        p->auxch.size<sizeof(MYFLT)*(csound->ksmps * 4)) {
+        p->auxch.size<sizeof(MYFLT)*(CS_KSMPS * 4)) {
       MYFLT *fltp;
-      csound->AuxAlloc(csound, (size_t) (csound->ksmps * 4)
+      csound->AuxAlloc(csound, (size_t) (CS_KSMPS * 4)
                                * sizeof(MYFLT), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
-      p->rrev1 = fltp;   fltp += csound->ksmps;
-      p->rrev2 = fltp;   fltp += csound->ksmps;
-      p->rrev3 = fltp;   fltp += csound->ksmps;
-      p->rrev4 = fltp;   fltp += csound->ksmps;
+      p->rrev1 = fltp;   fltp += CS_KSMPS;
+      p->rrev2 = fltp;   fltp += CS_KSMPS;
+      p->rrev3 = fltp;   fltp += CS_KSMPS;
+      p->rrev4 = fltp;   fltp += CS_KSMPS;
     }
 
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
@@ -75,7 +75,7 @@ static int space(CSOUND *csound, SPACE *p)
     FUNC    *ftp;
     int32    indx, length, halflen;
     MYFLT   v1, v2, fract, ndx;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
       if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
@@ -177,7 +177,7 @@ static int spsendset(CSOUND *csound, SPSEND *p)
 static int spsend(CSOUND *csound, SPSEND *p)
 {
     SPACE *q = p->space;
-    int nbytes = csound->ksmps*sizeof(MYFLT);
+    int nbytes = CS_KSMPS*sizeof(MYFLT);
 
     memmove(p->r1, q->rrev1, nbytes);
     memmove(p->r2, q->rrev2, nbytes);
