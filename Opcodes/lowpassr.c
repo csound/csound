@@ -45,7 +45,7 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     MYFLT kfco = *p->kfco;
     MYFLT kres = *p->kres;
     double coef1 = p->coef1, coef2 = p->coef2;
-    int n,nsmps = csound->ksmps;
+    int n,nsmps = CS_KSMPS;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       b = 10.0 / (*p->kres * sqrt((double)kfco)) - 1.0;
@@ -88,7 +88,7 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     MYFLT *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT coef1 = p->coef1, coef2 = p->coef2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
-    int n,nsmps = csound->ksmps, j;
+    int n,nsmps = CS_KSMPS, j;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       b = FL(10.0) / (*p->kres * SQRT(kfco)) - FL(1.0);
@@ -133,7 +133,7 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
     MYFLT coef1, coef2;
     MYFLT kfcobase = *p->kfco;
     MYFLT sep = (*p->sep / p->loop);
-    int n, nsmps=csound->ksmps, j;
+    int n, nsmps=CS_KSMPS, j;
 
     MYFLT kres = *p->kres;
     MYFLT kfco;

@@ -47,8 +47,8 @@ static int pvsgainset(CSOUND *csound, PVSGAIN *p){
     p->fout->sliding = 0;
     if (p->fa->sliding) {
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+          p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                          &p->fout->frame);
       p->fout->NB = p->fa->NB;
       p->fout->sliding = 1;
@@ -80,7 +80,7 @@ static int pvsgain(CSOUND *csound, PVSGAIN *p)
 
     if (p->fa->sliding) {
       CMPLX * fout, *fa;
-      int n, nsmps=csound->ksmps;
+      int n, nsmps=CS_KSMPS;
       int NB = p->fa->NB;
       for (n=0; n<nsmps; n++) {
         fout = (CMPLX*) p->fout->frame.auxp +NB*n;
@@ -124,17 +124,17 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
     p->fout->format = (int32) *p->format;
     p->fout->framecount = 1;
     p->fout->sliding = 0;
-    if (p->fout->overlap < csound->ksmps || p->fout->overlap <=10) {
+    if (p->fout->overlap < CS_KSMPS || p->fout->overlap <=10) {
       int NB = 1+N/2;
       MYFLT *bframe;
       p->fout->NB = NB;
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size * csound->ksmps < sizeof(float) * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * csound->ksmps * sizeof(float),
+          p->fout->frame.size * CS_KSMPS < sizeof(float) * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * CS_KSMPS * sizeof(float),
                          &p->fout->frame);
       p->fout->sliding = 1;
       bframe = (MYFLT *) p->fout->frame.auxp;
-      for (n=0; n<csound->ksmps; n++)
+      for (n=0; n<CS_KSMPS; n++)
         for (i = 0; i < N + 2; i += 2) {
           bframe[i+n*NB] = FL(0.0);
           bframe[i+n*NB + 1] = (i >>1) * N * csound->onedsr;
@@ -343,7 +343,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
       p->scnt -= overlap;
       p->fout->framecount++;
     }
-    p->scnt += csound->ksmps;
+    p->scnt += CS_KSMPS;
 
     return OK;
 }
@@ -566,7 +566,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       p->scnt -= hsize;
       p->pos = spos;
     }
-    p->scnt += csound->ksmps;
+    p->scnt += CS_KSMPS;
     return OK;
 
 }
@@ -588,7 +588,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
     p->fout->NB = (N/2)+1;
     p->fout->sliding = p->fin->sliding;
     if (p->fin->sliding) {
-      int nsmps = csound->ksmps;
+      int nsmps = CS_KSMPS;
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size < sizeof(MYFLT) * (N + 2) * nsmps)
         csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * nsmps,
@@ -615,7 +615,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
 
 static int pvssfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 {
-    int i, n, k, nsmps = csound->ksmps;
+    int i, n, k, nsmps = CS_KSMPS;
     int NB = p->fin->NB;
     MYFLT freeza = *p->kfra, freezf = *p->kfrf;
 
@@ -677,20 +677,20 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
     p->fout->format = (int32) *p->format;
     p->fout->framecount = 0;
     p->fout->sliding = 0;
-    if (p->fout->overlap<csound->ksmps || p->fout->overlap<=10) {
+    if (p->fout->overlap<CS_KSMPS || p->fout->overlap<=10) {
       CMPLX *bframe;
       int NB = 1+N/2, n;
       return csound->InitError(csound, Str("pvsosc does not work while sliding"));
       p->fout->NB = NB;
       p->fout->sliding = 1;
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < csound->ksmps*sizeof(MYFLT) * (N + 2))
+          p->fout->frame.size < CS_KSMPS*sizeof(MYFLT) * (N + 2))
         csound->AuxAlloc(csound,
-                         (N + 2) * csound->ksmps* sizeof(MYFLT), &p->fout->frame);
+                         (N + 2) * CS_KSMPS* sizeof(MYFLT), &p->fout->frame);
       else memset(p->fout->frame.auxp,
-                  '\0', (N + 2) * csound->ksmps* sizeof(MYFLT));
+                  '\0', (N + 2) * CS_KSMPS* sizeof(MYFLT));
       bframe = (CMPLX *)p->fout->frame.auxp;
-      for (n=0; n<csound->ksmps; n++)
+      for (n=0; n<CS_KSMPS; n++)
         for (i = 0; i < NB; i++) {
           bframe[i+NB*n].re = FL(0.0);
           bframe[i+NB*n].im = i * N * csound->onedsr;
@@ -709,7 +709,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
           bframe[i + 1] = (i / 2) * N * csound->onedsr;
         }
         p->lastframe = 1;
-        p->incr = (MYFLT)csound->ksmps/p->fout->overlap;
+        p->incr = (MYFLT)CS_KSMPS/p->fout->overlap;
       }
     return OK;
 }
@@ -733,7 +733,7 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
 
     if (p->fout->sliding) {
       CMPLX *fout;
-      int m, nsmps = csound->ksmps;
+      int m, nsmps = CS_KSMPS;
       int NB = p->fout->NB;
       harm = (int)(csound->esr/(2*ffun));
       if (type==1) famp *= FL(1.456)/POWER((MYFLT)harm, FL(1.0)/FL(2.4));
@@ -802,7 +802,7 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
     }
     p->incr += p->incr;
     if (p->incr > 1) {
-      p->incr = (MYFLT)csound->ksmps/p->fout->overlap;
+      p->incr = (MYFLT)CS_KSMPS/p->fout->overlap;
       p->lastframe++;
     }
     return OK;
@@ -852,7 +852,7 @@ static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
       int NB = p->fin->NB;
       pos = *p->kbin;
       if (pos >= 0 && pos < NB) {
-        for (k=0; k<csound->ksmps; k++) {
+        for (k=0; k<CS_KSMPS; k++) {
           p->kamp[k] = (MYFLT)fin[pos+NB*k].re;
           p->kfreq[k] = (MYFLT)fin[pos+NB*k].im;
         }
@@ -865,7 +865,7 @@ static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
         framesize = p->fin->N + 2;
         pos=*p->kbin*2;
         if (pos >= 0 && pos < framesize) {
-          for (k=0; k<csound->ksmps; k++) {
+          for (k=0; k<CS_KSMPS; k++) {
             p->kamp[k] = (MYFLT)fin[pos];
             p->kfreq[k] = (MYFLT)fin[pos+1];
           }
@@ -886,12 +886,12 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
     p->fout->sliding = p->fin->sliding;
     if (p->fin->sliding) {
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+          p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                          &p->fout->frame);
       if (p->del.auxp == NULL ||
-          p->del.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+          p->del.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                          &p->del);
     }
     else
@@ -931,7 +931,7 @@ static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
     if (p->fin->sliding) {
       CMPLX *fout, *fin, *del;
       double  costh1, costh2, coef1, coef2;
-      int n, nsmps=csound->ksmps;
+      int n, nsmps=CS_KSMPS;
       int NB = p->fin->NB;
       ffa = ffa < 0.0 ? 0.0 : (ffa > 1.0 ? 1.0 : ffa);
       ffr = ffr < 0.0 ? 0.0 : (ffr > 1.0 ? 1.0 : ffr);
@@ -1002,8 +1002,8 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
     p->fout->sliding = 0;
     if (p->fa->sliding) {
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+          p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                          &p->fout->frame);
       p->fout->NB = p->fa->NB;
       p->fout->sliding = 1;
@@ -1036,7 +1036,7 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
     if (UNLIKELY(!fsigs_equal(p->fa, p->fb))) goto err1;
     if (p->fa->sliding) {
       CMPLX * fout, *fa, *fb;
-      int n, nsmps=csound->ksmps;
+      int n, nsmps=CS_KSMPS;
       int NB = p->fa->NB;
       for (n=0; n<nsmps; n++) {
         fout = (CMPLX*) p->fout->frame.auxp +NB*n;
@@ -1089,8 +1089,8 @@ static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
     p->fout->sliding = 0;
     if (p->fin->sliding) {
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-        csound->AuxAlloc(csound, sizeof(MYFLT) * csound->ksmps * (N + 2),
+          p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
+        csound->AuxAlloc(csound, sizeof(MYFLT) * CS_KSMPS * (N + 2),
                          &p->fout->frame);
       p->fout->NB = p->fin->NB;
       p->fout->sliding = 1;
@@ -1124,7 +1124,7 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
 
     if (p->fin->sliding) {
       int NB = p->fout->NB;
-      int n, nsmps = csound->ksmps;
+      int n, nsmps = CS_KSMPS;
       CMPLX *fin, *fout, *fil;
       MYFLT g = *p->gain;
       kdepth = kdepth >= FL(0.0) ? (kdepth <= FL(1.0) ? kdepth*g : g) : FL(0.0);
@@ -1186,8 +1186,8 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
     p->fout->sliding = p->fin->sliding;
     if (p->fin->sliding) {
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < csound->ksmps * sizeof(MYFLT) * (N + 2))
-        csound->AuxAlloc(csound, csound->ksmps * sizeof(MYFLT) * (N + 2),
+          p->fout->frame.size < CS_KSMPS * sizeof(MYFLT) * (N + 2))
+        csound->AuxAlloc(csound, CS_KSMPS * sizeof(MYFLT) * (N + 2),
                          &p->fout->frame);
     }
     else
@@ -1235,7 +1235,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
     if (UNLIKELY(fout == NULL)) goto err1;
 
     if (p->fout->sliding) {
-      int n, nsmps = csound->ksmps;
+      int n, nsmps = CS_KSMPS;
       int NB    = p->fout->NB;
       MYFLT   g = *p->gain;
       for (n=0; n<nsmps; n++) {
@@ -1399,9 +1399,9 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
       csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
-          csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
-        csound->AuxAlloc(csound, csound->ksmps*(N+2)*sizeof(MYFLT),&p->fout->frame);
-      else memset(p->fout->frame.auxp, 0, csound->ksmps*(N+2)*sizeof(MYFLT));
+          CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
+        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
+      else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     }
     else
       {
@@ -1452,7 +1452,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 
     if (UNLIKELY(fout == NULL)) goto err1;
     if (p->fin->sliding) {
-      int n, nsmps = csound->ksmps;
+      int n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
       MYFLT g = *p->gain;
       lowest = lowest ? (lowest > NB ? NB : lowest) : 1;
@@ -1766,14 +1766,14 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
       csound->InitError(csound, Str("pvsblur does not work sliding yet"));
       delayframes = (int) (FL(0.5) + *p->maxdel * csound->esr);
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+          p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                          &p->fout->frame);
 
       if (p->delframes.auxp == NULL ||
-          p->delframes.size < (N + 2) * sizeof(MYFLT) * csound->ksmps * delayframes)
+          p->delframes.size < (N + 2) * sizeof(MYFLT) * CS_KSMPS * delayframes)
         csound->AuxAlloc(csound,
-                         (N + 2) * sizeof(MYFLT) * csound->ksmps * delayframes,
+                         (N + 2) * sizeof(MYFLT) * CS_KSMPS * delayframes,
                          &p->delframes);
     }
     else
@@ -1787,7 +1787,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
           csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
         if (p->delframes.auxp == NULL ||
-          p->delframes.size < (N + 2) * sizeof(float) * csound->ksmps * delayframes)
+          p->delframes.size < (N + 2) * sizeof(float) * CS_KSMPS * delayframes)
           csound->AuxAlloc(csound, (N + 2) * sizeof(float) * delayframes,
                            &p->delframes);
       }
@@ -1827,7 +1827,7 @@ static int pvsblur(CSOUND *csound, PVSBLUR *p)
     if (UNLIKELY(fout == NULL || delay == NULL)) goto err1;
 
     if (p->fin->sliding) {
-      int n, nsmps = csound->ksmps;
+      int n, nsmps = CS_KSMPS;
       int NB = p->fin->NB;
       kdel = kdel >= 0 ? (kdel < mdel ? kdel : mdel - framesize) : 0;
       for (n=0; n<nsmps; n++) {
@@ -1917,8 +1917,8 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
     p->fout->NB = chans;
     if (p->fin->sliding) {
       if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(MYFLT) * (N + 2) * csound->ksmps)
-        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+          p->fout->frame.size < sizeof(MYFLT) * (N + 2) * CS_KSMPS)
+        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                          &p->fout->frame);
       p->fout->sliding = 1;
     }
@@ -1961,7 +1961,7 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
       p->fout->format = p->fin->format;
       p->fout->wintype = p->fin->wintype;
       ftable = p->func->ftable;
-      for (n=0; n<csound->ksmps; n++) {
+      for (n=0; n<CS_KSMPS; n++) {
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         CMPLX *fin  = (CMPLX *) p->fin->frame.auxp  + n*NB;
         for (i = 0; i < NB; i++) {

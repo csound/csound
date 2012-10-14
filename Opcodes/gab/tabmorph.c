@@ -140,7 +140,7 @@ static int tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
 
 static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate */
 {
-    int    n, nsmps = csound->ksmps, tablen = p->length;
+    int    n, nsmps = CS_KSMPS, tablen = p->length;
     MYFLT *out = p->out;
     MYFLT *index = p->xindex;
     MYFLT *interpoint = p->xinterpoint;
@@ -200,7 +200,7 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
  /* all args k-rate except out and table index */
 static int atabmorphi(CSOUND *csound, TABMORPH *p)
 {
-    int    n, nsmps = csound->ksmps, tablen = p->length;
+    int    n, nsmps = CS_KSMPS, tablen = p->length;
 
     MYFLT *out = p->out;
     MYFLT *index;

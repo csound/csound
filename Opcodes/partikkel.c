@@ -152,7 +152,7 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
         (*pe)->id = *p->opcodeid;
         (*pe)->partikkel = p;
         /* allocate table for sync data */
-        (*pe)->synctab = csound->Calloc(csound, 2*csound->ksmps*sizeof(MYFLT));
+        (*pe)->synctab = csound->Calloc(csound, 2*CS_KSMPS*sizeof(MYFLT));
         (*pe)->next = NULL;
     }
     p->globals_entry = *pe;
@@ -305,7 +305,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     p->graininc = 0.0;
 
     /* allocate memory for the grain mix buffer */
-    size = csound->ksmps*sizeof(MYFLT);
+    size = CS_KSMPS*sizeof(MYFLT);
     if (p->aux.auxp == NULL || p->aux.size < size)
         csound->AuxAlloc(csound, size, &p->aux);
     else
@@ -567,7 +567,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
         return PERFERROR("unable to load FM envelope table");
 
     /* start grain scheduling */
-    for (n = 0; n < csound->ksmps; ++n) {
+    for (n = 0; n < CS_KSMPS; ++n) {
         if (p->sync[n] >= FL(1.0)) {
             /* we got a full sync pulse, hardsync grain clock if needed */
             if (!p->synced) {
@@ -644,7 +644,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 
         /* store away the scheduler phase for use in partikkelsync */
         if (p->globals_entry)
-            p->globals_entry->synctab[csound->ksmps + n] = p->grainphase;
+            p->globals_entry->synctab[CS_KSMPS + n] = p->grainphase;
 
         if (p->grainfreq_arate)
             grainfreq = fabs(p->grainfreq[n]);
@@ -724,11 +724,11 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
     unsigned n;
     MYFLT *out1 = *(&(p->output1) + grain->chan1);
     MYFLT *out2 = *(&(p->output1) + grain->chan2);
-    unsigned stop = grain->stop > csound->ksmps
-                    ? csound->ksmps : grain->stop;
+    unsigned stop = grain->stop > CS_KSMPS
+                    ? CS_KSMPS : grain->stop;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
-    if (grain->start >= csound->ksmps)
+    if (grain->start >= CS_KSMPS)
         return; /* grain starts at a later kperiod */
     for (i = 0; i < 5; ++i) {
         WAVEDATA *curwav = &grain->wav[i];
@@ -800,7 +800,7 @@ static int partikkel(CSOUND *csound, PARTIKKEL *p)
 
     /* clear output buffers, we'll be accumulating our outputs */
     for (n = 0; n < p->num_outputs; ++n)
-        memset(outputs[n], 0, sizeof(MYFLT)*csound->ksmps);
+        memset(outputs[n], 0, sizeof(MYFLT)*CS_KSMPS);
 
     /* prepare to traverse grain list */
     nodeptr = &p->grainroot;
@@ -810,16 +810,16 @@ static int partikkel(CSOUND *csound, PARTIKKEL *p)
         /* render current grain to outputs */
         render_grain(csound, p, grain);
         /* check if grain is finished */
-        if (grain->stop <= csound->ksmps) {
+        if (grain->stop <= CS_KSMPS) {
             /* grain is finished, deactivate it */
             *nodeptr = return_grain(&p->gpool, *nodeptr);
         } else {
             /* extend grain lifetime with one k-period and find next grain */
-            if (csound->ksmps > grain->start)
+            if (CS_KSMPS > grain->start)
                 grain->start = 0; /* grain is active */
             else
-                grain->start -= csound->ksmps; /* grain is not yet active */
-            grain->stop -= csound->ksmps;
+                grain->start -= CS_KSMPS; /* grain is not yet active */
+            grain->stop -= CS_KSMPS;
             nodeptr = &((*nodeptr)->next);
         }
     }
@@ -854,14 +854,14 @@ static int partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
 static int partikkelsync(CSOUND *csound, PARTIKKEL_SYNC *p)
 {
     /* write sync pulse data */
-    memcpy(p->syncout, p->ge->synctab, csound->ksmps*sizeof(MYFLT));
+    memcpy(p->syncout, p->ge->synctab, CS_KSMPS*sizeof(MYFLT));
     /* write scheduler phase data, if user wanted it */
     if (p->output_schedphase) {
-        memcpy(p->schedphaseout, p->ge->synctab + csound->ksmps,
-               csound->ksmps*sizeof(MYFLT));
+        memcpy(p->schedphaseout, p->ge->synctab + CS_KSMPS,
+               CS_KSMPS*sizeof(MYFLT));
     }
     /* clear first half of sync table to get rid of old sync pulses */
-    memset(p->ge->synctab, 0, csound->ksmps*sizeof(MYFLT));
+    memset(p->ge->synctab, 0, CS_KSMPS*sizeof(MYFLT));
     return OK;
 }
 

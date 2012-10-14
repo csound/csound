@@ -77,7 +77,7 @@ static int compset(CSOUND *csound, CMPRS *p)
 static int compress(CSOUND *csound, CMPRS *p)
 {
     MYFLT       *ar, *ainp, *cinp;
-    int32        nsmps = csound->ksmps;
+    int32        nsmps = CS_KSMPS;
     int         n;
     /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
     MYFLT scal = 32768./csound->e0dbfs; 
@@ -213,7 +213,7 @@ static int distort(CSOUND *csound, DIST *p)
     MYFLT   *ar, *asig;
     MYFLT   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
-    int32    nsmps = csound->ksmps;
+    int32    nsmps = CS_KSMPS;
     int     n;
 
     asig = p->asig;
@@ -229,7 +229,7 @@ static int distort(CSOUND *csound, DIST *p)
       dist = FL(0.001);
     dnew = rms / dist;                  /* & compress factor    */
     dcur = p->prvd;
-    dinc = (dnew - dcur) * csound->onedksmps;
+    dinc = (dnew - dcur) * CS_ONEDKSMPS;
     asig = p->asig;
     ar = p->ar;
     for (n=0; n<nsmps; n++) {

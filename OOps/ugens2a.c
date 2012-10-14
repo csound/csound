@@ -175,7 +175,7 @@ int ptablefn(CSOUND *csound, TABLE *p)
     FUNC        *ftp;
     MYFLT       *rslt, *pxndx, *tab;
     int32       indx, length;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
     int         wrap = p->wrap;
 
@@ -328,7 +328,7 @@ int ptabli(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
     int32       indx, length;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
 
@@ -402,7 +402,7 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
 {
     FUNC        *ftp;
     int32       indx, length;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
     int         wrap = p->wrap;
@@ -560,7 +560,7 @@ int ptablew(CSOUND *csound, TABLEW *p)
     int32        indx;   /* Used to read table. */
     int32        length; /* Length of table */
     int         liwgm;          /* Local copy of iwgm for speed */
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
                                 /*-----------------------------------*/
     /* Assume that TABLEW has been set up correctly. */

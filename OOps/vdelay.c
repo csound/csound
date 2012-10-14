@@ -51,7 +51,7 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 
 int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
-    int32  nn, nsmps = csound->ksmps, maxd, indx;
+    int32  nn, nsmps = CS_KSMPS, maxd, indx;
     MYFLT *out = p->sr;     /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -134,7 +134,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 
 int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
 {
-    int32  nn, nsmps = csound->ksmps, maxd, indx;
+    int32  nn, nsmps = CS_KSMPS, maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -143,7 +143,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     if (UNLIKELY(buf==NULL)) goto err1;            /* RWD fix */
     maxd = (uint32) (*p->imaxd * ESR);
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
-    nn = csound->ksmps;
+    nn = CS_KSMPS;
     indx = p->left;
 
     if (XINARG2) {              /*      if delay is a-rate      */
@@ -317,7 +317,7 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 
 int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 {
-    int32  nn, nsmps = csound->ksmps, maxd, indx;
+    int32  nn, nsmps = CS_KSMPS, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *in1 = p->ain1;
     MYFLT *del = p->adel;
@@ -379,7 +379,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 
 int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 {
-    int32  nn, maxd, indx, nsmps = csound->ksmps;
+    int32  nn, maxd, indx, nsmps = CS_KSMPS;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *in1 = p->ain1;
     MYFLT *del = p->adel;
@@ -450,7 +450,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     int   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2;
     int32   i, i2, xpos;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1; /* RWD fix */
     maxd = (int32)(*p->imaxd * csound->esr);
@@ -505,7 +505,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 
 int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 {
-    int32  n, nsmps = csound->ksmps, maxd, indx;
+    int32  n, nsmps = CS_KSMPS, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *in1 = p->ain1;
@@ -569,7 +569,7 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 
 int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 {
-    int32  n, nsmps = csound->ksmps, maxd, indx;
+    int32  n, nsmps = CS_KSMPS, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *out3 = p->sr3;
@@ -646,7 +646,7 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 
 int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 {
-    int32  n, nsmps = csound->ksmps, maxd, indx;
+    int32  n, nsmps = CS_KSMPS, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *out3 = p->sr3;
@@ -750,7 +750,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
 
 int multitap_play(CSOUND *csound, MDEL *p)
 {                               /* assign object data to local variables   */
-    int  i, n, nn = csound->ksmps, indx = p->left, delay;
+    int  i, n, nn = CS_KSMPS, indx = p->left, delay;
     MYFLT *out = p->sr, *in = p->ain;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT max = (MYFLT)p->max;
@@ -960,8 +960,8 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
 
     /* Init variables */
     if (*p->istor == FL(0.0) ||
-        p->temp.auxp == NULL || p->temp.size<csound->ksmps * sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, csound->ksmps * sizeof(MYFLT), &p->temp);
+        p->temp.auxp == NULL || p->temp.size<CS_KSMPS * sizeof(MYFLT)) {
+      csound->AuxAlloc(csound, CS_KSMPS * sizeof(MYFLT), &p->temp);
 
       n = 0;
       for (i = 0; i < p->numCombs; i++) {
@@ -1038,7 +1038,7 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
 
 int reverbx(CSOUND *csound, NREV2 *p)
 {
-    int32   i, n, nsmps = csound->ksmps;
+    int32   i, n, nsmps = CS_KSMPS;
     MYFLT   *in, *out = p->out, *buf, *end;
     MYFLT   gain, z;
     MYFLT   hdif = *p->hdif;

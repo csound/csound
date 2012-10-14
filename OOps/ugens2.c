@@ -69,7 +69,7 @@ int ephsset(CSOUND *csound, EPHSOR *p)
 int ephsor(CSOUND *csound, EPHSOR *p)
 {
     double      phase;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       *rs, *aphs, onedsr = csound->onedsr;
     double b = p->b;
     double      incr, R = *p->kR;
@@ -121,7 +121,7 @@ int kphsor(CSOUND *csound, PHSOR *p)
 {
     double      phs;
     *p->sr = (MYFLT)(phs = p->curphs);
-    if (UNLIKELY((phs += (double)*p->xcps * csound->onedkr) >= 1.0))
+    if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 0.0))
       phs += 1.0;
@@ -132,7 +132,7 @@ int kphsor(CSOUND *csound, PHSOR *p)
 int phsor(CSOUND *csound, PHSOR *p)
 {
     double      phase;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       *rs, onedsr = csound->onedsr;
     double      incr;
 
@@ -271,7 +271,7 @@ int tblset(CSOUND *csound, TABLE *p)
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
       const char  *opname = csound->GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
-      if (UNLIKELY(csound->ksmps == 1))
+      if (UNLIKELY(CS_KSMPS == 1))
         csound->Warning(csound, msg, opname);
       else {
         return csound->InitError(csound, msg, opname);
@@ -288,7 +288,7 @@ int tblsetkt(CSOUND *csound, TABLE *p)
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
       const char  *opname = csound->GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
-      if (UNLIKELY(csound->ksmps == 1))
+      if (UNLIKELY(CS_KSMPS == 1))
         csound->Warning(csound, msg, opname);
       else {
         return csound->InitError(csound, msg, opname);
@@ -473,7 +473,7 @@ int tablefn(CSOUND *csound, TABLE *p)
     FUNC        *ftp;
     MYFLT       *rslt, *pxndx, *tab;
     int32       indx, mask, length;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
     int         wrap = p->wrap;
 
@@ -706,7 +706,7 @@ int tabli(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
     int32        indx, mask, length;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
 
@@ -774,7 +774,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
 {
     FUNC        *ftp;
     int32        indx, mask, length;
-    int         n, nsmps=csound->ksmps;
+    int         n, nsmps=CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
     int         wrap = p->wrap;
@@ -967,7 +967,7 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     p->ftp = ftp;
     p->phs = 0;
     p->dcnt = (int32)(*p->idel * csound->ekr);
-    p->kinc = (int32) (csound->kicvt / *p->idur);
+    p->kinc = (int32) (CS_KICVT / *p->idur);
     if (p->kinc==0) p->kinc = 1;
     return OK;
 }
@@ -1046,7 +1046,7 @@ int oscnset(CSOUND *csound, OSCILN *p)
 int osciln(CSOUND *csound, OSCILN *p)
 {
     MYFLT *rs = p->rslt;
-    int32  n, nsmps=csound->ksmps;
+    int32  n, nsmps=CS_KSMPS;
 
     if (UNLIKELY(p->ftp==NULL)) goto err1;
     if (p->ntimes) {
@@ -1102,7 +1102,7 @@ int koscil(CSOUND *csound, OSC *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     phs = p->lphs;
-    inc = (int32) (*p->xcps * csound->kicvt);
+    inc = (int32) (*p->xcps * CS_KICVT);
     *p->sr = ftp->ftable[phs >> ftp->lobits] * *p->xamp;
     phs += inc;
     phs &= PHMASK;
@@ -1117,7 +1117,7 @@ int osckk(CSOUND *csound, OSC *p)
     FUNC    *ftp;
     MYFLT   amp, *ar, *ftbl;
     int32   phs, inc, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1144,7 +1144,7 @@ int oscka(CSOUND *csound, OSC *p)
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, *ftbl;
     int32    phs, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
@@ -1172,7 +1172,7 @@ int oscak(CSOUND *csound, OSC *p)
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *ftbl;
     int32    phs, inc, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1197,7 +1197,7 @@ int oscaa(CSOUND *csound, OSC *p)
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *cpsp, *ftbl;
     int32    phs, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
@@ -1232,7 +1232,7 @@ int koscli(CSOUND *csound, OSC   *p)
     ftab = ftp->ftable + (phs >> ftp->lobits);
     v1 = ftab[0];
     *p->sr = (v1 + (ftab[1] - v1) * fract) * *p->xamp;
-    inc = (int32)(*p->xcps * csound->kicvt);
+    inc = (int32)(*p->xcps * CS_KICVT);
     phs += inc;
     phs &= PHMASK;
     p->lphs = phs;
@@ -1246,7 +1246,7 @@ int osckki(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   fract, v1, amp, *ar, *ft, *ftab;
     int32   phs, inc, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
 
     if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
     lobits = ftp->lobits;
@@ -1273,7 +1273,7 @@ int osckai(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, v1, *ftab, *ft;
     int32    phs, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
@@ -1305,7 +1305,7 @@ int oscaki(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *ftab, *ft;
     int32    phs, inc, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1333,7 +1333,7 @@ int oscaai(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab, *ft;
     int32   phs, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
@@ -1390,7 +1390,7 @@ int koscl3(CSOUND *csound, OSC   *p)
                       frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
                       frsq*(FL(0.5)* y1 - y0));
     }
-    inc = (int32)(*p->xcps * csound->kicvt);
+    inc = (int32)(*p->xcps * CS_KICVT);
     phs += inc;
     phs &= PHMASK;
     p->lphs = phs;
@@ -1404,7 +1404,7 @@ int osckk3(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   fract, amp, *ar, *ftab;
     int32    phs, inc, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
 
@@ -1455,7 +1455,7 @@ int oscka3(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, *ftab;
     int32    phs, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
     MYFLT   sicvt = csound->sicvt;
@@ -1503,7 +1503,7 @@ int oscak3(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *ftab;
     int32    phs, inc, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
 
@@ -1548,7 +1548,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *cpsp, *ftab;
     int32   phs, lobits;
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
     MYFLT   sicvt = csound->sicvt;

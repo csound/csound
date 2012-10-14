@@ -92,7 +92,7 @@ abformenc(CSOUND * csound, AMBIC * p) {
     MYFLT x2, y2, z2;
 
     /* Find basic mode & angles: */
-    sampleCount = csound->ksmps;
+    sampleCount = CS_KSMPS;
     channelCount = p->OUTOCOUNT;
     angle = (double)(*(p->kangle)) * (PI / 180.0);
     elevation = (double)(*(p->kelevation)) * (PI / 180.0);
@@ -215,7 +215,7 @@ abformdec(CSOUND * csound, AMBID * p) {
     int sampleCount, sampleIndex;
     MYFLT p0, q, u, v, w, x, y, z;
 
-    sampleCount = csound->ksmps;
+    sampleCount = CS_KSMPS;
     assert(p->INOCOUNT >= 5);
 
     switch ((int)*(p->isetup)) {

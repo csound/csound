@@ -89,7 +89,7 @@ static int fof(CSOUND *csound, FOFS *p)
     OVRLAP  *ovp;
     FUNC    *ftp1,  *ftp2;
     MYFLT   *ar, *amp, *fund, *form;
-    int32   n, nsmps = csound->ksmps, fund_inc, form_inc;
+    int32   n, nsmps = CS_KSMPS, fund_inc, form_inc;
     MYFLT   v1, fract ,*ftab;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
@@ -251,7 +251,7 @@ static int harmset(CSOUND *csound, HARMON *p)
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
       int32 nbufs = (int32)(csound->ekr * FL(3.0) / minfrq) + 1;
-      int32 nbufsmps = nbufs * csound->ksmps;
+      int32 nbufsmps = nbufs * CS_KSMPS;
       int32 maxprd = (int32)(csound->esr / minfrq);
       int32 totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
       csound->AuxAlloc(csound, (size_t)totalsiz * sizeof(MYFLT), &p->auxch);
@@ -325,7 +325,7 @@ static int harmon(CSOUND *csound, HARMON *p)
     }
     c1 = p->c1;
     c2 = p->c2;
-    for (src1 = p->asig, nsmps = csound->ksmps; nsmps--; src1++) {
+    for (src1 = p->asig, nsmps = CS_KSMPS; nsmps--; src1++) {
       *inp1++ = *inp2++ = *src1;              /* dbl store the wavform */
       if (*src1 > FL(0.0))
         qval = c1 * *src1 + c2 * qval;        /*  & its half-wave rect */
@@ -398,10 +398,10 @@ static int harmon(CSOUND *csound, HARMON *p)
     if (period==0) {
       csound->Warning(csound, Str("Period zero\n"));
       outp = p->ar;
-      memset(outp, 0, sizeof(MYFLT)*csound->ksmps);
+      memset(outp, 0, sizeof(MYFLT)*CS_KSMPS);
       return OK;
     }
-    while (src1 + csound->ksmps > inp2)     /* if not enough smps presnt */
+    while (src1 + CS_KSMPS > inp2)     /* if not enough smps presnt */
       src1 -= period;                       /*      back up 1 prd        */
     pulstrt = src1;                         /* curr available pulse beg  */
 
@@ -419,7 +419,7 @@ static int harmon(CSOUND *csound, HARMON *p)
     phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
     phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
     outp = p->ar;
-    nsmps = csound->ksmps;
+    nsmps = CS_KSMPS;
     for (n=0; n<nsmps; n++) {
       MYFLT sum;
       if (src1 != NULL) {

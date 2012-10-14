@@ -231,7 +231,7 @@ static int sndloop_init(CSOUND *csound, sndloop *p)
 
 static int sndloop_process(CSOUND *csound, sndloop *p)
 {
-    int i, on = (int) *(p->on), recon, n = csound->ksmps;
+    int i, on = (int) *(p->on), recon, n = CS_KSMPS;
     int32 durs = p->durs, cfds = p->cfds, wp = p->wp;
     double rp = p->rp;
     MYFLT a = p->a, inc = p->inc;
@@ -344,7 +344,7 @@ static int flooper_init(CSOUND *csound, flooper *p)
 
 static int flooper_process(CSOUND *csound, flooper *p)
 {
-    int i, n = csound->ksmps;
+    int i, n = CS_KSMPS;
     int32 end = p->strts+p->durs, durs = p->durs;
     MYFLT *out = p->out, *buffer = p->buffer.auxp;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
@@ -411,7 +411,7 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
 
 static int flooper2_process(CSOUND *csound, flooper2 *p)
 {
-    int i, n = csound->ksmps;
+    int i, n = CS_KSMPS;
     MYFLT *out = p->out, sr = csound->GetSr(csound);
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab = p->sfunc->ftable;
@@ -693,7 +693,7 @@ static int flooper3_init(CSOUND *csound, flooper3 *p)
 
 static int flooper3_process(CSOUND *csound, flooper3 *p)
 {
-    int i, n = csound->ksmps, lobits = p->lobits,si,ei;
+    int i, n = CS_KSMPS, lobits = p->lobits,si,ei;
     MYFLT *out = p->out, sr = csound->GetSr(csound);
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab = p->sfunc->ftable, cvt;

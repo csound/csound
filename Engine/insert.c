@@ -164,7 +164,14 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
-
+#ifdef JPFF
+    ip->ksmps = csound->ksmps;
+    ip->ekr = csound->ekr;
+    ip->kcounter = csound->kcounter;
+    ip->onedksmps = csound->onedksmps;
+    ip->onedkr = csound->onedkr;
+    ip->kicvt = csound->kicvt;
+#endif
     /* Add an active instrument */
     tp->active++;
     tp->instcnt++;

@@ -524,7 +524,7 @@ Function {make_environ()} {open
     xywh {450 322 325 230} type Double visible
   } {
     Fl_File_Input op {
-      label OPCODEDIR
+      label OPCODE6DIR
       xywh {95 15 185 25}
       code0 {char *t; prof.get("envop",t, getopcodedir());}
       code1 {o->value(t);}
@@ -550,7 +550,7 @@ Function {make_environ()} {open
     Fl_Button {} {
       label OK
       callback {// Transfer vales!!
-csoundSetGlobalEnv("OPCODEDIR",(char*) op->value());
+csoundSetGlobalEnv("OPCODE6DIR",(char*) op->value());
 csoundSetGlobalEnv("SSDIR", (char*) ss->value());
 csoundSetGlobalEnv("SFDIR", (char*) sf->value());
 csoundSetGlobalEnv("SADIR", (char*) sa->value());
@@ -564,7 +564,7 @@ ew->hide();}
     }
     Fl_Button {} {
       label O
-      callback {op->value(fl_dir_chooser("OPCODEDIR", NULL));}
+      callback {op->value(fl_dir_chooser("OPCODE6DIR", NULL));}
       xywh {290 15 25 25} color 222
     }
     Fl_Button {} {
