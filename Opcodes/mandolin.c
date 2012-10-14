@@ -129,7 +129,7 @@ int mandolinset(CSOUND *csound, MANDOL *p)
 int mandolin(CSOUND *csound, MANDOL *p)
 {
     MYFLT *ar = p->ar;
-    int  n,nsmps = csound->ksmps;
+    int  n,nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT lastOutput;
     MYFLT loopGain;

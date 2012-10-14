@@ -349,7 +349,7 @@ int chani_opcode_perf_a(CSOUND *csound, ASSIGN *p)
         return csound->PerfError(csound,
                                  Str("chani: memory allocation failure"));
     }
-    memcpy(p->r, &(csound->chania[n]), sizeof(MYFLT) * csound->ksmps);
+    memcpy(p->r, &(csound->chania[n]), sizeof(MYFLT) * CS_KSMPS);
     return OK;
 }
 
@@ -365,7 +365,7 @@ int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
     }
-    memcpy(&(csound->chanoa[n]), p->r, sizeof(MYFLT) * csound->ksmps);
+    memcpy(&(csound->chanoa[n]), p->r, sizeof(MYFLT) * CS_KSMPS);
     return OK;
 }
 
@@ -866,7 +866,7 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
-    memcpy(p->arg, p->fp, sizeof(MYFLT)*csound->ksmps);
+    memcpy(p->arg, p->fp, sizeof(MYFLT)*CS_KSMPS);
     return OK;
 }
 
@@ -944,7 +944,7 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     /* Need lock for the channel */
     csoundSpinLock(p->lock);
-    memcpy(p->fp, p->arg, sizeof(MYFLT)*csound->ksmps);
+    memcpy(p->fp, p->arg, sizeof(MYFLT)*CS_KSMPS);
     csoundSpinUnLock(p->lock);
     return OK;
 }
@@ -954,7 +954,7 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 {
     int   i = 0;
-    int n = csound->ksmps;
+    int n = CS_KSMPS;
                                 /* Need lock for the channel */
     csoundSpinLock(p->lock);
     for (i=0; i<n; i++) {
@@ -970,7 +970,7 @@ static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
     /* Need lock for the channel */
     csoundSpinLock(p->lock);
-    memset(p->fp, 0, csound->ksmps*sizeof(MYFLT));
+    memset(p->fp, 0, CS_KSMPS*sizeof(MYFLT));
     csoundSpinUnLock(p->lock);
     return OK;
 }

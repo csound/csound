@@ -25,8 +25,8 @@ BuildRequires:  alsa-devel fdupes fluidsynth-devel gcc-c++ jack-devel liblo-deve
 BuildRequires:  fltk-devel libjpeg-devel libpng-devel xorg-x11-devel
 %endif
 Summary:        Computer Sound Synthesis and Composition Program
-Version:        5.17.2
-Release:        135
+Version:        6.00.00
+Release:        140
 License:        GFDL-1.2 ; LGPL-2.1+ ; MIT
 Group:          Productivity/Multimedia/Sound/Utilities
 Source:         Csound%{version}.tar.bz2
@@ -48,9 +48,7 @@ For detailed information, refer to http://www.csounds.com.
 %setup -q -n Csound%{version}
 cp %{SOURCE1} .
 # fix encoding
-iconv -f latin1 -t utf8 readme-csound5.txt > readme-csound5.txt.utf8
-mv readme-csound5.txt.utf8 readme-csound5.txt
-test -f custom.py || cp custom.py.mkg custom.py
+iconv -f latin1 -t utf8 readme-csound6.txt > readme-csound6.txt.utf8
 
 %build
 %if %_lib == "lib64"
@@ -58,7 +56,7 @@ args="Word64=1 Lib64=1"
 %else
 args=""
 %endif
-scons prefix=%{_prefix} buildRelease=1 useDouble=1 useOSC=1 \
+make prefix=%{_prefix} buildRelease=1 useDouble=1 useOSC=1 \
   buildVirtual=1 buildBeats=1 $args \
   customCCFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \
   customCXXFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
@@ -71,7 +69,7 @@ args=""
 %endif
 mkdir -pv $RPM_BUILD_ROOT%{_datadir}/csound
 ./install.py --prefix=%{_prefix} --instdir="$RPM_BUILD_ROOT" $args
-rm -f $RPM_BUILD_ROOT%{_prefix}/csound5-*.md5sums
+rm -f $RPM_BUILD_ROOT%{_prefix}/csound6-*.md5sums
 rm -rf $RPM_BUILD_ROOT%{_datadir}/doc/csound
 # rename conflicting binary names
 mv $RPM_BUILD_ROOT%{_bindir}/sndinfo $RPM_BUILD_ROOT%{_bindir}/csndinfo
@@ -87,7 +85,7 @@ rm -rf $RPM_BUILD_ROOT%{_includedir}
 
 %files
 %defattr(-,root,root)
-%doc COPYING ChangeLog INSTALL readme-csound5.txt README.SuSE
+%doc COPYING ChangeLog INSTALL readme-csound6.txt README.SuSE
 %{_bindir}/*
 %{_libdir}/csound
 %{_datadir}/csound

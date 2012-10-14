@@ -133,7 +133,7 @@ int pvadd(CSOUND *csound, PVADD *p)
     MYFLT   *ar, *ftab;
     MYFLT   frIndx;
     int     size = pvfrsiz(p);
-    int     i, binincr = (int) *p->ibinincr, n, nsmps = csound->ksmps;
+    int     i, binincr = (int) *p->ibinincr, n, nsmps = CS_KSMPS;
     MYFLT   amp, frq, v1, fract, *oscphase;
     int32    phase, incr;
     FUNC    *ftp;

@@ -31,7 +31,7 @@ for i in ./debian/tmp/DEBIAN/postinst ./debian/tmp/DEBIAN/postrm ; do
 done
 
 SAVED_CWD="`pwd`"
-cd "../__csound5"
+cd "../__csound6"
 find . \! -type d -print | cpio -p -d -m -C 1048576 "${SAVED_CWD}/debian/tmp"
 cd "${SAVED_CWD}"
 find "./debian/tmp" -exec chown -h 0:0 "{}" \;

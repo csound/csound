@@ -239,7 +239,7 @@ static int tabidiv(CSOUND *csound, TABARITH1 *p)
     int i;
 
     if (UNLIKELY(r==FL(0.0)))
-      return csound->PerfError(csound, Str("division by zero i t-var"));
+      return csound->PerfError(csound, Str("division by zero in t-var"));
     if (UNLIKELY(p->ans->data == NULL || p->left->data== NULL))
          return csound->PerfError(csound, Str("t-variable not initialised"));
 
@@ -259,7 +259,7 @@ static int tabirem(CSOUND *csound, TABARITH1 *p)
     int i;
 
     if (UNLIKELY(r==FL(0.0)))
-      return csound->PerfError(csound, Str("division by zero i t-var"));
+      return csound->PerfError(csound, Str("division by zero in t-var"));
     if (UNLIKELY(p->ans->data == NULL || p->left->data== NULL))
          return csound->PerfError(csound, Str("t-variable not initialised"));
 

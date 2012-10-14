@@ -86,7 +86,7 @@ int oscils_set(CSOUND *csound, OSCILS *p)
 
 int oscils(CSOUND *csound, OSCILS *p)
 {
-    int     n, nsmps=csound->ksmps;
+    int     n, nsmps=CS_KSMPS;
     MYFLT   *ar, x, c, v;
     double  xd, cd, vd;
 
@@ -133,7 +133,7 @@ int lphasor_set(CSOUND *csound, LPHASOR *p)
 
 int lphasor(CSOUND *csound, LPHASOR *p)
 {
-    int     n, nsmps=csound->ksmps, loop_mode, dir;
+    int     n, nsmps=CS_KSMPS, loop_mode, dir;
     MYFLT   *ar, *xtrns;
     double  trns, phs, lps, lpe, lpt;
 
@@ -199,7 +199,7 @@ int tablexkt_set(CSOUND *csound, TABLEXKT *p)
 
 int tablexkt(CSOUND *csound, TABLEXKT *p)
 {
-    int     i, n, nsmps=csound->ksmps, wsize, wsized2, wrap_ndx, warp;
+    int     i, n, nsmps=CS_KSMPS, wsize, wsized2, wrap_ndx, warp;
     double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
     int32    ndx_i, flen;
     MYFLT   *ar, *xndx, ndx_f, a0, a1, a2, a3, v0, v1, v2, v3, *ftable;

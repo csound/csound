@@ -379,7 +379,7 @@ int voicformset(CSOUND *csound, VOICF *p)
 int voicform(CSOUND *csound, VOICF *p)
 {
     MYFLT *ar = p->ar;
-    int32 n, nsmps = csound->ksmps;
+    int32 n, nsmps = CS_KSMPS;
 
     if (p->basef != *p->frequency) {
       p->basef = *p->frequency;

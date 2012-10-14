@@ -159,7 +159,7 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
 int dsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
-    int    n, nsmps = csound->ksmps;
+    int    n, nsmps = CS_KSMPS;
 
     if (!p->nprds) {
       for (n=0; n<nsmps; n++) {
@@ -383,7 +383,7 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
 int dspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     for (n=0; n<nsmps; n++) {
@@ -518,11 +518,11 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       }
     }
     /* calc input lo-pass filter coefs */
-    b = FL(2.0) - COS((*p->ihp * 6.28318 * csound->onedkr));
+    b = FL(2.0) - COS((*p->ihp * 6.28318 * CS_ONEDKR));
     p->coef1 = b - SQRT(b * b - FL(1.0));
     p->coef0 = FL(1.0) - p->coef1;
     p->yt1 = FL(0.0);
-    p->fwdcoef = POWER(FL(0.5), p->timcount*csound->onedkr/(*p->ihtim));
+    p->fwdcoef = POWER(FL(0.5), p->timcount*CS_ONEDKR/(*p->ihtim));
     p->fwdmask = FL(0.0);
 #ifdef DEBUG
     csound->Message(csound,

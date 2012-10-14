@@ -387,7 +387,7 @@ static int clfilt(CSOUND *csound, CLFILT *p)
         return csound->PerfError(csound, Str("code error, ihilo out of range"));
       }
     }
-    nsmps = csound->ksmps;
+    nsmps = CS_KSMPS;
     in   = p->in;
     out  = p->out;
     for (n=0; n<nsmps; n++) {

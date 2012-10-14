@@ -196,7 +196,7 @@ int kport(CSOUND *csound, KPORT *p)
     /* This previous comment is WRONG;  do not be misled -- JPff */
 
     if (UNLIKELY(p->prvhtim != *p->khtim)) {
-      p->c2 = POWER(FL(0.5), csound->onedkr / *p->khtim);
+      p->c2 = POWER(FL(0.5), CS_ONEDKR / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
       p->prvhtim = *p->khtim;
     }
@@ -235,7 +235,7 @@ int ktone(CSOUND *csound, KTONE *p)
        * We need this since we are filtering at k rate, not a rate. */
     /* This previous comment is WRONG;  do not be misled -- JPff */
 
-      b = FL(2.0) - COS(*p->khp * csound->tpidsr * csound->ksmps);
+      b = FL(2.0) - COS(*p->khp * csound->tpidsr * CS_KSMPS);
       p->c2 = b - SQRT(b * b - FL(1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -254,7 +254,7 @@ int katone(CSOUND *csound, KTONE *p)
     if (UNLIKELY(*p->khp != p->prvhp)) {
       MYFLT b;
       p->prvhp = *p->khp;
-      b = FL(2.0) - COS(*p->khp * csound->tpidsr * csound->ksmps);
+      b = FL(2.0) - COS(*p->khp * csound->tpidsr * CS_KSMPS);
       p->c2 = b - SQRT(b * b - FL(1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -300,7 +300,7 @@ int kreson(CSOUND *csound, KRESON *p)
      * cosf = cos (2pi * freq / krate)                   */
     if (UNLIKELY(*p->kcf != p->prvcf)) {
       p->prvcf = *p->kcf;
-      p->cosf = COS(*p->kcf * csound->tpidsr * csound->ksmps);
+      p->cosf = COS(*p->kcf * csound->tpidsr * CS_KSMPS);
       flag = 1;
     }
 
@@ -308,7 +308,7 @@ int kreson(CSOUND *csound, KRESON *p)
      * c3 = exp (-2pi * bwidth / krate)                  */
     if (UNLIKELY(*p->kbw != p->prvbw)) {
       p->prvbw = *p->kbw;
-      p->c3 = EXP(*p->kbw * csound->mtpdsr * csound->ksmps);
+      p->c3 = EXP(*p->kbw * csound->mtpdsr * CS_KSMPS);
       flag = 1;
     }
     /* Final calculations for the factors
@@ -370,12 +370,12 @@ int kareson(CSOUND *csound, KRESON *p)
     /*      or 1/.5  (sine) */
     if (UNLIKELY(*p->kcf != p->prvcf)) {
       p->prvcf = *p->kcf;
-      p->cosf = COS(*p->kcf * csound->tpidsr * csound->ksmps);
+      p->cosf = COS(*p->kcf * csound->tpidsr * CS_KSMPS);
       flag = 1;
     }
     if (UNLIKELY(*p->kbw != p->prvbw)) {
       p->prvbw = *p->kbw;
-      p->c3 = EXP(*p->kbw * csound->mtpdsr * csound->ksmps);
+      p->c3 = EXP(*p->kbw * csound->mtpdsr * CS_KSMPS);
       flag = 1;
     }
     if (UNLIKELY(flag)) {
@@ -454,7 +454,7 @@ int limit(CSOUND *csound, LIMIT *p)
 {
     MYFLT       *adest, *asig;
     MYFLT       xlow, xhigh, xaverage, xsig;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     /*-----------------------------------*/
 
     /* Optimise for speed when xsig is within the limits.     */

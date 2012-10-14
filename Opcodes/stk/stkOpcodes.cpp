@@ -23,11 +23,11 @@
  * same terms as the Synthesis Tookit in C++ by Perry R. Cook and Gary P. Scavone.
  *
  * To compile these opcodes, copy the STK include, src, and rawwaves directories
- * to the csound5/Opcodes/stk directory as follows:
+ * to the csound6/Opcodes/stk directory as follows:
  *
- * csound5/Opcodes/stk/include
- * csound5/Opcodes/stk/src
- * csound5/Opcodes/stk/rawwaves
+ * csound6/Opcodes/stk/include
+ * csound6/Opcodes/stk/src
+ * csound6/Opcodes/stk/rawwaves
  *
  * Also, specify buildStkOpcodes=1 for SCons.
  *
