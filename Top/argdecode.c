@@ -124,7 +124,7 @@ static const char *shortUsageList[] = {
 static const char *longUsageList[] = {
   "--format={wav,aiff,au,raw,paf,svx,nist,voc,ircam,w64,mat4,mat5",
   "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,wve,ogg,mpc2k,rf64}",
-  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit,vorbis}",
+  "--format={alaw,ulaw,schar,uchar,float,double,short,long,24bit,vorbis}",
   Str_noop("\t\t\tSet output file format"),
   Str_noop("--aiff\t\t\tSet AIFF format"),
   Str_noop("--au\t\t\tSet AU format"),
@@ -284,6 +284,10 @@ void set_output_format(OPARMS *O, char c)
       O->outformat = AE_FLOAT;   /* float soundfile */
       break;
 
+    case 'd':
+      O->outformat = AE_DOUBLE;  /* double soundfile */
+      break;
+
     case 's':
       O->outformat = AE_SHORT;   /* short_int soundfile*/
       break;
@@ -320,7 +324,7 @@ typedef struct  {
 
 static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
   { "alaw",   'a' },  { "schar",  'c' },  { "uchar",  '8' },
-  { "float",  'f' },  { "long",   'l' },
+  { "float",  'f' },  { "double", 'd' },  { "long",   'l' },
   { "short",  's' },  { "ulaw",   'u' },  { "24bit",  '3' },
   { "vorbis", 'v' },  { NULL, '\0' }
 };

@@ -261,7 +261,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     int         nvoice;
     int32       tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;

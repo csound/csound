@@ -34,7 +34,7 @@
 
 int porset(CSOUND *csound, PORT *p)
 {
-    p->c2 = pow(0.5, (double)csound->onedkr / *p->ihtim);
+    p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
     p->c1 = 1.0 - p->c2;
     if (LIKELY(*p->isig >= FL(0.0)))
       p->yt1 = (double)(*p->isig);
@@ -64,7 +64,7 @@ int tonset(CSOUND *csound, TONE *p)
 int tone(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     double      c1 = p->c1, c2 = p->c2;
     double      yt1 = p->yt1;
 
@@ -121,7 +121,7 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
     c1 = p->c1;
     c2 = p->c2;
     yt1= p->yt1;
-    nsmps = csound->ksmps;
+    nsmps = CS_KSMPS;
     ar = p->ar;
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
 
@@ -141,7 +141,7 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
 int atone(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     double      c2 = p->c2, yt1 = p->yt1;
 
     if (*p->khp != p->prvhp) {
@@ -167,7 +167,7 @@ int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1;
-    int         n, nsmps=csound->ksmps, j;
+    int         n, nsmps=CS_KSMPS, j;
     int lp = p->loop;
 
     if (*p->khp != p->prvhp) {
@@ -206,7 +206,7 @@ int rsnset(CSOUND *csound, RESON *p)
 
 int reson(CSOUND *csound, RESON *p)
 {
-    int flag = 0, n, nsmps = csound->ksmps;
+    int flag = 0, n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig;
     double      c3p1, c3t4, omc3, c2sqr;
     double      yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
@@ -271,7 +271,7 @@ int rsnsetx(CSOUND *csound, RESONX *p)
 
 int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 {
-    int flag = 0, nsmps = csound->ksmps, j;
+    int flag = 0, nsmps = CS_KSMPS, j;
     MYFLT       *ar;
     double      c3p1, c3t4, omc3, c2sqr;
     double      *yt1, *yt2, c1,c2,c3;
@@ -322,7 +322,7 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 
 int areson(CSOUND *csound, RESON *p)
 {
-    int flag = 0, nsmps = csound->ksmps;
+    int flag = 0, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig;
     double      c3p1, c3t4, omc3, c2sqr, D = 2.0; /* 1/RMS = root2 (rand) */
                                                    /*      or 1/.5  (sine) */
@@ -793,7 +793,7 @@ int lprsnset(CSOUND *csound, LPRESON *p)
 int lpreson(CSOUND *csound, LPRESON *p)
 {
     LPREAD *q = p->lpread;
-    int     nn, nsmps = csound->ksmps;
+    int     nn, nsmps = CS_KSMPS;
     MYFLT   *coefp, *pastp, *jp, *jp2, *rslt = p->ar, *asig = p->asig;
     MYFLT   x;
     double  poleReal[MAXPOLES], poleImag[MAXPOLES];
@@ -892,7 +892,7 @@ int lpfrsnset(CSOUND *csound, LPFRESON *p)
 int lpfreson(CSOUND *csound, LPFRESON *p)
 {
     LPREAD  *q = p->lpread;
-    int     nn, nsmps = csound->ksmps;
+    int     nn, nsmps = CS_KSMPS;
     MYFLT   *coefp, *pastp, *pastp1, *rslt = p->ar, *asig = p->asig;
     MYFLT   x, temp1, temp2, ampscale, cq;
 
@@ -982,7 +982,7 @@ int balnset(CSOUND *csound, BALANCE *p)
 
 int rms(CSOUND *csound, RMS *p)
 {
-    int     n, nsmps = csound->ksmps;
+    int     n, nsmps = CS_KSMPS;
     MYFLT   *asig;
     double  q;
     double  c1 = p->c1, c2 = p->c2;
@@ -1000,7 +1000,7 @@ int rms(CSOUND *csound, RMS *p)
 
 int gain(CSOUND *csound, GAIN *p)
 {
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
     MYFLT   *ar, *asig;
     double  q, a, m, diff, inc;
     double  c1 = p->c1, c2 = p->c2;
@@ -1020,7 +1020,7 @@ int gain(CSOUND *csound, GAIN *p)
     ar = p->ar;
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff * (double)csound->onedksmps;
+      inc = diff * (double)CS_ONEDKSMPS;
       for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
@@ -1037,7 +1037,7 @@ int gain(CSOUND *csound, GAIN *p)
 
 int balance(CSOUND *csound, BALANCE *p)
 {
-    int     n, nsmps = csound->ksmps;
+    int     n, nsmps = CS_KSMPS;
     MYFLT   *ar, *asig, *csig;
     double  q, r, a, m, diff, inc;
     double  c1 = p->c1, c2 = p->c2;
@@ -1061,7 +1061,7 @@ int balance(CSOUND *csound, BALANCE *p)
     ar = p->ar;
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff * (double)csound->onedksmps;
+      inc = diff * (double)CS_ONEDKSMPS;
       for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;

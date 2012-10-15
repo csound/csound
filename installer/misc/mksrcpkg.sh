@@ -6,9 +6,9 @@ if [ "$#" != "1" ] ; then
     exit 1 ;
 fi
 
-PKGDIR="../__csound5_src/Csound${1}"
-rm -Rf "../__csound5_src"
-mkdir -p -m 0755 "../__csound5_src"
+PKGDIR="../__csound6_src/Csound${1}"
+rm -Rf "../__csound6_src"
+mkdir -p -m 0755 "../__csound6_src"
 mkdir -p -m 0755 "${PKGDIR}"
 
 cp -aiLR * "${PKGDIR}/"

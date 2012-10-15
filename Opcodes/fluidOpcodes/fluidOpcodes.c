@@ -400,7 +400,8 @@ static int fluidOutIopadr(CSOUND *csound, FLUIDOUT *p)
 static int fluidOutAopadr(CSOUND *csound, FLUIDOUT *p)
 {
     float   leftSample, rightSample;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = 
+CS_KSMPS;
     for (n=0; n<nsmps; n++) {
       leftSample = 0.0f;
       rightSample = 0.0f;
@@ -441,7 +442,7 @@ static int fluidAllOutAopadr(CSOUND *csound, FLUIDALLOUT *p)
         p->aLeftOut[i] += (MYFLT) leftSample /* * csound->e0dbfs */;
         p->aRightOut[i] += (MYFLT) rightSample /* * csound->e0dbfs */;
       } while (++j < cnt);
-    } while (++i < csound->ksmps);
+    } while (++i < CS_KSMPS);
 
     return OK;
 }

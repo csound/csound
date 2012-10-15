@@ -45,7 +45,7 @@ static int flwset(CSOUND *csound, FOL *p)
                                 /* Use absolute value rather than max/min */
 static int follow(CSOUND *csound, FOL *p)
 {
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     MYFLT       *in = p->in, *out = p->out;
     MYFLT       max = p->max;
     int32       count = p->count;
@@ -87,7 +87,7 @@ static int envset(CSOUND *csound, ENV *p)
 
 static int envext(CSOUND *csound, ENV *p)
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT       envelope = p->envelope;
     MYFLT       ga, gr;
     MYFLT       *in = p->in, *out = p->out;

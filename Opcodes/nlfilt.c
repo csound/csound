@@ -91,7 +91,7 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     ynm1 = fp[nm1];                     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
-    nsmps = csound->ksmps;
+    nsmps = CS_KSMPS;
     maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
@@ -124,6 +124,72 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
 } /* end nlfilt(p) */
 
 /* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
+
+/* Revised version due to Risto Holopainen 12 Mar 2004 */
+/* Y{n} =tanh(a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C) */
+
+static int nlfilt2(CSOUND *csound, NLFILT *p)
+{
+    MYFLT   *ar;
+    int     n, nsmps;
+    int     point = p->point;
+    int     nm1 = point;
+    int     nm2 = point - 1;
+    int     nmL;
+    MYFLT   ynm1, ynm2, ynmL;
+    MYFLT   a = *p->a, b = *p->b, d = *p->d, C = *p->C;
+    MYFLT   *in = p->in;
+    MYFLT   *fp = (MYFLT*) p->delay.auxp;
+    MYFLT   L = *p->L;
+    MYFLT   maxamp, dvmaxamp, maxampd2;
+
+    if (UNLIKELY(fp == NULL)) goto err1;                   /* RWD fix */
+    ar   = p->ar;
+                                        /* L is k-rate so need to check */
+    if (L < FL(1.0))
+      L = FL(1.0);
+    else if (L >= MAX_DELAY) {
+      L = (MYFLT) MAX_DELAY;
+    }
+    nmL = point - (int) (L) - 1;
+    if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
+    if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
+    if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
+    ynm1 = fp[nm1];                     /* Pick up running values */
+    ynm2 = fp[nm2];
+    ynmL = fp[nmL];
+    nsmps = CS_KSMPS;
+    maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
+    dvmaxamp = FL(1.0) / maxamp;
+    maxampd2 = maxamp * FL(0.5);
+    for (n=0; n<nsmps; n++) {
+      MYFLT yn;
+      MYFLT out;
+      yn = a * ynm1 + b * ynm2 + d * ynmL * ynmL - C;
+      yn += in[n] * dvmaxamp;           /* Must work in small amplitudes  */
+      out = yn * maxampd2;              /* Write output */
+      if (out > maxamp)
+        out = maxampd2;
+      else if (out < -maxamp)
+        out = -maxampd2;
+      ar[n] = out;
+      if (UNLIKELY(++point == MAX_DELAY)) {
+        point = 0;
+      }
+      yn = TANH(yn);
+      fp[point] = yn;                   /* and delay line */
+      if (UNLIKELY(++nmL == MAX_DELAY)) {
+        nmL = 0;
+      }
+      ynm2 = ynm1;                      /* Shuffle along */
+      ynm1 = yn;
+      ynmL = fp[nmL];
+    }
+    p->point = point;
+    return OK;
+ err1:
+    return csound->PerfError(csound, Str("nlfilt2: not initialised"));
+} /* end nlfilt2(p) */
 
 /* ***************************************************************** */
 /* ***************************************************************** */
@@ -184,7 +250,8 @@ static OENTRY localops[] = {
 { "pindex", S(PFIELD),  1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
 { "passign", S(PINIT),  1, "IIIIIIIIIIIIIIIIIIIIIIII", "p",
                                           (SUBR)pinit,     NULL, NULL },
-{ "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt }
+{ "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt },
+{ "nlfilt2",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt2 }
 };
 
 int nlfilt_init_(CSOUND *csound)

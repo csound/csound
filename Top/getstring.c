@@ -62,11 +62,11 @@ void init_getstring(void)
 /*       setlocale (LC_MESSAGES, ""); */
 /*     else  */
 /*       setlocale (LC_MESSAGES, s);    /\* Set to particular value *\/ */
-/*    textdomain("csound5"); */  /* This is not needed when using dgettext */
-    /* bind_textdomain_codeset("csound5", "UTF-8"); */
+/*    textdomain("csound6"); */  /* This is not needed when using dgettext */
+    /* bind_textdomain_codeset("csound6", "UTF-8"); */
 #ifdef never
     /* This is experimental; where should these be?? */
-    bindtextdomain("csound5", "/home/jpff/Sourceforge/csound/csound5/po");
+    bindtextdomain("csound6", "/home/jpff/Sourceforge/csound/csound6/po");
 #endif
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 }

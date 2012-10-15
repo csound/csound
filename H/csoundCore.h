@@ -398,6 +398,12 @@ typedef struct {
     void    *pylocal;
     /* pointer to Csound engine and API for externals */
     CSOUND  *csound;
+#ifdef JPFF
+    int     kcounter;
+    int     ksmps;                  /* Instrument copy of ksmps */
+    MYFLT   ekr;               /* and of rates */
+    MYFLT   onedksmps, onedkr, kicvt;
+#endif
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
     void    *opcod_deact, *subins_deact;
@@ -409,6 +415,23 @@ typedef struct {
     MYFLT   p2;
     MYFLT   p3;
   } INSDS;
+
+#ifdef JPFF
+#define CS_KSMPS     (p->h.insdshead->ksmps)
+#define CS_KCNT      (p->h.insdshead->kcounter)
+#define CS_EKR       (p->h.insdshead->ekr)
+#define CS_ONEDKSMPS (p->h.insdshead->onedksmps)
+#define CS_ONEDKR    (p->h.insdshead->onedkr)
+#define CS_KICVT     (p->h.insdshead->kicvt)
+#else
+#define CS_KSMPS     (csound->ksmps)
+#define CS_KCNT      (csound->kcounter)
+#define CS_EKR       (csound->ekr)
+#define CS_ONEDKSMPS (csound->onedksmps)
+#define CS_ONEDKR    (csound->onedkr)
+#define CS_KICVT     (csound->kicvt)
+#endif
+#define CS_ESR       (csound->esr)
 
   typedef int (*SUBR)(CSOUND *, void *);
 

@@ -267,7 +267,7 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
 static int afilter(CSOUND *csound, FILTER* p)
 {
     int n,i;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     double* a = p->dcoeffs+p->numb;
     double* b = p->dcoeffs+1;
@@ -361,7 +361,7 @@ static int kfilter(CSOUND *csound, FILTER* p)
 static int azfilter(CSOUND *csound, ZFILTER* p)
 {
     int n,i;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
 
     double* a = p->dcoeffs+p->numb;
     double* b = p->dcoeffs+1;

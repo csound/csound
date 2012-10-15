@@ -308,12 +308,12 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
     }
     /* clear outputs to zero first */
     for (chn = 0; chn < p->nChannels; chn++)
-      for (nn = 0; nn < csound->ksmps; nn++)
+      for (nn = 0; nn < CS_KSMPS; nn++)
         p->aOut[chn][nn] = FL(0.0);
     /* file read position */
     ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
     /* ---- linear interpolation ---- */
-    for (nn = 0; nn < csound->ksmps; nn++) {
+    for (nn = 0; nn < CS_KSMPS; nn++) {
       a1 = (MYFLT) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))
            * (FL(1.0) / (MYFLT) POS_FRAC_SCALE) * p->scaleFac;
       a0 = p->scaleFac - a1;
@@ -330,25 +330,25 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
 static int soundout_deinit(CSOUND *csound, void *pp)
 {
     char    *opname = csound->GetOpcodeName(pp);
-    SNDCOM  *p;
+    SNDCOM  *q;
 
     if (strcmp(opname, "soundouts") == 0)
-      p = &(((SNDOUTS*) pp)->c);
+      q = &(((SNDOUTS*) pp)->c);
     else
-      p = &(((SNDOUT*) pp)->c);
+      q = &(((SNDOUT*) pp)->c);
 
-    if (p->fd != NULL) {
+    if (q->fd != NULL) {
       /* flush buffer */
-      MYFLT *p0 = (MYFLT*) &(p->outbuf[0]);
-      MYFLT *p1 = (MYFLT*) p->outbufp;
+      MYFLT *p0 = (MYFLT*) &(q->outbuf[0]);
+      MYFLT *p1 = (MYFLT*) q->outbufp;
       if (p1 > p0) {
-        sf_write_MYFLT(p->sf, p0, (sf_count_t) ((MYFLT*) p1 - (MYFLT*) p0));
-        p->outbufp = (MYFLT*) &(p->outbuf[0]);
+        sf_write_MYFLT(q->sf, p0, (sf_count_t) ((MYFLT*) p1 - (MYFLT*) p0));
+        q->outbufp = (MYFLT*) &(q->outbuf[0]);
       }
       /* close file */
-      csound->FileClose(csound, p->fd);
-      p->sf = (SNDFILE*) NULL;
-      p->fd = NULL;
+      csound->FileClose(csound, q->fd);
+      q->sf = (SNDFILE*) NULL;
+      q->fd = NULL;
     }
 
     return OK;
@@ -363,27 +363,28 @@ static int soundout_deinit(CSOUND *csound, void *pp)
 int sndo1set(CSOUND *csound, void *pp)
 {
     char    *sfname, *opname, sndoutname[256];
-    SNDCOM  *p;
+    SNDCOM  *q;
     MYFLT   *ifilcod, *iformat;
     int     filetyp = TYP_RAW, format = csound->oparms_.outformat, nchns = 1;
     SF_INFO sfinfo;
+    SNDOUTS *p = (SNDOUTS*) pp;
 
     opname = csound->GetOpcodeName(pp);
     csound->Warning(csound, Str("%s is deprecated; use fout instead\n"),
                       opname);
     if (strcmp(opname, "soundouts") == 0) {
-      p = &(((SNDOUTS*) pp)->c);
+      q = &(((SNDOUTS*) pp)->c);
       ifilcod = ((SNDOUTS*) pp)->ifilcod;
       iformat = ((SNDOUTS*) pp)->iformat;
       nchns++;
     }
     else {
-      p = &(((SNDOUT*) pp)->c);
+      q = &(((SNDOUT*) pp)->c);
       ifilcod = ((SNDOUT*) pp)->ifilcod;
       iformat = ((SNDOUT*) pp)->iformat;
     }
 
-    if (p->fd != NULL)                  /* if file already open, */
+    if (q->fd != NULL)                  /* if file already open, */
       return OK;                        /* return now            */
 
     csound->RegisterDeinitCallback(csound, pp, soundout_deinit);
@@ -406,32 +407,32 @@ int sndo1set(CSOUND *csound, void *pp)
                                  opname, (int) (*iformat + FL(0.5)));
     }
     sfinfo.format = TYPE2SF(filetyp) | FORMAT2SF(format);
-    p->fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_W, sfname, &sfinfo,
+    q->fd = csound->FileOpen2(csound, &(q->sf), CSFILE_SND_W, sfname, &sfinfo,
                                 "SFDIR", type2csfiletype(filetyp, format), 0);
-    if (p->fd == NULL) {
+    if (q->fd == NULL) {
       return csound->InitError(csound, Str("%s cannot open %s"), opname, sfname);
     }
-    sfname = csound->GetFileName(p->fd);
+    sfname = csound->GetFileName(q->fd);
     if (format != AE_FLOAT)
-      sf_command(p->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
+      sf_command(q->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
     else
-      sf_command(p->sf, SFC_SET_CLIPPING, NULL, SF_FALSE);
+      sf_command(q->sf, SFC_SET_CLIPPING, NULL, SF_FALSE);
 #ifdef USE_DOUBLE
-    sf_command(p->sf, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
+    sf_command(q->sf, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
 #else
-    sf_command(p->sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
+    sf_command(q->sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
     csound->Warning(csound, Str("%s: opening RAW outfile %s\n"),
                       opname, sfname);
-    p->outbufp = p->outbuf;                 /* fix - isro 20-11-96 */
-    p->bufend = p->outbuf + SNDOUTSMPS;     /* fix - isro 20-11-96 */
+    q->outbufp = q->outbuf;                 /* fix - isro 20-11-96 */
+    q->bufend = q->outbuf + SNDOUTSMPS;     /* fix - isro 20-11-96 */
 
     return OK;
 }
 
 int soundout(CSOUND *csound, SNDOUT *p)
 {
-    int nn, nsamps = csound->ksmps;
+    int nn, nsamps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundout: not initialised"));
@@ -448,7 +449,7 @@ int soundout(CSOUND *csound, SNDOUT *p)
 
 int soundouts(CSOUND *csound, SNDOUTS *p)
 {
-    int nn, nsamps = csound->ksmps;
+    int nn, nsamps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundouts: not initialised"));

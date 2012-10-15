@@ -39,7 +39,7 @@ typedef struct {
 static int vaget(CSOUND *csound, VA_GET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
-    if (UNLIKELY(ndx<0 || ndx>=csound->ksmps))
+    if (UNLIKELY(ndx<0 || ndx>=CS_KSMPS))
       return csound->PerfError(csound, Str("Out of range in vaget (%d)"), ndx);
     *p->kout = *(p->avar + ndx);
     return OK;
@@ -48,7 +48,7 @@ static int vaget(CSOUND *csound, VA_GET *p)
 static int vaset(CSOUND *csound, VA_SET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
-    if (UNLIKELY(ndx<0 || ndx>=csound->ksmps))
+    if (UNLIKELY(ndx<0 || ndx>=CS_KSMPS))
       return csound->PerfError(csound, Str("Out of range in vaset (%d)"), ndx);
     *(p->avar + ndx) = *p->kval;
     return OK;

@@ -66,12 +66,12 @@ static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = COS(*p->kcf * csound->tpidsr * csound->ksmps);
+      p->cosf = COS(*p->kcf * csound->tpidsr * CS_KSMPS);
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = EXP(*p->kbw * csound->mtpdsr * csound->ksmps);
+      p->c3 = EXP(*p->kbw * csound->mtpdsr * CS_KSMPS);
       flag = 1;
     }
     if (flag) {
@@ -122,7 +122,7 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
 
 static int fastabw(CSOUND *csound, FASTAB *p)
 {
-    int nsmps = csound->ksmps, n;
+    int nsmps = CS_KSMPS, n;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
@@ -216,7 +216,7 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
 
 static int fastab(CSOUND *csound, FASTAB *p)
 {
-    int   i = 0, nsmps = csound->ksmps;
+    int   i = 0, nsmps = CS_KSMPS;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
@@ -346,7 +346,7 @@ static int nlalp_set(CSOUND *csound, NLALP *p)
 
 static int nlalp(CSOUND *csound, NLALP *p)
 {
-    int nsmps = csound->ksmps, n;
+    int nsmps = CS_KSMPS, n;
     MYFLT *rp;
     MYFLT *ip;
     double m0;
@@ -495,7 +495,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     MYFLT   amp0, amp, cps0, cps, ampIncr, amp2;
     int32   phs, inc, lobits;
     int32   *lphs;
-    int     c, n, nsmps= csound->ksmps, count;
+    int     c, n, nsmps= CS_KSMPS, count;
 
     if (UNLIKELY(p->inerr)) {
       return csound->InitError(csound, Str("adsynt2: not initialised"));
@@ -523,7 +523,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
       cps = freqtbl[c] * cps0;
       inc = (int32) (cps * csound->sicvt);
       phs = lphs[c];
-      ampIncr = (amp - amp2) * csound->onedksmps;
+      ampIncr = (amp - amp2) * CS_ONEDKSMPS;
       for (n=0; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;
@@ -707,7 +707,7 @@ static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 
 static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 {
-    int n, nsmps = csound->ksmps, flag = (int) *p->imaxflag;
+    int n, nsmps = CS_KSMPS, flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     switch(flag) {

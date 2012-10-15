@@ -79,54 +79,54 @@ typedef struct {
 #define SLEN    256
 #define LCNT    75
 
-static int hm234set(CSOUND *csound, HARM234 *p)
+static int hm234set(CSOUND *csound, HARM234 *q, HARMON2 *p)
 {
-    MYFLT minoct = *p->ilowest;
-    p->hmrngflg = 0;
-    if (p->auxch.auxp == NULL || minoct < p->minoct) {
+    MYFLT minoct = *q->ilowest;
+    q->hmrngflg = 0;
+    if (q->auxch.auxp == NULL || minoct < q->minoct) {
       MYFLT minfrq = POWER(FL(2.0), minoct) * ONEPT;
       int16 nbufs = (int16)(csound->ekr * 3 / minfrq) + 1;/* recalc max pulse prd */
-      int16 nbufsmps = nbufs * csound->ksmps;
+      int16 nbufsmps = nbufs * CS_KSMPS;
       int16 maxprd = (int16)(csound->esr * 2 / minfrq);   /* incl sigmoid ends */
       int16 cnt;
       int32  totalsiz = nbufsmps * 2 + maxprd * 4 + (SLEN+1);
       MYFLT *pulsbuf, *sigp;                            /*  & realloc buffers */
 
-      csound->AuxAlloc(csound, totalsiz * sizeof(MYFLT), &p->auxch);
-      p->bufp = (MYFLT *) p->auxch.auxp;
-      p->midp = p->bufp + nbufsmps;                     /* each >= maxprd * 3 */
-      pulsbuf = p->midp + nbufsmps;
-      p->pulsbuf[0] = pulsbuf;  pulsbuf += maxprd;
-      p->pulsbuf[1] = pulsbuf;  pulsbuf += maxprd;
-      p->pulsbuf[2] = pulsbuf;  pulsbuf += maxprd;
-      p->pulsbuf[3] = pulsbuf;  pulsbuf += maxprd;      /* cnt must = PBUFS     */
-      p->sigmoid = sigp = pulsbuf;
+      csound->AuxAlloc(csound, totalsiz * sizeof(MYFLT), &q->auxch);
+      q->bufp = (MYFLT *) q->auxch.auxp;
+      q->midp = q->bufp + nbufsmps;                     /* each >= maxprd * 3 */
+      pulsbuf = q->midp + nbufsmps;
+      q->pulsbuf[0] = pulsbuf;  pulsbuf += maxprd;
+      q->pulsbuf[1] = pulsbuf;  pulsbuf += maxprd;
+      q->pulsbuf[2] = pulsbuf;  pulsbuf += maxprd;
+      q->pulsbuf[3] = pulsbuf;  pulsbuf += maxprd;      /* cnt must = PBUFS     */
+      q->sigmoid = sigp = pulsbuf;
       for (cnt = 0; cnt < SLEN+1; cnt++)                /* make sigmoid inplace */
         *sigp++ = (FL(1.0) - COS(PI_F * cnt / SLEN)) * FL(0.5);
-      p->maxprd = maxprd;
-      p->nbufsmps = nbufsmps;
-      p->n2bufsmps = nbufsmps * 2;
-      p->minoct = minoct;
+      q->maxprd = maxprd;
+      q->nbufsmps = nbufsmps;
+      q->n2bufsmps = nbufsmps * 2;
+      q->minoct = minoct;
     }
-    p->sicvt = FL(65536.0) * csound->onedsr;
-    p->cpsmode = ((*p->icpsmode != FL(0.0)));
-    p->polarity = (int16)*p->ipolarity;
-    p->poslead = 0;
-    p->inp1 = p->bufp;
-    p->inp2 = p->midp;
-    p->endp = p->puldat;                        /* nothing in PULDAT array */
-    p->limp = p->puldat + PULMAX;
-    p->prvoct = FL(0.0);
-    p->period = 0;
-    p->curpuls = NULL;
-    p->pbufcnt = 0;
-    p->vocamp = FL(0.0);                        /* begin unvoiced */
-    p->ampinc = FL(10.0) * csound->onedsr;      /* .1 sec lin ramp for uv to v */
-    p->switching = 0;
+    q->sicvt = FL(65536.0) * csound->onedsr;
+    q->cpsmode = ((*q->icpsmode != FL(0.0)));
+    q->polarity = (int16)*q->ipolarity;
+    q->poslead = 0;
+    q->inp1 = q->bufp;
+    q->inp2 = q->midp;
+    q->endp = q->puldat;                        /* nothing in PULDAT array */
+    q->limp = q->puldat + PULMAX;
+    q->prvoct = FL(0.0);
+    q->period = 0;
+    q->curpuls = NULL;
+    q->pbufcnt = 0;
+    q->vocamp = FL(0.0);                        /* begin unvoiced */
+    q->ampinc = FL(10.0) * csound->onedsr;      /* .1 sec lin ramp for uv to v */
+    q->switching = 0;
     return OK;
 }
 
-static int harmon234(CSOUND *csound, HARM234 *p)
+static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
 {
     MYFLT       *srcp, *outp, *dirp;
     MYFLT       *inp1, *inp2;
@@ -135,31 +135,31 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     VOCDAT      *vdp;
     int16       nsmps, oflow = 0;
 
-    if ((koct = *p->koct) != p->prvoct) {               /* if new pitch estimate */
-      if (koct >= p->minoct) {                          /*   above requested low */
+    if ((koct = *q->koct) != q->prvoct) {               /* if new pitch estimate */
+      if (koct >= q->minoct) {                          /*   above requested low */
         MYFLT cps = POWER(FL(2.0), koct) * ONEPT;     /*   recalc pulse period */
-        p->period = (int16) (csound->esr / cps);
-        if (!p->cpsmode)
-          p->sicvt = cps * FL(65536.0) * csound->onedsr; /* k64dsr;*/
+        q->period = (int16) (csound->esr / cps);
+        if (!q->cpsmode)
+          q->sicvt = cps * FL(65536.0) * csound->onedsr; /* k64dsr;*/
       }
-      p->prvoct = koct;
+      q->prvoct = koct;
     }
-    inp1 = p->inp1;
-    inp2 = p->inp2;
-    //memcpy(p->inp1, p->asig, sizeof(MYFLT)*nsmps);
-    //memcpy(p->inp2, p->asig, sizeof(MYFLT)*nsmps);
-    for (srcp = p->asig, nsmps = csound->ksmps; nsmps--; )
+    inp1 = q->inp1;
+    inp2 = q->inp2;
+    //memcpy(q->inp1, q->asig, sizeof(MYFLT)*nsmps);
+    //memcpy(q->inp2, q->asig, sizeof(MYFLT)*nsmps);
+    for (srcp = q->asig, nsmps = CS_KSMPS; nsmps--; )
       *inp1++ = *inp2++ = *srcp++;              /* dbl store the wavform */
 
-    if (koct >= p->minoct) {                    /* PERIODIC: find the pulse */
+    if (koct >= q->minoct) {                    /* PERIODIC: find the pulse */
       MYFLT     val0, *buf0, *p0, *plim, *x;
       int16     period, triprd, xdist;
 
-      period = p->period;                       /* set srch range of 2 periods */
+      period = q->period;                       /* set srch range of 2 periods */
       triprd = period * 3;
       p0 = inp2 - triprd;                       /* btwn 3 prds back & 1 prd back */
       plim = inp2 - period;
-      buf0 = p->bufp;
+      buf0 = q->bufp;
       if (UNLIKELY(p0 < buf0))
         p0 = buf0;
 
@@ -171,7 +171,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
       else while (*x < FL(0.0) && ++x < plim);
       if (x >= plim) goto nonprd;               /*      then non-periodic       */
 
-      if (p->polarity > 0) {
+      if (q->polarity > 0) {
         MYFLT pospk = FL(0.0);                  /* POSITIVE polarity:   */
         MYFLT *posp = NULL;
         for ( ; x < plim; x++) {                /*      find ensuing max val */
@@ -183,7 +183,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         for (x = posp;
              x >= buf0 && *x > FL(0.0); x--);   /* & its preceding z-crossing */
         xdist = posp - x;
-      } else if (p->polarity < 0) {
+      } else if (q->polarity < 0) {
         MYFLT negpk = FL(0.0);                  /* NEGATIVE polarity:   */
         MYFLT *negp = NULL;
         for ( ; x < plim; x++) {                /* find ensuing min val */
@@ -221,20 +221,20 @@ static int harmon234(CSOUND *csound, HARM234 *p)
 
         if (pospk / posdist > -negpk / negdist) {
           /* find z-cross with grtst slope to peak */
-          if (UNLIKELY(p->poslead < LCNT)) {   /*      and consistent polarity */
-            if (p->poslead == 1)
+          if (UNLIKELY(q->poslead < LCNT)) {   /*      and consistent polarity */
+            if (q->poslead == 1)
               csound->Warning(csound, Str("harm signal has positive lead\n"));
-            p->poslead += 1;
+            q->poslead += 1;
           }
         }
         else {
-          if (UNLIKELY(p->poslead > -LCNT)) {
-            if (p->poslead == -1)
+          if (UNLIKELY(q->poslead > -LCNT)) {
+            if (q->poslead == -1)
               csound->Warning(csound, Str("harm signal has negative lead\n"));
-            p->poslead -= 1;
+            q->poslead -= 1;
           }
         }
-        if (p->poslead >= 0) {                  /* use this as pulse beginning  */
+        if (q->poslead >= 0) {                  /* use this as pulse beginning  */
           x = poscross;
           xdist = posdist;
         }
@@ -244,12 +244,12 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         }
       }
 
-      if (x != p->curpuls) {                    /* if pulse positn is new       */
+      if (x != q->curpuls) {                    /* if pulse positn is new       */
         int16 nn, pulslen, sigdist, ndirect;
         MYFLT *bufp, signdx, siginc;
         MYFLT *z, zval;
 
-        p->curpuls = x;                         /*      record this new positn  */
+        q->curpuls = x;                         /*      record this new positn  */
         z = x + period;                         /*  and from estimated end      */
         if ((zval = *z) != FL(0.0)) {
           int16 n, nlim = inp2 - z;
@@ -270,19 +270,19 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         else if (z > inp2)
           z = inp2;                             /*      by input limits         */
         pulslen = z - x;
-        if (pulslen > p->maxprd)
-          pulslen = p->maxprd;                  /*      & storage limits        */
+        if (pulslen > q->maxprd)
+          pulslen = q->maxprd;                  /*      & storage limits        */
         sigdist = xdist * 2;
         ndirect = pulslen - sigdist*2;
         if (ndirect < 0) goto nostor;
 
-        p->pbufcnt++;                           /* select a new puls buffr      */
-        p->pbufcnt &= PBMSK;
-        bufp = p->pulsbuf[p->pbufcnt];
+        q->pbufcnt++;                           /* select a new puls buffr      */
+        q->pbufcnt &= PBMSK;
+        bufp = q->pulsbuf[q->pbufcnt];
         signdx = FL(0.0);                       /*      & store extended pulse  */
         siginc = (MYFLT)SLEN / sigdist;
         for (nn = sigdist; nn--; signdx += siginc) {
-          MYFLT *sigp = p->sigmoid + (int)signdx;
+          MYFLT *sigp = q->sigmoid + (int)signdx;
           *bufp++ = *x++ * *sigp;               /*      w. sigmoid-envlpd ends  */
         }
         //memcpy(bufp, x, sizeof(MYFLT)*ndirect);
@@ -290,36 +290,36 @@ static int harmon234(CSOUND *csound, HARM234 *p)
           *bufp++ = *x++;
         signdx = (MYFLT)SLEN - siginc;
         for (nn = sigdist; nn--; signdx -= siginc) {
-          MYFLT *sigp = p->sigmoid + (int)signdx;
+          MYFLT *sigp = q->sigmoid + (int)signdx;
           *bufp++ = *x++ * *sigp;
         }
-        p->pulslen = pulslen;
+        q->pulslen = pulslen;
       }
     nostor:
-      if (p->vocamp < FL(1.0)) {                /* if onset             */
-        p->vocinc = p->ampinc;                  /*   set pos voice ramp */
-        p->switching = 1;
+      if (q->vocamp < FL(1.0)) {                /* if onset             */
+        q->vocinc = q->ampinc;                  /*   set pos voice ramp */
+        q->switching = 1;
       }
     } else {                                    /* NON-PERIODIC: */
     nonprd:
-      if (p->vocamp > FL(0.0)) {                /* if onset             */
-        p->vocinc = -p->ampinc;                 /*   set neg voice ramp */
-        p->switching = 1;
+      if (q->vocamp > FL(0.0)) {                /* if onset             */
+        q->vocinc = -q->ampinc;                 /*   set neg voice ramp */
+        q->switching = 1;
       }
-      p->curpuls = NULL;                        /* start no new pulses */
+      q->curpuls = NULL;                        /* start no new pulses */
     }
     /* HARMONIZER */
-    for (vdp=p->vocdat; vdp<p->vlim; vdp++)     /* get new frequencies  */
-      vdp->phsinc = (int32)(*vdp->kfrq * p->sicvt);
-    outp = p->ar;
-    nsmps = csound->ksmps;
-    vocamp = p->vocamp;
+    for (vdp=q->vocdat; vdp<q->vlim; vdp++)     /* get new frequencies  */
+      vdp->phsinc = (int32)(*vdp->kfrq * q->sicvt);
+    outp = q->ar;
+    nsmps = CS_KSMPS;
+    vocamp = q->vocamp;
     diramp = FL(1.0) - vocamp;
-    dirp = p->asig;
-    endp = p->endp;
+    dirp = q->asig;
+    endp = q->endp;
     do {                                        /* insert pulses into output: */
       MYFLT sum = FL(0.0);
-      PULDAT *pdp = p->puldat;
+      PULDAT *pdp = q->puldat;
       while (pdp < endp) {
       addin:
         sum += *pdp->srcp++;                    /* get any ongoing pulsdata */
@@ -332,47 +332,47 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         }
         pdp++;
       }                                         /* if time to start a new one */
-      for (vdp=p->vocdat; vdp<p->vlim; vdp++)
+      for (vdp=q->vocdat; vdp<q->vlim; vdp++)
         if (vdp->phsinc && (vdp->phase += vdp->phsinc) & (~0xFFFF)) {
           vdp->phase &= 0x0000FFFFL;
-          if (p->curpuls != NULL) {             /*      & pulses are current    */
-            if (endp < p->limp) {               /*      set one up              */
-              endp->srcp = p->pulsbuf[p->pbufcnt];
-              endp->cntr = p->pulslen;          /*  w. extended len     */
+          if (q->curpuls != NULL) {             /*      & pulses are current    */
+            if (endp < q->limp) {               /*      set one up              */
+              endp->srcp = q->pulsbuf[q->pbufcnt];
+              endp->cntr = q->pulslen;          /*  w. extended len     */
               endp++;
             } else oflow = 1;
           }
         }
-      if (p->switching) {                       /* if v/uv switching    */
-        vocamp += p->vocinc;                    /*   do linear ramp     */
+      if (q->switching) {                       /* if v/uv switching    */
+        vocamp += q->vocinc;                    /*   do linear ramp     */
         if (vocamp <= FL(0.0)) {
           vocamp = FL(0.0);
-          p->switching = 0;
+          q->switching = 0;
         } else if (vocamp >= FL(1.0)) {
           vocamp = FL(1.0);
-          p->switching = 0;
+          q->switching = 0;
         }
         diramp = FL(1.0) - vocamp;
       }
       *outp++ = sum * vocamp + *dirp++ * diramp;        /* output combined */
     } while (--nsmps);
-    p->endp = endp;
-    p->vocamp = vocamp;
+    q->endp = endp;
+    q->vocamp = vocamp;
 
-    if (UNLIKELY(oflow && ++p->hmrngflg > 10)) {
+    if (UNLIKELY(oflow && ++q->hmrngflg > 10)) {
       csound->Warning(csound, Str("harmon234: out of range\n"));
-      p->hmrngflg = 0;
+      q->hmrngflg = 0;
     }
-    if (inp1 >= p->midp) {                       /* if end of pq bufs */
-      int32 bsmps = p->nbufsmps;
-      p->inp1 = p->bufp;                         /*   reset all ptrs  */
-      p->inp2 = p->midp;
-      if (p->curpuls != NULL)
-        p->curpuls -= bsmps;
+    if (inp1 >= q->midp) {                       /* if end of pq bufs */
+      int32 bsmps = q->nbufsmps;
+      q->inp1 = q->bufp;                         /*   reset all ptrs  */
+      q->inp2 = q->midp;
+      if (q->curpuls != NULL)
+        q->curpuls -= bsmps;
     }
     else {
-      p->inp1 = inp1;
-      p->inp2 = inp2;
+      q->inp1 = inp1;
+      q->inp2 = inp2;
     }
     return OK;
 }
@@ -390,7 +390,7 @@ int harm2set(CSOUND *csound, HARMON2 *p)
     q->icpsmode = p->icpsmode;
     q->ilowest = p->ilowest;
     q->ipolarity = p->ipolarity;
-    return hm234set(csound, q);
+    return hm234set(csound, q, p);
 }
 
 int harm3set(CSOUND *csound, HARMON3 *p)
@@ -407,7 +407,7 @@ int harm3set(CSOUND *csound, HARMON3 *p)
     q->icpsmode = p->icpsmode;
     q->ilowest = p->ilowest;
     q->ipolarity = p->ipolarity;
-    return hm234set(csound, q);
+    return hm234set(csound, q, (HARMON2*)p);
 }
 
 int harm4set(CSOUND *csound, HARMON4 *p)
@@ -425,12 +425,15 @@ int harm4set(CSOUND *csound, HARMON4 *p)
     q->icpsmode = p->icpsmode;
     q->ilowest = p->ilowest;
     q->ipolarity = p->ipolarity;
-    return hm234set(csound, q);
+    return hm234set(csound, q, (HARMON2*)p);
 }
 
-int harmon2(CSOUND *csound, HARMON2 *p) { return harmon234(csound, &p->hrmdat);}
-int harmon3(CSOUND *csound, HARMON3 *p) { return harmon234(csound, &p->hrmdat);}
-int harmon4(CSOUND *csound, HARMON4 *p) { return harmon234(csound, &p->hrmdat);}
+int harmon2(CSOUND *csound, HARMON2 *p)
+{ return harmon234(csound, &p->hrmdat, p);}
+int harmon3(CSOUND *csound, HARMON3 *p)
+{ return harmon234(csound, &p->hrmdat, (HARMON2*)p);}
+int harmon4(CSOUND *csound, HARMON4 *p)
+{ return harmon234(csound, &p->hrmdat, (HARMON2*)p);}
 
 #define S(x)    sizeof(x)
 

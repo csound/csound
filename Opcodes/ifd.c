@@ -228,7 +228,7 @@ static int ifd_process(CSOUND * csound, IFD * p)
     MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
     int     fftsize = p->fftsize;
     int    *counter = (int *) p->counter.auxp;
-    int     ksmps = csound->ksmps;
+    int     ksmps = CS_KSMPS;
     int     frames = p->frames;
     int     cnt = p->cnt;
 

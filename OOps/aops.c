@@ -107,14 +107,14 @@ int aassign(CSOUND *csound, ASSIGN *p)
 {
     /* the orchestra parser converts '=' to 'upsamp' if input arg is k-rate, */
     /* and skips the opcode if outarg == inarg */
-    memcpy(p->r, p->a, csound->ksmps * sizeof(MYFLT));
+    memcpy(p->r, p->a, CS_KSMPS * sizeof(MYFLT));
     return OK;
 }
 
 int ainit(CSOUND *csound, ASSIGN *p)
 {
     MYFLT aa = *p->a;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++)
       p->r[n] = aa;
@@ -148,7 +148,7 @@ int minit(CSOUND *csound, ASSIGNM *p)
 int mainit(CSOUND *csound, ASSIGNM *p)
 {
     int nargs = p->INCOUNT;
-    int   i, n, nsmps = csound->ksmps;
+    int   i, n, nsmps = CS_KSMPS;
     MYFLT aa = FL(0.0);
     if (UNLIKELY(nargs > p->OUTOCOUNT))
       return csound->InitError(csound,
@@ -281,7 +281,7 @@ int modkk(CSOUND *csound, AOP *p)
   int OPNAME(CSOUND *csound, AOP *p) {          \
     int     n;                                  \
     MYFLT   *r, a, *b;                          \
-    int nsmps = csound->ksmps;                  \
+    int nsmps = CS_KSMPS;                  \
     r = p->r;                                   \
     a = *p->a;                                  \
     b = p->b;                                   \
@@ -299,7 +299,7 @@ int modka(CSOUND *csound, AOP *p)
 {
     int     n;
     MYFLT   *r, a, *b;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     r = p->r;
     a = *p->a;
@@ -313,7 +313,7 @@ int modka(CSOUND *csound, AOP *p)
   int OPNAME(CSOUND *csound, AOP *p) {          \
     int     n;                                  \
     MYFLT   *r, *a, b;                          \
-    int nsmps = csound->ksmps;                  \
+    int nsmps = CS_KSMPS;                  \
     r = p->r;                                   \
     a = p->a;                                   \
     b = *p->b;                                  \
@@ -331,7 +331,7 @@ int modak(CSOUND *csound, AOP *p)
 {
     int     n;
     MYFLT   *r, *a, b;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     r = p->r;
     a = p->a;
@@ -345,7 +345,7 @@ int modak(CSOUND *csound, AOP *p)
   int OPNAME(CSOUND *csound, AOP *p) {          \
     int     n;                                  \
     MYFLT   *r, *a, *b;                         \
-    int nsmps = csound->ksmps;                  \
+    int nsmps = CS_KSMPS;                  \
     r = p->r;                                   \
     a = p->a;                                   \
     b = p->b;                                   \
@@ -363,7 +363,7 @@ int modaa(CSOUND *csound, AOP *p)
 {
     int     n;
     MYFLT   *r, *a, *b;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     r = p->r;
     a = p->a;
@@ -383,7 +383,7 @@ int divzka(CSOUND *csound, DIVZ *p)
 {
     int     n;
     MYFLT   *r, a, *b, def;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     r = p->r;
     a = *p->a;
@@ -398,7 +398,7 @@ int divzak(CSOUND *csound, DIVZ *p)
 {
     int     n;
     MYFLT   *r, *a, b, def;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     r = p->r;
     a = p->a;
@@ -417,7 +417,7 @@ int divzaa(CSOUND *csound, DIVZ *p)
 {
     int     n;
     MYFLT   *r, *a, *b, def;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     r = p->r;
     a = p->a;
@@ -445,7 +445,7 @@ int aconval(CSOUND *csound, CONVAL *p)
     if (*p->cond)
       s = p->a;
     else s = p->b;
-    if (r!=s) memcpy(r, s, csound->ksmps*sizeof(MYFLT));
+    if (r!=s) memcpy(r, s, CS_KSMPS*sizeof(MYFLT));
     return OK;
 }
 
@@ -461,7 +461,7 @@ int int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. */
 {
     MYFLT intpart;
     int    n;
-    for (n = 0; n < csound->ksmps; n++) {
+    for (n = 0; n < CS_KSMPS; n++) {
       MODF(p->a[n], &intpart);
       p->r[n] = intpart;
     }
@@ -480,7 +480,7 @@ int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
 {
     MYFLT intpart, fracpart;
     int    n;
-    for (n = 0; n < csound->ksmps; n++) {
+    for (n = 0; n < CS_KSMPS; n++) {
       fracpart = MODF(p->a[n], &intpart);
       p->r[n] = fracpart;
     }
@@ -505,7 +505,7 @@ int int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 
 int int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer */
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)MYFLT2LRND(p->a[n]);
   return OK;
@@ -519,7 +519,7 @@ int int1_floor(CSOUND *csound, EVAL *p)         /* round down */
 
 int int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)(MYFLOOR(p->a[n]));
     return OK;
@@ -533,7 +533,7 @@ int int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
 
 int int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)(MYCEIL(p->a[n]));
     return OK;
@@ -584,7 +584,7 @@ int atan21(CSOUND *csound, AOP *p)
 #define LIBA(OPNAME,LIBNAME) int OPNAME(CSOUND *csound, EVAL *p) {      \
     int     n;                                                          \
     MYFLT   *r, *a;                                                     \
-    int nsmps = csound->ksmps;                                          \
+    int nsmps = CS_KSMPS;                                          \
     r = p->r;                                                           \
     a = p->a;                                                           \
     for (n=0;n<nsmps;n++)                                               \
@@ -611,7 +611,7 @@ int atan2aa(CSOUND *csound, AOP *p)
 {
     int     n;
     MYFLT   *r, *a, *b;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     r = p->r;
     a = p->a;
@@ -637,7 +637,7 @@ int aampdb(CSOUND *csound, EVAL *p)
 {
     int     n;
     MYFLT   *r = p->r, *a = p->a;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++)
       r[n] = EXP(a[n] * LOG10D20);
@@ -660,7 +660,7 @@ int aampdbfs(CSOUND *csound, EVAL *p)
 {
     int     n;
     MYFLT   *r, *a;
-    int     nsmps = csound->ksmps;
+    int     nsmps = CS_KSMPS;
 
     r = p->r;
     a = p->a;
@@ -790,7 +790,7 @@ int acpsoct(CSOUND *csound, EVAL *p)
 {
     MYFLT   *r, *a;
     int    loct;
-    int     n, nsmps = csound->ksmps;
+    int     n, nsmps = CS_KSMPS;
 
     a = p->a;
     r = p->r;
@@ -1000,7 +1000,7 @@ int powoftwo(CSOUND *csound, EVAL *p)
 
 int powoftwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado, liberalised by JPff */
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     for (n = 0; n < nsmps; n++)
       p->r[n] = csound->Pow2(csound,p->a[n]);
     return OK;
@@ -1020,7 +1020,7 @@ int asemitone(CSOUND *csound, EVAL *p)            /* JPff */
 {
     MYFLT *r, *a;
     int n;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -1041,7 +1041,7 @@ int acent(CSOUND *csound, EVAL *p)        /* JPff */
 {
     MYFLT *r, *a;
     int n;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -1063,7 +1063,7 @@ int dba(CSOUND *csound, EVAL *p)          /* JPff */
 {
     MYFLT *r, *a;
     int n;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -1088,7 +1088,7 @@ int logbasetwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado liberalised by JPff */
     MYFLT *r, *a;
     int n;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -1111,7 +1111,7 @@ int ilogbasetwo(CSOUND *csound, EVAL *p)
 int in(CSOUND *csound, INM *p)
 {
     CSOUND_SPIN_SPINLOCK
-    memcpy(p->ar, csound->spin, csound->ksmps * sizeof(MYFLT));
+    memcpy(p->ar, csound->spin, CS_KSMPS * sizeof(MYFLT));
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
@@ -1120,7 +1120,7 @@ int ins(CSOUND *csound, INS *p)
 {
     MYFLT       *sp, *ar1, *ar2;
     int n, k;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPIN_SPINLOCK
     sp = csound->spin;
     ar1 = p->ar1;
@@ -1138,7 +1138,7 @@ int inq(CSOUND *csound, INQ *p)
     MYFLT       *sp = csound->spin, *ar1 = p->ar1, *ar2 = p->ar2,
                                     *ar3 = p->ar3, *ar4 = p->ar4;
     int n, k;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPIN_SPINLOCK
     for (n=0, k=0; n<nsmps; n++, k+=4) {
       ar1[n] = sp[k];
@@ -1155,7 +1155,7 @@ int inh(CSOUND *csound, INH *p)
     MYFLT       *sp = csound->spin, *ar1 = p->ar1, *ar2 = p->ar2, *ar3 = p->ar3,
                                     *ar4 = p->ar4, *ar5 = p->ar5, *ar6 = p->ar6;
     int n, k;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPIN_SPINLOCK
     for (n=0, k=0; n<nsmps; n++, k+=6) {
       ar1[n] = sp[k];
@@ -1175,7 +1175,7 @@ int ino(CSOUND *csound, INO *p)
                                     *ar4 = p->ar4, *ar5 = p->ar5, *ar6 = p->ar6,
                                     *ar7 = p->ar7, *ar8 = p->ar8;
     int n, k;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPIN_SPINLOCK
     for (n=0, k=0; n<nsmps; n++, k+=8) {
       ar1[n] = sp[k];
@@ -1196,7 +1196,7 @@ static int inn(CSOUND *csound, INALL *p, int n)
     MYFLT *sp = csound->spin, **ara = p->ar;
     int   m;
     int   i;
-    int   nsmps = csound->ksmps;
+    int   nsmps = CS_KSMPS;
     CSOUND_SPIN_SPINLOCK
     for (m = 0; m < nsmps; m++) {
       for (i = 0; i < n; i++)
@@ -1219,7 +1219,7 @@ int in32(CSOUND *csound, INALL *p)
 int inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
     int nc, nChannels = p->INCOUNT;
-    int   ch, n, nsmps = csound->ksmps;
+    int   ch, n, nsmps = CS_KSMPS;
     MYFLT *sp, *ain;
     if (UNLIKELY(nChannels != p->OUTOCOUNT))
       return
@@ -1248,7 +1248,7 @@ int inch_opcode(CSOUND *csound, INCH *p)
 /* { */
 /*     int   ch = (int)(*p->ch + FL(0.5)); */
 /*     int   n; */
-/*     int   nsmps = csound->ksmps; */
+/*     int   nsmps = CS_KSMPS; */
 /*     MYFLT *sp = csound->spin + (ch - 1); */
 /*     MYFLT *ain = p->ar; */
 /*     if (UNLIKELY(ch > csound->inchnls)) { */
@@ -1268,7 +1268,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
 {
     int   n = (int)p->OUTOCOUNT;
     int   m;
-    int   i, j = 0, k = 0, nsmps = csound->ksmps;
+    int   i, j = 0, k = 0, nsmps = CS_KSMPS;
     MYFLT *spin = csound->spin;
     CSOUND_SPIN_SPINLOCK
     m = (n < csound->inchnls ? n : csound->inchnls);
@@ -1288,7 +1288,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
 int out(CSOUND *csound, OUTM *p)
 {
     int n;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     MYFLT *smp = p->asig;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
@@ -1306,7 +1306,7 @@ int out(CSOUND *csound, OUTM *p)
 int outs(CSOUND *csound, OUTS *p)
 {
     MYFLT       *sp= csound->spout, *ap1 = p->asig1, *ap2= p->asig2;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
@@ -1331,7 +1331,7 @@ int outq(CSOUND *csound, OUTQ *p)
 {
     MYFLT       *sp= csound->spout, *ap1= p->asig1, *ap2= p->asig2,
                 *ap3= p->asig3, *ap4= p->asig4;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     sp = csound->spout;
     if (!csound->spoutactive) {
@@ -1361,7 +1361,7 @@ int outq(CSOUND *csound, OUTQ *p)
 int outs1(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp= csound->spout, *ap1= p->asig;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
@@ -1384,7 +1384,7 @@ int outs1(CSOUND *csound, OUTM *p)
 int outs2(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap2 = p->asig;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
@@ -1407,7 +1407,7 @@ int outs2(CSOUND *csound, OUTM *p)
 int outs12(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap = p->asig;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
 
     if (!csound->spoutactive) {
@@ -1431,7 +1431,7 @@ int outs12(CSOUND *csound, OUTM *p)
 int outq1(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap1 = p->asig;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
@@ -1456,7 +1456,7 @@ int outq1(CSOUND *csound, OUTM *p)
 int outq2(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap2 = p->asig;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
@@ -1481,7 +1481,7 @@ int outq2(CSOUND *csound, OUTM *p)
 int outq3(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap3 = p->asig;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
@@ -1506,7 +1506,7 @@ int outq3(CSOUND *csound, OUTM *p)
 int outq4(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap4 = p->asig;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
@@ -1533,7 +1533,7 @@ int outh(CSOUND *csound, OUTH *p)
 {
     MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3,
                                *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig6;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
@@ -1567,7 +1567,7 @@ int outo(CSOUND *csound, OUTO *p)
     MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3,
                                *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig6,
                                *ap7 = p->asig7, *ap8 = p->asig8;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
@@ -1604,7 +1604,7 @@ int outo(CSOUND *csound, OUTO *p)
 static int outn(CSOUND *csound, int n, OUTX *p)
 {
     int   i, j = 0, k = 0;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       for (j=0; j<nsmps; j++) {
@@ -1653,7 +1653,7 @@ int outch(CSOUND *csound, OUTCH *p)
     int         ch;
     int         i, j;
     MYFLT       *sp, *apn;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     int         count = (int)p->INOCOUNT;
     MYFLT       **args = p->args;
     int         nchnls = csound->nchnls;
@@ -1814,7 +1814,7 @@ int is_NaN(CSOUND *csound, ASSIGN *p)
 
 int is_NaNa(CSOUND *csound, ASSIGN *p)
 {
-    int k, nsmps = csound->ksmps;
+    int k, nsmps = CS_KSMPS;
     MYFLT *a = p->a;
     *p->r = FL(0.0);
     for (k=0; k<nsmps; k++)
@@ -1830,7 +1830,7 @@ int is_inf(CSOUND *csound, ASSIGN *p)
 
 int is_infa(CSOUND *csound, ASSIGN *p)
 {
-    int k, nsmps = csound->ksmps;
+    int k, nsmps = CS_KSMPS;
     MYFLT *a = p->a;
     MYFLT ans = FL(0.0);
     int sign = 1;

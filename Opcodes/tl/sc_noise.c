@@ -71,7 +71,8 @@ static int dust_process_krate(CSOUND *csound, DUST *p)
 
 static int dust_process_arate(CSOUND *csound, DUST *p)
 {
-    int     n, nn = csound->ksmps;
+    int     n, nn = 
+CS_KSMPS;
     MYFLT   *out, density, thresh, scale;
     out = p->out;
     density = *p->kdensity;
@@ -116,7 +117,7 @@ static int dust2_process_krate(CSOUND *csound, DUST *p)
 
 static int dust2_process_arate(CSOUND *csound, DUST *p)
 {
-    int     n, nn = csound->ksmps;
+    int     n, nn = CS_KSMPS;
     MYFLT   *out, density, thresh, scale;
     out = p->out;
     density = *p->kdensity;
@@ -191,7 +192,7 @@ static int gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
 
 static int gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
 {
-    int     n, nn = csound->ksmps;
+    int     n, nn = CS_KSMPS;
     MYFLT   *out = p->out;
     for (n=0; n<nn; n++) {
       if (p->count <= 0) {

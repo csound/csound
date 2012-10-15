@@ -44,9 +44,9 @@ static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
 
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
-          csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
-        csound->AuxAlloc(csound, csound->ksmps*(N+2)*sizeof(MYFLT),&p->fout->frame);
-      else memset(p->fout->frame.auxp, 0, csound->ksmps*(N+2)*sizeof(MYFLT));
+          CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
+        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
+      else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     }
     else
       {
@@ -78,7 +78,7 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
     if (UNLIKELY(fout == NULL)) goto err1;
 
     if (p->fin->sliding) {
-      int n, nsmps = csound->ksmps;
+      int n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
 
       for (n=0; n<nsmps; n++) {

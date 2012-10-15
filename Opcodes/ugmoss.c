@@ -58,7 +58,7 @@ static int dconvset(CSOUND *csound, DCONV *p)
 static int dconv(CSOUND *csound, DCONV *p)
 {
     int32 i = 0;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     int32 len = p->len;
     MYFLT *ar, *ain, *ftp, *startp, *endp, *curp;
     MYFLT sum;
@@ -100,7 +100,7 @@ static int and_aa(CSOUND *csound, AOP *p)
     MYFLT *r    = p->r;
     MYFLT *in1  = p->a;
     MYFLT *in2  = p->b;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input1, input2;
 
     for (n = 0; n < nsmps; n++) {
@@ -115,7 +115,7 @@ static int and_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input2 = MYFLT2LRND(*p->b), input1;
 
     for (n = 0; n < nsmps; n++) {
@@ -129,7 +129,7 @@ static int and_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input2, input1 = MYFLT2LRND(*p->a);
 
     for (n = 0; n < nsmps; n++) {
@@ -152,7 +152,7 @@ static int or_aa(CSOUND *csound, AOP *p)
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     MYFLT *in2 = p->b;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input2, input1;
 
     for (n = 0; n < nsmps; n++) {
@@ -167,7 +167,7 @@ static int or_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input2 = MYFLT2LRND(*p->b), input1;
 
     for (n = 0; n < nsmps; n++) {
@@ -181,7 +181,7 @@ static int or_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input2, input1 = MYFLT2LRND(*p->a);
 
     for (n = 0; n < nsmps; n++) {
@@ -204,7 +204,7 @@ static int xor_aa(CSOUND *csound, AOP *p)
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     MYFLT *in2 = p->b;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input2, input1;
 
     for (n = 0; n < nsmps; n++) {
@@ -219,7 +219,7 @@ static int xor_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input2 = MYFLT2LRND(*p->b), input1;
 
     for (n = 0; n < nsmps; n++) {
@@ -233,7 +233,7 @@ static int xor_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input2, input1 = MYFLT2LRND(*p->a);
 
     for (n = 0; n < nsmps; n++) {
@@ -254,7 +254,7 @@ static int shift_left_kk(CSOUND *csound, AOP *p)
 static int shift_left_aa(CSOUND *csound, AOP *p)
 {
     int32  input1;
-    int   input2, n, nsmps = csound->ksmps;
+    int   input2, n, nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++) {
       input1 = MYFLT2LRND(p->a[n]);
@@ -268,7 +268,7 @@ static int shift_left_ak(CSOUND *csound, AOP *p)
 {
     int32  input1;
     int   input2 = MYFLT2LRND(*p->b);
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++) {
       input1 = MYFLT2LRND(p->a[n]);
@@ -280,7 +280,7 @@ static int shift_left_ak(CSOUND *csound, AOP *p)
 static int shift_left_ka(CSOUND *csound, AOP *p)
 {
     int32  input1 = MYFLT2LRND(*p->a);
-    int   input2, n, nsmps = csound->ksmps;
+    int   input2, n, nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++) {
       input2 = MYFLT2LRND(p->b[n]);
@@ -300,7 +300,7 @@ static int shift_right_kk(CSOUND *csound, AOP *p)
 static int shift_right_aa(CSOUND *csound, AOP *p)
 {
     int32  input1;
-    int   input2, n, nsmps = csound->ksmps;
+    int   input2, n, nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++) {
       input1 = MYFLT2LRND(p->a[n]);
@@ -314,7 +314,7 @@ static int shift_right_ak(CSOUND *csound, AOP *p)
 {
     int32  input1;
     int   input2 = MYFLT2LRND(*p->b);
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++) {
       input1 = MYFLT2LRND(p->a[n]);
@@ -326,7 +326,7 @@ static int shift_right_ak(CSOUND *csound, AOP *p)
 static int shift_right_ka(CSOUND *csound, AOP *p)
 {
     int32  input1 = MYFLT2LRND(*p->a);
-    int   input2, n, nsmps = csound->ksmps;
+    int   input2, n, nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++) {
       input2 = MYFLT2LRND(p->b[n]);
@@ -346,7 +346,7 @@ static int not_a(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
     int32  input1;
 
     for (n = 0; n < nsmps; n++) {
@@ -398,7 +398,7 @@ static int vcombset(CSOUND *csound, VCOMB *p)
 
 static int vcomb(CSOUND *csound, VCOMB *p)
 {
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     uint32      xlpt, maxlpt = (uint32)p->maxlpt;
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
@@ -450,7 +450,7 @@ static int vcomb(CSOUND *csound, VCOMB *p)
 
 static int valpass(CSOUND *csound, VCOMB *p)
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     uint32 xlpt, maxlpt = (uint32)p->maxlpt;
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
