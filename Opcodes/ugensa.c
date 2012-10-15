@@ -82,7 +82,7 @@ static int fog(CSOUND *csound, FOGS *p)
     FUNC        *ftp1,  *ftp2;
     MYFLT       *ar, *amp, *fund, *ptch, *speed;
     MYFLT  v1, fract ,*ftab, fogcvt = p->fogcvt; /*JMC added for FOG*/
-    int32   n,nsmps = csound->ksmps, fund_inc, form_inc;
+    int32   n,nsmps = CS_KSMPS, fund_inc, form_inc;
     /* long speed_inc; */ /*JMC added last--out for phs version*/
 
     ar = p->ar;

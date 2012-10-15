@@ -52,6 +52,7 @@
 #  define HAVE_C99 1
 #endif
 
+#ifndef CABBAGE
 #ifdef MSVC
 typedef __int32 int32;
 typedef __int16 int16;
@@ -63,6 +64,7 @@ typedef int_least32_t int32;
 typedef int_least16_t int16;
 typedef uint_least32_t uint32;
 typedef uint_least16_t uint16;
+#endif
 #endif
 
 #if defined(HAVE_PTHREAD_SPIN_LOCK)

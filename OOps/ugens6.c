@@ -30,7 +30,7 @@
 
 int downset(CSOUND *csound, DOWNSAMP *p)
 {
-    if (UNLIKELY((p->len = (int)*p->ilen) > csound->ksmps))
+    if (UNLIKELY((p->len = (int)*p->ilen) > CS_KSMPS))
       return csound->InitError(csound, "ilen > ksmps");
     return OK;
 }
@@ -58,7 +58,7 @@ int upsamp(CSOUND *csound, UPSAMP *p)
 {
     MYFLT kval = *p->ksig;
     MYFLT *ar = p->ar;
-    int   n, nsmps = csound->ksmps;
+    int   n, nsmps = CS_KSMPS;
 
     for (n = 0; n < nsmps; n++)
       ar[n] = kval;
@@ -84,7 +84,7 @@ int interpset(CSOUND *csound, INTERP *p)
 int interp(CSOUND *csound, INTERP *p)
 {
     MYFLT *ar, val, incr;
-    int   n, nsmps=csound->ksmps;
+    int   n, nsmps=CS_KSMPS;
 
     ar = p->rslt;
     if (p->init_k) {
@@ -92,7 +92,7 @@ int interp(CSOUND *csound, INTERP *p)
       p->prev = *p->xsig;
     }
     val = p->prev;
-    incr = (*p->xsig - val) * csound->onedksmps;
+    incr = (*p->xsig - val) * CS_ONEDKSMPS;
     for (n=0; n<nsmps; n++) {
       ar[n] = val += incr;
     }
@@ -116,7 +116,7 @@ int kntegrate(CSOUND *csound, INDIFF *p)
 int integrate(CSOUND *csound, INDIFF *p)
 {
     MYFLT       *rslt, *asig, sum;
-    int n, nsmps=csound->ksmps;
+    int n, nsmps=CS_KSMPS;
 
     rslt = p->rslt;
     asig = p->xsig;
@@ -140,7 +140,7 @@ int kdiff(CSOUND *csound, INDIFF *p)
 int diff(CSOUND *csound, INDIFF *p)
 {
     MYFLT       *ar, *asig, prev, tmp;
-    int n, nsmps=csound->ksmps;
+    int n, nsmps=CS_KSMPS;
 
     ar = p->rslt;
     asig = p->xsig;
@@ -173,7 +173,7 @@ int ksmphold(CSOUND *csound, SAMPHOLD *p)
 int samphold(CSOUND *csound, SAMPHOLD *p)
 {
     MYFLT       *ar, *asig, *agate, state;
-    int n, nsmps=csound->ksmps;
+    int n, nsmps=CS_KSMPS;
 
     ar = p->xr;
     asig = p->xsig;
@@ -252,7 +252,7 @@ int delrset(CSOUND *csound, DELAYR *p)
     if (UNLIKELY(*p->istor != FL(0.0) && p->auxch.auxp != NULL))
       return OK;
     /* ksmps is min dely */
-    if (UNLIKELY((npts=(int32)(FL(0.5) + *p->idlt*csound->esr)) < csound->ksmps)) {
+    if (UNLIKELY((npts=(int32)(FL(0.5) + *p->idlt*csound->esr)) < CS_KSMPS)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
@@ -322,7 +322,7 @@ int tapset(CSOUND *csound, DELTAP *p)
 int delay(CSOUND *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
@@ -347,7 +347,7 @@ int delay(CSOUND *csound, DELAY *p)
 int delayr(CSOUND *csound, DELAYR *p)
 {
     MYFLT       *ar, *curp, *endp;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
@@ -367,7 +367,7 @@ int delayw(CSOUND *csound, DELAYW *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *asig, *curp, *endp;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1; /* RWD fix */
     asig = p->asig;
@@ -388,7 +388,7 @@ int deltap(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *endp;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
@@ -410,7 +410,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
-    int         n, nsmps = csound->ksmps;
+    int         n, nsmps = CS_KSMPS;
     int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
@@ -459,7 +459,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
 {
     DELAYR *q = p->delayr;
     MYFLT  *ar, *tap, *begp, *endp;
-    int    n, nsmps = csound->ksmps;
+    int    n, nsmps = CS_KSMPS;
     int32  idelsmps;
     MYFLT  delsmps;
 
@@ -503,7 +503,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
@@ -596,7 +596,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 {
     DELAYR  *q = p->delayr;
     MYFLT   *out1, *del, *buf1, *bufp, *bufend;
-    int     nn = csound->ksmps;
+    int     nn = CS_KSMPS;
     int32   indx, maxd, xpos;
 
     if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
@@ -677,7 +677,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
 {
     DELAYR  *q = p->delayr;
     MYFLT   *in1, *del, *buf1, *bufp, *bufend;
-    int     nn = csound->ksmps;
+    int     nn = CS_KSMPS;
     int32   indx, maxd, xpos;
 
     if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
@@ -764,7 +764,7 @@ int del1set(CSOUND *csound, DELAY1 *p)
 int delay1(CSOUND *csound, DELAY1 *p)
 {
     MYFLT       *ar, *asig;
-    int         nsmps = csound->ksmps;
+    int         nsmps = CS_KSMPS;
 
     ar = p->ar;
     /* asig = p->asig - 1; */
@@ -806,7 +806,7 @@ int cmbset(CSOUND *csound, COMB *p)
 
 int comb(CSOUND *csound, COMB *p)
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
 
@@ -846,7 +846,7 @@ int comb(CSOUND *csound, COMB *p)
 
 int alpass(CSOUND *csound, COMB *p)
 {
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       y, z;
     MYFLT       coef = p->coef;
@@ -924,7 +924,7 @@ int reverb(CSOUND *csound, REVERB *p)
 {
     MYFLT       *asig, *p1, *p2, *p3, *p4, *p5, *p6, *ar, *endp;
     MYFLT       c1,c2,c3,c4,c5,c6;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
@@ -1006,7 +1006,7 @@ int pan(CSOUND *csound, PAN *p)
 {
     MYFLT   flend2, xndx_f, yndx_f, xt, yt, ch1, ch2, ch3, ch4;
     int32   xndx, yndx, flen;
-    int     n, nsmps = csound->ksmps;
+    int     n, nsmps = CS_KSMPS;
     FUNC    *ftp;
 
     ftp = p->ftp;

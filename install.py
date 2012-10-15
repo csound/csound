@@ -18,7 +18,7 @@ headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h',
                'interfaces/CppSound.hpp', 'interfaces/filebuilding.h',
                'interfaces/CsoundFile.hpp', 'interfaces/csPerfThread.hpp']
 
-exeFiles1 = ['csound', 'csound5gui', 'CsoundVST', 'winsound',
+exeFiles1 = ['csound', 'csound6gui', 'CsoundVST', 'winsound',
              'cstclsh', 'cswish', 'cseditor',
              'cvanal', 'dnoise', 'envext', 'extractor',
              'het_export', 'het_import', 'hetro', 'lpanal',
@@ -29,11 +29,11 @@ exeFiles1 = ['csound', 'csound5gui', 'CsoundVST', 'winsound',
 
 exeFiles2 = ['brkpt', 'linseg', 'tabdes']
 
-docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound5.txt']
+docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound6.txt']
 
 # -----------------------------------------------------------------------------
 
-print 'Csound5 Linux installer by Istvan Varga'
+print 'Csound6 Linux installer by Istvan Varga'
 print ''
 
 prefix = '/usr/local'
@@ -43,7 +43,7 @@ fileList = []
 installErrors = 0
 useDouble = 0
 md5List = ''
-md5Name = 'csound5-%s.md5sums' % time.strftime("%Y-%m-%d", time.localtime())
+md5Name = 'csound6-%s.md5sums' % time.strftime("%Y-%m-%d", time.localtime())
 word64Suffix = ''
 
 def printUsage():
@@ -219,7 +219,7 @@ if findFiles('.', 'libcsound64\\.so\\..+').__len__() > 0:
 makeDir(concatPath([binDir]))
 installedBinaries = findFiles(concatPath([instDir, binDir]), '.+')
 if ('csound' in installedBinaries) or ('csound64' in installedBinaries):
-    if 'uninstall-csound5' in installedBinaries:
+    if 'uninstall-csound6' in installedBinaries:
         print ' *** WARNING: found an already existing installation of Csound'
         tmp = ''
         while (tmp != 'yes\n') and (tmp != 'no\n'):
@@ -231,7 +231,7 @@ if ('csound' in installedBinaries) or ('csound64' in installedBinaries):
             print ''
             raise SystemExit(1)
         print ' --- Removing old Csound installation...'
-        runCmd([concatPath([instDir, binDir, 'uninstall-csound5'])])
+        runCmd([concatPath([instDir, binDir, 'uninstall-csound6'])])
         print ''
     else:
         print ' *** Error: an already existing installation of Csound was found'
@@ -314,7 +314,7 @@ wrapperList = [['csnd\\.py', '0', pythonDir],
                ['_scoregen\\.so', '1', pythonDir2],
                ['_CsoundAC\\.so ', '1', pythonDir2],
                ['csnd\\.jar', '0', javaDir],
-               ['interfaces/csound5\\.lisp', '0', lispDir]]
+               ['interfaces/csound6\\.lisp', '0', lispDir]]
 for i in wrapperList:
     tmp = findFiles('.', i[0])
     if tmp.__len__() > 0:
@@ -336,8 +336,8 @@ else:
   xmgList = ['de', 'en_GB','en_US', 'es_CO', 'fr', 'it','ro']
   for i in xmgList:
     makeDir(concatPath([xmgDir, i, 'LC_MESSAGES']))
-    src = 'po/' + i + '/LC_MESSAGES/csound5.mo'
-    fileName = concatPath([instDir, xmgDir, i, 'LC_MESSAGES/csound5.mo'])
+    src = 'po/' + i + '/LC_MESSAGES/csound6.mo'
+    fileName = concatPath([instDir, xmgDir, i, 'LC_MESSAGES/csound6.mo'])
     err = runCmd(['install', '-p', '-m', '0644', src, fileName])
     if err == 0:
         addMD5(fileName, fileName)
@@ -424,9 +424,9 @@ if vimDir != '':
 
 print ' === Installing uninstall script ==='
 fileList += [concatPath([prefix, md5Name])]
-fileList += [concatPath([binDir, 'uninstall-csound5'])]
+fileList += [concatPath([binDir, 'uninstall-csound6'])]
 try:
-    f = open(concatPath([instDir, binDir, 'uninstall-csound5']), 'w')
+    f = open(concatPath([instDir, binDir, 'uninstall-csound6']), 'w')
     print >> f, '#!/bin/sh'
     print >> f, ''
     for i in fileList:
@@ -435,10 +435,10 @@ try:
     print >> f, '/sbin/ldconfig > /dev/null 2> /dev/null'
     print >> f, ''
     f.close()
-    os.chmod(concatPath([instDir, binDir, 'uninstall-csound5']), 0755)
-    addMD5(concatPath([instDir, binDir, 'uninstall-csound5']),
-           concatPath([binDir, 'uninstall-csound5']))
-    print '  %s' % concatPath([binDir, 'uninstall-csound5'])
+    os.chmod(concatPath([instDir, binDir, 'uninstall-csound6']), 0755)
+    addMD5(concatPath([instDir, binDir, 'uninstall-csound6']),
+           concatPath([binDir, 'uninstall-csound6']))
+    print '  %s' % concatPath([binDir, 'uninstall-csound6'])
 except:
     print ' *** Error creating uninstall script'
     installErrors = 1
@@ -475,13 +475,13 @@ else:
     print 'Before running Csound, make sure that the following environment'
     print 'variables are set:'
     if not useDouble:
-        print '  OPCODEDIR=%s' % pluginDir32
+        print '  OPCODE6DIR=%s' % pluginDir32
     else:
-        print '  OPCODEDIR64=%s' % pluginDir64
+        print '  OPCODE6DIR64=%s' % pluginDir64
     print '  CSSTRNGS=%s' % xmgDir
     if '%s/libstk.so' % pluginDir in fileList:
         print '  RAWWAVE_PATH=%s' % rawWaveDir
-    print 'Csound can be uninstalled by running %s/uninstall-csound5' % binDir
+    print 'Csound can be uninstalled by running %s/uninstall-csound6' % binDir
 
 if os.getuid() == 0:
     runCmd(['/sbin/ldconfig'])

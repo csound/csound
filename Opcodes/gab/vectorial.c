@@ -123,7 +123,7 @@ static int mtable_k(CSOUND *csound,MTABLE *p)
 static int mtable_a(CSOUND *csound,MTABLE *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k;
+    int nsmps = CS_KSMPS, ixmode = (int) *p->ixmode, k;
     MYFLT **out = p->outargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx, xbmul;
@@ -226,7 +226,7 @@ static int mtab_k(CSOUND *csound,MTAB *p)
 static int mtab_a(CSOUND *csound,MTAB *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = csound->ksmps, k;
+    int nsmps = CS_KSMPS, k;
     MYFLT **out = p->outargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx;
@@ -307,7 +307,7 @@ static int mtablew_k(CSOUND *csound,MTABLEW *p)
 static int mtablew_a(CSOUND *csound,MTABLEW *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k=0;
+    int nsmps = CS_KSMPS, ixmode = (int) *p->ixmode, k=0;
     MYFLT **in = p->inargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx, xbmul;
@@ -396,7 +396,7 @@ static int mtabw_k(CSOUND *csound,MTABW *p)
 static int mtabw_a(CSOUND *csound,MTABW *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = csound->ksmps, k=0;
+    int nsmps = CS_KSMPS, k=0;
     MYFLT **in = p->inargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx;
@@ -1759,7 +1759,7 @@ static int vport(CSOUND *csound,VPORT *p)
     int elements = p->elements;
     MYFLT *vector = p->vector, *yt1 = p->yt1, c1, c2;
     if (p->prvhtim != *p->khtim) {
-      p->c2 = (MYFLT)pow(0.5, (double)csound->onedkr / *p->khtim);
+      p->c2 = (MYFLT)pow(0.5, (double)CS_ONEDKR / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
       p->prvhtim = *p->khtim;
     }
@@ -1930,7 +1930,7 @@ static int vrandh(CSOUND *csound,VRANDH *p)
       *vector++ = (*num1++ * value) + *p->ioffset;
     } while (--elements);
 
-    p->phs += (int32)(*p->kcps * csound->kicvt);
+    p->phs += (int32)(*p->kcps * CS_KICVT);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;
@@ -2035,7 +2035,7 @@ static int vrandi(CSOUND *csound,VRANDI *p)
         *p->ioffset;
     } while (--elements);
 
-    p->phs += (int32)(*p->kcps * csound->kicvt);
+    p->phs += (int32)(*p->kcps * CS_KICVT);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;

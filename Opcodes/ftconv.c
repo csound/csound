@@ -243,7 +243,7 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
 {
     MYFLT         *x, *rBuf;
     int           i, n, nn, nSamples, rBufPos;
-    int           m = csound->ksmps;
+    int           m = CS_KSMPS;
 
     if (p->initDone <= 0) goto err1;
     nSamples = p->partSize;

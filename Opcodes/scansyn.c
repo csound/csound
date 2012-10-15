@@ -361,7 +361,7 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
-    for (n = 0 ; n != csound->ksmps ; n++) {
+    for (n = 0 ; n != CS_KSMPS ; n++) {
 
       /* Put audio input in external force */
       p->ext[p->exti] = p->a_ext[n];
@@ -501,7 +501,7 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
 
     switch (p->oscil_interp) {
     case 1:
-      for (i = 0 ; i != csound->ksmps ; i++) {
+      for (i = 0 ; i != CS_KSMPS ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
 /*      MYFLT x = phs - (int)phs; */
@@ -513,7 +513,7 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
       }
       break;
     case 2:
-      for (i = 0 ; i != csound->ksmps ; i++) {
+      for (i = 0 ; i != CS_KSMPS ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;
@@ -528,7 +528,7 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
       }
       break;
     case 3:
-      for (i = 0 ; i != csound->ksmps ; i++) {
+      for (i = 0 ; i != CS_KSMPS ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;
@@ -545,7 +545,7 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
       }
       break;
     case 4:
-      for (i = 0 ; i != csound->ksmps ; i++) {
+      for (i = 0 ; i != CS_KSMPS ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
         MYFLT x = phs - (int)phs;

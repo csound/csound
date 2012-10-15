@@ -198,7 +198,7 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
     MYFLT *ar = p->out;    /* The sample output buffer */
     len_t M=p->wg.upperRail.size; /* Length of the guide rail */
-    len_t n,nsmps=csound->ksmps;
+    len_t n,nsmps=CS_KSMPS;
 /*    int i = 0; */
     MYFLT *fdbk = p->afdbk;
     /* set the delay element to pickup at */

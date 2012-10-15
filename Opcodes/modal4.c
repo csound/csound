@@ -310,7 +310,7 @@ int marimba(CSOUND *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    int         n,nsmps = csound->ksmps;
+    int         n,nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amplitude) * AMP_RSCALE; /* Normalise */
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
@@ -396,7 +396,7 @@ int vibraphn(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    int         n,nsmps = csound->ksmps;
+    int         n,nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amplitude)*AMP_RSCALE; /* Normalise */
 
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
@@ -475,7 +475,7 @@ int agogobel(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
-    int         n,nsmps = csound->ksmps;
+    int         n,nsmps = CS_KSMPS;
 
     p->m4.v_rate = *p->vibFreq;
     p->m4.vibrGain =*p->vibAmt;

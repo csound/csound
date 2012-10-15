@@ -569,7 +569,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     FUNC    *ftp;
     int32   lobits, phase, inc;
     double  *oscphase;
-    int     i, n, nsmps = csound->ksmps;
+    int     i, n, nsmps = CS_KSMPS;
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
 
@@ -616,7 +616,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
       amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG(*oscphase);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
-      nsmps = csound->ksmps;
+      nsmps = CS_KSMPS;
       inca = (amp-oldamps[i])/nsmps;
       a = oldamps[i];
       /* put in * kfmod */
@@ -1024,13 +1024,13 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     /* set local pointer to output and initialise output to zero */
     ar = p->aoutput;
 
-    memset(ar, 0, csound->ksmps*sizeof(MYFLT));
-/*     for (i = 0; i < csound->ksmps; i++) */
+    memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
+/*     for (i = 0; i < CS_KSMPS; i++) */
 /*       *ar++ = FL(0.0); */
 
     synthme = p->bandoffset;
     nsynthed = 0;
-    nsmps = csound->ksmps;
+    nsmps = CS_KSMPS;
 
     for (i = 0; i < 25; i++) {
       /* do we even have to synthesize it? */
@@ -1295,7 +1295,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 {
     MYFLT   frIndx;
-    int     n, nsmps = csound->ksmps;
+    int     n, nsmps = CS_KSMPS;
     MYFLT   *ar;
     double  noise;
     double  inc;
@@ -1339,8 +1339,8 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     /* set local pointer to output and initialise output to zero */
     ar = p->aoutput;
 
-    memset(ar, 0, csound->ksmps*sizeof(MYFLT));
-/*     for (i = 0; i < csound->ksmps; i++) */
+    memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
+/*     for (i = 0; i < CS_KSMPS; i++) */
 /*       *ar++ = FL(0.0); */
 
     oscbuf = p->oscbuf;
@@ -2055,7 +2055,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     FUNC    *ftp;
     int32    lobits, phase, inc;
     double  *oscphase;
-    int     i, n, nsmps = csound->ksmps;
+    int     i, n, nsmps = CS_KSMPS;
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
 
@@ -2110,7 +2110,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG (oscphase[i]);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
-      nsmps = csound->ksmps;
+      nsmps = CS_KSMPS;
       inca = (amp-oldamps[i])/nsmps;
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);

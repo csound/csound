@@ -151,7 +151,7 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
 /************************************************************/
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
-#define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
+#define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
 int vpvset(CSOUND *csound, VPVOC *p)
 {
@@ -221,7 +221,7 @@ int vpvset(CSOUND *csound, VPVOC *p)
     p->baseFr = 0;  /* point to first data frame */
     p->maxFr = pp.nframes - 1;
     /* highest possible frame index */
-    p->frPktim = (MYFLT) csound->ksmps / (MYFLT) frInc;
+    p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
@@ -243,7 +243,7 @@ int vpvset(CSOUND *csound, VPVOC *p)
     if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN)) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
-                                       csound->ksmps, (OPWLEN / 2 + 1),
+                                       CS_KSMPS, (OPWLEN / 2 + 1),
                                        PVWINLEN, pvfilnam);
     }
     for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
@@ -283,7 +283,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
                             /* ..so we won't run into buf2Size problems */
       goto err2;
     }
-    if (UNLIKELY(outlen<2*csound->ksmps)) {   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<2*CS_KSMPS)) {   /* minimum post-squeeze windowlength */
       goto err3;
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */
@@ -310,7 +310,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     }
 /***************************************************/
 
-    FrqToPhase(buf, asize, pex * (MYFLT) csound->ksmps, p->asr,
+    FrqToPhase(buf, asize, pex * (MYFLT) CS_KSMPS, p->asr,
                (MYFLT) (0.5 * ((pex / p->lastPex) - 1)));
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
@@ -341,13 +341,13 @@ int vpvoc(CSOUND *csound, VPVOC *p)
       /*   buf2[n] = FL(0.0); */
     }
 
-    addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
-    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
-    p->opBpos += csound->ksmps;
+    addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
+    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, CS_KSMPS, circBufSize);
+    p->opBpos += CS_KSMPS;
     if (p->opBpos > circBufSize)
       p->opBpos -= circBufSize;
-    addToCircBuf(buf2 + csound->ksmps, p->outBuf, p->opBpos,
-                 buf2Size - csound->ksmps, circBufSize);
+    addToCircBuf(buf2 + CS_KSMPS, p->outBuf, p->opBpos,
+                 buf2Size - CS_KSMPS, circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
 
     return OK;

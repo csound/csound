@@ -207,7 +207,7 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     double    ainL, ainR, aoutL, aoutR;
     double    vm1, v0, v1, v2, am1, a0, a1, a2, frac;
     delayLine *lp;
-    int       i, n, nsmps = csound->ksmps, readPos;
+    int       i, n, nsmps = CS_KSMPS, readPos;
     int       bufferSize; /* Local copy */
     double    dampFact = p->dampFact;
 

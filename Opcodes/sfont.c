@@ -450,7 +450,7 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
 static int SfPlay(CSOUND *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2, *env = p->env;
-    int   n, nsmps = csound->ksmps, j = p->spltNum, arate;
+    int   n, nsmps = CS_KSMPS, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop= p->startloop, *endloop= p->endloop,
       *tinc = p->ti;
@@ -537,7 +537,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
 static int SfPlay3(CSOUND *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2, *env = p->env;
-    int n, nsmps = csound->ksmps, j = p->spltNum, arate;
+    int n, nsmps = CS_KSMPS, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop = p->startloop,
       *endloop = p->endloop, *tinc = p->ti;
@@ -555,7 +555,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
-/*         nsmps = csound->ksmps; */
+/*         nsmps = CS_KSMPS; */
         if (*mode == 1 || *mode ==3) {
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
@@ -715,7 +715,7 @@ static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
 static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1 , *env  = p->env;
-    int n, nsmps = csound->ksmps, j = p->spltNum, arate;
+    int n, nsmps = CS_KSMPS, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end, *startloop= p->startloop, *endloop= p->endloop,
       *tinc = p->ti;
@@ -799,7 +799,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1, *env = p->env;
-    int n, nsmps = csound->ksmps, j = p->spltNum, arate;
+    int n, nsmps = CS_KSMPS, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop = p->startloop,
       *endloop = p->endloop, *tinc = p->ti;
@@ -970,7 +970,7 @@ static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2, *env = p->env;
-    int n, nsmps= csound->ksmps, j = p->spltNum, arate;
+    int n, nsmps= CS_KSMPS, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
       *endloop= p->endloop, *tinc = p->ti;
@@ -1058,7 +1058,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2,*env =p->env;
-    int n, nsmps= csound->ksmps, j = p->spltNum, arate;
+    int n, nsmps= CS_KSMPS, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
@@ -1226,7 +1226,7 @@ static int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
 static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1, *env = p->env;
-    int n, nsmps= csound->ksmps, j = p->spltNum, arate;
+    int n, nsmps= CS_KSMPS, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop,
       *tinc = p->ti;
@@ -1311,7 +1311,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1, *env = p->env  ;
-    int n, nsmps= csound->ksmps, j = p->spltNum, arate;
+    int n, nsmps= CS_KSMPS, j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
@@ -2266,7 +2266,7 @@ static int sflooper_init(CSOUND *csound, sflooper *p)
 
 static int sflooper_process(CSOUND *csound, sflooper *p)
 {
-    int i,k, n = csound->ksmps;
+    int i,k, n = CS_KSMPS;
     MYFLT *outL = p->outL, *outR = p->outR, out, sr = csound->GetSr(csound);
     MYFLT amp = *(p->amp), pit = *(p->pitch);
     SHORT **base = p->sBase, *tab;

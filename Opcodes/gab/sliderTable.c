@@ -322,7 +322,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
         /*----- init filtering coeffs*/                                 \
         *yt1++ = FL(0.0);                                               \
         b = (MYFLT)(2.0 - cos((double)(*(sld)->ihp *                    \
-                              csound->tpidsr * csound->ksmps)));        \
+                              csound->tpidsr * CS_KSMPS)));        \
         *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));             \
         *c1++ = FL(1.0) - *c2++;                                        \
                                                                         \
@@ -579,7 +579,7 @@ static int ctrl7a_set(CSOUND *csound, CTRL7a *p)
     if (*p->icutoff <= 0) cutoff = 5;
     else cutoff = *p->icutoff;
 
-    b = FL(2.0) - COS(cutoff * csound->tpidsr * csound->ksmps);
+    b = FL(2.0) - COS(cutoff * csound->tpidsr * CS_KSMPS);
     p->c2 = b - SQRT(b * b - 1.0);
     p->c1 = FL(1.0) - p->c2;
     p->prev = 0;
@@ -589,7 +589,7 @@ static int ctrl7a_set(CSOUND *csound, CTRL7a *p)
 static int ctrl7a(CSOUND *csound, CTRL7a *p)
 {
     MYFLT       *ar, val, incr;
-    int nsmps = csound->ksmps;
+    int nsmps = CS_KSMPS;
     MYFLT value =
       (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[p->ctlno] * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
@@ -601,7 +601,7 @@ static int ctrl7a(CSOUND *csound, CTRL7a *p)
     value = p->yt1 = p->c1 * value + p->c2 * p->yt1;
     ar = p->r;
     val = p->prev;
-    incr = (value - val) / (MYFLT) csound->ksmps;
+    incr = (value - val) / (MYFLT) CS_KSMPS;
     do {
       *ar++ = val += incr;
     } while (--nsmps);

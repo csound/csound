@@ -314,14 +314,14 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVING *p)
     else { /* angular velocities */
       if (p->dim == 2) {
         p->ang_dir.azi =  p->ang_dir.azi +
-          (*p->fld[p->next_fld] * csound->onedkr);
+          (*p->fld[p->next_fld] * CS_ONEDKR);
         scale_angles(&(p->ang_dir));
       }
       else { /* 3D angular*/
         p->ang_dir.azi =  p->ang_dir.azi +
-          (*p->fld[p->next_fld] * csound->onedkr);
+          (*p->fld[p->next_fld] * CS_ONEDKR);
         p->ang_dir.ele =  p->ang_dir.ele +
-          p->ele_vel * (*p->fld[p->next_fld+1] * csound->onedkr);
+          p->ele_vel * (*p->fld[p->next_fld+1] * CS_ONEDKR);
         if (p->ang_dir.ele > FL(90.0)) {
           p->ang_dir.ele = FL(90.0);
           p->ele_vel = -p->ele_vel;

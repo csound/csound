@@ -364,7 +364,7 @@ static int Xsynth(CSOUND *csound, CON *p)
 
     n = p->count;
     m = n % div;
-    for (samps = 0; samps < csound->ksmps; samps++) {
+    for (samps = 0; samps < CS_KSMPS; samps++) {
       buf1[n] = s[samps];
       buf2[n] = f[samps];
 

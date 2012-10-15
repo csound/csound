@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>wins.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.csounds.csound5</string>
+	<string>com.csounds.csound6</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
