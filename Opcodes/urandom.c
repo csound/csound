@@ -78,7 +78,7 @@ static int urand_arun(CSOUND *csound, URANDOM *p)
     /* union ieee754_double x; */
     int64_t x;
     MYFLT *ar = p->ar;
-    int n, nsmps = csound->ksmps;
+    int n, nsmps = CS_KSMPS;
     for (n=0; n<nsmps; n++) {
       if (UNLIKELY(read(ur, &x, sizeof(int64_t))!= sizeof(int64_t))) return NOTOK;
       ar[n] = p->mul *((MYFLT)x/(MYFLT)INT64_MAX) + p->add;

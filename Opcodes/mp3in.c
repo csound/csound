@@ -179,7 +179,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
     MYFLT *al       = p->ar[0];
     MYFLT *ar       = p->ar[1];
     int pos         = p->pos;
-    int i, n, nsmps = csound->ksmps;
+    int i, n, nsmps = CS_KSMPS;
 
     for (n=0; n<nsmps; n++) {
       for (i=0; i<2; i++) {     /* stereo */

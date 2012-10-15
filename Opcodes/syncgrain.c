@@ -85,7 +85,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     float   start = p->start, frac = p->frac;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
-    int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
+    int     vecpos, vecsize=CS_KSMPS, firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
     int     datasize = p->datasize, envtablesize = p->envtablesize;
@@ -223,7 +223,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     float   start = p->start, frac = p->frac;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
-    int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
+    int     vecpos, vecsize=CS_KSMPS, firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
     int     datasize = p->datasize, envtablesize = p->envtablesize;
@@ -462,7 +462,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     float   start = p->start, frac = p->frac, jump;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
-    int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
+    int     vecpos, vecsize=CS_KSMPS, firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
     int     datasize, hdatasize, envtablesize = p->envtablesize;

@@ -73,7 +73,7 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      int32      n = csound->ksmps;
+      int32      n = CS_KSMPS;
       memcpy(out, in, n*sizeof(MYFLT));
       return OK;
     }
@@ -91,7 +91,7 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
       a[4] = 2.0 * ( c*c - 1.0) * a[1];
       a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
     }
-    butter_filter(csound->ksmps, in, out, p->a);
+    butter_filter(CS_KSMPS, in, out, p->a);
     return OK;
 }
 
@@ -103,7 +103,7 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      memset(out, 0, csound->ksmps*sizeof(MYFLT));
+      memset(out, 0, CS_KSMPS*sizeof(MYFLT));
       return OK;
     }
 
@@ -120,7 +120,7 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
       a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
     }
 
-    butter_filter(csound->ksmps, in, out, p->a);
+    butter_filter(CS_KSMPS, in, out, p->a);
     return OK;
 }
 
@@ -131,7 +131,7 @@ static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     in = p->ain;
     out = p->sr;
     if (*p->kbw <= FL(0.0))     {
-      memset(out, 0, csound->ksmps*sizeof(MYFLT));
+      memset(out, 0, CS_KSMPS*sizeof(MYFLT));
       return OK;
     }
     if (*p->kbw != p->lkb || *p->kfo != p->lkf) {
@@ -147,7 +147,7 @@ static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
       a[4] = - c * d * a[1];
       a[5] = (c - 1.0) * a[1];
     }
-    butter_filter(csound->ksmps, in, out, p->a);
+    butter_filter(CS_KSMPS, in, out, p->a);
     return OK;
 }
 
@@ -159,7 +159,7 @@ static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
     out = p->sr;
 
     if (*p->kbw <= FL(0.0))     {
-      memcpy(out, in, csound->ksmps*sizeof(MYFLT));
+      memcpy(out, in, CS_KSMPS*sizeof(MYFLT));
       return OK;
     }
 
@@ -178,7 +178,7 @@ static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
       a[5] = (1.0 - c) * a[1];
     }
 
-    butter_filter(csound->ksmps, in, out, p->a);
+    butter_filter(CS_KSMPS, in, out, p->a);
     return OK;
 }
 

@@ -928,7 +928,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                                             "_rtjackGlobals");
     p->csound = csound;
     p->jackState = -1;
-    strcpy(&(p->clientName[0]), "csound5");
+    strcpy(&(p->clientName[0]), "csound6");
     strcpy(&(p->inputPortName[0]), "input");
     strcpy(&(p->outputPortName[0]), "output");
     p->sleepTime = 1000;        /* this is not actually used */
@@ -948,7 +948,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     csound->CreateConfigurationVariable(
         csound, "jack_client", (void*) &(p->clientName[0]),
         CSOUNDCFG_STRING, 0, NULL, &i,
-        "JACK client name (default: csound5)", NULL);
+        "JACK client name (default: csound6)", NULL);
     /*   input port name */
     i = jack_port_name_size() - 3;
     if (i > (MAX_NAME_LEN + 1))

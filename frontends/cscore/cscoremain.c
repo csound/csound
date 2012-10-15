@@ -31,7 +31,7 @@ extern void cscore(CSOUND*);
 /* To create a standalone cscore program, compile this file with your own
    file (e.g. mycscore.c) containing a cscore() control function.  An
    example is given in the file cscore.c in this directory.  More examples
-   may be found in the examples/cscore/ directory of the csound5 source tree.
+   may be found in the examples/cscore/ directory of the csound source tree.
 
    Use this command (or your system's equivalent) to compile:
 

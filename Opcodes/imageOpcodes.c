@@ -490,7 +490,7 @@ static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
     MYFLT *tx = p->kx;
     MYFLT *ty = p->ky;
 
-    int i, n=csound->ksmps;
+    int i, n=CS_KSMPS;
     int w, h, x, y, pixel;
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
@@ -532,7 +532,7 @@ static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
     MYFLT *tx = p->kx;
     MYFLT *ty = p->ky;
 
-    int i, n=csound->ksmps;
+    int i, n=CS_KSMPS;
     int h,w,x, y, pixel;
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,

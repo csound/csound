@@ -30,7 +30,7 @@
 #include <math.h>
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
-#define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
+#define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
 /************************************************************/
 /*************PVBUFREAD**************************************/
@@ -87,7 +87,7 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
     }
     p->frPtr = (float*) pp.data;
     p->maxFr = pp.nframes - 1;
-    p->frPktim = (MYFLT) csound->ksmps / (MYFLT) frInc;
+    p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
     p->frPrtim = csound->esr / (MYFLT) frInc;
     p->prFlg = 1;       /* true */
     /* amplitude scale for PVOC */
@@ -99,7 +99,7 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
     if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN )) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
-                                       csound->ksmps, (int) (OPWLEN / 2 + 1),
+                                       CS_KSMPS, (int) (OPWLEN / 2 + 1),
                                        (int) PVWINLEN, pvfilnam);
     }
 
@@ -188,7 +188,7 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     p->baseFr = 0;  /* point to first data frame */
     p->maxFr = pp.nframes - 1;
     /* highest possible frame index */
-    p->frPktim = (MYFLT) csound->ksmps / (MYFLT) frInc;
+    p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
@@ -209,7 +209,7 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN)) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
-                                       csound->ksmps, (OPWLEN / 2 + 1),
+                                       CS_KSMPS, (OPWLEN / 2 + 1),
                                        PVWINLEN, pvfilnam);
     }
     for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
@@ -244,7 +244,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
                            /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<2*csound->ksmps)) 
+    if (UNLIKELY(outlen<2*CS_KSMPS)) 
       goto err3;   /* minimum post-squeeze windowlength */
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -269,7 +269,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
       buf[j] = (buf[j] + ((q->buf[j] - buf[j]) * *p->kfreqinterp));
     }
 /*******************************************************************/
-    FrqToPhase(buf, asize, pex * (MYFLT) csound->ksmps, p->asr,
+    FrqToPhase(buf, asize, pex * (MYFLT) CS_KSMPS, p->asr,
                (MYFLT) (0.5 * ((pex / p->lastPex) - 1)));
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
@@ -285,13 +285,13 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
              sizeof(MYFLT) * buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
 
-    addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
-    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
-    p->opBpos += csound->ksmps;
+    addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
+    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, CS_KSMPS, circBufSize);
+    p->opBpos += CS_KSMPS;
     if (p->opBpos > circBufSize)
       p->opBpos -= circBufSize;
-    addToCircBuf(buf2 + csound->ksmps, p->outBuf, p->opBpos,
-                 buf2Size - csound->ksmps, circBufSize);
+    addToCircBuf(buf2 + CS_KSMPS, p->outBuf, p->opBpos,
+                 buf2Size - CS_KSMPS, circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
 
     return OK;
@@ -360,7 +360,7 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     p->baseFr = 0;  /* point to first data frame */
     p->maxFr = pp.nframes - 1;
     /* highest possible frame index */
-    p->frPktim = (MYFLT) csound->ksmps / (MYFLT) frInc;
+    p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
@@ -379,7 +379,7 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN )) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
-                                       csound->ksmps, (OPWLEN / 2 + 1),
+                                       CS_KSMPS, (OPWLEN / 2 + 1),
                                        PVWINLEN, pvfilnam);
     }
     for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
@@ -418,7 +418,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     if (UNLIKELY(outlen>PVFFTSIZE))   /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<2*csound->ksmps))   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<2*CS_KSMPS))   /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;
@@ -439,7 +439,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
       buf[i] = ((buf[i] * ampscale2) + (q->buf[i] * ampscale1)) * scaleFac;
 /***************************************************/
 
-    FrqToPhase(buf, asize, pex * (MYFLT) csound->ksmps, p->asr,
+    FrqToPhase(buf, asize, pex * (MYFLT) CS_KSMPS, p->asr,
                (MYFLT) (0.5 * ((pex / p->lastPex) - 1)));
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
@@ -470,13 +470,13 @@ int pvcross(CSOUND *csound, PVCROSS *p)
       memset(buf2, 0, buf2Size*sizeof(MYFLT));
     }
 
-    addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
-    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
-    p->opBpos += csound->ksmps;
+    addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
+    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, CS_KSMPS, circBufSize);
+    p->opBpos += CS_KSMPS;
     if (p->opBpos > circBufSize)
       p->opBpos -= circBufSize;
-    addToCircBuf(buf2 + csound->ksmps, p->outBuf, p->opBpos,
-                 buf2Size - csound->ksmps, circBufSize);
+    addToCircBuf(buf2 + CS_KSMPS, p->outBuf, p->opBpos,
+                 buf2Size - CS_KSMPS, circBufSize);
     p->lastPex = pex;       /* needs to know last pitchexp to update phase */
 
     return OK;

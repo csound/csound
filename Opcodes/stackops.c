@@ -180,7 +180,7 @@ static CS_NOINLINE CsoundArgStack_t *csoundStack_GetGlobals(CSOUND *csound)
     return pp;
 }
 
-static CS_NOINLINE int csoundStack_CreateArgMap(void *p, int *argMap,
+static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
                                                 int isOutput)
 {
     CSOUND  *csound;
@@ -241,7 +241,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(void *p, int *argMap,
         /* performance time types */
         if (aMask & maskVal) {
           argMap[i + 3] = (curOffs_p | CS_STACK_A);
-          curOffs_p += ((int) sizeof(MYFLT) * csound->ksmps);
+          curOffs_p += ((int) sizeof(MYFLT) * CS_KSMPS);
         }
         else {
           argMap[i + 3] = (curOffs_p | CS_STACK_K);
@@ -315,8 +315,8 @@ static int push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
               int   j;
               src = p->args[i];
               dst = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
-              //memcpy(dst, src, sizeof(MYFLT)*csound->ksmps;
-              for (j = 0; j < csound->ksmps; j++)
+              //memcpy(dst, src, sizeof(MYFLT)*CS_KSMPS;
+              for (j = 0; j < CS_KSMPS; j++)
                 dst[j] = src[j];
             }
           }
@@ -406,7 +406,7 @@ static int pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
               int   j;
               src = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
               dst = p->args[i];
-              for (j = 0; j < csound->ksmps; j++)
+              for (j = 0; j < CS_KSMPS; j++)
                 dst[j] = src[j];
             }
             break;
@@ -613,7 +613,7 @@ static int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
         do {
           p->ar[j][i] = csound->spout[k++];
         } while (++j < csound->nchnls);
-      } while (++i < csound->ksmps);
+      } while (++i < CS_KSMPS);
     }
     else {
       j = 0;
@@ -621,7 +621,7 @@ static int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
         i = 0;
         do {
           p->ar[j][i] = FL(0.0);
-        } while (++i < csound->ksmps);
+        } while (++i < CS_KSMPS);
       } while (++j < csound->nchnls);
     }
     return OK;
