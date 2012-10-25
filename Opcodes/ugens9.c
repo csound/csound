@@ -26,7 +26,6 @@
 #include "convolve.h"
 #include "ugens9.h"
 #include "soundio.h"
-#include "oload.h"
 
 static int cvset(CSOUND *csound, CONVOLVE *p)
 {

@@ -127,14 +127,14 @@ int find_opcode(CSOUND *, char *);
 
 /* Allocate space for strsav (called once from rdorchfile()). */
 
-void strsav_create(CSOUND *);
+//void strsav_create(CSOUND *);
 
 /* Locate string s in database, and return address of stored string (not */
 /* necessarily the same as s). If the string is not defined yet, it is   */
 /* copied to the database (in such cases, it is allowed to free s after  */
 /* the call).                                                            */
 
-char *strsav_string(CSOUND *, char *);
+//char *strsav_string(CSOUND *, char *);
 
 /* ----------------------------------------------------------------------- */
 

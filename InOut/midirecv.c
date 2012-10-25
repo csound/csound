@@ -102,7 +102,6 @@
 
 #include "csoundCore.h"
 #include "midiops.h"
-#include "oload.h"
 #include "midifile.h"
 
 #define MGLOB(x) (csound->midiGlobals->x)

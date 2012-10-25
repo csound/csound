@@ -977,10 +977,12 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     if (p->l_ksmps != g_ksmps) {
       csound->ksmps = p->l_ksmps; /* Oh dear!  breaks many assumptions -- JPff */
       p->ksmps_scale = g_ksmps / (int) csound->ksmps;
-      csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
+        //FIXME 
+//      csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
       p->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) p->l_ksmps;
-      p->l_ekr = csound->ekr = csound->pool[csound->poolcount + 1] =
-          csound->esr / (MYFLT) p->l_ksmps;
+        //FIXME 
+//      p->l_ekr = csound->ekr = csound->pool[csound->poolcount + 1] =
+//          csound->esr / (MYFLT) p->l_ksmps;
       p->l_onedkr = csound->onedkr = FL(1.0) / p->l_ekr;
       p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
       csound->kcounter *= p->ksmps_scale;
@@ -1064,9 +1066,11 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     if (csound->ksmps != g_ksmps) {
       csound->ksmps = g_ksmps;
       saved_curip->xtratim = lcurip->xtratim / p->ksmps_scale;
-      csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
+        //FIXME
+//      csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
       csound->kcounter = g_kcounter;
-      csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
+                //FIXME
+//      csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
       csound->onedkr = g_onedkr;
       csound->onedksmps = g_onedksmps;
       csound->kicvt = g_kicvt;
@@ -1254,10 +1258,12 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     pp->ksmps_scale *= n;
     p->h.insdshead->xtratim *= n;
     pp->l_ksmps = csound->ksmps = l_ksmps;
-    csound->pool[csound->poolcount + 2] = (MYFLT) csound->ksmps;
+    //FIXME
+//    csound->pool[csound->poolcount + 2] = (MYFLT) csound->ksmps;
     pp->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
-    pp->l_ekr = csound->ekr = csound->pool[csound->poolcount + 1] =
-        csound->esr / (MYFLT) csound->ksmps;
+        //FIXME
+//    pp->l_ekr = csound->ekr = csound->pool[csound->poolcount + 1] =
+//        csound->esr / (MYFLT) csound->ksmps;
     pp->l_onedkr = csound->onedkr = FL(1.0) / csound->ekr;
     pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
     csound->kcounter *= pp->ksmps_scale;
@@ -1602,8 +1608,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     g_kcounter = csound->kcounter;
     /* set local ksmps and related values */
     csound->ksmps = p->l_ksmps;
-    csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
-    csound->ekr = csound->pool[csound->poolcount + 1] = p->l_ekr;
+    //FIXME
+//    csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
+//    csound->ekr = csound->pool[csound->poolcount + 1] = p->l_ekr;
     csound->onedkr = p->l_onedkr;
     csound->onedksmps = p->l_onedksmps;
     csound->kicvt = p->l_kicvt;
@@ -1701,8 +1708,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
     /* restore globals */
     csound->ksmps = g_ksmps;
-    csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
-    csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
+            //FIXME
+//    csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
+//    csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
     csound->onedkr = g_onedkr;
     csound->onedksmps = g_onedksmps;
     csound->kicvt = g_kicvt;
@@ -1820,6 +1828,23 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     return OK;
 }
 
+/* UTILITY FUNCTIONS FOR LABELS */
+
+int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
+    OPTXT* optxt = (OPTXT*) ip;
+    int offset = 0;
+    
+    while ((optxt = optxt->nxtop) != NULL) {
+        TEXT* t = &optxt->t;
+        if(t->opnum == LABEL && strcmp(t->opcod, labelName) == 0) {
+            break;
+        }
+        offset += csound->opcodlst[t->opnum].dsblksiz;
+    }
+    
+    return offset;
+}
+
 /* create instance of an instr template */
 /*   allocates and sets up all pntrs    */
 
@@ -1829,18 +1854,18 @@ static void instance(CSOUND *csound, int insno)
     INSDS     *ip;
     OPTXT     *optxt;
     OPDS      *opds, *prvids, *prvpds;
-    const OENTRY  *ep;
-    LBLBLK    **lopdsp;
-    LARGNO    *largp;
+    const OENTRY  *ep;    
     int       n, cnt, pextent, opnum, pextra;
     char      *nxtopds, *opdslim;
     MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
+    char*     opMemStart;
     int       *ndxp;
     OPARMS    *O = csound->oparms;
     int       odebug = O->odebug;
+    ARG*	  arg;
 
-    lopdsp = csound->lopds;
-    largp = (LARGNO*) csound->larg;
+//    lopdsp = csound->lopds;
+//    largp = (LARGNO*) csound->larg;
     tp = csound->instrtxtp[insno];
     /* VL: added 2 extra MYFLT pointers to the memory to account for possible
        use by midi mapping flags */
@@ -1853,8 +1878,8 @@ static void instance(CSOUND *csound, int insno)
     if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
     pextra = n-3;
       /* alloc new space,  */
-    pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *);
-    ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->localen + tp->opdstot);
+    pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *);      /* alloc new space,  */
+    ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
     /* IV - Oct 26 2002: replaced with faster version (no search) */
@@ -1875,10 +1900,11 @@ static void instance(CSOUND *csound, int insno)
       pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
       ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
     }
-    gbloffbas = csound->gbloffbas;
+    
+    gbloffbas = csound->globalVarPool;
     lcloffbas = &ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
-    nxtopds = (char*) lclbas + tp->localen;
+    opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize;
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))
       csound->Message(csound,
@@ -1907,7 +1933,6 @@ static void instance(CSOUND *csound, int insno)
         LBLBLK  *lblbp = (LBLBLK *) opds;
         lblbp->prvi = prvids;                   /*    save i/p links */
         lblbp->prvp = prvpds;
-        *lopdsp++ = lblbp;                      /*    log the lbl bp */
         continue;                               /*    for later refs */
       }
       if ((ep->thread & 07) == 0) {             /* thread 1 OR 2:  */
@@ -1943,62 +1968,88 @@ static void instance(CSOUND *csound, int insno)
         argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
       else          /* user defined opcodes are a special case */
         argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
-      ndxp = ttp->outoffs->indx;                /* for outarg codes: */
-      cnt = ttp->outoffs->count;
-      for (n = 0; n < cnt; n++) {
-        MYFLT *fltp;
-        int   indx = ndxp[n];
-        if (indx > 0)                           /* cvt index to lcl/gbl adr */
-          fltp = gbloffbas + indx;
-        else
-          fltp = lcloffbas + (-indx);
-        argpp[n] = fltp;
+
+      arg = ttp->outArgs;
+      for(n = 0; arg != NULL; n++) {
+    	  MYFLT *fltp;
+    	  CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
+    	  if(arg->type == ARG_GLOBAL) {
+    		  fltp = gbloffbas + var->memBlockIndex;
+    	  } else if(arg->type == ARG_LOCAL) {
+    		  fltp = lclbas + var->memBlockIndex;
+    	  } else {
+              csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n", arg->type);
+          }
+    	  argpp[n] = fltp;
+    	  arg = arg->next;
       }
+
       for ( ; ep->outypes[n] != (char) 0; n++)  /* if more outypes, pad */
         argpp[n] = NULL;
-      ndxp = ttp->inoffs->indx;                 /* for inarg codes: */
-      cnt = n + ttp->inoffs->count;
-      for ( ; n < cnt; n++) {
-        int   indx = *(ndxp++);
-        if (indx > 0)                           /* cvt ndx to lcl/gbl */
-          argpp[n] = gbloffbas + indx;
-        else if (indx >= LABELIM)
-          argpp[n] = lcloffbas + (-indx);
-        else {                                  /* if label ref, defer */
-          largp->lblno = indx - LABELOFS;
-          largp->argpp = &(argpp[n]);
-          largp++;
+
+      arg = ttp->inArgs;
+      for(; arg != NULL; n++, arg = arg->next) {
+        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
+        
+        if(arg->type == ARG_CONSTANT) {
+          argpp[n] = csound->constantsPool->values + arg->index;
+        } else if(arg->type == ARG_STRING) {
+          argpp[n] = (MYFLT*)((STRING_VAL*) var)->value;
+        } else if(arg->type == ARG_PFIELD) {
+          argpp[n] = lcloffbas + arg->index;
+          
+        } else if(arg->type == ARG_GLOBAL) {
+          argpp[n] = gbloffbas + var->memBlockIndex;
+        } else if(arg->type == ARG_LOCAL){
+          argpp[n] = lclbas + var->memBlockIndex;
+        } else if(arg->type == ARG_LABEL) {
+          argpp[n] = opMemStart + findLabelMemOffset(csound, tp, (char*)arg->argPtr);
+        } else {
+          csound->Message(csound, "FIXME: instance unexpected arg: %d\n", arg->type);
         }
       }
-      if (UNLIKELY(odebug)) {
-        csound->Message(csound, "argptrs:");
-        cnt = ttp->outoffs->count;
-        for (n = 0; n < cnt; n++)
-          csound->Message(csound, "\t%p", (void*) argpp[n]);
-        for ( ; ep->outypes[n] != (char) 0; n++)
-          csound->Message(csound, "\tPADOUT");
-        ndxp = ttp->inoffs->indx;
-        cnt = n + ttp->inoffs->count;
-        for ( ; n < cnt; n++) {
-          int   indx = *(ndxp++);
-          if (indx >= LABELIM)
-            csound->Message(csound, "\t%p", (void*) argpp[n]);
-          else
-            csound->Message(csound, "\t***lbl");
-        }
-        csound->Message(csound, "\n");
-      }
+//      for ( ; n < cnt; n++) {
+//        int   indx = *(ndxp++);
+//        if (indx > 0)                           /* cvt ndx to lcl/gbl */
+//          argpp[n] = gbloffbas + indx;
+//        else if (indx >= LABELIM)
+//          argpp[n] = lcloffbas + (-indx);
+//        else {                                  /* if label ref, defer */
+//          largp->lblno = indx - LABELOFS;
+//          largp->argpp = &(argpp[n]);
+//          largp++;
+//        }
+//      }
+    //FIXME - DEBUG PRINTING
+//      if (UNLIKELY(odebug)) {
+//        csound->Message(csound, "argptrs:");
+//        cnt = argCount(ttp->outArgs);
+//        for (n = 0; n < cnt; n++)
+//          csound->Message(csound, "\t%p", (void*) argpp[n]);
+//        for ( ; ep->outypes[n] != (char) 0; n++)
+//          csound->Message(csound, "\tPADOUT");
+//        ndxp = ttp->inoffs->indx;
+//        cnt = n + ttp->inoffs->count;
+//        for ( ; n < cnt; n++) {
+//          int   indx = *(ndxp++);
+//          if (indx >= LABELIM)
+//            csound->Message(csound, "\t%p", (void*) argpp[n]);
+//          else
+//            csound->Message(csound, "\t***lbl");
+//        }
+//        csound->Message(csound, "\n");
+//      }
     }
-    /* if (nxtopds != opdslim) { */
-      /*      csound->Message(csound, Str("nxtopds = %p opdslim = %p\n"),
-              nxtopds, opdslim); */
+
     if (UNLIKELY(nxtopds > opdslim))
       csoundDie(csound, Str("inconsistent opds total"));
     /* } */
-    while (largp > (LARGNO*) csound->larg) {    /* now label refs */
-      largp--;
-      *largp->argpp = (MYFLT*) csound->lopds[largp->lblno];
-    }
+
+    // FIXME - label handling
+//    while (largp > (LARGNO*) csound->larg) {    /* now label refs */
+//      largp--;
+//      *largp->argpp = (MYFLT*) csound->lopds[largp->lblno];
+//    }
 }
 
 int prealloc(CSOUND *csound, AOP *p)
