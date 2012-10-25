@@ -224,7 +224,7 @@ static CS_NOINLINE int
 
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.xincod != 0))
       return StrOp_ErrMsg(p, "a-rate argument not allowed");
-    if (UNLIKELY((int) ((OPDS*) p)->optext->t.inoffs->count > 31))
+    if (UNLIKELY((int) ((OPDS*) p)->optext->t.inArgCount > 31))
       StrOp_FatalError(p, "too many arguments");
 
     while (1) {

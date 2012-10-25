@@ -24,7 +24,6 @@
 */
 
 #include "csoundCore.h" /*                            GOTO_OPS.C        */
-#include "oload.h"
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
 extern int32 strarg2insno(CSOUND *, void *p, int is_string);

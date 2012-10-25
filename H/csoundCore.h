@@ -35,6 +35,8 @@
 #endif /* PARCS */
 #include <stdarg.h>
 #include <setjmp.h>
+#include "csound_type_system.h"
+
 
 /*
 #include <sndfile.h>
@@ -58,6 +60,7 @@ util/xtrct.c
 
 #include "csound.h"
 #include "cscore.h"
+#include "pools.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -93,8 +96,10 @@ typedef struct {
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
 #define OUTCOUNT    ORTXT.outlist->count   /* Not used */
-#define INOCOUNT    ORTXT.inoffs->count
-#define OUTOCOUNT   ORTXT.outoffs->count
+//#define INOCOUNT    ORTXT.inoffs->count
+//#define OUTOCOUNT   ORTXT.outoffs->count
+#define INOCOUNT    ORTXT.inArgCount
+#define OUTOCOUNT   ORTXT.outArgCount
 #define XINCODE     ORTXT.xincod
 #  define XINARG1   (p->XINCODE & 1)
 #  define XINARG2   (p->XINCODE & 2)
@@ -166,6 +171,13 @@ typedef struct {
 #define TIMEMSG 0x80
 #define IGN(X)  (void) X
 
+#define ARG_CONSTANT 0
+#define ARG_STRING 1
+#define ARG_PFIELD 2
+#define ARG_GLOBAL 3
+#define ARG_LOCAL 4
+#define ARG_LABEL 5
+
   typedef struct CORFIL {
     char    *body;
     int     len;
@@ -206,10 +218,16 @@ typedef struct {
     char    *arg[1];
   } ARGLST;
 
-  typedef struct argoffs {
-    int     count;
-    int     indx[1];
-  } ARGOFFS;
+  typedef struct arg {
+	  int type;
+	  void* argPtr;
+	  int index;
+	  struct arg* next;
+  } ARG;
+//  typedef struct argoffs {
+//    int     count;
+//    int     indx[1];
+//  } ARGOFFS;
 
   /**
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
@@ -220,8 +238,10 @@ typedef struct {
     char    *opcod;         /* Pointer to opcode name in global pool */
     ARGLST  *inlist;        /* Input args (pointer to item in name list) */
     ARGLST  *outlist;
-    ARGOFFS *inoffs;        /* Input args (index into list of values) */
-    ARGOFFS *outoffs;
+    ARG 	*inArgs;        /* Input args (index into list of values) */
+    int		inArgCount;
+    ARG 	*outArgs;
+    int 	outArgCount;
     int     xincod;         /* Rate switch for multi-rate opcode functions */
     int     xoutcod;        /* output rate switch (IV - Sep 1 2002) */
     int     xincod_str;     /* Type switch for string arguments */
@@ -240,12 +260,11 @@ typedef struct {
     int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                        opcodes in instr */
     int     mdepends;               /* Opcode type (i/k/a) */
-    int     lclkcnt, dummy01;       /* Storage reqs for this instr */
-    int     lclwcnt, lclacnt;
-    int     lclpcnt, lclscnt;
-    int     lclfixed, optxtcount;
+    CS_VAR_POOL* varPool;
+
+    int     optxtcount;
     int16   muted;
-    int32   localen;
+//    int32   localen;
     int32   opdstot;                /* Total size of opds structs in instr */
     int32   *inslist;               /* Only used in parsing (?) */
     MYFLT   *psetdata;              /* Used for pset opcode */
@@ -1113,6 +1132,8 @@ typedef struct NAME__ {
     void          *printerrormessagesflag;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
+    TYPE_POOL*    typePool;
+    CS_VAR_POOL*  varPool;      
     OPDS          *ids, *pds;
     int           ksmps, global_ksmps, nchnls, spoutactive;
     long          kcounter, global_kcounter;
@@ -1216,8 +1237,8 @@ typedef struct NAME__ {
     MYFLT         cpu_power_busy;
     char          *xfilename;
     /* oload.h */
-    int16         nlabels;
-    int16         ngotos;
+//    int16         nlabels;
+//    int16         ngotos;
     int           peakchunks;
     int           keep_tmp;
     OENTRY        *opcodlst;
@@ -1237,7 +1258,9 @@ typedef struct NAME__ {
     uint32        maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
     FILE*         scorein;
     FILE*         scoreout;
-    MYFLT         *pool;
+    MYFLT         *globalVarPool;
+    MYFLT_POOL*   constantsPool;
+    STRING_POOL*  stringPool;
     int           *argoffspace;
     INSDS         *frstoff;
     jmp_buf       exitjmp;
@@ -1262,8 +1285,9 @@ typedef struct NAME__ {
     int           tran_nchnls;
     OPCODINFO     *opcodeInfo;
     void          *instrumentNames;
-    void          *strsav_str;
-    void          *strsav_space;
+    STRING_POOL*  stringSavePool;      
+//    void          *strsav_str;
+//    void          *strsav_space;
     FUNC**        flist;
     int           maxfnum;
     GEN           *gensub;
@@ -1290,24 +1314,6 @@ typedef struct NAME__ {
     int           acount, kcount, icount, Bcount, bcount, tcount;
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    struct otranStatics__ {
-      NAME      *gblNames[256], *lclNames[256];   /* for 8 bit hash */
-      ARGLST    *nullist;
-      ARGOFFS   *nulloffs;
-      int       lclkcnt, lclwcnt, lclfixed;
-      int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt;
-      int       lclnxtkcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt;
-      int       gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt;
-      int       gblfixed, gblkcount, gblacount, gblscount;
-      int       *nxtargoffp, *argofflim, lclpmax;
-      char      **strpool;
-      int32      poolcount, strpool_cnt, argoffsize;
-      int       nconsts;
-      int       *constTbl;
-      int32     *typemask_tabl;
-      int32     *typemask_tabl_in, *typemask_tabl_out;
-      int       lgprevdef;
-    } otranStatics;
     struct sreadStatics__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
@@ -1465,13 +1471,13 @@ typedef struct NAME__ {
     int           ugens4_rand_16;
     int           ugens4_rand_15;
     void          *schedule_kicked;
-    LBLBLK        **lopds;
-    void          *larg;        /* this is actually LARGNO* */
+//    LBLBLK        **lopds;
+//    void          *larg;        /* this is actually LARGNO* */
     MYFLT         *disprep_fftcoefs;
     void          *winEPS_globals;
     OPARMS        oparms_;
-    int32          instxtcount, optxtsize;
-    int32          poolcount, gblfixed, gblacount, gblscount;
+//    int32          instxtcount, optxtsize;
+    //int32          poolcount, gblfixed, gblacount, gblscount;
     CsoundChannelIOCallback_t   channelIOCallback_;
     int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
     const unsigned char *strhash_tabl_8;
