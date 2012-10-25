@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project (Csound)
 
+ENABLE_TESTING()
+
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
 # Project definitions
@@ -450,6 +452,9 @@ set(libcsound_SRCS
     Engine/sread.c
     Engine/swritestr.c
     Engine/twarp.c
+    Engine/csound_type_system.c
+    Engine/csound_standard_types.c
+    Engine/pools.c
     InOut/libsnd.c
     InOut/libsnd_u.c
     InOut/midifile.c
@@ -872,7 +877,7 @@ add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(SDIF)
 add_subdirectory(po)
-
+add_subdirectory(tests/c)
 
 # uninstall target
 configure_file(

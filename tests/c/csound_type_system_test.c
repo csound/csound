@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     
     CSOUND* csound = csoundCreate(NULL);
     
-    csoundAddStandardTypes(pool);
+    csoundAddStandardTypes(csound, pool);
    
     CS_TYPE* aType = csoundGetTypeWithVarTypeName(pool, "a");
     CS_VARIABLE* var = csoundCreateVariable(csound, pool, aType, "a1");
