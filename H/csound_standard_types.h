@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-    void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool);
+    PUBLIC void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool);
 
 
 #ifdef	__cplusplus
