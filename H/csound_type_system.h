@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#include "csound.h"
+
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1    
 #define CS_ARG_TYPE_OUT 2
@@ -53,9 +55,9 @@ extern "C" {
 
     /* Adds a new type to Csound's type table
        Returns if variable type redefined */
-    int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE* typeInstance);
-    CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name);
-    CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
+    PUBLIC int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE* typeInstance);
+    PUBLIC CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name);
+    PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
     
     
     /* Csound Variable Pool - essentially a map<string,csvar> 
@@ -68,10 +70,10 @@ extern "C" {
         int poolSize;
     } CS_VAR_POOL;
 
-    CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name);
-    int csoundFindVariable(CS_VAR_POOL* pool, const char* name);
-    int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var);
-    void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
+    PUBLIC CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name);
+    PUBLIC int csoundFindVariable(CS_VAR_POOL* pool, const char* name);
+    PUBLIC int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var);
+    PUBLIC void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
     
 #ifdef	__cplusplus
 }
