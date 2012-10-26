@@ -27,7 +27,7 @@
 %{
 #include "Silence.hpp"
 #include <vector>
-  %}
+%}
 #else
 #include "Silence.hpp"
 #endif

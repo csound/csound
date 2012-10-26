@@ -26,7 +26,7 @@
 %include "std_string.i"
 %{
 #include <string>
-  %}
+%}
 #else
 #include <string>
 #endif
