@@ -60,7 +60,8 @@
 }
 
 %feature("director") Node;
-%include "Silence.hpp"
+%include <Silence.hpp>
+%include <Conversions.hpp>
 
 %pythoncode
 %{

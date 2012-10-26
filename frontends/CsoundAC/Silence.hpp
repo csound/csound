@@ -50,7 +50,7 @@
 #include <vector>
 #include <map>
 #include <eigen3/Eigen/Dense>
-  %}
+%}
 #else
 #include <string>
 #include <vector>

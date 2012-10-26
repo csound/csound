@@ -25,7 +25,7 @@
 %module CsoundAC
 %{
 #include "Node.hpp"
-  %}
+%}
 #else
 #include "Node.hpp"
 #include <boost/random.hpp>
