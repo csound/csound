@@ -375,6 +375,10 @@ extern "C" {
     csoundStop,
     csoundGetNamedGens,
     csoundPow2,
+    csoundCreateCircularBuffer,
+    csoundReadCircularBuffer,
+    csoundWriteCircularBuffer,
+    csoundFreeCircularBuffer,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -383,7 +387,8 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
