@@ -464,6 +464,7 @@ set(libcsound_SRCS
     InOut/windin.c
     InOut/window.c
     InOut/winEPS.c
+    InOut/circularbuffer.c
     OOps/aops.c
     OOps/bus.c
     OOps/cmath.c
