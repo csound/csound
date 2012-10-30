@@ -1995,6 +1995,9 @@ extern "C" {
             void (*func)(CSOUND*, const char*, int, int, int));
 #endif
 
+
+
+
     /* This pragma must come after all public function declarations */
 #if (defined(macintosh) && defined(__MWERKS__))
 #  pragma export off
@@ -2008,6 +2011,35 @@ extern "C" {
 #include "msg_attr.h"
     /* macro definitions for Csound release, and API version */
 #include "version.h"
+
+ /**
+  * Create circular buffer with size samples
+  */
+  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int size);
+
+ /**
+  * Read from circular buffer
+  * void *circular_buffer - pointer to an existing circular buffer
+  * MYFLT *out - buffer with at least items samples where buffer contents will be read into
+  * int items - number of samples to be read
+  * returns the number of samples read (0 <= n <= items)
+  */
+  PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer, MYFLT *out, int items);
+
+ /**
+  * Write to circular buffer
+  * void *circular_buffer - pointer to an existing circular buffer
+  * MYFLT *inp - buffer with at least items samples to bet written into circular buffer
+  * int items - number of samples to be read
+  * returns the number of samples read (0 <= n <= items)
+  */
+  PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p, const MYFLT *inp, int items);
+
+ /**
+  * Free circular buffer
+  */
+  PUBLIC void csoundFreeCircularBuffer(CSOUND *csound, void *circularbuffer);
+
 
 #ifdef __cplusplus
 }
