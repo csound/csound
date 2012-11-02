@@ -1541,10 +1541,11 @@ static int gen28(FGDATA *ff, FUNC *ftp)
           newx = (MYFLT*)realloc(x, arraysize*sizeof(MYFLT));
           newy = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
           newz = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
-          if (!newx || !newy || !newx) {
+          if (!newx || !newy || !newz) {
             fprintf(stderr, "Out of Memory\n");
             exit(7);
           }
+          x = newx; y = newy; z = newz;
         }
       }
     --i;
