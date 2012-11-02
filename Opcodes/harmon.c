@@ -106,8 +106,8 @@ static int hm234set(CSOUND *csound, HARM234 *q, HARMON2 *p)
       q->maxprd = maxprd;
       q->nbufsmps = nbufsmps;
       q->n2bufsmps = nbufsmps * 2;
-      q->minoct = minoct;
     }
+    q->minoct = minoct;
     q->sicvt = FL(65536.0) * csound->onedsr;
     q->cpsmode = ((*q->icpsmode != FL(0.0)));
     q->polarity = (int16)*q->ipolarity;
