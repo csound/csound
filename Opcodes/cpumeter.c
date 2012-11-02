@@ -100,7 +100,7 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
     SIC_t u_frme, s_frme, n_frme, i_frme,
       w_frme, x_frme, y_frme, z_frme, tot_frme, tz;
     double scale;
-    int k, num;
+    int k/*, num*/;
     CPU_t *cpu = p->cpus;
     char buf[SMLBUFSIZ];
 
@@ -109,9 +109,9 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
     k = p->cpu_max;
     if (!fgets(buf, SMLBUFSIZ, p->fp))
       return csound->PerfError(csound,Str("failed /proc/stat read"));
-    num = sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
-                 &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
-                 &cpu[k].w, &cpu[k].x, &cpu[k].y, &cpu[k].z);
+    /*num = */sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
+                     &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
+                     &cpu[k].w, &cpu[k].x, &cpu[k].y, &cpu[k].z);
     u_frme = cpu[k].u - cpu[k].u_sav;
     s_frme = cpu[k].s - cpu[k].s_sav;
     n_frme = cpu[k].n - cpu[k].n_sav;
@@ -149,9 +149,9 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
     for (k=0; k<p->cpu_max && k+1<p->OUTOCOUNT; k++) {
       if (!fgets(buf, SMLBUFSIZ, p->fp))
         return csound->PerfError(csound,Str("failed /proc/stat read"));
-      num = sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
-                   &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
-                   &cpu[k].w, &cpu[k].x, &cpu[k].y, &cpu[k].z);
+      /*num = */ (void)sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
+                              &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
+                              &cpu[k].w, &cpu[k].x, &cpu[k].y, &cpu[k].z);
       u_frme = cpu[k].u - cpu[k].u_sav;
       s_frme = cpu[k].s - cpu[k].s_sav;
       n_frme = cpu[k].n - cpu[k].n_sav;

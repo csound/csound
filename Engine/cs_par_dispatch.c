@@ -1494,8 +1494,8 @@ static inline void csp_dag_prepare_use_insds(CSOUND *csound,
 
 static void csp_dag_calculate_max_roots(CSOUND *csound, DAG *dag)
 {
-    INSTR_SEMANTICS *instr = NULL;
-    INSDS *insds = NULL;
+    //INSTR_SEMANTICS *instr = NULL;
+    //INSDS *insds = NULL;
     DAG_NODE *node;
     int update_hdl = -1;
 
@@ -1515,10 +1515,10 @@ static void csp_dag_calculate_max_roots(CSOUND *csound, DAG *dag)
         dag->max_roots = roots_avail;
       }
       csp_dag_consume(csound, dag, &node, &update_hdl);
-      instr = node->instr;
-      insds = node->insds;
+      //instr = node->instr;
+      //insds = node->insds;
 
-      if (insds != NULL) {
+      if (node->insds != NULL) {
         csp_dag_consume_update(csound, dag, update_hdl);
       }
     }

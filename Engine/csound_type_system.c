@@ -91,11 +91,11 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
     CS_VARIABLE* current = pool->head;
     int i;
 
-	for(i = 0; i < index, current != NULL; i++) {
-		current = current->next;
-	}
+    for(i = 0; i < index || current != NULL; i++) { /* THIS WAS WRONG!! && or || meant foR , ?? */
+        current = current->next;
+    }
 
-	return current;
+    return current;
 }
 
 int csoundFindVariable(CS_VAR_POOL* pool, const char* name) {
