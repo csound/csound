@@ -55,7 +55,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
-    char    *sortedscore = NULL;
+    //char    *sortedscore = NULL;
     //    char    *xtractedscore = "score.xtr";
     FILE    *xfile = NULL;
     int     n;
@@ -227,7 +227,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
     }
     else {
-      sortedscore = NULL;
+      //sortedscore = NULL;
       if (csound->scorestr==NULL) {
         csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
         if (csound->scorestr==NULL)

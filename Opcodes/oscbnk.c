@@ -1140,7 +1140,7 @@ static int kosclikt(CSOUND *csound, OSCKT *p)
     ft = p->ft; phs = p->phs;
     /* read from table with interpolation */
     n = phs >> p->lobits; v = (MYFLT) ((int32) (phs & p->mask)) * p->pfrac;
-    *(p->sr) = (p->ft[n] + (p->ft[n + 1] - p->ft[n]) * v) * *(p->xamp);
+    *(p->sr) = (ft[n] + (ft[n + 1] - ft[n]) * v) * *(p->xamp);
     /* update phase */
     v = *(p->xcps) * CS_ONEDKR;
     p->phs = (phs + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;

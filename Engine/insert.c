@@ -948,7 +948,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     OPCOD_IOBUFS  *buf;
     int     g_ksmps;
     int32    g_kcounter;
-    MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt;
+    MYFLT   /*g_ekr, */g_onedkr, g_onedksmps, g_kicvt;
 
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
@@ -969,7 +969,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     }
     /* save old globals */
     g_kcounter = csound->kcounter;
-    g_ekr = csound->ekr;
+    /*g_ekr = csound->ekr;*/
     g_onedkr = csound->onedkr;
     g_onedksmps = csound->onedksmps;
     g_kicvt = csound->kicvt;
@@ -1594,14 +1594,14 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = csound->pds;
     int     g_ksmps, ofs = 0, n;
-    MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
+    MYFLT   /*g_ekr, */g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
     int32    g_kcounter;
 
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
     /* save old globals */
     g_ksmps = csound->ksmps;
-    g_ekr = csound->ekr;
+    //g_ekr = csound->ekr;
     g_onedkr = csound->onedkr;
     g_onedksmps = csound->onedksmps;
     g_kicvt = csound->kicvt;
@@ -1855,11 +1855,11 @@ static void instance(CSOUND *csound, int insno)
     OPTXT     *optxt;
     OPDS      *opds, *prvids, *prvpds;
     const OENTRY  *ep;    
-    int       n, cnt, pextent, opnum, pextra;
+    int       n, /*cnt, */pextent, opnum, pextra;
     char      *nxtopds, *opdslim;
     MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
     char*     opMemStart;
-    int       *ndxp;
+    //    int       *ndxp;
     OPARMS    *O = csound->oparms;
     int       odebug = O->odebug;
     ARG*	  arg;
@@ -1979,6 +1979,7 @@ static void instance(CSOUND *csound, int insno)
     		  fltp = lclbas + var->memBlockIndex;
     	  } else {
               csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n", arg->type);
+              fltp = NULL;
           }
     	  argpp[n] = fltp;
     	  arg = arg->next;
@@ -2003,7 +2004,7 @@ static void instance(CSOUND *csound, int insno)
         } else if(arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
         } else if(arg->type == ARG_LABEL) {
-          argpp[n] = opMemStart + findLabelMemOffset(csound, tp, (char*)arg->argPtr);
+          argpp[n] = (MYFLT*)(opMemStart + findLabelMemOffset(csound, tp, (char*)arg->argPtr));
         } else {
           csound->Message(csound, "FIXME: instance unexpected arg: %d\n", arg->type);
         }
