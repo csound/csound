@@ -367,7 +367,7 @@ int sndo1set(CSOUND *csound, void *pp)
     MYFLT   *ifilcod, *iformat;
     int     filetyp = TYP_RAW, format = csound->oparms_.outformat, nchns = 1;
     SF_INFO sfinfo;
-    SNDOUTS *p = (SNDOUTS*) pp;
+    //SNDOUTS *p = (SNDOUTS*) pp;
 
     opname = csound->GetOpcodeName(pp);
     csound->Warning(csound, Str("%s is deprecated; use fout instead\n"),

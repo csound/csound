@@ -324,7 +324,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
         }
         else if (*p=='"') {
           int is_escape = 0;
-          char *old;
+          char *old = NULL;
           *p=3; /* ETX char used to mark the limits of a string */
           while ((*p != '"' || is_escape) && *p != '\0') {
             if (is_escape)

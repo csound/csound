@@ -331,7 +331,7 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
 {
     if (!p->initDone) {
       p->pp = csoundStack_GetGlobals(csound);
-      if (UNLIKELY(csoundStack_CreateArgMap(p, &(p->argMap[0]), 0) != OK))
+      if (UNLIKELY(csoundStack_CreateArgMap(p, (int*)&(p->argMap[0]), 0) != OK))
         return NOTOK;
       p->h.opadr = (int (*)(CSOUND *, void *)) push_opcode_perf;
       p->initDone = 1;
@@ -423,7 +423,7 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
 {
     if (!p->initDone) {
       p->pp = csoundStack_GetGlobals(csound);
-      if (UNLIKELY(csoundStack_CreateArgMap(p, &(p->argMap[0]), 1) != OK))
+      if (UNLIKELY(csoundStack_CreateArgMap((PUSH_OPCODE*)p, &(p->argMap[0]), 1) != OK))
         return NOTOK;
       p->h.opadr = (int (*)(CSOUND *, void *)) pop_opcode_perf;
       p->initDone = 1;

@@ -163,7 +163,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     MYFLT *analwinhalf,*analwinbase;
     MYFLT sum;
     int32 halfwinsize,buflen;
-    int i,nBins,Mf,Lf;
+    int i,nBins,Mf/*,Lf*/;
 
     /* opcode params */
     int32 N =(int32) *(p->fftsize);
@@ -195,7 +195,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     /* we can exclude/simplify all sorts of stuff in CARL
      * as we will never do time-scaling with this opcode
      */
-    Lf = Mf = 1 - M%2;
+    /*Lf =*/ Mf = 1 - M%2;
 
     csound->AuxAlloc(csound, overlap * sizeof(MYFLT), &p->overlapbuf);
     csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->analbuf);
@@ -832,7 +832,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
 {
     int i,j,k,ii,NO,NO2;
     float *anal;                                        /* RWD MUST be 32bit */
-    MYFLT *syn,*bsyn,*output;
+    MYFLT *syn, /* *bsyn,*/ *output;
     MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
     int32 N = p->fsig->N;
     MYFLT *obufptr,*outbuf,*synWindow;
@@ -852,7 +852,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     outbuf = (MYFLT *) (p->overlapbuf.auxp);
     synWindow = (MYFLT *) (p->synwinbuf.auxp) + synWinLen;
 
-    bsyn = syn+1;
+    //bsyn = syn+1;
     /* reconversion: The magnitude and angle-difference-per-second in syn
        (assuming an intermediate sampling rate of rOut) are
        converted to real and imaginary values and are returned in syn.
