@@ -41,7 +41,7 @@ extern ORCTOKEN *lookup_token(CSOUND *csound, char *);
 /***********************************************************************
  * static function prototypes
  */
-static uint32_t inline hash( uint32_t a );
+inline static uint32_t hash( uint32_t a );
 static uint32_t hash_chain(INSDS *chain, uint32_t hash_size);
 static uint32_t hash_string(char *str, uint32_t hash_size);
 
@@ -52,7 +52,7 @@ static uint32_t hash_string(char *str, uint32_t hash_size);
 /* Robert Jenkins' 32 bit integer hash function from
  * http://www.concentric.net/~Ttwang/tech/inthash.htm
  */
-static uint32_t inline hash( uint32_t a )
+inline static uint32_t hash( uint32_t a )
 {
     a = (a+0x7ed55d16) + (a<<12);
     a = (a^0xc761c23c) ^ (a>>19);
@@ -105,7 +105,7 @@ struct global_var_lock_t {
 //static struct global_var_lock_t **global_var_lock_cache;
 
 
-void inline csp_locks_lock(CSOUND * csound, int global_index)
+inline void csp_locks_lock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
       csound->Die(csound,
@@ -118,7 +118,7 @@ void inline csp_locks_lock(CSOUND * csound, int global_index)
     TAKE_LOCK(&(csound->global_var_lock_cache[global_index]->lock));
 }
 
-void inline csp_locks_unlock(CSOUND * csound, int global_index)
+inline void csp_locks_unlock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
       csound->Die(csound,
@@ -198,7 +198,7 @@ static struct global_var_lock_t
 TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
     csound->Message(csound,
-                    "Inserting Parallelism Constructs into AST\n");
+                    Str("Inserting Parallelism Constructs into AST\n"));
 
     TREE *anchor = NULL;
 
@@ -210,7 +210,8 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
       switch(current->type) {
       case INSTR_TOKEN:
         if (current->left->type == T_INSTLIST) {
-          instr = csp_orc_sa_instr_get_by_name(csound,
+          instr =
+            csp_orc_sa_instr_get_by_name(csound,
                                                current->left->left->value->lexeme);
         }
         else {
@@ -241,7 +242,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
            * that is same global read and written in this operation */
           if (left->count == 1 && right->count == 1 && new->count == 1) {
             char *global_var = NULL;
-            csp_set_get_num(csound, new, 0, (void **)&global_var);
+            csp_set_get_num(new, 0, (void **)&global_var);
 
             struct global_var_lock_t *gvar =
               global_var_lock_find(csound, global_var);
@@ -297,7 +298,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
     }
 
     csound->Message(csound,
-                    "[End Inserting Parallelism Constructs into AST]\n");
+                    Str("[End Inserting Parallelism Constructs into AST]\n"));
 
     return anchor;
 }
@@ -369,12 +370,12 @@ int globalunlock(CSOUND *csound, GLOBAL_LOCK_UNLOCK *p)
 static void csp_weights_calculate_instr(CSOUND *csound, TREE *root,
                                         INSTR_SEMANTICS *instr)
 {
-    csound->Message(csound, "Calculating Instrument weight from AST\n");
+    csound->Message(csound, Str("Calculating Instrument weight from AST\n"));
 
     TREE *current = root;
     INSTR_SEMANTICS *nested_instr = NULL;
 
-    while(current != NULL) {
+    while (current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
         nested_instr =
@@ -405,8 +406,8 @@ static void csp_weights_calculate_instr(CSOUND *csound, TREE *root,
 
       default:
         csound->Message(csound,
-                        "WARNING: Unexpected node type in weight "
-                        "calculation walk %i\n", current->type);
+                        Str("WARNING: Unexpected node type in weight "
+                            "calculation walk %i\n"), current->type);
         instr->weight += WEIGHT_UNKNOWN_NODE;
         break;
       }
@@ -415,17 +416,17 @@ static void csp_weights_calculate_instr(CSOUND *csound, TREE *root,
     }
 
     csound->Message(csound,
-                    "[End Calculating Instrument weight from AST]\n");
+                    Str("[End Calculating Instrument weight from AST]\n"));
 }
 
 void csp_weights_calculate(CSOUND *csound, TREE *root)
 {
-    csound->Message(csound, "Calculating Instrument weights from AST\n");
+    csound->Message(csound, Str("Calculating Instrument weights from AST\n"));
 
     TREE *current = root;
     INSTR_SEMANTICS *instr = NULL;
 
-    while(current != NULL) {
+    while (current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
         if (current->left->type == T_INSTLIST) {
@@ -463,14 +464,14 @@ void csp_weights_calculate(CSOUND *csound, TREE *root)
     }
 
     csound->Message(csound,
-                    "[End Calculating Instrument weights from AST]\n");
+                    Str("[End Calculating Instrument weights from AST]\n"));
 }
 
 static void csp_orc_sa_opcode_dump_instr(CSOUND *csound, TREE *root)
 {
     TREE *current = root;
 
-    while(current != NULL) {
+    while (current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
         break;
@@ -484,8 +485,8 @@ static void csp_orc_sa_opcode_dump_instr(CSOUND *csound, TREE *root)
         break;
 
       default:
-        csound->Message(csound, "WARNING: Unexpected node type in weight "
-                        "calculation walk %i\n", current->type);
+        csound->Message(csound, Str("WARNING: Unexpected node type in weight "
+                                    "calculation walk %i\n"), current->type);
         break;
       }
 
@@ -499,8 +500,8 @@ void csp_orc_sa_opcode_dump(CSOUND *csound, TREE *root)
 
     TREE *current = root;
 
-    while(current != NULL) {
-      switch(current->type) {
+    while (current != NULL) {
+      switch (current->type) {
       case INSTR_TOKEN:
         csp_orc_sa_opcode_dump_instr(csound, current->right);
         break;
@@ -606,7 +607,7 @@ uint32_t csp_opcode_weight_fetch(CSOUND *csound, char *name)
       }
       /* no weight for this opcode use default */
       csound->Message(csound,
-                      "WARNING: no weight found for opcode: %s\n", name);
+                      Str("WARNING: no weight found for opcode: %s\n"), name);
       return WEIGHT_OPCODE_NODE;
     }
 }
@@ -1003,13 +1004,13 @@ static void dag_node_2_dealloc(CSOUND *csound, DAG_NODE **dag_node);
 /* build the edges (fill out the table) */
 /* static void csp_dag_build_edges(CSOUND *csound, DAG *dag); */
 /* find the roots in the DAG and setup the root countdowns */
-static void csp_dag_build_roots(CSOUND *csound, DAG *dag);
+static void csp_dag_build_roots(DAG *dag);
 /* perpare DAG after building */
-/* static void csp_dag_prepare_use_first(CSOUND *csound, DAG *dag); */
+/* static void csp_dag_prepare_use_first(DAG *dag); */
 /* perpare DAG after getting out of the cache */
-static void csp_dag_prepare_use(CSOUND *csound, DAG *dag);
+static void csp_dag_prepare_use(DAG *dag);
 /* follow insds chain in nodes to update insds pointers */
-static inline void csp_dag_prepare_use_insds(CSOUND *csound, DAG *dag,
+static inline void csp_dag_prepare_use_insds(DAG *dag,
                                              INSDS *chain);
 
 #define DAG_NO_LINK     0
@@ -1290,7 +1291,7 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write,
                              dag->all[dag_curr_ctr]->instr->read,
                              &write_intersection);
-        if (csp_set_count(csound, write_intersection) != 0) {
+        if (csp_set_count(write_intersection) != 0) {
           depends |= DAG_STRONG_LINK;
         }
         csp_set_dealloc(csound, &write_intersection);
@@ -1304,7 +1305,7 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read,
                              dag->all[dag_curr_ctr]->instr->write,
                              &read_intersection);
-        if (csp_set_count(csound, read_intersection) != 0) {
+        if (csp_set_count(read_intersection) != 0) {
           depends |= DAG_STRONG_LINK;
         }
         csp_set_dealloc(csound, &read_intersection);
@@ -1318,7 +1319,7 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write,
                              dag->all[dag_curr_ctr]->instr->write,
                              &double_write_intersection);
-        if (csp_set_count(csound, double_write_intersection) != 0) {
+        if (csp_set_count(double_write_intersection) != 0) {
           depends |= DAG_STRONG_LINK;
         }
         csp_set_dealloc(csound, &double_write_intersection);
@@ -1333,7 +1334,7 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
                              dag->all[dag_root_ctr]->instr->read_write,
                              dag->all[dag_curr_ctr]->instr->write,
                              &readwrite_write_intersection);
-        if (csp_set_count(csound, readwrite_write_intersection) != 0) {
+        if (csp_set_count(readwrite_write_intersection) != 0) {
           depends |= DAG_STRONG_LINK;
         }
         csp_set_dealloc(csound, &readwrite_write_intersection);
@@ -1349,7 +1350,7 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
                              dag->all[dag_root_ctr]->instr->read_write,
                              dag->all[dag_curr_ctr]->instr->read,
                              &readwrite_read_intersection);
-        if (csp_set_count(csound, readwrite_read_intersection) != 0) {
+        if (csp_set_count(readwrite_read_intersection) != 0) {
           depends |= DAG_STRONG_LINK;
         }
         csp_set_dealloc(csound, &readwrite_read_intersection);
@@ -1365,7 +1366,7 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read,
                              dag->all[dag_curr_ctr]->instr->read_write,
                              &read_readwrite_intersection);
-        if (csp_set_count(csound, read_readwrite_intersection) != 0) {
+        if (csp_set_count(read_readwrite_intersection) != 0) {
           depends |= DAG_STRONG_LINK;
         }
         csp_set_dealloc(csound, &read_readwrite_intersection);
@@ -1381,7 +1382,7 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write,
                              dag->all[dag_curr_ctr]->instr->read_write,
                              &write_readwrite_intersection);
-        if (csp_set_count(csound, write_readwrite_intersection) != 0) {
+        if (csp_set_count(write_readwrite_intersection) != 0) {
           depends |= DAG_STRONG_LINK;
         }
         csp_set_dealloc(csound, &write_readwrite_intersection);
@@ -1398,8 +1399,7 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
                              dag->all[dag_root_ctr]->instr->read_write,
                              dag->all[dag_curr_ctr]->instr->read_write,
                              &readwrite_readwrite_intersection);
-        if (csp_set_count(csound,
-                          readwrite_readwrite_intersection) != 0) {
+        if (csp_set_count(readwrite_readwrite_intersection) != 0) {
           depends |= DAG_WEAK_LINK;
         }
         csp_set_dealloc(csound, &readwrite_readwrite_intersection);
@@ -1423,12 +1423,9 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
     }
 }
 
-static void csp_dag_build_roots(CSOUND *csound, DAG *dag)
+static void csp_dag_build_roots(DAG *dag)
 {
     int col = 0;
-#ifdef CAUTIOUS
-    if (dag == NULL) csound->Die(csound, Str("Invalid NULL Parameter dag"));
-#endif
 
     while (col < dag->count) {
       int exists_in = 0;
@@ -1451,14 +1448,14 @@ static void csp_dag_build_roots(CSOUND *csound, DAG *dag)
     }
 }
 
-inline static void csp_dag_prepare_use_first(CSOUND *csound, DAG *dag)
+inline static void csp_dag_prepare_use_first(DAG *dag)
 {
 
     memcpy(dag->table[0], dag->table_ori[0],
            sizeof(uint8_t) * dag->count * dag->count);
 }
 
-static void csp_dag_prepare_use(CSOUND *csound, DAG *dag)
+static void csp_dag_prepare_use(DAG *dag)
 {
  #ifdef CAUTIOUS
     if (dag == NULL) csound->Die(csound, Str("Invalid NULL Parameter dag"));
@@ -1473,8 +1470,7 @@ static void csp_dag_prepare_use(CSOUND *csound, DAG *dag)
     dag->root_seen[dag->first_root] = 2;
 }
 
-static inline void csp_dag_prepare_use_insds(CSOUND *csound,
-                                             DAG *dag, INSDS *chain)
+static inline void csp_dag_prepare_use_insds(DAG *dag, INSDS *chain)
 {
     DAG_NODE *node;
 #ifdef CAUTIOUS
@@ -1492,10 +1488,10 @@ static inline void csp_dag_prepare_use_insds(CSOUND *csound,
     }
 }
 
-static void csp_dag_calculate_max_roots(CSOUND *csound, DAG *dag)
+static void csp_dag_calculate_max_roots(DAG *dag)
 {
-    INSTR_SEMANTICS *instr = NULL;
-    INSDS *insds = NULL;
+    //INSTR_SEMANTICS *instr = NULL;
+    //INSDS *insds = NULL;
     DAG_NODE *node;
     int update_hdl = -1;
 
@@ -1503,7 +1499,7 @@ static void csp_dag_calculate_max_roots(CSOUND *csound, DAG *dag)
     if (dag == NULL) csound->Die(csound, Str("Invalid NULL Parameter dag"));
 #endif
 
-    while (!csp_dag_is_finished(csound, dag)) {
+    while (!csp_dag_is_finished(dag)) {
       int ctr = 0, roots_avail = 0;
       while (ctr < dag->count) {
         if (dag->roots[ctr] != NULL) {
@@ -1514,12 +1510,12 @@ static void csp_dag_calculate_max_roots(CSOUND *csound, DAG *dag)
       if (roots_avail > dag->max_roots) {
         dag->max_roots = roots_avail;
       }
-      csp_dag_consume(csound, dag, &node, &update_hdl);
-      instr = node->instr;
-      insds = node->insds;
+      csp_dag_consume(dag, &node, &update_hdl);
+      //instr = node->instr;
+      //insds = node->insds;
 
-      if (insds != NULL) {
-        csp_dag_consume_update(csound, dag, update_hdl);
+      if (node->insds != NULL) {
+        csp_dag_consume_update(dag, update_hdl);
       }
     }
 }
@@ -1537,16 +1533,16 @@ void csp_dag_build(CSOUND *csound, DAG **dag, INSDS *chain)
     *dag = csp_dag_build_initial(csound, chain);
     csp_dag_build_prepare(csound, *dag);
     csp_dag_build_edges(csound, *dag);
-    csp_dag_build_roots(csound, *dag);
-    csp_dag_prepare_use_first(csound, *dag);
-    csp_dag_prepare_use(csound, *dag);
+    csp_dag_build_roots(*dag);
+    csp_dag_prepare_use_first(*dag);
+    csp_dag_prepare_use(*dag);
 
-    csp_dag_calculate_max_roots(csound, *dag);
-    csp_dag_prepare_use(csound, *dag);
+    csp_dag_calculate_max_roots(*dag);
+    csp_dag_prepare_use(*dag);
     TRACE_5("DAG BUILT\n");
 }
 
-int inline csp_dag_is_finished(CSOUND *csound, DAG *dag)
+int inline csp_dag_is_finished(DAG *dag)
 {
 #ifdef CAUTIOUS
     if (dag == NULL)
@@ -1565,7 +1561,7 @@ int inline csp_dag_is_finished(CSOUND *csound, DAG *dag)
  * consume an instr and update the first root cache
  */
 //static int waiting_for_ending=0;
-void csp_dag_consume(CSOUND *csound, DAG *dag,
+void csp_dag_consume(DAG *dag,
                      DAG_NODE **node, int *update_hdl)
 {
     DAG_NODE *dag_node = NULL;
@@ -1660,7 +1656,7 @@ void csp_dag_consume(CSOUND *csound, DAG *dag,
 /*
  * update the roots countdown and roots after consumeing a node
  */
-void csp_dag_consume_update(CSOUND *csound, DAG *dag, int update_hdl)
+void csp_dag_consume_update(DAG *dag, int update_hdl)
 {
     int col = 0;
     TRACE_5("DAG update\n");
@@ -1714,7 +1710,7 @@ void csp_dag_consume_update(CSOUND *csound, DAG *dag, int update_hdl)
             csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
 }
 
-static char *csp_dag_string(CSOUND *csound, DAG *dag)
+static char *csp_dag_string(DAG *dag)
 {
 #define DAG_2_BUF 8196
     char buf[DAG_2_BUF];
@@ -1808,7 +1804,7 @@ static char *csp_dag_string(CSOUND *csound, DAG *dag)
 
 void csp_dag_print(CSOUND *csound, DAG *dag)
 {
-    char *str = csp_dag_string(csound, dag);
+    char *str = csp_dag_string(dag);
     if (str != NULL) {
       csound->Message(csound, "%s", str);
       free(str);
@@ -2091,7 +2087,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 #if TRACE > 1
         ctr = 0;
         while (ctr < dag->count) {
-          csound->Message(csound, "%i -> %i\n", ctr, map_old_to_new_locations[ctr]);
+          csound->Message(csound,
+                          "%i -> %i\n", ctr, map_old_to_new_locations[ctr]);
           ctr++;
         }
 #endif
@@ -2159,12 +2156,12 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
     memset(dag->remaining_count_ori, 0, sizeof(int) * dag_table_original_size);
     dag->max_roots = 0;
 
-    csp_dag_build_roots(csound, dag);
-    /* csp_dag_prepare_use_first(csound, dag); */
-    csp_dag_prepare_use(csound, dag);
+    csp_dag_build_roots(dag);
+    /* csp_dag_prepare_use_first(dag); */
+    csp_dag_prepare_use(dag);
 
-    csp_dag_calculate_max_roots(csound, dag);
-    csp_dag_prepare_use(csound, dag);
+    csp_dag_calculate_max_roots(dag);
+    csp_dag_prepare_use(dag);
     //    csp_dag_print(csound, dag);
 
 
@@ -2428,8 +2425,7 @@ static uint32_t update_ctr;
 static int csp_dag_cache_entry_alloc(CSOUND *csound,
                                      struct dag_cache_entry_t **entry,
                                      INSDS *chain, uint32_t hash_val);
-static int csp_dag_cache_compare(CSOUND *csound,
-                                 struct dag_cache_entry_t *entry, INSDS *chain);
+static int csp_dag_cache_compare(struct dag_cache_entry_t *entry, INSDS *chain);
 #if 0
 static int csp_dag_cache_entry_dealloc(CSOUND *csound,
                                        struct dag_cache_entry_t **entry);
@@ -2466,13 +2462,15 @@ void csp_dag_cache_print(CSOUND *csound)
         else if (entry->dag->weight < weight_min) weight_min = entry->dag->weight;
 
         instr_num_sum += entry->instrs;
-        if (entry->instrs > instr_num_max) instr_num_max = entry->instrs;
-        else if (entry->instrs < instr_num_min) instr_num_min = entry->instrs;
+        if ((uint32_t)entry->instrs > instr_num_max)
+          instr_num_max = entry->instrs;
+        else if ((uint32_t)entry->instrs < instr_num_min)
+          instr_num_min = entry->instrs;
 
         root_avail_sum += entry->dag->max_roots;
-        if (entry->dag->max_roots > root_avail_max)
+        if ((uint32_t)entry->dag->max_roots > root_avail_max)
           root_avail_max = entry->dag->max_roots;
-        else if (entry->dag->max_roots < root_avail_min)
+        else if ((uint32_t)entry->dag->max_roots < root_avail_min)
           root_avail_min = entry->dag->max_roots;
 
         entry = entry->next;
@@ -2544,7 +2542,7 @@ static void csp_dag_cache_print_weights_dump(CSOUND *csound)
         fprintf(f, "%u\n", dag->weight);
         fprintf(f, "%u\n", dag->max_roots);
 
-        dag_str = csp_dag_string(csound, dag);
+        dag_str = csp_dag_string(dag);
         if (dag_str != NULL) {
           fprintf(f, "%s", dag_str);
           free(dag_str);
@@ -2675,8 +2673,7 @@ static void csp_dag_cache_update(CSOUND *csound)
 }
 #endif
 
-static int csp_dag_cache_compare(CSOUND *csound,
-                                 struct dag_cache_entry_t *entry, INSDS *chain)
+static int csp_dag_cache_compare(struct dag_cache_entry_t *entry, INSDS *chain)
 {
 #ifdef CAUTIOUS
     if (entry == NULL) csound->Die(csound, Str("Invalid NULL Parameter entry"));
@@ -2723,7 +2720,7 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
 
 /* #ifdef HYBRID_HASH_CACHE */
 /*     if (cache_last != NULL && */
-/*         csp_dag_cache_compare(csound, cache_last, chain)) { */
+/*         csp_dag_cache_compare(cache_last, chain)) { */
 /*       struct dag_cache_entry_t *curr = cache_last; */
 /* #if TRACE > 4 */
 /*       csound->Message(csound, "Cache Hit (Last) [%i]\n", cache_ctr); */
@@ -2732,8 +2729,8 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
 /*       TAKE_LOCK(&(curr->dag->consume_spinlock)); */
 /*       curr->uses++; */
 
-/*       csp_dag_prepare_use_insds(csound, curr->dag, chain); */
-/*       csp_dag_prepare_use(csound, curr->dag); */
+/*       csp_dag_prepare_use_insds(curr->dag, chain); */
+/*       csp_dag_prepare_use(curr->dag); */
 /*       RELS_LOCK(&(curr->dag->consume_spinlock)); */
 /*       return; */
 /*     } */
@@ -2742,7 +2739,7 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
     uint32_t hash_val = hash_chain(chain, DAG_2_CACHE_SIZE);
     struct dag_cache_entry_t *curr = csound->cache[hash_val];
     while (curr != NULL) {
-      if (csp_dag_cache_compare(csound, curr, chain)) {
+      if (csp_dag_cache_compare(curr, chain)) {
         TRACE_2("Cache Hit [%i]\n", cache_ctr);
 
         *dag = curr->dag;
@@ -2750,8 +2747,8 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
         TAKE_LOCK(&(curr->dag->consume_spinlock));
         curr->uses++;
 
-        csp_dag_prepare_use_insds(csound, curr->dag, chain);
-        csp_dag_prepare_use(csound, curr->dag);
+        csp_dag_prepare_use_insds(curr->dag, chain);
+        csp_dag_prepare_use(curr->dag);
 /* #ifdef HYBRID_HASH_CACHE */
 /*         cache_last = curr; */
 /* #endif */
@@ -2776,6 +2773,7 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
 
 #endif
 
+#ifdef TESTING
 static long x = 0;
 
 int waste_time(CSOUND* csound, WASTE *p)
@@ -2786,3 +2784,4 @@ int waste_time(CSOUND* csound, WASTE *p)
     for (k=0; k<n; k++) x = (x+1)^1234;
     return OK;
 }
+#endif

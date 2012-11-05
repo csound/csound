@@ -25,7 +25,7 @@
 %module CsoundAC
 %{
 #include "ScoreNode.hpp"
-  %}
+%}
 #else
 #include "ScoreNode.hpp"
 #endif

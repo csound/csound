@@ -357,12 +357,12 @@ static int dotablefilter (CSOUND *csound, TABFILT *p)
     MYFLT threshold;
     int32 ftype;
     MYFLT previous = FL(0.0);
-    int32 sourcelength;
+    //int32 sourcelength;
 
     ftype = (int32) *p->ftype;
     threshold = Digest (*p->threshold);
     loopcount = p->funcd->flen;
-    sourcelength = loopcount;
+    //sourcelength = loopcount;
 
     /* Now get the base addresses and length masks of the tables. */
     based  = p->funcd->ftable;
@@ -532,7 +532,7 @@ int fareylen (CSOUND *csound, FAREYLEN *p)
 int EulerPhi (int n)
 {
     int i = 0;
-    int pcount;
+    //int pcount;
     MYFLT result;
     PFACTOR p[MAX_PFACTOR];
     memset(p, 0, sizeof(PFACTOR)*MAX_PFACTOR);
@@ -541,7 +541,7 @@ int EulerPhi (int n)
       return 1;
     if (n == 0)
       return 0;
-    pcount = PrimeFactors (n, p);
+    /*pcount =*/ PrimeFactors (n, p);
 
     result = (MYFLT)n;
     for (i = 0; i < MAX_PFACTOR; i++) {

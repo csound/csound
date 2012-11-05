@@ -30,7 +30,7 @@
 #include <map>
 #include <string>
 #include <vector>
-  %}
+%}
 %include "std_string.i"
 %template(MidiEventVector) std::vector<csound::MidiEvent>;
 %template(MidiByteVector) std::vector<unsigned char>;
