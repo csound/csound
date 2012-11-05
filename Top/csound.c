@@ -375,6 +375,10 @@ extern "C" {
     csoundStop,
     csoundGetNamedGens,
     csoundPow2,
+    csoundCreateCircularBuffer,
+    csoundReadCircularBuffer,
+    csoundWriteCircularBuffer,
+    csoundFreeCircularBuffer,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -383,7 +387,8 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL
     },
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
@@ -1254,8 +1259,8 @@ extern "C" {
 
 
 #ifdef PARCS
-  static int inline nodePerf(CSOUND *csound, int index)
-  {
+inline static int nodePerf(CSOUND *csound, int index)
+{
 #if (TRACE&4) == 4
       struct instr_semantics_t *instr;
 #endif
@@ -1267,7 +1272,7 @@ extern "C" {
 
       do {
         TRACE_2("Consume DAG [%i]\n", index);
-        csp_dag_consume(csound, csound->multiThreadedDag, &node, &update_hdl);
+			csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl);
 
         if (UNLIKELY(node == NULL)) {
           return played_count;
@@ -1324,8 +1329,8 @@ extern "C" {
           csound->Die(csound, "Unknown DAG node type");
         }
 
-        csp_dag_consume_update(csound, csound->multiThreadedDag, update_hdl);
-      } while (!csp_dag_is_finished(csound, csound->multiThreadedDag));
+			csp_dag_consume_update(csound->multiThreadedDag, update_hdl);
+		} while (!csp_dag_is_finished(csound->multiThreadedDag));
 
       return played_count;
   }

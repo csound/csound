@@ -366,7 +366,7 @@ int kreson(CSOUND *csound, KRESON *p)
 int kareson(CSOUND *csound, KRESON *p)
 {
     int flag = 0;
-    MYFLT       c3p1, c3t4, omc3, c2sqr, D = FL(2.0); /* 1/RMS = root2 (rand) */
+    MYFLT       c3p1, c3t4, omc3, c2sqr /*,D = FL(2.0)*/; /* 1/RMS = root2 (rand) */
     /*      or 1/.5  (sine) */
     if (UNLIKELY(*p->kcf != p->prvcf)) {
       p->prvcf = *p->kcf;

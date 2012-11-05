@@ -1717,10 +1717,10 @@ static int vport_set(CSOUND *csound,VPORT *p)
 {
     FUNC        *ftp;
     int elements;
-    MYFLT *vector, *yt1,*vecInit  = NULL;
+    MYFLT /* *vector,*/ *yt1,*vecInit  = NULL;
 
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL)) {
-      vector = (p->vector = ftp->ftable);
+      p->vector = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
       if (UNLIKELY(elements > ftp->flen) )
         return csound->InitError(csound,

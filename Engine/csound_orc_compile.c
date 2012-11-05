@@ -335,7 +335,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
     char *s;
     char *types = ep->intypes;
     int nreqd = strlen(types);
-    int lgprevdef = 0;
+    //int lgprevdef = 0;
     char      tfound = '\0', treqd;
 
     if (n > nreqd) {                 /* IV - Oct 24 2002: end of new code */
@@ -350,7 +350,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
     }
 
     while (n--) {                     /* inargs:   */
-      int32    tfound_m, treqd_m = 0L;
+      //int32    tfound_m, treqd_m = 0L;
       s = tp->inlist->arg[n];
 
       if (n >= nreqd) {               /* det type required */
@@ -441,7 +441,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
 
 
     while (n--) {                                     /* outargs:  */
-      long    tfound_m;       /* IV - Oct 31 2002 */
+      //long    tfound_m;       /* IV - Oct 31 2002 */
       s = tp->outlist->arg[n];
       treqd = types[n];
       tfound = argtyp2(csound, s);                     /*  found    */
@@ -1033,7 +1033,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 {
 //    csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
-    OPARMS      *O = csound->oparms;
+    //OPARMS      *O = csound->oparms;
     INSTRTXT    *instrtxt = NULL;
     INSTRTXT    *ip = NULL;
     INSTRTXT    *prvinstxt = &(csound->instxtanchor);
@@ -1489,8 +1489,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
     int n, inreqd;
     ARGLST      *outlist, *inlist;
 //    ARGOFFS     *outoffs, *inoffs;
-    int         indx;
-    int *ndxp;
+    //int         indx;
+    //int *ndxp;
 
 //    labels = (char **)mmalloc(csound, (csound->nlabels) * sizeof(char *));
 //    lblsp = labels;
@@ -2108,11 +2108,11 @@ void oload(CSOUND *p)
     int32    n, insno, *lp;
 //    int32    gblabeg, gblsbeg, gblsbas, gblscbeg, lclabeg, lclsbeg, lclsbas;
 //    MYFLT   *combinedspc, *gblspace, *fp1;
-    MYFLT    *fp1;
+    //MYFLT    *fp1;
     INSTRTXT *ip;
     OPTXT   *optxt;
     OPARMS  *O = p->oparms;
-    int     *strConstIndexList;
+    //int     *strConstIndexList;
     MYFLT   ensmps;
 
     p->esr = p->tran_sr; p->ekr = p->tran_kr;
@@ -2208,17 +2208,17 @@ void oload(CSOUND *p)
       while ((optxt = optxt->nxtop) !=  NULL) {
         TEXT    *ttp = &optxt->t;
 //        ARGOFFS *aoffp;
-        int32    indx;
-        int32    posndx;
-        int     *ndxp;
-        ARG*    arg;
+        //int32    indx;
+        //int32    posndx;
+        //int     *ndxp;
+        //ARG*    arg;
         int     opnum = ttp->opnum;
           
         if (opnum == ENDIN || opnum == ENDOP) break;    /* IV - Sep 8 2002 */
         if (opnum == LABEL) continue;
 //        aoffp = ttp->outoffs;           /* ------- OUTARGS -------- */
         n = argCount(ttp->outArgs);
-        arg = ttp->outArgs;
+//        arg = ttp->outArgs;
 //        while(arg != NULL) {
 //            
 //	    }

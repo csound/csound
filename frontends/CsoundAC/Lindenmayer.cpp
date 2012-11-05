@@ -24,7 +24,11 @@
 #include <boost/format.hpp>
 #include <sstream>
 #if defined(HAVE_IO_H)
+#ifdef LINUX
+#include <sys/io.h>
+#else
 #include <io.h>
+#endif
 #endif
 #include <stdio.h>
 using boost::format;

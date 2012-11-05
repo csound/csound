@@ -55,7 +55,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
-    char    *sortedscore = NULL;
+    //char    *sortedscore = NULL;
     //    char    *xtractedscore = "score.xtr";
     FILE    *xfile = NULL;
     int     n;
@@ -113,7 +113,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       if (fd != NULL) {
         readOptions(csound, csrc, 0);
         csound->Message(csound,
-                        "Reading options from local directory .csoundrc \n");
+                        Str("Reading options from local directory .csoundrc \n"));
         csound->FileClose(csound, fd);
       }
     }
@@ -227,7 +227,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
     }
     else {
-      sortedscore = NULL;
+      //sortedscore = NULL;
       if (csound->scorestr==NULL) {
         csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
         if (csound->scorestr==NULL)
@@ -328,7 +328,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 #if defined(USE_OPENMP)
     if (csound->oparms->numThreads > 1) {
       omp_set_num_threads(csound->oparms->numThreads);
-      csound->Message(csound, "OpenMP enabled: requested %d threads.\n",
+    csound->Message(csound, Str("OpenMP enabled: requested %d threads.\n"),
                       csound->oparms->numThreads);
     }
 #endif

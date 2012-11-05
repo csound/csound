@@ -1125,7 +1125,11 @@ typedef struct NAME__ {
     void *(*GetNamedGens)(CSOUND *);
  /* SUBR dummyfn_1; */
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
-    SUBR dummyfn_2[75];
+    void *(*CreateCircularBuffer)(CSOUND *, int);
+    int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
+    int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
+    void (*FreeCircularBuffer)(CSOUND *, void *);
+    SUBR dummyfn_2[71];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;

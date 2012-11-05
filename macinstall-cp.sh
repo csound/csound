@@ -56,7 +56,6 @@ rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 fron
 rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/Winsound.app/Contents/CVS"
 rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/Winsound.app/Contents/Resources/CVS"
 rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/Winsound.app/Contents/MacOS/CVS"
-cp -R frontends/fltk_gui/csound5GUI.app "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/."
 rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/csound5GUI.app/CVS"
 rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/csound5GUI.app/Contents/CVS"
 rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/csound5GUI.app/Contents/Resources/CVS"

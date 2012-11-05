@@ -382,7 +382,7 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
     int i,j;
     MYFLT pos = *p->kpos;
     MYFLT framepos,frac;
-    int32 frame1pos,frame2pos,framesize,n_mcframes;
+    int32 frame1pos,/*frame2pos,*/framesize,n_mcframes;
 
     float *pmem,*pframe1,*pframe2;               /* RWD all MUST be 32bit */
     float *fout = (float *) p->fout->frame.auxp;
@@ -411,7 +411,7 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
         /* gotta interpolate */
         /* any optimizations possible here ?
            Avoid v samll frac values ? higher-order interp ? */
-        frame2pos = frame1pos+p->chans;
+        //frame2pos = frame1pos+p->chans;
         frac = framepos - (MYFLT) frame1pos;
         pframe1 = pmem + (frame1pos * p->blockalign) + p->chanoffset;
         pframe2 = pframe1 + p->blockalign;
@@ -488,12 +488,12 @@ int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
 int pvsmaska(CSOUND *csound, PVSMASKA *p)
 {
     int i;
-    int32 flen, nbins;
+    int32 /*flen, */nbins;
     MYFLT *ftable;
     float *fout,*fsrc;                      /* RWD MUST be 32bit */
     float margin, depth = (float)*p->kdepth;
 
-    flen = p->maskfunc->flen + 1;
+    //flen = p->maskfunc->flen + 1;
     ftable = p->maskfunc->ftable;
     fout = (float *) p->fout->frame.auxp;   /* RWD both MUST be 32bit */
     fsrc = (float *) p->fsrc->frame.auxp;
