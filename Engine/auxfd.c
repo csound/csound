@@ -33,7 +33,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 {
     if (auxchp->auxp != NULL) {
       /* if allocd with same size, just clear to zero */
-      if (nbytes == (int32)auxchp->size) {
+      if (nbytes == (size_t)auxchp->size) {
         memset(auxchp->auxp, 0, nbytes);
         return;
       }

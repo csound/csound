@@ -211,8 +211,7 @@ tar xf %{SOURCE1}
 %build
 
 # Adjust location of the documentation for the GUI bits
-sed -ie 's#\"firefox /usr/local/share/doc/csound/manual/#\"xdg-open file://%{_docdir}/%{name}-manual-%{version}/#' \
-      frontends/fltk_gui/CsoundGlobalSettings.cpp
+sed -ie 's#\"firefox /usr/local/share/doc/csound/manual/#\"xdg-open file://%{_docdir}/%{name}-manual-%{version}/#' 
 
 scons dynamicCsoundLibrary=1 \
       buildRelease=1 \

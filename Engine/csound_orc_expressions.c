@@ -103,7 +103,7 @@ char * get_boolean_arg(CSOUND *csound, int type)
     return s;
 }
 
-int get_expression_ans_type(CSOUND * csound, char * ans)
+int get_expression_ans_type(char * ans)
 {
     char * t = ans;
     t++;
@@ -173,7 +173,7 @@ TREE * create_ans_token(CSOUND *csound, char* var)
 {
     TREE *ans = create_empty_token(csound);
 
-    ans->type = get_expression_ans_type(csound, var);
+    ans->type = get_expression_ans_type(var);
     ans->value = make_token(csound, var);
     ans->value->type = ans->type;
 
