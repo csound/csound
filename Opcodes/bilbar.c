@@ -259,7 +259,7 @@ int init_pp(CSOUND *csound, CSPP *p)
       double sig = (2.0*(double)csound->esr)*(pow(10.0,3.0*dt/T30)-1.0);
 
       int N, n;
-      double *c, dx, dxmin = 0.0; /* for stability */
+      double *c, /*dx,*/ dxmin = 0.0; /* for stability */
       FUNC  *ftp;
 
       csound->AuxAlloc(csound, NS*sizeof(double), &p->auxch);
@@ -289,7 +289,7 @@ int init_pp(CSOUND *csound, CSPP *p)
         if (x>dxmin) dxmin = x;
       }
       N = p->N = (int)(1.0/dxmin);
-      dx = 1.0/(double)N;
+      //dx = 1.0/(double)N;
 
       csound->AuxAlloc(csound,
                        3*((1+(N+5))*NS+p->rattle_num+p->rubber_num)*sizeof(MYFLT),

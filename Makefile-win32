@@ -256,42 +256,6 @@ _jcsound.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
 		interfaces/Soundfile.oo interfaces/java_interface_wrap.oo
 	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_jcsound.def $(CSLIB_LNK) -lstdc++ $(LIBS)
 
-$(CSOUND5GUI):	frontends/fltk_gui/ConfigFile.oo			\
-		frontends/fltk_gui/CsoundAboutWindow_FLTK.oo		\
-		frontends/fltk_gui/CsoundCopyrightInfo.oo		\
-		frontends/fltk_gui/CsoundGlobalSettings.oo		\
-		frontends/fltk_gui/CsoundGlobalSettingsPanel_FLTK.oo	\
-		frontends/fltk_gui/CsoundGUIConsole.oo			\
-		frontends/fltk_gui/CsoundGUIConsole_FLTK.oo		\
-		frontends/fltk_gui/CsoundGUIMain.oo			\
-		frontends/fltk_gui/CsoundGUIMain_FLTK.oo		\
-		frontends/fltk_gui/CsoundPerformance.oo			\
-		frontends/fltk_gui/CsoundPerformanceSettings.oo		\
-		frontends/fltk_gui/CsoundPerformanceSettingsPanel_FLTK.oo   \
-		frontends/fltk_gui/CsoundUtilitiesWindow_FLTK.oo	\
-		frontends/fltk_gui/CsoundUtility.oo			\
-		frontends/fltk_gui/main.oo				\
-		interfaces/csPerfThread.oo
-	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(FLTK_LIBS) $(CSLIB_LNK) $(LIBS)
-
-frontends/fltk_gui/%_FLTK.cpp: frontends/fltk_gui/%_FLTK.fl
-	fluid -c -o $@ -h frontends/fltk_gui/$*_FLTK.hpp $<
-
-frontends/fltk_gui/CsoundPerformance.oo:				\
-		frontends/fltk_gui/CsoundPerformance.cpp
-	$(CXX) $(CFLAGS) -Iinterfaces -c $< -o $@
-
-frontends/fltk_gui/CsoundPython.oo: frontends/fltk_gui/CsoundPython.cpp
-	$(CXX) $(CFLAGS) -Iinterfaces -c $< -o $@
-
-frontends/fltk_gui/ConfigFile.cpp:					\
-		frontends/fltk_gui/CsoundAboutWindow_FLTK.cpp		\
-		frontends/fltk_gui/CsoundGlobalSettingsPanel_FLTK.cpp	\
-		frontends/fltk_gui/CsoundGUIConsole_FLTK.cpp		\
-		frontends/fltk_gui/CsoundGUIMain_FLTK.cpp		\
-		frontends/fltk_gui/CsoundPerformanceSettingsPanel_FLTK.cpp  \
-		frontends/fltk_gui/CsoundUtilitiesWindow_FLTK.cpp
-
 clean:
 	-rm `find . -type f \( -name "*.o" -o -name "*.oo" \) -print`
 	-rm `find . -type f \( -name "*.a" -o -name "*.dll" \) -print`
@@ -302,6 +266,5 @@ clean:
 	-rm interfaces/python_interface_wrap.h
 	-rm interfaces/java_interface_wrap.cc
 	-rm interfaces/java_interface_wrap.h
-	-rm frontends/fltk_gui/*_FLTK.cpp frontends/fltk_gui/*_FLTK.hpp
 	-rm frontends/winsound/winsound.cxx frontends/winsound/winsound.h
 

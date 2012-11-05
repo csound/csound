@@ -367,9 +367,9 @@ static int vcoset(CSOUND *csound, VCO *p)
     /* Number of bytes in the delay */
     uint32 ndel = (uint32)(*p->maxd * csound->esr);
     FUNC  *ftp;    /* Pointer to a sine function */
-    MYFLT ndsave;
+    //MYFLT ndsave;
 
-    ndsave = (MYFLT) ndel;
+    //ndsave = (MYFLT) ndel;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->sine)) == NULL))
       return NOTOK;
 
@@ -418,7 +418,7 @@ static int vco(CSOUND *csound, VCO *p)
     FUNC  *ftp;
     MYFLT *ar, *ampp, *cpsp, *ftbl;
     int32  phs, inc, lobits, dwnphs, tnp1, lenmask, maxd, indx;
-    MYFLT leaky, rtfqc, amp, fqc;
+    MYFLT leaky, /*rtfqc,*/ amp, fqc;
     MYFLT sicvt2, over2n, scal, num, denom, pulse = FL(0.0), saw = FL(0.0);
     MYFLT sqr = FL(0.0), tri = FL(0.0);
     int   n, nsmps = CS_KSMPS, knh;
@@ -445,7 +445,7 @@ static int vco(CSOUND *csound, VCO *p)
     ampp = p->xamp;
     cpsp = p->xcps;
     fqc = *cpsp;
-    rtfqc = SQRT(fqc);
+    //rtfqc = SQRT(fqc);
     knh = (int)(csound->esr*p->nyq/fqc);
     if (UNLIKELY((n = (int)knh) <= 0)) {
       csound->Warning(csound, "knh=%x nyq=%f fqc=%f\n"

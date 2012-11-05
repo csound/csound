@@ -299,7 +299,7 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
 
 static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 {
-    int overlap = p->fout->overlap, frames, i, posi;
+    int overlap = p->fout->overlap, /*frames,*/ i, posi;
     double pos = p->pos;
     int32 N = p->fout->N;
     MYFLT frac;
@@ -321,7 +321,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
         while(pos >= p->flen) pos -= p->flen;
         while(pos < 0) pos += p->flen;
         csound->PVOC_fseek(csound,p->pvfile, pos);
-        frames = csound->PVOC_GetFrames(csound, p->pvfile, buffer, 2*p->chans);
+        (void)csound->PVOC_GetFrames(csound, p->pvfile, buffer, 2*p->chans);
         p->oldpos = posi = (int)pos;
 
       }

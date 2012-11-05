@@ -194,9 +194,9 @@ Koch::~Koch()
 }
 
   void Koch::setPitchOffsetForLayer(int layer, double offset)
-{
+  {
     pitchOffsetsForLayers[layer] = offset;
-}
+  }
 
 Eigen::MatrixXd Koch::traverse(const Eigen::MatrixXd &globalCoordinates,
         Score &collectingScore)

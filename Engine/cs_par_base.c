@@ -557,7 +557,7 @@ int csp_set_print(CSOUND *csound, struct set_t *set)
     return CSOUND_SUCCESS;
 }
 
-int inline csp_set_count(CSOUND *csound, struct set_t *set)
+int inline csp_set_count(struct set_t *set)
 {
 #ifdef SET_DEBUG
     if (UNLIKELY(set == NULL))
@@ -570,8 +570,7 @@ int inline csp_set_count(CSOUND *csound, struct set_t *set)
 }
 
 /* 0 indexed */
-int inline csp_set_get_num(CSOUND *csound,
-                           struct set_t *set, int num, void **data)
+int inline csp_set_get_num(struct set_t *set, int num, void **data)
 {
 #ifdef SET_DEBUG
     if (UNLIKELY(set == NULL))
@@ -629,12 +628,12 @@ int csp_set_union(CSOUND *csound, struct set_t *first,
     csp_set_alloc(csound, result,
                   first->ele_eq_func, first->ele_print_func);
 
-    first_len = csp_set_count(csound, first);
-    second_len = csp_set_count(csound, second);
+    first_len = csp_set_count(first);
+    second_len = csp_set_count(second);
 
     while (ctr < first_len) {
       void *data = NULL;
-      csp_set_get_num(csound, first, ctr, &data);
+      csp_set_get_num(first, ctr, &data);
       csp_set_add(csound, *result, data);
       ctr++;
     }
@@ -642,7 +641,7 @@ int csp_set_union(CSOUND *csound, struct set_t *first,
     ctr = 0;
     while (ctr < second_len) {
       void *data = NULL;
-      csp_set_get_num(csound, second, ctr, &data);
+      csp_set_get_num(second, ctr, &data);
       csp_set_add(csound, *result, data);
       ctr++;
     }
@@ -674,11 +673,11 @@ int csp_set_intersection(CSOUND *csound, struct set_t *first,
     csp_set_alloc(csound, result,
                   first->ele_eq_func, first->ele_print_func);
 
-    first_len = csp_set_count(csound, first);
+    first_len = csp_set_count(first);
 
     while (ctr < first_len) {
       void *data = NULL;
-      csp_set_get_num(csound, first, ctr, &data);
+      csp_set_get_num(first, ctr, &data);
       if (csp_set_exists(csound, second, data)) {
         csp_set_add(csound, *result, data);
       }

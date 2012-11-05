@@ -24,7 +24,7 @@
 %module CsoundAC
 %{
 #include <string>
-  %}
+%}
 #else
 #include <string>
 #endif
