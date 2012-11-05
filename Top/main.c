@@ -113,7 +113,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       if (fd != NULL) {
         readOptions(csound, csrc, 0);
         csound->Message(csound,
-                        "Reading options from local directory .csoundrc \n");
+                        Str("Reading options from local directory .csoundrc \n"));
         csound->FileClose(csound, fd);
       }
     }
@@ -328,7 +328,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 #if defined(USE_OPENMP)
     if (csound->oparms->numThreads > 1) {
       omp_set_num_threads(csound->oparms->numThreads);
-      csound->Message(csound, "OpenMP enabled: requested %d threads.\n",
+    csound->Message(csound, Str("OpenMP enabled: requested %d threads.\n"),
                       csound->oparms->numThreads);
     }
 #endif
