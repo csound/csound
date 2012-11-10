@@ -1,6 +1,6 @@
 ENABLE_TESTING()
 
-set(TEST_ARGS "-+env:OPCODEDIR64=${CMAKE_CURRENT_BUILD_DIR}/../..")
+set(TEST_ARGS "-+env:OPCODE6DIR64=${CMAKE_CURRENT_BINARY_DIR}/../..")
 
 add_executable(csoundTypeSystemTest csound_type_system_test.c)
 target_link_libraries(csoundTypeSystemTest ${CSOUNDLIB})
