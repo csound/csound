@@ -107,7 +107,7 @@ void csp_dag_build(CSOUND *csound, DAG **dag, INSDS *chain);
 void csp_dag_print(CSOUND *csound, DAG *dag);
 
 /* return 1 if the DAG is completely consume */
-inline int csp_dag_is_finished(DAG *dag);
+int csp_dag_is_finished(DAG *dag);
 /* get a node from the dag
  * update_hdl should be passed into consume_update when the node has
  * been performed */
