@@ -139,31 +139,6 @@ typedef struct {
     MYFLT   *asig;
 } OUTM;
 
-/* typedef struct { */
-/*     OPDS    h; */
-/*     MYFLT   *asig1, *asig2; */
-/* } OUTS; */
-
-/* typedef struct { */
-/*     OPDS    h; */
-/*     MYFLT   *asig1, *asig2, *asig3, *asig4; */
-/* } OUTQ; */
-
-/* typedef struct { */
-/*     OPDS    h; */
-/*     MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6; */
-/* } OUTH; */
-
-/* typedef struct { */
-/*     OPDS    h; */
-/*     MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6, *asig7, *asig8; */
-/* } OUTO; */
-
-/* typedef struct { */
-/*     OPDS    h; */
-/*     MYFLT   *asig[VARGMAX]; */
-/* } OUTX; */
-
 typedef struct {
     OPDS    h;
     MYFLT   *args[VARGMAX];
@@ -184,18 +159,6 @@ typedef struct {
     OPDS    h;
     MYFLT   *r, *input, *tablenum;
 } CPSTUNI;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *value, *valID;
-    AUXCH   channelName;
-} INVAL;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *valID, *value;
-    AUXCH   channelName;
-} OUTVAL;
 
 typedef struct {
     OPDS    h;

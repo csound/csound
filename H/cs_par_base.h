@@ -168,8 +168,8 @@ int csp_set_exists(CSOUND *csound,  struct set_t *set, void *data);
 int csp_set_print(CSOUND *csound, struct set_t *set);
 
 /* get a count and access members */
-inline int csp_set_count(struct set_t *set);
-inline int csp_set_get_num(struct set_t *set, int num, void **data);
+int csp_set_count(struct set_t *set);
+int csp_set_get_num(struct set_t *set, int num, void **data);
 
 /* 
  * set union and intersection
