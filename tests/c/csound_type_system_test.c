@@ -5,24 +5,28 @@
  * Created on June 7, 2012, 4:03 PM
  */
 
+#define __BUILDING_LIBCSOUND
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
-#include "csound.h"
+#include "csoundCore.h"
+
 
 /*
  * 
  */
 int main(int argc, char** argv) {
 
-    TYPE_POOL* pool = malloc(sizeof(TYPE_POOL));
-    CS_VAR_POOL* varPool = malloc(sizeof(CS_VAR_POOL));
-    
     CSOUND* csound = csoundCreate(NULL);
-    
-    csoundAddStandardTypes(csound, pool);
-   
+    csoundReset(csound);
+//    csoundAddStandardTypes(csound, pool);
+
+    TYPE_POOL* pool = csound->typePool;
+    CS_VAR_POOL* varPool = csound->varPool;
+
     CS_TYPE* aType = csoundGetTypeWithVarTypeName(pool, "a");
     CS_VARIABLE* var = csoundCreateVariable(csound, pool, aType, "a1");
     printf("Var type created: %s\n", var->varType->varTypeName);

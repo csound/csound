@@ -1542,7 +1542,7 @@ void csp_dag_build(CSOUND *csound, DAG **dag, INSDS *chain)
     TRACE_5("DAG BUILT\n");
 }
 
-int inline csp_dag_is_finished(DAG *dag)
+inline int csp_dag_is_finished(DAG *dag)
 {
 #ifdef CAUTIOUS
     if (dag == NULL)
