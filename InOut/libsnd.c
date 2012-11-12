@@ -496,7 +496,8 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       STA(infile) = sf_open_fd(isfd, SFM_READ, &sfinfo, 0);
       if (UNLIKELY(STA(infile) == NULL)) {
         /* open failed: possibly raw file, but cannot seek back to try again */
-        csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
+        const char *sfError = sf_strerror(NULL);
+        csoundDie(csound, Str("isfinit: cannot open %s -- %s"), sfname, sfError);
       }
     }
     else {
@@ -513,8 +514,10 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
         sfinfo.format = TYPE2SF(TYP_RAW) | FORMAT2SF(O->outformat);
         STA(infile) = sf_open(fullName, SFM_READ, &sfinfo);  /* try again */
       }
-      if (UNLIKELY(STA(infile) == NULL))
-        csoundDie(csound, Str("isfinit: cannot open %s"), fullName);
+      if (UNLIKELY(STA(infile) == NULL)) {
+        const char *sfError = sf_strerror(NULL);
+        csoundDie(csound, Str("isfinit: cannot open %s -- %s"), fullName, sfError);
+      }
       /* only notify the host if we opened a real file, not stdin or a pipe */
       csoundNotifyFileOpened(csound, fullName,
                               sftype2csfiletype(sfinfo.format), 0, 0);
