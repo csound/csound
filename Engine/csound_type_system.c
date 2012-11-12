@@ -6,10 +6,8 @@
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE* current = pool->head;
     while (current != NULL) {
-
-        /*
-                printf("Search if type [%s] == [%s]", current->varType->varTypeName, typeInstance->varType->varTypeName);
-         */
+        
+        /* printf("Search if type [%s] == [%s]", current->varTypeName, typeInstance->varTypeName); */
 
         if (strcmp(current->varTypeName,
                 typeInstance->varTypeName) == 0) {

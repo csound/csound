@@ -35,6 +35,11 @@ extern "C" {
 #endif
 
 typedef struct {
+	OPDS    h;
+	MYFLT   *r, *a;
+} CHNVAL;
+
+typedef struct {
     OPDS    h;
     PVSDAT   *r;
     MYFLT    *a,*N, *overlap, *winsize, *wintype, *format;
@@ -47,6 +52,22 @@ typedef struct {
     MYFLT   *keyDown;
     int     evtbuf;
 } KSENSE;
+
+typedef struct controlChannelInfo_s {
+	int     type;
+	MYFLT   dflt;
+	MYFLT   min;
+	MYFLT   max;
+} controlChannelInfo_t;
+
+typedef struct channelEntry_s {
+	struct channelEntry_s *nxt;
+	controlChannelInfo_t  *info;
+	MYFLT   *data;
+	int     lock;               /* Multi-thread protection */
+	int     type;
+	char    name[1];
+} CHNENTRY;
 
 typedef struct {
     OPDS    h;
@@ -113,6 +134,19 @@ typedef struct {
     MYFLT   *iname;
 } CHNPARAMS_OPCODE;
 
+typedef struct {
+	OPDS    h;
+	MYFLT   *value, *valID;
+	AUXCH   channelName;
+} INVAL;
+
+typedef struct {
+	OPDS    h;
+	MYFLT   *valID, *value;
+	AUXCH   channelName;
+} OUTVAL;
+
+
 /*
  {  "chnget",      0xFFFF,              0,      NULL,           NULL,
     (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
@@ -166,38 +200,34 @@ typedef struct {
     (SUBR) chnsend_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
 */
 
-#ifndef CSOUND_BUS_C
+int     chano_opcode_perf_k(CSOUND *, CHNVAL *);
+int     chano_opcode_perf_a(CSOUND *, CHNVAL *);
+int     chani_opcode_perf_k(CSOUND *, CHNVAL *);
+int     chani_opcode_perf_a(CSOUND *, CHNVAL *);
+int     pvsin_init(CSOUND *, FCHAN *);
+int     pvsin_perf(CSOUND *, FCHAN *);
+int     pvsout_perf(CSOUND *, FCHAN *);
 
-int     chano_opcode_perf_k(CSOUND *, void *);
-int     chano_opcode_perf_a(CSOUND *, void *);
-int     chani_opcode_perf_k(CSOUND *, void *);
-int     chani_opcode_perf_a(CSOUND *, void *);
-int     pvsin_init(CSOUND *, void *);
-int     pvsin_perf(CSOUND *, void *);
-int     pvsout_perf(CSOUND *, void *);
-
-int     sensekey_perf(CSOUND *, void *);
+int     sensekey_perf(CSOUND *, KSENSE *);
 
 int     notinit_opcode_stub(CSOUND *, void *);
-int     chnget_opcode_init_i(CSOUND *, void *);
-int     chnget_opcode_init_k(CSOUND *, void *);
-int     chnget_opcode_init_a(CSOUND *, void *);
-int     chnget_opcode_init_S(CSOUND *, void *);
-int     chnset_opcode_init_i(CSOUND *, void *);
-int     chnset_opcode_init_k(CSOUND *, void *);
-int     chnset_opcode_init_a(CSOUND *, void *);
-int     chnset_opcode_init_S(CSOUND *, void *);
-int     chnmix_opcode_init(CSOUND *, void *);
-int     chnclear_opcode_init(CSOUND *, void *);
-int     chn_k_opcode_init(CSOUND *, void *);
-int     chn_a_opcode_init(CSOUND *, void *);
-int     chn_S_opcode_init(CSOUND *, void *);
-int     chnexport_opcode_init(CSOUND *, void *);
-int     chnparams_opcode_init(CSOUND *, void *);
-int     chnrecv_opcode_init(CSOUND *, void *);
-int     chnsend_opcode_init(CSOUND *, void *);
-
-#endif      /* CSOUND_BUS_C */
+int     chnget_opcode_init_i(CSOUND *, CHNGET *);
+int     chnget_opcode_init_k(CSOUND *, CHNGET *);
+int     chnget_opcode_init_a(CSOUND *, CHNGET *);
+int     chnget_opcode_init_S(CSOUND *, CHNGET *);
+int     chnset_opcode_init_i(CSOUND *, CHNGET *);
+int     chnset_opcode_init_k(CSOUND *, CHNGET *);
+int     chnset_opcode_init_a(CSOUND *, CHNGET *);
+int     chnset_opcode_init_S(CSOUND *, CHNGET *);
+int     chnmix_opcode_init(CSOUND *, CHNGET *);
+int     chnclear_opcode_init(CSOUND *, CHNCLEAR *);
+int     chn_k_opcode_init(CSOUND *, CHN_OPCODE_K *);
+int     chn_a_opcode_init(CSOUND *, CHN_OPCODE *);
+int     chn_S_opcode_init(CSOUND *, CHN_OPCODE *);
+int     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);
+int     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
+int     chnrecv_opcode_init(CSOUND *, CHNSEND *);
+int     chnsend_opcode_init(CSOUND *, CHNSEND *);
 
 #ifdef __cplusplus
 }
