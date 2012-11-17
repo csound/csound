@@ -80,9 +80,6 @@ extern "C" {
 #include "csound_standard_types.h"
 
   MYFLT csoundPow2(CSOUND *csound, MYFLT a);
-  extern void MakeAscii(CSOUND *, WINDAT *, const char *);
-  extern void DrawAscii(CSOUND *, WINDAT *);
-  extern void KillAscii(CSOUND *, WINDAT *);
   extern int csoundInitStaticModules(CSOUND *);
 
   static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
@@ -92,9 +89,6 @@ extern "C" {
   static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
   static void rtclose_dummy(CSOUND *);
   static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
-  static void defaultCsoundMakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
-  static void defaultCsoundReadKillXYin(CSOUND *, XYINDAT *);
-  static int  defaultCsoundExitGraph(CSOUND *);
   static int  defaultCsoundYield(CSOUND *);
   static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
   static void csoundReset_(CSOUND *);
@@ -479,14 +473,14 @@ extern "C" {
     (void (*)(CSOUND *, const char *, MYFLT)) NULL,
     csoundDefaultMessageCallback,
     (int (*)(CSOUND *)) NULL,
-    MakeAscii,
-    DrawAscii,
-    KillAscii,
-    defaultCsoundExitGraph,
+	(int (*)(CSOUND *, WINDAT *windat, const char *name)) NULL, /* was: MakeAscii,*/
+	(int (*)(CSOUND *, WINDAT *windat)) NULL, /* was: DrawAscii,*/
+	(int (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
+	(int (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
     defaultCsoundYield,
-    defaultCsoundMakeXYin,
-    defaultCsoundReadKillXYin,
-    defaultCsoundReadKillXYin,
+    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundMakeXYin, */
+    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundReadKillXYin, */
+    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundReadKillXYin, */
     cscore_,        /*  cscoreCallback_     */
     (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
     (SUBR) NULL,    /*  last_callback_      */
@@ -3788,7 +3782,6 @@ void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
     memcpy(dest, src, size*sizeof(MYFLT));
 }
 
-#ifdef __cplusplus
 }
 #endif
  
