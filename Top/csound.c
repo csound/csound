@@ -478,9 +478,9 @@ extern "C" {
 	(int (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
 	(int (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
     defaultCsoundYield,
-	(void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundMakeXYin, */
-	(void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundReadKillXYin, */
-	(void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundReadKillXYin, */
+    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundMakeXYin, */
+    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundReadKillXYin, */
+    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundReadKillXYin, */
     cscore_,        /*  cscoreCallback_     */
     (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
     (SUBR) NULL,    /*  last_callback_      */
@@ -3858,11 +3858,6 @@ inline static int nodePerf(CSOUND *csound, int index)
       pp->lastMsg = p;
       pp->msgCnt++;
       csoundUnlockMutex(pp->mutex_);
-  }
-
-  void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
-  {                           /* Surely a memcpy*/
-      memcpy(dest, src, size*sizeof(MYFLT));
   }
 
 #ifdef __cplusplus
