@@ -1977,7 +1977,6 @@ extern "C" {
      */
     void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound);
 
-    void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size);
 #if !defined(SWIG)
     /**
      * Sets an external callback for receiving notices whenever Csound opens
