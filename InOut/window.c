@@ -69,7 +69,8 @@ static void MkXYDummy(CSOUND *csound, XYINDAT *wdptr, MYFLT x, MYFLT y)
 
 static void RdXYDummy(CSOUND *csound, XYINDAT *wdptr)
 {
-    IGN(csound);
+    csoundWarning(csound,
+                  Str("xyin not supported."));
     IGN(wdptr);
 }
 
