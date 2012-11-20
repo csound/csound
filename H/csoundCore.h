@@ -1535,6 +1535,7 @@ typedef struct NAME__ {
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
     char          *filedir[64]; /* for location directory */
+	void * message_buffer;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
