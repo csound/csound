@@ -145,7 +145,11 @@ int dispexit(CSOUND *csound)
     if (csound->oparms->postscript)
       PS_ExitGraph(csound);     /* Write trailer to PostScript file  */
     /* prompt for exit from last active window */
-    return csound->csoundExitGraphCallback_(csound);
+    int ret = -1;
+    if (csound->csoundExitGraphCallback_) {
+        ret = csound->csoundExitGraphCallback_(csound);
+    }
+    return ret;
 }
 
 void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
