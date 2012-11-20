@@ -473,14 +473,14 @@ extern "C" {
     (void (*)(CSOUND *, const char *, MYFLT)) NULL,
     csoundDefaultMessageCallback,
     (int (*)(CSOUND *)) NULL,
-	(int (*)(CSOUND *, WINDAT *windat, const char *name)) NULL, /* was: MakeAscii,*/
-	(int (*)(CSOUND *, WINDAT *windat)) NULL, /* was: DrawAscii,*/
-	(int (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
+    (void (*)(CSOUND *, WINDAT *windat, const char *name)) NULL, /* was: MakeAscii,*/
+    (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: DrawAscii,*/
+    (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
 	(int (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
     defaultCsoundYield,
     (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundMakeXYin, */
-    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundReadKillXYin, */
-    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundReadKillXYin, */
+    (void (*)(CSOUND *, XYINDAT *)) NULL, /* was: defaultCsoundReadKillXYin, */
+    (void (*)(CSOUND *, XYINDAT *)) NULL, /* was: defaultCsoundReadKillXYin, */
     cscore_,        /*  cscoreCallback_     */
     (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
     (SUBR) NULL,    /*  last_callback_      */
@@ -786,7 +786,8 @@ extern "C" {
     {0, 0, 0},      /* For extra strings in scores */
     NULL,            /* pow2 table */
     NULL,            /* cps conv table */
-    NULL            /* output of preprocessor */
+	NULL,            /* output of preprocessor */
+	NULL             /* message buffer struct */
   };
 
   /* from threads.c */
@@ -3520,15 +3521,9 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
 
     csoundDestroyMessageBuffer(csound);
     nBytes = sizeof(csMsgBuffer);
-#ifndef PARCS
-    if (!toStdOut) {
-#else /* PARCS */
-      if (!toStdOut)
-#endif /* PARCS */
-        nBytes += (size_t) 16384;
-#ifndef PARCS
-    }
-#endif /* ! PARCS */
+	if (!toStdOut) {
+		nBytes += (size_t) 16384;
+	}
     pp = (csMsgBuffer*) malloc(nBytes);
     pp->mutex_ = csoundCreateMutex(0);
     pp->firstMsg = (csMsgStruct*) 0;
@@ -3536,32 +3531,16 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
     pp->msgCnt = 0;
     if (!toStdOut) {
       pp->buf = (char*) pp + (int) sizeof(csMsgBuffer);
-      pp->buf[0] = (char) '\0';
-#ifndef PARCS
+	  pp->buf[0] = (char) '\0';
     } else {
-      pp->buf = (char*) 0;
-#endif /* ! PARCS */
-    }
-#ifdef PARCS
-    else
-      pp->buf = (char*) 0;
-#endif /* PARCS */
-    csoundSetHostData(csound, (void*) pp);
-#ifndef PARCS
-    if (!toStdOut) {
-#else /* PARCS */
-      if (!toStdOut)
-#endif /* PARCS */
-        csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
-#ifndef PARCS
-    } else {
-#else /* PARCS */
-      else
-#endif /* PARCS */
-        csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
-#ifndef PARCS
-    }
-#endif /* ! PARCS */
+	  pp->buf = (char*) 0;
+	}
+	csound->message_buffer = (void*) pp;
+	if (!toStdOut) {
+		csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
+	} else {
+		csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
+	}
 }
 
 /**
@@ -3570,14 +3549,10 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
 #ifdef MSVC
 const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
 #else
-#ifndef PARCS
-  const char * PUBLIC csoundGetFirstMessage(CSOUND *csound)
-#else /* PARCS */
-  const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
-#endif /* PARCS */
+const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
 #endif
 {
-    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     char        *msg = NULL;
 
     if (pp && pp->msgCnt) {
@@ -3603,20 +3578,14 @@ const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
 
 int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
 {
-    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     int         attr = 0;
 
     if (pp && pp->msgCnt) {
-      csoundLockMutex(pp->mutex_);
-#ifndef PARCS
-      if (pp->firstMsg) {
-#else /* PARCS */
-        if (pp->firstMsg)
-#endif /* PARCS */
-          attr = pp->firstMsg->attr;
-#ifndef PARCS
-      }
-#endif /* ! PARCS */
+	  csoundLockMutex(pp->mutex_);
+	  if (pp->firstMsg) {
+		  attr = pp->firstMsg->attr;
+	  }
       csoundUnlockMutex(pp->mutex_);
     }
     return attr;
@@ -3628,7 +3597,7 @@ int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
 
 void PUBLIC csoundPopFirstMessage(CSOUND *csound)
 {
-    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
 
     if (pp) {
       csMsgStruct *tmp;
@@ -3666,7 +3635,7 @@ void PUBLIC csoundPopFirstMessage(CSOUND *csound)
 
 int PUBLIC csoundGetMessageCnt(CSOUND *csound)
 {
-    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     int         cnt = 0;
 
     if (pp) {
@@ -3683,24 +3652,15 @@ int PUBLIC csoundGetMessageCnt(CSOUND *csound)
 
 void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
 {
-    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
-
-#ifndef PARCS
+	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+    csound->message_buffer = NULL;
+    csoundSetMessageCallback(csound, NULL);
     if (!pp) {
-#else /* PARCS */
-      if (!pp)
-#endif /* PARCS */
         return;
-#ifndef PARCS
     }
     while (csoundGetMessageCnt(csound) > 0) {
-#else /* PARCS */
-      while (csoundGetMessageCnt(csound) > 0)
-#endif /* PARCS */
         csoundPopFirstMessage(csound);
-#ifndef PARCS
     }
-#endif /* ! PARCS */
     csoundSetHostData(csound, (void*) 0);
     csoundDestroyMutex(pp->mutex_);
     free((void*) pp);
@@ -3709,7 +3669,7 @@ void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
 static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
                                            const char *fmt, va_list args)
 {
-    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+    csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     csMsgStruct *p;
     int         len;
 
@@ -3724,21 +3684,11 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
     p->nxt = (csMsgStruct*) 0;
     p->attr = attr;
     strcpy(&(p->s[0]), pp->buf);
-#ifndef PARCS
     if (pp->firstMsg == (csMsgStruct*) 0) {
-#else /* PARCS */
-      if (pp->firstMsg == (csMsgStruct*) 0)
-#endif /* PARCS */
         pp->firstMsg = p;
-#ifndef PARCS
     } else {
-#else /* PARCS */
-      else
-#endif /* PARCS */
         pp->lastMsg->nxt = p;
-#ifndef PARCS
     }
-#endif /* ! PARCS */
     pp->lastMsg = p;
     pp->msgCnt++;
     csoundUnlockMutex(pp->mutex_);
@@ -3747,7 +3697,7 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
 static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
                                            const char *fmt, va_list args)
 {
-    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+    csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     csMsgStruct *p;
     int         len = 0;
     va_list     args_save;
@@ -3782,6 +3732,7 @@ void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
     memcpy(dest, src, size*sizeof(MYFLT));
 }
 
+#ifdef __cplusplus
 }
 #endif
  
