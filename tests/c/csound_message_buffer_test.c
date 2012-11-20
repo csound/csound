@@ -17,15 +17,13 @@ void test_create_buffer(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-//    int argc = 2;
-//    char *argv[] = {"hello.csd"};
-//    int result = csoundCompile(csound, argc, argv);
-//    CU_ASSERT(result == 0);
-//    if(!result) {
-//        while(csoundPerformKsmps(csound) == 0){}
-//        csoundCleanup(csound);
-//    }
+    int argc = 2;
+    char *argv[] = {"csound", "-v"};
+    csoundEnableMessageBuffer(csound, 1);
+    int result = csoundCompile(csound, argc, argv);
+
     csoundDestroy(csound);
+    csoundDestroyMessageBuffer(csound);
 }
 
 int main()
