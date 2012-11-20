@@ -32,8 +32,6 @@
  * Should be called after csoundCompile() or Csound::Compile().
  */
 
-void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size);
-
 class PUBLIC CsoundOpcodeList {
  private:
     opcodeListEntry *lst;
