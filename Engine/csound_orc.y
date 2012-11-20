@@ -59,15 +59,6 @@
 
 %token INSTR_TOKEN
 %token ENDIN_TOKEN
-%token T_STRSET
-%token T_PSET
-%token T_CTRLINIT
-%token T_MASSIGN
-%token T_TURNON
-%token T_PREALLOC
-%token T_ZAKINIT
-%token T_FTGEN
-%token T_INIT
 %token GOTO_TOKEN
 %token KGOTO_TOKEN
 %token IGOTO_TOKEN
