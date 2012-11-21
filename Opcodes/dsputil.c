@@ -346,7 +346,7 @@ void MakeSinc(PVOC_GLOBALS *p)  /* initialise our static sinc table */
 */
 
 void PreWarpSpec(
-    PVOC_GLOBALS  *p,
+                 //PVOC_GLOBALS  *p,
     MYFLT   *spec,      /* spectrum as magnitude,phase */
     int32    size,       /* full frame size, tho' we only use n/2+1 */
     MYFLT   warpFactor, /* How much pitches are being multd by */
@@ -356,11 +356,6 @@ void PreWarpSpec(
     MYFLT   mag, lastmag, nextmag, pkOld;
     int32    pkcnt, i, j;
 
-
-    /* if (dsputil_env == (MYFLT*) NULL){ */
-    /* p->csound->Message(p->csound, "called warp\n"); */
-    /*   dsputil_env = (MYFLT*) p->csound->Malloc(p->csound, size * sizeof(MYFLT)); */
-    /*  } */
 
     eps = -FL(64.0) / size;              /*  for spectral envelope estimation */
     lastmag = *spec;

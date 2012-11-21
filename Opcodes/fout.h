@@ -40,6 +40,7 @@ typedef struct {
     int     nargs;
     int     buf_pos;
     int     guard_pos;
+    AUXCH   buf;
     FOUT_FILE f;
 } OUTFILE;
 
@@ -50,6 +51,7 @@ typedef struct {
     int     nargs;
     int     buf_pos;
     int     guard_pos;
+    AUXCH   buf;
     FOUT_FILE f;
 } KOUTFILE;
 
@@ -64,6 +66,7 @@ typedef struct {
     int     guard_pos;
     int     frames;
     int     remain;
+    AUXCH   buf;
     FOUT_FILE f;
 } INFILE;
 
@@ -78,6 +81,7 @@ typedef struct {
     int     guard_pos;
     int     frames;
     int     remain;
+    AUXCH   buf;
     FOUT_FILE f;
 } KINFILE;
 
