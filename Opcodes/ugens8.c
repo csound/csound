@@ -168,7 +168,7 @@ int pvoc(CSOUND *csound, PVOC *p)
 
     if (specwp > 0){
       /* RWD: THIS CAUSED MASSIVE MEMORY ERROR, BUT DOESN'T WORK ANYWAY */
-        PreWarpSpec(p->pp, buf, asize, pex, (MYFLT *)p->memenv.auxp);
+        PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
      }
 
     Polar2Real_PVOC(csound, buf, size);
