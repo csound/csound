@@ -78,10 +78,10 @@
 static Image * __doOpenImage(char * filename, CSOUND *csound)
 {
 #ifdef USE_LIBPNG
+#define HS (8)
     FILE *fp;
     void *fd;
-    const int hs = 8;
-    unsigned char header[8];
+    unsigned char header[HS];
     png_structp png_ptr;
     png_infop info_ptr;
     /* png_infop end_ptr; */
@@ -103,11 +103,11 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
       return NULL;
     }
 
-    if (UNLIKELY(hs!=fread(header, 1, hs, fp)))
+    if (UNLIKELY(HS!=fread(header, 1, HS, fp)))
       csound->InitError(csound,
                         Str("imageload: file %s is not in PNG format.\n"),
                         filename);
-    is_png = !png_sig_cmp(header, 0, hs);
+    is_png = !png_sig_cmp(header, 0, HS);
 
     if (UNLIKELY(!is_png)) {
       csound->InitError(csound,
@@ -140,7 +140,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     /* } */
 
     png_init_io(png_ptr, fp);
-    png_set_sig_bytes(png_ptr, hs);
+    png_set_sig_bytes(png_ptr, HS);
 
     png_read_info(png_ptr, info_ptr);
     {

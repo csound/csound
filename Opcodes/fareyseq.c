@@ -490,19 +490,19 @@ static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
 {
     time_t now;
     unsigned int seed = (unsigned int) time (&now);
-    srand (seed);
 
     MYFLT *bases;       /* Base address of the source table.*/
+    MYFLT *temp;
     int32 sourcelength;
     int32 i = 0;
 
+    srand (seed);
     sourcelength = p->funcs->flen;
 
     /* Now get the base address of the table. */
     bases = p->funcs->ftable;
 
-    MYFLT* temp; 
-    temp = (MYFLT*) calloc (sourcelength, sizeof(MYFLT)); 
+    temp = (MYFLT*) calloc (sourcelength, sizeof(MYFLT));
     memset (temp, 0, sizeof(MYFLT) * sourcelength);
 
     for (i = 0; i < sourcelength; i++) {
@@ -541,7 +541,7 @@ int EulerPhi (int n)
       return 1;
     if (n == 0)
       return 0;
-    /*pcount =*/ PrimeFactors (n, p);
+    (void)PrimeFactors (n, p);
 
     result = (MYFLT)n;
     for (i = 0; i < MAX_PFACTOR; i++) {
