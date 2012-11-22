@@ -3727,10 +3727,12 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     csoundUnlockMutex(pp->mutex_);
 }
 
+#ifdef never
 void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
 {                           /* Surely a memcpy*/
     memcpy(dest, src, size*sizeof(MYFLT));
 }
+#endif
 
 #ifdef __cplusplus
 }

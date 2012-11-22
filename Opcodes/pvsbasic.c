@@ -299,7 +299,7 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
 
 static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 {
-    int overlap = p->fout->overlap, /*frames,*/ i, posi;
+    int overlap = p->fout->overlap, i, posi;
     double pos = p->pos;
     int32 N = p->fout->N;
     MYFLT frac;
@@ -495,21 +495,21 @@ int pvstanal(CSOUND *csound, PVST *p)
           frac = pos  - post;
           post *= nchans;
           post += j;
-          if (post < 0 || post >= size ) in = 0.0;
+          if (post >= size ) in = 0.0;
           else in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           fwin[i] = amp * in * win[i]; /* window it */
           /* back windo, bwin */
           post = (int) (pos - hsize*pitch);
           post *= nchans;
           post += j;
-          if (post < 0 ||post >= size ) in = 0.0;
+          if (post >= size ) in = 0.0;
           else in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
           bwin[i] = in * win[i];  /* window it */
           if (*p->konset){
           post = (int) pos + hsize;
           post *= nchans;
           post += j;
-          if (post < 0 || post >= size ) in = 0.0;
+          if (post >= size ) in = 0.0;
           else in =  tab[post];
           nwin[i] = amp * in * win[i];
           }

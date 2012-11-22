@@ -43,5 +43,5 @@ void    addToCircBuf(MYFLT *, MYFLT *, int32, int32, int32);
 void    writeClrFromCircBuf(MYFLT *, MYFLT *, int32, int32, int32);
 void    UDSample(PVOC_GLOBALS *, MYFLT *, MYFLT, MYFLT *, int32, int32, MYFLT);
 void    MakeSinc(PVOC_GLOBALS *);
-void    PreWarpSpec(PVOC_GLOBALS *, MYFLT *, int32, MYFLT, MYFLT *);
+void    PreWarpSpec(MYFLT *, int32, MYFLT, MYFLT *);
 
