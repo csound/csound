@@ -42,7 +42,7 @@ int stdopc_ModuleInit(CSOUND *csound)
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;
     p->file_num = -1;
-    p->buf = (MYFLT*) NULL;
+    /*p->buf = (MYFLT*) NULL;*/
     /* ugnorman.c */
     p->atsbufreadaddr = NULL;
     err |= ambicode_init_(csound);
