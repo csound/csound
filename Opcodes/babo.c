@@ -289,8 +289,7 @@ typedef struct
  * in the first place.
  */
 /* a-rate function */
-static MYFLT BaboTapline_single_output(CSOUND *csound,
-                                       const BaboTapline *this,
+static MYFLT BaboTapline_single_output(const BaboTapline *this,
                                        const BaboTapParameter *pp)
 {
         /*
@@ -337,7 +336,7 @@ static inline void BaboTapline_preload_parameter(CSOUND *csound,
 /* k-rate function */
 static BaboTaplineParameters *
 BaboTapline_precalculate_parameters(
-    CSOUND *csound, const BaboTapline *this, BaboTaplineParameters    *results,
+    CSOUND *csound, BaboTaplineParameters    *results,
     MYFLT r_x, MYFLT r_y, MYFLT r_z,    /* receiver position (i-rate) */
     MYFLT s_x, MYFLT s_y, MYFLT s_z,    /* source   position (k-rate) */
     MYFLT l_x, MYFLT l_y, MYFLT l_z)    /* room     coords   (i-rate) */
@@ -383,10 +382,10 @@ BaboTapline_output(CSOUND *csound, const BaboTapline *this,
                    const BaboTaplineParameters *pars)
 {
     int     i;
-    MYFLT   output = BaboTapline_single_output(csound, this, &pars->direct);
+    MYFLT   output = BaboTapline_single_output(this, &pars->direct);
 
     for (i = 0; i < BABO_TAPS; ++i)
-      output  += BaboTapline_single_output(csound, this, &pars->tap[i]);
+      output  += BaboTapline_single_output(this, &pars->tap[i]);
 
     return output;
 }
@@ -533,7 +532,7 @@ BaboMatrix_calculate_delays(MYFLT delay_time[], MYFLT x, MYFLT y, MYFLT z)
     int i = 0;
     MYFLT min = FL(0.0);
 
-    const static struct babo_diffusion_constants
+    static const struct babo_diffusion_constants
     {
         int x, y, z;
 
@@ -738,8 +737,8 @@ set_expert_values(CSOUND *csound, BABO *p)
 static void
 verify_coherence(CSOUND *csound, BABO *p)
 {
-    if (UNLIKELY(*(p->lx) <= FL(0.0) || 
-                 *(p->ly) <= FL(0.0) || 
+    if (UNLIKELY(*(p->lx) <= FL(0.0) ||
+                 *(p->ly) <= FL(0.0) ||
                  *(p->lz) <= FL(0.0))) {
       csound->Die(csound, Str("Babo: resonator dimensions are incorrect "
                               "(%.1f, %.1f, %.1f)"),
@@ -776,19 +775,20 @@ babo(CSOUND *csound, void *entry)
     BABO    *p          = (BABO *) entry;
     int     n, nsmps    = CS_KSMPS;
     MYFLT   *outleft    = p->outleft,
-            *outright   = p->outright,
-            *input      = p->input;
+      *outright   = p->outright,
+      *input      = p->input;
 
     BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
-                         right = { {FL(0.0)}, {{FL(0.0)}} };
+                          right = { {FL(0.0)}, {{FL(0.0)}} };
+                          
+    BaboTapline_precalculate_parameters(csound, &left,
+                                        p->receiver_x - p->inter_receiver_distance,
+                                        p->receiver_y, p->receiver_z,
+                                        *(p->ksource_x), *(p->ksource_y),
+                                        *(p->ksource_z),
+                                        *(p->lx), *(p->ly), *(p->lz));
 
-    BaboTapline_precalculate_parameters(csound, &p->tapline, &left,
-        p->receiver_x - p->inter_receiver_distance,
-        p->receiver_y, p->receiver_z,
-        *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
-        *(p->lx), *(p->ly), *(p->lz));
-
-    BaboTapline_precalculate_parameters(csound, &p->tapline, &right,
+    BaboTapline_precalculate_parameters(csound, &right,
         p->receiver_x + p->inter_receiver_distance,
         p->receiver_y, p->receiver_z,
         *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
@@ -827,4 +827,3 @@ static OENTRY babo_localops[] = {
 };
 
 LINKAGE1(babo_localops)
-

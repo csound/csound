@@ -155,8 +155,8 @@ static int cent_i(CSOUND *csound, CENT *p)
       win[i] = 0.5 - 0.5*cos(i*TWOPI/p->fsize);
     }
     p->old = 0;
-    memset(p->frame.auxp, p->fsize*sizeof(MYFLT), 0);
-    memset(p->frame.auxp, p->fsize*sizeof(MYFLT), 0);
+    memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
+    memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
     return OK;
 }
 
@@ -243,7 +243,7 @@ typedef struct _pvspitch
 int pvspitch_init(CSOUND *csound, PVSPITCH *p)
 {
     /* Initialise frame count to zero. */
-    int size;
+    unsigned int size;
     p->lastframe = 0;
 
     if (UNLIKELY(p->fin->sliding))
