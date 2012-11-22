@@ -103,7 +103,7 @@ typedef struct {
 static int readf_delete(CSOUND *csound, void *p)
 {
     READF *pp = (READF*)p;
-    
+
     if (pp->fd) fclose(pp->fd);
     return OK;
 }
@@ -139,7 +139,7 @@ static int readf(CSOUND *csound, READF *p)
 
 static int readfi(CSOUND *csound, READF *p)
 {
-    if (p->fd<=0) 
+    if ((int)p->fd<=0)
       if (UNLIKELY(readf_init(csound, p)!= OK))
         return csound->InitError(csound, Str("readi failed to initialise"));
     return readf(csound, p);

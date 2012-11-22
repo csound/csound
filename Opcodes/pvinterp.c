@@ -452,7 +452,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
         csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
 #endif
       if (specwp > 0)
-        PreWarpSpec(p->pp, buf, asize, pex, (MYFLT *)p->memenv.auxp);
+        PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
 
       Polar2Real_PVOC(csound, buf, (int) size);
 
