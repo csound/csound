@@ -201,7 +201,6 @@ static int EulerPhi (int n)
 {
     int i;
     PFACTOR p[MAX_PFACTOR];
-    int pcount;
     MYFLT result;
 
     if (n == 1)
@@ -213,7 +212,7 @@ static int EulerPhi (int n)
     /*     p[i].expon = 0;  */
     /*     p[i].base = 0; */
     /* } */
-    pcount = PrimeFactors (n, p);
+    (void)PrimeFactors (n, p);
 
     result = (MYFLT) n;
     for (i = 0; i < MAX_PFACTOR; i++) {

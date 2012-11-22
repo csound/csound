@@ -120,7 +120,7 @@ static void Modal4_strike(CSOUND *csound, Modal4 *m, MYFLT amplitude)
     OnePole_setPole(&m->onepole, FL(1.0) - amplitude);
     Envelope_tick(&m->envelope);
     m->w_time = FL(0.0);
-    m->w_lastOutput = FL(0.0);
+    //m->w_lastOutput = FL(0.0);
     m->w_allDone = 0;
                                 /*     wave->reset(); */
     for (i=0;i<4;i++)   {
@@ -149,7 +149,7 @@ static MYFLT Modal4_tick(Modal4 *m)
 {
     MYFLT temp,temp2;
     int32 itemp;
-    MYFLT temp_time, alpha;
+    MYFLT temp_time, alpha, lastOutput;
     int length = (int)m->wave->flen;
 
     m->w_time += m->w_rate;                  /*  Update current time          */
@@ -174,13 +174,13 @@ static MYFLT Modal4_tick(Modal4 *m)
 
     itemp = (int32) temp_time;                /* Integer part of time address  */
     alpha = temp_time - (MYFLT)itemp;     /*  fractional part of time address */
-    m->w_lastOutput = m->wave->ftable[itemp]; /*  Do linear interpolation     */
-    m->w_lastOutput = m->w_lastOutput +      /*  same as alpha*data[temp+1]   */
+    lastOutput = m->wave->ftable[itemp]; /*  Do linear interpolation     */
+    lastOutput = lastOutput +      /*  same as alpha*data[temp+1]   */
         (alpha * (m->wave->ftable[itemp+1] -
-                m->w_lastOutput));            /*  + (1-alpha)data[temp]       */
+                  lastOutput));            /*  + (1-alpha)data[temp]       */
 
     temp   = m->masterGain *
-      OnePole_tick(&m->onepole, m->w_lastOutput * Envelope_tick(&m->envelope));
+      OnePole_tick(&m->onepole, lastOutput * Envelope_tick(&m->envelope));
     temp2  = BiQuad_tick(&m->filters[0], temp);
     temp2 += BiQuad_tick(&m->filters[1], temp);
     temp2 += BiQuad_tick(&m->filters[2], temp);
@@ -211,12 +211,12 @@ static MYFLT Modal4_tick(Modal4 *m)
       itemp = (int32) temp_time;    /*  Integer part of time address    */
                                    /*  fractional part of time address */
       alpha = temp_time - (MYFLT)itemp;
-      m->v_lastOutput = m->vibr->ftable[itemp]; /* Do linear interpolation */
+      lastOutput = m->vibr->ftable[itemp]; /* Do linear interpolation */
       /*  same as alpha*data[itemp+1] + (1-alpha)data[temp] */
-      m->v_lastOutput = m->v_lastOutput +
-        (alpha * (m->vibr->ftable[itemp+1] - m->v_lastOutput));
+      lastOutput = /*m->v)*/lastOutput +
+        (alpha * (m->vibr->ftable[itemp+1] - lastOutput));
       /* End of vibrato tick */
-      temp = FL(1.0) + (m->v_lastOutput * m->vibrGain);   /*  Calculate AM      */
+      temp = FL(1.0) + (lastOutput * m->vibrGain);   /*  Calculate AM      */
       temp2 = temp * temp2;                          /* and apply to master out */
     }
 
@@ -329,7 +329,7 @@ int marimba(CSOUND *csound, MARIMBA *p)
       if (p->multiStrike>0)
         if (p->m4.w_allDone) {
           p->m4.w_time = FL(0.0);
-          p->m4.w_lastOutput = FL(0.0);
+          //p->m4.w_lastOutput = FL(0.0);
           p->m4.w_allDone = 0;
           p->multiStrike -= 1;
         }
