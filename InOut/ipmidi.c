@@ -47,12 +47,11 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     struct ip_mreq mreq;
 
 #ifdef WIN32
-	WSADATA wsaData;
-	if (WSAStartup (MAKEWORD(2, 2), &wsaData) != 0)
-	{
-		fprintf(stderr, "WSAStartup failed!\n");
-		return -1;
-	}
+    WSADATA wsaData;
+    if (WSAStartup (MAKEWORD(2, 2), &wsaData) != 0) {
+      fprintf(stderr, Str("WSAStartup failed!\n"));
+      return -1;
+    }
 #endif
     printf("OpenMidiInDevice_: %s\n", dev);
     // set content of struct saddr and imreq to zero
@@ -61,7 +60,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     // open a UDP socket
     sock = socket(PF_INET, SOCK_DGRAM, 0);
     if ( sock < 0 ) {
-      perror("Error creating socket");
+      perror(Str("Error creating socket"));
       return -1;
     }
 
@@ -73,7 +72,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     if ( status < 0 ) {
 #ifdef WIN32
       char *buff = strerror(errno);
-	  printf("WSAGetLastError() = %d\n", WSAGetLastError());
+      printf("WSAGetLastError() = %d\n", WSAGetLastError());
 #else
       char buff[128];
       strerror_r(errno, buff, 128);
@@ -85,23 +84,23 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       return -1;
     }
 
-	mreq.imr_multiaddr.s_addr = inet_addr("225.0.0.37");
-	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    mreq.imr_multiaddr.s_addr = inet_addr("225.0.0.37");
+    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
     status = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
 
     if ( status < 0 ) {
 #ifdef WIN32
       char *buff = strerror(errno);
-	  printf("WSAGetLastError() = %d\n", WSAGetLastError());
+      return
+        csound->PerfError(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
 #else
       char buff[128];
       strerror_r(errno, buff, 128);
-#endif
       return
         csound->PerfError(csound, Str("Error adding membership to interface: %s"),
                           buff);
       //perror("Error binding socket to interface");
-      return -1;
+#endif
     }
 
     *userData = (void*) &sock;
