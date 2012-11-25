@@ -1113,7 +1113,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     while (current != NULL) {
 
       switch (current->type) {
-      case T_INIT:
       case '=':
         /* csound->Message(csound, "Assignment found\n"); */
         break;
