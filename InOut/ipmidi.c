@@ -1,0 +1,185 @@
+/*
+    ipmidi.c:
+
+    Copyright (C) 2012 Henri Manson
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+/* Realtime MIDI using ipmidi library */
+
+#include <sys/types.h>
+#ifdef WIN32
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
+#include <errno.h>
+
+#include "csdl.h"                               /*      IPMIDI.C         */
+#include "csGblMtx.h"
+#include "midiops.h"
+#include "oload.h"
+
+static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
+{
+    static int sock;
+    int status;
+    struct sockaddr_in saddr;
+    struct ip_mreq mreq;
+
+#ifdef WIN32
+	WSADATA wsaData;
+	if (WSAStartup (MAKEWORD(2, 2), &wsaData) != 0)
+	{
+		fprintf(stderr, "WSAStartup failed!\n");
+		return -1;
+	}
+#endif
+    printf("OpenMidiInDevice_: %s\n", dev);
+    // set content of struct saddr and imreq to zero
+    memset(&saddr, 0, sizeof(struct sockaddr_in));
+
+    // open a UDP socket
+    sock = socket(PF_INET, SOCK_DGRAM, 0);
+    if ( sock < 0 ) {
+      perror("Error creating socket");
+      return -1;
+    }
+
+    saddr.sin_family = AF_INET;
+    saddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    saddr.sin_port = htons(21928);
+
+    status = bind(sock, (struct sockaddr *) &saddr, sizeof(struct sockaddr_in));
+    if ( status < 0 ) {
+#ifdef WIN32
+      char *buff = strerror(errno);
+	  printf("WSAGetLastError() = %d\n", WSAGetLastError());
+#else
+      char buff[128];
+      strerror_r(errno, buff, 128);
+#endif
+      return
+        csound->PerfError(csound, Str("Error binding socket to interface: %s"),
+                          buff);
+      //perror("Error binding socket to interface");
+      return -1;
+    }
+
+	mreq.imr_multiaddr.s_addr = inet_addr("225.0.0.37");
+	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    status = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+
+    if ( status < 0 ) {
+#ifdef WIN32
+      char *buff = strerror(errno);
+	  printf("WSAGetLastError() = %d\n", WSAGetLastError());
+#else
+      char buff[128];
+      strerror_r(errno, buff, 128);
+#endif
+      return
+        csound->PerfError(csound, Str("Error adding membership to interface: %s"),
+                          buff);
+      //perror("Error binding socket to interface");
+      return -1;
+    }
+
+    *userData = (void*) &sock;
+    /* report success */
+    return 0;
+}
+
+static int ReadMidiData_(CSOUND *csound, void *userData,
+                         unsigned char *mbuf, int nbytes)
+{
+    int             n;
+    int             sock = *((int *) userData);
+    fd_set          rset;
+    struct timeval  timeout;
+    int             rc;
+
+    n = 0;
+    FD_ZERO(&rset);
+    FD_SET(sock, &rset);
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+
+    rc = select(sock + 1, &rset, NULL, NULL, &timeout);
+    if (rc > 0)
+      {
+#ifdef WIN32
+        n = recv(sock, mbuf, nbytes, 0);
+#else
+        n = read(sock, mbuf, nbytes);
+#endif
+        printf("ReadMidiData__ n = %d\n", n);
+      }
+
+    /* return the number of bytes read */
+    return n;
+}
+
+static int CloseMidiInDevice_(CSOUND *csound, void *userData)
+{
+    int             sock = *((int *) userData);
+    printf("CloseMidiInDevice_\n");
+    close(sock);
+#ifdef WIN32
+	WSACleanup();
+#endif
+    return 0;
+}
+
+/* module interface functions */
+
+PUBLIC int csoundModuleCreate(CSOUND *csound)
+{
+    /* nothing to do, report success */
+    if (csound->oparms->msglevel & 0x400)
+      csound->Message(csound, Str("ipMIDI real time MIDI plugin for Csound\n"));
+    return 0;
+}
+
+PUBLIC int csoundModuleInit(CSOUND *csound)
+{
+    char    *drv;
+
+    drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
+    if (drv == NULL)
+      return 0;
+    if (strcmp(drv, "ipmidi") != 0)
+      return 0;
+    if (csound->oparms->msglevel & 0x400)
+      csound->Message(csound, Str("ipmidi: ipMIDI module enabled\n"));
+    csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
+    csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
+    csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);
+    return 0;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    /* does not depend on MYFLT type */
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));
+}
+

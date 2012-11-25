@@ -198,6 +198,7 @@
 ./H/winEPS.h
 ./InOut/FL_graph.cpp
 ./InOut/cmidi.c
+./InOut/ipmidi.c
 ./InOut/libsnd.c
 ./InOut/libsnd_u.c
 ./InOut/midifile.c
