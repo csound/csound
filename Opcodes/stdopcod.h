@@ -29,7 +29,6 @@
 
 #include "interlocks.h"
 
-
 /* file structure for fout opcodes */
 
 struct fileinTag {
@@ -51,8 +50,8 @@ typedef struct STDOPCOD_GLOBALS_ {
     int         file_max;
     int         file_num;
     int32        fout_kreset;
-    MYFLT       *buf;
-    int         buf_size;
+   /* MYFLT       *buf;
+      int         buf_size; */ /* VL - now using per instance buffer */
     /* oscbnk.c */
     uint32      oscbnk_seed;
     int32       rnd31i_seed;
