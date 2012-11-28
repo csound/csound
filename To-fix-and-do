@@ -1,8 +1,5 @@
 [CSOUND 6 TODOs]
 
-1)  remove old parser
-          Believed done includinf detritus --JPff
-
 2)  analyze and assess changes for CSOUND struct
           There is a list below of fields not in API that are only used once
 
@@ -125,4 +122,16 @@ KNOWN AREAS OF INCOMPLETENESS
 -other notes
     -look into creating API functions for programmatically building orc from
     opcodes, exposing INSTRTXT chain
+
+-----------------------------------------
+AGENDA
+<jpff> 1: Loadable instruments
+<jpff> 2: integration of UDOs
+<jpff> 3: I need to follow what you are doing over types
+<jpff> 4: ditto victor with sample-accuracy
+<jpff> 5: I relly need to code the better parallel dispatch
+<jpff> Can we simplify the environment variables?
+<jpff> Wht language changes do we need
+<jpff> also... removing power-of-2 tables in oscillators really slows things.
+       Should we implement a separate set of opcodes, or switch internally
 
