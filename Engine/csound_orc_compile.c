@@ -739,10 +739,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
             csound->tran_ksmps = val;
           }
           else if (current->left->type == NCHNLS_TOKEN) {
-            csound->tran_nchnls = current->right->value->value;
+            csound->nchnls = current->right->value->value;
           }
           else if (current->left->type == NCHNLSI_TOKEN) {
-            csound->tran_nchnlsi = current->right->value->value;
+            csound->inchnls = current->right->value->value;
             /* csound->Message(csound, "SETTING NCHNLS: %d\n",
                                csound->tran_nchnls); */
           }
