@@ -740,6 +740,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
           }
           else if (current->left->type == NCHNLS_TOKEN) {
             csound->nchnls = current->right->value->value;
+            if (csound->inchnls<0) csound->inchnls = csound->nchnls;
           }
           else if (current->left->type == NCHNLSI_TOKEN) {
             csound->inchnls = current->right->value->value;
