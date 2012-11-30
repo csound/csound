@@ -904,8 +904,11 @@ int sensevents(CSOUND *csound)
           continue;
         }
       }
+
+
       /* calculate the number of k-periods remaining until next event */
-      if (O->Beatmode)
+      if(!O->sampleAccurate){
+       if (O->Beatmode)
         csound->cyclesRemaining =
           RNDINT64((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
       else {
@@ -913,8 +916,26 @@ int sensevents(CSOUND *csound)
           RNDINT64((csound->nxtim*csound->esr - csound->icurTime) / csound->ksmps);
         csound->nxtim =
           (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
+      } 
+      }
+      else {
+      /* VL 30-11-2012
+        new code for sample-accurate timing needs to truncate cyclesRemaining
+      */
+      if (O->Beatmode)
+        csound->cyclesRemaining = (int64_t)
+          ((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
+      else {
+        csound->cyclesRemaining = (int64_t)
+          ((csound->nxtim*csound->esr - csound->icurTime) / csound->ksmps);
+        csound->nxtim = 
+          (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
+      } 
       }
     }
+
+
+
 
     /* handle any real time events now: */
     /* FIXME: the initialisation pass of real time */

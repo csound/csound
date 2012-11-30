@@ -95,6 +95,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     INSTRTXT  *tp;
     INSDS     *ip, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
+    int ksmps_offset, tie=0;
 
     if (csound->advanceCnt)
       return 0;
@@ -146,6 +147,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
       if (ip->actflg && ip->offtim < 0.0 && ip->p1 == newevtp->p[1]) {
         csound->tieflag++;
+        tie = 1;
         goto init;                      /*     continue that event */
       }
     }
@@ -222,6 +224,15 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (UNLIKELY(O->odebug))
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
+     /* new code for sample-accurate timing, not for tied notes */
+    if(O->sampleAccurate & !tie){
+    int64_t start_time_samps, start_time_kcycles;
+    start_time_samps = (int64_t) (ip->p2 * csound->esr);
+    start_time_kcycles = start_time_samps/csound->ksmps;
+    ksmps_offset = ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
+    }
+    else ksmps_offset = ip->ksmps_offset = 0;
+
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
     ip->offtim       = (double) ip->p3;         /* & duplicate p3 for now */
