@@ -211,6 +211,7 @@ typedef struct {
     int     syntaxCheckOnly;
     int     useCsdLineCounts;
     int     calculateWeights;
+    int     sampleAccurate;  /* switch for score events sample accuracy */
   } OPARMS;
 
   typedef struct arglst {
@@ -423,11 +424,13 @@ typedef struct {
     MYFLT   ekr;               /* and of rates */
     MYFLT   onedksmps, onedkr, kicvt;
 #endif
+    
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
     void    *opcod_deact, *subins_deact;
     /* opcodes to be run at note deactivation */
     void    *nxtd;
+    int32   ksmps_offset; /* ksmps offset for sample accuracy */
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
     MYFLT   p1;

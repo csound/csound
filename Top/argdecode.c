@@ -216,8 +216,10 @@ static const char *longUsageList[] = {
   Str_noop("--midi-velocity-amp=N\tRoute MIDI note on message"),
   Str_noop("\t\t\tvelocity number to pfield N as amplitude"),
   Str_noop("--no-default-paths\tTurn off relative paths from CSD/ORC/SCO"),
+  Str_noop("--sample-accurate\t\tUse sample-accurate timing of score events"),
   " ",
   Str_noop("--help\t\t\tLong help"),
+  
   NULL
 };
 
@@ -890,7 +892,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
 #endif
-
+    else if (!(strcmp(s, "sample-accurate"))){
+      O->sampleAccurate = 1;
+      return 1;
+    }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }

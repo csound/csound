@@ -1243,6 +1243,7 @@ extern "C" {
               while ((currentOpcode = currentOpcode->nxtp)) {
                 (*currentOpcode->opadr)(csound, currentOpcode);
               }
+              currentInstance->ksmps_offset = 0; /* reset sample-accuracy offset */
             }
           }
         }
@@ -1287,7 +1288,7 @@ inline static int nodePerf(CSOUND *csound, int index)
           while ((opstart = opstart->nxtp) != NULL) {
             (*opstart->opadr)(csound, opstart); /* run each opcode */
           }
-
+          insds->ksmps_offset = 0; /* reset sample-accuracy offset */
           TRACE_2("[%i] Played:  %s [%p]\n", index, instr->name, insds);
         }
         else if (node->hdr.type == DAG_NODE_LIST) {
@@ -1312,7 +1313,7 @@ inline static int nodePerf(CSOUND *csound, int index)
                        opstart, opstart->opadr, opstart->optext->t.opcod); */
               (*opstart->opadr)(csound, opstart); /* run each opcode */
             }
-
+            insds->ksmps_offset = 0; /* reset sample-accuracy offset */
             TRACE_2("[%i] Played:  %s [%p]\n", index, instr->name, insds);
             node_ctr++;
           }
@@ -1410,6 +1411,7 @@ inline void singleThreadedLayer(CSOUND *csound,
       while ((csound->pds = csound->pds->nxtp)) {
         (*csound->pds->opadr)(csound, csound->pds);
       }
+      currentInstance->ksmps_offset = 0; /* reset sample-accuracy offset */
     }
 }
 
@@ -1482,6 +1484,7 @@ int kperf(CSOUND *csound)
         while ((csound->pds = csound->pds->nxtp) != NULL) {
           (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
         }
+        ip->ksmps_offset = 0; /* reset sample-accuracy offset */
         ip = nxt; /* but this does not allow for all deletions */
       }
 #endif
@@ -1549,6 +1552,7 @@ int kperf(CSOUND *csound)
           while ((csound->pds = csound->pds->nxtp) != NULL) {
             (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
           }
+          ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip = nxt; /* but this does not allow for all deletions */
         }
       }
