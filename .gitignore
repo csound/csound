@@ -6,7 +6,7 @@
 # Opcode libraries
 /lib*.*
 /tclcsound.*
-
+/csladspa.*
 
 # Final library
 /libcsound*
@@ -147,3 +147,23 @@ installer/macosx/201*
 
 ## Generated Doxygen
 doc/html
+
+#Generated files if running in-source CMake build
+CMakeFiles/
+Makefile
+cmake_install.cmake
+/cmake_uninstall.cmake
+CTestTestfile.cmake
+/CMakeCache.txt
+/interfaces/*wrap.cxx
+.dylib
+/csound_orclex.c
+/csound_orcparse.c
+/csound_orcparse.h
+/csound_orcparse.output
+/csound_prelex.c
+/frontends/beats.tab.c
+/frontends/beats.tab.h
+/frontends/beatslex.yy.c
+/tests/c/*Test
+

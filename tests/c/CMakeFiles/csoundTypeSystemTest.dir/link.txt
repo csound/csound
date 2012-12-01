@@ -1,1 +1,0 @@
-/usr/bin/gcc   -Wall -O3 -mtune=corei7 -ftree-vectorize -ffast-math -g    CMakeFiles/csoundTypeSystemTest.dir/csound_type_system_test.c.o  -o csoundTypeSystemTest -rdynamic ../../libcsound64.so.6.0 -Wl,-rpath,/jpff/Sourceforge/csound/csound6 
