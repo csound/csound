@@ -83,5 +83,6 @@
 #include "Voicelead.hpp"
 #include "VoiceleadingNode.hpp"
 #include "ChordLindenmayer.hpp"
+#include "ChordSpace.hpp"
 
 #endif
