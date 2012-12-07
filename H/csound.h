@@ -941,15 +941,57 @@ extern "C" {
     PUBLIC void csoundInputMessage(CSOUND *, const char *message);
 
     /**
+     * Creates a buffer for storing messages printed by Csound.
+     * Should be called after creating a Csound instance; note that
+     * the message buffer uses the host data pointer, and the buffer
+     * should be freed by calling csoundDestroyMessageBuffer() before
+     * deleting the Csound instance.
+     * If 'toStdOut' is non-zero, the messages are also printed to
+     * stdout and stderr (depending on the type of the message),
+     * in addition to being stored in the buffer.
+     * Using the message buffer ties up the internal message callback, so
+     * csoundSetMessageCallback should not be called after creating the
+     * message buffer.
+     */
+    void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut);
+
+    /**
+     * Returns the first message from the buffer.
+     */
+    PUBLIC const char*  csoundGetFirstMessage(CSOUND *csound);
+
+    /**
+     * Returns the attribute parameter (see msg_attr.h) of the first message
+     * in the buffer.
+     */
+    int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound);
+
+    /**
+     * Removes the first message from the buffer.
+     */
+    void PUBLIC csoundPopFirstMessage(CSOUND *csound);
+
+    /**
+     * Returns the number of pending messages in the buffer.
+     */
+    int PUBLIC csoundGetMessageCnt(CSOUND *csound);
+
+    /**
+     * Releases all memory used by the message buffer.
+     */
+    void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound);
+
+    /*
+     * CONTROL AND EVENTS
+     */
+
+
+    /**
      * Set the ASCII code of the most recent key pressed.
      * This value is used by the 'sensekey' opcode if a callback
      * for returning keyboard events is not set (see csoundSetCallback()).
      */
     PUBLIC void csoundKeyPress(CSOUND *, char c);
-
-    /*
-     * CONTROL AND EVENTS
-     */
 
     /**
      * Control values are specified by a 'channelName' string.
@@ -1936,46 +1978,6 @@ extern "C" {
      */
     PUBLIC void csoundRemoveCallback(CSOUND *,
             int (*func)(void *, void *, unsigned int));
-
-
-
-    /**
-     * Creates a buffer for storing messages printed by Csound.
-     * Should be called after creating a Csound instance; note that
-     * the message buffer uses the host data pointer, and the buffer
-     * should be freed by calling csoundDestroyMessageBuffer() before
-     * deleting the Csound instance.
-     * If 'toStdOut' is non-zero, the messages are also printed to
-     * stdout and stderr (depending on the type of the message),
-     * in addition to being stored in the buffer.
-     */
-    void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut);
-
-    /**
-     * Returns the first message from the buffer.
-     */
-    PUBLIC const char*  csoundGetFirstMessage(CSOUND *csound);
-
-    /**
-     * Returns the attribute parameter (see msg_attr.h) of the first message
-     * in the buffer.
-     */
-    int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound);
-
-    /**
-     * Removes the first message from the buffer.
-     */
-    void PUBLIC csoundPopFirstMessage(CSOUND *csound);
-
-    /**
-     * Returns the number of pending messages in the buffer.
-     */
-    int PUBLIC csoundGetMessageCnt(CSOUND *csound);
-
-    /**
-     * Releases all memory used by the message buffer.
-     */
-    void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound);
 
 #if !defined(SWIG)
     /**
