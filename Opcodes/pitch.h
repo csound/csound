@@ -90,7 +90,7 @@ typedef struct {
     FUNC    *ftp;
     FUNC    *freqtp;
     FUNC    *amptp;
-    int     count;
+    unsigned int     count;
     int     inerr;
     AUXCH   lphs;
 } ADSYNT;
@@ -170,7 +170,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar;
         MYFLT   *amp, *freq, *offset;
-        int     next;
+        unsigned int     next;
 } IMPULSE;
 
 typedef struct {

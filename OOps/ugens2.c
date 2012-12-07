@@ -1364,7 +1364,7 @@ int koscl3(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     int32    phs, inc;
     MYFLT  *ftab, fract;
-    int     x0;
+    unsigned int     x0;
     MYFLT   y0, y1, ym1, y2, amp = *p->xamp;
 
     phs = p->lphs;
@@ -1548,8 +1548,8 @@ int oscaa3(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *cpsp, *ftab;
     int32   phs, lobits;
-    int     n, nsmps=CS_KSMPS;
-    int     x0;
+    unsigned int     n, nsmps=CS_KSMPS;
+    unsigned int     x0;
     MYFLT   y0, y1, ym1, y2;
     MYFLT   sicvt = csound->sicvt;
 

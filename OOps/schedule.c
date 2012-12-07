@@ -323,7 +323,7 @@ int lfok(CSOUND *csound, LFO *p)
 
 int lfoa(CSOUND *csound, LFO *p)
 {
-    int         n;
+    unsigned int n, nsmps = CS_KSMPS;
     int32       phs;
     MYFLT       fract;
     MYFLT       res;
@@ -334,7 +334,7 @@ int lfoa(CSOUND *csound, LFO *p)
     inc = (int32)((*p->xcps * (MYFLT)MAXPHASE) * csound->onedsr);
     amp = *p->kamp;
     ar = p->res;
-    for (n=0; n<CS_KSMPS; n++) {
+    for (n=0; n<nsmps; n++) {
       switch (p->lasttype) {
       default:
         return csound->PerfError(csound, Str("LFO: unknown oscilator type %d"),

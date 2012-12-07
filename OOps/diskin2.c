@@ -327,7 +327,8 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
     int32   ndx;
-    int     i, nn, chn, wsized2, warp;
+    int     i, wsized2, warp;
+    unsigned int  nn, chn;
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if(!p->initDone && !p->iSkipInit){

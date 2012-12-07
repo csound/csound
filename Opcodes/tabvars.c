@@ -59,7 +59,7 @@ typedef struct {
 
 static inline void tabensure(CSOUND *csound, TABDAT *p, int size)
 {
-    int32 ss = sizeof(MYFLT)*size;
+    uint32_t ss = sizeof(MYFLT)*size;
     if (p->aux.auxp==NULL || p->aux.size<ss) {
       csound->AuxAlloc(csound, ss, &p->aux);
       p->data = (MYFLT*)(p->aux.auxp);
