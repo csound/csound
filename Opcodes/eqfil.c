@@ -86,4 +86,4 @@ static OENTRY eqfil_localops[] = {
    "a", "akkko", (SUBR)equ_init, NULL, (SUBR)equ_process},
 };
 
-LINKAGE1(eqfil_localops)
+LINKAGE_BUILTIN(eqfil_localops)

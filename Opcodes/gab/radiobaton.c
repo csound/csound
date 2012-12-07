@@ -337,5 +337,5 @@ OENTRY radiobaton_localops[] = {
     (SUBR)rbatonPot_set, (SUBR)rbatonPot  }
 };
 
-LINKAGE1(radiobaton_localops)
+LINKAGE_BUILTIN(radiobaton_localops)
 

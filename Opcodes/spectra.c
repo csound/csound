@@ -1255,4 +1255,4 @@ static OENTRY spectra_localops[] = {
 { "mediank", S(MEDFILT), 5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
 
-LINKAGE1(spectra_localops)
+LINKAGE_BUILTIN(spectra_localops)

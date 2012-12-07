@@ -312,4 +312,4 @@ static OENTRY minmax_localops[] = {
     {"minabs.k", S(MINMAX), 2, "k", "kz", NULL, (SUBR) MinAbs_krate, NULL}
 };
 
-LINKAGE1(minmax_localops)
+LINKAGE_BUILTIN(minmax_localops)

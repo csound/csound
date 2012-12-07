@@ -264,5 +264,5 @@ static OENTRY compress_localops[] = {
     (SUBR) distset, NULL, (SUBR) distort },
 };
 
-LINKAGE1(compress_localops)
+LINKAGE_BUILTIN(compress_localops)
 

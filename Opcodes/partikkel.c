@@ -1,6 +1,6 @@
 /*
 Partikkel - a granular synthesis module for Csound 5
-Copyright (C) 2006-2009 Øyvind Brandtsegg, Torgeir Strand Henriksen,
+Copyright (C) 2006-2009 Oeyvind Brandtsegg, Torgeir Strand Henriksen,
 Thom Johansen
 
 This library is free software; you can redistribute it and/or
@@ -983,5 +983,5 @@ static OENTRY partikkel_localops[] = {
     }
 };
 
-LINKAGE1(partikkel_localops)
+LINKAGE_BUILTIN(partikkel_localops)
 

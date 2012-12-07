@@ -433,6 +433,6 @@ static OENTRY crossfm_localops[] = {
                                                  (SUBR)xfmset, NULL, (SUBR)xfmpmi },
 };
 
-LINKAGE1(crossfm_localops)
+LINKAGE_BUILTIN(crossfm_localops)
 
 

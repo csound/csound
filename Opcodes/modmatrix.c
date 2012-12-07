@@ -253,5 +253,5 @@ static OENTRY modmatrix_localops[] = {
     }
 };
 
-LINKAGE1(modmatrix_localops)
+LINKAGE_BUILTIN(modmatrix_localops)
 

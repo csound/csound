@@ -73,7 +73,7 @@ static OENTRY tabsum_localops[] = {
                 (SUBR)tabsuminit, (SUBR)tabsum },
 };
 
-LINKAGE1(tabsum_localops)
+LINKAGE_BUILTIN(tabsum_localops)
 
 
 

@@ -456,4 +456,4 @@ static OENTRY serial_localops[] = {
     /*   (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   } */
 };
 
-LINKAGE1(serial_localops)
+LINKAGE_BUILTIN(serial_localops)

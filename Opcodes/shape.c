@@ -516,4 +516,4 @@ static OENTRY shape_localops[] = {
                   (SUBR)SyncPhasorInit, NULL, (SUBR)SyncPhasor },
 };
 
-LINKAGE1(shape_localops)
+LINKAGE_BUILTIN(shape_localops)

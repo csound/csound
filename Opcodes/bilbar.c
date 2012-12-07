@@ -555,5 +555,5 @@ static OENTRY bilbar_localops[] = {
       (SUBR)init_pp, NULL, (SUBR)play_pp },
 };
 
-LINKAGE1(bilbar_localops)
+LINKAGE_BUILTIN(bilbar_localops)
 

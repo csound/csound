@@ -62,5 +62,5 @@ static OENTRY vaops_localops[] = {
 };
 
 
-LINKAGE1(vaops_localops)
+LINKAGE_BUILTIN(vaops_localops)
 

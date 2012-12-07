@@ -302,5 +302,5 @@ static OENTRY control_localops[] = {
 { "flashtxt", S(TXTWIN), 1, "",  "iT",  (SUBR) textflash, NULL, NULL          },
 };
 
-LINKAGE1(control_localops)
+LINKAGE_BUILTIN(control_localops)
 

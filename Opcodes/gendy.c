@@ -523,4 +523,4 @@ static OENTRY gendy_localops[] = {
     (SUBR)gendycset, (SUBR)NULL,    (SUBR)agendyc        }
 };
 
-LINKAGE1(gendy_localops)
+LINKAGE_BUILTIN(gendy_localops)

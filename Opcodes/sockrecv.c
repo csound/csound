@@ -379,5 +379,5 @@ static OENTRY sockrecv_localops[] = {
     (SUBR) send_srecv }
 };
 
-LINKAGE1(sockrecv_localops)
+LINKAGE_BUILTIN(sockrecv_localops)
 

@@ -742,4 +742,4 @@ static OENTRY fareyseq_localops[] = {
     {"tableshuffle", S (TABSHUFFLE), TB|2, "", "k", (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL},
 };
 
-LINKAGE1(fareyseq_localops)
+LINKAGE_BUILTIN(fareyseq_localops)

@@ -331,5 +331,5 @@ static OENTRY pvsbuffer_localops[] = {
    (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc2, NULL}
 };
 
-LINKAGE1(pvsbuffer_localops)
+LINKAGE_BUILTIN(pvsbuffer_localops)
 /* LINKAGE */
