@@ -540,4 +540,4 @@ static OENTRY pvlock_localops[] = {
          (SUBR) pvslockproc},
 };
 
-LINKAGE1(pvlock_localops)
+LINKAGE_BUILTIN(pvlock_localops)

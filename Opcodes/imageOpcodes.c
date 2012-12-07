@@ -628,5 +628,5 @@ static OENTRY image_localops[] = {
 };
 
 
-LINKAGE1(image_localops)
+LINKAGE_BUILTIN(image_localops)
 

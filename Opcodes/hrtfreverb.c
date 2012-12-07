@@ -1329,4 +1329,4 @@ static OENTRY hrtfreverb_localops[] =
         }
 };
 
-LINKAGE1(hrtfreverb_localops)
+LINKAGE_BUILTIN(hrtfreverb_localops)

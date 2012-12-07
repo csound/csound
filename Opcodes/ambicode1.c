@@ -478,4 +478,4 @@ static OENTRY ambicode1_localops[] = {
     (SUBR)ibformdec, NULL, (SUBR)abformdec },
 };
 
-LINKAGE1(ambicode1_localops)
+LINKAGE_BUILTIN(ambicode1_localops)

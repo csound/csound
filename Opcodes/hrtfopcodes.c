@@ -2630,4 +2630,4 @@ static OENTRY hrtfopcodes_localops[] =
     (SUBR)hrtfmove2_init, NULL, (SUBR)hrtfmove2_process }
 };
 
-LINKAGE1(hrtfopcodes_localops)
+LINKAGE_BUILTIN(hrtfopcodes_localops)

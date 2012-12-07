@@ -264,4 +264,4 @@ static OENTRY mp3in_localops[] = {
   {"mp3len", S(MP3LEN), 1, "i",  "T",     (SUBR) mp3len,    NULL,  NULL}
 };
 
-LINKAGE1(mp3in_localops)
+LINKAGE_BUILTIN(mp3in_localops)

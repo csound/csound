@@ -296,5 +296,5 @@ static NGFENS farey_fgens[] = {
   { NULL, NULL }
 };
 
-FLINKAGE1(farey_fgens)
+FLINKAGE_BUILTIN(farey_fgens)
 

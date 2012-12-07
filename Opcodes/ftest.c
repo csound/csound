@@ -165,4 +165,4 @@ static NGFENS ftest_fgens[] = {
    { NULL, NULL }
 };
 
-FLINKAGE1(ftest_fgens)
+FLINKAGE_BUILTIN(ftest_fgens)

@@ -653,5 +653,5 @@ static OENTRY stackops_localops[] = {
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL }
 };
 
-LINKAGE1(stackops_localops)
+LINKAGE_BUILTIN(stackops_localops)
 

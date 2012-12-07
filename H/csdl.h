@@ -35,9 +35,7 @@
 extern "C" {
 #endif
 
-
-
-
+/* Use the Str() macro for translations of strings */
 #undef Str
 #ifndef GNU_GETTEXT
 #define Str(x)  (x)
@@ -55,18 +53,25 @@ PUBLIC  const char  *csoundModuleErrorCodeToString(int);
 
 PUBLIC  int     csoundModuleInfo(void);
 
+/* The LINKAGE macro sets up linking of opcode list*/
+
 #define LINKAGE                                                         \
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 {   (void) csound; *ep = localops; return (long) sizeof(localops);  }   \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
-#undef LINKAGE1
-#define LINKAGE1(name)                                                  \
+/* The LINKAGE_BUILTIN macro sets up linking of opcode list for builtin opcodes
+ * which must have unique function names */
+
+#undef LINKAGE_BUILTIN
+#define LINKAGE_BUILTIN(name)                                                  \
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 {   (void) csound; *ep = name; return (long) (sizeof(name));  }         \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
+
+/* LINKAGE for f-table plugins */
 
 #define FLINKAGE                                                        \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
@@ -74,8 +79,8 @@ PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
-#undef FLINKAGE1
-#define FLINKAGE1(name)                                                 \
+#undef FLINKAGE_BUILTIN
+#define FLINKAGE_BUILTIN(name)                                                 \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {   (void) csound; return name;                                     }   \
 PUBLIC int csoundModuleInfo(void)                                       \

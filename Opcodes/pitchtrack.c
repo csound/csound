@@ -743,5 +743,5 @@ static OENTRY pitchtrack_localops[] = {
 
 };
 
-LINKAGE1(pitchtrack_localops)
+LINKAGE_BUILTIN(pitchtrack_localops)
 

@@ -435,4 +435,4 @@ static OENTRY grain4_localops[] = {
              (SUBR)grainsetv4, NULL, (SUBR)graingenv4},
 };
 
-LINKAGE1(grain4_localops)
+LINKAGE_BUILTIN(grain4_localops)

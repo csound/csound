@@ -1142,7 +1142,7 @@ extern "C"
        (SUBR) lorismorph_setup, (SUBR) lorismorph, 0 }
     };
 
-  LINKAGE1(loris_localops)
+  LINKAGE_BUILTIN(loris_localops)
 
 }
 

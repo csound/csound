@@ -113,7 +113,7 @@ static OENTRY pvsgendy_localops[] = {
                 (SUBR) pvsgendyinit, (SUBR) pvsgendy, (SUBR) NULL }
 };
 
-LINKAGE1(pvsgendy_localops)
+LINKAGE_BUILTIN(pvsgendy_localops)
 
 
 

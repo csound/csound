@@ -64,5 +64,5 @@ PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)
     return p;
 }
 
-LINKAGE1(pvoc_localops)
+LINKAGE_BUILTIN(pvoc_localops)
 

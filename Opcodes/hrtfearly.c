@@ -1785,4 +1785,4 @@ static OENTRY hrtfearly_localops[] =
     }
   };
 
-LINKAGE1(hrtfearly_localops)
+LINKAGE_BUILTIN(hrtfearly_localops)

@@ -418,4 +418,4 @@ static OENTRY wiimote_localops[] = {
   {"wiirange", S(WIIRANGE), 1, "", "iiio", (SUBR)wiimote_range, NULL, NULL }
 };
 
-LINKAGE1(wiimote_localops)
+LINKAGE_BUILTIN(wiimote_localops)
