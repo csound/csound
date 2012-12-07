@@ -796,8 +796,8 @@ tfac      : T_IDENT_T
           | '(' error         { $$ = NULL; }
           ;
 
-mapop     : T_MAPI { $$ = T_MAPI; }
-          | T_MAPK { $$ = T_MAPK; }
+mapop     : T_MAPI { $$ = (void*)T_MAPI; }
+          | T_MAPK { $$ = (void*)T_MAPK; }
           ;
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,

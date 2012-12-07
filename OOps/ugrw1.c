@@ -1886,10 +1886,10 @@ int tableraset(CSOUND *csound, TABLERA *p)
 int tablera(CSOUND *csound, TABLERA *p)
 {
     MYFLT       *writeloc, *readloc;
-    int32        kstart;
+    uint32_t    kstart;
     /* Local variable to hold integer version of offset, and the length
      * mask for ANDing the total index - wrapping it into the table length. */
-    int32        kioff, mask;
+    int32       kioff, mask;
     int         loopcount;
 
     /* Check the state of the table number variable.
@@ -1922,7 +1922,7 @@ int tablera(CSOUND *csound, TABLERA *p)
     }
     /* Check that kstart is within the range of the table. */
 
-    if (UNLIKELY(((kstart = (int32)*p->kstart) < 0L) ||
+    if (UNLIKELY(((kstart = (uint32_t)*p->kstart) < 0U) ||
                  (kstart >= p->ftp->flen))) {
       return csound->PerfError(csound, Str("kstart %.2f is outside "
                                            "table %.2f range 0 to %ld"),
@@ -2044,7 +2044,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
     }
 
     /* Check that kstart is within the range of the table. */
-    if (UNLIKELY(((kstart = (int32)*p->kstart) < 0L) ||
+    if (UNLIKELY(((kstart = (uint32_t)*p->kstart) < 0U) ||
                  (kstart >= p->ftp->flen))) {
         return csound->PerfError(csound, Str("kstart %.2f is outside "
                                              "table %.2f range 0 to %ld"),

@@ -103,8 +103,8 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
 
 static int scanhinit(CSOUND *csound, SCANHAMMER *p)
 {
-  int srcpos = 0;
-  int dstpos = (int)MYFLT2LONG(*p->ipos);
+  unsigned int srcpos = 0;
+  unsigned int dstpos = (unsigned int)MYFLT2LONG(*p->ipos);
 
   FUNC *fsrc = csound->FTnp2Find(csound, p->isrc); /* Source table */
   FUNC *fdst = csound->FTnp2Find(csound, p->idst); /* Destination table */

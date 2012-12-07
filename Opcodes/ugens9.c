@@ -104,7 +104,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     }
 
     /* Determine size of circular output buffer */
-    if (Hlen >= CS_KSMPS)
+    if (Hlen >= (int)CS_KSMPS)
       obufsiz = (int32) CEIL((MYFLT) Hlen / CS_KSMPS)
                 * CS_KSMPS;
     else
@@ -193,7 +193,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     if (p->auxch.auxp==NULL) goto err1;
   /* First dump as much pre-existing audio in output buffer as possible */
     if (outcnt > 0) {
-      if (outcnt <= CS_KSMPS)
+      if (outcnt <= (int)CS_KSMPS)
         i = outcnt;
       else
         i = CS_KSMPS;
@@ -465,7 +465,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
 
     /* allocate circular output sample buffer */
     p->outBufSiz = sizeof(MYFLT) * p->nchanls *
-      (p->Hlen >= CS_KSMPS ? p->Hlenpadded : 2*CS_KSMPS);
+      (p->Hlen >= (int)CS_KSMPS ? p->Hlenpadded : 2*(int)CS_KSMPS);
     csound->AuxAlloc(csound, p->outBufSiz, &p->output);
     p->outRead = (MYFLT *)p->output.auxp;
 
@@ -473,7 +473,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
        empty ksmps pass after a few initial generated buffers.  There is
        probably an equation to figure this out to reduce the delay, but
        I can't seem to figure it out */
-    if (p->Hlen > CS_KSMPS) {
+    if (p->Hlen > (int)CS_KSMPS) {
       p->outCount = p->Hlen + CS_KSMPS;
       p->outWrite = p->outRead + (p->nchanls * p->outCount);
     }
@@ -567,8 +567,8 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 
     /* copy to output if we have enough samples [we always should
        except the first Hlen samples] */
-    if (p->outCount >= CS_KSMPS) {
-      int n;
+    if (p->outCount >= (int)CS_KSMPS) {
+      unsigned int n;
       p->outCount -= CS_KSMPS;
       for (n=0; n < CS_KSMPS; n++) {
         switch (p->nchanls) {

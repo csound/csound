@@ -95,7 +95,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     INSTRTXT  *tp;
     INSDS     *ip, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
-    int ksmps_offset, tie=0;
+    int tie=0;
 
     if (csound->advanceCnt)
       return 0;
@@ -225,13 +225,14 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
      /* new code for sample-accurate timing, not for tied notes */
-    if(O->sampleAccurate & !tie){
-    int64_t start_time_samps, start_time_kcycles;
-    start_time_samps = (int64_t) (ip->p2 * csound->esr);
-    start_time_kcycles = start_time_samps/csound->ksmps;
-    ksmps_offset = ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
+    if (O->sampleAccurate & !tie) {
+      int64_t start_time_samps, start_time_kcycles;
+      start_time_samps = (int64_t) (ip->p2 * csound->esr);
+      start_time_kcycles = start_time_samps/csound->ksmps;
+      /* ksmps_offset = */ 
+      ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
     }
-    else ksmps_offset = ip->ksmps_offset = 0;
+    else /* ksmps_offset = */ ip->ksmps_offset = 0;
 
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
@@ -954,12 +955,13 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     OPDS    *saved_ids = csound->ids;
     INSDS   *saved_curip = csound->curip, *parent_ip = csound->curip, *lcurip;
     INSTRTXT  *tp;
-    int     instno, i, n, pcnt;
+    int     instno, n, pcnt;
+    unsigned int i;
     OPCODINFO *inm;
     OPCOD_IOBUFS  *buf;
-    int     g_ksmps;
-    int32    g_kcounter;
-    MYFLT   /*g_ekr, */g_onedkr, g_onedksmps, g_kicvt;
+    unsigned int  g_ksmps;
+    int32         g_kcounter;
+    MYFLT         g_onedkr, g_onedksmps, g_kicvt;
 
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
@@ -970,7 +972,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* set local ksmps if defined by user */
     n = p->OUTOCOUNT + p->INOCOUNT - 1;
     if (*(p->ar[n]) != FL(0.0)) {
-      i = (int) *(p->ar[n]);
+      i = (unsigned int) *(p->ar[n]);
       if (UNLIKELY(i < 1 || i > csound->ksmps ||
                    ((csound->ksmps / i) * i) != csound->ksmps)) {
         return csoundInitError(csound, Str("%s: invalid local ksmps value: %d"),
@@ -1253,10 +1255,10 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
     OPCOD_IOBUFS  *buf;
     UOPCODE       *pp;
-    int           l_ksmps, n;
+    unsigned int  l_ksmps, n;
 
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
-    l_ksmps = (int) *(p->i_ksmps);
+    l_ksmps = (unsigned int) *(p->i_ksmps);
     if (!l_ksmps) return OK;       /* zero: do not change */
     if (UNLIKELY(l_ksmps < 1 || l_ksmps > csound->ksmps
                  || ((csound->ksmps / l_ksmps) * l_ksmps != csound->ksmps))) {
@@ -1556,7 +1558,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     OPDS    *saved_pds = csound->pds;
     int     saved_sa = csound->spoutactive;
     MYFLT   *pbuf, *saved_spout = csound->spout;
-    int32    frame, chan;
+    uint32_t frame, chan;
 
     if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
       return csoundPerfError(csound, Str("subinstr: not initialised"));

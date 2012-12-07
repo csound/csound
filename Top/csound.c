@@ -476,7 +476,7 @@ extern "C" {
     (void (*)(CSOUND *, WINDAT *windat, const char *name)) NULL, /* was: MakeAscii,*/
     (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: DrawAscii,*/
     (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
-	(int (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
+    (int (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
     defaultCsoundYield,
     (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundMakeXYin, */
     (void (*)(CSOUND *, XYINDAT *)) NULL, /* was: defaultCsoundReadKillXYin, */
@@ -2407,11 +2407,13 @@ PUBLIC void csoundSetKillGraphCallback(CSOUND *csound,
     csound->csoundKillGraphCallback_ = killGraphCallback;
 }
 
+#ifdef never
 static int defaultCsoundExitGraph(CSOUND *csound)
 {
     (void) csound;
     return CSOUND_SUCCESS;
 }
+#endif
 
 PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
                                        int (*exitGraphCallback)(CSOUND *))
@@ -2419,6 +2421,7 @@ PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
     csound->csoundExitGraphCallback_ = exitGraphCallback;
 }
 
+#ifdef never
 static void defaultCsoundMakeXYin(CSOUND *csound,
                                   XYINDAT *xyindat, MYFLT x, MYFLT y)
 {
@@ -2428,12 +2431,15 @@ static void defaultCsoundMakeXYin(CSOUND *csound,
     csoundWarning(csound,
                   Str("xyin not supported. use invalue opcode instead."));
 }
+#endif
 
+#ifdef never
 static void defaultCsoundReadKillXYin(CSOUND *csound, XYINDAT *xyindat)
 {
     (void) csound;
     (void) xyindat;
 }
+#endif
 
 PUBLIC void csoundSetMakeXYinCallback(CSOUND *csound,
                                       void (*makeXYinCallback)(CSOUND *,

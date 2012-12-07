@@ -61,7 +61,7 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     bufsize = sizeof(MYFLT) * (2L * (size_t) (csound->esr * *p->imkglen)
                                + (3L * CS_KSMPS));
 
-    if (p->aux.auxp == NULL || bufsize > p->aux.size)
+    if (p->aux.auxp == NULL || (unsigned int)bufsize > p->aux.size)
       csound->AuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;

@@ -698,8 +698,8 @@ static int infile_set(CSOUND *csound, INFILE *p)
 static int infile_act(CSOUND *csound, INFILE *p)
 {
     
-    int   i, j = 0, k;
-    int nsmps = CS_KSMPS, nargs = p->nargs;
+    int   i, k;    
+    unsigned int j, nsmps = CS_KSMPS, nargs = p->nargs;
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
     if (p->flag) {
@@ -722,13 +722,13 @@ static int infile_act(CSOUND *csound, INFILE *p)
       p->remain -= CS_KSMPS;
       if (p->remain <= 0 && p->buf_pos < p->guard_pos) {
         p->flag = 0;
-        for (; j < CS_KSMPS; j++)
+        for (j=0; j < nsmps; j++)
           for (i = 0; i < nargs; i++)
             p->argums[i][j] = FL(0.0);
       }
       return OK;
     }
-    for ( ; j < CS_KSMPS; j++)
+    for (j=0 ; j < nsmps; j++)
       for (i = 0; i < nargs; i++)
         p->argums[i][j] = FL(0.0);
 
@@ -897,16 +897,17 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
 static int incr(CSOUND *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
-    int   n;
+    unsigned int   n, nsmps = CS_KSMPS;
 
-    for (n = 0; n < CS_KSMPS; n++)
+    for (n = 0; n < nsmps; n++)
       avar[n] += aincr[n];
     return OK;
 }
 
 static int clear(CSOUND *csound, CLEARS *p)
 {
-    int   nsmps = CS_KSMPS, j;
+    unsigned int   nsmps = CS_KSMPS;
+    int j;
 
     for (j = 0; j < p->INOCOUNT; j++) {
       memset(p->argums[j], 0, sizeof(MYFLT)*nsmps);

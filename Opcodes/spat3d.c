@@ -45,7 +45,7 @@ static int    spat3d_init_window(CSOUND *csound, SPAT3D *p)
     o = p->oversamp << 5;           /* window size = 32 * oversample */
 
     i = ((o + 1) * (sizeof(int) + sizeof(MYFLT)));      /* allocate */
-    if ((p->fltr.auxp == NULL) || (p->fltr.size < i))   /* space    */
+    if ((p->fltr.auxp == NULL) || (p->fltr.size < (unsigned int)i)) /* space */
       csound->AuxAlloc(csound, i, &(p->fltr));
     p->sample = (int *) p->fltr.auxp;                 /* sample number */
     p->window = (MYFLT *) (p->sample + o + 1);        /* window value  */
@@ -237,7 +237,7 @@ static int spat3d_init_delay(CSOUND *csound, SPAT3D *p)
     p->mdel_s = i;
     if (p->o_num == 1) i += 4;      /* extra samples for spat3d */
     j = i * (int32) sizeof(MYFLT) * (int32) (p->zout > 3 ? 4 : p->zout + 1);
-    if ((p->del.auxp == NULL) || (p->del.size < j))         /* allocate */
+    if ((p->del.auxp == NULL) || (p->del.size < (unsigned int)j)) /* allocate */
       csound->AuxAlloc(csound, j, &(p->del));               /* space    */
     p->Wb = (MYFLT *) p->del.auxp;                  /* W */
     if (p->zout > 0) p->Yb = p->Wb + i;             /* Y */
@@ -381,11 +381,11 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     if (p->maxdep >= 0) {
       i = d = 0; spat3d_count_refl(&i, &d, 0, p->maxdep, 0, wmask);
       i *= (int32) sizeof(SPAT3D_WALL);
-      if ((p->ws.auxp == NULL) || (p->ws.size < i))
+      if ((p->ws.auxp == NULL) || (p->ws.size < (unsigned int)i))
         csound->AuxAlloc(csound, i, &(p->ws));
       i = (int32) p->bs * (int32) d;
       i *= (int32) sizeof(MYFLT);
-      if ((p->y.auxp == NULL) || (p->y.size < i))
+      if ((p->y.auxp == NULL) || (p->y.size < (unsigned int)i))
         csound->AuxAlloc(csound, i, &(p->y));
     }
     return OK;

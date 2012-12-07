@@ -30,7 +30,7 @@
 
 int downset(CSOUND *csound, DOWNSAMP *p)
 {
-    if (UNLIKELY((p->len = (int)*p->ilen) > CS_KSMPS))
+    if (UNLIKELY((p->len = (unsigned int)*p->ilen) > CS_KSMPS))
       return csound->InitError(csound, "ilen > ksmps");
     return OK;
 }
@@ -230,7 +230,7 @@ int delset(CSOUND *csound, DELAY *p)
 
 int delrset(CSOUND *csound, DELAYR *p)
 {
-    int32       npts;
+    uint32_t    npts;
     MYFLT       *auxp;
 
     if (UNLIKELY(p->XOUTCODE != 1))
@@ -252,7 +252,7 @@ int delrset(CSOUND *csound, DELAYR *p)
     if (UNLIKELY(*p->istor != FL(0.0) && p->auxch.auxp != NULL))
       return OK;
     /* ksmps is min dely */
-    if (UNLIKELY((npts=(int32)(FL(0.5) + *p->idlt*csound->esr)) < CS_KSMPS)) {
+    if (UNLIKELY((npts=(uint32_t)(FL(0.5) + *p->idlt*csound->esr)) < CS_KSMPS)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
@@ -788,7 +788,7 @@ int cmbset(CSOUND *csound, COMB *p)
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
-    if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
+    if (p->auxch.auxp == NULL || (uint32_t)nbytes != p->auxch.size) {
       csound->AuxAlloc(csound, (int32)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       p->prvt = FL(0.0);

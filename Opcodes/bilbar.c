@@ -94,7 +94,8 @@ static int bar_run(CSOUND *csound, BAR *p)
     int xoint;
     int step = p->step;
     int first = p->first;
-    int n, N = p->N, rr;
+    int N = p->N, rr;
+    unsigned int n, nsmps = CS_KSMPS;
     double *w = p->w, *w1 = p->w1, *w2 = p->w2;
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
     int bcL = (int)MYFLT2LONG(*p->kbcL);    /*  boundary condition pair */
@@ -109,7 +110,7 @@ static int bar_run(CSOUND *csound, BAR *p)
                                Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
 
-    for (n = 0; n < CS_KSMPS; n++) {
+    for (n = 0; n < nsmps; n++) {
       /* Fix ends */
       if (bcL == 3) {
         w1[1] = 2.0*w1[2]-w1[3];

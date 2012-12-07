@@ -116,7 +116,8 @@ static int wavetable(FGDATA *ff, FUNC *ftp)
     MYFLT   order = ff->e.p[6];
     MYFLT   resc = ff->e.p[7];
     int     ffilno = (int)ff->e.p[5];
-    int     i, steps, newLen, *pnewLen;
+    unsigned int     i;
+    int     steps, newLen, *pnewLen;
     int     nargs = ff->e.pcnt - 4;
     int     *pOrder, *xfree;
     FUNC    *srcfil = csound->flist[ffilno];

@@ -95,7 +95,7 @@ int tonsetx(CSOUND *csound, TONEX *p)
     }
     if (UNLIKELY((p->loop = (int) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (int)(p->loop*sizeof(double)) > p->aux.size))
+                       (unsigned int)(p->loop*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
     if (LIKELY(!(*p->istor))) {
@@ -251,7 +251,7 @@ int rsnsetx(CSOUND *csound, RESONX *p)
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
       p->loop = 4; /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (int)(p->loop*2*sizeof(double)) > p->aux.size))
+                       (unsigned int)(p->loop*2*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (int32)(p->loop*2*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {

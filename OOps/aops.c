@@ -458,8 +458,8 @@ int int1(CSOUND *csound, EVAL *p)               /* returns signed whole no. */
 
 int int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. */
 {
-    MYFLT intpart;
-    int    n;
+    MYFLT        intpart;
+    unsigned int n;
     for (n = 0; n < CS_KSMPS; n++) {
       MODF(p->a[n], &intpart);
       p->r[n] = intpart;
@@ -478,7 +478,7 @@ int frac1(CSOUND *csound, EVAL *p)              /* returns positive frac part */
 int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
 {
     MYFLT intpart, fracpart;
-    int    n;
+    unsigned int    n;
     for (n = 0; n < CS_KSMPS; n++) {
       fracpart = MODF(p->a[n], &intpart);
       p->r[n] = fracpart;

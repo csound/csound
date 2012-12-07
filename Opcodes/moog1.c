@@ -139,7 +139,7 @@ static MYFLT Samp_tick(Wave *p)
 
     temp = (int32) temp_time;    /*  Integer part of time address    */
     temp1 = temp + 1;
-    if (UNLIKELY(temp1==p->wave->flen)) temp1 = 0; /* Wrap!! */
+    if (UNLIKELY(temp1==(int)p->wave->flen)) temp1 = 0; /* Wrap!! */
     /*  fractional part of time address */
     alpha = temp_time - (MYFLT)temp;
     lastOutput = p->wave->ftable[temp];  /* Do linear interpolation */
