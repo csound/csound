@@ -499,4 +499,4 @@ static OENTRY hrtferX_localops[] = {
                                 (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
 };
 
-LINKAGE1(hrtferX_localops)
+LINKAGE_BUILTIN(hrtferX_localops)

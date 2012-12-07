@@ -246,4 +246,4 @@ static OENTRY scnoise_localops[] = {
     (SUBR)gausstrig_init, NULL, (SUBR)gausstrig_process_arate }
 };
 
-LINKAGE1(scnoise_localops)
+LINKAGE_BUILTIN(scnoise_localops)

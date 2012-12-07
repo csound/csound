@@ -443,5 +443,5 @@ static OENTRY harmon_localops[] = {
   { "harmon4",S(HARMON4),5, "a",  "akkkkkiip",(SUBR)harm4set,NULL, (SUBR)harmon4 },
 };
 
-LINKAGE1(harmon_localops)
+LINKAGE_BUILTIN(harmon_localops)
 

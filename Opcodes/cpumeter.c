@@ -209,6 +209,6 @@ static OENTRY cpumeter_localops[] = {
     (SUBR)cpupercent_init, (SUBR)cpupercent, NULL   },
 };
 
-LINKAGE1(cpumeter_localops)
+LINKAGE_BUILTIN(cpumeter_localops)
 
 #endif

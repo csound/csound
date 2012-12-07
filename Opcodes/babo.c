@@ -826,4 +826,4 @@ static OENTRY babo_localops[] = {
   { "babo",   S(BABO), TR|5, "aa", "akkkiiijj",(SUBR)baboset, NULL, (SUBR)babo   },
 };
 
-LINKAGE1(babo_localops)
+LINKAGE_BUILTIN(babo_localops)

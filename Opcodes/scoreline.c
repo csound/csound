@@ -64,4 +64,4 @@ static OENTRY scoreline_localops[] = {
   {"rewindscore", sizeof(SCOREPOS), 1, "", "", (SUBR)rewindscore, NULL, NULL}
 };
 
-LINKAGE1(scoreline_localops)
+LINKAGE_BUILTIN(scoreline_localops)

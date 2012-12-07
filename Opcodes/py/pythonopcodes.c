@@ -398,5 +398,5 @@ OENTRY python_localops[] = {
 
 };
 
-LINKAGE1(python_localops)
+LINKAGE_BUILTIN(python_localops)
 

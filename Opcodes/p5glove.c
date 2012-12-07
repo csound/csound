@@ -255,4 +255,4 @@ static OENTRY p5g_localops[] = {
   {"p5gdata", S(P5GLOVE), 3, "k", "k", (SUBR)p5g_data_init, (SUBR)p5g_data }
 };
 
-LINKAGE1(p5g_localops)
+LINKAGE_BUILTIN(p5g_localops)

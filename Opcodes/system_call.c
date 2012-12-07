@@ -110,5 +110,5 @@ static OENTRY system_localops[] = {
   { "system_i", S(SYSTEM), 1, "i", "iSo", (SUBR)call_system_i}
 };
 
-LINKAGE1(system_localops)
+LINKAGE_BUILTIN(system_localops)
 

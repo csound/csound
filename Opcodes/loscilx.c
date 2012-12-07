@@ -676,4 +676,4 @@ static OENTRY loscilx_localops[] = {
     (SUBR) loscilx_opcode_init, (SUBR) NULL, (SUBR) loscilx_opcode_perf       }
 };
 
-LINKAGE1(loscilx_localops)
+LINKAGE_BUILTIN(loscilx_localops)

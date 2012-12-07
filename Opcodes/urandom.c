@@ -97,5 +97,5 @@ static OENTRY urandom_localops[] = {
                                     (SUBR) urand_init, NULL, (SUBR) urand_arun}
 };
 
-LINKAGE1(urandom_localops)
+LINKAGE_BUILTIN(urandom_localops)
 

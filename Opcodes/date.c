@@ -156,5 +156,5 @@ static OENTRY date_localops[] =
 
 };
 
-LINKAGE1(date_localops)
+LINKAGE_BUILTIN(date_localops)
 

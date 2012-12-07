@@ -1547,11 +1547,11 @@ typedef struct NAME__ {
  * in order to enable C++ to #include this file.
  */
 
-#define LINKAGE1(name)                                         \
+#define LINKAGE_BUILTIN(name)                                         \
 long name##_init(CSOUND *csound, OENTRY **ep)           \
 {   (void) csound; *ep = name; return (long) (sizeof(name));  }
 
-#define FLINKAGE1(name)                                                 \
+#define FLINKAGE_BUILTIN(name)                                                 \
 NGFENS* name##_init(CSOUND *csound)                         \
 {   (void) csound; return name;                                     }
 

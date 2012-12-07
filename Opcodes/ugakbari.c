@@ -112,4 +112,4 @@ static OENTRY ugakbari_localops[] = {
     (SUBR)gainslider_perf, NULL }
 };
 
-LINKAGE1(ugakbari_localops)
+LINKAGE_BUILTIN(ugakbari_localops)

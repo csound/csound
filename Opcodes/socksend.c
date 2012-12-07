@@ -316,4 +316,4 @@ static OENTRY socksend_localops[] = {
     (SUBR) send_ssend }
 };
 
-LINKAGE1(socksend_localops)
+LINKAGE_BUILTIN(socksend_localops)

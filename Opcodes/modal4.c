@@ -502,5 +502,5 @@ static OENTRY modal4_localops[] = {
                                  (SUBR)agogobelset,NULL, (SUBR)agogobel},
 };
 
-LINKAGE1(modal4_localops)
+LINKAGE_BUILTIN(modal4_localops)
 

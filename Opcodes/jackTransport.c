@@ -94,4 +94,4 @@ static OENTRY jackTransport_localops[] = {
                        (SUBR)jack_transport, NULL, NULL   },
 };
 
-LINKAGE1(jackTransport_localops)
+LINKAGE_BUILTIN(jackTransport_localops)

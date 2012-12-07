@@ -171,4 +171,4 @@ static OENTRY vosim_localops[] = {
 };
 
 
-LINKAGE1(vosim_localops)
+LINKAGE_BUILTIN(vosim_localops)

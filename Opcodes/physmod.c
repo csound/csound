@@ -944,5 +944,5 @@ static OENTRY physmod_localops[] = {
                              (SUBR)bowedbarset, NULL,(SUBR) bowedbar },
 };
 
-LINKAGE1(physmod_localops)
+LINKAGE_BUILTIN(physmod_localops)
 

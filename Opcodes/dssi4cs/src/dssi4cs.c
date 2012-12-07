@@ -1078,5 +1078,5 @@ static OENTRY dssi_localops[] = {
 #endif
 };
 
-LINKAGE1(dssi_localops)
+LINKAGE_BUILTIN(dssi_localops)
 

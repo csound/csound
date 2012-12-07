@@ -618,4 +618,4 @@ static OENTRY tabvars_localops[] =
 //          randomly repeats (holds) values based on a probability parameter
 
 
-LINKAGE1(tabvars_localops)
+LINKAGE_BUILTIN(tabvars_localops)

@@ -947,5 +947,5 @@ static OENTRY vbap_localops[] = {
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  }
 };
 
-LINKAGE1(vbap_localops)
+LINKAGE_BUILTIN(vbap_localops)
 

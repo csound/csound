@@ -1248,4 +1248,4 @@ static OENTRY phisem_localops[] = {
                                        (SUBR)sleighset, NULL, (SUBR)sleighbells }
 };
 
-LINKAGE1(phisem_localops)
+LINKAGE_BUILTIN(phisem_localops)
