@@ -220,7 +220,7 @@ static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
 
 static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
 {
-    int32 size;
+    uint32_t size;
     int ret;
 
     if ((ret = setup_globals(csound, p)) != OK)
@@ -546,7 +546,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
 /* this function schedules the grains that are bound to happen this k-period */
 static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 {
-    int32 n;
+    uint32_t n, nsmps = CS_KSMPS;
     NODE *node;
     MYFLT **waveformparams = &p->waveform1;
     MYFLT grainfreq = fabs(*p->grainfreq);
@@ -567,7 +567,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
         return PERFERROR("unable to load FM envelope table");
 
     /* start grain scheduling */
-    for (n = 0; n < CS_KSMPS; ++n) {
+    for (n = 0; n < nsmps; ++n) {
         if (p->sync[n] >= FL(1.0)) {
             /* we got a full sync pulse, hardsync grain clock if needed */
             if (!p->synced) {
@@ -606,7 +606,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
                 /* negative distrib, choose sequential point in table */
                 offset = p->disttab->ftable[p->distindex++];
                 offset *= -*p->distribution;
-                if (p->distindex >= p->disttab->flen)
+                if ((uint32_t)p->distindex >= p->disttab->flen)
                     p->distindex = 0;
             }
             /* convert offset to seconds, also limiting it to 10 seconds to
@@ -788,7 +788,8 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
 
 static int partikkel(CSOUND *csound, PARTIKKEL *p)
 {
-    int ret, n;
+    int ret;
+    unsigned int n;
     NODE **nodeptr;
     MYFLT **outputs = &p->output1;
 

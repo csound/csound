@@ -218,10 +218,10 @@ int losset(CSOUND *csound, LOSC *p)
         p->end1 = (int32) (*p->iend1 * (MYFLT) (LOFACT));
         if (!p->beg1 && !p->end1) {
           /* default to looping the whole sample */
-          p->end1 = (p->mod1 ? maxphs : ((int32) ftp->flenfrms << LOBITS));
+          p->end1 = (p->mod1 ? (int32)maxphs : ((int32) ftp->flenfrms << LOBITS));
         }
         else if (UNLIKELY(p->beg1 < 0 ||
-                          p->end1 > maxphs ||
+                          p->end1 > (int32)maxphs ||
                           p->beg1 >= p->end1)) {
           csound->Message(csound, "beg: %d, end = %d, maxphs = %d\n",
                           p->beg1, p->end1, maxphs);
@@ -237,19 +237,20 @@ int losset(CSOUND *csound, LOSC *p)
         p->beg2 = (int32) (*p->ibeg2 * (MYFLT) (LOFACT));
         p->end2 = (int32) (*p->iend2 * (MYFLT) (LOFACT));
         if (UNLIKELY(p->mod2 < 0 || p->mod2 > 3 ||
-                     p->beg2 < 0 || p->end2 > maxphs || p->beg2 >= p->end2)) {
+                     p->beg2 < 0 || p->end2 > (int32)maxphs ||
+                     p->beg2 >= p->end2)) {
           goto lerr3;
         }
       }
       p->beg1 = (p->beg1 >= 0L ? p->beg1 : 0L);
-      p->end1 = (p->end1 < maxphs ? p->end1 : maxphs);
+      p->end1 = (p->end1 < (int32)maxphs ? p->end1 : (int32)maxphs);
       if (UNLIKELY(p->beg1 >= p->end1)) {
         p->mod1 = 0;
         p->beg1 = 0L;
         p->end1 = maxphs;
       }
       p->beg2 = (p->beg2 >= 0L ? p->beg2 : 0L);
-      p->end2 = (p->end2 < maxphs ? p->end2 : maxphs);
+      p->end2 = (p->end2 < (int32)maxphs ? p->end2 : (int32)maxphs);
       if (UNLIKELY(p->beg2 >= p->end2)) {
         p->mod2 = 0;
         p->beg2 = 0L;
@@ -793,7 +794,7 @@ int adset(CSOUND *csound, ADSYN *p)
     adp = (int16 *) mfp->beginp;            /* align on file data */
     endata = (int16 *) mfp->endp;
     size = 1+(*adp == -1 ? MAXPTLS : *adp++); /* Old no header -> MAXPIL */
-    if (p->aux.auxp==NULL || p->aux.size < (int32)sizeof(PTLPTR)*size)
+    if (p->aux.auxp==NULL || p->aux.size < (uint32_t)sizeof(PTLPTR)*size)
       csound->AuxAlloc(csound, sizeof(PTLPTR)*size, &p->aux);
 
     ptlap = ptlfp = (PTLPTR*)p->aux.auxp;   /* find base ptl blk */

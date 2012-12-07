@@ -564,7 +564,7 @@ int clockread(CSOUND *csound, CLKRD *p)
 int adsyntset(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp;
-    int     count;
+    unsigned int     count;
     int32   *lphs;
 
     p->inerr = 0;
@@ -577,7 +577,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
       return csound->InitError(csound, Str("adsynt: wavetable not found!"));
     }
 
-    count = (int)*p->icnt;
+    count = (unsigned int)*p->icnt;
     if (UNLIKELY(count < 1))
       count = 1;
     p->count = count;
@@ -772,7 +772,8 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
 int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT srate, downs;
-    int32  size, minperi, maxperi, downsamp, upsamp, msize, bufsize, interval;
+    int32  size, minperi, maxperi, downsamp, upsamp, msize, bufsize;
+    uint32_t interval;
 
     p->inerr = 0;
 
@@ -801,7 +802,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (*p->iexcps < 1)
         interval = maxperi;
     else
-        interval = (int32)(srate / *p->iexcps);
+        interval = (uint32_t)(srate / *p->iexcps);
     if (interval < CS_KSMPS) {
       if (downsamp)
         interval = CS_KSMPS / downsamp;
@@ -1547,14 +1548,14 @@ int clip(CSOUND *csound, CLIP *p)
 
 int impulse_set(CSOUND *csound, IMPULSE *p)
 {
-    p->next = (int)MYFLT2LONG(*p->offset * csound->esr);
+    p->next = (unsigned int)MYFLT2LONG(*p->offset * csound->esr);
     return OK;
 }
 
 int impulse(CSOUND *csound, IMPULSE *p)
 {
     int n, nsmps = CS_KSMPS;
-    int next = p->next;
+    unsigned int next = p->next;
     MYFLT *ar = p->ar;
     if (next<0) next = -next;
     if (UNLIKELY(next < CS_KSMPS)) {          /* Impulse in this frame */

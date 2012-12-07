@@ -57,7 +57,7 @@ int fdspset(CSOUND *csound, FSIGDISP *p){
       p->size = *p->points;
     }
     if ((p->fdata.auxp == NULL) ||
-        (p->fdata.size < (int) (p->size*sizeof(MYFLT)))) {
+        (p->fdata.size < (unsigned int) (p->size*sizeof(MYFLT)))) {
       csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
     }
     sprintf(strmsg, Str("instr %d, pvs-signal %s:"),

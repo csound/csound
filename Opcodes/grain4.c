@@ -47,7 +47,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     int         nvoice, cnt;
-    int32       tmplong1, tmplong2;
+    uint32_t    tmplong1, tmplong2;
     MYFLT       tmpfloat1;
     MYFLT       pitch[4];
 
@@ -218,7 +218,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     if (*p->igskip_os != 0)
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++) {
-        tmplong1 = (int32)((p->gskip_os * grand(p)) + (MYFLT)p->gskip[nvoice]);
+        tmplong1 = (uint32_t)((p->gskip_os * grand(p)) + (MYFLT)p->gskip[nvoice]);
         p->gskip[nvoice] = (tmplong1 < p->gstart) ? p->gstart : tmplong1;
         p->gskip[nvoice]=
           ((p->gskip[nvoice]+p->stretch[nvoice])>p->gend) ?
@@ -229,8 +229,8 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     if (*p->ithd != 0) {        /* Do thresholding.... */
       tmplong2 = 0;
       for (tmplong1=0; tmplong1<ftp->flen; tmplong1++)
-        if (fabs(*(ftp->ftable + tmplong1)) >= *p->ithd )
-          *(ftp->ftable + tmplong2++) = *(ftp->ftable + tmplong1);
+        if (fabs(ftp->ftable[tmplong1]) >= *p->ithd )
+          ftp->ftable[tmplong2++] = ftp->ftable[tmplong1];
       ftp->flen = tmplong2;
     }
 

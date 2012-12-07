@@ -573,8 +573,9 @@ static void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
         if (fabs(b[i].i)>eps)
           a[i].mag *= nudgefact;
     }
-    else
-      /* Factor is out of range, do nothing */;
+    else {
+      /* Factor is out of range, do nothing */ 
+    }
 }
 
 /* nudgePhases - Pole phase nudging routine
@@ -612,8 +613,9 @@ static void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact)
         if (fabs(b[i].i)>eps)
           a[i].ph *= nudgefact;
     }
-    else
-      /* Factor is out of range, do nothing */;
+    else {
+      /* Factor is out of range, do nothing */
+    }
 }
 
 /* ------------------------------------------------------------ */

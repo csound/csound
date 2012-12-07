@@ -139,7 +139,7 @@ static int readf(CSOUND *csound, READF *p)
 
 static int readfi(CSOUND *csound, READF *p)
 {
-    if ((int)p->fd<=0)
+    if (p->fd<=0)
       if (UNLIKELY(readf_init(csound, p)!= OK))
         return csound->InitError(csound, Str("readi failed to initialise"));
     return readf(csound, p);

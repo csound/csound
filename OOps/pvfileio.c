@@ -422,7 +422,7 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
       csound->pvErrorCode = -3;
       return -1;
     }
-    if (UNLIKELY(format < PVOC_AMP_FREQ || format > PVOC_COMPLEX)) {
+    if (UNLIKELY(/*format < PVOC_AMP_FREQ ||*/ format > PVOC_COMPLEX)) {
       csound->pvErrorCode = -4;
       return -1;
     }

@@ -180,8 +180,8 @@ typedef struct {
 
   typedef struct CORFIL {
     char    *body;
-    int     len;
-    int     p;
+    unsigned int     len;
+    unsigned int     p;
   } CORFIL;
 
   typedef struct {
@@ -420,7 +420,7 @@ typedef struct {
     CSOUND  *csound;
 #ifdef JPFF
     int     kcounter;
-    int     ksmps;                  /* Instrument copy of ksmps */
+    unsigned int     ksmps;                  /* Instrument copy of ksmps */
     MYFLT   ekr;               /* and of rates */
     MYFLT   onedksmps, onedkr, kicvt;
 #endif
@@ -549,7 +549,7 @@ typedef struct {
 
   typedef struct {
     /** table length, not including the guard point */
-    int32    flen;
+    uint32_t flen;
     /** length mask ( = flen - 1) for power of two table size, 0 otherwise */
     int32    lenmask;
     /** log2(MAXLEN / flen) for power of two table size, 0 otherwise */
@@ -581,10 +581,10 @@ typedef struct {
   } FUNC;
 
   typedef struct {
-    CSOUND  *csound;
-    int32    flen;
-    int     fno, guardreq;
-    EVTBLK  e;
+    CSOUND   *csound;
+    uint32_t flen;
+    int      fno, guardreq;
+    EVTBLK   e;
   } FGDATA;
 
   typedef struct {
@@ -1142,7 +1142,8 @@ typedef struct NAME__ {
     TYPE_POOL*    typePool;
     CS_VAR_POOL*  varPool;      
     OPDS          *ids, *pds;
-    int           ksmps, global_ksmps, nchnls, spoutactive;
+    unsigned int  ksmps, global_ksmps;
+    int           nchnls, spoutactive;
     long          kcounter, global_kcounter;
     int           reinitflag;
     int           tieflag;
