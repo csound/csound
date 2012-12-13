@@ -41,14 +41,15 @@ typedef struct dats{
 static int sinit(CSOUND *csound, DATASPACE *p)
 {
 
-  int N =  *p->iN, i,size, nchans;
+    int N =  *p->iN, i, nchans;
+    unsigned int size;
     int decim = *p->idecim;
 
     if (N) {
       for (i=0; N; i++){
         N >>= 1;
       }
-      N = (int) pow(2., i-1.);
+      N = (int) pow(2.0, i-1);
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -271,7 +272,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
 
 static int sinit2(CSOUND *csound, DATASPACE *p)
 {
-    int size,i;
+    unsigned int size,i;
     sinit(csound, p);
     size = p->N*sizeof(MYFLT);
     for (i=0; i < p->nchans; i++)

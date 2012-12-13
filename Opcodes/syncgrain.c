@@ -54,12 +54,12 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
       p->olaps = 2;
 
     size =  (p->olaps) * sizeof(double);
-    if (p->index.auxp == NULL || p->index.size < size)
+    if (p->index.auxp == NULL || p->index.size < (unsigned int)size)
       csound->AuxAlloc(csound, size, &p->index);
-    if (p->envindex.auxp == NULL || p->envindex.size < size)
+    if (p->envindex.auxp == NULL || p->envindex.size < (unsigned int)size)
       csound->AuxAlloc(csound, size, &p->envindex);
     size = (p->olaps) * sizeof(int);
-    if (p->streamon.auxp == NULL || p->streamon.size < size)
+    if (p->streamon.auxp == NULL || p->streamon.size < (unsigned int)size)
       csound->AuxAlloc(csound, size, &p->streamon);
 
     p->count = 0;                  /* sampling period counter */
@@ -196,12 +196,12 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 
     if (*p->iskip == 0) {
       int size =  (p->olaps) * sizeof(double);
-      if (p->index.auxp == NULL || p->index.size < size)
+      if (p->index.auxp == NULL || p->index.size < (unsigned int)size)
          csound->AuxAlloc(csound, size, &p->index);
-      if (p->envindex.auxp == NULL || p->envindex.size < size)
+      if (p->envindex.auxp == NULL || p->envindex.size < (unsigned int)size)
           csound->AuxAlloc(csound, size, &p->envindex);
       size = (p->olaps) * sizeof(int);
-       if (p->streamon.auxp == NULL || p->streamon.size > size)
+       if (p->streamon.auxp == NULL || p->streamon.size > (unsigned int)size)
           csound->AuxAlloc(csound, size, &p->streamon);
     p->count = 0;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
@@ -399,12 +399,12 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
       p->olaps = 2;
 
     size =  (p->olaps) * sizeof(double);
-    if (p->index.auxp == NULL || p->index.size < size)
+    if (p->index.auxp == NULL || p->index.size < (unsigned int)size)
       csound->AuxAlloc(csound, size, &p->index);
-    if (p->envindex.auxp == NULL || p->envindex.size < size)
+    if (p->envindex.auxp == NULL || p->envindex.size < (unsigned int)size)
       csound->AuxAlloc(csound, size, &p->envindex);
     size = (p->olaps) * sizeof(int);
-    if (p->streamon.auxp == NULL || p->streamon.size < size)
+    if (p->streamon.auxp == NULL || p->streamon.size < (unsigned int)size)
       csound->AuxAlloc(csound, size, &p->streamon);
     if (p->buffer.auxp == NULL ||
         p->buffer.size < (p->dataframes+1)*sizeof(MYFLT)*p->nChannels)

@@ -393,7 +393,7 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
-    if ( p->elements > ftp->flen )
+    if ( p->elements > (int)ftp->flen )
       return csound->InitError(csound,
                                Str("vphaseseg: invalid num. of elements"));
     /* vector = p->vector; */

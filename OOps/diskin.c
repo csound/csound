@@ -283,7 +283,7 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
 {
     MYFLT   a0, a1;
     int32   ndx;
-    int     nn, chn;
+    unsigned int     nn, chn;
 
     if (p->initDone <= 0) {
       if (UNLIKELY(!p->initDone))

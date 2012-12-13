@@ -59,7 +59,7 @@ typedef struct {
 
 static inline void tabensure(CSOUND *csound, TABDAT *p, int size)
 {
-    int32 ss = sizeof(MYFLT)*size;
+    uint32_t ss = sizeof(MYFLT)*size;
     if (p->aux.auxp==NULL || p->aux.size<ss) {
       csound->AuxAlloc(csound, ss, &p->aux);
       p->data = (MYFLT*)(p->aux.auxp);
@@ -526,11 +526,11 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
     else size = size < p->tab->size ? size : p->tab->size;
     data =  p->tab->data;
 
-    opc = csound->opcodlst;
-    for (n=0; opc < csound->oplstend; opc++, n++)
+    opc = csound->engineState.opcodlst;
+    for (n=0; opc < csound->engineState.oplstend; opc++, n++)
       if(!strcmp(func, opc->opname)) break;
 
-    if (UNLIKELY(opc == csound->oplstend))
+    if (UNLIKELY(opc == csound->engineState.oplstend))
       return csound->InitError(csound, Str("%s not found, %d opcodes"), func, n);
     p->opc = opc;
     /* int     (*iopadr)(CSOUND *, void *p); */
@@ -560,11 +560,11 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
       return csound->PerfError(csound, Str("tvar not initialised"));
     size = p->tab->size;
 
-    /* opc = csound->opcodlst; */
-    /* for(n=0; opc < csound->oplstend; opc++, n++) */
+    /* opc = csound->engineState.opcodlst; */
+    /* for(n=0; opc < csound->engineState.oplstend; opc++, n++) */
     /*   if(!strcmp(func, opc->opname)) break; */
 
-    /* if (UNLIKELY(opc == csound->oplstend)) */
+    /* if (UNLIKELY(opc == csound->engineState.oplstend)) */
     /*   return csound->PerfError(csound, Str("%s not found, %d opcodes"), 
                                   func, n); */
 

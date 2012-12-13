@@ -40,9 +40,9 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
 {
-    int32 N = p->finleft->N;
+    uint32_t N = p->finleft->N;
     int olap = p->finleft->overlap;
-    int M;
+    uint32_t M;
     p->beta = (int)(*p->slices);
 
     if (UNLIKELY(p->finleft->sliding))

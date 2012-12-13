@@ -182,7 +182,7 @@ void corfile_seek(CORFIL *f, int n, int dir)
     if (dir == SEEK_SET) f->p = n;
     else if (dir == SEEK_CUR) f->p += n;
     else if (dir == SEEK_END) f->p = strlen(f->body)-n;
-    if (f->p < 0 || f->p > strlen(f->body)) {
+    if (f->p > strlen(f->body)) {
       printf("INTERNAL ERROR: Corfile seek out of range\n");
       exit(1);
     }

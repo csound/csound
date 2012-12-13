@@ -27,7 +27,7 @@
 typedef struct {
         OPDS    h;
         MYFLT   *kr, *asig, *ilen;
-        int     len;
+        unsigned int     len;
 } DOWNSAMP;
 
 typedef struct {
