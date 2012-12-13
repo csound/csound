@@ -1,6 +1,9 @@
 #ifndef __CSOUND_ORC_H
 
 #define __CSOUND_ORC_H
+
+#define YYDEBUG 1
+
 #include "parse_param.h"
 #include "tok.h"
 #include "csound_orcparse.h"
@@ -11,7 +14,6 @@ enum {
   S_APPLY,
 };
 
-#define YYDEBUG 1
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
 #endif
