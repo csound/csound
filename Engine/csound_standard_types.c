@@ -110,7 +110,9 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_A);
     csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_K);
     csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_I);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_P); 
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_P);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_R);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_C);
     csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_W);
     csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_F);
     csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_B);
