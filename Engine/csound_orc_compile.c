@@ -35,6 +35,7 @@
 #include "pstream.h"
 #include "namedins.h"
 #include "typetabl.h"
+#include "csound_standard_types.h"
 
 //typedef struct otranStatics__ {
 //    NAME      *gblNames[256], *lclNames[256];   /* for 8 bit hash */
@@ -1057,7 +1058,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 //    strconstndx(csound, "\"\"");
     string_pool_find_or_add(csound, csound->stringPool, "\"\"");
 
-    CS_TYPE* rType = csoundGetTypeWithVarTypeName(csound->typePool, "r");
+    CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
     csoundAddVariable(csound->engineState.varPool, csoundCreateVariable(csound, csound->typePool, rType, "sr"));
     csoundAddVariable(csound->engineState.varPool, csoundCreateVariable(csound, csound->typePool, rType, "kr"));
     csoundAddVariable(csound->engineState.varPool, csoundCreateVariable(csound, csound->typePool, rType, "ksmps"));
