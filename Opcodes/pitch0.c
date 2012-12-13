@@ -40,7 +40,7 @@ int mute_inst(CSOUND *csound, MUTE *p)
     else {
       csound->Warning(csound, Str("Allowing instrument %d to start\n"), n);
     }
-    csound->instrtxtp[n]->muted = onoff;
+    csound->engineState.instrtxtp[n]->muted = onoff;
     return OK;
 }
 
@@ -51,22 +51,22 @@ int instcount(CSOUND *csound, INSTCNT *p)
       n = (int) csound->strarg2insno(csound, p->ins, p->XSTRCODE);
     else
       n = *p->ins;
-    if (n<0 || n > csound->maxinsno || csound->instrtxtp[n] == NULL)
+    if (n<0 || n > csound->maxinsno || csound->engineState.instrtxtp[n] == NULL)
       *p->cnt = FL(0.0);
     else if (n==0) {  /* Count all instruments */
       int tot = 1;
       for (n=1; n<csound->maxinsno; n++)
-        if (csound->instrtxtp[n]) /* If it exists */
-          tot += ((*p->opt) ? csound->instrtxtp[n]->instcnt :
-                              csound->instrtxtp[n]->active);
+        if (csound->engineState.instrtxtp[n]) /* If it exists */
+          tot += ((*p->opt) ? csound->engineState.instrtxtp[n]->instcnt :
+                              csound->engineState.instrtxtp[n]->active);
       *p->cnt = (MYFLT)tot;
     }
     else {
       *p->cnt = ((*p->opt) ?
-                 (MYFLT) csound->instrtxtp[n]->instcnt :
-                 (MYFLT) csound->instrtxtp[n]->active);
+                 (MYFLT) csound->engineState.instrtxtp[n]->instcnt :
+                 (MYFLT) csound->engineState.instrtxtp[n]->active);
       if (*p->norel)
-        *p->cnt -= csound->instrtxtp[n]->pending_release;
+        *p->cnt -= csound->engineState.instrtxtp[n]->pending_release;
     }
 
     return OK;
@@ -77,18 +77,18 @@ int instcount(CSOUND *csound, INSTCNT *p)
 int cpuperc(CSOUND *csound, CPU_PERC *p)
 {
     int n = (int) csound->strarg2insno(csound, p->instrnum, p->XSTRCODE);
-    if (n > 0 && n <= csound->maxinsno && csound->instrtxtp[n] != NULL)
+    if (n > 0 && n <= csound->maxinsno && csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
-      csound->instrtxtp[n]->cpuload = *p->ipercent;
+      csound->engineState.instrtxtp[n]->cpuload = *p->ipercent;
     return OK;
 }
 
 int maxalloc(CSOUND *csound, CPU_PERC *p)
 {
     int n = (int) csound->strarg2insno(csound, p->instrnum, p->XSTRCODE);
-    if (n > 0 && n <= csound->maxinsno && csound->instrtxtp[n] != NULL)
+    if (n > 0 && n <= csound->maxinsno && csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
-      csound->instrtxtp[n]->maxalloc = (int)*p->ipercent;
+      csound->engineState.instrtxtp[n]->maxalloc = (int)*p->ipercent;
     return OK;
 }
 

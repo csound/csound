@@ -251,6 +251,7 @@ typedef struct {
     char    pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 
+
   /**
    * This struct is filled out by otran() at orch parse time.
    * It is used as a template for instrument events.
@@ -816,6 +817,17 @@ typedef struct NAME__ {
 } NAME;
 
   /**
+   * This struct will hold the current engine state after compilation
+   */
+  typedef struct engine_state {
+    CS_VAR_POOL    *varPool;  /* global variable pool */
+    OENTRY         *opcodlst;  /* list of opcodes      */
+    int           *opcode_list;
+    OENTRY        *oplstend;
+    INSTRTXT      **instrtxtp; /* instrument list      */
+  } ENGINE_STATE;
+
+  /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
    */
@@ -1139,8 +1151,9 @@ typedef struct NAME__ {
     void          *printerrormessagesflag;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
+    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */
     TYPE_POOL*    typePool;
-    CS_VAR_POOL*  varPool;      
+    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */   
     OPDS          *ids, *pds;
     unsigned int  ksmps, global_ksmps;
     int           nchnls, spoutactive;
@@ -1194,7 +1207,7 @@ typedef struct NAME__ {
     int           maxinsno;
     int           strsmax;
     char          **strsets;
-    INSTRTXT      **instrtxtp;
+    /* INSTRTXT      **instrtxtp; */ /* now in ENGINE_STATE */
     /** reserve space for up to 4 MIDI devices */
     MCHNBLK       *m_chnbp[64];
     RTCLOCK       *csRtClock;
@@ -1249,9 +1262,9 @@ typedef struct NAME__ {
 //    int16         ngotos;
     int           peakchunks;
     int           keep_tmp;
-    OENTRY        *opcodlst;
+    /* OENTRY        *opcodlst;
     int           *opcode_list;
-    OENTRY        *oplstend;
+    OENTRY        *oplstend; */
     int           maxopcno;
     int32         nrecs;
     FILE*         Linepipe;
@@ -1444,14 +1457,14 @@ typedef struct NAME__ {
     //    void          *pluginOpcodeFiles;
     int           enableHostImplementedAudioIO;
     int           hostRequestedBufferSize;
-    /* engineState is sum of:
+    /* engineStatus is sum of:
      *   1 (CS_STATE_PRE):  csoundPreCompile was called
      *   2 (CS_STATE_COMP): csoundCompile was called
      *   4 (CS_STATE_UTIL): csoundRunUtility was called
      *   8 (CS_STATE_CLN):  csoundCleanup needs to be called
      *  16 (CS_STATE_JMP):  csoundLongJmp was called
      */
-    char          engineState;
+    char          engineStatus;
     /* stdXX_assign_flags  can be {1,2,4,8} */
     char          stdin_assign_flg;
     char          stdout_assign_flg;

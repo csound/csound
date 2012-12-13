@@ -1256,7 +1256,7 @@ inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
       if (current_instr == NULL) {
         current_instr =
           csp_orc_sa_instr_get_by_name(csound,
-                                       csound->instrtxtp[chain->insno]->insname);
+                                       csound->engineState.instrtxtp[chain->insno]->insname);
         if (current_instr == NULL)
           csound->Die(csound,
                       Str("Failed to find semantic information"

@@ -365,7 +365,7 @@ int itabl3(CSOUND *csound, TABLE *p)
  * with interpolation.
  *
  * This is typically used for k rate reading - where they are called
- * as a result of being listed in a line in opcodlst.  They are also
+ * as a result of being listed in a line in engineState.opcodlst.  They are also
  * called by two functions which after they have coped with any change
  * in the k rate function table number.
  *
@@ -380,7 +380,7 @@ int itabl3(CSOUND *csound, TABLE *p)
  *
  * These do the reading at a rate with an a rate index.
  *
- * They are called directly via their entries in opcodlst, and also by
+ * They are called directly via their entries in engineState.opcodlst, and also by
  * two functions which call them after they have coped with any change
  * in the k rate function table number.
  *
@@ -917,7 +917,7 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
 }
 
 /* Now for the four functions, which are called as a result of being
- * listed in opcodlst in entry.c */
+ * listed in engineState.opcodlst in entry.c */
 
 int    ktablekt(CSOUND *csound, TABLE *p)
 {

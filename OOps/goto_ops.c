@@ -183,7 +183,7 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
 
     insno = (int) p1;
     if (UNLIKELY(insno < 1 || insno > (int) csound->maxinsno ||
-                 csound->instrtxtp[insno] == NULL)) {
+                 csound->engineState.instrtxtp[insno] == NULL)) {
       return csoundPerfError(csound, Str("turnoff2: invalid instrument number"));
     }
     mode = (int) (*(p->kFlags) + FL(0.5));
