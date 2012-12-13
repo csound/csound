@@ -2811,7 +2811,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     flen = ftp->flen;
     //printf("gen49: flen=%d size=%d bufsize=%d\n", flen, size, bufsize);
     while ((r == MP3DEC_RETCODE_OK) && bufused) {
-      int i;
+      unsigned int i;
       short *bb = (short*)buffer;
       //printf("gen49: p=%d bufused=%d\n", p, bufused);
       for (i=0; i<bufused*nchanls/mpainfo.decoded_sample_size; i++)  {
@@ -3185,7 +3185,7 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
  static int warned = 0;
 int resize_table(CSOUND *csound, RESIZE *p)
 {
-    int fsize  = (int) MYFLT2LRND(*p->nsize);
+    unsigned int fsize  = (unsigned int) MYFLT2LRND(*p->nsize);
     int fno  = (int) MYFLT2LRND(*p->fn);
     FUNC *ftp;
 

@@ -37,7 +37,7 @@ void DOWNset(CSOUND *p, DOWNDAT *downdp, int32 npts)
 {
     int32 nbytes = npts * sizeof(MYFLT);
 
-    if (downdp->auxch.auxp == NULL || downdp->auxch.size != nbytes)
+    if (downdp->auxch.auxp == NULL || downdp->auxch.size != (uint32_t)nbytes)
       p->AuxAlloc(p, nbytes, &downdp->auxch);
     downdp->npts = npts;
 }
@@ -46,7 +46,7 @@ void SPECset(CSOUND *p, SPECDAT *specdp, int32 npts)
 {
     int32 nbytes = npts * sizeof(MYFLT);
 
-    if (specdp->auxch.auxp == NULL || nbytes != specdp->auxch.size)
+    if (specdp->auxch.auxp == NULL || (uint32_t)nbytes != specdp->auxch.size)
       p->AuxAlloc(p, nbytes, &specdp->auxch);
     specdp->npts = npts;
 }

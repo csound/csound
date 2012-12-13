@@ -393,8 +393,8 @@ static int vcoset(CSOUND *csound, VCO *p)
 
     if (UNLIKELY(ndel == 0)) ndel = 1;    /* fix due to Troxler */
     if (p->aux.auxp == NULL ||
-        (int)(ndel*sizeof(MYFLT)) > p->aux.size)  /* allocate space for delay
-                                                     buffer */
+        (unsigned int)(ndel*sizeof(MYFLT)) > p->aux.size) 
+      /* allocate space for delay buffer */
       csound->AuxAlloc(csound, ndel * sizeof(MYFLT), &p->aux);
     else if (*p->iskip==FL(0.0)) {
       memset(p->aux.auxp, 0, ndel*sizeof(MYFLT));

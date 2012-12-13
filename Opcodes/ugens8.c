@@ -40,8 +40,8 @@ static int pvx_loadfile(CSOUND *, const char *, PVOC *);
 
 int pvset(CSOUND *csound, PVOC *p)
 {
-    int      i;
-    int32     memsize;
+    unsigned int      i;
+    int32    memsize;
     char     pvfilnam[MAXNAME];
     int      size;      /* THESE SHOULD BE SAVED IN PVOC STRUCT */
     FUNC     *AmpGateFunc = NULL;
@@ -134,7 +134,8 @@ int pvoc(CSOUND *csound, PVOC *p)
     MYFLT  *buf2 = p->dsBuf;
     int    asize = pvdasiz(p);  /* new */
     int    size = pvfrsiz(p);
-    int    i, buf2Size, outlen;
+    unsigned int    i;
+    int    buf2Size, outlen;
     int    circBufSize = PVFFTSIZE;
     int    specwp = (int)*p->ispecwp;   /* spectral warping flag */
     MYFLT  pex, scaleFac;
@@ -145,7 +146,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
       goto err2;           /* ..so we won't run into buf2Size problems */
-    if (UNLIKELY(outlen<2*CS_KSMPS))     /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int)2*CS_KSMPS))     /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;       /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;

@@ -101,7 +101,7 @@ static inline int ordering(SRTBLK *a, SRTBLK *b)
 #define b1 (data[6])
 #define c1 (data[7])
 
-static void inline sift(SRTBLK *A[], int data[])
+inline static void sift(SRTBLK *A[], int data[])
 {
     int r0, r2, temp;
     SRTBLK * T;
@@ -123,7 +123,7 @@ static void inline sift(SRTBLK *A[], int data[])
     if (UNLIKELY(r1 != r0)) A[r1] = T;
 }
 
-static void inline trinkle(SRTBLK *A[], int data[])
+inline static void trinkle(SRTBLK *A[], int data[])
 {
     int p1,r2,r3, r0, temp;
     SRTBLK * T;
@@ -166,7 +166,7 @@ static void inline trinkle(SRTBLK *A[], int data[])
     sift(A, data);
 }
 
-static void inline semitrinkle(SRTBLK *A[], int data[])
+inline static void semitrinkle(SRTBLK *A[], int data[])
 {
     SRTBLK * T;
     r1 = r-c;

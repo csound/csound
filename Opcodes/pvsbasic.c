@@ -113,7 +113,7 @@ static int pvsgain(CSOUND *csound, PVSGAIN *p)
 static int pvsinit(CSOUND *csound, PVSINI *p)
 {
     int     i;
-    int     n;
+    unsigned int     n;
     float   *bframe;
     int32    N = (int32) *p->framesize;
 
@@ -124,7 +124,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
     p->fout->format = (int32) *p->format;
     p->fout->framecount = 1;
     p->fout->sliding = 0;
-    if (p->fout->overlap < CS_KSMPS || p->fout->overlap <=10) {
+    if (p->fout->overlap < (int)CS_KSMPS || p->fout->overlap <=10) {
       int NB = 1+N/2;
       MYFLT *bframe;
       p->fout->NB = NB;
@@ -299,7 +299,8 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
 
 static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 {
-    int overlap = p->fout->overlap, i, posi;
+    int overlap = p->fout->overlap, i;
+    unsigned int posi;
     double pos = p->pos;
     int32 N = p->fout->N;
     MYFLT frac;
@@ -310,7 +311,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
     float amp = (float) (*p->kgain * csound->e0dbfs);
 
     if (p->scnt >= overlap) {
-      posi = (int) pos;
+      posi = (unsigned int) pos;
       if (posi != p->oldpos) {
         /*
           read new frame
@@ -322,7 +323,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
         while(pos < 0) pos += p->flen;
         csound->PVOC_fseek(csound,p->pvfile, pos);
         (void)csound->PVOC_GetFrames(csound, p->pvfile, buffer, 2*p->chans);
-        p->oldpos = posi = (int)pos;
+        p->oldpos = posi = (unsigned int)pos;
 
       }
       if (*p->interp) {
@@ -429,7 +430,8 @@ int pvstanalset(CSOUND *csound, PVST *p)
 
 int pvstanal(CSOUND *csound, PVST *p)
 {
-    int hsize = p->fout[0]->overlap, i, k, j;
+    int hsize = p->fout[0]->overlap, i, k;
+    unsigned int j;
     uint32 size, sizefrs, post, nchans = p->nchans;
     int32 N = p->fout[0]->N;
     double frac, spos = p->pos, pos;
@@ -460,7 +462,7 @@ int pvstanal(CSOUND *csound, PVST *p)
          time is current read rate
          esr is sampling rate
       */
-      if (UNLIKELY((int) ft->nchanls != nchans))
+      if (UNLIKELY(ft->nchanls != nchans))
         return csound->PerfError(csound, Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
@@ -677,9 +679,10 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
     p->fout->format = (int32) *p->format;
     p->fout->framecount = 0;
     p->fout->sliding = 0;
-    if (p->fout->overlap<CS_KSMPS || p->fout->overlap<=10) {
+    if (p->fout->overlap<(int)CS_KSMPS || p->fout->overlap<=10) {
       CMPLX *bframe;
-      int NB = 1+N/2, n;
+      int NB = 1+N/2;
+      unsigned int n;
       return csound->InitError(csound, Str("pvsosc does not work while sliding"));
       p->fout->NB = NB;
       p->fout->sliding = 1;
@@ -846,14 +849,15 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 
 static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 {
-    int32    framesize, pos, k;
+    int32    framesize, pos;
+    unsigned int k, nsmps = CS_KSMPS;
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
       int NB = p->fin->NB;
       pos = *p->kbin;
       if (pos >= 0 && pos < NB) {
-        for (k=0; k<CS_KSMPS; k++) {
-          p->kamp[k] = (MYFLT)fin[pos+NB*k].re;
+        for (k=0; k<nsmps; k++) {
+          p->kamp[k]  = (MYFLT)fin[pos+NB*k].re;
           p->kfreq[k] = (MYFLT)fin[pos+NB*k].im;
         }
       }
@@ -865,8 +869,8 @@ static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
         framesize = p->fin->N + 2;
         pos=*p->kbin*2;
         if (pos >= 0 && pos < framesize) {
-          for (k=0; k<CS_KSMPS; k++) {
-            p->kamp[k] = (MYFLT)fin[pos];
+          for (k=0; k<nsmps; k++) {
+            p->kamp[k]  = (MYFLT)fin[pos];
             p->kfreq[k] = (MYFLT)fin[pos+1];
           }
           p->lastframe = p->fin->framecount;
@@ -1902,7 +1906,8 @@ static int pvsblur(CSOUND *csound, PVSBLUR *p)
 
 static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
 {
-    int32    N = p->fin->N, i;
+    int32    N = p->fin->N;
+    uint32_t i;
     int32    chans = N / 2 + 1;
     MYFLT   *ftable;
 
@@ -1937,7 +1942,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
     if (p->func == NULL)
       return OK;
 
-    if (UNLIKELY(p->func->flen + 1 < chans))
+    if (UNLIKELY(p->func->flen + 1 < (unsigned int)chans))
       return csound->InitError(csound, Str("pvstencil: ftable needs to equal "
                                            "the number of bins"));
 
@@ -1955,13 +1960,14 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
     if (p->fin->sliding) {
       MYFLT g = FABS(*p->kgain);
       MYFLT masklevel = FABS(*p->klevel);
-      int NB = p->fin->NB, n, i;
+      int NB = p->fin->NB, i;
+      unsigned int n, nsmps = CS_KSMPS;
       p->fout->NB = NB;
       p->fout->N = p->fin->N;
       p->fout->format = p->fin->format;
       p->fout->wintype = p->fin->wintype;
       ftable = p->func->ftable;
-      for (n=0; n<CS_KSMPS; n++) {
+      for (n=0; n<nsmps; n++) {
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         CMPLX *fin  = (CMPLX *) p->fin->frame.auxp  + n*NB;
         for (i = 0; i < NB; i++) {

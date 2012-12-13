@@ -275,7 +275,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
 
 static int oscbnkset(CSOUND *csound, OSCBNK *p)
 {
-    int32    i;
+    uint32_t    i;
     FUNC    *ftp;
     MYFLT   x;
 
@@ -369,7 +369,7 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
     /* allocate space */
 
     if (p->nr_osc < 1) return OK;
-    i = (int32) p->nr_osc * (int32) sizeof (OSCBNK_OSC);
+    i = (uint32_t) p->nr_osc * (int32) sizeof (OSCBNK_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < i))
       csound->AuxAlloc(csound, i, &(p->auxdata));
     p->osc = (OSCBNK_OSC *) p->auxdata.auxp;
@@ -556,7 +556,7 @@ static int grain2set(CSOUND *csound, GRAIN2 *p)
 {
     int     i;
     FUNC    *ftp;
-    int32    n;
+    uint32_t    n;
     double  x, y;
 
     /* check opcode params */
@@ -587,7 +587,7 @@ static int grain2set(CSOUND *csound, GRAIN2 *p)
     /* allocate space */
 
     if (p->nr_osc == -1) return OK;                 /* no oscillators */
-    n = (int32) p->nr_osc * (int32) sizeof(GRAIN2_OSC);
+    n = (uint32_t) p->nr_osc * (int32) sizeof(GRAIN2_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < n))
       csound->AuxAlloc(csound, n, &(p->auxdata));
     p->osc = (GRAIN2_OSC *) p->auxdata.auxp;
@@ -752,7 +752,7 @@ static int grain3set(CSOUND *csound, GRAIN3 *p)
 {
     int   i;
     FUNC  *ftp;
-    int32  n;
+    uint32_t  n;
 
     /* check opcode params */
 
@@ -774,8 +774,8 @@ static int grain3set(CSOUND *csound, GRAIN3 *p)
 
     /* allocate space */
 
-    n = ((int32) CS_KSMPS + 1L) * (int32) sizeof(uint32);
-    n += (int32) p->ovrlap * (int32) sizeof(GRAIN2_OSC);
+    n = ((uint32_t) CS_KSMPS + 1L) * (int32) sizeof(uint32);
+    n += (uint32_t) p->ovrlap * (int32) sizeof(GRAIN2_OSC);
     if ((p->auxdata.auxp == NULL) || (p->auxdata.size < n))
       csound->AuxAlloc(csound, n, &(p->auxdata));
     p->phase = (uint32 *) p->auxdata.auxp;
@@ -2124,7 +2124,7 @@ static int delaykset(CSOUND *csound, DELAYK *p)
     p->readp = 0; p->npts = npts;
     /* allocate space for delay buffer */
     if (p->aux.auxp == NULL ||
-        (npts * (int) sizeof(MYFLT)) > p->aux.size) {
+        (unsigned int)(npts * sizeof(MYFLT)) > p->aux.size) {
       csound->AuxAlloc(csound, (int32) (npts * sizeof(MYFLT)), &p->aux);
     }
     p->init_k = npts - 1;
@@ -2164,7 +2164,7 @@ static int vdelaykset(CSOUND *csound, VDELAYK *p)
     p->wrtp = 0; p->npts = npts;
     /* allocate space for delay buffer */
     if (p->aux.auxp == NULL ||
-        (npts * (int) sizeof(MYFLT)) > p->aux.size) {
+        (unsigned int)(npts * sizeof(MYFLT)) > p->aux.size) {
       csound->AuxAlloc(csound, (int32) (npts * sizeof(MYFLT)), &p->aux);
     }
     p->init_k = npts;           /* not -1 this time ! */

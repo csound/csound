@@ -49,7 +49,7 @@ static int dconvset(CSOUND *csound, DCONV *p)
       return csound->InitError(csound, Str("No table for dconv"));
     }
     if (p->sigbuf.auxp == NULL ||
-        p->sigbuf.size < (int)(p->len*sizeof(MYFLT)))
+        p->sigbuf.size < (unsigned int)(p->len*sizeof(MYFLT)))
       csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
     p->curp = (MYFLT *)p->sigbuf.auxp;
     return OK;
@@ -372,7 +372,7 @@ static int vcombset(CSOUND *csound, VCOMB *p)
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
-    if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
+    if (p->auxch.auxp == NULL || nbytes != (int)p->auxch.size) {
       csound->AuxAlloc(csound, (size_t)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (UNLIKELY(p->pntr==NULL)) {
@@ -532,7 +532,7 @@ static int ftmorfset(CSOUND *csound, FTMORF *p)
         return csound->InitError(csound, Str("table in iftfn for ftmorf "
                                              "does not exist"));
       }
-    } while (++j < p->ftfn->flen);
+    } while (++j < (int)p->ftfn->flen);
 
     p->len = len;
     p->ftndx = -FL(1.0);

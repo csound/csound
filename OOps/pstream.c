@@ -217,14 +217,14 @@ static MYFLT adsyn_tick(CSOUND *csound, PVADS *p)
 
 int pvadsyn(CSOUND *csound, PVADS *p)
 {
-    int i;
+    unsigned int i, nsmps = CS_KSMPS;
 
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->outbuf.auxp==NULL)) {
       csound->Die(csound, Str("pvsynth: Not initialised.\n"));
     }
-    for (i=0;i < CS_KSMPS;i++)
+    for (i=0;i < nsmps;i++)
       aout[i] = adsyn_tick(csound, p);
     return OK;
 }
@@ -338,7 +338,7 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
     p->arate   = csound->esr / (MYFLT) pp.overlap;
     p->membase = (float*) pp.data;
 
-    if (UNLIKELY(p->overlap < CS_KSMPS || p->overlap < 10))
+    if (UNLIKELY(p->overlap < (int)CS_KSMPS || p->overlap < 10))
       csound->InitError(csound, Str("Sliding version not yet available"));
     if (UNLIKELY(p->nframes <= 0))
       csound->Die(csound, Str("pvsfread: file is empty!\n"));
@@ -346,7 +346,7 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
     if (UNLIKELY(p->nframes == 1))
       csound->Die(csound, Str("pvsfread: file has only one frame "
                               "(= impulse response).\n"));
-    if (UNLIKELY(p->overlap < CS_KSMPS))
+    if (UNLIKELY(p->overlap < (int)CS_KSMPS))
       csound->Die(csound, Str("pvsfread: analysis frame overlap "
                               "must be >= ksmps\n"));
     p->blockalign = (p->fftsize+2) * p->chans;
@@ -436,10 +436,10 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
 /************* PVSMASKA ****************/
 int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
 {
-    int i;
+    unsigned int i;
     MYFLT *ftable;
-    int32 N = p->fsrc->N;
-    int32 nbins = N/2 + 1;
+    uint32_t N = p->fsrc->N;
+    uint32_t nbins = N/2 + 1;
     /* source fsig */
     p->overlap = p->fsrc->overlap;
     p->winsize = p->fsrc->winsize;
@@ -699,7 +699,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
       if (UNLIKELY(flena < nbins))
         csound->Die(csound, Str("pvsftr: amps ftable too small.\n"));
     }
-    if (UNLIKELY(p->overlap < CS_KSMPS || p->overlap < 10))
+    if (UNLIKELY(p->overlap < (int)CS_KSMPS || p->overlap < 10))
       csound->InitError(csound, Str("Sliding version not yet available"));
     fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
 

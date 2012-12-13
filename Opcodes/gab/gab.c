@@ -40,7 +40,7 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
     if ((p->loop = MYFLT2LRND(*p->ord)) < 1)
       p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
+                       (unsigned int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
@@ -179,17 +179,19 @@ static int fastabkw(CSOUND *csound, FASTAB *p)
 static int fastabi(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    int i;
+    unsigned int i;
 
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("tab_i: incorrect table number"));
     }
     if (*p->ixmode)
-      i = (int) (*p->xndx * ftp->flen);
+      i = (unsigned int) (*p->xndx * ftp->flen);
     else
-      i = (int) *p->xndx;
+      i = (unsigned int) *p->xndx;
     if (UNLIKELY(i >= ftp->flen || i<0)) {
-      return csound->PerfError(csound, Str("tab_i off end: table number: %d\n"), (int) *p->xfn);
+      return csound->PerfError(csound,
+                               Str("tab_i off end: table number: %d\n"),
+                               (int) *p->xfn);
     }
     *p->rslt =  ftp->ftable[i];
     return OK;
@@ -198,15 +200,15 @@ static int fastabi(CSOUND *csound, FASTAB *p)
 static int fastabiw(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    int i;
+    unsigned int i;
     /*ftp = csound->FTFind(p->xfn); */
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
       return csound->InitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
-      i = (int) (*p->xndx * ftp->flen);
+      i = (unsigned int) (*p->xndx * ftp->flen);
     else
-      i = (int) *p->xndx;
+      i = (unsigned int) *p->xndx;
     if (UNLIKELY(i >= ftp->flen || i<0)) {
         return csound->PerfError(csound, Str("tabw_i off end"));
     }
@@ -411,7 +413,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
 static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp;
-    int     count;
+    unsigned int     count;
     int32   *lphs;
     MYFLT   iphs = *p->iphs;
 
@@ -425,7 +427,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       return csound->InitError(csound, Str("adsynt2: wavetable not found!"));
     }
 
-    count = (int)*p->icnt;
+    count = (unsigned int)*p->icnt;
     if (UNLIKELY(count < 1)) count = 1;
     p->count = count;
 
@@ -463,7 +465,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     lphs = (int32*)p->lphs.auxp;
 
     if (iphs > 1) {
-      int c;
+      unsigned int c;
       for (c=0; c<count; c++) {
         lphs[c] = ((int32)
                    ((MYFLT) ((double) (csound->Rand31(&(csound->randSeed1)) - 1)
@@ -471,13 +473,13 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       }
     }
     else if (iphs >= 0) {
-      int c;
+      unsigned int c;
       for (c=0; c<count; c++) {
         lphs[c] = ((int32)(iphs * FMAXLEN)) & PHMASK;
       }
     }
     if (p->pamp.auxp==NULL ||
-        p->pamp.size < (int32)(sizeof(MYFLT)*p->count))
+        p->pamp.size < (uint32_t)(sizeof(MYFLT)*p->count))
       csound->AuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
     else                        /* AuxAlloc clear anyway */
       memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
