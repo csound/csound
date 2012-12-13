@@ -140,7 +140,7 @@ void fdchclose(CSOUND *csound, INSDS *ip)
 static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
 {
     AUXCH *curchp;
-    char *name = csound->instrtxtp[ip->insno]->insname;
+    char *name = csound->engineState.instrtxtp[ip->insno]->insname;
 
     if (name)
       csound->Message(csound, Str("auxlist for instr %s [%d] (%p):\n"),
@@ -160,7 +160,7 @@ static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
 static CS_NOINLINE void fdchprint(CSOUND *csound, INSDS *ip)
 {
     FDCH *curchp;
-    char *name = csound->instrtxtp[ip->insno]->insname;
+    char *name = csound->engineState.instrtxtp[ip->insno]->insname;
 
     if (name)
       csound->Message(csound, Str("fdlist for instr %s [%d] (%p):"),

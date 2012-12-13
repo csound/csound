@@ -496,7 +496,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
                         "line %d \n"),
                     root->value->lexeme, c, line);
       }
-      c = csound->opcodlst[opnum].outypes[0];
+      c = csound->engineState.opcodlst[opnum].outypes[0];
       outarg = create_out_arg(csound, c);
       break;
     case S_UMINUS:
