@@ -99,15 +99,15 @@ extern "C" {
   extern OENTRY  opcodlst_1[];
   static void create_opcodlst(CSOUND *csound)
   {
-      OENTRY  *saved_opcodlst = csound->opcodlst;
+      OENTRY  *saved_opcodlst = csound->engineState.opcodlst;
       int     old_cnt = 0, err;
 
       if (saved_opcodlst != NULL) {
-        csound->opcodlst = NULL;
-        if (csound->oplstend != NULL)
-          old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
-        csound->oplstend = NULL;
-        memset(csound->opcode_list, 0, sizeof(int) * 256);
+        csound->engineState.opcodlst = NULL;
+        if (csound->engineState.oplstend != NULL)
+          old_cnt = (int) ((OENTRY*) csound->engineState.oplstend - (OENTRY*) saved_opcodlst);
+        csound->engineState.oplstend = NULL;
+        memset(csound->engineState.opcode_list, 0, sizeof(int) * 256);
       }
       /* Basic Entry1 stuff */
       err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
@@ -388,8 +388,9 @@ extern "C" {
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
+    {NULL, NULL, NULL}, /* engineState */
     (TYPE_POOL*)NULL, 
-    (CS_VAR_POOL*)NULL,
+    /* (CS_VAR_POOL*)NULL, */
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
     DFLT_KSMPS,     /*  ksmps               */
@@ -451,7 +452,7 @@ extern "C" {
     MAXINSNO,       /*  maxinsno            */
     0,              /*  strsmax             */
     (char**) NULL,  /*  strsets             */
-    NULL,           /*  instrtxtp           */
+    /*NULL, */      /*  instrtxtp now part of engineState */
     { NULL },       /*  m_chnbp             */
     NULL,           /*  csRtClock           */
     NULL,           /*  csRandState         */
@@ -501,9 +502,9 @@ extern "C" {
 //    NGOTOS,         /*  ngotos              */
     1,              /*  peakchunks          */
     0,              /*  keep_tmp            */
-    (OENTRY*) NULL, /*  opcodlst            */
-    (int*) NULL,    /*  opcode_list         */
-    (OENTRY*) NULL, /*  opcodlstend         */
+    /* (OENTRY*) NULL, */ /*  opcodlst  now in engineState         */
+    /* (int*) NULL,   */ /*  opcode_list now in engineState         */
+    /* (OENTRY*) NULL, */ /*  opcodlstend now in engineState         */
     -1,             /*  maxopcno            */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
@@ -677,7 +678,7 @@ extern "C" {
     //    NULL,           /*  pluginOpcodeFiles   */
     0,              /*  enableHostImplementedAudioIO  */
     0,              /*  hostRequestedBufferSize       */
-    0,              /*  engineState         */
+    0,              /*  engineStatus         */
     0,              /*  stdin_assign_flg    */
     0,              /*  stdout_assign_flg   */
     0,              /*  orcname_mode        */
@@ -1826,7 +1827,7 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset)
     if (offset < FL(0.0))
       return;
     /* if csoundCompile() was not called yet, just store the offset */
-    if (!(csound->engineState & CS_STATE_COMP))
+    if (!(csound->engineStatus & CS_STATE_COMP))
       return;
     /* otherwise seek to the requested time now */
     aTime = (double) offset - (csound->icurTime/csound->esr);
@@ -2014,7 +2015,7 @@ void csoundLongJmp(CSOUND *csound, int retval)
     csound->tieflag = 0;
     csound->perferrcnt += csound->inerrcnt;
     csound->inerrcnt = 0;
-    csound->engineState |= CS_STATE_JMP;
+    csound->engineStatus |= CS_STATE_JMP;
 
     longjmp(csound->exitjmp, n);
 }
@@ -2478,23 +2479,23 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
       return CSOUND_ERROR;
     if (ep->opname[0] != (char) 0)
       h = (int) name_hash_2(csound, ep->opname);
-    else if (csound->opcodlst != NULL)
+    else if (csound->engineState.opcodlst != NULL)
       return CSOUND_ERROR;
-    if (csound->opcodlst != NULL) {
+    if (csound->engineState.opcodlst != NULL) {
       int   n;
-      oldCnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) csound->opcodlst);
+      oldCnt = (int) ((OENTRY*) csound->engineState.oplstend - (OENTRY*) csound->engineState.opcodlst);
       /* check if this opcode is already defined */
-      n = csound->opcode_list[h];
+      n = csound->engineState.opcode_list[h];
       while (n) {
-        if (!sCmp(csound->opcodlst[n].opname, ep->opname)) {
-          int tmp = csound->opcodlst[n].prvnum;
+        if (!sCmp(csound->engineState.opcodlst[n].opname, ep->opname)) {
+          int tmp = csound->engineState.opcodlst[n].prvnum;
           /* redefine existing opcode */
-          memcpy(&(csound->opcodlst[n]), ep, sizeof(OENTRY));
-          csound->opcodlst[n].useropinfo = NULL;
-          csound->opcodlst[n].prvnum = tmp;
+          memcpy(&(csound->engineState.opcodlst[n]), ep, sizeof(OENTRY));
+          csound->engineState.opcodlst[n].useropinfo = NULL;
+          csound->engineState.opcodlst[n].prvnum = tmp;
           return CSOUND_SUCCESS;
         }
-        n = csound->opcodlst[n].prvnum;
+        n = csound->engineState.opcodlst[n].prvnum;
       }
     }
     if (!(oldCnt & 0x7F)) {
@@ -2503,18 +2504,18 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
       if (!oldCnt)
         newList = (OENTRY*) malloc(nBytes);
       else
-        newList = (OENTRY*) realloc(csound->opcodlst, nBytes);
+        newList = (OENTRY*) realloc(csound->engineState.opcodlst, nBytes);
       if (newList == NULL)
         return CSOUND_MEMORY;
-      csound->opcodlst = newList;
-      csound->oplstend = ((OENTRY*) newList + (int) oldCnt);
-      memset(&(csound->opcodlst[oldCnt]), 0, sizeof(OENTRY) * 0x80);
+      csound->engineState.opcodlst = newList;
+      csound->engineState.oplstend = ((OENTRY*) newList + (int) oldCnt);
+      memset(&(csound->engineState.opcodlst[oldCnt]), 0, sizeof(OENTRY) * 0x80);
     }
-    memcpy(&(csound->opcodlst[oldCnt]), ep, sizeof(OENTRY));
-    csound->opcodlst[oldCnt].useropinfo = NULL;
-    csound->opcodlst[oldCnt].prvnum = csound->opcode_list[h];
-    csound->opcode_list[h] = oldCnt;
-    csound->oplstend = (OENTRY*) csound->oplstend + (int) 1;
+    memcpy(&(csound->engineState.opcodlst[oldCnt]), ep, sizeof(OENTRY));
+    csound->engineState.opcodlst[oldCnt].useropinfo = NULL;
+    csound->engineState.opcodlst[oldCnt].prvnum = csound->engineState.opcode_list[h];
+    csound->engineState.opcode_list[h] = oldCnt;
+    csound->engineState.oplstend = (OENTRY*) csound->engineState.oplstend + (int) 1;
 
     return 0;
 }
@@ -2640,8 +2641,8 @@ PUBLIC void csoundReset_(CSOUND *csound)
 #ifdef CSCORE
     cscoreRESET(csound);
 #endif
-    if (csound->opcodlst != NULL)
-      free(csound->opcodlst);
+    if (csound->engineState.opcodlst != NULL)
+      free(csound->engineState.opcodlst);
 
     csound->oparms_.odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
@@ -2689,7 +2690,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* copy system environment variables */
     i = csoundInitEnv(csound);
     if (UNLIKELY(i != CSOUND_SUCCESS)) {
-      csound->engineState |= CS_STATE_JMP;
+      csound->engineStatus |= CS_STATE_JMP;
       csound->Die(csound, "Failed during csoundInitEnv");
     }
     csound_init_rand(csound);
@@ -2805,8 +2806,8 @@ PUBLIC void csoundReset(CSOUND *csound)
     csound->stringSavePool = string_pool_create(csound);
     csound->stringPool = string_pool_create(csound);
     csound->constantsPool = myflt_pool_create(csound);
-    csound->opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
-    csound->engineState |= CS_STATE_PRE;
+    csound->engineState.opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
+    csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
@@ -2834,7 +2835,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       dbfs_init(csound, DFLT_DBFS);
       csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
       csoundInitTimerStruct(csound->csRtClock);
-      csound->engineState |= CS_STATE_COMP | CS_STATE_CLN;
+      csound->engineStatus |= CS_STATE_COMP | CS_STATE_CLN;
 
 #ifndef USE_DOUBLE
 #ifdef BETA
@@ -2864,7 +2865,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       O->sfheader = 0;
       csound->peakchunks = 1;
       csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
-      csound->varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+      csound->engineState.varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
       csoundAddStandardTypes(csound, csound->typePool);
       create_opcodlst(csound);
       csoundLoadExternals(csound);
@@ -3292,7 +3293,7 @@ int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
 char *csoundGetOpcodeName(void *p)
 {
     CSOUND *csound = (CSOUND*) ((OPDS*) p)->insdshead->csound;
-    return (char*) csound->opcodlst[((OPDS*) p)->optext->t.opnum].opname;
+    return (char*) csound->engineState.opcodlst[((OPDS*) p)->optext->t.opnum].opname;
 }
 
 /**
