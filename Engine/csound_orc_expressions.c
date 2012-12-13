@@ -105,21 +105,22 @@ char * get_boolean_arg(CSOUND *csound, int type)
 
 int get_expression_ans_type(char * ans)
 {
-    char * t = ans;
-    t++;
-
-    switch(*t) {
-    case 'a':
-      return T_IDENT_A;
-    case 'k':
-      return T_IDENT_K;
-    case 'B':
-      return T_IDENT_B;
-    case 'b':
-      return T_IDENT_b;
-    default:
-      return T_IDENT_I;
-    }
+//    char * t = ans;
+//    t++;
+//
+//    switch(*t) {
+//    case 'a':
+//      return T_IDENT_A;
+//    case 'k':
+//      return T_IDENT_K;
+//    case 'B':
+//      return T_IDENT_B;
+//    case 'b':
+//      return T_IDENT_b;
+//    default:
+//      return T_IDENT_I;
+//    }
+    return T_IDENT;
 }
 
 TREE *create_empty_token(CSOUND *csound)
@@ -209,7 +210,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 
     opTree = create_opcode_token(csound, op);
     bVar = create_empty_token(csound);
-    bVar->type = (type ? T_IDENT_B : T_IDENT_b);
+    bVar->type = T_IDENT; //(type ? T_IDENT_B : T_IDENT_b);
     bVar->value = make_token(csound, booleanVar);
     bVar->value->type = bVar->type;
 
@@ -1118,7 +1119,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               //goto maincase;                     /* Wastes time and space */
               TREE* opTree = create_opcode_token(csound, "upsamp");
               opTree->right = make_leaf(csound, current->line, current->locn,
-                                        T_IDENT_K, currentArg->left->value);
+                                        T_IDENT, currentArg->left->value);
               opTree->left = current->left;
               opTree->line = current->line;
               opTree->locn = current->locn;
@@ -1139,7 +1140,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             else if (anstype=='k' && argtype=='i') {
               TREE* opTree = create_opcode_token(csound, "=.k");
               opTree->right = make_leaf(csound, current->line, current->locn,
-                                        T_IDENT_K, currentArg->left->value);
+                                        T_IDENT, currentArg->left->value);
               opTree->left = current->left;
               opTree->line = current->line;
               opTree->locn = current->locn;
