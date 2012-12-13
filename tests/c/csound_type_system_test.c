@@ -29,11 +29,11 @@ int clean_suite1(void)
 void test_type_system(void)
 {
   CSOUND* csound = csoundCreate(NULL);
-  csoundReset(csound);
+  //csoundReset(csound);
   //    csoundAddStandardTypes(csound, pool);
   
   TYPE_POOL* pool = csound->typePool;
-  CS_VAR_POOL* varPool = csound->varPool;
+  CS_VAR_POOL* varPool = csound->engineState.varPool;
   
   CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, "a1");
   CU_ASSERT_PTR_NOT_NULL(var);
