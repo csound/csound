@@ -286,18 +286,8 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     csp_set_dealloc(csound, &left);
     csp_set_dealloc(csound, &right);
 
-    switch (node->type) {
-    case T_IDENT_GI:
-    case T_IDENT_GK:
-    case T_IDENT_GF:
-    case T_IDENT_GW:
-    case T_IDENT_GS:
-    case T_IDENT_GA:
+    if(node->type == T_IDENT && node->value->lexeme[0] == 'g') {
       csp_set_add(csound, current_set, node->value->lexeme);
-      break;
-    default:
-      /* no globals */
-      break;
     }
 
     if (node->next != NULL) {
