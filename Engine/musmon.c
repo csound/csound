@@ -372,17 +372,17 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     }
 
     /* check if we have already cleaned up */
-    if (!(csound->engineState & CS_STATE_CLN))
+    if (!(csound->engineStatus & CS_STATE_CLN))
       return 0;
     /* will not clean up more than once */
-    csound->engineState &= ~(CS_STATE_CLN);
+    csound->engineStatus &= ~(CS_STATE_CLN);
 
     deactivate_all_notes(csound);
-    if (csound->instrtxtp &&
-        csound->instrtxtp[0] &&
-        csound->instrtxtp[0]->instance &&
-        csound->instrtxtp[0]->instance->actflg)
-      xturnoff_now(csound, csound->instrtxtp[0]->instance);
+    if (csound->engineState.instrtxtp &&
+        csound->engineState.instrtxtp[0] &&
+        csound->engineState.instrtxtp[0]->instance &&
+        csound->engineState.instrtxtp[0]->instance->actflg)
+      xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
     delete_pending_rt_events(csound);
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;
@@ -608,12 +608,12 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         }
         csound->Message(csound, Str("Setting instrument %s %s\n"),
                       evt->strarg, (evt->p[3] == 0 ? Str("off") : Str("on")));
-        csound->instrtxtp[insno]->muted = (int16) evt->p[3];
+        csound->engineState.instrtxtp[insno]->muted = (int16) evt->p[3];
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
         if (UNLIKELY((unsigned int)(insno-1) >= (unsigned int) csound->maxinsno ||
-                     csound->instrtxtp[insno] == NULL)) {
+                     csound->engineState.instrtxtp[insno] == NULL)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %d(%d) undefined"),
                           insno, csound->maxinsno);
@@ -621,7 +621,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         }
         csound->Message(csound, Str("Setting instrument %d %s\n"),
                       insno, (evt->p[3] == 0 ? Str("off") : (Str("on"))));
-        csound->instrtxtp[insno]->muted = (int16) evt->p[3];
+        csound->engineState.instrtxtp[insno]->muted = (int16) evt->p[3];
       }
       break;
     case 'i':
@@ -653,7 +653,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
         if (UNLIKELY((unsigned int)(insno-1) >= (unsigned int)csound->maxinsno ||
-                     csound->instrtxtp[insno] == NULL)) {
+                     csound->engineState.instrtxtp[insno] == NULL)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %d(%d) undefined"),
                           insno, csound->maxinsno);
@@ -717,7 +717,7 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
         csound->Message(csound,
                         Str("\t\t   T%7.3f - note deleted. "), csound->curp2);
         {
-          char *name = csound->instrtxtp[insno]->insname;
+          char *name = csound->engineState.instrtxtp[insno]->insname;
           if (name)
             csound->Message(csound, Str("instr %s had %d init errors\n"), name, n);
           else
@@ -1147,7 +1147,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         else
           i = (int) fabs((double) p[1]);
         if (UNLIKELY((unsigned int) (i - 1) >= (unsigned int) csound->maxinsno ||
-                     csound->instrtxtp[i] == NULL)) {
+                     csound->engineState.instrtxtp[i] == NULL)) {
           csoundMessage(csound, Str("insert_score_event(): invalid instrument "
                                     "number or name\n"));
           goto err_return;

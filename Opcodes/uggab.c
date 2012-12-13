@@ -715,7 +715,7 @@ static int rsnsety(CSOUND *csound, RESONY *p)
     if ((p->loop = (int) MYFLT2LONG(*p->ord)) < 1)
       p->loop = 4;  /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
-                      (int32) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
+                      (uint32_t) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
       csound->AuxAlloc(csound, (size_t) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {

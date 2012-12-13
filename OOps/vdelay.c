@@ -38,7 +38,7 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
     uint32 n = (int32)(*p->imaxd * ESR)+1;
 
     if (!*p->istod) {
-      if (p->aux.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux.size)
+      if (p->aux.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {     /*    make sure buffer is empty       */
@@ -244,7 +244,7 @@ int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
       else
@@ -264,12 +264,12 @@ int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
       else
         memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux2.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux2.size)
+      if (p->aux2.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux2.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
       else
         memset(p->aux2.auxp, 0, n*sizeof(MYFLT));
@@ -289,20 +289,20 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
       else
         memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux2.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux2.size)
+      if (p->aux2.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux2.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
       else
         memset(p->aux2.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux3.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux3.size)
+      if (p->aux3.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux3.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux3);
       else
         memset(p->aux3.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux4.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux4.size)
+      if (p->aux4.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux4.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux4);
       else
         memset(p->aux4.auxp, 0, n*sizeof(MYFLT));
@@ -737,7 +737,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
 
     n = (int32)(csound->esr * max * sizeof(MYFLT));
     if (p->aux.auxp == NULL ||    /* allocate space for delay buffer */
-        n > p->aux.size)
+        (uint32_t)n > p->aux.size)
       csound->AuxAlloc(csound, n, &p->aux);
     else {
       memset(p->aux.auxp, 0, n);

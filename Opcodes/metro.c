@@ -147,7 +147,7 @@ static int timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 {
     FUNC *ftp;
     MYFLT *table;
-    int j;
+    unsigned int j;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))  return NOTOK;
     table = p->table = ftp->ftable;
     p->numParm = p->INOCOUNT-2; /* ? */

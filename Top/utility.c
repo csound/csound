@@ -95,7 +95,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
         break;
       p = p->nxt;
     }
-    csound->engineState |= CS_STATE_UTIL;
+    csound->engineStatus |= CS_STATE_UTIL;
     csound->scorename = csound->orchname = (char*) name;    /* needed ? */
     csound->Message(csound, Str("util %s:\n"), name);
     n = p->UtilFunc(csound, argc, argv);

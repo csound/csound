@@ -217,27 +217,27 @@ void named_instr_assign_numbers(CSOUND *csound)
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
         num = csound->maxinsno;         /* find last used instr number */
-        while (!csound->instrtxtp[num] && --num);
+        while (!csound->engineState.instrtxtp[num] && --num);
       }
       for (inm = *inm_first; inm; inm = inm->prv) {
         if ((int) inm->instno != insno_priority) continue;
         /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
-        while (++num <= csound->maxinsno && csound->instrtxtp[num]);
+        while (++num <= csound->maxinsno && csound->engineState.instrtxtp[num]);
         /* we may need to expand the instrument array */
         if (num > csound->maxinsno) {
           int m = csound->maxinsno;
           csound->maxinsno += MAXINSNO; /* Expand */
-          csound->instrtxtp = (INSTRTXT**)
-            mrealloc(csound, csound->instrtxtp,
+          csound->engineState.instrtxtp = (INSTRTXT**)
+            mrealloc(csound, csound->engineState.instrtxtp,
                              (1 + csound->maxinsno) * sizeof(INSTRTXT*));
           /* Array expected to be nulled so.... */
-          while (++m <= csound->maxinsno) csound->instrtxtp[m] = NULL;
+          while (++m <= csound->maxinsno) csound->engineState.instrtxtp[m] = NULL;
         }
         /* hack: "name" actually points to the corresponding INSTRNAME */
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
         inm2->instno = (int32) num;
-        csound->instrtxtp[num] = inm2->ip;
+        csound->engineState.instrtxtp[num] = inm2->ip;
         if (csound->oparms->msglevel)
           csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                                   inm2->name, num);
@@ -270,7 +270,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
     else {      /* numbered instrument */
       insno = (int32) *((MYFLT*) p);
       if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
-                   !csound->instrtxtp[insno])) {
+                   !csound->engineState.instrtxtp[insno])) {
         csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
         return -1;
       }
@@ -310,7 +310,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
       else {      /* numbered instrument */
         insno = (int32) *((MYFLT*) p);
         if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
-                     !csound->instrtxtp[insno])) {
+                     !csound->engineState.instrtxtp[insno])) {
           csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
           return -1;
         }
@@ -425,15 +425,15 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
 /*       return 0; */
 /*     } */
 /*     fp->isLoaded = 1; */
-/*     n = ((int*) csound->opcode_list)[h]; */
-/*     while (n && sCmp(csound->opcodlst[n].opname, opname)) */
-/*       n = csound->opcodlst[n].prvnum; */
+/*     n = ((int*) csound->engineState.opcode_list)[h]; */
+/*     while (n && sCmp(csound->engineState.opcodlst[n].opname, opname)) */
+/*       n = csound->engineState.opcodlst[n].prvnum; */
 
 /*     return n; */
 /* } */
 
 /* find opcode with the specified name in opcode list */
-/* returns index to opcodlst[], or zero if the opcode cannot be found */
+/* returns index to engineState.opcodlst[], or zero if the opcode cannot be found */
 
 int find_opcode(CSOUND *csound, char *opname)
 {
@@ -446,11 +446,11 @@ int find_opcode(CSOUND *csound, char *opname)
     /* calculate hash value */
     h = (int) name_hash_2(csound, opname);
     /* now find entry in opcode chain */
-    n = ((int*) csound->opcode_list)[h];
+    n = ((int*) csound->engineState.opcode_list)[h];
     while (n) {
-      if (!sCmp(opname, csound->opcodlst[n].opname))
+      if (!sCmp(opname, csound->engineState.opcodlst[n].opname))
         return n;
-      n = csound->opcodlst[n].prvnum;
+      n = csound->engineState.opcodlst[n].prvnum;
     }
     /* if (csound->pluginOpcodeDB != NULL) { */
     /*   CsoundPluginOpcode_t  *p; */

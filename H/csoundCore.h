@@ -180,8 +180,8 @@ typedef struct {
 
   typedef struct CORFIL {
     char    *body;
-    int     len;
-    int     p;
+    unsigned int     len;
+    unsigned int     p;
   } CORFIL;
 
   typedef struct {
@@ -250,6 +250,7 @@ typedef struct {
     char    intype;         /* Type of first input argument (g,k,a,w etc) */
     char    pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
+
 
   /**
    * This struct is filled out by otran() at orch parse time.
@@ -420,7 +421,7 @@ typedef struct {
     CSOUND  *csound;
 #ifdef JPFF
     int     kcounter;
-    int     ksmps;                  /* Instrument copy of ksmps */
+    unsigned int     ksmps;                  /* Instrument copy of ksmps */
     MYFLT   ekr;               /* and of rates */
     MYFLT   onedksmps, onedkr, kicvt;
 #endif
@@ -549,7 +550,7 @@ typedef struct {
 
   typedef struct {
     /** table length, not including the guard point */
-    int32    flen;
+    uint32_t flen;
     /** length mask ( = flen - 1) for power of two table size, 0 otherwise */
     int32    lenmask;
     /** log2(MAXLEN / flen) for power of two table size, 0 otherwise */
@@ -581,10 +582,10 @@ typedef struct {
   } FUNC;
 
   typedef struct {
-    CSOUND  *csound;
-    int32    flen;
-    int     fno, guardreq;
-    EVTBLK  e;
+    CSOUND   *csound;
+    uint32_t flen;
+    int      fno, guardreq;
+    EVTBLK   e;
   } FGDATA;
 
   typedef struct {
@@ -814,6 +815,17 @@ typedef struct NAME__ {
     struct NAME__  *nxt;
     int           type, count;
 } NAME;
+
+  /**
+   * This struct will hold the current engine state after compilation
+   */
+  typedef struct engine_state {
+    CS_VAR_POOL    *varPool;  /* global variable pool */
+    OENTRY         *opcodlst;  /* list of opcodes      */
+    int           *opcode_list;
+    OENTRY        *oplstend;
+    INSTRTXT      **instrtxtp; /* instrument list      */
+  } ENGINE_STATE;
 
   /**
    * Contains all function pointers, data, and data pointers required
@@ -1139,10 +1151,12 @@ typedef struct NAME__ {
     void          *printerrormessagesflag;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
+    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */
     TYPE_POOL*    typePool;
-    CS_VAR_POOL*  varPool;      
+    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */   
     OPDS          *ids, *pds;
-    int           ksmps, global_ksmps, nchnls, spoutactive;
+    unsigned int  ksmps, global_ksmps;
+    int           nchnls, spoutactive;
     long          kcounter, global_kcounter;
     int           reinitflag;
     int           tieflag;
@@ -1193,7 +1207,7 @@ typedef struct NAME__ {
     int           maxinsno;
     int           strsmax;
     char          **strsets;
-    INSTRTXT      **instrtxtp;
+    /* INSTRTXT      **instrtxtp; */ /* now in ENGINE_STATE */
     /** reserve space for up to 4 MIDI devices */
     MCHNBLK       *m_chnbp[64];
     RTCLOCK       *csRtClock;
@@ -1248,9 +1262,9 @@ typedef struct NAME__ {
 //    int16         ngotos;
     int           peakchunks;
     int           keep_tmp;
-    OENTRY        *opcodlst;
+    /* OENTRY        *opcodlst;
     int           *opcode_list;
-    OENTRY        *oplstend;
+    OENTRY        *oplstend; */
     int           maxopcno;
     int32         nrecs;
     FILE*         Linepipe;
@@ -1443,14 +1457,14 @@ typedef struct NAME__ {
     //    void          *pluginOpcodeFiles;
     int           enableHostImplementedAudioIO;
     int           hostRequestedBufferSize;
-    /* engineState is sum of:
+    /* engineStatus is sum of:
      *   1 (CS_STATE_PRE):  csoundPreCompile was called
      *   2 (CS_STATE_COMP): csoundCompile was called
      *   4 (CS_STATE_UTIL): csoundRunUtility was called
      *   8 (CS_STATE_CLN):  csoundCleanup needs to be called
      *  16 (CS_STATE_JMP):  csoundLongJmp was called
      */
-    char          engineState;
+    char          engineStatus;
     /* stdXX_assign_flags  can be {1,2,4,8} */
     char          stdin_assign_flg;
     char          stdout_assign_flg;

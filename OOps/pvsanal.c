@@ -166,9 +166,9 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     int i,nBins,Mf/*,Lf*/;
 
     /* opcode params */
-    int32 N =(int32) *(p->fftsize);
-    int32 overlap = (int32) *(p->overlap);
-    int32 M = (int32) *(p->winsize);
+    uint32_t N =(int32) *(p->fftsize);
+    uint32_t overlap = (uint32_t) *(p->overlap);
+    uint32_t M = (uint32_t) *(p->winsize);
     int wintype = (int) *p->wintype;
     /* deal with iinit and iformat later on! */
 
@@ -657,7 +657,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
 int pvsanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
-    int i;
+    unsigned int i, nsmps = CS_KSMPS;
 
     ain = p->ain;
 
@@ -666,10 +666,10 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
     }
     {
       int overlap = (int)*p->overlap;
-      if (overlap<CS_KSMPS || overlap<10) /* 10 is a guess.... */
+      if (overlap<(int)CS_KSMPS || overlap<10) /* 10 is a guess.... */
         return pvssanal(csound, p);
     }
-    for (i=0; i < CS_KSMPS; i++)
+    for (i=0; i < nsmps; i++)
       anal_tick(csound,p,ain[i]);
     return OK;
 }
@@ -1021,14 +1021,14 @@ int pvssynth(CSOUND *csound, PVSYNTH *p)
 
 int pvsynth(CSOUND *csound, PVSYNTH *p)
 {
-    int i;
+    unsigned int i, nsmps = CS_KSMPS;
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->output.auxp==NULL)) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
     if (p->fsig->sliding) return pvssynth(csound, p);
-    for (i=0;i < CS_KSMPS;i++)
+    for (i=0;i < nsmps;i++)
       aout[i] = synth_tick(csound, p);
     return OK;
 }

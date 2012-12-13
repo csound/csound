@@ -190,7 +190,7 @@ static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
     alpha = mytime - (MYFLT) temp;    /*  fractional part of time address */
 
     temp1 = temp + 1;
-    if (temp1==p->wave->flen) temp1 = temp; /* Wrap!! */
+    if (temp1==(int)p->wave->flen) temp1 = temp; /* Wrap!! */
 
     lastOutput = alpha * p->wave->ftable[temp1];         /*  Do linear  */
     //    printf("             : (%d %d) %f %f ", temp, temp1, alpha, lastOutput);

@@ -70,11 +70,11 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     /* i = csoundLoadAllPluginOpcodes(csound); */
     /* if (i != 0) */
     /*   return i; */
-    ep = (OENTRY*) csound->opcodlst;
+    ep = (OENTRY*) csound->engineState.opcodlst;
     if (UNLIKELY(ep == NULL))
       return -1;
     /* count the number of opcodes, and bytes to allocate */
-    for ( ; ep < (OENTRY*) csound->oplstend; ep++) {
+    for ( ; ep < (OENTRY*) csound->engineState.oplstend; ep++) {
       if (ep->opname != NULL &&
           ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
           ep->outypes != NULL && ep->intypes != NULL) {
@@ -95,9 +95,9 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
       return CSOUND_MEMORY;
     (*lstp) = (opcodeListEntry*) lst;
     /* store opcodes in list */
-    ep = (OENTRY*) csound->opcodlst;
+    ep = (OENTRY*) csound->engineState.opcodlst;
     s = (char*) lst + ((int) sizeof(opcodeListEntry) * (cnt + 1));
-    for (cnt = 0; ep < (OENTRY*) csound->oplstend; ep++) {
+    for (cnt = 0; ep < (OENTRY*) csound->engineState.oplstend; ep++) {
       if (ep->opname != NULL &&
           ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
           ep->outypes != NULL && ep->intypes != NULL) {
