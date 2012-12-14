@@ -151,14 +151,14 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     }
     /* initialise buffer */
     p->bufSize = buffersize;
-    if (p->auxch.auxp == NULL || p->auxch.size < buffersize)
+    if (p->auxch.auxp == NULL || p->auxch.size < (unsigned int)buffersize)
       csound->AuxAlloc(csound, buffersize, &p->auxch);
     p->buf = (uint8_t *) p->auxch.auxp;
     p->bufused = -1;
     buffersize /= mpainfo.decoded_sample_size;
     while (skip > 0) {
       uint32_t xx= skip;
-      if ((uint32_t)xx > buffersize) xx = buffersize;
+      if (xx > buffersize) xx = buffersize;
       skip -= xx;
       r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
     }
@@ -185,7 +185,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
       for (i=0; i<2; i++) {     /* stereo */
         MYFLT xx;
         short *bb = (short*)buffer;
-        while (r != MP3DEC_RETCODE_OK || 2*pos >=  p->bufused) {
+        while (r != MP3DEC_RETCODE_OK || 2*pos >=  (int)p->bufused) {
           r = mp3dec_decode(mpa, buffer, p->bufSize, &p->bufused);
           if (UNLIKELY(p->bufused == 0)) {
             memset(&al[n], 0, (nsmps-n)*sizeof(MYFLT));
