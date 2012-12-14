@@ -136,7 +136,7 @@ int pvbufread(CSOUND *csound, PVBUFREAD *p)
 /************************************************************/
 int pvinterpset(CSOUND *csound, PVINTERP *p)
 {
-    int      i;
+    unsigned int      i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
     int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
@@ -244,7 +244,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
                            /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<2*CS_KSMPS)) 
+    if (UNLIKELY(outlen<(int)2*CS_KSMPS)) 
       goto err3;   /* minimum post-squeeze windowlength */
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -418,7 +418,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     if (UNLIKELY(outlen>PVFFTSIZE))   /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<2*CS_KSMPS))   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int)2*CS_KSMPS))   /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;
