@@ -389,6 +389,8 @@ extern "C" {
     NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
     {(CS_VAR_POOL*)NULL,
+     (MYFLT_POOL *) NULL,
+     (STRING_POOL *) NULL,
       (OENTRY*)NULL,
       (int*)NULL,
       (OENTRY*)NULL,
@@ -523,8 +525,8 @@ extern "C" {
     {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  pool                */
-    (MYFLT_POOL*)NULL, /* constants pool */
-    (STRING_POOL*)NULL, /* string pool */
+    /* (MYFLT_POOL*)NULL, */ /* constants pool now in engineState */
+    /* (STRING_POOL*)NULL, */ /* string pool now in engineState */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
 #if defined(__WATCOMC__) || defined(MSVC) ||defined(__POWERPC__) || \
@@ -2808,8 +2810,8 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       " (default: no)", NULL);
       
     csound->stringSavePool = string_pool_create(csound);
-    csound->stringPool = string_pool_create(csound);
-    csound->constantsPool = myflt_pool_create(csound);
+    csound->engineState.stringPool = string_pool_create(csound);
+    csound->engineState.constantsPool = myflt_pool_create(csound);
     csound->engineState.opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
