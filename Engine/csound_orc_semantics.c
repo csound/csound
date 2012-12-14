@@ -61,14 +61,15 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
     switch(root->right->type) {
     case INTEGER_TOKEN:
     case NUMBER_TOKEN:       /* i(num)    -> num      */
-    case T_IDENT_I:          /* i(ivar)   -> ivar     */
-    case T_IDENT_GI:         /* i(givar)  -> givar    */
-    case T_IDENT_P:          /* i(pN)     -> pN       */
+//        FIXME - reinstate optimization after implementing get_type(varname)
+//    case T_IDENT_I:          /* i(ivar)   -> ivar     */
+//    case T_IDENT_GI:         /* i(givar)  -> givar    */
+//    case T_IDENT_P:          /* i(pN)     -> pN       */
       root = root->right;
       break;
-    case T_IDENT_K:          /* i(kvar)   -> i(kvar)  */
-    case T_IDENT_GK:         /* i(gkvar)  -> i(gkvar) */
-      break;
+//    case T_IDENT_K:          /* i(kvar)   -> i(kvar)  */
+//    case T_IDENT_GK:         /* i(gkvar)  -> i(gkvar) */
+//      break;
     case T_FUNCTION:         /* i(fn(x))  -> fn(i(x)) */
       {
         TREE *funTree = root->right;
@@ -492,7 +493,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"STRING_TOKEN: %s\n", l->value->lexeme); break;
     case T_IDENT:
       csound->Message(csound,"T_IDENT: %s\n", l->value->lexeme); break;
-    case T_IDENT_I:
+    /*case T_IDENT_I:
       csound->Message(csound,"IDENT_I: %s\n", l->value->lexeme); break;
     case T_IDENT_GI:
       csound->Message(csound,"IDENT_GI: %s\n", l->value->lexeme); break;
@@ -525,7 +526,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case T_IDENT_B:
       csound->Message(csound,"IDENT_B: %s\n", l->value->lexeme); break;
     case T_IDENT_b:
-      csound->Message(csound,"IDENT_b: %s\n", l->value->lexeme); break;
+      csound->Message(csound,"IDENT_b: %s\n", l->value->lexeme); break; */
     case INTEGER_TOKEN:
       csound->Message(csound,"INTEGER_TOKEN: %d\n", l->value->value); break;
     case NUMBER_TOKEN:
@@ -678,7 +679,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     case T_IDENT:
       csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
                       l->value->lexeme); break;
-    case T_IDENT_I:
+    /*case T_IDENT_I:
       csound->Message(csound,"name=\"IDENT_I\" varname=\"%s\"",
                       l->value->lexeme); break;
     case T_IDENT_GI:
@@ -728,7 +729,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                       l->value->lexeme); break;
     case T_IDENT_b:
       csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"",
-                      l->value->lexeme); break;
+                      l->value->lexeme); break; */
     case INTEGER_TOKEN:
       csound->Message(csound,"name=\"INTEGER_TOKEN\" value=\"%d\"",
                       l->value->value); break;

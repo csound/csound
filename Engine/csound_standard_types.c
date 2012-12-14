@@ -65,26 +65,56 @@ CS_VARIABLE* createFsig(void* csound, void* args) {
 //#define ARGTYP_S        0x00000040L     /* string constant or variable */
 //#define ARGTYP_l        0x00000800L     /* label */
 
+const CS_TYPE CS_VAR_TYPE_A = {
+  "a", NULL, "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_K = {
+  "k", NULL, "control rate var", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_I = {
+  "i", NULL, "init time var", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_P = {
+  "p", NULL, "p-field", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_R = {
+  "r", NULL, "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_C = {
+  "c", NULL, "constant", CS_ARG_TYPE_IN, createMyflt, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_W = {
+  "w", NULL, "spectral", CS_ARG_TYPE_BOTH, createWsig, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_F = {
+  "f", NULL, "f-sig", CS_ARG_TYPE_BOTH, createFsig, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_B = {
+  "B", NULL, "boolean", CS_ARG_TYPE_BOTH, createBool, NULL, NULL, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_b = {
+  "b", NULL, "boolean", CS_ARG_TYPE_BOTH, createBool, NULL, NULL, NULL
+};
+
 void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
 
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "a", "audio rate vector", &createAsig, NULL, CS_ARG_TYPE_BOTH));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "k", "control rate var", &createMyflt, NULL, CS_ARG_TYPE_BOTH));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "i", "init time var", &createMyflt, NULL, CS_ARG_TYPE_BOTH));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "p", "p-field", &createMyflt, NULL,CS_ARG_TYPE_BOTH));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "r", "reserved symbol", &createMyflt, NULL, CS_ARG_TYPE_BOTH));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "c", "constant", &createMyflt, NULL, CS_ARG_TYPE_IN));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "w", "constant", &createWsig, NULL, CS_ARG_TYPE_BOTH));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "f", "constant", &createFsig, NULL, CS_ARG_TYPE_BOTH));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "B", "constant", &createBool, NULL, CS_ARG_TYPE_BOTH));
-    csoundAddVariableType(pool, 
-                          createTypeInstance(csound, "b", "constant", &createBool, NULL, CS_ARG_TYPE_BOTH));
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_A);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_K);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_I);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_P);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_R);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_C);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_W);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_F);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_B);
+    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_b);
 }

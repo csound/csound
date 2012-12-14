@@ -155,7 +155,7 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
 
 int vpvset(CSOUND *csound, VPVOC *p)
 {
-    int      i;
+    unsigned int      i;
     char     pvfilnam[64];
     PVOCEX_MEMFILE  pp;
     int     frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
@@ -283,7 +283,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
                             /* ..so we won't run into buf2Size problems */
       goto err2;
     }
-    if (UNLIKELY(outlen<2*CS_KSMPS)) {   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int)2*CS_KSMPS)) {   /* minimum post-squeeze windowlength */
       goto err3;
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */
