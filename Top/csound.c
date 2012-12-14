@@ -388,7 +388,7 @@ extern "C" {
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
-    {NULL, NULL, NULL}, /* engineState */
+    {NULL, NULL, NULL, NULL, NULL}, /* engineState */
     (TYPE_POOL*)NULL, 
     /* (CS_VAR_POOL*)NULL, */
     (OPDS*) NULL,   /*  ids                 */
