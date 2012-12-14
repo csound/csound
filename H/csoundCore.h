@@ -821,6 +821,8 @@ typedef struct NAME__ {
    */
   typedef struct engine_state {
     CS_VAR_POOL    *varPool;  /* global variable pool */
+    MYFLT_POOL*   constantsPool;
+    STRING_POOL*  stringPool;
     OENTRY         *opcodlst;  /* list of opcodes      */
     int           *opcode_list;
     OENTRY        *oplstend;
@@ -1280,8 +1282,8 @@ typedef struct NAME__ {
     FILE*         scorein;
     FILE*         scoreout;
     MYFLT         *globalVarPool;
-    MYFLT_POOL*   constantsPool;
-    STRING_POOL*  stringPool;
+    /* MYFLT_POOL*   constantsPool;
+       STRING_POOL*  stringPool; */
     int           *argoffspace;
     INSDS         *frstoff;
     jmp_buf       exitjmp;

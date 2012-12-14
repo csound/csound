@@ -2008,7 +2008,7 @@ static void instance(CSOUND *csound, int insno)
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         
         if(arg->type == ARG_CONSTANT) {
-          argpp[n] = csound->constantsPool->values + arg->index;
+          argpp[n] = csound->engineState.constantsPool->values + arg->index;
         } else if(arg->type == ARG_STRING) {
           argpp[n] = (MYFLT*)((STRING_VAL*) var)->value;
         } else if(arg->type == ARG_PFIELD) {
