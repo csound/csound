@@ -37,7 +37,7 @@ imaxtracks - max number of tracks (<= number of analysis bins)
 
 */
 
-#include "csdl.h"
+#include "pvs_ops.h"
 #include "pstream.h"
 
 typedef struct _parts {

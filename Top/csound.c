@@ -394,6 +394,7 @@ extern "C" {
       (OENTRY*)NULL,
       (int*)NULL,
       (OENTRY*)NULL,
+     (OPCODINFO*) NULL,
       (INSTRTXT**)NULL}, /* engineState */
     (TYPE_POOL*)NULL, 
     /* (CS_VAR_POOL*)NULL, */
@@ -555,7 +556,7 @@ extern "C" {
     FL(-1.0),       /*  tran_ksmps          */
     DFLT_DBFS,      /*  tran_0dbfs          */
     DFLT_NCHNLS,    /*  tran_nchnls         */
-    NULL,           /*  opcodeInfo          */
+    /*NULL,  */         /*  opcodeInfo now in engineState  */
     NULL,           /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */   
 //    NULL,           /*  strsav_str          */

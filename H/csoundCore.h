@@ -728,18 +728,6 @@ typedef struct {
     MYFLT   prvtempo;
   } TEMPO;
 
-  /* Holds UDO information, when an instrument is
-     defined as a UDO
-  */
-  typedef struct opcodinfo {
-    int32    instno;
-    char    *name, *intypes, *outtypes;
-    int16   inchns, outchns, perf_incnt, perf_outcnt;
-    int16   *in_ndx_list, *out_ndx_list;
-    INSTRTXT *ip;
-    struct opcodinfo *prv;
-  } OPCODINFO;
-
   /* typedef struct token { */
   /*   char    *str; */
   /*   int16   prec; */
@@ -816,6 +804,18 @@ typedef struct NAME__ {
     int           type, count;
 } NAME;
 
+  /* Holds UDO information, when an instrument is
+     defined as a UDO
+  */
+  typedef struct opcodinfo {
+    int32    instno;
+    char    *name, *intypes, *outtypes;
+    int16   inchns, outchns, perf_incnt, perf_outcnt;
+    int16   *in_ndx_list, *out_ndx_list;
+    INSTRTXT *ip;
+    struct opcodinfo *prv;
+  } OPCODINFO;
+
   /**
    * This struct will hold the current engine state after compilation
    */
@@ -823,9 +823,10 @@ typedef struct NAME__ {
     CS_VAR_POOL    *varPool;  /* global variable pool */
     MYFLT_POOL*   constantsPool;
     STRING_POOL*  stringPool;
-    OENTRY         *opcodlst;  /* list of opcodes      */
+    OENTRY        *opcodlst;  /* list of opcodes      */
     int           *opcode_list;
     OENTRY        *oplstend;
+    OPCODINFO     *opcodeInfo;
     INSTRTXT      **instrtxtp; /* instrument list      */
   } ENGINE_STATE;
 
@@ -1306,7 +1307,7 @@ typedef struct NAME__ {
     MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
     int           tran_nchnls;
-    OPCODINFO     *opcodeInfo;
+    /*OPCODINFO     *opcodeInfo; */ /* now in engineState */
     void          *instrumentNames;
     STRING_POOL*  stringSavePool;      
 //    void          *strsav_str;

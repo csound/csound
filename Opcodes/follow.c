@@ -26,7 +26,7 @@
         /*      Copyright (c) August 1994.  All rights reserve */
         /*      Improvements 1999 John ffitch */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include <math.h>
 #include "follow.h"
 

@@ -27,7 +27,7 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "space.h"
 #include <math.h>
 

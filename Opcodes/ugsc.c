@@ -23,7 +23,7 @@
 
 /* ugsc.c -- Opcodes from Sean Costello <costello@seanet.com> */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "ugsc.h"
 
 /* svfilter.c

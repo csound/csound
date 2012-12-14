@@ -27,9 +27,9 @@
 #ifdef __BUILDING_LIBCSOUND
 #undef __BUILDING_LIBCSOUND
 #endif
-
-#include "csoundCore.h"
 #include "interlocks.h"
+#include "csoundCore.h"
+
 
 #ifdef __cplusplus
 extern "C" {

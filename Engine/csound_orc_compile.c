@@ -1009,9 +1009,9 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
 }
 
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineState)
 {
-    OPCODINFO *opinfo = csound->opcodeInfo;
+    OPCODINFO *opinfo = engineState->opcodeInfo;
     if (UNLIKELY(opinfo == NULL)) {
       csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
         return NULL;
@@ -1213,7 +1213,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
         /* csound->Message(csound, */
         /*     "Searching for OPCODINFO for opname: %s\n", opname); */
 
-        OPCODINFO *opinfo = find_opcode_info(csound, opname);
+        OPCODINFO *opinfo = find_opcode_info(csound, opname, engineState);
 
         if (UNLIKELY(opinfo == NULL)) {
           csound->Message(csound,
@@ -1249,9 +1249,9 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
     /* Begin code from otran */
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound);         /* IV - Oct 31 2002 */
-    if (csound->opcodeInfo) {
+    if (engineState->opcodeInfo) {
       int num = csound->maxinsno;       /* store after any other instruments */
-      OPCODINFO *inm = csound->opcodeInfo;
+      OPCODINFO *inm = engineState->opcodeInfo;
       /* IV - Oct 31 2002: now add user defined opcodes */
       while (inm) {
         /* we may need to expand the instrument array */
