@@ -31,7 +31,7 @@
  * Some modifications John ffitch, 2000, simplifying code
  */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "wavegde.h"
 #include "pluck.h"
 

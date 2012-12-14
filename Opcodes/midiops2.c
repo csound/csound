@@ -26,7 +26,7 @@
 /** midicXX   UGs by Gabriel Maldonado **/
 /****************************************/
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "midiops2.h"
 #ifndef TRUE
 #define TRUE (1)

@@ -23,7 +23,7 @@
 
 /* Resonant Lowpass filters by G.Maldonado */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "lowpassr.h"
 #include <math.h>
 

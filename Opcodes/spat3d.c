@@ -23,7 +23,7 @@
 
 /* ----- spat3d, spat3di, and spat3dt -- written by Istvan Varga, 2001 ----- */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

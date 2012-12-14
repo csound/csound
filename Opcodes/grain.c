@@ -27,7 +27,7 @@
 
 /* Some speed hacks added by John Fitch */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "grain.h"
 
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
