@@ -23,7 +23,7 @@
 
 /* sliders and other MIDI opcodes by Gabriel Maldonado */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "midiops.h"
 #include "midiops3.h"
 #include <math.h>

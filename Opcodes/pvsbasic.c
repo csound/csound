@@ -25,7 +25,7 @@
 
 /* pvsmix */
 
-#include "csdl.h"
+#include "pvs_ops.h"
 #include "pvsbasic.h"
 #include "pvfileio.h"
 #include <math.h>

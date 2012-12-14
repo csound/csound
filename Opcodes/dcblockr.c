@@ -31,7 +31,7 @@
 /*  structures.                            */
 /*******************************************/
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "dcblockr.h"
 
 static int dcblockrset(CSOUND *csound, DCBlocker* p)

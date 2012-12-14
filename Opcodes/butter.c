@@ -25,7 +25,7 @@
 /*              Berklee College of Music Csound development team        */
 /*              Copyright (c) May 1994.  All rights reserved            */
 
-#include "csdl.h"
+#include "stdopcod.h"
 
 typedef struct  {
         OPDS    h;

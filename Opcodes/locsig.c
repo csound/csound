@@ -29,7 +29,7 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "locsig.h"
 #include <math.h>
 
