@@ -474,7 +474,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
 /**
  * Create an Opcode (OPTXT) from the AST node given for a given engineState
  */
-OPTXT *create_opcode_async(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *engineState)
+OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *engineState)
 {
     TEXT *tp;
     TREE *inargs, *outargs;
@@ -651,20 +651,13 @@ OPTXT *create_opcode_async(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STAT
 
     return retOptxt;
 }
-/**
- * Create an Opcode (OPTXT) from the AST node given. Called from
- * create_instrument.
- */
-OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip){
-  return create_opcode_async(csound, root, ip, &csound->engineState);
-}
 
 
 /**
  * Create an Instrument (INSTRTXT) from the AST node given for use as
  * Instrument0. Called from csound_orc_compile.
  */
-INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
+INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineState)
 {
     INSTRTXT *ip;
     OPTXT *op;
@@ -765,7 +758,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
 
         }
 
-        op->nxtop = create_opcode(csound, current, ip);
+        op->nxtop = create_opcode(csound, current, ip, engineState);
 
         op = last_optxt(op);
 
@@ -783,7 +776,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
  * Create an Instrument (INSTRTXT) from the AST node given. Called from
  * csound_orc_compile.
  */
-INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
+INSTRTXT *create_instrument(CSOUND *csound, TREE *root, ENGINE_STATE *engineState)
 {
     INSTRTXT *ip;
     OPTXT *op;
@@ -874,7 +867,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
     current = statements;
 
     while (current != NULL) {
-        OPTXT * optxt = create_opcode(csound, current, ip);
+      OPTXT * optxt = create_opcode(csound, current, ip, engineState);
 
         op->nxtop = optxt;
         op = last_optxt(op);
@@ -987,7 +980,7 @@ static int pnum(char *s)        /* check a char string for pnum format  */
  * is greater than number of pointers currently allocated and if so expand
  * pool of instruments
  */
-void insert_instrtxt_async(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_STATE *engineState) {
+void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_STATE *engineState){
     int i;
 
     if (UNLIKELY(instrNum > csound->maxinsno)) {
@@ -1013,14 +1006,6 @@ void insert_instrtxt_async(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, E
     }
 
     engineState->instrtxtp[instrNum] = instrtxt;
-}
-
-/** Insert INSTRTXT into Csound's list of INSTRTXT's, checking to see if number
- * is greater than number of pointers currently allocated and if so expand
- * pool of instruments
- */
-void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum) {
-  insert_instrtxt_async(csound, instrtxt, instrNum, &csound->engineState);
 }
 
 
@@ -1128,9 +1113,9 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
 //        STA(typemask_tabl_out)[pos] = *ptr++;
 //      }
 //    }
-    instr0 = create_instrument0(csound, root);
+    instr0 = create_instrument0(csound, root, engineState);
     prvinstxt = prvinstxt->nxtinstxt = instr0;
-    insert_instrtxt(csound, instr0, 0);
+    insert_instrtxt(csound, instr0, 0, engineState);
 
     while (current != NULL) {
 
@@ -1144,7 +1129,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
         resetouts(csound); /* reset #out counts */
         lblclear(csound); /* restart labelist  */
 
-        instrtxt = create_instrument(csound, current);
+        instrtxt = create_instrument(csound, current,engineState);
 
         prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
@@ -1156,7 +1141,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
         if (current->left->type == INTEGER_TOKEN) { /* numbered instrument */
           int32 instrNum = (int32)current->left->value->value;
 
-          insert_instrtxt(csound, instrtxt, instrNum);
+          insert_instrtxt(csound, instrtxt, instrNum, engineState);
         }
         else if (current->left->type == T_INSTLIST) {
           TREE *p =  current->left;
@@ -1166,7 +1151,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
             if (p->left) {
               //print_tree(csound, "Left\n", p->left);
               if (p->left->type == INTEGER_TOKEN) {
-                insert_instrtxt(csound, instrtxt, p->left->value->value);
+                insert_instrtxt(csound, instrtxt, p->left->value->value, engineState);
               }
               else if (p->left->type == T_IDENT) {
                 int32  insno_priority = -1L;
@@ -1188,7 +1173,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
             }
             else {
               if (p->type == INTEGER_TOKEN) {
-                insert_instrtxt(csound, instrtxt, p->value->value);
+                insert_instrtxt(csound, instrtxt, p->value->value, engineState);
               }
               else if (p->type == T_IDENT) {
                 int32  insno_priority = -1L;
@@ -1219,7 +1204,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
         resetouts(csound); /* reset #out counts */
         lblclear(csound); /* restart labelist  */
 
-        instrtxt = create_instrument(csound, current);
+        instrtxt = create_instrument(csound, current, engineState);
 
         prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
