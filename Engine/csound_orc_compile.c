@@ -720,7 +720,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
 
             MYFLT val = (MYFLT) strtod(current->right->value->lexeme, NULL);
 
-            myflt_pool_find_or_add(csound, csound->constantsPool, val);
+            myflt_pool_find_or_add(csound, csound->engineState.constantsPool, val);
 
 
           /* if (current->right->type == INTEGER_TOKEN) {
@@ -1056,7 +1056,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     // csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
 
 //    strconstndx(csound, "\"\"");
-    string_pool_find_or_add(csound, csound->stringPool, "\"\"");
+    string_pool_find_or_add(csound, csound->engineState.stringPool, "\"\"");
 
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
     csoundAddVariable(csound->engineState.varPool, csoundCreateVariable(csound, csound->typePool, rType, "sr"));
@@ -1084,7 +1084,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 //    STA(poolcount) = 0;
 //    STA(nconsts) = NCONSTS;
 //    STA(constTbl) = (int*) mcalloc(csound, (256 + NCONSTS) * sizeof(int));
-    myflt_pool_find_or_add(csound, csound->constantsPool, 0);
+    myflt_pool_find_or_add(csound, csound->engineState.constantsPool, 0);
 //    constndx(csound, "0");
 
 //    if (!STA(typemask_tabl)) {
@@ -1410,7 +1410,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 void debugPrintCsound(CSOUND* csound) {
     csound->Message(csound, "Compile State:\n");
     csound->Message(csound, "String Pool:\n");
-    STRING_VAL* val = csound->stringPool->values;
+    STRING_VAL* val = csound->engineState.stringPool->values;
     int count = 0;
     while(val != NULL) {
         csound->Message(csound, "    %d) %s\n", count++, val->value);
@@ -1418,8 +1418,8 @@ void debugPrintCsound(CSOUND* csound) {
     }
     csound->Message(csound, "Constants Pool:\n");    
     count = 0;
-    for(count = 0; count < csound->constantsPool->count; count++) {
-        csound->Message(csound, "    %d) %f\n", count, csound->constantsPool->values[count]);
+    for(count = 0; count < csound->engineState.constantsPool->count; count++) {
+        csound->Message(csound, "    %d) %f\n", count, csound->engineState.constantsPool->values[count]);
     }
     
     csound->Message(csound, "Global Variables:\n");    
@@ -1678,13 +1678,13 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s, int inarg)
     /* must trap 0dbfs as name starts with a digit! */
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
-        myflt_pool_find_or_addc(csound, csound->constantsPool, s);
+        myflt_pool_find_or_addc(csound, csound->engineState.constantsPool, s);
     } else if (c == '"') {
         // FIXME need to unquote_string here
         //unquote_string
         temp = mcalloc(csound, strlen(s) + 1);
         unquote_string(temp, s);
-        string_pool_find_or_add(csound, csound->stringPool, temp);
+        string_pool_find_or_add(csound, csound->engineState.stringPool, temp);
     } else if (!lgexist2(csound, ip, s) && !inarg) {
       if (c == 'g' || (c == '#' && s[1] == 'g'))
         gblnamset(csound, s);
@@ -1711,19 +1711,19 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip, char *s)
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
         arg->type = ARG_CONSTANT;
-        arg->index = myflt_pool_find_or_addc(csound, csound->constantsPool, s);
+        arg->index = myflt_pool_find_or_addc(csound, csound->engineState.constantsPool, s);
     } else if (c == '"') {
         arg->type = ARG_STRING;
         temp = mcalloc(csound, strlen(s) + 1);
         unquote_string(temp, s);
-        arg->argPtr = string_pool_find_or_add(csound, csound->stringPool, temp);
+        arg->argPtr = string_pool_find_or_add(csound, csound->engineState.stringPool, temp);
     } else if ((n = pnum(s)) >= 0) {
         arg->type = ARG_PFIELD;
         arg->index = n;
     } else if (c == 'g' || (c == '#' && *(s+1) == 'g') ||
           csoundFindVariableWithName(csound->engineState.varPool, s) != NULL) {
         // FIXME - figure out why string pool searched with gexist
-    //|| string_pool_indexof(csound->stringPool, s) > 0) {
+    //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
         arg->type = ARG_GLOBAL;
         arg->argPtr = csoundFindVariableWithName(csound->engineState.varPool, s);
     } else {
@@ -2173,7 +2173,7 @@ void oload(CSOUND *p)
     globals[4] = (MYFLT) p->inchnls;
     globals[5] = p->e0dbfs;
     
-//    p->constantsPool->count = 6;
+//    p->engineState.constantsPool->count = 6;
     
 //    p->gbloffbas = p->pool - 1;
     /* string constants: unquote, convert escape sequences, and copy to pool */
