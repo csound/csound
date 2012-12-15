@@ -1555,7 +1555,7 @@ int impulse_set(CSOUND *csound, IMPULSE *p)
 int impulse(CSOUND *csound, IMPULSE *p)
 {
     int n, nsmps = CS_KSMPS;
-    unsigned int next = p->next;
+    int next = p->next;
     MYFLT *ar = p->ar;
     if (next<0) next = -next;
     if (UNLIKELY(next < CS_KSMPS)) {          /* Impulse in this frame */

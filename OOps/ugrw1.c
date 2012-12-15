@@ -1922,8 +1922,8 @@ int tablera(CSOUND *csound, TABLERA *p)
     }
     /* Check that kstart is within the range of the table. */
 
-    if (UNLIKELY(((kstart = (uint32_t)*p->kstart) < 0U) ||
-                 (kstart >= p->ftp->flen))) {
+    if (UNLIKELY(/*((kstart = (uint32_t)*p->kstart) < 0U) || */
+                 ((kstart = (uint32_t)*p->kstart) >= p->ftp->flen))) {
       return csound->PerfError(csound, Str("kstart %.2f is outside "
                                            "table %.2f range 0 to %ld"),
                                        *p->kstart, *p->kfn, p->ftp->flen - 1);
@@ -1947,7 +1947,7 @@ int tablera(CSOUND *csound, TABLERA *p)
      * cycles of read/write.
      */
 
-    if (UNLIKELY((loopcount = p->ftp->flen - kstart) > CS_KSMPS)) {
+    if (UNLIKELY((loopcount = p->ftp->flen - (int)kstart) > CS_KSMPS)) {
       /* If we are not going to exceed the length of the table,
        * then loopcount = ksmps. */
       loopcount = CS_KSMPS;
@@ -2044,8 +2044,8 @@ int tablewa(CSOUND *csound, TABLEWA *p)
     }
 
     /* Check that kstart is within the range of the table. */
-    if (UNLIKELY(((kstart = (uint32_t)*p->kstart) < 0U) ||
-                 (kstart >= p->ftp->flen))) {
+    if (UNLIKELY( /*((kstart = (uint32_t)*p->kstart) < 0U) || */
+                 ((kstart = (uint32_t)*p->kstart) >= p->ftp->flen))) {
         return csound->PerfError(csound, Str("kstart %.2f is outside "
                                              "table %.2f range 0 to %ld"),
                                          *p->kstart, *p->kfn, p->ftp->flen - 1);
