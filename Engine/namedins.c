@@ -317,7 +317,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
       }
     }
     if (!insno && is_string) {              /* if no instrument was found, */
-      OPCODINFO *inm = csound->opcodeInfo;  /* search for user opcode */
+      OPCODINFO *inm = csound->engineState.opcodeInfo;  /* search for user opcode */
       while (inm && sCmp(inm->name, (char*) p)) inm = inm->prv;
       if (inm) insno = (int32) inm->instno;
     }

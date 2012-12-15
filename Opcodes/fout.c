@@ -26,7 +26,7 @@
 /* Code modified by JPff to remove fixed size arrays, allow
    AIFF and WAV, and close files neatly.  Also bugs fixed */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include <sndfile.h>
 #include "fout.h"
 #include "soundio.h"
@@ -698,8 +698,8 @@ static int infile_set(CSOUND *csound, INFILE *p)
 static int infile_act(CSOUND *csound, INFILE *p)
 {
     
-    int   i, k;    
-    unsigned int j, nsmps = CS_KSMPS, nargs = p->nargs;
+    int   i, j = 0, k;
+    int nsmps = CS_KSMPS, nargs = p->nargs;
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
     if (p->flag) {
@@ -722,13 +722,13 @@ static int infile_act(CSOUND *csound, INFILE *p)
       p->remain -= CS_KSMPS;
       if (p->remain <= 0 && p->buf_pos < p->guard_pos) {
         p->flag = 0;
-        for (j=0; j < nsmps; j++)
+        for (; j < CS_KSMPS; j++)
           for (i = 0; i < nargs; i++)
             p->argums[i][j] = FL(0.0);
       }
       return OK;
     }
-    for (j=0 ; j < nsmps; j++)
+    for ( ; j < CS_KSMPS; j++)
       for (i = 0; i < nargs; i++)
         p->argums[i][j] = FL(0.0);
 
@@ -897,17 +897,16 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
 static int incr(CSOUND *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
-    unsigned int   n, nsmps = CS_KSMPS;
+    int   n;
 
-    for (n = 0; n < nsmps; n++)
+    for (n = 0; n < CS_KSMPS; n++)
       avar[n] += aincr[n];
     return OK;
 }
 
 static int clear(CSOUND *csound, CLEARS *p)
 {
-    unsigned int   nsmps = CS_KSMPS;
-    int j;
+    int   nsmps = CS_KSMPS, j;
 
     for (j = 0; j < p->INOCOUNT; j++) {
       memset(p->argums[j], 0, sizeof(MYFLT)*nsmps);

@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"                 /*                              UGENSA.C  */
+#include "stdopcod.h"                 /*                              UGENSA.C  */
 #include "ugensa.h"
 #include "ugens7.h"
 #include <math.h>

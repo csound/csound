@@ -29,7 +29,7 @@
 */
 
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>
