@@ -907,7 +907,7 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
       /* Get user-defined set of comb constants from table */
       if (UNLIKELY((ftCombs = csound->FTnp2Find(csound, p->ifnCombs)) == NULL))
         return NOTOK;
-      if (UNLIKELY(ftCombs->flen < p->numCombs * 2)) {
+      if (UNLIKELY(ftCombs->flen < (int)p->numCombs * 2)) {
         return csound->InitError(csound, Str("reverbx; Combs ftable must have "
                                              "%d time and %d gain values"),
                                  p->numCombs, p->numCombs);
@@ -939,7 +939,7 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
       p->numAlpas = (int) *p->inumAlpas;
       if (UNLIKELY((ftAlpas = csound->FTnp2Find(csound, p->ifnAlpas)) == NULL))
         return NOTOK;
-      if (UNLIKELY(ftAlpas->flen < p->numAlpas * 2)) {
+      if (UNLIKELY(ftAlpas->flen < (int)p->numAlpas * 2)) {
         return csound->InitError(csound, Str("reverbx; Alpas ftable must have"
                                              " %d time and %d gain values"),
                                          p->numAlpas, p->numAlpas);

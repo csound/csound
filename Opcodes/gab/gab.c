@@ -179,15 +179,15 @@ static int fastabkw(CSOUND *csound, FASTAB *p)
 static int fastabi(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    unsigned int i;
+    int i;
 
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("tab_i: incorrect table number"));
     }
     if (*p->ixmode)
-      i = (unsigned int) (*p->xndx * ftp->flen);
+      i = (int) (*p->xndx * ftp->flen);
     else
-      i = (unsigned int) *p->xndx;
+      i = (int) *p->xndx;
     if (UNLIKELY(i >= ftp->flen || i<0)) {
       return csound->PerfError(csound,
                                Str("tab_i off end: table number: %d\n"),
@@ -206,9 +206,9 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
       return csound->InitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
-      i = (unsigned int) (*p->xndx * ftp->flen);
+      i = (int) (*p->xndx * ftp->flen);
     else
-      i = (unsigned int) *p->xndx;
+      i = (int) *p->xndx;
     if (UNLIKELY(i >= ftp->flen || i<0)) {
         return csound->PerfError(csound, Str("tabw_i off end"));
     }
@@ -460,7 +460,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
 
     if (p->lphs.auxp==NULL ||
-        p->lphs.size < (int32)(sizeof(int32)*count))
+        p->lphs.size < sizeof(int32)*count)
       csound->AuxAlloc(csound, sizeof(int32)*count, &p->lphs);
     lphs = (int32*)p->lphs.auxp;
 

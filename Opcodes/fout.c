@@ -698,7 +698,8 @@ static int infile_set(CSOUND *csound, INFILE *p)
 static int infile_act(CSOUND *csound, INFILE *p)
 {
     
-    int   i, j = 0, k;
+    int   i, k;
+    unsigned int j;
     int nsmps = CS_KSMPS, nargs = p->nargs;
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
@@ -897,7 +898,7 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
 static int incr(CSOUND *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
-    int   n;
+    unsigned int   n;
 
     for (n = 0; n < CS_KSMPS; n++)
       avar[n] += aincr[n];
