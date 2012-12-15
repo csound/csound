@@ -1990,10 +1990,12 @@ static void instance(CSOUND *csound, int insno)
     		  fltp = gbloffbas + var->memBlockIndex;
     	  } else if(arg->type == ARG_LOCAL) {
     		  fltp = lclbas + var->memBlockIndex;
-    	  } else {
-              csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n", arg->type);
-              fltp = NULL;
-          }
+    	  } else if(arg->type == ARG_PFIELD){
+          fltp = lclbas + arg->index;
+        } else {
+          csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n", arg->type);
+          fltp = NULL;
+        }
     	  argpp[n] = fltp;
     	  arg = arg->next;
       }
@@ -2006,12 +2008,11 @@ static void instance(CSOUND *csound, int insno)
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         
         if(arg->type == ARG_CONSTANT) {
-          argpp[n] = csound->constantsPool->values + arg->index;
+          argpp[n] = csound->engineState.constantsPool->values + arg->index;
         } else if(arg->type == ARG_STRING) {
           argpp[n] = (MYFLT*)((STRING_VAL*) var)->value;
         } else if(arg->type == ARG_PFIELD) {
           argpp[n] = lcloffbas + arg->index;
-          
         } else if(arg->type == ARG_GLOBAL) {
           argpp[n] = gbloffbas + var->memBlockIndex;
         } else if(arg->type == ARG_LOCAL){

@@ -118,7 +118,7 @@ kgain - signal gain
 
 */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "pstream.h"
 
 typedef struct _sndloop {

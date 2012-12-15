@@ -32,8 +32,9 @@
 /* bilinear z-transform.                                       */
 /* April/May 2002 by Erik Spjut                                */
 /***************************************************************/
-#include "csdl.h"
+
 #include <math.h>
+#include "stdopcod.h"
 #include "clfilt.h"
 
 static int clfiltset(CSOUND *csound, CLFILT *p)

@@ -29,7 +29,7 @@ Ville Pulkki heavily modified my Joh ffitch 2012
 */
 
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>

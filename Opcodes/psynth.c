@@ -63,7 +63,7 @@ PLUS a number of track processing opcodes.
 
 */
 
-#include "csdl.h"
+#include "pvs_ops.h"
 #include "pstream.h"
 
 typedef struct _psyn {

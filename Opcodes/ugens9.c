@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"   /*                                      UGENS9.C        */
+#include "stdopcod.h"   /*                                      UGENS9.C        */
 #include <math.h>
 #include "convolve.h"
 #include "ugens9.h"

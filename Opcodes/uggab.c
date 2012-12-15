@@ -27,7 +27,7 @@
 /* Code adapted by JPff 1998 Sep 19         */
 /********************************************/
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "uggab.h"
 #include <math.h>
 

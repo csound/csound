@@ -30,7 +30,7 @@
 *       See paper by Dobson and ffitch, ICMC'96                 *
 \***************************************************************/
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "nlfilt.h"
 
 typedef struct {

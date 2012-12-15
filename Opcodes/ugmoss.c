@@ -22,7 +22,7 @@
 */
 
                                                         /* ugmoss.c */
-#include "csdl.h"
+#include "stdopcod.h"
 #include "ugmoss.h"
 #include "aops.h"
 #include <math.h>
