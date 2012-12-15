@@ -582,10 +582,10 @@ typedef struct {
   } FUNC;
 
   typedef struct {
-    CSOUND   *csound;
-    uint32_t flen;
-    int      fno, guardreq;
-    EVTBLK   e;
+    CSOUND  *csound;
+    int32   flen;
+    int     fno, guardreq;
+    EVTBLK  e;
   } FGDATA;
 
   typedef struct {
