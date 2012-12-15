@@ -388,7 +388,14 @@ extern "C" {
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
-    {NULL, NULL, NULL}, /* engineState */
+    {(CS_VAR_POOL*)NULL,
+     (MYFLT_POOL *) NULL,
+     (STRING_POOL *) NULL,
+      (OENTRY*)NULL,
+      (int*)NULL,
+      (OENTRY*)NULL,
+     (OPCODINFO*) NULL,
+      (INSTRTXT**)NULL}, /* engineState */
     (TYPE_POOL*)NULL, 
     /* (CS_VAR_POOL*)NULL, */
     (OPDS*) NULL,   /*  ids                 */
@@ -519,8 +526,8 @@ extern "C" {
     {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  pool                */
-    (MYFLT_POOL*)NULL, /* constants pool */
-    (STRING_POOL*)NULL, /* string pool */
+    /* (MYFLT_POOL*)NULL, */ /* constants pool now in engineState */
+    /* (STRING_POOL*)NULL, */ /* string pool now in engineState */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
 #if defined(__WATCOMC__) || defined(MSVC) ||defined(__POWERPC__) || \
@@ -549,7 +556,7 @@ extern "C" {
     FL(-1.0),       /*  tran_ksmps          */
     DFLT_DBFS,      /*  tran_0dbfs          */
     DFLT_NCHNLS,    /*  tran_nchnls         */
-    NULL,           /*  opcodeInfo          */
+    /*NULL,  */         /*  opcodeInfo now in engineState  */
     NULL,           /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */   
 //    NULL,           /*  strsav_str          */
@@ -2804,8 +2811,8 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       " (default: no)", NULL);
       
     csound->stringSavePool = string_pool_create(csound);
-    csound->stringPool = string_pool_create(csound);
-    csound->constantsPool = myflt_pool_create(csound);
+    csound->engineState.stringPool = string_pool_create(csound);
+    csound->engineState.constantsPool = myflt_pool_create(csound);
     csound->engineState.opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);

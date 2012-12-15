@@ -38,7 +38,7 @@ iscal - magnitude scaling (defaults to 0)
 
 */
 
-#include "csdl.h"
+#include "pvs_ops.h"
 #include "pstream.h"
 
 typedef struct _ifd {

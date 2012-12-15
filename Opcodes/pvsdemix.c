@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "pvs_ops.h"
 #include "pvsdemix.h"
 
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)

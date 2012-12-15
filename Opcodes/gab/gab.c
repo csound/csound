@@ -27,7 +27,7 @@
 /*Check csystem, exitnow */
 /*Check other opcodes commented out in Oentry */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "gab.h"
 #include <math.h>
 #include "interlocks.h"

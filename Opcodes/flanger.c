@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"               /* Flanger by Maldonado, with coding
+#include "stdopcod.h"               /* Flanger by Maldonado, with coding
                                    enhancements by JPff -- July 1998 */
 #include <math.h>
 #include "flanger.h"

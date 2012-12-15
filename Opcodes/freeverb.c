@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include <math.h>
 
 #define DEFAULT_SRATE   44100.0

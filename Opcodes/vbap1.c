@@ -30,7 +30,7 @@ Ville Pulkki heavily modified my Joh ffitch 2012
 */
 
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>
@@ -487,3 +487,4 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     vbap1_moving_control(csound,p);
     return OK;
 }
+
