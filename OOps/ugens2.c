@@ -1364,7 +1364,7 @@ int koscl3(CSOUND *csound, OSC   *p)
     FUNC    *ftp;
     int32    phs, inc;
     MYFLT  *ftab, fract;
-    unsigned int     x0;
+    int     x0;
     MYFLT   y0, y1, ym1, y2, amp = *p->xamp;
 
     phs = p->lphs;

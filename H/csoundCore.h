@@ -239,10 +239,10 @@ typedef struct {
     char    *opcod;         /* Pointer to opcode name in global pool */
     ARGLST  *inlist;        /* Input args (pointer to item in name list) */
     ARGLST  *outlist;
-    ARG 	*inArgs;        /* Input args (index into list of values) */
-    int		inArgCount;
-    ARG 	*outArgs;
-    int 	outArgCount;
+    ARG     *inArgs;        /* Input args (index into list of values) */
+    unsigned int inArgCount;
+    ARG     *outArgs;
+    unsigned int outArgCount;
     int     xincod;         /* Rate switch for multi-rate opcode functions */
     int     xoutcod;        /* output rate switch (IV - Sep 1 2002) */
     int     xincod_str;     /* Type switch for string arguments */
@@ -582,10 +582,10 @@ typedef struct {
   } FUNC;
 
   typedef struct {
-    CSOUND   *csound;
-    uint32_t flen;
-    int      fno, guardreq;
-    EVTBLK   e;
+    CSOUND  *csound;
+    int32   flen;
+    int     fno, guardreq;
+    EVTBLK  e;
   } FGDATA;
 
   typedef struct {

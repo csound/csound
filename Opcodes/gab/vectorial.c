@@ -1694,7 +1694,7 @@ static int vlimit_set(CSOUND *csound,VLIMIT *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
-    if (UNLIKELY(p->elements > (unsigned int)ftp->flen )) {
+    if (UNLIKELY(p->elements > ftp->flen )) {
       return csound->InitError(csound, Str("vectorop: invalid num of elements"));
     }
     return OK;
@@ -1722,7 +1722,7 @@ static int vport_set(CSOUND *csound,VPORT *p)
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL)) {
       p->vector = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-      if (UNLIKELY(elements > (unsigned int)ftp->flen) )
+      if (UNLIKELY(elements > ftp->flen) )
         return csound->InitError(csound,
                                  Str("vport: invalid table length or "
                                      "num of elements"));
@@ -1731,7 +1731,7 @@ static int vport_set(CSOUND *csound,VPORT *p)
     if (LIKELY(*p->ifnInit)) {
       if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnInit)) != NULL)) {
         vecInit = ftp->ftable;
-        if (UNLIKELY(elements > (unsigned int)ftp->flen) )
+        if (UNLIKELY(elements > ftp->flen) )
           return csound->InitError(csound, Str("vport: invalid init table length"
                                                " or num of elements"));
       }
@@ -1891,7 +1891,7 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
                                  Str("vrandh: idstoffset is greater than"
                                      " table length."));
       p->vector = ftp->ftable + p->offset;
-      if (UNLIKELY(p->elements + p->offset > (unsigned int)ftp->flen)) {
+      if (UNLIKELY(p->elements + p->offset > ftp->flen)) {
         csound->Warning(csound,
                         Str("randh: Table length exceeded, "
                             "last elements discarded."));
@@ -1985,12 +1985,12 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
         p->offset = (int) *p->idstoffset;
       }
       else return csound->InitError(csound, Str("vrandi: Invalid table."));
-      if (UNLIKELY(p->offset >= (unsigned int)ftp->flen))
+      if (UNLIKELY(p->offset >= ftp->flen))
         return csound->InitError(csound,
                                  Str("vrandi: idstoffset is greater than"
                                      "table length."));
       p->vector = ftp->ftable + p->offset;
-      if (UNLIKELY(p->elements > (unsigned int)ftp->flen)) {
+      if (UNLIKELY(p->elements > ftp->flen)) {
         csound->Warning(csound,
                         Str("vrandi: Table length exceeded, "
                             "last elements discarded."));
@@ -2072,21 +2072,21 @@ static int vecdly_set(CSOUND *csound, VECDEL *p)
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnOut)) != NULL)) {
       p->outvec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-      if (UNLIKELY( elements > (unsigned int)ftp->flen ))
+      if (UNLIKELY( elements > ftp->flen ))
         return csound->InitError(csound,
                                  Str("vecdelay: invalid num of elements"));
     }
     else return csound->InitError(csound, Str("vecdly: invalid output table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnIn)) != NULL)) {
       p->invec = ftp->ftable;
-      if (UNLIKELY(elements > (unsigned int)ftp->flen))
+      if (UNLIKELY(elements > ftp->flen))
         return csound->InitError(csound,
                                  Str("vecdelay: invalid num of elements"));
     }
     else return csound->InitError(csound, Str("vecdly: invalid input table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnDel)) != NULL)) {
       p->dlyvec = ftp->ftable;
-      if (UNLIKELY( elements > (unsigned int)ftp->flen ))
+      if (UNLIKELY( elements > ftp->flen ))
         return csound->InitError(csound,
                                  Str("vecdelay: invalid num of elements"));
     }
@@ -2176,7 +2176,7 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
-    if (UNLIKELY( p->elements > (unsigned int)ftp->flen ))
+    if (UNLIKELY( p->elements > ftp->flen ))
       return csound->InitError(csound,
                                Str("vlinseg/vexpseg: invalid num. of elements"));
 
@@ -2435,13 +2435,13 @@ static int ca_set(CSOUND *csound,CELLA *p)
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-      if (UNLIKELY( elements > (unsigned int)ftp->flen ))
+      if (UNLIKELY( elements > ftp->flen ))
         return csound->InitError(csound, Str("cella: invalid num of elements"));
     }
     else return csound->InitError(csound, Str("cella: invalid output table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
-      if (UNLIKELY(elements > (unsigned int)ftp->flen ))
+      if (UNLIKELY(elements > ftp->flen ))
         return csound->InitError(csound, Str("cella: invalid num of elements"));
     }
     else return csound->InitError(csound,

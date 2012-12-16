@@ -3570,7 +3570,7 @@ const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
 const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
 #endif
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+    csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     char        *msg = NULL;
 
     if (pp && pp->msgCnt) {
