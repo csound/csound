@@ -56,7 +56,7 @@ typedef struct {
         MYFLT   *args[27];              /* opcode args (see manual)     */
         int     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
         int     nr_osc;                 /* number of oscillators        */
-        int32    seed;                   /* random seed                  */
+        int32   seed;                   /* random seed                  */
         int     ilfomode, ieqmode;      /* LFO and EQ mode              */
         int     eq_interp;              /* enable filter coeff. interp. */
         MYFLT   frq_scl;                /* constants for calculating    */
