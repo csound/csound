@@ -9,7 +9,7 @@ import sys
 from testUI import TestApplication
 from Tkinter import *
 
-parserType = "--new-parser"
+parserType = ""
 showUIatClose = False
 csoundExecutable = ""
 
