@@ -175,20 +175,22 @@ int ptablefn(CSOUND *csound, TABLE *p)
     FUNC        *ftp;
     MYFLT       *rslt, *pxndx, *tab;
     int32       indx, length;
-    int         n, nsmps=CS_KSMPS;
+    uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
     int         wrap = p->wrap;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;            /* RWD fix */
     rslt = p->rslt;
+    memset(rslt, '\0', koffset*sizeof(MYFLT));
     length = ftp->flen;
     pxndx = p->xndx;
     xbmul = (MYFLT)p->xbmul;
     offset = p->offset;
     //mask = ftp->lenmask;
     tab = ftp->ftable;
-    for (n=0; n<nsmps; n++) {
+    for (n=koffset; n<nsmps; n++) {
       /* Read in the next raw index and increment the pointer ready
        * for the next cycle.
        *
@@ -328,13 +330,15 @@ int ptabli(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
     int32       indx, length;
-    int         n, nsmps=CS_KSMPS;
+    uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     rslt   = p->rslt;
+    memset(rslt, '\0', koffset*sizeof(MYFLT));
     length = ftp->flen;
     pxndx  = p->xndx;
     xbmul  = (MYFLT)p->xbmul;
@@ -343,7 +347,7 @@ int ptabli(CSOUND *csound, TABLE   *p)
     tab    = ftp->ftable;
     /* As for ktabli() code to handle non wrap mode, and wrap mode.  */
     if (!p->wrap) {
-      for (n=0; n<nsmps; n++) {
+      for (n=koffset; n<nsmps; n++) {
         /* Read in the next raw index and increment the pointer ready
          * for the next cycle.
          * Then multiply the ndx by the denormalising factor and add in
@@ -371,7 +375,7 @@ int ptabli(CSOUND *csound, TABLE   *p)
       }
     }
     else {                      /* wrap mode */
-      for (n=0; n<nsmps; n++) {
+      for (n=koffset; n<nsmps; n++) {
         int j;
         /* Read in the next raw index and increment the pointer ready
          * for the next cycle.
@@ -402,7 +406,8 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
 {
     FUNC        *ftp;
     int32       indx, length;
-    int         n, nsmps=CS_KSMPS;
+    uint32_t    koffset = p->h.insdshead->ksmps_offset;
+    uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
     int         wrap = p->wrap;
@@ -410,12 +415,13 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     rslt = p->rslt;
+    memset(rslt, '\0', koffset*sizeof(MYFLT));
     length = ftp->flen;
     pxndx = p->xndx;
     xbmul = (MYFLT)p->xbmul;
     offset = p->offset;
     tab = ftp->ftable;
-    for (n=0; n<nsmps; n++) {
+    for (n=koffset; n<nsmps; n++) {
       /* Read in the next raw index and increment the pointer ready
        * for the next cycle.
        * Then multiply the ndx by the denormalising factor and add in
@@ -560,7 +566,8 @@ int ptablew(CSOUND *csound, TABLEW *p)
     int32        indx;   /* Used to read table. */
     int32        length; /* Length of table */
     int         liwgm;          /* Local copy of iwgm for speed */
-    int         n, nsmps = CS_KSMPS;
+    uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
                                 /*-----------------------------------*/
     /* Assume that TABLEW has been set up correctly. */
@@ -574,7 +581,7 @@ int ptablew(CSOUND *csound, TABLEW *p)
     xbmul  = (MYFLT)p->xbmul;
     offset = p->offset;
                 /* Main loop - for the number of a samples in a k cycle. */
-    for (n=0; n<nsmps; n++) {
+    for (n=koffset; n<nsmps; n++) {
       /* Read in the next raw index and increment the pointer ready for the
          next cycle.  Then multiply the ndx by the denormalising factor and
          add in the offset.  */
