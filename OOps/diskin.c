@@ -70,7 +70,7 @@ static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
 
 static inline void diskin_get_sample(SOUNDINEW *p, int32 fPos, int n, MYFLT scl)
 {
-    int  bufPos, i;
+    uint32_t  bufPos, i;
 
     if (p->wrapMode) {
       if (UNLIKELY(fPos >= p->fileLength))
@@ -283,7 +283,8 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
 {
     MYFLT   a0, a1;
     int32   ndx;
-    unsigned int     nn, chn;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nn, nsmps = CS_KSMPS, chn;
 
     if (p->initDone <= 0) {
       if (UNLIKELY(!p->initDone))
@@ -313,7 +314,7 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
     /* file read position */
     ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
     /* ---- linear interpolation ---- */
-    for (nn = 0; nn < CS_KSMPS; nn++) {
+    for (nn = offset; nn < nsmps; nn++) {
       a1 = (MYFLT) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))
            * (FL(1.0) / (MYFLT) POS_FRAC_SCALE) * p->scaleFac;
       a0 = p->scaleFac - a1;
@@ -432,11 +433,12 @@ int sndo1set(CSOUND *csound, void *pp)
 
 int soundout(CSOUND *csound, SNDOUT *p)
 {
-    int nn, nsamps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundout: not initialised"));
-    for (nn = 0; nn < nsamps; nn++) {
+    for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
@@ -449,11 +451,12 @@ int soundout(CSOUND *csound, SNDOUT *p)
 
 int soundouts(CSOUND *csound, SNDOUTS *p)
 {
-    int nn, nsamps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundouts: not initialised"));
-    for (nn = 0; nn < nsamps; nn++) {
+    for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
