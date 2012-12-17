@@ -715,12 +715,12 @@ extern "C" {
     /**
      * Returns the number of audio sample frames per control sample.
      */
-    PUBLIC int csoundGetKsmps(CSOUND *);
+    PUBLIC uint32_t csoundGetKsmps(CSOUND *);
 
     /**
      * Returns the number of audio output channels.
      */
-    PUBLIC int csoundGetNchnls(CSOUND *);
+    PUBLIC uint32_t csoundGetNchnls(CSOUND *);
 
     /**
      * Returns the 0dBFS level of the spin/spout buffers.
