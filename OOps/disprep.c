@@ -159,10 +159,11 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
 int dsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
-    int    n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (!p->nprds) {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         fp[n] = sp[n];
         if (fp >= endp) {
           fp = p->begp;
@@ -172,7 +173,7 @@ int dsplay(CSOUND *csound, DSPLAY *p)
     }
     else {
       MYFLT *fp2 = fp + p->bufpts;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         *fp++ = sp[n];
         *fp2++ = sp[n];
         if (!(--p->pntcnt)) {
@@ -383,10 +384,11 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
 int dspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
-    int   n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
-    for (n=0; n<nsmps; n++) {
+    for (n=offset; n<nsmps; n++) {
       if (bufp < p->sampbuf) {            /* skip any spare samples */
         bufp++; sigp++;
       }
