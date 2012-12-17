@@ -431,7 +431,7 @@ typedef struct {
     void    *opcod_deact, *subins_deact;
     /* opcodes to be run at note deactivation */
     void    *nxtd;
-    int32   ksmps_offset; /* ksmps offset for sample accuracy */
+    uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
     MYFLT   p1;
@@ -857,8 +857,8 @@ typedef struct NAME__ {
     void (*Destroy)(CSOUND *);
     MYFLT (*GetSr)(CSOUND *);
     MYFLT (*GetKr)(CSOUND *);
-    int (*GetKsmps)(CSOUND *);
-    int (*GetNchnls)(CSOUND *);
+    uint32_t (*GetKsmps)(CSOUND *);
+    uint32_t (*GetNchnls)(CSOUND *);
     int (*GetSampleFormat)(CSOUND *);
     int (*GetSampleSize)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
@@ -1159,7 +1159,8 @@ typedef struct NAME__ {
     /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */   
     OPDS          *ids, *pds;
     unsigned int  ksmps, global_ksmps;
-    int           nchnls, spoutactive;
+    uint32_t      nchnls;
+    int           spoutactive;
     long          kcounter, global_kcounter;
     int           reinitflag;
     int           tieflag;
