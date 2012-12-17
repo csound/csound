@@ -354,6 +354,7 @@ int chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
 int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 {
     int     n = (int)MYFLT2LRND(*(p->a)) * csound->global_ksmps;
+    uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
 
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("chani: invalid index"));
@@ -363,13 +364,15 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound,
                                  Str("chani: memory allocation failure"));
     }
-    memcpy(p->r, &(csound->chania[n]), sizeof(MYFLT) * CS_KSMPS);
+    memset(p->r, '\0', offset);
+    memcpy(p->r+offset, &(csound->chania[n]), sizeof(MYFLT) * CS_KSMPS- offset);
     return OK;
 }
 
 int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 {
     int     n = (int)MYFLT2LRND(*(p->a)) * csound->global_ksmps;
+    uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
 
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("chano: invalid index"));
@@ -379,7 +382,8 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
     }
-    memcpy(&(csound->chanoa[n]), p->r, sizeof(MYFLT) * CS_KSMPS);
+    memset(&(csound->chanoa[n]), '\0', offset);
+    memcpy(&(csound->chanoa[n+offset]), p->r, sizeof(MYFLT) * CS_KSMPS - offset);
     return OK;
 }
 
@@ -864,7 +868,9 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
-    memcpy(p->arg, p->fp, sizeof(MYFLT)*CS_KSMPS);
+    uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
+    memset(p->arg, '\0', offset);
+    memcpy(p->arg+offset, p->fp, sizeof(MYFLT)*CS_KSMPS-offset);
     return OK;
 }
 
@@ -940,9 +946,11 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
-    /* Need lock for the channel */
+     uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
+   /* Need lock for the channel */
     csoundSpinLock(p->lock);
-    memcpy(p->fp, p->arg, sizeof(MYFLT)*CS_KSMPS);
+    memset(p->fp, '\0', offset);
+    memcpy(p->fp+offset, p->arg, sizeof(MYFLT)*CS_KSMPS-offset);
     csoundSpinUnLock(p->lock);
     return OK;
 }
@@ -951,12 +959,13 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 
 static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 {
-    int   i = 0;
-    int n = CS_KSMPS;
-                                /* Need lock for the channel */
+    uint32_t n = 0;
+    uint32_t nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
+                               /* Need lock for the channel */
     csoundSpinLock(p->lock);
-    for (i=0; i<n; i++) {
-      p->fp[i] += p->arg[i];
+    for (n=offset; n<nsmps; n++) {
+      p->fp[n] += p->arg[n];
     }
     csoundSpinUnLock(p->lock);
     return OK;
@@ -968,7 +977,7 @@ static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
     /* Need lock for the channel */
     csoundSpinLock(p->lock);
-    memset(p->fp, 0, CS_KSMPS*sizeof(MYFLT));
+    memset(p->fp, 0, CS_KSMPS*sizeof(MYFLT)); /* Should this leave start? */
     csoundSpinUnLock(p->lock);
     return OK;
 }
