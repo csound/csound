@@ -829,6 +829,8 @@ typedef struct NAME__ {
     OPCODINFO     *opcodeInfo;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor; 
+    void          *instrumentNames; /* instrument names */
+    int           maxinsno;
   } ENGINE_STATE;
 
   /**
@@ -1210,7 +1212,7 @@ typedef struct NAME__ {
     int           holdrand;
     /** max. length of string variables + 1  */
     int           strVarMaxLen;
-    int           maxinsno;
+    /* int           maxinsno; */ /* now in engineState */
     int           strsmax;
     char          **strsets;
     /* INSTRTXT      **instrtxtp; */ /* now in ENGINE_STATE */
@@ -1311,7 +1313,7 @@ typedef struct NAME__ {
     MYFLT         tran_0dbfs;
     int           tran_nchnls;
     /*OPCODINFO     *opcodeInfo; */ /* now in engineState */
-    void          *instrumentNames;
+    /*void          *instrumentNames;*/ /*now in engineState */
     STRING_POOL*  stringSavePool;      
 //    void          *strsav_str;
 //    void          *strsav_space;
