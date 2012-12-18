@@ -272,6 +272,161 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     return csoundStart(csound);
 }
 
+PUBLIC int csoundCompileFromStrings(CSOUND *csound, char *orchst, char *scorst, int argc, char **argv)
+{
+  OPARMS  *O = csound->oparms;
+  char    *s;
+  //char    *sortedscore = NULL;
+  FILE    *xfile = NULL;
+  int     n;
+
+  if ((n = setjmp(csound->exitjmp)) != 0) {
+      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+
+    if (--argc <= 0) {
+      dieu(csound, Str("insufficient arguments"));
+    }
+    /* command line: allow orc/sco/csd name */
+    csound->orcname_mode = 0;   /* 0: normal, 1: ignore, 2: fail */
+    if (argdecode(csound, argc, argv) == 0)
+      csound->LongJmp(csound, 1);
+  /* do not allow orc/sco/csd name in .csoundrc */
+  csound->orcname_mode = 2;
+  {
+    const char  *csrcname;
+    const char  *home_dir;
+    FILE        *csrc = NULL;
+    void        *fd = NULL;
+    /* IV - Feb 17 2005 */
+    csrcname = csoundGetEnv(csound, "CSOUNDRC");
+    if (csrcname != NULL && csrcname[0] != '\0') {
+      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
+			     CSFTYPE_OPTIONS, 0);
+      if (fd == NULL)
+	csoundMessage(csound, Str("WARNING: cannot open csoundrc file %s\n"),
+		      csrcname);
+      else
+	csound->Message(csound, Str("Reading options from $CSOUNDRC: %s \n"),
+			csrcname);
+    }
+    if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
+		       home_dir[0] != '\0')) {
+      s = csoundConcatenatePaths(csound, home_dir, ".csoundrc");
+      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
+			     CSFTYPE_OPTIONS, 0);
+      if (fd != NULL)
+	csound->Message(csound, Str("Reading options from $HOME/.csoundrc\n"));
+      mfree(csound, s);
+    }
+    /* read global .csoundrc file (if exists) */
+    if (fd != NULL) {
+      readOptions(csound, csrc, 0);
+      csound->FileClose(csound, fd);
+    }
+    /* check for .csoundrc in current directory */
+    fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csoundrc", "r", NULL,
+			   CSFTYPE_OPTIONS, 0);
+    if (fd != NULL) {
+      readOptions(csound, csrc, 0);
+      csound->Message(csound,
+		      Str("Reading options from local directory .csoundrc \n"));
+      csound->FileClose(csound, fd);
+    }
+  }
+  if (csound->delayederrormessages) {
+    if (O->msglevel>8)
+      csound->Warning(csound, csound->delayederrormessages);
+    free(csound->delayederrormessages);
+    csound->delayederrormessages = NULL;
+  }
+  
+   csound->orcname_mode = 1;           /* ignore orc/sco name */
+   argdecode(csound, argc-1, argv);   
+
+  /* some error checking */
+  if (csound->stdin_assign_flg &&
+      (csound->stdin_assign_flg & (csound->stdin_assign_flg - 1)) != 0) {
+    csound->Die(csound, Str("error: multiple uses of stdin"));
+  }
+  if (csound->stdout_assign_flg &&
+      (csound->stdout_assign_flg & (csound->stdout_assign_flg - 1)) != 0) {
+    csound->Die(csound, Str("error: multiple uses of stdout"));
+  }
+ 
+  if (scorst==NULL) {
+    /* No scorename yet */
+    csound->scorestr = corfile_create_r("f0 800000000000.0\n");
+    corfile_flush(csound->scorestr);
+    if (O->RTevents)
+      csound->Message(csound, Str("realtime performance using dummy "
+				  "numeric scorefile\n"));
+  } 
+
+    csound->orchstr = corfile_create_w();
+    corfile_puts(orchst, csound->orchstr);
+    
+    if (csound->orchstr==NULL)
+      csound->Die(csound,
+		  Str("Failed to commit orch to memory:\n %s\n"), orchst);
+    corfile_puts("\n#exit\n", csound->orchstr);
+    corfile_putc('\0', csound->orchstr);
+    corfile_putc('\0', csound->orchstr);
+   
+  /* instrument numbers are known at the score read/sort stage */
+  csoundLoadExternals(csound);    /* load plugin opcodes */
+  /* IV - Jan 31 2005: initialise external modules */
+  if (csoundInitModules(csound) != 0)
+    csound->LongJmp(csound, 1);
+  csoundCompileOrc(csound, NULL); 
+  print_benchmark_info(csound, Str("end of orchestra compile"));
+  if (!csoundYield(csound))
+    return -1;
+    
+  if (csound->scorestr==NULL) {
+    csound->scorestr = corfile_create_r((const char *)scorst);
+    corfile_flush(csound->scorestr);
+    
+    if (csound->scorestr==NULL)
+      csoundDie(csound, Str("cannot read score string %s"), scorst);
+  }
+  csound->Message(csound, Str("Sorting score\n"));
+  scsortstr(csound,csound->scorestr);
+  if (csound->keep_tmp) {
+    FILE *ff = fopen("score.srt", "w");
+    fputs(corfile_body(csound->scstr), ff);
+    fclose(ff);
+  }
+  if (csound->xfilename != NULL) {            /* optionally extract */
+    if (!(xfile = fopen(csound->xfilename, "r")))
+      csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
+    csoundNotifyFileOpened(csound, csound->xfilename,
+			   CSFTYPE_EXTRACT_PARMS, 0, 0);
+    csound->Message(csound, Str("  ... extracting ...\n"));
+    scxtract(csound, csound->scstr, xfile);
+    fclose(xfile);
+    csound->tempStatus &= ~csPlayScoMask;
+  }
+  /* copy sorted score name */
+  O->playscore = csound->scstr;
+  /* IV - Jan 28 2005 */
+  print_benchmark_info(csound, Str("end of score sort"));
+  if (O->syntaxCheckOnly) {
+    csound->Message(csound, Str("Syntax check completed.\n"));
+    return CSOUND_EXITJMP_SUCCESS;
+  }
+
+  /* open MIDI output (moved here from argdecode) */
+  if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
+    O->Midioutname = NULL;
+  if (O->FMidioutname != NULL && O->FMidioutname[0] == (char) '\0')
+    O->FMidioutname = NULL;
+  if (O->Midioutname != NULL || O->FMidioutname != NULL)
+    openMIDIout(csound);
+
+  return csoundStart(csound);
+}
+
 PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 {
     OPARMS  *O = csound->oparms;
