@@ -1121,7 +1121,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
 //      }
 //    }
 
-    // if(csound->instr0 == NULL) /* create instr0 */
+     if(csound->instr0 == NULL) /* create instr0 */
        csound->instr0 = create_instrument0(csound, root, engineState);
     prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
     insert_instrtxt(csound, csound->instr0, 0, engineState);
