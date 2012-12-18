@@ -828,6 +828,7 @@ typedef struct NAME__ {
     OENTRY        *oplstend;
     OPCODINFO     *opcodeInfo;
     INSTRTXT      **instrtxtp; /* instrument list      */
+    INSTRTXT      instxtanchor; 
   } ENGINE_STATE;
 
   /**
@@ -1155,6 +1156,7 @@ typedef struct NAME__ {
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */
+    INSTRTXT      *instr0;          /* instr0     */
     TYPE_POOL*    typePool;
     /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */   
     OPDS          *ids, *pds;
@@ -1291,7 +1293,7 @@ typedef struct NAME__ {
     SRTBLK        *frstbp;
     int           sectcnt;
     int           inerrcnt, synterrcnt, perferrcnt;
-    INSTRTXT      instxtanchor;
+    /* INSTRTXT      instxtanchor; */ /* in ENGINE_STATE */ 
     INSDS         actanchor;
     int32         rngcnt[MAXCHNLS];
     int16         rngflg, multichan;
