@@ -403,7 +403,7 @@ static int pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
           case CS_STACK_A:
             {
               MYFLT *src, *dst;
-              int   j;
+              //int   j;
               src = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
               dst = p->args[i];
               memcpy(dst, src, CS_KSMPS*sizeof(MYFLT));

@@ -30,7 +30,8 @@ typedef struct dats{
   OPDS h;
   MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN, 
         *idecim, *konset, *offset, *dbthresh;
-  int cnt, hsize, curframe, N, decim,tscale,nchans;
+  int cnt, hsize, curframe, N, decim,tscale;
+  unsigned int nchans;
   double pos;
   MYFLT accum;
   AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS], 
@@ -41,7 +42,8 @@ typedef struct dats{
 static int sinit(CSOUND *csound, DATASPACE *p)
 {
 
-    int N =  *p->iN, i, nchans;
+    int N =  *p->iN;
+    unsigned int nchans, i;;
     unsigned int size;
     int decim = *p->idecim;
 

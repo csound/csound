@@ -239,10 +239,10 @@ typedef struct {
     char    *opcod;         /* Pointer to opcode name in global pool */
     ARGLST  *inlist;        /* Input args (pointer to item in name list) */
     ARGLST  *outlist;
-    ARG 	*inArgs;        /* Input args (index into list of values) */
-    int		inArgCount;
-    ARG 	*outArgs;
-    int 	outArgCount;
+    ARG     *inArgs;        /* Input args (index into list of values) */
+    unsigned int inArgCount;
+    ARG     *outArgs;
+    unsigned int outArgCount;
     int     xincod;         /* Rate switch for multi-rate opcode functions */
     int     xoutcod;        /* output rate switch (IV - Sep 1 2002) */
     int     xincod_str;     /* Type switch for string arguments */
@@ -431,7 +431,7 @@ typedef struct {
     void    *opcod_deact, *subins_deact;
     /* opcodes to be run at note deactivation */
     void    *nxtd;
-    int32   ksmps_offset; /* ksmps offset for sample accuracy */
+    uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
     MYFLT   p1;
@@ -582,10 +582,10 @@ typedef struct {
   } FUNC;
 
   typedef struct {
-    CSOUND   *csound;
-    uint32_t flen;
-    int      fno, guardreq;
-    EVTBLK   e;
+    CSOUND  *csound;
+    int32   flen;
+    int     fno, guardreq;
+    EVTBLK  e;
   } FGDATA;
 
   typedef struct {
@@ -858,8 +858,8 @@ typedef struct NAME__ {
     void (*Destroy)(CSOUND *);
     MYFLT (*GetSr)(CSOUND *);
     MYFLT (*GetKr)(CSOUND *);
-    int (*GetKsmps)(CSOUND *);
-    int (*GetNchnls)(CSOUND *);
+    uint32_t (*GetKsmps)(CSOUND *);
+    uint32_t (*GetNchnls)(CSOUND *);
     int (*GetSampleFormat)(CSOUND *);
     int (*GetSampleSize)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
@@ -1161,7 +1161,8 @@ typedef struct NAME__ {
     /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */   
     OPDS          *ids, *pds;
     unsigned int  ksmps, global_ksmps;
-    int           nchnls, spoutactive;
+    uint32_t      nchnls;
+    int           spoutactive;
     long          kcounter, global_kcounter;
     int           reinitflag;
     int           tieflag;

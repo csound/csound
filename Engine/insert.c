@@ -952,16 +952,17 @@ int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
 
 int useropcdset(CSOUND *csound, UOPCODE *p)
 {
-    OPDS    *saved_ids = csound->ids;
-    INSDS   *saved_curip = csound->curip, *parent_ip = csound->curip, *lcurip;
-    INSTRTXT  *tp;
-    int     instno, n, pcnt;
-    unsigned int i;
-    OPCODINFO *inm;
-    OPCOD_IOBUFS  *buf;
-    unsigned int  g_ksmps;
-    int32         g_kcounter;
-    MYFLT         g_onedkr, g_onedksmps, g_kicvt;
+    OPDS         *saved_ids = csound->ids;
+    INSDS        *saved_curip = csound->curip, *parent_ip = csound->curip, *lcurip;
+    INSTRTXT     *tp;
+    unsigned int instno;
+    unsigned int pcnt;
+    unsigned int i, n;
+    OPCODINFO    *inm;
+    OPCOD_IOBUFS *buf;
+    unsigned int g_ksmps;
+    uint32_t     g_kcounter;
+    MYFLT        g_onedkr, g_onedksmps, g_kicvt;
 
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;

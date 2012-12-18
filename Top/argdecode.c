@@ -217,6 +217,12 @@ static const char *longUsageList[] = {
   Str_noop("\t\t\tvelocity number to pfield N as amplitude"),
   Str_noop("--no-default-paths\tTurn off relative paths from CSD/ORC/SCO"),
   Str_noop("--sample-accurate\t\tUse sample-accurate timing of score events"),
+#ifdef PARCS
+  Str_noop("--weight-info=F\t\tFile of weight information"),
+  Str_noop("--weight-dump=F\t\tFile to save weight information"),
+  Str_noop("--compute-weights\t\tUse opcode weigts"),
+#endif
+  Str_noop("--sample-accurate\t\tStart instuments ar sample accuracy rather rthar krate"),
   " ",
   Str_noop("--help\t\t\tLong help"),
   

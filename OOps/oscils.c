@@ -86,16 +86,18 @@ int oscils_set(CSOUND *csound, OSCILS *p)
 
 int oscils(CSOUND *csound, OSCILS *p)
 {
-    int     n, nsmps=CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *ar, x, c, v;
     double  xd, cd, vd;
 
     /* copy object data to local variables */
     ar = p->ar;
 
+    memset(ar, '\0', offset*sizeof(MYFLT));
     if (p->use_double) {            /* use doubles */
       xd = p->xd; cd = p->cd; vd = p->vd;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         ar[n] = (MYFLT) xd;
         vd += cd * xd;
         xd += vd;
@@ -104,7 +106,7 @@ int oscils(CSOUND *csound, OSCILS *p)
     }
     else {                          /* use floats */
       x = p->x; c = p->c; v = p->v;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         ar[n] = x;
         v += c * x;
         x += v;
@@ -133,7 +135,9 @@ int lphasor_set(CSOUND *csound, LPHASOR *p)
 
 int lphasor(CSOUND *csound, LPHASOR *p)
 {
-    int     n, nsmps=CS_KSMPS, loop_mode, dir;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int loop_mode, dir;
     MYFLT   *ar, *xtrns;
     double  trns, phs, lps, lpe, lpt;
 
@@ -144,7 +148,8 @@ int lphasor(CSOUND *csound, LPHASOR *p)
     loop_mode = p->loop_mode;
     trns = (double)*xtrns;
 
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       if (XINARG1) trns = (double)xtrns[n];
       ar[n] = (MYFLT) phs;
       phs += (p->dir ? trns : -trns);
@@ -199,7 +204,9 @@ int tablexkt_set(CSOUND *csound, TABLEXKT *p)
 
 int tablexkt(CSOUND *csound, TABLEXKT *p)
 {
-    int     i, n, nsmps=CS_KSMPS, wsize, wsized2, wrap_ndx, warp;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int i, wsize, wsized2, wrap_ndx, warp;
     double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
     int32    ndx_i, flen;
     MYFLT   *ar, *xndx, ndx_f, a0, a1, a2, a3, v0, v1, v2, v3, *ftable;
@@ -239,7 +246,8 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     onedpi_d = 1.0 / PI;
 
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT)); 
+    for (n=offset; n<nsmps; n++) {
       ndx = (double)*xndx;
       if (XINARG1) xndx++;
       /* calculate table index */

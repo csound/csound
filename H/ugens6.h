@@ -67,7 +67,7 @@ typedef struct DELAYR {
         OPDS    h;
         MYFLT   *ar, *indx, *idlt, *istor;
         MYFLT   *curp;
-        int32    npts;
+        uint32_t npts;
         AUXCH   auxch;
         struct DELAYR  *next_delayr; /* fifo for delayr pointers by Jens Groh */
 } DELAYR;
