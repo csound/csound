@@ -395,7 +395,9 @@ extern "C" {
       (int*)NULL,
       (OENTRY*)NULL,
      (OPCODINFO*) NULL,
-      (INSTRTXT**)NULL}, /* engineState */
+     (INSTRTXT**)NULL,
+     {NULL}}, /* engineState */
+    (INSTRTXT *) NULL, /* instr0  */
     (TYPE_POOL*)NULL, 
     /* (CS_VAR_POOL*)NULL, */
     (OPDS*) NULL,   /*  ids                 */
@@ -539,7 +541,7 @@ extern "C" {
     NULL,           /*  frstbp              */
     0,              /*  sectcnt             */
     0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
-    {NULL},         /*  instxtanchor        */
+    /* {NULL}, */   /*  instxtanchor  in engineState */ 
     {NULL},         /*  actanchor           */
     {0L },          /*  rngcnt              */
     0, 0,           /*  rngflg, multichan   */

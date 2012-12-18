@@ -42,7 +42,6 @@ gadel  init     0
 ifreq  =        cpspch(p5)                   ; p7 = vib rate
                                              ; p8 = glis. del time (default < 1)
 aglis  expseg   1, p8, 1, p3 - p8, p9        ; p9 = freq drop factor
-
 k1     line     0, p3, 5
 k2     oscil    k1, p7, 1
 k3     linseg   0, p3 * .7, p6, p3 * .3, 0

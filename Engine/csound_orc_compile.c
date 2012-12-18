@@ -651,7 +651,11 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
 
     return retOptxt;
 }
-
+/*********************************************
+* NB - instr0 to be created only once, in the first compilation
+*  and stored in csound->instr0
+*
+*/
 
 /**
  * Create an Instrument (INSTRTXT) from the AST node given for use as
@@ -742,8 +746,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineSta
             csound->tran_ksmps = val;
           }
           else if (current->left->type == NCHNLS_TOKEN) {
-            csound->nchnls = current->right->value->value;
-            if (csound->inchnls<0) csound->inchnls = csound->nchnls;
+            csound->tran_nchnls = current->right->value->value;
+            if (csound->inchnls<0) csound->inchnls = csound->tran_nchnls;
           }
           else if (current->left->type == NCHNLSI_TOKEN) {
             csound->inchnls = current->right->value->value;
@@ -952,18 +956,18 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
 
 
 
-/**
- * Append an instrument to the end of Csound's linked list of instruments
- */
-void append_instrument(CSOUND * csound, INSTRTXT * instrtxt)
+// /**
+// * Append an instrument to the end of Csound's linked list of instruments
+// */
+/* void append_instrument(CSOUND * csound, INSTRTXT * instrtxt)
 {
-    INSTRTXT    *current = &(csound->instxtanchor);
+    INSTRTXT    *current = &(csound->engineState->instxtanchor);
     while (current->nxtinstxt != NULL) {
       current = current->nxtinstxt;
     }
 
     current->nxtinstxt = instrtxt;
-}
+}*/
 
 static int pnum(char *s)        /* check a char string for pnum format  */
                                 /*   and return the pnum ( >= 0 )       */
@@ -1043,12 +1047,12 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
     //OPARMS      *O = csound->oparms;
     INSTRTXT    *instrtxt = NULL;
     INSTRTXT    *ip = NULL;
-    INSTRTXT    *prvinstxt = &(csound->instxtanchor);
+    INSTRTXT    *prvinstxt = &(engineState->instxtanchor); 
     OPTXT       *bp;
     char        *opname;
     int32        count, sumcount; //, instxtcount, optxtcount;
     TREE * current = root;
-    INSTRTXT * instr0;
+    /* INSTRTXT * instr0; */
 //    TRANS_DATA* transData = createTransData(csound);
 
 //    strsav_create(csound);
@@ -1113,9 +1117,11 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
 //        STA(typemask_tabl_out)[pos] = *ptr++;
 //      }
 //    }
-    instr0 = create_instrument0(csound, root, engineState);
-    prvinstxt = prvinstxt->nxtinstxt = instr0;
-    insert_instrtxt(csound, instr0, 0, engineState);
+
+    // if(csound->instr0 == NULL) /* create instr0 */
+       csound->instr0 = create_instrument0(csound, root, engineState);
+    prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
+    insert_instrtxt(csound, csound->instr0, 0, engineState);
 
     while (current != NULL) {
 
@@ -1306,7 +1312,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
         synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
     }
 
-    ip = csound->instxtanchor.nxtinstxt;
+    ip = engineState->instxtanchor.nxtinstxt;
     bp = (OPTXT *) ip;
     while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
       /* chk instr 0 for illegal perfs */
@@ -1350,7 +1356,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
 //    STA(gblacount) = STA(gblnxtacnt);
 //    STA(gblscount) = STA(gblnxtscnt);
 
-    ip = &(csound->instxtanchor);
+    ip = &(engineState->instxtanchor);
     for (sumcount = 0; (ip = ip->nxtinstxt) != NULL; ) {/* for each instxt */
       OPTXT *optxt = (OPTXT *) ip;
       int optxtcount = 0;
@@ -1373,7 +1379,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
 //    STA(nulloffs) = (ARGOFFS *) csound->argoffspace; /* setup the null argoff */
 //    *STA(nxtargoffp)++ = 0;
 //    STA(argofflim) = STA(nxtargoffp) + sumcount;
-    ip = &(csound->instxtanchor);
+    ip = &(engineState->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL)        /* add all other entries */
       insprep(csound, ip, engineState);                      /*   as combined offsets */
 //    if (UNLIKELY(O->odebug)) {
@@ -1387,7 +1393,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
 //    if (UNLIKELY(STA(nxtargoffp) != STA(argofflim)))
 //      csoundDie(csound, Str("inconsistent argoff sumcount"));
 //
-    ip = &(csound->instxtanchor);               /* set the OPARMS values */
+    ip = &(engineState->instxtanchor);               /* set the OPARMS values */
     //instxtcount = optxtcount = 0;
 //    while ((ip = ip->nxtinstxt) != NULL) {
 //      instxtcount += 1;
@@ -1448,7 +1454,7 @@ void debugPrintCsound(CSOUND* csound) {
     }
     
     
-    INSTRTXT    *current = &(csound->instxtanchor);
+    INSTRTXT    *current = &(csound->engineState.instxtanchor);
     current = current->nxtinstxt;
     count = 0;
     while (current != NULL) {
@@ -2135,7 +2141,7 @@ void oload_async(CSOUND *csound, ENGINE_STATE *engineState)
     csound->nchnls = csound->tran_nchnls;
     csound->e0dbfs = csound->tran_0dbfs;
     csound->ksmps = (int) ((ensmps = csound->tran_ksmps) + FL(0.5));
-    ip = csound->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
+    ip = engineState->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
 
     /* why I want oload() to return an error value.... */
     if (UNLIKELY(csound->e0dbfs <= FL(0.0)))
@@ -2198,7 +2204,7 @@ void oload_async(CSOUND *csound, ENGINE_STATE *engineState)
 //    gblabeg = csound->poolcount + csound->gblfixed + 1;
 //    gblsbeg = gblabeg + csound->gblacount;
 //    gblsbas = gblabeg + (csound->gblacount * csound->ksmps);
-    ip = &(csound->instxtanchor);
+    ip = &(engineState->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
       optxt = (OPTXT *) ip;                     /*   (and set localen)        */
       recalculateVarPoolMemory(csound, ip->varPool);
@@ -2248,7 +2254,7 @@ void oload_async(CSOUND *csound, ENGINE_STATE *engineState)
 //            else if (indx > gblabeg)    /* global a-rate variable   */
 //              indx = gblabeg + (indx - gblabeg) * csound->ksmps;
 //            else if (indx <= 3 && O->sr_override &&
-//                     ip == csound->instxtanchor.nxtinstxt)   /* for instr 0 */
+//                     ip == engineState->instxtanchor.nxtinstxt)   /* for instr 0 */
 //              indx += 3;        /* deflect any old sr,kr,ksmps targets */
 //          }
 //          else {                        /* negative index: local    */

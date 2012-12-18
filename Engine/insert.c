@@ -530,7 +530,7 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
 
     csound->Message(csound, "insno\tinstanc\tnxtinst\tprvinst\tnxtact\t"
                             "prvact\tnxtoff\tactflg\tofftim\n");
-    for (txtp = &(csound->instxtanchor);  txtp != NULL;  txtp = txtp->nxtinstxt)
+    for (txtp = &(csound->engineState.instxtanchor);  txtp != NULL;  txtp = txtp->nxtinstxt)
       if ((p = txtp->instance) != NULL) {
         /*
          * On Alpha, we print pointers as pointers.  heh 981101
@@ -708,7 +708,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
     INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
     int       cnt = 0;
 
-    for (txtp = &(csound->instxtanchor);
+    for (txtp = &(csound->engineState.instxtanchor);
          txtp != NULL;  txtp = txtp->nxtinstxt) {
       if ((ip = txtp->instance) != NULL) {        /* if instance exists */
         prvip = NULL;
@@ -2122,7 +2122,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     }
     csound->engineState.instrtxtp[n] = NULL;
     /* Now patch it out */
-    for (txtp = &(csound->instxtanchor); txtp != NULL; txtp = txtp->nxtinstxt)
+    for (txtp = &(csound->engineState.instxtanchor); txtp != NULL; txtp = txtp->nxtinstxt)
       if (txtp->nxtinstxt == ip) {
         OPTXT *t = ip->nxtop;
         txtp->nxtinstxt = ip->nxtinstxt;
