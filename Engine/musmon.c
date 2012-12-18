@@ -47,6 +47,7 @@ extern  void    MidiClose(CSOUND *);
 extern  void    RTclose(CSOUND *);
 extern  void    remote_Cleanup(CSOUND *);
 extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
+extern  void    initialize_instrument0(CSOUND *);
 
 typedef struct evt_cb_func {
     void    (*func)(CSOUND *, void *);
@@ -193,7 +194,7 @@ int musmon(CSOUND *csound)
 
     m_chn_init_all(csound);     /* allocate MIDI channels */
     dispinit(csound);           /* initialise graphics or character display */
-    oload(csound);              /* set globals and run inits */
+    initialize_instrument0(csound);              /* set globals and run inits */
 
     /* kperf() will not call csoundYield() more than 250 times per second */
     csound->evt_poll_cnt    = 0;
