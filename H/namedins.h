@@ -44,16 +44,13 @@ int32 named_instr_find(CSOUND *, char *);
 
 /* allocate entry for named instrument ip with name s (s must not be freed */
 /* after the call, because only the pointer is stored); instrument number */
-/* is set to insno */
+/* is set to insno; for a given in a given engineState */
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
+int named_instr_alloc(CSOUND *, char *, INSTRTXT *, int32, ENGINE_STATE *engineState);
 
-int named_instr_alloc(CSOUND *, char *, INSTRTXT *, int32);
-
-/* assign instrument numbers to all named instruments */
-/* called by otran */
-
-void named_instr_assign_numbers(CSOUND *);
+/* assign instrument numbers to all named instruments in a given engineState */
+  void named_instr_assign_numbers(CSOUND *, ENGINE_STATE *engineState);
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
