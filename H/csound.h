@@ -420,7 +420,6 @@ extern "C" {
      */
 
     typedef struct CSOUND_  CSOUND;
-
     typedef struct windat_  WINDAT;
     typedef struct xyindat_ XYINDAT;
 

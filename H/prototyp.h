@@ -47,7 +47,6 @@ CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
 void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
 CS_NORETURN void    csoundLongJmp(CSOUND *, int retval);
 TEXT    *getoptxt(CSOUND *, int *);
-void    oload(CSOUND *);
 void    reverbinit(CSOUND *);
 void    dispinit(CSOUND *);
 int     init0(CSOUND *);
