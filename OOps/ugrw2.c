@@ -454,7 +454,8 @@ int limit(CSOUND *csound, LIMIT *p)
 {
     MYFLT       *adest, *asig;
     MYFLT       xlow, xhigh, xaverage, xsig;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     /*-----------------------------------*/
 
     /* Optimise for speed when xsig is within the limits.     */
@@ -468,14 +469,15 @@ int limit(CSOUND *csound, LIMIT *p)
      * Whilst doing the test, load the limit local variables.
      */
 
+    memset(adest, '\0', offset*sizeof(MYFLT));
     if ((xlow = *p->xlow) >= (xhigh = *p->xhigh)) {
-      xaverage = (xlow + xhigh) * FL(0.5);/* times 0.2 rather that /2 -- JPff */
-      for (n=0; n<nsmps; n++) {
+      xaverage = (xlow + xhigh) * FL(0.5);/* times 0.5 rather that /2 -- JPff */
+      for (n=offset; n<nsmps; n++) {
         adest[n] = xaverage;
       }
     }
     else
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         /* Do normal processing, testing each input value against the limits. */
         if (((xsig = asig[n]) <= xhigh) && (xsig >= xlow)) {
           /* xsig was within the limits.      */
