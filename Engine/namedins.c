@@ -149,9 +149,9 @@ int32 named_instr_find(CSOUND *csound, char *s)
     INSTRNAME     *inm;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
 
-    if (!csound->instrumentNames) return 0L;  /* no named instruments defined */
+    if (!csound->engineState.instrumentNames) return 0L;  /* no named instruments defined */
     /* now find instrument */
-    inm = ((INSTRNAME**) csound->instrumentNames)[h];
+    inm = ((INSTRNAME**) csound->engineState.instrumentNames)[h];
     while (inm) {
       if (!sCmp(inm->name, s))
         return (int32) inm->instno;
@@ -166,14 +166,14 @@ int32 named_instr_find(CSOUND *csound, char *s)
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno)
+int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno, ENGINE_STATE *engineState)
 {
-    INSTRNAME   **inm_base = (INSTRNAME**) csound->instrumentNames, *inm, *inm2;
+    INSTRNAME   **inm_base = (INSTRNAME**) engineState->instrumentNames, *inm, *inm2;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
 
     if (UNLIKELY(!inm_base))
       /* no named instruments defined yet */
-      inm_base = csound->instrumentNames =
+      inm_base = engineState->instrumentNames =
                  (void*) mcalloc(csound, sizeof(INSTRNAME*) * 258);
     /* now check if instrument is already defined */
     if ((inm = inm_base[h])) {
@@ -206,38 +206,38 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno)
 /* assign instrument numbers to all named instruments */
 /* called by otran */
 
-void named_instr_assign_numbers(CSOUND *csound)
+void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
 {
     INSTRNAME   *inm, *inm2, **inm_first, **inm_last;
     int     num = 0, insno_priority = 0;
 
-    if (!csound->instrumentNames) return;       /* no named instruments */
-    inm_first = (INSTRNAME**) csound->instrumentNames + 256;
+    if (!engineState->instrumentNames) return;       /* no named instruments */
+    inm_first = (INSTRNAME**) engineState->instrumentNames + 256;
     inm_last = inm_first + 1;
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
-        num = csound->maxinsno;         /* find last used instr number */
-        while (!csound->engineState.instrtxtp[num] && --num);
+        num = engineState->maxinsno;         /* find last used instr number */
+        while (!engineState->instrtxtp[num] && --num);
       }
       for (inm = *inm_first; inm; inm = inm->prv) {
         if ((int) inm->instno != insno_priority) continue;
         /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
-        while (++num <= csound->maxinsno && csound->engineState.instrtxtp[num]);
+        while (++num <= engineState->maxinsno && engineState->instrtxtp[num]);
         /* we may need to expand the instrument array */
-        if (num > csound->maxinsno) {
-          int m = csound->maxinsno;
-          csound->maxinsno += MAXINSNO; /* Expand */
-          csound->engineState.instrtxtp = (INSTRTXT**)
-            mrealloc(csound, csound->engineState.instrtxtp,
-                             (1 + csound->maxinsno) * sizeof(INSTRTXT*));
+        if (num > engineState->maxinsno) {
+          int m = engineState->maxinsno;
+          engineState->maxinsno += MAXINSNO; /* Expand */
+          engineState->instrtxtp = (INSTRTXT**)
+            mrealloc(csound, engineState->instrtxtp,
+                             (1 + engineState->maxinsno) * sizeof(INSTRTXT*));
           /* Array expected to be nulled so.... */
-          while (++m <= csound->maxinsno) csound->engineState.instrtxtp[m] = NULL;
+          while (++m <= engineState->maxinsno) engineState->instrtxtp[m] = NULL;
         }
         /* hack: "name" actually points to the corresponding INSTRNAME */
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
         inm2->instno = (int32) num;
-        csound->engineState.instrtxtp[num] = inm2->ip;
+        engineState->instrtxtp[num] = inm2->ip;
         if (csound->oparms->msglevel)
           csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                                   inm2->name, num);
@@ -252,6 +252,7 @@ void named_instr_assign_numbers(CSOUND *csound)
     }
     *inm_first = *inm_last = NULL;
 }
+
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
@@ -269,7 +270,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
     }
     else {      /* numbered instrument */
       insno = (int32) *((MYFLT*) p);
-      if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
+      if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                    !csound->engineState.instrtxtp[insno])) {
         csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
         return -1;
@@ -309,7 +310,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
       }
       else {      /* numbered instrument */
         insno = (int32) *((MYFLT*) p);
-        if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
+        if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                      !csound->engineState.instrtxtp[insno])) {
           csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
           return -1;

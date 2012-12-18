@@ -124,7 +124,7 @@ char argtyp2(CSOUND *csound, char *s);
 #define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 5.0e-7)
 #endif
 
-#define lblclear(x)
+//#define lblclear(x)
 
 //TRANS_DATA* createTransData(CSOUND* csound) {
 //    TRANS_DATA* data = csound->Malloc(csound, sizeof(TRANS_DATA));
@@ -291,11 +291,11 @@ static void unquote_string(char *dst, const char *src)
 //            n+1, s, t, expect, opname, line);
 //}
 
-static inline void resetouts(CSOUND *csound)
-{
-    csound->acount = csound->kcount = csound->icount =
-      csound->Bcount = csound->bcount = 0;
-}
+// static inline void resetouts(CSOUND *csound)
+//{
+//    csound->acount = csound->kcount = csound->icount =
+//      csound->Bcount = csound->bcount = 0;
+//}
 
 int tree_arg_list_count(TREE * root)
 {
@@ -863,7 +863,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root, ENGINE_STATE *engineStat
         synterr(csound, Str("invalid name for instrument"));
       }
       /* IV - Oct 31 2002: store the name */
-      if (UNLIKELY(!named_instr_alloc(csound, c, ip, insno_priority))) {
+      if (UNLIKELY(!named_instr_alloc(csound, c, ip, insno_priority, engineState))) {
         synterr(csound, Str("instr %s redefined"), c);
       }
       ip->insname = c;  /* IV - Nov 10 2002: also in INSTRTXT */
@@ -990,19 +990,19 @@ static int pnum(char *s)        /* check a char string for pnum format  */
 void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_STATE *engineState){
     int i;
 
-    if (UNLIKELY(instrNum > csound->maxinsno)) {
-        int old_maxinsno = csound->maxinsno;
+    if (UNLIKELY(instrNum > engineState->maxinsno)) {
+        int old_maxinsno = engineState->maxinsno;
 
         /* expand */
-        while (instrNum > csound->maxinsno) {
-            csound->maxinsno += MAXINSNO;
+        while (instrNum > engineState->maxinsno) {
+            engineState->maxinsno += MAXINSNO;
         }
 
         engineState->instrtxtp = (INSTRTXT**)mrealloc(csound,
-                engineState->instrtxtp, (1 + csound->maxinsno) * sizeof(INSTRTXT*));
+                engineState->instrtxtp, (1 + engineState->maxinsno) * sizeof(INSTRTXT*));
 
         /* Array expected to be nulled so.... */
-        for (i = old_maxinsno + 1; i <= csound->maxinsno; i++) {
+        for (i = old_maxinsno + 1; i <= engineState->maxinsno; i++) {
              engineState->instrtxtp[i] = NULL;
         }
     }
@@ -1063,7 +1063,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
     /* if (UNLIKELY(csound->otranGlobals == NULL)) { */
     /*   csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS)); */
     /* } */
-    engineState->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + csound->maxinsno)
+    engineState->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno)
                                                       * sizeof(INSTRTXT*));
     // csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
 
@@ -1135,8 +1135,8 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
       case INSTR_TOKEN:
         print_tree(csound, "Instrument found\n", current);
 
-        resetouts(csound); /* reset #out counts */
-        lblclear(csound); /* restart labelist  */
+	// resetouts(csound); /* reset #out counts */
+        //lblclear(csound); /* restart labelist  */
 
         instrtxt = create_instrument(csound, current,engineState);
 
@@ -1174,7 +1174,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
                   synterr(csound, Str("invalid name for instrument"));
                 }
                 if (UNLIKELY(!named_instr_alloc(csound, c,
-                                                instrtxt, insno_priority))) {
+                                                instrtxt, insno_priority, engineState))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
                 instrtxt->insname = c;
@@ -1196,7 +1196,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
                   synterr(csound, Str("invalid name for instrument"));
                 }
                 if (UNLIKELY(!named_instr_alloc(csound, c,
-                                                instrtxt, insno_priority))) {
+                                                instrtxt, insno_priority, engineState))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
                 instrtxt->insname = c;
@@ -1210,8 +1210,8 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
       case UDO_TOKEN:
         /* csound->Message(csound, "UDO found\n"); */
 
-        resetouts(csound); /* reset #out counts */
-        lblclear(csound); /* restart labelist  */
+	//  resetouts(csound); /* reset #out counts */
+	// lblclear(csound); /* restart labelist  */
 
         instrtxt = create_instrument(csound, current, engineState);
 
@@ -1257,16 +1257,16 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
 
     /* Begin code from otran */
     /* now add the instruments with names, assigning them fake instr numbers */
-    named_instr_assign_numbers(csound);         /* IV - Oct 31 2002 */
+    named_instr_assign_numbers(csound, engineState);         /* IV - Oct 31 2002 */
     if (engineState->opcodeInfo) {
-      int num = csound->maxinsno;       /* store after any other instruments */
+      int num = engineState->maxinsno;       /* store after any other instruments */
       OPCODINFO *inm = engineState->opcodeInfo;
       /* IV - Oct 31 2002: now add user defined opcodes */
       while (inm) {
         /* we may need to expand the instrument array */
         if (UNLIKELY(++num > csound->maxopcno)) {
           int i;
-          i = (csound->maxopcno > 0 ? csound->maxopcno : csound->maxinsno);
+          i = (csound->maxopcno > 0 ? csound->maxopcno : engineState->maxinsno);
           csound->maxopcno = i + MAXINSNO;
           engineState->instrtxtp = (INSTRTXT**)
             mrealloc(csound, engineState->instrtxtp, (1 + csound->maxopcno)
@@ -2223,10 +2223,10 @@ void oload_async(CSOUND *csound, ENGINE_STATE *engineState)
         //FIXME - note alignment
       /* align to 64 bits */
      // ip->localen = (ip->localen + 7L) & (~7L);
-      for (insno = 0, n = 0; insno <= csound->maxinsno; insno++)
+      for (insno = 0, n = 0; insno <= engineState->maxinsno; insno++)
         if (engineState->instrtxtp[insno] == ip)  n++;            /* count insnos  */
       lp = ip->inslist = (int32 *) mmalloc(csound, (int32)(n+1) * sizeof(int32));
-      for (insno=0; insno <= csound->maxinsno; insno++)
+      for (insno=0; insno <= engineState->maxinsno; insno++)
         if (engineState->instrtxtp[insno] == ip)  *lp++ = insno;  /* creat inslist */
       *lp = -1;                                         /*   & terminate */
       insno = *ip->inslist;                             /* get the first */

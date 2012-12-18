@@ -396,7 +396,9 @@ extern "C" {
       (OENTRY*)NULL,
      (OPCODINFO*) NULL,
      (INSTRTXT**)NULL,
-     {NULL}}, /* engineState */
+     {NULL},
+     NULL,
+     MAXINSNO}, /* engineState */
     (INSTRTXT *) NULL, /* instr0  */
     (TYPE_POOL*)NULL, 
     /* (CS_VAR_POOL*)NULL, */
@@ -458,7 +460,7 @@ extern "C" {
     NULL, NULL,     /*  orchstr, *scorestr  */
     2345678,        /*  holdrand            */
     256,            /*  strVarMaxLen        */
-    MAXINSNO,       /*  maxinsno            */
+    /* MAXINSNO, */      /*  maxinsno            */
     0,              /*  strsmax             */
     (char**) NULL,  /*  strsets             */
     /*NULL, */      /*  instrtxtp now part of engineState */
@@ -559,7 +561,7 @@ extern "C" {
     DFLT_DBFS,      /*  tran_0dbfs          */
     DFLT_NCHNLS,    /*  tran_nchnls         */
     /*NULL,  */         /*  opcodeInfo now in engineState  */
-    NULL,           /*  instrumentNames     */
+    /*NULL,   */        /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */   
 //    NULL,           /*  strsav_str          */
 //    NULL,           /*  strsav_space        */

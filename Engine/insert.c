@@ -716,7 +716,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
         do {
           if (!ip->actflg) {
             cnt++;
-            if (ip->opcod_iobufs && ip->insno > csound->maxinsno)
+            if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
               mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
             if (ip->fdchp != NULL)
               fdchclose(csound, ip);
@@ -1908,7 +1908,7 @@ static void instance(CSOUND *csound, int insno)
     tp->act_instance = ip;
     ip->insno = insno;
     /* IV - Nov 10 2002 */
-    if (insno > csound->maxinsno) {
+    if (insno > csound->engineState.maxinsno) {
       size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
       pcnt += (size_t) tp->opcode_info->perf_outcnt;
       pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
@@ -2095,7 +2095,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     else
       n = (int) (*p->insno + FL(0.5));
 
-    if (n < 1 || n > csound->maxinsno || csound->engineState.instrtxtp[n] == NULL)
+    if (n < 1 || n > csound->engineState.maxinsno || csound->engineState.instrtxtp[n] == NULL)
       return OK;                /* Instrument does not exist so noop */
     ip = csound->engineState.instrtxtp[n];
     active = ip->instance;
@@ -2111,7 +2111,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
                                    Str("Instrument %d is still active"), n);
       }
 #if 0
-      if (active->opcod_iobufs && active->insno > csound->maxinsno)
+      if (active->opcod_iobufs && active->insno > csound->engineState.maxinsno)
         mfree(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */
 #endif
       if (active->fdchp != NULL)

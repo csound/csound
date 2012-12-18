@@ -612,11 +612,11 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
-        if (UNLIKELY((unsigned int)(insno-1) >= (unsigned int) csound->maxinsno ||
+        if (UNLIKELY((unsigned int)(insno-1) >= (unsigned int) csound->engineState.maxinsno ||
                      csound->engineState.instrtxtp[insno] == NULL)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %d(%d) undefined"),
-                          insno, csound->maxinsno);
+                          insno, csound->engineState.maxinsno);
           break;
         }
         csound->Message(csound, Str("Setting instrument %d %s\n"),
@@ -652,11 +652,11 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
-        if (UNLIKELY((unsigned int)(insno-1) >= (unsigned int)csound->maxinsno ||
+        if (UNLIKELY((unsigned int)(insno-1) >= (unsigned int)csound->engineState.maxinsno ||
                      csound->engineState.instrtxtp[insno] == NULL)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %d(%d) undefined"),
-                          insno, csound->maxinsno);
+                          insno, csound->engineState.maxinsno);
           break;
         }
         if ((rfd = getRemoteInsRfd(csound, insno))) {
@@ -1146,7 +1146,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
           i = (int) named_instr_find(csound, evt->strarg);
         else
           i = (int) fabs((double) p[1]);
-        if (UNLIKELY((unsigned int) (i - 1) >= (unsigned int) csound->maxinsno ||
+        if (UNLIKELY((unsigned int) (i - 1) >= (unsigned int) csound->engineState.maxinsno ||
                      csound->engineState.instrtxtp[i] == NULL)) {
           csoundMessage(csound, Str("insert_score_event(): invalid instrument "
                                     "number or name\n"));
