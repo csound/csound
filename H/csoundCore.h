@@ -1310,9 +1310,9 @@ typedef struct NAME__ {
     int           evt_poll_cnt;
     int           evt_poll_maxcnt;
     int           Mforcdecs, Mxtroffs, MTrkend;
-    MYFLT         tran_sr, tran_kr, tran_ksmps;
+    /* MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
-    int           tran_nchnls;
+    int           tran_nchnls; */ /* all of these are not needed anymore */
     /*OPCODINFO     *opcodeInfo; */ /* now in engineState */
     /*void          *instrumentNames;*/ /*now in engineState */
     STRING_POOL*  stringSavePool;      
