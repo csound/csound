@@ -58,8 +58,10 @@ int fassign(CSOUND *csound, FASSIGN *p)
     if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
       csound->Die(csound, Str("fsig = : formats are different.\n"));
     if (p->fsrc->sliding) {
-      memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
-             sizeof(MYFLT)*(p->fsrc->N+2)*CS_KSMPS);
+      uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT)*(p->fsrc->N+2);
+      memset(p->fout->frame.auxp, '\0', offset);
+      memcpy(p->fout->frame.auxp+offset, p->fsrc->frame.auxp,
+             sizeof(MYFLT)*(p->fsrc->N+2)*CS_KSMPS-offset);
       return OK;
     }
     fout = (float *) p->fout->frame.auxp;
@@ -217,14 +219,16 @@ static MYFLT adsyn_tick(CSOUND *csound, PVADS *p)
 
 int pvadsyn(CSOUND *csound, PVADS *p)
 {
-    unsigned int i, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
 
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->outbuf.auxp==NULL)) {
       csound->Die(csound, Str("pvsynth: Not initialised.\n"));
     }
-    for (i=0;i < nsmps;i++)
+    memset(aout, '\0', offset*sizeof(MYFLT));
+    for (i=offset;i < nsmps;i++)
       aout[i] = adsyn_tick(csound, p);
     return OK;
 }
@@ -286,9 +290,10 @@ int pvscross(CSOUND *csound, PVSCROSS *p)
       csound->Die(csound, Str("pvscross: mismatch in fdest format\n"));
     if (p->fsrc->sliding) {
       CMPLX *fout, *fsrc, *fdest;
-      int n, nsmps = CS_KSMPS;
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t n, nsmps = CS_KSMPS;
       int NB = p->fsrc->NB;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         fsrc = (CMPLX *) p->fsrc->frame.auxp +n*NB;    /* RWD all must be 32bit */
         fdest = (CMPLX *) p->fdest->frame.auxp +n*NB;
         fout = (CMPLX *) p->fout->frame.auxp +n*NB;
@@ -528,9 +533,10 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     if (p->fsrc->sliding) {
       int NB = p->fsrc->NB;
       CMPLX *fout, *fsrc;
-      int n, nsmps=CS_KSMPS;
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t n, nsmps = CS_KSMPS;
       MYFLT amp = FL(1.0);
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         fout = (CMPLX *) p->fout->frame.auxp +n*NB;
         fsrc = (CMPLX *) p->fsrc->frame.auxp +n*NB;
         for (i=0; i<NB; i++) {

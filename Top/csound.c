@@ -1720,12 +1720,12 @@ PUBLIC MYFLT csoundGetKr(CSOUND *csound)
     return csound->ekr;
 }
 
-PUBLIC int csoundGetKsmps(CSOUND *csound)
+PUBLIC uint32_t csoundGetKsmps(CSOUND *csound)
 {
     return csound->ksmps;
 }
 
-PUBLIC int csoundGetNchnls(CSOUND *csound)
+PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
 {
     return csound->nchnls;
 }
@@ -3572,7 +3572,7 @@ const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
 const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
 #endif
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+    csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     char        *msg = NULL;
 
     if (pp && pp->msgCnt) {

@@ -66,55 +66,55 @@ CS_VARIABLE* createFsig(void* csound, void* args) {
 //#define ARGTYP_l        0x00000800L     /* label */
 
 const CS_TYPE CS_VAR_TYPE_A = {
-  "a", NULL, "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, NULL, NULL, NULL
+  "a", NULL, "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_K = {
-  "k", NULL, "control rate var", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL, NULL
+  "k", NULL, "control rate var", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_I = {
-  "i", NULL, "init time var", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL, NULL
+  "i", NULL, "init time var", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
-  "p", NULL, "p-field", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL, NULL
+  "p", NULL, "p-field", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_R = {
-  "r", NULL, "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL, NULL
+  "r", NULL, "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_C = {
-  "c", NULL, "constant", CS_ARG_TYPE_IN, createMyflt, NULL, NULL, NULL
+  "c", NULL, "constant", CS_ARG_TYPE_IN, createMyflt, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_W = {
-  "w", NULL, "spectral", CS_ARG_TYPE_BOTH, createWsig, NULL, NULL, NULL
+  "w", NULL, "spectral", CS_ARG_TYPE_BOTH, createWsig, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_F = {
-  "f", NULL, "f-sig", CS_ARG_TYPE_BOTH, createFsig, NULL, NULL, NULL
+  "f", NULL, "f-sig", CS_ARG_TYPE_BOTH, createFsig, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", NULL, "boolean", CS_ARG_TYPE_BOTH, createBool, NULL, NULL, NULL
+  "B", NULL, "boolean", CS_ARG_TYPE_BOTH, createBool, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", NULL, "boolean", CS_ARG_TYPE_BOTH, createBool, NULL, NULL, NULL
+  "b", NULL, "boolean", CS_ARG_TYPE_BOTH, createBool, NULL, NULL
 };
 
 void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
 
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_A);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_K);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_I);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_P);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_R);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_C);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_W);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_F);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_B);
-    csoundAddVariableType(pool, (CS_TYPE*)&CS_VAR_TYPE_b);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_K);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_I);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_P);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_R);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_C);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_W);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_F);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_B);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_b);
 }

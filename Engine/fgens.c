@@ -2220,10 +2220,10 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
     CSOUND  *csound = ff->csound;
     FUNC    *ftp = csound->flist[ff->fno];
 
-    if (ftp != NULL) {
+    if (UNLIKELY(ftp != NULL)) {
       csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
-      if (ff->flen != ftp->flen) {          /* if redraw & diff len, */
-        mfree(csound, (void*) ftp);         /*   release old space   */
+      if (ff->flen != (int32)ftp->flen) {       /* if redraw & diff len, */
+        mfree(csound, (void*) ftp);             /*   release old space   */
         csound->flist[ff->fno] = ftp = NULL;
         if (csound->actanchor.nxtact != NULL) { /*   & chk for danger    */
           csound->Warning(csound, Str("ftable %d relocating due to size change"
@@ -2260,7 +2260,7 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
-    else if (UNLIKELY(ftp->lenmask == 0xFFFFFFFF)) {
+    else if (UNLIKELY(ftp->lenmask == -1)) {
       csoundInitError(csound, Str("illegal table length"));
       return NULL;
     }
