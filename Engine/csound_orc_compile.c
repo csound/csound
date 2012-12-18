@@ -37,7 +37,7 @@
 #include "typetabl.h"
 #include "csound_standard_types.h"
 
-static ARG* createArg(CSOUND *csound, INSTRTXT* ip, char *s, ENGINE_STATE *engineState);
+static  ARG* createArg(CSOUND *csound, INSTRTXT* ip, char *s, ENGINE_STATE *engineState);
 static  void    insprep(CSOUND *, INSTRTXT *, ENGINE_STATE *engineState);
 static  void    lgbuild(CSOUND *, INSTRTXT *, char *, int inarg, ENGINE_STATE *engineState);
 static  void    gblnamset(CSOUND *, char *, ENGINE_STATE *engineState);
@@ -382,15 +382,26 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
 /**
 * NB - instr0 to be created only once, in the first compilation
 *  and stored in csound->instr0
- * Create an Instrument (INSTRTXT) from the AST node given for use as
- * Instrument0. Called from csound_orc_compile.
- */
+* Create an Instrument (INSTRTXT) from the AST node given for use as
+* Instrument0. Called from csound_orc_compile.
+*/
 INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineState)
 {
     INSTRTXT *ip;
     OPTXT *op;
-
     TREE *current;
+    MYFLT sr= FL(-1.0), kr= FL(-1.0), ksmps= FL(-1.0), nchnls= DFLT_NCHNLS, inchnls = FL(0.0), _0dbfs= FL(-1.0);
+    CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "sr"));
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "kr"));
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "ksmps"));
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "nchnls"));
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "nchnls_i"));
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "0dbfs"));
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$sr"));
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$kr"));
+    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$ksmps"));
+    myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
     ip->varPool = (CS_VAR_POOL*)mcalloc(csound, sizeof(CS_VAR_POOL));
@@ -439,43 +450,81 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineSta
             myflt_pool_find_or_add(csound, csound->engineState.constantsPool, val);
 
           /* modify otran defaults*/
+          /* removed assignments to csound->tran_* */
           if (current->left->type == SRATE_TOKEN) {
-            csound->tran_sr = val;
+            sr = val;
           }
           else if (current->left->type == KRATE_TOKEN) {
-            csound->tran_kr = val;
+            kr = val;
           }
           else if (current->left->type == KSMPS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
-            csound->tran_ksmps = uval;
+            ksmps = uval;
           }
           else if (current->left->type == NCHNLS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
-            csound->tran_nchnls = uval;
-            if (csound->inchnls<0) csound->inchnls = csound->nchnls;
+            nchnls = uval;
           }
           else if (current->left->type == NCHNLSI_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
-            csound->inchnls = uval;
+            inchnls = uval;
             /* csound->Message(csound, "SETTING NCHNLS: %d\n",
-                               csound->tran_nchnls); */
+                               nchnls); */
           }
           else if (current->left->type == ZERODBFS_TOKEN) {
-            csound->tran_0dbfs = val;
+            _0dbfs = val;
             /* csound->Message(csound, "SETTING 0DBFS: %f\n",
-                               csound->tran_0dbfs); */
+                               _0dbfs); */
           }
 
         }
 
         op->nxtop = create_opcode(csound, current, ip, engineState);
-
         op = last_optxt(op);
 
         }
         current = current->next;
     }
 
+    /* Deal with defaults and consistency */
+    if (ksmps == FL(-1.0)) {
+      if (sr == FL(-1.0)) sr = DFLT_SR;
+      if (kr == FL(-1.0)) kr = DFLT_KR;
+      ksmps = (MYFLT) ((int) (sr/kr + FL(0.5)));
+    }
+    else if (kr == FL(-1.0)) {
+      if (sr == FL(-1.0)) sr = DFLT_SR;
+         kr = sr/ksmps;
+    }
+    else if (sr == FL(-1.0)) {
+      sr = kr*ksmps;
+    }
+    /* That deals with missing values, however we do need ksmps to be integer */
+    {
+      CSOUND    *p = (CSOUND*) csound;
+      char      err_msg[128];
+      sprintf(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
+                       sr, kr, ksmps);
+      if (UNLIKELY(sr <= FL(0.0)))
+        synterr(p, Str("%s invalid sample rate"), err_msg);
+      if (UNLIKELY(kr <= FL(0.0)))
+        synterr(p, Str("%s invalid control rate"), err_msg);
+      else if (UNLIKELY(ksmps < FL(0.75) ||
+                        FLOAT_COMPARE(ksmps,
+                                      MYFLT2LRND(ksmps))))
+        synterr(p, Str("%s invalid ksmps value"), err_msg);
+      else if (UNLIKELY(FLOAT_COMPARE(sr,(double)kr *ksmps)))
+        synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
+    }
+
+    csound->ksmps = ksmps;
+    csound->nchnls = nchnls;
+    if(inchnls==0) csound->inchnls = nchnls;
+    else csound->inchnls = inchnls;
+    csound->esr = sr;
+    csound->ekr = kr;
+    if(_0dbfs < 0) csound->e0dbfs = DFLT_DBFS;
+    else csound->e0dbfs = _0dbfs;
     close_instrument(csound, ip);
 
     return ip;
@@ -491,8 +540,8 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root, ENGINE_STATE *engineStat
     INSTRTXT *ip;
     OPTXT *op;
     char *c;
-
     TREE *statements, *current;
+    
 
     ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
     ip->varPool = (CS_VAR_POOL*)mcalloc(csound, sizeof(CS_VAR_POOL));    
@@ -677,30 +726,10 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
     char        *opname;
     int32        count, sumcount; //, instxtcount, optxtcount;
     TREE * current = root;
-    int instr0_is_new = 0;
     
     engineState->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno)
                                                       * sizeof(INSTRTXT*));
-   
     string_pool_find_or_add(csound, engineState->stringPool, "\"\"");
-
-    CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "sr"));
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "kr"));
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "ksmps"));
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "nchnls"));
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "nchnls_i"));
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "0dbfs"));
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$sr"));
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$kr"));
-    csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$ksmps"));
-
-    //FIXME - check if this is setting a var or reserving a string in the global pools
-    myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
-    if(csound->instr0 == NULL) { /* create instr0 */
-       csound->instr0 = create_instrument0(csound, root, engineState);
-       instr0_is_new = 1;
-    }
     prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
     insert_instrtxt(csound, csound->instr0, 0, engineState);
 
@@ -843,41 +872,6 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
         inm = inm->prv;
       }
     }
-    /* Deal with defaults and consistency */
-    if(instr0_is_new) {
-    if (csound->tran_ksmps == FL(-1.0)) {
-      if (csound->tran_sr == FL(-1.0)) csound->tran_sr = DFLT_SR;
-      if (csound->tran_kr == FL(-1.0)) csound->tran_kr = DFLT_KR;
-      csound->tran_ksmps = (MYFLT) ((int) (csound->tran_sr / csound->tran_kr
-                                           + FL(0.5)));
-    }
-    else if (csound->tran_kr == FL(-1.0)) {
-      if (csound->tran_sr == FL(-1.0)) csound->tran_sr = DFLT_SR;
-      csound->tran_kr = csound->tran_sr / csound->tran_ksmps;
-    }
-    else if (csound->tran_sr == FL(-1.0)) {
-      csound->tran_sr = csound->tran_kr * csound->tran_ksmps;
-    }
-    /* That deals with missing values, however we do need ksmps to be integer */
-    {
-      CSOUND    *p = (CSOUND*) csound;
-      char      err_msg[128];
-      sprintf(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
-                       p->tran_sr, p->tran_kr, p->tran_ksmps);
-      if (UNLIKELY(p->tran_sr <= FL(0.0)))
-        synterr(p, Str("%s invalid sample rate"), err_msg);
-      if (UNLIKELY(p->tran_kr <= FL(0.0)))
-        synterr(p, Str("%s invalid control rate"), err_msg);
-      else if (UNLIKELY(p->tran_ksmps < FL(0.75) ||
-                        FLOAT_COMPARE(p->tran_ksmps,
-                                      MYFLT2LRND(p->tran_ksmps))))
-        synterr(p, Str("%s invalid ksmps value"), err_msg);
-      else if (UNLIKELY(FLOAT_COMPARE(p->tran_sr,
-                                      (double) p->tran_kr * p->tran_ksmps)))
-        synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
-    }
-    }
-
     ip = engineState->instxtanchor.nxtinstxt;
     bp = (OPTXT *) ip;
     while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
@@ -930,6 +924,8 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
  *
  */
 PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root){
+  /* create instr 0 */
+  csound->instr0 = create_instrument0(csound, root, &csound->engineState);
   return csoundCompileTree_async(csound, root, &csound->engineState);
 }
 
@@ -1273,14 +1269,8 @@ void oload_async(CSOUND *csound, ENGINE_STATE *engineState)
     INSTRTXT *ip;
     OPTXT   *optxt;
     OPARMS  *O = csound->oparms;
-    MYFLT   ensmps;
-
-    csound->esr = csound->tran_sr; csound->ekr = csound->tran_kr;
-    csound->nchnls = csound->tran_nchnls;
-    csound->e0dbfs = csound->tran_0dbfs;
-    csound->ksmps = (int) ((ensmps = csound->tran_ksmps) + FL(0.5));
+  
     ip = engineState->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
-
     /* why I want oload() to return an error value.... */
     if (UNLIKELY(csound->e0dbfs <= FL(0.0)))
       csound->Die(csound, Str("bad value for 0dbfs: must be positive."));
@@ -1289,15 +1279,29 @@ void oload_async(CSOUND *csound, ENGINE_STATE *engineState)
                     "0dbfs = %.1f\n",
                     csound->esr, csound->ekr, csound->ksmps, csound->nchnls, csound->e0dbfs);
     if (O->sr_override) {        /* if command-line overrides, apply now */
+      MYFLT ensmps;
       csound->esr = (MYFLT) O->sr_override;
       csound->ekr = (MYFLT) O->kr_override;
       csound->ksmps = (int) ((ensmps = ((MYFLT) O->sr_override
                                    / (MYFLT) O->kr_override)) + FL(0.5));
       csound->Message(csound, Str("sample rate overrides: "
                         "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
-                    csound->esr, csound->ekr, csound->ksmps);
+                       csound->esr, csound->ekr, csound->ksmps);
+      /* chk consistency one more time */
+      {
+      char  s[256];
+      sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
+                 csound->esr, csound->ekr, ensmps);
+      if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps)))
+        csoundDie(csound, Str("%s invalid ksmps value"), s);
+      if (UNLIKELY(csound->esr <= FL(0.0)))
+        csoundDie(csound, Str("%s invalid sample rate"), s);
+      if (UNLIKELY(csound->ekr <= FL(0.0)))
+        csoundDie(csound, Str("%s invalid control rate"), s);
+      if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double) csound->ekr * ensmps)))
+        csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
+    } 
     }
-    
     
     // create memblock for global variables
     recalculateVarPoolMemory(csound, engineState->varPool);
@@ -1357,20 +1361,7 @@ void oload_async(CSOUND *csound, ENGINE_STATE *engineState)
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
     csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
     csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
-    /* chk consistency one more time (FIXME: needed ?) */
-    {
-      char  s[256];
-      sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
-                 csound->esr, csound->ekr, ensmps);
-      if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps)))
-        csoundDie(csound, Str("%s invalid ksmps value"), s);
-      if (UNLIKELY(csound->esr <= FL(0.0)))
-        csoundDie(csound, Str("%s invalid sample rate"), s);
-      if (UNLIKELY(csound->ekr <= FL(0.0)))
-        csoundDie(csound, Str("%s invalid control rate"), s);
-      if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double) csound->ekr * ensmps)))
-        csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
-    }
+    
     /* initialise sensevents state */
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
     csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
