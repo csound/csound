@@ -362,23 +362,13 @@ PUBLIC int csoundCompileFromStrings(CSOUND *csound, char *orchst, char *scorst, 
       csound->Message(csound, Str("realtime performance using dummy "
 				  "numeric scorefile\n"));
   } 
-
-    csound->orchstr = corfile_create_w();
-    corfile_puts(orchst, csound->orchstr);
-    
-    if (csound->orchstr==NULL)
-      csound->Die(csound,
-		  Str("Failed to commit orch to memory:\n %s\n"), orchst);
-    corfile_puts("\n#exit\n", csound->orchstr);
-    corfile_putc('\0', csound->orchstr);
-    corfile_putc('\0', csound->orchstr);
-   
+ 
   /* instrument numbers are known at the score read/sort stage */
   csoundLoadExternals(csound);    /* load plugin opcodes */
   /* IV - Jan 31 2005: initialise external modules */
   if (csoundInitModules(csound) != 0)
     csound->LongJmp(csound, 1);
-  csoundCompileOrc(csound, NULL); 
+  csoundCompileOrc(csound, orchst); 
   print_benchmark_info(csound, Str("end of orchestra compile"));
   if (!csoundYield(csound))
     return -1;
