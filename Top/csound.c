@@ -395,7 +395,12 @@ extern "C" {
       (int*)NULL,
       (OENTRY*)NULL,
      (OPCODINFO*) NULL,
-      (INSTRTXT**)NULL}, /* engineState */
+     -1,
+     (INSTRTXT**)NULL,
+     {NULL},
+     NULL,
+     MAXINSNO}, /* engineState */
+    (INSTRTXT *) NULL, /* instr0  */
     (TYPE_POOL*)NULL, 
     /* (CS_VAR_POOL*)NULL, */
     (OPDS*) NULL,   /*  ids                 */
@@ -456,7 +461,7 @@ extern "C" {
     NULL, NULL,     /*  orchstr, *scorestr  */
     2345678,        /*  holdrand            */
     256,            /*  strVarMaxLen        */
-    MAXINSNO,       /*  maxinsno            */
+    /* MAXINSNO, */      /*  maxinsno            */
     0,              /*  strsmax             */
     (char**) NULL,  /*  strsets             */
     /*NULL, */      /*  instrtxtp now part of engineState */
@@ -512,7 +517,7 @@ extern "C" {
     /* (OENTRY*) NULL, */ /*  opcodlst  now in engineState         */
     /* (int*) NULL,   */ /*  opcode_list now in engineState         */
     /* (OENTRY*) NULL, */ /*  opcodlstend now in engineState         */
-    -1,             /*  maxopcno            */
+    /*-1,    */         /*  maxopcno            */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */
@@ -539,7 +544,7 @@ extern "C" {
     NULL,           /*  frstbp              */
     0,              /*  sectcnt             */
     0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
-    {NULL},         /*  instxtanchor        */
+    /* {NULL}, */   /*  instxtanchor  in engineState */ 
     {NULL},         /*  actanchor           */
     {0L },          /*  rngcnt              */
     0, 0,           /*  rngflg, multichan   */
@@ -552,12 +557,12 @@ extern "C" {
     0,              /*  evt_poll_cnt        */
     0,              /*  evt_poll_maxcnt     */
     0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
-    FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
-    FL(-1.0),       /*  tran_ksmps          */
-    DFLT_DBFS,      /*  tran_0dbfs          */
-    DFLT_NCHNLS,    /*  tran_nchnls         */
+    /* FL(-1.0), FL(-1.0), */  /*  tran_sr,tran_kr */
+    /* FL(-1.0),   */    /*  tran_ksmps          */
+    /* DFLT_DBFS,  */   /*  tran_0dbfs          */
+    /*  DFLT_NCHNLS, */    /*  tran_nchnls         */
     /*NULL,  */         /*  opcodeInfo now in engineState  */
-    NULL,           /*  instrumentNames     */
+    /*NULL,   */        /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */   
 //    NULL,           /*  strsav_str          */
 //    NULL,           /*  strsav_space        */

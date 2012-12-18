@@ -827,7 +827,11 @@ typedef struct NAME__ {
     int           *opcode_list;
     OENTRY        *oplstend;
     OPCODINFO     *opcodeInfo;
+    int           maxopcno;  
     INSTRTXT      **instrtxtp; /* instrument list      */
+    INSTRTXT      instxtanchor; 
+    void          *instrumentNames; /* instrument names */
+    int           maxinsno;
   } ENGINE_STATE;
 
   /**
@@ -1155,6 +1159,7 @@ typedef struct NAME__ {
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */
+    INSTRTXT      *instr0;          /* instr0     */
     TYPE_POOL*    typePool;
     /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */   
     OPDS          *ids, *pds;
@@ -1208,7 +1213,7 @@ typedef struct NAME__ {
     int           holdrand;
     /** max. length of string variables + 1  */
     int           strVarMaxLen;
-    int           maxinsno;
+    /* int           maxinsno; */ /* now in engineState */
     int           strsmax;
     char          **strsets;
     /* INSTRTXT      **instrtxtp; */ /* now in ENGINE_STATE */
@@ -1269,7 +1274,7 @@ typedef struct NAME__ {
     /* OENTRY        *opcodlst;
     int           *opcode_list;
     OENTRY        *oplstend; */
-    int           maxopcno;
+    /* int           maxopcno; */
     int32         nrecs;
     FILE*         Linepipe;
     int           Linefd;
@@ -1292,7 +1297,7 @@ typedef struct NAME__ {
     SRTBLK        *frstbp;
     int           sectcnt;
     int           inerrcnt, synterrcnt, perferrcnt;
-    INSTRTXT      instxtanchor;
+    /* INSTRTXT      instxtanchor; */ /* in ENGINE_STATE */ 
     INSDS         actanchor;
     int32         rngcnt[MAXCHNLS];
     int16         rngflg, multichan;
@@ -1305,11 +1310,11 @@ typedef struct NAME__ {
     int           evt_poll_cnt;
     int           evt_poll_maxcnt;
     int           Mforcdecs, Mxtroffs, MTrkend;
-    MYFLT         tran_sr, tran_kr, tran_ksmps;
+    /* MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
-    int           tran_nchnls;
+    int           tran_nchnls; */ /* all of these are not needed anymore */
     /*OPCODINFO     *opcodeInfo; */ /* now in engineState */
-    void          *instrumentNames;
+    /*void          *instrumentNames;*/ /*now in engineState */
     STRING_POOL*  stringSavePool;      
 //    void          *strsav_str;
 //    void          *strsav_space;
