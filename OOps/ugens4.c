@@ -47,9 +47,11 @@ int buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    int32       phs, inc, lobits, dwnphs, tnp1, lenmask, nn;
+    int32       phs, inc, lobits, dwnphs, tnp1, lenmask;
     MYFLT       sicvt2, over2n, scal, num, denom;
-    int         n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32    nn;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
@@ -59,18 +61,22 @@ int buzz(CSOUND *csound, BUZZ *p)
     lenmask = ftp->lenmask;
     ampp = p->xamp;
     cpsp = p->xcps;
-    if ((n = (int)*p->knh) < 0) n = -n;
-    if (UNLIKELY(n == 0)) {     /* fix n = knh */
-      n = 1;
+    if ((nn = (int)*p->knh) < 0) nn = -nn;
+    if (UNLIKELY(nn == 0)) {     /* fix nn = knh */
+      nn = 1;
     }
-    tnp1 = (n<<1) + 1;          /* calc 2n + 1 */
-    over2n = FL(0.5) / (MYFLT)n;
+    tnp1 = (nn<<1) + 1;          /* calc 2n + 1 */
+    over2n = FL(0.5) / (MYFLT)nn;
     scal = *ampp * over2n;
     inc = (int32)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    nn = CS_KSMPS;
-    for (n=0; n<nn; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
+      if (p->ampcod)
+        scal = ampp[n] * over2n;
+      if (p->cpscod)
+        inc = (int32)(cpsp[n] * sicvt2);
       dwnphs = phs >> lobits;
       denom = ftbl[dwnphs];
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
@@ -80,10 +86,6 @@ int buzz(CSOUND *csound, BUZZ *p)
       else ar[n] = *ampp;
       phs += inc;
       phs &= PHMASK;
-      if (p->ampcod)
-        scal = *++ampp * over2n;
-      if (p->cpscod)
-        inc = (int32)(*++cpsp * sicvt2);
     }
     p->lphs = phs;
     return OK;
@@ -134,10 +136,11 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    int32       phs, inc, lobits, lenmask, k, km1, kpn, kpnm1, nn;
-    int32       n;
+    int32       phs, inc, lobits, lenmask, k, km1, kpn, kpnm1;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       r, absr, num, denom, scal, last = p->last;
-    int32       lphs = p->lphs;
+    int32       nn, lphs = p->lphs;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -147,29 +150,33 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     ampp = p->xamp;
     cpsp = p->xcps;
     k = (int32)*p->kk;                   /* fix k and n  */
-    if ((n = (int32)*p->kn)<0) n = -n;
-    if (UNLIKELY(n == 0)) {              /* n must be > 0 */
-      n = 1;
+    if ((nn = (int32)*p->kn)<0) nn = -nn;
+    if (UNLIKELY(nn == 0)) {              /* n must be > 0 */
+      nn = 1;
     }
     km1 = k - 1;
-    kpn = k + n;
+    kpn = k + nn;
     kpnm1 = kpn - 1;
-    if ((r = *p->kr) != p->prvr || n != p->prvn) {
+    if ((r = *p->kr) != p->prvr || nn != p->prvn) {
       p->twor = r + r;
       p->rsqp1 = r * r + FL(1.0);
-      p->rtn = intpow1(r, n);
+      p->rtn = intpow1(r, nn);
       p->rtnp1 = p->rtn * r;
       if ((absr = FABS(r)) > FL(0.999) && absr < FL(1.001))
-        p->rsumr = FL(1.0) / n;
+        p->rsumr = FL(1.0) / nn;
       else p->rsumr = (FL(1.0) - absr) / (FL(1.0) - FABS(p->rtn));
       p->prvr = r;
-      p->prvn = (int16)n;
+      p->prvn = (int16)nn;
     }
     scal =  *ampp * p->rsumr;
     inc = (int32)(*cpsp * csound->sicvt);
     ar = p->ar;
-    nn = CS_KSMPS;
-    for (n=0; n<nn; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
+      if (p->ampcod)
+        scal =  p->rsumr * ampp[n];
+      if (p->cpscod)
+        inc = (int32)(cpsp[n] * csound->sicvt);
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * ftbl[phs];
       num = ftbl[phs * k & lenmask]
@@ -180,15 +187,11 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
         ar[n] = last = num / denom * scal;
       }
       else if (last<0)
-        ar[n] = last = - *ampp;
+        ar[n] = last = - (p->ampcod ? ampp[n] : *ampp);
       else
-        ar[n] = last = *ampp;
-      if (p->ampcod)
-        scal =  p->rsumr * *(++ampp);
+        ar[n] = last = (p->ampcod ? ampp[n] : *ampp);
       lphs += inc;
       lphs &= PHMASK;
-      if (p->cpscod)
-        inc = (int32)(*(++cpsp) * csound->sicvt);
     }
     p->last = last;
     p->lphs = lphs;
@@ -286,7 +289,8 @@ int pluck(CSOUND *csound, PLUCK *p)
 {
     MYFLT       *ar, *fp;
     int32       phs256, phsinc, ltwopi, offset;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       frac, diff;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD FIX */
@@ -295,7 +299,8 @@ int pluck(CSOUND *csound, PLUCK *p)
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
     if (UNLIKELY(phsinc > ltwopi)) goto err2;
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', koffset*sizeof(MYFLT));
+    for (n=koffset; n<nsmps; n++) {
       offset = phs256 >> 8;
       fp = (MYFLT *)p->auxch.auxp + offset;     /* lookup position   */
       diff = fp[1] - fp[0];
@@ -492,16 +497,19 @@ int krand(CSOUND *csound, RAND *p)
 int arand(CSOUND *csound, RAND *p)
 {
     MYFLT       *ar;
-    int16       rndmul = RNDMUL, n, nn = CS_KSMPS;
+    int16       rndmul = RNDMUL;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ampscl;
     MYFLT       base = *p->base;
 
     ar = p->ar;
+    memset(ar, '\0', offset*sizeof(MYFLT));
     if (!p->new) {
       int16     rand = p->rand;
       if (!(p->ampcod)) {
         ampscl = *p->xamp * DV32768;    /* IV - Jul 11 2002 */
-        for (n=0;n<nn;n++) {
+        for (n=offset;n<nsmps;n++) {
           rand *= rndmul;
           rand += 1;
           ar[n] = base + (MYFLT)rand * ampscl;          /* IV - Jul 11 2002 */
@@ -509,7 +517,7 @@ int arand(CSOUND *csound, RAND *p)
       }
       else {
         MYFLT *xamp = p->xamp;
-        for (n=0;n<nn;n++) {
+        for (n=offset;n<nsmps;n++) {
           rand *= rndmul;
           rand += 1;
           /* IV - Jul 11 2002 */
@@ -522,14 +530,14 @@ int arand(CSOUND *csound, RAND *p)
       int       rand = p->rand;
       if (!(p->ampcod)) {
         ampscl = *p->xamp * dv2_31;
-        for (n=0;n<nn;n++) {
+        for (n=offset;n<nsmps;n++) {
           rand = randint31(rand);
           ar[n] = base + (MYFLT)((int32)((unsigned)rand<<1)-BIPOLAR) * ampscl;
         }
       }
       else {
           MYFLT *xamp = p->xamp;
-          for (n=0;n<nn;n++) {
+          for (n=offset;n<nsmps;n++) {
             rand = randint31(rand);
             ar[n] = base +
               dv2_31 * (MYFLT)((int32)((unsigned)rand<<1)-BIPOLAR) * xamp[n];
@@ -603,15 +611,17 @@ int krandh(CSOUND *csound, RANDH *p)
 int randh(CSOUND *csound, RANDH *p)
 {
     int32       phs = p->phs, inc;
-    int n, nn = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
 
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
+    memset(ar, '\0', offset*sizeof(MYFLT));
     inc = (int32)(*cpsp++ * csound->sicvt);
-    for (n=0;n<nn;n++) {
+    for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + p->num1 * *ampp;   /* rslt = num * amp */
       if (p->ampcod)
@@ -722,15 +732,17 @@ int krandi(CSOUND *csound, RANDI *p)
 int randi(CSOUND *csound, RANDI *p)
 {
     int32       phs = p->phs, inc;
-    int         n, nn = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
 
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
+    memset(ar, '\0', offset*sizeof(MYFLT));
     inc = (int32)(*cpsp++ * csound->sicvt);
-    for (n=0;n<nn;n++) {
+    for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + (p->num1 + (MYFLT)phs * p->dfdmax) * *ampp;
       if (p->ampcod)

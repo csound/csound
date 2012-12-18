@@ -47,7 +47,8 @@ int foscil(CSOUND *csound, FOSC *p)
     MYFLT   *ar, *ampp, *modp, cps, amp;
     MYFLT   xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
     int32    mphs, cphs, minc, cinc, lobits;
-    int     n, nn=CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   sicvt = csound->sicvt;
 
     ar = p->rslt;
@@ -64,9 +65,10 @@ int foscil(CSOUND *csound, FOSC *p)
     amp  = *ampp;
     xcar = *carp;
     xmod = *modp;
+    memset(ar, '\0', offset*sizeof(MYFLT));
 
     if (p->XINCODE) {
-      for (n=0;n<nn;n++) {
+      for (n=offset;n<nsmps;n++) {
         if (p->ampcod) amp = ampp[n];
         if (p->carcod) xcar = carp[n];
         if (p->modcod) xmod = modp[n];
@@ -91,7 +93,7 @@ int foscil(CSOUND *csound, FOSC *p)
       mod = cps * *modp;
       ndx = *p->kndx * mod;
       minc = (int32)(mod * sicvt);
-      for (n=0;n<nn;n++) {
+      for (n=offset;n<nsmps;n++) {
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
@@ -116,7 +118,8 @@ int foscili(CSOUND *csound, FOSC *p)
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
     int32  mphs, cphs, minc, cinc, lobits;
-    int    n, nn=CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT  sicvt = csound->sicvt;
     MYFLT  *ft;
 
@@ -134,8 +137,9 @@ int foscili(CSOUND *csound, FOSC *p)
     amp  = *ampp;
     xcar = *carp;
     xmod = *modp;
+    memset(ar, '\0', offset*sizeof(MYFLT));
     if (p->XINCODE) {
-      for (n=0;n<nn;n++) {
+      for (n=offset;n<nsmps;n++) {
         if (p->ampcod)  amp = ampp[n];
         if (p->carcod)  xcar = carp[n];
         if (p->modcod)  xmod = modp[n];
@@ -165,7 +169,7 @@ int foscili(CSOUND *csound, FOSC *p)
       mod = cps * *modp;
       ndx = *p->kndx * mod;
       minc = (int32)(mod * sicvt);
-      for (n=0;n<nn;n++) {
+      for (n=offset;n<nsmps;n++) {
         mphs &= PHMASK;
         fract = PFRAC(mphs);
         ftab = ft + (mphs >>lobits);
@@ -361,18 +365,23 @@ static CS_NOINLINE void
     *arR = tmpR;
 }
 
+/* *********************** needs total rewrite **************** */
 int loscil(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     int32    phs, inc, beg, end;
-    int     nsmps = CS_KSMPS, aamp;
+    uint32_t n = p->h.insdshead->ksmps_offset;
+    uint32_t nsmps = CS_KSMPS;
+    int      aamp;
+    MYFLT    xx;
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
     if ((inc = (int32)(*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
     xamp = p->xamp;
+    xx = *xamp;
     aamp = (p->XINCODE) ? 1 : 0;
     if (p->seg1) {                      /* if still segment 1  */
       beg = p->beg1;
@@ -386,8 +395,10 @@ int loscil(CSOUND *csound, LOSC *p)
     }
     phs = p->lphs;
     ar1 = p->ar1;
+    memset(ar1, '\0', n*sizeof(MYFLT));
     if (p->stereo) {
       ar2 = p->ar2;
+      memset(ar2, '\0', n*sizeof(MYFLT));
       goto phsck2;
     }
  phschk:
@@ -395,53 +406,53 @@ int loscil(CSOUND *csound, LOSC *p)
       goto put0;
     switch (p->curmod) {
     case 0:
-      do {                                      /* NO LOOPING  */
+      for (; n<nsmps; n++) {                    /* NO LOOPING  */
         loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
         if ((phs += inc) >= end)
           goto nxtseg;
-      } while (--nsmps);
+      }
       break;
     case 1:
-      do {                                      /* NORMAL LOOPING */
+      for (; n<nsmps; n++) {                    /* NORMAL LOOPING */
         loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= end - beg;
         }
-      } while (--nsmps);
+      }
       break;
     case 2:
     case2:
-      do {                                      /* BIDIR FORW, EVEN */
+      for (; n<nsmps; n++) {                    /* BIDIR FORW, EVEN */
         loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg;
           phs -= (phs - end) * 2;
           p->curmod = 3;
-          if (--nsmps) goto case3;
+          if (++n<nsmps) goto case3;
           else break;
         }
-      } while (--nsmps);
+      }
       break;
     case 3:
     case3:
-      do {                                      /* BIDIR BACK, EVEN */
+      for (; n<nsmps; n++) {                    /* BIDIR BACK, EVEN */
         loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
         if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
-          if (--nsmps) goto case2;
+          if (++n<nsmps) goto case2;
           else break;
         }
-      } while (--nsmps);
+      }
       break;
 
     nxtseg:
@@ -449,7 +460,7 @@ int loscil(CSOUND *csound, LOSC *p)
         p->seg1 = 0;
         if ((p->curmod = p->mod2) != 0)
           p->looping = 1;
-        if (--nsmps) {
+        if (++n>nsmps) {
           beg = p->beg2;
           end = p->end2;
           p->lphs = phs;
@@ -457,7 +468,7 @@ int loscil(CSOUND *csound, LOSC *p)
         }
         break;
       }
-      if (UNLIKELY(--nsmps)) goto phsout;
+      if (LIKELY(++n<nsmps)) goto phsout;
       break;
     }
     p->lphs = phs;
@@ -465,11 +476,8 @@ int loscil(CSOUND *csound, LOSC *p)
 
  phsout:
     p->lphs = phs;
- put0:
-    memset(ar1, 0, sizeof(MYFLT)*nsmps);
-    /* do { */
-    /*   *ar1++ = FL(0.0); */
-    /* } while (--nsmps); */
+ put0:    
+    memset(ar1+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 
  phsck2:
@@ -477,57 +485,57 @@ int loscil(CSOUND *csound, LOSC *p)
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
     case 0:
-      do {                                      /* NO LOOPING  */
+      for (; n<nsmps; n++) {                    /* NO LOOPING  */
         loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        *ar2++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
+        ar2[n] *= xx;
         if (UNLIKELY((phs += inc) >= end))
           goto nxtseg2;
-      } while (--nsmps);
+      }
       break;
     case 1:
-      do {                                      /* NORMAL LOOPING */
+      for (; n<nsmps; n++) {                    /* NORMAL LOOPING */
         loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        *ar2++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
+        ar2[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= end - beg;
         }
-      } while (--nsmps);
+      }
       break;
     case 2:
     case2s:
-      do {                                      /* BIDIR FORW, EVEN */
+      for (; n<nsmps; n++) {                    /* BIDIR FORW, EVEN */
         loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        *ar2++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
+        ar2[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= (phs - end) * 2;
           p->curmod = 3;
-          if (--nsmps) goto case3s;
+          if (++n<nsmps) goto case3s;
           else break;
         }
-      } while (--nsmps);
+      }
       break;
     case 3:
     case3s:
-      do {                                      /* BIDIR BACK, EVEN */
+      for (; n<nsmps; n++) {                    /* BIDIR BACK, EVEN */
         loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        *ar2++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
+        ar2[n] *= xx;
         if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
-          if (--nsmps) goto case2s;
+          if (++n<nsmps) goto case2s;
           else break;
         }
-      } while (--nsmps);
+      }
       break;
 
     nxtseg2:
@@ -535,7 +543,7 @@ int loscil(CSOUND *csound, LOSC *p)
         p->seg1 = 0;
         if ((p->curmod = p->mod2) != 0)
           p->looping = 1;
-        if (--nsmps) {
+        if (++n<nsmps) {
           beg = p->beg2;
           end = p->end2;
           p->lphs = phs;
@@ -543,7 +551,7 @@ int loscil(CSOUND *csound, LOSC *p)
         }
         break;
       }
-      if (UNLIKELY(--nsmps)) goto phsout2;
+      if (LIKELY(++n<nsmps)) goto phsout2;
       break;
     }
     p->lphs = phs;
@@ -552,8 +560,8 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout2:
     p->lphs = phs;
  put0s:
-    memset(ar1, 0, sizeof(MYFLT)*nsmps);
-    memset(ar2, 0, sizeof(MYFLT)*nsmps);
+    memset(ar1+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(ar2+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
     /* do { */
     /*   *ar1++ = FL(0.0); */
     /*   *ar2++ = FL(0.0); */
@@ -567,13 +575,17 @@ int loscil3(CSOUND *csound, LOSC *p)
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     int32    phs, inc, beg, end;
-    int     nsmps = CS_KSMPS, aamp;
+    uint32_t n = p->h.insdshead->ksmps_offset;
+    uint32_t nsmps = CS_KSMPS;
+    int     aamp;
+    MYFLT   xx;
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
     if ((inc = (int32)(*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
     xamp = p->xamp;
+    xx = *xamp;
     aamp = (p->XINCODE) ? 1 : 0;
     if (p->seg1) {                      /* if still segment 1  */
       beg = p->beg1;
@@ -596,53 +608,53 @@ int loscil3(CSOUND *csound, LOSC *p)
       goto put0;
     switch (p->curmod) {
     case 0:
-      do {                                      /* NO LOOPING  */
+      for (; n<nsmps; n++) {                    /* NO LOOPING  */
         loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
         if (UNLIKELY((phs += inc) >= end))
           goto nxtseg;
-      } while (--nsmps);
+      }
       break;
     case 1:
-      do {                                      /* NORMAL LOOPING */
+      for (; n<nsmps; n++) {                    /* NORMAL LOOPING */
         loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= end - beg;
         }
-      } while (--nsmps);
+      }
       break;
     case 2:
     case2:
-      do {                                      /* BIDIR FORW, EVEN */
+      for (; n<nsmps; n++) {                    /* BIDIR FORW, EVEN */
         loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= (phs - end) * 2;
           p->curmod = 3;
-          if (--nsmps) goto case3;
+          if (++n<nsmps) goto case3;
           else break;
         }
-      } while (--nsmps);
+      }
       break;
     case 3:
     case3:
-      do {                                      /* BIDIR BACK, EVEN */
+      for (; n<nsmps; n++) {                    /* BIDIR BACK, EVEN */
         loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
         if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
-          if (--nsmps) goto case2;
+          if (++n<nsmps) goto case2;
           else break;
         }
-      } while (--nsmps);
+      }
       break;
 
     nxtseg:
@@ -658,7 +670,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         }
         break;
       }
-      if (UNLIKELY(--nsmps)) goto phsout;
+      if (LIKELY(++n<nsmps)) goto phsout;
       break;
     }
     p->lphs = phs;
@@ -667,7 +679,7 @@ int loscil3(CSOUND *csound, LOSC *p)
  phsout:
     p->lphs = phs;
  put0:
-    memset(ar1, 0, sizeof(MYFLT)*nsmps);
+    memset(ar1+n*sizeof(MYFLT), 0, sizeof(MYFLT)*(nsmps-n));
     /* do { */
     /*   *ar1++ = FL(0.0); */
     /* } while (--nsmps); */
@@ -678,57 +690,57 @@ int loscil3(CSOUND *csound, LOSC *p)
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
     case 0:
-      do {                                      /* NO LOOPING  */
+      for (; n<nsmps; n++) {                    /* NO LOOPING  */
         loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        *ar2++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
+        ar2[n] *= xx;
         if (UNLIKELY((phs += inc) >= end))
           goto nxtseg2;
-      } while (--nsmps);
+      }
       break;
     case 1:
-      do {                                      /* NORMAL LOOPING */
+      for (; n<nsmps; n++) {                    /* NORMAL LOOPING */
         loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        *ar2++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
+        ar2[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= end - beg;
         }
-      } while (--nsmps);
+      }
       break;
     case 2:
     case2s:
-      do {                                      /* BIDIR FORW, EVEN */
+      for (; n<nsmps; n++) {                    /* BIDIR FORW, EVEN */
         loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        *ar2++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
+        ar2[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= (phs - end) * 2;
           p->curmod = 3;
-          if (--nsmps) goto case3s;
+          if (++n<nsmps) goto case3s;
           else break;
         }
-      } while (--nsmps);
+      }
       break;
     case 3:
     case3s:
-      do {                                      /* BIDIR BACK, EVEN */
+      for (; n<nsmps; n++) {                    /* BIDIR BACK, EVEN */
         loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
-        *ar1++ *= *xamp;
-        *ar2++ *= *xamp;
-        if (aamp)  xamp++;
+        if (aamp) xx = xamp[n];
+        ar1[n] *= xx;
+        ar2[n] *= xx;
         if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
-          if (--nsmps) goto case2s;
+          if (++n<nsmps) goto case2s;
           else break;
         }
-      } while (--nsmps);
+      }
       break;
 
     nxtseg2:
@@ -736,7 +748,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         p->seg1 = 0;
         if ((p->curmod = p->mod2) != 0)
           p->looping = 1;
-        if (--nsmps) {
+        if (++n<nsmps) {
           beg = p->beg2;
           end = p->end2;
           p->lphs = phs;
@@ -744,7 +756,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         }
         break;
       }
-      if (UNLIKELY(--nsmps)) goto phsout2;
+      if (LIKELY(++n<nsmps)) goto phsout2;
       break;
     }
     p->lphs = phs;
@@ -753,8 +765,8 @@ int loscil3(CSOUND *csound, LOSC *p)
  phsout2:
     p->lphs = phs;
  put0s:
-    memset(ar1, 0, sizeof(MYFLT)*nsmps);
-    memset(ar2, 0, sizeof(MYFLT)*nsmps);
+    memset(ar1+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(ar2+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
    /*  do { */
    /*    *ar1++ = FL(0.0); */
    /*    *ar2++ = FL(0.0); */
@@ -842,7 +854,8 @@ int adsyn(CSOUND *csound, ADSYN *p)
     DUPLE   *ap, *fp;
     int16   curtim, diff, ktogo;
     int32   phs, sinc, amp;
-    int     n, nsmps;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *ar = p->rslt;
     MYFLT   ampscale, frqscale;
     int32   timkincr, nxtim;
@@ -870,7 +883,8 @@ int adsyn(CSOUND *csound, ADSYN *p)
         sinc = (int32)(curp->frq * frqscale);
         phs = curp->phs;
         nsmps = CS_KSMPS;            /*   addin a sinusoid */
-        for (n=0; n<nsmps; n++) {
+        memset(ar, '\0', offset*sizeof(MYFLT));
+        for (n=offset; n<nsmps; n++) {
           ar[n] += (ampscale*(MYFLT)csound->isintab[phs]*(MYFLT)amp)/ADSYN_MAXLONG;
           phs += sinc;
           phs &= ADMASK;
