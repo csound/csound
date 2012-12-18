@@ -395,6 +395,7 @@ extern "C" {
       (int*)NULL,
       (OENTRY*)NULL,
      (OPCODINFO*) NULL,
+     -1,
      (INSTRTXT**)NULL,
      {NULL},
      NULL,
@@ -516,7 +517,7 @@ extern "C" {
     /* (OENTRY*) NULL, */ /*  opcodlst  now in engineState         */
     /* (int*) NULL,   */ /*  opcode_list now in engineState         */
     /* (OENTRY*) NULL, */ /*  opcodlstend now in engineState         */
-    -1,             /*  maxopcno            */
+    /*-1,    */         /*  maxopcno            */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */

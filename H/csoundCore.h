@@ -827,6 +827,7 @@ typedef struct NAME__ {
     int           *opcode_list;
     OENTRY        *oplstend;
     OPCODINFO     *opcodeInfo;
+    int           maxopcno;  
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor; 
     void          *instrumentNames; /* instrument names */
@@ -1273,7 +1274,7 @@ typedef struct NAME__ {
     /* OENTRY        *opcodlst;
     int           *opcode_list;
     OENTRY        *oplstend; */
-    int           maxopcno;
+    /* int           maxopcno; */
     int32         nrecs;
     FILE*         Linepipe;
     int           Linefd;
