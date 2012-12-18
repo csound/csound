@@ -557,10 +557,10 @@ extern "C" {
     0,              /*  evt_poll_cnt        */
     0,              /*  evt_poll_maxcnt     */
     0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
-    FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
-    FL(-1.0),       /*  tran_ksmps          */
-    DFLT_DBFS,      /*  tran_0dbfs          */
-    DFLT_NCHNLS,    /*  tran_nchnls         */
+    /* FL(-1.0), FL(-1.0), */  /*  tran_sr,tran_kr */
+    /* FL(-1.0),   */    /*  tran_ksmps          */
+    /* DFLT_DBFS,  */   /*  tran_0dbfs          */
+    /*  DFLT_NCHNLS, */    /*  tran_nchnls         */
     /*NULL,  */         /*  opcodeInfo now in engineState  */
     /*NULL,   */        /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */   
