@@ -98,7 +98,7 @@ int schedule(CSOUND *csound, SCHED *p)
       which = (int) named_instr_find(csound, csound->currevent->strarg);
     else
       which = (int) (FL(0.5) + *p->which);
-    if (UNLIKELY(which < 1 || which > csound->maxinsno ||
+    if (UNLIKELY(which < 1 || which > csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[which] == NULL)) {
       return csound->InitError(csound, Str("Instrument not defined"));
     }
@@ -184,7 +184,7 @@ int kschedule(CSOUND *csound, WSCHED *p)
         which = (int) named_instr_find(csound, csound->currevent->strarg);
       else
         which = (int) (FL(0.5) + *p->which);
-      if (UNLIKELY(which < 1 || which > csound->maxinsno ||
+      if (UNLIKELY(which < 1 || which > csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[which] == NULL)) {
         return csound->PerfError(csound, Str("Instrument not defined"));
       }
@@ -424,7 +424,7 @@ static int get_absinsno(CSOUND *csound, TRIGINSTR *p)
     else
       insno = (int)FABS(*p->args[0]);
     /* Check that instrument is defined */
-    if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
+    if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
       csound->Warning(csound, Str("schedkwhen ignored. "
                                   "Instrument %d undefined\n"), insno);
