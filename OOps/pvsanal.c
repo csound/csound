@@ -443,21 +443,22 @@ static inline double mod2Pi(double x)
 int pvssanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
-    int NB = p->Ii, i, loc;
+    int NB = p->Ii, loc;
     int N = p->fsig->N;
     MYFLT *data = (MYFLT*)(p->input.auxp);
     CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp);
     double *c = p->cosine;
     double *s = p->sine;
     double *h = (double*)p->oldInPhase.auxp;
-    int nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int wintype = p->fsig->wintype;
     if (UNLIKELY(data==NULL)) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
     ain = p->ain;               /* The input samples */
     loc = p->inptr;             /* Circular buffer */
-    for (i=0; i < nsmps; i++) {
+    for (i=offset; i < nsmps; i++) {
       MYFLT re, im, dx;
       CMPLX* ff;
       int j;
@@ -657,7 +658,8 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
 int pvsanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
-    unsigned int i, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
 
     ain = p->ain;
 
@@ -669,7 +671,7 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
       if (overlap<(int)CS_KSMPS || overlap<10) /* 10 is a guess.... */
         return pvssanal(csound, p);
     }
-    for (i=0; i < nsmps; i++)
+    for (i=offset; i < nsmps; i++)
       anal_tick(csound,p,ain[i]);
     return OK;
 }
@@ -1021,14 +1023,16 @@ int pvssynth(CSOUND *csound, PVSYNTH *p)
 
 int pvsynth(CSOUND *csound, PVSYNTH *p)
 {
-    unsigned int i, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->output.auxp==NULL)) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
     if (p->fsig->sliding) return pvssynth(csound, p);
-    for (i=0;i < nsmps;i++)
+    memset(aout, '\0', offset*sizeof(MYFLT));
+    for (i=offset;i < nsmps;i++)
       aout[i] = synth_tick(csound, p);
     return OK;
 }

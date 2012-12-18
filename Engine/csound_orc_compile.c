@@ -708,7 +708,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineSta
 
 
     while (current != NULL) {
-
+      unsigned int uval;
       if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
 
         if (UNLIKELY(PARSER_DEBUG))
@@ -743,14 +743,17 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineSta
             csound->tran_kr = val;
           }
           else if (current->left->type == KSMPS_TOKEN) {
-            csound->tran_ksmps = val;
+            uval = (val<=0 ? 1u : (unsigned int)val);
+            csound->tran_ksmps = uval;
           }
           else if (current->left->type == NCHNLS_TOKEN) {
-            csound->tran_nchnls = current->right->value->value;
-            if (csound->inchnls<0) csound->inchnls = csound->tran_nchnls;
+            uval = (val<=0 ? 1u : (unsigned int)val);
+            csound->tran_nchnls = uval;
+            if (csound->inchnls<0) csound->inchnls = csound->nchnls;
           }
           else if (current->left->type == NCHNLSI_TOKEN) {
-            csound->inchnls = current->right->value->value;
+            uval = (val<=0 ? 1u : (unsigned int)val);
+            csound->inchnls = uval;
             /* csound->Message(csound, "SETTING NCHNLS: %d\n",
                                csound->tran_nchnls); */
           }

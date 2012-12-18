@@ -1,15 +1,15 @@
 #include "csound_type_system.h"
 #include <string.h> 
 #include <stdio.h>
-#include "csound.h"
+#include "csoundCore.h"
 
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
-    CS_TYPE* current = pool->head;
+    CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
         
         /* printf("Search if type [%s] == [%s]", current->varTypeName, typeInstance->varTypeName); */
 
-        if (strcmp(current->varTypeName,
+        if (strcmp(current->cstype->varTypeName,
                 typeInstance->varTypeName) == 0) {
             return 1;
         }
@@ -20,30 +20,33 @@ int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
 }
 
 CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName) {
-    CS_TYPE* current = pool->head;
+    CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
-        if (strcmp(typeName, current->varTypeName) == 0) {
-            return current;
+        if (strcmp(typeName, current->cstype->varTypeName) == 0) {
+            return current->cstype;
         }
         current = current->next;
     }
     return NULL;
 }
 
-int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE* typeInstance) {
+int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance) {
     if (csTypeExistsWithSameName(pool, typeInstance)) {
         return 0;
     }
+  
+    CS_TYPE_ITEM* item = mcalloc(csound, sizeof(CS_TYPE_ITEM));
+    item->cstype = typeInstance;
 
     if (pool->head == NULL) {
-        pool->head = typeInstance;
+      pool->head = item;
     } else {
-        CS_TYPE* current = pool->head;
+        CS_TYPE_ITEM* current = pool->head;
         while (current->next) {
             current = current->next;
         }
-        current->next = typeInstance;
-        typeInstance->next = NULL;
+        current->next = item;
+        item->next = NULL;
     }
     
     /* printf("Adding type with type name: %s\n", typeInstance->varTypeName); */
@@ -53,10 +56,10 @@ int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE* typeInstance) {
 }
 
 CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name) {
-    CS_TYPE* current = pool->head;
+    CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
-        if (strcmp(type->varTypeName, current->varTypeName) == 0) {
-            CS_VARIABLE* var = current->createVariable(csound, current->args);
+        if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
+            CS_VARIABLE* var = current->cstype->createVariable(csound, current->cstype->args);
             var->varType = type;
             var->varName = name;
             return var;

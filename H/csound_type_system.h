@@ -28,7 +28,6 @@ extern "C" {
         struct csvariable* (*createVariable)(void*, void*);
         void* args ; /* arg for createVariable */
         struct cstype* members;        
-        struct cstype* next;        
     } CS_TYPE;
 
     typedef struct csvariable {
@@ -48,14 +47,19 @@ extern "C" {
 //        void* args ;
 //        struct cstypeinstance* next;
 //    } CS_TYPE_INSTANCE;
+  
+    typedef struct cstypeitem {
+      CS_TYPE* cstype;
+      struct cstypeitem* next;
+    } CS_TYPE_ITEM;
     
     typedef struct typepool {
-        CS_TYPE* head;
+        CS_TYPE_ITEM* head;
     } TYPE_POOL;
 
     /* Adds a new type to Csound's type table
        Returns if variable type redefined */
-    PUBLIC int csoundAddVariableType(TYPE_POOL* pool, CS_TYPE* typeInstance);
+    PUBLIC int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance);
     PUBLIC CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
     

@@ -39,7 +39,7 @@ typedef struct {
     MYFLT   *ibufsize;
  /* ------------------------------------- */
     int     initDone;
-    int     nChannels;
+    unsigned int     nChannels;
     int     bufSize;            /* in sample frames, power of two */
     int     wrapMode;
     int32    fileLength;         /* in sample frames */
