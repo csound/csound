@@ -47,13 +47,15 @@ static int dcblockrset(CSOUND *csound, DCBlocker* p)
 static int dcblockr(CSOUND *csound, DCBlocker* p)
 {
     MYFLT       *ar = p->ar;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    n, nsmps = CS_KSMPS;
     double      gain = p->gain;
     double      outputs = p->outputs;
     double      inputs = p->inputs;
     MYFLT       *samp = p->in;
 
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       double sample = (double)samp[n];
       outputs = sample - inputs + (gain * outputs);
       inputs = sample;
@@ -130,15 +132,17 @@ static int dcblock2set(CSOUND *csound, DCBlock2* p)
 
 static int dcblock2(CSOUND *csound, DCBlock2* p)
 {
-    MYFLT *in = p->input;
-    MYFLT *out = p->output;
-    double *del1 = (double *)p->delay1.auxp;
-    double *iirdel[4],x1,x2,y,del;
-    double  *ydels = p->ydels;
-    double scale = p->scaler;
-    int p1 = p->dp1;
-    int p2 = p->dp2;
-    int i,j,del1size, iirdelsize, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
+    MYFLT    *in = p->input;
+    MYFLT    *out = p->output;
+    double   *del1 = (double *)p->delay1.auxp;
+    double   *iirdel[4],x1,x2,y,del;
+    double   *ydels = p->ydels;
+    double   scale = p->scaler;
+    int      p1 = p->dp1;
+    int      p2 = p->dp2;
+    int      j,del1size, iirdelsize;
 
     iirdel[0] = (double *) p->iirdelay1.auxp;
     iirdel[1] = (double *) p->iirdelay2.auxp;
@@ -148,7 +152,8 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
     del1size = p->delay1.size/sizeof(double);
     iirdelsize = p->iirdelay1.size/sizeof(double);
 
-    for (i=0; i < nsmps; i++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (i=offset; i < nsmps; i++) {
 
       /* long delay */
       del = del1[p1];
