@@ -182,7 +182,7 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
       return OK;    /* not triggered */
 
     insno = (int) p1;
-    if (UNLIKELY(insno < 1 || insno > (int) csound->maxinsno ||
+    if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
       return csoundPerfError(csound, Str("turnoff2: invalid instrument number"));
     }
