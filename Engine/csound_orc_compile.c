@@ -2,8 +2,8 @@
   csound_orc_compile.c:
   (Based on otran.c)
 
-  Copyright (C) 1991, 1997, 2003, 2006
-  Barry Vercoe, John ffitch, Istvan Varga, Steven Yi
+  Copyright (C) 1991, 1997, 2003, 2006, 2012
+  Barry Vercoe, John ffitch, Steven Yi, Victor Lazzarini
 
   This file is part of Csound.
 
@@ -161,12 +161,12 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
   int nreqd = strlen(types);
   char      tfound = '\0', treqd;
 
-  if (n > nreqd) {                 /* IV - Oct 24 2002: end of new code */
+  if (n > nreqd) {                
     if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
       int incnt = -1;                       /* Should count args */
       if (!(incnt & 01))                    /* require odd */
 	synterr(csound, Str("missing or extra arg"));
-    }       /* IV - Sep 1 2002: added 'M' */
+    }       
     else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
 	     treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
       synterr(csound, Str("too many input args\n"));
@@ -597,15 +597,13 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root, ENGINE_STATE *engineStat
     if (UNLIKELY(root->left->rate == (int) '+')) {
       insno_priority--;
     }
-    /* IV - Oct 31 2002: some error checking */
     if (UNLIKELY(!check_instr_name(c))) {
       synterr(csound, Str("invalid name for instrument"));
     }
-    /* IV - Oct 31 2002: store the name */
     if (UNLIKELY(!named_instr_alloc(csound, c, ip, insno_priority, engineState))) {
       synterr(csound, Str("instr %s redefined"), c);
     }
-    ip->insname = c;  /* IV - Nov 10 2002: also in INSTRTXT */
+    ip->insname = c;  
 
   }
   current = statements;
@@ -709,24 +707,45 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineSt
   return NULL;
 }
 
+int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
+    return 0;
+} 
+
+int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
+
+    mfree(csound, engineState);
+    return 0;
+} 
 
 
 /**
  * Compile the given TREE node into structs for a given engineState
  *
  * ASSUMES: TREE has been validated prior to compilation
+ *          and instr0 has been created.
  *
  */
-PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *engineState)
+PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 {
   INSTRTXT    *instrtxt = NULL;
   INSTRTXT    *ip = NULL;
-  INSTRTXT    *prvinstxt = &(engineState->instxtanchor); 
+  INSTRTXT    *prvinstxt;
   OPTXT       *bp;
   char        *opname;
   int32        count, sumcount; //, instxtcount, optxtcount;
   TREE * current = root;
-    
+  ENGINE_STATE *engineState;
+  int  new_state = 0;
+
+  if(csound->instr0 == NULL) {
+     engineState = &csound->engineState;
+     csound->instr0 = create_instrument0(csound, root, engineState);
+  }
+  else {
+    engineState = (ENGINE_STATE *) mcalloc(csound, sizeof(ENGINE_STATE));
+  }   
+ 
+  prvinstxt = &(engineState->instxtanchor); 
   engineState->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno)
 						 * sizeof(INSTRTXT*));
   string_pool_find_or_add(csound, engineState->stringPool, "\"\"");
@@ -842,17 +861,13 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
 		      current->type);
       if (PARSER_DEBUG) print_tree(csound, NULL, current);
     }
-
     current = current->next;
-
   }
-
   /* now add the instruments with names, assigning them fake instr numbers */
-  named_instr_assign_numbers(csound, engineState);         /* IV - Oct 31 2002 */
+  named_instr_assign_numbers(csound, engineState);         
   if (engineState->opcodeInfo) {
     int num = engineState->maxinsno;       /* store after any other instruments */
     OPCODINFO *inm = engineState->opcodeInfo;
-    /* IV - Oct 31 2002: now add user defined opcodes */
     while (inm) {
       /* we may need to expand the instrument array */
       if (UNLIKELY(++num > engineState->maxopcno)) {
@@ -900,7 +915,7 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
       TEXT *ttp = &optxt->t;
       optxtcount += 1;
       if (ttp->opnum == ENDIN                     /*    (until ENDIN)      */
-	  || ttp->opnum == ENDOP) break;  /* (IV - Oct 26 2002: or ENDOP) */
+	  || ttp->opnum == ENDOP) break;  
       if ((count = ttp->inlist->count)!=0)
 	sumcount += count +1;                     /* count the non-nullist */
       if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
@@ -914,21 +929,15 @@ PUBLIC int csoundCompileTree_async(CSOUND *csound, TREE *root, ENGINE_STATE *eng
     insprep(csound, ip, engineState);                      /*   as combined offsets */
     recalculateVarPoolMemory(csound, ip->varPool);
   }
+  if(engineState != &csound->engineState) {
+  /* merge ENGINE_STATE */
+    engineState_merge(csound, engineState);
+  /* delete ENGINE_STATE  */
+    engineState_free(csound, engineState);
+  }
+  
   return CSOUND_SUCCESS;
 }
-
-/**
- * Compile the given TREE node into structs for Csound to use
- *
- * ASSUMES: TREE has been validated prior to compilation
- *
- */
-PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root){
-  /* create instr 0 */
-  csound->instr0 = create_instrument0(csound, root, &csound->engineState);
-  return csoundCompileTree_async(csound, root, &csound->engineState);
-}
-
 
 void debugPrintCsound(CSOUND* csound) {
   csound->Message(csound, "Compile State:\n");
@@ -978,12 +987,14 @@ void debugPrintCsound(CSOUND* csound) {
 
 PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
 {
+  int retVal;
   TREE *root = csoundParseOrc(csound, str);
-  int retVal = csoundCompileTree(csound, root);
+  retVal = csoundCompileTree(csound, root);
   // if(csound->oparms->odebug) 
   debugPrintCsound(csound);  
   return retVal;
 }
+
 
 /* prep an instr template for efficient allocs  */
 /* repl arg refs by offset ndx to lcl/gbl space */
@@ -1001,7 +1012,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
     TEXT *ttp = &optxt->t;
     if ((opnum = ttp->opnum) == ENDIN         /*  (until ENDIN)  */
-	|| opnum == ENDOP)            /* (IV - Oct 31 2002: or ENDOP) */
+	|| opnum == ENDOP)            
       break;
     if (opnum == LABEL) {
       continue;
@@ -1343,7 +1354,6 @@ void initialize_instrument0(CSOUND *csound)
   csound->kicvt = FMAXLEN / csound->ekr;
   csound->onedsr = FL(1.0) / csound->esr;
   csound->onedkr = FL(1.0) / csound->ekr;
-  /* IV - Sep 8 2002: save global variables that depend on ksmps */
   csound->global_ksmps     = csound->ksmps;
   csound->global_ekr       = csound->ekr;
   csound->global_kcounter  = csound->kcounter;
