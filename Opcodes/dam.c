@@ -64,7 +64,6 @@ static int daminit(CSOUND *csound, DAM *p)
 
 static int dam(CSOUND *csound, DAM *p)
 {
-    int i;
     MYFLT *ain,*aout;
     MYFLT threshold;
     MYFLT gain;
@@ -73,7 +72,8 @@ static int dam(CSOUND *csound, DAM *p)
     MYFLT *powerBuffer;
     MYFLT power;
     MYFLT tg;
-    int nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
 
     /* Initialize power value and buffer at first ksamp computed as
      * it depends on kthreshold
@@ -99,8 +99,8 @@ static int dam(CSOUND *csound, DAM *p)
     power       = p->power;
 
  /* Process ksmps samples */
-
-    for (i=0;i<nsmps;i++) {
+    memset(aout, '\0', offset*sizeof(MYFLT));
+    for (i=offset;i<nsmps;i++) {
 
         /* Estimates the current power level */
 

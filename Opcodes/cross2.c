@@ -347,9 +347,10 @@ static int Xsynthset(CSOUND *csound, CON *p)
 static int Xsynth(CSOUND *csound, CON *p)
 {
     MYFLT               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
-    int32                n, size, div;
-    int32                m;
-    unsigned int         samps;
+    int32                size, div;
+    int32                n, m;
+    uint32_t             offset = p->h.insdshead->ksmps_offset;
+    uint32_t             nn, nsmps = CS_KSMPS;
 
     s = p->as;
     f = p->af;
@@ -365,11 +366,12 @@ static int Xsynth(CSOUND *csound, CON *p)
 
     n = p->count;
     m = n % div;
-    for (samps = 0; samps < CS_KSMPS; samps++) {
-      buf1[n] = s[samps];
-      buf2[n] = f[samps];
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (nn = offset; nn < nsmps; nn++) {
+      buf1[n] = s[nn];
+      buf2[n] = f[nn];
 
-      out[samps] = outbuf[n];
+      out[nn] = outbuf[n];
       n++; m++;
       if (n == size) n = 0;     /* Moved to here from inside loop */
       if (m == div) {           /* wrap */
