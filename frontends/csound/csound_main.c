@@ -134,9 +134,10 @@ int main(int argc, char **argv)
 
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
-    if (!result)
-      result = csoundPerform(csound);
+    while (!result){
+      result = csoundPerformKsmps(csound);
 
+    }
     /* delete Csound instance */
      csoundDestroy(csound);
     /* close log file */
