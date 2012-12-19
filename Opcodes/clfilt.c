@@ -290,7 +290,8 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
 
 static int clfilt(CSOUND *csound, CLFILT *p)
 {
-    int n, nsmps;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int m, nsec;
     MYFLT *out, *in;
     MYFLT xn[CL_LIM+1], yn[CL_LIM];
@@ -388,10 +389,10 @@ static int clfilt(CSOUND *csound, CLFILT *p)
         return csound->PerfError(csound, Str("code error, ihilo out of range"));
       }
     }
-    nsmps = CS_KSMPS;
     in   = p->in;
     out  = p->out;
-    for (n=0; n<nsmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       xn[0] = in[n];
       for (m=0;m<=nsec-1;m++) {
         yn[m] = (b0[m]*xn[m] + b1[m]*xnm1[m] + b2[m]*xnm2[m] -

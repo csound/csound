@@ -89,7 +89,9 @@ static int fof(CSOUND *csound, FOFS *p)
     OVRLAP  *ovp;
     FUNC    *ftp1,  *ftp2;
     MYFLT   *ar, *amp, *fund, *form;
-    int32   n, nsmps = CS_KSMPS, fund_inc, form_inc;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32   fund_inc, form_inc;
     MYFLT   v1, fract ,*ftab;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
@@ -100,8 +102,9 @@ static int fof(CSOUND *csound, FOFS *p)
     ftp1 = p->ftp1;
     ftp2 = p->ftp2;
     fund_inc = (int32)(*fund * csound->sicvt);
+    memset(ar, '\0', offset*sizeof(MYFLT));
     form_inc = (int32)(*form * csound->sicvt);
-    for (n=0; n<nsmps; n++) {
+    for (n=offset; n<nsmps; n++) {
       if (p->fundphs & MAXLEN) {               /* if phs has wrapped */
         p->fundphs &= PHMASK;
         if ((ovp = p->basovrlap.nxtfree) == NULL) goto err2;
@@ -295,7 +298,9 @@ static int harmon(CSOUND *csound, HARMON *p)
     MYFLT sum, minval, *minqp = NULL, *minq1, *minq2, *endp;
     MYFLT *pulstrt, lin1, lin2, lin3;
     int32  cnt1, cnt2, cnt3;
-    int32  nn, n, nsmps, phase1, phase2, phsinc1, phsinc2, period;
+    int32  nn, phase1, phase2, phsinc1, phsinc2, period;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     inp1 = p->inp1;
     inp2 = p->inp2;
@@ -325,12 +330,12 @@ static int harmon(CSOUND *csound, HARMON *p)
     }
     c1 = p->c1;
     c2 = p->c2;
-    for (src1 = p->asig, nsmps = CS_KSMPS; nsmps--; src1++) {
-      *inp1++ = *inp2++ = *src1;              /* dbl store the wavform */
-      if (*src1 > FL(0.0))
-        qval = c1 * *src1 + c2 * qval;        /*  & its half-wave rect */
+    for (src1 = p->asig, n = offset; n<nsmps; n++) {
+      inp1[n] = inp2[n] = src1[n];            /* dbl store the wavform */
+      if (src1[n] > FL(0.0))
+        qval = c1 * src1[n] + c2 * qval;      /*  & its half-wave rect */
       else qval = c2 * qval;
-      *inq1++ = *inq2++ = qval;
+      inq1[n] = inq2[n] = qval;
     }
     if (!(--p->autokcnt)) {                   /* if time for new autocorr  */
       MYFLT *mid1, *mid2, *src4;
@@ -419,8 +424,8 @@ static int harmon(CSOUND *csound, HARMON *p)
     phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
     phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
     outp = p->ar;
-    nsmps = CS_KSMPS;
-    for (n=0; n<nsmps; n++) {
+    memset(outp, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT sum;
       if (src1 != NULL) {
         if (++cnt1 < p->pnt11) {
