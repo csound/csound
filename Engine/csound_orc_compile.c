@@ -714,7 +714,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   /* a first attempt a this merge is to make it use insert_instrtxt again */ 
   int i, end = engineState->maxinsno;
   ENGINE_STATE *current_state = &csound->engineState;
-  INSTRTXT *current;
+  INSTRTXT *current, *ip;
   
   STRING_VAL* val = engineState->stringPool->values;
   int count = 0;
@@ -746,6 +746,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
    insert_instrtxt(csound,current,i,current_state);
   }
   }
+
   return 0;
 } 
 
