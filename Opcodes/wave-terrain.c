@@ -55,7 +55,8 @@ static int wtinit(CSOUND *csound, WAVETER *p)
 
 static int wtPerf(CSOUND *csound, WAVETER *p)
 {
-    int i, nsmps=CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int xloc, yloc;
     MYFLT xc, yc;
     MYFLT amp = *p->kamp;
@@ -65,8 +66,10 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
     MYFLT sizx = p->sizx, sizy = p->sizy;
     MYFLT theta = p->theta;
     MYFLT dtpidsr = csound->tpidsr;
+    MYFLT *aout = p->aout;
 
-    for (i=0; i<nsmps; i++) {
+    memset(aout, '\0', offset*sizeof(MYFLT));
+    for (i=offset; i<nsmps; i++) {
 
       /* COMPUTE LOCATION OF SCANNING POINT */
       xc = kcx + krx * SIN(theta);
@@ -81,7 +84,7 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
       yloc = (int)(yc * sizy);
 
       /* OUTPUT AM OF TABLE VALUES * KAMP */
-      p->aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
+      aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
 
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
       theta += pch * dtpidsr;
@@ -198,7 +201,8 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
 
 static int scantPerf(CSOUND *csound, SCANTABLE *p)
 {
-    int i, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     MYFLT force, fc1, fc2;
     int next, last;
 
@@ -211,6 +215,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
     MYFLT inc    = p->size * *(p->kpch) * csound->onedsr;
     MYFLT amp    = *(p->kamp);
     MYFLT pos    = p->pos;
+    MYFLT *aout  = p->aout;
 
 /* CALCULATE NEW POSITIONS
  *
@@ -251,10 +256,11 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
       }
     }
 
-    for (i=0; i<nsmps; i++) {
+    memset(aout, '\0', offset*sizeof(MYFLT));
+    for (i=offset; i<nsmps; i++) {
 
       /* NO INTERPOLATION */
-      p->aout[i] = fpoint->ftable[(int)pos] * amp;
+      aout[i] = fpoint->ftable[(int)pos] * amp;
 
       pos += inc /* p->size * *(p->kpch) * csound->onedsr */;
       if (pos > p->size) {
