@@ -68,7 +68,8 @@ static int locsig(CSOUND *csound, LOCSIG *p)
     MYFLT *r1, *r2, *r3=NULL, *r4=NULL, degree, *asig;
     MYFLT direct, *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
     MYFLT torev, localrev, globalrev;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (*p->distance != p->prev_distance) {
       p->distr=(FL(1.0) / *p->distance);
@@ -111,7 +112,15 @@ static int locsig(CSOUND *csound, LOCSIG *p)
       rrev4 = p->rrev4;
     }
 
-    for (n=0; n<nsmps; n++) {
+    if (offset) {
+      memset(r1, '\0', offset*sizeof(MYFLT));
+      memset(r2, '\0', offset*sizeof(MYFLT));
+      if (p->OUTOCOUNT == 4) {
+        memset(r3, '\0', offset*sizeof(MYFLT));
+        memset(r4, '\0', offset*sizeof(MYFLT));
+      }
+    }
+    for (n=offset; n<nsmps; n++) {
       direct = asig[n] * p->distr;
       torev = asig[n] * p->distrsq * *p->reverbamount;
       globalrev = torev * p->distr;
@@ -153,7 +162,8 @@ static int locsend(CSOUND *csound, LOCSEND *p)
 /*     MYFLT       *r1, *r2, *r3=NULL, *r4=NULL; */
 /*     MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL; */
     LOCSIG *q = p->locsig;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
 /*     r1 = p->r1; */
 /*     r2 = p->r2; */
@@ -177,12 +187,21 @@ static int locsend(CSOUND *csound, LOCSEND *p)
 /*     } */
     /*
       Quicker form is: */
-    n = nsmps*sizeof(MYFLT);
-    memcpy(p->r1, q->rrev1, n);
-    memcpy(p->r2, q->rrev2, n);
+    if (offset) {
+      memset(p->r1, '\0', offset*sizeof(MYFLT));
+      memset(p->r2, '\0', offset*sizeof(MYFLT));
+      if (p->OUTOCOUNT == 4) {
+        memset(p->r3, '\0', offset*sizeof(MYFLT));
+        memset(p->r4, '\0', offset*sizeof(MYFLT));
+      }
+    }
+
+    n = (nsmps-offset)*sizeof(MYFLT);
+    memcpy(p->r1+offset, q->rrev1, n);
+    memcpy(p->r2+offset, q->rrev2, n);
     if (p->OUTOCOUNT == 4) {
-      memcpy(p->r3, q->rrev3, n);
-      memcpy(p->r4, q->rrev4, n);
+      memcpy(p->r3+offset, q->rrev3, n);
+      memcpy(p->r4+offset, q->rrev4, n);
     }
     return OK;
 }
