@@ -71,8 +71,8 @@ static int dust_process_krate(CSOUND *csound, DUST *p)
 
 static int dust_process_arate(CSOUND *csound, DUST *p)
 {
-    int     n, nn = 
-CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, density, thresh, scale;
     out = p->out;
     density = *p->kdensity;
@@ -86,7 +86,8 @@ CS_KSMPS;
       thresh = p->thresh;
       scale  = p->scale;
     }
-    for (n=0; n<nn; n++) {
+   memset(out, '\0', offset*sizeof(MYFLT));
+   for (n=offset; n<nsmps; n++) {
       MYFLT r;
       p->rand = csoundRand31(&p->rand);
       r = (MYFLT)p->rand * dv2_31;
@@ -117,7 +118,8 @@ static int dust2_process_krate(CSOUND *csound, DUST *p)
 
 static int dust2_process_arate(CSOUND *csound, DUST *p)
 {
-    int     n, nn = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, density, thresh, scale;
     out = p->out;
     density = *p->kdensity;
@@ -131,7 +133,8 @@ static int dust2_process_arate(CSOUND *csound, DUST *p)
       thresh = p->thresh;
       scale  = p->scale;
     }
-    for (n=0; n<nn; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT r;
       p->rand = csoundRand31(&p->rand);
       r = (MYFLT)p->rand * dv2_31;
@@ -192,9 +195,11 @@ static int gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
 
 static int gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
 {
-    int     n, nn = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out = p->out;
-    for (n=0; n<nn; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       if (p->count <= 0) {
         int     nextsamps;
         MYFLT   nextcount, frq, dev, r1, r2;
