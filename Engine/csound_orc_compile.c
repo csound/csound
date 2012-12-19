@@ -743,7 +743,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
    current = engineState->instrtxtp[i];
    if(current != NULL){
    csound->Message(csound, "merging instr %d \n", i);
-   insert_instrtxt(csound,current,i,current_state);
+   insert_instrtxt(csound,current,i,current_state); /* insert instrument in current engine */
+   insprep(csound, current, current_state);         /* run insprep() to connect ARGS  */
+   recalculateVarPoolMemory(csound, current->varPool); /* recalculate var pool */
   }
   }
 
@@ -965,18 +967,20 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     ip->optxtcount = optxtcount;                  /* optxts in this instxt */
   }
 
-  ip = &(engineState->instxtanchor);
-  while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
-    insprep(csound, ip, engineState);                      /*   as combined offsets */
-    recalculateVarPoolMemory(csound, ip->varPool);
-  }
+  
   if(engineState != &csound->engineState) {
   /* merge ENGINE_STATE */
     engineState_merge(csound, engineState);
   /* delete ENGINE_STATE  */
     engineState_free(csound, engineState);
   }
-  
+  else {
+  ip = &(engineState->instxtanchor);
+  while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
+    insprep(csound, ip, engineState);                      /*   as combined offsets */
+    recalculateVarPoolMemory(csound, ip->varPool);
+  }  
+  }
   return CSOUND_SUCCESS;
 }
 
@@ -1059,7 +1063,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       continue;
     }
     ep = &(csound->opcodlst[opnum]);
-    if (O->odebug) csound->Message(csound, "%s args:", ep->opname);
+    if (O->odebug) 
+    csound->Message(csound, "%s args:", ep->opname);
     if ((outlist = ttp->outlist) == NULL || !outlist->count)
       ttp->outArgs = NULL;
     else {
@@ -1117,6 +1122,10 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     }
   }
 }
+
+
+
+
 
 /* returns non-zero if 's' is defined in the global or local pool of names */
 static int lgexist2(CSOUND* csound, INSTRTXT* ip, const char* s, ENGINE_STATE *engineState) 
