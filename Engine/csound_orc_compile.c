@@ -682,7 +682,8 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
   }
 
   if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
-    synterr(csound, Str("instr %ld redefined"), instrNum);
+    csound->Warning(csound, Str("instr %ld redefined, not inserted into engine\n"), instrNum);
+    return;
     /* err++; continue; */
   }
  
@@ -754,6 +755,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
 int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
 
+  /* FIXME: do we need to deallocate stringPool, constantPool, varPool? */
     mfree(csound, engineState);
     return 0;
 } 
