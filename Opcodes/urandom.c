@@ -78,8 +78,11 @@ static int urand_arun(CSOUND *csound, URANDOM *p)
     /* union ieee754_double x; */
     int64_t x;
     MYFLT *ar = p->ar;
-    int n, nsmps = CS_KSMPS;
-    for (n=0; n<nsmps; n++) {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       if (UNLIKELY(read(ur, &x, sizeof(int64_t))!= sizeof(int64_t))) return NOTOK;
       ar[n] = p->mul *((MYFLT)x/(MYFLT)INT64_MAX) + p->add;
     }

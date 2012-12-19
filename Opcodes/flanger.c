@@ -52,9 +52,11 @@ static int flanger(CSOUND *csound, FLANGER *p)
     int32 v1;
     MYFLT yt1= p->yt1;
 
-    int n,nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
-    for (n=0; n<nsmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
                 /*---------------- delay -----------------------*/
       buf[indx] = in[n] + (yt1 * feedback);
       fv1 = indx - (*freq_del++ * csound->esr); /* Make sure inside the buffer*/
@@ -102,7 +104,8 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     int32   v1;
     /*---------------- filter -----------------------*/
     MYFLT c1, c2, yt1 = p->yt1;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     /*---------------- delay -----------------------*/
     indx = p->left;
@@ -116,8 +119,9 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     }
     c1= p->c1;
     c2= p->c2;
+    memset(out, '\0', offset*sizeof(MYFLT));
     if (p->xdelcod) { /* delay changes at audio-rate */
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         /*---------------- delay -----------------------*/
         MYFLT fd = *freq_del++;
         buf[indx] = in[n] + (yt1 * feedback);
@@ -137,7 +141,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
       }
     }
     else {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         /*---------------- delay -----------------------*/
         MYFLT fd = *freq_del;
         buf[indx] = in[n] + (yt1 * feedback);
@@ -194,7 +198,8 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
 {
     MYFLT *out = p->ar;
     MYFLT *in = p->asig;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT out1,out2, old_out = p->old_out;
     unsigned int maxdM1 = p->maxd-1;
 
@@ -241,8 +246,9 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     yt1_1= p->yt1_1;
     yt1_2= p->yt1_2;
 
+    memset(out, '\0', offset*sizeof(MYFLT));
     if (p->xdel1cod) { /* delays change at audio-rate */
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         MYFLT fd1 = *freq_del1++;
         MYFLT fd2 = *freq_del2++;
         buf1[indx1] = buf2[indx2] =
@@ -271,7 +277,7 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
       }
     }
     else {
-      for (n=0; n<nsmps;n++) {
+      for (n=offset; n<nsmps;n++) {
         MYFLT fd1 = *freq_del1;
         MYFLT fd2 = *freq_del2;
         buf1[indx1] = buf2[indx2] =

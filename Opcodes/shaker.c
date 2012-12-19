@@ -87,7 +87,8 @@ int shakerset(CSOUND *csound, SHAKER *p)
 int shaker(CSOUND *csound, SHAKER *p)
 {
     MYFLT *ar = p->ar;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT shake = amp + amp;
     MYFLT damp = *p->shake_damp;
@@ -111,8 +112,9 @@ int shaker(CSOUND *csound, SHAKER *p)
     if ((--p->kloop) == 0) {
       p->shake_num = 0;
     }
+    memset(ar, '\0', offset*sizeof(MYFLT));
     gain *= p->num_beans;       /* Save work in loop */
-    for (n=0; n<nsmps; n++) {
+    for (n=offset; n<nsmps; n++) {
         MYFLT   lastOutput;
         MYFLT   temp;
 
