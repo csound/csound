@@ -48,7 +48,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *fname, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
-    int     nargs;
+    uint32_t     nargs;
     int     buf_pos;
     int     guard_pos;
     AUXCH   buf;
@@ -65,7 +65,7 @@ typedef struct {
     int     buf_pos;
     int     guard_pos;
     int     frames;
-    int     remain;
+    uint32_t     remain;
     AUXCH   buf;
     FOUT_FILE f;
 } INFILE;

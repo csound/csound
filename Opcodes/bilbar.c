@@ -238,7 +238,7 @@ typedef struct {
     int    stereo;
     uint32_t    NS;
     int    N, init, step;
-    int    rattle_num, rubber_num;
+    uint32_t    rattle_num, rubber_num;
     int    hammer_index, hammer_on, hammer_contact;
     MYFLT  ham, ham1, ham2;
     AUXCH  auxch;
@@ -272,13 +272,13 @@ int init_pp(CSOUND *csound, CSPP *p)
       if (*p->rattle_tab==FL(0.0) ||
           (ftp=csound->FTnp2Find(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
       else {
-        p->rattle_num = (int)(*ftp->ftable);
+        p->rattle_num = (uint32_t)(*ftp->ftable);
         p->rattle = (RATTLE*)(&((MYFLT*)ftp->ftable)[1]);
       }
       if (*p->rubber_tab==FL(0.0) ||
           (ftp=csound->FTnp2Find(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
       else {
-        p->rubber_num = (int)(*ftp->ftable);
+        p->rubber_num = (uint32_t)(*ftp->ftable);
         p->rubber = (RUBBER*)(&((MYFLT*)ftp->ftable)[1]);
       }
 
@@ -537,7 +537,7 @@ int play_pp(CSOUND *csound, CSPP *p)
         step++;
       }
       {
-        int i;
+        uint32_t i;
         void *w3 = w2;
         w2 = w1;
         w1 = w;
