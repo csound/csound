@@ -817,7 +817,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     if (l == NULL || l->type == LABEL_TOKEN) return;
 
     int opnum = find_opcode(csound, l->value->lexeme);
-    OENTRY *ep = csound->engineState.opcodlst + opnum;
+    OENTRY *ep = csound->opcodlst + opnum;
     int nreqd = 0;
     int incnt = tree_arg_list_count(l->right);
     TREE * temp;
@@ -914,7 +914,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     }
     else {
       int opnum = find_opcode(csound, tree->value->lexeme);
-      OENTRY *ep = csound->engineState.opcodlst + opnum;
+      OENTRY *ep = csound->opcodlst + opnum;
 
 /*     int incnt = tree_arg_list_count(tree->right); */
 

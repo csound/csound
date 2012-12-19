@@ -252,8 +252,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
     tp->inlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
     tp->inlist->count = 0;
 
-    ip->mdepends |= engineState->opcodlst[LABEL].thread;
-    ip->opdstot += engineState->opcodlst[LABEL].dsblksiz;
+    ip->mdepends |= csound->opcodlst[LABEL].thread;
+    ip->opdstot += csound->opcodlst[LABEL].dsblksiz;
 
     break;
   case GOTO_TOKEN:
@@ -282,9 +282,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
 
     /* INITIAL SETUP */
     tp->opnum = opnum;
-    tp->opcod = strsav_string(csound->engineState.opcodlst[opnum].opname);
-    ip->mdepends |= engineState->opcodlst[opnum].thread;
-    ip->opdstot += engineState->opcodlst[opnum].dsblksiz;
+    tp->opcod = strsav_string(csound->opcodlst[opnum].opname);
+    ip->mdepends |= csound->opcodlst[opnum].thread;
+    ip->opdstot += csound->opcodlst[opnum].dsblksiz;
 
     /* BUILD ARG LISTS */
     {
@@ -317,7 +317,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
     }
     /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
     {
-      OENTRY *ep = engineState->opcodlst + tp->opnum;
+      OENTRY *ep = csound->opcodlst + tp->opnum;
       int argcount = 0;
       for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
 	arg = outargs->value->lexeme;
@@ -757,6 +757,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   }
   else {
     engineState = (ENGINE_STATE *) mcalloc(csound, sizeof(ENGINE_STATE));
+    engineState->stringPool = string_pool_create(csound);
+    engineState->constantsPool = myflt_pool_create(csound);
+    engineState->varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
   }   
  
   prvinstxt = &(engineState->instxtanchor); 
@@ -908,7 +911,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     if (opnum == LABEL) continue;
     if (PARSER_DEBUG)
       csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
-    if (UNLIKELY((thread = engineState->opcodlst[opnum].thread) & 06 ||
+    if (UNLIKELY((thread = csound->opcodlst[opnum].thread) & 06 ||
 		 (!thread && bp->t.pftype != 'b'))) {
       csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
 		       bp->t.opcod, thread, bp->t.pftype);
@@ -1030,7 +1033,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     if (opnum == LABEL) {
       continue;
     }
-    ep = &(engineState->opcodlst[opnum]);
+    ep = &(csound->opcodlst[opnum]);
     if (O->odebug) csound->Message(csound, "%s args:", ep->opname);
     if ((outlist = ttp->outlist) == NULL || !outlist->count)
       ttp->outArgs = NULL;
@@ -1456,7 +1459,7 @@ void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o)
 {
     char *name = o->lexeme;
     int32 opnum = find_opcode(csound, name);
-    OENTRY *ep = csound->engineState.opcodlst + opnum;
+    OENTRY *ep = csound->opcodlst + opnum;
     if (ep->thread&_QQ) 
       csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
 }
