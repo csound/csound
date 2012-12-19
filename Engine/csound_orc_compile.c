@@ -583,6 +583,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root, ENGINE_STATE *engineStat
 		      Str("create_instrument: instr num %ld\n"), instrNum);
 
     ip->t.inlist->arg[0] = strsav_string(c);
+  
 
     csound->Free(csound, c);
   } else if (root->left->type == T_IDENT &&
@@ -684,8 +685,9 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
     synterr(csound, Str("instr %ld redefined"), instrNum);
     /* err++; continue; */
   }
-
+ 
   engineState->instrtxtp[instrNum] = instrtxt;
+  
 }
 
 
@@ -708,7 +710,19 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineSt
 }
 
 int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
-    return 0;
+
+  /* a first attempt a this merge is to make it use insert_instrtxt again */ 
+  int i, end = engineState->maxinsno;
+  ENGINE_STATE *current_state = &csound->engineState;
+  INSTRTXT *current;
+  
+  for(i=0; i < end; i++){
+   current = engineState->instrtxtp[i];
+   if(current != NULL){
+   insert_instrtxt(csound,current,i,current_state);
+  }
+  }
+  return 0;
 } 
 
 int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
@@ -770,7 +784,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* Temporarily using the following code */
       if (current->left->type == INTEGER_TOKEN) { /* numbered instrument */
 	int32 instrNum = (int32)current->left->value->value;
-
 	insert_instrtxt(csound, instrtxt, instrNum, engineState);
       }
       else if (current->left->type == T_INSTLIST) {
