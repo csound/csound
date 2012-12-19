@@ -249,15 +249,15 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
 
 static int outfile(CSOUND *csound, OUTFILE *p)
 {
-    int   i, j, k;
-    int   nsmps = CS_KSMPS;
-    int nargs = p->nargs;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, j, k, nsmps = CS_KSMPS;
+    uint32_t nargs = p->nargs;
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
     if (p->f.sf == NULL) {
       if (p->f.f != NULL) { /* VL: make sure there is an open file */
         FILE  *fp = p->f.f;
-        for (k = 0; k < nsmps; k++) {
+        for (k = offset; k < nsmps; k++) {
           for (j = 0; j < nargs; j++)
             fprintf(fp, "%g ", p->argums[j][k]);
           fprintf(fp, "\n");
@@ -265,7 +265,7 @@ static int outfile(CSOUND *csound, OUTFILE *p)
       }
     }
     else {
-      for (j = 0, k = p->buf_pos; j < nsmps; j++) 
+      for (j = offset, k = p->buf_pos; j < nsmps; j++) 
         for (i = 0; i < nargs; i++)
           buf[k++] = p->argums[i][j] * p->scaleFac;
       p->buf_pos = k;
@@ -528,7 +528,8 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     MYFLT   **args = p->argums;
     FILE    *rfil;
-    int     j, n = (int) MYFLT2LRND(*p->ihandle);
+    uint32_t j;
+    int     n = (int) MYFLT2LRND(*p->ihandle);
 
     if (UNLIKELY(n < 0 || n > pp->file_num))
       csound->Die(csound, Str("fouti: invalid file handle"));
@@ -596,7 +597,8 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     STDOPCOD_GLOBALS  *pp;
     MYFLT **args;
     FILE  *rfil;
-    int   j, n;
+    uint32_t   j;
+    int n;
 
     if (!p->h.insdshead->relesing || !p->done)
       return OK;
@@ -696,40 +698,40 @@ static int infile_set(CSOUND *csound, INFILE *p)
 }
 
 static int infile_act(CSOUND *csound, INFILE *p)
-{
-    
-    int   i, k;
-    unsigned int j;
-    int nsmps = CS_KSMPS, nargs = p->nargs;
+{    
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, k, j = offset;
+    uint32_t nsmps = CS_KSMPS, ksmps, nargs = p->nargs;
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
+    ksmps = nsmps;
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
         sf_seek(p->f.sf, p->currpos, SEEK_SET);
         p->currpos += p->frames;
 #ifndef USE_DOUBLE
-        p->remain = (int) sf_readf_float(p->f.sf, (float*) buf, p->frames);
+        p->remain = (uint32_t) sf_readf_float(p->f.sf, (float*) buf, p->frames);
 #else
-        p->remain = (int) sf_readf_double(p->f.sf, (double*) buf, p->frames);
+        p->remain = (uint32_t) sf_readf_double(p->f.sf, (double*) buf, p->frames);
 #endif
         p->buf_pos = 0;
       }
       if (p->remain < nsmps)
         nsmps = p->remain;
-      for (k = p->buf_pos; j < nsmps; j++)
+      for (k = (uint32_t)p->buf_pos; j < nsmps; j++)
         for (i = 0; i < nargs; i++)
           p->argums[i][j] = buf[k++] * p->scaleFac;
       p->buf_pos = k;
-      p->remain -= CS_KSMPS;
+      p->remain -= ksmps;
       if (p->remain <= 0 && p->buf_pos < p->guard_pos) {
         p->flag = 0;
-        for (; j < CS_KSMPS; j++)
+        for (; j < ksmps; j++)
           for (i = 0; i < nargs; i++)
             p->argums[i][j] = FL(0.0);
       }
       return OK;
     }
-    for ( ; j < CS_KSMPS; j++)
+    for ( ; j < ksmps; j++)
       for (i = 0; i < nargs; i++)
         p->argums[i][j] = FL(0.0);
 
@@ -898,16 +900,17 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
 static int incr(CSOUND *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
-    unsigned int   n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
-    for (n = 0; n < CS_KSMPS; n++)
+    for (n = offset; n < nsmps; n++)
       avar[n] += aincr[n];
     return OK;
 }
 
 static int clear(CSOUND *csound, CLEARS *p)
 {
-    int   nsmps = CS_KSMPS, j;
+    uint32_t   nsmps = CS_KSMPS, j;
 
     for (j = 0; j < p->INOCOUNT; j++) {
       memset(p->argums[j], 0, sizeof(MYFLT)*nsmps);

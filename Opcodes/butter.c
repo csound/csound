@@ -44,7 +44,7 @@ typedef struct  {
 #include <math.h>
 #define ROOT2 (1.4142135623730950488)
 
-static void butter_filter(int32, MYFLT *, MYFLT *, double *);
+static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
 
 static int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
@@ -68,13 +68,15 @@ static int bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
 {
     MYFLT       *out, *in;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nsmps = CS_KSMPS;
 
     in = p->ain;
     out = p->sr;
 
-    if (*p->kfc <= FL(0.0))     {
-      int32      n = CS_KSMPS;
-      memcpy(out, in, n*sizeof(MYFLT));
+    if (*p->kfc <= FL(0.0))     { 
+      memset(out, '\0', offset*sizeof(MYFLT));
+      memcpy(out+offset, in+offset, (nsmps-offset)*sizeof(MYFLT));
       return OK;
     }
 
@@ -91,13 +93,15 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
       a[4] = 2.0 * ( c*c - 1.0) * a[1];
       a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
     }
-    butter_filter(CS_KSMPS, in, out, p->a);
+    butter_filter(nsmps, offset, in, out, p->a);
     return OK;
 }
 
 static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
     MYFLT       *out, *in;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nsmps = CS_KSMPS;
 
     in = p->ain;
     out = p->sr;
@@ -120,12 +124,14 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
       a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
     }
 
-    butter_filter(CS_KSMPS, in, out, p->a);
+    butter_filter(nsmps, offset, in, out, p->a);
     return OK;
 }
 
 static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
 {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nsmps = CS_KSMPS;
     MYFLT       *out, *in;
 
     in = p->ain;
@@ -147,19 +153,22 @@ static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
       a[4] = - c * d * a[1];
       a[5] = (c - 1.0) * a[1];
     }
-    butter_filter(CS_KSMPS, in, out, p->a);
+    butter_filter(nsmps, offset, in, out, p->a);
     return OK;
 }
 
 static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nsmps = CS_KSMPS;
     MYFLT       *out, *in;
 
     in = p->ain;
     out = p->sr;
 
     if (*p->kbw <= FL(0.0))     {
-      memcpy(out, in, CS_KSMPS*sizeof(MYFLT));
+      memset(out, 0, CS_KSMPS*sizeof(MYFLT));
+      memcpy(out+offset, in+offset, (nsmps-offset)*sizeof(MYFLT));
       return OK;
     }
 
@@ -178,17 +187,20 @@ static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
       a[5] = (1.0 - c) * a[1];
     }
 
-    butter_filter(CS_KSMPS, in, out, p->a);
+    butter_filter(nsmps, offset, in, out, p->a);
     return OK;
 }
 
 /* Filter loop */
 
-static void butter_filter(int32 n, MYFLT *in, MYFLT *out, double *a)
+static void butter_filter(uint32_t n, uint32_t offset,
+                          MYFLT *in, MYFLT *out, double *a)
 {
     double t, y;
-    int nn;
-    for (nn=0; nn<n; nn++) {
+    uint32_t nn;
+
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (nn=offset; nn<n; nn++) {
       t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
       t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
       y = t * a[1] + a[2] * a[6] + a[3] * a[7];
