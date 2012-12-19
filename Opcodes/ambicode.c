@@ -131,7 +131,8 @@ static void ambicode_set_coefficients(AMBIC *p)
 
 static int aambicode(CSOUND *csound, AMBIC *p)
 {
-    int nn = CS_KSMPS;  /* array size from orchestra */
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS; /* array size from orchestra */
 
     /* init input array pointer */
     MYFLT *inptp = p->asig;
@@ -163,78 +164,88 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     /* update coefficients */
     ambicode_set_coefficients(p);
 
+    memset(rsltp_w, '\0', offset*sizeof(MYFLT));
+    memset(rsltp_x, '\0', offset*sizeof(MYFLT));
+    memset(rsltp_y, '\0', offset*sizeof(MYFLT));
+    memset(rsltp_z, '\0', offset*sizeof(MYFLT));
     if (p->OUTOCOUNT == 4 && p->INOCOUNT >= 5) {
       /* 1st order */
-      do {
+      for (n=offset; n<nsmps; n++) {
         /* 0th order */
-        *rsltp_w++ = *inptp * p->w * *p->kin[0];
+        rsltp_w[n] = *inptp * p->w * *p->kin[0];
 
         /* 1st order */
-        *rsltp_x++ = *inptp * p->x * *p->kin[1];
-        *rsltp_y++ = *inptp * p->y * *p->kin[1];
-        *rsltp_z++ = *inptp * p->z * *p->kin[1];
-
-        /* increment input pointer */
-        inptp++;
+        rsltp_x[n] = inptp[n] * p->x * *p->kin[1];
+        rsltp_y[n] = inptp[n] * p->y * *p->kin[1];
+        rsltp_z[n] = inptp[n] * p->z * *p->kin[1];
       }
-      while (--nn);
     }
     else if (p->OUTOCOUNT == 9 && p->INOCOUNT >= 6) {
       /* 2nd order */
 
-      do {
+      memset(rsltp_r, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_s, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_t, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_u, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_v, '\0', offset*sizeof(MYFLT));
+      for (n=offset; n<nsmps; n++) {
         /* 0th order */
-        *rsltp_w++ = *inptp * p->w * *p->kin[0];
+        rsltp_w[n] = inptp[n] * p->w * *p->kin[0];
 
         /* 1st order */
-        *rsltp_x++ = *inptp * p->x * *p->kin[1];
-        *rsltp_y++ = *inptp * p->y * *p->kin[1];
-        *rsltp_z++ = *inptp * p->z * *p->kin[1];
+        rsltp_x[n] = inptp[n] * p->x * *p->kin[1];
+        rsltp_y[n] = inptp[n] * p->y * *p->kin[1];
+        rsltp_z[n] = inptp[n] * p->z * *p->kin[1];
 
         /* 2nd order */
-        *rsltp_r++ = *inptp * p->r * *p->kin[2];
-        *rsltp_s++ = *inptp * p->s * *p->kin[2];
-        *rsltp_t++ = *inptp * p->t * *p->kin[2];
-        *rsltp_u++ = *inptp * p->u * *p->kin[2];
-        *rsltp_v++ = *inptp * p->v * *p->kin[2];
+        rsltp_r[n] = inptp[n] * p->r * *p->kin[2];
+        rsltp_s[n] = inptp[n] * p->s * *p->kin[2];
+        rsltp_t[n] = inptp[n] * p->t * *p->kin[2];
+        rsltp_u[n] = inptp[n] * p->u * *p->kin[2];
+        rsltp_v[n] = inptp[n] * p->v * *p->kin[2];
 
-        /* increment input pointer */
-        inptp++;
       }
-      while (--nn);
     }
     else if (p->OUTOCOUNT == 16 && p->INOCOUNT >= 7) {
       /* 3rd order */
 
-      do {
+      memset(rsltp_r, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_s, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_t, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_u, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_v, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_k, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_l, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_m, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_n, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_o, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_p, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_q, '\0', offset*sizeof(MYFLT));
+      for (n=offset; n<nsmps; n++) {
         /* 0th order */
-        *rsltp_w++ = *inptp * p->w * *p->kin[0];
+        rsltp_w[n] = inptp[n] * p->w * *p->kin[0];
 
         /* 1st order */
-        *rsltp_x++ = *inptp * p->x * *p->kin[1];
-        *rsltp_y++ = *inptp * p->y * *p->kin[1];
-        *rsltp_z++ = *inptp * p->z * *p->kin[1];
+        rsltp_x[n] = inptp[n] * p->x * *p->kin[1];
+        rsltp_y[n] = inptp[n] * p->y * *p->kin[1];
+        rsltp_z[n] = inptp[n] * p->z * *p->kin[1];
 
         /* 2nd order */
-        *rsltp_r++ = *inptp * p->r * *p->kin[2];
-        *rsltp_s++ = *inptp * p->s * *p->kin[2];
-        *rsltp_t++ = *inptp * p->t * *p->kin[2];
-        *rsltp_u++ = *inptp * p->u * *p->kin[2];
-        *rsltp_v++ = *inptp * p->v * *p->kin[2];
+        rsltp_r[n] = inptp[n] * p->r * *p->kin[2];
+        rsltp_s[n] = inptp[n] * p->s * *p->kin[2];
+        rsltp_t[n] = inptp[n] * p->t * *p->kin[2];
+        rsltp_u[n] = inptp[n] * p->u * *p->kin[2];
+        rsltp_v[n] = inptp[n] * p->v * *p->kin[2];
 
         /* 3rd order */
-        *rsltp_k++ = *inptp * p->k * *p->kin[3];
-        *rsltp_l++ = *inptp * p->l * *p->kin[3];
-        *rsltp_m++ = *inptp * p->m * *p->kin[3];
-        *rsltp_n++ = *inptp * p->n * *p->kin[3];
-        *rsltp_o++ = *inptp * p->o * *p->kin[3];
-        *rsltp_p++ = *inptp * p->p * *p->kin[3];
-        *rsltp_q++ = *inptp * p->q * *p->kin[3];
-
-        /* increment input pointer */
-        inptp++;
+        rsltp_k[n] = inptp[n] * p->k * *p->kin[3];
+        rsltp_l[n] = inptp[n] * p->l * *p->kin[3];
+        rsltp_m[n] = inptp[n] * p->m * *p->kin[3];
+        rsltp_n[n] = inptp[n] * p->n * *p->kin[3];
+        rsltp_o[n] = inptp[n] * p->o * *p->kin[3];
+        rsltp_p[n] = inptp[n] * p->p * *p->kin[3];
+        rsltp_q[n] = inptp[n] * p->q * *p->kin[3];
       }
-      while (--nn);
     }
     return OK;
 }
@@ -551,11 +562,11 @@ static int iambideco(CSOUND *csound, AMBID *p)
                                        "There must be 5 output cells."));
         }
                 /*  These are Wiggins' cpefficients */
-/*  L    30�    {0.4724,  0.7143,  0.7258,  0.0000,  0.3456}
-    R   -30�    {0.4724,  0.7143, -0.7258,  0.0000, -0.3456}
-    C   0�      {0.3226,  0.7719,  0.0000,  0.0000,  0.4724}
-   LS   110�    {0.9101, -0.7834,  0.9562, -0.0806,  0.0000}
-   RS   -110�   {0.9101, -0.7834, -0.9562, -0.0806,  0.0000}  */
+/*  L    30째    {0.4724,  0.7143,  0.7258,  0.0000,  0.3456}
+    R   -30째    {0.4724,  0.7143, -0.7258,  0.0000, -0.3456}
+    C   0째      {0.3226,  0.7719,  0.0000,  0.0000,  0.4724}
+   LS   110째    {0.9101, -0.7834,  0.9562, -0.0806,  0.0000}
+   RS   -110째   {0.9101, -0.7834, -0.9562, -0.0806,  0.0000}  */
         {
           int i;
           static double w[] = {0.4724, 0.4724, 0.3226, 0.9101, 0.9101};
@@ -593,8 +604,8 @@ static int iambideco(CSOUND *csound, AMBID *p)
 
 static int aambideco(CSOUND *csound, AMBID *p)
 {
-    int nn = CS_KSMPS;  /* array size from orchestra */
-    int i = 0;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i=0, n, nsmps = CS_KSMPS;
 
     /* init input array pointer 0th order */
     MYFLT *inptp_w = p->aw;
@@ -635,92 +646,45 @@ static int aambideco(CSOUND *csound, AMBID *p)
 
        R = 0.5 * (0.9397*W+ 0.1856*X + j*0.342*W - j*0.5099*X - 0.655*Y) */
     if (p->INOCOUNT == 5) {
-      do {
+      if (offset) for (i = 0; i < p->OUTOCOUNT; i++)
+                    memset(rsltp[i], '\0', offset*sizeof(MYFLT));
+      for (n=offset; n<nsmps; n++) {
         /* 1st order */
         for (i = 0; i < p->OUTOCOUNT; i++) {
           /* calculate output for every used loudspeaker */
-          *rsltp[i]++ = *inptp_w * p->w[i] + *inptp_x * p->x[i] +
-                        *inptp_y * p->y[i] + *inptp_z * p->z[i];
+          rsltp[i][n] = inptp_w[n] * p->w[i] + inptp_x[n] * p->x[i] +
+                        inptp_y[n] * p->y[i] + inptp_z[n] * p->z[i];
         }
-
-        /* increment input array pointer 0th order */
-        inptp_w++;
-
-        /* increment input array pointer 1st order */
-        inptp_x++;
-        inptp_y++;
-        inptp_z++;
-
-      } while (--nn);
+      }
     }
     else if (p->INOCOUNT == 10) {
-      do {
+      for (n=offset; n<nsmps; n++) {
         /* 2nd order */
         for (i = 0; i < p->OUTOCOUNT; i++) {
           /* calculate output for every used loudspeaker */
-          *rsltp[i]++ = *inptp_w * p->w[i] + *inptp_x * p->x[i] +
-                        *inptp_y * p->y[i] + *inptp_z * p->z[i] +
-                        *inptp_r * p->r[i] + *inptp_s * p->s[i] +
-                        *inptp_t * p->t[i] + *inptp_u * p->u[i] +
-                        *inptp_v * p->v[i];
-        }
-
-        /* increment input array pointer 0th order */
-        inptp_w++;
-
-        /* increment input array pointer 1st order */
-        inptp_x++;
-        inptp_y++;
-        inptp_z++;
-
-        /* increment input array pointer 2nd order */
-        inptp_r++;
-        inptp_s++;
-        inptp_t++;
-        inptp_u++;
-        inptp_v++;
-
-      } while (--nn);
+          rsltp[i][n] = inptp_w[n] * p->w[i] + inptp_x[n] * p->x[i] +
+                        inptp_y[n] * p->y[i] + inptp_z[n] * p->z[i] +
+                        inptp_r[n] * p->r[i] + inptp_s[n] * p->s[i] +
+                        inptp_t[n] * p->t[i] + inptp_u[n] * p->u[i] +
+                        inptp_v[n] * p->v[i];
+        }        
+      }
     }
     else if (p->INOCOUNT == 17) {
-      do {
+      for (n=offset; n<nsmps; n++) {
         /* 3rd order */
         for (i = 0; i < p->OUTOCOUNT; i++) {
           /* calculate output for every used loudspeaker */
-          *rsltp[i]++ = *inptp_w * p->w[i] + *inptp_x * p->x[i] +
-                        *inptp_y * p->y[i] + *inptp_z * p->z[i] +
-                        *inptp_r * p->r[i] + *inptp_s * p->s[i] +
-                        *inptp_t * p->t[i] + *inptp_u * p->u[i] +
-                        *inptp_v * p->v[i] + *inptp_k * p->k[i] +
-                        *inptp_l * p->l[i] + *inptp_m * p->m[i] +
-                        *inptp_n * p->n[i] + *inptp_o * p->o[i] +
-                        *inptp_p * p->p[i] + *inptp_q * p->q[i];
+          rsltp[i][n] = inptp_w[n] * p->w[i] + inptp_x[n] * p->x[i] +
+                        inptp_y[n] * p->y[i] + inptp_z[n] * p->z[i] +
+                        inptp_r[n] * p->r[i] + inptp_s[n] * p->s[i] +
+                        inptp_t[n] * p->t[i] + inptp_u[n] * p->u[i] +
+                        inptp_v[n] * p->v[i] + inptp_k[n] * p->k[i] +
+                        inptp_l[n] * p->l[i] + inptp_m[n] * p->m[i] +
+                        inptp_n[n] * p->n[i] + inptp_o[n] * p->o[i] +
+                        inptp_p[n] * p->p[i] + inptp_q[n] * p->q[i];
         }
-
-        /* increment input array pointer 0th order */
-        inptp_w++;
-
-        /* increment input array pointer 1st order */
-        inptp_x++;
-        inptp_y++;
-        inptp_z++;
-
-        /* increment input array pointer 2nd order */
-        inptp_r++;
-        inptp_s++;
-        inptp_t++;
-        inptp_u++;
-        inptp_v++;
-
-        /* increment input array pointer 3rd order */
-        inptp_k++;
-        inptp_l++;
-        inptp_m++;
-        inptp_n++;
-        inptp_o++;
-        inptp_p++;
-        inptp_q++;
-      } while (--nn);
+      }
     }
     return OK;
 }

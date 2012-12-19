@@ -45,11 +45,14 @@ static int flwset(CSOUND *csound, FOL *p)
                                 /* Use absolute value rather than max/min */
 static int follow(CSOUND *csound, FOL *p)
 {
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *in = p->in, *out = p->out;
     MYFLT       max = p->max;
     int32       count = p->count;
-    for (n=0; n<nsmps; n++) {
+
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT sig = FABS(in[n]);
       if (sig > max) max = sig;
       if (--count == 0L) {
@@ -87,7 +90,8 @@ static int envset(CSOUND *csound, ENV *p)
 
 static int envext(CSOUND *csound, ENV *p)
 {
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       envelope = p->envelope;
     MYFLT       ga, gr;
     MYFLT       *in = p->in, *out = p->out;
@@ -111,7 +115,8 @@ static int envext(CSOUND *csound, ENV *p)
       //EXP(-FL(1.0)/(csound->esr* p->lastrel));
     }
     else gr = p->gr;
-    for (n=0;n<nsmps;n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT inp = FABS(in[n]);  /* Absolute value */
       if (envelope < inp) {
         envelope = inp + ga*(envelope-inp);

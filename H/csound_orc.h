@@ -32,4 +32,6 @@ ORCTOKEN *make_token(CSOUND *csound, char *s);
 /*void start_instr(int);*/
 /* extern double sr, kr;
 extern int ksmps, nchnls; */
+
+void query_deprecated_opcode(CSOUND *, ORCTOKEN *);
 #endif

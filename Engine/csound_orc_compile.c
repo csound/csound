@@ -1437,3 +1437,13 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
   csound->Free(csound, strpool);
 }
 #endif
+
+#include "interlocks.h"
+void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o)
+{
+    char *name = o->lexeme;
+    int32 opnum = find_opcode(csound, name);
+    OENTRY *ep = csound->engineState.opcodlst + opnum;
+    if (ep->thread&_QQ) 
+      csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
+}
