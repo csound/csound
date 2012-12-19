@@ -716,9 +716,33 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   ENGINE_STATE *current_state = &csound->engineState;
   INSTRTXT *current;
   
-  for(i=0; i < end; i++){
+  STRING_VAL* val = engineState->stringPool->values;
+  int count = 0;
+  while(val != NULL) {
+    csound->Message(csound, " merging strings %d) %s\n", count++, val->value);
+    string_pool_find_or_add(csound, current_state->stringPool, val->value);
+    val = val->next;
+  }
+  int offset = current_state->constantsPool->count;
+  for(count = 0; count < engineState->constantsPool->count; count++) {
+    csound->Message(csound, " merging constants %d) %f\n", count, engineState->constantsPool->values[count]);
+    myflt_pool_find_or_add(csound, current_state->constantsPool, engineState->constantsPool->values[count]); 
+  }
+   
+  CS_VARIABLE* gVar = engineState->varPool->head;
+  count = 0;
+  while(gVar != NULL) {
+    csound->Message(csound, " merging  %d) %s:%s\n", count++, 
+		    gVar->varName, gVar->varType->varTypeName);
+    csoundAddVariable(current_state->varPool, csoundCreateVariable(csound, csound->typePool, gVar->varType->varTypeName, gVar->varName));
+    gVar = gVar->next;
+  }
+
+
+  for(i=1; i < end; i++){
    current = engineState->instrtxtp[i];
    if(current != NULL){
+   csound->Message(csound, "merging instr %d \n", i);
    insert_instrtxt(csound,current,i,current_state);
   }
   }
@@ -754,6 +778,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   if(csound->instr0 == NULL) {
      engineState = &csound->engineState;
      csound->instr0 = create_instrument0(csound, root, engineState);
+     string_pool_find_or_add(csound, engineState->stringPool, "\"\"");
   }
   else {
     engineState = (ENGINE_STATE *) mcalloc(csound, sizeof(ENGINE_STATE));
@@ -765,7 +790,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   prvinstxt = &(engineState->instxtanchor); 
   engineState->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno)
 						 * sizeof(INSTRTXT*));
-  string_pool_find_or_add(csound, engineState->stringPool, "\"\"");
   prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
   insert_instrtxt(csound, csound->instr0, 0, engineState);
 
