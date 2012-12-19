@@ -249,7 +249,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     while ((csound->ids = csound->ids->nxti) != NULL) {
       if (UNLIKELY(O->odebug))
         csound->Message(csound, "init %s:\n",
-                        csound->engineState.opcodlst[csound->ids->optext->t.opnum].opname);
+                        csound->opcodlst[csound->ids->optext->t.opnum].opname);
       (*csound->ids->iopadr)(csound, csound->ids);
     }
     csound->tieflag = csound->reinitflag = 0;
@@ -504,7 +504,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     while ((csound->ids = csound->ids->nxti) != NULL) {
       if (O->odebug)
         csound->Message(csound, "init %s:\n",
-                        csound->engineState.opcodlst[csound->ids->optext->t.opnum].opname);
+                        csound->opcodlst[csound->ids->optext->t.opnum].opname);
       (*csound->ids->iopadr)(csound, csound->ids);
     }
     csound->tieflag = csound->reinitflag = 0;
@@ -967,7 +967,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
     /* look up the 'fake' instr number, and opcode name */
-    inm = (OPCODINFO*) csound->engineState.opcodlst[p->h.optext->t.opnum].useropinfo;
+    inm = (OPCODINFO*) csound->opcodlst[p->h.optext->t.opnum].useropinfo;
     instno = inm->instno;
     tp = csound->engineState.instrtxtp[instno];
     /* set local ksmps if defined by user */
@@ -1444,7 +1444,7 @@ INSDS *insert_event(CSOUND *csound,
     /* do init pass for this instr */
     while ((csound->ids = csound->ids->nxti) != NULL) {
       /*    if (O->odebug) csound->Message(csound, "init %s:\n",
-            csound->engineState.opcodlst[csound->ids->optext->t.opnum].opname);      */
+            csound->opcodlst[csound->ids->optext->t.opnum].opname);      */
       (*csound->ids->iopadr)(csound, csound->ids);
     }
     if (csound->inerrcnt || ip->p3 == FL(0.0)) {
@@ -1853,7 +1853,7 @@ int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
         if(t->opnum == LABEL && strcmp(t->opcod, labelName) == 0) {
             break;
         }
-        offset += csound->engineState.opcodlst[t->opnum].dsblksiz;
+        offset += csound->opcodlst[t->opnum].dsblksiz;
     }
     
     return offset;
@@ -1935,7 +1935,7 @@ static void instance(CSOUND *csound, int insno)
         ip->p1 = (MYFLT) insno;
         continue;
       }
-      ep = &(csound->engineState.opcodlst[opnum]);          /* for all ops:     */
+      ep = &(csound->opcodlst[opnum]);          /* for all ops:     */
       opds = (OPDS*) nxtopds;                   /*   take reqd opds */
       nxtopds += ep->dsblksiz;
       if (UNLIKELY(odebug))

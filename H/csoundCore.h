@@ -823,11 +823,8 @@ typedef struct NAME__ {
     CS_VAR_POOL    *varPool;  /* global variable pool */
     MYFLT_POOL*   constantsPool;
     STRING_POOL*  stringPool;
-    OENTRY        *opcodlst;  /* list of opcodes      */
-    int           *opcode_list;
-    OENTRY        *oplstend;
+    int            maxopcno;
     OPCODINFO     *opcodeInfo;
-    int           maxopcno;  
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor; 
     void          *instrumentNames; /* instrument names */
@@ -1271,9 +1268,9 @@ typedef struct NAME__ {
 //    int16         ngotos;
     int           peakchunks;
     int           keep_tmp;
-    /* OENTRY        *opcodlst;
+    OENTRY        *opcodlst;
     int           *opcode_list;
-    OENTRY        *oplstend; */
+    OENTRY        *oplstend; 
     /* int           maxopcno; */
     int32         nrecs;
     FILE*         Linepipe;
