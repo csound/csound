@@ -77,15 +77,15 @@ void init_symbtab(CSOUND *csound)
      * T_OPCODE0, or T_OPCODE00)
      */
 
-    for (ep = (OENTRY*) csound->engineState.opcodlst; ep < (OENTRY*) csound->engineState.oplstend; ep++) {
+    for (ep = (OENTRY*) csound->opcodlst; ep < (OENTRY*) csound->oplstend; ep++) {
         if (ep->dsblksiz >= 0xfffb) {
           char * polyName;
           len = strlen(ep->opname) + 1;
           polyName = mcalloc(csound, len + 1);
           sprintf(polyName, "%s.", ep->opname);
 
-          for (temp = (OENTRY*) csound->engineState.opcodlst;
-               temp < (OENTRY*) csound->engineState.oplstend; temp++) {
+          for (temp = (OENTRY*) csound->opcodlst;
+               temp < (OENTRY*) csound->oplstend; temp++) {
             if (ep != temp && strncmp(polyName, temp->opname, len) == 0) {
               add_token(csound, ep->opname, get_opcode_type(temp));
             }
@@ -581,18 +581,18 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* IV - Oct 31 2002: */
     /* create a fake opcode so we can call it as such */
-    opc = csound->engineState.opcodlst + find_opcode(csound, ".userOpcode");
+    opc = csound->opcodlst + find_opcode(csound, ".userOpcode");
     memcpy(&tmpEntry, opc, sizeof(OENTRY));
     tmpEntry.opname = (char*)mmalloc(csound, 1+strlen(opname));
     strcpy(tmpEntry.opname, opname);
     csound->AppendOpcodes(csound, &tmpEntry, 1);
 
     if (!newopnum) {
-        newopnum = (int32) ((OENTRY*) csound->engineState.oplstend
-                           - (OENTRY*) csound->engineState.opcodlst) - 1L;
+        newopnum = (int32) ((OENTRY*) csound->oplstend
+                           - (OENTRY*) csound->opcodlst) - 1L;
     }
 
-    newopc = &(csound->engineState.opcodlst[newopnum]);
+    newopc = &(csound->opcodlst[newopnum]);
     newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
 
     /* check in/out types and copy to the opcode's */
