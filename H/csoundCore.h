@@ -1158,6 +1158,8 @@ typedef struct NAME__ {
     /** used by init and perf loops */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */
     INSTRTXT      *instr0;          /* instr0     */
+    INSTRTXT      **dead_instr_pool;
+    int  dead_instr_no;
     TYPE_POOL*    typePool;
     /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */   
     OPDS          *ids, *pds;
