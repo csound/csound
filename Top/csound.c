@@ -99,15 +99,15 @@ extern "C" {
   extern OENTRY  opcodlst_1[];
   static void create_opcodlst(CSOUND *csound)
   {
-      OENTRY  *saved_opcodlst = csound->engineState.opcodlst;
+      OENTRY  *saved_opcodlst = csound->opcodlst;
       int     old_cnt = 0, err;
 
       if (saved_opcodlst != NULL) {
-        csound->engineState.opcodlst = NULL;
-        if (csound->engineState.oplstend != NULL)
-          old_cnt = (int) ((OENTRY*) csound->engineState.oplstend - (OENTRY*) saved_opcodlst);
-        csound->engineState.oplstend = NULL;
-        memset(csound->engineState.opcode_list, 0, sizeof(int) * 256);
+        csound->opcodlst = NULL;
+        if (csound->oplstend != NULL)
+          old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
+        csound->oplstend = NULL;
+        memset(csound->opcode_list, 0, sizeof(int) * 256);
       }
       /* Basic Entry1 stuff */
       err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
@@ -391,11 +391,8 @@ extern "C" {
     {(CS_VAR_POOL*)NULL,
      (MYFLT_POOL *) NULL,
      (STRING_POOL *) NULL,
-      (OENTRY*)NULL,
-      (int*)NULL,
-      (OENTRY*)NULL,
-     (OPCODINFO*) NULL,
      -1,
+     (OPCODINFO*) NULL,
      (INSTRTXT**)NULL,
      {NULL},
      NULL,
@@ -514,10 +511,10 @@ extern "C" {
 //    NGOTOS,         /*  ngotos              */
     1,              /*  peakchunks          */
     0,              /*  keep_tmp            */
-    /* (OENTRY*) NULL, */ /*  opcodlst  now in engineState         */
-    /* (int*) NULL,   */ /*  opcode_list now in engineState         */
-    /* (OENTRY*) NULL, */ /*  opcodlstend now in engineState         */
-    /*-1,    */         /*  maxopcno            */
+    (OENTRY*) NULL, /*  opcodlst     */
+    (int*) NULL,  /*  opcode_list         */
+    (OENTRY*) NULL, /*  opcodlstend         */
+    /* -1,  */          /*  maxopcno  now in engineState           */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */
@@ -2491,23 +2488,23 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
       return CSOUND_ERROR;
     if (ep->opname[0] != (char) 0)
       h = (int) name_hash_2(csound, ep->opname);
-    else if (csound->engineState.opcodlst != NULL)
+    else if (csound->opcodlst != NULL)
       return CSOUND_ERROR;
-    if (csound->engineState.opcodlst != NULL) {
+    if (csound->opcodlst != NULL) {
       int   n;
-      oldCnt = (int) ((OENTRY*) csound->engineState.oplstend - (OENTRY*) csound->engineState.opcodlst);
+      oldCnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) csound->opcodlst);
       /* check if this opcode is already defined */
-      n = csound->engineState.opcode_list[h];
+      n = csound->opcode_list[h];
       while (n) {
-        if (!sCmp(csound->engineState.opcodlst[n].opname, ep->opname)) {
-          int tmp = csound->engineState.opcodlst[n].prvnum;
+        if (!sCmp(csound->opcodlst[n].opname, ep->opname)) {
+          int tmp = csound->opcodlst[n].prvnum;
           /* redefine existing opcode */
-          memcpy(&(csound->engineState.opcodlst[n]), ep, sizeof(OENTRY));
-          csound->engineState.opcodlst[n].useropinfo = NULL;
-          csound->engineState.opcodlst[n].prvnum = tmp;
+          memcpy(&(csound->opcodlst[n]), ep, sizeof(OENTRY));
+          csound->opcodlst[n].useropinfo = NULL;
+          csound->opcodlst[n].prvnum = tmp;
           return CSOUND_SUCCESS;
         }
-        n = csound->engineState.opcodlst[n].prvnum;
+        n = csound->opcodlst[n].prvnum;
       }
     }
     if (!(oldCnt & 0x7F)) {
@@ -2516,18 +2513,18 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
       if (!oldCnt)
         newList = (OENTRY*) malloc(nBytes);
       else
-        newList = (OENTRY*) realloc(csound->engineState.opcodlst, nBytes);
+        newList = (OENTRY*) realloc(csound->opcodlst, nBytes);
       if (newList == NULL)
         return CSOUND_MEMORY;
-      csound->engineState.opcodlst = newList;
-      csound->engineState.oplstend = ((OENTRY*) newList + (int) oldCnt);
-      memset(&(csound->engineState.opcodlst[oldCnt]), 0, sizeof(OENTRY) * 0x80);
+      csound->opcodlst = newList;
+      csound->oplstend = ((OENTRY*) newList + (int) oldCnt);
+      memset(&(csound->opcodlst[oldCnt]), 0, sizeof(OENTRY) * 0x80);
     }
-    memcpy(&(csound->engineState.opcodlst[oldCnt]), ep, sizeof(OENTRY));
-    csound->engineState.opcodlst[oldCnt].useropinfo = NULL;
-    csound->engineState.opcodlst[oldCnt].prvnum = csound->engineState.opcode_list[h];
-    csound->engineState.opcode_list[h] = oldCnt;
-    csound->engineState.oplstend = (OENTRY*) csound->engineState.oplstend + (int) 1;
+    memcpy(&(csound->opcodlst[oldCnt]), ep, sizeof(OENTRY));
+    csound->opcodlst[oldCnt].useropinfo = NULL;
+    csound->opcodlst[oldCnt].prvnum = csound->opcode_list[h];
+    csound->opcode_list[h] = oldCnt;
+    csound->oplstend = (OENTRY*) csound->oplstend + (int) 1;
 
     return 0;
 }
@@ -2653,8 +2650,8 @@ PUBLIC void csoundReset_(CSOUND *csound)
 #ifdef CSCORE
     cscoreRESET(csound);
 #endif
-    if (csound->engineState.opcodlst != NULL)
-      free(csound->engineState.opcodlst);
+    if (csound->opcodlst != NULL)
+      free(csound->opcodlst);
 
     csound->oparms_.odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
@@ -2818,7 +2815,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     csound->stringSavePool = string_pool_create(csound);
     csound->engineState.stringPool = string_pool_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
-    csound->engineState.opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
+    csound->opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
     /* now load and pre-initialise external modules for this instance */
@@ -3305,7 +3302,7 @@ int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
 char *csoundGetOpcodeName(void *p)
 {
     CSOUND *csound = (CSOUND*) ((OPDS*) p)->insdshead->csound;
-    return (char*) csound->engineState.opcodlst[((OPDS*) p)->optext->t.opnum].opname;
+    return (char*) csound->opcodlst[((OPDS*) p)->optext->t.opnum].opname;
 }
 
 /**

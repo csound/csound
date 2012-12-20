@@ -419,6 +419,7 @@ statement : ident '=' expr NEWLINE
                                     csp_orc_sa_globals_find(csound, $2->right));
                   csp_orc_sa_interlocks(csound, $2->value);
 #endif
+                  query_deprecated_opcode(csound, $2->value);
                 }
           | opcode0 exprlist NEWLINE
                 {
@@ -432,6 +433,7 @@ statement : ident '=' expr NEWLINE
                                                           $1->right));
                   csp_orc_sa_interlocks(csound, $1->value);
 #endif
+                  query_deprecated_opcode(csound, $1->value);
                 }
           | LABEL_TOKEN
                 {

@@ -25,7 +25,7 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 
-extern char argtyp2(CSOUND *, char *);
+extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern void handle_polymorphic_opcode(CSOUND*, TREE *);
 extern void handle_optional_args(CSOUND *, TREE *);
@@ -334,9 +334,9 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line, int lo
       d = create_ans_token(csound, last->left->value->lexeme);
     }
 
-    arg1 = argtyp2(csound, c->value->lexeme);
-    arg2 = argtyp2(csound, d->value->lexeme);
-    ans  = argtyp2(csound, b->value->lexeme);
+    arg1 = argtyp2( c->value->lexeme);
+    arg2 = argtyp2( d->value->lexeme);
+    ans  = argtyp2( b->value->lexeme);
     if (arg1 == 'a' || arg2 == 'a') {
       strcpy(op,":a");
       outype = 'a';
@@ -411,9 +411,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
     }
     arg1 = '\0';
     if (root->left != NULL) {
-      arg1 = argtyp2(csound, root->left->value->lexeme);
+      arg1 = argtyp2( root->left->value->lexeme);
     }
-    arg2 = argtyp2(csound, root->right->value->lexeme);
+    arg2 = argtyp2( root->right->value->lexeme);
     //printf("arg1=%.2x(%c); arg2=%.2x(%c)\n", arg1, arg1, arg2, arg2);
     op = mcalloc(csound, 80);
 
@@ -497,7 +497,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
                         "line %d \n"),
                     root->value->lexeme, c, line);
       }
-      c = csound->engineState.opcodlst[opnum].outypes[0];
+      c = csound->opcodlst[opnum].outypes[0];
       outarg = create_out_arg(csound, c);
       break;
     case S_UMINUS:
@@ -726,15 +726,15 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn)
 
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Operator Found: %s (%c %c)\n", op,
-                      argtyp2(csound, root->left->value->lexeme),
-                      argtyp2(csound, root->right->value->lexeme));
+                      argtyp2( root->left->value->lexeme),
+                      argtyp2( root->right->value->lexeme));
 
     outarg = get_boolean_arg(
                  csound,
-                 argtyp2(csound, root->left->value->lexeme) =='k' ||
-                 argtyp2(csound, root->right->value->lexeme)=='k' ||
-                 argtyp2(csound, root->left->value->lexeme) =='B' ||
-                 argtyp2(csound, root->right->value->lexeme)=='B');
+                 argtyp2( root->left->value->lexeme) =='k' ||
+                 argtyp2( root->right->value->lexeme)=='k' ||
+                 argtyp2( root->left->value->lexeme) =='B' ||
+                 argtyp2( root->right->value->lexeme)=='B');
 
     opTree = create_opcode_token(csound, op);
     opTree->right = root->left;
@@ -935,13 +935,13 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 tempRight->right = label;
 //              printf("goto types %c %c %c %c %d\n",
 //                     expressionNodes->left->type, tempRight->type,
-//                     argtyp2(csound, last->left->value->lexeme),
-//                     argtyp2(csound, tempRight->value->lexeme),
-//                     (argtyp2(csound, last->left->value->lexeme) == 'k') ||
-//                     (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+//                     argtyp2( last->left->value->lexeme),
+//                     argtyp2( tempRight->value->lexeme),
+//                     (argtyp2( last->left->value->lexeme) == 'k') ||
+//                     (argtyp2( tempRight->value->lexeme) == 'k'));
 //              print_tree(csound, "expression nodes", expressionNodes);
-                gotoType = (argtyp2(csound, last->left->value->lexeme) == 'B') ||
-                           (argtyp2(csound, tempRight->value->lexeme) == 'k');
+                gotoType = (argtyp2( last->left->value->lexeme) == 'B') ||
+                           (argtyp2( tempRight->value->lexeme) == 'k');
                 gotoToken =
                   create_goto_token(csound,
                    last->left->value->lexeme,
@@ -1063,10 +1063,10 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                               ifBlockLast->left->value->lexeme,
                               labelEnd,
                               type =
-                              ((argtyp2(csound,
+                              ((argtyp2(
                                   ifBlockLast->left->value->lexeme)=='B')
                                ||
-                               (argtyp2(csound,
+                               (argtyp2(
                                    tempRight->value->lexeme) == 'k')));
           /* relinking */
           /* tempRight = ifBlockLast->next; */
@@ -1103,7 +1103,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           if (currentArg->left || currentArg->right) {
             int anstype, argtype;
             //csound->Message(csound, "expansion case\n");
-            anstype = argtyp2(csound, current->left->value->lexeme);
+            anstype = argtyp2( current->left->value->lexeme);
             //print_tree(csound, "Assignment\n", current);
             expressionNodes =
               create_expression(csound, currentArg,
@@ -1112,7 +1112,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             currentArg = expressionNodes;
             while (currentArg->next) currentArg = currentArg->next;
             //print_tree(csound, "currentArg\n", currentArg);
-            argtype = argtyp2(csound, currentArg->left->value->lexeme);
+            argtype = argtyp2( currentArg->left->value->lexeme);
             //printf("anstype = %c argtype = %c\n", anstype, argtype);
             if (anstype=='a' && argtype!='a') {
               //upsample

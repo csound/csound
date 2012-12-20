@@ -95,7 +95,8 @@ static int bar_run(CSOUND *csound, BAR *p)
     int step = p->step;
     int first = p->first;
     int N = p->N, rr;
-    unsigned int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     double *w = p->w, *w1 = p->w1, *w2 = p->w2;
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
     int bcL = (int)MYFLT2LONG(*p->kbcL);    /*  boundary condition pair */
@@ -104,13 +105,14 @@ static int bar_run(CSOUND *csound, BAR *p)
     double COSNW = cos(xofreq*step); /* formula rather than many calls    */
     double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
     double COS1W = cos(xofreq);
+    MYFLT *ar = p->ar;
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
       return csound->PerfError(csound,
                                Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
-
-    for (n = 0; n < nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n = offset; n < nsmps; n++) {
       /* Fix ends */
       if (bcL == 3) {
         w1[1] = 2.0*w1[2]-w1[3];
@@ -176,7 +178,7 @@ static int bar_run(CSOUND *csound, BAR *p)
 
 /*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ",
                          xo, xoint, xofrac, w[xoint], w[xoint+1]); */
-      p->ar[n] = (csound->e0dbfs)*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
+      ar[n] = (csound->e0dbfs)*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
       {
         double *ww = w2;
@@ -234,8 +236,9 @@ typedef struct {
     MYFLT *s0, *s1, s2, t0, t1;
     MYFLT *hammer_force;
     int    stereo;
-    int    NS, N, init, step;
-    int    rattle_num, rubber_num;
+    uint32_t    NS;
+    int    N, init, step;
+    uint32_t    rattle_num, rubber_num;
     int    hammer_index, hammer_on, hammer_contact;
     MYFLT  ham, ham1, ham2;
     AUXCH  auxch;
@@ -250,7 +253,7 @@ int init_pp(CSOUND *csound, CSPP *p)
       double f0 = *p->ifreq;      /* fundamental freq. (Hz) */
       double T30 = *p->iT30;      /* 30 db decay time (s) */
       double b = *p->ib;          /* high-frequency loss parameter (keep small) */
-      int NS = p->NS = (int)*p->iNS;       /* number of strings */
+      uint32_t NS = p->NS = (int)*p->iNS;       /* number of strings */
       double D = *p->iD;  /* detune parameter (multiple strings) in cents */
                           /* I.e., a total of D cents diff between highest */
                           /* and lowest string in set */
@@ -259,7 +262,7 @@ int init_pp(CSOUND *csound, CSPP *p)
       double dt = (double)csound->onedsr;
       double sig = (2.0*(double)csound->esr)*(pow(10.0,3.0*dt/T30)-1.0);
 
-      int N, n;
+      uint32_t N, n;
       double *c, /*dx,*/ dxmin = 0.0; /* for stability */
       FUNC  *ftp;
 
@@ -269,13 +272,13 @@ int init_pp(CSOUND *csound, CSPP *p)
       if (*p->rattle_tab==FL(0.0) ||
           (ftp=csound->FTnp2Find(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
       else {
-        p->rattle_num = (int)(*ftp->ftable);
+        p->rattle_num = (uint32_t)(*ftp->ftable);
         p->rattle = (RATTLE*)(&((MYFLT*)ftp->ftable)[1]);
       }
       if (*p->rubber_tab==FL(0.0) ||
           (ftp=csound->FTnp2Find(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
       else {
-        p->rubber_num = (int)(*ftp->ftable);
+        p->rubber_num = (uint32_t)(*ftp->ftable);
         p->rubber = (RUBBER*)(&((MYFLT*)ftp->ftable)[1]);
       }
 
@@ -289,7 +292,7 @@ int init_pp(CSOUND *csound, CSPP *p)
         double x = sqrt(y+hypot(y,4.0*K*dt))/sqrt(2);
         if (x>dxmin) dxmin = x;
       }
-      N = p->N = (int)(1.0/dxmin);
+      N = p->N = (uint32_t)(1.0/dxmin);
       //dx = 1.0/(double)N;
 
       csound->AuxAlloc(csound,
@@ -341,10 +344,11 @@ int play_pp(CSOUND *csound, CSPP *p)
 {
     MYFLT *ar = p->ar;
     MYFLT *ar1 = p->ar1;
-    int NS = p->NS;
-    int N = p->N;
+    uint32_t NS = p->NS;
+    uint32_t N = p->N;
     int step = p->step;
-    int n, t, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t t, n, nsmps = CS_KSMPS;
     double dt = csound->onedsr;
     MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
           *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2,
@@ -388,8 +392,10 @@ int play_pp(CSOUND *csound, CSPP *p)
       p->init = 0;
     }
 
-    for (t=0; t<nsmps; t++) {
-      int qq;
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (p->stereo) memset(ar1, '\0', offset*sizeof(MYFLT));
+    for (t=offset; t<nsmps; t++) {
+      uint32_t qq;
       for (n=0; n<NS; n++) p->hammer_force[n] = 0.0;
       /* set boundary conditions on last state w1 */
       if ((int)*p->kbcl==1) {
@@ -531,7 +537,7 @@ int play_pp(CSOUND *csound, CSPP *p)
         step++;
       }
       {
-        int i;
+        uint32_t i;
         void *w3 = w2;
         w2 = w1;
         w1 = w;
