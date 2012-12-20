@@ -211,7 +211,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 {
     char *name = opcode->lexeme;
     int32 opnum = find_opcode(csound, name);
-    OENTRY *ep = csound->engineState.opcodlst + opnum;
+    OENTRY *ep = csound->opcodlst + opnum;
     csp_orc_sa_interlocksf(csound, ep->thread);
 }
 

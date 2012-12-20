@@ -426,15 +426,15 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
 /*       return 0; */
 /*     } */
 /*     fp->isLoaded = 1; */
-/*     n = ((int*) csound->engineState.opcode_list)[h]; */
-/*     while (n && sCmp(csound->engineState.opcodlst[n].opname, opname)) */
-/*       n = csound->engineState.opcodlst[n].prvnum; */
+/*     n = ((int*) csound->opcode_list)[h]; */
+/*     while (n && sCmp(csound->opcodlst[n].opname, opname)) */
+/*       n = csound->opcodlst[n].prvnum; */
 
 /*     return n; */
 /* } */
 
 /* find opcode with the specified name in opcode list */
-/* returns index to engineState.opcodlst[], or zero if the opcode cannot be found */
+/* returns index to opcodlst[], or zero if the opcode cannot be found */
 
 int find_opcode(CSOUND *csound, char *opname)
 {
@@ -447,11 +447,11 @@ int find_opcode(CSOUND *csound, char *opname)
     /* calculate hash value */
     h = (int) name_hash_2(csound, opname);
     /* now find entry in opcode chain */
-    n = ((int*) csound->engineState.opcode_list)[h];
+    n = ((int*) csound->opcode_list)[h];
     while (n) {
-      if (!sCmp(opname, csound->engineState.opcodlst[n].opname))
+      if (!sCmp(opname, csound->opcodlst[n].opname))
         return n;
-      n = csound->engineState.opcodlst[n].prvnum;
+      n = csound->opcodlst[n].prvnum;
     }
     /* if (csound->pluginOpcodeDB != NULL) { */
     /*   CsoundPluginOpcode_t  *p; */
