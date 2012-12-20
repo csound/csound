@@ -684,11 +684,12 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
 
   if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
     /* redefinition does not raise an error now, just a warning */
-    csound->Warning(csound, Str("instr %ld redefined, not inserted into engine\n"), instrNum);
-    return;
+    /* and we allow Csound to carry on */
+    csound->Warning(csound, Str("instr %ld redefined, replacing previous copy **** \n"), instrNum);
+    /* return; */
     /* err++; continue; */
   }
- 
+  instrtxt->isNew = 1; /* mark as a new definition */
   engineState->instrtxtp[instrNum] = instrtxt;
   
 }

@@ -152,7 +152,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       }
     }
     /* alloc new dspace if needed */
-    if (tp->act_instance == NULL) {
+    if (tp->act_instance == NULL || tp->isNew) {
       if (O->msglevel & RNGEMSG) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
@@ -161,6 +161,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
           csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
+      tp->isNew = 0;
     }
     /* pop from free instance chain */
     ip = tp->act_instance;
@@ -337,7 +338,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     csound->inerrcnt = 0;
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
     /* alloc new dspace if needed */
-    if (tp->act_instance == NULL) {
+    if (tp->act_instance == NULL || tp->isNew) {
       if (O->msglevel & RNGEMSG) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
@@ -346,6 +347,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
           csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
+      tp->isNew = 0;
     }
     /* pop from free instance chain */
     ip = tp->act_instance;
@@ -1362,7 +1364,7 @@ INSDS *insert_event(CSOUND *csound,
       }
     }
     /* alloc new dspace if needed */
-    if (tp->act_instance == NULL) {
+    if (tp->act_instance == NULL || tp->isNew) {
       if (O->msglevel & RNGEMSG) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (name)
@@ -1371,6 +1373,7 @@ INSDS *insert_event(CSOUND *csound,
         csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
+      tp->isNew = 0;
     }
     /* pop from free instance chain */
     ip = tp->act_instance;
