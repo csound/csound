@@ -364,7 +364,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     void    *p;
     MYFLT   *maxp;
     int32    *rngp;
-    int     n;
+    uint32_t n;
 
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
@@ -908,30 +908,36 @@ int sensevents(CSOUND *csound)
 
 
       /* calculate the number of k-periods remaining until next event */
-      if(!O->sampleAccurate){
-       if (O->Beatmode)
-        csound->cyclesRemaining =
-          RNDINT64((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
-      else {
-        csound->cyclesRemaining =
-          RNDINT64((csound->nxtim*csound->esr - csound->icurTime) / csound->ksmps);
-        csound->nxtim =
-          (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
-      } 
+      if (!O->sampleAccurate){
+        if (O->Beatmode)
+          csound->cyclesRemaining =
+            RNDINT64((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
+        else {
+          double old = csound->nxtim;
+          csound->cyclesRemaining =
+            RNDINT64((csound->nxtim*csound->esr - csound->icurTime)/csound->ksmps);
+          csound->nxtim =
+            (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
+          printf("XXX %Ld %f %f %Ld\n", csound->cyclesRemaining, csound->nxtim,
+                 old, csound->icurTime);
+        } 
       }
       else {
       /* VL 30-11-2012
         new code for sample-accurate timing needs to truncate cyclesRemaining
       */
-      if (O->Beatmode)
-        csound->cyclesRemaining = (int64_t)
-          ((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
-      else {
-        csound->cyclesRemaining = (int64_t)
-          ((csound->nxtim*csound->esr - csound->icurTime) / csound->ksmps);
-        csound->nxtim = 
-          (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
-      } 
+        if (O->Beatmode)
+          csound->cyclesRemaining = (int64_t)
+            ((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
+        else {
+          double old = csound->nxtim;
+          csound->cyclesRemaining = (int64_t)
+            ((csound->nxtim*csound->esr - csound->icurTime) / csound->ksmps);
+          csound->nxtim = 
+            (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
+          printf("XXX %Ld %f %f %Ld\n", csound->cyclesRemaining, csound->nxtim,
+                 old, csound->icurTime);
+        } 
       }
     }
 
