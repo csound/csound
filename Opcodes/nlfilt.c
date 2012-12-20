@@ -64,7 +64,8 @@ static int nlfiltset(CSOUND *csound, NLFILT *p)
 static int nlfilt(CSOUND *csound, NLFILT *p)
 {
     MYFLT   *ar;
-    int     n, nsmps;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int     point = p->point;
     int     nm1 = point;
     int     nm2 = point - 1;
@@ -91,11 +92,11 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     ynm1 = fp[nm1];                     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
-    nsmps = CS_KSMPS;
     maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT yn;
       MYFLT out;
       yn = a * ynm1 + b * ynm2 + d * ynmL * ynmL - C;
@@ -131,7 +132,8 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
 static int nlfilt2(CSOUND *csound, NLFILT *p)
 {
     MYFLT   *ar;
-    int     n, nsmps;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int     point = p->point;
     int     nm1 = point;
     int     nm2 = point - 1;
@@ -162,7 +164,8 @@ static int nlfilt2(CSOUND *csound, NLFILT *p)
     maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT yn;
       MYFLT out;
       yn = a * ynm1 + b * ynm2 + d * ynmL * ynmL - C;
