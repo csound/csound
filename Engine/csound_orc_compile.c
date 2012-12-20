@@ -657,6 +657,10 @@ static int pnum(char *s)        /* check a char string for pnum format  */
   return(-1);
 }
 
+void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt){
+  /* FIXME: implement addition to deadpool so we can recover memory later */
+}
+
 /** Insert INSTRTXT into an engineState list of INSTRTXT's, checking to see if number
  * is greater than number of pointers currently allocated and if so expand
  * pool of instruments
@@ -684,7 +688,11 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
   if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
     /* redefinition does not raise an error now, just a warning */
     csound->Warning(csound, Str("instr %ld redefined, not inserted into engine\n"), instrNum);
-    return;
+    /* here we should move the old instrument definition into a deadpool 
+       which will be checked for active instances and freed when there are no
+       further ones
+    */
+    add_to_deadpool(csound, engineState->instrtxtp[instrNum]);
     /* err++; continue; */
   }
   instrtxt->isNew = 1;
@@ -1293,8 +1301,6 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
 
 char argtyp2(char *s)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
-
-  
   char c = *s;    /*   also set lgprevdef if !c && !p && !S */
  
   /* trap this before parsing for a number! */
