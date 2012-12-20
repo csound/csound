@@ -682,6 +682,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
   }
 
   if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
+    /* redefinition does not raise an error now, just a warning */
     csound->Warning(csound, Str("instr %ld redefined, not inserted into engine\n"), instrNum);
     return;
     /* err++; continue; */
@@ -710,9 +711,15 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineSt
   return NULL;
 }
 
+/**
+  Merge a new engineState into csound->engineState
+  1) Add to stringPool, constantsPool and varPool (globals)
+  2) Call insert_instrtxt() on csound->engineState for each new instrument
+  3) Call insprep() and recalculateVarPoolMemory() for each new instrument
+
+*/
 int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
-  /* a first attempt a this merge is to make it use insert_instrtxt again */ 
   int i, end = engineState->maxinsno;
   ENGINE_STATE *current_state = &csound->engineState;
   INSTRTXT *current, *ip;
@@ -739,11 +746,11 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     gVar = gVar->next;
   }
 
-
   for(i=1; i < end; i++){
    current = engineState->instrtxtp[i];
    if(current != NULL){
    csound->Message(csound, "merging instr %d \n", i);
+    /* a first attempt a this merge is to make it use insert_instrtxt again */ 
    insert_instrtxt(csound,current,i,current_state); /* insert instrument in current engine */
    insprep(csound, current, current_state);         /* run insprep() to connect ARGS  */
    recalculateVarPoolMemory(csound, current->varPool); /* recalculate var pool */
@@ -762,10 +769,23 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
 
 
 /**
- * Compile the given TREE node into structs for a given engineState
- *
+ * Compile the given TREE node into structs 
+    
+   In the the first compilation run, it:
+   1) Uses the empty csound->engineState
+   2) Creates instrument 0
+   3) Creates other instruments and UDOs
+   4) Runs insprep() and recalculateVarpool() for each instrument
+   
+   In any subsequent compilation run, it:
+   1) Creates a new engineState
+   2) Creates instruments other than instrument 0 (which is ignored)
+   3) Calls engineState_merge() and engineState_free()
+
+  VL 20-12-12
+
  * ASSUMES: TREE has been validated prior to compilation
- *          and instr0 has been created.
+ *          
  *
  */
 PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
@@ -1032,6 +1052,11 @@ void debugPrintCsound(CSOUND* csound) {
   }   
 }
 
+/**
+    Parse and compile an orchestra given on an string (OPTIONAL)
+    if str is NULL the string is taken from the internal corfile
+    containing the initial orchestra file passed to Csound.
+*/
 PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
 {
   int retVal;
