@@ -283,6 +283,7 @@ typedef struct {
     struct opcodinfo *opcode_info;  /* UDO info (when instrs are UDOs) */
     char    *insname;               /* instrument name */
     int     instcnt;                /* Count number of instances ever */
+    int     isNew;                  /* is this a new definition */
   } INSTRTXT;
 
   /**
