@@ -186,7 +186,8 @@ int Moog1(CSOUND *csound, MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    int32        n, nsmps = CS_KSMPS;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
 
@@ -215,7 +216,8 @@ int Moog1(CSOUND *csound, MOOG1 *p)
     }
     p->vibr.rate = *p->vibf * p->vibr.wave->flen * csound->onedsr;
 
-    for (n = 0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n = offset; n<nsmps; n++) {
       MYFLT     temp;
       MYFLT     output;
       int32      itemp;

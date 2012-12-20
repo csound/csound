@@ -131,14 +131,14 @@ garvb  =       garvb + (amix * p7)
 ifreq  =       cpspch(p5)                    ; p7 = filtersweep strtfreq
                                              ; p8 = filtersweep endfreq
 k1     expon   p7, p3, p8                    ; p9 = bandwidth
-;;anoise rand    8000                          ; p10 = reverb send factor
-;;a1     reson   anoise, k1, k1 / p9, 1
+anoise rand    8000                          ; p10 = reverb send factor
+a1     reson   anoise, k1, k1 / p9, 1
 k2     oscil   .6, 11.3, 1, .1
 k3     expseg  .001,p3 * .001, p6, p3 * .999, .001
-;;a2     oscil   k3, ifreq + k2, 15
+a2     oscil   k3, ifreq + k2, 15
 
-;;       outs   (a1 * .8) + a2, (a1 * .6) + (a2 * .7)
-;;garvb  =      garvb + (a2 * p10)
+       outs   (a1 * .8) + a2, (a1 * .6) + (a2 * .7)
+garvb  =      garvb + (a2 * p10)
        endin
 ;============================================================================;
 ;==================================== GREEN =================================;
@@ -154,15 +154,15 @@ k7     randh   p11, k4                       ; p12 = rand freq
 k6     oscil   k4, k5, 1, .3
 
 kenv1  linen   p6, .03, p3, .2
-;;a1     foscil  kenv1, ifreq + k6, k1, k2, k7, 1
+a1     foscil  kenv1, ifreq + k6, k1, k2, k7, 1
 
 kenv2  linen   p6, .1, p3, .1
-;;a2     oscil   kenv2, ifreq * 1.001, 1
+a2     oscil   kenv2, ifreq * 1.001, 1
 
-;;amix   =       a1 + a2
+amix   =       a1 + a2
 kpan   linseg  int(p8), p3 * .7, frac(p8), p3 * .3, int(p8)
-;;       outs    amix * kpan, amix * (1 - kpan)
-;;garvb  =       garvb + (amix * p7)
+       outs    amix * kpan, amix * (1 - kpan)
+garvb  =       garvb + (amix * p7)
        endin
 ;============================================================================;
 ;================================== COPPER ==================================;

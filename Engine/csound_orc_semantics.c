@@ -679,6 +679,14 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     case T_IDENT:
       csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
                       l->value->lexeme); break;
+    
+    case T_ARRAY:
+      csound->Message(csound,"name=\"T_ARRAY\""); break;
+            
+    case T_ARRAY_IDENT:
+      csound->Message(csound,"name=\"T_ARRAY_IDENT\" varname=\"%s\"",
+                      l->value->lexeme); break;
+    
     /*case T_IDENT_I:
       csound->Message(csound,"name=\"IDENT_I\" varname=\"%s\"",
                       l->value->lexeme); break;
@@ -783,7 +791,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"unknown\"(%d)", l->type);
     }
 
-    csound->Message(csound, " (%d:%d)>\n", l->line, l->locn);
+    csound->Message(csound, " loc=\"%d:%d\">\n", l->line, l->locn);
 
     print_tree_xml(csound, l->left,n+1, TREE_LEFT);
     print_tree_xml(csound, l->right,n+1, TREE_RIGHT);
