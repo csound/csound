@@ -21,7 +21,7 @@ add_test(NAME TestCsoundTypeSystem
 
 add_executable(csoundMessageBufferTest csound_message_buffer_test.c)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/../../H")
-target_link_libraries(csoundMessageBufferTest ${CSOUNDLIB} cunit ${CUNIT_LIBRARY})
+target_link_libraries(csoundMessageBufferTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
 add_test(NAME TestCsoundMessageBuffer
 	COMMAND $<TARGET_FILE:csoundMessageBufferTest> ${TEST_ARGS})
 endif()
