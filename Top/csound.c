@@ -398,6 +398,8 @@ extern "C" {
      NULL,
      MAXINSNO}, /* engineState */
     (INSTRTXT *) NULL, /* instr0  */
+    (INSTRTXT**)NULL,  /* dead_instr_pool */
+    0, /* dead_instr_no */
     (TYPE_POOL*)NULL, 
     /* (CS_VAR_POOL*)NULL, */
     (OPDS*) NULL,   /*  ids                 */

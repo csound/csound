@@ -657,8 +657,63 @@ static int pnum(char *s)        /* check a char string for pnum format  */
   return(-1);
 }
 
+/**
+  This function deletes an inactive instrument which has been replaced
+ */
+void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt){
+
+    INSTRTXT *ip = instrtxt;
+    INSDS *active = ip->instance;
+    while (active != NULL) {   /* remove instance memory */
+      INSDS   *nxt = active->nxtinstance;
+      if (active->fdchp != NULL)
+        fdchclose(csound, active);
+      if (active->auxchp != NULL)
+        auxchfree(csound, active);
+      mfree(csound, active);
+      active = nxt;
+    }
+    OPTXT *t = ip->nxtop;
+    while (t) { 
+          OPTXT *s = t->nxtop;
+          mfree(csound, t);
+          t = s;
+        }
+     mfree(csound, ip);
+     csound->Message(csound, "-- deleted instr from deadpool \n"); 
+}
+
+/**
+ * This function has two purposes: 
+ * 1) check deadpool for active instances, and
+ * if none is active, send it to be deleted
+ * 2) add a dead instr to deadpool (because it still has active instances)
+ */
 void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt){
-  /* FIXME: implement addition to deadpool so we can recover memory later */
+  /* check current items in deadpool to see if they need deleting */
+  int i;
+  for(i=0; i < csound->dead_instr_no; i++){
+    if(csound->dead_instr_pool[i] != NULL) {
+   INSDS *active = csound->dead_instr_pool[i]->instance;
+    while (active != NULL) {
+      if(active->actflg) {
+        add_to_deadpool(csound,csound->dead_instr_pool[i]);
+        break;
+      }
+      active = active->nxtinstance;
+    }
+    /* no active instances */
+    if (active == NULL) {
+        free_instrtxt(csound, csound->dead_instr_pool[i]); 
+        csound->dead_instr_pool[i] = NULL;
+      }
+    }    
+  }
+   /* add latest instr to deadpool */
+    csound->dead_instr_pool = (INSTRTXT**)
+      mrealloc(csound, csound->dead_instr_pool, ++csound->dead_instr_no * sizeof(INSTRTXT*));
+    csound->dead_instr_pool[csound->dead_instr_no-1] = instrtxt;
+    csound->Message(csound, " -- added to deadpool slot %d \n", csound->dead_instr_no-1);
 }
 
 /** Insert INSTRTXT into an engineState list of INSTRTXT's, checking to see if number
@@ -692,7 +747,16 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
        which will be checked for active instances and freed when there are no
        further ones
     */
-    add_to_deadpool(csound, engineState->instrtxtp[instrNum]);
+    INSDS *active = engineState->instrtxtp[instrNum]->instance;
+    while (active != NULL) {
+      if(active->actflg) {
+        add_to_deadpool(csound, engineState->instrtxtp[instrNum]);
+        break;
+      }
+      active = active->nxtinstance;
+    }
+    /* no active instances */
+    if (active == NULL) free_instrtxt(csound, engineState->instrtxtp[instrNum]);
     /* err++; continue; */
   }
   instrtxt->isNew = 1;
@@ -739,7 +803,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     string_pool_find_or_add(csound, current_state->stringPool, val->value);
     val = val->next;
   }
-  int offset = current_state->constantsPool->count;
+
   for(count = 0; count < engineState->constantsPool->count; count++) {
     csound->Message(csound, " merging constants %d) %f\n", count, engineState->constantsPool->values[count]);
     myflt_pool_find_or_add(csound, current_state->constantsPool, engineState->constantsPool->values[count]); 
@@ -774,7 +838,6 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
     mfree(csound, engineState);
     return 0;
 } 
-
 
 /**
  * Compile the given TREE node into structs 
