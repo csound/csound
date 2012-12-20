@@ -129,7 +129,8 @@ int mandolinset(CSOUND *csound, MANDOL *p)
 int mandolin(CSOUND *csound, MANDOL *p)
 {
     MYFLT *ar = p->ar;
-    int  n,nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT lastOutput;
     MYFLT loopGain;
@@ -152,7 +153,8 @@ int mandolin(CSOUND *csound, MANDOL *p)
         loopGain = (FL(1.0) - amp) * FL(0.5);
     }
 
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT temp = FL(0.0);
       if (!p->waveDone) {
         p->waveDone = infoTick(p);       /* as long as it goes . . .   */
