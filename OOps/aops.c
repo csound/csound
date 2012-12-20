@@ -285,10 +285,9 @@ int modkk(CSOUND *csound, AOP *p)
 
 #define KA(OPNAME,OP)                           \
   int OPNAME(CSOUND *csound, AOP *p) {          \
-    int     n;                                  \
     MYFLT   *r, a, *b;                          \
     uint32_t offset = p->h.insdshead->ksmps_offset;  \
-    int nsmps = CS_KSMPS;                       \
+    uint32_t n, nsmps = CS_KSMPS;               \
     r = p->r;                                   \
     a = *p->a;                                  \
     b = p->b;                                   \
@@ -305,10 +304,9 @@ KA(divka,/)
 
 int modka(CSOUND *csound, AOP *p)
 {
-    int     n;
     MYFLT   *r, a, *b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    int     nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS;
 
     r = p->r;
     a = *p->a;
@@ -321,10 +319,9 @@ int modka(CSOUND *csound, AOP *p)
 
 #define AK(OPNAME,OP)                           \
   int OPNAME(CSOUND *csound, AOP *p) {          \
-    int     n;                                  \
     MYFLT   *r, *a, b;                          \
     uint32_t offset = p->h.insdshead->ksmps_offset;  \
-    int nsmps = CS_KSMPS;                       \
+    uint32_t n, nsmps = CS_KSMPS;               \
     r = p->r;                                   \
     a = p->a;                                   \
     b = *p->b;                                  \
@@ -341,10 +338,9 @@ AK(divak,/)
 
 int modak(CSOUND *csound, AOP *p)
 {
-    int     n;
     MYFLT   *r, *a, b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    int     nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS;
 
     r = p->r;
     a = p->a;
@@ -357,10 +353,9 @@ int modak(CSOUND *csound, AOP *p)
 
 #define AA(OPNAME,OP)                           \
   int OPNAME(CSOUND *csound, AOP *p) {          \
-    int     n;                                  \
     MYFLT   *r, *a, *b;                         \
     uint32_t offset = p->h.insdshead->ksmps_offset;  \
-    int nsmps = CS_KSMPS;                       \
+    uint32_t n, nsmps = CS_KSMPS;               \
     r = p->r;                                   \
     a = p->a;                                   \
     b = p->b;                                   \
@@ -377,10 +372,9 @@ AA(divaa,/)
 
 int modaa(CSOUND *csound, AOP *p)
 {
-    int     n;
     MYFLT   *r, *a, *b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    int     nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS;
 
     r = p->r;
     a = p->a;

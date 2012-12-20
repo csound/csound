@@ -118,7 +118,8 @@ void vosim_pulse(CSOUND* csound, VOSIM *p)
 
 int vosim(CSOUND* csound, VOSIM *p)
 {
-    int32 nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *ar = p->ar;
     MYFLT *ftdata;
     int32  lobits;
@@ -128,7 +129,8 @@ int vosim(CSOUND* csound, VOSIM *p)
     ftdata = ftp->ftable;
     lobits = ftp->lobits;
 
-    while (nsmps > 0) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       /* new event? */
       if (p->timrem == 0)
         vosim_event(csound, p);
@@ -140,19 +142,19 @@ int vosim(CSOUND* csound, VOSIM *p)
       if (p->pulstogo > 0) {
         /* produce one sample */
         p->pulsephs &= PHMASK;
-        *ar++ = *(ftdata + (p->pulsephs >> lobits)) * p->pulseamp;
+        ar[n] = *(ftdata + (p->pulsephs >> lobits)) * p->pulseamp;
         --p->timrem;
-        --nsmps;
         p->pulsephs += p->pulseinc;
       }
       else {
         /* silence after last pulse in burst: */
         /* bypass regular synthesis and fill output with zeros */
-        while (p->timrem && nsmps) {
-          *ar++ = FL(0.0);
+        while (p->timrem && n<nsmps) {
+          ar[n] = FL(0.0);
           --p->timrem;
-          --nsmps;
+          n++;
         }
+        n--;
       }
     }
     return OK;

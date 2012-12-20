@@ -242,13 +242,17 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
 static int ftconv_perf(CSOUND *csound, FTCONV *p)
 {
     MYFLT         *x, *rBuf;
-    int           i, n, nn, nSamples, rBufPos;
-    int           m = CS_KSMPS;
+    int           i, n, nSamples, rBufPos;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nn, nsmps = CS_KSMPS;
 
     if (p->initDone <= 0) goto err1;
     nSamples = p->partSize;
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);
-    for (nn = 0; nn < m; nn++) {
+    if (offset)
+      for (n = 0; n < p->nChannels; n++)
+        memset(p->aOut[n], '\0', offset*sizeof(MYFLT));
+    for (nn = offset; nn < nsmps; nn++) {
       /* store input signal in buffer */
       rBuf[p->cnt] = p->aIn[nn];
       /* copy output signals from buffer */

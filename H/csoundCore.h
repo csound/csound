@@ -268,7 +268,7 @@ typedef struct {
     int16   muted;
 //    int32   localen;
     int32   opdstot;                /* Total size of opds structs in instr */
-    int32   *inslist;               /* Only used in parsing (?) */
+//    int32   *inslist;               /* Only used in parsing (?) */
     MYFLT   *psetdata;              /* Used for pset opcode */
     struct insds * instance;        /* Chain of allocated instances of
                                        this instrument */
@@ -283,6 +283,7 @@ typedef struct {
     struct opcodinfo *opcode_info;  /* UDO info (when instrs are UDOs) */
     char    *insname;               /* instrument name */
     int     instcnt;                /* Count number of instances ever */
+    int     isNew;                  /* is this a new definition */
   } INSTRTXT;
 
   /**
@@ -823,11 +824,8 @@ typedef struct NAME__ {
     CS_VAR_POOL    *varPool;  /* global variable pool */
     MYFLT_POOL*   constantsPool;
     STRING_POOL*  stringPool;
-    OENTRY        *opcodlst;  /* list of opcodes      */
-    int           *opcode_list;
-    OENTRY        *oplstend;
+    int            maxopcno;
     OPCODINFO     *opcodeInfo;
-    int           maxopcno;  
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor; 
     void          *instrumentNames; /* instrument names */
@@ -1271,9 +1269,9 @@ typedef struct NAME__ {
 //    int16         ngotos;
     int           peakchunks;
     int           keep_tmp;
-    /* OENTRY        *opcodlst;
+    OENTRY        *opcodlst;
     int           *opcode_list;
-    OENTRY        *oplstend; */
+    OENTRY        *oplstend; 
     /* int           maxopcno; */
     int32         nrecs;
     FILE*         Linepipe;
