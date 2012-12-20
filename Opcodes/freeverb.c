@@ -172,8 +172,9 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     double          feedback, damp1, damp2, x;
     freeVerbComb    *combp;
     freeVerbAllPass *allpassp;
-    int             i, n;
-    int             nsmps = CS_KSMPS;
+    int             i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     /* check if opcode was correctly initialised */
     if (UNLIKELY(p->auxData.size <= 0L || p->auxData.auxp == NULL)) goto err1;
@@ -218,8 +219,10 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
         p->tmpBuf[n] = (MYFLT) x;
       }
     }
+
     /* write left channel output */
-    for (n = 0; n < nsmps; n++)
+    memset(p->aOutL, '\0', offset*sizeof(MYFLT));
+    for (n = offset; n < nsmps; n++)
       p->aOutL[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
     /* comb filters (right channel) */
     memset(p->tmpBuf, 0, sizeof(MYFLT)*nsmps);
@@ -250,7 +253,8 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
       }
     }
     /* write right channel output */
-    for (n = 0; n < nsmps; n++)
+    memset(p->aOutR, '\0', offset*sizeof(MYFLT));
+    for (n = offset; n < nsmps; n++)
       p->aOutR[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
 
     return OK;
