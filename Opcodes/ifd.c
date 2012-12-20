@@ -223,16 +223,17 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
 
 static int ifd_process(CSOUND * csound, IFD * p)
 {
-    int     i, n;
+    int     i;
     MYFLT  *sigin = p->in;
     MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
     int     fftsize = p->fftsize;
     int    *counter = (int *) p->counter.auxp;
-    int     ksmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int     frames = p->frames;
     int     cnt = p->cnt;
 
-    for (n = 0; n < ksmps; n++) {
+    for (n = offset; n < nsmps; n++) {
       for (i = 0; i < frames; i++) {
         sigframe[i * fftsize + counter[i]] = sigin[n];
         counter[i]++;

@@ -31,7 +31,7 @@
 
 char *csound_orcget_text ( void *scanner );
 
-extern  char argtyp2(CSOUND*, char*);
+extern  char argtyp2(char*);
 extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
 /* TREE* force_rate(TREE* a, char t) */
@@ -367,7 +367,7 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
  *  Replaces = with correct version for args
  */
 char* get_assignment_type(CSOUND *csound, char * ans, TREE* arg1) {
-    char c = argtyp2(csound, ans);
+    char c = argtyp2( ans);
     char* str = (char*)mcalloc(csound, 65);
 
     switch (c) {
@@ -375,7 +375,7 @@ char* get_assignment_type(CSOUND *csound, char * ans, TREE* arg1) {
       strcpy(str, "strcpy");
       break;
     case 'a':
-      c = argtyp2(csound, arg1->value->lexeme);
+      c = argtyp2( arg1->value->lexeme);
       strcpy(str, (c == 'a' ? "=.a" : "upsamp"));
       /* strcpy(str, "=.a"); */
       break;
@@ -825,7 +825,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     if (l == NULL || l->type == LABEL_TOKEN) return;
 
     int opnum = find_opcode(csound, l->value->lexeme);
-    OENTRY *ep = csound->engineState.opcodlst + opnum;
+    OENTRY *ep = csound->opcodlst + opnum;
     int nreqd = 0;
     int incnt = tree_arg_list_count(l->right);
     TREE * temp;
@@ -903,7 +903,7 @@ char tree_argtyp(CSOUND *csound, TREE *tree) {
       return 'i';
     }
 
-    return argtyp2(csound, tree->value->lexeme);
+    return argtyp2( tree->value->lexeme);
 }
 
 void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
@@ -922,7 +922,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     }
     else {
       int opnum = find_opcode(csound, tree->value->lexeme);
-      OENTRY *ep = csound->engineState.opcodlst + opnum;
+      OENTRY *ep = csound->opcodlst + opnum;
 
 /*     int incnt = tree_arg_list_count(tree->right); */
 
