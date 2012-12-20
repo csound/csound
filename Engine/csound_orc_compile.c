@@ -43,11 +43,11 @@ static  void    lgbuild(CSOUND *, INSTRTXT *, char *, int inarg, ENGINE_STATE *e
 static  void    gblnamset(CSOUND *, char *, ENGINE_STATE *engineState);
 static  void    lclnamset(CSOUND *, INSTRTXT* ip, char *);
 static  int     pnum(char *s) ;
-static  int     lgexist2(INSTRTXT*, const char *s, ENGINE_STATE *engineState);
+static  int     lgexist2(CSOUND *csound, INSTRTXT*, const char *s, ENGINE_STATE *engineState);
 static void     unquote_string(char *, const char *);
 extern void     print_tree(CSOUND *, char *, TREE *);
 void close_instrument(CSOUND *csound, INSTRTXT * ip);
-char argtyp2(char *s);
+char argtyp2(CSOUND *csound, char *s);
 #define strsav_string(a) string_pool_save_string(csound, csound->stringSavePool, a);
 
 /* NOTE: these assume that sizeof(MYFLT) is either 4 or 8 */
@@ -153,7 +153,7 @@ static inline void append_optxt(OPTXT *op1, OPTXT *op2)
   last_optxt(op1)->nxtop = op2;
 }
 
-void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
+void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
 {
   int n = tp->inlist->count;
   char *s;
@@ -192,7 +192,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       //        lblrequest(csound, s);        /*      req a search */
       continue;                     /*      chk it later */
     }
-    tfound = argtyp2(s);     /* else get arg type */
+    tfound = argtyp2(csound, s);     /* else get arg type */
     if (tfound == 'a' && n < 31) /* JMC added for FOG */
       /* 4 for FOF, 8 for FOG; expanded to 15  */
       tp->xincod |= (1 << n);
@@ -202,7 +202,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
   }
 }
 
-void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
+void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep, int line)
 {
   int n = tp->outlist->count;
   char *s;
@@ -215,7 +215,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
   while (n--) {                                     /* outargs:  */
     s = tp->outlist->arg[n];
     treqd = types[n];
-    tfound = argtyp2(s);                     /*  found    */
+    tfound = argtyp2(csound, s);                     /*  found    */
     if (tfound == 'a' && n < 31)
       tp->xoutcod |= (1 << n);
     if (tfound == 'S' && n < 31)
@@ -323,7 +323,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
 	arg = outargs->value->lexeme;
 	tp->outlist->arg[argcount++] = strsav_string(arg);
       }
-      set_xincod(csound, tp, ep);
+      set_xincod(csound, tp, ep, root->line);
  
       /* OUTARGS */
       for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
@@ -335,7 +335,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
 	}
 	else {
 	  if (arg[0] == 'w' &&
-	      lgexist2(ip, arg, engineState) != 0) {
+	      lgexist2(csound, ip, arg, engineState) != 0) {
 	    synterr(csound, Str("output name previously used, "
 				"type 'w' must be uniquely defined, line %d"),
 		    root->line);
@@ -344,11 +344,11 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
 	}
 
       }
-      set_xoutcod(csound, tp, ep);
+      set_xoutcod(csound, tp, ep, root->line);
 
       if (root->right != NULL) {
 	if (ep->intypes[0] != 'l') {     /* intype defined by 1st inarg */
-	  tp->intype = argtyp2(tp->inlist->arg[0]);
+	  tp->intype = argtyp2(csound, tp->inlist->arg[0]);
 	}
 	else  {
 	  tp->intype = 'l';          /*   (unless label)  */
@@ -356,7 +356,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
       }
 
       if (root->left != NULL) {      /* pftype defined by outarg */
-	tp->pftype = argtyp2(root->left->value->lexeme);
+	tp->pftype = argtyp2(csound, root->left->value->lexeme);
       }
       else {                            /*    else by 1st inarg     */
 	tp->pftype = tp->intype;
@@ -657,8 +657,7 @@ static int pnum(char *s)        /* check a char string for pnum format  */
   return(-1);
 }
 
-/**
- * Insert INSTRTXT into an engineState list of INSTRTXT's, checking to see if number
+/** Insert INSTRTXT into an engineState list of INSTRTXT's, checking to see if number
  * is greater than number of pointers currently allocated and if so expand
  * pool of instruments
  */
@@ -684,12 +683,11 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
 
   if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
     /* redefinition does not raise an error now, just a warning */
-    /* and we allow Csound to carry on */
-    csound->Warning(csound, Str("instr %ld redefined, replacing previous copy **** \n"), instrNum);
-    /* return; */
+    csound->Warning(csound, Str("instr %ld redefined, not inserted into engine\n"), instrNum);
+    return;
     /* err++; continue; */
   }
-  instrtxt->isNew = 1; /* mark as a new definition */
+  instrtxt->isNew = 1;
   engineState->instrtxtp[instrNum] = instrtxt;
   
 }
@@ -718,22 +716,22 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineSt
   1) Add to stringPool, constantsPool and varPool (globals)
   2) Call insert_instrtxt() on csound->engineState for each new instrument
   3) Call insprep() and recalculateVarPoolMemory() for each new instrument
- 
+
 */
 int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
   int i, end = engineState->maxinsno;
   ENGINE_STATE *current_state = &csound->engineState;
-  INSTRTXT *current;
+  INSTRTXT *current, *ip;
   
   STRING_VAL* val = engineState->stringPool->values;
-
   int count = 0;
   while(val != NULL) {
     csound->Message(csound, " merging strings %d) %s\n", count++, val->value);
     string_pool_find_or_add(csound, current_state->stringPool, val->value);
     val = val->next;
   }
+  int offset = current_state->constantsPool->count;
   for(count = 0; count < engineState->constantsPool->count; count++) {
     csound->Message(csound, " merging constants %d) %f\n", count, engineState->constantsPool->values[count]);
     myflt_pool_find_or_add(csound, current_state->constantsPool, engineState->constantsPool->values[count]); 
@@ -744,7 +742,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   while(gVar != NULL) {
     csound->Message(csound, " merging  %d) %s:%s\n", count++, 
 		    gVar->varName, gVar->varType->varTypeName);
-    csoundAddVariable(current_state->varPool, csoundCreateVariable(csound, csound->typePool,gVar->varType, gVar->varName));
+    csoundAddVariable(current_state->varPool, csoundCreateVariable(csound, csound->typePool, gVar->varType->varTypeName, gVar->varName));
     gVar = gVar->next;
   }
 
@@ -769,6 +767,7 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
     return 0;
 } 
 
+
 /**
  * Compile the given TREE node into structs 
     
@@ -786,6 +785,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
   VL 20-12-12
 
  * ASSUMES: TREE has been validated prior to compilation
+ *          
+ *
  */
 PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 {
@@ -797,6 +798,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   int32        count, sumcount; //, instxtcount, optxtcount;
   TREE * current = root;
   ENGINE_STATE *engineState;
+  int  new_state = 0;
 
   if(csound->instr0 == NULL) {
      engineState = &csound->engineState;
@@ -1153,7 +1155,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
 
 /* returns non-zero if 's' is defined in the global or local pool of names */
-static int lgexist2(INSTRTXT* ip, const char* s, ENGINE_STATE *engineState) 
+static int lgexist2(CSOUND* csound, INSTRTXT* ip, const char* s, ENGINE_STATE *engineState) 
 {
   int retVal = 0;   
   if(csoundFindVariableWithName(engineState->varPool, s) != NULL) {
@@ -1184,7 +1186,7 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s, int inarg, ENGINE_STA
     temp = mcalloc(csound, strlen(s) + 1);
     unquote_string(temp, s);
     string_pool_find_or_add(csound, engineState->stringPool, temp);
-  } else if (!lgexist2(ip, s, engineState) && !inarg) {
+  } else if (!lgexist2(csound, ip, s, engineState) && !inarg) {
     if (c == 'g' || (c == '#' && s[1] == 'g'))
       gblnamset(csound, s, engineState);
     else
@@ -1290,7 +1292,7 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
   csoundAddVariable(ip->varPool, var);
 }
 
-char argtyp2(char *s)
+char argtyp2(CSOUND *csound, char *s)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
   char c = *s;    /*   also set lgprevdef if !c && !p && !S */
 
