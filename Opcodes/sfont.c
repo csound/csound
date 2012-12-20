@@ -449,11 +449,13 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
 
 static int SfPlay(CSOUND *csound, SFPLAY *p)
 {
-    MYFLT *out1 = p->out1, *out2 = p->out2, *env = p->env;
-    int   n, nsmps = CS_KSMPS, j = p->spltNum, arate;
+    MYFLT   *out1 = p->out1, *out2 = p->out2, *env = p->env;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop= p->startloop, *endloop= p->endloop,
-      *tinc = p->ti;
+          *tinc = p->ti;
     SHORT *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
@@ -482,7 +484,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Linear_interpolation Stereo_out  Unlooped
           }
@@ -501,14 +503,14 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Linear_interpolation Stereo_out     Looped
           }
         }
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Linear_interpolation Stereo_out Unlooped
           }
         }
@@ -519,14 +521,14 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
     }
     if (arate) {
       MYFLT *amp = p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
         out2[n] *= amp[n];
       }
     }
     else {
       MYFLT famp = *p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
         out2[n] *= famp;
       }
@@ -536,16 +538,18 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
 
 static int SfPlay3(CSOUND *csound, SFPLAY *p)
 {
-    MYFLT *out1 = p->out1, *out2 = p->out2, *env = p->env;
-    int n, nsmps = CS_KSMPS, j = p->spltNum, arate;
+    MYFLT    *out1 = p->out1, *out2 = p->out2, *env = p->env;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop = p->startloop,
-      *endloop = p->endloop, *tinc = p->ti;
+          *endloop = p->endloop, *tinc = p->ti;
     SHORT *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
-      *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
-      *release = p->release, *attr = p->attr;
+          *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
+          *release = p->release, *attr = p->attr;
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
@@ -560,7 +564,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Cubic_interpolation Stereo_out      Looped
           }
@@ -568,7 +572,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Cubic_interpolation Stereo_out      Unlooped
           }
@@ -586,14 +590,14 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Cubic_interpolation Stereo_out      Looped
           }
         }
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Cubic_interpolation Stereo_out      Unlooped
           }
         }
@@ -605,14 +609,14 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
 
     if (arate) {
       MYFLT *amp = p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
         out2[n] *= amp[n];
       }
     }
     else {
       MYFLT famp = *p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
         out2[n] *= famp;
       }
@@ -714,16 +718,18 @@ static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
 
 static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 {
-    MYFLT *out1 = p->out1 , *env  = p->env;
-    int n, nsmps = CS_KSMPS, j = p->spltNum, arate;
+    MYFLT   *out1 = p->out1 , *env  = p->env;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end, *startloop= p->startloop, *endloop= p->endloop,
-      *tinc = p->ti;
+          *tinc = p->ti;
     SHORT *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *attenuation = p->attenuation, *attack = p->attack, *decr = p->decr,
-      *decay = p->decay, *sustain= p->sustain, *release = p->release,
-      *attr = p->attr;
+          *decay = p->decay, *sustain= p->sustain, *release = p->release,
+          *attr = p->attr;
 
     arate = (p->XINCODE) ? 1 : 0;
 
@@ -736,7 +742,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 
         if (*mode == 1 || *mode ==3) {
           int flag =0;
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             if (*p->ienv > 1) { ExpEnvelope }
             else if (*p->ienv > 0) { LinEnvelope }
@@ -744,7 +750,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
           }
         }
         else if (*phs < *end) {
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             if (*p->ienv > 1) { ExpEnvelope }
             else if (*p->ienv > 0) { LinEnvelope }
@@ -763,14 +769,14 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
         double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int flag =0;
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             if (*p->ienv > 1) { ExpEnvelope }
             else if (*p->ienv > 0) { LinEnvelope }
             { Linear_interpolation Mono_out Looped }
           }
         }
         else if (*phs < *end) {
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             if (*p->ienv > 1) { ExpEnvelope }
             else if (*p->ienv > 0) { LinEnvelope }
             { Linear_interpolation Mono_out Unlooped }
@@ -783,13 +789,13 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
     }
     if (arate) {
       MYFLT *amp = p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
       }
     }
     else {
       MYFLT famp = *p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
       }
     }
@@ -798,16 +804,18 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 
 static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
 {
-    MYFLT *out1 = p->out1, *env = p->env;
-    int n, nsmps = CS_KSMPS, j = p->spltNum, arate;
-    SHORT **base = p->base;
-    DWORD *end = p->end,  *startloop = p->startloop,
-      *endloop = p->endloop, *tinc = p->ti;
-    SHORT *mode = p->mode;
+    MYFLT   *out1 = p->out1, *env = p->env;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j = p->spltNum, arate;
+    SHORT  **base = p->base;
+    DWORD   *end = p->end,  *startloop = p->startloop,
+            *endloop = p->endloop, *tinc = p->ti;
+    SHORT   *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *attenuation = p->attenuation,*attack = p->attack, *decr = p->decr,
-      *decay = p->decay, *sustain= p->sustain, *release = p->release,
-      *attr = p->attr;
+          *decay = p->decay, *sustain= p->sustain, *release = p->release,
+          *attr = p->attr;
 
     arate = (p->XINCODE) ? 1 : 0;
 
@@ -822,7 +830,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Cubic_interpolation Mono_out        Looped
           }
@@ -830,7 +838,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Cubic_interpolation Mono_out        Unlooped
           }
@@ -849,14 +857,14 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Cubic_interpolation Mono_out Looped
           }
         }
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Cubic_interpolation Mono_out Unlooped
           }
         }
@@ -867,13 +875,13 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
     }
     if (arate) {
       MYFLT *amp = p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
       }
     }
     else {
       MYFLT famp = *p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
       }
     }
@@ -970,15 +978,17 @@ static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2, *env = p->env;
-    int n, nsmps= CS_KSMPS, j = p->spltNum, arate;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
-      *endloop= p->endloop, *tinc = p->ti;
+          *endloop= p->endloop, *tinc = p->ti;
     SHORT *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
-      *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
-      *release = p->release, *attr = p->attr;
+          *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
+          *release = p->release, *attr = p->attr;
 
     arate = (p->XINCODE) ? 1 : 0;
 
@@ -994,7 +1004,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Linear_interpolation        Stereo_out      Looped
           }
@@ -1002,7 +1012,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Linear_interpolation Stereo_out     Unlooped
           }
@@ -1021,14 +1031,14 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Linear_interpolation        Stereo_out      Looped
           }
         }
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Linear_interpolation        Stereo_out      Unlooped
           }
         }
@@ -1040,14 +1050,14 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 
     if (arate) {
       MYFLT *amp = p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
         out2[n] *= amp[n];
       }
     }
     else {
       MYFLT famp = *p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
         out2[n] *= famp;
       }
@@ -1058,7 +1068,9 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2,*env =p->env;
-    int n, nsmps= CS_KSMPS, j = p->spltNum, arate;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
@@ -1083,7 +1095,7 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Cubic_interpolation Stereo_out      Looped
           }
@@ -1091,7 +1103,7 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Cubic_interpolation Stereo_out      Unlooped
           }
@@ -1110,14 +1122,14 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Cubic_interpolation Stereo_out      Looped
           }
         }
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Cubic_interpolation Stereo_out      Unlooped
           }
         }
@@ -1129,14 +1141,14 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 
     if (arate) {
       MYFLT *amp = p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
         out2[n] *= amp[n];
       }
     }
     else {
       MYFLT famp = *p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
         out2[n] *= famp;
       }
@@ -1226,7 +1238,9 @@ static int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
 static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1, *env = p->env;
-    int n, nsmps= CS_KSMPS, j = p->spltNum, arate;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop,
       *tinc = p->ti;
@@ -1250,7 +1264,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Linear_interpolation        Mono_out        Looped
           }
@@ -1258,7 +1272,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Linear_interpolation Mono_out       Unlooped
           }
@@ -1277,14 +1291,14 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Linear_interpolation Mono_out Looped
           }
         }
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Linear_interpolation Mono_out Unlooped
           }
         }
@@ -1295,13 +1309,13 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
     }
     if (arate) {
       MYFLT *amp = p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
       }
     }
     else {
       MYFLT famp = *p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
       }
     }
@@ -1311,7 +1325,9 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1, *env = p->env  ;
-    int n, nsmps= CS_KSMPS, j = p->spltNum, arate;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
@@ -1334,7 +1350,7 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Cubic_interpolation Mono_out Looped
           }
@@ -1342,7 +1358,7 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Cubic_interpolation Mono_out Unlooped
           }
@@ -1361,14 +1377,14 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Cubic_interpolation Mono_out Looped
           }
         }
         else if (*phs < *end) {
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             Cubic_interpolation Mono_out Unlooped
           }
         }
@@ -1379,13 +1395,13 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
     }
     if (arate) {
       MYFLT *amp = p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
       }
     }
     else {
       MYFLT famp = *p->xamp;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
       }
     }
@@ -2266,10 +2282,12 @@ static int sflooper_init(CSOUND *csound, sflooper *p)
 
 static int sflooper_process(CSOUND *csound, sflooper *p)
 {
-    int i,k, n = CS_KSMPS;
-    MYFLT *outL = p->outL, *outR = p->outR, out, sr = csound->GetSr(csound);
-    MYFLT amp = *(p->amp), pit = *(p->pitch);
-    SHORT **base = p->sBase, *tab;
+    int      k;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
+    MYFLT    *outL = p->outL, *outR = p->outR, out, sr = csound->GetSr(csound);
+    MYFLT    amp = *(p->amp), pit = *(p->pitch);
+    SHORT    **base = p->sBase, *tab;
     double *ndx;
     MYFLT frac0, frac1, *etab, left, right;
     int *nend = p->end, *loop_end = p->lend, *loop_start = p->lstart,
@@ -2289,8 +2307,8 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
 
     /* loop parameters & check */
     if (pit < FL(0.0)) pit = FL(0.0);
-    memset(outL, 0, n*sizeof(MYFLT));
-    memset(outR, 0, n*sizeof(MYFLT));
+    memset(outL, 0, nsmps*sizeof(MYFLT));
+    memset(outR, 0, nsmps*sizeof(MYFLT));
 
     for(k=0; k < spltNum; k++){
 
@@ -2327,7 +2345,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
         }
         *firsttime = 0;
       }
-      for (i=0; i < n; i++) {
+      for (i=offset; i < nsmps; i++) {
         if (mode == 1){ /* backwards */
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;

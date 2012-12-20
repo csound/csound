@@ -103,6 +103,8 @@
 
 %token T_INSTLIST
 %token S_ELIPSIS
+%token T_ARRAY
+%token T_ARRAY_IDENT
 %token T_MAPI
 %token T_MAPK
 %token T_TADD
@@ -353,9 +355,16 @@ statement : ident '=' expr NEWLINE
                                     csp_orc_sa_globals_find(csound, ans->right));
 #endif
                 }
+          | arrayexpr '=' expr NEWLINE
+	  {
+              TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
+              ans->left = (TREE *)$1;
+              ans->right = (TREE *)$3;
+              //print_tree(csound, "TABLE ASSIGN", ans);
+              $$ = ans; 
 
-/*
-          | T_IDENT_A '[' iexp ']' '=' iexp NEWLINE
+          }
+/*          | T_IDENT_A '[' iexp ']' '=' iexp NEWLINE
           {
               ORCTOKEN *op = lookup_token(csound, "vaset", NULL);
               TREE *ans = make_leaf(csound,LINE,LOCN, T_OPCODE0, op);
@@ -373,7 +382,6 @@ statement : ident '=' expr NEWLINE
                                                                       ans->right));
 #endif
           }
-
           | T_IDENT_T '=' texp NEWLINE
           {
               //ORCTOKEN *op = lookup_token(csound, "=", NULL);
@@ -455,6 +463,8 @@ statement : ident '=' expr NEWLINE
           | NEWLINE { $$ = NULL; }
           ;
 ans       : ident               { $$ = $1; }
+          | arrayident		{ $$ = $1; }
+          | arrayexpr		{ $$ = $1; }
           | T_IDENT error       
               { csound->Message(csound,
                       "Unexpected untyped word %s when expecting a variable\n", 
@@ -468,7 +478,11 @@ ans       : ident               { $$ = $1; }
                                ((ORCTOKEN*)$3)->lexeme);
                 $$ = appendToTree(csound, $1, NULL);
               }
+          | ans ',' arrayexpr     { $$ = appendToTree(csound, $1, $3); }
           ;
+
+arrayexpr : ident '[' iexp ']' { $$ = make_node(csound, LINE, LOCN, T_ARRAY, $1, $3); }
+
 
 ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
           {
@@ -612,6 +626,7 @@ exprlist  : exprlist ',' expr
           | /* null */          { $$ = NULL; }
           ;
 
+
 bexpr     : '(' bexpr ')'       { $$ = $2; }
           | expr S_LE expr      { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $3); }
           | expr S_LE error
@@ -675,6 +690,7 @@ iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
 
 ifac      : ident               { $$ = $1; }
           | constant            { $$ = $1; }
+          | ident '[' iexp ']' { $$ = make_node(csound, LINE, LOCN, T_ARRAY, $1, $3); }
          /* | T_IDENT_T '[' iexp ']'
           {
               $$ = make_node(csound,LINE,LOCN, S_TABREF,
@@ -816,6 +832,10 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
           | ZERODBFS_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
                                              ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
           ;
+
+
+arrayident: ident '[' ']' { $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, $1->value); }
+
 ident : T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
 
 /*ident     : T_IDENT_I  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_I, (ORCTOKEN *)$1); }

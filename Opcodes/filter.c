@@ -266,8 +266,9 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
  */
 static int afilter(CSOUND *csound, FILTER* p)
 {
-    int n,i;
-    int nsmps = CS_KSMPS;
+    int      i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     double* a = p->dcoeffs+p->numb;
     double* b = p->dcoeffs+1;
@@ -276,7 +277,8 @@ static int afilter(CSOUND *csound, FILTER* p)
     double poleSamp, zeroSamp, inSamp;
 
     /* Outer loop */
-    for (n=0; n<nsmps; n++) {
+    memset(p->out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
 
       inSamp = p->in[n];
       poleSamp = inSamp;
@@ -360,8 +362,9 @@ static int kfilter(CSOUND *csound, FILTER* p)
  */
 static int azfilter(CSOUND *csound, ZFILTER* p)
 {
-    int n,i;
-    int nsmps = CS_KSMPS;
+    int      i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     double* a = p->dcoeffs+p->numb;
     double* b = p->dcoeffs+1;
@@ -389,7 +392,8 @@ static int azfilter(CSOUND *csound, ZFILTER* p)
     /* and a contains their associated real coefficients. */
 
     /* Outer loop */
-    for (n=0; n<nsmps; n++) {
+    memset(p->out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       inSamp = p->in[n];
       poleSamp = inSamp;
       zeroSamp = 0.0;
