@@ -164,10 +164,12 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     /* update coefficients */
     ambicode_set_coefficients(p);
 
-    memset(rsltp_w, '\0', offset*sizeof(MYFLT));
-    memset(rsltp_x, '\0', offset*sizeof(MYFLT));
-    memset(rsltp_y, '\0', offset*sizeof(MYFLT));
-    memset(rsltp_z, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(rsltp_w, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_x, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_y, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_z, '\0', offset*sizeof(MYFLT));
+    }
     if (p->OUTOCOUNT == 4 && p->INOCOUNT >= 5) {
       /* 1st order */
       for (n=offset; n<nsmps; n++) {
@@ -183,11 +185,13 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     else if (p->OUTOCOUNT == 9 && p->INOCOUNT >= 6) {
       /* 2nd order */
 
-      memset(rsltp_r, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_s, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_t, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_u, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_v, '\0', offset*sizeof(MYFLT));
+      if (offset) {
+        memset(rsltp_r, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_s, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_t, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_u, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_v, '\0', offset*sizeof(MYFLT));
+      }
       for (n=offset; n<nsmps; n++) {
         /* 0th order */
         rsltp_w[n] = inptp[n] * p->w * *p->kin[0];
@@ -209,18 +213,20 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     else if (p->OUTOCOUNT == 16 && p->INOCOUNT >= 7) {
       /* 3rd order */
 
-      memset(rsltp_r, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_s, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_t, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_u, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_v, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_k, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_l, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_m, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_n, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_o, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_p, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_q, '\0', offset*sizeof(MYFLT));
+      if (offset) {
+        memset(rsltp_r, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_s, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_t, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_u, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_v, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_k, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_l, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_m, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_n, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_o, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_p, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_q, '\0', offset*sizeof(MYFLT));
+      }
       for (n=offset; n<nsmps; n++) {
         /* 0th order */
         rsltp_w[n] = inptp[n] * p->w * *p->kin[0];
