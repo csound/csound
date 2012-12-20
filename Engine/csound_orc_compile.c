@@ -742,11 +742,16 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
 
   if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
     /* redefinition does not raise an error now, just a warning */
-    csound->Warning(csound, Str("instr %ld redefined, not inserted into engine\n"), instrNum);
+    csound->Warning(csound, Str("instr %ld redefined, replacing previous definition \n"), instrNum);
     /* here we should move the old instrument definition into a deadpool 
        which will be checked for active instances and freed when there are no
        further ones
     */
+    for(i=0; i < engineState->maxinsno; i++) {
+      /* check for duplicate numbers and do nothing if found*/
+      if(i != instrNum &&
+	 engineState->instrtxtp[i] == engineState->instrtxtp[instrNum]) goto end;
+    }
     INSDS *active = engineState->instrtxtp[instrNum]->instance;
     while (active != NULL) {
       if(active->actflg) {
@@ -759,6 +764,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
     if (active == NULL) free_instrtxt(csound, engineState->instrtxtp[instrNum]);
     /* err++; continue; */
   }
+  end:
   instrtxt->isNew = 1;
   engineState->instrtxtp[instrNum] = instrtxt;
   
