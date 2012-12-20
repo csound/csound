@@ -51,12 +51,15 @@ static int biquadset(CSOUND *csound, BIQUAD *p)
 
 static int biquad(CSOUND *csound, BIQUAD *p)
 {
-    int   n = 0, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     double xn, yn;
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     double a0 = 1.0 / *p->a0, a1 = a0 * *p->a1, a2 = a0 * *p->a2;
     double b0 = a0 * *p->b0, b1 = a0 * *p->b1, b2 = a0 * *p->b2;
-    for (n=0; n<nsmps; n++) {
+
+    memset(p->out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       xn = (double)p->in[n];
       yn = b0*xn + b1*xnm1 + b2*xnm2 - a1*ynm1 - a2*ynm2;
       xnm2 = xnm1;
@@ -73,7 +76,8 @@ static int biquad(CSOUND *csound, BIQUAD *p)
 
 static int biquada(CSOUND *csound, BIQUAD *p)
 {
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *out, *in;
     double xn, yn;
     MYFLT *a0 = p->a0, *a1 = p->a1, *a2 = p->a2;
@@ -81,7 +85,8 @@ static int biquada(CSOUND *csound, BIQUAD *p)
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     in   = p->in;
     out  = p->out;
-    for (n=0; n<nsmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       xn = (double)in[n];
       yn = ( (double)b0[n] * xn + (double)b1[n] * xnm1 + (double)b2[n] * xnm2 -
              a1[n] * ynm1 - (double)a2[n] * ynm2)/ (double)a0[n];
@@ -116,7 +121,8 @@ static int moogvcfset(CSOUND *csound, MOOGVCF *p)
 
 static int moogvcf(CSOUND *csound, MOOGVCF *p)
 {
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *out, *in;
     double xn;
     MYFLT *fcoptr, *resptr;
@@ -143,7 +149,8 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
       k     = res*scale;
     }
-    for (n=0; n<nsmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       /* Handle a-rate modulation of fco & res. */
       if (p->fcocod) {
         fco = (double)fcoptr[n];
@@ -205,7 +212,8 @@ static int rezzyset(CSOUND *csound, REZZY *p)
 
 static int rezzy(CSOUND *csound, REZZY *p)
 {
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
     double fqcadj, a=0.0, /* Initialisations fake */
@@ -223,6 +231,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
     fqcadj = 0.149659863*(double)csound->esr;
     /* Try to keep the resonance under control     */
     if (rez < 1.0) rez = 1.0;
+    memset(out, '\0', offset*sizeof(MYFLT));
     if (*p->mode == FL(0.0)) {    /* Low Pass */
       if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
         /* Only need to calculate once */
@@ -234,7 +243,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
         b    = 1.0 + a + csq;     /* Normalization constant */
         invb = 1.0/b;
       }
-      for (n=0; n<nsmps; n++) { /* do ksmp times   */
+      for (n=offset; n<nsmps; n++) { /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
           fco = (double)fcoptr[n];
@@ -276,7 +285,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
         b    = (c/rez2 + csq);
         invb = 1.0/b;
       }
-      for (n=0; n<nsmps; n++) { /* do ksmp times   */
+      for (n=offset; n<nsmps; n++) { /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
           fco = (double)fcoptr[n];
@@ -317,7 +326,8 @@ static int rezzy(CSOUND *csound, REZZY *p)
 
 static int distort(CSOUND *csound, DISTORT *p)
 {
-    int   n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *out, *in;
     MYFLT pregain = *p->pregain, postgain  = *p->postgain;
     MYFLT shape1 = *p->shape1, shape2 = *p->shape2;
@@ -345,7 +355,8 @@ static int distort(CSOUND *csound, DISTORT *p)
     shape1 += pregain;
     shape2 -= pregain;
     postgain *= FL(0.5);
-    for (n=0; n<nsmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       sig    = in[n];
       /* Generate tanh distortion and output the result */
       out[n] =                          /* IV - Dec 28 2002: optimised */
@@ -421,7 +432,9 @@ static int vco(CSOUND *csound, VCO *p)
     MYFLT leaky, /*rtfqc,*/ amp, fqc;
     MYFLT sicvt2, over2n, scal, num, denom, pulse = FL(0.0), saw = FL(0.0);
     MYFLT sqr = FL(0.0), tri = FL(0.0);
-    int   n, nsmps = CS_KSMPS, knh;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int   knh;
 
     /* VDelay Inserted here */
     MYFLT *buf = (MYFLT *)p->aux.auxp;
@@ -464,9 +477,10 @@ static int vco(CSOUND *csound, VCO *p)
 /*-----------------------------------------------------*/
 /* PWM Wave                                            */
 /*-----------------------------------------------------*/
+    memset(ar, '\0', offset*sizeof(MYFLT));
     if (wave==2) {
       MYFLT pw = *p->pw;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         dwnphs = phs >> lobits;
         denom = *(ftbl + dwnphs);
         if (denom > FL(0.00001) || denom < -FL(0.00001)) {
@@ -515,7 +529,7 @@ static int vco(CSOUND *csound, VCO *p)
     /*-----------------------------------------------------*/
     else if (wave==3) {
       MYFLT pw = *p->pw;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         dwnphs = phs >> lobits;
         denom = *(ftbl + dwnphs);
         if (denom > FL(0.0002) || denom < -FL(0.0002)) {
@@ -567,7 +581,7 @@ static int vco(CSOUND *csound, VCO *p)
     /* Sawtooth Wave                                       */
     /*-----------------------------------------------------*/
     else {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         dwnphs = phs >> lobits;
         denom = *(ftbl + dwnphs);
         if (denom > FL(0.0002) || denom < -FL(0.0002)) {
@@ -626,7 +640,8 @@ static int planet(CSOUND *csound, PLANET *p)
     MYFLT *outx, *outy, *outz;
     MYFLT   sqradius1, sqradius2, radius1, radius2, fric;
     MYFLT xxpyy, dz1, dz2, mass1, mass2, msqror1, msqror2;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     fric = p->friction;
 
@@ -640,7 +655,13 @@ static int planet(CSOUND *csound, PLANET *p)
     mass1 = *p->mass1;
     mass2 = *p->mass2;
 
-    for (n=0; n<nsmps; n++) {
+    if (offset) {
+      memset(outx, '\0', offset*sizeof(MYFLT));
+      memset(outy, '\0', offset*sizeof(MYFLT));
+      memset(outz, '\0', offset*sizeof(MYFLT));
+    }
+
+    for (n=offset; n<nsmps; n++) {
       xxpyy = p->x * p->x + p->y * p->y;
       dz1 = p->s1z - p->z;
 
@@ -701,7 +722,8 @@ static int pareqset(CSOUND *csound, PAREQ *p)
 static int pareq(CSOUND *csound, PAREQ *p)
 {
     MYFLT xn, yn;
-    int   n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
       double omega = (double)(csound->tpidsr * *p->fc), k, kk, vkk, vk, vkdq, a0;
@@ -752,12 +774,12 @@ static int pareq(CSOUND *csound, PAREQ *p)
       a0 = 1.0 / a0;
       p->a1 *= a0; p->a2 *= a0; p->b0 *= a0; p->b1 *= a0; p->b2 *= a0;
     }
-
+    memset(p->out, '\0', offset*sizeof(MYFLT));
     {
       double a1 = p->a1, a2 = p->a2;
       double b0 = p->b0, b1 = p->b1, b2 = p->b2;
       double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         xn = (double)p->in[n];
         yn = b0 * xn + b1 * xnm1 + b2 * xnm2 - a1 * ynm1 - a2 * ynm2;
         xnm2 = xnm1;
@@ -847,13 +869,15 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
     MYFLT   *del1p, *del2p, *del3p;
     MYFLT   in1, g1, g2, g3;
-    int     n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
 
     outp = p->out;
     inp  = p->in;
 
+    memset(outp, '\0', offset*sizeof(MYFLT));
     /* Ordinary All-Pass Filter */
     if (*p->mode == FL(1.0)) {
 
@@ -862,7 +886,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
       beg1p = p->beg1p;
       g1    = *p->gain1;
 
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         in1 = inp[n];
         p->out1 = *del1p - g1*in1;
 
@@ -889,7 +913,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
       beg2p = p->beg2p;
       g2    = *p->gain2;
 
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         in1 = inp[n];
 
         p->out2 = *del2p  - g2 * *del1p;
@@ -930,7 +954,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
       beg3p = p->beg3p;
       g3    = *p->gain3;
 
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         in1 = inp[n];
 
         p->out2 = *del2p  - g2 * *del1p;
@@ -983,7 +1007,9 @@ static int lorenz(CSOUND *csound, LORENZ *p)
 {
     MYFLT   *outx, *outy, *outz;
     MYFLT   x, y, z, xx, yy, s, r, b, hstep;
-    int32    n, nsmps = CS_KSMPS, skip;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32    skip;
 
     outx  = p->outx;
     outy  = p->outy;
@@ -998,7 +1024,13 @@ static int lorenz(CSOUND *csound, LORENZ *p)
     y     = p->valy;
     z     = p->valz;
 
-    for (n=0; n<nsmps; n++) {
+    if (offset) {
+      memset(outx, '\0', offset*sizeof(MYFLT));
+      memset(outy, '\0', offset*sizeof(MYFLT));
+      memset(outz, '\0', offset*sizeof(MYFLT));
+    }
+
+    for (n=offset; n<nsmps; n++) {
       do {
         xx   =      x+hstep*s*(y-x);
         yy   =      y+hstep*(-x*z+r*x-y);
@@ -1040,7 +1072,8 @@ static int tbvcfset(CSOUND *csound, TBVCF *p)
 
 static int tbvcf(CSOUND *csound, TBVCF *p)
 {
-    int32 n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *out, *in;
     double x;
     MYFLT *fcoptr, *resptr, *distptr, *asymptr;
@@ -1073,7 +1106,8 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
       q    = q1*fco1*fco1*0.0005;
       fc   = fco1*(double)csound->onedsr*(44100.0/8.0);
     }
-    for (n=0; n<nsmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       /* Handle a-rate modulation of fco & res. */
       if (p->fcocod) {
         fco = (double)fcoptr[n];
@@ -1114,7 +1148,8 @@ static int bqrezset(CSOUND *csound, REZZY *p)
 
 static int bqrez(CSOUND *csound, REZZY *p)
 {
-    int32 n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
     double sin2 = 0.0, cos2 = 0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
@@ -1137,6 +1172,8 @@ static int bqrez(CSOUND *csound, REZZY *p)
       gamma = (beta + 1.0) * cos2;
     }
 
+    memset(out, '\0', offset*sizeof(MYFLT));
+
     if (mode < 3) {
       if (mode == 0) {    /* Low Pass */
         chi   = -1.0;
@@ -1155,7 +1192,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
       }
       alpha = (beta + 1.0 + chi*gamma) * 0.5;
 
-      for (n=0; n<nsmps; n++) {                        /* do ksmp times   */
+      for (n=offset; n<nsmps; n++) {                        /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
           fco = (double)fcoptr[n];
@@ -1184,7 +1221,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
     }
     else if (mode == 3) {   /* Band Stop */
       alpha  = (beta + 1.0) * 0.5;
-      for (n=0; n<nsmps; n++) {                            /* do ksmp times   */
+      for (n=offset; n<nsmps; n++) {                       /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
           fco = (double)fcoptr[n];
@@ -1260,7 +1297,8 @@ static int bqrez(CSOUND *csound, REZZY *p)
 
 static int mode(CSOUND *csound, MODE *p)
 {
-    int   n = 0, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     double kfreq  = *p->kfreq*TWOPI;
     double kalpha = (csound->esr/kfreq);
@@ -1274,7 +1312,8 @@ static int mode(CSOUND *csound, MODE *p)
     double xn, yn;
     double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
-    for (n=0; n<nsmps; n++) {
+    memset(p->aout, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       xn = (double)p->ain[n];
 
       yn = a0*xnm1 - a1*ynm1 - a2*ynm2;

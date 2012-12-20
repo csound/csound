@@ -708,7 +708,7 @@ resolve_defaults(BABO *p)
 static inline MYFLT
 load_value_or_default(const FUNC *table, int idx, MYFLT dEfault)
 {
-    MYFLT result = (table != (FUNC *) NULL && idx < table->flen) ?
+    MYFLT result = (table != (FUNC *) NULL && idx < (int32)table->flen) ?
                    table->ftable[idx] : dEfault;
 
     return result;
@@ -773,10 +773,11 @@ static int
 babo(CSOUND *csound, void *entry)
 {
     BABO    *p          = (BABO *) entry;
-    int     n, nsmps    = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *outleft    = p->outleft,
-      *outright   = p->outright,
-      *input      = p->input;
+            *outright   = p->outright,
+            *input      = p->input;
 
     BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
                           right = { {FL(0.0)}, {{FL(0.0)}} };
@@ -794,7 +795,9 @@ babo(CSOUND *csound, void *entry)
         *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
         *(p->lx), *(p->ly), *(p->lz));
 
-    for (n=0; n<nsmps; n++) {         /* k-time cycle                */
+    memset(outleft,  '\0', offset*sizeof(MYFLT));
+    memset(outright, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {         /* k-time cycle                */
       MYFLT  left_tapline_out        = FL(0.0),
              right_tapline_out       = FL(0.0),
              delayed_matrix_input    = FL(0.0);

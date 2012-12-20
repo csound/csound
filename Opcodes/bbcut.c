@@ -111,13 +111,14 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 
 static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
 {
-    int i;
-    int nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int oddmax,unitproj;
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out;          /* intermedaites for enveloping grains */
 
-    for (i=0;i<nsmps;i++) {
+    memset(p->aout, '\0', offset*sizeof(MYFLT));
+    for (i=offset;i<nsmps;i++) {
       if (UNLIKELY((p->unitsdone+FL(0.000001))>=p->totalunits)) {
         /* a new phrase of cuts */
         p->numbarsnow  = random_number(csound, 1, p->Phrasebars);
@@ -341,13 +342,15 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 /* only make floating point corrections for stutters with stutterspeed>1 */
 static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 {
-    int i;
-    int nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int oddmax,unitproj;
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
 
-    for (i=0;i<nsmps;i++) {
+    memset(p->aout1, '\0', offset*sizeof(MYFLT));
+    memset(p->aout2, '\0', offset*sizeof(MYFLT));
+    for (i=offset;i<nsmps;i++) {
       /* a new phrase of cuts */
       if (UNLIKELY((p->unitsdone+FL(0.000001))>=p->totalunits)) {
         p->numbarsnow  = random_number(csound, 1, p->Phrasebars);

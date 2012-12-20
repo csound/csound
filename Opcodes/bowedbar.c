@@ -128,7 +128,8 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
 int bowedbar(CSOUND *csound, BOWEDBAR *p)
 {
     MYFLT       *ar = p->ar;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     int32 k;
     int i;
@@ -184,7 +185,8 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
     }
     maxVelocity = FL(0.03) + (FL(0.5) * amp);
 
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT data = FL(0.0);
       MYFLT input = FL(0.0);
       if (integration_const == FL(0.0))
