@@ -160,7 +160,8 @@ int clarinset(CSOUND *csound, CLARIN *p)
 int clarin(CSOUND *csound, CLARIN *p)
 {
     MYFLT *ar = p->ar;
-    int   n,nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT nGain = *p->noiseGain;
     int v_len = (int)p->vibr->flen;
@@ -188,8 +189,8 @@ int clarin(CSOUND *csound, CLARIN *p)
                               p->envelope.value, p->envelope.rate);
 #endif
     }
-
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
         MYFLT   pressureDiff;
         MYFLT   breathPressure;
         int32    temp;
@@ -337,7 +338,8 @@ int fluteset(CSOUND *csound, FLUTE *p)
 int flute(CSOUND *csound, FLUTE *p)
 {
     MYFLT       *ar = p->ar;
-    int         n,nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       temp;
     int         v_len = (int)p->vibr->flen;
@@ -381,7 +383,8 @@ int flute(CSOUND *csound, FLUTE *p)
       p->adsr.state = RELEASE;
     }
     noisegain = *p->noiseGain; jetRefl = *p->jetRefl; endRefl = *p->endRefl;
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       int32     temp;
       MYFLT     temf;
       MYFLT     temp_time, alpha;
@@ -534,7 +537,8 @@ int bowedset(CSOUND *csound, BOWED *p)
 int bowed(CSOUND *csound, BOWED *p)
 {
     MYFLT       *ar = p->ar;
-    int         n,nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       maxVel;
     int         freq_changed = 0;
@@ -571,7 +575,8 @@ int bowed(CSOUND *csound, BOWED *p)
       p->adsr.state = RELEASE;
     }
 
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT     bowVelocity;
       MYFLT     bridgeRefl=FL(0.0), nutRefl=FL(0.0);
       MYFLT     newVel=FL(0.0), velDiff=FL(0.0), stringVel=FL(0.0);
@@ -807,7 +812,8 @@ int brassset(CSOUND *csound, BRASS *p)
 int brass(CSOUND *csound, BRASS *p)
 {
     MYFLT *ar = p->ar;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT maxPressure = p->maxPressure = amp;
     int v_len = (int)p->vibr->flen;
@@ -838,7 +844,8 @@ int brass(CSOUND *csound, BRASS *p)
                       p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));
     }
 
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT     breathPressure;
       MYFLT     lastOutput;
       int       temp;
