@@ -71,11 +71,11 @@ static int space(CSOUND *csound, SPACE *p)
     MYFLT   half_pi = FL(0.5)*PI_F;
     MYFLT   sqrt2 = SQRT(FL(2.0));
     MYFLT   fabxndx, fabyndx;
-    int     n;
     FUNC    *ftp;
     int32    indx, length, halflen;
     MYFLT   v1, v2, fract, ndx;
-    int nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
       if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
@@ -146,7 +146,13 @@ static int space(CSOUND *csound, SPACE *p)
     rrev3 = p->rrev3;
     rrev4 = p->rrev4;
     sigp = p->asig;
-    for (n=0; n<nsmps; n++) {
+    if (offset) {
+      memset(r1, '\0', offset*sizeof(MYFLT));
+      memset(r2, '\0', offset*sizeof(MYFLT));
+      memset(r3, '\0', offset*sizeof(MYFLT));
+      memset(r4, '\0', offset*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
       direct = sigp[n] * distr;
       torev = sigp[n] * distrsq * *p->reverbamount;
       globalrev = torev * distr;

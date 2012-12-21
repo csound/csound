@@ -299,7 +299,8 @@ int tubebell(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
 
@@ -315,7 +316,8 @@ int tubebell(CSOUND *csound, FM4OP *p)
     p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
 
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput = FM4Alg5_tick(p, c1, c2);
       ar[n] = lastOutput*AMP_SCALE*FL(1.8);
     }
@@ -415,7 +417,8 @@ int wurley(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
 
@@ -431,7 +434,8 @@ int wurley(CSOUND *csound, FM4OP *p)
     p->w_rate[3] =               p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
 
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput = FM4Alg5_tick(p, c1, c2);
       ar[n] = lastOutput*AMP_SCALE*FL(1.9);
     }
@@ -516,7 +520,8 @@ int heavymetset(CSOUND *csound, FM4OP *p)
 int heavymet(CSOUND *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
@@ -534,7 +539,8 @@ int heavymet(CSOUND *csound, FM4OP *p)
     p->w_rate[2] = temp * p->ratios[2] * p->waves[2]->flen;
     p->w_rate[3] = temp * p->ratios[3] * p->waves[3]->flen;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput;
       lastOutput = FM4Alg3_tick(p, c1, c2);
       ar[n] = lastOutput*AMP_SCALE*FL(2.0);
@@ -624,7 +630,8 @@ int hammondB3(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
     MYFLT       temp;
@@ -634,7 +641,8 @@ int hammondB3(CSOUND *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[95];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[95];
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+   for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput;
       if (*p->modDepth > FL(0.0)) {
         p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
@@ -976,7 +984,8 @@ int FMVoice(CSOUND *csound, FM4OPV *q)
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
     MYFLT       *ar = q->ar;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (p->baseFreq != *q->frequency || *q->control1 != q->last_control) {
       q->last_control = *q->control1;
@@ -988,6 +997,7 @@ int FMVoice(CSOUND *csound, FM4OPV *q)
     q->tilt[2] = amp * amp * amp;
     p->gains[3] = FM4Op_gains[(int) (*p->control2 * FL(0.78125))];
 
+    memset(ar, '\0', offset*sizeof(MYFLT));
     for (n=0;n<nsmps;n++) {
       MYFLT   lastOutput;
       lastOutput = FM4Alg6_tick(csound,q);
@@ -1088,7 +1098,8 @@ int percfluteset(CSOUND *csound, FM4OP *p)
 int percflute(CSOUND *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
@@ -1099,7 +1110,9 @@ int percflute(CSOUND *csound, FM4OP *p)
     p->gains[2] = amp * FM4Op_gains[93] * FL(0.5);
     p->gains[3] = amp * FM4Op_gains[85] * FL(0.5);
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
-    for (n=0;n<nsmps;n++) {
+
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput = FM4Alg4_tick(csound, p, c1, c2);
       ar[n] = lastOutput*AMP_SCALE*FL(2.0);
     }
