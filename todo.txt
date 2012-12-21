@@ -1,0 +1,13 @@
+Csound 6 TODO list
+
+1) loadable instruments:
+ - add support for named instruments
+ - AST tree memory recovery ? 
+ - test extensively (including UDOs)
+ - add support for fast loadable format
+ - document AST tree format to allow users to parse into it.
+ - API functions
+ - thread safety ?
+
+2) allow any number of strings in score events (except p2,p3)
+
