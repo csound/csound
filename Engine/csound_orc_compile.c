@@ -770,6 +770,32 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum, ENGINE_
   
 }
 
+void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo, ENGINE_STATE *engineState) {
+
+ if (opcodeInfo) {
+    int num = engineState->maxinsno;       /* store after any other instruments */
+    OPCODINFO *inm = opcodeInfo;
+    while (inm) {
+      /* we may need to expand the instrument array */
+      if (UNLIKELY(++num > engineState->maxopcno)) {
+	int i;
+	i = (engineState->maxopcno > 0 ? engineState->maxopcno : engineState->maxinsno);
+	engineState->maxopcno = i + MAXINSNO;
+	engineState->instrtxtp = (INSTRTXT**)
+	  mrealloc(csound, engineState->instrtxtp, (1 + engineState->maxopcno)
+		   * sizeof(INSTRTXT*));
+	/* Array expected to be nulled so.... */
+	while (++i <= engineState->maxopcno) engineState->instrtxtp[i] = NULL;
+      }
+      inm->instno = num;
+      /* csound->Message(csound, "UDO INSTR NUM: %d\n", num); */
+      engineState->instrtxtp[num] = inm->ip;
+      inm = inm->prv;
+    }
+  }
+
+}
+
 
 OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineState)
 {
@@ -792,9 +818,10 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineSt
 /**
   Merge a new engineState into csound->engineState
   1) Add to stringPool, constantsPool and varPool (globals)
-  2) Call insert_instrtxt() on csound->engineState for each new instrument
-  3) Call insprep() and recalculateVarPoolMemory() for each new instrument
-
+  2) Add to opinfo and UDOs
+  3) Call insert_instrtxt() on csound->engineState for each new instrument
+  4) Call insprep() and recalculateVarPoolMemory() for each new instrument
+  5) patch up nxtinstxt order
 */
 int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
@@ -823,12 +850,18 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     csoundAddVariable(current_state->varPool, csoundCreateVariable(csound, csound->typePool, gVar->varType, gVar->varName));
     gVar = gVar->next;
   }
-
+  /* merge opcodinfo */
+   OPCODINFO *opinfo = engineState->opcodeInfo;
+   if (opinfo != NULL) {
+     current_state->opcodeInfo->prv = opinfo;
+   }
+   insert_opcodes(csound, opinfo, current_state);
+  /* FIXME: merging of named instruments not implemented yet */
   for(i=1; i < end; i++){
    current = engineState->instrtxtp[i];
    if(current != NULL){
    csound->Message(csound, "merging instr %d \n", i);
-    /* a first attempt a this merge is to make it use insert_instrtxt again */ 
+    /* a first attempt at this merge is to make it use insert_instrtxt again */
    insert_instrtxt(csound,current,i,current_state); /* insert instrument in current engine */
   }
   }
@@ -840,10 +873,11 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
    recalculateVarPoolMemory(csound, current->varPool); /* recalculate var pool */
   }
   /* now we need to patch up instr order */
+  end = engineState->maxopcno;
   for(i=1; i < end; i++){
    current = engineState->instrtxtp[i];
    if(current != NULL){
-   if(i < current_state->maxinsno-1)
+   if(i < current_state->maxopcno-1)
      current->nxtinstxt = current_state->instrtxtp[i+1]; 
    else
      current->nxtinstxt = NULL; 
@@ -1020,27 +1054,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   }
   /* now add the instruments with names, assigning them fake instr numbers */
   named_instr_assign_numbers(csound, engineState);         
-  if (engineState->opcodeInfo) {
-    int num = engineState->maxinsno;       /* store after any other instruments */
-    OPCODINFO *inm = engineState->opcodeInfo;
-    while (inm) {
-      /* we may need to expand the instrument array */
-      if (UNLIKELY(++num > engineState->maxopcno)) {
-	int i;
-	i = (engineState->maxopcno > 0 ? engineState->maxopcno : engineState->maxinsno);
-	engineState->maxopcno = i + MAXINSNO;
-	engineState->instrtxtp = (INSTRTXT**)
-	  mrealloc(csound, engineState->instrtxtp, (1 + engineState->maxopcno)
-		   * sizeof(INSTRTXT*));
-	/* Array expected to be nulled so.... */
-	while (++i <= engineState->maxopcno) engineState->instrtxtp[i] = NULL;
-      }
-      inm->instno = num;
-      /* csound->Message(csound, "UDO INSTR NUM: %d\n", num); */
-      engineState->instrtxtp[num] = inm->ip;
-      inm = inm->prv;
-    }
-  }
+  insert_opcodes(csound, engineState->opcodeInfo, engineState); 
   ip = engineState->instxtanchor.nxtinstxt;
   bp = (OPTXT *) ip;
   while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
