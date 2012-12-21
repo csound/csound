@@ -100,7 +100,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
 
     if (p->ff) bwidth = sizeof(int16);
     /* create a buffer to write the interleaved audio to  */
-    if (p->aux.auxp == NULL || (long) (bsize * bwidth) > p->aux.size)
+    if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
     else {
@@ -113,14 +113,16 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
 static int send_send(CSOUND *csound, SOCKSEND *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-    int     i, wp, ksmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
+    int     wp;
     int     buffersize = p->bsize;
     MYFLT   *asig = p->asig;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
     int     ff = p->ff;
 
-    for (i = 0, wp = p->wp; i < ksmps; i++, wp++) {
+    for (i = offset, wp = p->wp; i < nsmps; i++, wp++) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
@@ -186,7 +188,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 
     if (p->ff) bwidth = sizeof(int16);
     /* create a buffer to write the interleaved audio to */
-    if (p->aux.auxp == NULL || (long) (bsize * bwidth) > p->aux.size)
+    if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
     else {
@@ -203,14 +205,15 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     MYFLT   *asigr = p->asigr;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
-    int     i;
+    int     wp;
     int     buffersize = p->bsize;
-    int     wp, ksmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int     ff = p->ff;
 
     /* store the samples of the channels interleaved in the packet */
     /* (left, right) */
-    for (i = 0, wp = p->wp; i < ksmps; i++, wp += 2) {
+    for (i = offset, wp = p->wp; i < nsmps; i++, wp += 2) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
@@ -294,7 +297,8 @@ again:
 
 static int send_ssend(CSOUND *csound, SOCKSEND *p)
 {
-    int     n = sizeof(MYFLT) * CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n = sizeof(MYFLT) * (CS_KSMPS-offset);
 
     if (n != write(p->sock, p->asig, n)) {
       csound->Message(csound, Str("Expected %d got %d\n"),
