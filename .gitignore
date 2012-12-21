@@ -170,3 +170,4 @@ CTestTestfile.cmake
 *.swo
 results.txt
 *.pyc
+Custom.cmake
