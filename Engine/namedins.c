@@ -32,6 +32,7 @@ typedef struct namedInstr {
     struct namedInstr   *prv;
 } INSTRNAME;
 
+
 typedef struct CsoundOpcodePluginFile_s {
     /* file name (base name only) */
     char                        *fname;
@@ -153,8 +154,10 @@ int32 named_instr_find(CSOUND *csound, char *s)
     /* now find instrument */
     inm = ((INSTRNAME**) csound->engineState.instrumentNames)[h];
     while (inm) {
-      if (!sCmp(inm->name, s))
+      if (!sCmp(inm->name, s)) {
+        
         return (int32) inm->instno;
+      }
       inm = inm->prv;
     }
     return 0L;  /* not found */
@@ -196,9 +199,9 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno, ENGINE
     else
       inm_base[257]->prv = inm2;
     inm_base[257] = inm2;
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csound->oparms->odebug) && engineState == &csound->engineState)
       csound->Message(csound,
-                      "named instr name = \"%s\", hash = %d, txtp = %p\n",
+                      "named instr name = \"%s\", hash = %d, txtp = %p,\n",
                       s, (int) h, (void*) ip);
     return 1;
 }
@@ -214,6 +217,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
     if (!engineState->instrumentNames) return;       /* no named instruments */
     inm_first = (INSTRNAME**) engineState->instrumentNames + 256;
     inm_last = inm_first + 1;
+
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
         num = engineState->maxinsno;         /* find last used instr number */
@@ -238,7 +242,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
         inm2->instno = (int32) num;
         engineState->instrtxtp[num] = inm2->ip;
-        if (csound->oparms->msglevel)
+        if (csound->oparms->msglevel && engineState == &csound->engineState)
           csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                                   inm2->name, num);
       }
