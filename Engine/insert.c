@@ -2136,11 +2136,11 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       active = nxt;
     }
     csound->engineState.instrtxtp[n] = NULL;
-    /* Now patch it out */ /* VL 20-12-12  nxtinstxt has been removed */
-    /* for (txtp = &(csound->engineState.instxtanchor); txtp != NULL; txtp = txtp->nxtinstxt) */
-    /*   if (txtp->nxtinstxt == ip) { */
+    /* Now patch it out */ 
+     for (txtp = &(csound->engineState.instxtanchor); txtp != NULL; txtp = txtp->nxtinstxt) 
+      if (txtp->nxtinstxt == ip) { 
         OPTXT *t = ip->nxtop;
-	// txtp->nxtinstxt = ip->nxtinstxt;
+	txtp->nxtinstxt = ip->nxtinstxt;
         while (t) {
           OPTXT *s = t->nxtop;
           mfree(csound, t);
@@ -2148,6 +2148,6 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
         }
         mfree(csound, ip);
         return OK;
-	/*   } */
-       /* return NOTOK; */
+	   } 
+       return NOTOK; 
 }
