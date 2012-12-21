@@ -589,7 +589,8 @@ static int ctrl7a_set(CSOUND *csound, CTRL7a *p)
 static int ctrl7a(CSOUND *csound, CTRL7a *p)
 {
     MYFLT       *ar, val, incr;
-    int nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT value =
       (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[p->ctlno] * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
@@ -602,9 +603,10 @@ static int ctrl7a(CSOUND *csound, CTRL7a *p)
     ar = p->r;
     val = p->prev;
     incr = (value - val) / (MYFLT) CS_KSMPS;
-    do {
-      *ar++ = val += incr;
-    } while (--nsmps);
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
+      ar[n] = val += incr;
+    }
     p->prev = val;
     return OK;
 }

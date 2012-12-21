@@ -80,9 +80,10 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     MYFLT       *buf, *out, *rem, *gtbl, *etbl;
     MYFLT       *xdns, *xamp, *xlfr, *temp, amp;
     int32       isc, isc2, inc, inc2, lb, lb2;
-    int32       n, i, bufsize;
+    int32       n, bufsize;
     int32       ekglen;
-    int         nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     MYFLT       kglen = *p->kglen;
     MYFLT       gcount = p->gcount;
 
@@ -113,8 +114,8 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     xlfr    = p->xlfr;
 
     memset(buf, '\0', bufsize*sizeof(MYFLT));
-
-    for (i = 0 ; i < nsmps ; i++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (i = offset ; i < nsmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
         amp = *xamp + Unirand(csound, *p->kabnd);
@@ -145,7 +146,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
       temp++;
     } while (--n);
 
-    memcpy(out, rem, CS_KSMPS*sizeof(MYFLT));
+    memcpy(out+offset, rem, (nsmps-offset)*sizeof(MYFLT));
     p->gcount = gcount;
     return OK;
  err1:

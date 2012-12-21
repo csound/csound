@@ -231,7 +231,9 @@ static int sndloop_init(CSOUND *csound, sndloop *p)
 
 static int sndloop_process(CSOUND *csound, sndloop *p)
 {
-    int i, on = (int) *(p->on), recon, n = CS_KSMPS;
+    int on = (int) *(p->on), recon;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int32 durs = p->durs, cfds = p->cfds, wp = p->wp;
     double rp = p->rp;
     MYFLT a = p->a, inc = p->inc;
@@ -241,7 +243,8 @@ static int sndloop_process(CSOUND *csound, sndloop *p)
     if (on) recon = p->rst; /* restart recording if switched on again */
     else recon = 0;  /* else do not record */
 
-    for (i=0; i < n; i++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (i=offset; i < nsmps; i++) {
       if (recon) { /* if the recording is ON */
         /* fade in portion */
         if (wp < cfds) {
@@ -344,7 +347,8 @@ static int flooper_init(CSOUND *csound, flooper *p)
 
 static int flooper_process(CSOUND *csound, flooper *p)
 {
-    int i, n = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int32 end = p->strts+p->durs, durs = p->durs;
     MYFLT *out = p->out, *buffer = p->buffer.auxp;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
@@ -353,7 +357,8 @@ static int flooper_process(CSOUND *csound, flooper *p)
     MYFLT  frac;
     int tndx, loop_off = p->loop_off;
 
-    for (i=0; i < n; i++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (i=offset; i < nsmps; i++) {
       tndx = (int) ndx;
       frac = ndx - tndx;
       /* this is the start portion of the sound */
@@ -411,7 +416,8 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
 
 static int flooper2_process(CSOUND *csound, flooper2 *p)
 {
-    int i, n = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     MYFLT *out = p->out, sr = csound->GetSr(csound);
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab = p->sfunc->ftable;
@@ -436,8 +442,10 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     /* loop parameters & check */
     if (pitch < FL(0.0)) pitch = FL(0.0);
 
-    if (*firsttime) {
+    if (*firsttime) { 
       int loopsize;
+      /* offset non zero only if firsttime */
+      memset(out, '\0', offset*sizeof(MYFLT));
       loop_start = (int) (*p->loop_start*sr);
       loop_end =   (int) (*p->loop_end*sr);
       p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
@@ -475,7 +483,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       }
     }
 
-    for (i=0; i < n; i++) {
+    for (i=offset; i < nsmps; i++) {
       if (mode == 1){ /* backwards */
         tndx0 = (int) ndx[0];
         frac0 = ndx[0] - tndx0;
@@ -693,7 +701,9 @@ static int flooper3_init(CSOUND *csound, flooper3 *p)
 
 static int flooper3_process(CSOUND *csound, flooper3 *p)
 {
-    int i, n = CS_KSMPS, lobits = p->lobits,si,ei;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
+    int lobits = p->lobits,si,ei;
     MYFLT *out = p->out, sr = csound->GetSr(csound);
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab = p->sfunc->ftable, cvt;
@@ -709,6 +719,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
     if (pitch < FL(0.0)) pitch = FL(0.0);
     if (*firsttime) {
       int loopsize;
+      memset(out, '\0', offset*sizeof(MYFLT));
       loop_start = MYFLT2LRND(*p->loop_start*sr);
       loop_end =   MYFLT2LRND (*p->loop_end*sr);
       p->lstart = loop_start = (loop_start < 0 ? 0 : loop_start);
@@ -746,7 +757,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
     si = MYFLT2LRND(pitch*(lomask));
     ei = MYFLT2LRND(pitch*(lomask));
 
-    for (i=0; i < n; i++) {
+    for (i=offset; i < nsmps; i++) {
       if (mode == 0){
         tndx0 = ndx[0]>>lobits;
         frac0 = (ndx[0] & lomask)*lodiv;
