@@ -167,3 +167,6 @@ CTestTestfile.cmake
 /frontends/beatslex.yy.c
 /tests/c/*Test
 
+*.swo
+results.txt
+*.pyc
