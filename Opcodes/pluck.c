@@ -198,6 +198,7 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
     MYFLT *ar = p->out;    /* The sample output buffer */
     len_t M=p->wg.upperRail.size; /* Length of the guide rail */
+    uint32_t offset = p->h.insdshead->ksmps_offset;
     len_t n,nsmps=CS_KSMPS;
 /*    int i = 0; */
     MYFLT *fdbk = p->afdbk;
@@ -205,7 +206,8 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
     len_t pickupSamp=(len_t)(M * *p->pickupPos);
     if (UNLIKELY(pickupSamp<1)) pickupSamp = 1;
 
-      for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
         ar[n] = guideRailAccess(&p->wg.upperRail,pickupSamp)
                +guideRailAccess(&p->wg.lowerRail,M-pickupSamp);
         yrM = guideRailAccess(&p->wg.upperRail,M-1);/* wave into the nut */

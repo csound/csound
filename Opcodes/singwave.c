@@ -379,7 +379,8 @@ int voicformset(CSOUND *csound, VOICF *p)
 int voicform(CSOUND *csound, VOICF *p)
 {
     MYFLT *ar = p->ar;
-    int32 n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (p->basef != *p->frequency) {
       p->basef = *p->frequency;
@@ -400,7 +401,8 @@ int voicform(CSOUND *csound, VOICF *p)
     }
 /*  voicprint(csound, p); */
 
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT temp;
       MYFLT lastOutput;
       temp   = OnePole_tick(&p->onepole,

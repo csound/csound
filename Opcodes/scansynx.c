@@ -459,16 +459,19 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 static int scsnux(CSOUND *csound, PSCSNUX *p)
 {
     SCANSYN_GLOBALS *pp;
-    int     n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int     len = p->len;
     int32    exti = p->exti;
     int32    idx = p->idx;
     MYFLT   rate = p->rate;
+    MYFLT   *out = p->out;
 
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
-    for (n = 0 ; n != CS_KSMPS ; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n = 0 ; n < nsmps ; n++) {
 
       /* Put audio input in external force */
       p->ext[exti] = p->a_ext[n];
@@ -524,12 +527,12 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
         MYFLT t  = (MYFLT)idx / rate;
         for (i = 0 ; i != p->len ; i++) {
 #if PHASE_INTERP == 3
-          p->out[i] = p->x1[i] +
+          out[i] = p->x1[i] +
             t*(-p->x3[i]*FL(0.5) +
                t*(p->x3[i]*FL(0.5) - p->x1[i] + p->x2[i]*FL(0.5))
                + p->x2[i]*FL(0.5));
 #else
-          p->out[i] = p->x2[i] + (p->x1[i] - p->x2[i]) * t;
+          out[i] = p->x2[i] + (p->x1[i] - p->x2[i]) * t;
 #endif
         }
       }
@@ -609,7 +612,9 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
  */
 static int scsnsx(CSOUND *csound, PSCSNSX *p)
 {
-    int i;
+     MYFLT   *out = p->a_out;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int32 tlen   = p->tlen;
     MYFLT phs   = p->phs, inc = *p->k_freq * p->fix;
     MYFLT t = (MYFLT)p->p->idx/p->p->rate;
@@ -618,38 +623,38 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
 
     switch (p->oscil_interp) {
     case 1:
-      for (i = 0 ; i != CS_KSMPS ; i++) {
+      for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
 /*      MYFLT x     = phs - (int)phs; */
         int ph = (int)phs;
-        p->a_out[i] = amp * (PINTERP(ph, t));
+        out[i] = amp * (PINTERP(ph, t));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
         if (UNLIKELY(phs >= tlen)) phs -= tlen;
       }
       break;
     case 2:
-      for (i = 0 ; i != CS_KSMPS ; i++) {
+      for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;
         MYFLT y1    = PINTERP(ph  , t);
         MYFLT y2    = PINTERP(ph+1, t);
-        p->a_out[i] = amp * (y1 + x*(y2 - y1));
+        out[i] = amp * (y1 + x*(y2 - y1));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
         if (UNLIKELY(phs >= tlen)) phs -= tlen;
       }
       break;
     case 3:
-      for (i = 0 ; i != CS_KSMPS ; i++) {
+      for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;
         MYFLT y1    = PINTERP(ph-1, t);
         MYFLT y2    = PINTERP(ph  , t);
         MYFLT y3    = PINTERP(ph+1, t);
-        p->a_out[i] = amp *
+        out[i] = amp *
           (y2 + x*(-y1*FL(0.5) + x*(y1*FL(0.5) - y2 + y3*FL(0.5)) + y3*FL(0.5)));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
@@ -657,7 +662,7 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
       }
       break;
     case 4:
-      for (i = 0 ; i != CS_KSMPS ; i++) {
+      for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int ph = (int)phs;
         MYFLT x     = phs - ph;
@@ -665,7 +670,7 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
         MYFLT y2    = PINTERP(ph  , t);
         MYFLT y3    = PINTERP(ph+1, t);
         MYFLT y4    = PINTERP(ph+2, t);
-        p->a_out[i] = amp *
+        out[i] = amp *
           (y2 + x*(-y1/FL(3.0) - y2*FL(0.5) + y3 +
                    x*(y1*FL(0.5) - y2 + y3*FL(0.5) +
                       x*((y2 - y3)*FL(0.5) + (y4-y1)/FL(6.0))) -

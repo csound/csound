@@ -107,13 +107,6 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
         x++; len--;
       }
     }
-#ifdef CLICKS
-        /* initialize ramp arrays for crossfading */
-    for (i = 0; i < FILT_LEN; i++) {
-        p->rampup[i] = (MYFLT) i / (MYFLT) FILT_LEN;
-        p->rampdown[i] = FL(1.0) - p->rampup[i];
-    }
-#endif
         /* initialize counters and indices */
     p->outcount = 0;
     p->incount = 0;
@@ -126,10 +119,6 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
         /* initialize left output buffer */
         /* initialize right output buffer */
     for (i=0; i<BUF_LEN; i++)   {
-#ifdef CLICKS
-      p->oldhrtf_data.left[i]  = FL(0.0);
-      p->oldhrtf_data.right[i] = FL(0.0);
-#endif
       p->x[i]                  = FL(0.0);
       p->yl[i]                 = FL(0.0);
       p->yr[i]                 = FL(0.0);
@@ -154,28 +143,18 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     MYFLT      *aLeft, *aRight; /* audio output streams */
     MYFLT      *aIn, *kAz, *kElev; /* audio and control input streams */
     int        azim, elev, el_index, az_index;
-#ifdef CLICKS
-    int        oldaz_index;
-#endif
     int        nsmpsi, nsmpso; /* number of samples in/out */
     /*         input,      out-left,    out-right */
     MYFLT      *x, *yl, *yr;    /* Local copies of address */
     /*         overlap left,   overlap right */
     MYFLT      *bl, *br;
                         /* copy of current input convolved with old HRTFs */
-#ifdef CLICKS
-    MYFLT      yl2[BUF_LEN], yr2[BUF_LEN];
-#endif
     MYFLT      *outl, *outr; /* output left/right */
     int        outfront, outend; /* circular output indices */
     int        incount, outcount; /* number of samples in/out */
     int        toread; /* number of samples to read */
     int        i; /* standard loop counter */
     HRTF_DATUM hrtf_data; /* local hrtf instances */
-#ifdef CLICKS
-    HRTF_DATUM oldhrtf_data;
-    int        crossfadeflag; /* flag - true if crossfading old and new HRTFs */
-#endif
     int        flip; /* flag - true if we need to flip the channels */
     int16      *fpindex; /* pointer into HRTF file */
     int16      numskip; /* number of shorts to skip in HRTF file */
@@ -193,10 +172,6 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     //oldel_index = p->oldel_index;
     fpindex = (int16 *) p->fpbegin;
     flip = 0;
-#ifdef CLICKS
-    crossfadeflag = 0;
-    oldaz_index = p->oldaz_index;
-#endif
 
         /* Convert elevation in degrees to elevation array index. */
     el_index = ROUND((elev - MIN_ELEV) / ELEV_INC);
@@ -246,11 +221,6 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
       fpindex += (int16) (numskip);
     }
 
-#ifdef CLICKS
-    if ((oldel_index != el_index) || (oldaz_index != az_index)) {
-      crossfadeflag = 1;
-    }
-#endif
         /* read in (int16) data from stereo interleave HRTF file.
            Split into left and right channel data. */
     for (i=0; i<FILT_LEN; i++) {
@@ -301,12 +271,6 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     outfront = p->outfront;
     outend = p->outend;
 
-#ifdef CLICKS
-    for (i=0; i<FILT_LEN; i++) {
-      oldhrtf_data.left[i] = p->oldhrtf_data.left[i];
-      oldhrtf_data.right[i] = p->oldhrtf_data.right[i];
-    }
-#endif
     /* Get local pointers to structures */
     outl   = &p->outl[0];
     outr   = &p->outr[0];
@@ -363,28 +327,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
               /* convolution is the inverse FFT of above result (yl,yr) */
         csound->InverseRealFFT(csound, yl, BUF_LEN);
         csound->InverseRealFFT(csound, yr, BUF_LEN);
-
-#ifdef CLICKS
-        if (crossfadeflag) {    /* convolve current input with old HRTFs */
-          /* ***** THIS CODE IS SERIOUSLY BROKEN ***** */
-                  /* complex multiplication, y2 = oldhrtf_data * x */
-          csound->RealFFTMult(csound,
-                              yl2, oldhrtf_data.left, x, BUF_LEN, FL(1.0));
-          csound->RealFFTMult(csound,
-                              yr2, oldhrtf_data.right, x, BUF_LEN, FL(1.0));
-
-                  /* convolution is the inverse FFT of above result (y) */
-          csound->InverseRealFFT(csound, yl2, BUF_LEN);
-          csound->InverseRealFFT(csound, yr2, BUF_LEN);
-
-                  /* linear crossfade */
-          for (i=0; i<FILT_LEN; i++) {
-            yl[i] = yl[i]*p->rampup[i] + yl2[i]*p->rampdown[i];
-            yr[i] = yr[i]*p->rampup[i] + yr2[i]*p->rampdown[i];
-          }
-        }
-#endif
-              /* overlap-add the results */
+            /* overlap-add the results */
         for (i = 0; i < FILT_LENm1; i++) {
           yl[i] += bl[i];
           yr[i] += br[i];
@@ -480,14 +423,6 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     p->outfront    = outfront;
     p->outend      = outend;
     p->oldel_index = el_index;
-#ifdef CLICKS
-    p->oldaz_index = az_index;
-
-    for (i=0; i<FILT_LEN; i++) {        /* archive current HRTFs */
-      p->oldhrtf_data.left[i]  = hrtf_data.left[i];
-      p->oldhrtf_data.right[i] = hrtf_data.right[i];
-    }
-#endif
 
     return OK;
  err1:
