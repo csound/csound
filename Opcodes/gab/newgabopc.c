@@ -351,7 +351,9 @@ static int inRange_i(CSOUND *csound, INRANGE *p)
 
 static int inRange(CSOUND *csound, INRANGE *p)
 {
-    int j, nsmps;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t j, nsmps = CS_KSMPS;
+    int i;
     MYFLT *ara[VARGMAX];
     int startChan = (int) *p->kstartChan -1;
     MYFLT *sp = csound->spin + startChan;
@@ -362,16 +364,14 @@ static int inRange(CSOUND *csound, INRANGE *p)
                                Str("inrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
 
-    for (j = 0; j < narg; j++)
-      ara[j] = p->argums[j];
+    for (i = 0; i < narg; i++)
+      ara[i] = p->argums[i];
 
-    nsmps = CS_KSMPS;
-    do  {
-      int i;
+    for (j=offset; j<nsmps; j++)  {
       for (i=0; i<narg; i++)
         *ara[i]++ = sp[i];
       sp += numchans;
-    } while (--nsmps);
+    }
     return OK;
 
 }
@@ -392,12 +392,15 @@ static int outRange_i(CSOUND *csound, OUTRANGE *p)
 
 static int outRange(CSOUND *csound, OUTRANGE *p)
 {
-    int j, n, nsmps;
-    int ksmps = CS_KSMPS, nchnls = csound->nchnls;
+    int j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int nchnls = csound->nchnls;
     MYFLT *ara[VARGMAX];
     int startChan = (int) *p->kstartChan -1;
     MYFLT *sp = csound->spout + startChan;
     int narg = p->narg;
+
     if (startChan < 0)
       return csound->PerfError(csound,
                                Str("outrg: channel number cannot be < 1 "
@@ -406,10 +409,9 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
     for (j = 0; j < narg; j++)
       ara[j] = p->argums[j];
 
-    nsmps = ksmps;
     if (!csound->spoutactive) {
-      memset(sp, 0, ksmps * nchnls * sizeof(MYFLT));
-      for (n=0; n<nsmps; n++) {
+      memset(sp, 0, nsmps * nchnls * sizeof(MYFLT));
+      for (n=offset; n<nsmps; n++) {
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
@@ -419,7 +421,7 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
       csound->spoutactive = 1;
     }
     else {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
@@ -460,70 +462,6 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
     return OK;
 }
 
-#if 0
-
-/* These opcodes left out while GEN22 is implemented */
-static int lposcint(CSOUND *csound, LPOSC *p)
-{
-    double  *phs= &p->phs;
-    double  si= *p->freq * (p->fsr/ csound->esr);
-
-    MYFLT   *out = p->out;
-    short   *ft = (short *) p->ftp->ftable, *curr_samp;
-    MYFLT   fract;
-    long     n = CS_KSMPS;
-    long     loop, end, looplength; /* = p->looplength ; */
-
-    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-    else if (loop > p->tablen-3) loop = p->tablen-3;
-    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-    else if (end <= 2) end = 2;
-    if (end < loop+2) end = loop + 2;
-
-    looplength = end - loop;
-
-    do {
-      curr_samp= ft + (long)*phs;
-      fract= (MYFLT)(*phs - (long)*phs);
-      *out++ = *p->amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-      *phs += si;
-      while (*phs  >= end) *phs -= looplength;
-      while (*phs  < loop) *phs += looplength;
-    } while (--n);
-    return OK;
-}
-
-static int lposcinta(CSOUND *csound, LPOSC *p)
-{
-
-    double  *phs= &p->phs;
-    double  si= *p->freq * (p->fsr/csound->esr);
-    MYFLT    *out = p->out,  *amp=p->amp;
-    short   *ft = (short *) p->ftp->ftable, *curr_samp;
-    MYFLT   fract;
-    long     n, nsmps = CS_KSMPS;
-    long     loop, end, looplength; /* = p->looplength ; */
-
-    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-    else if (loop > p->tablen-3) loop = p->tablen-3;
-    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-    else if (end <= 2) end = 2;
-    if (end < loop+2) end = loop + 2;
-
-    looplength = end - loop;
-    for (n=0; n<nsmps; n++) {
-      curr_samp= ft + (long)*phs;
-      fract= (MYFLT)(*phs - (long)*phs);
-      out[n] = amp[n] * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-      *phs += si;
-      while (*phs  >= end) *phs -= looplength;
-      while (*phs  < loop) *phs += looplength;
-    }
-    return OK;
-}
-#endif
-
-
 static int lposca(CSOUND *csound, LPOSC *p)
 {
     double  *phs= &p->phs;
@@ -531,7 +469,8 @@ static int lposca(CSOUND *csound, LPOSC *p)
     MYFLT   *out = p->out,  *amp=p->amp;
     MYFLT   *ft =  p->ftp->ftable, *curr_samp;
     MYFLT   fract;
-    int32   n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int32   loop, end, looplength /* = p->looplength */ ;
 
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
@@ -540,7 +479,8 @@ static int lposca(CSOUND *csound, LPOSC *p)
     else if (end <= 2) end = 2;
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
-    for (n=0; n<nsmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       curr_samp= ft + (long)*phs;
       fract= (MYFLT)(*phs - (long)*phs);
       out[n] = amp[n] * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
@@ -550,107 +490,6 @@ static int lposca(CSOUND *csound, LPOSC *p)
     }
     return OK;
 }
-
-/* -------------------------------------------------------------------- */
-
-/* These opcodes left out while GEN22 is implemented */
-
-#if 0
-typedef struct {
-     OPDS    h;
-     MYFLT   *out1, *out2, *amp, *freq, *kloop, *kend, *ift, *iphs;
-     long    tablen;
-     MYFLT   fsr;
-     short *ft;
-     double  phs, fsrUPsr /* , looplength; */
-     long    phs_int;
-} LPOSCINT_ST;
-
-static int lposcint_stereo_set(CSOUND *csound, LPOSCINT_ST *p)
-{
-    FUNC *ftp;
-    double  loop, end, looplength, fsr;
-    if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
-      return csound->InitError(csound, Str("invalid function"));
-    if (!(fsr = ftp->gen01args.sample_rate)){
-      csound->Message(csound,
-                      Str("lposcil: no sample rate stored in function assuming=sr\n"));
-      p->fsr=csound->esr;
-    }
-    p->fsrUPsr = fsr/csound->esr;
-    p->ft    = (short *) ftp->ftable;
-    p->tablen = ftp->flen/2;
-    /* changed from
-       p->phs    = *p->iphs * p->tablen; */
-    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-    else if (loop > p->tablen-3) loop = p->tablen-3;
-    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-    else if (end <= 2) end = 2;
-    if (end < loop+2) end = loop + 2;
-    looplength = end - loop;
-
-    if (*p->iphs >= 0)
-      p->phs_int = (long) (p->phs = *p->iphs);
-
-    while (p->phs >= end)
-      p->phs_int = (long) (p->phs -= looplength);
-    return OK;
-}
-
-static int lposcinta_stereo(CSOUND *csound, LPOSCINT_ST *p) // stereo lposcinta
-{
-    double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
-    MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
-    short   *ft =  p->ft;
-    long    n = CS_KSMPS;
-    long     loop, end, looplength;
-    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-    else if (loop > p->tablen-3) loop = p->tablen-3;
-    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-    else if (end <= 2) end = 2;
-    if (end < loop+2) end = loop + 2;
-    looplength = end - loop;
-    do {
-      double fract;
-      short *curr_samp1 = ft + (long) *phs * 2;
-      short *curr_samp2 = curr_samp1 +1;
-      fract= *phs - (long) *phs;
-      *out1++ = *amp   * (MYFLT) (*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
-      *out2++ = *amp++ * (MYFLT) (*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
-      *phs += si;
-      while (*phs  >= end) *phs -= looplength;
-      while (*phs  < loop) *phs += looplength;
-    } while (--n);
-    return OK;
-}
-
-static int lposcinta_stereo_no_trasp(CSOUND *csound, LPOSCINT_ST *p)
-                            /* trasposition is allowed only */
-{                           /* in integer values (twice, three times etc.) */
-                            /* so it is faster */
-    long *phs = &p->phs_int, si = (long) *p->freq;
-    MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
-    short   *ft =  p->ft;
-    long    n = CS_KSMPS;
-    long     loop, end, looplength /* = p->looplength ; */
-      if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
-      else if (loop > p->tablen-3) loop = p->tablen-3;
-    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-    else if (end <= 2) end = 2;
-    if (end < loop+2) end = loop + 2;
-    looplength = end - loop;
-
-    do {
-      short *curr_samp1 = ft + *phs * 2;
-      *out1++ = *amp   * (MYFLT) *curr_samp1 ;
-      *out2++ = *amp++ * (MYFLT) *(curr_samp1+1) ;
-      *phs += si;
-      while (*phs  >= end) *phs -= looplength;
-      while (*phs  < loop) *phs += looplength;
-    } while (--n);
-    return OK;
-}
-#endif
 
 /* -------------------------------------------------------------------- */
 
@@ -700,7 +539,8 @@ static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
     double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
     MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;
-    int32    n = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int32    loop, end, looplength /* = p->looplength */ ;
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
@@ -708,17 +548,20 @@ static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
     else if (end <= 2) end = 2;
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
-    do {
+    memset(out1, '\0', offset*sizeof(MYFLT));
+    memset(out2, '\0', offset*sizeof(MYFLT));
+
+    for (n=offset; n<nsmps; n++) {
       double fract;
       MYFLT *curr_samp1 = ft + (long) *phs * 2;
       MYFLT *curr_samp2 = curr_samp1 +1;
       fract= *phs - (long) *phs;
-      *out1++ = *amp   * (MYFLT) (*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
-      *out2++ = *amp++ * (MYFLT) (*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
+      out1[n] = amp[n] * (MYFLT) (*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
+      out2[n] = amp[n] * (MYFLT) (*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
       *phs += si;
       while (*phs  >= end) *phs -= looplength;
       while (*phs  < loop) *phs += looplength;
-    } while (--n);
+    }
     return OK;
 }
 
@@ -728,7 +571,8 @@ static int lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
     long    *phs = &p->phs_int, si = (long) *p->freq;
     MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;
-    long    n = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     long    loop, end, looplength /* = p->looplength */ ;
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
@@ -737,21 +581,22 @@ static int lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
 
-    do {
+    memset(out1, '\0', offset*sizeof(MYFLT));
+    memset(out2, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT *curr_samp1 = ft + *phs * 2;
-      *out1++ = *amp   * (MYFLT) *curr_samp1 ;
-      *out2++ = *amp++ * (MYFLT) *(curr_samp1+1) ;
+      out1[n] = amp[n] * (MYFLT) *curr_samp1 ;
+      out2[n] = amp[n] * (MYFLT) *(curr_samp1+1) ;
       *phs += si;
       while (*phs  >= end) *phs -= looplength;
       while (*phs  < loop) *phs += looplength;
-    } while (--n);
+    }
     return OK;
 }
 
 
 /* -------------------------------------------------------------------- */
 
-/* #undef oneUp31Bit \/\* to avoid warnings */
 #include "vectorial.h"
 
 typedef struct  {       /* gab d5*/

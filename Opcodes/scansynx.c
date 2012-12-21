@@ -82,7 +82,7 @@ static void unquote(char *dst, char *src)
  */
 static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
 {
-    int32 len = p->len;
+    uint32_t len = p->len;
     FUNC *fi = csound->FTnp2Find(csound, p->i_init);
     if (UNLIKELY(fi == NULL)) {
       return csound->InitError(csound,
@@ -220,7 +220,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
     /* Get parameter table pointers and check lengths */
     SCANSYN_GLOBALS *pp;
     FUNC    *f;
-    int     len;
+    uint32_t len;
     int     i;
 
     /* Mass */

@@ -71,7 +71,8 @@ typedef struct {
 #else
     uint32      *f;
 #endif
-    int32        idx, len, exti;
+    int32       idx, exti;
+    uint32_t    len;
     int         id;
     void        *win;
     SCANSYN_GLOBALS *pp;
