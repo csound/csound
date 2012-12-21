@@ -530,10 +530,14 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
 {
     INSTRTXT *txtp;
     INSDS   *p;
+    int i;
 
     csound->Message(csound, "insno\tinstanc\tnxtinst\tprvinst\tnxtact\t"
                             "prvact\tnxtoff\tactflg\tofftim\n");
-    for (txtp = &(csound->engineState.instxtanchor);  txtp != NULL;  txtp = txtp->nxtinstxt)
+    // for (txtp = &(csound->engineState.instxtanchor);  txtp != NULL;  txtp = txtp->nxtinstxt)
+    for(i=0; i < csound->engineState.maxinsno; i++){
+      txtp = csound->engineState.instrtxtp[i];
+      if(txtp != NULL){
       if ((p = txtp->instance) != NULL) {
         /*
          * On Alpha, we print pointers as pointers.  heh 981101
@@ -547,6 +551,8 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
                           (void*) p->nxtoff, p->actflg, p->offtim);
         } while ((p = p->nxtinstance) != NULL);
       }
+      }
+    }
 }
 
 static void schedofftim(CSOUND *csound, INSDS *ip)
@@ -709,10 +715,13 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
 {
     INSTRTXT  *txtp;
     INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
-    int       cnt = 0;
+    int       cnt = 0, i;
 
-    for (txtp = &(csound->engineState.instxtanchor);
-         txtp != NULL;  txtp = txtp->nxtinstxt) {
+    //for (txtp = &(csound->engineState.instxtanchor);
+    //     txtp != NULL;  txtp = txtp->nxtinstxt) {
+    for(i=0; i < csound->engineState.maxinsno; i++) {
+      txtp = csound->engineState.instrtxtp[i];
+      if(txtp != NULL){
       if ((ip = txtp->instance) != NULL) {        /* if instance exists */
         prvip = NULL;
         prvnxtloc = &txtp->instance;
@@ -746,6 +755,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
         txtp->lst_instance = ip;
       }
       txtp->act_instance = NULL;                /* no free instances */
+      }
     }
     if (UNLIKELY(cnt))
       csound->Message(csound, Str("inactive allocs returned to freespace\n"));
@@ -2126,12 +2136,11 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       active = nxt;
     }
     csound->engineState.instrtxtp[n] = NULL;
-    /* Now patch it out */ /* VL 20-12-12 the chain of nxtinstxt might not be valid after various compilations */
-    /* there is no need to patch it out anymore as nxtinstxt is only currently used in compilation */
+    /* Now patch it out */ /* VL 20-12-12  nxtinstxt has been removed */
     /* for (txtp = &(csound->engineState.instxtanchor); txtp != NULL; txtp = txtp->nxtinstxt) */
     /*   if (txtp->nxtinstxt == ip) { */
         OPTXT *t = ip->nxtop;
-        txtp->nxtinstxt = ip->nxtinstxt;
+	// txtp->nxtinstxt = ip->nxtinstxt;
         while (t) {
           OPTXT *s = t->nxtop;
           mfree(csound, t);
