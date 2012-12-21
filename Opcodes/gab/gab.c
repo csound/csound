@@ -122,12 +122,14 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
 
 static int fastabw(CSOUND *csound, FASTAB *p)
 {
-    int nsmps = CS_KSMPS, n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
+
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;   /* load once */
-      for (n=0; n<nsmps; n++)  { /* for loops compile better */
+      for (n=offset; n<nsmps; n++)  { /* for loops compile better */
         int i = (int)(ndx[n]*xbmul);
         if (UNLIKELY(i > p->tablen || i<0)) {
           csound->Message(csound, "ndx: %f \n", ndx[n]);
@@ -137,7 +139,7 @@ static int fastabw(CSOUND *csound, FASTAB *p)
       }
     }
     else {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         int i = ndx[n];
         if (UNLIKELY(i > p->tablen || i<0)) {
           return csound->PerfError(csound, Str("tabw off end"));
@@ -179,16 +181,16 @@ static int fastabkw(CSOUND *csound, FASTAB *p)
 static int fastabi(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    int i;
+    int32 i;
 
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("tab_i: incorrect table number"));
     }
     if (*p->ixmode)
-      i = (int) (*p->xndx * ftp->flen);
+      i = (int32) (*p->xndx * ftp->flen);
     else
-      i = (int) *p->xndx;
-    if (UNLIKELY(i >= ftp->flen || i<0)) {
+      i = (int32) *p->xndx;
+    if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
       return csound->PerfError(csound,
                                Str("tab_i off end: table number: %d\n"),
                                (int) *p->xfn);
@@ -200,16 +202,16 @@ static int fastabi(CSOUND *csound, FASTAB *p)
 static int fastabiw(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    unsigned int i;
+    int32 i;
     /*ftp = csound->FTFind(p->xfn); */
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
       return csound->InitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
-      i = (int) (*p->xndx * ftp->flen);
+      i = (int32) (*p->xndx * ftp->flen);
     else
-      i = (int) *p->xndx;
-    if (UNLIKELY(i >= ftp->flen || i<0)) {
+      i = (int32) *p->xndx;
+    if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
         return csound->PerfError(csound, Str("tabw_i off end"));
     }
     ftp->ftable[i] = *p->rslt;
@@ -218,12 +220,14 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
 
 static int fastab(CSOUND *csound, FASTAB *p)
 {
-    int   i = 0, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
+    memset(rslt, '\0', offset*sizeof(MYFLT));
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;
-      for (i=0; i<nsmps; i++) {
+      for (i=offset; i<nsmps; i++) {
         int n = (int) (ndx[i] * xbmul);
         if (UNLIKELY(n > p->tablen || n<0)) {
           return csound->PerfError(csound, Str("tab off end"));
@@ -232,7 +236,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
       }
     }
     else {
-      for (i=0; i<nsmps; i++) {
+      for (i=offset; i<nsmps; i++) {
         int n = (int) ndx[i];
         if (UNLIKELY(n > p->tablen || n<0)) {
           return csound->PerfError(csound, Str("tab off end"));
@@ -348,7 +352,8 @@ static int nlalp_set(CSOUND *csound, NLALP *p)
 
 static int nlalp(CSOUND *csound, NLALP *p)
 {
-    int nsmps = CS_KSMPS, n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *rp;
     MYFLT *ip;
     double m0;
@@ -364,11 +369,12 @@ static int nlalp(CSOUND *csound, NLALP *p)
     knfact = (double)*p->knfact;
     tm0 = p->m0;
     tm1 = p->m1;
+    memset(rp, '\0', offset*sizeof(MYFLT));
     if (knfact == 0.0) { /* linear case */
       if (klfact == 0.0) { /* degenerated linear case */
         m0 = (double)ip[0] - tm1;
-        rp[0] = (MYFLT)(tm0);
-        for (n=1; n<nsmps; n++) {
+        rp[offset] = (MYFLT)(tm0);
+        for (n=offset+1; n<nsmps; n++) {
           rp[n] = (MYFLT)(m0);
           m0 = (double)ip[n];
         }
@@ -376,7 +382,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
         tm0 = m0;
       }
       else { /* normal linear case */
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           m0 = (double)ip[n] - tm1;
           m1 = m0 * klfact;
           rp[n] = (MYFLT)(tm0 + m1);
@@ -386,7 +392,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
       }
     } else { /* non-linear case */
       if (klfact == 0.0) { /* simplified non-linear case */
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           m0 = (double)ip[n] - tm1;
           m1 = fabs(m0) * knfact;
           rp[n] = (MYFLT)(tm0 + m1);
@@ -394,7 +400,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
           tm0 = m0;
         }
       } else { /* normal non-linear case */
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           m0 = (double)ip[n] - tm1;
           m1 = m0 * klfact + fabs(m0) * knfact;
           rp[n] = (MYFLT)(tm0 + m1);
@@ -497,7 +503,9 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     MYFLT   amp0, amp, cps0, cps, ampIncr, amp2;
     int32   phs, inc, lobits;
     int32   *lphs;
-    int     c, n, nsmps= CS_KSMPS, count;
+    int     c, count;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->inerr)) {
       return csound->InitError(csound, Str("adsynt2: not initialised"));
@@ -526,7 +534,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
       inc = (int32) (cps * csound->sicvt);
       phs = lphs[c];
       ampIncr = (amp - amp2) * CS_ONEDKSMPS;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;
         phs &= PHMASK;
@@ -709,25 +717,27 @@ static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 
 static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 {
-    int n, nsmps = CS_KSMPS, flag = (int) *p->imaxflag;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     switch(flag) {
     case 1: /* absolute maximum */
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         MYFLT temp;
         if ((temp = FABS(a[n])) > max) max = temp;
       }
       if (max > p->max) p->max = max;
       break;
     case 2: /* actual maximum */
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         if (a[n] > max) max = a[n];
       }
       if (max > p->max) p->max = max;
       break;
     case 3: /* actual minimum */
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         if (a[n] < max) max = a[n];
       }
       if (max < p->max) p->max = max;
@@ -735,7 +745,7 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
     case 4: { /* average */
         MYFLT temp = FL(0.0);
         p->counter += nsmps;
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           temp += a[n];
         }
         p->max += temp;
