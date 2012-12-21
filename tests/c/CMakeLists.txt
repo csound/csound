@@ -9,7 +9,7 @@ find_library(CUNIT_LIBRARY cunit)
 if(CUNIT_LIBRARY)
 
 add_executable(compilationTest compilation_test.c)
-target_link_libraries(compilationTestt ${CSOUNDLIB} ${CUNIT_LIBRARY})
+target_link_libraries(compilationTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
 add_test(NAME compilationTest
 	COMMAND $<TARGET_FILE:compilationTest> minimal.csd ${TEST_ARGS})
 
