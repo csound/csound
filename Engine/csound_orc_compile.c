@@ -855,16 +855,25 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
    if (opinfo != NULL) {
      current_state->opcodeInfo->prv = opinfo;
    }
-   insert_opcodes(csound, opinfo, current_state);
-  /* FIXME: merging of named instruments not implemented yet */
+   insert_opcodes(csound, opinfo, current_state); 
   for(i=1; i < end; i++){
    current = engineState->instrtxtp[i];
    if(current != NULL){
-   csound->Message(csound, "merging instr %d \n", i);
-    /* a first attempt at this merge is to make it use insert_instrtxt again */
-   insert_instrtxt(csound,current,i,current_state); /* insert instrument in current engine */
+     if(current->insname == NULL) {
+        csound->Message(csound, "merging instr %d \n", i);
+        /* a first attempt at this merge is to make it use insert_instrtxt again */
+        insert_instrtxt(csound,current,i,current_state); /* insert instrument in current engine */
+     }
+     else{
+       csound->Message(csound, "merging instr %s \n", current->insname);
+       /* allocate a named_instr string in the current engine */
+       /* FIXME: check the redefinition case for named instrs */
+       named_instr_alloc(csound,current->insname,current,-1L,current_state);
+     }
   }
   }
+  /* merges all named instruments */
+ named_instr_assign_numbers(csound,current_state); 
   /* this needs to be called in a separate loop 
      in case of multiple instr numbers, so insprep() is called only once */
   current = &(engineState->instxtanchor);
@@ -1053,7 +1062,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     current = current->next;
   }
   /* now add the instruments with names, assigning them fake instr numbers */
-  named_instr_assign_numbers(csound, engineState);         
+  named_instr_assign_numbers(csound,engineState);         
   insert_opcodes(csound, engineState->opcodeInfo, engineState); 
   ip = engineState->instxtanchor.nxtinstxt;
   bp = (OPTXT *) ip;
