@@ -400,9 +400,13 @@ static int fluidOutIopadr(CSOUND *csound, FLUIDOUT *p)
 static int fluidOutAopadr(CSOUND *csound, FLUIDOUT *p)
 {
     float   leftSample, rightSample;
-    int n, nsmps = 
-CS_KSMPS;
-    for (n=0; n<nsmps; n++) {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT *al = p->aLeftOut, *ar = p->aRightOut;
+    memset(al, '\0', offset*sizeof(MYFLT));
+    memset(ar, '\0', offset*sizeof(MYFLT));
+
+    for (n=offset; n<nsmps; n++) {
       leftSample = 0.0f;
       rightSample = 0.0f;
       fluid_synth_write_float(p->fluidEngine, 1,
@@ -424,25 +428,30 @@ static int fluidAllOutAopadr(CSOUND *csound, FLUIDALLOUT *p)
 {
     fluid_synth_t **fluid_engines;
     float   leftSample, rightSample;
-    int     i = 0, j, cnt;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int     j, cnt;
+    MYFLT *al = p->aLeftOut, *ar = p->aRightOut;
+    memset(al, '\0', offset*sizeof(MYFLT));
+    memset(ar, '\0', offset*sizeof(MYFLT));
 
     cnt = (int) ((fluidSynthGlobals *) p->fluidGlobals)->cnt;
     if (cnt <= 0)
       return OK;
     fluid_engines = ((fluidSynthGlobals *) p->fluidGlobals)->fluid_engines;
-    do {
-      p->aLeftOut[i] = FL(0.0);
-      p->aRightOut[i] = FL(0.0);
-      j = 0;
-      do {
+    for (n=offset; n<nsmps; n++) {
+      MYFLT aal = FL(0.0), aar = FL(0.0);
+      for (j=0; j<cnt; j++) {
         leftSample = 0.0f;
         rightSample = 0.0f;
         fluid_synth_write_float(fluid_engines[j], 1,
                                 &leftSample, 0, 1, &rightSample, 0, 1);
-        p->aLeftOut[i] += (MYFLT) leftSample /* * csound->e0dbfs */;
-        p->aRightOut[i] += (MYFLT) rightSample /* * csound->e0dbfs */;
-      } while (++j < cnt);
-    } while (++i < CS_KSMPS);
+        aal += (MYFLT) leftSample /* * csound->e0dbfs */;
+        aar += (MYFLT) rightSample /* * csound->e0dbfs */;
+      }
+      al[n] = aal;
+      ar[n] = aar;
+    }
 
     return OK;
 }
