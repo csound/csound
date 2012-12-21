@@ -182,7 +182,9 @@ static int kgendy(CSOUND *csound, GENDY *p)
 
 static int agendy(CSOUND *csound, GENDY *p)
 {
-    int     knum, n, nn = CS_KSMPS;
+    int     knum;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
     out  = p->out;
     knum = (int)*p->knum;
@@ -190,7 +192,8 @@ static int agendy(CSOUND *csound, GENDY *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    for (n=0; n<nn; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       if (p->phase >= FL(1.0)) {
         int index = p->index;
         p->phase -= FL(1.0);
@@ -309,7 +312,9 @@ static int kgendyx(CSOUND *csound, GENDYX *p)
 
 static int agendyx(CSOUND *csound, GENDYX *p)
 {
-    int     knum, n, nn = CS_KSMPS;
+    int     knum;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist, curve;
     out  = p->out;
     knum = (int)*p->knum;
@@ -317,7 +322,8 @@ static int agendyx(CSOUND *csound, GENDYX *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    for (n=0; n<nn; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       if (p->phase >= FL(1.0)) {
         int index = p->index;
         p->phase -= FL(1.0);
@@ -447,7 +453,9 @@ static int kgendyc(CSOUND *csound, GENDYC *p)
 
 static int agendyc(CSOUND *csound, GENDYC *p)
 {
-    int     knum, remain = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    int     knum;
+    int     remain = CS_KSMPS-offset;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
     out  = p->out;
     knum = (int)*p->knum;
@@ -456,7 +464,7 @@ static int agendyc(CSOUND *csound, GENDYC *p)
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
     do {
-      int nsmps, n;
+      uint32_t n, nsmps = CS_KSMPS;
       if (p->phase <= 0) {
         int     index = p->index;
         MYFLT   fphase, next_midpnt;
@@ -496,7 +504,7 @@ static int agendyc(CSOUND *csound, GENDYC *p)
       nsmps = (remain < p->phase ? remain : p->phase);
       remain   -= nsmps;
       p->phase -= nsmps;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         *(out++) = *p->kamp * p->midpnt;
         p->slope  += p->curve;
         p->midpnt += p->slope;

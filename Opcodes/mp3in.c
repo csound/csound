@@ -179,9 +179,12 @@ int mp3in(CSOUND *csound, MP3IN *p)
     MYFLT *al       = p->ar[0];
     MYFLT *ar       = p->ar[1];
     int pos         = p->pos;
-    int i, n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, n, nsmps = CS_KSMPS;
 
-    for (n=0; n<nsmps; n++) {
+    memset(al, '\0', offset*sizeof(MYFLT));
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       for (i=0; i<2; i++) {     /* stereo */
         MYFLT xx;
         short *bb = (short*)buffer;
