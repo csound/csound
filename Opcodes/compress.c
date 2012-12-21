@@ -77,10 +77,11 @@ static int compset(CSOUND *csound, CMPRS *p)
 static int compress(CSOUND *csound, CMPRS *p)
 {
     MYFLT       *ar, *ainp, *cinp;
-    int32        nsmps = CS_KSMPS;
-    int         n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+
     /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
-    MYFLT scal = 32768./csound->e0dbfs; 
+    MYFLT scal = FL(32768.0)/csound->e0dbfs; 
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
@@ -124,7 +125,8 @@ static int compress(CSOUND *csound, CMPRS *p)
     ar = p->ar;
     ainp = p->aasig;
     cinp = p->acsig;
-    for (n=0; n<nsmps; n++) {   /* now for each sample of both inputs:  */
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {   /* now for each sample of both inputs:  */
       MYFLT asig, lsig;
       double csig;
       asig = *p->aptr;                  /* get signals from delay line  */
@@ -213,12 +215,12 @@ static int distort(CSOUND *csound, DIST *p)
     MYFLT   *ar, *asig;
     MYFLT   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
-    int32    nsmps = CS_KSMPS;
-    int     n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     asig = p->asig;
     q = p->prvq;
-    for (n=0; n<nsmps; n++) {
+    for (n=offset; n<nsmps; n++) {
       q = p->c1 * asig[n] * asig[n] + p->c2 * q;
     }
     p->prvq = q;
@@ -232,7 +234,8 @@ static int distort(CSOUND *csound, DIST *p)
     dinc = (dnew - dcur) * CS_ONEDKSMPS;
     asig = p->asig;
     ar = p->ar;
-    for (n=0; n<nsmps; n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */
       phs = p->midphs * (FL(1.0) + sig); /* as index into table  */
