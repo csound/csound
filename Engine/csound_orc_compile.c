@@ -830,16 +830,25 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
    csound->Message(csound, "merging instr %d \n", i);
     /* a first attempt a this merge is to make it use insert_instrtxt again */ 
    insert_instrtxt(csound,current,i,current_state); /* insert instrument in current engine */
+  }
+  }
+  /* this needs to be called in a separate loop 
+     in case of multiple instr numbers, so insprep() is called only once */
+  current = &(engineState->instxtanchor);
+  while ((current = current->nxtinstxt) != NULL) {        
    insprep(csound, current, current_state);         /* run insprep() to connect ARGS  */
    recalculateVarPoolMemory(csound, current->varPool); /* recalculate var pool */
-   /* patch up instr order */
+  }
+  /* now we need to patch up instr order */
+  for(i=1; i < end; i++){
+   current = engineState->instrtxtp[i];
+   if(current != NULL){
    if(i < current_state->maxinsno-1)
      current->nxtinstxt = current_state->instrtxtp[i+1]; 
    else
      current->nxtinstxt = NULL; 
+   }
   }
-  }
-
   return 0;
 } 
 
