@@ -150,7 +150,8 @@ static MYFLT getvalue(DelayLine *dl, int position)
 static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 {
     MYFLT   *ar, *ain;
-    int     n,nsmps=CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   yp0,ym0,ypM,ymM;
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
@@ -181,7 +182,8 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
       pickup   = pickup>>OVERSHT;
     }
 
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT s, s1;
       s = getvalue(upper_rail, pickup) + getvalue(lower_rail, pickup);
       s1 = getvalue(upper_rail, pickup+1) + getvalue(lower_rail, pickup+1);
@@ -255,7 +257,9 @@ static int streson(CSOUND *csound, STRES *p)
     MYFLT g = *p->ifdbgain;
     MYFLT freq;
     double a, s, w, sample, tdelay, fracdelay;
-    int delay, n, nsmps = CS_KSMPS;
+    int delay;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int rp = p->rpointer, wp = p->wpointer;
     int size = p->size;
     MYFLT       APdelay = p->APdelay;
@@ -269,7 +273,8 @@ static int streson(CSOUND *csound, STRES *p)
     fracdelay = tdelay - (delay + 0.5); /* fractional delay */
     vdt = size - delay;       /* set the var delay */
     a = (1.0-fracdelay)/(1.0+fracdelay);   /* set the all-pass gain */
-    for (n=0;n<nsmps;n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       /* GetSample(p); */
       MYFLT tmpo;
       rp = (vdt + wp);

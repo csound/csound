@@ -93,7 +93,8 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 
 static int sndwarp(CSOUND *csound, SNDWARP *p)
 {
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       frm_0,frm_1;
     int32       base, longphase;
     MYFLT       frac, frIndx;
@@ -127,7 +128,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
       timewarpby = p->xtimewarp;
       amp = p->xamp;
 
-      for (n=0; n<nsmps;n++) {
+      for (n=offset; n<nsmps;n++) {
         if (exp[i].cnt < exp[i].wsize) goto skipover;
 
         if (*p->itimemode!=0)
@@ -256,7 +257,8 @@ static int sndwarpstset(CSOUND *csound, SNDWARPST *p)
 
 static int sndwarpst(CSOUND *csound, SNDWARPST *p)
 {
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       frm10,frm11, frm20, frm21;
     int32        base, longphase;
     MYFLT       frac, frIndx;
@@ -288,7 +290,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
       timewarpby = p->xtimewarp;
       amp = p->xamp;
 
-      for (n=0; n<nsmps;n++) {
+      for (n=offset; n<nsmps;n++) {
         if (exp[i].cnt < exp[i].wsize) goto skipover;
 
         if (*p->itimemode!=0)
