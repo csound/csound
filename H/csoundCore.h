@@ -275,7 +275,7 @@ typedef struct {
     struct insds * lst_instance;    /* last allocated instance */
     struct insds * act_instance;    /* Chain of free (inactive) instances */
                                     /* (pointer to next one is INSDS.nxtact) */
-    struct instr * nxtinstxt;       /* Next instrument in orch (num order) */
+//    struct instr * nxtinstxt;       /* Next instrument in orch (num order) */
     int     active;                 /* To count activations for control */
     int     pending_release;        /* To count instruments in release phase */
     int     maxalloc;

@@ -875,6 +875,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   int32        count, sumcount; //, instxtcount, optxtcount;
   TREE * current = root;
   ENGINE_STATE *engineState;
+  int i;
 
   if(csound->instr0 == NULL) {
      engineState = &csound->engineState;
@@ -891,7 +892,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   prvinstxt = &(engineState->instxtanchor); 
   engineState->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno)
 						 * sizeof(INSTRTXT*));
-  prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
+  //prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
   insert_instrtxt(csound, csound->instr0, 0, engineState);
 
   while (current != NULL) {
@@ -904,7 +905,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       print_tree(csound, "Instrument found\n", current);
       instrtxt = create_instrument(csound, current,engineState);
 
-      prvinstxt = prvinstxt->nxtinstxt = instrtxt;
+      //prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
       /* Handle Inserting into CSOUND here by checking ids (name or
        * numbered) and using new insert_instrtxt?
@@ -972,7 +973,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     case UDO_TOKEN:
       /* csound->Message(csound, "UDO found\n"); */
       instrtxt = create_instrument(csound, current, engineState);
-      prvinstxt = prvinstxt->nxtinstxt = instrtxt;
+      //    prvinstxt = prvinstxt->nxtinstxt = instrtxt;
       opname = current->left->value->lexeme;
       OPCODINFO *opinfo = find_opcode_info(csound, opname, engineState);
 
@@ -1027,7 +1028,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       inm = inm->prv;
     }
   }
-  ip = engineState->instxtanchor.nxtinstxt;
+  //ip = engineState->instxtanchor.nxtinstxt;
+  ip = engineState->instrtxtp[0];
   bp = (OPTXT *) ip;
   while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
     /* chk instr 0 for illegal perfs */
@@ -1048,8 +1050,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     csound->Die(csound, Str("%d syntax errors in orchestra.  "
 			    "compilation invalid\n"), csound->synterrcnt);
   }
-  ip = &(engineState->instxtanchor);
-  for (sumcount = 0; (ip = ip->nxtinstxt) != NULL; ) {/* for each instxt */
+   ip = &(engineState->instxtanchor);
+   //for (sumcount = 0; (ip = ip->nxtinstxt) != NULL; ) {/* for each instxt */
+  for(i=0;  i < engineState->maxinsno; i++) {
+    ip = engineState->instrtxtp[i];
+    if(ip != NULL) {
     OPTXT *optxt = (OPTXT *) ip;
     int optxtcount = 0;
     while ((optxt = optxt->nxtop) != NULL) {      /* for each op in instr  */
@@ -1062,7 +1067,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
 	sumcount += (count + 1);
     }
-    ip->optxtcount = optxtcount;                  /* optxts in this instxt */
+    }
+    //ip->optxtcount = optxtcount;                  /* optxts in this instxt */
   }
 
   
@@ -1073,10 +1079,15 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     engineState_free(csound, engineState);
   }
   else {
-  ip = &(engineState->instxtanchor);
-  while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
+  
+    //ip = &(engineState->instxtanchor);
+    //while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
+  for(i=0;  i < engineState->maxinsno; i++) {
+    ip = engineState->instrtxtp[i];
+    if(ip != NULL) {
     insprep(csound, ip, engineState);                      /*   as combined offsets */
     recalculateVarPoolMemory(csound, ip->varPool);
+    }
   }  
   }
   return CSOUND_SUCCESS;
@@ -1107,10 +1118,13 @@ void debugPrintCsound(CSOUND* csound) {
   }
     
     
-  INSTRTXT    *current = &(csound->engineState.instxtanchor);
-  current = current->nxtinstxt;
-  count = 0;
-  while (current != NULL) {
+  INSTRTXT    *current;// = &(csound->engineState.instxtanchor);
+  //current = current->nxtinstxt;
+  //count = 0;
+  //while (current != NULL) {
+  for(count=0; count < csound->engineState.maxinsno; count++){
+    current = csound->engineState.instrtxtp[count];
+    if(current != NULL) {
     csound->Message(csound, "Instrument %d\n", count);
     csound->Message(csound, "Variables\n");
         
@@ -1122,10 +1136,11 @@ void debugPrintCsound(CSOUND* csound) {
 			var->varName, var->varType->varTypeName);
 	var = var->next;
       }            
-    }       
-    count++;
-    current = current->nxtinstxt;
-  }   
+    } 
+    }      
+    //count++;
+    //current = current->nxtinstxt;
+  }  
 }
 
 /**
@@ -1426,7 +1441,8 @@ void initialize_instrument0(CSOUND *csound)
   OPARMS  *O = csound->oparms;
   ENGINE_STATE *engineState = &csound->engineState;
   
-  ip = engineState->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
+  // ip = engineState->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
+  ip = engineState->instrtxtp[0];
   /* why I want oload() to return an error value.... */
   if (UNLIKELY(csound->e0dbfs <= FL(0.0)))
     csound->Die(csound, Str("bad value for 0dbfs: must be positive."));
