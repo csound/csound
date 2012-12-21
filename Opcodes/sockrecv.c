@@ -140,7 +140,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (long) (MTU * bufnos) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint32_t) (MTU * bufnos) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU * bufnos, &p->buffer);
     else {
@@ -173,12 +173,15 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *asig = p->ptr1;
     MYFLT   *buf = p->buf;
-    int     i, n, ksmps = CS_KSMPS;
+    int     n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int     *bufsamps = p->bufsamps;
     int     bufnos = p->bufnos;
 
     if (p->canread) {
-      for (i = 0, n = p->rp; i < ksmps; i++, n++) {
+      memset(asig, '\0', offset*sizeof(MYFLT));
+      for (i = offset, n = p->rp; i < nsmps; i++, n++) {
         if (n == bufsamps[p->rbufferuse]) {
           p->usedbuf[p->rbufferuse] = 0;
           p->rbufferuse++;
@@ -196,8 +199,8 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
       p->buf = buf;
     }
     else {
-      memset(asig, 0, sizeof(MYFLT)*ksmps);
-      /* for (i = 0; i < ksmps; i++) */
+      memset(asig, 0, sizeof(MYFLT)*nsmps);
+      /* for (i = 0; i < nsmps; i++) */
       /*   asig[i] = FL(0.0); */
     }
     return OK;
@@ -236,7 +239,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (long) (MTU * bufnos) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint32_t) (MTU * bufnos) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU * bufnos, &p->buffer);
     else {
@@ -270,12 +273,16 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
     MYFLT   *asigl = p->ptr1;
     MYFLT   *asigr = p->ptr2;
     MYFLT   *buf = p->buf;
-    int     i, n, ksmps = CS_KSMPS;
+    int     n;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int     *bufsamps = p->bufsamps;
     int     bufnos = p->bufnos;
 
     if (p->canread) {
-      for (i = 0, n = p->rp; i < ksmps; i++, n += 2) {
+      memset(asigl, '\0', offset*sizeof(MYFLT));
+      memset(asigr, '\0', offset*sizeof(MYFLT));
+      for (i = offset, n = p->rp; i < nsmps; i++, n += 2) {
         if (n == bufsamps[p->rbufferuse]) {
           p->usedbuf[p->rbufferuse] = 0;
           p->rbufferuse++;
@@ -294,9 +301,9 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
       p->buf = buf;
     }
     else {
-      memset(asigl, 0, sizeof(MYFLT)*ksmps);
-      memset(asigr, 0, sizeof(MYFLT)*ksmps);
-      /* for (i = 0; i < ksmps; i++) { */
+      memset(asigl, 0, sizeof(MYFLT)*nsmps);
+      memset(asigr, 0, sizeof(MYFLT)*nsmps);
+      /* for (i = 0; i < nsmps; i++) { */
       /*   asigl[i] = FL(0.0); */
       /*   asigr[i] = FL(0.0); */
     /* } */
