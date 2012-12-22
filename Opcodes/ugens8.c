@@ -134,11 +134,12 @@ int pvoc(CSOUND *csound, PVOC *p)
     MYFLT  *buf2 = p->dsBuf;
     int    asize = pvdasiz(p);  /* new */
     int    size = pvfrsiz(p);
-    unsigned int    i;
     int    buf2Size, outlen;
     int    circBufSize = PVFFTSIZE;
     int    specwp = (int)*p->ispecwp;   /* spectral warping flag */
     MYFLT  pex, scaleFac;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
     pex = *p->kfmod;
@@ -146,7 +147,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
       goto err2;           /* ..so we won't run into buf2Size problems */
-    if (UNLIKELY(outlen<(int)2*CS_KSMPS))     /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int)2*nsmps))     /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;       /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -162,7 +163,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     if (*p->igatefun > 0)
       PvAmpGate(buf,size, p->AmpGateFunc, p->PvMaxAmp);
 
-    FrqToPhase(buf, asize, pex * (MYFLT) CS_KSMPS, p->asr,
+    FrqToPhase(buf, asize, pex * (MYFLT) nsmps, p->asr,
                FL(0.5) * ((pex / p->lastPex) - FL(1.0)));
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
@@ -181,19 +182,20 @@ int pvoc(CSOUND *csound, PVOC *p)
       memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
              sizeof(MYFLT) * buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
-    addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
-    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, CS_KSMPS, circBufSize);
-    p->opBpos += CS_KSMPS;
+    addToCircBuf(buf2, p->outBuf, p->opBpos, nsmps, circBufSize);
+    writeClrFromCircBuf(p->outBuf, ar, p->opBpos, nsmps, circBufSize);
+    p->opBpos += nsmps;
     if (p->opBpos > circBufSize)
       p->opBpos -= circBufSize;
-    addToCircBuf(buf2 + CS_KSMPS, p->outBuf,
-                 p->opBpos, buf2Size - CS_KSMPS, circBufSize);
+    addToCircBuf(buf2 + nsmps, p->outBuf,
+                 p->opBpos, buf2Size - nsmps, circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
     /* scale output */
     scaleFac = p->scale;
     if (pex > FL(1.0))
       scaleFac /= pex;
-    for (i = 0; i < CS_KSMPS; i++)
+    memset(p->rslt, '\0', offset*sizeof(MYFLT));
+    for (i = offset; i < nsmps; i++)
       p->rslt[i] *= scaleFac;
 
     return OK;
