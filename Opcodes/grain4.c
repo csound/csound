@@ -261,7 +261,8 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int         nvoice;
     int32       tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
@@ -287,9 +288,9 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 
    /* Recover audio output pointer... */
    ar   = p->ar;
-
+   memset(ar, '\0', offset*sizeof(MYFLT));
    /* *** Start the loop .... *** */
-   for (n=0; n<nsmps; n++) {                         /* while (--nsmps) */
+   for (n=offset; n<nsmps; n++) {                         /* while (--nsmps) */
                                 /* Optimisations */
      int32      *fpnt = p->fpnt, *cnt = p->cnt, *gskip = p->gskip;
      int32      *gap = p->gap, *gsize = p->gsize;

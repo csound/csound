@@ -7,6 +7,13 @@ Csound 6 TODO list
  - document AST tree format to allow users to parse into it.
  - API functions
  - thread safety ?
+ - add opcode to compile/load an opcode
 
 2) allow any number of strings in score events (except p2,p3)
+
+3) test sample-accurate opcodes, or document those not working
+
+4) Use instrument-local structure rather than global (ksmps mainly)
+
+5) New dag control without memory use
 

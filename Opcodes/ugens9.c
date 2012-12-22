@@ -35,7 +35,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     CVSTRUCT *cvh;
     int siz;
     int32     Hlenpadded = 1, obufsiz, Hlen;
-    int      nchanls;
+    unsigned int      nchanls;
 
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, CONVOLVE_VERSION_STRING);
@@ -390,7 +390,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
                             (long) IRfile.getframes, ainput_dur);
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
-    if (UNLIKELY(p->nchanls != p->OUTOCOUNT)) {
+    if (UNLIKELY(p->nchanls != (int)p->OUTOCOUNT)) {
       return csound->InitError(csound, Str("PCONVOLVE: number of output channels "
                                            "not equal to input channels"));
     }
