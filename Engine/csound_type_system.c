@@ -142,9 +142,6 @@ void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     pool->poolSize = 0;
     
 	while (current != NULL) {
-        if(current->updateMemBlockSize != NULL) {
-            current->updateMemBlockSize(csound, current);
-        }
         current->memBlockIndex = pool->poolSize / sizeof(MYFLT);
         pool->poolSize += current->memBlockSize;
         
