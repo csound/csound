@@ -38,7 +38,6 @@ extern "C" {
         /* void* memblock; */
         int refCount;
         struct csvariable* next;
-        void (*updateMemBlockSize)(void*, struct csvariable*);
     } CS_VARIABLE;
 
 //    typedef struct cstypeinstance {
