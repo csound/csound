@@ -42,13 +42,14 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
-    int i,j;
-    int nsmps = CS_KSMPS;
+    int j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int cnt = p->number;
     vbap_control(csound,p);
-    for (i=0; i<cnt; i++) {
-      p->beg_gains[i] = p->end_gains[i];
-      p->end_gains[i] = p->updated_gains[i];
+    for (j=0; j<cnt; j++) {
+      p->beg_gains[j] = p->end_gains[j];
+      p->end_gains[j] = p->updated_gains[j];
     }
 
     /* write audio to result audio streams weighted
@@ -60,9 +61,10 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
       ogain      = p->beg_gains[j];
       ngain      = p->end_gains[j];
       gainsubstr = ngain - ogain;
+      memset(outptr, '\0', offset*sizeof(MYFLT));
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
-          for (i = 0; i < nsmps; i++) {
+          for (i = offset; i < nsmps; i++) {
             outptr[i] = inptr[i] *
               (ogain + (MYFLT)(i+1) * invfloatn * gainsubstr);
           }
@@ -70,7 +72,7 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
             (MYFLT)(i) * invfloatn * gainsubstr;
         }
         else {
-          for (i=0; i<nsmps; ++i)
+          for (i=offset; i<nsmps; ++i)
             outptr[i] = inptr[i] * ogain;
         }
       }
@@ -249,14 +251,15 @@ int vbap_moving(CSOUND *csound, VBAP_MOVING *p)
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
-    int i,j;
-    int nsmps = CS_KSMPS;
+    int j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     int cnt = p->number;
 
     vbap_moving_control(csound,p);
-    for (i=0;i<cnt; i++) {
-      p->beg_gains[i] = p->end_gains[i];
-      p->end_gains[i] = p->updated_gains[i];
+    for (j=0;j<cnt; j++) {
+      p->beg_gains[j] = p->end_gains[j];
+      p->end_gains[j] = p->updated_gains[j];
     }
 
     /* write audio to resulting audio streams weighted
@@ -265,12 +268,13 @@ int vbap_moving(CSOUND *csound, VBAP_MOVING *p)
     for (j=0; j<cnt ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
+      memset(outptr, '\0', offset*sizeof(MYFLT));
       ogain  = p->beg_gains[j];
       ngain  = p->end_gains[j];
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
-          for (i = 0; i < nsmps; i++) {
+          for (i = offset; i < nsmps; i++) {
             outptr[i] = inptr[i] *
               (ogain + (MYFLT)(i+1) * invfloatn * gainsubstr);
           }
@@ -278,7 +282,7 @@ int vbap_moving(CSOUND *csound, VBAP_MOVING *p)
             (MYFLT)(i) * invfloatn * gainsubstr;
         }
         else
-          for (i=0; i<nsmps; ++i)
+          for (i=offset; i<nsmps; ++i)
             outptr[i] = inptr[i] * ogain;
       else
         memset(outptr, 0, nsmps*sizeof(MYFLT));

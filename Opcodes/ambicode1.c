@@ -86,7 +86,8 @@ static int ibformenc(CSOUND * csound, AMBIC * p)
 static int
 abformenc(CSOUND * csound, AMBIC * p) {
 
-    int sampleCount, sampleIndex, channelCount, channelIndex;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t sampleCount, sampleIndex, channelCount, channelIndex;
     double angle, elevation, x, y, z;
     MYFLT coefficients[16], coefficient, * output, * input;
     MYFLT x2, y2, z2;
@@ -147,7 +148,8 @@ abformenc(CSOUND * csound, AMBIC * p) {
       coefficient = coefficients[channelIndex];
       input = p->ain;
       output = p->aouts[channelIndex];
-      for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++)
+      memset(output, '\0', offset*sizeof(MYFLT));
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++)
         output[sampleIndex] = coefficient * input[sampleIndex];
     }
 
@@ -212,10 +214,10 @@ abformdec(CSOUND * csound, AMBID * p) {
        suggest these aren't removed until everyone is sure the
        unoptimised code is doing the right thing!) */
 
-    int sampleCount, sampleIndex;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t sampleCount = CS_KSMPS, sampleIndex;
     MYFLT p0, q, u, v, w, x, y, z;
 
-    sampleCount = CS_KSMPS;
     assert(p->INOCOUNT >= 5);
 
     switch ((int)*(p->isetup)) {
@@ -225,7 +227,9 @@ abformdec(CSOUND * csound, AMBID * p) {
          array at the origin. Works better than front-facing
          arrangements for most purposes, as a composer using this opcode
          probably wants to hear the back stage. */
-      for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+      memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
+      memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
         w = p->ains[0][sampleIndex] * SQRT(FL(0.5));
         y = p->ains[2][sampleIndex] * FL(0.5);
         /* Left: */
@@ -236,8 +240,14 @@ abformdec(CSOUND * csound, AMBID * p) {
       break;
     case 2: /* Quad */
       assert(p->OUTOCOUNT == 4);
+      if (offset) {
+        memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
+        memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
+        memset(p->aouts[2], '\0', offset*sizeof(MYFLT));
+        memset(p->aouts[3], '\0', offset*sizeof(MYFLT));
+      }
       /* Use a first-order 'in-phase' decode. */
-      for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
         w = p->ains[0][sampleIndex] * FL(0.35355);
         x = p->ains[1][sampleIndex] * FL(0.17677);
         y = p->ains[2][sampleIndex] * FL(0.17677);
@@ -253,13 +263,19 @@ abformdec(CSOUND * csound, AMBID * p) {
       break;
     case 3: /* 5.0 */
       assert(p->OUTOCOUNT == 5);
+      if (offset) {
+        memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
+        memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
+        memset(p->aouts[2], '\0', offset*sizeof(MYFLT));
+        memset(p->aouts[3], '\0', offset*sizeof(MYFLT));
+      }
       /* This is a second order decoder provided by Bruce Wiggins. It is
          optimised for high frequency use within a dual-band decoder,
          however it has good a low-frequency response. It is not quite
          'in-phase' but it is not far off. */
       if (p->INOCOUNT == 1 + 4) {
         /* Matrix truncated to first order (not ideal). */
-        for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
           w = p->ains[0][sampleIndex];
           x = p->ains[1][sampleIndex];
           y = p->ains[2][sampleIndex];
@@ -282,7 +298,13 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else {
         /* This is the full matrix. */
-        for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+        if (offset) {
+          memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
+          memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
+          memset(p->aouts[2], '\0', offset*sizeof(MYFLT));
+          memset(p->aouts[3], '\0', offset*sizeof(MYFLT));
+        }
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
           w = p->ains[0][sampleIndex];
           x = p->ains[1][sampleIndex];
           y = p->ains[2][sampleIndex];
@@ -315,7 +337,11 @@ abformdec(CSOUND * csound, AMBID * p) {
       assert(p->OUTOCOUNT == 8);
       if (p->INOCOUNT == 1 + 4) {
         /* First order 'in-phase' decode: */
-        for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+        if (offset) 
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
+
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
           w = p->ains[0][sampleIndex] * FL(0.17677);
           x = p->ains[1][sampleIndex];
           y = p->ains[2][sampleIndex];
@@ -339,7 +365,10 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else if (p->INOCOUNT == 1 + 9) {
         /* Second order 'in-phase' / 'controlled opposites' decode: */
-        for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+        if (offset) 
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
           w = p->ains[0][sampleIndex] * FL(0.17677);
           x = p->ains[1][sampleIndex];
           y = p->ains[2][sampleIndex];
@@ -373,8 +402,11 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else {
         assert(p->INOCOUNT == 1 + 16);
+        if (offset) 
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
         /* Third order 'in-phase' / 'controlled opposites' decode: */
-        for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
           w  = p->ains[ 0][sampleIndex] * FL(0.176777);
           x  = p->ains[ 1][sampleIndex];
           y  = p->ains[ 2][sampleIndex];
@@ -436,7 +468,10 @@ abformdec(CSOUND * csound, AMBID * p) {
     case 5: /* Cube: */
       assert(p->OUTOCOUNT == 8);
       /* First order 'in-phase' decode: */
-      for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+      if (offset) 
+        for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+          memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
         w = p->ains[0][sampleIndex] * FL(0.17677);
         x = p->ains[1][sampleIndex] * FL(0.07216);
         y = p->ains[2][sampleIndex] * FL(0.07216);
