@@ -6,30 +6,18 @@
 #define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
 #define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
 
-
-//CS_TYPE* createTypeInstance(CSOUND* csound, char* varTypeName,  char* varDescription,
-//        CS_VARIABLE* (*createVarFunc)(void*, void*), void* args, int argtype) {
-//    CS_TYPE* type = mcalloc(csound, sizeof (CS_TYPE));
-//    type->varTypeName = varTypeName;
-//    type->varDescription = varDescription;
-//    type->argtype = argtype;    
-//    type->createVariable = createVarFunc;    
-//    type->args = args;
-//
-//    return type;
-//}
-
-CS_VARIABLE* createAsig(void* cs, void* instr) {
+CS_VARIABLE* createAsig(void* cs, void* p) {
     int ksmps;
     CSOUND* csound = (CSOUND*)cs;
     
-    if(instr != NULL) {
-      OPDS* p = (OPDS*)instr;
-      ksmps = CS_KSMPS;
-    } else {
+    //FIXME - this needs to take into account local ksmps, once context work is complete
+//    if(instr != NULL) {
+//      OPDS* p = (OPDS*)instr;
+//      ksmps = CS_KSMPS;
+//    } else {
       ksmps = csound->ksmps;
-    }
-        
+//    }
+    
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = ksmps * sizeof (MYFLT);
     return var;
