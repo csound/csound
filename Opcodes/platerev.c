@@ -70,11 +70,11 @@ static int platerev_init(CSOUND *csound, PLATE *p)
 
     p->nin = (int) (p->INOCOUNT) - 7; p->nout = (int) (p->OUTOCOUNT);
     if (UNLIKELY((inp = csound->FTnp2Find(csound,p->tabins)) == NULL ||
-                 inp->flen < 3*p->nin)) {
+                 inp->flen < (unsigned)3*p->nin)) {
       return csound->InitError(csound, Str("Missing input table or too short"));
     }
     if (UNLIKELY((outp = csound->FTnp2Find(csound,p->tabout)) == NULL ||
-                 outp->flen < 3*p->nout)) {
+                 outp->flen < (unsigned int)3*p->nout)) {
       return csound->InitError(csound, Str("Missing output table or too short"));
     }
     p->in_param = inp->ftable;
@@ -108,7 +108,8 @@ static int platerev_init(CSOUND *csound, PLATE *p)
 
 static int platerev(CSOUND *csound, PLATE *p)
 {
-    int i,j, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, j, nsmps = CS_KSMPS;
     int Ny = p->Ny, Nx = p->Nx;
     int Nx5 = Nx+5;
     int bc =  (int) MYFLT2LONG(*p->bndry);
@@ -117,23 +118,22 @@ static int platerev(CSOUND *csound, PLATE *p)
            s11 = p->s11, s20 = p->s20, s02 = p->s02,
            t00 = p->t00, t10 = p->t10, t01 = p->t01;
     double dt = p->dt, dy = p->dy;
-    int n, qq;
+    uint32_t n, qq;
     MYFLT *uin;
     double wi[40], wo[40], sdi[40], cdi[40], sdo[40], cdo[40];
 
-    for (qq=0; qq<p->nin; qq++) {
+    for (qq=0; qq<(int32_t)p->nin; qq++) {
       double delta = TWOPI*(double)p->in_param[3*qq]*dt;
       cdi[qq] = cos(delta);
       sdi[qq] = sin(delta);
       wi[qq] = p->L*0.5*(double)p->in_param[3*qq+1];
-    }
-    for (qq=0; qq<p->nout; qq++) {
-      double delta = TWOPI*(double)p->out_param[3*qq]*dt;
+      delta = TWOPI*(double)p->out_param[3*qq]*dt;
       cdo[qq] = cos(delta);
       sdo[qq] = sin(delta);
       wo[qq] = (p->L*0.5)*(double)p->out_param[3*qq+1];
+      if (offset) memset(p->aout[qq], '\0', offset*sizeof(MYFLT));
     }
-    for (n=0; n<nsmps; n++) {
+    for (n=offset; n<nsmps; n++) {
       /* interior grid points*/
       /*u = conv2(u1,S,'same')+conv2(u2,T,'same'); */
       for (j=2; j<Ny+3; j++)  /* Loop from 2,3,...Nf, Nf+1, Nf+2 */
