@@ -59,7 +59,7 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, 
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-            CS_VARIABLE* var = current->cstype->createVariable(csound, current->cstype->args);
+            CS_VARIABLE* var = current->cstype->createVariable(csound, NULL);
             var->varType = type;
             var->varName = name;
             return var;
