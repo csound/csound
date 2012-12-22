@@ -776,7 +776,9 @@ static int early_init(CSOUND *csound, early *p)
 static int early_process(CSOUND *csound, early *p)
 {
     /* iterators */
-    int n, i, j;
+    int i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t j, nsmps = CS_KSMPS;
 
     /* local pointers to p */
     MYFLT *in = p->in;
@@ -929,7 +931,7 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT coselev;
 
     /* processing size! */
-    n = CS_KSMPS;
+    //n = CS_KSMPS;
 
     /* check for legal src/lstnr locations */
     /* restricted to being inside room! */
@@ -1028,7 +1030,9 @@ static int early_process(CSOUND *csound, early *p)
     }
 
     /* a rate... */
-    for (j=0;j<n;j++) {
+    memset(outsigl, '\0', offset*sizeof(MYFLT));
+    memset(outsigr, '\0', offset*sizeof(MYFLT));
+    for (j=offset;j<nsmps;j++) {
       /* input */
       inbuf[counter] = in[j];
 
