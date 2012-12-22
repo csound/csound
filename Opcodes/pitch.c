@@ -2,7 +2,7 @@
 /*
     pitch.c:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker,
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter NeubÃ¤cker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
@@ -249,7 +249,9 @@ int pitch(CSOUND *csound, PITCH *p)
     double      c1 = p->c1, c2 = p->c2;
 
     MYFLT   a, b, *dftp, SIG, yt1, yt2;
-    int     nocts, n, nsmps = CS_KSMPS, winlen;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int     nocts, winlen;
     DOWNDAT *downp = &p->downsig;
     OCTDAT  *octp;
     SPECDAT *specp;
@@ -258,7 +260,8 @@ int pitch(CSOUND *csound, PITCH *p)
                                 /* RMS */
     q = p->prvq;
     asig = p->asig;
-    for (n=0; n<nsmps; n++) {
+    memset(asig, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT as = asig[n]*DFLT_DBFS/csound->e0dbfs; /* Normalise.... */
       q = c1 * as * as + c2 * q;
       SIG = as;                              /* for each source sample: */
@@ -466,9 +469,13 @@ int macset(CSOUND *csound, SUM *p)
 
 int maca(CSOUND *csound, SUM *p)
 {
-    int nsmps=CS_KSMPS, count=(int) p->INOCOUNT, j, k;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t k, nsmps = CS_KSMPS;
+    int count=(int) p->INOCOUNT, j;
     MYFLT *ar = p->ar, **args = p->argums;
-    for (k=0; k<nsmps; k++) {
+
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (k=offset; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
       for (j=0; j<count; j +=2)
         ans += args[j][k] * args[j+1][k];
@@ -479,9 +486,12 @@ int maca(CSOUND *csound, SUM *p)
 
 int mac(CSOUND *csound, SUM *p)
 {
-    int nsmps=CS_KSMPS, count=(int) p->INOCOUNT, j, k;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t k, nsmps = CS_KSMPS;
+    int count=(int) p->INOCOUNT, j;
     MYFLT *ar = p->ar, **args = p->argums;
-    for (k=0; k<nsmps; k++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (k=offset; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
       for (j=0; j<count; j +=2)
         ans += *args[j] * args[j+1][k];
@@ -558,7 +568,7 @@ int clockread(CSOUND *csound, CLKRD *p)
 }
 
 /* ************************************************************ */
-/* Opcodes from Peter Neubäcker                                 */
+/* Opcodes from Peter NeubÃ¤cker                                 */
 /* ************************************************************ */
 
 int adsyntset(CSOUND *csound, ADSYNT *p)
@@ -630,10 +640,12 @@ int adsynt(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
     MYFLT   *ar, *ftbl, *freqtbl, *amptbl;
-    MYFLT   amp0, amp, cps0, cps;
+    MYFLT    amp0, amp, cps0, cps;
     int32    phs, inc, lobits;
-    int32    *lphs;
-    int     n, nsmps = CS_KSMPS, c, count;
+    int32   *lphs;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      c, count;
 
     if (UNLIKELY(p->inerr)) {
       return csound->PerfError(csound, Str("adsynt: not initialised"));
@@ -659,7 +671,7 @@ int adsynt(CSOUND *csound, ADSYNT *p)
       cps = freqtbl[c] * cps0;
       inc = (int32) (cps * csound->sicvt);
       phs = lphs[c];
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp;
         phs += inc;
         phs &= PHMASK;
@@ -702,7 +714,8 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     MYFLT       fract, v1, amp0, amp, *ar, *ftab, *mtab;
     int32       phs, inc, lobits;
     int32       phases[10];
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       tonal, bright, freq, ampscl;
     int         octcnt = p->octcnt;
     MYFLT       octstart, octoffs, octbase;
@@ -753,7 +766,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
       if (UNLIKELY(freq > hesr))
         amp = FL(0.0);
       inc = (int32)(freq * csound->sicvt);
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         fract = PFRAC(phs);
         ftab = ftp->ftable + (phs >> lobits);
         v1 = *ftab++;
@@ -774,6 +787,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     MYFLT srate, downs;
     int32  size, minperi, maxperi, downsamp, upsamp, msize, bufsize;
     uint32_t interval;
+    uint32_t nsmps = CS_KSMPS;
 
     p->inerr = 0;
 
@@ -803,11 +817,11 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
         interval = maxperi;
     else
         interval = (uint32_t)(srate / *p->iexcps);
-    if (interval < CS_KSMPS) {
+    if (interval < nsmps) {
       if (downsamp)
-        interval = CS_KSMPS / downsamp;
+        interval = nsmps / downsamp;
       else
-        interval = CS_KSMPS * upsamp;
+        interval = nsmps * upsamp;
     }
 
     size = maxperi + interval;
@@ -1131,7 +1145,7 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
     }
 
     *p->sr = (MYFLT)(phs = curphs[index]);
-    if (UNLIKELY((phs += *p->xcps * CS_ONEDKR) >= 1.0))
+    if (UNLIKELY((phs += *p->xcps * csound->onedkr) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 1.0))
       phs += 1.0;
@@ -1141,7 +1155,8 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
 
 int phsorbnk(CSOUND *csound, PHSORBNK *p)
 {
-    int     n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *rs;
     double  phase, incr;
     double  *curphs = (double*)p->curphs.auxp;
@@ -1159,9 +1174,10 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
 
     rs = p->sr;
     phase = curphs[index];
+    memset(rs, '\0', offset*sizeof(MYFLT));
     if (p->XINCODE) {
       MYFLT *cps = p->xcps;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         incr = (double)(cps[n] * csound->onedsr);
         rs[n] = (MYFLT)phase;
         phase += incr;
@@ -1173,7 +1189,7 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
     }
     else {
       incr = (double)(*p->xcps * csound->onedsr);
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
         if (UNLIKELY(phase >= 1.0))
@@ -1240,10 +1256,11 @@ int pinkish(CSOUND *csound, PINKISH *p)
 {
     MYFLT       *aout, *ain;
     double      c0, c1, c2, c3, c4, c5, c6, nxtin, nxtout;
-    int    n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     aout = p->aout;
     ain = p->xin;
-
+    memset(aout, '\0', offset*sizeof(MYFLT));
     if (*p->imethod == GARDNER_PINK) {  /* Gardner method (default) */
       GardnerPink_perf(csound,p);
     }
@@ -1272,7 +1289,7 @@ int pinkish(CSOUND *csound, PINKISH *p)
       /* Get filter states */
       c0 = p->b0; c1 = p->b1; c2 = p->b2;
 
-      for (n=0;n<nsmps;n++) {      /* Paul Kellet's "economy" pink filter */
+      for (n=offset;n<nsmps;n++) {      /* Paul Kellet's "economy" pink filter */
         nxtin = (double)ain[n];
         c0 = c0 * 0.99765 + nxtin * 0.0990460;
         c1 = c1 * 0.96300 + nxtin * 0.2965164;
@@ -1391,7 +1408,8 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
     MYFLT *aout, *amp, scalar;
     int32 *rows, rowIndex, indexMask, randSeed, newRandom;
     int32 runningSum, sum, ampinc;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
 
     aout        = p->aout;
     amp         = p->xin;
@@ -1403,7 +1421,7 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
     rows        = &(p->grd_Rows[0]);
     randSeed    = p->randSeed;
 
-    for (n=0; n<nsmps;n++) {
+    for (n=offset; n<nsmps;n++) {
       /* Increment and mask index. */
       rowIndex = (rowIndex + 1) & indexMask;
 
@@ -1491,14 +1509,16 @@ int clip_set(CSOUND *csound, CLIP *p)
 int clip(CSOUND *csound, CLIP *p)
 {
     MYFLT *aout = p->aout, *ain = p->ain;
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT a = p->arg, k1 = p->k1, k2 = p->k2;
     MYFLT limit = p->lim;
     MYFLT rlim = FL(1.0)/limit;
 
+    memset(aout, '\0', offset*sizeof(MYFLT));
     switch (p->meth) {
     case 0:                     /* Soft clip with division */
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         MYFLT x = ain[n];
         if (x>=FL(0.0)) {
           if (UNLIKELY(x>limit)) x = k2;
@@ -1515,7 +1535,7 @@ int clip(CSOUND *csound, CLIP *p)
       }
       return OK;
     case 1:
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         MYFLT x = ain[n];
         if (UNLIKELY(x>=limit))
             x = limit;
@@ -1527,7 +1547,7 @@ int clip(CSOUND *csound, CLIP *p)
       }
       return OK;
     case 2:
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         MYFLT x = ain[n];
         if (UNLIKELY(x>=limit))
           x = limit;
@@ -1554,17 +1574,19 @@ int impulse_set(CSOUND *csound, IMPULSE *p)
 
 int impulse(CSOUND *csound, IMPULSE *p)
 {
-    int n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int next = p->next;
     MYFLT *ar = p->ar;
     if (next<0) next = -next;
-    if (UNLIKELY(next < CS_KSMPS)) {          /* Impulse in this frame */
+    if (UNLIKELY(next < (int32)nsmps)) { /* Impulse in this frame */
       MYFLT frq = *p->freq;     /* Freq at k-rate */
       int sfreq;                /* Converted to samples */
       if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
       else if (frq < FL(0.0)) sfreq = -(int)frq; /* Negative cnts in sample */
       else sfreq = (int)(frq*csound->esr); /* Normal case */
-      for (n=0;n<nsmps;n++) {
+      memset(ar, '\0', offset*sizeof(MYFLT));
+      for (n=offset;n<nsmps;n++) {
         if (UNLIKELY(next-- == 0)) {
           ar[n] = *p->amp;
           next = sfreq - 1;     /* Note can be less than k-rate */
@@ -1726,11 +1748,13 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
 int trnseg(CSOUND *csound, TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
     }
+    memset(rs, '\0', offset*sizeof(MYFLT));
     val = p->curval;                      /* sav the cur value    */
     if (p->segsrem) {                     /* if no more segs putk */
       if (--p->curcnt <= 0) {             /*  if done cur segment */
@@ -1751,13 +1775,13 @@ int trnseg(CSOUND *csound, TRANSEG *p)
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           rs[n] = val;
           val += p->curinc;
         }
       }
       else {
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           rs[n] = val;
           p->curx += p->alpha;
           val = segp->val + p->curinc *
@@ -1767,7 +1791,7 @@ int trnseg(CSOUND *csound, TRANSEG *p)
       p->curval = val;
       return OK;
 putk:
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         rs[n] = val;
       }
     }
@@ -1885,10 +1909,12 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
 int trnsegr(CSOUND *csound, TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
     }
+    memset(rs, '\0', offset*sizeof(MYFLT));
     val = p->curval;                      /* sav the cur value    */
     if (LIKELY(p->segsrem)) {             /* if no more segs putk */
       NSEG  *segp;
@@ -1929,14 +1955,14 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           rs[n] = val;
           val += p->curinc;
         }
       }
       else {
         segp = p->cursegp;
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           rs[n] = val;
           p->curx += p->alpha;
           val = segp->val + p->curinc * (FL(1.0) - EXP(p->curx));
@@ -1945,7 +1971,7 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
       p->curval = val;
       return OK;
     putk:
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         rs[n] = val;
       }
     }
@@ -1966,7 +1992,8 @@ int varicolset(CSOUND *csound, VARI *p)
 
 int varicol(CSOUND *csound, VARI *p)
 {
-    int         n, nsmps = CS_KSMPS;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       beta = *p->beta;
     MYFLT       sq1mb2 = p->sq1mb2;
     MYFLT       lastx = p->last;
@@ -1981,7 +2008,8 @@ int varicol(CSOUND *csound, VARI *p)
        ampmod = p->ampmod = FL(0.785)/(FL(1.0)+p->lastbeta);
     }
 
-    for (n=0; n<nsmps; n++) {
+    memset(rslt, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT rnd = FL(2.0) * (MYFLT) rand_31(csound) / FL(2147483645) - FL(1.0);
       lastx = lastx * beta + sq1mb2 * rnd;
       rslt[n] = lastx * *kamp * ampmod;
@@ -2013,7 +2041,8 @@ int lpf18set(CSOUND *csound, LPF18 *p)
 
 int lpf18db(CSOUND *csound, LPF18 *p)
 {
-    int         n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT kfcn = FL(2.0) * *p->fco * csound->onedsr;
     MYFLT kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
                   FL(1.718))*kfcn - FL(0.9984);
@@ -2032,7 +2061,8 @@ int lpf18db(CSOUND *csound, LPF18 *p)
     MYFLT lastin = p->lastin;
     double value = 1.0+(dist*(1.5+2.0*(double)kres*(1.0-(double)kfcn)));
 
-    for (n=0;n<nsmps;n++) {
+    memset(ar, '\0', offset*sizeof(MYFLT));
+    for (n=offset;n<nsmps;n++) {
       MYFLT ax1   = lastin;
       MYFLT ay11  = ay1;
       MYFLT ay31  = ay2;
@@ -2080,9 +2110,11 @@ int waveset(CSOUND *csound, BARRI *p)
     MYFLT *out = p->ar;
     int   index = p->end;
     MYFLT *insert = (MYFLT*)(p->auxch.auxp) + index;
-    int   n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    memset(out, '\0', offset*sizeof(MYFLT));
     if (p->noinsert) goto output;
-    for (n=0;n<nsmps;n++) {                        /* Deal with inputs */
+    for (n=offset;n<nsmps;n++) {                        /* Deal with inputs */
       *insert++ = in[n];
       if (++index ==  p->start) {
         p->noinsert = 1;
@@ -2097,7 +2129,7 @@ int waveset(CSOUND *csound, BARRI *p)
     p->end = index;
     index = p->current;
     insert = (MYFLT*)(p->auxch.auxp) + index;
-    for (n=0;n<nsmps;n++) {
+    for (n=offset;n<nsmps;n++) {
       MYFLT samp = *insert++;
       index ++;
       if (index==p->length) {
@@ -2152,7 +2184,8 @@ int medfilt(CSOUND *csound, MEDFILT *p)
     int maxwind = p->maxwind;
     int kwind = MYFLT2LONG(*p->kwind);
     int index = p->ind;
-    int n, nsmps=CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, Str("median: not initialised (arate)\n"));
     }
@@ -2162,7 +2195,8 @@ int medfilt(CSOUND *csound, MEDFILT *p)
                       kwind, maxwind);
       kwind = maxwind;
     }
-    for (n=0; n<nsmps; n++) {
+    memset(aout, '\0', offset*sizeof(MYFLT));
+    for (n=offset; n<nsmps; n++) {
       MYFLT x = asig[n];
       buffer[index++] = x;
 
