@@ -133,7 +133,9 @@ int pvadd(CSOUND *csound, PVADD *p)
     MYFLT   *ar, *ftab;
     MYFLT   frIndx;
     int     size = pvfrsiz(p);
-    int     i, binincr = (int) *p->ibinincr, n, nsmps = CS_KSMPS;
+    int     i, binincr = (int) *p->ibinincr;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   amp, frq, v1, fract, *oscphase;
     int32    phase, incr;
     FUNC    *ftp;
@@ -172,7 +174,7 @@ int pvadd(CSOUND *csound, PVADD *p)
         incr = (int32) MYFLT2LONG(tmp);
         amp = p->buf[i * 2];
       }
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         fract = PFRAC(phase);
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;

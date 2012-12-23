@@ -85,7 +85,9 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     float   start = p->start, frac = p->frac;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
-    int     vecpos, vecsize=CS_KSMPS, firststream = p->firststream;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t vecpos, vecsize=CS_KSMPS;
+    int firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
     int     datasize = p->datasize, envtablesize = p->envtablesize;
@@ -99,8 +101,8 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-
-    for (vecpos = 0; vecpos < vecsize; vecpos++) {
+    memset(output, '\0', offset*sizeof(MYFLT));
+    for (vecpos = offset; vecpos < vecsize; vecpos++) {
       sig = FL(0.0);
       /* if a grain has finished, clean up */
       if (UNLIKELY((!streamon[firststream]) && (numstreams) )) {
@@ -223,7 +225,9 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     float   start = p->start, frac = p->frac;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
-    int     vecpos, vecsize=CS_KSMPS, firststream = p->firststream;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t vecpos, vecsize=CS_KSMPS;
+    int      firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
     int     datasize = p->datasize, envtablesize = p->envtablesize;
@@ -253,7 +257,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    for (vecpos = 0; vecpos < vecsize; vecpos++) {
+    memset(output, '\0', offset*sizeof(MYFLT));
+    for (vecpos = offset; vecpos < vecsize; vecpos++) {
       sig = FL(0.0);
       /* if a grain has finished, clean up */
       if (UNLIKELY((!streamon[firststream]) && (numstreams) )) {
@@ -462,7 +467,9 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     float   start = p->start, frac = p->frac, jump;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
-    int     vecpos, vecsize=CS_KSMPS, firststream = p->firststream;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t vecpos, vecsize=CS_KSMPS;
+    int     firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
     int     datasize, hdatasize, envtablesize = p->envtablesize;
@@ -488,7 +495,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    for (vecpos = 0; vecpos < vecsize; vecpos++) {
+    memset(output, '\0', offset*sizeof(MYFLT));
+    for (vecpos = offset; vecpos < vecsize; vecpos++) {
       /* sig = (MYFLT) 0; */
       /* if a grain has finished, clean up */
       if (UNLIKELY((!streamon[firststream]) && (numstreams) )) {
