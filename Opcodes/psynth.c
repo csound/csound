@@ -143,13 +143,15 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
     double  a, f, frac, incra, incrph, factor;
     MYFLT   scale = *p->scal, pitch = *p->pitch;
     int     ndx, size = p->func->flen;
-    int     i, j, k, n, m, id;
+    int     i, j, k, m, id;
     int     notcontin = 0;
     int     contin = 0;
     int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
-    int     ksmps = CS_KSMPS, pos = p->pos;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
@@ -161,7 +163,8 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
 
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
 
-    for (n = 0; n < ksmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n = offset; n < nsmps; n++) {
       out[n] = outsum[pos];
       pos++;
       if (pos == hopsize) {
@@ -301,13 +304,15 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal;
     int     ndx, size = p->func->flen;
-    int     i, j, k, n, m, id;
+    int     i, j, k, m, id;
     int     notcontin = 0;
     int     contin = 0;
     int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
-    int     ksmps = CS_KSMPS, pos = p->pos;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT   *outsum = (MYFLT *) p->sum.auxp;
@@ -320,7 +325,8 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
 
-    for (n = 0; n < ksmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n = offset; n < nsmps; n++) {
       out[n] = outsum[pos];
       pos++;
       if (pos == hopsize) {
@@ -426,13 +432,15 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal, pitch = *p->pitch;
     int     ndx, size = p->func->flen;
-    int     i, j, k, n, m, id;
+    int     i, j, k, m, id;
     int     notcontin = 0;
     int     contin = 0;
     int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
-    int     ksmps = CS_KSMPS, pos = p->pos;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
@@ -445,7 +453,8 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
 
-    for (n = 0; n < ksmps; n++) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+    for (n = offset; n < nsmps; n++) {
       out[n] = outsum[pos];
       pos++;
       if (pos == hopsize) {

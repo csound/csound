@@ -569,7 +569,9 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     FUNC    *ftp;
     int32   lobits, phase, inc;
     double  *oscphase;
-    int     i, n, nsmps = CS_KSMPS;
+    int     i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
 
@@ -616,12 +618,11 @@ static int atsadd(CSOUND *csound, ATSADD *p)
       amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG(*oscphase);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
-      nsmps = CS_KSMPS;
       inca = (amp-oldamps[i])/nsmps;
       a = oldamps[i];
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
         fract = (MYFLT) PFRAC(phase);
@@ -993,7 +994,9 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
 {
     MYFLT   frIndx;
     MYFLT   *ar, amp;
-    int     i, n, nsmps;
+    int     i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int     synthme;
     int     nsynthed;
 
@@ -1025,20 +1028,16 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     ar = p->aoutput;
 
     memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
-/*     for (i = 0; i < CS_KSMPS; i++) */
-/*       *ar++ = FL(0.0); */
 
     synthme = p->bandoffset;
     nsynthed = 0;
-    nsmps = CS_KSMPS;
-
     for (i = 0; i < 25; i++) {
       /* do we even have to synthesize it? */
       if (i == synthme && nsynthed < p->bands) { /* synthesize cosine */
         amp = csound->e0dbfs*
           SQRT((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
         ar = p->aoutput;
-        for (n=0; n<nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
           ar[n] += (COS(p->oscphase[i])
                    * amp * randiats(csound, &(p->randinoise[i])));
           p->oscphase[i] += p->phaseinc[i];
@@ -1295,7 +1294,8 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 {
     MYFLT   frIndx;
-    int     n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *ar;
     double  noise;
     double  inc;
@@ -1340,8 +1340,6 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     ar = p->aoutput;
 
     memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
-/*     for (i = 0; i < CS_KSMPS; i++) */
-/*       *ar++ = FL(0.0); */
 
     oscbuf = p->oscbuf;
 
@@ -1356,7 +1354,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
         inc = TWOPI * freq * csound->onedsr;
         nzamp =
             sqrt(*(p->nzbuf + i) / (p->atshead->winsz * ATSA_NOISE_VARIANCE));
-        for (n=0; n<nsmps;n++) {
+        for (n=offset; n<nsmps;n++) {
           /* calc sine wave */
           sinewave = cos(phase);
           phase += inc;
@@ -1384,7 +1382,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
         inc = TWOPI * freq * csound->onedsr;
-        for (n=0; n<nsmps;n++) {
+        for (n=offset; n<nsmps;n++) {
           /* calc sine wave */
           sinewave = cos(phase) * amp;
           phase += inc;
@@ -2055,7 +2053,9 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     FUNC    *ftp;
     int32    lobits, phase, inc;
     double  *oscphase;
-    int     i, n, nsmps = CS_KSMPS;
+    int     i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
 
@@ -2102,8 +2102,6 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     /* initialise output to zero */
     ar = p->aoutput;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-/*     for (i = 0; i < nsmps; i++) */
-/*       ar[i] = FL(0.0); */
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
@@ -2115,7 +2113,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
       a =  oldamps[i];
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = ftab[0];
         fract = (MYFLT) PFRAC(phase);
