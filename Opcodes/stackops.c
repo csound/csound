@@ -312,10 +312,12 @@ static int push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
           case CS_STACK_A:
             {
               MYFLT *src, *dst;
-              //unsigned int   j, nsmps = CS_KSMPS;
+              uint32_t offset = p->h.insdshead->ksmps_offset;
+              uint32_t nsmps = CS_KSMPS;
               src = p->args[i];
               dst = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
-              memcpy(dst, src, sizeof(MYFLT)*CS_KSMPS);
+              memset(dst, '\0', offset*sizeof(MYFLT));
+              memcpy(dst+offset, src+offset, sizeof(MYFLT)*(nsmps-offset));
               //for (j = 0; j < nsmps; j++)
               //dst[j] = src[j];
             }
@@ -403,10 +405,12 @@ static int pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
           case CS_STACK_A:
             {
               MYFLT *src, *dst;
-              //int   j;
+              uint32_t offset = p->h.insdshead->ksmps_offset;
+              uint32_t nsmps = CS_KSMPS;
               src = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
               dst = p->args[i];
-              memcpy(dst, src, CS_KSMPS*sizeof(MYFLT));
+              memset(dst, '\0', offset*sizeof(MYFLT));
+              memcpy(dst+offset, src+offset, (nsmps-offset)*sizeof(MYFLT));
               //for (j = 0; j < CS_KSMPS; j++)
               //  dst[j] = src[j];
             }
@@ -604,14 +608,18 @@ typedef struct MONITOR_OPCODE_ {
 
 static int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 {
-    unsigned int i;
-    int          j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, j, nsmps = CS_KSMPS;
 
     if (csound->spoutactive) {
       int   k = 0;
-      for (i = 0; i<CS_KSMPS; i++) {
+      for (i = 0; i<nsmps; i++) {
         for (j = 0; j<csound->nchnls; j++) {
-          p->ar[j][i] = csound->spout[k++];
+          if (i<offset) 
+            p->ar[j][i] = FL(0.0);
+          else
+            p->ar[j][i] = csound->spout[k];
+          k++;
         }
       }
     }
@@ -627,7 +635,7 @@ static int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 
 static int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 {
-    if (UNLIKELY(csound->GetOutputArgCnt(p) != csound->nchnls))
+    if (UNLIKELY(csound->GetOutputArgCnt(p) != (int)csound->nchnls))
       return csound->InitError(csound, Str("number of arguments != nchnls"));
     p->h.opadr = (SUBR) monitor_opcode_perf;
     return OK;

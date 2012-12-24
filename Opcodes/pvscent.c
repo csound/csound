@@ -80,14 +80,16 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
 {
     MYFLT *a = p->ans;
     if (p->fin->sliding) {
-      int n, nsmps = CS_KSMPS;
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t n, nsmps = CS_KSMPS;
       int32 i,N = p->fin->N;
 
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
       MYFLT j, binsize = csound->esr/(MYFLT)N;
       int NB = p->fin->NB;
-      for (n=0; n<nsmps; n++) {
+      memset(a, '\0', offset*sizeof(MYFLT));
+      for (n=offset; n<nsmps; n++) {
         CMPLX *fin = (CMPLX*) p->fin->frame.auxp + n*NB;
         for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
           c += j*fin[i].re;         /* This ignores phase */
@@ -97,20 +99,21 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
       }
     }
     else {
-      int n, nsmps = CS_KSMPS;
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t n, nsmps = CS_KSMPS;
       MYFLT old = p->old;
       int32 i,N = p->fin->N;
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
       MYFLT j, binsize = csound->esr/(MYFLT)N;
       float *fin = (float *) p->fin->frame.auxp;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         if (p->lastframe < p->fin->framecount) {
           for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
             c += fin[i]*j;         /* This ignores phase */
             d += fin[i];
           }
-          old = *a++ = (d==FL(0.0) ? FL(0.0) : c/d);
+          old = a[n] = (d==FL(0.0) ? FL(0.0) : c/d);
           p->lastframe = p->fin->framecount;
         }
         else {
@@ -163,12 +166,13 @@ static int cent_i(CSOUND *csound, CENT *p)
 
 static int cent_k(CSOUND *csound, CENT *p)
 {
-    int n = p->count, i,k;
-    int ksmps = csound->GetKsmps(csound);
+    int n = p->count, k;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
     MYFLT *frame = (MYFLT *) p->frame.auxp, *asig = p->asig;
 
     int fsize = p->fsize;
-    for (i=0; i < ksmps; i++){
+    for (i=0; i < nsmps; i++){
       frame[n] = asig[i];
       if (n == fsize-1) n=0;
       else n++;

@@ -828,9 +828,10 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
+    uint32_t offset = head.insdshead->ksmps_offset;
     size_t frame_count = csound->kcounter * ksmps;
     size_t array_i = frame_count % vector_size;
-    for (size_t i = 0; i < ksmps; ++i, ++array_i) {
+    for (size_t i = offset; i < ksmps; ++i, ++array_i) {
       lhs->vr[array_i] = a_a[i];
     }
     return OK;
@@ -924,6 +925,8 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
+    uint32_t offset = head.insdshead->ksmps_offset;
+    memset(a_a, '\0', offset*sizeof(MYFLT));
     size_t frameCount = csound->kcounter * csound->ksmps;
     size_t vectorSize = gmm::vect_size(rhs->vr);
     size_t array_i = frameCount % vectorSize;

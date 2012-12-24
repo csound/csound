@@ -234,6 +234,10 @@ public:
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
+    uint32_t offset = head.insdshead->ksmps_offset;
+    memset(I3, '\0', offset*sizeof(MYFLT));
+    memset(V1, '\0', offset*sizeof(MYFLT));
+    memset(V2, '\0', offset*sizeof(MYFLT));
     MYFLT &L = *L_;
     MYFLT &R0 = *R0_;
     MYFLT &C2 = *C2_;
@@ -472,6 +476,10 @@ public:
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
+    uint32_t offset = head.insdshead->ksmps_offset;
+    memset(I3, '\0', offset*sizeof(MYFLT));
+    memset(V1, '\0', offset*sizeof(MYFLT));
+    memset(V2, '\0', offset*sizeof(MYFLT));
     MYFLT &L = *L_;
     MYFLT &R0 = *R0_;
     MYFLT &C2 = *C2_;
@@ -512,7 +520,7 @@ public:
     // omch2 = 1 - ch2;
     omch2 = 1.0 - ch2;
      // Standard 4th-order Runge-Kutta integration.
-    for (size_t i = 0; i < ksmps; i++) {
+    for (size_t i = offset; i < ksmps; i++) {
       // Stage 1.
       k1(1) = alpha*(M(2) - bnorplus1*M(1) -
                      (.5)*(anor - bnor)*(abs(M(1) + 1) - abs(M(1) - 1)));
