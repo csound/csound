@@ -29,6 +29,10 @@
 #define min(x,y) (((x)<(y)) ? (x) : (y))
 #define dv2_31   (FL(4.656612873077392578125e-10))
 
+typedef struct opdata{
+        OPDS       h;
+} OPDATA;
+
 inline int lsr (int x, int n)
 {
     return int(((unsigned int)x) >> n);
@@ -142,7 +146,7 @@ public:
   virtual int getNumOutputs() = 0;
   virtual void buildUserInterface(UserInterface* userInterface) = 0;
   virtual void init(int samplingRate) = 0;
-  virtual void compute(CSOUND* csound, MYFLT* output) = 0;
+  virtual void compute(CSOUND* csound, MYFLT* output, void *p) = 0;
 };
 
 /* FAUST generated code */
@@ -302,10 +306,10 @@ class mydsp : public dsp {
                                          FL(0.0), FL(10.0), FL(0.01));
             userInterface->closeBox();
         }
-        virtual void compute (CSOUND* csound, MYFLT* output)
+  virtual void compute (CSOUND* csound, MYFLT* output, void *p)
         {
             int     nn = csound->ksmps;
-            uint32_t offset = 0; // should be p->h.insdshead->ksmps_offset;
+            uint32_t offset = ((OPDATA *) p)->h.insdshead->ksmps_offset;
             MYFLT   fSlow0  = POWER(FL(10.0),(FL(0.08333333333333333) * fslider0));
             MYFLT   fSlow1  = EXP(-(fConst3 * fSlow0));
             MYFLT   fSlow2  = EXP(-(fConst5 * fSlow0));
@@ -405,7 +409,7 @@ extern "C"
     int fractalnoise_process(CSOUND *csound, FRACTALNOISE *p)
     {
         p->cs_interface->updateCtrlZones(p->kamp, p->kbeta);
-        p->faust->compute(csound, p->out);
+        p->faust->compute(csound, p->out, p);
         return OK;
     }
 
