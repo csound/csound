@@ -719,42 +719,44 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
 
     //for (txtp = &(csound->engineState.instxtanchor);
     //     txtp != NULL;  txtp = txtp->nxtinstxt) {
-    for(i=0; i < csound->engineState.maxinsno; i++) {
-      txtp = csound->engineState.instrtxtp[i];
-      if(txtp != NULL){
-      if ((ip = txtp->instance) != NULL) {        /* if instance exists */
-        prvip = NULL;
-        prvnxtloc = &txtp->instance;
-        do {
-          if (!ip->actflg) {
-            cnt++;
-            if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
-              mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
-            if (ip->fdchp != NULL)
-              fdchclose(csound, ip);
-            if (ip->auxchp != NULL)
-              auxchfree(csound, ip);
-            if ((nxtip = ip->nxtinstance) != NULL)
-              nxtip->prvinstance = prvip;
-            *prvnxtloc = nxtip;
-            mfree(csound, (char *)ip);
+    if(csound->engineState.instrtxtp != NULL) {
+      for(i=0; i < csound->engineState.maxinsno; i++) {
+        txtp = csound->engineState.instrtxtp[i];
+        if(txtp != NULL){
+          if ((ip = txtp->instance) != NULL) {        /* if instance exists */
+            prvip = NULL;
+            prvnxtloc = &txtp->instance;
+          do {
+            if (!ip->actflg) {
+              cnt++;
+              if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
+                mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
+              if (ip->fdchp != NULL)
+                fdchclose(csound, ip);
+              if (ip->auxchp != NULL)
+                auxchfree(csound, ip);
+              if ((nxtip = ip->nxtinstance) != NULL)
+                nxtip->prvinstance = prvip;
+              *prvnxtloc = nxtip;
+              mfree(csound, (char *)ip);
+            }
+            else {
+              prvip = ip;
+              prvnxtloc = &ip->nxtinstance;
+            }
           }
-          else {
-            prvip = ip;
-            prvnxtloc = &ip->nxtinstance;
-          }
+          while ((ip = *prvnxtloc) != NULL);
         }
-        while ((ip = *prvnxtloc) != NULL);
-      }
-      /* IV - Oct 31 2002 */
-      if (!txtp->instance)
-        txtp->lst_instance = NULL;              /* find last alloc */
-      else {
-        ip = txtp->instance;
-        while (ip->nxtinstance) ip = ip->nxtinstance;
-        txtp->lst_instance = ip;
-      }
-      txtp->act_instance = NULL;                /* no free instances */
+        /* IV - Oct 31 2002 */
+        if (!txtp->instance)
+          txtp->lst_instance = NULL;              /* find last alloc */
+        else {
+          ip = txtp->instance;
+          while (ip->nxtinstance) ip = ip->nxtinstance;
+          txtp->lst_instance = ip;
+        }
+        txtp->act_instance = NULL;                /* no free instances */
+        }
       }
     }
     if (UNLIKELY(cnt))
