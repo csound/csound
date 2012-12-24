@@ -234,6 +234,10 @@ public:
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
+    uint32_t offset = head.insdshead->ksmps_offset;
+    memset(I3, '\0', offset*sizeof(MYFLT));
+    memset(V1, '\0', offset*sizeof(MYFLT));
+    memset(V2, '\0', offset*sizeof(MYFLT));
     MYFLT &L = *L_;
     MYFLT &R0 = *R0_;
     MYFLT &C2 = *C2_;

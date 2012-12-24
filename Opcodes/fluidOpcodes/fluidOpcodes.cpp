@@ -390,7 +390,10 @@ public:
     int audio(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_out)
         {
-            for (frame = 0; frame < ksmps; frame++) {
+             uint32_t offset = head.insdshead->ksmps_offset;
+             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
+             memset(aRightOut, '\0', offset*sizeof(MYFLT));
+            for (frame = offset; frame < ksmps; frame++) {
                 leftSample = 0.0f;
                 rightSample = 0.0f;
                 fluid_synth_write_float(fluidSynth, 1, &leftSample, 0, 1,
@@ -424,6 +427,9 @@ public:
     int audio(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_all_out)
         {
+            uint32_t offset = head.insdshead->ksmps_offset;
+             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
+             memset(aRightOut, '\0', offset*sizeof(MYFLT));
             std::vector<fluid_synth_t *> &fluidSynths = 
               getFluidSynthsForCsoundInstances()[csound];
             for (frame = 0; frame < ksmps; frame++) {
