@@ -242,11 +242,11 @@ struct Outleta : public OpcodeBase<Outleta> {
 #pragma omp critical (cs_sfg_ports)
     {
       sourceOutletId[0] = 0;
-      const char *insname = csound->engineState.instrtxtp[h.insdshead->insno]->insname;
+      const char *insname = csound->engineState.instrtxtp[head.insdshead->insno]->insname;
       if (insname) {
         std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       std::vector<Outleta *> &aoutlets = aoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(aoutlets.begin(), aoutlets.end(), this) == aoutlets.end()) {
@@ -288,11 +288,11 @@ struct Inleta : public OpcodeBase<Inleta> {
       }
       warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
       sinkInletId[0] = 0;
-      const char *insname = csound->engineState.instrtxtp[h.insdshead->insno]->insname;
+      const char *insname = csound->engineState.instrtxtp[head.insdshead->insno]->insname;
       if (insname) {
         std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       std::vector<Inleta *> &ainlets = ainletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(ainlets.begin(), ainlets.end(), this) == ainlets.end()) {
@@ -337,7 +337,7 @@ struct Inleta : public OpcodeBase<Inleta> {
              instanceI++) {
           Outleta *sourceOutlet = instances->at(instanceI);
           // Skip inactive instances.
-          if (sourceOutlet->h.insdshead->actflg) {
+          if (sourceOutlet->head.insdshead->actflg) {
             // Loop over the samples in the inlet buffer.
             for (int sampleI = 0;
                  sampleI < sampleN;
@@ -367,11 +367,11 @@ struct Outletk : public OpcodeBase<Outletk> {
 #pragma omp critical (cs_sfg_ports)
     {
 
-      const char *insname = csound->engineState.instrtxtp[h.insdshead->insno]->insname;
+      const char *insname = csound->engineState.instrtxtp[head.insdshead->insno]->insname;
       if (insname) {
         std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       std::vector<Outletk *> &koutlets = koutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
@@ -410,11 +410,11 @@ struct Inletk : public OpcodeBase<Inletk> {
         koutletVectorsForCsounds[csound].push_back(sourceOutlets);
       }
       sinkInletId[0] = 0;
-      const char *insname = csound->engineState.instrtxtp[h.insdshead->insno]->insname;
+      const char *insname = csound->engineState.instrtxtp[head.insdshead->insno]->insname;
       if (insname) {
         std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       std::vector<Inletk *> &kinlets = kinletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
@@ -454,7 +454,7 @@ struct Inletk : public OpcodeBase<Inletk> {
              instanceI++) {
           const Outletk *sourceOutlet = instances->at(instanceI);
           // Skip inactive instances.
-          if (sourceOutlet->h.insdshead->actflg) {
+          if (sourceOutlet->head.insdshead->actflg) {
             *ksignal += *sourceOutlet->ksignal;
           }
         }
@@ -477,11 +477,11 @@ struct Outletf : public OpcodeBase<Outletf> {
   int init(CSOUND *csound) {
 #pragma omp critical (cs_sfg_ports)
     {
-      const char *insname = csound->engineState.instrtxtp[h.insdshead->insno]->insname;
+      const char *insname = csound->engineState.instrtxtp[head.insdshead->insno]->insname;
       if (insname) {
         std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       std::vector<Outletf *> &foutlets = foutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(foutlets.begin(), foutlets.end(), this) == foutlets.end()) {
@@ -523,11 +523,11 @@ struct Inletf : public OpcodeBase<Inletf> {
         foutletVectorsForCsounds[csound].push_back(sourceOutlets);
       }
       sinkInletId[0] = 0;
-      const char *insname = csound->engineState.instrtxtp[h.insdshead->insno]->insname;
+      const char *insname = csound->engineState.instrtxtp[head.insdshead->insno]->insname;
       if (insname) {
         std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       std::vector<Inletf *> &finlets = finletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(finlets.begin(), finlets.end(), this) == finlets.end()) {
@@ -570,7 +570,7 @@ struct Inletf : public OpcodeBase<Inletf> {
              instanceI++) {
           const Outletf *sourceOutlet = instances->at(instanceI);
           // Skip inactive instances.
-          if (sourceOutlet->h.insdshead->actflg) {
+          if (sourceOutlet->head.insdshead->actflg) {
             if (!fsignalInitialized) {
               int32 N = sourceOutlet->fsignal->N;
               if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
@@ -650,7 +650,7 @@ struct Outletkid : public OpcodeBase<Outletkid> {
   int init(CSOUND *csound) {
 #pragma omp critical (cs_sfg_ports)
     {
-      const char *insname = csound->engineState.instrtxtp[h.insdshead->insno]->insname;
+      const char *insname = csound->engineState.instrtxtp[head.insdshead->insno]->insname;
       instanceId = csound->strarg2name(csound,
                    (char*) NULL,
                    SinstanceId,
@@ -659,12 +659,12 @@ struct Outletkid : public OpcodeBase<Outletkid> {
       if (insname && instanceId) {
         std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       if (insname) {
         std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
@@ -710,11 +710,11 @@ struct Inletkid : public OpcodeBase<Inletkid> {
                    SinstanceId,
                    (char *)"",
                    (int) csound->GetInputArgSMask(this));
-      const char *insname = csound->engineState.instrtxtp[h.insdshead->insno]->insname;
+      const char *insname = csound->engineState.instrtxtp[head.insdshead->insno]->insname;
       if (insname) {
         std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
       } else {
-        std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", head.insdshead->insno, (char *)Sname);
       }
       std::vector<Inletkid *> &kinlets = kidinletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
@@ -754,7 +754,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
              instanceI++) {
           const Outletkid *sourceOutlet = instances->at(instanceI);
           // Skip inactive instances and also all non-matching instances.
-          if (sourceOutlet->h.insdshead->actflg) {
+          if (sourceOutlet->head.insdshead->actflg) {
         if (std::strcmp(sourceOutlet->instanceId, instanceId) == 0) {
             *ksignal += *sourceOutlet->ksignal;
         }

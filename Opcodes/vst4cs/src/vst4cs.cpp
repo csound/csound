@@ -109,22 +109,25 @@ extern "C" {
     VSTAUDIO *p = (VSTAUDIO *) data;
     size_t  i, j;
     VSTPlugin *plugin = ST(vstPlugins)[(size_t) *p->iVSThandle];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    for(j=0; j < p->pluginOutChannels; j++)
+       memset(p->aouts[j], '\0', offset*sizeof(MYFLT));
     // plugin->Debug("vstaudio: plugin %x.\n", plugin);
     if (!p->h.insdshead->nxtact) {
       for (j = 0; j < p->pluginInChannels && j < p->opcodeInChannels; j++)
-        for (i = 0; i < p->framesPerBlock; i++)
+        for (i = offset; i < p->framesPerBlock; i++)
           plugin->inputs_[j][i] =
             (float) (p->ains[j][i] * csound->dbfs_to_float);
       for ( ; j < p->pluginInChannels; j++)
         for (i = 0; i < p->framesPerBlock; i++)
           plugin->inputs_[j][i] = 0.0f;
       for (j = 0; j < p->pluginOutChannels; j++)
-        for (i = 0; i < p->framesPerBlock; i++)
+        for (i = offset; i < p->framesPerBlock; i++)
           plugin->outputs_[j][i] = 0.0f;
       plugin->process(&plugin->inputs.front(), &plugin->outputs.front(),
                       p->framesPerBlock);
       for (j = 0; j < p->pluginOutChannels && j < p->opcodeOutChannels; j++)
-        for (i = 0; i < p->framesPerBlock; i++)
+        for (i = offset; i < p->framesPerBlock; i++)
           p->aouts[j][i] = (MYFLT) plugin->outputs_[j][i] * csound->e0dbfs;
       for ( ; j < p->opcodeOutChannels; j++)
         for (i = 0; i < p->framesPerBlock; i++)
@@ -132,7 +135,7 @@ extern "C" {
     }
     else {
       for (j = 0; j < p->opcodeInChannels && j < p->opcodeOutChannels; j++)
-        for (i = 0; i < p->framesPerBlock; i++)
+        for (i = offset; i < p->framesPerBlock; i++)
           p->aouts[j][i] = p->ains[j][i];
       for ( ; j < p->opcodeOutChannels; j++)
         for (i = 0; i < p->framesPerBlock; i++)
@@ -146,21 +149,24 @@ extern "C" {
     VSTAUDIO *p = (VSTAUDIO *) data;
     size_t  i, j;
     VSTPlugin *plugin = ST(vstPlugins)[(size_t) *p->iVSThandle];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    for(j=0; j < p->pluginOutChannels; j++)
+       memset(p->aouts[j], '\0', offset*sizeof(MYFLT));
     // plugin->Debug("vstaudio: plugin %x.\n", plugin);
     for (j = 0; j < p->pluginInChannels && j < p->opcodeInChannels; j++)
-      for (i = 0; i < p->framesPerBlock; i++)
+      for (i = offset; i < p->framesPerBlock; i++)
         plugin->inputs_[j][i] =
           (float) (p->ains[j][i] * csound->dbfs_to_float);
     for ( ; j < p->pluginInChannels; j++)
       for (i = 0; i < p->framesPerBlock; i++)
         plugin->inputs_[j][i] = 0.0f;
     for (j = 0; j < p->pluginOutChannels; j++)
-      for (i = 0; i < p->framesPerBlock; i++)
+      for (i = offset; i < p->framesPerBlock; i++)
         plugin->outputs_[j][i] = 0.0f;
     plugin->process(&plugin->inputs.front(), &plugin->outputs.front(),
                     p->framesPerBlock);
     for (j = 0; j < p->pluginOutChannels && j < p->opcodeOutChannels; j++)
-      for (i = 0; i < p->framesPerBlock; i++)
+      for (i = offset; i < p->framesPerBlock; i++)
         p->aouts[j][i] = (MYFLT) plugin->outputs_[j][i] * csound->e0dbfs;
     for ( ; j < p->opcodeOutChannels; j++)
       for (i = 0; i < p->framesPerBlock; i++)

@@ -92,7 +92,7 @@ public:
       va_end(args);
     }
   }
-  OPDS h;
+  OPDS head;
 };
 
 template<typename T>
@@ -164,7 +164,7 @@ public:
   {
     return reinterpret_cast<T *>(opcode)->noteoff(csound);
   }
-  OPDS h;
+  OPDS head;
 };
 
 #endif

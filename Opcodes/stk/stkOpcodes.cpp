@@ -175,7 +175,7 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
-      uint32_t offset = 0; // should be p->h.insdshead->ksmps_offset;
+      uint32_t offset = head.insdshead->ksmps_offset;
       if(!released)
         {
           if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
@@ -234,7 +234,7 @@ public:
         }
       else
         {
-          // memset(aoutput, 0, ksmps*sizeof(MYFLT));
+          //memset(aoutput, 0, ksmps*sizeof(MYFLT));
           for(size_t i = 0; i < ksmps; i++)
             {
               aoutput[i] = 0;
@@ -320,6 +320,7 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
+      uint32_t offset = head.insdshead->ksmps_offset;
       if(!released)
         {
           if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
@@ -370,7 +371,8 @@ public:
               oldkcontroller7 = *kcontroller7;
               oldkvalue7 = *kvalue7;
             }
-          for(size_t i = 0; i < ksmps; i++)
+          memset(aoutput, '\0', offset*sizeof(MYFLT));
+          for(size_t i = offset; i < ksmps; i++)
             {
               aoutput[i] = instrument->tick();
             }
