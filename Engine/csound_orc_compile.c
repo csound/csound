@@ -897,7 +897,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
 int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
 
-  /* FIXME: do we need to deallocate stringPool, constantPool, varPool? */
+  /* FIXME: do we need to deallocate stringPool, constantPool, varPool, opcodeInfo, 
+     instrumentNames? */
     mfree(csound, engineState);
     return 0;
 } 
