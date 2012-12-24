@@ -37,6 +37,7 @@ extern "C" {
         /* void* memblock; */
         int refCount;
         struct csvariable* next;
+        CS_TYPE* subType;
     } CS_VARIABLE;
 
 //    typedef struct cstypeinstance {

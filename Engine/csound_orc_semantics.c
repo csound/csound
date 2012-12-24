@@ -687,63 +687,12 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"T_ARRAY_IDENT\" varname=\"%s\"",
                       l->value->lexeme); break;
     
-    /*case T_IDENT_I:
-      csound->Message(csound,"name=\"IDENT_I\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_GI:
-      csound->Message(csound,"name=\"IDENT_GI\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_K:
-      csound->Message(csound,"name=\"IDENT_K\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_GK:
-      csound->Message(csound,"name=\"IDENT_GK\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_A:
-      csound->Message(csound,"name=\"IDENT_A\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_GA:
-      csound->Message(csound,"name=\"IDENT_GA\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_S:
-      csound->Message(csound,"name=\"IDENT_S\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_GS:
-      csound->Message(csound,"name=\"IDENT_GS\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_T:
-      csound->Message(csound,"name=\"IDENT_T\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_GT:
-      csound->Message(csound,"name=\"IDENT_GT\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_W:
-      csound->Message(csound,"name=\"IDENT_W\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_GW:
-      csound->Message(csound,"name=\"IDENT_GW\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_F:
-      csound->Message(csound,"name=\"IDENT_F\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_GF:
-      csound->Message(csound,"name=\"IDENT_GF\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_P:
-      csound->Message(csound,"name=\"IDENT_P\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_B:
-      csound->Message(csound,"name=\"IDENT_B\" varname=\"%s\"",
-                      l->value->lexeme); break;
-    case T_IDENT_b:
-      csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"",
-                      l->value->lexeme); break; */
     case INTEGER_TOKEN:
       csound->Message(csound,"name=\"INTEGER_TOKEN\" value=\"%d\"",
                       l->value->value); break;
     case NUMBER_TOKEN:
-      csound->Message(csound,"name=\"NUMBER_TOKEN\" value=\"%f\" type=%d",
-                      l->value->fvalue, l->value->type); break;
+      csound->Message(csound,"name=\"NUMBER_TOKEN\" value=\"%f\"",
+                      l->value->fvalue); break;
     case S_ANDTHEN:
       csound->Message(csound,"name=\"S_ANDTHEN\""); break;
     case S_APPLY:
@@ -919,6 +868,12 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     else if (tree->type==0) {
       csound->Message(csound, "Null type in tree -- aborting\n");
       exit(2);
+    }
+    else if(strcmp(tree->value->lexeme, "init") == 0 && tree->left->type == T_ARRAY_IDENT) {
+        // rewrite init as array_init
+        tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                               strlen("array_init") + 1);
+        strcpy(tree->value->lexeme, "array_init");
     }
     else {
       int opnum = find_opcode(csound, tree->value->lexeme);

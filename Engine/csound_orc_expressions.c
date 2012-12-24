@@ -262,6 +262,7 @@ static int is_expression_node(TREE *node)
     case S_TABSLICE:
     case S_TABRANGE:
     case S_TABREF:
+    case T_ARRAY:
     case T_MAPK:
     case T_MAPI:
     case T_TADD:
@@ -584,6 +585,11 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
        strncpy(op, "vaget", 80);
        outarg = create_out_arg(csound, 'k');
        break;
+     case T_ARRAY:
+        strncpy(op, "array_get", 80);
+        outarg = create_out_arg(csound, argtyp2(root->left->value->lexeme));
+        break;
+    
      }
      opTree = create_opcode_token(csound, op);
      if (root->left != NULL) {
@@ -1101,9 +1107,28 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           TREE* currentAns = current->left;
           //csound->Message(csound, "Assignment Statement.\n");
           if (currentArg->left || currentArg->right) {
-            int anstype, argtype;
+            char anstype, argtype;
             //csound->Message(csound, "expansion case\n");
-            anstype = argtyp2( current->left->value->lexeme);
+              
+            if (currentAns->type == T_ARRAY) {
+                anstype = argtyp2(currentAns->left->value->lexeme);
+                TREE* temp = create_ans_token(csound, create_out_arg(csound, anstype));
+                current->left = temp;
+                
+                TREE* arraySet = create_opcode_token(csound, "array_set");
+                arraySet->right = currentAns->left;
+                arraySet->right->next = currentAns->right;
+                arraySet->right->next->next = make_leaf(csound, temp->line, temp->locn, T_IDENT, temp->value);
+
+                arraySet->next = current->next;
+                current->next = arraySet;
+                currentAns = temp;
+
+            } else {
+                anstype = argtyp2( currentAns->value->lexeme);
+            }
+              
+
             //print_tree(csound, "Assignment\n", current);
             expressionNodes =
               create_expression(csound, currentArg,
