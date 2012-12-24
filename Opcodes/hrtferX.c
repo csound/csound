@@ -364,7 +364,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
                   Can only output one control period (ksmps) worth of samples */
       if (nsmpso < outcount) {
         if ((outfront+nsmpso) < BUF_LEN) {
-          for (i = offset; i < nsmpso; i++) {
+          for (i = 0; i < nsmpso; i++) {
             *aLeft++ = outl[outfront + i];
             *aRight++ = outr[outfront + i];
           }
