@@ -307,6 +307,13 @@ typedef struct {
     void    *auxp, *endp;
   } AUXCH;
 
+  typedef struct {
+    int     size;             /* 0...size-1 */
+    CS_TYPE* arrayType;
+    MYFLT* data;
+    AUXCH   aux;
+  } ARRAYDAT;
+    
    typedef struct {
       int     size;             /* 0...size-1 */
       MYFLT   *data;
@@ -440,7 +447,7 @@ typedef struct {
     MYFLT   p3;
   } INSDS;
 
-#ifdef JPFF
+#ifdef CS_KSMPS
 #define CS_KSMPS     (p->h.insdshead->ksmps)
 #define CS_KCNT      (p->h.insdshead->kcounter)
 #define CS_EKR       (p->h.insdshead->ekr)
