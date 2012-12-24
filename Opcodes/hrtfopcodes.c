@@ -503,13 +503,12 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT angle = *p->kangle;
 
     int counter = p->counter;
-    int n;
 
     /* pointers into HRTF files: floating point data (even in 64 bit csound) */
     float *fpindexl;
     float *fpindexr;
 
-    int i,j,elevindex, angleindex, skip = 0;
+    int i,elevindex, angleindex, skip = 0;
 
     int minphase = p->minphase;
     int phasetrunc = p->phasetrunc;
@@ -587,15 +586,17 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     int mdtl = p->mdtl;
     int mdtr = p->mdtr;
     int posl, posr;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t j, nsmps = CS_KSMPS;
     MYFLT outvdl, outvdr, vdtl, vdtr, fracl, fracr, rpl, rpr;
 
     /* start indices at correct value (start of file)/ zero indices. */
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    n = CS_KSMPS;
-
-    for(j = 0; j < n; j++)
+    memset(outsigl, '\0', offset*sizeof(MYFLT));
+    memset(outsigr, '\0', offset*sizeof(MYFLT));
+    for(j = offset; j < nsmps; j++)
       {
         /* ins and outs */
         insig[counter] = in[j];
@@ -1883,7 +1884,9 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
     MYFLT *overlapr = (MYFLT *)p->overlapr.auxp;
 
     int counter = p->counter;
-    int n, j, i;
+    int i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t j, nsmps = CS_KSMPS;
 
     int irlength = p->irlength;
     int irlengthpad = p->irlengthpad;
@@ -1891,9 +1894,9 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
 
     MYFLT sr = p->sr;
 
-    n = CS_KSMPS;
-
-    for(j = 0; j < n; j++)
+    memset(outsigl, '\0', offset*sizeof(MYFLT));
+    memset(outsigr, '\0', offset*sizeof(MYFLT));
+    for(j = offset; j < nsmps; j++)
       {
         /* ins and outs */
         insig[counter] = in[j];
@@ -2225,13 +2228,14 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 
     int counter = p ->counter;
     int t = p ->t;
-    int n;
 
         /* pointers into HRTF files */
     float *fpindexl;
     float *fpindexr;
 
-    int i, j, skip = 0;
+    int i, skip = 0;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t j, nsmps = CS_KSMPS;
 
     /* interpolation values */
     MYFLT *lowl1 = (MYFLT *)p->lowl1.auxp;
@@ -2264,10 +2268,10 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    n = CS_KSMPS;
-
+    memset(outsigl, '\0', offset*sizeof(MYFLT));
+    memset(outsigr, '\0', offset*sizeof(MYFLT));
     /* ksmps loop */
-    for(j = 0; j < n; j++)
+    for(j = offset; j < nsmps; j++)
       {
         /* distribute the signal and apply the window */
         /* according to a time pointer (kept by overlapskip[n]) */

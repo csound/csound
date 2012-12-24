@@ -43,14 +43,15 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
-    int i,j;
+    int j;
     int n = p->n;
-    int nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
 
     vbap_zak_control(csound,p);
-    for (i=0; i<n; i++) {
-      p->beg_gains[i] = p->end_gains[i];
-      p->end_gains[i] = p->updated_gains[i];
+    for (j=0; j<n; j++) {
+      p->beg_gains[j] = p->end_gains[j];
+      p->end_gains[j] = p->updated_gains[j];
     }
 
     /* write audio to result audio streams weighted
@@ -62,9 +63,10 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
       ogain = p->beg_gains[j];
       ngain = p->end_gains[j];
       gainsubstr = ngain - ogain;
+      memset(outptr, '\0', offset*sizeof(MYFLT));
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
-          for (i = 0; i < nsmps; i++) {
+          for (i = offset; i < nsmps; i++) {
             outptr[i] = inptr[i] *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
@@ -72,7 +74,7 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
         else {
-          for (i=0; i<nsmps; ++i)
+          for (i=offset; i<nsmps; ++i)
             outptr[i] = inptr[i] * ogain;
         }
       else
@@ -262,19 +264,21 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
-    int i,j;
-    int nsmps = CS_KSMPS;
+    int j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
 
     vbap_zak_moving_control(csound,p);
-    for (i=0;i< p->n; i++) {
-      p->beg_gains[i] = p->end_gains[i];
-      p->end_gains[i] = p->updated_gains[i];
+    for (j=0;j< p->n; j++) {
+      p->beg_gains[j] = p->end_gains[j];
+      p->end_gains[j] = p->updated_gains[j];
     }
 
-    /* write audio to resulting audio streams wEIGHTed
+    /* write audio to resulting audio streams weighted
        with gain factors */
     invfloatn =  CS_ONEDKSMPS;
     outptr = p->out_array;
+    memset(outptr, '\0', offset*sizeof(MYFLT));
     for (j=0; j<p->n ;j++) {
       inptr = p->audio;
       ogain = p->beg_gains[j];
@@ -282,7 +286,7 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
-          for (i = 0; i < nsmps; i++) {
+          for (i = offset; i < nsmps; i++) {
             outptr[i] = inptr[i] *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
@@ -290,7 +294,7 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
         else
-          for (i=0; i<nsmps; ++i)
+          for (i=offset; i<nsmps; ++i)
             outptr[i] = inptr[i] * ogain;
       else
         memset(outptr, 0, nsmps*sizeof(MYFLT));

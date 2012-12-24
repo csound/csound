@@ -89,10 +89,11 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     if (higbnd<lowbnd) higbnd = lowbnd;
     if (higcut<higbnd) higcut = higbnd;
     if (p->fin->sliding) {
-      int n, nsmps = CS_KSMPS;
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
 
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         int change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
@@ -193,10 +194,11 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
     if (higbnd<lowbnd) higbnd = lowbnd;
     if (higcut<higbnd) higcut = higbnd;
     if (p->fin->sliding) {
-      int n, nsmps = CS_KSMPS;
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
 
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         int change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
