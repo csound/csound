@@ -284,8 +284,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     aLeft  = p->aLeft;
     aRight = p->aRight;
 
-    nsmpsi = CS_KSMPS;
-    nsmpso = CS_KSMPS;
+    nsmpsi =  nsmpso = CS_KSMPS;
 
         /* main loop for a-rate code.  Audio read in, processed,
            and output in this loop.  Loop exits when control period
@@ -365,7 +364,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
                   Can only output one control period (ksmps) worth of samples */
       if (nsmpso < outcount) {
         if ((outfront+nsmpso) < BUF_LEN) {
-          for (i = 0; i < nsmpso; i++) {
+          for (i = offset; i < nsmpso; i++) {
             *aLeft++ = outl[outfront + i];
             *aRight++ = outr[outfront + i];
           }
