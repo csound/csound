@@ -878,7 +878,9 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
 int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 {
-    int i, j, k, n = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t i, nsmps = CS_KSMPS;
+    int j, k;
 
     /* signals in, out */
     MYFLT *in = p->insig, sigin;
@@ -1020,8 +1022,10 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         ztf2 = p->ztf2;
       }
 
+    memset(outl, '\0', offset*sizeof(MYFLT));
+    memset(outr, '\0', offset*sizeof(MYFLT));
     /* processing loop */
-    for(i=0; i < n; i++)
+    for(i=offset; i < nsmps; i++)
       {
         /* tonal filter: 1 - b pow(z,-1) / 1 - b
            1/1-b in - b/1-b in(old) */
