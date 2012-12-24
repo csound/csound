@@ -483,13 +483,15 @@ static inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
 	  CHNENTRY  *pp;
 	  pp = ((CHNENTRY**) csound->chn_db)[name_hash_2(csound, name)];
       for ( ; pp != NULL; pp = pp->nxt) {
+        /* Why is strcmp not used here? */
         const char  *p1 = &(name[0]);
         const char  *p2 = &(pp->name[0]);
         while (1) {
           if (*p1 != *p2)
             break;
-          if (*p1 == '\0')
+          if (*p1 == '\0') {    /* do we need to init lock? */
             return pp;
+          }
           p1++, p2++;
         }
       }
@@ -502,7 +504,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
 {
 	CHNENTRY  dummy;
     void            *pp;
-    int             nbytes, nameOffs, dataOffs;
+    int             nbytes, nameOffs, dataOffs, lockOffs;
 
     (void) dummy;
     nameOffs = (int)((char*) &(dummy.name[0]) - (char*) &dummy);
@@ -510,6 +512,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
     dataOffs += ((int)sizeof(MYFLT) - 1);
     dataOffs = (dataOffs / (int)sizeof(MYFLT)) * (int)sizeof(MYFLT);
     nbytes = dataOffs;
+    lockOffs = (int)((char*) &(dummy.lock) - (char*) &dummy);
     if (*p == NULL) {
       switch (type & CSOUND_CHANNEL_TYPE_MASK) {
       case CSOUND_CONTROL_CHANNEL:
@@ -524,12 +527,12 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
       }
     }
     pp = (void*) malloc((size_t) nbytes);
-    if (pp == NULL)
 	  return (CHNENTRY*) NULL;
     memset(pp, 0, (size_t) nbytes);
+    pthread_spin_init((int*)((char*) pp + (int)lockOffs), PTHREAD_PROCESS_PRIVATE);
     if (*p == NULL)
       *p = (MYFLT*) ((char*) pp + (int)dataOffs);
-	return (CHNENTRY*) pp;
+    return (CHNENTRY*) pp;
 }
 
 static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
