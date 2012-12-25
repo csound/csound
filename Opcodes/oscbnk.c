@@ -417,7 +417,8 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     uint32_t nn, nsmps = CS_KSMPS;
 
     /* clear output signal */
-    for (nn = 0; nn < nsmps; nn++) p->args[0][nn] = FL(0.0);
+    memset(p->args[0], '\0', nsmps*sizeof(MYFLT));
+    //for (nn = 0; nn < nsmps; nn++) p->args[0][nn] = FL(0.0);
 
     if (p->nr_osc == -1) {
       return OK;         /* nothing to render */
