@@ -128,12 +128,13 @@ static int hm234set(CSOUND *csound, HARM234 *q, HARMON2 *p)
 
 static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
 {
-    MYFLT       *srcp, *outp, *dirp;
+    MYFLT       *outp, *dirp; // *srcp, 
     MYFLT       *inp1, *inp2;
     MYFLT       koct, vocamp, diramp;
     PULDAT      *endp;
     VOCDAT      *vdp;
-    int16       nsmps, oflow = 0;
+    int16       nsmps = CS_KSMPS, oflow = 0;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
 
     if ((koct = *q->koct) != q->prvoct) {               /* if new pitch estimate */
       if (koct >= q->minoct) {                          /*   above requested low */
@@ -146,10 +147,12 @@ static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
     }
     inp1 = q->inp1;
     inp2 = q->inp2;
-    //memcpy(q->inp1, q->asig, sizeof(MYFLT)*nsmps);
-    //memcpy(q->inp2, q->asig, sizeof(MYFLT)*nsmps);
-    for (srcp = q->asig, nsmps = CS_KSMPS; nsmps--; )
-      *inp1++ = *inp2++ = *srcp++;              /* dbl store the wavform */
+    memset(inp1, '\0', offset*sizeof(MYFLT));
+    memset(inp2, '\0', offset*sizeof(MYFLT));
+    memcpy(inp1+offset, q->asig+offset, sizeof(MYFLT)*(nsmps-offset));
+    memcpy(inp2+offset, q->asig+offset, sizeof(MYFLT)*(nsmps-offset));
+    //for (srcp = q->asig, nsmps = CS_KSMPS; nsmps--; )
+    //  *inp1++ = *inp2++ = *srcp++;              /* dbl store the wavform */
 
     if (koct >= q->minoct) {                    /* PERIODIC: find the pulse */
       MYFLT     val0, *buf0, *p0, *plim, *x;
@@ -183,7 +186,8 @@ static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
         for (x = posp;
              x >= buf0 && *x > FL(0.0); x--);   /* & its preceding z-crossing */
         xdist = posp - x;
-      } else if (q->polarity < 0) {
+      }
+      else if (q->polarity < 0) {
         MYFLT negpk = FL(0.0);                  /* NEGATIVE polarity:   */
         MYFLT *negp = NULL;
         for ( ; x < plim; x++) {                /* find ensuing min val */
@@ -312,7 +316,6 @@ static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
     for (vdp=q->vocdat; vdp<q->vlim; vdp++)     /* get new frequencies  */
       vdp->phsinc = (int32)(*vdp->kfrq * q->sicvt);
     outp = q->ar;
-    nsmps = CS_KSMPS;
     vocamp = q->vocamp;
     diramp = FL(1.0) - vocamp;
     dirp = q->asig;
