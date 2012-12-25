@@ -31,11 +31,12 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
 {
     char     cvfilnam[MAXNAME];
     MEMFIL   *mfp;
-    MYFLT *fltp;
+    MYFLT    *fltp;
     CVSTRUCT *cvh;
-    int siz;
+    int       siz;
     int32     Hlenpadded = 1, obufsiz, Hlen;
-    unsigned int      nchanls;
+    uint32_t  nchanls;
+    uint32_t  nsmps = CS_KSMPS;
 
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, CONVOLVE_VERSION_STRING);
@@ -104,9 +105,8 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     }
 
     /* Determine size of circular output buffer */
-    if (Hlen >= (int)CS_KSMPS)
-      obufsiz = (int32) CEIL((MYFLT) Hlen / CS_KSMPS)
-                * CS_KSMPS;
+    if (Hlen >= (int32)nsmps)
+      obufsiz = (int32) CEIL((MYFLT) Hlen / nsmps) * nsmps;
     else
       obufsiz = (int32) CEIL(CS_KSMPS / (MYFLT) Hlen) * Hlen;
 
@@ -183,6 +183,8 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     MYFLT  *X;
     int32  Hlenpadded = p->Hlenpadded;
     MYFLT  scaleFac;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t nn;
 
     scaleFac = csound->GetInverseRealFFTScale(csound, (int) Hlenpadded);
     ar[0] = p->ar1;
@@ -215,8 +217,10 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
         i = Hlen - incount;
       nsmpsi -= i;
       incount += i;
-      while (i--)
-        *fftbufind++ = scaleFac * *ai++;
+      for (nn=0; i>0; nn++, i--) {
+        if (nn<offset) *fftbufind++ = FL(0.0);
+        else           *fftbufind++ = scaleFac * ai[nn];
+      }
       if (incount == Hlen) {
         /* We have enough audio for a convolution. */
         incount = 0;
@@ -486,7 +490,8 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
 
 static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 {
-    int    nsmpsi = CS_KSMPS;
+    uint32_t nn, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
     MYFLT  *ai = p->ain;
     MYFLT  *buf;
     MYFLT  *input = (MYFLT*) p->savedInput.auxp, *workWrite = p->workWrite;
@@ -494,9 +499,9 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
     int32  i, j, count = p->inCount;
     int32  hlenpaddedplus2 = p->Hlenpadded+2;
 
-    while (nsmpsi-- > 0) {
+    for (nn=0; nn<nsmps; nn++) {
       /* Read input audio and place into buffer. */
-      input[count++] = *workWrite++ = *ai++;
+      input[count++] = *workWrite++ = (nn<offset? FL(0.0) : ai[nn]);
 
       /* We have enough audio for a convolution. */
       if (count == p->Hlen) {
