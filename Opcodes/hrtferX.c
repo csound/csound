@@ -162,6 +162,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     int16      sl[FILT_LEN], sr[FILT_LEN];
                         /* float versions of above to be sent to FFT routines */
     MYFLT      xl[BUF_LEN], xr[BUF_LEN];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
 
     if (UNLIKELY(p->mfp==NULL)) goto err1;         /* RWD fix */
         /* update local variables */
@@ -299,11 +300,11 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
                 /* reading in audio into x */
       if (incount == 0) {
         for (i = 0; i < toread; i++)
-          x[i] = *aIn++;
+          x[i] = (i<offset ? FL(0.0) : aIn[i]);
       }
       else {
         for (i = incount; i<(incount + toread); i++)
-          x[i] = *aIn++;
+          x[i] = (i<offset ? FL(0.0) : aIn[i]);
       }
 
           /* update counters for amount of audio read */

@@ -248,6 +248,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 {
     MYFLT   a, b, *dftp, *sigp = p->signal, SIG, yt1, yt2;
     int     nocts, nsmps = p->nsmps, winlen;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
     DOWNDAT *downp = &p->downsig;
     OCTDAT  *octp;
     SPECDAT *specp;
@@ -255,6 +256,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 
     do {
       SIG = *sigp++;                        /* for each source sample:     */
+      if (offset--) SIG = FL(0.0);          /* for sample accuracy         */
       octp = downp->octdata;                /*   align onto top octave     */
       nocts = downp->nocts;
       do {                                  /*   then for each oct:        */
