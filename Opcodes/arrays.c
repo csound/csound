@@ -24,10 +24,7 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
-<<<<<<< HEAD
 //#include "arrays.h"
-=======
->>>>>>> 0426d9f73e77317ef038f8c9de74948865a7455e
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
