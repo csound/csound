@@ -534,10 +534,10 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
 
     csound->Message(csound, "insno\tinstanc\tnxtinst\tprvinst\tnxtact\t"
                             "prvact\tnxtoff\tactflg\tofftim\n");
-    // for (txtp = &(csound->engineState.instxtanchor);  txtp != NULL;  txtp = txtp->nxtinstxt)
-    for(i=0; i < csound->engineState.maxinsno; i++){
-      txtp = csound->engineState.instrtxtp[i];
-      if(txtp != NULL){
+    for (txtp = &(csound->engineState.instxtanchor);  txtp != NULL;  txtp = txtp->nxtinstxt)
+     //for(i=0; i < csound->engineState.maxinsno; i++){
+     //txtp = csound->engineState.instrtxtp[i];
+     // if(txtp != NULL){
       if ((p = txtp->instance) != NULL) {
         /*
          * On Alpha, we print pointers as pointers.  heh 981101
@@ -550,8 +550,8 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
                           (void*) p->nxtact, (void*) p->prvact,
                           (void*) p->nxtoff, p->actflg, p->offtim);
         } while ((p = p->nxtinstance) != NULL);
-      }
-      }
+	//}
+	//}
     }
 }
 
@@ -717,12 +717,12 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
     INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
     int       cnt = 0, i;
 
-    //for (txtp = &(csound->engineState.instxtanchor);
-    //     txtp != NULL;  txtp = txtp->nxtinstxt) {
-    if(csound->engineState.instrtxtp != NULL) {
-      for(i=0; i < csound->engineState.maxinsno; i++) {
-        txtp = csound->engineState.instrtxtp[i];
-        if(txtp != NULL){
+   for (txtp = &(csound->engineState.instxtanchor);
+        txtp != NULL;  txtp = txtp->nxtinstxt) {
+     //if(csound->engineState.instrtxtp != NULL) {
+	//for(i=0; i < csound->engineState.maxinsno; i++) {
+        //txtp = csound->engineState.instrtxtp[i];
+        //if(txtp != NULL){
           if ((ip = txtp->instance) != NULL) {        /* if instance exists */
             prvip = NULL;
             prvnxtloc = &txtp->instance;
@@ -756,8 +756,8 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
           txtp->lst_instance = ip;
         }
         txtp->act_instance = NULL;                /* no free instances */
-        }
-      }
+	// }
+	// }
     }
     if (UNLIKELY(cnt))
       csound->Message(csound, Str("inactive allocs returned to freespace\n"));
