@@ -908,18 +908,15 @@ int sensevents(CSOUND *csound)
 
 
       /* calculate the number of k-periods remaining until next event */
-      if (!O->sampleAccurate){
+      if (!O->sampleAccurate) {
         if (O->Beatmode)
           csound->cyclesRemaining =
             RNDINT64((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
         else {
-          double old = csound->nxtim;
           csound->cyclesRemaining =
             RNDINT64((csound->nxtim*csound->esr - csound->icurTime)/csound->ksmps);
           csound->nxtim =
             (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
-          printf("XXX %Ld %f %f %Ld\n", csound->cyclesRemaining, csound->nxtim,
-                 old, csound->icurTime);
         } 
       }
       else {
@@ -930,13 +927,11 @@ int sensevents(CSOUND *csound)
           csound->cyclesRemaining = (int64_t)
             ((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
         else {
-          double old = csound->nxtim;
           csound->cyclesRemaining = (int64_t)
-            ((csound->nxtim*csound->esr - csound->icurTime) / csound->ksmps);
+            FLOOR((csound->nxtim*csound->esr - 
+                   csound->icurTime+csound->onedsr*0.5) / csound->ksmps);
           csound->nxtim = 
             (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
-          printf("XXX %Ld %f %f %Ld\n", csound->cyclesRemaining, csound->nxtim,
-                 old, csound->icurTime);
         } 
       }
     }
