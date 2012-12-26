@@ -525,6 +525,54 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineSta
   csound->ekr = kr;
   if(_0dbfs < 0) csound->e0dbfs = DFLT_DBFS;
   else csound->e0dbfs = _0dbfs;
+
+   OPARMS  *O = csound->oparms;
+   if (UNLIKELY(csound->e0dbfs <= FL(0.0))){
+    csound->Warning(csound, Str("bad value for 0dbfs: must be positive. Setting default value."));
+    csound->e0dbfs = DFLT_DBFS;
+   }
+  if (UNLIKELY(O->odebug))
+    csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
+                    "0dbfs = %.1f\n",
+                    csound->esr, csound->ekr, csound->ksmps, csound->nchnls, csound->e0dbfs);
+  if (O->sr_override) {        /* if command-line overrides, apply now */
+    MYFLT ensmps;
+    csound->esr = (MYFLT) O->sr_override;
+    csound->ekr = (MYFLT) O->kr_override;
+    csound->ksmps = (int) ((ensmps = ((MYFLT) O->sr_override
+				      / (MYFLT) O->kr_override)) + FL(0.5));
+    csound->Message(csound, Str("sample rate overrides: "
+				"esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
+		    csound->esr, csound->ekr, csound->ksmps);
+    /* chk consistency one more time */
+    {
+      char  s[256];
+      sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
+	      csound->esr, csound->ekr, ensmps);
+      if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps)))
+        csoundDie(csound, Str("%s invalid ksmps value"), s);
+      if (UNLIKELY(csound->esr <= FL(0.0)))
+        csoundDie(csound, Str("%s invalid sample rate"), s);
+      if (UNLIKELY(csound->ekr <= FL(0.0)))
+        csoundDie(csound, Str("%s invalid control rate"), s);
+      if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double) csound->ekr * ensmps)))
+        csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
+    } 
+  }
+
+  csound->tpidsr = TWOPI_F / csound->esr;               /* now set internal  */
+  csound->mtpdsr = -(csound->tpidsr);                   /*    consts         */
+  csound->pidsr = PI_F / csound->esr;
+  csound->mpidsr = -(csound->pidsr);
+  csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
+  csound->sicvt = FMAXLEN / csound->esr;
+  csound->kicvt = FMAXLEN / csound->ekr;
+  csound->onedsr = FL(1.0) / csound->esr;
+  csound->onedkr = FL(1.0) / csound->ekr;
+  csound->global_ksmps     = csound->ksmps;
+  csound->global_ekr       = csound->ekr;
+  csound->global_kcounter  = csound->kcounter;
+
   close_instrument(csound, ip);
 
   return ip;
@@ -679,6 +727,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt){
           mfree(csound, t);
           t = s;
         }
+     mfree(csound, ip->varPool); /* need to delete the varPool memory */
      mfree(csound, ip);
      csound->Message(csound, "-- deleted instr from deadpool \n"); 
 }
@@ -903,8 +952,15 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
 int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
 
-  /* FIXME: do we need to deallocate stringPool, constantPool, varPool, opcodeInfo, 
-     instrumentNames? */
+  /* FIXME: we need functions to deallocate stringPool, constantPool */
+    OPCODINFO *inm = engineState->opcodeInfo;
+    while(inm != NULL){
+      OPCODINFO *toclear = inm;
+      inm = inm->prv;
+      mfree(csound, toclear);
+    }
+    mfree(csound, engineState->instrumentNames);
+    mfree(csound, engineState->varPool);
     mfree(csound, engineState);
     return 0;
 } 
@@ -1121,7 +1177,21 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
     insprep(csound, ip, engineState);                      /*   as combined offsets */
     recalculateVarPoolMemory(csound, ip->varPool);
-  }  
+  } 
+
+  /* create memblock for global variables */
+  recalculateVarPoolMemory(csound, engineState->varPool);
+  csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize);
+
+  MYFLT* globals = csound->globalVarPool;
+  globals[0] = csound->esr;           /*   & enter        */
+  globals[1] = csound->ekr;           /*   rsvd word      */
+  globals[2] = (MYFLT) csound->ksmps; /*   curr vals      */
+  globals[3] = (MYFLT) csound->nchnls;
+  if (csound->inchnls<0) csound->inchnls = csound->nchnls;
+  globals[4] = (MYFLT) csound->inchnls;
+  globals[5] = csound->e0dbfs;
+ 
   }
   return CSOUND_SUCCESS;
 }
@@ -1464,21 +1534,27 @@ uint8_t file_to_int(CSOUND *csound, const char *name)
   return n;
 }
 
+#if 0
+/*
+ the code in this function has been refactored (see comments below)
+*/
 void initialize_instrument0(CSOUND *csound)
 {
-  INSTRTXT *ip;
+  //INSTRTXT *ip;
   OPARMS  *O = csound->oparms;
   ENGINE_STATE *engineState = &csound->engineState;
   
-  ip = engineState->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
-  /* why I want oload() to return an error value.... */
+  //ip = engineState->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
+
+  /* this code has been moved to create_instrument0 */
+   
   if (UNLIKELY(csound->e0dbfs <= FL(0.0)))
     csound->Die(csound, Str("bad value for 0dbfs: must be positive."));
   if (UNLIKELY(O->odebug))
     csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
                     "0dbfs = %.1f\n",
                     csound->esr, csound->ekr, csound->ksmps, csound->nchnls, csound->e0dbfs);
-  if (O->sr_override) {        /* if command-line overrides, apply now */
+  if (O->sr_override) {      
     MYFLT ensmps;
     csound->esr = (MYFLT) O->sr_override;
     csound->ekr = (MYFLT) O->kr_override;
@@ -1487,7 +1563,6 @@ void initialize_instrument0(CSOUND *csound)
     csound->Message(csound, Str("sample rate overrides: "
 				"esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
 		    csound->esr, csound->ekr, csound->ksmps);
-    /* chk consistency one more time */
     {
       char  s[256];
       sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
@@ -1502,24 +1577,24 @@ void initialize_instrument0(CSOUND *csound)
         csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
     } 
   }
-    
-  /* create memblock for global variables */
+
+
+ /* this code has been moved to compileTree */
+ 
   recalculateVarPoolMemory(csound, engineState->varPool);
   csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize);
 
   MYFLT* globals = csound->globalVarPool;
-  globals[0] = csound->esr;           /*   & enter        */
-  globals[1] = csound->ekr;           /*   rsvd word      */
-  globals[2] = (MYFLT) csound->ksmps; /*   curr vals      */
+  globals[0] = csound->esr;           
+  globals[1] = csound->ekr;           
+  globals[2] = (MYFLT) csound->ksmps; 
   globals[3] = (MYFLT) csound->nchnls;
   if (csound->inchnls<0) csound->inchnls = csound->nchnls;
   globals[4] = (MYFLT) csound->inchnls;
   globals[5] = csound->e0dbfs;
-
-  ip = &(engineState->instxtanchor);
-  while ((ip = ip->nxtinstxt) != NULL) recalculateVarPoolMemory(csound, ip->varPool);
-
-#ifdef SOME_FINE_DAY /* the code below does not appear to have any current use */
+  
+#ifdef SOME_FINE_DAY
+ /* the code below does not appear to have any current use */
   ip = &(engineState->instxtanchor);
   while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
     optxt = (OPTXT *) ip;                     /*   (and set localen)        */
@@ -1544,9 +1619,10 @@ void initialize_instrument0(CSOUND *csound)
     } 
   }
 #endif
+/* this code has been moved to create_instrument0 */
 
-  csound->tpidsr = TWOPI_F / csound->esr;               /* now set internal  */
-  csound->mtpdsr = -(csound->tpidsr);                   /*    consts         */
+  csound->tpidsr = TWOPI_F / csound->esr;               
+  csound->mtpdsr = -(csound->tpidsr);                   
   csound->pidsr = PI_F / csound->esr;
   csound->mpidsr = -(csound->pidsr);
   csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
@@ -1557,8 +1633,9 @@ void initialize_instrument0(CSOUND *csound)
   csound->global_ksmps     = csound->ksmps;
   csound->global_ekr       = csound->ekr;
   csound->global_kcounter  = csound->kcounter;
+  /* these calls were moved to musmon() in musmon.c */
   reverbinit(csound);
-  dbfs_init(csound, csound->e0dbfs);
+  dbfs_init(csound, csound->e0dbfs); 
   csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
   csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
   csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
@@ -1584,8 +1661,6 @@ void initialize_instrument0(CSOUND *csound)
   if (UNLIKELY(init0(csound) != 0))
     csoundDie(csound, Str("header init errors"));
 }
-
-#if 0
 
 /* get size of string in MYFLT units */
 
