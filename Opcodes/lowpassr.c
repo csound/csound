@@ -53,6 +53,7 @@ static int lowpr(CSOUND *csound, LOWPR *p)
       p->k = k = 1000.0 / (double)kfco;
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
+      p->okf = kfco; p->okr != kres; /* remember to save recalculation */
     }
     ar = p->ar;
     asig = p->asig;
@@ -99,6 +100,7 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
       p->k = k = FL(1000.0) / kfco;
       p->coef1 = coef1 = (b+FL(2.0) * k);
       p->coef2 = coef2 = FL(1.0)/(FL(1.0) + b + k);
+      p->okf = kfco; p->okr != kres; /* remember to save recalculation */
     }
 
     ynm1 = p->ynm1;
