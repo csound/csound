@@ -844,11 +844,17 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
    
   CS_VARIABLE* gVar = engineState->varPool->head;
   count = 0;
-  while(gVar != NULL) {
-    csound->Message(csound, " merging  %d) %s:%s\n", count++, 
+  while(gVar != NULL) { 
+    count++;
+    csound->Message(csound, " merging  %d) %s:%s\n", count, 
 		    gVar->varName, gVar->varType->varTypeName);
     csoundAddVariable(current_state->varPool, csoundCreateVariable(csound, csound->typePool, gVar->varType, gVar->varName));
     gVar = gVar->next;
+  }
+  /* do we need to recalculate global pool and allocate memory ? */
+  if(count) {
+     recalculateVarPoolMemory(csound, current_state->varPool);
+     csound->globalVarPool = mrealloc(csound, csound->globalVarPool, current_state->varPool->poolSize);
   }
   /* merge opcodinfo */
    OPCODINFO *opinfo = engineState->opcodeInfo;
