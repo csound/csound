@@ -38,6 +38,7 @@ extern "C" {
         int refCount;
         struct csvariable* next;
         CS_TYPE* subType;
+        void (*updateMemBlockSize)(void*, struct csvariable*);
     } CS_VARIABLE;
 
 //    typedef struct cstypeinstance {
