@@ -560,6 +560,19 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineSta
     } 
   }
 
+  csound->tpidsr = TWOPI_F / csound->esr;               /* now set internal  */
+  csound->mtpdsr = -(csound->tpidsr);                   /*    consts         */
+  csound->pidsr = PI_F / csound->esr;
+  csound->mpidsr = -(csound->pidsr);
+  csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
+  csound->sicvt = FMAXLEN / csound->esr;
+  csound->kicvt = FMAXLEN / csound->ekr;
+  csound->onedsr = FL(1.0) / csound->esr;
+  csound->onedkr = FL(1.0) / csound->ekr;
+  csound->global_ksmps     = csound->ksmps;
+  csound->global_ekr       = csound->ekr;
+  csound->global_kcounter  = csound->kcounter;
+
   close_instrument(csound, ip);
 
   return ip;
@@ -1157,7 +1170,21 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
     insprep(csound, ip, engineState);                      /*   as combined offsets */
     recalculateVarPoolMemory(csound, ip->varPool);
-  }  
+  } 
+
+  /* create memblock for global variables */
+  recalculateVarPoolMemory(csound, engineState->varPool);
+  csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize);
+
+  MYFLT* globals = csound->globalVarPool;
+  globals[0] = csound->esr;           /*   & enter        */
+  globals[1] = csound->ekr;           /*   rsvd word      */
+  globals[2] = (MYFLT) csound->ksmps; /*   curr vals      */
+  globals[3] = (MYFLT) csound->nchnls;
+  if (csound->inchnls<0) csound->inchnls = csound->nchnls;
+  globals[4] = (MYFLT) csound->inchnls;
+  globals[5] = csound->e0dbfs;
+ 
   }
   return CSOUND_SUCCESS;
 }
@@ -1545,18 +1572,20 @@ void initialize_instrument0(CSOUND *csound)
   }
   */
 
-  /* create memblock for global variables */
+ /* this code has been moved to compileTree */
+ /*
   recalculateVarPoolMemory(csound, engineState->varPool);
   csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize);
 
   MYFLT* globals = csound->globalVarPool;
-  globals[0] = csound->esr;           /*   & enter        */
-  globals[1] = csound->ekr;           /*   rsvd word      */
-  globals[2] = (MYFLT) csound->ksmps; /*   curr vals      */
+  globals[0] = csound->esr;           
+  globals[1] = csound->ekr;           
+  globals[2] = (MYFLT) csound->ksmps; 
   globals[3] = (MYFLT) csound->nchnls;
   if (csound->inchnls<0) csound->inchnls = csound->nchnls;
   globals[4] = (MYFLT) csound->inchnls;
   globals[5] = csound->e0dbfs;
+  */
 
 #ifdef SOME_FINE_DAY /* the code below does not appear to have any current use */
   ip = &(engineState->instxtanchor);
@@ -1584,8 +1613,10 @@ void initialize_instrument0(CSOUND *csound)
   }
 #endif
 
-  csound->tpidsr = TWOPI_F / csound->esr;               /* now set internal  */
-  csound->mtpdsr = -(csound->tpidsr);                   /*    consts         */
+/* this code has been moved to create_instrument0 */
+/*
+  csound->tpidsr = TWOPI_F / csound->esr;               
+  csound->mtpdsr = -(csound->tpidsr);                   
   csound->pidsr = PI_F / csound->esr;
   csound->mpidsr = -(csound->pidsr);
   csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
@@ -1596,6 +1627,9 @@ void initialize_instrument0(CSOUND *csound)
   csound->global_ksmps     = csound->ksmps;
   csound->global_ekr       = csound->ekr;
   csound->global_kcounter  = csound->kcounter;
+
+*/
+
   reverbinit(csound);
   dbfs_init(csound, csound->e0dbfs);
   csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
