@@ -232,7 +232,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       start_time_kcycles = start_time_samps/csound->ksmps;
       /* ksmps_offset = */ 
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
-      if (ip->ksmps_offset) printf(">>>> offset=%d\n", ip->ksmps_offset);
+      //      if (ip->ksmps_offset) printf(">>>> offset=%d\n", ip->ksmps_offset);
     }
     else /* ksmps_offset = */ ip->ksmps_offset = 0;
 
