@@ -1527,9 +1527,9 @@ uint8_t file_to_int(CSOUND *csound, const char *name)
   return n;
 }
 
+#if 0
 /*
- FIXME - this function might possibly be completely removed
- with code refactored to other functions
+ the code in this function has been refactored (see comments below)
 */
 void initialize_instrument0(CSOUND *csound)
 {
@@ -1540,7 +1540,7 @@ void initialize_instrument0(CSOUND *csound)
   //ip = engineState->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
 
   /* this code has been moved to create_instrument0 */
-  /* 
+   
   if (UNLIKELY(csound->e0dbfs <= FL(0.0)))
     csound->Die(csound, Str("bad value for 0dbfs: must be positive."));
   if (UNLIKELY(O->odebug))
@@ -1570,10 +1570,10 @@ void initialize_instrument0(CSOUND *csound)
         csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
     } 
   }
-  */
+
 
  /* this code has been moved to compileTree */
- /*
+ 
   recalculateVarPoolMemory(csound, engineState->varPool);
   csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize);
 
@@ -1585,9 +1585,9 @@ void initialize_instrument0(CSOUND *csound)
   if (csound->inchnls<0) csound->inchnls = csound->nchnls;
   globals[4] = (MYFLT) csound->inchnls;
   globals[5] = csound->e0dbfs;
-  */
-
-#ifdef SOME_FINE_DAY /* the code below does not appear to have any current use */
+  
+#ifdef SOME_FINE_DAY
+ /* the code below does not appear to have any current use */
   ip = &(engineState->instxtanchor);
   while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
     optxt = (OPTXT *) ip;                     /*   (and set localen)        */
@@ -1612,9 +1612,8 @@ void initialize_instrument0(CSOUND *csound)
     } 
   }
 #endif
-
 /* this code has been moved to create_instrument0 */
-/*
+
   csound->tpidsr = TWOPI_F / csound->esr;               
   csound->mtpdsr = -(csound->tpidsr);                   
   csound->pidsr = PI_F / csound->esr;
@@ -1627,11 +1626,9 @@ void initialize_instrument0(CSOUND *csound)
   csound->global_ksmps     = csound->ksmps;
   csound->global_ekr       = csound->ekr;
   csound->global_kcounter  = csound->kcounter;
-
-*/
-
+  /* these calls were moved to musmon() in musmon.c */
   reverbinit(csound);
-  dbfs_init(csound, csound->e0dbfs);
+  dbfs_init(csound, csound->e0dbfs); 
   csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
   csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
   csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
@@ -1657,8 +1654,6 @@ void initialize_instrument0(CSOUND *csound)
   if (UNLIKELY(init0(csound) != 0))
     csoundDie(csound, Str("header init errors"));
 }
-
-#if 0
 
 /* get size of string in MYFLT units */
 
