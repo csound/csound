@@ -1510,6 +1510,9 @@ void initialize_instrument0(CSOUND *csound)
   globals[4] = (MYFLT) csound->inchnls;
   globals[5] = csound->e0dbfs;
 
+  ip = &(engineState->instxtanchor);
+  while ((ip = ip->nxtinstxt) != NULL) recalculateVarPoolMemory(csound, ip->varPool);
+
 #ifdef SOME_FINE_DAY /* the code below does not appear to have any current use */
   ip = &(engineState->instxtanchor);
   while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
