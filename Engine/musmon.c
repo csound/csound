@@ -47,7 +47,7 @@ extern  void    MidiClose(CSOUND *);
 extern  void    RTclose(CSOUND *);
 extern  void    remote_Cleanup(CSOUND *);
 extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
-extern  void    initialize_instrument0(CSOUND *);
+/* extern  void    initialize_instrument0(CSOUND *); */
 
 typedef struct evt_cb_func {
     void    (*func)(CSOUND *, void *);
@@ -194,7 +194,33 @@ int musmon(CSOUND *csound)
 
     m_chn_init_all(csound);     /* allocate MIDI channels */
     dispinit(csound);           /* initialise graphics or character display */
-    initialize_instrument0(csound);              /* set globals and run inits */
+
+    reverbinit(csound);
+    dbfs_init(csound, csound->e0dbfs);
+    csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
+    csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
+    csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
+    csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
+    
+    /* initialise sensevents state */
+    csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
+    csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
+    csound->icurTime = 0L;
+    if (O->Beatmode && O->cmdTempo > 0) {
+      /* if performing from beats, set the initial tempo */
+     csound->curBeat_inc = (double) O->cmdTempo / (60.0 * (double) csound->ekr);
+     csound->ibeatTime = (int64_t)(csound->esr*60.0 / (double) O->cmdTempo);
+    }
+    else {
+      csound->curBeat_inc = 1.0 / (double) csound->ekr;
+      csound->ibeatTime = 1;
+    }
+    csound->cyclesRemaining = 0;
+    memset(&(csound->evt), 0, sizeof(EVTBLK));
+
+  /* run instr 0 inits */
+  if (UNLIKELY(init0(csound) != 0))
+    csoundDie(csound, Str("header init errors"));
 
     /* kperf() will not call csoundYield() more than 250 times per second */
     csound->evt_poll_cnt    = 0;
