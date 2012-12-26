@@ -7,6 +7,11 @@
 #define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
 #define ARRAY_DAT_FLOATS (((int) sizeof(ARRAYDAT) + 7) / (int) sizeof(MYFLT))
 
+void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
+    CSOUND* cs = (CSOUND*)csound;
+    int ksmps = cs->ksmps;    
+    var->memBlockSize = ksmps * sizeof (MYFLT);
+}
 
 CS_VARIABLE* createAsig(void* cs, void* p) {
     int ksmps;
@@ -22,6 +27,8 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
     
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = ksmps * sizeof (MYFLT);
+    var->updateMemBlockSize = &updateAsigMemBlock;
+
     return var;
 }
 
