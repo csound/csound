@@ -440,6 +440,8 @@ typedef struct {
     /* opcodes to be run at note deactivation */
     void    *nxtd;
     uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
+    uint32_t no_end;      /* samps left at the end for sample accuracy (calculated) */
+    uint32_t ksmps_no_end; /* samps left at the end for sample accuracy (used by opcodes) */
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
     MYFLT   p1;

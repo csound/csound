@@ -1558,13 +1558,20 @@ int kperf(CSOUND *csound)
         csound->multiThreadedDag = NULL;
       }
       else {
+        double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
           csound->pds = (OPDS*) ip;
+	  if(time_end > ip->offtim){
+            /* this is the last cycle of performance */
+	    // csound->Message(csound, "last cycle %d: %f %f   \n", ip->insno, csound->icurTime/csound->esr, ip->offtim);
+            ip->ksmps_no_end = ip->no_end;
+	  }
           while ((csound->pds = csound->pds->nxtp) != NULL) {
             (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
           }
-          ip->ksmps_offset = 0; /* reset sample-accuracy offset */
+          ip->ksmps_offset = 0; /* reset sample-accuracy offset */  
+          ip->ksmps_no_end = 0;  /* reset end of loop samples */     
           ip = nxt; /* but this does not allow for all deletions */
         }
       }
