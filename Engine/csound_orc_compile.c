@@ -63,6 +63,12 @@ char argtyp2(char *s);
 #define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 5.0e-7)
 #endif
 
+typedef struct serial_tree {
+  unsigned int size;
+  TREE *data;
+} SERIAL_TREE;
+
+
 /* ------------------------------------------------------------------------ */
 
 int argCount(ARG* arg) {
@@ -225,7 +231,6 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 }
 
 
-
 /**
  * Create an Opcode (OPTXT) from the AST node given for a given engineState
  */
@@ -379,6 +384,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
 
   return retOptxt;
 }
+
 /**
  * NB - instr0 to be created only once, in the first compilation
  *  and stored in csound->instr0
@@ -1196,6 +1202,31 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   return CSOUND_SUCCESS;
 }
 
+#define MIN_SIZE 512
+/**
+  create a SERIAL_TREE structure containing the parse tree root
+*/
+SERIAL_TREE *serialize_tree(CSOUND *csound, TREE *root){
+  SERIAL_TREE *s_tree;
+  TREE *current = root;
+  int32 n = MIN_SIZE, count=0;  
+  s_tree = (SERIAL_TREE *) mcalloc(csound, sizeof(SERIAL_TREE));
+  s_tree->data = (TREE *)  mcalloc(csound, sizeof(TREE)*n);
+    
+  while(1){
+    memcpy(&s_tree->data[count], current, sizeof(TREE));
+    current = current->next;
+    if(current != NULL) {
+    if(++count == n) { /* need to extend tree */
+      n += MIN_SIZE;
+      s_tree->data = (TREE *)  mrealloc(csound, s_tree->data, sizeof(TREE)*n);
+    }
+    } else break;
+  }
+  s_tree->size = sizeof(TREE)*count;
+  return s_tree;
+}
+
 void debugPrintCsound(CSOUND* csound) {
   csound->Message(csound, "Compile State:\n");
   csound->Message(csound, "String Pool:\n");
@@ -1254,6 +1285,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
   retVal = csoundCompileTree(csound, root);
   // if(csound->oparms->odebug) 
   debugPrintCsound(csound);  
+  /* FIXME: do we need to recover memory from tree after compilation? */
   return retVal;
 }
 
