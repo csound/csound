@@ -451,6 +451,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     double *s = p->sine;
     double *h = (double*)p->oldInPhase.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int wintype = p->fsig->wintype;
     if (UNLIKELY(data==NULL)) {
@@ -458,6 +459,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     }
     ain = p->ain;               /* The input samples */
     loc = p->inptr;             /* Circular buffer */
+    nsmps -= early;
     for (i=offset; i < nsmps; i++) {
       MYFLT re, im, dx;
       CMPLX* ff;
@@ -659,6 +661,7 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
 
     ain = p->ain;
@@ -668,9 +671,10 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
     }
     {
       int overlap = (int)*p->overlap;
-      if (overlap<(int)CS_KSMPS || overlap<10) /* 10 is a guess.... */
+      if (overlap<(int)nsmps || overlap<10) /* 10 is a guess.... */
         return pvssanal(csound, p);
     }
+    nsmps -= early;
     for (i=offset; i < nsmps; i++)
       anal_tick(csound,p,ain[i]);
     return OK;
@@ -1024,6 +1028,7 @@ int pvssynth(CSOUND *csound, PVSYNTH *p)
 int pvsynth(CSOUND *csound, PVSYNTH *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT *aout = p->aout;
 
@@ -1031,7 +1036,11 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
     if (p->fsig->sliding) return pvssynth(csound, p);
-    memset(aout, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i=offset;i < nsmps;i++)
       aout[i] = synth_tick(csound, p);
     return OK;

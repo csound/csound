@@ -160,8 +160,10 @@ int dsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
+    nsmps -= early;
     if (!p->nprds) {
       for (n=offset; n<nsmps; n++) {
         fp[n] = sp[n];
@@ -385,9 +387,11 @@ int dspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
+    nsmps -= early;
     for (n=offset; n<nsmps; n++) {
       if (bufp < p->sampbuf) {            /* skip any spare samples */
         bufp++; sigp++;
