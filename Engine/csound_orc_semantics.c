@@ -391,6 +391,17 @@ char* get_assignment_type(CSOUND *csound, char * ans, TREE* arg1) {
     return str;
 }
 
+void delete_tree(TREE *l)
+{
+    while (1) {
+      if (UNLIKELY(l==NULL)) {
+        return;
+      }
+      delete_tree(l->left);
+      delete_tree(l->right);
+      l = l->next;
+    }
+}
 
 
 /* DEBUGGING FUNCTIONS */
