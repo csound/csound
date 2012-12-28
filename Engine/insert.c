@@ -227,14 +227,24 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
      /* new code for sample-accurate timing, not for tied notes */
     if (O->sampleAccurate & !tie) {
-      int64_t start_time_samps, start_time_kcycles;
+      int64_t start_time_samps, start_time_kcycles, duration_kcycles;
+      double duration_samps;
       start_time_samps = (int64_t) (ip->p2 * csound->esr);
+      duration_samps =  ip->p3 * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
+      duration_kcycles = CEIL(duration_samps/csound->ksmps);
       /* ksmps_offset = */ 
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
+      ip->no_end = duration_kcycles*csound->ksmps - duration_samps;
+      ip->ksmps_no_end = 0; /* the ksmps_no_end field is initially 0, set to no_end in the last perf cycle */
       //      if (ip->ksmps_offset) printf(">>>> offset=%d\n", ip->ksmps_offset);
     }
-    else /* ksmps_offset = */ ip->ksmps_offset = 0;
+    else {
+     /* ksmps_offset = */ 
+    ip->ksmps_offset = 0;
+    ip->ksmps_no_end = 0;
+    ip->no_end = 0;
+    }
 
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
@@ -268,7 +278,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       double p2 = (double) ip->p2 + csound->timeOffs;
       ip->offtim = p2 + (double) ip->p3;
       /* csound->Message(csound, "ip->offtim = %lf -> ", ip->offtim); */
-      ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
+       if(O->sampleAccurate && !tie) /* ceil for sample-accurate ending */
+        ip->offtim = CEIL(ip->offtim * csound->ekr)/csound->ekr;
+       else /* normal : round */
+        ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
       /* csound->Message(csound, "%lf\n", ip->offtim); */
       if (O->Beatmode) {
         p2 = ((p2*csound->esr - csound->icurTime) / csound->ibeatTime)
@@ -565,11 +578,12 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
       ip->nxtoff = nxtp;
       /* IV - Feb 24 2006: check if this note already needs to be turned off */
       /* the following comparisons must match those in sensevents() */
-#ifdef BETA
+  #ifdef BETA
       if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound,"schedofftim: %lf %lf %f\n",
                         ip->offtim, csound->icurTime/csound->esr,
                         csound->curTime_inc);
+    
 #endif
       if (csound->oparms_.Beatmode) {
         double  tval = csound->curBeat + (0.505 * csound->curBeat_inc);
