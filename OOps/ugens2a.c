@@ -176,6 +176,7 @@ int ptablefn(CSOUND *csound, TABLE *p)
     MYFLT       *rslt, *pxndx, *tab;
     int32       indx, length;
     uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
     int         wrap = p->wrap;
@@ -183,7 +184,11 @@ int ptablefn(CSOUND *csound, TABLE *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;            /* RWD fix */
     rslt = p->rslt;
-    memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (offset) memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    }
     length = ftp->flen;
     pxndx = p->xndx;
     xbmul = (MYFLT)p->xbmul;
@@ -331,6 +336,7 @@ int ptabli(CSOUND *csound, TABLE   *p)
     FUNC        *ftp;
     int32       indx, length;
     uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
@@ -338,7 +344,11 @@ int ptabli(CSOUND *csound, TABLE   *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     rslt   = p->rslt;
-    memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (offset) memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    }
     length = ftp->flen;
     pxndx  = p->xndx;
     xbmul  = (MYFLT)p->xbmul;
@@ -407,6 +417,7 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
     FUNC        *ftp;
     int32       indx, length;
     uint32_t    koffset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
@@ -415,7 +426,11 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     rslt = p->rslt;
-    memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (offset) memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    }
     length = ftp->flen;
     pxndx = p->xndx;
     xbmul = (MYFLT)p->xbmul;
@@ -567,6 +582,7 @@ int ptablew(CSOUND *csound, TABLEW *p)
     int32        length; /* Length of table */
     int         liwgm;          /* Local copy of iwgm for speed */
     uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
                                 /*-----------------------------------*/
@@ -581,6 +597,7 @@ int ptablew(CSOUND *csound, TABLEW *p)
     xbmul  = (MYFLT)p->xbmul;
     offset = p->offset;
                 /* Main loop - for the number of a samples in a k cycle. */
+    nsmps -= early;
     for (n=koffset; n<nsmps; n++) {
       /* Read in the next raw index and increment the pointer ready for the
          next cycle.  Then multiply the ndx by the denormalising factor and
