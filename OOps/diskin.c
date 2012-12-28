@@ -284,6 +284,7 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
     MYFLT   a0, a1;
     int32   ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS, chn;
 
     if (p->initDone <= 0) {
@@ -309,8 +310,9 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
     }
     /* clear outputs to zero first */
     for (chn = 0; chn < p->nChannels; chn++)
-      for (nn = 0; nn < CS_KSMPS; nn++)
+      for (nn = 0; nn < nsmps; nn++)
         p->aOut[chn][nn] = FL(0.0);
+    if (early) nsmps -= early;
     /* file read position */
     ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
     /* ---- linear interpolation ---- */
@@ -434,10 +436,12 @@ int sndo1set(CSOUND *csound, void *pp)
 int soundout(CSOUND *csound, SNDOUT *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundout: not initialised"));
+    if (early) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
@@ -452,10 +456,12 @@ int soundout(CSOUND *csound, SNDOUT *p)
 int soundouts(CSOUND *csound, SNDOUTS *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundouts: not initialised"));
+    if (early) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
