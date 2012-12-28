@@ -267,31 +267,35 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
   case T_OPCODE:
   case T_OPCODE0:
   case '=':
-    if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound,
-		      "create_opcode: Found node for opcode %s\n",
-		      root->value->lexeme);
-
-    nreqd = tree_arg_list_count(root->left);   /* outcount */
-    /* replace opcode if needed */
-    if (!strcmp(root->value->lexeme, "xin") &&
-	nreqd > OPCODENUMOUTS_LOW) {
-      if (nreqd > OPCODENUMOUTS_HIGH)
-	opnum = find_opcode(csound, ".xin256");
-      else
-	opnum = find_opcode(csound, ".xin64");
-    }
-    else {
-      opnum = find_opcode(csound, root->value->lexeme);
-    }
-
-    /* INITIAL SETUP */
-    tp->opnum = opnum;
-    tp->opcod = strsav_string(csound->opcodlst[opnum].opname);
-    ip->mdepends |= csound->opcodlst[opnum].thread;
-    ip->opdstot += csound->opcodlst[opnum].dsblksiz;
-
-    /* BUILD ARG LISTS */
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound,
+                        "create_opcode: Found node for opcode %s\n",
+                        root->value->lexeme);
+      
+      nreqd = tree_arg_list_count(root->left);   /* outcount */
+      /* replace opcode if needed */
+      if (!strcmp(root->value->lexeme, "xin") &&
+          nreqd > OPCODENUMOUTS_LOW) {
+        if (nreqd > OPCODENUMOUTS_HIGH)
+          opnum = find_opcode(csound, ".xin256");
+        else
+          opnum = find_opcode(csound, ".xin64");
+      }
+      else {
+        opnum = find_opcode(csound, root->value->lexeme);
+      }
+      
+      /* INITIAL SETUP */
+      tp->opnum = opnum;
+      tp->opcod = strsav_string(csound->opcodlst[opnum].opname);
+      ip->mdepends |= csound->opcodlst[opnum].thread;
+      ip->opdstot += csound->opcodlst[opnum].dsblksiz;
+      
+      if (tp->opnum == find_opcode(csound, "array_init")) {
+        csound->Message(csound, "OMG! ARRAY_INIT!\n");
+      }
+          
+      /* BUILD ARG LISTS */
     {
       int incount = tree_arg_list_count(root->right);
       int outcount = tree_arg_list_count(root->left);
@@ -299,72 +303,72 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
       size_t m = sizeof(ARGLST) + (incount - 1) * sizeof(char*);
       tp->inlist = (ARGLST*) mrealloc(csound, tp->inlist, m);
       tp->inlist->count = incount;
-
+      
       m = sizeof(ARGLST) + (outcount - 1) * sizeof(char*);
       tp->outlist = (ARGLST*) mrealloc(csound, tp->outlist, m);
       tp->outlist->count = outcount;
-
-
+      
+      
       for (inargs = root->right; inargs != NULL; inargs = inargs->next) {
-	/* INARGS */
-	arg = inargs->value->lexeme;
-	tp->inlist->arg[argcount++] = strsav_string(arg);
-
-	if ((n = pnum(arg)) >= 0) {
-	  if (n > ip->pmax)  ip->pmax = n;
-	}
-	/* VL 14/12/11 : calling lgbuild here seems to be problematic for
-	   undef arg checks */
-	else {
-	  lgbuild(csound, ip, arg, 1, engineState);
-	}
+        /* INARGS */
+        arg = inargs->value->lexeme;
+        tp->inlist->arg[argcount++] = strsav_string(arg);
+        
+        if ((n = pnum(arg)) >= 0) {
+          if (n > ip->pmax)  ip->pmax = n;
+        }
+        /* VL 14/12/11 : calling lgbuild here seems to be problematic for
+         undef arg checks */
+        else {
+          lgbuild(csound, ip, arg, 1, engineState);
+        }
       }
     }
-    /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
+      /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
     {
       OENTRY *ep = csound->opcodlst + tp->opnum;
       int argcount = 0;
       for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
-	arg = outargs->value->lexeme;
-	tp->outlist->arg[argcount++] = strsav_string(arg);
+        arg = outargs->value->lexeme;
+        tp->outlist->arg[argcount++] = strsav_string(arg);
       }
       set_xincod(csound, tp, ep);
- 
+      
       /* OUTARGS */
       for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
-
-	arg = outargs->value->lexeme;
-
-	if ((n = pnum(arg)) >= 0) {
-	  if (n > ip->pmax)  ip->pmax = n;
-	}
-	else {
-	  if (arg[0] == 'w' &&
-	      lgexist2(ip, arg, engineState) != 0) {
-	    synterr(csound, Str("output name previously used, "
-				"type 'w' must be uniquely defined, line %d"),
-		    root->line);
-	  }
-	  lgbuild(csound, ip, arg, 0, engineState);
-	}
-
+        
+        arg = outargs->value->lexeme;
+        
+        if ((n = pnum(arg)) >= 0) {
+          if (n > ip->pmax)  ip->pmax = n;
+        }
+        else {
+          if (arg[0] == 'w' &&
+              lgexist2(ip, arg, engineState) != 0) {
+            synterr(csound, Str("output name previously used, "
+                                "type 'w' must be uniquely defined, line %d"),
+                    root->line);
+          }
+          lgbuild(csound, ip, arg, 0, engineState);
+        }
+        
       }
       set_xoutcod(csound, tp, ep);
-
+      
       if (root->right != NULL) {
-	if (ep->intypes[0] != 'l') {     /* intype defined by 1st inarg */
-	  tp->intype = argtyp2( tp->inlist->arg[0]);
-	}
-	else  {
-	  tp->intype = 'l';          /*   (unless label)  */
-	}
+        if (ep->intypes[0] != 'l') {     /* intype defined by 1st inarg */
+          tp->intype = argtyp2( tp->inlist->arg[0]);
+        }
+        else  {
+          tp->intype = 'l';          /*   (unless label)  */
+        }
       }
-
+      
       if (root->left != NULL) {      /* pftype defined by outarg */
-	tp->pftype = argtyp2( root->left->value->lexeme);
+        tp->pftype = argtyp2( root->left->value->lexeme);
       }
       else {                            /*    else by 1st inarg     */
-	tp->pftype = tp->intype;
+        tp->pftype = tp->intype;
       }
     }
     break;
