@@ -391,15 +391,21 @@ char* get_assignment_type(CSOUND *csound, char * ans, TREE* arg1) {
     return str;
 }
 
-void delete_tree(TREE *l)
+void delete_tree(CSOUND *csound, TREE *l)
 {
     while (1) {
+      TREE *old = l;
       if (UNLIKELY(l==NULL)) {
         return;
+      }
+      if (l->value) {
+        if (l->value->lexeme) mfree(csound, l->value->lexeme);
+        mfree(csound, l->value);
       }
       delete_tree(l->left);
       delete_tree(l->right);
       l = l->next;
+      mfree(csound, old);
     }
 }
 
