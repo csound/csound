@@ -1261,8 +1261,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
   retVal = csoundCompileTree(csound, root);
   // if(csound->oparms->odebug) 
    debugPrintCsound(csound);  
-  /* FIXME: do we need to recover memory from tree after compilation? */
-  //delete_tree(csound, root);  /* this causes a mfree() fault with some orcs eg. trapped */
+  delete_tree(csound, root);  /* FIXME: this causes a mfree() fault with some orcs eg. trapped */
   return retVal;
 }
 
