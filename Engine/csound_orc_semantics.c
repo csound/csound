@@ -402,8 +402,8 @@ void delete_tree(CSOUND *csound, TREE *l)
         if (l->value->lexeme) mfree(csound, l->value->lexeme);
         mfree(csound, l->value);
       }
-      delete_tree(l->left);
-      delete_tree(l->right);
+      delete_tree(csound, l->left);
+      delete_tree(csound, l->right);
       l = l->next;
       mfree(csound, old);
     }
