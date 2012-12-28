@@ -46,6 +46,7 @@ static  int     pnum(char *s) ;
 static  int     lgexist2(INSTRTXT*, const char *s, ENGINE_STATE *engineState);
 static void     unquote_string(char *, const char *);
 extern void     print_tree(CSOUND *, char *, TREE *);
+extern void delete_tree(CSOUND *csound, TREE *l);
 void close_instrument(CSOUND *csound, INSTRTXT * ip);
 char argtyp2(char *s);
 void debugPrintCsound(CSOUND* csound);
@@ -1241,7 +1242,13 @@ void deflate_tree(CSOUND *csound, TREE *l, SERIAL_TREE *s_tree){
   }
 }
 
-
+SERIAL_TREE *serialize_tree(CSOUND *csound, TREE *root){
+  SERIAL_TREE *s_tree =(SERIAL_TREE *) mmalloc(csound, sizeof(SERIAL_TREE));
+  s_tree->bytes = s_tree->free_bytes = 1024;
+  s_tree->data = (char *) mmalloc(csound, s_tree->bytes);
+  deflate_tree(csound, root, s_tree);
+  return s_tree;  
+}
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
@@ -1251,18 +1258,11 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
 {
   int retVal;
   TREE *root = csoundParseOrc(csound, str);
-  //csound->Message(csound, "deflating tree\n");
-  //SERIAL_TREE s_tree = {1024, 1024, NULL};
-  //s_tree.data = (char *) mmalloc(csound, s_tree.bytes);
-
-  //deflate_tree(csound, root, &s_tree);
-  //csound->Message(csound, "inflating tree\n");
-  //TREE *root2 = decompress_tree(csound, s_tree);
-
   retVal = csoundCompileTree(csound, root);
   // if(csound->oparms->odebug) 
-  debugPrintCsound(csound);  
+   debugPrintCsound(csound);  
   /* FIXME: do we need to recover memory from tree after compilation? */
+  //delete_tree(csound, root);  /* this causes a mfree() fault with some orcs eg. trapped */
   return retVal;
 }
 
