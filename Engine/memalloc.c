@@ -129,16 +129,18 @@ void mfree(CSOUND *csound, void *p)
     if (UNLIKELY(p == NULL))
       return;
     pp = HDR_PTR(p);
-#ifdef MEMDEBUG
+    // #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
-      csound->Message(csound, " *** internal error: mfree() called with invalid "
-                      "pointer (%p)\n", p);
+      csound->Warning(csound, "mfree() called with invalid "
+                      "pointer (%p)", p);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
-      exit(-1);
+      /*  exit(-1);  */
+      /*VL 28-12-12 - returning from here instead of exit() */
+      return;
     }
     pp->magic = 0;
-#endif
+    //#endif
     CSOUND_MEM_SPINLOCK
     /* unlink from chain */
     {
