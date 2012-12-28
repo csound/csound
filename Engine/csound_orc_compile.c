@@ -63,10 +63,7 @@ char argtyp2(char *s);
 #define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 5.0e-7)
 #endif
 
-typedef struct serial_tree {
-  unsigned int size;
-  TREE *data;
-} SERIAL_TREE;
+
 
 
 /* ------------------------------------------------------------------------ */
@@ -1203,28 +1200,118 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 }
 
 #define MIN_SIZE 512
+
+typedef struct serial_tree {
+  unsigned int tree_data_bytes;
+  TREE *tree_data;
+  unsigned int token_data_bytes;
+  ORCTOKEN *token_data;
+  unsigned int lexemes_data_bytes;
+  char *lexemes;
+} SERIAL_TREE;
+
 /**
   create a SERIAL_TREE structure containing the parse tree root
+  made of three arrays, tree_data, token_data and lexemes. 
+  TREE left & right links are converted into array offsets  
+  ORCTOKENS are spaced by NULL tokens.
+  lexeme pointers in tokens are indexes converted into lexemes array
+
+  This structure can then be used to save a TREE to binary files.
+
 */
-SERIAL_TREE *serialize_tree(CSOUND *csound, TREE *root){
+SERIAL_TREE *deflate_tree(CSOUND *csound, TREE *root){
   SERIAL_TREE *s_tree;
   TREE *current = root;
-  int32 n = MIN_SIZE, count=0;  
+  long n = MIN_SIZE, i = MIN_SIZE, j = MIN_SIZE, count1=0, count2=0, count3=0, len;  
   s_tree = (SERIAL_TREE *) mcalloc(csound, sizeof(SERIAL_TREE));
-  s_tree->data = (TREE *)  mcalloc(csound, sizeof(TREE)*n);
+  s_tree->tree_data = (TREE *)  mcalloc(csound, sizeof(TREE)*n);
+  s_tree->token_data = (ORCTOKEN *)  mcalloc(csound, sizeof(ORCTOKEN)*i);
+  s_tree->lexemes = (char *) mcalloc(csound, i);
     
   while(1){
-    memcpy(&s_tree->data[count], current, sizeof(TREE));
+    ORCTOKEN *current_value = current->value;
+    while(1){
+      if(count2 > i){
+	i+=MIN_SIZE;
+	s_tree->token_data = (ORCTOKEN *)  mrealloc(csound, s_tree->token_data, sizeof(ORCTOKEN)*i);
+      }
+    if(current_value != NULL){
+        len = strlen(current_value->lexeme);
+        if(count3 + len + 1 > j) {
+	  j+=MIN_SIZE;
+          s_tree->lexemes = (char *) mrealloc(csound, s_tree->lexemes, j);
+	}
+        strcpy(s_tree->lexemes + count3, current_value->lexeme);
+        memcpy(&s_tree->token_data[count2], current_value, sizeof(ORCTOKEN));
+        s_tree->token_data[count2].lexeme = (char *) count3;
+        count2++;
+        count3 += (len+1);
+    } else{
+      memset(&s_tree->token_data[count2], 0, sizeof(ORCTOKEN)); 
+      break;
+    }
+    current_value = current_value->next; 
+   }
+    memcpy(&s_tree->tree_data[count1], current, sizeof(TREE));
     current = current->next;
     if(current != NULL) {
-    if(++count == n) { /* need to extend tree */
+    if(++count1 == n) { /* need to extend tree */
       n += MIN_SIZE;
-      s_tree->data = (TREE *)  mrealloc(csound, s_tree->data, sizeof(TREE)*n);
+      s_tree->tree_data = (TREE *)  mrealloc(csound, s_tree->tree_data, sizeof(TREE)*n);
     }
     } else break;
   }
-  s_tree->size = sizeof(TREE)*count;
+  /* substitute right and left pointers by offsets into tree_data array */
+  for(n=0; n < count1; n++){
+    current = &s_tree->tree_data[n];
+    for(i=0; i < count1; i++){
+      if(current->right == &s_tree->tree_data[i]){
+	current->right = (TREE *) i; 
+        break;
+      }
+    }
+    for(i=0; i < count1; i++){
+      if(current->left == &s_tree->tree_data[i]){
+	current->left = (TREE *) i;
+        break;
+      }
+    }
+    }
+    
+  s_tree->tree_data_bytes = count1*sizeof(TREE);
+  s_tree->token_data_bytes = count2*sizeof(ORCTOKEN);
+  s_tree->lexemes_data_bytes = count3;
   return s_tree;
+}
+/**
+  recover a TREE  from a SERIAL_TREE  
+  this can be used to load TREE data from files
+*/
+TREE *inflate_tree(CSOUND *csound, SERIAL_TREE *s_tree){
+
+  long count = s_tree->tree_data_bytes/sizeof(TREE);
+  int i, j = 0;
+  TREE *tree;
+   
+  for(i=1; i < count; i++){
+    ORCTOKEN *current_value;
+    tree = &s_tree->tree_data[i-1];
+    /* recover left & right links */
+    tree->left =  &s_tree->tree_data[(long) s_tree->tree_data[i-1].left];
+    tree->right = &s_tree->tree_data[(long) s_tree->tree_data[i-1].right];
+    /* recover next link */
+    tree->next = &s_tree->tree_data[i];
+    tree->value = current_value = &s_tree->token_data[j];
+    while(1){
+      /* recover lexemes */
+      current_value->lexeme = &(s_tree->lexemes[(long)(s_tree->token_data[j].lexeme)]);
+      /* recover next token links */
+      current_value = current_value->next = &s_tree->token_data[j++];
+      if(current_value == NULL) break;
+    }
+  }
+  return s_tree->tree_data;
 }
 
 void debugPrintCsound(CSOUND* csound) {
