@@ -125,13 +125,13 @@ void *mcalloc(CSOUND *csound, size_t size)
 void mfree(CSOUND *csound, void *p)
 {
     memAllocBlock_t *pp;
-
+    
     if (UNLIKELY(p == NULL))
       return;
     pp = HDR_PTR(p);
 #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
-      csound->DebugMsg(csound, " *** internal error: mfree() called with invalid "
+      csound->Message(csound, " *** internal error: mfree() called with invalid "
                       "pointer (%p)\n", p);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
