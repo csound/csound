@@ -1564,7 +1564,7 @@ int kperf(CSOUND *csound)
           csound->pds = (OPDS*) ip;
 	  if(ip->offtim > 0 && time_end > ip->offtim){
             /* this is the last cycle of performance */
-	    csound->Message(csound, "last cycle %d: %f %f   \n", ip->insno, csound->icurTime/csound->esr, ip->offtim);
+	    //csound->Message(csound, "last cycle %d: %f %f   \n", ip->insno, csound->icurTime/csound->esr, ip->offtim);
             ip->ksmps_no_end = ip->no_end;
 	  }
           while ((csound->pds = csound->pds->nxtp) != NULL) {
