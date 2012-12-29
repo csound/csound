@@ -48,6 +48,7 @@ int foscil(CSOUND *csound, FOSC *p)
     MYFLT   xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
     int32    mphs, cphs, minc, cinc, lobits;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   sicvt = csound->sicvt;
 
@@ -65,7 +66,11 @@ int foscil(CSOUND *csound, FOSC *p)
     amp  = *ampp;
     xcar = *carp;
     xmod = *modp;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
 
     if (p->XINCODE) {
       for (n=offset;n<nsmps;n++) {
@@ -119,6 +124,7 @@ int foscili(CSOUND *csound, FOSC *p)
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
     int32  mphs, cphs, minc, cinc, lobits;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT  sicvt = csound->sicvt;
     MYFLT  *ft;
@@ -137,7 +143,11 @@ int foscili(CSOUND *csound, FOSC *p)
     amp  = *ampp;
     xcar = *carp;
     xmod = *modp;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (p->XINCODE) {
       for (n=offset;n<nsmps;n++) {
         if (p->ampcod)  amp = ampp[n];
@@ -372,6 +382,7 @@ int loscil(CSOUND *csound, LOSC *p)
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     int32    phs, inc, beg, end;
     uint32_t n = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
     int      aamp;
     MYFLT    xx;
@@ -395,10 +406,15 @@ int loscil(CSOUND *csound, LOSC *p)
     }
     phs = p->lphs;
     ar1 = p->ar1;
-    memset(ar1, '\0', n*sizeof(MYFLT));
+    if (n) memset(ar1, '\0', n*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar1[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (p->stereo) {
       ar2 = p->ar2;
-      memset(ar2, '\0', n*sizeof(MYFLT));
+      if (n) memset(ar2, '\0', n*sizeof(MYFLT));
+      if (early) memset(&ar2[nsmps], '\0', early*sizeof(MYFLT));
       goto phsck2;
     }
  phschk:
@@ -477,7 +493,7 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout:
     p->lphs = phs;
  put0:    
-    memset(ar1+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 
  phsck2:
@@ -560,8 +576,8 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout2:
     p->lphs = phs;
  put0s:
-    memset(ar1+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
-    memset(ar2+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
     /* do { */
     /*   *ar1++ = FL(0.0); */
     /*   *ar2++ = FL(0.0); */
@@ -576,6 +592,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     int32    phs, inc, beg, end;
     uint32_t n = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
     int     aamp;
     MYFLT   xx;
@@ -599,8 +616,15 @@ int loscil3(CSOUND *csound, LOSC *p)
     }
     phs = p->lphs;
     ar1 = p->ar1;
+    if (n) memset(ar1, '\0', n*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar1[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (p->stereo) {
       ar2 = p->ar2;
+      if (n) memset(ar1, '\0', n*sizeof(MYFLT));
+      if (early) memset(&ar2[nsmps], '\0', early*sizeof(MYFLT));
       goto phsck2;
     }
  phschk:
@@ -679,7 +703,7 @@ int loscil3(CSOUND *csound, LOSC *p)
  phsout:
     p->lphs = phs;
  put0:
-    memset(ar1+n*sizeof(MYFLT), 0, sizeof(MYFLT)*(nsmps-n));
+    memset(&ar1[n], 0, sizeof(MYFLT)*(nsmps-n));
     /* do { */
     /*   *ar1++ = FL(0.0); */
     /* } while (--nsmps); */
@@ -765,8 +789,8 @@ int loscil3(CSOUND *csound, LOSC *p)
  phsout2:
     p->lphs = phs;
  put0s:
-    memset(ar1+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
-    memset(ar2+n*sizeof(MYFLT), '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
    /*  do { */
    /*    *ar1++ = FL(0.0); */
    /*    *ar2++ = FL(0.0); */
@@ -855,6 +879,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
     int16   curtim, diff, ktogo;
     int32   phs, sinc, amp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *ar = p->rslt;
     MYFLT   ampscale, frqscale;
@@ -870,6 +895,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
     timkincr = (int32)(*p->ksmod*FL(1024000.0)*CS_ONEDKR);
     nsmps = CS_KSMPS;
     memset(p->rslt,0,sizeof(MYFLT)*nsmps);
+    if (early) nsmps -= early;
     curtim = (int16)(p->mksecs >> 10);          /* cvt mksecs to msecs */
     curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */
     while ((prvp = curp) && (curp = curp->nxtp) != NULL ) {
@@ -883,7 +909,6 @@ int adsyn(CSOUND *csound, ADSYN *p)
         sinc = (int32)(curp->frq * frqscale);
         phs = curp->phs;
         nsmps = CS_KSMPS;            /*   addin a sinusoid */
-        memset(ar, '\0', offset*sizeof(MYFLT));
         for (n=offset; n<nsmps; n++) {
           ar[n] += (ampscale*(MYFLT)csound->isintab[phs]*(MYFLT)amp)/ADSYN_MAXLONG;
           phs += sinc;
