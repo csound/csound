@@ -1201,8 +1201,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   return CSOUND_SUCCESS;
 }
 
-
-
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
