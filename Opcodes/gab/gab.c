@@ -1,3 +1,4 @@
+
 /*  Copyright (C) 2002-2004 Gabriel Maldonado */
 
 /*  The gab library is free software; you can redistribute it */
@@ -123,10 +124,12 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
 static int fastabw(CSOUND *csound, FASTAB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
 
+    if (early) nsmps -= early;
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;   /* load once */
       for (n=offset; n<nsmps; n++)  { /* for loops compile better */
@@ -221,10 +224,15 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
 static int fastab(CSOUND *csound, FASTAB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
-    memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;
       for (i=offset; i<nsmps; i++) {
@@ -353,6 +361,7 @@ static int nlalp_set(CSOUND *csound, NLALP *p)
 static int nlalp(CSOUND *csound, NLALP *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT *rp;
     MYFLT *ip;
@@ -369,8 +378,12 @@ static int nlalp(CSOUND *csound, NLALP *p)
     knfact = (double)*p->knfact;
     tm0 = p->m0;
     tm1 = p->m1;
-    memset(rp, '\0', offset*sizeof(MYFLT));
-    if (knfact == 0.0) { /* linear case */
+    if (offset) memset(rp, '\0', offset*sizeof(MYFLT));
+     if (early) {
+      nsmps -= early;
+      memset(&rp[nsmps], '\0', early*sizeof(MYFLT));
+    }
+   if (knfact == 0.0) { /* linear case */
       if (klfact == 0.0) { /* degenerated linear case */
         m0 = (double)ip[0] - tm1;
         rp[offset] = (MYFLT)(tm0);
@@ -505,6 +518,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     int32   *lphs;
     int     c, count;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->inerr)) {
@@ -525,7 +539,11 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     count = p->count;
 
     ar = p->sr;
-    memset(ar, 0, nsmps*sizeof(MYFLT));
+    if (offset) memset(ar, 0, nsmps*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
 
     for (c=0; c<count; c++) {
       amp2 = prevAmp[c];
@@ -553,27 +571,8 @@ static int exitnow(CSOUND *csound, EXITNOW *p)
     return OK;  /* compiler only */
 }
 
-/*-----zak opcodes */
-/* int zread(CSOUND *csound,ZKR *p) */
-/* { */
-/*      *p->rslt = zkstart[(long) *p->ndx]; */
-/*      return OK; */
-/* } */
-
-/*void a_k_set(INDIFF *p)
-{
-        p->prev = FL(0.0);
-}*/
-
 static int tabrec_set(CSOUND *csound,TABREC *p)
 {
-    /*FUNC *ftp; */
-    /*if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
-    /*  csound->InitError(csound, Str("tabrec: incorrect table number")); */
-    /*  return; */
-    /*} */
-    /*p->table = ftp->ftable; */
-    /*p->tablen = ftp->flen; */
     p->recording = 0;
     p->currtic = 0;
     p->ndx = 0;
@@ -718,10 +717,12 @@ static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
+    if (early) nsmps -= early;
     switch(flag) {
     case 1: /* absolute maximum */
       for (n=offset; n<nsmps; n++) {
