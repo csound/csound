@@ -96,6 +96,7 @@ static int bar_run(CSOUND *csound, BAR *p)
     int first = p->first;
     int N = p->N, rr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     double *w = p->w, *w1 = p->w1, *w2 = p->w2;
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
@@ -111,7 +112,11 @@ static int bar_run(CSOUND *csound, BAR *p)
       return csound->PerfError(csound,
                                Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++) {
       /* Fix ends */
       if (bcL == 3) {
@@ -348,6 +353,7 @@ int play_pp(CSOUND *csound, CSPP *p)
     uint32_t N = p->N;
     int step = p->step;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t t, n, nsmps = CS_KSMPS;
     double dt = csound->onedsr;
     MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
@@ -392,8 +398,15 @@ int play_pp(CSOUND *csound, CSPP *p)
       p->init = 0;
     }
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
-    if (p->stereo) memset(ar1, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(ar, '\0', offset*sizeof(MYFLT));
+      if (p->stereo) memset(ar1, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      if (p->stereo) memset(&ar1[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (t=offset; t<nsmps; t++) {
       uint32_t qq;
       for (n=0; n<NS; n++) p->hammer_force[n] = 0.0;
