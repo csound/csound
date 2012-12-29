@@ -141,6 +141,7 @@ static int tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
 static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      tablen = p->length;
     MYFLT *out = p->out;
@@ -149,7 +150,11 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
     MYFLT *tabndx1 = p->xtabndx1;
     MYFLT *tabndx2 = p->xtabndx2;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       MYFLT index_frac,tabndx1frac, tabndx2frac;
       MYFLT tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
@@ -202,6 +207,7 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
 static int atabmorphi(CSOUND *csound, TABMORPH *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      tablen = p->length;
 
@@ -226,7 +232,11 @@ static int atabmorphi(CSOUND *csound, TABMORPH *p)
     interpoint = *p->xinterpoint;
     interpoint -= (int) interpoint; /* to limit to zero to 1 range */
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       MYFLT index_frac, tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
       MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
