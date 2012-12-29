@@ -50,6 +50,7 @@ int buzz(CSOUND *csound, BUZZ *p)
     int32       phs, inc, lobits, dwnphs, tnp1, lenmask;
     MYFLT       sicvt2, over2n, scal, num, denom;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32    nn;
 
@@ -71,7 +72,11 @@ int buzz(CSOUND *csound, BUZZ *p)
     inc = (int32)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       if (p->ampcod)
         scal = ampp[n] * over2n;
@@ -138,6 +143,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
     int32       phs, inc, lobits, lenmask, k, km1, kpn, kpnm1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       r, absr, num, denom, scal, last = p->last;
     int32       nn, lphs = p->lphs;
@@ -171,7 +177,11 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     scal =  *ampp * p->rsumr;
     inc = (int32)(*cpsp * csound->sicvt);
     ar = p->ar;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       if (p->ampcod)
         scal =  p->rsumr * ampp[n];
@@ -290,6 +300,7 @@ int pluck(CSOUND *csound, PLUCK *p)
     MYFLT       *ar, *fp;
     int32       phs256, phsinc, ltwopi, offset;
     uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       frac, diff;
 
@@ -299,7 +310,11 @@ int pluck(CSOUND *csound, PLUCK *p)
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
     if (UNLIKELY(phsinc > ltwopi)) goto err2;
-    memset(ar, '\0', koffset*sizeof(MYFLT));
+    if (koffset) memset(ar, '\0', koffset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=koffset; n<nsmps; n++) {
       offset = phs256 >> 8;
       fp = (MYFLT *)p->auxch.auxp + offset;     /* lookup position   */
@@ -499,12 +514,17 @@ int arand(CSOUND *csound, RAND *p)
     MYFLT       *ar;
     int16       rndmul = RNDMUL;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ampscl;
     MYFLT       base = *p->base;
 
     ar = p->ar;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (!p->new) {
       int16     rand = p->rand;
       if (!(p->ampcod)) {
@@ -612,6 +632,7 @@ int randh(CSOUND *csound, RANDH *p)
 {
     int32       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
@@ -619,7 +640,11 @@ int randh(CSOUND *csound, RANDH *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     inc = (int32)(*cpsp++ * csound->sicvt);
     for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
@@ -733,6 +758,7 @@ int randi(CSOUND *csound, RANDI *p)
 {
     int32       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       base = *p->base;
@@ -740,7 +766,11 @@ int randi(CSOUND *csound, RANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     inc = (int32)(*cpsp++ * csound->sicvt);
     for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
