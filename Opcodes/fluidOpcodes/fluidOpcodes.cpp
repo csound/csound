@@ -391,7 +391,7 @@ public:
 #pragma omp critical (critical_section_fluid_out)
         {
           uint32_t offset = head.insdshead->ksmps_offset;
-          uint32_t early  = p->h.insdshead->ksmps_no_end;
+          uint32_t early  = head.insdshead->ksmps_no_end;
           if (offset) {
             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
             memset(aRightOut, '\0', offset*sizeof(MYFLT));
@@ -436,7 +436,7 @@ public:
 #pragma omp critical (critical_section_fluid_all_out)
         {
           uint32_t offset = head.insdshead->ksmps_offset;
-          uint32_t early  = p->h.insdshead->ksmps_no_end;
+          uint32_t early  = head.insdshead->ksmps_no_end;
           if (offset) {
             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
             memset(aRightOut, '\0', offset*sizeof(MYFLT));

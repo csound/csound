@@ -986,7 +986,7 @@ public:
 	/**
 	 * Returns whether the chord is within the representative fundamental domain
 	 * of inversional equivalence.
-	 */	
+	 */
 	virtual bool iseI(Chord *inverse) const;
 	virtual bool iseI() const {
 		return iseI(0);
@@ -1231,11 +1231,11 @@ public:
 	 * Only works in equal temperament.
 	 */
 	virtual bool Tform(const Chord &Y, double g = 1.0) const {
-		Chord eopx = epcs();
+		Chord eopx = epcs().eP();
 		double i = 0.0;
 		while (i < OCTAVE()) {
 			Chord ty = Y.T(i);
-			Chord eopty = ty.epcs();
+			Chord eopty = ty.epcs().eP();
 			if (eopx == eopty) {
 				return true;
 			}
@@ -1248,11 +1248,11 @@ public:
 	 * Only works in equal temperament.
 	 */
 	virtual bool Iform(const Chord &Y, double g = 1.0) const {
-		Chord eopx = epcs();
+		Chord eopx = epcs().eP();
 		double i = 0.0;
 		while (i < OCTAVE()) {
 			Chord iy = Y.I(i);
-			Chord eopiy = iy.epcs();
+			Chord eopiy = iy.epcs().eP();
 			if (eopx == eopiy) {
 				return true;
 			}
@@ -2874,7 +2874,7 @@ inline Chord Chord::eRPI(double range) const {
     return csound::normalize<EQUIVALENCE_RELATION_RPI>(*this, range, 1.0);
 #endif
 }
-    
+
 //	EQUIVALENCE_RELATION_RTI
 
 //	EQUIVALENCE_RELATION_RTgI
@@ -2952,7 +2952,7 @@ inline Chord Chord::eRPTI(double range) const {
     return csound::normalize<EQUIVALENCE_RELATION_RPTI>(*this, range, 1.0);
 #endif
 }
-    
+
 //	EQUIVALENCE_RELATION_RPTgI
 
 template<> inline SILENCE_PUBLIC bool isNormal<EQUIVALENCE_RELATION_RPTgI>(const Chord &chord, double range, double g) {
