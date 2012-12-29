@@ -486,7 +486,7 @@ public:
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
     uint32_t offset = head.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t early  = head.insdshead->ksmps_no_end;
     if (offset) {
       memset(I3, '\0', offset*sizeof(MYFLT));
       memset(V1, '\0', offset*sizeof(MYFLT));
