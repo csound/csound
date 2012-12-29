@@ -1201,54 +1201,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   return CSOUND_SUCCESS;
 }
 
-#define MIN_SIZE 512
 
-typedef struct serial_tree {
-  unsigned long bytes;
-  long free_bytes;
-  char *data;
-} SERIAL_TREE;
 
-void save_tree_data(CSOUND *csound, void *data, SERIAL_TREE *s_tree, int bytes){
-  unsigned long pos = s_tree->bytes - s_tree->free_bytes;
-  s_tree->free_bytes -= bytes;
-  while(s_tree->free_bytes < 0) { 
-    s_tree->bytes += 1024; 
-    s_tree->free_bytes += 1024;
-    s_tree->data = (char *) mrealloc(csound, s_tree->data, s_tree->bytes);
-  }
-  memcpy(s_tree->data+pos, data, bytes);
-}
-
-/**
-  create a new SERIAL_TREE structure containing a copy of the parse tree root
-  
-*/
-void deflate_tree(CSOUND *csound, TREE *l, SERIAL_TREE *s_tree){
-
-  while(1){
-    if (UNLIKELY(l==NULL)) {
-      return;
-    }
-    save_tree_data(csound, l, s_tree, sizeof(TREE));
-    if (l->value) {
-      save_tree_data(csound, l->value, s_tree, sizeof(ORCTOKEN));
-      if (l->value->lexeme) 
-         save_tree_data(csound, l->value->lexeme, s_tree, strlen(l->value->lexeme)+1);
-    }
-    deflate_tree(csound, l->left, s_tree);
-    deflate_tree(csound, l->right,s_tree);
-    l = l->next;
-  }
-}
-
-SERIAL_TREE *serialize_tree(CSOUND *csound, TREE *root){
-  SERIAL_TREE *s_tree =(SERIAL_TREE *) mmalloc(csound, sizeof(SERIAL_TREE));
-  s_tree->bytes = s_tree->free_bytes = 1024;
-  s_tree->data = (char *) mmalloc(csound, s_tree->bytes);
-  deflate_tree(csound, root, s_tree);
-  return s_tree;  
-}
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
@@ -1259,9 +1213,9 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
   int retVal;
   TREE *root = csoundParseOrc(csound, str);
   retVal = csoundCompileTree(csound, root);
-  // if(csound->oparms->odebug) 
-   debugPrintCsound(csound);  
   delete_tree(csound, root);  /* FIXME: this causes a mfree() fault with some orcs eg. trapped */
+  // if(csound->oparms->odebug) 
+  debugPrintCsound(csound);  
   return retVal;
 }
 
