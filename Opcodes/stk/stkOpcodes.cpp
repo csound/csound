@@ -175,7 +175,7 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
-      uint32_t offset = head.insdshead->ksmps_offset;
+      uint32_t offset = OpcodeBase< STKInstrumentAdapter<T> >::head.insdshead->ksmps_offset;
       if(!released)
         {
           if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
@@ -320,7 +320,7 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
-      uint32_t offset = head.insdshead->ksmps_offset;
+      uint32_t offset = OpcodeBase< STKInstrumentAdapter1<T> >::head.insdshead->ksmps_offset;
       if(!released)
         {
           if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
