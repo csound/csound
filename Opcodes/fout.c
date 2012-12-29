@@ -250,10 +250,12 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
 static int outfile(CSOUND *csound, OUTFILE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, j, k, nsmps = CS_KSMPS;
     uint32_t nargs = p->nargs;
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
+    if (early) nsmps -= early;
     if (p->f.sf == NULL) {
       if (p->f.f != NULL) { /* VL: make sure there is an open file */
         FILE  *fp = p->f.f;
@@ -700,11 +702,20 @@ static int infile_set(CSOUND *csound, INFILE *p)
 static int infile_act(CSOUND *csound, INFILE *p)
 {    
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, k, j = offset;
     uint32_t nsmps = CS_KSMPS, ksmps, nargs = p->nargs;
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
     ksmps = nsmps;
+    if (offset)
+      for (i = 0; i < nargs; i++)
+            memset(p->argums[i], '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      for (i = 0; i < nargs; i++)
+            memset(&p->argums[i][nsmps], '\0', offset*sizeof(MYFLT));
+    }
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
         sf_seek(p->f.sf, p->currpos, SEEK_SET);
@@ -901,8 +912,10 @@ static int incr(CSOUND *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
+    if (early) nsmps -= early;
     for (n = offset; n < nsmps; n++)
       avar[n] += aincr[n];
     return OK;

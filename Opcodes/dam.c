@@ -73,6 +73,7 @@ static int dam(CSOUND *csound, DAM *p)
     MYFLT power;
     MYFLT tg;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
 
     /* Initialize power value and buffer at first ksamp computed as
@@ -99,8 +100,12 @@ static int dam(CSOUND *csound, DAM *p)
     power       = p->power;
 
  /* Process ksmps samples */
-    memset(aout, '\0', offset*sizeof(MYFLT));
-    for (i=offset;i<nsmps;i++) {
+    if (offset) memset(aout, '\0', offset*sizeof(MYFLT));
+     if (early) {
+      nsmps -= early;
+      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+    }
+   for (i=offset;i<nsmps;i++) {
 
         /* Estimates the current power level */
 

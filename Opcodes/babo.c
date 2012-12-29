@@ -774,6 +774,7 @@ babo(CSOUND *csound, void *entry)
 {
     BABO    *p          = (BABO *) entry;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *outleft    = p->outleft,
             *outright   = p->outright,
@@ -795,8 +796,15 @@ babo(CSOUND *csound, void *entry)
         *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
         *(p->lx), *(p->ly), *(p->lz));
 
-    memset(outleft,  '\0', offset*sizeof(MYFLT));
-    memset(outright, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(outleft,  '\0', offset*sizeof(MYFLT));
+      memset(outright, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&outleft[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outright[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {         /* k-time cycle                */
       MYFLT  left_tapline_out        = FL(0.0),
              right_tapline_out       = FL(0.0),
