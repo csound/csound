@@ -345,6 +345,7 @@ static inline void init_sine_gen(double a, double f, double p, double c,
 static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int     j;
     double  frac_d, pidwarp_d = 0.0, c = 0.0;
@@ -395,7 +396,11 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
       winFact = (MYFLT) (((double) p->winFact - tmp1) * tmp2 + tmp1);
     }
     ampScale = *(p->xamp) * p->ampScale;
-    memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i = offset; i<nsmps; i++) {
 
       frac_d = loscilx_phase_frac(p->curPos);

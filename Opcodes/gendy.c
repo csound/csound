@@ -184,6 +184,7 @@ static int agendy(CSOUND *csound, GENDY *p)
 {
     int     knum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
     out  = p->out;
@@ -192,8 +193,12 @@ static int agendy(CSOUND *csound, GENDY *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    memset(out, '\0', offset*sizeof(MYFLT));
-    for (n=offset; n<nsmps; n++) {
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+     if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+   for (n=offset; n<nsmps; n++) {
       if (p->phase >= FL(1.0)) {
         int index = p->index;
         p->phase -= FL(1.0);
@@ -314,6 +319,7 @@ static int agendyx(CSOUND *csound, GENDYX *p)
 {
     int     knum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist, curve;
     out  = p->out;
@@ -322,7 +328,11 @@ static int agendyx(CSOUND *csound, GENDYX *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       if (p->phase >= FL(1.0)) {
         int index = p->index;
@@ -454,8 +464,9 @@ static int kgendyc(CSOUND *csound, GENDYC *p)
 static int agendyc(CSOUND *csound, GENDYC *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     int     knum;
-    int     remain = CS_KSMPS-offset;
+    int     remain = CS_KSMPS-offset-early;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
     out  = p->out;
     knum = (int)*p->knum;
@@ -463,6 +474,10 @@ static int agendyc(CSOUND *csound, GENDYC *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      memset(&out[remain+offset], '\0', early*sizeof(MYFLT));
+    }
     do {
       uint32_t n, nsmps = CS_KSMPS;
       if (p->phase <= 0) {
