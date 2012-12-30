@@ -1133,24 +1133,25 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     current = current->next;
   }
-     
+
   if (UNLIKELY(csound->synterrcnt)) {
     print_opcodedir_warning(csound);
     csound->Die(csound, Str("%d syntax errors in orchestra.  "
 			    "compilation invalid\n"), csound->synterrcnt);
   }
 
+  /* now add the instruments with names, assigning them fake instr numbers */
+  named_instr_assign_numbers(csound,engineState); 
+  
   if(engineState != &csound->engineState) {
   /* merge ENGINE_STATE */
     engineState_merge(csound, engineState);
   /* delete ENGINE_STATE  */
     engineState_free(csound, engineState);
   }
-  else {
-  /* now add the instruments with names, assigning them fake instr numbers */
-  named_instr_assign_numbers(csound,engineState);      
+  else {    
   insert_opcodes(csound, (&csound->engineState)->opcodeInfo, engineState); 
-   ip = engineState->instxtanchor.nxtinstxt;
+  ip = engineState->instxtanchor.nxtinstxt;
   bp = (OPTXT *) ip;
   while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
     /* chk instr 0 for illegal perfs */
