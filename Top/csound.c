@@ -392,7 +392,6 @@ extern "C" {
      (MYFLT_POOL *) NULL,
      (STRING_POOL *) NULL,
      -1,
-     (OPCODINFO*) NULL,
      (INSTRTXT**)NULL,
      {NULL},
      NULL,
@@ -560,7 +559,7 @@ extern "C" {
     /* FL(-1.0),   */    /*  tran_ksmps          */
     /* DFLT_DBFS,  */   /*  tran_0dbfs          */
     /*  DFLT_NCHNLS, */    /*  tran_nchnls         */
-    /*NULL,  */         /*  opcodeInfo now in engineState  */
+    NULL,           /*  opcodeInfo  */
     /*NULL,   */        /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */   
 //    NULL,           /*  strsav_str          */
