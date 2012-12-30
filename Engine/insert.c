@@ -731,7 +731,6 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
     INSTRTXT  *txtp;
     INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
     int       cnt = 0, i;
-
    for (txtp = &(csound->engineState.instxtanchor);
         txtp != NULL;  txtp = txtp->nxtinstxt) {
      //if(csound->engineState.instrtxtp != NULL) {
