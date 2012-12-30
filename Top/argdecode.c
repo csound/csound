@@ -1236,5 +1236,5 @@ PUBLIC int csoundSetOption(CSOUND *csound, char *option){
 }
 
 PUBLIC int csoundSetOptions(CSOUND *csound, int count, char **options){
- return argdecode(csound, count, options);
+ return argdecode(csound, count-1, options);
 }

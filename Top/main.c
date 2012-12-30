@@ -278,10 +278,10 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 {
     OPARMS  *O = csound->oparms;
     int     n;
-
-    //if (csound->orchname == NULL) { /* compile empty instr 1 to allow csound to start */
-    //csoundCompileOrc(csound, "instr 1 \n endin \n");
-    //}
+     
+    if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to start with no orchestra */
+     csoundCompileOrc(csound, "instr 1 \n endin \n");
+     }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
