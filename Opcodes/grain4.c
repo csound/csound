@@ -219,10 +219,11 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     if (*p->igskip_os != 0)
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++) {
         tmplong1 = (uint32_t)((p->gskip_os * grand(p)) + (MYFLT)p->gskip[nvoice]);
-        p->gskip[nvoice] = (tmplong1 < p->gstart) ? p->gstart : tmplong1;
+        p->gskip[nvoice] =
+          (tmplong1 < p->gstart) ? p->gstart : tmplong1;
         p->gskip[nvoice]=
-          ((p->gskip[nvoice]+p->stretch[nvoice])>p->gend) ?
-          p->gstart :
+          ((p->gskip[nvoice]+p->stretch[nvoice])>(int32)p->gend) ?
+          (int32)p->gstart :
           p->gskip[nvoice];
       }
 
@@ -262,6 +263,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int         nvoice;
     int32       tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
@@ -288,7 +290,11 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 
    /* Recover audio output pointer... */
    ar   = p->ar;
-   memset(ar, '\0', offset*sizeof(MYFLT));
+   if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
    /* *** Start the loop .... *** */
    for (n=offset; n<nsmps; n++) {                         /* while (--nsmps) */
                                 /* Optimisations */
