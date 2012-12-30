@@ -879,6 +879,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int j, k;
 
@@ -1022,8 +1023,15 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         ztf2 = p->ztf2;
       }
 
-    memset(outl, '\0', offset*sizeof(MYFLT));
-    memset(outr, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(outl, '\0', offset*sizeof(MYFLT));
+      memset(outr, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&outl[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outr[nsmps], '\0', early*sizeof(MYFLT));
+    }
     /* processing loop */
     for(i=offset; i < nsmps; i++)
       {
