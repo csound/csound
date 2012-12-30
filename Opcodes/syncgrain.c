@@ -86,6 +86,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t vecpos, vecsize=CS_KSMPS;
     int firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
@@ -101,7 +102,11 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    memset(output, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      vecsize -= early;
+      memset(&output[vecsize], '\0', early*sizeof(MYFLT));
+    }
     for (vecpos = offset; vecpos < vecsize; vecpos++) {
       sig = FL(0.0);
       /* if a grain has finished, clean up */
@@ -226,6 +231,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t vecpos, vecsize=CS_KSMPS;
     int      firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
@@ -257,7 +263,11 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    memset(output, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      vecsize -= early;
+      memset(&output[vecsize], '\0', early*sizeof(MYFLT));
+    }
     for (vecpos = offset; vecpos < vecsize; vecpos++) {
       sig = FL(0.0);
       /* if a grain has finished, clean up */
@@ -468,6 +478,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t vecpos, vecsize=CS_KSMPS;
     int     firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
@@ -495,7 +506,11 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    memset(output, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      vecsize -= early;
+      memset(&output[vecsize], '\0', early*sizeof(MYFLT));
+    }
     for (vecpos = offset; vecpos < vecsize; vecpos++) {
       /* sig = (MYFLT) 0; */
       /* if a grain has finished, clean up */

@@ -209,6 +209,7 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     delayLine *lp;
     int       readPos;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, n, nsmps = CS_KSMPS;
     int       bufferSize; /* Local copy */
     double    dampFact = p->dampFact;
@@ -220,8 +221,15 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
       dampFact = 2.0 - cos(p->prv_LPFreq * TWOPI / p->sampleRate);
       dampFact = p->dampFact = dampFact - sqrt(dampFact * dampFact - 1.0);
     }
-    memset(p->aoutL, '\0', offset*sizeof(MYFLT));
-    memset(p->aoutR, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(p->aoutL, '\0', offset*sizeof(MYFLT));
+      memset(p->aoutR, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&p->aoutL[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->aoutR[nsmps], '\0', early*sizeof(MYFLT));
+    }
     /* update delay lines */
     for (i = offset; i < nsmps; i++) {
       /* calculate "resultant junction pressure" and mix to input signals */
