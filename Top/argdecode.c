@@ -1230,3 +1230,11 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
     return 1;
 }
 
+PUBLIC int csoundSetOption(CSOUND *csound, char *flag, char *value){
+  char *args[3] = {"csound", flag, value}; 
+  return argdecode(csound, 3, args);
+}
+
+PUBLIC int csoundSetOptions(CSOUND *csound, int count, char **options){
+ return argdecode(csound, count, options);
+}
