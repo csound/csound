@@ -601,6 +601,10 @@ extern "C" {
 
     PUBLIC TREE *csoundParseOrc(CSOUND *csound, char *str);
 
+    PUBLIC int csoundSetOption(CSOUND *csound, char *option);
+ 
+    PUBLIC int csoundSetOptions(CSOUND *csound, int count, char **options);
+
     /**
      * Compile the given TREE node into structs for Csound to use
      */

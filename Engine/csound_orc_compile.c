@@ -917,9 +917,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   /* merge opcodinfo */
    OPCODINFO *opinfo = engineState->opcodeInfo;
    if (opinfo != NULL) {
-     current_state->opcodeInfo->prv = opinfo;
+    current_state->opcodeInfo->prv = opinfo;
    }
-   insert_opcodes(csound, opinfo, current_state); 
+   // insert_opcodes(csound, opinfo, current_state); 
   for(i=1; i < end; i++){
    current = engineState->instrtxtp[i];
    if(current != NULL){
@@ -937,23 +937,30 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   }
   }
   /* merges all named instruments */
- named_instr_assign_numbers(csound,current_state); 
+  named_instr_assign_numbers(csound,current_state); 
   /* this needs to be called in a separate loop 
      in case of multiple instr numbers, so insprep() is called only once */
-  current = &(engineState->instxtanchor);
-  while ((current = current->nxtinstxt) != NULL) {        
+  current = (&(engineState->instxtanchor))->nxtinstxt;
+  while ((current = current->nxtinstxt) != NULL) {  
+    csound->Message(csound, "insprep %p \n", current);      
    insprep(csound, current, current_state);         /* run insprep() to connect ARGS  */
    recalculateVarPoolMemory(csound, current->varPool); /* recalculate var pool */
   }
   /* now we need to patch up instr order */
-  end = engineState->maxopcno;
-  for(i=1; i < end; i++){
-   current = engineState->instrtxtp[i];
+  end = current_state->maxinsno;
+  end = end < current_state->maxopcno ? current_state->maxopcno : end; 
+  for(i=0; i < end; i++){
+   int j;
+   current = current_state->instrtxtp[i];
    if(current != NULL){
-   if(i < current_state->maxopcno-1)
-     current->nxtinstxt = current_state->instrtxtp[i+1]; 
-   else
      current->nxtinstxt = NULL; 
+     j = i;
+     while(++j < end-1) {
+       if(current_state->instrtxtp[j] != NULL){
+       current->nxtinstxt = current_state->instrtxtp[j]; 
+       break;
+       }
+     }
    }
   }
   return 0;
@@ -962,12 +969,12 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
 
   /* FIXME: we need functions to deallocate stringPool, constantPool */
-    OPCODINFO *inm = engineState->opcodeInfo;
-    while(inm != NULL){
-      OPCODINFO *toclear = inm;
-      inm = inm->prv;
-      mfree(csound, toclear);
-    }
+  OPCODINFO *inm = engineState->opcodeInfo;
+  while(inm != NULL){
+    OPCODINFO *toclear = inm;
+    inm = inm->prv;
+    mfree(csound, toclear);
+ }
     mfree(csound, engineState->instrumentNames);
     mfree(csound, engineState->varPool);
     mfree(csound, engineState);
@@ -1212,7 +1219,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 */
 PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
 {
-  int retVal;
+  int retVal; 
   TREE *root = csoundParseOrc(csound, str);
   retVal = csoundCompileTree(csound, root);
   // delete_tree(csound, root);  /* FIXME: this causes a mfree() fault with some orcs eg. trapped */
@@ -1523,7 +1530,7 @@ void debugPrintCsound(CSOUND* csound) {
   current = current->nxtinstxt;
   count = 0;
   while (current != NULL) {
-    csound->Message(csound, "Instrument %d\n", count);
+    csound->Message(csound, "Instrument %d %p %p\n", count, current, current->nxtinstxt);
     csound->Message(csound, "Variables\n");
         
     if(current->varPool != NULL) {       
