@@ -229,10 +229,12 @@ static int ifd_process(CSOUND * csound, IFD * p)
     int     fftsize = p->fftsize;
     int    *counter = (int *) p->counter.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     frames = p->frames;
     int     cnt = p->cnt;
 
+    if (early) nsmps -= early;
     for (n = offset; n < nsmps; n++) {
       for (i = 0; i < frames; i++) {
         sigframe[i * fftsize + counter[i]] = sigin[n];

@@ -491,6 +491,7 @@ static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
     MYFLT *ty = p->ky;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int w, h, x, y, pixel;
 
@@ -501,12 +502,23 @@ static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
     h = img->h;
 
 
+    if (offset) {
+      memset(r, '\0', offset*sizeof(MYFLT));
+      memset(g, '\0', offset*sizeof(MYFLT));
+      memset(b, '\0', offset*sizeof(MYFLT));
+    } 
+    if (early) {
+      nsmps -= early;
+      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&g[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&b[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i = 0; i < nsmps; i++) {
 
       x = tx[i]*w;
       y = ty[i]*h;
 
-      if (i<offset || (x >= 0 && x < w && y >= 0 && y < h) ) {
+      if ( x >= 0 && x < w && y >= 0 && y < h ) {
         pixel = (w*y+x)*3;
         r[i] = img->imageData[pixel]/FL(255.0);
         g[i] = img->imageData[pixel+1]/FL(255.0);
@@ -535,6 +547,7 @@ static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
     MYFLT *ty = p->ky;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int h,w,x, y, pixel;
 
@@ -545,6 +558,7 @@ static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
     w = img->w;
     h = img->h;
 
+    if (early) nsmps -= early;
     for (i = offset; i < nsmps; i++) {
 
       x = tx[i]*w;

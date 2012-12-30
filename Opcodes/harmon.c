@@ -135,6 +135,7 @@ static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
     VOCDAT      *vdp;
     int16       nsmps = CS_KSMPS, oflow = 0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
 
     if ((koct = *q->koct) != q->prvoct) {               /* if new pitch estimate */
       if (koct >= q->minoct) {                          /*   above requested low */
@@ -147,10 +148,17 @@ static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
     }
     inp1 = q->inp1;
     inp2 = q->inp2;
-    memset(inp1, '\0', offset*sizeof(MYFLT));
-    memset(inp2, '\0', offset*sizeof(MYFLT));
-    memcpy(inp1+offset, q->asig+offset, sizeof(MYFLT)*(nsmps-offset));
-    memcpy(inp2+offset, q->asig+offset, sizeof(MYFLT)*(nsmps-offset));
+    if (offset) {
+      memset(inp1, '\0', offset*sizeof(MYFLT));
+      memset(inp2, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&inp1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&inp2[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    memcpy(&inp1[offset], &q->asig[offset], sizeof(MYFLT)*(nsmps-offset));
+    memcpy(&inp2[offset], &q->asig[offset], sizeof(MYFLT)*(nsmps-offset));
     //for (srcp = q->asig, nsmps = CS_KSMPS; nsmps--; )
     //  *inp1++ = *inp2++ = *srcp++;              /* dbl store the wavform */
 
