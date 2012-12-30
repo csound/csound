@@ -313,11 +313,16 @@ static int push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
             {
               MYFLT *src, *dst;
               uint32_t offset = p->h.insdshead->ksmps_offset;
+              uint32_t early  = p->h.insdshead->ksmps_no_end;
               uint32_t nsmps = CS_KSMPS;
               src = p->args[i];
               dst = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
-              memset(dst, '\0', offset*sizeof(MYFLT));
-              memcpy(dst+offset, src+offset, sizeof(MYFLT)*(nsmps-offset));
+              if (offset) memset(dst, '\0', offset*sizeof(MYFLT));
+              if (early) {
+                nsmps -= early;
+                memset(&dst[nsmps], '\0', early*sizeof(MYFLT));
+              }
+              memcpy(&dst[offset], &src[offset], sizeof(MYFLT)*(nsmps-offset));
               //for (j = 0; j < nsmps; j++)
               //dst[j] = src[j];
             }
@@ -406,11 +411,16 @@ static int pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
             {
               MYFLT *src, *dst;
               uint32_t offset = p->h.insdshead->ksmps_offset;
+              uint32_t early  = p->h.insdshead->ksmps_no_end;
               uint32_t nsmps = CS_KSMPS;
               src = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
               dst = p->args[i];
-              memset(dst, '\0', offset*sizeof(MYFLT));
-              memcpy(dst+offset, src+offset, (nsmps-offset)*sizeof(MYFLT));
+              if (offset) memset(dst, '\0', offset*sizeof(MYFLT));
+              if (early) {
+                nsmps -= early;
+                memset(&dst[nsmps], '\0', early*sizeof(MYFLT));
+              }
+              memcpy(&dst[offset], &src[offset], (nsmps-offset)*sizeof(MYFLT));
               //for (j = 0; j < CS_KSMPS; j++)
               //  dst[j] = src[j];
             }
@@ -609,13 +619,14 @@ typedef struct MONITOR_OPCODE_ {
 static int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, j, nsmps = CS_KSMPS;
 
     if (csound->spoutactive) {
       int   k = 0;
       for (i = 0; i<nsmps; i++) {
         for (j = 0; j<csound->nchnls; j++) {
-          if (i<offset) 
+          if (i<offset||i>nsmps-early) 
             p->ar[j][i] = FL(0.0);
           else
             p->ar[j][i] = csound->spout[k];

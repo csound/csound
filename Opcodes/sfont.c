@@ -451,6 +451,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
 {
     MYFLT   *out1 = p->out1, *out2 = p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j = p->spltNum, arate;
     SHORT **base = p->base;
@@ -466,6 +467,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
     arate = (p->XINCODE) ? 1 : 0;
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -540,6 +542,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
 {
     MYFLT    *out1 = p->out1, *out2 = p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j = p->spltNum, arate;
     SHORT **base = p->base;
@@ -554,6 +557,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -720,6 +724,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 {
     MYFLT   *out1 = p->out1 , *env  = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j = p->spltNum, arate;
     SHORT **base = p->base;
@@ -734,6 +739,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -806,6 +812,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
 {
     MYFLT   *out1 = p->out1, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j = p->spltNum, arate;
     SHORT  **base = p->base;
@@ -820,7 +827,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-
+    if (early) nsmps -= early;
     if (arate) {
       while (j--) {
         double looplength = *endloop - *startloop;
@@ -979,6 +986,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j = p->spltNum, arate;
     SHORT **base = p->base;
@@ -994,6 +1002,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1069,6 +1078,7 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2,*env =p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j = p->spltNum, arate;
     SHORT **base = p->base;
@@ -1085,6 +1095,7 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1239,7 +1250,8 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+     uint32_t n, nsmps = CS_KSMPS;
     int      j = p->spltNum, arate;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop,
@@ -1254,6 +1266,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1326,6 +1339,7 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1, *env = p->env  ;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j = p->spltNum, arate;
     SHORT **base = p->base;
@@ -1340,6 +1354,7 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -2284,6 +2299,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
 {
     int      k;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT    *outL = p->outL, *outR = p->outR, out, sr = csound->GetSr(csound);
     MYFLT    amp = *(p->amp), pit = *(p->pitch);
@@ -2309,6 +2325,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
     if (pit < FL(0.0)) pit = FL(0.0);
     memset(outL, 0, nsmps*sizeof(MYFLT));
     memset(outR, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     for(k=0; k < spltNum; k++){
 

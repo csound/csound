@@ -310,6 +310,7 @@ class mydsp : public dsp {
         {
             int     nn = csound->ksmps;
             uint32_t offset = ((OPDATA *) p)->h.insdshead->ksmps_offset;
+            uint32_t early  = head.insdshead->ksmps_no_end;
             MYFLT   fSlow0  = POWER(FL(10.0),(FL(0.08333333333333333) * fslider0));
             MYFLT   fSlow1  = EXP(-(fConst3 * fSlow0));
             MYFLT   fSlow2  = EXP(-(fConst5 * fSlow0));
@@ -342,7 +343,11 @@ class mydsp : public dsp {
             MYFLT   fSlow29 = (- EXP(-(fConst1 * fSlow0)));
             MYFLT   fSlow30 = fslider1;
             MYFLT*  output0 = output;
-            memset(output0, '\0', offset*sizeof(MYFLT));
+            if (offset) memset(output0, '\0', offset*sizeof(MYFLT));
+            if (early) {
+              nn -= early;
+              memset(&[nn], '\0', early*sizeof(MYFLT));
+            }
             for (int i=offset; i<nn; i++) {
               iRec8[0] = (csound->randSeed1 + (1103515245 * iRec8[1]));
               fRec7[0] = -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + (iRec8[0] * dv2_31);

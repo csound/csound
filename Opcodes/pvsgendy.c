@@ -79,9 +79,12 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
 
     if (p->fin->sliding) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
       for (n=0; n<offset; n++) fout[i].re = fout[i].im = FL(0.0);
+      for (n=nspms-early; n<nspms; n++) fout[i].re = fout[i].im = FL(0.0);
+      nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         int change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
