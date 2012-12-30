@@ -587,6 +587,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     int mdtr = p->mdtr;
     int posl, posr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t j, nsmps = CS_KSMPS;
     MYFLT outvdl, outvdr, vdtl, vdtr, fracl, fracr, rpl, rpr;
 
@@ -594,8 +595,15 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    memset(outsigl, '\0', offset*sizeof(MYFLT));
-    memset(outsigr, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(outsigl, '\0', offset*sizeof(MYFLT));
+      memset(outsigr, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for(j = offset; j < nsmps; j++)
       {
         /* ins and outs */
@@ -1886,6 +1894,7 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
     int counter = p->counter;
     int i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t j, nsmps = CS_KSMPS;
 
     int irlength = p->irlength;
@@ -1894,8 +1903,15 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
 
     MYFLT sr = p->sr;
 
-    memset(outsigl, '\0', offset*sizeof(MYFLT));
-    memset(outsigr, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(outsigl, '\0', offset*sizeof(MYFLT));
+      memset(outsigr, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for(j = offset; j < nsmps; j++)
       {
         /* ins and outs */
@@ -2235,6 +2251,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 
     int i, skip = 0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t j, nsmps = CS_KSMPS;
 
     /* interpolation values */
@@ -2268,8 +2285,15 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    memset(outsigl, '\0', offset*sizeof(MYFLT));
-    memset(outsigr, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(outsigl, '\0', offset*sizeof(MYFLT));
+      memset(outsigr, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
+    }
     /* ksmps loop */
     for(j = offset; j < nsmps; j++)
       {

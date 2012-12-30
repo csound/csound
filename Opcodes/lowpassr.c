@@ -46,6 +46,7 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     MYFLT kres = *p->kres;
     double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
@@ -53,14 +54,18 @@ static int lowpr(CSOUND *csound, LOWPR *p)
       p->k = k = 1000.0 / (double)kfco;
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
-      p->okf = kfco; p->okr != kres; /* remember to save recalculation */
+      p->okf = kfco; p->okr = kres; /* remember to save recalculation */
     }
     ar = p->ar;
     asig = p->asig;
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps;n++) {
       ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
       ynm2 = ynm1;
@@ -92,6 +97,7 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     MYFLT    coef1 = p->coef1, coef2 = p->coef2;
     MYFLT    kfco = *p->kfco, kres = *p->kres;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j;
 
@@ -100,13 +106,17 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
       p->k = k = FL(1000.0) / kfco;
       p->coef1 = coef1 = (b+FL(2.0) * k);
       p->coef2 = coef2 = FL(1.0)/(FL(1.0) + b + k);
-      p->okf = kfco; p->okr != kres; /* remember to save recalculation */
+      p->okf = kfco; p->okr = kres; /* remember to save recalculation */
     }
 
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
     asig = p->asig;
-    memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
 
     for (j=0; j< p->loop; j++) {
       ar = p->ar;
@@ -141,6 +151,7 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
     MYFLT    kfcobase = *p->kfco;
     MYFLT    sep = (*p->sep / p->loop);
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j;
 
@@ -150,7 +161,11 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
     ynm2 = p->ynm2;
     asig = p->asig;
 
-    memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (j=0; j< p->loop; j++) {
       MYFLT lynm1 = ynm1[j];
       MYFLT lynm2 = ynm2[j];
