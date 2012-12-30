@@ -851,9 +851,9 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo, ENGINE_STATE *engineS
 }
 
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineState)
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
 {
-  OPCODINFO *opinfo = (&csound->engineState)->opcodeInfo;
+  OPCODINFO *opinfo = csound->opcodeInfo;
   if (UNLIKELY(opinfo == NULL)) {
     csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
     return NULL;
@@ -911,7 +911,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
      csound->globalVarPool = mrealloc(csound, csound->globalVarPool, current_state->varPool->poolSize);
   }
   /* merge opcodinfo */
-  insert_opcodes(csound, current_state->opcodeInfo, current_state); 
+  insert_opcodes(csound, csound->opcodeInfo, current_state); 
   for(i=1; i < end; i++){
    current = engineState->instrtxtp[i];
    if(current != NULL){
@@ -962,12 +962,6 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
 
   /* FIXME: we need functions to deallocate stringPool, constantPool */
-  OPCODINFO *inm = engineState->opcodeInfo;
-  while(inm != NULL){
-    OPCODINFO *toclear = inm;
-    inm = inm->prv;
-    mfree(csound, toclear);
- }
     mfree(csound, engineState->instrumentNames);
     mfree(csound, engineState->varPool);
     mfree(csound, engineState);
@@ -1103,7 +1097,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       instrtxt = create_instrument(csound, current, engineState);
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
       opname = current->left->value->lexeme;
-      OPCODINFO *opinfo = find_opcode_info(csound, opname, engineState);
+      OPCODINFO *opinfo = find_opcode_info(csound, opname);
 
       if (UNLIKELY(opinfo == NULL)) {
 	csound->Message(csound,
@@ -1150,7 +1144,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     engineState_free(csound, engineState);
   }
   else {    
-  insert_opcodes(csound, (&csound->engineState)->opcodeInfo, engineState); 
+  insert_opcodes(csound, csound->opcodeInfo, engineState); 
   ip = engineState->instxtanchor.nxtinstxt;
   bp = (OPTXT *) ip;
   while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
