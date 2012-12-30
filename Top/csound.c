@@ -1076,7 +1076,7 @@ extern "C" {
       if (UNLIKELY(csound == NULL)) return NULL;
       memcpy(csound, &cenviron_, sizeof(CSOUND));
       csound->oparms = &(csound->oparms_);
-      csound->hostdata = hostdata;
+      csound->hostdata = hostdata;;
       p = (csInstance_t*) malloc(sizeof(csInstance_t));
       if (UNLIKELY(p == NULL)) {
         free(csound);
@@ -1089,6 +1089,7 @@ extern "C" {
       csoundUnLock();
       csoundReset(csound);
       //csound_aops_init_tables(csound);
+      
       return csound;
   }
 

@@ -193,10 +193,12 @@ PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
                                  "Input Data has been Lost"));
       return;
     }
+
     memcpy(STA(Linep), message, size);
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';
     STA(Linep) += size;
+ 
 }
 
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
@@ -206,7 +208,7 @@ static void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int     c, n, pcnt;
-
+   
     while (1) {
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
@@ -222,6 +224,7 @@ static void sensLine(CSOUND *csound, void *userData)
         break;
       Linestart = STA(Linebuf);
       cp = Linestart;
+      
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
         char    sstrp[SSTRSIZ];
