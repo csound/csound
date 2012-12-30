@@ -285,8 +285,7 @@ int musmon(CSOUND *csound)
       else
         sfnopenout(csound);
     }
-
-    corfile_flush(O->playscore);
+    if(O->playscore!=NULL) corfile_flush(O->playscore);
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
       if (STA(lsect) == NULL) {
