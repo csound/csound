@@ -1,7 +1,7 @@
 Csound 6 TODO list
 
 1) loadable instruments:
- - AST tree memory recovery ? 
+ - AST tree memory recovery needs fixing.
  - test extensively (including UDOs and namedins)
  - add support for fast loadable format
  - document AST tree format to allow users to parse into it.
