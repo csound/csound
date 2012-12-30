@@ -50,11 +50,16 @@ static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
     MYFLT   cur;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       cur = in[n];
       if (UNLIKELY(cur > out[n]))
@@ -68,11 +73,16 @@ static int MinAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
     MYFLT   cur;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       cur = in[n];
       if (UNLIKELY(cur < out[n]))
@@ -86,12 +96,17 @@ static int MinAccumulate(CSOUND *csound, MINMAXACCUM *p)
 static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
     MYFLT   inabs;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       inabs = FABS(in[n]);
       if (UNLIKELY(inabs > out[n]))
@@ -104,12 +119,17 @@ static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
 static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
     MYFLT   inabs;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       inabs = FABS(in[n]);
       if (UNLIKELY(inabs < out[n]))
@@ -124,6 +144,7 @@ static int Max_arate(CSOUND *csound, MINMAX *p)
 {
     int     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     nargs = ((int) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
@@ -131,7 +152,11 @@ static int Max_arate(CSOUND *csound, MINMAX *p)
     MYFLT   **in2 = p->xin2toN;
     MYFLT   max, temp;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       max = in1[n];
       for (i = 0; i < nargs; ++i) {
@@ -149,6 +174,7 @@ static int Min_arate(CSOUND *csound, MINMAX *p)
 {
     int     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     nargs = ((int) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
@@ -156,7 +182,11 @@ static int Min_arate(CSOUND *csound, MINMAX *p)
     MYFLT   **in2 = p->xin2toN;
     MYFLT   min, temp;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       min = in1[n];
       for (i = 0; i < nargs; ++i) {
@@ -175,6 +205,7 @@ static int MaxAbs_arate(CSOUND *csound, MINMAX *p)
 {
     int     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     nargs = ((int) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
@@ -182,7 +213,11 @@ static int MaxAbs_arate(CSOUND *csound, MINMAX *p)
     MYFLT   **in2 = p->xin2toN;
     MYFLT   max, temp;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       max = FABS(in1[n]);
       for (i = 0; i < nargs; ++i) {
@@ -200,6 +235,7 @@ static int MinAbs_arate(CSOUND *csound, MINMAX *p)
 {
     int     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     nargs = ((int) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
@@ -207,7 +243,11 @@ static int MinAbs_arate(CSOUND *csound, MINMAX *p)
     MYFLT   **in2 = p->xin2toN;
     MYFLT   min, temp;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       min = FABS(in1[n]);
       for (i = 0; i < nargs; ++i) {

@@ -83,6 +83,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     int32       n, bufsize;
     int32       ekglen;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT       kglen = *p->kglen;
     MYFLT       gcount = p->gcount;
@@ -114,7 +115,11 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     xlfr    = p->xlfr;
 
     memset(buf, '\0', bufsize*sizeof(MYFLT));
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i = offset ; i < nsmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
@@ -146,7 +151,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
       temp++;
     } while (--n);
 
-    memcpy(out+offset, rem, (nsmps-offset)*sizeof(MYFLT));
+    memcpy(&out[offset], rem, (nsmps-offset)*sizeof(MYFLT));
     p->gcount = gcount;
     return OK;
  err1:
