@@ -161,6 +161,7 @@ int clarin(CSOUND *csound, CLARIN *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT nGain = *p->noiseGain;
@@ -189,54 +190,58 @@ int clarin(CSOUND *csound, CLARIN *p)
                               p->envelope.value, p->envelope.rate);
 #endif
     }
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset;n<nsmps;n++) {
-        MYFLT   pressureDiff;
-        MYFLT   breathPressure;
-        int32    temp;
-        MYFLT   temp_time, alpha;
-        MYFLT   nextsamp;
-        MYFLT   v_lastOutput;
-        MYFLT   lastOutput;
+      MYFLT   pressureDiff;
+      MYFLT   breathPressure;
+      int32    temp;
+      MYFLT   temp_time, alpha;
+      MYFLT   nextsamp;
+      MYFLT   v_lastOutput;
+      MYFLT   lastOutput;
 
-        breathPressure = Envelope_tick(&p->envelope);
-        breathPressure += breathPressure * nGain * Noise_tick(csound,&p->noise);
-                                       /* Tick on vibrato table   */
-        vTime += p->v_rate;            /*  Update current time    */
-        while (vTime >= v_len)         /*  Check for end of sound */
-          vTime -= v_len;              /*  loop back to beginning */
-        while (vTime < FL(0.0))        /*  Check for end of sound */
-          vTime += v_len;              /*  loop back to beginning */
+      breathPressure = Envelope_tick(&p->envelope);
+      breathPressure += breathPressure * nGain * Noise_tick(csound,&p->noise);
+                                     /* Tick on vibrato table   */
+      vTime += p->v_rate;            /*  Update current time    */
+      while (vTime >= v_len)         /*  Check for end of sound */
+        vTime -= v_len;              /*  loop back to beginning */
+      while (vTime < FL(0.0))        /*  Check for end of sound */
+        vTime += v_len;              /*  loop back to beginning */
 
-        temp_time = vTime;
+      temp_time = vTime;
 
 #ifdef have_phase
-        if (p->v_phaseOffset != FL(0.0)) {
-          temp_time += p->v_phaseOffset;   /*  Add phase offset       */
-          while (temp_time >= v_len)       /*  Check for end of sound */
-            temp_time -= v_len;            /*  loop back to beginning */
-          while (temp_time < FL(0.0))      /*  Check for end of sound */
-            temp_time += v_len;            /*  loop back to beginning */
-        }
+      if (p->v_phaseOffset != FL(0.0)) {
+        temp_time += p->v_phaseOffset;   /*  Add phase offset       */
+        while (temp_time >= v_len)       /*  Check for end of sound */
+          temp_time -= v_len;            /*  loop back to beginning */
+        while (temp_time < FL(0.0))      /*  Check for end of sound */
+          temp_time += v_len;            /*  loop back to beginning */
+      }
 #endif
-        temp = (int32) temp_time;    /*  Integer part of time address    */
-                                    /*  fractional part of time address */
-        alpha = temp_time - (MYFLT)temp;
-        v_lastOutput = v_data[temp]; /* Do linear interpolation */
-                        /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
-        v_lastOutput += (alpha * (v_data[temp+1] - v_lastOutput));
-                                /* End of vibrato tick */
-        breathPressure += breathPressure * vibGain * v_lastOutput;
-        pressureDiff = OneZero_tick(&p->filter, /* differential pressure  */
-                                   DLineL_lastOut(&p->delayLine));
-        pressureDiff = (-FL(0.95)*pressureDiff) - breathPressure;
-                                    /* of reflected and mouth */
-        nextsamp = pressureDiff * ReedTabl_LookUp(&p->reedTable,pressureDiff);
-        nextsamp =  breathPressure + nextsamp;
-                                  /* perform scattering in economical way */
-        lastOutput = DLineL_tick(&p->delayLine, nextsamp);
-        lastOutput *= p->outputGain;
-        ar[n] = lastOutput*AMP_SCALE;
+      temp = (int32) temp_time;    /*  Integer part of time address    */
+                                   /*  fractional part of time address */
+      alpha = temp_time - (MYFLT)temp;
+      v_lastOutput = v_data[temp]; /* Do linear interpolation */
+      /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
+      v_lastOutput += (alpha * (v_data[temp+1] - v_lastOutput));
+      /* End of vibrato tick */
+      breathPressure += breathPressure * vibGain * v_lastOutput;
+      pressureDiff = OneZero_tick(&p->filter, /* differential pressure  */
+                                  DLineL_lastOut(&p->delayLine));
+      pressureDiff = (-FL(0.95)*pressureDiff) - breathPressure;
+      /* of reflected and mouth */
+      nextsamp = pressureDiff * ReedTabl_LookUp(&p->reedTable,pressureDiff);
+      nextsamp =  breathPressure + nextsamp;
+      /* perform scattering in economical way */
+      lastOutput = DLineL_tick(&p->delayLine, nextsamp);
+      lastOutput *= p->outputGain;
+      ar[n] = lastOutput*AMP_SCALE;
     }
     p->v_time = vTime;
 
@@ -339,6 +344,7 @@ int flute(CSOUND *csound, FLUTE *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       temp;
@@ -383,7 +389,11 @@ int flute(CSOUND *csound, FLUTE *p)
       p->adsr.state = RELEASE;
     }
     noisegain = *p->noiseGain; jetRefl = *p->jetRefl; endRefl = *p->endRefl;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset;n<nsmps;n++) {
       int32     temp;
       MYFLT     temf;
@@ -538,6 +548,7 @@ int bowed(CSOUND *csound, BOWED *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       maxVel;
@@ -575,7 +586,11 @@ int bowed(CSOUND *csound, BOWED *p)
       p->adsr.state = RELEASE;
     }
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset;n<nsmps;n++) {
       MYFLT     bowVelocity;
       MYFLT     bridgeRefl=FL(0.0), nutRefl=FL(0.0);
@@ -813,6 +828,7 @@ int brass(CSOUND *csound, BRASS *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT maxPressure = p->maxPressure = amp;
@@ -844,7 +860,11 @@ int brass(CSOUND *csound, BRASS *p)
                       p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));
     }
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset;n<nsmps;n++) {
       MYFLT     breathPressure;
       MYFLT     lastOutput;

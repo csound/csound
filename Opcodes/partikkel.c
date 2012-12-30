@@ -547,6 +547,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
 static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 {
     uint32_t koffset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     NODE *node;
     MYFLT **waveformparams = &p->waveform1;
@@ -567,6 +568,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
     if (UNLIKELY(!p->fmenvtab))
         return PERFERROR("unable to load FM envelope table");
 
+    if (early) nsmps -= early;
     /* start grain scheduling */
     for (n = koffset; n < nsmps; ++n) {
         if (p->sync[n] >= FL(1.0)) {

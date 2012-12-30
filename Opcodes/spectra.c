@@ -249,11 +249,13 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
     MYFLT   a, b, *dftp, *sigp = p->signal, SIG, yt1, yt2;
     int     nocts, nsmps = p->nsmps, winlen;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     DOWNDAT *downp = &p->downsig;
     OCTDAT  *octp;
     SPECDAT *specp;
     double  c;
 
+    if (early) nsmps -= early;
     do {
       SIG = *sigp++;                        /* for each source sample:     */
       if (offset--) SIG = FL(0.0);          /* for sample accuracy         */
