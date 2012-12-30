@@ -834,7 +834,6 @@ typedef struct NAME__ {
     MYFLT_POOL*   constantsPool;
     STRING_POOL*  stringPool;
     int            maxopcno;
-    OPCODINFO     *opcodeInfo;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor; 
     void          *instrumentNames; /* instrument names */
@@ -1322,7 +1321,7 @@ typedef struct NAME__ {
     /* MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
     int           tran_nchnls; */ /* all of these are not needed anymore */
-    /*OPCODINFO     *opcodeInfo; */ /* now in engineState */
+    OPCODINFO     *opcodeInfo; 
     /*void          *instrumentNames;*/ /*now in engineState */
     STRING_POOL*  stringSavePool;      
 //    void          *strsav_str;
