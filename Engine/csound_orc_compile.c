@@ -842,7 +842,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo, ENGINE_STATE *engineS
 	while (++i <= engineState->maxopcno) engineState->instrtxtp[i] = NULL;
       }
       inm->instno = num;
-      /* csound->Message(csound, "UDO INSTR NUM: %d\n", num); */
+      csound->Message(csound, "UDO INSTR NUM: %d\n", num); 
       engineState->instrtxtp[num] = inm->ip;
       inm = inm->prv;
     }
@@ -853,7 +853,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo, ENGINE_STATE *engineS
 
 OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, ENGINE_STATE *engineState)
 {
-  OPCODINFO *opinfo = engineState->opcodeInfo;
+  OPCODINFO *opinfo = (&csound->engineState)->opcodeInfo;
   if (UNLIKELY(opinfo == NULL)) {
     csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
     return NULL;
@@ -911,11 +911,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
      csound->globalVarPool = mrealloc(csound, csound->globalVarPool, current_state->varPool->poolSize);
   }
   /* merge opcodinfo */
-   OPCODINFO *opinfo = engineState->opcodeInfo;
-   if (opinfo != NULL) {
-    current_state->opcodeInfo->prv = opinfo;
-   }
-   // insert_opcodes(csound, opinfo, current_state); 
+  insert_opcodes(csound, current_state->opcodeInfo, current_state); 
   for(i=1; i < end; i++){
    current = engineState->instrtxtp[i];
    if(current != NULL){
@@ -949,6 +945,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
    int j;
    current = current_state->instrtxtp[i];
    if(current != NULL){
+      csound->Message(csound, "instr %d \n", i);
      current->nxtinstxt = NULL; 
      j = i;
      while(++j < end-1) {
@@ -1136,10 +1133,24 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     current = current->next;
   }
+     
+  if (UNLIKELY(csound->synterrcnt)) {
+    print_opcodedir_warning(csound);
+    csound->Die(csound, Str("%d syntax errors in orchestra.  "
+			    "compilation invalid\n"), csound->synterrcnt);
+  }
+
+  if(engineState != &csound->engineState) {
+  /* merge ENGINE_STATE */
+    engineState_merge(csound, engineState);
+  /* delete ENGINE_STATE  */
+    engineState_free(csound, engineState);
+  }
+  else {
   /* now add the instruments with names, assigning them fake instr numbers */
-  named_instr_assign_numbers(csound,engineState);         
-  insert_opcodes(csound, engineState->opcodeInfo, engineState); 
-  ip = engineState->instxtanchor.nxtinstxt;
+  named_instr_assign_numbers(csound,engineState);      
+  insert_opcodes(csound, (&csound->engineState)->opcodeInfo, engineState); 
+   ip = engineState->instxtanchor.nxtinstxt;
   bp = (OPTXT *) ip;
   while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
     /* chk instr 0 for illegal perfs */
@@ -1155,36 +1166,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       synterr(csound, Str("perf-pass statements illegal in header blk\n"));
     }
   }
-  if (UNLIKELY(csound->synterrcnt)) {
-    print_opcodedir_warning(csound);
-    csound->Die(csound, Str("%d syntax errors in orchestra.  "
-			    "compilation invalid\n"), csound->synterrcnt);
-  }
-  ip = &(engineState->instxtanchor);
-  for (sumcount = 0; (ip = ip->nxtinstxt) != NULL; ) {/* for each instxt */
-    OPTXT *optxt = (OPTXT *) ip;
-    int optxtcount = 0;
-    while ((optxt = optxt->nxtop) != NULL) {      /* for each op in instr  */
-      TEXT *ttp = &optxt->t;
-      optxtcount += 1;
-      if (ttp->opnum == ENDIN                     /*    (until ENDIN)      */
-	  || ttp->opnum == ENDOP) break;  
-      if ((count = ttp->inlist->count)!=0)
-	sumcount += count +1;                     /* count the non-nullist */
-      if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
-	sumcount += (count + 1);
-    }
-    ip->optxtcount = optxtcount;                  /* optxts in this instxt */
-  }
 
-  
-  if(engineState != &csound->engineState) {
-  /* merge ENGINE_STATE */
-    engineState_merge(csound, engineState);
-  /* delete ENGINE_STATE  */
-    engineState_free(csound, engineState);
-  }
-  else {
   ip = &(engineState->instxtanchor);
   while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
     insprep(csound, ip, engineState);                      /*   as combined offsets */
@@ -1203,8 +1185,25 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   if (csound->inchnls<0) csound->inchnls = csound->nchnls;
   globals[4] = (MYFLT) csound->inchnls;
   globals[5] = csound->e0dbfs;
- 
   }
+
+  ip = &(engineState->instxtanchor);
+  for (sumcount = 0; (ip = ip->nxtinstxt) != NULL; ) {/* for each instxt */
+    OPTXT *optxt = (OPTXT *) ip;
+    int optxtcount = 0;
+    while ((optxt = optxt->nxtop) != NULL) {      /* for each op in instr  */
+      TEXT *ttp = &optxt->t;
+      optxtcount += 1;
+      if (ttp->opnum == ENDIN                     /*    (until ENDIN)      */
+	  || ttp->opnum == ENDOP) break;  
+      if ((count = ttp->inlist->count)!=0)
+	sumcount += count +1;                     /* count the non-nullist */
+      if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
+	sumcount += (count + 1);
+    }
+    ip->optxtcount = optxtcount;                  /* optxts in this instxt */
+  }
+
   return CSOUND_SUCCESS;
 }
 
