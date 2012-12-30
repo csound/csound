@@ -291,6 +291,7 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
 static int clfilt(CSOUND *csound, CLFILT *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int m, nsec;
     MYFLT *out, *in;
@@ -391,7 +392,11 @@ static int clfilt(CSOUND *csound, CLFILT *p)
     }
     in   = p->in;
     out  = p->out;
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       xn[0] = in[n];
       for (m=0;m<=nsec-1;m++) {

@@ -277,12 +277,13 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
       double p2 = (double) ip->p2 + csound->timeOffs;
       ip->offtim = p2 + (double) ip->p3;
+      //csound->Message(csound, "%lf\n", ip->offtim); 
       /* csound->Message(csound, "ip->offtim = %lf -> ", ip->offtim); */
        if(O->sampleAccurate && !tie) /* ceil for sample-accurate ending */
-        ip->offtim = CEIL(ip->offtim * csound->ekr)/csound->ekr;
+	 ip->offtim = CEIL(ip->offtim*csound->ekr) / csound->ekr;
        else /* normal : round */
         ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
-      /* csound->Message(csound, "%lf\n", ip->offtim); */
+       // csound->Message(csound, "%lf\n", ip->offtim); 
       if (O->Beatmode) {
         p2 = ((p2*csound->esr - csound->icurTime) / csound->ibeatTime)
           + csound->curBeat;

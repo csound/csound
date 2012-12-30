@@ -48,13 +48,18 @@ static int dcblockr(CSOUND *csound, DCBlocker* p)
 {
     MYFLT       *ar = p->ar;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     double      gain = p->gain;
     double      outputs = p->outputs;
     double      inputs = p->inputs;
     MYFLT       *samp = p->in;
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       double sample = (double)samp[n];
       outputs = sample - inputs + (gain * outputs);
@@ -133,6 +138,7 @@ static int dcblock2set(CSOUND *csound, DCBlock2* p)
 static int dcblock2(CSOUND *csound, DCBlock2* p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT    *in = p->input;
     MYFLT    *out = p->output;
@@ -152,7 +158,11 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
     del1size = p->delay1.size/sizeof(double);
     iirdelsize = p->iirdelay1.size/sizeof(double);
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i=offset; i < nsmps; i++) {
 
       /* long delay */

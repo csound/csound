@@ -52,6 +52,7 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
     int32  maxd, indx;
     MYFLT *out = p->sr;     /* assign object data to local variables   */
@@ -62,7 +63,11 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     if (UNLIKELY(buf==NULL)) goto err1;        /* RWD fix */
     maxd = (uint32) (1+*p->imaxd * ESR);
     indx = p->left;
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
 
     if (XINARG2) {          /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
@@ -138,6 +143,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
     int32  maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
@@ -149,7 +155,11 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     maxd = (uint32) (*p->imaxd * ESR);
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
 
     if (XINARG2) {              /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
@@ -323,6 +333,7 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
     int32 indx, maxd;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -339,7 +350,11 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
-    memset(out1, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out1, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+    }
 
     for (nn=offset; nn<nsmps; nn++) {
       buf1[indx] = in1[nn];
@@ -388,6 +403,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
     int32  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -405,7 +421,11 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    memset(out1, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out1, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (nn=offset;nn<nsmps;nn++) {
       /* x1: fractional part of delay time */
       /* x2: sine of x1 (for interpolation) */
@@ -462,6 +482,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     double x1, x2, w, d, d2x, n1, n2;
     int32   i, i2, xpos;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1; /* RWD fix */
@@ -470,8 +491,15 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
-    memset(out1, '\0', offset*sizeof(MYFLT));
-    memset(out2, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(out1, '\0', offset*sizeof(MYFLT));
+      memset(out2, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+    }
 
     for (n=offset; n<nsmps; n++) {
       buf1[indx] = in1[n]; buf2[indx] = in2[n];
@@ -520,6 +548,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -540,8 +569,15 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    memset(out1, '\0', offset*sizeof(MYFLT));
-    memset(out2, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(out1, '\0', offset*sizeof(MYFLT));
+      memset(out2, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       /* x1: fractional part of delay time */
       /* x2: sine of x1 (for interpolation) */
@@ -588,6 +624,7 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -615,10 +652,20 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    memset(out1, '\0', offset*sizeof(MYFLT));
-    memset(out2, '\0', offset*sizeof(MYFLT));
-    memset(out3, '\0', offset*sizeof(MYFLT));
-    memset(out4, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(out1, '\0', offset*sizeof(MYFLT));
+      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out3, '\0', offset*sizeof(MYFLT));
+      memset(out4, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out3[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out4[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
     for (n=offset; n<nsmps; n++) {
       buf1[indx] = in1[n]; buf2[indx] = in2[n];
       buf3[indx] = in3[n]; buf4[indx] = in4[n];
@@ -671,6 +718,7 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -698,10 +746,20 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    memset(out1, '\0', offset*sizeof(MYFLT));
-    memset(out2, '\0', offset*sizeof(MYFLT));
-    memset(out3, '\0', offset*sizeof(MYFLT));
-    memset(out4, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(out1, '\0', offset*sizeof(MYFLT));
+      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out3, '\0', offset*sizeof(MYFLT));
+      memset(out4, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out3[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out4[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
     for (n=offset; n<nsmps; n++) {
       /* x1: fractional part of delay time */
       /* x2: sine of x1 (for interpolation) */
@@ -782,13 +840,18 @@ int multitap_play(CSOUND *csound, MDEL *p)
 {                               /* assign object data to local variables   */
     int  indx = p->left, delay;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, n, nsmps = CS_KSMPS;
     MYFLT *out = p->sr, *in = p->ain;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT max = (MYFLT)p->max;
 
     if (UNLIKELY(buf==NULL)) goto err1;           /* RWD fix */
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       MYFLT v = FL(0.0);
       buf[indx] = in[n];        /*      Write input     */
@@ -1073,6 +1136,7 @@ int reverbx(CSOUND *csound, NREV2 *p)
 {
     int32   i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *in, *out = p->out, *buf, *end;
     MYFLT   gain, z;
@@ -1086,6 +1150,7 @@ int reverbx(CSOUND *csound, NREV2 *p)
     in = p->in;
     memcpy(buf, in, nsmps*sizeof(MYFLT));
     memset(out, 0,  nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
     if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
       if (UNLIKELY(hdif > FL(1.0))) {
         csound->Warning(csound, Str("High frequency diffusion>1\n"));
