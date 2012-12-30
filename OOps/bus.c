@@ -354,7 +354,8 @@ int chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
 int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 {
     int     n = (int)MYFLT2LRND(*(p->a)) * csound->global_ksmps;
-    uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
 
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("chani: invalid index"));
@@ -364,15 +365,18 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound,
                                  Str("chani: memory allocation failure"));
     }
-    memset(p->r, '\0', offset);
-    memcpy(p->r+offset, &(csound->chania[n]), sizeof(MYFLT) * CS_KSMPS- offset);
+    if (offset) memset(p->r, '\0', offset * sizeof(MYFLT));
+    memcpy(&p->r[offset], &(csound->chania[n]), 
+           sizeof(MYFLT) * (CS_KSMPS-offset-early));
+    if (early) memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
     return OK;
 }
 
 int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 {
     int     n = (int)MYFLT2LRND(*(p->a)) * csound->global_ksmps;
-    uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
 
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("chano: invalid index"));
@@ -382,8 +386,11 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
     }
-    memset(&(csound->chanoa[n]), '\0', offset);
-    memcpy(&(csound->chanoa[n+offset]), p->r, sizeof(MYFLT) * CS_KSMPS - offset);
+    if (offset) memset(&(csound->chanoa[n]), '\0', offset);
+    memcpy(&(csound->chanoa[n+offset]), &p->r[offset], 
+           sizeof(MYFLT) * (CS_KSMPS - offset-early));
+    if (early)
+      memset(&csound->chanoa[n+CS_KSMPS-early], '\0', sizeof(MYFLT) * early);
     return OK;
 }
 
@@ -871,9 +878,11 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
-    uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
-    memset(p->arg, '\0', offset);
-    memcpy(p->arg+offset, p->fp, sizeof(MYFLT)*CS_KSMPS-offset);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    if (offset) memset(p->arg, '\0', offset);
+    memcpy(&p->arg[offset], p->fp, sizeof(MYFLT)*(CS_KSMPS-offset-early));
+    if (early) memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     return OK;
 }
 
@@ -949,11 +958,14 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
-     uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
    /* Need lock for the channel */
     csoundSpinLock(p->lock);
-    memset(p->fp, '\0', offset);
-    memcpy(p->fp+offset, p->arg, sizeof(MYFLT)*CS_KSMPS-offset);
+    if (offset) memset(p->fp, '\0', sizeof(MYFLT)*offset);
+    memcpy(&p->fp[offset], &p->arg[offset],
+           sizeof(MYFLT)*(CS_KSMPS-offset-early));
+    if (early) memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
     csoundSpinUnLock(p->lock);
     return OK;
 }
@@ -964,13 +976,15 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 {
     uint32_t n = 0;
     uint32_t nsmps = CS_KSMPS;
-    uint32_t offset = p->h.insdshead->ksmps_offset * sizeof(MYFLT);
-                               /* Need lock for the channel */
-    csoundSpinLock(p->lock);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    if (early) nsmps -= early;
+    /* Need lock for the channel */
+    //csoundSpinLock(p->lock);
     for (n=offset; n<nsmps; n++) {
       p->fp[n] += p->arg[n];
     }
-    csoundSpinUnLock(p->lock);
+    //csoundSpinUnLock(p->lock);
     return OK;
 }
 

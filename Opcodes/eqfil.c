@@ -54,6 +54,8 @@ static int equ_process(CSOUND *csound, equ *p)
 {
     double z1 = p->z1, z2 = p->z2,c,d,w,a,y;
     MYFLT  *in= p->sig,*out=p->out,g;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     int i, ksmps = csound->GetKsmps(csound);
 
     if (*p->bw != p->bwv || *p->fr != p->frv){
@@ -67,7 +69,12 @@ static int equ_process(CSOUND *csound, equ *p)
     a = (1.0-c)/(1.0+c);
     g = *p->g;
 
-    for(i=0; i < ksmps; i++){
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      ksmps -= early;
+      memset(&out[ksmps], '\0', early*sizeof(MYFLT));
+    }
+    for (i=0; i < ksmps; i++){
       w = (double)(in[i]) + d*(1.0 + a)*z1 - a*z2;
       y = w*a - d*(1.0 + a)*z1 + z2;
       z2 = z1;

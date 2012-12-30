@@ -350,6 +350,7 @@ static int Xsynth(CSOUND *csound, CON *p)
     int32                size, div;
     int32                n, m;
     uint32_t             offset = p->h.insdshead->ksmps_offset;
+    uint32_t             early  = p->h.insdshead->ksmps_no_end;
     uint32_t             nn, nsmps = CS_KSMPS;
 
     s = p->as;
@@ -366,7 +367,11 @@ static int Xsynth(CSOUND *csound, CON *p)
 
     n = p->count;
     m = n % div;
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (nn = offset; nn < nsmps; nn++) {
       buf1[n] = s[nn];
       buf2[n] = f[nn];

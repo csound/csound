@@ -78,6 +78,7 @@ static int compress(CSOUND *csound, CMPRS *p)
 {
     MYFLT       *ar, *ainp, *cinp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
@@ -125,7 +126,11 @@ static int compress(CSOUND *csound, CMPRS *p)
     ar = p->ar;
     ainp = p->aasig;
     cinp = p->acsig;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {   /* now for each sample of both inputs:  */
       MYFLT asig, lsig;
       double csig;
@@ -216,11 +221,12 @@ static int distort(CSOUND *csound, DIST *p)
     MYFLT   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     asig = p->asig;
     q = p->prvq;
-    for (n=offset; n<nsmps; n++) {
+    for (n=offset; n<nsmps-early; n++) {
       q = p->c1 * asig[n] * asig[n] + p->c2 * q;
     }
     p->prvq = q;
@@ -231,10 +237,14 @@ static int distort(CSOUND *csound, DIST *p)
       dist = FL(0.001);
     dnew = rms / dist;                  /* & compress factor    */
     dcur = p->prvd;
-    dinc = (dnew - dcur) * CS_ONEDKSMPS;
     asig = p->asig;
     ar = p->ar;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    dinc = (dnew - dcur) / nsmps;
     for (n=offset; n<nsmps; n++) {
       MYFLT sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */

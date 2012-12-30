@@ -235,9 +235,18 @@ public:
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
     uint32_t offset = head.insdshead->ksmps_offset;
-    memset(I3, '\0', offset*sizeof(MYFLT));
-    memset(V1, '\0', offset*sizeof(MYFLT));
-    memset(V2, '\0', offset*sizeof(MYFLT));
+    uint32_t early  = head.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    if (offset) {
+      memset(I3, '\0', offset*sizeof(MYFLT));
+      memset(V1, '\0', offset*sizeof(MYFLT));
+      memset(V2, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      memset(&I3[nsmps-early], '\0', early*sizeof(MYFLT));
+      memset(&V1[nsmps-early], '\0', early*sizeof(MYFLT));
+      memset(&V2[nsmps-early], '\0', early*sizeof(MYFLT));
+    }
     MYFLT &L = *L_;
     MYFLT &R0 = *R0_;
     MYFLT &C2 = *C2_;
@@ -477,9 +486,18 @@ public:
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
     uint32_t offset = head.insdshead->ksmps_offset;
-    memset(I3, '\0', offset*sizeof(MYFLT));
-    memset(V1, '\0', offset*sizeof(MYFLT));
-    memset(V2, '\0', offset*sizeof(MYFLT));
+    uint32_t early  = head.insdshead->ksmps_no_end;
+    if (offset) {
+      memset(I3, '\0', offset*sizeof(MYFLT));
+      memset(V1, '\0', offset*sizeof(MYFLT));
+      memset(V2, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      ksmps -= early;
+      memset(&I3[ksmps], '\0', early*sizeof(MYFLT));
+      memset(&V1[ksmps], '\0', early*sizeof(MYFLT));
+      memset(&V2[ksmps], '\0', early*sizeof(MYFLT));
+    }
     MYFLT &L = *L_;
     MYFLT &R0 = *R0_;
     MYFLT &C2 = *C2_;

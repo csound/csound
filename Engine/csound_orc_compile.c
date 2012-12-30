@@ -46,8 +46,10 @@ static  int     pnum(char *s) ;
 static  int     lgexist2(INSTRTXT*, const char *s, ENGINE_STATE *engineState);
 static void     unquote_string(char *, const char *);
 extern void     print_tree(CSOUND *, char *, TREE *);
+extern void delete_tree(CSOUND *csound, TREE *l);
 void close_instrument(CSOUND *csound, INSTRTXT * ip);
 char argtyp2(char *s);
+void debugPrintCsound(CSOUND* csound);
 #define strsav_string(a) string_pool_save_string(csound, csound->stringSavePool, a);
 
 /* NOTE: these assume that sizeof(MYFLT) is either 4 or 8 */
@@ -1028,7 +1030,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* csound->Message(csound, "Assignment found\n"); */
       break;
     case INSTR_TOKEN:
-      print_tree(csound, "Instrument found\n", current);
+      //print_tree(csound, "Instrument found\n", current);
       instrtxt = create_instrument(csound, current,engineState);
 
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
@@ -1203,167 +1205,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   return CSOUND_SUCCESS;
 }
 
-#define MIN_SIZE 512
-
-typedef struct serial_tree {
-  unsigned int tree_data_bytes;
-  TREE *tree_data;
-  unsigned int token_data_bytes;
-  ORCTOKEN *token_data;
-  unsigned int lexemes_data_bytes;
-  char *lexemes;
-} SERIAL_TREE;
-
-/**
-  create a SERIAL_TREE structure containing the parse tree root
-  made of three arrays, tree_data, token_data and lexemes. 
-  TREE left & right links are converted into array offsets  
-  ORCTOKENS are spaced by NULL tokens.
-  lexeme pointers in tokens are indexes converted into lexemes array
-
-  This structure can then be used to save a TREE to binary files.
-
-*/
-SERIAL_TREE *deflate_tree(CSOUND *csound, TREE *root){
-  SERIAL_TREE *s_tree;
-  TREE *current = root;
-  long n = MIN_SIZE, i = MIN_SIZE, j = MIN_SIZE, count1=0, count2=0, count3=0, len;  
-  s_tree = (SERIAL_TREE *) mcalloc(csound, sizeof(SERIAL_TREE));
-  s_tree->tree_data = (TREE *)  mcalloc(csound, sizeof(TREE)*n);
-  s_tree->token_data = (ORCTOKEN *)  mcalloc(csound, sizeof(ORCTOKEN)*i);
-  s_tree->lexemes = (char *) mcalloc(csound, i);
-    
-  while(1){
-    ORCTOKEN *current_value = current->value;
-    while(1){
-      if(count2 > i){
-	i+=MIN_SIZE;
-	s_tree->token_data = (ORCTOKEN *)  mrealloc(csound, s_tree->token_data, sizeof(ORCTOKEN)*i);
-      }
-    if(current_value != NULL){
-        len = strlen(current_value->lexeme);
-        if(count3 + len + 1 > j) {
-	  j+=MIN_SIZE;
-          s_tree->lexemes = (char *) mrealloc(csound, s_tree->lexemes, j);
-	}
-        strcpy(s_tree->lexemes + count3, current_value->lexeme);
-        memcpy(&s_tree->token_data[count2], current_value, sizeof(ORCTOKEN));
-        s_tree->token_data[count2].lexeme = (char *) count3;
-        count2++;
-        count3 += (len+1);
-    } else{
-      memset(&s_tree->token_data[count2], 0, sizeof(ORCTOKEN)); 
-      break;
-    }
-    current_value = current_value->next; 
-   }
-    memcpy(&s_tree->tree_data[count1], current, sizeof(TREE));
-    current = current->next;
-    if(current != NULL) {
-    if(++count1 == n) { /* need to extend tree */
-      n += MIN_SIZE;
-      s_tree->tree_data = (TREE *)  mrealloc(csound, s_tree->tree_data, sizeof(TREE)*n);
-    }
-    } else break;
-  }
-  /* substitute right and left pointers by offsets into tree_data array */
-  for(n=0; n < count1; n++){
-    current = &s_tree->tree_data[n];
-    for(i=0; i < count1; i++){
-      if(current->right == &s_tree->tree_data[i]){
-	current->right = (TREE *) i; 
-        break;
-      }
-    }
-    for(i=0; i < count1; i++){
-      if(current->left == &s_tree->tree_data[i]){
-	current->left = (TREE *) i;
-        break;
-      }
-    }
-    }
-    
-  s_tree->tree_data_bytes = count1*sizeof(TREE);
-  s_tree->token_data_bytes = count2*sizeof(ORCTOKEN);
-  s_tree->lexemes_data_bytes = count3;
-  return s_tree;
-}
-/**
-  recover a TREE  from a SERIAL_TREE  
-  this can be used to load TREE data from files
-*/
-TREE *inflate_tree(CSOUND *csound, SERIAL_TREE *s_tree){
-
-  long count = s_tree->tree_data_bytes/sizeof(TREE);
-  int i, j = 0;
-  TREE *tree;
-   
-  for(i=1; i < count; i++){
-    ORCTOKEN *current_value;
-    tree = &s_tree->tree_data[i-1];
-    /* recover left & right links */
-    tree->left =  &s_tree->tree_data[(long) s_tree->tree_data[i-1].left];
-    tree->right = &s_tree->tree_data[(long) s_tree->tree_data[i-1].right];
-    /* recover next link */
-    tree->next = &s_tree->tree_data[i];
-    tree->value = current_value = &s_tree->token_data[j];
-    while(1){
-      /* recover lexemes */
-      current_value->lexeme = &(s_tree->lexemes[(long)(s_tree->token_data[j].lexeme)]);
-      /* recover next token links */
-      current_value = current_value->next = &s_tree->token_data[j++];
-      if(current_value == NULL) break;
-    }
-  }
-  return s_tree->tree_data;
-}
-
-void debugPrintCsound(CSOUND* csound) {
-  csound->Message(csound, "Compile State:\n");
-  csound->Message(csound, "String Pool:\n");
-  STRING_VAL* val = csound->engineState.stringPool->values;
-  int count = 0;
-  while(val != NULL) {
-    csound->Message(csound, "    %d) %s\n", count++, val->value);
-    val = val->next;
-  }
-  csound->Message(csound, "Constants Pool:\n");    
-  count = 0;
-  for(count = 0; count < csound->engineState.constantsPool->count; count++) {
-    csound->Message(csound, "    %d) %f\n", count, csound->engineState.constantsPool->values[count]);
-  }
-    
-  csound->Message(csound, "Global Variables:\n");    
-  CS_VARIABLE* gVar = csound->engineState.varPool->head;
-  count = 0;
-  while(gVar != NULL) {
-    csound->Message(csound, "  %d) %s:%s\n", count++, 
-		    gVar->varName, gVar->varType->varTypeName);
-    gVar = gVar->next;
-  }
-    
-    
-  INSTRTXT    *current = &(csound->engineState.instxtanchor);
-  current = current->nxtinstxt;
-  count = 0;
-  while (current != NULL) {
-    csound->Message(csound, "Instrument %d\n", count);
-    csound->Message(csound, "Variables\n");
-        
-    if(current->varPool != NULL) {       
-      CS_VARIABLE* var = current->varPool->head;
-      int index = 0;
-      while(var != NULL) {
-	csound->Message(csound, "  %d) %s:%s\n", index++, 
-			var->varName, var->varType->varTypeName);
-	var = var->next;
-      }            
-    }       
-    count++;
-    current = current->nxtinstxt;
-  }   
-}
-
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
@@ -1374,9 +1215,9 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
   int retVal;
   TREE *root = csoundParseOrc(csound, str);
   retVal = csoundCompileTree(csound, root);
+  // delete_tree(csound, root);  /* FIXME: this causes a mfree() fault with some orcs eg. trapped */
   // if(csound->oparms->odebug) 
   debugPrintCsound(csound);  
-  /* FIXME: do we need to recover memory from tree after compilation? */
   return retVal;
 }
 
@@ -1462,10 +1303,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     }
   }
 }
-
-
-
-
 
 /* returns non-zero if 's' is defined in the global or local pool of names */
 static int lgexist2(INSTRTXT* ip, const char* s, ENGINE_STATE *engineState) 
@@ -1656,6 +1493,54 @@ uint8_t file_to_int(CSOUND *csound, const char *name)
   }
   return n;
 }
+
+void debugPrintCsound(CSOUND* csound) {
+  csound->Message(csound, "Compile State:\n");
+  csound->Message(csound, "String Pool:\n");
+  STRING_VAL* val = csound->engineState.stringPool->values;
+  int count = 0;
+  while(val != NULL) {
+    csound->Message(csound, "    %d) %s\n", count++, val->value);
+    val = val->next;
+  }
+  csound->Message(csound, "Constants Pool:\n");    
+  count = 0;
+  for(count = 0; count < csound->engineState.constantsPool->count; count++) {
+    csound->Message(csound, "    %d) %f\n", count, csound->engineState.constantsPool->values[count]);
+  }
+    
+  csound->Message(csound, "Global Variables:\n");    
+  CS_VARIABLE* gVar = csound->engineState.varPool->head;
+  count = 0;
+  while(gVar != NULL) {
+    csound->Message(csound, "  %d) %s:%s\n", count++, 
+		    gVar->varName, gVar->varType->varTypeName);
+    gVar = gVar->next;
+  }
+    
+    
+  INSTRTXT    *current = &(csound->engineState.instxtanchor);
+  current = current->nxtinstxt;
+  count = 0;
+  while (current != NULL) {
+    csound->Message(csound, "Instrument %d\n", count);
+    csound->Message(csound, "Variables\n");
+        
+    if(current->varPool != NULL) {       
+      CS_VARIABLE* var = current->varPool->head;
+      int index = 0;
+      while(var != NULL) {
+	csound->Message(csound, "  %d) %s:%s\n", index++, 
+			var->varName, var->varType->varTypeName);
+	var = var->next;
+      }            
+    }       
+    count++;
+    current = current->nxtinstxt;
+  }   
+}
+
+
 
 #if 0
 /*

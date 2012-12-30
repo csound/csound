@@ -132,6 +132,7 @@ static void ambicode_set_coefficients(AMBIC *p)
 static int aambicode(CSOUND *csound, AMBIC *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS; /* array size from orchestra */
 
     /* init input array pointer */
@@ -170,6 +171,13 @@ static int aambicode(CSOUND *csound, AMBIC *p)
       memset(rsltp_y, '\0', offset*sizeof(MYFLT));
       memset(rsltp_z, '\0', offset*sizeof(MYFLT));
     }
+    if (early) {
+      nsmps -= early;
+      memset(&rsltp_w[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&rsltp_x[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&rsltp_y[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&rsltp_z[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (p->OUTOCOUNT == 4 && p->INOCOUNT >= 5) {
       /* 1st order */
       for (n=offset; n<nsmps; n++) {
@@ -191,6 +199,13 @@ static int aambicode(CSOUND *csound, AMBIC *p)
         memset(rsltp_t, '\0', offset*sizeof(MYFLT));
         memset(rsltp_u, '\0', offset*sizeof(MYFLT));
         memset(rsltp_v, '\0', offset*sizeof(MYFLT));
+      }
+      if (early) {
+        memset(&rsltp_r[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_s[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_t[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_u[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_v[nsmps], '\0', early*sizeof(MYFLT));
       }
       for (n=offset; n<nsmps; n++) {
         /* 0th order */
@@ -226,6 +241,20 @@ static int aambicode(CSOUND *csound, AMBIC *p)
         memset(rsltp_o, '\0', offset*sizeof(MYFLT));
         memset(rsltp_p, '\0', offset*sizeof(MYFLT));
         memset(rsltp_q, '\0', offset*sizeof(MYFLT));
+      }
+      if (early) {
+        memset(&rsltp_r[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_s[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_t[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_u[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_v[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_k[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_l[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_m[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_n[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_o[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_p[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_q[nsmps], '\0', early*sizeof(MYFLT));
       }
       for (n=offset; n<nsmps; n++) {
         /* 0th order */
@@ -611,6 +640,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
 static int aambideco(CSOUND *csound, AMBID *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i=0, n, nsmps = CS_KSMPS;
 
     /* init input array pointer 0th order */
@@ -648,12 +678,17 @@ static int aambideco(CSOUND *csound, AMBID *p)
     rsltp[5] = p->m5;
     rsltp[6] = p->m6;
     rsltp[7] = p->m7;
+    if (offset) for (i = 0; i < p->OUTOCOUNT; i++)
+                  memset(rsltp[i], '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      for (i = 0; i < p->OUTOCOUNT; i++)
+        memset(&rsltp[i][nsmps], '\0', early*sizeof(MYFLT));
+    }
     /* L = 0.5 * (0.9397*W + 0.1856*X - j*0.342*W + j*0.5099*X + 0.655*Y)
 
        R = 0.5 * (0.9397*W+ 0.1856*X + j*0.342*W - j*0.5099*X - 0.655*Y) */
     if (p->INOCOUNT == 5) {
-      if (offset) for (i = 0; i < p->OUTOCOUNT; i++)
-                    memset(rsltp[i], '\0', offset*sizeof(MYFLT));
       for (n=offset; n<nsmps; n++) {
         /* 1st order */
         for (i = 0; i < p->OUTOCOUNT; i++) {

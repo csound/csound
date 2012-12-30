@@ -325,6 +325,7 @@ static inline void diskin2_file_pos_inc(DISKIN2 *p, int32 *ndx)
 int diskin2_perf(CSOUND *csound, DISKIN2 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS,i;
     int chn;
     double  d, frac_d, x, c, v, pidwarp_d;
@@ -351,6 +352,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
       for (nn = 0; nn < nsmps; nn++)
         p->aOut[chn][nn] = FL(0.0);
     /* file read position */
+    if (early) nsmps -= early;
     ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
       case 1:                   /* ---- no interpolation ---- */
@@ -655,15 +657,21 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
 int soundin(CSOUND *csound, SOUNDIN_ *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps=CS_KSMPS, bufPos;
     int i;
 
     if (UNLIKELY(p->fdch.fd == NULL)) {
       return csound->PerfError(csound, Str("soundin: not initialised"));
     }
-    for (i=0; i<p->nChannels; i++)
-      memset(p->aOut[i], '\0', offset*sizeof(MYFLT));
-    for (nn = offset; nn < nsmps; nn++) {
+    if (offset) for (i=0; i<p->nChannels; i++)
+                  memset(p->aOut[i], '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      for (i=0; i<p->nChannels; i++)
+        memset(&(p->aOut[i][nsmps]), '\0', early*sizeof(MYFLT));
+    }
+   for (nn = offset; nn < nsmps; nn++) {
       bufPos = (int) (p->read_pos - p->bufStartPos);
       if ((unsigned int) bufPos >= (unsigned int) p->bufSize) {
         /* not in current buffer frame, need to read file */

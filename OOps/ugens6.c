@@ -38,15 +38,18 @@ int downset(CSOUND *csound, DOWNSAMP *p)
 int downsamp(CSOUND *csound, DOWNSAMP *p)
 {
     MYFLT       *asig, sum;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     int len, n;
 
     if (p->len <= 1)
-      *p->kr = *p->asig;
+      *p->kr = p->asig[offset];
     else {
       asig = p->asig;
       sum = FL(0.0);
       len = p->len;
-      for (n=0; n<len; n++) {
+      if (len>(int)CS_KSMPS-early) len = early;
+      for (n=offset; n<len; n++) {
         sum += asig[n];
       }
       *p->kr = sum / p->len;
@@ -59,9 +62,14 @@ int upsamp(CSOUND *csound, UPSAMP *p)
     MYFLT kval = *p->ksig;
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++)
       ar[n] = kval;
     return OK;
@@ -87,10 +95,15 @@ int interp(CSOUND *csound, INTERP *p)
 {
     MYFLT *ar, val, incr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     ar = p->rslt;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (p->init_k) {
       p->init_k = 0;
       p->prev = *p->xsig;
@@ -121,10 +134,15 @@ int integrate(CSOUND *csound, INDIFF *p)
 {
     MYFLT       *rslt, *asig, sum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     rslt = p->rslt;
-    memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    }
     asig = p->xsig;
     sum = p->prev;
     for (n=offset; n<nsmps; n++) {
@@ -147,10 +165,15 @@ int diff(CSOUND *csound, INDIFF *p)
 {
     MYFLT       *ar, *asig, prev, tmp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     ar = p->rslt;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     asig = p->xsig;
     prev = p->prev;
     for (n=offset; n<nsmps; n++) {
@@ -182,10 +205,15 @@ int samphold(CSOUND *csound, SAMPHOLD *p)
 {
     MYFLT       *ar, *asig, *agate, state;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     ar = p->xr;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     asig = p->xsig;
     state = p->state;
     if (p->audiogate) {
@@ -333,11 +361,16 @@ int delay(CSOUND *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
     ar = p->ar;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     asig = p->asig;
     curp = p->curp;
     endp = (MYFLT *) p->auxch.endp;
@@ -359,11 +392,16 @@ int delayr(CSOUND *csound, DELAYR *p)
 {
     MYFLT       *ar, *curp, *endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     curp = p->curp;
     endp = (MYFLT *) p->auxch.endp;
     for (n=offset; n<nsmps; n++) {
@@ -381,12 +419,14 @@ int delayw(CSOUND *csound, DELAYW *p)
     DELAYR      *q = p->delayr;
     MYFLT       *asig, *curp, *endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1; /* RWD fix */
     asig = p->asig;
     curp = q->curp;
     endp = (MYFLT *) q->auxch.endp;
+    if (early) nsmps -= early;
     for (n=offset; n<nsmps; n++) {
       *curp = asig[n];
       if (UNLIKELY(++curp >= endp))
@@ -403,11 +443,16 @@ int deltap(CSOUND *csound, DELTAP *p)
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
-    memset(ar, '0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     tap = q->curp - (int32) (FL(0.5) + *p->xdlt * csound->esr);
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
@@ -427,13 +472,18 @@ int deltapi(CSOUND *csound, DELTAP *p)
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
-    memset(ar, '0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
@@ -478,13 +528,18 @@ int deltapn(CSOUND *csound, DELTAP *p)
     DELAYR *q = p->delayr;
     MYFLT  *ar, *tap, *begp, *endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32  idelsmps;
     MYFLT  delsmps;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
-    memset(ar, '0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
@@ -524,13 +579,18 @@ int deltap3(CSOUND *csound, DELTAP *p)
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
-    memset(ar, '0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
@@ -619,12 +679,17 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     DELAYR  *q = p->delayr;
     MYFLT   *out1, *del, *buf1, *bufp, *bufend;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32   indx, maxd, xpos;
 
     if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
     out1 = p->ar; del = p->adlt;
-    memset(out1, '0', offset*sizeof(MYFLT));
+    if (offset) memset(out1, '0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+    }
     buf1 = (MYFLT *) q->auxch.auxp;
     indx = (int32) (q->curp - buf1);
     maxd = q->npts; bufend = buf1 + maxd;
@@ -702,11 +767,13 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
     DELAYR  *q = p->delayr;
     MYFLT   *in1, *del, *buf1, *bufp, *bufend;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32   indx, maxd, xpos;
 
     if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
     in1 = p->ar; del = p->adlt;
+    if (early) nsmps -= early;
     buf1 = (MYFLT *) q->auxch.auxp;
     indx = (int32) (q->curp - buf1);
     maxd = q->npts; bufend = buf1 + maxd;
@@ -790,14 +857,19 @@ int delay1(CSOUND *csound, DELAY1 *p)
 {
     MYFLT       *ar, *asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
 
     ar = p->ar;
     /* asig = p->asig - 1; */
     asig = p->asig;
     ar[offset] = p->sav1;
-    memset(ar, '\0', offset*sizeof(MYFLT));
-    memmove(&ar[offset+1], asig+offset, sizeof(MYFLT)*(nsmps-1-offset));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    memmove(&ar[offset+1], &asig[offset], sizeof(MYFLT)*(nsmps-1-offset));
     p->sav1 = asig[nsmps-1];
     return OK;
 }
@@ -834,6 +906,7 @@ int cmbset(CSOUND *csound, COMB *p)
 int comb(CSOUND *csound, COMB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
@@ -856,7 +929,11 @@ int comb(CSOUND *csound, COMB *p)
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
     ar = p->ar;
-    memset(ar, '0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     asig = p->asig;
     for (n=0; n<nsmps; n++) {
       MYFLT out = *xp;
@@ -875,6 +952,7 @@ int comb(CSOUND *csound, COMB *p)
 int alpass(CSOUND *csound, COMB *p)
 {
     uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       y, z;
@@ -888,7 +966,11 @@ int alpass(CSOUND *csound, COMB *p)
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
     ar = p->ar;
-    memset(ar, '0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     asig = p->asig;
     for (n=offset; n<nsmps; n++) {
       y = *xp;
@@ -955,6 +1037,7 @@ int reverb(CSOUND *csound, REVERB *p)
     MYFLT       *asig, *p1, *p2, *p3, *p4, *p5, *p6, *ar, *endp;
     MYFLT       c1,c2,c3,c4,c5,c6;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
@@ -986,7 +1069,11 @@ int reverb(CSOUND *csound, REVERB *p)
     endp = (MYFLT *) p->auxch.endp;
 
     ar = p->ar;
-    memset(ar, '0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     asig = p->asig;
     for (n=offset; n<nsmps; n++) {
       MYFLT     cmbsum, y1, y2, z;
@@ -1039,6 +1126,7 @@ int pan(CSOUND *csound, PAN *p)
     MYFLT   flend2, xndx_f, yndx_f, xt, yt, ch1, ch2, ch3, ch4;
     int32   xndx, yndx, flen;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     FUNC    *ftp;
 
@@ -1067,10 +1155,19 @@ int pan(CSOUND *csound, PAN *p)
     ch3 = ftp->ftable[flen - xndx] * ftp->ftable[flen - yndx];
     ch4 = ftp->ftable[xndx]        * ftp->ftable[flen - yndx];
 
-    memset(p->r1, '\0', offset*sizeof(MYFLT));
-    memset(p->r2, '\0', offset*sizeof(MYFLT));
-    memset(p->r3, '\0', offset*sizeof(MYFLT));
-    memset(p->r4, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(p->r1, '\0', offset*sizeof(MYFLT));
+      memset(p->r2, '\0', offset*sizeof(MYFLT));
+      memset(p->r3, '\0', offset*sizeof(MYFLT));
+      memset(p->r4, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&p->r1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->r2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->r3[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->r4[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       MYFLT sig = p->asig[n];
       p->r1[n] = sig * ch1;
