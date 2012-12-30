@@ -210,8 +210,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
     /* VL 30-12-12 called below line 290 */
-    // if (csoundInitModules(csound) != 0)
-    // csound->LongJmp(csound, 1);
+    //if (csoundInitModules(csound) != 0)
+    //csound->LongJmp(csound, 1);
     csoundCompileOrc(csound, NULL);
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
@@ -278,6 +278,10 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 {
     OPARMS  *O = csound->oparms;
     int     n;
+
+    //if (csound->orchname == NULL) { /* compile empty instr 1 to allow csound to start */
+    //csoundCompileOrc(csound, "instr 1 \n endin \n");
+    //}
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
