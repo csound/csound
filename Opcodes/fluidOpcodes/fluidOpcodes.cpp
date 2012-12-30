@@ -390,17 +390,25 @@ public:
     int audio(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_out)
         {
-             uint32_t offset = head.insdshead->ksmps_offset;
-             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
-             memset(aRightOut, '\0', offset*sizeof(MYFLT));
-            for (frame = offset; frame < ksmps; frame++) {
-                leftSample = 0.0f;
-                rightSample = 0.0f;
-                fluid_synth_write_float(fluidSynth, 1, &leftSample, 0, 1,
-                        &rightSample, 0, 1);
-                aLeftOut[frame] = leftSample /* * csound->e0dbfs */;
-                aRightOut[frame] = rightSample /* * csound->e0dbfs */;
-            }
+          uint32_t offset = head.insdshead->ksmps_offset;
+          uint32_t early  = head.insdshead->ksmps_no_end;
+          if (offset) {
+            memset(aLeftOut, '\0', offset*sizeof(MYFLT));
+            memset(aRightOut, '\0', offset*sizeof(MYFLT));
+             }
+          if (early) {
+            ksmps -= early;
+            memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
+            memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
+          }
+         for (frame = offset; frame < ksmps; frame++) {
+            leftSample = 0.0f;
+            rightSample = 0.0f;
+            fluid_synth_write_float(fluidSynth, 1, &leftSample, 0, 1,
+                                    &rightSample, 0, 1);
+            aLeftOut[frame] = leftSample /* * csound->e0dbfs */;
+            aRightOut[frame] = rightSample /* * csound->e0dbfs */;
+          }
         }
         return OK;
     }
@@ -427,24 +435,32 @@ public:
     int audio(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_all_out)
         {
-            uint32_t offset = head.insdshead->ksmps_offset;
-             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
-             memset(aRightOut, '\0', offset*sizeof(MYFLT));
-            std::vector<fluid_synth_t *> &fluidSynths = 
-              getFluidSynthsForCsoundInstances()[csound];
-            for (frame = offset; frame < ksmps; frame++) {
-                aLeftOut[frame] = FL(0.0);
-                aRightOut[frame] = FL(0.0);
-                for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
-                    fluid_synth_t *fluidSynth = fluidSynths[i];
-                    leftSample = FL(0.0);
-                    rightSample = FL(0.0);  
-                    fluid_synth_write_float(fluidSynth, 1, &leftSample, 0, 1,
-                            &rightSample, 0, 1);
-                    aLeftOut[frame] += (MYFLT) leftSample /* * csound->e0dbfs */;
-                    aRightOut[frame] += (MYFLT) rightSample /* * csound->e0dbfs */;
-                }
+          uint32_t offset = head.insdshead->ksmps_offset;
+          uint32_t early  = head.insdshead->ksmps_no_end;
+          if (offset) {
+            memset(aLeftOut, '\0', offset*sizeof(MYFLT));
+            memset(aRightOut, '\0', offset*sizeof(MYFLT));
+          }
+          if (early) {
+            ksmps -= early;
+            memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
+            memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
+          }
+          std::vector<fluid_synth_t *> &fluidSynths = 
+            getFluidSynthsForCsoundInstances()[csound];
+          for (frame = offset; frame < ksmps; frame++) {
+            aLeftOut[frame] = FL(0.0);
+            aRightOut[frame] = FL(0.0);
+            for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
+              fluid_synth_t *fluidSynth = fluidSynths[i];
+              leftSample = FL(0.0);
+              rightSample = FL(0.0);  
+              fluid_synth_write_float(fluidSynth, 1, &leftSample, 0, 1,
+                                      &rightSample, 0, 1);
+              aLeftOut[frame] += (MYFLT) leftSample /* * csound->e0dbfs */;
+              aRightOut[frame] += (MYFLT) rightSample /* * csound->e0dbfs */;
             }
+          }
         }
         return OK;
     }

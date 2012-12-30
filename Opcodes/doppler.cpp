@@ -4,6 +4,7 @@
 #include <list>
 #include <vector>
 
+/* ***************  does not deal with unalignbed signals ************** */
 // Why not use the constants already defined?
 static MYFLT pi = std::atan(1.0) * MYFLT(4.0);
 

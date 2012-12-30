@@ -87,6 +87,7 @@ int oscils_set(CSOUND *csound, OSCILS *p)
 int oscils(CSOUND *csound, OSCILS *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *ar, x, c, v;
     double  xd, cd, vd;
@@ -94,7 +95,11 @@ int oscils(CSOUND *csound, OSCILS *p)
     /* copy object data to local variables */
     ar = p->ar;
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (p->use_double) {            /* use doubles */
       xd = p->xd; cd = p->cd; vd = p->vd;
       for (n=offset; n<nsmps; n++) {
@@ -136,6 +141,7 @@ int lphasor_set(CSOUND *csound, LPHASOR *p)
 int lphasor(CSOUND *csound, LPHASOR *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int loop_mode, dir;
     MYFLT   *ar, *xtrns;
@@ -148,7 +154,11 @@ int lphasor(CSOUND *csound, LPHASOR *p)
     loop_mode = p->loop_mode;
     trns = (double)*xtrns;
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       if (XINARG1) trns = (double)xtrns[n];
       ar[n] = (MYFLT) phs;
@@ -205,6 +215,7 @@ int tablexkt_set(CSOUND *csound, TABLEXKT *p)
 int tablexkt(CSOUND *csound, TABLEXKT *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int i, wsize, wsized2, wrap_ndx, warp;
     double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
@@ -246,7 +257,11 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     onedpi_d = 1.0 / PI;
 
-    memset(ar, '\0', offset*sizeof(MYFLT)); 
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT)); 
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       ndx = (double)*xndx;
       if (XINARG1) xndx++;

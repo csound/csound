@@ -46,12 +46,17 @@ static int flwset(CSOUND *csound, FOL *p)
 static int follow(CSOUND *csound, FOL *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *in = p->in, *out = p->out;
     MYFLT       max = p->max;
     int32       count = p->count;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       MYFLT sig = FABS(in[n]);
       if (sig > max) max = sig;
@@ -91,6 +96,7 @@ static int envset(CSOUND *csound, ENV *p)
 static int envext(CSOUND *csound, ENV *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       envelope = p->envelope;
     MYFLT       ga, gr;
@@ -115,7 +121,11 @@ static int envext(CSOUND *csound, ENV *p)
       //EXP(-FL(1.0)/(csound->esr* p->lastrel));
     }
     else gr = p->gr;
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset;n<nsmps;n++) {
       MYFLT inp = FABS(in[n]);  /* Absolute value */
       if (envelope < inp) {

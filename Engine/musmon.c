@@ -391,7 +391,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     MYFLT   *maxp;
     int32    *rngp;
     uint32_t n;
-
+    csound->Message(csound, "csound cleanup\n");
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
       csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;

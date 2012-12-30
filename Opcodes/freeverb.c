@@ -174,6 +174,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     freeVerbAllPass *allpassp;
     int             i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     /* check if opcode was correctly initialised */
@@ -193,8 +194,6 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     damp2 = 1.0 - damp1;
     /* comb filters (left channel) */
     memset(p->tmpBuf,0, sizeof(MYFLT)*nsmps);
-    /* for (n = 0; n < nsmps; n++) */
-    /*   p->tmpBuf[n] = FL(0.0); */
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][0];
       for (n = 0; n < nsmps; n++) {
@@ -221,7 +220,11 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     }
 
     /* write left channel output */
-    memset(p->aOutL, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(p->aOutL, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&p->aOutL[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++)
       p->aOutL[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
     /* comb filters (right channel) */
@@ -253,7 +256,11 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
       }
     }
     /* write right channel output */
-    memset(p->aOutR, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(p->aOutR, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&p->aOutR[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++)
       p->aOutR[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
 
