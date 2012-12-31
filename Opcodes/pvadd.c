@@ -135,6 +135,7 @@ int pvadd(CSOUND *csound, PVADD *p)
     int     size = pvfrsiz(p);
     int     i, binincr = (int) *p->ibinincr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   amp, frq, v1, fract, *oscphase;
     int32    phase, incr;
@@ -160,6 +161,7 @@ int pvadd(CSOUND *csound, PVADD *p)
 
     ar = p->rslt;
     memset(ar, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
     oscphase = p->oscphase;
     for (i = (int) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;

@@ -157,7 +157,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     p->bufused = -1;
     buffersize /= mpainfo.decoded_sample_size;
     while (skip > 0) {
-      uint32_t xx= skip;
+      int xx= skip;
       if (xx > buffersize) xx = buffersize;
       skip -= xx;
       r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
@@ -179,11 +179,19 @@ int mp3in(CSOUND *csound, MP3IN *p)
     MYFLT *al       = p->ar[0];
     MYFLT *ar       = p->ar[1];
     int pos         = p->pos;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t i, n, nsmps = CS_KSMPS;
 
-    memset(al, '\0', offset*sizeof(MYFLT));
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(al, '\0', offset*sizeof(MYFLT));
+      memset(ar, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&al[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       for (i=0; i<2; i++) {     /* stereo */
         MYFLT xx;

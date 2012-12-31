@@ -81,6 +81,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
     MYFLT *a = p->ans;
     if (p->fin->sliding) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       int32 i,N = p->fin->N;
 
@@ -88,7 +89,11 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
       MYFLT d = FL(0.0);
       MYFLT j, binsize = csound->esr/(MYFLT)N;
       int NB = p->fin->NB;
-      memset(a, '\0', offset*sizeof(MYFLT));
+      if (offset) memset(a, '\0', offset*sizeof(MYFLT));
+      if (early) {
+        nsmps -= early;
+        memset(&a[nsmps], '\0', early*sizeof(MYFLT));
+      }
       for (n=offset; n<nsmps; n++) {
         CMPLX *fin = (CMPLX*) p->fin->frame.auxp + n*NB;
         for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
@@ -100,6 +105,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
     }
     else {
       uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       MYFLT old = p->old;
       int32 i,N = p->fin->N;
@@ -107,6 +113,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
       MYFLT d = FL(0.0);
       MYFLT j, binsize = csound->esr/(MYFLT)N;
       float *fin = (float *) p->fin->frame.auxp;
+      nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         if (p->lastframe < p->fin->framecount) {
           for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
@@ -168,10 +175,12 @@ static int cent_k(CSOUND *csound, CENT *p)
 {
     int n = p->count, k;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT *frame = (MYFLT *) p->frame.auxp, *asig = p->asig;
 
     int fsize = p->fsize;
+    if (early) nsmps -= early;
     for (i=0; i < nsmps; i++){
       frame[n] = asig[i];
       if (n == fsize-1) n=0;

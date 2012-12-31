@@ -124,7 +124,8 @@ static int mtable_a(CSOUND *csound,MTABLE *p)
 {
     int j, nargs = p->nargs;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t k, nsmps = CS_KSMPS;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+     uint32_t k, nsmps = CS_KSMPS;
     int ixmode = (int) *p->ixmode;
     MYFLT **out = p->outargs;
     MYFLT *table;
@@ -148,6 +149,11 @@ static int mtable_a(CSOUND *csound,MTABLE *p)
     if (offset) 
       for (j=0; j < nargs; j++) 
         memset(out[j], '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      for (j=0; j < nargs; j++) 
+        memset(&out[j][nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (*p->kinterp) {
       MYFLT fndx;
       long indx;
@@ -232,6 +238,7 @@ static int mtab_a(CSOUND *csound,MTAB *p)
 {
     int j, nargs = p->nargs;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
     MYFLT **out = p->outargs;
     MYFLT *table;
@@ -242,6 +249,11 @@ static int mtab_a(CSOUND *csound,MTAB *p)
     if (offset) 
       for (j=0; j < nargs; j++) 
         memset(out[j], '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      for (j=0; j < nargs; j++) 
+        memset(&out[j][nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (k=offset;k<nsmps;k++) {
       long indx = ((long) *xndx++ %len) * nargs;
       for (j=0; j < nargs; j++) {
@@ -319,6 +331,7 @@ static int mtablew_a(CSOUND *csound,MTABLEW *p)
     int ixmode = (int) *p->ixmode;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t k, nsmps = CS_KSMPS;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     MYFLT **in = p->inargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx, xbmul;
@@ -338,6 +351,7 @@ static int mtablew_a(CSOUND *csound,MTABLEW *p)
     table = p->ftable;
     len = p->len;
     xbmul = p->xbmul;
+    if (early) nsmps -= early;
     for (k=offset; k<nsmps; k++) {
       long indx = (ixmode) ? ((long)(*xndx++ * xbmul)%len) * nargs :
                              ((long) *xndx++ %len) * nargs;
@@ -407,6 +421,7 @@ static int mtabw_a(CSOUND *csound,MTABW *p)
 {
     int j, nargs = p->nargs;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
     MYFLT **in = p->inargs;
     MYFLT *table;
@@ -424,6 +439,7 @@ static int mtabw_a(CSOUND *csound,MTABW *p)
     }
     table = p->ftable;
     len = p->len;
+    if (early) nsmps -= early;
     for (k=offset; k<nsmps; k++) {
       long indx = ((long) *xndx++ %len) * nargs;
       for (j=0; j < nargs; j++) {

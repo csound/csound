@@ -214,6 +214,7 @@ static int cabasa(CSOUND *csound, CABASA *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT data;
                                 /* Use locals for speed */
@@ -255,7 +256,11 @@ static int cabasa(CSOUND *csound, CABASA *p)
       shakeEnergy = FL(0.0);
     }
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset;n<nsmps;n++) {
 /*        if (shakeEnergy > MIN_ENERGY) { */
       shakeEnergy *= systemDecay;               /* Exponential system decay */
@@ -315,6 +320,7 @@ static int sekere(CSOUND *csound, SEKERE *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT data;
                                 /* Use locals for speed */
@@ -356,7 +362,11 @@ static int sekere(CSOUND *csound, SEKERE *p)
       shakeEnergy = FL(0.0);
     }
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset;n<nsmps;n++) {
 /*        if (shakeEnergy > MIN_ENERGY) { */
       shakeEnergy *= systemDecay;           /* Exponential system decay */
@@ -517,6 +527,7 @@ static int guiro(CSOUND *csound, GUIRO *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT lastOutput;
 
@@ -577,7 +588,11 @@ static int guiro(CSOUND *csound, GUIRO *p)
       MYFLT gains0       = p->gains0;
       MYFLT gains1       = p->gains1;
       MYFLT amp          = *p->amp;
-      memset(ar, '\0', offset*sizeof(MYFLT));
+      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (early) {
+        nsmps -= early;
+        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      }
       for (n=offset;n<nsmps;n++) {
         if (ratchetPos > 0) {
           ratchet -= (ratchetDelta + (FL(0.002)*totalEnergy));
@@ -680,6 +695,7 @@ static int tambourine(CSOUND *csound, TAMBOURINE *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT data;
     MYFLT temp_rand;
@@ -725,7 +741,11 @@ static int tambourine(CSOUND *csound, TAMBOURINE *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
-      memset(ar, '\0', offset*sizeof(MYFLT));
+      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (early) {
+        nsmps -= early;
+        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      }
       for (n=offset;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
         if (my_random(csound, 1024) < p->num_objects) {
@@ -815,6 +835,7 @@ static int bamboo(CSOUND *csound, BAMBOO *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT data;
     MYFLT temp_rand;
@@ -859,7 +880,11 @@ static int bamboo(CSOUND *csound, BAMBOO *p)
       MYFLT sndLevel    = p->sndLevel;
       MYFLT soundDecay  = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
-      memset(ar, '\0', offset*sizeof(MYFLT));
+      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (early) {
+        nsmps -= early;
+        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      }
       for (n=offset;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
         if (my_random(csound, 1024) < p->num_objects) {
@@ -953,6 +978,7 @@ static int wuter(CSOUND *csound, WUTER *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT data;
     MYFLT lastOutput;
@@ -998,7 +1024,11 @@ static int wuter(CSOUND *csound, WUTER *p)
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
 
-      memset(ar, '\0', offset*sizeof(MYFLT));
+      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (early) {
+        nsmps -= early;
+        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      }
       for (n=offset;n<nsmps;n++) {
 
         shakeEnergy *= systemDecay;               /* Exponential system decay */
@@ -1136,6 +1166,7 @@ static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT data;
     MYFLT temp_rand;
@@ -1180,7 +1211,11 @@ static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2, inputs3, inputs4;
-      memset(ar, '\0', offset*sizeof(MYFLT));
+      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (early) {
+        nsmps -= early;
+        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      }
       for (n=offset;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
         if (my_random(csound, 1024) < p->num_objects) {

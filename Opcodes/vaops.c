@@ -40,7 +40,8 @@ static int vaget(CSOUND *csound, VA_GET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    if (UNLIKELY(ndx<offset || ndx>=(int32)CS_KSMPS))
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
       return csound->PerfError(csound, Str("Out of range in vaget (%d)"), ndx);
     *p->kout = p->avar[ndx];
     return OK;
@@ -50,7 +51,8 @@ static int vaset(CSOUND *csound, VA_SET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    if (UNLIKELY(ndx<offset || ndx>=(int32)CS_KSMPS))
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
       return csound->PerfError(csound, Str("Out of range in vaset (%d)"), ndx);
     p->avar[ndx] = *p->kval;
     return OK;

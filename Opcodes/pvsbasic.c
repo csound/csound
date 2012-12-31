@@ -81,6 +81,7 @@ static int pvsgain(CSOUND *csound, PVSGAIN *p)
     if (p->fa->sliding) {
       CMPLX * fout, *fa;
       uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       int NB = p->fa->NB;
       for (n=0; n<offset; n++) {
@@ -88,6 +89,12 @@ static int pvsgain(CSOUND *csound, PVSGAIN *p)
         for (i = 0; i < NB; i++)
           fout[i].re = fout[i].im = FL(0.0);
       }
+      for (n=nsmps-early; n<nsmps; n++) {
+        fout = (CMPLX*) p->fout->frame.auxp +NB*n;
+        for (i = 0; i < NB; i++)
+          fout[i].re = fout[i].im = FL(0.0);
+      }
+      nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         fout = (CMPLX*) p->fout->frame.auxp +NB*n;
         fa = (CMPLX*) p->fa->frame.auxp +NB*n;
@@ -120,6 +127,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
 {
     int     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     float   *bframe;
     int32    N = (int32) *p->framesize;
@@ -144,7 +152,8 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
       for (n=0; n<nsmps; n++)
         for (i = 0; i < N + 2; i += 2) {
           bframe[i+n*NB] = FL(0.0);
-          bframe[i+n*NB + 1] = (n<offset ? FL(0.0) :(i >>1) * N * csound->onedsr);
+          bframe[i+n*NB + 1] = 
+            (n<offset || n>nsmps-early ? FL(0.0) :(i >>1) * N * csound->onedsr);
         }
     }
     else
@@ -2016,6 +2025,7 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
       MYFLT masklevel = FABS(*p->klevel);
       int NB = p->fin->NB, i;
       uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       p->fout->NB = NB;
       p->fout->N = p->fin->N;
@@ -2026,6 +2036,11 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
       }
+      for (n=nsmps-early; n<nsmps; n++) {
+        CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
+        for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
+      }
+      nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         CMPLX *fin  = (CMPLX *) p->fin->frame.auxp  + n*NB;

@@ -88,6 +88,7 @@ int shaker(CSOUND *csound, SHAKER *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT shake = amp + amp;
@@ -112,7 +113,11 @@ int shaker(CSOUND *csound, SHAKER *p)
     if ((--p->kloop) == 0) {
       p->shake_num = 0;
     }
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     gain *= p->num_beans;       /* Save work in loop */
     for (n=offset; n<nsmps; n++) {
         MYFLT   lastOutput;

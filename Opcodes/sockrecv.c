@@ -175,13 +175,18 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
     MYFLT   *buf = p->buf;
     int     n;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int     *bufsamps = p->bufsamps;
     int     bufnos = p->bufnos;
 
     if (p->canread) {
-      memset(asig, '\0', offset*sizeof(MYFLT));
-      for (i = offset, n = p->rp; i < nsmps; i++, n++) {
+      if (offset) memset(asig, '\0', offset*sizeof(MYFLT));
+      if (early) {
+        nsmps -= early;
+        memset(&asig[nsmps], '\0', early*sizeof(MYFLT));
+      }
+     for (i = offset, n = p->rp; i < nsmps; i++, n++) {
         if (n == bufsamps[p->rbufferuse]) {
           p->usedbuf[p->rbufferuse] = 0;
           p->rbufferuse++;
@@ -275,13 +280,22 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
     MYFLT   *buf = p->buf;
     int     n;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int     *bufsamps = p->bufsamps;
     int     bufnos = p->bufnos;
 
     if (p->canread) {
-      memset(asigl, '\0', offset*sizeof(MYFLT));
-      memset(asigr, '\0', offset*sizeof(MYFLT));
+      if (offset) {
+        memset(asigl, '\0', offset*sizeof(MYFLT));
+        memset(asigr, '\0', offset*sizeof(MYFLT));
+      }
+      if (early) {
+        nsmps -= early;
+        memset(&asigl[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&asigr[nsmps], '\0', early*sizeof(MYFLT));
+      }
+
       for (i = offset, n = p->rp; i < nsmps; i++, n += 2) {
         if (n == bufsamps[p->rbufferuse]) {
           p->usedbuf[p->rbufferuse] = 0;
