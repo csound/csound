@@ -356,12 +356,14 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
 {
     SCANSYN_GLOBALS *pp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     len = p->len;
 
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
+    if (early) nsmps -= early;
     for (n = offset ; n < nsmps ; n++) {
 
       /* Put audio input in external force */
@@ -498,11 +500,16 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
 {
     MYFLT phs = p->phs, inc = *p->k_freq * p->fix;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT t = (MYFLT)p->p->idx/p->p->rate;
     MYFLT *out = p->a_out;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     switch (p->oscil_interp) {
     case 1:
       for (i = offset ; i < nsmps ; i++) {

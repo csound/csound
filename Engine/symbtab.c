@@ -576,8 +576,8 @@ int add_udo_definition(CSOUND *csound, char *opname,
     inm->intypes = intypes;
     inm->outtypes = outtypes;
 
-    inm->prv = csound->engineState.opcodeInfo;
-    csound->engineState.opcodeInfo = inm;
+    inm->prv = csound->opcodeInfo;
+    csound->opcodeInfo = inm;
 
     /* IV - Oct 31 2002: */
     /* create a fake opcode so we can call it as such */

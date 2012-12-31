@@ -51,7 +51,7 @@ extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
 
-PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
+PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
@@ -270,7 +270,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
 
-    return csoundStart(csound);
+    return CSOUND_SUCCESS;
 }
 
 
@@ -375,5 +375,13 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       csp_parallel_compute_spec_setup(csound);
     }
 #endif
+    csound->engineStatus |= CS_STATE_COMP;
     return musmon(csound);
+}
+
+PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
+
+  int result = csoundCompileArgs(csound,argc,argv);
+  if(result == CSOUND_SUCCESS) return csoundStart(csound);
+  else return result;
 }

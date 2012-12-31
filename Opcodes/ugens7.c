@@ -90,6 +90,7 @@ static int fof(CSOUND *csound, FOFS *p)
     FUNC    *ftp1,  *ftp2;
     MYFLT   *ar, *amp, *fund, *form;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32   fund_inc, form_inc;
     MYFLT   v1, fract ,*ftab;
@@ -102,7 +103,11 @@ static int fof(CSOUND *csound, FOFS *p)
     ftp1 = p->ftp1;
     ftp2 = p->ftp2;
     fund_inc = (int32)(*fund * csound->sicvt);
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     form_inc = (int32)(*form * csound->sicvt);
     for (n=offset; n<nsmps; n++) {
       if (p->fundphs & MAXLEN) {               /* if phs has wrapped */
@@ -300,6 +305,7 @@ static int harmon(CSOUND *csound, HARMON *p)
     int32  cnt1, cnt2, cnt3;
     int32  nn, phase1, phase2, phsinc1, phsinc2, period;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     inp1 = p->inp1;
@@ -424,7 +430,11 @@ static int harmon(CSOUND *csound, HARMON *p)
     phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
     phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
     outp = p->ar;
-    memset(outp, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(outp, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       MYFLT sum;
       if (src1 != NULL) {

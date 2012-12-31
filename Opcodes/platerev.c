@@ -109,6 +109,7 @@ static int platerev_init(CSOUND *csound, PLATE *p)
 static int platerev(CSOUND *csound, PLATE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, j, nsmps = CS_KSMPS;
     int Ny = p->Ny, Nx = p->Nx;
     int Nx5 = Nx+5;
@@ -122,6 +123,7 @@ static int platerev(CSOUND *csound, PLATE *p)
     MYFLT *uin;
     double wi[40], wo[40], sdi[40], cdi[40], sdo[40], cdo[40];
 
+    if (early) nsmps -= early;
     for (qq=0; qq<(int32_t)p->nin; qq++) {
       double delta = TWOPI*(double)p->in_param[3*qq]*dt;
       cdi[qq] = cos(delta);
@@ -132,6 +134,7 @@ static int platerev(CSOUND *csound, PLATE *p)
       sdo[qq] = sin(delta);
       wo[qq] = (p->L*0.5)*(double)p->out_param[3*qq+1];
       if (offset) memset(p->aout[qq], '\0', offset*sizeof(MYFLT));
+      if (early) memset(&p->aout[qq][nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
       /* interior grid points*/
