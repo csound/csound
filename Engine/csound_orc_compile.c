@@ -160,74 +160,144 @@ static inline void append_optxt(OPTXT *op1, OPTXT *op2)
 
 void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 {
-  int n = tp->inlist->count;
-  char *s;
-  char *types = ep->intypes;
-  int nreqd = strlen(types);
-  char      tfound = '\0', treqd;
+    int n = tp->inlist->count;
+    char *s;
+    char *types = ep->intypes;
+    int nreqd = strlen(types);
+    //int lgprevdef = 0;
+    char      tfound = '\0', treqd;
 
-  if (n > nreqd) {                
-    if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
-      int incnt = -1;                       /* Should count args */
-      if (!(incnt & 01))                    /* require odd */
-	synterr(csound, Str("missing or extra arg"));
-    }       
-    else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
-	     treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
-      synterr(csound, Str("too many input args\n"));
-  }
+    if (n > nreqd) {                 /* IV - Oct 24 2002: end of new code */
+      if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
+        int incnt = -1;                       /* Should count args */
+        if (!(incnt & 01))                    /* require odd */
+          synterr(csound, Str("missing or extra arg"));
+      }       /* IV - Sep 1 2002: added 'M' */
+      else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
+               treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
+        synterr(csound, Str("too many input args\n"));
+    }
 
-  while (n--) {                     /* inargs:   */
-    //int32    tfound_m, treqd_m = 0L;
-    s = tp->inlist->arg[n];
+    while (n--) {                     /* inargs:   */
+      //int32    tfound_m, treqd_m = 0L;
+      s = tp->inlist->arg[n];
 
-    if (n >= nreqd) {               /* det type required */
-      switch (types[nreqd-1]) {
-      case 'M':
-      case 'N':
-      case 'Z':
-      case 'y':
-      case 'z':   treqd = types[nreqd-1]; break;
-      default:    treqd = 'i';    /*   (indef in-type) */
+      if (n >= nreqd) {               /* det type required */
+        switch (types[nreqd-1]) {
+        case 'M':
+        case 'N':
+        case 'Z':
+        case 'y':
+        case 'z':   treqd = types[nreqd-1]; break;
+        default:    treqd = 'i';    /*   (indef in-type) */
+        }
       }
+      else treqd = types[n];          /*       or given)   */
+      if (treqd == 'l') {             /* if arg takes lbl  */
+        csound->DebugMsg(csound, "treqd = l");
+        //        lblrequest(csound, s);        /*      req a search */
+        continue;                     /*      chk it later */
+      }
+      tfound = argtyp2(s);     /* else get arg type */
+      /* IV - Oct 31 2002 */
+//      tfound_m = STA(typemask_tabl)[(unsigned char) tfound];
+//      lgprevdef = lgexist2(csound, s);
+//      csound->DebugMsg(csound, "treqd %c, tfound_m %d lgprevdef %d\n",
+//                       treqd, tfound_m, lgprevdef);
+//      if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !lgprevdef && *s != '"') {
+//        synterr(csound,
+//                Str("input arg '%s' used before defined (in opcode %s),"
+//                    " line %d\n"),
+//                s, ep->opname, line);
+//      }
+      if (tfound == 'a' && n < 31) /* JMC added for FOG */
+                                   /* 4 for FOF, 8 for FOG; expanded to 15  */
+        tp->xincod |= (1 << n);
+      if (tfound == 'S' && n < 31)
+        tp->xincod_str |= (1 << n);
+      /* IV - Oct 31 2002: simplified code */
+//      if (!(tfound_m & STA(typemask_tabl_in)[(unsigned char) treqd])) {
+//        /* check for exceptional types */
+//        switch (treqd) {
+//        case 'Z':                             /* indef kakaka ... */
+//          if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
+//            intyperr(csound, n, s, ep->opname, tfound, treqd, line);
+//          break;
+//        case 'x':
+//          treqd_m = ARGTYP_ipcr;              /* also allows i-rate */
+//        case 's':                             /* a- or k-rate */
+//          treqd_m |= ARGTYP_a | ARGTYP_k;
+//          printf("treqd_m=%d tfound_m=%d tfound=%c count=%d\n",
+//                 treqd_m, tfound_m, tfound, tp->outlist->count);
+//          if (tfound_m & treqd_m) {
+//            if (tfound == 'a' && tp->outlist->count != 0) {
+//              long outyp_m =                  /* ??? */
+//                STA(typemask_tabl)[(unsigned char) argtyp2(csound,
+//                                                           tp->outlist->arg[0])];
+//              if (outyp_m & (ARGTYP_a | ARGTYP_w | ARGTYP_f)) break;
+//            }
+//            else
+//              break;
+//          }
+//        default:
+//          intyperr(csound, n, s, ep->opname, tfound, treqd, line);
+//          break;
+//        }
+//      }//
     }
-    else treqd = types[n];          /*       or given)   */
-    if (treqd == 'l') {             /* if arg takes lbl  */
-      csound->DebugMsg(csound, "treqd = l");
-      //        lblrequest(csound, s);        /*      req a search */
-      continue;                     /*      chk it later */
-    }
-    tfound = argtyp2( s);     /* else get arg type */
-    if (tfound == 'a' && n < 31) /* JMC added for FOG */
-      /* 4 for FOF, 8 for FOG; expanded to 15  */
-      tp->xincod |= (1 << n);
-    if (tfound == 'S' && n < 31)
-      tp->xincod_str |= (1 << n);
-
-  }
+    //csound->DebugMsg(csound, "xincod = %d", tp->xincod);
 }
+
 
 void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 {
-  int n = tp->outlist->count;
-  char *s;
-  char *types = ep->outypes;
-  int nreqd = -1;
-  char      tfound = '\0', treqd;
+    int n = tp->outlist->count;
+    char *s;
+    char *types = ep->outypes;
+    int nreqd = -1;
+    char      tfound = '\0', treqd;
 
-  if (nreqd < 0)    /* for other opcodes */
-    nreqd = strlen(types = ep->outypes);
-  while (n--) {                                     /* outargs:  */
-    s = tp->outlist->arg[n];
-    treqd = types[n];
-    tfound = argtyp2( s);                     /*  found    */
-    if (tfound == 'a' && n < 31)
-      tp->xoutcod |= (1 << n);
-    if (tfound == 'S' && n < 31)
-      tp->xoutcod_str |= (1 << n);
-    csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
-  }
+    if (nreqd < 0)    /* for other opcodes */
+      nreqd = strlen(types = ep->outypes);
+/* if ((n != nreqd) && */        /* IV - Oct 24 2002: end of new code */
+/*          !(n > 0 && n < nreqd &&
+            (types[n] == (char) 'm' || types[n] == (char) 'z' ||
+             types[n] == (char) 'X' || types[n] == (char) 'N' ||
+             types[n] == (char) 'F' || types[n] == (char) 'I'))) {
+             synterr(csound, Str("illegal no of output args"));
+             if (n > nreqd)
+             n = nreqd;
+             }*/
+
+
+    while (n--) {                                     /* outargs:  */
+      //long    tfound_m;       /* IV - Oct 31 2002 */
+      s = tp->outlist->arg[n];
+      treqd = types[n];
+      tfound = argtyp2(s);                     /*  found    */
+      /* IV - Oct 31 2002 */
+//      tfound_m = STA(typemask_tabl)[(unsigned char) tfound];
+      /* IV - Sep 1 2002: xoutcod is the same as xincod for input */
+      if (tfound == 'a' && n < 31)
+        tp->xoutcod |= (1 << n);
+      if (tfound == 'S' && n < 31)
+        tp->xoutcod_str |= (1 << n);
+      csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
+      /* if (tfound_m & ARGTYP_w) */
+      /*   if (STA(lgprevdef)) { */
+      /*     synterr(csound, Str("output name previously used, " */
+      /*                         "type '%c' must be uniquely defined, line %d"), */
+      /*             tfound, line); */
+      /*   } */
+      /* IV - Oct 31 2002: simplified code */
+//      if (!(tfound_m & STA(typemask_tabl_out)[(unsigned char) treqd])) {
+//        synterr(csound, Str("output arg '%s' illegal type (for opcode %s),"
+//                            " line %d\n"),
+//                s, ep->opname, line);
+//      }
+    }
 }
+
 
 
 /**
