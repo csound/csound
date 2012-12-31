@@ -796,12 +796,12 @@ static int product(CSOUND *csound, SUM *p)
     MYFLT *ar = p->ar, **args = p->argums;
     MYFLT *ag = *args;
 
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
     if (early) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*nsmps);
+    memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*(nsmps-offset));
     while (--count) {
       ag = *(++args);                   /* over all arguments */
       for (k=offset; k<nsmps; k++) {
