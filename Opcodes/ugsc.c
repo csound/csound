@@ -52,6 +52,7 @@ static int svf(CSOUND *csound, SVF *p)
     MYFLT low2, high2, band2;
     MYFLT kfco = *p->kfco, kq = *p->kq;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     /* calculate frequency and Q coefficients */
@@ -79,9 +80,15 @@ static int svf(CSOUND *csound, SVF *p)
      * of Microprocessors.
      */
     if (offset) {
-      memset(low, '\0', offset*sizeof(MYFLT));
+      memset(low,  '\0', offset*sizeof(MYFLT));
       memset(high, '\0', offset*sizeof(MYFLT));
       memset(band, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&low[nsmps],  '\0', early*sizeof(MYFLT));
+      memset(&high[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&band[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
       low[n]  = low2 = ynm2 + f1 * ynm1;
@@ -135,6 +142,7 @@ static int hilbert(CSOUND *csound, HILBERT *p)
     MYFLT *out1, *out2, *in;
     MYFLT *coef;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int j;
 
@@ -143,8 +151,15 @@ static int hilbert(CSOUND *csound, HILBERT *p)
     out2 = p->out2;
     in = p->in;
 
-    memset(out1, '\0', offset*sizeof(MYFLT));
-    memset(out2, '\0', offset*sizeof(MYFLT));
+    if (offset) {
+      memset(out1, '\0', offset*sizeof(MYFLT));
+      memset(out2, '\0', offset*sizeof(MYFLT));
+    }
+    if (early) {
+      nsmps -= early;
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       xn1 = in[n];
       /* 6th order allpass filter for sine output. Structure is
@@ -222,6 +237,7 @@ static int resonr(CSOUND *csound, RESONZ *p)
     double xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     r = exp((double)(kbw * csound->mpidsr));
@@ -242,7 +258,11 @@ static int resonr(CSOUND *csound, RESONZ *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       xn = (double)in[n];
       out[n] = (MYFLT)(yn = scale * (xn - r * xnm2) + c1 * ynm1 - c2 * ynm2);
@@ -277,6 +297,7 @@ static int resonz(CSOUND *csound, RESONZ *p)
     double xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     r = exp(-(double)(kbw * csound->pidsr));
@@ -300,7 +321,11 @@ static int resonz(CSOUND *csound, RESONZ *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       xn = (double)in[n];
       out[n] = (MYFLT)(yn = scale * (xn - xnm2) + c1 * ynm1 - c2 * ynm2);
@@ -358,6 +383,7 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     MYFLT coef = FABS(*p->kcoef), fbgain = *p->fbgain;
     MYFLT beta, wp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int j;
 
@@ -373,7 +399,11 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     wp = csound->pidsr * coef;
     beta = (FL(1.0) - wp)/(FL(1.0) + wp);
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i=offset; i<nsmps; i++) {
       xn = in[i] + feedback * fbgain;
       for (j=0; j < p->loop; j++) {
@@ -424,6 +454,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
     MYFLT temp;
     MYFLT *nm1, *nm2, feedback;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int j;
 
@@ -443,7 +474,11 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
     if (ksep <= FL(0.0))
       ksep = -ksep;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       MYFLT kk = FL(1.0);
       xn = in[n] + feedback * fbgain;
@@ -506,6 +541,7 @@ static int lp2(CSOUND *csound, LP2 *p)
     double yn, ynm1, ynm2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     temp = (double)(csound->mpidsr * kfco / kres);
@@ -519,7 +555,11 @@ static int lp2(CSOUND *csound, LP2 *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n=offset; n<nsmps; n++) {
       out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
       ynm2 = ynm1;

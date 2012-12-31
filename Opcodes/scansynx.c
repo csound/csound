@@ -460,6 +460,7 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
 {
     SCANSYN_GLOBALS *pp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     len = p->len;
     int32    exti = p->exti;
@@ -470,8 +471,12 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
-    memset(out, '\0', offset*sizeof(MYFLT));
-    for (n = 0 ; n < nsmps ; n++) {
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n = offset ; n < nsmps ; n++) {
 
       /* Put audio input in external force */
       p->ext[exti] = p->a_ext[n];
@@ -612,8 +617,9 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
  */
 static int scsnsx(CSOUND *csound, PSCSNSX *p)
 {
-     MYFLT   *out = p->a_out;
+    MYFLT   *out = p->a_out;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int32 tlen   = p->tlen;
     MYFLT phs   = p->phs, inc = *p->k_freq * p->fix;
@@ -621,6 +627,11 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
     MYFLT amp = *p->k_amp;
     PSCSNUX *pp = p->p;
 
+    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     switch (p->oscil_interp) {
     case 1:
       for (i = offset ; i < nsmps ; i++) {

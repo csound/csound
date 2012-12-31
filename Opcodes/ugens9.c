@@ -184,6 +184,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     int32  Hlenpadded = p->Hlenpadded;
     MYFLT  scaleFac;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn;
 
     scaleFac = csound->GetInverseRealFFTScale(csound, (int) Hlenpadded);
@@ -217,9 +218,12 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
         i = Hlen - incount;
       nsmpsi -= i;
       incount += i;
+      nsmpso_sav = CS_KSMPS-early;
       for (nn=0; i>0; nn++, i--) {
-        if (nn<offset) *fftbufind++ = FL(0.0);
-        else           *fftbufind++ = scaleFac * ai[nn];
+        if (nn<offset|| nn>nsmpso_sav)
+          *fftbufind++ = FL(0.0);
+        else
+          *fftbufind++ = scaleFac * ai[nn];
       }
       if (incount == Hlen) {
         /* We have enough audio for a convolution. */
@@ -492,6 +496,7 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 {
     uint32_t nn, nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT  *ai = p->ain;
     MYFLT  *buf;
     MYFLT  *input = (MYFLT*) p->savedInput.auxp, *workWrite = p->workWrite;
@@ -501,7 +506,7 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 
     for (nn=0; nn<nsmps; nn++) {
       /* Read input audio and place into buffer. */
-      input[count++] = *workWrite++ = (nn<offset? FL(0.0) : ai[nn]);
+      input[count++] = *workWrite++ = (nn<offset||nn>early? FL(0.0) : ai[nn]);
 
       /* We have enough audio for a convolution. */
       if (count == p->Hlen) {

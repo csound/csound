@@ -114,6 +114,7 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int     wp;
     int     buffersize = p->bsize;
@@ -122,6 +123,7 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     int16   *outs = (int16 *) p->aux.auxp;
     int     ff = p->ff;
 
+    if (early) nsmps -= early;
     for (i = offset, wp = p->wp; i < nsmps; i++, wp++) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
@@ -208,9 +210,11 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     int     wp;
     int     buffersize = p->bsize;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int     ff = p->ff;
 
+    if (early) nsmps -= early;
     /* store the samples of the channels interleaved in the packet */
     /* (left, right) */
     for (i = offset, wp = p->wp; i < nsmps; i++, wp += 2) {
@@ -298,9 +302,10 @@ again:
 static int send_ssend(CSOUND *csound, SOCKSEND *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t n = sizeof(MYFLT) * (CS_KSMPS-offset);
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
 
-    if (n != write(p->sock, p->asig, n)) {
+    if (n != write(p->sock, &p->asig[offset], n)) {
       csound->Message(csound, Str("Expected %d got %d\n"),
                       (int) (sizeof(MYFLT) * CS_KSMPS), n);
       return csound->PerfError(csound, Str("write to socket failed"));

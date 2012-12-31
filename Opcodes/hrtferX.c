@@ -153,7 +153,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     int        outfront, outend; /* circular output indices */
     int        incount, outcount; /* number of samples in/out */
     int        toread; /* number of samples to read */
-    int        i; /* standard loop counter */
+    uint32_t   i; /* standard loop counter */
     HRTF_DATUM hrtf_data; /* local hrtf instances */
     int        flip; /* flag - true if we need to flip the channels */
     int16      *fpindex; /* pointer into HRTF file */
@@ -163,6 +163,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
                         /* float versions of above to be sent to FFT routines */
     MYFLT      xl[BUF_LEN], xr[BUF_LEN];
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
 
     if (UNLIKELY(p->mfp==NULL)) goto err1;         /* RWD fix */
         /* update local variables */
@@ -300,11 +301,11 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
                 /* reading in audio into x */
       if (incount == 0) {
         for (i = 0; i < toread; i++)
-          x[i] = (i<offset ? FL(0.0) : aIn[i]);
+          x[i] = (i<offset||i>early ? FL(0.0) : aIn[i]);
       }
       else {
         for (i = incount; i<(incount + toread); i++)
-          x[i] = (i<offset ? FL(0.0) : aIn[i]);
+          x[i] = (i<offset||i>early ? FL(0.0) : aIn[i]);
       }
 
           /* update counters for amount of audio read */
