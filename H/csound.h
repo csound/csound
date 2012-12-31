@@ -595,23 +595,46 @@ extern "C" {
      */
     PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
 
+    /**
+     * Set a csound option
+     */
+    PUBLIC int csoundSetOption(CSOUND *csound, char *option);
+
     /*
      * PERFORMANCE
      */
 
+    /**
+     * Parse the given orchestra from an ASCII string into a TREE
+    */
     PUBLIC TREE *csoundParseOrc(CSOUND *csound, char *str);
-
-    PUBLIC int csoundSetOption(CSOUND *csound, char *option);
- 
 
     /**
      * Compile the given TREE node into structs for Csound to use
      */
     PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
 
+    /**
+     * Parse, and compile the given orchestra from an ASCII string.
+    */
     PUBLIC int csoundCompileOrc(CSOUND *csound, char *str);
-
+    
+    /**
+     *  Read, preprocess, and load a score from an ASCII string
+     */
     PUBLIC int csoundReadScore(CSOUND *csound, char *str);
+
+    /**
+     *  Read arguments, parse and compile an orchestra, read, process and
+     *  load a score.
+    */
+    PUBLIC int csoundCompileArgs(CSOUND *, int argc, char **argv);
+
+    /**
+     * Prepares Csound for performance after compilation 
+     * using one or more of the above functions.
+     */
+    PUBLIC int csoundStart(CSOUND *csound);
 
     /**
      * Compiles Csound input files (such as an orchestra and score)
@@ -624,10 +647,9 @@ extern "C" {
      *       csoundCleanup(csound);
      *       csoundReset(csound);
      * /endcode
+     *  Calls csoundStart() internally.
      */
     PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
-
-    PUBLIC int csoundStart(CSOUND *csound);
 
     /**
      * Senses input events and performs audio output until the end of score
