@@ -391,6 +391,7 @@ static int sekere(CSOUND *csound, SEKERE *p)
 /*          ar[n] = 0.0f; */
 /*        } */
     }
+    printf("%d/%d:\n", offset, early);
     p->shakeEnergy = shakeEnergy;
     p->sndLevel = sndLevel;
     p->outputs0 = outputs0;
