@@ -46,6 +46,7 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
     int j;
     int n = p->n;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
 
     vbap_zak_control(csound,p);
@@ -58,12 +59,14 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
        with gain factors */
     invfloatn =  CS_ONEDKSMPS;
     outptr = p->out_array;
+    if (early) nsmps -= early;
     for (j=0; j<n; j++) {
       inptr = p->audio;
       ogain = p->beg_gains[j];
       ngain = p->end_gains[j];
       gainsubstr = ngain - ogain;
-      memset(outptr, '\0', offset*sizeof(MYFLT));
+      if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
+      if (early) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
           for (i = offset; i < nsmps; i++) {
@@ -266,6 +269,7 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
     MYFLT invfloatn;
     int j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
 
     vbap_zak_moving_control(csound,p);
@@ -278,7 +282,11 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
        with gain factors */
     invfloatn =  CS_ONEDKSMPS;
     outptr = p->out_array;
-    memset(outptr, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (j=0; j<p->n ;j++) {
       inptr = p->audio;
       ogain = p->beg_gains[j];
