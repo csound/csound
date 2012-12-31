@@ -17,3 +17,5 @@ Csound 6 TODO list
 
 5) New dag control without memory use
 
+6) Whittle code needs rewrite to avoid copyright infringement and to
+make it easier to maintain
