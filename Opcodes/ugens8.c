@@ -139,6 +139,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     int    specwp = (int)*p->ispecwp;   /* spectral warping flag */
     MYFLT  pex, scaleFac;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
@@ -194,7 +195,11 @@ int pvoc(CSOUND *csound, PVOC *p)
     scaleFac = p->scale;
     if (pex > FL(1.0))
       scaleFac /= pex;
-    memset(p->rslt, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(p->rslt, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&p->rslt[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i = offset; i < nsmps; i++)
       p->rslt[i] *= scaleFac;
 

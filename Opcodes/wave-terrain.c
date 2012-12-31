@@ -56,6 +56,7 @@ static int wtinit(CSOUND *csound, WAVETER *p)
 static int wtPerf(CSOUND *csound, WAVETER *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int xloc, yloc;
     MYFLT xc, yc;
@@ -68,7 +69,11 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
     MYFLT dtpidsr = csound->tpidsr;
     MYFLT *aout = p->aout;
 
-    memset(aout, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i=offset; i<nsmps; i++) {
 
       /* COMPUTE LOCATION OF SCANNING POINT */
@@ -202,6 +207,7 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
 static int scantPerf(CSOUND *csound, SCANTABLE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT force, fc1, fc2;
     int next, last;
@@ -256,7 +262,11 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
       }
     }
 
-    memset(aout, '\0', offset*sizeof(MYFLT));
+    if (offset) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (i=offset; i<nsmps; i++) {
 
       /* NO INTERPOLATION */

@@ -571,6 +571,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     double  *oscphase;
     int     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
@@ -607,9 +608,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     /* initialise output to zero */
     ar = p->aoutput;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-/*     for (i = 0; i < nsmps; i++) */
-/*       ar[i] = FL(0.0); */
-
+    if (early) nsmps -= early;
     if (*p->igatefun > FL(0.0))
       AtsAmpGate(buf, *p->iptls, p->AmpGateFunc, p->MaxAmp);
 
@@ -996,6 +995,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     MYFLT   *ar, amp;
     int     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     synthme;
     int     nsynthed;
@@ -1028,6 +1028,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     ar = p->aoutput;
 
     memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     synthme = p->bandoffset;
     nsynthed = 0;
@@ -1295,6 +1296,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 {
     MYFLT   frIndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *ar;
     double  noise;
@@ -1340,6 +1342,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     ar = p->aoutput;
 
     memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     oscbuf = p->oscbuf;
 
@@ -2055,6 +2058,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     double  *oscphase;
     int     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
@@ -2102,6 +2106,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     /* initialise output to zero */
     ar = p->aoutput;
     memset(ar, 0, nsmps*sizeof(MYFLT));
+    if (early) nsmps -= early;
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
