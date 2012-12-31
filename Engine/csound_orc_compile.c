@@ -291,7 +291,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
       ip->opdstot += csound->opcodlst[opnum].dsblksiz;
       
       if (tp->opnum == find_opcode(csound, "array_init")) {
-        csound->Message(csound, "OMG! ARRAY_INIT!\n");
+        break;
       }
           
       /* BUILD ARG LISTS */
