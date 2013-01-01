@@ -10,14 +10,23 @@ Csound 6 TODO list
  - thread safety ?
  - UDOs are not replaced, memory recovery needed? 
  - add opcode to compile/load an opcode
+ - API step by step construction of TREE?
 
-2) allow any number of strings in score events (except p2,p3)
+2) allow any number of strings in score events (except p2,p3). 
+  - do we need a new parser for score?
 
 3) test sample-accurate opcodes, or document those not working
 
 4) Use instrument-local structure rather than global (ksmps mainly)
 
-5) New dag control without memory use
+5) New DAG control without memory use
 
 6) Whittle code needs rewrite to avoid copyright infringement and to
 make it easier to maintain
+
+7) Analysis formats need to be byte-order/machine independent, and
+reader opcodes need to accept them
+
+8) assignnments to p3 not working anymore
+
+9) syntax error checks (undef variables etc) need to be put back.
