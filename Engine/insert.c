@@ -225,27 +225,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (UNLIKELY(O->odebug))
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
-     /* new code for sample-accurate timing, not for tied notes */
-    if (O->sampleAccurate & !tie) {
-      int64_t start_time_samps, start_time_kcycles, duration_kcycles;
-      double duration_samps;
-      start_time_samps = (int64_t) (ip->p2 * csound->esr);
-      duration_samps =  ip->p3 * csound->esr;
-      start_time_kcycles = start_time_samps/csound->ksmps;
-      duration_kcycles = CEIL(duration_samps/csound->ksmps);
-      /* ksmps_offset = */ 
-      ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
-      ip->no_end = duration_kcycles*csound->ksmps - 
-        duration_samps +(csound->ksmps - ip->ksmps_offset);
-      ip->ksmps_no_end = 0; /* the ksmps_no_end field is initially 0, set to no_end in the last perf cycle */
-      //      if (ip->ksmps_offset) printf(">>>> offset=%d\n", ip->ksmps_offset);
-    }
-    else {
-     /* ksmps_offset = */ 
-    ip->ksmps_offset = 0;
-    ip->ksmps_no_end = 0;
-    ip->no_end = 0;
-    }
+    
 
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
@@ -270,6 +250,37 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       xturnoff_now(csound, ip);
       return csound->inerrcnt;
     }
+
+     /* new code for sample-accurate timing, not for tied notes */
+    if (O->sampleAccurate & !tie) {
+      int64_t start_time_samps, start_time_kcycles, duration_kcycles;
+      double duration_samps;
+      start_time_samps = (int64_t) (ip->p2 * csound->esr);
+      duration_samps =  ip->p3 * csound->esr;
+      start_time_kcycles = start_time_samps/csound->ksmps;
+      duration_kcycles = CEIL(duration_samps/csound->ksmps);
+      /* ksmps_offset = */ 
+      ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
+      //ip->no_end = duration_kcycles*csound->ksmps - duration_samps 
+      //                                            - ip->ksmps_offset;
+      ip->no_end = csound->ksmps - ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
+      ip->ksmps_no_end = 0; /* the ksmps_no_end field is initially 0, set to no_end in the last perf cycle */
+      if (ip->no_end) {
+        //        printf(">>>> %d\n",csound->ksmps - ((int)duration_samps+ip->ksmps_offset)%csound->ksmps);
+        //        printf(">>>> %d\n",((int)duration_samps+ip->ksmps_offset));
+        printf(">>>> no_end=%d (%ld,%d,%f,%d)\n",
+               ip->no_end, (long)duration_kcycles, csound->ksmps,
+               duration_samps, ip->ksmps_offset);
+        //printf("   > p2=%f p3=%f\n", ip->p2, ip->p3);
+      }
+    }
+    else {
+     /* ksmps_offset = */ 
+    ip->ksmps_offset = 0;
+    ip->ksmps_no_end = 0;
+    ip->no_end = 0;
+    }
+
 #ifdef BETA
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "In insert:  %d %lf %lf\n",
