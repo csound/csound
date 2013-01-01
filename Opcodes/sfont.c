@@ -478,7 +478,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
           int flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
-          for (n=0;n<nsmps;n++) {
+          for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
             Linear_interpolation Stereo_out Looped
           }

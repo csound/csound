@@ -1023,7 +1023,7 @@ int FMVoice(CSOUND *csound, FM4OPV *q)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (n=0;n<nsmps;n++) {
+    for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput;
       lastOutput = FM4Alg6_tick(csound,q);
       ar[n] = lastOutput*AMP_SCALE*FL(0.8);
