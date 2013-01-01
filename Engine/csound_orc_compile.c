@@ -282,7 +282,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         tp->xoutcod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xoutcod_str |= (1 << n);
-      csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
+      csound->Message(csound, "treqd %c, tfound %c \n", treqd, tfound);
       /* if (tfound_m & ARGTYP_w) */
       /*   if (STA(lgprevdef)) { */
       /*     synterr(csound, Str("output name previously used, " */
@@ -403,6 +403,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
       for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
 
 	arg = outargs->value->lexeme;
+
+        
 
 	if ((n = pnum(arg)) >= 0) {
 	  if (n > ip->pmax)  ip->pmax = n;
@@ -1311,8 +1313,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       continue;
     }
     ep = &(csound->opcodlst[opnum]);
-    if (O->odebug) 
-    csound->Message(csound, "%s args:", ep->opname);
+     if (O->odebug) 
+    csound->Message(csound, "%s args:\n", ep->opname);
     if ((outlist = ttp->outlist) == NULL || !outlist->count)
       ttp->outArgs = NULL;
     else {

@@ -2034,7 +2034,7 @@ static void instance(CSOUND *csound, int insno)
     	  } else if(arg->type == ARG_LOCAL) {
     		  fltp = lclbas + var->memBlockIndex;
     	  } else if(arg->type == ARG_PFIELD){
-          fltp = lclbas + arg->index;
+	    fltp = lcloffbas + arg->index;  /* VL 1.1.13 - changed lclbas to lcloffbas so p-fields can be assigned to */
         } else {
           csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n", arg->type);
           fltp = NULL;
