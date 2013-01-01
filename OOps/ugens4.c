@@ -74,6 +74,7 @@ int buzz(CSOUND *csound, BUZZ *p)
     phs = p->lphs;
     if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
     if (early) {
+      printf("early=%d\n", early);
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
