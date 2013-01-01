@@ -1298,7 +1298,7 @@ int pinkish(CSOUND *csound, PINKISH *p)
       /* Get filter states */
       c0 = p->b0; c1 = p->b1; c2 = p->b2;
       c3 = p->b3; c4 = p->b4; c5 = p->b5; c6 = p->b6;
-      for (n=0;n<nsmps;n++) {
+      for (n=offset;n<nsmps;n++) {
         nxtin = (double)ain[n];
         c0 = c0 * 0.99886 + nxtin * 0.0555179;
         c1 = c1 * 0.99332 + nxtin * 0.0750759;

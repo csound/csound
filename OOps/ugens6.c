@@ -737,7 +737,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     }
     else {                          /* window size = 4, cubic interpolation */
       double  x, am1, a0, a1, a2;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         am1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (am1 < 0.0) am1 += (double)maxd;
         xpos = (int32) am1; am1 -= (double)xpos;
@@ -820,7 +820,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
     }
     else {                          /* window size = 4, cubic interpolation */
       double  x, am1, a0, a1, a2;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         am1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (am1 < 0.0) am1 += (double)maxd;
         xpos = (int32) am1; am1 -= (double)xpos;
@@ -929,13 +929,13 @@ int comb(CSOUND *csound, COMB *p)
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
     ar = p->ar;
-    if (offset) memset(ar, '0', offset*sizeof(MYFLT));
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
     if (early) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     asig = p->asig;
-    for (n=0; n<nsmps; n++) {
+    for (n=offset; n<nsmps; n++) {
       MYFLT out = *xp;
       *xp *= coef;
       *xp += asig[n];
