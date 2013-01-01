@@ -386,7 +386,6 @@ int modak(CSOUND *csound, AOP *p)
     r = p->r;                                   \
     a = p->a;                                   \
     b = p->b;                                   \
-    if (offset+early) printf("offset=%d early=%d\n", offset, early);     \
     if (offset) memset(r, '\0', offset*sizeof(MYFLT)); \
     if (early) {                                \
       nsmps -= early;                           \
