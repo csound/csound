@@ -1313,7 +1313,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
       }
     }
     else if (mode == 4) {   /* All Pass */
-      for (n=0; n<nsmps; n++) {                        /* do ksmp times   */
+      for (n=offset; n<nsmps; n++) {                        /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
           fco = (double)fcoptr[n];
