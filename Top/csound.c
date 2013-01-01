@@ -1604,6 +1604,12 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
 {
     int done;
     int returnValue;
+
+    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
+    if (!(csound->engineStatus & CS_STATE_COMP)){
+      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+      return CSOUND_ERROR;
+    }
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
 #ifndef MACOSX
@@ -1624,6 +1630,12 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 {
     int done = 0;
     int returnValue;
+
+    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
+    if (!(csound->engineStatus & CS_STATE_COMP)){
+      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+      return CSOUND_ERROR;
+    }
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
 #ifndef MACOSX
@@ -1643,6 +1655,12 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
 {
     int returnValue;
     int done;
+    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
+    if (!(csound->engineStatus & CS_STATE_COMP)){
+      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+      return CSOUND_ERROR;
+    }
+
     /* Setup jmp for return after an exit(). */
     if ((returnValue = setjmp(csound->exitjmp))) {
 #ifndef MACOSX
@@ -1667,6 +1685,13 @@ PUBLIC int csoundPerform(CSOUND *csound)
 {
     int done;
     int returnValue;
+
+   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
+    if (!(csound->engineStatus & CS_STATE_COMP)){
+      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+      return CSOUND_ERROR;
+    }
+
     csound->performState = 0;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
@@ -2853,7 +2878,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       dbfs_init(csound, DFLT_DBFS);
       csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
       csoundInitTimerStruct(csound->csRtClock);
-      csound->engineStatus |= CS_STATE_COMP | CS_STATE_CLN;
+      csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
 #ifndef USE_DOUBLE
 #ifdef BETA
