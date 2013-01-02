@@ -112,7 +112,7 @@ const CS_TYPE CS_VAR_TYPE_b = {
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
-   "[]", NULL, "array", CS_ARG_TYPE_BOTH, createArray, NULL
+   "[", NULL, "array", CS_ARG_TYPE_BOTH, createArray, NULL
 };
 
 void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
