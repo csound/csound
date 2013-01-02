@@ -225,6 +225,32 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (UNLIKELY(O->odebug))
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
+    
+
+    if (O->Beatmode)
+      ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
+    ip->offtim       = (double) ip->p3;         /* & duplicate p3 for now */
+    ip->m_chnbp      = (MCHNBLK*) NULL;
+    ip->xtratim      = 0;
+    ip->relesing     = 0;
+    ip->m_sust       = 0;
+    ip->nxtolap      = NULL;
+    ip->opcod_iobufs = NULL;
+    csound->curip    = ip;
+    csound->ids      = (OPDS *)ip;
+    /* do init pass for this instr */
+    while ((csound->ids = csound->ids->nxti) != NULL) {
+      if (UNLIKELY(O->odebug))
+        csound->Message(csound, "init %s:\n",
+                        csound->opcodlst[csound->ids->optext->t.opnum].opname);
+      (*csound->ids->iopadr)(csound, csound->ids);
+    }
+    csound->tieflag = csound->reinitflag = 0;
+    if (UNLIKELY(csound->inerrcnt || ip->p3 == FL(0.0))) {
+      xturnoff_now(csound, ip);
+      return csound->inerrcnt;
+    }
+
      /* new code for sample-accurate timing, not for tied notes */
     if (O->sampleAccurate & !tie) {
       int64_t start_time_samps, start_time_kcycles, duration_kcycles;
@@ -256,29 +282,6 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->no_end = 0;
     }
 
-    if (O->Beatmode)
-      ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
-    ip->offtim       = (double) ip->p3;         /* & duplicate p3 for now */
-    ip->m_chnbp      = (MCHNBLK*) NULL;
-    ip->xtratim      = 0;
-    ip->relesing     = 0;
-    ip->m_sust       = 0;
-    ip->nxtolap      = NULL;
-    ip->opcod_iobufs = NULL;
-    csound->curip    = ip;
-    csound->ids      = (OPDS *)ip;
-    /* do init pass for this instr */
-    while ((csound->ids = csound->ids->nxti) != NULL) {
-      if (UNLIKELY(O->odebug))
-        csound->Message(csound, "init %s:\n",
-                        csound->opcodlst[csound->ids->optext->t.opnum].opname);
-      (*csound->ids->iopadr)(csound, csound->ids);
-    }
-    csound->tieflag = csound->reinitflag = 0;
-    if (UNLIKELY(csound->inerrcnt || ip->p3 == FL(0.0))) {
-      xturnoff_now(csound, ip);
-      return csound->inerrcnt;
-    }
 #ifdef BETA
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "In insert:  %d %lf %lf\n",
@@ -2032,7 +2035,7 @@ static void instance(CSOUND *csound, int insno)
     	  } else if(arg->type == ARG_LOCAL) {
     		  fltp = lclbas + var->memBlockIndex;
     	  } else if(arg->type == ARG_PFIELD){
-          fltp = lclbas + arg->index;
+	    fltp = lcloffbas + arg->index;  /* VL 1.1.13 - changed lclbas to lcloffbas so p-fields can be assigned to */
         } else {
           csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n", arg->type);
           fltp = NULL;
