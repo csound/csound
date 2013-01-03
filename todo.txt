@@ -11,6 +11,8 @@ Csound 6 TODO list
  - UDOs are not replaced, memory recovery needed? 
  - add opcode to compile/load an opcode
  - API step by step construction of TREE?
+ - safe deleton of TREE
+ - memory recovery of POOLs
 
 2) allow any number of strings in score events (except p2,p3). 
   - do we need a new parser for score?
@@ -28,3 +30,7 @@ make it easier to maintain
 reader opcodes need to accept them
 
 8) syntax error checks (undef variables etc) need to be put back.
+
+9) check changing p3 works with early ending code
+
+rc1 aimed for 28 Feb

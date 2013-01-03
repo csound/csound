@@ -57,9 +57,9 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
 
     /* write audio to result audio streams weighted
        with gain factors */
-    invfloatn =  CS_ONEDKSMPS;
     outptr = p->out_array;
     if (early) nsmps -= early;
+    invfloatn =  FL(1.0)/(nsmps-offset);
     for (j=0; j<n; j++) {
       inptr = p->audio;
       ogain = p->beg_gains[j];
@@ -280,7 +280,7 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
 
     /* write audio to resulting audio streams weighted
        with gain factors */
-    invfloatn =  CS_ONEDKSMPS;
+    invfloatn =  FL(1.0)/(nsmps-offset);
     outptr = p->out_array;
     if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
     if (early) {
