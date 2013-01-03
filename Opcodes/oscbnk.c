@@ -463,11 +463,11 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
         /* initialise ramps */
         f = ((o->osc_frq + f) * FL(0.5) + *(p->args[1])) * p->frq_scl;
         if (pm_enabled) {
-          f += (MYFLT) ((double) o->osc_phm - (double) pm) * CS_ONEDKSMPS;
+          f += (MYFLT) ((double) o->osc_phm - (double) pm) / (nsmps-offset);
           f -= (MYFLT) ((int32) f);
         }
         f_i = OSCBNK_PHS2INT(f);
-        if (am_enabled) a_d = (o->osc_amp - a) * CS_ONEDKSMPS;
+        if (am_enabled) a_d = (o->osc_amp - a)  / (nsmps-offset);
         /* oscillator */
         for (nn = offset; nn < nsmps; nn++) {
           /* read from table */
@@ -490,17 +490,17 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
         /* initialise ramps */
         f = ((o->osc_frq + f) * FL(0.5) + *(p->args[1])) * p->frq_scl;
         if (pm_enabled) {
-          f += (MYFLT) ((double) o->osc_phm - (double) pm) * CS_ONEDKSMPS;
+          f += (MYFLT) ((double) o->osc_phm - (double) pm) / (nsmps-offset);
           f -= (MYFLT) ((int32) f);
         }
         f_i = OSCBNK_PHS2INT(f);
-        if (am_enabled) a_d = (o->osc_amp - a) * CS_ONEDKSMPS;
+        if (am_enabled) a_d = (o->osc_amp - a) / (nsmps-offset);
         if (p->eq_interp) {     /* EQ w/ interpolation */
-          a1_d = (o->a1 - a1) * CS_ONEDKSMPS;
-          a2_d = (o->a2 - a2) * CS_ONEDKSMPS;
-          b0_d = (o->b0 - b0) * CS_ONEDKSMPS;
-          b1_d = (o->b1 - b1) * CS_ONEDKSMPS;
-          b2_d = (o->b2 - b2) * CS_ONEDKSMPS;
+          a1_d = (o->a1 - a1) / (nsmps-offset);
+          a2_d = (o->a2 - a2) / (nsmps-offset);
+          b0_d = (o->b0 - b0) / (nsmps-offset);
+          b1_d = (o->b1 - b1) / (nsmps-offset);
+          b2_d = (o->b2 - b2) / (nsmps-offset);
           /* oscillator */
           for (nn = offset; nn < nsmps; nn++) {
             /* update ramps */
@@ -887,7 +887,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     }
     p->phs0 = *(p->kphs);
     /* convert phase modulation to frequency modulation */
-    f = (MYFLT) ((double) p->phs0 - (double) f) * CS_ONEDKSMPS;
+    f = (MYFLT) ((double) p->phs0 - (double) f) / (nsmps-offset);
     f -= (MYFLT) ((int32) f); g_frq = OSCBNK_PHS2INT(f);
     f = *(p->kcps) * csound->onedsr;            /* grain frequency      */
     frq = (g_frq + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
@@ -1373,7 +1373,6 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
       phs = OSCBNK_PHS2INT(v);
     }
     /* convert phase modulation to frequency modulation */
-    v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) * CS_ONEDKSMPS;
     p->old_phs = *(p->kphs);
     frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
     /* read from table with interpolation */
@@ -1382,6 +1381,7 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);
     for (nn=offset; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((int32) (phs & mask)) * pfrac;
@@ -2037,12 +2037,18 @@ static int vco2(CSOUND *csound, VCO2 *p)
         p->phs2 = (p->phs + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
       }
     }
+    ar = p->ar;
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     /* calculate frequency (including phase modulation) */
     f = *(p->kcps) * p->f_scl;
     frq = OSCBNK_PHS2INT(f);
     if (p->pm_enabled) {
       f1 = (MYFLT) ((double) *(p->kphs) - (double) p->kphs_old)
-           * CS_ONEDKSMPS;
+        / (nsmps-offset);
       p->kphs_old = *(p->kphs);
       frq = (frq + OSCBNK_PHS2INT(f1)) & OSCBNK_PHSMSK;
       f += f1;
@@ -2074,17 +2080,11 @@ static int vco2(CSOUND *csound, VCO2 *p)
     tabl = p->tables + (int) (nparts - p->nparts);
 #endif
     /* copy object data to local variables */
-    ar = p->ar;
     kamp = *(p->kamp);
     phs = p->phs;
     lobits = tabl->lobits; mask = tabl->mask; pfrac = tabl->pfrac;
     ftable = tabl->ftable;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
     if (!p->mode) {                     /* - mode 0: simple table playback - */
       for (nn=offset; nn<nsmps; nn++) {
         n = phs >> lobits;
@@ -2096,7 +2096,7 @@ static int vco2(CSOUND *csound, VCO2 *p)
     }
     else {
       v = -(*(p->kpw));                                 /* pulse width */
-      f1 = (MYFLT) ((double) v - (double) p->kphs2_old) * CS_ONEDKSMPS;
+      f1 = (MYFLT) ((double) v - (double) p->kphs2_old) / (nsmps-offset);
       f = p->kphs2_old; f -= (MYFLT) ((int32) f); if (f < FL(0.0)) f++;
       p->kphs2_old = v;
       phs2 = p->phs2;
