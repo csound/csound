@@ -55,8 +55,8 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
 
     /* write audio to result audio streams weighted
        with gain factors*/
-    invfloatn =  CS_ONEDKSMPS;
     if (early) nsmps -= early;
+    invfloatn =  FL(1.0)/(nsmps-offset);
     for (j=0; j<cnt; j++) {
       inptr      = p->audio;
       outptr     = p->out_array[j];
@@ -268,8 +268,8 @@ int vbap_moving(CSOUND *csound, VBAP_MOVING *p)
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
-    invfloatn =  CS_ONEDKSMPS;
     if (early) nsmps -= early;
+    invfloatn = FL(1.0)/(nsmps-offset);
     for (j=0; j<cnt ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
