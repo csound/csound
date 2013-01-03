@@ -29,8 +29,8 @@ make it easier to maintain
 7) Analysis formats need to be byte-order/machine independent, and
 reader opcodes need to accept them
 
-8) assignnments to p3 not working anymore
+8) syntax error checks (undef variables etc) need to be put back.
 
-9) syntax error checks (undef variables etc) need to be put back.
+9) check changing p3 works with early ending code
 
 rc1 aimed for 28 Feb
