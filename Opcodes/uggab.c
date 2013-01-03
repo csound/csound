@@ -904,6 +904,7 @@ static int fold_set(CSOUND *csound, FOLD *p)
 {
     p->sample_index = 0;
     p->index = 0.0;
+    p->value = FL(0.0);         /* This was not initialised -- JPff */
     return OK;
 }
 

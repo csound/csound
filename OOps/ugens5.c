@@ -1088,7 +1088,7 @@ int gain(CSOUND *csound, GAIN *p)
     }
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff * (double)CS_ONEDKSMPS;
+      inc = diff / (double)(nsmps-offset);
       for (n = offset; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
@@ -1116,7 +1116,13 @@ int balance(CSOUND *csound, BALANCE *p)
     r = p->prvr;
     asig = p->asig;
     csig = p->csig;
-    for (n = offset; n < nsmps-early; n++) {
+    ar = p->ar;
+    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n = offset; n < nsmps; n++) {
       double as = (double)asig[n];
       double cs = (double)csig[n];
       q = c1 * as * as + c2 * q;
@@ -1128,15 +1134,9 @@ int balance(CSOUND *csound, BALANCE *p)
       a = sqrt(r/q);
     else
       a = sqrt(r);
-    ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff * (double)CS_ONEDKSMPS;
+      inc = diff / (double)(nsmps-offset);
       for (n = offset; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
