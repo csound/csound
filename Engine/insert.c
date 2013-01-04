@@ -263,10 +263,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
       //ip->no_end = duration_kcycles*csound->ksmps - duration_samps 
       //                                            - ip->ksmps_offset;
-      ip->no_end = csound->ksmps - ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
-      ip->ksmps_no_end = 0; /* the ksmps_no_end field is initially 0, set to no_end in the last perf cycle */
+      ip->no_end = csound->ksmps - 
+        ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
+ /* the ksmps_no_end field is initially 0, set to no_end in the last perf cycle */
+      ip->ksmps_no_end = 0;
       if (ip->no_end) {
-        //        printf(">>>> %d\n",csound->ksmps - ((int)duration_samps+ip->ksmps_offset)%csound->ksmps);
         //        printf(">>>> %d\n",((int)duration_samps+ip->ksmps_offset));
         printf(">>>> no_end=%d (%ld,%d,%f,%d)\n",
                ip->no_end, (long)duration_kcycles, csound->ksmps,
