@@ -31,7 +31,7 @@ reader opcodes need to accept them
 
 8) syntax error checks (undef variables etc) need to be put back.
 
-9) csoundInputMessage() is broken.
+9) csoundInputMessage() is broken. *** FIXED ***
 
 10) check changing p3 works with early ending code
 
