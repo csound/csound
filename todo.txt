@@ -28,3 +28,5 @@ make it easier to maintain
 reader opcodes need to accept them
 
 8) syntax error checks (undef variables etc) need to be put back.
+
+9) csoundInputMessage() is broken.
