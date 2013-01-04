@@ -55,14 +55,14 @@ int aline(CSOUND *csound, LINE *p)
 
     val = p->val;
     inc = p->incr;
-    p->val += inc;              /* nxtval = val + inc */
-    inc *= CS_ONEDKSMPS;
     ar = p->xr;
     if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
     if (early) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    inc /= (nsmps - offset);
+    p->val += inc;              /* nxtval = val + inc */
     for (n=offset; n<nsmps; n++) {
       ar[n] = (MYFLT)val;
       val += inc;       /* interp val for ksmps */
@@ -108,14 +108,14 @@ int expon(CSOUND *csound, EXPON *p)
     val = p->val;
     mlt = p->mlt;
     nxtval = val * mlt;
-    inc = nxtval - val;
-    inc *= CS_ONEDKSMPS;   /* increment per sample */
     ar = p->xr;
     if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
     if (early) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    inc = nxtval - val;
+    inc /= (nsmps - offset);   /* increment per sample */
     for (n=offset; n<nsmps; n++) {
       ar[n] = (MYFLT)val;
       val += inc;               /* interp val for ksmps */
@@ -768,7 +768,7 @@ int expseg(CSOUND *csound, EXXPSEG *p)
       p->cursegp = ++segp;
     val = segp->val;
     nxtval = val * segp->mlt;
-    li = (nxtval - val) * CS_ONEDKSMPS;
+    li = (nxtval - val) / (nsmps-offset);
     for (n=offset; n<nsmps; n++) {
       rs[n] = val;
       val += li;
@@ -938,7 +938,7 @@ int expsegr(CSOUND *csound, EXPSEG *p)
         }
         else {
           p->curmlt = POWER((segp->nxtpt/val), FL(1.0)/segp->cnt);
-          p->curamlt = POWER(p->curmlt, CS_ONEDKSMPS);
+          p->curamlt = POWER(p->curmlt, FL(1.0)/(MYFLT)(nsmps-offset));
         }
       }
       p->curval = val * p->curmlt;        /* advance the cur val  */
@@ -1031,7 +1031,7 @@ int linen(CSOUND *csound, LINEN *p)
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (flag) {
-      li = (nxtval - val) * CS_ONEDKSMPS;
+      li = (nxtval - val) / (nsmps-offset);
       if (p->XINCODE) {
         for (n=offset; n<nsmps; n++) {
           rs[n] = sg[n] * val;
@@ -1127,7 +1127,7 @@ int linenr(CSOUND *csound, LINENR *p)
     }
     p->val = nxtval;
     if (flag) {
-      li = (nxtval - val) * CS_ONEDKSMPS;
+      li = (nxtval - val) / (nsmps-offset);
       if (p->XINCODE) {
         for (n=offset; n<nsmps; n++) {
           rs[n] = sg[n] * val;
@@ -1311,7 +1311,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
       else nxtval *= p->mlt2;
     }
     p->val = nxtval;
-    li = (nxtval - val) * CS_ONEDKSMPS;  /* linear interpolation factor */
+    li = (nxtval - val) / (nsmps-offset);   /* linear interpolation factor */
     if (p->XINCODE) {                         /* for audio rate amplitude: */
       for (n=offset; n<nsmps;n++) {
         rslt[n] = xamp[n] * val;
@@ -1486,7 +1486,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
       }
     }
     else p->val = nxtval = val * p->mlt2;     /* else do seg 3 decay  */
-    li = (nxtval - val) * CS_ONEDKSMPS;  /* all segs use interp  */
+    li = (nxtval - val) / (nsmps-offset);      /* all segs use interp  */
     if (p->XINCODE) {
       for (n=offset; n<nsmps; n++) {
         rslt[n] = xamp[n] * val;
