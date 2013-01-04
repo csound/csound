@@ -892,10 +892,9 @@ int adsyn(CSOUND *csound, ADSYN *p)
     ampscale = *p->kamod * csound->e0dbfs;      /* since 15-bit sine table */
     frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
     /* 1024 * msecs of analysis */
-    timkincr = (int32)(*p->ksmod*FL(1024000.0)*CS_ONEDKR);
-    nsmps = CS_KSMPS;
     memset(p->rslt,0,sizeof(MYFLT)*nsmps);
     if (early) nsmps -= early;
+    timkincr = (int32)(*p->ksmod*FL(1024000.0)*CS_ONEDKR);
     curtim = (int16)(p->mksecs >> 10);          /* cvt mksecs to msecs */
     curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */
     while ((prvp = curp) && (curp = curp->nxtp) != NULL ) {
@@ -908,7 +907,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
       if ((amp = curp->amp)) {            /* for non-zero amp   */
         sinc = (int32)(curp->frq * frqscale);
         phs = curp->phs;
-        nsmps = CS_KSMPS;            /*   addin a sinusoid */
+        /*   addin a sinusoid */
         for (n=offset; n<nsmps; n++) {
           ar[n] += (ampscale*(MYFLT)csound->isintab[phs]*(MYFLT)amp)/ADSYN_MAXLONG;
           phs += sinc;
