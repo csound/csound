@@ -2284,11 +2284,9 @@ FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
     if (UNLIKELY((fno = (int) *argp) <= 0 ||
         fno > csound->maxfnum       ||
                  (ftp = csound->flist[fno]) == NULL)) {
-      csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
     else if (UNLIKELY(ftp->lenmask == -1)) {
-      csoundInitError(csound, Str("illegal table length"));
       return NULL;
     }
     else if (UNLIKELY(!ftp->lenmask)) {
