@@ -30,5 +30,6 @@ typedef struct _tabler {
   int32 np2;
   int32 len;
   FUNC *ftp;
+  int iwrap;
 } TABLER;
 
