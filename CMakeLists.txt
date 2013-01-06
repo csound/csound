@@ -501,6 +501,7 @@ set(libcsound_SRCS
     OOps/ugens4.c
     OOps/ugens5.c
     OOps/ugens6.c
+    OOps/ugtabs.c
     OOps/ugrw1.c
     OOps/ugrw2.c
     OOps/vdelay.c
