@@ -2272,6 +2272,31 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
     return ftp;
 }
 
+/* find the ptr to an existing ftable structure */
+/*   called by oscils, etc at init time         */
+/* does not throw an error when a non-pow of two size table is found */
+
+FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
+{
+    FUNC    *ftp;
+    int     fno;
+
+    if (UNLIKELY((fno = (int) *argp) <= 0 ||
+        fno > csound->maxfnum       ||
+                 (ftp = csound->flist[fno]) == NULL)) {
+      csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
+      return NULL;
+    }
+    else if (UNLIKELY(ftp->lenmask == -1)) {
+      csoundInitError(csound, Str("illegal table length"));
+      return NULL;
+    }
+    else if (UNLIKELY(!ftp->lenmask)) {
+      return NULL;
+    }
+    return ftp;
+}
+
 /* **** SOMETHING WRONG HERE __ NOT CALLED **** */
 static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
 {

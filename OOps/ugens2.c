@@ -496,7 +496,7 @@ int tablefn(CSOUND *csound, TABLE *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;            /* RWD fix */
     rslt = p->rslt;
-    if (offset) memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (koffset) memset(rslt, '\0', koffset*sizeof(MYFLT));
     if (early) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
