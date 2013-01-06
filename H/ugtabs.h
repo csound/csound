@@ -22,14 +22,24 @@
 */
 
 
-typedef struct _tabler {
+typedef struct _tabl {
   OPDS h;
-  MYFLT *ans;
+  MYFLT *sig;
   MYFLT *ndx, *ftable, *mode, *offset, *wrap; 
   MYFLT mul;
   int32 np2;
   int32 len;
   FUNC *ftp;
   int iwrap;
-} TABLER;
+} TABL;
+
+typedef struct _tlen {
+  OPDS h;
+  MYFLT *ans, *ftable;
+} TLEN;
+
+typedef struct _tgp {
+  OPDS h;
+  MYFLT  *ftable, *ftsrc;
+} TGP;
 
