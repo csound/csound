@@ -515,3 +515,166 @@ int table_copy(CSOUND *csound, TGP *p){
   }
   return OK;
 }
+
+int table_mix(CSOUND *csound, TABLMIX *p){
+  int32 np2, np21, np22;
+  FUNC *ftp, *ftp1, *ftp2;
+  int32 len, len1, len2, flen;
+  MYFLT g1, g2, *func, *func1, *func2;
+  int32 off, off1, off2;  
+
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->tab)) == NULL)){
+    csound->Warning(csound,  Str("table: could not find ftable %d"), (int) *p->tab);
+    return NOTOK;
+  }
+  np2 = ftp->lenmask ? 0 : 1;
+
+  if (UNLIKELY((ftp1 = csound->FTnp2Find(csound, p->tab1)) == NULL)){
+    csound->Warning(csound,  Str("table: could not find ftable %d"), (int) *p->tab1);
+    return NOTOK;
+  }
+  np21 = ftp1->lenmask ? 0 : 1;
+
+  if (UNLIKELY((ftp2 = csound->FTnp2Find(csound, p->tab2)) == NULL)){
+    csound->Warning(csound,  Str("table: could not find ftable %d"), (int) *p->tab2);
+    return NOTOK;
+  }
+  np22 = ftp2->lenmask ? 0 : 1;
+
+  len = MYFLOOR(*p->len);
+  flen = ftp->flen;
+  len1 = ftp1->flen;
+  len2 = ftp2->flen;
+  func = ftp->ftable;
+  func1 = ftp1->ftable;
+  func2 = ftp2->ftable;
+  off = *p->off;
+  off1 = *p->off1;
+  off2 = *p->off2;
+  g1 = *p->g1;
+  g2 = *p->g2;
+
+  if(len>0){
+    int i, p0, p1, p2;
+    for(i=0; i < len; i++) {
+      p0 = i+off;
+      p1 = i+off1;                 
+      p2 = i+off2;
+      if(np2) {
+	while(p0 < 0) p0 += flen;
+        while(p0 >= len1) p0 -= flen;
+      }
+      else p0 &= ftp->lenmask;
+      if(np21) {
+	while(p1 < 0) p1 += len1;
+        while(p1 >= len1) p1 -= len1;
+      }
+      else p1 &= ftp1->lenmask;
+      if(np22) {
+	while(p2 < 0) p2 += len2;
+        while(p2 >= len2) p1 -= len2;
+      }
+      else p2 &= ftp2->lenmask;
+      func[p0] = func1[p1]*g1 + func2[p2]*g2;
+    }
+  } else {
+    int i, p0, p1, p2;
+    for(i=0; i > len; i--) {
+      p0 = i+off;
+      p1 = i+off1;                 
+      p2 = i+off2;
+      if(np2) {
+	while(p0 < 0) p0 += flen;
+        while(p0 >= len1) p0 -= flen;
+      }
+      else p0 &= ftp->lenmask;
+      if(np21) {
+	while(p1 < 0) p1 += len1;
+        while(p1 >= len1) p1 -= len1;
+      }
+      else p1 &= ftp1->lenmask;
+      if(np22) {
+	while(p2 < 0) p2 += len2;
+        while(p2 >= len2) p1 -= len2;
+      }
+      else p2 &= ftp2->lenmask;
+      func[p0] = func1[p1]*g1 + func2[p2]*g2;
+    }
+  }
+  return OK;
+}
+
+int table_ra(CSOUND *csound, TABLRA *p){
+  int32 pos, np2, nsmps, len, i;
+  MYFLT *sig= p->sig, *func;
+  int mask;
+  FUNC *ftp;
+  uint32_t    koffset = p->h.insdshead->ksmps_offset;
+  uint32_t    early  = p->h.insdshead->ksmps_no_end;
+  nsmps = csound->GetKsmps(csound);
+
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
+      return csound->PerfError(csound, Str("table: could not find ftable %d"), (int) *p->ftable);
+  np2 = ftp->lenmask ? 0 : 1;
+
+  mask = ftp->lenmask;
+  pos = *p->strt + *p->off;
+
+  if(pos < 0) return csound->PerfError(csound, Str("table: could not read negative pos %d"), pos);
+
+  if (koffset) memset(sig, '\0', koffset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+  func = ftp->ftable; 
+  len = ftp->flen;
+  for(i=koffset; i < nsmps; i++){
+    if(np2) pos %= len;
+    else pos &= mask;
+    sig[i] = func[pos];
+    pos++;
+  }
+
+  return OK;
+}
+
+int table_wa_set(CSOUND *csound, TABLWA *p){
+  IGN(csound);
+  p->pos =0;
+  return OK;
+}
+
+int table_wa(CSOUND *csound, TABLWA *p){
+  int32 pos, np2, nsmps, len, i;
+  MYFLT *sig= p->sig, *func;
+  int mask;
+  FUNC *ftp;
+  uint32_t    koffset = p->h.insdshead->ksmps_offset;
+  uint32_t    early  = p->h.insdshead->ksmps_no_end;
+  nsmps = csound->GetKsmps(csound);
+
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
+      return csound->PerfError(csound, Str("table: could not find ftable %d"), (int) *p->ftable);
+  np2 = ftp->lenmask ? 0 : 1;
+
+  mask = ftp->lenmask;
+  pos = p->pos + *p->off;
+
+  if(pos < 0) return csound->PerfError(csound, Str("table: could not read negative pos %d"), pos);
+
+  if (early) nsmps -= early;
+     
+  func = ftp->ftable; 
+  len = ftp->flen;
+  for(i=koffset; i < nsmps; i++){
+    if(np2) pos %= len;
+    else pos &= mask;
+    func[pos] = sig[i]; 
+    pos++;
+  }
+  p->pos = pos;
+  *p->strt = pos;
+  return OK;
+}
