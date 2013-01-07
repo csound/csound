@@ -43,3 +43,18 @@ typedef struct _tgp {
   MYFLT  *ftable, *ftsrc;
 } TGP;
 
+typedef struct _tablmix {
+  OPDS h;
+  MYFLT *tab, *off, *len, *tab1, *off1, *g1, *tab2, *off2, *g2;
+} TABLMIX;
+
+typedef struct _tablra {
+  OPDS h;
+  MYFLT *sig,*ftable,*strt,*off; 
+} TABLRA;
+
+typedef struct _tablwa {
+  OPDS h;
+  MYFLT *strt,*ftable,*sig,*off; 
+  MYFLT pos;
+} TABLWA;
