@@ -1403,7 +1403,7 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
 
 int klimit(CSOUND *csound, LIMIT *p)
 {
-    MYFLT       sig=*p->sig, min=*p->max, max=*p->min;
+    MYFLT       sig=*p->sig, min=*p->min, max=*p->max;
     if (LIKELY((sig <= max) && (sig >= min))) {
       *p->ans = sig;
     }
@@ -1424,7 +1424,7 @@ int klimit(CSOUND *csound, LIMIT *p)
 int limit(CSOUND *csound, LIMIT *p)
 {
     MYFLT       *ans, *asig;
-    MYFLT       min=*p->max, max=*p->min, aver;
+    MYFLT       min=*p->min, max=*p->max, aver;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
