@@ -1103,7 +1103,7 @@ int tablew(CSOUND *csound, TABLEW *p)
                 /* Main loop - for the number of a samples in a k cycle. */
     if (early) nsmps -= early;
 
-    for (n=offset; n<nsmps; n++) {
+    for (n=koffset; n<nsmps; n++) {
       /* Read in the next raw index and increment the pointer ready for the
          next cycle.  Then multiply the ndx by the denormalising factor and
          add in the offset.  */
