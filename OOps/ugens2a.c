@@ -70,6 +70,22 @@ static int itblchk(CSOUND *csound, TABLE *p)
     return OK;
 }
 
+int tblset(CSOUND *csound, TABLE *p)
+{
+    if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
+      const char  *opname = csound->GetOpcodeName(p);
+      const char  *msg = Str("%s: table index type inconsistent with output");
+      if (UNLIKELY(CS_KSMPS == 1))
+        csound->Warning(csound, msg, opname);
+      else {
+        return csound->InitError(csound, msg, opname);
+      }
+    }
+    p->h.iopadr = (SUBR) itblchk;
+    return itblchk(csound, p);
+}
+
+
 int pktable(CSOUND *,TABLE*);
 int pktabli(CSOUND *,TABLE*);
 int pktabl3(CSOUND *,TABLE*);
@@ -486,7 +502,47 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
     return csound->PerfError(csound, Str("ptable3: not initialised"));
 }
 
-extern int itblchkw(CSOUND *, TABLEW*);
+int itblchkw(CSOUND *csound, TABLEW *p)
+{
+    /* Get pointer to the function table data structure of the table
+     * number specified in xfn. Return 0 if it cannot be found.
+     *
+     * csoundFTFind() generates an error message if the table cannot be
+     * found. This works OK at init time.  It also deactivates the
+     * instrument.
+     *
+     * It also checks for numbers < 0, and table 0 is never valid, so we
+     * do not need to check here for the table number being < 1.  */
+
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
+      return NOTOK;
+    /* Although TABLEW has an integer variable for the table number
+     * (p->pfn) we do not need to * write it.  We know that the * k
+     * and a rate functions * which will follow will not * be
+     * expecting a changed * table number.
+     *
+     * p->pfn exists only for checking * table number changes for
+     * functions * which are expecting a k rate * table number.  */
+
+    /* Set denormalisation factor to 1 or table length, depending on
+     * the state of ixmode.  1L means a 32 bit 1.  */
+    /* JPff.............................^...not so; could be any length */
+    if (*p->ixmode)
+            p->xbmul = p->ftp->flen;
+    else    p->xbmul = 1L;
+    /* Multiply the ixoff value by the xbmul denormalisation
+     * factor and then check it is between 0 and the table length.  */
+      if (UNLIKELY((p->offset = p->xbmul * *p->ixoff) < FL(0.0)
+                   || p->offset > p->ftp->flen)) {
+      return csound->InitError(csound,
+                               Str("Table write offset %f < 0 or > tablelength"),
+                               p->offset);
+    }
+    p->iwgm   = (int)*p->iwgmode;
+    return OK;
+}
+
+
 int pktablew(CSOUND *, TABLEW*);
 int pitablew(CSOUND *csound, TABLEW *p)
 {

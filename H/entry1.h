@@ -59,6 +59,8 @@
 #ifdef PARCS
 #include "cs_par_ops.h"
 #endif
+#include "ugtabs.h"
+
 
 #define S(x)    sizeof(x)
 
@@ -409,3 +411,34 @@ int     xsgset_bkpt(CSOUND *csound, void *p), xsgset2b(CSOUND *, void *);
 int     resize_table(CSOUND *csound, void *p);
 int     error_fn(CSOUND *csound, void *p);
 int fassign_set(CSOUND *csound, FASSIGN *p);
+int tabler_init(CSOUND *csound, TABL *p);
+int tabl_setup(CSOUND *csound, TABL *p);
+int tabler_kontrol(CSOUND *csound, TABL *p);
+int tabler_audio(CSOUND *csound, TABL *p);
+int tableir_init(CSOUND *csound, TABL *p);
+int tableir_audio(CSOUND *csound, TABL *p);
+int tableir_kontrol(CSOUND *csound, TABL *p);
+int tableir_audio(CSOUND *csound, TABL *p);
+int table3r_init(CSOUND *csound, TABL *p);
+int table3r_kontrol(CSOUND *csound, TABL *p);
+int table3r_audio(CSOUND *csound, TABL *p);
+int tablerkt_kontrol(CSOUND *csound, TABL *p);
+int tablerkt_audio(CSOUND *csound, TABL *p);
+int tableirkt_kontrol(CSOUND *csound, TABL *p);
+  int tableirkt_audio(CSOUND *csound, TABL *p);
+int table3rkt_kontrol(CSOUND *csound, TABL *p);
+int table3rkt_audio(CSOUND *csound, TABL *p);
+int tablew_init(CSOUND *csound, TABL *p);
+int tablew_kontrol(CSOUND *csound, TABL *p);
+int tablew_audio(CSOUND *csound, TABL *p);
+int tablewkt_kontrol(CSOUND *csound, TABL *p);
+int tablewkt_audio(CSOUND *csound, TABL *p);
+int table_length(CSOUND *csound, TLEN *p);
+int table_gpw(CSOUND *csound, TGP *p);
+int table_copy(CSOUND *csound, TGP *p);
+int table_mix(CSOUND *csound, TABLMIX *p);
+int table_ra_set(CSOUND *csound, TABLRA *p);
+int table_ra(CSOUND *csound, TABLRA *p);
+int table_wa_set(CSOUND *csound, TABLWA *p);
+int table_wa(CSOUND *csound, TABLWA *p);
+int tablkt_setup(CSOUND *csound, TABL *p);

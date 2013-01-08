@@ -182,6 +182,7 @@ int phsor(CSOUND *csound, PHSOR *p)
     return OK;
 }
 
+#ifdef SOME_FINE_DAY
 /*****************************************************************************/
 /*****************************************************************************/
 
@@ -989,6 +990,7 @@ int    tabl3kt(CSOUND *csound, TABLE *p)
     if (LIKELY(ftkrchk(csound,p)==OK)) return tabl3(csound,p);
     return NOTOK;
 }
+#endif /* SOME_FINE_DAY */
 
 int ko1set(CSOUND *csound, OSCIL1 *p)
 {
