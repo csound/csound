@@ -75,7 +75,18 @@ int tonset(CSOUND *csound, TONE *p)
     return OK;
 }
 
-int ktonset(CSOUND *csound, TONE *p) { return tonset(csound, p); }
+int ktonset(CSOUND *csound, TONE *p) { 
+   double b;
+    p->prvhp = (double)*p->khp;
+    b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
+    p->c2 = b - sqrt(b * b - 1.0);
+    p->c1 = 1.0 - p->c2;
+
+    if (LIKELY(!(*p->istor)))
+      p->yt1 = 0.0;
+    return OK;
+
+ }
 
 int ktone(CSOUND *csound, TONE *p)
 {
@@ -85,7 +96,7 @@ int ktone(CSOUND *csound, TONE *p)
     if (*p->khp != (MYFLT)p->prvhp) {
       double b;
       p->prvhp = (double)*p->khp;
-      b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+      b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
       p->c2 = c2 = b - sqrt(b * b - 1.0);
       p->c1 = c1 = 1.0 - c2;
     }
@@ -192,7 +203,7 @@ int katone(CSOUND *csound, TONE *p)
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      b = 2.0 - cos((double)(*p->khp * CS_ONEDKR *TWOPI));
       p->c2 = c2 = b - sqrt(b * b - 1.0);
 /*      p->c1 = c1 = 1.0 - c2; */
     }
@@ -296,12 +307,12 @@ int kreson(CSOUND *csound, RESON *p)
     IGN(csound);
 
     if (*p->kcf != (MYFLT)p->prvcf) {
-      p->prvcf = (double)*p->kcf;      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+      p->prvcf = (double)*p->kcf;      p->cosf = cos(p->prvcf * (double)(CS_ONEDKR *TWOPI));
       flag = 1;                 /* Mark as changed */
     }
     if (*p->kbw != (MYFLT)p->prvbw) {
       p->prvbw = (double)*p->kbw;
-      c3 = p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+      c3 = p->c3 = exp(p->prvbw * (double)(-CS_ONEDKR *TWOPI));
       flag = 1;                /* Mark as changed */
     }
     if (flag) {
@@ -464,12 +475,12 @@ int kareson(CSOUND *csound, RESON *p)
 
     if (*p->kcf != (MYFLT)p->prvcf) {
       p->prvcf = (double)*p->kcf;
-      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+      p->cosf = cos(p->prvcf * (double)(CS_ONEDKR *TWOPI));
       flag = 1;
     }
     if (*p->kbw != (MYFLT)p->prvbw) {
       p->prvbw = (double)*p->kbw;
-      p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+      p->c3 = exp(p->prvbw * (double)(-CS_ONEDKR *TWOPI));
       flag = 1;
     }
     if (flag) {
