@@ -1,5 +1,5 @@
 /*
-    ugtabs.c:  new implementation of table readers and writers
+    ugtabs.h:  new implementation of table readers and writers
 
     Copyright (C) 2013 V Lazzarini
 
