@@ -27,6 +27,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *kr, *ksig, *ihtim, *isig;
         double   c1, c2, yt1;
+        MYFLT  ihtim_old;
 } PORT;
 
 typedef struct {
@@ -122,3 +123,25 @@ typedef struct {
         MYFLT   kcoefs[MAXPOLES*2], framrat16;
         int             storePoles ;
 } LPINTERPOL ;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ans, *sig, *min, *max;
+} LIMIT;
+
+typedef PORT KPORT;
+typedef TONE KTONE;
+typedef RESON KRESON;
+
+int kporset(CSOUND*,PORT *p);
+int kport(CSOUND*,PORT *p);
+int ktonset(CSOUND*,TONE *p);
+int ktone(CSOUND*,TONE *p);
+int katone(CSOUND*,TONE *p);
+int krsnset(CSOUND*,RESON *p);
+int kreson(CSOUND*,RESON *p);
+int kareson(CSOUND*,RESON *p);
+int limitset(CSOUND*,LIMIT *p);
+int klimit(CSOUND*,LIMIT *p);
+int limit(CSOUND*,LIMIT *p);
+
