@@ -75,7 +75,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 #else
   #if defined(DOSGCC) || defined(WIN32) || defined(mills_macintosh)
       setvbuf(stdin, NULL, _IONBF, 0);
-   /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
+      /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
   #else
       STA(stdmode) = fcntl(csound->Linefd, F_GETFL, 0);
       if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, STA(stdmode) | O_NDELAY) < 0))
@@ -118,24 +118,24 @@ void RTclose(CSOUND *csound)
       return;
     csound->oparms->Linein = 0;
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
-                            STA(stdmode), csound->Linefd);
+                    STA(stdmode), csound->Linefd);
 #if defined(mills_macintosh)
     if (STA(Linecons) != NULL)
       fclose(STA(Linecons));
 #else
-  #ifdef PIPES
+   #ifdef PIPES
     if (csound->oparms->Linename[0] == '|')
       _pclose(csound->Linepipe);
     else
   #endif
-    {
-      if (strcmp(csound->oparms->Linename, "stdin") != 0)
-        close(csound->Linefd);
+      {
+        if (strcmp(csound->oparms->Linename, "stdin") != 0)
+          close(csound->Linefd);
   #if !defined(DOSGCC) && !defined(WIN32) && !defined(mills_macintosh)
-      else
-        fcntl(csound->Linefd, F_SETFL, STA(stdmode));
+        else
+          fcntl(csound->Linefd, F_SETFL, STA(stdmode));
   #endif
-    }
+}
 #endif      /* !(mills_macintosh */
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
@@ -157,6 +157,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
     volatile jmp_buf tmpExitJmp;
     int         err;
 
+    if (STA(Linep)) return 0;
     csound->Linefd = -1;
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
     if ((err = setjmp(csound->exitjmp)) != 0) {
@@ -181,13 +182,10 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
 PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
 {
     int32  size = (int32) strlen(message);
+    int n;
 
-    //if (!csound->lineventGlobals) {
-      if (linevent_alloc(csound) != 0)
-        return;
-      //}
-    if (!size)
-      return;
+    if ((n=linevent_alloc(csound)) != 0) return;
+    if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       csoundErrorMsg(csound, Str("LineBuffer Overflow - "
                                  "Input Data has been Lost"));
@@ -198,7 +196,6 @@ PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';
     STA(Linep) += size;
- 
 }
 
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */

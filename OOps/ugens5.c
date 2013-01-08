@@ -31,17 +31,32 @@
 
 #define MAX_LPC_SLOT 20
 
+
 int porset(CSOUND *csound, PORT *p)
 {
     p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
     p->c1 = 1.0 - p->c2;
     if (LIKELY(*p->isig >= FL(0.0)))
       p->yt1 = (double)(*p->isig);
+    p->ihtim_old = *p->ihtim;
     return OK;
 }
+int kporset(CSOUND *csound, PORT *p) { return porset(csound, p); }
 
 int port(CSOUND *csound, PORT *p)
 {
+    p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
+    *p->kr = (MYFLT)p->yt1;
+    return OK;
+}
+
+int kport(CSOUND *csound, KPORT *p)
+{
+  if(p->ihtim_old != *p->ihtim) {
+     p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
+     p->c1 = 1.0 - p->c2;
+     p->ihtim_old = *p->ihtim;
+  }
     p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
     *p->kr = (MYFLT)p->yt1;
     return OK;
@@ -57,6 +72,26 @@ int tonset(CSOUND *csound, TONE *p)
 
     if (LIKELY(!(*p->istor)))
       p->yt1 = 0.0;
+    return OK;
+}
+
+int ktonset(CSOUND *csound, TONE *p) { return tonset(csound, p); }
+
+int ktone(CSOUND *csound, TONE *p)
+{
+    double      c1 = p->c1, c2 = p->c2;
+    double      yt1 = p->yt1;
+
+    if (*p->khp != (MYFLT)p->prvhp) {
+      double b;
+      p->prvhp = (double)*p->khp;
+      b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+      p->c1 = c1 = 1.0 - c2;
+    }
+    yt1 = c1 * (double)(*p->asig) + c2 * yt1;
+    *p->ar = (MYFLT)yt1;
+    p->yt1 = yt1;
     return OK;
 }
 
@@ -149,6 +184,28 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
     return OK;
 }
 
+int katone(CSOUND *csound, TONE *p)
+{
+    double     sig, x;
+    double      c2 = p->c2, yt1 = p->yt1;
+
+    if (*p->khp != p->prvhp) {
+      double b;
+      p->prvhp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+/*      p->c1 = c1 = 1.0 - c2; */
+    }
+      sig = *p->asig;
+      x = yt1 = c2 * (yt1 + sig);
+      *p->ar = (MYFLT)x;
+      yt1 -= sig;               /* yt1 contains yt1-xt1 */
+    
+    p->yt1 = yt1;
+    return OK;
+}
+
+
 int atone(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
@@ -228,6 +285,45 @@ int rsnset(CSOUND *csound, RESON *p)
       p->yt1 = p->yt2 = 0.0;
     return OK;
 }
+
+int krsnset(CSOUND *csound, RESON *p){ return rsnset(csound,p); }
+
+int kreson(CSOUND *csound, RESON *p)
+{
+    uint32_t flag = 0;
+    double      c3p1, c3t4, omc3, c2sqr;
+    double      yt0, yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
+    IGN(csound);
+
+    if (*p->kcf != (MYFLT)p->prvcf) {
+      p->prvcf = (double)*p->kcf;      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+      flag = 1;                 /* Mark as changed */
+    }
+    if (*p->kbw != (MYFLT)p->prvbw) {
+      p->prvbw = (double)*p->kbw;
+      c3 = p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+      flag = 1;                /* Mark as changed */
+    }
+    if (flag) {
+      c3p1 = c3 + 1.0;
+      c3t4 = c3 * 4.0;
+      omc3 = 1.0 - c3;
+      c2 = p->c2 = c3t4 * p->cosf / c3p1;               /* -B, so + below */
+      c2sqr = c2 * c2;
+      if (p->scale == 1)
+        c1 = p->c1 = omc3 * sqrt(1.0 - c2sqr / c3t4);
+      else if (p->scale == 2)
+        c1 = p->c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+      else c1 = p->c1 = 1.0;
+    }
+    
+    yt1 = p->yt1; yt2 = p->yt2;
+    yt0 = c1 * ((double)*p->asig) + c2 * yt1 - c3 * yt2;
+    *p->ar = (MYFLT)yt0;
+    p->yt1 = yt0; p->yt2 = yt1; /* Write back for next cycle */
+    return OK;
+}
+
 
 int reson(CSOUND *csound, RESON *p)
 {
@@ -355,6 +451,56 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
         yt1[j] = x;
       }
     }
+    return OK;
+}
+
+int kareson(CSOUND *csound, RESON *p)
+{
+    uint32_t flag = 0;
+    double      c3p1, c3t4, omc3, c2sqr, D = 2.0; /* 1/RMS = root2 (rand) */
+                                                   /*      or 1/.5  (sine) */
+    double      yt1, yt2, c1, c2, c3;
+    IGN(csound);
+
+    if (*p->kcf != (MYFLT)p->prvcf) {
+      p->prvcf = (double)*p->kcf;
+      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+      flag = 1;
+    }
+    if (*p->kbw != (MYFLT)p->prvbw) {
+      p->prvbw = (double)*p->kbw;
+      p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+      flag = 1;
+    }
+    if (flag) {
+      c3p1 = p->c3 + 1.0;
+      c3t4 = p->c3 * 4.0;
+      omc3 = 1.0 - p->c3;
+      p->c2 = c3t4 * p->cosf / c3p1;
+      c2sqr = p->c2 * p->c2;
+      if (p->scale == 1)                        /* i.e. 1 - A(reson) */
+        p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
+      else if (p->scale == 2)                 /* i.e. D - A(reson) */
+        p->c1 = D - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+      else p->c1 = 0.0;                        /* cannot tell        */
+    }
+    
+    c1 = p->c1; c2 = p->c2; c3 = p->c3; yt1 = p->yt1; yt2 = p->yt2;
+    if (p->scale == 1 || p->scale == 0) {
+        double sig = (double) *p->asig;
+        double ans = c1 * sig + c2 * yt1 - c3 * yt2;
+        yt2 = yt1;
+        yt1 = ans - sig;  /* yt1 contains yt1-xt1 */
+        *p->ar = (MYFLT)ans;
+    }
+    else if (p->scale == 2) {
+        double sig = (double) *p->asig;
+        double ans = c1 * sig + c2 * yt1 - c3 * yt2;
+        yt2 = yt1;
+        yt1 = ans - D * sig;      /* yt1 contains yt1-D*xt1 */
+        *p->ar = (MYFLT)ans;
+    }
+    p->yt1 = yt1; p->yt2 = yt2;
     return OK;
 }
 
@@ -1243,3 +1389,59 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
     return OK;
 }
 
+
+int klimit(CSOUND *csound, LIMIT *p)
+{
+    MYFLT       sig=*p->sig, min=*p->max, max=*p->min;
+    if (LIKELY((sig <= max) && (sig >= min))) {
+      *p->ans = sig;
+    }
+    else {  
+     if ( min >= max) {
+        *p->ans = FL(0.5) * (min + max);
+      }
+      else {
+        if (sig > max)
+          *p->ans = max;
+        else
+          *p->ans = min;
+      }
+    }
+    return OK;
+}
+
+int limit(CSOUND *csound, LIMIT *p)
+{
+    MYFLT       *ans, *asig;
+    MYFLT       min=*p->max, max=*p->min, aver;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    ans = p->ans;
+    asig  = p->sig;
+
+    if (offset) memset(ans, '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    if (min >= max) {
+      aver = (min + max) * FL(0.5);
+      for (n=offset; n<nsmps; n++) {
+        ans[n] = aver;
+      }
+    }
+    else
+      for (n=offset; n<nsmps; n++) {
+        if ((asig[n] <= max) && (asig[n] >= min)) {
+          ans[n] = asig[n];
+        }
+        else {
+          if (asig[n] > max)
+            ans[n] = max;
+          else
+            ans[n] = min;
+        }
+      }
+    return OK;
+}

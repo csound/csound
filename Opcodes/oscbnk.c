@@ -1188,7 +1188,7 @@ static int osckkikt(CSOUND *csound, OSCKT *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (nn=offset; nn<nsmps; n++) {
+    for (nn=offset; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((int32) (phs & mask)) * pfrac;
       phs = (phs + frq) & OSCBNK_PHSMSK;

@@ -40,6 +40,8 @@
  * any alterations to the source code, including comments, are
  * clearly indicated as such.
  */
+#if SOME_FINE_DAY
+
 #include "ugrw2.h"
 #include <math.h>
 
@@ -498,3 +500,4 @@ int limit(CSOUND *csound, LIMIT *p)
     return OK;
 }
 
+#endif /* SOME_FINE_DAY */
