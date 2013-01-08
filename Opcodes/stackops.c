@@ -72,9 +72,9 @@ typedef struct POP_OPCODE_ {
     int     initDone;
 } POP_OPCODE;
 
-/* fassign() was taken from pstream.c, written by Richard Dobson */
+/* fsg_assign() was taken from pstream.c, written by Richard Dobson */
 
-static CS_NOINLINE void fassign(CSOUND *csound,
+static CS_NOINLINE void fsg_assign(CSOUND *csound,
                                 PVSDAT *fdst, const PVSDAT *fsrc)
 {
     if (UNLIKELY(fsrc->frame.auxp == NULL))
@@ -555,7 +555,7 @@ static int pop_f_opcode_perf(CSOUND *csound, POP_OPCODE *p)
     ofsp++;
     if (UNLIKELY(*ofsp != CS_STACK_END))
       csoundStack_TypeError(p);
-    fassign(csound,
+    fsg_assign(csound,
             (PVSDAT*) p->args[0],
             *((PVSDAT**) ((char*) bp + (int) (offs & (int) 0x00FFFFFF))));
     p->pp->curBundle = *((void**) bp);
@@ -600,7 +600,7 @@ static int pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
     ofsp++;
     if (UNLIKELY(*ofsp != CS_STACK_END))
       csoundStack_TypeError(p);
-    fassign(csound,
+    fsg_assign(csound,
             (PVSDAT*) p->args[0],
             *((PVSDAT**) ((char*) bp + (int) (offs & (int) 0x00FFFFFF))));
     p->pp->curBundle = *((void**) bp);

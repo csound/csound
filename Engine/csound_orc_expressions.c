@@ -1112,13 +1112,15 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               
             if (currentAns->type == T_ARRAY) {
                 anstype = argtyp2(currentAns->left->value->lexeme);
-                TREE* temp = create_ans_token(csound, create_out_arg(csound, anstype));
+                TREE* temp = create_ans_token(csound,
+                                              create_out_arg(csound, anstype));
                 current->left = temp;
                 
                 TREE* arraySet = create_opcode_token(csound, "array_set");
                 arraySet->right = currentAns->left;
                 arraySet->right->next = currentAns->right;
-                arraySet->right->next->next = make_leaf(csound, temp->line, temp->locn, T_IDENT, temp->value);
+                arraySet->right->next->next =
+                  make_leaf(csound, temp->line, temp->locn, T_IDENT, temp->value);
 
                 arraySet->next = current->next;
                 current->next = arraySet;
@@ -1143,8 +1145,10 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               //upsample
               //goto maincase;                     /* Wastes time and space */
               TREE* opTree = create_opcode_token(csound, "upsamp");
+              ORCTOKEN* lex = make_token(csound, currentArg->left->value->lexeme);
+              //printf("lex %p->%p\n", currentArg->left->value, lex);
               opTree->right = make_leaf(csound, current->line, current->locn,
-                                        T_IDENT, currentArg->left->value);
+                                        T_IDENT, lex);
               opTree->left = current->left;
               opTree->line = current->line;
               opTree->locn = current->locn;
@@ -1157,22 +1161,25 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               /* current->right = currentArg->left; /\* Should this copy? *\/ */
               /* current->next = NULL; */
               /* currentArg->next = current; */
-              //print_tree(csound, "becomes\n", expressionNodes);
+              print_tree(csound, "becomes\n", expressionNodes);
               memmove(current, expressionNodes, sizeof(TREE));
-              //print_tree(csound, "current\n", current);
+              print_tree(csound, "current\n", current);
               break;
             }
             else if (anstype=='k' && argtype=='i') {
               TREE* opTree = create_opcode_token(csound, "=.k");
+              ORCTOKEN* lex = make_token(csound, currentArg->left->value->lexeme);
+              //printf("value=%p lexeme=%s\n",
+              //       currentArg->left->value, currentArg->left->value->lexeme);
               opTree->right = make_leaf(csound, current->line, current->locn,
-                                        T_IDENT, currentArg->left->value);
+                                        T_IDENT, lex);
               opTree->left = current->left;
               opTree->line = current->line;
               opTree->locn = current->locn;
               opTree->next = current->next;
               currentArg->next = opTree;
               memmove(current, expressionNodes, sizeof(TREE));
-              //print_tree(csound, "current\n", current);
+              print_tree(csound, "current\n", current);
               break;
             }
             else {

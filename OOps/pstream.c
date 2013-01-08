@@ -51,32 +51,52 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 /* Pandora's box opcode, but we can make it at least plausible,
    by forbidding copy to different format. */
 
+int fassign_set(CSOUND *csound, FASSIGN *p)
+{
+     int32 N = p->fsrc->N;
+    
+    p->fout->N =  N;
+    p->fout->overlap = p->fsrc->overlap;
+    p->fout->winsize = p->fsrc->winsize;
+    p->fout->wintype =p->fsrc->wintype;
+    p->fout->format = p->fout->format;
+    p->fout->sliding = p->fsrc->sliding;
+    /* sliding needs to be checked */
+    if (p->fsrc->sliding) {
+      p->fout->NB = p->fsrc->NB;
+      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+                       &p->fout->frame);
+      return OK;
+    }
+    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    p->fout->framecount = 1;
+    //csound->Message(csound, Str("fsig = : init\n"));
+    return OK;
+}
+
+
 int fassign(CSOUND *csound, FASSIGN *p)
 {
     int32 framesize;
     float *fout,*fsrc;
-    if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
-      csound->Die(csound, Str("fsig = : formats are different.\n"));
+    
+    // if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
+    //csound->Die(csound, Str("fsig = : formats are different.\n"));
     if (p->fsrc->sliding) {
-      uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT)*(p->fsrc->N+2);
-      uint32_t early  = p->h.insdshead->ksmps_no_end;
-      uint32_t nsmps = CS_KSMPS;
-      if (offset) memset(p->fout->frame.auxp, '\0', offset);
-      if (early) {
-        nsmps -= early;
-        memset(p->fout->frame.auxp+nsmps, '\0', early*sizeof(MYFLT));
-      }
-      /* ******** suspect this next line ******** */
-      memcpy(&p->fout->frame.auxp+offset, p->fsrc->frame.auxp,
-             sizeof(MYFLT)*(p->fsrc->N+2)*nsmps-offset);
+      memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
+             sizeof(MYFLT)*(p->fsrc->N+2)*csound->ksmps);
       return OK;
     }
     fout = (float *) p->fout->frame.auxp;
     fsrc = (float *) p->fsrc->frame.auxp;
 
     framesize = p->fsrc->N + 2;
-    if (p->fout->framecount == p->fsrc->framecount) /* avoid duplicate copying*/
-      memcpy(fout, fsrc, framesize*sizeof(float));
+  
+    if (p->fout->framecount == p->fsrc->framecount) {/* avoid duplicate copying*/
+    memcpy(fout, fsrc, framesize*sizeof(float));
+    p->fout->framecount++;
+    }
+   
      return OK;
 }
 

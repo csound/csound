@@ -45,7 +45,7 @@
  *
  *      Header file containing data structures for UGRW2.C.
  */
-
+#ifdef SOME_FINE_DAY
 #include "csoundCore.h"
 
 /* KPORT data structure.
@@ -149,3 +149,4 @@ int limitset(CSOUND*,LIMIT *p);
 int klimit(CSOUND*,LIMIT *p);
 int limit(CSOUND*,LIMIT *p);
 
+#endif /* SOME_FINE_DAY */

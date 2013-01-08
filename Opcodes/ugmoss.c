@@ -51,6 +51,8 @@ static int dconvset(CSOUND *csound, DCONV *p)
     if (p->sigbuf.auxp == NULL ||
         p->sigbuf.size < (unsigned int)(p->len*sizeof(MYFLT)))
       csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
+    else 
+      memset(p->sigbuf.auxp, '\0', p->len*sizeof(MYFLT));
     p->curp = (MYFLT *)p->sigbuf.auxp;
     return OK;
 }
@@ -79,12 +81,12 @@ static int dconv(CSOUND *csound, DCONV *p)
     }
     for (n=offset; n<nsmps; n++) {
       *curp = ain[n];                           /* get next input sample */
-      i = 1, sum = *curp++ * *ftp;
+      i = 1, sum = *curp++ * ftp[0];
       while (curp<endp)
-        sum += (*curp++ * *(ftp + i++));        /* start the convolution */
+        sum += (*curp++ * ftp[i++]);            /* start the convolution */
       curp = startp;                            /* correct the ptr */
       while (i<len)
-        sum += (*curp++ * *(ftp + i++));        /* finish the convolution */
+        sum += (*curp++ * ftp[i++]);            /* finish the convolution */
       if (--curp < startp)
         curp += len;                            /* correct for last curp++ */
       ar[n] = sum;
