@@ -1146,7 +1146,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               //goto maincase;                     /* Wastes time and space */
               TREE* opTree = create_opcode_token(csound, "upsamp");
               ORCTOKEN* lex = make_token(csound, currentArg->left->value->lexeme);
-              printf("lex %p->%p\n", currentArg->left->value, lex);
+              //printf("lex %p->%p\n", currentArg->left->value, lex);
               opTree->right = make_leaf(csound, current->line, current->locn,
                                         T_IDENT, lex);
               opTree->left = current->left;
@@ -1169,8 +1169,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             else if (anstype=='k' && argtype=='i') {
               TREE* opTree = create_opcode_token(csound, "=.k");
               ORCTOKEN* lex = make_token(csound, currentArg->left->value->lexeme);
-              printf("value=%p lexeme=%s\n",
-                     currentArg->left->value, currentArg->left->value->lexeme);
+              //printf("value=%p lexeme=%s\n",
+              //       currentArg->left->value, currentArg->left->value->lexeme);
               opTree->right = make_leaf(csound, current->line, current->locn,
                                         T_IDENT, lex);
               opTree->left = current->left;
