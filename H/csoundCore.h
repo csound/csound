@@ -30,7 +30,9 @@
 
 #include "sysdep.h"
 #include <pthread.h>
+#ifdef PARCS
 #include "cs_par_structs.h"
+#endif /* PARCS */
 #include <stdarg.h>
 #include <setjmp.h>
 #include "csound_type_system.h"
