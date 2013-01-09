@@ -1198,6 +1198,9 @@ typedef struct NAME__ {
     /** beat time = 60 / tempo           */
     int64_t       ibeatTime;   /* Beat time in samples */
     pthread_t    *file_io_thread;
+    int          file_io_bufsize;
+    MYFLT        *file_io_buffer;
+    void         *file_io_threadlock;
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t spoutlock, spinlock;
 #else
