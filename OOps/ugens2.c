@@ -1389,7 +1389,7 @@ int osckai(CSOUND *csound, OSC   *p)
 int oscaki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
-    MYFLT   v1, fract, *ar, *ampp, *ftab, *ft;
+    MYFLT    v1, fract, *ar, *ampp, *ftab, *ft;
     int32    phs, inc, lobits;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1480,7 +1480,7 @@ int koscl3(CSOUND *csound, OSC   *p)
     else ym1 = ftab[x0++];
     y0 = ftab[x0++];
     y1 = ftab[x0++];
-    if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
+    if (UNLIKELY(x0>(int32)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
     {
       MYFLT frsq = fract*fract;
       MYFLT frcu = frsq*ym1;
@@ -1533,7 +1533,7 @@ int osckk3(CSOUND *csound, OSC   *p)
       else ym1 = ftab[x0++];
       y0 = ftab[x0++];
       y1 = ftab[x0++];
-      if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>(int32)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
 /*    printf("fract = %f; y = %f, %f, %f, %f\n", fract,ym1,y0,y1,y2); */
       {
         MYFLT frsq = fract*fract;
@@ -1594,7 +1594,7 @@ int oscka3(CSOUND *csound, OSC   *p)
       else ym1 = ftab[x0++];
       y0 = ftab[x0++];
       y1 = ftab[x0++];
-      if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>(int32)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
       {
         MYFLT frsq = fract*fract;
         MYFLT frcu = frsq*ym1;
@@ -1646,7 +1646,7 @@ int oscak3(CSOUND *csound, OSC   *p)
       else ym1 = ftab[x0++];
       y0 = ftab[x0++];
       y1 = ftab[x0++];
-      if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>(int32)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
       {
         MYFLT frsq = fract*fract;
         MYFLT frcu = frsq*ym1;
@@ -1667,14 +1667,14 @@ int oscak3(CSOUND *csound, OSC   *p)
 int oscaa3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
-    MYFLT   fract, *ar, *ampp, *cpsp, *ftab;
-    int32   phs, lobits;
+    MYFLT    fract, *ar, *ampp, *cpsp, *ftab;
+    int32    phs, lobits;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    unsigned int     x0;
-    MYFLT   y0, y1, ym1, y2;
-    MYFLT   sicvt = csound->sicvt;
+    int32    x0;
+    MYFLT    y0, y1, ym1, y2;
+    MYFLT    sicvt = csound->sicvt;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1700,7 +1700,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
       else ym1 = ftab[x0++];
       y0 = ftab[x0++];
       y1 = ftab[x0++];
-      if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>(int32)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
       {
         MYFLT frsq = fract*fract;
         MYFLT frcu = frsq*ym1;
