@@ -373,6 +373,9 @@ extern "C" {
     csoundReadCircularBuffer,
     csoundWriteCircularBuffer,
     csoundFreeCircularBuffer,
+    csoundFileOpenWithType_Async,
+    csoundReadAsync,
+    csoundWriteAsync,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -432,6 +435,7 @@ extern "C" {
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
     0.0,            /*  beatTime            */
+    NULL,            /* sf_io_thread        */
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
