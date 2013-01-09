@@ -304,7 +304,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       }
 #ifdef BETA
       if (UNLIKELY(O->odebug))
-        csound->Message(csound, "Calling schedofftim line %d; offtime= %lf (%lf)\n",
+        csound->Message(csound, 
+                        "Calling schedofftim line %d; offtime= %lf (%lf)\n",
                         __LINE__, ip->offtim, ip->offtim*csound->ekr);
 #endif
       schedofftim(csound, ip);                  /*   put in turnoff list */
@@ -561,7 +562,9 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
 
     csound->Message(csound, "insno\tinstanc\tnxtinst\tprvinst\tnxtact\t"
                             "prvact\tnxtoff\tactflg\tofftim\n");
-    for (txtp = &(csound->engineState.instxtanchor);  txtp != NULL;  txtp = txtp->nxtinstxt)
+    for (txtp = &(csound->engineState.instxtanchor);
+         txtp != NULL;
+         txtp = txtp->nxtinstxt)
      //for(i=0; i < csound->engineState.maxinsno; i++){
      //txtp = csound->engineState.instrtxtp[i];
      // if(txtp != NULL){
@@ -635,7 +638,8 @@ static void deact(CSOUND *csound, INSDS *ip)
 
     if (ip->nxtd != NULL)
       csoundDeinitialiseOpcodes(csound, ip);
-    csound->engineState.instrtxtp[ip->insno]->active--; /* remove an active instrument */
+    /* remove an active instrument */
+    csound->engineState.instrtxtp[ip->insno]->active--;
     if (ip->xtratim > 0)
       csound->engineState.instrtxtp[ip->insno]->pending_release--;
     csound->cpu_power_busy -= csound->engineState.instrtxtp[ip->insno]->cpuload;
@@ -956,9 +960,8 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
     /* by default all inputs are i-rate mapped to p-fields */
-    if (UNLIKELY(p->INOCOUNT > (csound->engineState.instrtxtp[instno]->pmax + 1))) {
+    if (UNLIKELY(p->INOCOUNT > (csound->engineState.instrtxtp[instno]->pmax + 1)))
       return csoundInitError(csound, Str("subinstr: too many p-fields"));
-    }
     for (n = 1; n < p->INOCOUNT; n++)
       *flp++ = *p->ar[inarg_ofs + n];
 
@@ -995,7 +998,8 @@ int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
 int useropcdset(CSOUND *csound, UOPCODE *p)
 {
     OPDS         *saved_ids = csound->ids;
-    INSDS        *saved_curip = csound->curip, *parent_ip = csound->curip, *lcurip;
+    INSDS        *saved_curip = csound->curip;
+    INSDS        *parent_ip = csound->curip, *lcurip;
     INSTRTXT     *tp;
     unsigned int instno;
     unsigned int pcnt;
