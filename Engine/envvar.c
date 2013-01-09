@@ -22,7 +22,7 @@
 */
 
 #include "csoundCore.h"
-#include <sndfile.h>
+#include "soundio.h"
 #include "envvar.h"
 #include <ctype.h>
 #include <math.h>
@@ -102,6 +102,7 @@ typedef struct CSFILE_ {
     FILE            *f;
     SNDFILE         *sf;
     char            fullName[1];
+    void            *cb;
 } CSFILE;
 
 /* Space for 16 global environment variables, */
@@ -1057,7 +1058,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     FILE    *tmp_f = NULL;
     SF_INFO sfinfo;
     int     tmp_fd = -1, nbytes = (int) sizeof(CSFILE);
-
+ 
+    
     /* check file type */
     if (UNLIKELY((unsigned int) (type - 1) >= (unsigned int) CSFILE_SND_W)) {
       csoundErrorMsg(csound, Str("internal error: csoundFileOpen(): "
@@ -1112,6 +1114,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       mfree(csound, fullName);
       env = NULL;
     }
+    
     /* if sound file, re-open file descriptor with libsndfile */
     switch (type) {
       case CSFILE_STD:                          /* stdio */
@@ -1176,6 +1179,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
                                 writing, isTemporary);
     }
     /* return with opaque file handle */
+    p->cb = NULL;
     return (void*) p;
 
  err_return:
@@ -1196,6 +1200,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       *((int*) fd) = -1;
     return NULL;
 }
+
 
 /**
  * Allocate a file handle for an existing file already opened with open(),
@@ -1228,6 +1233,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
     p->fd = -1;
     p->f = (FILE*) NULL;
     p->sf = (SNDFILE*) NULL;
+    p->cb = NULL;
     strcpy(&(p->fullName[0]), fullName);
     /* open file */
     switch (type) {
@@ -1253,6 +1259,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
       ((CSFILE*) csound->open_files)->prv = p;
     csound->open_files = (void*) p;
     /* return with opaque file handle */
+    p->cb = NULL;
     return (void*) p;
 }
 
@@ -1290,6 +1297,8 @@ int csoundFileClose(CSOUND *csound, void *fd)
           retval |= close(p->fd);
         break;
     }
+
+    if(p->cb != NULL) csound->FreeCircularBuffer(csound, p->cb);
     /* unlink from chain of open files */
     if (p->prv == NULL)
       csound->open_files = (void*) p->nxt;
@@ -1299,6 +1308,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
       p->nxt->prv = p->prv;
     /* free allocated memory */
     mfree(csound, fd);
+    
     /* return with error value */
     return retval;
 }
@@ -1341,4 +1351,63 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
   fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", env,
                          csftype, 0);
   return fd;
+}
+
+void *file_iothread(void *p);
+
+void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
+                     const char *name, void *param, const char *env,
+				   int csFileType, int buffsize, int isTemporary){
+  CSFILE *p;
+  p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,csFileType,isTemporary);
+  p->cb = csound->CreateCircularBuffer(csound, buffsize);
+  if(csound->file_io_thread == NULL)
+    pthread_create(csound->file_io_thread,NULL, file_iothread, (void *) csound);
+  return (void *) p;
+}
+
+unsigned int csoundReadAsync(CSOUND *csound, void *handle, MYFLT *buf, int items){
+    CSFILE *p = handle;
+    return csound->ReadCircularBuffer(csound, p->cb, buf, items); 
+}
+
+unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf, int items){
+    CSFILE *p = handle;
+    return csound->WriteCircularBuffer(csound, p->cb, buf, items); 
+}
+
+#define FILE_ITEMS 1024
+static int read_files(CSOUND *csound){
+  CSFILE *current = (CSFILE *) csound->open_files;
+  MYFLT buf[FILE_ITEMS];  
+  int items = FILE_ITEMS;
+
+  if(!current) return 0;
+
+  while(current){
+    if(current->cb != NULL) {
+    switch (current->type) {
+      case CSFILE_FD_R:
+      case CSFILE_FD_W:
+        break;
+      case CSFILE_STD:
+        break;
+      case CSFILE_SND_R:
+        sf_read_MYFLT(current->sf, buf, items);
+        csound->WriteCircularBuffer(csound, current->cb, buf, items); 
+        break;
+      case CSFILE_SND_W:
+        csound->ReadCircularBuffer(csound, current->cb, buf, items); 
+        sf_write_MYFLT(current->sf, buf, items);
+        break;
+    }
+    }
+    current = current->nxt;
+  }  
+  return 1;
+}
+
+void *file_iothread(void *p){
+  while(read_files((CSOUND *)p));
+  return NULL;
 }
