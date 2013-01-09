@@ -282,6 +282,8 @@
 ./OOps/ugrw1.c
 ./OOps/ugrw2.c
 ./OOps/vdelay.c
+./OOps/ugtabs.c
+./OOps/ugens2a.c
 ./Opcodes/3Dug.h
 ./Opcodes/ambicode1.c
 ./Opcodes/ambicode.c
