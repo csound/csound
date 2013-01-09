@@ -1361,8 +1361,19 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
   CSFILE *p;
   p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,csFileType,isTemporary);
   p->cb = csound->CreateCircularBuffer(csound, buffsize);
-  if(csound->file_io_thread == NULL)
-    pthread_create(csound->file_io_thread,NULL, file_iothread, (void *) csound);
+  if(csound->file_io_thread == NULL) {
+    csound->file_io_buffer = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*buffsize);
+    csound->file_io_bufsize = buffsize;
+    csound->file_io_threadlock = csound->CreateThreadLock();
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+    pthread_create(csound->file_io_thread,NULL, file_iothread, (void *) csound); 
+  }
+  else if(csound->file_io_bufsize < buffsize){
+    csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+    csound->file_io_buffer = (MYFLT *) realloc(csound, sizeof(MYFLT)*buffsize);
+    csound->file_io_bufsize = buffsize;
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+  }
   return (void *) p;
 }
 
@@ -1376,13 +1387,13 @@ unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf, int item
     return csound->WriteCircularBuffer(csound, p->cb, buf, items); 
 }
 
-#define FILE_ITEMS 1024
+
 static int read_files(CSOUND *csound){
   CSFILE *current = (CSFILE *) csound->open_files;
-  MYFLT buf[FILE_ITEMS];  
-  int items = FILE_ITEMS;
+  MYFLT* buf = csound->file_io_buffer;
+  int items = csound->file_io_bufsize;
 
-  if(!current) return 0;
+  if(current == NULL || buf == NULL || items == 0) return 0;
 
   while(current){
     if(current->cb != NULL) {
@@ -1408,6 +1419,15 @@ static int read_files(CSOUND *csound){
 }
 
 void *file_iothread(void *p){
-  while(read_files((CSOUND *)p));
+  int res = 1;
+  CSOUND *csound = p;
+  while(res){
+    csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+    res = read_files(csound);
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+  }
+  mfree(csound, csound->file_io_buffer);
+  csound->file_io_bufsize = 0;
+  csound->DestroyThreadLock(csound->file_io_threadlock);
   return NULL;
 }
