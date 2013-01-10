@@ -2060,6 +2060,8 @@ extern "C" {
   */
   PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p, const MYFLT *inp, int items);
 
+  PUBLIC void csoundFlushCircularBuffer(CSOUND *csound, void *p);
+
  /**
   * Free circular buffer
   */
