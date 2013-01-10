@@ -458,8 +458,6 @@ int sndo1set(CSOUND *csound, void *pp)
                                  opname, (int) (*iformat + FL(0.5)));
     }
     sfinfo.format = TYPE2SF(filetyp) | FORMAT2SF(format);
-    q->fd = csound->FileOpen2(csound, &(q->sf), CSFILE_SND_W, sfname, &sfinfo,
-                                "SFDIR", type2csfiletype(filetyp, format), 0);
     if (q->fd == NULL) {
       return csound->InitError(csound, Str("%s cannot open %s"), opname, sfname);
     }
@@ -492,6 +490,7 @@ int soundout(CSOUND *csound, SNDOUT *p)
     if (early) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
+	
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
       }
