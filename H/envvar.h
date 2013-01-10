@@ -235,6 +235,8 @@ extern "C" {
  
   unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf, int items);
 
+  int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence);
+
 
 #ifdef __cplusplus
 }

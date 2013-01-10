@@ -30,6 +30,8 @@ typedef struct FOUT_FILE_ {
     OPDS    h;
     SNDFILE *sf;
     FILE    *f;
+    void    *fd;
+  int     bufsize;
     int     idx;        /* file index + 1 */
 } FOUT_FILE;
 
