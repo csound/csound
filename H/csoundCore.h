@@ -1156,11 +1156,13 @@ typedef struct NAME__ {
     void *(*CreateCircularBuffer)(CSOUND *, int);
     int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
     int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
+    void (*FlushCircularBuffer)(CSOUND *, void *);
     void (*FreeCircularBuffer)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
 			   const char *, int, int, int);
     unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
     unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
+    int  (*FSeekAsync)(CSOUND *, void *, int, int);
     SUBR dummyfn_2[71];
     int           dither_output;
     void          *flgraphGlobals;
@@ -1197,10 +1199,10 @@ typedef struct NAME__ {
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
     int64_t       ibeatTime;   /* Beat time in samples */
-    pthread_t    *file_io_thread;
-    int          file_io_bufsize;
-    MYFLT        *file_io_buffer;
+    pthread_t    file_io_thread;
+    int          file_io_start;
     void         *file_io_threadlock;
+    int          realtime_audio_flag;
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t spoutlock, spinlock;
 #else

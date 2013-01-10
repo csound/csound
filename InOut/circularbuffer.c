@@ -79,6 +79,27 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, MYFLT *out, int items){
   return itemsread;
 }
 
+void csoundFlushCircularBuffer(CSOUND *csound, void *p){
+  int remaining;
+  int itemsread, size = ((circular_buffer *)p)->size;
+  int i=0, rp = ((circular_buffer *)p)->rp;
+  MYFLT *buffer = ((circular_buffer *)p)->buffer;
+  IGN(csound);
+  if(p == NULL) return;
+  if ((remaining = checkspace(p, 0)) == 0) {
+    return;
+  }
+  itemsread = size > remaining ? remaining: size;
+  for(i=0; i < itemsread; i++){
+    rp++;
+    if(rp == size) rp = 0;
+  }
+  ((circular_buffer *)p)->rp = rp;
+}
+
+
+
+
 int csoundWriteCircularBuffer(CSOUND *csound, void *p, const MYFLT *in, int items){
   int remaining;
   int itemswrite, size = ((circular_buffer *)p)->size;
