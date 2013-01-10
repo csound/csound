@@ -66,7 +66,7 @@ typedef struct devparams_ {
     char            *device;        /* device name                      */
     int             format;         /* sample format                    */
     int             sampleSize;     /* MYFLT sample frame size in bytes */
-    int             srate;          /* sample rate in Hz                */
+    uint32_t        srate;          /* sample rate in Hz                */
     int             nchns;          /* number of channels               */
     int             buffer_smps;    /* buffer length in samples         */
     int             period_smps;    /* period time in samples           */
