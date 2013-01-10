@@ -44,6 +44,8 @@ typedef struct {
     int     wrapMode;
     int32    fileLength;         /* in sample frames */
     int32    bufStartPos;
+    int32  bufpos;
+    int32  fpos;
     int64_t pos_frac;           /* type should be defined in sysdep.h */
     int64_t pos_frac_inc;
     SNDFILE *sf;
