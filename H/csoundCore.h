@@ -29,8 +29,8 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
-#ifdef PARCS
 #include <pthread.h>
+#ifdef PARCS
 #include "cs_par_structs.h"
 #endif /* PARCS */
 #include <stdarg.h>
