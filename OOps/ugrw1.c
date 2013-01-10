@@ -60,7 +60,7 @@
 /* a problem in the case of interpolating table opcodes, as the fractional */
 /* part would then be exactly 1.0, still giving a correct output value */
 #define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
-
+#ifdef SOME_FINE_DAY
 /* Do List:
  *
  * Clean up code in zak - use arrays rather than messy pointer stuff.
@@ -2126,7 +2126,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
     }
     return OK;
 }
-
+#endif /* SOME_FINE_DAY */
 /*****************************************************************************/
 /*****************************************************************************/
 
