@@ -184,17 +184,6 @@ static struct global_var_lock_t
     }
 }
 
-/* static void locks_print(CSOUND *csound)
-   {
-   csound->Message(csound, Str("Current Global Locks\n"));
-   struct global_var_lock_t *cg = csound->global_var_lock_root;
-   while (cg != NULL) {
-   csound->Message(csound, "[%i] %s [%p]\n", cg->index,
-                   cg->name, cg);
-   cg = cg->next;
-   }
-   } */
-
 TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
     csound->Message(csound,
