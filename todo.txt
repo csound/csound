@@ -35,6 +35,6 @@ reader opcodes need to accept them
 
 10) check changing p3 works with early ending code
 
-11) asynchronous disk access.
+11) asynchronous disk access. *** DONE *** soundin, fout, foutk modified.
 
 rc1 aimed for 28 Feb
