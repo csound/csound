@@ -227,6 +227,15 @@ extern "C" {
   char *csoundGetDirectoryForPath(CSOUND* csound, const char * path);
 
 
+  void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
+                     const char *name, void *param, const char *env,
+				     int csFileType, int buffsize, int isTemporary);
+
+  unsigned int csoundReadAsync(CSOUND *csound, void *handle, MYFLT *buf, int items);
+ 
+  unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf, int items);
+
+
 #ifdef __cplusplus
 }
 #endif

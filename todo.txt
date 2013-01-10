@@ -24,7 +24,7 @@ Csound 6 TODO list
 5) New DAG control without memory use
 
 6) Whittle code needs rewrite to avoid copyright infringement and to
-make it easier to maintain
+make it easier to maintain *** FIXED ***
 
 7) Analysis formats need to be byte-order/machine independent, and
 reader opcodes need to accept them
@@ -34,5 +34,7 @@ reader opcodes need to accept them
 9) csoundInputMessage() is broken. *** FIXED ***
 
 10) check changing p3 works with early ending code
+
+11) asynchronous disk access.
 
 rc1 aimed for 28 Feb

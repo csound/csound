@@ -29,8 +29,8 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
-#ifdef PARCS
 #include <pthread.h>
+#ifdef PARCS
 #include "cs_par_structs.h"
 #endif /* PARCS */
 #include <stdarg.h>
@@ -1157,6 +1157,10 @@ typedef struct NAME__ {
     int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
     int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
     void (*FreeCircularBuffer)(CSOUND *, void *);
+    void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
+			   const char *, int, int, int);
+    unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
+    unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
     SUBR dummyfn_2[71];
     int           dither_output;
     void          *flgraphGlobals;
@@ -1193,6 +1197,10 @@ typedef struct NAME__ {
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
     int64_t       ibeatTime;   /* Beat time in samples */
+    pthread_t    *file_io_thread;
+    int          file_io_bufsize;
+    MYFLT        *file_io_buffer;
+    void         *file_io_threadlock;
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t spoutlock, spinlock;
 #else
