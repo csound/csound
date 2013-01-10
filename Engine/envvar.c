@@ -1388,14 +1388,14 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
 
 unsigned int csoundReadAsync(CSOUND *csound, void *handle, MYFLT *buf, int items){
     CSFILE *p = handle;
-    if(p->cb != NULL)
+    if(p != NULL &&  p->cb != NULL)
     return csound->ReadCircularBuffer(csound, p->cb, buf, items); 
     else return 0;
 }
 
 unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf, int items){
     CSFILE *p = handle;
-    if(p->cb != NULL)
+    if(p != NULL &&  p->cb != NULL)
     return csound->WriteCircularBuffer(csound, p->cb, buf, items); 
     else return 0;
 }
