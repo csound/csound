@@ -65,6 +65,7 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, MYFLT *out, int items){
   int itemsread, size = ((circular_buffer *)p)->size;
   int i=0, rp = ((circular_buffer *)p)->rp;
   MYFLT *buffer = ((circular_buffer *)p)->buffer;
+  IGN(csound);
   if(p == NULL) return 0;
   if ((remaining = checkspace(p, 0)) == 0) {
     return 0;
@@ -83,6 +84,7 @@ int csoundWriteCircularBuffer(CSOUND *csound, void *p, const MYFLT *in, int item
   int itemswrite, size = ((circular_buffer *)p)->size;
   int i=0, wp = ((circular_buffer *)p)->wp;
   MYFLT *buffer = ((circular_buffer *)p)->buffer;
+  IGN(csound);
   if(p == NULL) return 0;
   if ((remaining = checkspace(p, 1)) == 0) {
     return 0;

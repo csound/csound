@@ -1013,3 +1013,4 @@ PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *csound)
 {
     return STA(outbuf);
 }
+
