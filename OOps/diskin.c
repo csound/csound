@@ -182,9 +182,12 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     }
     /* open file */
     /* FIXME: name can overflow with very long string */
+    p->bufSize = diskin_calc_buffer_size(p, (bsize ? bsize : 4096));
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
-    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+    //fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+    //                      "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+    fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+	 		    "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels*8, 0);
     if (UNLIKELY(fd == NULL)) {
       return
         csound->InitError(csound, Str("diskin: %s: failed to open file"), name);
@@ -246,8 +249,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* initialise buffer */
-    p->bufSize = diskin_calc_buffer_size(p, (bsize ? bsize : 4096));
-    csound->Warning(csound, Str("bufsize %d\n"), p->bufSize);
+    //p->bufSize = diskin_calc_buffer_size(p, (bsize ? bsize : 4096));
     p->bufStartPos = -((int32)(p->bufSize << 1));
 
     if (p->auxch.auxp == NULL ||
@@ -257,7 +259,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
 
     /* done initialisation */
     p->initDone = -1;
-
+    p->bufpos = p->fpos = 0;
     return OK;
 }
 
@@ -327,6 +329,52 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
       diskin_file_pos_inc(p, &ndx);
     }
 
+    return OK;
+}
+
+
+
+int soundinew_(CSOUND *csound, SOUNDINEW *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nn, nsmps = CS_KSMPS, chn;
+    MYFLT *buf = p->buf;
+    int32 pos = p->bufpos, fpos = p->fpos;
+    int bufsize = p->bufSize, filelength = p->fileLength;
+
+    if (p->initDone <= 0) {
+      if (UNLIKELY(!p->initDone))
+        return csound->PerfError(csound, Str("diskin: not initialised"));
+      p->initDone = 1;
+    }  
+   
+    /* clear outputs to zero first */
+    for (chn = 0; chn < p->nChannels; chn++)
+      for (nn = 0; nn < nsmps; nn++)
+        p->aOut[chn][nn] = FL(0.0);
+    if (early) nsmps -= early;
+   
+ 
+    for (nn = offset; nn < nsmps; nn++) {
+      if(pos < 0 || pos >= bufsize){
+	if(fpos < 0){
+	  fpos += filelength;
+	  //csound->FSeekAsync(csound,p->fdch.fd, fpos, SEEK_SET);
+	}
+        else if (fpos >= filelength){
+	  fpos -= filelength;      
+	  //csound->FSeekAsync(csound,p->fdch.fd, fpos, SEEK_SET);
+	}
+        csound->FSeekAsync(csound,p->fdch.fd, fpos, SEEK_SET);	
+        csound->ReadAsync(csound, p->fdch.fd, buf,bufsize);
+        if(pos < 0) pos += bufsize;
+        else pos -= bufsize;
+       }
+      p->aOut[0][nn] = buf[pos];
+      pos--; fpos--;
+    }
+    p->fpos = fpos; p->bufpos = pos;
     return OK;
 }
 

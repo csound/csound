@@ -26,7 +26,7 @@
 #include "diskin2.h"
 #include <math.h>
 
-static CS_NOINLINE void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
+static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound, DISKIN2 *p, int bufReadPos)
 {
     MYFLT *tmp;
     int32 nsmps;
@@ -58,10 +58,16 @@ static CS_NOINLINE void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
       if (nsmps > 0L) {         /* if there is anything to read: */
         if (nsmps > (int32) p->bufSize)
           nsmps = (int32) p->bufSize;
-        sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
-        /* convert sample count to mono samples and read file */
         nsmps *= (int32) p->nChannels;
+        //if(csound->realtime_audio_flag == 0) {
+        sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+        /* convert sample count to mono samples and read file */  
         i = (int)sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
+	//}
+        //else {
+	  //csound->FSeekAsync(csound,p->fdch.fd, p->bufStartPos, SEEK_SET);
+        // i = (int) csound->ReadAsync(csound, p->fdch.fd, p->buf, (sf_count_t) nsmps);
+	//}
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
@@ -76,20 +82,28 @@ static CS_NOINLINE void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
 /* of opcode 'p', at sample index 'n' (0 <= n < ksmps), with amplitude  */
 /* scale 'scl'.                                                         */
 
-static inline void diskin2_get_sample(DISKIN2 *p, int32 fPos, int n, MYFLT scl)
+static inline void diskin2_get_sample(CSOUND *csound, DISKIN2 *p, int32 fPos, int n, MYFLT scl)
 {
     int  bufPos, i;
 
     if (p->wrapMode) {
-      if (UNLIKELY(fPos >= p->fileLength))
+      if (UNLIKELY(fPos >= p->fileLength)){
         fPos -= p->fileLength;
-      else if (UNLIKELY(fPos < 0L))
+        //csound->Message(csound, "fpos- %d \n", fPos);
+        //if(csound->realtime_audio_flag)
+	//csound->FSeekAsync(csound,p->fdch.fd, fPos, SEEK_SET);
+      }
+      else if (UNLIKELY(fPos < 0L)){
         fPos += p->fileLength;
+        //csound->Message(csound, "fpos+ %d \n", fPos);
+	//if(csound->realtime_audio_flag)
+	//csound->FSeekAsync(csound,p->fdch.fd, fPos, SEEK_SET);
+      }
     }
     bufPos = (int)(fPos - p->bufStartPos);
     if (UNLIKELY((unsigned int) bufPos >= (unsigned int) p->bufSize)) {
       /* not in current buffer frame, need to read file */
-      diskin2_read_buffer(p, bufPos);
+      diskin2_read_buffer(csound, p, bufPos);
       /* recalculate buffer position */
       bufPos = (int)(fPos - p->bufStartPos);
     }
@@ -217,8 +231,13 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     /* open file */
     /* FIXME: name can overflow with very long string */
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
-    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+    p->bufSize = diskin2_calc_buffer_size(p, (int)(*(p->iBufSize) + FL(0.5)));
+    //if(csound->realtime_audio_flag==0)
+         fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+	 //else
+	 //fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+	 //		    "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels*8, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("diskin2: %s: failed to open file"), name);
@@ -290,7 +309,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* allocate and initialise buffers */
-    p->bufSize = diskin2_calc_buffer_size(p, (int)(*(p->iBufSize) + FL(0.5)));
+    
     n = 2 * p->bufSize * p->nChannels * (int)sizeof(MYFLT);
     if (n != (int)p->auxData.size)
       csound->AuxAlloc(csound, (int32) n, &(p->auxData));
@@ -302,6 +321,10 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
 /*       p->buf[i] = FL(0.0); */
     memset(p->buf, 0, n*sizeof(MYFLT));
     /* done initialisation */
+    //if(csound->realtime_audio_flag) {
+    //csound->FSeekAsync(csound,p->fdch.fd, (double)*(p->iSkipTime) * (double)csound->esr * p->warpScale, SEEK_SET);
+    // csound->Message(csound, "using async code \n");
+    //}
     p->initDone = 1;
     return OK;
 }
@@ -359,7 +382,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
         for (nn = offset; nn < nsmps; nn++) {
           if (p->pos_frac & ((int64_t)POS_FRAC_SCALE >> 1))
             ndx++;                      /* round to nearest sample */
-          diskin2_get_sample(p, ndx, nn, FL(1.0));
+          diskin2_get_sample(csound, p, ndx, nn, FL(1.0));
           /* update file position */
           diskin2_file_pos_inc(p, &ndx);
         }
@@ -369,9 +392,9 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
           a1 = (MYFLT)((int)(p->pos_frac & (int64_t)POS_FRAC_MASK))
                * (FL(1.0) / (MYFLT)POS_FRAC_SCALE);
           a0 = FL(1.0) - a1;
-          diskin2_get_sample(p, ndx, nn, a0);
+          diskin2_get_sample(csound, p, ndx, nn, a0);
           ndx++;
-          diskin2_get_sample(p, ndx, nn, a1);
+          diskin2_get_sample(csound, p, ndx, nn, a1);
           /* update file position */
           diskin2_file_pos_inc(p, &ndx);
         }
@@ -385,13 +408,13 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
           a1 = FL(3.0) * a3; a2 -= a1; a0 -= a3; a1 -= frac;
           a0 *= frac; a1 *= frac; a2 *= frac; a3 *= frac; a1 += FL(1.0);
           ndx--;                                /* sample -1 */
-          diskin2_get_sample(p, ndx, nn, a0);
+          diskin2_get_sample(csound, p, ndx, nn, a0);
           ndx++;                                /* sample 0 */
-          diskin2_get_sample(p, ndx, nn, a1);
+          diskin2_get_sample(csound, p, ndx, nn, a1);
           ndx++;                                /* sample +1 */
-          diskin2_get_sample(p, ndx, nn, a2);
+          diskin2_get_sample(csound, p, ndx, nn, a2);
           ndx++;                                /* sample +2 */
-          diskin2_get_sample(p, ndx, nn, a3);
+          diskin2_get_sample(csound, p, ndx, nn, a3);
           /* update file position */
           diskin2_file_pos_inc(p, &ndx);
         }
@@ -430,7 +453,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
             do {
               a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
               a1 = (MYFLT)x * a1 * a1 / (MYFLT)d;
-              diskin2_get_sample(p, ndx, nn, a1);
+              diskin2_get_sample(csound, p, ndx, nn, a1);
               ndx++;
               d += 1.0; v += c * x; x += v;
             } while (--i);
@@ -443,7 +466,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
               a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
               a1 = (MYFLT)x * a1 * a1 / (MYFLT)d;
             }
-            diskin2_get_sample(p, ndx, nn, a1);
+            diskin2_get_sample(csound, p, ndx, nn, a1);
             ndx++;
             d += 1.0; v += c * x; x += v;
             /* sample 1 */
@@ -455,7 +478,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
               a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
               a1 = (MYFLT)x * a1 * a1 / (MYFLT)d;
             }
-            diskin2_get_sample(p, ndx, nn, a1);
+            diskin2_get_sample(csound, p, ndx, nn, a1);
             ndx++;
             d += 1.0; v += c * x; x += v;
             /* samples 2 to (window size / 2) */
@@ -463,7 +486,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
             do {
               a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
               a1 = (MYFLT)x * a1 * a1 / (MYFLT)d;
-              diskin2_get_sample(p, ndx, nn, a1);
+              diskin2_get_sample(csound, p, ndx, nn, a1);
               ndx++;
               d += 1.0; v += c * x; x += v;
             } while (--i);
@@ -472,7 +495,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
             /* avoid division by zero */
             if (frac_d < 0.00001 || frac_d > 0.99999) {
               ndx += (int32) (wsized2 - (frac_d < 0.5 ? 1 : 0));
-              diskin2_get_sample(p, ndx, nn, FL(1.0));
+              diskin2_get_sample(csound, p, ndx, nn, FL(1.0));
             }
             else {
               a0 = (MYFLT)(sin(PI * frac_d) / PI);
@@ -480,12 +503,12 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
               do {
                 a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
                 a1 = a0 * a1 * a1 / (MYFLT)d;
-                diskin2_get_sample(p, ndx, nn, a1);
+                diskin2_get_sample(csound, p, ndx, nn, a1);
                 d += 1.0;
                 ndx++;
                 a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
                 a1 = -(a0 * a1 * a1 / (MYFLT)d);
-                diskin2_get_sample(p, ndx, nn, a1);
+                diskin2_get_sample(csound, p, ndx, nn, a1);
                 d += 1.0;
                 ndx++;
               } while (--i);
@@ -507,7 +530,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
 
 /* -------- soundin opcode: simplified version of diskin2 -------- */
 
-static void soundin_read_buffer(SOUNDIN_ *p, int bufReadPos)
+static void soundin_read_buffer(CSOUND *csound, SOUNDIN_ *p, int bufReadPos)
 {
     int i = 0;
 
@@ -521,10 +544,14 @@ static void soundin_read_buffer(SOUNDIN_ *p, int bufReadPos)
       lsmps = p->fileLength - p->bufStartPos;
       if (lsmps > (int_least64_t) 0) {  /* if there is anything to read: */
         nsmps = (lsmps < (int_least64_t) p->bufSize ? (int) lsmps : p->bufSize);
-        sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
         /* convert sample count to mono samples and read file */
         nsmps *= (int) p->nChannels;
-        i = (int) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
+        if(csound->realtime_audio_flag==0){
+         sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+         i = (int) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
+	}
+        else 
+         i = (int) csound->ReadAsync(csound, p->fdch.fd, p->buf, (sf_count_t) nsmps);
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
@@ -570,6 +597,7 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN)) {
       return csound->InitError(csound, Str("soundin: invalid number of channels"));
     }
+    p->bufSize = soundin_calc_buffer_size(p, (int) (*(p->iBufSize) + FL(0.5)));
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
@@ -595,8 +623,12 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     /* open file */
     /* FIXME: name can overflow with very long string */
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
+    if(csound->realtime_audio_flag==0)
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                                  "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+                         "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+    else
+    fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+    			    "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels*4, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("soundin: %s: failed to open file"), name);
@@ -640,7 +672,6 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     pos = (double)*(p->iSkipTime) * (double)sfinfo.samplerate;
     p->read_pos = (int_least64_t)(pos + (pos >= 0.0 ? 0.5 : -0.5));
     /* allocate and initialise buffer */
-    p->bufSize = soundin_calc_buffer_size(p, (int) (*(p->iBufSize) + FL(0.5)));
     n = p->bufSize * p->nChannels;
     if (n != (int) p->auxData.size)
       csound->AuxAlloc(csound, (int32) (n * (int) sizeof(MYFLT)), &(p->auxData));
@@ -651,10 +682,62 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     else
       p->bufStartPos = -((int_least64_t) p->bufSize);
     /* done initialisation */
+    if(csound->realtime_audio_flag) {
+    csound->FSeekAsync(csound,p->fdch.fd, p->read_pos, SEEK_SET);
+    // csound->Message(csound, "using async code \n");
+    }
     return OK;
 }
 
 int soundin(CSOUND *csound, SOUNDIN_ *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nn, nsmps=CS_KSMPS, bufPos;
+    int i;
+     
+    if (UNLIKELY(p->fdch.fd == NULL)) {
+      return csound->PerfError(csound, Str("soundin: not initialised"));
+    }
+    if (offset) for (i=0; i<p->nChannels; i++)
+                  memset(p->aOut[i], '\0', offset*sizeof(MYFLT));
+    if (early) {
+      nsmps -= early;
+      for (i=0; i<p->nChannels; i++)
+        memset(&(p->aOut[i][nsmps]), '\0', early*sizeof(MYFLT));
+    }
+   for (nn = offset; nn < nsmps; nn++) {
+      bufPos = (int) (p->read_pos - p->bufStartPos);
+      if ((unsigned int) bufPos >= (unsigned int) p->bufSize) {
+        /* not in current buffer frame, need to read file */
+        soundin_read_buffer(csound, p, bufPos);
+        /* recalculate buffer position */
+         bufPos = (int) (p->read_pos - p->bufStartPos);
+      }
+      /* copy all channels from buffer */
+      if (p->nChannels == 1) {
+        p->aOut[0][nn] = p->scaleFac * (MYFLT) p->buf[bufPos];
+     }
+     else if (p->nChannels == 2) {
+      bufPos += bufPos;
+      p->aOut[0][nn] = p->scaleFac * p->buf[bufPos];
+      p->aOut[1][nn] = p->scaleFac * p->buf[bufPos + 1];
+     }
+     else {
+     bufPos *= p->nChannels;
+      i = 0;
+        /* p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++]; */
+        /* p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++]; */
+      do {
+        p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
+      } while (i < p->nChannels);
+     }
+     p->read_pos++;
+    }
+    return OK;
+}
+
+int soundin1(CSOUND *csound, SOUNDIN_ *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -672,34 +755,37 @@ int soundin(CSOUND *csound, SOUNDIN_ *p)
         memset(&(p->aOut[i][nsmps]), '\0', early*sizeof(MYFLT));
     }
    for (nn = offset; nn < nsmps; nn++) {
-      bufPos = (int) (p->read_pos - p->bufStartPos);
-      if ((unsigned int) bufPos >= (unsigned int) p->bufSize) {
+     bufPos = (int) (p->read_pos);
+      if ((unsigned int) bufPos == (unsigned int) p->bufSize) {
         /* not in current buffer frame, need to read file */
-        soundin_read_buffer(p, bufPos);
+        int read;
+        read = csound->ReadAsync(csound, p->fdch.fd, p->buf, p->bufSize);
+	//csound->Message(csound, "read %d \n", read);
         /* recalculate buffer position */
-        bufPos = (int) (p->read_pos - p->bufStartPos);
+	bufPos = p->read_pos =  0;
       }
       /* copy all channels from buffer */
       if (p->nChannels == 1) {
         p->aOut[0][nn] = p->scaleFac * p->buf[bufPos];
-      }
-      else if (p->nChannels == 2) {
-        bufPos += bufPos;
-        p->aOut[0][nn] = p->scaleFac * p->buf[bufPos];
-        p->aOut[1][nn] = p->scaleFac * p->buf[bufPos + 1];
-      }
-      else {
-        bufPos *= p->nChannels;
-        i = 0;
+     }
+     else if (p->nChannels == 2) {
+      bufPos += bufPos;
+      p->aOut[0][nn] = p->scaleFac * p->buf[bufPos];
+      p->aOut[1][nn] = p->scaleFac * p->buf[bufPos + 1];
+     }
+     else {
+     bufPos *= p->nChannels;
+      i = 0;
         /* p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++]; */
         /* p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++]; */
-        do {
-          p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
-        } while (i < p->nChannels);
-      }
-      p->read_pos++;
+      do {
+        p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
+      } while (i < p->nChannels);
+      
+     }
+     p->buf[bufPos] = 0;
+     p->read_pos++;
     }
 
     return OK;
 }
-
