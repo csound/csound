@@ -36,7 +36,6 @@ typedef struct {
 typedef struct {
     OPDS    h;
     ARRAYDAT* arrayDat;
-    CS_TYPE* arraySubType;
     MYFLT* size;
 } ARRAYINIT;
 
@@ -69,15 +68,17 @@ static int array_init(CSOUND *csound, void *p)
     ARRAYDAT* arrayDat = t->arrayDat;
     int size = MYFLT2LRND(*t->size);
     
-    MYFLT data = *arrayDat->data;
-    int i;
-    
-    arrayDat->arrayType = t->arraySubType;
+//    MYFLT data = *arrayDat->data;
+//    int i;
+        
     CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, NULL);
     
     arrayDat->size = size;
-    mfree(csound, arrayDat->data);
-    arrayDat->data = mcalloc(csound, var->memBlockSize*size);
+//    if(arrayDat->data != NULL) {
+//        mfree(csound, arrayDat->data);
+//    }
+    int memSize = var->memBlockSize*size;
+    arrayDat->data = mcalloc(csound, memSize);
 //    for (i=0; i<size; i++) t->data[i] = val;
 //    { // Need to recover space eventually
 //        TABDEL *op = (TABDEL*) mmalloc(csound, sizeof(TABDEL));
@@ -721,9 +722,9 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 
 static OENTRY arrayvars_localops[] =
 {
-    { "array_init", sizeof(ARRAYINIT), 1, "[", ":i", (SUBR)array_init },
-    { "array_set", sizeof(ARRAYINIT), 1, "", "[k?", (SUBR)array_set, (SUBR)array_set },
-    { "array_get", sizeof(ARRAYINIT), 1, "?", "[k", (SUBR)array_get, (SUBR)array_get },
+    { "array_init", sizeof(ARRAYINIT), 1, "[", "i", (SUBR)array_init },
+    { "array_set", sizeof(ARRAY_SET), 1, "", "[k?", (SUBR)array_set, (SUBR)array_set },
+    { "array_get", sizeof(ARRAY_GET), 1, "?", "[k", (SUBR)array_get, (SUBR)array_get },
 //  { "##plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
 //  { "##suntab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
 //  { "##negtab",  sizeof(TABARITH), 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
