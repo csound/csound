@@ -199,6 +199,17 @@ static const int diskin2_format_table[11] = {
     SF_FORMAT_RAW | SF_FORMAT_DOUBLE
 };
 
+/* VL 11-01-13  diskin_init - calls diskin2_init  */
+
+int diskin_init(CSOUND *csound, DISKIN2 *p){
+  MYFLT temp; int ret;
+  temp = *p->iWinSize;
+  *p->iSkipInit = temp;
+  *p->iWinSize = 0;
+  ret = diskin2_init(csound,p);
+  *p->iWinSize = temp;
+  return ret;
+}
 int diskin2_init(CSOUND *csound, DISKIN2 *p)
 {
     double  pos;
