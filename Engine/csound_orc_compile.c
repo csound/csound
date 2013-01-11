@@ -361,7 +361,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
       ip->opdstot += csound->opcodlst[opnum].dsblksiz;
       
       if (tp->opnum == find_opcode(csound, "array_init")) {
-        break;
+        //break;
       }
           
       /* BUILD ARG LISTS */
@@ -418,6 +418,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip, ENGINE_STATE *eng
                                 "type 'w' must be uniquely defined, line %d"),
                     root->line);
           }
+            csound->DebugMsg(csound, "Arg: %s\n", arg);
           lgbuild(csound, ip, arg, 0, engineState);
         }
         
@@ -471,15 +472,15 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root, ENGINE_STATE *engineSta
   TREE *current;
   MYFLT sr= FL(-1.0), kr= FL(-1.0), ksmps= FL(-1.0), nchnls= DFLT_NCHNLS, inchnls = FL(0.0), _0dbfs= FL(-1.0);
   CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "sr"));
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "kr"));
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "ksmps"));
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "nchnls"));
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "nchnls_i"));
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "0dbfs"));
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$sr"));
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$kr"));
-  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$ksmps"));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "sr", NULL));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "kr", NULL));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "ksmps", NULL));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "nchnls", NULL));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "nchnls_i", NULL));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "0dbfs", NULL));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$sr", NULL));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$kr", NULL));
+  csoundAddVariable(engineState->varPool, csoundCreateVariable(csound, csound->typePool, rType, "$ksmps", NULL));
   myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
   ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
@@ -976,10 +977,11 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     count++;
     csound->Message(csound, " merging  %d) %s:%s\n", count, 
 		    gVar->varName, gVar->varType->varTypeName);
-    csoundAddVariable(current_state->varPool, csoundCreateVariable(csound, csound->typePool, gVar->varType, gVar->varName));
+    csoundAddVariable(current_state->varPool, csoundCreateVariable(csound, csound->typePool, gVar->varType, gVar->varName, NULL));
     gVar = gVar->next;
   }
   /* do we need to recalculate global pool and allocate memory ? */
+  //FIXME - need to reinitialize variables here using intializeVariableMemory...
   if(count) {
      recalculateVarPoolMemory(csound, current_state->varPool);
      csound->globalVarPool = mrealloc(csound, csound->globalVarPool, current_state->varPool->poolSize);
@@ -1484,7 +1486,7 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
   argLetter[1] = 0;
 
   type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-  var = csoundCreateVariable(csound, csound->typePool, type, s);
+  var = csoundCreateVariable(csound, csound->typePool, type, s, NULL);
   csoundAddVariable(engineState->varPool, var);
 }
 
@@ -1505,11 +1507,19 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
     
   if (*t == '#')  t++;
     
+  void* typeArg = NULL;
+    
+  if(*t == '[') {
+    
+      argLetter[0] = *(t + 1);
+      argLetter[1] = 0;
+    typeArg = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+  }
+    
   argLetter[0] = *t;
-  argLetter[1] = 0;
     
   type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-  var = csoundCreateVariable(csound, csound->typePool, type, s);
+  var = csoundCreateVariable(csound, csound->typePool, type, s, typeArg);
   csoundAddVariable(ip->varPool, var);
 }
 

@@ -35,7 +35,7 @@ void test_type_system(void)
   TYPE_POOL* pool = csound->typePool;
   CS_VAR_POOL* varPool = csound->engineState.varPool;
   
-  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, "a1");
+  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, "a1", NULL);
   CU_ASSERT_PTR_NOT_NULL(var);
   //printf("Var type created: %s\n", var->varType->varTypeName);
   
