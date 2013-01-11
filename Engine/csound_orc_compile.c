@@ -1548,6 +1548,8 @@ char argtyp2(char *s)
     c = *(++s);
   if (c == 'g')
     c = *(++s);
+  if (c == '[')
+    c = *(++s);
   if (strchr("akiBbfSt", c) != NULL)
     return(c);
   else return('?');

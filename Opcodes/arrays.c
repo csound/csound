@@ -42,15 +42,15 @@ typedef struct {
 typedef struct {
     OPDS    h;
     ARRAYDAT* arrayDat;
-    int index;
+    MYFLT* index;
     void* value;
 } ARRAY_SET;
 
 typedef struct {
     OPDS    h;
-    void*   out;
+    MYFLT*   out;
     ARRAYDAT* arrayDat;
-    int index;
+    MYFLT* index;
 } ARRAY_GET;
 
 static int array_del(CSOUND *csound, void *p)
@@ -77,6 +77,7 @@ static int array_init(CSOUND *csound, void *p)
 //    if(arrayDat->data != NULL) {
 //        mfree(csound, arrayDat->data);
 //    }
+    arrayDat->arrayMemberSize = var->memBlockSize;
     int memSize = var->memBlockSize*size;
     arrayDat->data = mcalloc(csound, memSize);
 //    for (i=0; i<size; i++) t->data[i] = val;
@@ -90,10 +91,22 @@ static int array_init(CSOUND *csound, void *p)
 }
 
 static int array_set(CSOUND* csound, ARRAY_SET *p) {
+    ARRAYDAT* dat = p->arrayDat;
+    MYFLT* mem = dat->data;
+    int index = MYFLT2LRND(*p->index);
+    int incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
+    mem += incr;
+    memcpy(mem, p->value, dat->arrayMemberSize);
     return OK;
 }
 
 static int array_get(CSOUND* csound, ARRAY_GET *p) {
+    ARRAYDAT* dat = p->arrayDat;
+    MYFLT* mem = dat->data;
+    int index = MYFLT2LRND(*p->index);
+    int incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
+    mem += incr;
+    memcpy(p->out, mem, dat->arrayMemberSize);
     return OK;
 }
 
@@ -723,8 +736,8 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 static OENTRY arrayvars_localops[] =
 {
     { "array_init", sizeof(ARRAYINIT), 1, "[", "i", (SUBR)array_init },
-    { "array_set", sizeof(ARRAY_SET), 1, "", "[k?", (SUBR)array_set, (SUBR)array_set },
-    { "array_get", sizeof(ARRAY_GET), 1, "?", "[k", (SUBR)array_get, (SUBR)array_get },
+    { "array_set", sizeof(ARRAY_SET), 3, "", "[k?", (SUBR)array_set, (SUBR)array_set },
+    { "array_get", sizeof(ARRAY_GET), 3, "?", "[k", (SUBR)array_get, (SUBR)array_get },
 //  { "##plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
 //  { "##suntab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
 //  { "##negtab",  sizeof(TABARITH), 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },

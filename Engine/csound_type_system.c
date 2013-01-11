@@ -75,7 +75,9 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, 
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
             CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
             var->varType = type;
-            var->varName = name;
+            int len = strlen(name);
+            var->varName = (char*)mcalloc(csound, len + 1);
+            strcpy(var->varName, name);
             return var;
         }
         current = current->next;
@@ -84,7 +86,6 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, 
 }
 
 CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name) {
-    
     CS_VARIABLE* current = pool->head;
     CS_VARIABLE* returnValue = NULL;
     
