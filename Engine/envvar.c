@@ -1301,20 +1301,30 @@ int csoundFileClose(CSOUND *csound, void *fd)
           retval |= close(p->fd);
         break;
     }
-
-    if(p->cb != NULL && csound->file_io_start == 0) {
-        csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
-        mfree(csound, p->buf);
-        csound->FreeCircularBuffer(csound, p->cb);
-        csound->DestroyThreadLock(csound->file_io_threadlock);
-    }
-    /* unlink from chain of open files */
+   
+   if(p->cb != NULL) {
+     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+        /* unlink from chain of open files */
     if (p->prv == NULL)
       csound->open_files = (void*) p->nxt;
     else
       p->prv->nxt = p->nxt;
     if (p->nxt != NULL)
       p->nxt->prv = p->prv;
+    mfree(csound, p->buf);
+    csound->FreeCircularBuffer(csound, p->cb);
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+   } else {
+   /* unlink from chain of open files */
+    if (p->prv == NULL)
+      csound->open_files = (void*) p->nxt;
+    else
+      p->prv->nxt = p->nxt;
+    if (p->nxt != NULL)
+      p->nxt->prv = p->prv;
+
+   }
+    
     /* free allocated memory */
     mfree(csound, fd);
     
@@ -1328,6 +1338,8 @@ void close_all_files(CSOUND *csound)
 {
     while (csound->open_files != NULL)
       csoundFileClose(csound, csound->open_files);
+    pthread_join(csound->file_io_thread, NULL);
+    if(csound->file_io_threadlock != NULL) csound->DestroyThreadLock(csound->file_io_threadlock);
 }
 
 /* The fromScore parameter should be 1 if opening a score include file,
