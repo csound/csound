@@ -39,6 +39,7 @@ extern "C" {
         struct csvariable* next;
         CS_TYPE* subType;
         void (*updateMemBlockSize)(void*, struct csvariable*);
+        void (*initializeVariableMemory)(struct csvariable*, MYFLT*);
     } CS_VARIABLE;
 
 //    typedef struct cstypeinstance {
@@ -60,8 +61,9 @@ extern "C" {
     /* Adds a new type to Csound's type table
        Returns if variable type redefined */
     PUBLIC int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance);
-    PUBLIC CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name);
+    PUBLIC CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name, void* typeArg);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
+    PUBLIC CS_TYPE* csoundGetTypeForVarName(TYPE_POOL* pool, char* typeName);
     
     
     /* Csound Variable Pool - essentially a map<string,csvar> 
@@ -78,6 +80,7 @@ extern "C" {
     PUBLIC int csoundFindVariable(CS_VAR_POOL* pool, const char* name);
     PUBLIC int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var);
     PUBLIC void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
+    PUBLIC void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool);
     
 #ifdef	__cplusplus
 }

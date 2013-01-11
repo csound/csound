@@ -1965,6 +1965,7 @@ static void instance(CSOUND *csound, int insno)
     gbloffbas = csound->globalVarPool;
     lcloffbas = &ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
+    initializeVarPool(lclbas, tp->varPool);
     opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize;
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))

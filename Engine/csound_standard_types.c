@@ -5,7 +5,6 @@
 
 #define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
 #define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
-#define ARRAY_DAT_FLOATS (((int) sizeof(ARRAYDAT) + 7) / (int) sizeof(MYFLT))
 
 void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
     CSOUND* cs = (CSOUND*)csound;
@@ -60,13 +59,21 @@ CS_VARIABLE* createFsig(void* csound, void* p) {
     return var;
 }
 
+void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
+    ARRAYDAT* dat = (ARRAYDAT*)memblock;
+    dat->arrayType = var->subType;
+}
+
 CS_VARIABLE* createArray(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     CS_TYPE* type = (CS_TYPE*)p;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
-    var->memBlockSize = ARRAY_DAT_FLOATS;
-    return var;
+    var->memBlockSize = sizeof(ARRAYDAT);
+    var->subType = type;
+    var->initializeVariableMemory = &arrayInitMemory;
+    return var; 
 }
+
 
 //#define ARGTYP_S        0x00000040L     /* string constant or variable */
 //#define ARGTYP_l        0x00000800L     /* label */
