@@ -309,6 +309,7 @@ typedef struct {
 
   typedef struct {
     int     size;             /* 0...size-1 */
+    int     arrayMemberSize;
     CS_TYPE* arrayType;
     MYFLT* data;
 //    AUXCH   aux;
