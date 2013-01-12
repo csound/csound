@@ -1770,7 +1770,7 @@ int outch(CSOUND *csound, OUTCH *p)
       else {
         sp = csound->spout + (ch - 1);
         for (n=0; n<early; n++) {
-          if (n>offset) *sp += apn[n];
+          if (n>=offset) *sp += apn[n];
           sp += nchnls;
         }
       }
