@@ -47,14 +47,15 @@ taskID ** dep;                        /* OPT : Structure lay out */
  *       no writes (but see OPT : Watch ordering) */
 /* Thus no protection needed */
 
-typedef struct watchList {
-  taskID head;
-  struct watchList *tail;
+typedef struct _watchList {
+  void *head;
+  struct _watchList *tail;
 } watchList;
 
 /* Used to mark lists that should not be added to, see NOTE : Race condition */
-watchList *doNotAdd;
-watchList endwatch = { INVALID, NULL };
+watchList nullList;
+watchList *doNotAdd = &nullList;
+watchList endwatch = { NULL, NULL };
 
 /* Lists of tasks that depend on the given task */
 watchList ** watch;         /* OPT : Structure lay out */
@@ -87,8 +88,8 @@ void initialiseWatch (watchList **w, taskID id) {
 }
 
 watchList * getWatches(taskID id) {
-    watchList *ptr = watch[id];
-    return __sync_val_compare_and_swap(ptr, watch[id], doNotAdd);
+
+    return __sync_lock_test_and_set (&(watch[id]), doNotAdd);
 }
 
 int moveWatch (watchList **w, watchList *t) {
@@ -109,6 +110,17 @@ int moveWatch (watchList **w, watchList *t) {
   return 1;
 }
 
+void appendToWL (taskID id, watchList *l) {
+  watchList *w;
+
+  do {
+    w = watch[id];
+    l->tail = w;
+    w = __sync_val_compare_and_swap(&(watch[id]),w,l);
+  } while (!(w == l));
+
+}
+
 void deleteWatch (watchList *t) {
   wlmm[t->head].used = FALSE;
 }
@@ -116,19 +128,19 @@ void deleteWatch (watchList *t) {
 
 
 
-struct monitor {
+typedef struct monitor {
   pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
   unsigned int threadsWaiting = 0;    /* Shadows the length of workAvailable wait queue */
   queue<taskID> q;                    /* OPT : Dispatch order */
   pthread_cond_t workAvailable = PTHREAD_COND_INITIALIZER;
   pthread_cond_t done = PTHREAD_COND_INITIALIZER;
-};                                    /* OPT : Lock-free */
+} monitor;                                    /* OPT : Lock-free */
 
 /* INV : q.size() + dispatched <= ID */
 /* INV : foreach(id,q.contents()) { status[id] = AVAILABLE; } */
 /* INV : threadsWaiting <= THREADS */
 
-struct monitor dispatch;
+monitor dispatch;
 
 
 void addWork(monitor *dispatch, taskID id) {
