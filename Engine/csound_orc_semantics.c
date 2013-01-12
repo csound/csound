@@ -363,6 +363,35 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     return ans;
 }
 
+/** Utility function to rewrite array names from xxx to [xxx, as csound
+ *  uses first letter to denote type.  Also handles if name starts with g;
+ *  used by parser (csound_orc.y)
+ */
+char* convertArrayName(CSOUND* csound, char* arrayName) {
+    if(arrayName == NULL) {
+        return NULL;
+    }
+    int len = strlen(arrayName);
+    
+    if(len == 0) {
+        return NULL;
+    }
+    
+    char* newArrayName = mmalloc(csound, (len + 2)* sizeof(char));
+    
+    if(arrayName[0] == 'g') {
+        newArrayName[0] = 'g';
+        newArrayName[1] = '[';
+        memcpy(newArrayName + 2, arrayName + 1, len - 1);
+    } else {
+        newArrayName[0] = '[';
+        memcpy(newArrayName + 1, arrayName, len);
+    }
+    newArrayName[len + 1] = 0;
+    
+    return newArrayName;
+}
+
 /** Utility function to create assignment statements
  *  Replaces = with correct version for args
  */
