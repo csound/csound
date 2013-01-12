@@ -29,7 +29,7 @@ int clean_suite1(void)
 void test_type_system(void)
 {
   CSOUND* csound = csoundCreate(NULL);
-  //csoundReset(csound);
+  csoundReset(csound);
   //    csoundAddStandardTypes(csound, pool);
   
   TYPE_POOL* pool = csound->typePool;
@@ -51,7 +51,7 @@ void test_type_system(void)
 }
 
 
-int main()
+int main(int argc, char** argv)
 {
   CU_pSuite pSuite = NULL;
   
