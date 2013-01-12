@@ -546,13 +546,6 @@ static int
                             struct opcode_weight_cache_entry_t **entry,
                             char *name, uint32_t weight, uint32_t hash_val)
 {
-#ifdef CAUTIOUS
-    if (UNLIKELY(entry == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter entry"));
-    if (UNLIKELY(name == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter name"));
-#endif
-
     *entry = csound->Malloc(csound,
                             sizeof(struct opcode_weight_cache_entry_t));
     if (UNLIKELY(*entry == NULL)) {
@@ -567,23 +560,6 @@ static int
 
     return CSOUND_SUCCESS;
 }
-
-#if 0
-static int
-  opcode_weight_entry_dealloc(CSOUND *csound,
-                              struct opcode_weight_cache_entry_t **entry)
-{
-#ifdef CAUTIOUS
-    if (UNLIKELY(entry == NULL || *entry == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter entry"));
-#endif
-
-    csound->Free(csound, *entry);
-    *entry = NULL;
-
-    return CSOUND_SUCCESS;
-}
-#endif
 
 uint32_t csp_opcode_weight_fetch(CSOUND *csound, char *name)
 {
@@ -974,17 +950,6 @@ void csp_parallel_compute_spec_setup(CSOUND *csound)
                     global_weight_info.roots_avail_max);
 }
 
-#if 0
-int inline csp_parallel_compute_should(CSOUND *csound, DAG *dag)
-{
-    return (dag->weight >= global_weight_info.weight_min &&
-            dag->max_roots >= global_weight_info.roots_avail_min);
-    /* return (dag->ratio > 0.15 && dag->ratio < 0.85); */
-    /* return (dag->weight->weight > weight_info->weight); */
-    /* return 1; */
-}
-#endif
-
 /***********************************************************************
  * dag2 data structure
  */
@@ -1256,7 +1221,7 @@ inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
       if (current_instr == NULL) {
         current_instr =
           csp_orc_sa_instr_get_by_name(csound,
-                                       csound->engineState.instrtxtp[chain->insno]->insname);
+              csound->engineState.instrtxtp[chain->insno]->insname);
         if (current_instr == NULL)
           csound->Die(csound,
                       Str("Failed to find semantic information"
@@ -2175,223 +2140,6 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
  * dag2 cache structure
  */
 
-/* #ifdef LINEAR_CACHE */
-
-/* struct dag_cache_entry_t { */
-/*   DAG              *dag; */
-/*   uint32_t                    uses; */
-/*   uint32_t                    age; */
-/*   struct dag_cache_entry_t  *next; */
-/*   int16                       instrs; */
-/*   int16                       chain[]; */
-/* }; */
-
-/* static int cache_ctr; */
-/* static struct dag_cache_entry_t *cache; */
-
-/* static uint32_t update_ctr; */
-
-/* #define DAG_2_CACHE_SIZE     100 */
-/* #define DAG_2_DECAY_COMP     1 */
-/* #define DAG_2_MIN_USE_LIMIT  5000 */
-/* aiming for 8 passes of the cache update before a new entry must exist
-   solely on its usage */
-/* #define DAG_2_MIN_AGE_LIMIT  256 */
-/* #define DAG_2_AGE_START      131072 */
-
-/* static int csp_dag_cache_entry_dealloc(CSOUND *csound, */
-/*                                        struct dag_cache_entry_t **entry); */
-/* static int csp_dag_cache_entry_alloc(CSOUND *csound, */
-/*                                      struct dag_cache_entry_t **entry, */
-/*                                      INSDS *chain); */
-/* static int csp_dag_cache_compare(CSOUND *csound, */
-/*                                  struct dag_cache_entry_t *entry, */
-/*                                  INSDS *chain); */
-/* static void csp_dag_cache_update(CSOUND *csound); */
-
-/* void csp_dag_cache_print(CSOUND *csound) */
-/* { */
-/*     csound->Message(csound, "Dag2 Cache Size: %i\n", cache_ctr); */
-/*     uint32_t sum = 0, max = 0, min = UINT32_MAX, sum_age = 0; */
-/*     struct dag_cache_entry_t *entry = cache, *prev = NULL; */
-/*     while (entry != NULL) { */
-/*       if (entry->uses > max) max = entry->uses; */
-/*       else if (entry->uses < min) min = entry->uses; */
-/*       sum = sum + entry->uses; */
-/*       sum_age = sum_age + entry->age; */
-/*       entry = entry->next; */
-/*     } */
-/*     csound->Message(csound, "Dag2 Avg Uses: %u\n", sum / cache_ctr); */
-/*     csound->Message(csound, "Dag2 Min Uses: %u\n", min); */
-/*     csound->Message(csound, "Dag2 Max Uses: %u\n", max); */
-/*     csound->Message(csound, "Dag2 Avg Age: %u\n", sum_age / cache_ctr); */
-/*     csound->Message(csound, "Dag2 Fetches:  %u\n", update_ctr); */
-/* } */
-
-/* static int csp_dag_cache_entry_alloc(CSOUND *csound, */
-/*                                      struct dag_cache_entry_t **entry, */
-/*                                      INSDS *chain) */
-/* { */
-/*     int ctr = 0; */
-/*     INSDS *current_insds = chain; */
-
-/* #ifdef CAUTIOUS */
-/*     if (UNLIKELY(entry == NULL)) */
-/*       csound->Die(csound, Str("Invalid NULL Parameter entry")); */
-/*     if (UNLIKELY(chain == NULL)) */
-/*       csound->Die(csound, Str("Invalid NULL Parameter chain")); */
-/* #endif */
-
-/*     while (current_insds != NULL) { */
-/*       ctr++; */
-/*       current_insds = current_insds->nxtact; */
-/*     } */
-
-/*     *entry = csound->Malloc(csound, */
-/*                             sizeof(struct dag_cache_entry_t) + */
-/*                             sizeof(int16) * ctr); */
-/*     if (UNLIKELY(*entry == NULL)) { */
-/*       csound->Die(csound, Str("Failed to allocate Dag2 cache")); */
-/*     } */
-/*     memset(*entry, 0, sizeof(struct dag_cache_entry_t) + sizeof(int16) * ctr); */
-/*     (*entry)->uses   = 1; */
-/*     (*entry)->age    = DAG_2_AGE_START; */
-/*     (*entry)->instrs = ctr; */
-
-/*     ctr = 0; */
-/*     current_insds = chain; */
-/*     while (current_insds != NULL) { */
-/*       (*entry)->chain[ctr] = current_insds->insno; */
-/*       ctr++; */
-/*       current_insds = current_insds->nxtact; */
-/*     } */
-
-/*     DAG *dag = NULL; */
-/*     csp_dag_build(csound, &dag, chain); */
-/*     (*entry)->dag = dag; */
-
-/*     return CSOUND_SUCCESS; */
-/* } */
-
-/* static int csp_dag_cache_entry_dealloc(CSOUND *csound, */
-/*                                        struct dag_cache_entry_t **entry) */
-/* { */
-/* #ifdef CAUTIOUS */
-/*     if (UNLIKELY(entry == NULL)) */
-/*       csound->Die(csound, Str("Invalid NULL Parameter entry")); */
-/*     if (UNLIKELY(*entry == NULL)) */
-/*       csound->Die(csound, Str("Invalid NULL Parameter entry")); */
-/* #endif */
-
-/*     csp_dag_dealloc(csound, &((*entry)->dag)); */
-
-/*     csound->Free(csound, *entry); */
-/*     *entry = NULL; */
-
-/*     return CSOUND_SUCCESS; */
-/* } */
-
-/* static void csp_dag_cache_update(CSOUND *csound) */
-/* { */
-/*     if (cache_ctr < DAG_2_CACHE_SIZE) { */
-/*       return; */
-/*     } */
-/*     //    csound->Message(csound, Str("Cache Update\n")); */
-/*     struct dag_cache_entry_t *entry = cache, *prev = NULL; */
-/*     while (entry != NULL) { */
-/*       entry->uses = entry->uses >> DAG_2_DECAY_COMP; */
-/*       entry->age  = entry->age  >> DAG_2_DECAY_COMP; */
-/*       if (entry->uses < DAG_2_MIN_USE_LIMIT && */
-/*           entry->age < DAG_2_MIN_AGE_LIMIT && */
-/*           prev != NULL) { */
-/*         prev->next = entry->next; */
-/*         csp_dag_cache_entry_dealloc(csound, &entry); */
-/*         entry = prev->next; */
-/*         cache_ctr--; */
-/*       } */
-/*       else { */
-/*         prev = entry; */
-/*         entry = entry->next; */
-/*       } */
-/*     } */
-/* } */
-
-/* static int csp_dag_cache_compare(CSOUND *csound, */
-/*                                  struct dag_cache_entry_t *entry,
-                                    INSDS *chain) */
-/* { */
-/*     INSDS *current_insds = chain; */
-/*     int32_t ctr = 0; */
-
-/* #ifdef CAUTIOUS */
-/*     if (entry == NULL) csound->Die(csound, 
-                                      Str("Invalid NULL Parameter entry")); */
-/*     if (chain == NULL) csound->Die(csound,
-                                      Str("Invalid NULL Parameter chain")); */
-/* #endif */
-
-/*     while (current_insds != NULL && ctr < entry->instrs) { */
-/*       if (current_insds->insno != entry->chain[ctr]) { */
-/*         return 0; */
-/*       } */
-/*       current_insds = current_insds->nxtact; */
-/*       ctr++; */
-/*     } */
-/*     if (ctr >= entry->instrs && current_insds != NULL) { */
-/*       return 0; */
-/*     } */
-/*     else if (ctr < entry->instrs && current_insds == NULL) { */
-/*       return 0; */
-/*     } */
-/*     else { */
-/*       return 1; */
-/*     } */
-/* } */
-
-/* void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain) */
-/* { */
-/*     struct dag_cache_entry_t *curr; */
-/* #ifdef CAUTIOUS */
-/* if (UNLIKELY(dag == NULL)) */
-/*       csound->Die(csound, Str("Invalid NULL Parameter dag")); */
-/*     if (UNLIKELY(chain == NULL)) */
-/*       csound->Die(csound, Str("Invalid NULL Parameter chain")); */
-/* #endif */
-
-/*     update_ctr++;               /\* What does this do? *\/ */
-/*     if (update_ctr == 10000) { */
-/*       csp_dag_cache_update(csound); */
-/*       update_ctr = 0; */
-/*     } */
-
-/*     curr = cache; */
-/*     while (curr != NULL) { */
-/*       if (UNLIKELY(csp_dag_cache_compare(csound, curr, chain))) { */
-/*         TRACE_2("Cache Hit [%i]\n", cache_ctr); */
-/*         *dag = curr->dag; */
-
-/*         curr->uses++; */
-
-/*         csp_dag_prepare_use_insds(csound, curr->dag, chain); */
-/*         csp_dag_prepare_use(csound, curr->dag); */
-/*         break; */
-/*       } */
-/*       curr = curr->next; */
-/*     } */
-/*     if (*dag == NULL) { */
-/*       csp_dag_cache_entry_alloc(csound, &curr, chain); */
-/*       cache_ctr++; */
-/*       *dag = curr->dag; */
-/*       curr->next = cache; */
-/*       cache = curr; */
-
-/*       TRACE_2("Cache Miss [%i]\n", cache_ctr); */
-/*     } */
-/* } */
-
-/* #endif */
-
-
 #ifdef HASH_CACHE
 
 struct dag_cache_entry_t {
@@ -2416,21 +2164,12 @@ struct dag_cache_entry_t {
 static int cache_ctr;
 //static struct dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
 
-/* #ifdef HYBRID_HASH_CACHE */
-/* static struct dag_cache_entry_t *cache_last; */
-/* #endif */
-
 static uint32_t update_ctr;
 
 static int csp_dag_cache_entry_alloc(CSOUND *csound,
                                      struct dag_cache_entry_t **entry,
                                      INSDS *chain, uint32_t hash_val);
 static int csp_dag_cache_compare(struct dag_cache_entry_t *entry, INSDS *chain);
-#if 0
-static int csp_dag_cache_entry_dealloc(CSOUND *csound,
-                                       struct dag_cache_entry_t **entry);
-static void csp_dag_cache_update(CSOUND *csound);
-#endif
 static void csp_dag_cache_print_weights_dump(CSOUND *csound);
 
 void csp_dag_cache_print(CSOUND *csound)
@@ -2605,74 +2344,6 @@ static int csp_dag_cache_entry_alloc(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
-#if 0
-static int csp_dag_cache_entry_dealloc(CSOUND *csound,
-                                       struct dag_cache_entry_t **entry)
-{
-#ifdef CAUTIOUS
-    if (UNLIKELY(entry == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter entry"));
-    if (UNLIKELY(*entry == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter entry"));
-#endif
-
-    csp_dag_dealloc(csound, &((*entry)->dag));
-
-    csound->Free(csound, *entry);
-    *entry = NULL;
-
-    return CSOUND_SUCCESS;
-}
-#endif
-
-#if 0
-static void csp_dag_cache_update(CSOUND *csound)
-{
-    uint32_t bin_ctr = 0;
-
-    if (cache_ctr < DAG_2_CACHE_SIZE) {
-      return;
-    }
-    csound->Message(csound, Str("Cache Update\n"));
-
-    while (bin_ctr < DAG_2_CACHE_SIZE) {
-      struct dag_cache_entry_t *entry = csound->cache[bin_ctr], *prev = NULL;
-
-      if (entry == NULL) {
-        bin_ctr++;
-        continue;
-      }
-
-      while (entry != NULL) {
-        entry->uses = entry->uses >> DAG_2_DECAY_COMP;
-        entry->age  = entry->age  >> DAG_2_DECAY_COMP;
-        if (entry->uses < DAG_2_MIN_USE_LIMIT &&
-            entry->age < DAG_2_MIN_AGE_LIMIT) {
-          if (prev == NULL) {
-            csound->cache[bin_ctr] = entry->next;
-          }
-          else {
-            prev->next = entry->next;
-          }
-          csp_dag_cache_entry_dealloc(csound, &entry);
-          if (prev == NULL) {
-            entry = csound->cache[bin_ctr];
-          }
-          else {
-            entry = prev->next;
-          }
-          cache_ctr--;
-        }
-        else {
-          prev = entry;
-          entry = entry->next;
-        }
-      }
-      bin_ctr++;
-    }
-}
-#endif
-
 static int csp_dag_cache_compare(struct dag_cache_entry_t *entry, INSDS *chain)
 {
 #ifdef CAUTIOUS
@@ -2708,33 +2379,6 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
 #endif
 
     update_ctr++;
-    // WHY does this code exist?
-/*     if (update_ctr == 10000) { */
-/*       csound->Message(csound, "Reloading because of count\n"); */
-/*       csp_dag_cache_update(csound); */
-/*       update_ctr = 0; */
-/* #ifdef HYBRID_HASH_CACHE */
-/*       cache_last = NULL; */
-/* #endif */
-/*     } */
-
-/* #ifdef HYBRID_HASH_CACHE */
-/*     if (cache_last != NULL && */
-/*         csp_dag_cache_compare(cache_last, chain)) { */
-/*       struct dag_cache_entry_t *curr = cache_last; */
-/* #if TRACE > 4 */
-/*       csound->Message(csound, "Cache Hit (Last) [%i]\n", cache_ctr); */
-/* #endif */
-/*       *dag = curr->dag; */
-/*       TAKE_LOCK(&(curr->dag->consume_spinlock)); */
-/*       curr->uses++; */
-
-/*       csp_dag_prepare_use_insds(curr->dag, chain); */
-/*       csp_dag_prepare_use(curr->dag); */
-/*       RELS_LOCK(&(curr->dag->consume_spinlock)); */
-/*       return; */
-/*     } */
-/* #endif */
 
     uint32_t hash_val = hash_chain(chain, DAG_2_CACHE_SIZE);
     struct dag_cache_entry_t *curr = csound->cache[hash_val];
@@ -2749,9 +2393,6 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
 
         csp_dag_prepare_use_insds(curr->dag, chain);
         csp_dag_prepare_use(curr->dag);
-/* #ifdef HYBRID_HASH_CACHE */
-/*         cache_last = curr; */
-/* #endif */
         RELS_LOCK(&(curr->dag->consume_spinlock));
         break;
       }
@@ -2765,9 +2406,6 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
 
       curr->next = csound->cache[hash_val];
       csound->cache[hash_val] = curr;
-/* #ifdef HYBRID_HASH_CACHE */
-/*       cache_last = curr; */
-/* #endif */
     }
 }
 
