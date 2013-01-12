@@ -183,7 +183,8 @@ extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LOCN csound_orcget_locn(scanner)
 extern int csound_orcget_locn(void *);
 extern int csound_orcget_lineno(void *);
- extern ORCTOKEN *make_string(CSOUND *, char *);
+extern ORCTOKEN *make_string(CSOUND *, char *);
+extern char* convertArrayName(CSOUND*, char*);
 %}
 %%
 
@@ -484,11 +485,7 @@ ans       : ident               { $$ = $1; }
 
 arrayexpr : ident '[' iexp ']' 
           { 
-            int len = strlen($1->value->lexeme);
-            char* arrayName = mmalloc(csound, (len + 2)* sizeof(char));
-            arrayName[0] = '[';
-            memcpy(arrayName + 1, $1->value->lexeme, len);
-            csound->Message(csound, "ARRAY NAME REWRITE: %s\n", arrayName);
+            char* arrayName = convertArrayName(csound, $1->value->lexeme);
             $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
                    make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
 
@@ -702,11 +699,7 @@ iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
 ifac      : ident               { $$ = $1; }
           | constant            { $$ = $1; }
           | ident '[' iexp ']' { 
-            int len = strlen($1->value->lexeme);
-            char* arrayName = mmalloc(csound, (len + 2)* sizeof(char));
-            arrayName[0] = '[';
-            memcpy(arrayName + 1, $1->value->lexeme, len);
-            csound->Message(csound, "_ARRAY NAME REWRITE: %s\n", arrayName);
+            char* arrayName = convertArrayName(csound, $1->value->lexeme);
             $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
                    make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
            }
@@ -855,12 +848,7 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
 
 arrayident: ident '[' ']' 
           { 
-            int len = strlen($1->value->lexeme);
-            char* arrayName = mmalloc(csound, (len + 2) * sizeof(char));
-            arrayName[0] = '[';
-            memcpy(arrayName + 1, $1->value->lexeme, len);
-            arrayName[len + 1] = 0;
-            csound->Message(csound, "ARRAY NAME REWRITE: %s\n", arrayName);
+            char* arrayName = convertArrayName(csound, $1->value->lexeme);
             $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, arrayName)); 
           }
 
