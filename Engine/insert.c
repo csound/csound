@@ -1965,6 +1965,7 @@ static void instance(CSOUND *csound, int insno)
     gbloffbas = csound->globalVarPool;
     lcloffbas = &ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
+    initializeVarPool(lclbas, tp->varPool);
     opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize;
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))
@@ -2054,7 +2055,6 @@ static void instance(CSOUND *csound, int insno)
       arg = ttp->inArgs;
       for(; arg != NULL; n++, arg = arg->next) {
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-        
         if(arg->type == ARG_CONSTANT) {
           argpp[n] = csound->engineState.constantsPool->values + arg->index;
         } else if(arg->type == ARG_STRING) {
