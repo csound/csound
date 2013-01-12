@@ -1247,6 +1247,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
   /* create memblock for global variables */
   recalculateVarPoolMemory(csound, engineState->varPool);
   csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize);
+  initializeVarPool(csound->globalVarPool, engineState->varPool);
+
 
   MYFLT* globals = csound->globalVarPool;
   globals[0] = csound->esr;           /*   & enter        */
@@ -1478,15 +1480,22 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
   }
     
   argLetter = csound->Malloc(csound, 2 * sizeof(char));
+  argLetter[1] = 0;
     
   if (*t == '#')  t++;
   if (*t == 'g')  t++;
     
+  void* typeArg = NULL;
+    
+  if(*t == '[') {
+    argLetter[0] = *(t + 1);
+    typeArg = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+  }
+    
   argLetter[0] = *t;
-  argLetter[1] = 0;
 
   type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-  var = csoundCreateVariable(csound, csound->typePool, type, s, NULL);
+  var = csoundCreateVariable(csound, csound->typePool, type, s, typeArg);
   csoundAddVariable(engineState->varPool, var);
 }
 
@@ -1504,19 +1513,19 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
   }
     
   argLetter = csound->Malloc(csound, 2 * sizeof(char));
-    
+  argLetter[1] = 0;
+
   if (*t == '#')  t++;
     
   void* typeArg = NULL;
     
   if(*t == '[') {
-    
-      argLetter[0] = *(t + 1);
-      argLetter[1] = 0;
+    argLetter[0] = *(t + 1);
     typeArg = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
   }
     
   argLetter[0] = *t;
+
     
   type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
   var = csoundCreateVariable(csound, csound->typePool, type, s, typeArg);
