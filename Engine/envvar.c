@@ -1307,7 +1307,6 @@ int csoundFileClose(CSOUND *csound, void *fd)
     }
    
    if(p->async_flag == ASYNC_GLOBAL) {
-     csound->Message(csound, "closing %s *************\n", p->fullName);
      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
         /* unlink from chain of open files */
     if (p->prv == NULL)
