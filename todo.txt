@@ -38,3 +38,9 @@ reader opcodes need to accept them
 11) asynchronous disk access. *** DONE *** soundin, fout, foutk modified.
 
 rc1 aimed for 28 Feb
+
+=====
+Speculation List
+
+1) Expose OPARMS or OPARMS-like struct to API users, so that they can configure csound with typed system (that in turn can be inspected)
+
