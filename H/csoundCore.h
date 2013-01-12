@@ -178,7 +178,11 @@ typedef struct {
 #define ARG_LOCAL 4
 #define ARG_LABEL 5
 
-  typedef struct CORFIL {
+#define ASYNC_GLOBAL 1
+#define ASYNC_LOCAL  2
+
+
+typedef struct CORFIL {
     char    *body;
     unsigned int     len;
     unsigned int     p;
