@@ -293,7 +293,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       //csound->Message(csound, "%lf\n", ip->offtim); 
       /* csound->Message(csound, "ip->offtim = %lf -> ", ip->offtim); */
        if(O->sampleAccurate && !tie) /* ceil for sample-accurate ending */
-	 ip->offtim = CEIL(ip->offtim*csound->ekr) / csound->ekr;
+         ip->offtim = CEIL(ip->offtim*csound->ekr) / csound->ekr;
        else /* normal : round */
         ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
        // csound->Message(csound, "%lf\n", ip->offtim); 
@@ -580,8 +580,8 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
                           (void*) p->nxtact, (void*) p->prvact,
                           (void*) p->nxtoff, p->actflg, p->offtim);
         } while ((p = p->nxtinstance) != NULL);
-	//}
-	//}
+        //}
+        //}
     }
 }
 
@@ -751,7 +751,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
    for (txtp = &(csound->engineState.instxtanchor);
         txtp != NULL;  txtp = txtp->nxtinstxt) {
      //if(csound->engineState.instrtxtp != NULL) {
-	//for(i=0; i < csound->engineState.maxinsno; i++) {
+        //for(i=0; i < csound->engineState.maxinsno; i++) {
         //txtp = csound->engineState.instrtxtp[i];
         //if(txtp != NULL){
           if ((ip = txtp->instance) != NULL) {        /* if instance exists */
@@ -787,8 +787,8 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
           txtp->lst_instance = ip;
         }
         txtp->act_instance = NULL;                /* no free instances */
-	// }
-	// }
+        // }
+        // }
     }
     if (UNLIKELY(cnt))
       csound->Message(csound, Str("inactive allocs returned to freespace\n"));
@@ -1923,7 +1923,7 @@ static void instance(CSOUND *csound, int insno)
     //    int       *ndxp;
     OPARMS    *O = csound->oparms;
     int       odebug = O->odebug;
-    ARG*	  arg;
+    ARG*          arg;
 
 //    lopdsp = csound->lopds;
 //    largp = (LARGNO*) csound->larg;
@@ -1939,8 +1939,9 @@ static void instance(CSOUND *csound, int insno)
     if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
     pextra = n-3;
       /* alloc new space,  */
-    pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *);      /* alloc new space,  */
-    ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
+    pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *); 
+    ip = (INSDS*) mcalloc(csound, 
+                          (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
     /* IV - Oct 26 2002: replaced with faster version (no search) */
@@ -2033,20 +2034,23 @@ static void instance(CSOUND *csound, int insno)
 
       arg = ttp->outArgs;
       for(n = 0; arg != NULL; n++) {
-    	  MYFLT *fltp;
-    	  CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
-    	  if(arg->type == ARG_GLOBAL) {
-    		  fltp = gbloffbas + var->memBlockIndex;
-    	  } else if(arg->type == ARG_LOCAL) {
-    		  fltp = lclbas + var->memBlockIndex;
-    	  } else if(arg->type == ARG_PFIELD){
-	    fltp = lcloffbas + arg->index;  /* VL 1.1.13 - changed lclbas to lcloffbas so p-fields can be assigned to */
+          MYFLT *fltp;
+          CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
+          if(arg->type == ARG_GLOBAL) {
+                  fltp = gbloffbas + var->memBlockIndex;
+          } else if(arg->type == ARG_LOCAL) {
+                  fltp = lclbas + var->memBlockIndex;
+          } else if(arg->type == ARG_PFIELD) {
+            /* VL 1.1.13 - changed lclbas to
+               lcloffbas so p-fields can be assigned to */
+            fltp = lcloffbas + arg->index;  
         } else {
-          csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n", arg->type);
+          csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n",
+                          arg->type);
           fltp = NULL;
         }
-    	  argpp[n] = fltp;
-    	  arg = arg->next;
+          argpp[n] = fltp;
+          arg = arg->next;
       }
 
       for ( ; ep->outypes[n] != (char) 0; n++)  /* if more outypes, pad */
@@ -2066,9 +2070,11 @@ static void instance(CSOUND *csound, int insno)
         } else if(arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
         } else if(arg->type == ARG_LABEL) {
-          argpp[n] = (MYFLT*)(opMemStart + findLabelMemOffset(csound, tp, (char*)arg->argPtr));
+          argpp[n] = (MYFLT*)(opMemStart +
+                              findLabelMemOffset(csound, tp, (char*)arg->argPtr));
         } else {
-          csound->Message(csound, "FIXME: instance unexpected arg: %d\n", arg->type);
+          csound->Message(csound, "FIXME: instance unexpected arg: %d\n",
+                          arg->type);
         }
       }
 //      for ( ; n < cnt; n++) {
@@ -2142,7 +2148,9 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     else
       n = (int) (*p->insno + FL(0.5));
 
-    if (n < 1 || n > csound->engineState.maxinsno || csound->engineState.instrtxtp[n] == NULL)
+    if (n < 1 || 
+        n > csound->engineState.maxinsno ||
+        csound->engineState.instrtxtp[n] == NULL)
       return OK;                /* Instrument does not exist so noop */
     ip = csound->engineState.instrtxtp[n];
     active = ip->instance;
@@ -2170,10 +2178,12 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     }
     csound->engineState.instrtxtp[n] = NULL;
     /* Now patch it out */ 
-     for (txtp = &(csound->engineState.instxtanchor); txtp != NULL; txtp = txtp->nxtinstxt) 
+    for (txtp = &(csound->engineState.instxtanchor); 
+         txtp != NULL; 
+         txtp = txtp->nxtinstxt) 
       if (txtp->nxtinstxt == ip) { 
         OPTXT *t = ip->nxtop;
-	txtp->nxtinstxt = ip->nxtinstxt;
+        txtp->nxtinstxt = ip->nxtinstxt;
         while (t) {
           OPTXT *s = t->nxtop;
           mfree(csound, t);
@@ -2181,6 +2191,6 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
         }
         mfree(csound, ip);
         return OK;
-	   } 
-       return NOTOK; 
+      } 
+    return NOTOK; 
 }

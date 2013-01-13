@@ -217,17 +217,17 @@ Eigen::MatrixXd Koch::traverse(const Eigen::MatrixXd &globalCoordinates,
         upperScore.sort();
         score.clear();
         System::message("level: %4d  upperScore: %8d events.\n", lowerI, upperScore.size());
-	upperScore.findScale();
+        upperScore.findScale();
         Event upperScoreToOrigin = upperScore.scaleActualMinima;
         Score lowerScore;
         children[lowerI]->traverse(compositeCoordinates, lowerScore);
         lowerScore.sort();
         System::message("level: %4d  lowerScore: %8d events.\n", lowerI, lowerScore.size());
-	double pitchOffset = 0.0;
-	int layer = lowerI + 1;
-	if (pitchOffsetsForLayers.find(layer) != pitchOffsetsForLayers.end()) {
-	  pitchOffset = pitchOffsetsForLayers[layer];
-	}
+        double pitchOffset = 0.0;
+        int layer = lowerI + 1;
+        if (pitchOffsetsForLayers.find(layer) != pitchOffsetsForLayers.end()) {
+          pitchOffset = pitchOffsetsForLayers[layer];
+        }
         for (size_t lowerNoteI = 0, lowerNoteN = lowerScore.size();
                 lowerNoteI < lowerNoteN;
                 ++lowerNoteI) {

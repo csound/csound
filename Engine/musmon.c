@@ -464,7 +464,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 {
     /* if (csound->musmonGlobals == NULL) */
-    /*   csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
+    /*  csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
     STA(lplayed) = 1;
     if (!STA(sectno))
       csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
@@ -628,8 +628,9 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     case 'q':
       if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
-          printScoreError(csound, rtEvt, Str(" - note deleted. instr %s undefined"),
-                                    evt->strarg);
+          printScoreError(csound, rtEvt,
+                          Str(" - note deleted. instr %s undefined"),
+                          evt->strarg);
           break;
         }
         csound->Message(csound, Str("Setting instrument %s %s\n"),
@@ -638,7 +639,8 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
-        if (UNLIKELY((unsigned int)(insno-1) >= (unsigned int) csound->engineState.maxinsno ||
+        if (UNLIKELY((unsigned int)(insno-1) >=
+                     (unsigned int) csound->engineState.maxinsno ||
                      csound->engineState.instrtxtp[insno] == NULL)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %d(%d) undefined"),
@@ -653,16 +655,17 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     case 'i':
       if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
-          printScoreError(csound, rtEvt, Str(" - note deleted. instr %s undefined"),
-                                    evt->strarg);
+          printScoreError(csound, rtEvt,
+                          Str(" - note deleted. instr %s undefined"),
+                          evt->strarg);
           break;
         }
         if ((rfd = getRemoteInsRfd(csound, insno))) {
           /* RM: if this note labeled as remote */
           if (rfd == GLOBAL_REMOT)
-            insGlobevt(csound, evt);     /* RM: do a global send and allow local */
+            insGlobevt(csound, evt);  /* RM: do a global send and allow local */
           else {
-            insSendevt(csound, evt, rfd);/* RM: or send to single remote Csound  */
+            insSendevt(csound, evt, rfd);/* RM: or send to single remote Csound */
             break;                       /* RM: and quit */
           }
         }
@@ -678,7 +681,8 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
-        if (UNLIKELY((unsigned int)(insno-1) >= (unsigned int)csound->engineState.maxinsno ||
+        if (UNLIKELY((unsigned int)(insno-1) >=
+                     (unsigned int)csound->engineState.maxinsno ||
                      csound->engineState.instrtxtp[insno] == NULL)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %d(%d) undefined"),
@@ -745,9 +749,11 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
         {
           char *name = csound->engineState.instrtxtp[insno]->insname;
           if (name)
-            csound->Message(csound, Str("instr %s had %d init errors\n"), name, n);
+            csound->Message(csound, Str("instr %s had %d init errors\n"),
+                            name, n);
           else
-            csound->Message(csound, Str("instr %d had %d init errors\n"), insno, n);
+            csound->Message(csound, Str("instr %d had %d init errors\n"),
+                            insno, n);
         }
         csound->perferrcnt++;
       }
@@ -894,9 +900,9 @@ int sensevents(CSOUND *csound)
         /* else read next score event */
         if (UNLIKELY(O->usingcscore)) {       /*    get next lplay event  */
           /* FIXME: this may be non-portable */
-          if (STA(ep) < STA(epend))                       /* nxt event    */
+          if (STA(ep) < STA(epend))           /* nxt event    */
             memcpy((void*) e, (void*) &((*STA(ep)++)->strarg), sizeof(EVTBLK));
-          else                                          /* else lcode   */
+          else                                /* else lcode   */
             memcpy((void*) e, (void*) &(STA(lsect)->strarg), sizeof(EVTBLK));
         } else
           if (!(rdscor(csound, e)))           /* or rd nxt evt from scstr */
@@ -1152,7 +1158,8 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         if (p[2] < FL(0.0))
           p[2] = FL(0.0);
         /* start beat: this is possibly wrong */
-        evt->p2orig = (MYFLT) (((start_time - st->icurTime/st->esr) / st->ibeatTime)
+        evt->p2orig = (MYFLT) (((start_time - st->icurTime/st->esr) /
+                                st->ibeatTime)
                                + (st->curBeat - st->beatOffs));
         if (evt->p2orig < FL(0.0))
           evt->p2orig = FL(0.0);
@@ -1173,7 +1180,8 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
           i = (int) named_instr_find(csound, evt->strarg);
         else
           i = (int) fabs((double) p[1]);
-        if (UNLIKELY((unsigned int) (i - 1) >= (unsigned int) csound->engineState.maxinsno ||
+        if (UNLIKELY((unsigned int) (i - 1) >=
+                     (unsigned int) csound->engineState.maxinsno ||
                      csound->engineState.instrtxtp[i] == NULL)) {
           csoundMessage(csound, Str("insert_score_event(): invalid instrument "
                                     "number or name" ));
