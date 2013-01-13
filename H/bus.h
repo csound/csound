@@ -35,8 +35,8 @@ extern "C" {
 #endif
 
 typedef struct {
-	OPDS    h;
-	MYFLT   *r, *a;
+        OPDS    h;
+        MYFLT   *r, *a;
 } CHNVAL;
 
 typedef struct {
@@ -54,19 +54,19 @@ typedef struct {
 } KSENSE;
 
 typedef struct controlChannelInfo_s {
-	int     type;
-	MYFLT   dflt;
-	MYFLT   min;
-	MYFLT   max;
+        int     type;
+        MYFLT   dflt;
+        MYFLT   min;
+        MYFLT   max;
 } controlChannelInfo_t;
 
 typedef struct channelEntry_s {
-	struct channelEntry_s *nxt;
-	controlChannelInfo_t  *info;
-	MYFLT   *data;
-	int     lock;               /* Multi-thread protection */
-	int     type;
-	char    name[1];
+        struct channelEntry_s *nxt;
+        controlChannelInfo_t  *info;
+        MYFLT   *data;
+        int     lock;               /* Multi-thread protection */
+        int     type;
+        char    name[1];
 } CHNENTRY;
 
 typedef struct {
@@ -135,15 +135,15 @@ typedef struct {
 } CHNPARAMS_OPCODE;
 
 typedef struct {
-	OPDS    h;
-	MYFLT   *value, *valID;
-	AUXCH   channelName;
+        OPDS    h;
+        MYFLT   *value, *valID;
+        AUXCH   channelName;
 } INVAL;
 
 typedef struct {
-	OPDS    h;
-	MYFLT   *valID, *value;
-	AUXCH   channelName;
+        OPDS    h;
+        MYFLT   *valID, *value;
+        AUXCH   channelName;
 } OUTVAL;
 
 

@@ -189,7 +189,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     //fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
     //                      "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-	 		    "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels*8, 0);
+                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels*8, 0);
     if (UNLIKELY(fd == NULL)) {
       return
         csound->InitError(csound, Str("diskin: %s: failed to open file"), name);
@@ -448,7 +448,7 @@ int soundout(CSOUND *csound, SNDOUT *p)
     if (early) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
-	
+        
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
       }

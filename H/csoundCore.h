@@ -224,10 +224,10 @@ typedef struct CORFIL {
   } ARGLST;
 
   typedef struct arg {
-	  int type;
-	  void* argPtr;
-	  int index;
-	  struct arg* next;
+          int type;
+          void* argPtr;
+          int index;
+          struct arg* next;
   } ARG;
 //  typedef struct argoffs {
 //    int     count;
@@ -1164,7 +1164,7 @@ typedef struct NAME__ {
     void (*FlushCircularBuffer)(CSOUND *, void *);
     void (*FreeCircularBuffer)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
-			   const char *, int, int, int);
+                           const char *, int, int, int);
     unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
     unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
@@ -1584,7 +1584,7 @@ typedef struct NAME__ {
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
     char          *filedir[64]; /* for location directory */
-	void * message_buffer;
+        void * message_buffer;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

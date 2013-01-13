@@ -70,11 +70,11 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound, DISKIN2 *p, int bufR
         sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
         /* convert sample count to mono samples and read file */  
         i = (int)sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
-	//}
+        //}
         //else {
-	  //csound->FSeekAsync(csound,p->fdch.fd, p->bufStartPos, SEEK_SET);
+          //csound->FSeekAsync(csound,p->fdch.fd, p->bufStartPos, SEEK_SET);
         // i = (int) csound->ReadAsync(csound, p->fdch.fd, p->buf, (sf_count_t) nsmps);
-	//}
+        //}
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
@@ -348,14 +348,14 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
         *top = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));   
-	csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(pthread_t));
+        csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(pthread_t));
         csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int));
         current = *top;
       } 
       else {
       current = *top;
       while(current->nxt != NULL) { /* find next empty slot in chain */
-	current = current->nxt;
+        current = current->nxt;
       }
       current->nxt = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
       current = current->nxt;
@@ -375,7 +375,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
      if( *(start = csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START")) == 0) {
        void *diskin_io_thread(void *p);
        *start = 1;
-       pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD"), NULL, diskin_io_thread, *top);	     
+       pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD"), NULL, diskin_io_thread, *top);      
     }
      csound->RegisterDeinitCallback(csound, p, diskin2_async_deinit);
     }
@@ -391,7 +391,7 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
    prv = NULL;
    while(current->diskin != (DISKIN2 *)p) {
         prv = current;
-	current = current->nxt;
+        current = current->nxt;
    }  
    if(prv == NULL) *top = current->nxt;
    else prv->nxt = current->nxt;
@@ -869,7 +869,7 @@ static void soundin_read_buffer(CSOUND *csound, SOUNDIN_ *p, int bufReadPos)
         if(csound->realtime_audio_flag==0){
          sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
          i = (int) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
-	}
+        }
         else 
          i = (int) csound->ReadAsync(csound, p->fdch.fd, p->buf, (sf_count_t) nsmps);
         if (UNLIKELY(i < 0))  /* error ? */
@@ -948,7 +948,7 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
                          "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     else
     fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-    			    "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels, 0);
+                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("soundin: %s: failed to open file"), name);
