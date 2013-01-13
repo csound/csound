@@ -137,6 +137,8 @@ TREE *create_empty_token(CSOUND *csound)
     ans->next = NULL;
     ans->len = 0;
     ans->rate = -1;
+    ans->line = 0;
+    ans->locn  = 0;
     ans->value = NULL;
     return ans;
 }
