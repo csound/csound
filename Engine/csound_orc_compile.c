@@ -1290,6 +1290,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
   int retVal; 
   TREE *root = csoundParseOrc(csound, str);
   retVal = csoundCompileTree(csound, root);
+  print_tree(csound, "Before delete", root);
   delete_tree(csound, root);  /* FIXME: this causes a mfree() fault with some orcs eg. trapped */
   // if(csound->oparms->odebug) 
   debugPrintCsound(csound);  

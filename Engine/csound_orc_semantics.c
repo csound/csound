@@ -333,6 +333,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->type = type;
     ans->left = left;
     ans->right = right;
+    ans->value = NULL;          /* New code -- JPff */
     ans->next = NULL;
     ans->len = 2;
     ans->rate = -1;
@@ -431,16 +432,16 @@ void delete_tree(CSOUND *csound, TREE *l)
        if (l->value->lexeme) { 
          printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
         mfree(csound, l->value->lexeme);
-        l->value->lexeme = NULL;
+        //l->value->lexeme = NULL;
        }
        printf("Free val %p\n", l->value);
        mfree(csound, l->value);
-       l->value = NULL;
+       //l->value = NULL;
       }
       delete_tree(csound, l->left);
-      l->left = NULL;
+      //l->left = NULL;
       delete_tree(csound, l->right);
-      l->right = NULL;
+      //l->right = NULL;
       l = l->next;
       printf("Free %p\n", old);
       mfree(csound, old);
