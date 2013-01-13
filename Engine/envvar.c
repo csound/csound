@@ -1341,8 +1341,9 @@ void close_all_files(CSOUND *csound)
 {
     while (csound->open_files != NULL)
       csoundFileClose(csound, csound->open_files);
-    if(csound->file_io_start) pthread_join(csound->file_io_thread, NULL);
-    if(csound->file_io_threadlock != NULL) csound->DestroyThreadLock(csound->file_io_threadlock);
+    if (csound->file_io_start) pthread_join(csound->file_io_thread, NULL);
+    if (csound->file_io_threadlock != NULL)
+      csound->DestroyThreadLock(csound->file_io_threadlock);
 }
 
 /* The fromScore parameter should be 1 if opening a score include file,
@@ -1381,9 +1382,10 @@ void *file_iothread(void *p);
 
 void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env,
-				   int csFileType, int buffsize, int isTemporary){
+                                   int csFileType, int buffsize, int isTemporary){
   CSFILE *p;
-  p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,csFileType,isTemporary);
+  p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,
+                                        csFileType,isTemporary);
 
   if(csound->file_io_start == 0) {
     csound->file_io_start = 1;
@@ -1402,14 +1404,18 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
   return (void *) p;
 }
 
-unsigned int csoundReadAsync(CSOUND *csound, void *handle, MYFLT *buf, int items){
+unsigned int csoundReadAsync(CSOUND *csound, void *handle,
+                             MYFLT *buf, int items)
+{
     CSFILE *p = handle;
     if(p != NULL &&  p->cb != NULL)
     return csound->ReadCircularBuffer(csound, p->cb, buf, items); 
     else return 0;
 }
 
-unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf, int items){
+unsigned int csoundWriteAsync(CSOUND *csound, void *handle, 
+                              MYFLT *buf, int items)
+{
     CSFILE *p = handle;
     if(p != NULL &&  p->cb != NULL)
     return csound->WriteCircularBuffer(csound, p->cb, buf, items); 
@@ -1422,7 +1428,7 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
      switch (p->type) {
       case CSFILE_FD_R:
-	break;
+        break;
       case CSFILE_FD_W:
         break;
       case CSFILE_STD:
@@ -1450,17 +1456,17 @@ static int read_files(CSOUND *csound){
     MYFLT *buf = current->buf;
     switch (current->type) {
       case CSFILE_FD_R:
-	break;
+        break;
       case CSFILE_FD_W:
         break;
       case CSFILE_STD:
         break;
       case CSFILE_SND_R:
        if(n == 0) {
-	   n = sf_read_MYFLT(current->sf, buf, items);
+           n = sf_read_MYFLT(current->sf, buf, items);
            m = 0;
-	}
-	l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n); 
+        }
+        l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n); 
         m += l;
         n -= l; 
         current->items = n;

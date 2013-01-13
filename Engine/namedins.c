@@ -150,7 +150,8 @@ int32 named_instr_find(CSOUND *csound, char *s)
     INSTRNAME     *inm;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
 
-    if (!csound->engineState.instrumentNames) return 0L;  /* no named instruments defined */
+    if (!csound->engineState.instrumentNames)
+      return 0L;                              /* no named instruments defined */
     /* now find instrument */
     inm = ((INSTRNAME**) csound->engineState.instrumentNames)[h];
     while (inm) {
@@ -171,7 +172,8 @@ int32 named_instr_find(CSOUND *csound, char *s)
 
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno, ENGINE_STATE *engineState)
 {
-    INSTRNAME   **inm_base = (INSTRNAME**) engineState->instrumentNames, *inm, *inm2;
+    INSTRNAME   **inm_base = 
+      (INSTRNAME**) engineState->instrumentNames, *inm, *inm2;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
 
     if (UNLIKELY(!inm_base))

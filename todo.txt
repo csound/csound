@@ -15,7 +15,7 @@ Csound 6 TODO list
  - memory recovery of POOLs
 
 2) allow any number of strings in score events (except p2,p3). 
-  - do we need a new parser for score?
+  - do we need a new parser for score? (started one but a pain)
 
 3) test sample-accurate opcodes, or document those not working
 
@@ -33,7 +33,7 @@ reader opcodes need to accept them
 
 9) csoundInputMessage() is broken. *** FIXED ***
 
-10) check changing p3 works with early ending code
+10) check changing p3 works with early ending code, and event/scedule
 
 11) asynchronous disk access. *** DONE *** soundin, fout, foutk modified.
 
@@ -43,4 +43,7 @@ rc1 aimed for 28 Feb
 Speculation List
 
 1) Expose OPARMS or OPARMS-like struct to API users, so that they can configure csound with typed system (that in turn can be inspected)
+
+2) Allow changes in possible options after start, eg debugging for
+next instrument
 

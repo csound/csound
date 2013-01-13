@@ -925,7 +925,8 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
       csound->Message(csound, "Null type in tree -- aborting\n");
       exit(2);
     }
-    else if(strcmp(tree->value->lexeme, "init") == 0 && tree->left->type == T_ARRAY_IDENT) {
+    else if (strcmp(tree->value->lexeme, "init") == 0 && 
+            tree->left->type == T_ARRAY_IDENT) {
         // rewrite init as array_init
         tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
                                                strlen("array_init") + 1);

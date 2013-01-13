@@ -806,8 +806,8 @@ extern "C" {
     {0, 0, 0},      /* For extra strings in scores */
     NULL,            /* pow2 table */
     NULL,            /* cps conv table */
-	NULL,            /* output of preprocessor */
-	NULL             /* message buffer struct */
+        NULL,            /* output of preprocessor */
+        NULL             /* message buffer struct */
   };
 
   /* from threads.c */
@@ -1571,13 +1571,13 @@ int kperf(CSOUND *csound)
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
           csound->pds = (OPDS*) ip;
-	  if(ip->offtim > 0 && time_end > ip->offtim){
+          if(ip->offtim > 0 && time_end > ip->offtim){
             /* this is the last cycle of performance */
-	    // csound->Message(csound, "last cycle %d: %f %f %d\n", 
-	    //          ip->insno, csound->icurTime/csound->esr, 
-	    //            ip->offtim, ip->no_end);
+            // csound->Message(csound, "last cycle %d: %f %f %d\n", 
+            //          ip->insno, csound->icurTime/csound->esr, 
+            //            ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
-	  }
+          }
           while ((csound->pds = csound->pds->nxtp) != NULL) {
             (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
           }
@@ -3586,9 +3586,9 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
 
     csoundDestroyMessageBuffer(csound);
     nBytes = sizeof(csMsgBuffer);
-	if (!toStdOut) {
-		nBytes += (size_t) 16384;
-	}
+        if (!toStdOut) {
+                nBytes += (size_t) 16384;
+        }
     pp = (csMsgBuffer*) malloc(nBytes);
     pp->mutex_ = csoundCreateMutex(0);
     pp->firstMsg = (csMsgStruct*) 0;
@@ -3596,16 +3596,16 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
     pp->msgCnt = 0;
     if (!toStdOut) {
       pp->buf = (char*) pp + (int) sizeof(csMsgBuffer);
-	  pp->buf[0] = (char) '\0';
+          pp->buf[0] = (char) '\0';
     } else {
-	  pp->buf = (char*) 0;
-	}
-	csound->message_buffer = (void*) pp;
-	if (!toStdOut) {
-		csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
-	} else {
-		csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
-	}
+          pp->buf = (char*) 0;
+        }
+        csound->message_buffer = (void*) pp;
+        if (!toStdOut) {
+                csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
+        } else {
+                csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
+        }
 }
 
 /**
@@ -3643,14 +3643,14 @@ const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
 
 int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     int         attr = 0;
 
     if (pp && pp->msgCnt) {
-	  csoundLockMutex(pp->mutex_);
-	  if (pp->firstMsg) {
-		  attr = pp->firstMsg->attr;
-	  }
+          csoundLockMutex(pp->mutex_);
+          if (pp->firstMsg) {
+                  attr = pp->firstMsg->attr;
+          }
       csoundUnlockMutex(pp->mutex_);
     }
     return attr;
@@ -3662,7 +3662,7 @@ int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
 
 void PUBLIC csoundPopFirstMessage(CSOUND *csound)
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
 
     if (pp) {
       csMsgStruct *tmp;
@@ -3700,7 +3700,7 @@ void PUBLIC csoundPopFirstMessage(CSOUND *csound)
 
 int PUBLIC csoundGetMessageCnt(CSOUND *csound)
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     int         cnt = 0;
 
     if (pp) {
@@ -3717,7 +3717,7 @@ int PUBLIC csoundGetMessageCnt(CSOUND *csound)
 
 void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     csound->message_buffer = NULL;
     csoundSetMessageCallback(csound, NULL);
     if (!pp) {
