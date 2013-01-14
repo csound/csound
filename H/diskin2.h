@@ -65,6 +65,7 @@ typedef struct {
   MYFLT *aOut_buf;
   MYFLT aOut_bufsize;
   void *cb;
+  int  async;
 } DISKIN2;
 
 int diskin2_init(CSOUND *csound, DISKIN2 *p);
