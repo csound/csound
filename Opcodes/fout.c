@@ -71,7 +71,7 @@ static CS_NOINLINE int fout_deinit_callback(CSOUND *csound, void *p_)
 
 static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
                                       int fileType, MYFLT *iFile, int isString,
-                                      void *fileParams)
+                                      void *fileParams, int forceSync)
 {
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     char              *name;
@@ -181,7 +181,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       if (fileType == CSFILE_SND_W) {
         do_scale = ((SF_INFO*) fileParams)->format;
         csFileType = csound->sftype2csfiletype(do_scale);
-        if(csound->realtime_audio_flag == 0) {
+        if(csound->realtime_audio_flag == 0 || forceSync == 1) {
           fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
 	                        "SFDIR", csFileType, 0);
 	  p->async = 0;
@@ -194,7 +194,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         p->nchnls = ((SF_INFO*) fileParams)->channels;
       }
       else {
-         if(csound->realtime_audio_flag == 0) {
+         if(csound->realtime_audio_flag == 0 || forceSync == 1) {
         fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
 	                       "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
         p->async = 0;
@@ -389,7 +389,7 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
     p->f.bufsize =  p->buf.size;
     sfinfo.channels = p->nargs;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
-                       p->fname, p->XSTRCODE, &sfinfo);
+                       p->fname, p->XSTRCODE, &sfinfo, 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
 
@@ -457,7 +457,7 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
       }
      p->f.bufsize = p->buf.size;
      n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
-                       p->fname, p->XSTRCODE, &sfinfo);
+			p->fname, p->XSTRCODE, &sfinfo, 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
 
@@ -490,7 +490,7 @@ static int fiopen(CSOUND *csound, FIOPEN *p)
     if (idx < 0 || idx > 3)
       idx = 0;
     n = fout_open_file(csound, (FOUT_FILE*) NULL, &rfp, CSFILE_STD,
-                       p->fname, p->XSTRCODE, omodes[idx]);
+                       p->fname, p->XSTRCODE, omodes[idx], 1);
     if (UNLIKELY(n < 0))
       return NOTOK;
     if (idx > 1)
@@ -716,7 +716,7 @@ static int infile_set(CSOUND *csound, INFILE *p)
       }
     p->f.bufsize =  p->buf.size;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
-                       p->fname, p->XSTRCODE, &sfinfo);
+                       p->fname, p->XSTRCODE, &sfinfo, 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
 
@@ -729,6 +729,9 @@ static int infile_set(CSOUND *csound, INFILE *p)
    
     p->guard_pos = p->frames * p->nargs;
     p->buf_pos = p->guard_pos;
+
+    if(p->f.async == 1)
+    csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
 
     return OK;
 }
@@ -819,7 +822,7 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
       }
     p->f.bufsize =  p->buf.size;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
-                       p->fname, p->XSTRCODE, &sfinfo);
+                       p->fname, p->XSTRCODE, &sfinfo, 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
 
@@ -830,6 +833,9 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
 
     p->guard_pos = p->frames * p->nargs;
     p->buf_pos = p->guard_pos;
+
+    if(p->f.async == 1)
+    csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
 
     return OK;
 }
@@ -878,7 +884,7 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
     if (UNLIKELY(idx < 0 || idx > 2))
       idx = 0;
     n = fout_open_file(csound, (FOUT_FILE*) NULL, &fp, CSFILE_STD,
-                       p->fname, p->XSTRCODE, omodes[idx]);
+                       p->fname, p->XSTRCODE, omodes[idx], 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
 
@@ -984,10 +990,10 @@ static int fprintf_set(CSOUND *csound, FPRINTF *p)
 
     if (p->h.opadr != (SUBR) NULL)      /* fprintks */
       n = fout_open_file(csound, &(p->f), NULL, CSFILE_STD,
-                         p->fname, p->XSTRCODE & 1, "w");
+                         p->fname, p->XSTRCODE & 1, "w", 1);
     else                                /* fprints */
       n = fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
-                         p->fname, p->XSTRCODE & 1, "w");
+                         p->fname, p->XSTRCODE & 1, "w", 1);
     if (UNLIKELY(n < 0))
       return NOTOK;
     setvbuf(p->f.f, (char*)NULL, _IOLBF, 0); /* Seems a good option */
