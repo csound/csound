@@ -1384,8 +1384,9 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env,
                                    int csFileType, int buffsize, int isTemporary){
   CSFILE *p;
-  p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,
-                                        csFileType,isTemporary);
+  if((p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,
+					    csFileType,isTemporary)) == NULL)
+              return NULL;
 
   if(csound->file_io_start == 0) {
     csound->file_io_start = 1;

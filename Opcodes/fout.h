@@ -31,7 +31,9 @@ typedef struct FOUT_FILE_ {
     SNDFILE *sf;
     FILE    *f;
     void    *fd;
-  int     bufsize;
+    int     bufsize;
+  int     nchnls;
+  int async;
     int     idx;        /* file index + 1 */
 } FOUT_FILE;
 
