@@ -536,7 +536,7 @@ OENTRY opcodlst_1[] = {
                             "Tkooooooo",
                             (SUBR) diskin_init, NULL, (SUBR) diskin2_perf  },
 { "diskin2",S(DISKIN2), 5,     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-                            "Tkoooooo",
+                            "Tkooooooo",
                             (SUBR) diskin2_init, (SUBR) NULL,
                             (SUBR) diskin2_perf                         },
 { "noteon", S(OUT_ON),  1,      "",     "iii",  iout_on, NULL,   NULL   },

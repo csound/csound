@@ -42,6 +42,7 @@ typedef struct {
     MYFLT   *iWinSize;
     MYFLT   *iBufSize;
     MYFLT   *iSkipInit;
+    MYFLT   *forceSync;
  /* ------------------------------------- */
     int     initDone;
     int     nChannels;
