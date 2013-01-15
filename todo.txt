@@ -35,7 +35,7 @@ reader opcodes need to accept them
 
 10) check changing p3 works with early ending code, and event/scedule
 
-11) asynchronous disk access. *** DONE *** soundin, fout, foutk modified.
+11) asynchronous disk access. *** DONE *** soundin, fout, foutk, fin, fink, modified. diskin, diskin2  now have their own dedicated async read/write
 
 rc1 aimed for 28 Feb
 

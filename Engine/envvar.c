@@ -1341,9 +1341,11 @@ void close_all_files(CSOUND *csound)
 {
     while (csound->open_files != NULL)
       csoundFileClose(csound, csound->open_files);
-    if (csound->file_io_start) pthread_join(csound->file_io_thread, NULL);
-    if (csound->file_io_threadlock != NULL)
-      csound->DestroyThreadLock(csound->file_io_threadlock);
+    if (csound->file_io_start) {
+        pthread_join(csound->file_io_thread, NULL);
+        if (csound->file_io_threadlock != NULL)
+         csound->DestroyThreadLock(csound->file_io_threadlock);
+    }
 }
 
 /* The fromScore parameter should be 1 if opening a score include file,
@@ -1396,12 +1398,19 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
   }
   csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
   p->async_flag = ASYNC_GLOBAL;
+ 
   p->cb = csound->CreateCircularBuffer(csound, buffsize*4);
   p->items = 0;
   p->pos = 0;
   p->bufsize = buffsize;
   p->buf = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*buffsize);
   csound->NotifyThreadLock(csound->file_io_threadlock);
+
+  if(p->cb == NULL || p->buf == NULL) {
+    /* close file immediately */
+    csoundFileClose(csound, (void *) p);
+    return NULL;
+  }
   return (void *) p;
 }
 
