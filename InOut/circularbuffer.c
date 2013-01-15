@@ -39,7 +39,6 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int size){
   p->wp = p->rp = 0;
    
   if ((p->buffer = (MYFLT *) csound->Malloc(csound, size*sizeof(MYFLT))) == NULL) {
-    free (p);
     return NULL;
   }
   memset(p->buffer, 0, size*sizeof(MYFLT));
