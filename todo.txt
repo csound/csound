@@ -35,7 +35,11 @@ reader opcodes need to accept them
 
 10) check changing p3 works with early ending code, and event/scedule
 
-11) asynchronous disk access. *** DONE *** soundin, fout, foutk, fin, fink, modified. diskin, diskin2  now have their own dedicated async read/write
+11) asynchronous disk access IO mechanism. *** DONE *** soundin, fout, foutk, fin,
+and fink modified. diskin, diskin2 and pvsfwrite  now have their own
+dedicated async read/write. diskgrain and pvsdiskin have not been
+changed but they have realtime safe versions in syncgrain and
+pvsfread. 
 
 rc1 aimed for 28 Feb
 
