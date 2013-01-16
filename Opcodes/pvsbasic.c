@@ -215,7 +215,7 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
     if ((p->pvfile  = csound->PVOC_CreateFile(csound, fname,
                                               p->fin->N,
                                               p->fin->overlap, 1, p->fin->format,
-                                              csound->esr, STYPE_IEEE_FLOAT,
+                                              csound->esr, STYPE_16,
                                               p->fin->wintype, 0.0f, NULL,
                                               p->fin->winsize)) == -1)
       return csound->InitError(csound,
@@ -266,14 +266,13 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
   
     if (p->lastframe < p->fin->framecount) {
       int32 framesize = p->fin->N+2,i;
-      MYFLT scale = csound->e0dbfs;
       if(p->async == 0) {
       if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fin, 1)))
         return csound->PerfError(csound, Str("pvsfwrite: could not write data\n"));
       } 
       else {
       MYFLT *fout = p->frame.auxp;
-      for (i=0;i < framesize; i+=) fout[i] = (MYFLT) fin[i];
+      for (i=0;i < framesize; i++) fout[i] = (MYFLT) fin[i];
       csound->WriteCircularBuffer(csound, p->cb, fout, framesize);
       }
       p->lastframe = p->fin->framecount;
