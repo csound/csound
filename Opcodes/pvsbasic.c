@@ -179,13 +179,29 @@ typedef struct {
   MYFLT  *file;
   int    pvfile;
   AUXCH  frame;
+  AUXCH buf;
+  AUXCH dframe;
+  CSOUND *csound;
+  void *cb;
+  int async;
+  pthread_t thread;
+  int N;
   uint32 lastframe;
 }PVSFWRITE;
 
-static int pvsfwrite_destroy(CSOUND *csound, void *p)
+void *pvs_io_thread(void *pp);
+
+static int pvsfwrite_destroy(CSOUND *csound, void *pp)
 {
-    csound->PVOC_CloseFile(csound,((PVSFWRITE *) p)->pvfile);
-    return OK;
+  PVSFWRITE *p = (PVSFWRITE *) pp;
+  if(p->async){
+    csound->Message(csound, "pvsfwrite: closed async mode \n");
+    p->async = 0;
+    pthread_join(p->thread, NULL);
+    csound->FreeCircularBuffer(csound, p->cb);
+  }
+  csound->PVOC_CloseFile(csound,p->pvfile);
+  return OK;
 }
 
 static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
@@ -196,7 +212,7 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
     p->pvfile= -1;
-    N = p->fin->N;
+    N = p->N = p->fin->N;
     if ((p->pvfile  = csound->PVOC_CreateFile(csound, fname,
                                               p->fin->N,
                                               p->fin->overlap, 1, p->fin->format,
@@ -208,10 +224,43 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
                                fname);
     if (p->frame.auxp == NULL || p->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->frame);
+    if(csound->realtime_audio_flag) {
+      int bufframes = 16;
+      p->csound = csound;
+      if (p->buf.auxp == NULL || p->buf.size < sizeof(float) * (N + 2))
+               csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->buf);  
+      if (p->dframe.auxp == NULL || p->dframe.size < sizeof(float) * (N + 2))
+               csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->dframe);   
+      p->cb = csound->CreateCircularBuffer(csound, (N+2)*sizeof(float)*bufframes);
+      pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p); 
+      p->async = 1;    
+      csound->Message(csound, "pvsfwrite: async mode \n");
+    } else p->async = 0;
     csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);
     p->lastframe = 0;
     return OK;
 }
+
+void *pvs_io_thread(void *pp){
+  PVSFWRITE *p = (PVSFWRITE *) pp;
+  CSOUND *csound = p->csound;
+  MYFLT  *buf = (MYFLT *) p->buf.auxp;
+  float  *frame = (float *) p->dframe.auxp;
+  int  *on = &p->async; 
+  int lc,nc, mc; 
+  while(*on) {
+    nc = p->N+2; mc = 0;
+    do{
+      lc = csound->ReadCircularBuffer(csound, p->cb, &buf[mc], nc);
+      nc -= lc;
+      mc += lc;
+    } while(lc>0 && *on);
+    for(nc=0; nc < mc; nc++) frame[nc] = (float) buf[nc];
+    csound->PVOC_PutFrames(csound, p->pvfile, frame, 1);
+  }
+  return NULL;
+}
+
 
 static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
 {
@@ -225,8 +274,12 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
         fout[i] = fin[i]/scale;
         fout[i+1] = fin[i+1];
       }
+      if(p->async == 0) {
       if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1)))
         return csound->PerfError(csound, Str("pvsfwrite: could not write data\n"));
+      } else {
+	csound->WriteCircularBuffer(csound, p->cb, fout, framesize);
+      }
       p->lastframe = p->fin->framecount;
     }
     return OK;
