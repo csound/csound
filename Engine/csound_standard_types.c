@@ -3,8 +3,8 @@
 #include "pstream.h"
 #include <stdlib.h>
 
-#define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
-#define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
+//#define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
+//#define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
 
 void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
     CSOUND* cs = (CSOUND*)csound;
@@ -48,14 +48,14 @@ CS_VARIABLE* createBool(void* csound, void* p) {
 CS_VARIABLE* createWsig(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;    
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
-    var->memBlockSize = Wfloats;
+    var->memBlockSize = sizeof(SPECDAT);
     return var;
 }
 
 CS_VARIABLE* createFsig(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;    
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
-    var->memBlockSize = Pfloats;
+    var->memBlockSize = sizeof(PVSDAT);
     return var;
 }
 
