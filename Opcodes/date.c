@@ -81,7 +81,7 @@ typedef struct {
 static int getcurdir(CSOUND *csound, GETCWD *p)
 {
     if (UNLIKELY(
-#if defined(__MACH__) || defined(LINUX)
+#if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__)
                  getcwd
 #else
                  _getcwd

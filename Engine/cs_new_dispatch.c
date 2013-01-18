@@ -28,29 +28,41 @@ typedef int taskID;
 enum bool {FALSE, TRUE };
 
 /* Each task has a status */
-enum state { WAITING = 3,          /* Dependencies have not been finished */
+enum state { INACTIVE = 4,         /* No task */
+             WAITING = 3,          /* Dependencies have not been finished */
 	     AVAILABLE = 2,        /* Dependencies met, ready to be run */
 	     INPROGRESS = 1,       /* Has been started */
 	     DONE = 0 };           /* Has been completed */
 
 /* Array of states of each task */
-enum state *task_status;          /* OPT : Structure lay out */
+static enum state *task_status;          /* OPT : Structure lay out */
 
 /* INV : Read by multiple threads, updated by only one */
 /* Thus use atomic read and write */
 
 /* Sets of prerequiste tasks for each task */
-taskID ** dep;                        /* OPT : Structure lay out */
+typedef struct _watchList {
+  taskID id;
+  struct _watchList *next;
+} watchList;
 
+static watchList * dep;                        /* OPT : Structure lay out */
+
+#define INIT_SIZE (100)
+static int task_max_size;
+
+/* For now allocate a fixed maximum number of tasks; FIXME */
+void create_dag(CSOUND *csound)
+{
+    task_status = mcalloc(csound, sizeof(enum state)*(task_max_size=INIT_SIZE));
+    dep = (watchList *)mcalloc(csound, sizeof(watchList)*task_max_size);
+}
+
+#if 0
 /* INV : Acyclic */
 /* INV : Each entry is read by a single thread,
  *       no writes (but see OPT : Watch ordering) */
 /* Thus no protection needed */
-
-typedef struct _watchList {
-  void *head;
-  struct _watchList *tail;
-} watchList;
 
 /* Used to mark lists that should not be added to, see NOTE : Race condition */
 watchList nullList;
@@ -427,3 +439,5 @@ void newdag_alloc(CSOUND *csound, int numtasks)
       mcalloc(csound, sizeof(watchListMemoryManagement)*numtasks);
 
 }
+
+#endif
