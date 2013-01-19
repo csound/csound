@@ -216,6 +216,7 @@ typedef struct CORFIL {
     int     useCsdLineCounts;
     int     calculateWeights;
     int     sampleAccurate;  /* switch for score events sample accuracy */
+    int     realtime; /* realtime priority mode  */
   } OPARMS;
 
   typedef struct arglst {
@@ -447,6 +448,7 @@ typedef struct CORFIL {
     uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
     uint32_t no_end;      /* samps left at the end for sample accuracy (calculated) */
     uint32_t ksmps_no_end; /* samps left at the end for sample accuracy (used by opcodes) */
+    int    init_done;
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
     MYFLT   p1;
@@ -1208,6 +1210,9 @@ typedef struct NAME__ {
     int          file_io_start;
     void         *file_io_threadlock;
     int          realtime_audio_flag;
+    pthread_t    init_pass_thread;
+    int          init_pass_loop;
+    void         *init_pass_threadlock;
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t spoutlock, spinlock;
 #else
