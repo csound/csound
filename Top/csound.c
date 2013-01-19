@@ -441,6 +441,9 @@ extern "C" {
     0,               /* file_io_start   */
     NULL,            /* file_io_threadlock */
     0,               /* realtime_audio_flag */
+    NULL,            /* init pass thread */
+    0,               /* init pass loop  */
+    NULL,            /* init pass threadlock */
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
@@ -1578,9 +1581,11 @@ int kperf(CSOUND *csound)
             //            ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-          while ((csound->pds = csound->pds->nxtp) != NULL) {
+          if(ip->init_done == 1) /* if init-pass has been done */
+            while ((csound->pds = csound->pds->nxtp) != NULL) {
             (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
-          }
+            }
+          //else if(csound->pds->nxtp != NULL) csound->Message(csound, "init not done %s \n", csound->pds->nxtp->optext->t.opcod);
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */  
           ip->ksmps_no_end = 0;  /* reset end of loop samples */     
           ip = nxt; /* but this does not allow for all deletions */
@@ -1636,6 +1641,9 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     } while (kperf(csound));
       return 0;
 }
+
+
+
 
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 {

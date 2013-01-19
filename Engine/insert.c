@@ -236,15 +236,21 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->m_sust       = 0;
     ip->nxtolap      = NULL;
     ip->opcod_iobufs = NULL;
+    ip->init_done = 0;
+
     csound->curip    = ip;
     csound->ids      = (OPDS *)ip;
+ 
+    if(csound->realtime_audio_flag == 0) {
     /* do init pass for this instr */
     while ((csound->ids = csound->ids->nxti) != NULL) {
-      if (UNLIKELY(O->odebug))
-        csound->Message(csound, "init %s:\n",
-                        csound->opcodlst[csound->ids->optext->t.opnum].opname);
+       if (O->odebug) csound->Message(csound, "init %s:\n",
+            csound->opcodlst[csound->ids->optext->t.opnum].opname);      
       (*csound->ids->iopadr)(csound, csound->ids);
     }
+    ip->init_done = 1;
+    }
+
     csound->tieflag = csound->reinitflag = 0;
     if (UNLIKELY(csound->inerrcnt || ip->p3 == FL(0.0))) {
       xturnoff_now(csound, ip);
@@ -531,12 +537,16 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 
     csound->curip = ip;
     csound->ids = (OPDS *)ip;
+    ip->init_done = 0;
+    if(csound->realtime_audio_flag == 0) {
     /* do init pass for this instr  */
     while ((csound->ids = csound->ids->nxti) != NULL) {
       if (O->odebug)
         csound->Message(csound, "init %s:\n",
                         csound->opcodlst[csound->ids->optext->t.opnum].opname);
       (*csound->ids->iopadr)(csound, csound->ids);
+    }
+    ip->init_done = 1;
     }
     csound->tieflag = csound->reinitflag = 0;
     if (csound->inerrcnt) {
@@ -558,16 +568,13 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
 {
     INSTRTXT *txtp;
     INSDS   *p;
-    int i;
 
     csound->Message(csound, "insno\tinstanc\tnxtinst\tprvinst\tnxtact\t"
                             "prvact\tnxtoff\tactflg\tofftim\n");
     for (txtp = &(csound->engineState.instxtanchor);
          txtp != NULL;
          txtp = txtp->nxtinstxt)
-     //for(i=0; i < csound->engineState.maxinsno; i++){
-     //txtp = csound->engineState.instrtxtp[i];
-     // if(txtp != NULL){
+
       if ((p = txtp->instance) != NULL) {
         /*
          * On Alpha, we print pointers as pointers.  heh 981101
@@ -580,8 +587,6 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
                           (void*) p->nxtact, (void*) p->prvact,
                           (void*) p->nxtoff, p->actflg, p->offtim);
         } while ((p = p->nxtinstance) != NULL);
-        //}
-        //}
     }
 }
 
@@ -747,13 +752,9 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
 {
     INSTRTXT  *txtp;
     INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
-    int       cnt = 0, i;
+    int       cnt = 0;
    for (txtp = &(csound->engineState.instxtanchor);
         txtp != NULL;  txtp = txtp->nxtinstxt) {
-     //if(csound->engineState.instrtxtp != NULL) {
-        //for(i=0; i < csound->engineState.maxinsno; i++) {
-        //txtp = csound->engineState.instrtxtp[i];
-        //if(txtp != NULL){
           if ((ip = txtp->instance) != NULL) {        /* if instance exists */
             prvip = NULL;
             prvnxtloc = &txtp->instance;
@@ -787,8 +788,6 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
           txtp->lst_instance = ip;
         }
         txtp->act_instance = NULL;                /* no free instances */
-        // }
-        // }
     }
     if (UNLIKELY(cnt))
       csound->Message(csound, Str("inactive allocs returned to freespace\n"));
@@ -960,9 +959,9 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
     /* by default all inputs are i-rate mapped to p-fields */
-    if (UNLIKELY(p->INOCOUNT > (csound->engineState.instrtxtp[instno]->pmax + 1)))
+    if (UNLIKELY(p->INOCOUNT > (unsigned int) (csound->engineState.instrtxtp[instno]->pmax + 1)))
       return csoundInitError(csound, Str("subinstr: too many p-fields"));
-    for (n = 1; n < p->INOCOUNT; n++)
+    for (n = 1; (unsigned int) n < p->INOCOUNT; n++)
       *flp++ = *p->ar[inarg_ofs + n];
 
     /* allocate memory for a temporary store of spout buffers */
@@ -973,10 +972,11 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     /* do init pass for this instr */
     csound->curip = p->ip;
     csound->ids = (OPDS *)p->ip;
-
+    p->ip->init_done = 0;
     while ((csound->ids = csound->ids->nxti) != NULL) {
       (*csound->ids->iopadr)(csound, csound->ids);
     }
+    p->ip->init_done = 1;
     /* copy length related parameters back to caller instr */
     saved_curip->xtratim = csound->curip->xtratim;
     saved_curip->relesing = csound->curip->relesing;
@@ -1108,12 +1108,14 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
 
     /* do init pass for this instr */
+    p->ip->init_done  = 0;
     csound->curip = lcurip;
     csound->ids = (OPDS *) (lcurip->nxti);
     while (csound->ids != NULL) {
       (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
     }
+    p->ip->init_done = 1;
     /* copy length related parameters back to caller instr */
     saved_curip->relesing = lcurip->relesing;
     saved_curip->offbet = lcurip->offbet;
@@ -1486,14 +1488,20 @@ INSDS *insert_event(CSOUND *csound,
     }
     else
       ip->m_chnbp = NULL;     /* score event */
+
+    ip->init_done = 0;
     csound->curip = ip;
     csound->ids = (OPDS *)ip;
+    if(csound->realtime_audio_flag == 0) {
     /* do init pass for this instr */
     while ((csound->ids = csound->ids->nxti) != NULL) {
       /*    if (O->odebug) csound->Message(csound, "init %s:\n",
             csound->opcodlst[csound->ids->optext->t.opnum].opname);      */
       (*csound->ids->iopadr)(csound, csound->ids);
     }
+      ip->init_done = 1;
+    } 
+ 
     if (csound->inerrcnt || ip->p3 == FL(0.0)) {
       xturnoff_now(csound, ip);
       ip = NULL; goto endsched;
@@ -2193,4 +2201,42 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
         return OK;
       } 
     return NOTOK; 
+}
+
+/**
+ In realtime mode, this function takes care of the init pass in a
+  separate thread.
+  Any new instances will have their init-pass code executed here.
+  This thread is started by musmon() and killed by csoundCleanup()
+*/
+void *init_pass_thread(void *p){
+  CSOUND *csound = (CSOUND *) p;
+  INSDS *ip;
+  while(1) {
+    ip = csound->actanchor.nxtact;
+    /* do init pass for this instr */
+    while(ip != NULL){
+      INSDS *nxt = ip->nxtact;
+      if(ip->init_done == 0){
+	OPDS *ids = (OPDS *) (ip->nxti);
+	while (ids != NULL) {
+	  (*ids->iopadr)(csound, ids);
+          ((INSDS*)ids)->init_done=1;
+	  ids = ids->nxti;
+	}
+	ip->init_done = 1;
+	if(csound->reinitflag==1) {
+	  csound->reinitflag = 0;
+	}
+      }
+      ip = nxt; 
+    }
+    csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
+    if(csound->init_pass_loop == 0) {
+      csound->NotifyThreadLock(csound->init_pass_threadlock);
+      break;
+    }
+    csound->NotifyThreadLock(csound->init_pass_threadlock);
+  }
+  return NULL;
 }
