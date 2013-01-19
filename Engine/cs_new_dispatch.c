@@ -25,8 +25,6 @@
 typedef int taskID;
 #define INVALID -1
 
-enum bool {FALSE, TRUE };
-
 /* Each task has a status */
 enum state { INACTIVE = 4,         /* No task */
              WAITING = 3,          /* Dependencies have not been finished */
