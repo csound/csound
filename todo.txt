@@ -18,6 +18,7 @@ Csound 6 TODO list
   - do we need a new parser for score? (started one but a pain)
 
 3) test sample-accurate opcodes, or document those not working
+  - check that kperf code can be used in  multicore mode  in csound.c (possibly changes need to be propagated?)
 
 4) Use instrument-local structure rather than global (ksmps mainly)
 
@@ -35,11 +36,17 @@ reader opcodes need to accept them
 
 10) check changing p3 works with early ending code, and event/scedule
 
-11) asynchronous disk access IO mechanism. *** DONE *** soundin, fout, foutk, fin,
+11) realtime priority mode
+  -  asynchronous disk access IO mechanism. *** DONE *** soundin, fout, foutk, fin,
 and fink modified. diskin, diskin2 and pvsfwrite  now have their own
 dedicated async read/write. diskgrain and pvsdiskin have not been
 changed but they have realtime safe versions in syncgrain and
 pvsfread. 
+
+  - synchronous init pass in RT mode - added but needs further
+    testing/evaluation
+
+  - other features?
 
 rc1 aimed for 28 Feb
 

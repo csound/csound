@@ -342,6 +342,16 @@ int musmon(CSOUND *csound)
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
+    
+    if(csound->realtime_audio_flag && csound->init_pass_loop == 0){
+      extern void *init_pass_thread(void *);
+      csound->init_pass_loop = 1;
+      csound->init_pass_threadlock = csound->CreateThreadLock();
+      csound->NotifyThreadLock(csound->init_pass_threadlock);
+      pthread_create(&csound->init_pass_thread,NULL, init_pass_thread, csound);
+    }
+
+
     /* since we are running in components, we exit here to playevents later */
     return 0;
 }
@@ -409,7 +419,16 @@ PUBLIC int csoundCleanup(CSOUND *csound)
         csound->engineState.instrtxtp[0]->instance &&
         csound->engineState.instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
-    delete_pending_rt_events(csound);
+      delete_pending_rt_events(csound);
+
+    if(csound->init_pass_loop == 1) {
+      csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
+      csound->init_pass_loop = 0;
+      csound->NotifyThreadLock(csound->init_pass_threadlock);
+      pthread_join(csound->init_pass_thread, NULL);
+      csound->DestroyThreadLock(csound->init_pass_threadlock);
+    }
+
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;
       csound->freeEvtNodes = ((EVTNODE*) p)->nxt;
