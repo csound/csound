@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "csoundCore.h"
+#include "cs_par_base.h"
+#include "cs_par_orc_semantics.h"
 
 /* Used as an error value */
 typedef int taskID;
@@ -33,7 +35,7 @@ enum state { INACTIVE = 4,         /* No task */
 	     DONE = 0 };           /* Has been completed */
 
 /* Array of states of each task */
-static enum state *task_status;          /* OPT : Structure lay out */
+static enum state *task_status = NULL;          /* OPT : Structure lay out */
 
 /* INV : Read by multiple threads, updated by only one */
 /* Thus use atomic read and write */
@@ -52,8 +54,34 @@ static int task_max_size;
 /* For now allocate a fixed maximum number of tasks; FIXME */
 void create_dag(CSOUND *csound)
 {
+    /* Allocate the main task status and watchlists */
     task_status = mcalloc(csound, sizeof(enum state)*(task_max_size=INIT_SIZE));
     dep = (watchList *)mcalloc(csound, sizeof(watchList)*task_max_size);
+}
+
+void dag_build(CSOUND *csound, INSDS *chain)
+{
+    if (task_status == NULL) create_dag(csound); /* Should move elsewhere */
+    while (chain != NULL) {
+      INSTR_SEMANTICS *current_instr =
+        csp_orc_sa_instr_get_by_num(csound, chain->insno);
+      if (current_instr == NULL) {
+        current_instr =
+          csp_orc_sa_instr_get_by_name(csound,
+              csound->engineState.instrtxtp[chain->insno]->insname);
+        if (current_instr == NULL)
+          csound->Die(csound,
+                      Str("Failed to find semantic information"
+                          " for instrument '%i'"),
+                      chain->insno);
+      }
+      printf("insno %d: %p/%p/%p\n",
+             chain->insno, current_instr->read, current_instr->write,
+             current_instr->read_write);
+      //csp_dag_add(csound, dag, current_instr, chain);
+      //dag->weight += current_instr->weight;
+      chain = chain->nxtact;
+    }
 }
 
 #if 0
@@ -430,8 +458,7 @@ void workerThread (State *s) {
 void newdag_alloc(CSOUND *csound, int numtasks)
 {  
     doNotAdd = &endwatch;
-    task_status = (enum states*)mmalloc(csound, sizeof(enum state)*numtasks);
-    dep = (taskID **)mcalloc(csound, sizeof(taskID*)*numtasks);
+??
     watch = (watchList **)mcalloc(csound, sizeof(watchList *)*numtasks);
     wlmm = (watchListMemoryManagement *)
       mcalloc(csound, sizeof(watchListMemoryManagement)*numtasks);
