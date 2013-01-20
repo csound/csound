@@ -517,6 +517,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     ip->mdepends = 0;
     ip->opdstot = 0;
+    
 
     ip->pmax = 3L;
 
@@ -761,9 +762,8 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
         synterr(csound, Str("instr %s redefined"), c);
       }
      
-      ip->insname =  mmalloc(csound, strlen(root->left->value->lexeme) + 1);
+      ip->insname =  csound->Malloc(csound, strlen(c) + 1);
       strcpy(ip->insname, c);
-
     }
     current = statements;
     while (current != NULL) {
@@ -1189,7 +1189,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                                 engineState))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
-                instrtxt->insname = mmalloc(csound, strlen(c) + 1);
+                instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
                 strcpy(instrtxt->insname, c);
               }
             }
@@ -1213,7 +1213,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                                 engineState))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
-                instrtxt->insname = c;
+                instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
+                strcpy(instrtxt->insname, c);
               }
               break;
             }
@@ -1345,7 +1346,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
     TREE *root = csoundParseOrc(csound, str);
     retVal = csoundCompileTree(csound, root);
     //print_tree(csound, "Before delete", root);
-    //delete_tree(csound, root);
+    delete_tree(csound, root);
     if (csound->oparms->odebug)
       debugPrintCsound(csound);
     return retVal;
