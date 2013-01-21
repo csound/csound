@@ -1574,6 +1574,9 @@ typedef struct NAME__ {
     struct instr_semantics_t *instRoot;
     int           inInstr;
 #endif
+#ifdef NEW_DAG
+    int           dag_changed;
+#endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */

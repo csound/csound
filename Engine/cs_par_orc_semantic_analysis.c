@@ -219,6 +219,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
+    name = strdup(name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
       csound->instRoot = instr_semantics_alloc(csound, name);
@@ -305,15 +306,12 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
 INSTR_SEMANTICS *csp_orc_sa_instr_get_by_name(CSOUND *csound, char *instr_name)
 {
     INSTR_SEMANTICS *current_instr = csound->instRoot;
-    printf("%s(%d): instr_name=%s\n", __FILE__, __LINE__, instr_name);
     while (current_instr != NULL) {
-      printf("%s(%d): try name=%s %d\n", __FILE__, __LINE__, current_instr->name, current_instr->insno);
       if (strcmp(current_instr->name, instr_name) == 0) {
         return current_instr;
       }
       current_instr = current_instr->next;
     }
-    printf("%s(%d): return NULL\n", __FILE__, __LINE__);
     return NULL;
 }
 
@@ -322,15 +320,12 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
 #define BUF_LENGTH 8
     INSTR_SEMANTICS *current_instr = csound->instRoot;
     char buf[BUF_LENGTH];
-    printf("%s(%d): insno=%d\n", __FILE__, __LINE__, insno);
     while (current_instr != NULL) {
-      printf("%s(%d): try insno=%d\n", __FILE__, __LINE__, current_instr->insno);
       if (current_instr->insno != -1 && current_instr->insno == insno) {
         return current_instr;
       }
       current_instr = current_instr->next;
     }
-    printf("%s(%d): not found\n", __FILE__, __LINE__);
     snprintf(buf, BUF_LENGTH, "%i", insno);
     current_instr = csp_orc_sa_instr_get_by_name(csound, buf);
     if (current_instr != NULL) {
