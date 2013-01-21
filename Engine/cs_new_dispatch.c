@@ -36,6 +36,7 @@ enum state { INACTIVE = 4,         /* No task */
 
 /* Array of states of each task */
 static enum state *task_status = NULL;          /* OPT : Structure lay out */
+static taskID *task_watch = NULL; 
 
 /* INV : Read by multiple threads, updated by only one */
 /* Thus use atomic read and write */
@@ -50,21 +51,25 @@ static watchList * dep;                        /* OPT : Structure lay out */
 
 #define INIT_SIZE (100)
 static int task_max_size;
+static int dag_dispatched;
 
 /* For now allocate a fixed maximum number of tasks; FIXME */
 void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     task_status = mcalloc(csound, sizeof(enum state)*(task_max_size=INIT_SIZE));
+    task_watch = mcalloc(csound, sizeof(taskID)*task_max_size);
     dep = (watchList *)mcalloc(csound, sizeof(watchList)*task_max_size);
 }
 
 void dag_build(CSOUND *csound, INSDS *chain)
 {
     if (task_status == NULL) create_dag(csound); /* Should move elsewhere */
+    csound->dag_num_active = 0;
     while (chain != NULL) {
       INSTR_SEMANTICS *current_instr =
         csp_orc_sa_instr_get_by_num(csound, chain->insno);
+      csound->dag_num_active++;
       if (current_instr == NULL) {
         current_instr =
           csp_orc_sa_instr_get_by_name(csound,
@@ -83,6 +88,28 @@ void dag_build(CSOUND *csound, INSDS *chain)
       chain = chain->nxtact;
     }
     csound->dag_changed = 0;
+    printf("dag_num_active = %d\n", csound->dag_num_active);
+}
+
+void dag_reinit(CSOUND *csound)
+{
+    int i;
+    dag_dispatched = 0;
+    for (i=0; i<csound->dag_num_active; i++) {
+      if (dep[i].id<0) {
+        task_status[i] = AVAILABLE;
+        task_watch[i] = -1;     /* Probably unnecessary */
+        //dispatch.add(id);
+        //printf("Task %d available\n", i);
+      }
+      else {
+        task_status[i] = WAITING;
+        task_watch[i] = dep[i].id; //pick_a_watch(i); /* Could optimise here */
+        //printf("Task %d waiting for %d\n", i, task_watch[i]);
+      }
+    }
+    for (i=csound->dag_num_active; i<task_max_size; i++)
+      task_status[i] = DONE;
 }
 
 #if 0
