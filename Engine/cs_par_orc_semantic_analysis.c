@@ -56,7 +56,6 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
        so this is a good default
      */
     instr->weight = 1;
-
     csp_set_alloc_string(csound, &(instr->read_write));
     csp_set_alloc_string(csound, &(instr->write));
     csp_set_alloc_string(csound, &(instr->read));
@@ -333,7 +332,6 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
     }
     printf("%s(%d): not found\n", __FILE__, __LINE__);
     snprintf(buf, BUF_LENGTH, "%i", insno);
-
     current_instr = csp_orc_sa_instr_get_by_name(csound, buf);
     if (current_instr != NULL) {
       current_instr->insno = insno;
