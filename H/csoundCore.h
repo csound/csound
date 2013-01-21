@@ -1576,6 +1576,7 @@ typedef struct NAME__ {
 #endif
 #ifdef NEW_DAG
     int           dag_changed;
+    int           dag_num_active;
 #endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */

@@ -801,6 +801,7 @@ extern "C" {
 #endif /* PARCS */
 #ifdef NEW_DAG
     1,              /* dag_changed */
+    0,              /* dag_num_active */
 #endif
     0,              /* tempStatus */
     0,              /* orcLineOffset */
@@ -1545,6 +1546,7 @@ int kperf(CSOUND *csound)
         TIMER_END(thread, "Dag ");
 #ifdef NEW_DAG
         if (csound->dag_changed) dag_build(csound, ip);
+        dag_reinit(csound);     /* set to initial state */
 #endif
 
         TRACE_1("{Time: %f}\n", csound->GetScoreTime(csound));
