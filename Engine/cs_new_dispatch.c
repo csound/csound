@@ -82,6 +82,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       //dag->weight += current_instr->weight;
       chain = chain->nxtact;
     }
+    csound->dag_changed = 0;
 }
 
 #if 0
