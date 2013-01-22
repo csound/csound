@@ -1124,7 +1124,6 @@ void csp_dag_add(CSOUND *csound, DAG *dag,
       (DAG_NODE **)csound->ReAlloc(csound, old,
                                    sizeof(DAG_NODE *) * (dag->count + 1));
     dag->all[dag->count++] = dag_node;
-    //dag->count++;
 
     if (dag->count == 1) {
       dag->insds_chain_start = dag->all[0];
@@ -1245,7 +1244,6 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         /* csound->Message(csound, "=== %s <> %s ===\n", */
         /*     dag->all[dag_root_ctr]->instr->name, */
         /*     dag->all[dag_curr_ctr]->instr->name); */
-
         int depends = DAG_NO_LINK;
         struct set_t *write_intersection = NULL;
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write,
