@@ -75,29 +75,51 @@ static void dag_free_watch(watchList *x)
     }
 }
 
+static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
+{
+    INSTR_SEMANTICS *current_instr =
+      csp_orc_sa_instr_get_by_num(csound, insno);
+    if (current_instr == NULL) {
+      current_instr =
+        csp_orc_sa_instr_get_by_name(csound,
+                                     csound->engineState.instrtxtp[insno]->insname);
+      if (current_instr == NULL)
+        csound->Die(csound,
+                    Str("Failed to find semantic information"
+                        " for instrument '%i'"),
+                    insno);
+    }
+    return current_instr;
+}
+
+static int dag_intersect(CSOUND *csound, struct set_t *current, struct set_t *later)
+{
+    struct set_t *ans;
+    int res = 0;
+    struct set_element_t *ele;
+    csp_set_intersection(csound, current, later, &ans);
+    ele = ans->head;
+    while (ele != NULL) {
+      struct set_element_t *next = ele->next;
+      csound->Free(csound, ele);
+      ele = next; res++;
+    }
+    csound->Free(csound, ans);
+}
+
 void dag_build(CSOUND *csound, INSDS *chain)
 {
+    INSDS *save = chain;
+    int i;
     if (task_status == NULL) create_dag(csound); /* Should move elsewhere */
     else { 
-      int i;
       memset(task_watch, '\0', sizeof(enum state)*(task_max_size=INIT_SIZE));
       for (i=0; i<task_max_size; i++) dag_free_watch(&task_dep[i]);
     }
     csound->dag_num_active = 0;
     while (chain != NULL) {
-      INSTR_SEMANTICS *current_instr =
-        csp_orc_sa_instr_get_by_num(csound, chain->insno);
+      INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
       csound->dag_num_active++;
-      if (current_instr == NULL) {
-        current_instr =
-          csp_orc_sa_instr_get_by_name(csound,
-              csound->engineState.instrtxtp[chain->insno]->insname);
-        if (current_instr == NULL)
-          csound->Die(csound,
-                      Str("Failed to find semantic information"
-                          " for instrument '%i'"),
-                      chain->insno);
-      }
       printf("insno %d: %p/%p/%p\n",
              chain->insno, current_instr->read, current_instr->write,
              current_instr->read_write);
@@ -106,11 +128,35 @@ void dag_build(CSOUND *csound, INSDS *chain)
       chain = chain->nxtact;
     }
     if (csound->dag_num_active>task_max_size) {
-      printf("**************need tO extend task vector\n");
+      printf("**************need to extend task vector\n");
       exit(1);
     }
     csound->dag_changed = 0;
     printf("dag_num_active = %d\n", csound->dag_num_active);
+    i = 0; chain = save;
+    while (chain != NULL) {     /* for each instance check against later */
+      int j = i+1;              /* count of instance */
+      printf("\nWho depends on %d (%d)?\n", i, chain->insno);
+      INSDS *next = chain->nxtact;
+      INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
+      while (next) {
+        INSTR_SEMANTICS *later_instr = dag_get_info(csound, next->insno);
+        printf("%d ", j);
+        if (dag_intersect(csound, current_instr->write, later_instr->read) ||
+            dag_intersect(csound, current_instr->read_write, later_instr->read) ||
+            dag_intersect(csound, current_instr->read, later_instr->write) ||
+            dag_intersect(csound, current_instr->write, later_instr->write) ||
+            dag_intersect(csound, current_instr->read_write, later_instr->write) ||
+            dag_intersect(csound, current_instr->read, later_instr->read_write) ||
+            dag_intersect(csound, current_instr->write, later_instr->read_write) ||
+            dag_intersect(csound, 
+                          current_instr->read_write, later_instr->read_write)) {
+          printf("yes ");
+        }
+        j++; next = next->nxtact;
+      }
+      i++; chain = chain->nxtact;
+    }
 }
 
 void dag_reinit(CSOUND *csound)
