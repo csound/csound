@@ -221,7 +221,7 @@ instlist  : INTEGER_TOKEN ',' instlist
           | label ',' instlist
               {
 #ifdef PARCS
-                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$1)->lexeme);
+                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$1)->lexeme));
 #endif
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
@@ -232,7 +232,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
                   ans->rate = (int) '+';
 #ifdef PARCS
-                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$2)->lexeme);
+                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$2)->lexeme));
 #endif
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
           | '+' label
