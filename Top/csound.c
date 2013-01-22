@@ -798,11 +798,11 @@ extern "C" {
     NULL,           /* instCurr */
     NULL,           /* instRoot */
     0,              /* inInstr */
-#endif /* PARCS */
 #ifdef NEW_DAG
     1,              /* dag_changed */
     0,              /* dag_num_active */
 #endif
+#endif /* PARCS */
     0,              /* tempStatus */
     0,              /* orcLineOffset */
     0,              /* scoLineOffset */
