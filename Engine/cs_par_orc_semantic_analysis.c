@@ -192,15 +192,15 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       struct set_t *ww = NULL;
       csp_set_alloc_string(csound, &ww);
       csp_set_alloc_string(csound, &rr);
-      if (code&ZR) csp_set_add(csound, rr, "##zak");
-      if (code&ZW) csp_set_add(csound, ww, "##zak");
-      if (code&TR) csp_set_add(csound, rr, "##tab");
-      if (code&TW) csp_set_add(csound, ww, "##tab");
-      if (code&CR) csp_set_add(csound, rr, "##chn");
-      if (code&CW) csp_set_add(csound, ww, "##chn");
+      if (code&ZR) csp_set_add(csound, rr, strdup("##zak"));
+      if (code&ZW) csp_set_add(csound, ww, strdup("##zak"));
+      if (code&TR) csp_set_add(csound, rr, strdup("##tab"));
+      if (code&TW) csp_set_add(csound, ww, strdup("##tab"));
+      if (code&CR) csp_set_add(csound, rr, strdup("##chn"));
+      if (code&CW) csp_set_add(csound, ww, strdup("##chn"));
       if (code&SB) {
-        csp_set_add(csound, rr, "##stk");
-        csp_set_add(csound, ww, "##stk");
+        csp_set_add(csound, rr, strdup("##stk"));
+        csp_set_add(csound, ww, strdup("##stk"));
       }
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
       if (code&_QQ) csound->Message(csound, "opcode deprecated");
@@ -287,8 +287,6 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     csp_set_dealloc(csound, &left);
     csp_set_dealloc(csound, &right);
 
-    if (node->value->lexeme[0] == 'g') 
-      printf("type  = %d (%d)\n", node->type, T_IDENT);
     if ((node->type == T_IDENT || node->type == LABEL_TOKEN) &&
         node->value->lexeme[0] == 'g') {
       csp_set_add(csound, current_set, strdup(node->value->lexeme));
