@@ -247,18 +247,18 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
 {
     while (x) {
       if (x->type == INTEGER_TOKEN) {
-        csp_orc_sa_instr_add(csound, x->value->lexeme);
+        csp_orc_sa_instr_add(csound, strdup(x->value->lexeme));
         return;
       }
       if (x->type == T_IDENT) {
-        csp_orc_sa_instr_add(csound, x->value->lexeme);
+        csp_orc_sa_instr_add(csound, strdup(x->value->lexeme));
         return;
       }
       if (UNLIKELY(x->type != T_INSTLIST)) {
         csound->DebugMsg(csound,"type %d not T_INSTLIST\n", x->type);
         csound->Die(csound, "Not a proper list of ints");
       }
-      csp_orc_sa_instr_add(csound, x->left->value->lexeme);
+      csp_orc_sa_instr_add(csound, strdup(x->left->value->lexeme));
       x = x->right;
     }
 }
@@ -287,8 +287,11 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     csp_set_dealloc(csound, &left);
     csp_set_dealloc(csound, &right);
 
-    if(node->type == T_IDENT && node->value->lexeme[0] == 'g') {
-      csp_set_add(csound, current_set, node->value->lexeme);
+    if (node->value->lexeme[0] == 'g') 
+      printf("type  = %d (%d)\n", node->type, T_IDENT);
+    if ((node->type == T_IDENT || node->type == LABEL_TOKEN) &&
+        node->value->lexeme[0] == 'g') {
+      csp_set_add(csound, current_set, strdup(node->value->lexeme));
     }
 
     if (node->next != NULL) {
