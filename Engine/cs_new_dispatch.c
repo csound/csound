@@ -98,6 +98,7 @@ static int dag_intersect(CSOUND *csound, struct set_t *current, struct set_t *la
     int res = 0;
     struct set_element_t *ele;
     csp_set_intersection(csound, current, later, &ans);
+    res = ans->count;
     ele = ans->head;
     while (ele != NULL) {
       struct set_element_t *next = ele->next;
@@ -105,6 +106,7 @@ static int dag_intersect(CSOUND *csound, struct set_t *current, struct set_t *la
       ele = next; res++;
     }
     csound->Free(csound, ans);
+    return res;
 }
 
 void dag_build(CSOUND *csound, INSDS *chain)
@@ -120,9 +122,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
     while (chain != NULL) {
       INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
       csound->dag_num_active++;
-      printf("insno %d: %p/%p/%p\n",
+      printf("insno %d: %p/%p/%p %d/%d/%d\n",
              chain->insno, current_instr->read, current_instr->write,
-             current_instr->read_write);
+             current_instr->read_write, current_instr->read->count,
+             current_instr->write->count, current_instr->read_write->count);
       //csp_dag_add(csound, dag, current_instr, chain);
       //dag->weight += current_instr->weight;
       chain = chain->nxtact;
@@ -136,12 +139,17 @@ void dag_build(CSOUND *csound, INSDS *chain)
     i = 0; chain = save;
     while (chain != NULL) {     /* for each instance check against later */
       int j = i+1;              /* count of instance */
-      printf("\nWho depends on %d (%d)?\n", i, chain->insno);
+      printf("\nWho depends on %d (instr %d)?\n", i, chain->insno);
       INSDS *next = chain->nxtact;
-      INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
+      INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno); 
+      //csp_set_print(csound, current_instr->read);
+      //csp_set_print(csound, current_instr->write);
       while (next) {
         INSTR_SEMANTICS *later_instr = dag_get_info(csound, next->insno);
         printf("%d ", j);
+        //csp_set_print(csound, later_instr->read);
+        //csp_set_print(csound, later_instr->write);
+        //csp_set_print(csound, later_instr->read_write);
         if (dag_intersect(csound, current_instr->write, later_instr->read) ||
             dag_intersect(csound, current_instr->read_write, later_instr->read) ||
             dag_intersect(csound, current_instr->read, later_instr->write) ||
