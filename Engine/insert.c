@@ -178,6 +178,12 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     /* Add an active instrument */
     tp->active++;
     tp->instcnt++;
+#ifdef PARCS
+#ifdef NEW_DAG
+    csound->dag_changed++;      /* Need to remake DAG */
+    printf("**** dag changed by insert\n");
+#endif
+#endif
     nxtp = &(csound->actanchor);    /* now splice into activ lst */
     while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
       if (nxtp->insno > insno ||
@@ -680,6 +686,12 @@ static void deact(CSOUND *csound, INSDS *ip)
     csound->engineState.instrtxtp[ip->insno]->act_instance = ip;
     if (ip->fdchp != NULL)
       fdchclose(csound, ip);
+#ifdef PARCS
+# ifdef NEW_DAG
+    csound->dag_changed++;
+    printf("**** dag changed by deact\n");
+# endif
+#endif
 }
 
 /* Turn off a particular insalloc, also remove from list of active */
@@ -735,6 +747,12 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
     else {
       /* no extra time needed: deactivate immediately */
       deact(csound, ip);
+#ifdef PARCS
+#ifdef NEW_DAG
+      csound->dag_changed++;      /* Need to remake DAG */
+      printf("**** dag changed by xturnoff\n");
+#endif
+#endif
     }
 }
 
@@ -1341,7 +1359,6 @@ int nstrnumset(CSOUND *csound, NSTRNUM *p)
     *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, (p->XSTRCODE & 1));
     return (*(p->i_insno) > FL(0.0) ? OK : NOTOK);
 }
-
 
 /* unlink expired notes from activ chain */
 /*      and mark them inactive           */
