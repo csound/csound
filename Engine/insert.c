@@ -686,6 +686,12 @@ static void deact(CSOUND *csound, INSDS *ip)
     csound->engineState.instrtxtp[ip->insno]->act_instance = ip;
     if (ip->fdchp != NULL)
       fdchclose(csound, ip);
+#ifdef PARCS
+# ifdef NEW_DAG
+    csound->dag_changed++;
+    printf("**** dag changed by deact\n");
+# endif
+#endif
 }
 
 /* Turn off a particular insalloc, also remove from list of active */
