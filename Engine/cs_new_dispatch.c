@@ -49,7 +49,7 @@ typedef struct _watchList {
   struct _watchList *next;
 } watchList;
 
-static watchList * task_dep;                        /* OPT : Structure lay out */
+static watchList ** task_dep;                        /* OPT : Structure lay out */
 
 #define INIT_SIZE (100)
 static int task_max_size;
@@ -61,17 +61,15 @@ void create_dag(CSOUND *csound)
     /* Allocate the main task status and watchlists */
     task_status = mcalloc(csound, sizeof(enum state)*(task_max_size=INIT_SIZE));
     task_watch = mcalloc(csound, sizeof(taskID)*task_max_size);
-    task_dep = (watchList *)mcalloc(csound, sizeof(watchList)*task_max_size);
+    task_dep = (watchList **)mcalloc(csound, sizeof(watchList*)*task_max_size);
 }
 
-static void dag_free_watch(watchList *x)
+static void dag_free_watch(CSOUND *csound, watchList *x)
 {
-    x->id = 0;
-    x = x->next;
     while (x) {
       watchList *t=x;
       x = x->next;
-      free(t);
+      mfree(csound, t);
     }
 }
 
@@ -116,7 +114,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
     if (task_status == NULL) create_dag(csound); /* Should move elsewhere */
     else { 
       memset(task_watch, '\0', sizeof(enum state)*(task_max_size=INIT_SIZE));
-      for (i=0; i<task_max_size; i++) dag_free_watch(&task_dep[i]);
+      for (i=0; i<task_max_size; i++) {
+        dag_free_watch(csound, task_dep[i]);
+        task_dep[i] = NULL;
+      }
     }
     csound->dag_num_active = 0;
     while (chain != NULL) {
@@ -159,6 +160,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
             dag_intersect(csound, current_instr->write, later_instr->read_write) ||
             dag_intersect(csound, 
                           current_instr->read_write, later_instr->read_write)) {
+          watchList *n = (watchList*)mmalloc(csound, sizeof(watchList));
+          n->id = i;
+          n->next = task_dep[j];
+          task_dep[j] = n;
           printf("yes ");
         }
         j++; next = next->nxtact;
@@ -172,7 +177,7 @@ void dag_reinit(CSOUND *csound)
     int i;
     dag_dispatched = 0;
     for (i=0; i<csound->dag_num_active; i++) {
-      if (task_dep[i].id<0) {
+      if (task_dep[i]==NULL) {
         task_status[i] = AVAILABLE;
         task_watch[i] = -1;     /* Probably unnecessary */
         //dispatch.add(id);
@@ -180,7 +185,7 @@ void dag_reinit(CSOUND *csound)
       }
       else {
         task_status[i] = WAITING;
-        task_watch[i] = task_dep[i].id; //pick_a_watch(i); /* Could optimise here */
+        task_watch[i] = task_dep[i]->id; //pick_a_watch(i); /* Could optimise here */
         //printf("Task %d waiting for %d\n", i, task_watch[i]);
       }
     }
