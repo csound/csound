@@ -1360,206 +1360,6 @@ int nstrnumset(CSOUND *csound, NSTRNUM *p)
     return (*(p->i_insno) > FL(0.0) ? OK : NOTOK);
 }
 
-/* IV - Nov 16 2002: moved insert_event() here to have access to some static */
-/* functions defined in this file */
-
-INSDS *insert_event(CSOUND *csound,
-                    MYFLT instr,
-                    MYFLT when,
-                    MYFLT dur,
-                    int narg,
-                    MYFLT **args,
-                    int midi)
-{
-    int pcnt = narg + 3;
-    int insno = (int) instr, saved_inerrcnt = csound->inerrcnt;
-    int saved_reinitflag = csound->reinitflag, saved_tieflag = csound->tieflag;
-    INSDS     *saved_curip = csound->curip, *ip = NULL;
-    INSDS     *prvp, *nxtp;                             /* IV - Nov 16 2002 */
-    OPDS      *saved_ids = csound->ids;
-    OPARMS    *O = csound->oparms;
-    INSTRTXT  *tp;
-
-    if (csound->advanceCnt)
-      return NULL;
-
-    csound->inerrcnt = csound->tieflag = csound->reinitflag = 0;
-    tp = csound->engineState.instrtxtp[insno];
-    if (UNLIKELY(tp == NULL)) {
-      csound->Message(csound,
-                      Str("schedule event ignored. instr %d undefined\n"),
-                      insno);
-      csound->perferrcnt++;
-      goto endsched;            /* IV - Nov 16 2002 */
-    }
-    csound->cpu_power_busy += tp->cpuload;
-    /* if there is no more cpu processing time: */
-    if (UNLIKELY(csound->cpu_power_busy > 100.0)) {
-      csound->cpu_power_busy -= tp->cpuload;
-      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
-                                "100%% of cpu time"));
-      goto endsched;
-    }
-    if (UNLIKELY(tp->maxalloc > 0 && tp->active >= tp->maxalloc)) {
-      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
-                                "instr maxalloc"));
-      goto endsched;
-    }
-    /* Insert this event into event queue */
-    if (UNLIKELY(O->odebug))
-      csound->Message(csound, "activating instr %d\n", insno);
-    if (UNLIKELY((tp->mdepends & 4) && !midi)) {
-      char *name = csound->engineState.instrtxtp[ip->insno]->insname;
-      if (name)
-        csound->Message(csound, Str("instr %s expects midi event data, "
-                                    "cannot run from score\n"), name);
-      else
-        csound->Message(csound, Str("instr %d expects midi event data, "
-                                    "cannot run from score\n"), insno);
-      csound->perferrcnt++;
-      goto endsched;
-    }
-    /* if find this insno, active, with indef (tie) & matching p1 */
-    for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
-      /* if find this insno, active, with indef (tie) & matching p1 */
-      if (ip->actflg && ip->offtim < 0.0 && ip->p1 == instr) {
-        csound->tieflag++;
-        goto init;                      /*     continue that event */
-      }
-    }
-    /* alloc new dspace if needed */
-    if (tp->act_instance == NULL || tp->isNew) {
-      if (O->msglevel & RNGEMSG) {
-      char *name = csound->engineState.instrtxtp[insno]->insname;
-      if (name)
-        csound->Message(csound, Str("new alloc for instr %s:\n"), name);
-      else
-        csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
-      }
-      instance(csound, insno);
-      tp->isNew = 0;
-    }
-    /* pop from free instance chain */
-    ip = tp->act_instance;
-    tp->act_instance = ip->nxtact;
-    ip->insno = (int16) insno;
-
-    /* Add an active instrument */
-    tp->active++;
-    tp->instcnt++;
-#ifdef PARCS
-#ifdef NEW_DAG
-    csound->dag_changed++;
-    printf("**** dag changed by insert_event\n");
-#endif
-#endif
-    nxtp = &(csound->actanchor);    /* now splice into active list */
-    while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL)
-      if (nxtp->insno > insno    ||
-          (nxtp->insno == insno && nxtp->p1 > instr)) {
-        nxtp->prvact = ip;
-        break;
-      }
-    ip->nxtact = nxtp;
-    ip->prvact = prvp;
-    prvp->nxtact = ip;
-    ip->actflg++;             /*        and mark the instr active */
- init:
-    {
-      int i;
-      int imax = tp->pmax - 3;
-      MYFLT  *flp;
-      if (UNLIKELY((int) tp->pmax != pcnt)) {
-        char *name = csound->engineState.instrtxtp[insno]->insname;
-        if (name)
-          csoundWarning(csound, Str("instr %s pmax = %d, note pcnt = %d"),
-                      name, (int) tp->pmax, pcnt);
-        else
-          csoundWarning(csound, Str("instr %d pmax = %d, note pcnt = %d"),
-                        insno, (int) tp->pmax, pcnt);
-      }
-      ip->p1 = instr;
-      ip->p2 = when;
-      ip->p3 = dur;
-      flp = &(ip->p1) + 3;
-      if (UNLIKELY(O->odebug))
-        csound->Message(csound, Str("psave beg at %p\n"), flp);
-      for (i = 0; i < imax; i++) {
-        if (i < narg)
-          *flp++ = *(args[i]);
-        else
-          *flp++ = FL(0.0);
-      }
-      if (UNLIKELY(O->odebug))
-        csound->Message(csound, Str("   ending at %p\n"), flp);
-    }
-    if (O->Beatmode)
-      ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
-    ip->offbet = (double) ip->p3;
-    ip->offtim = (double) ip->p3;       /* & duplicate p3 for now */
-    ip->xtratim = 0;
-    ip->relesing = 0;
-    ip->m_sust = 0;
-    ip->nxtolap = NULL;
-    /* IV - Nov 16 2002 */
-    ip->opcod_iobufs = NULL;
-    if (midi) {
-      /* should we copy MIDI parameters from the note from which the */
-      /* event was scheduled ? */
-      ip->m_chnbp = saved_curip->m_chnbp;
-      ip->m_pitch = saved_curip->m_pitch;
-      ip->m_veloc = saved_curip->m_veloc;
-    }
-    else
-      ip->m_chnbp = NULL;     /* score event */
-
-    ip->init_done = 0;
-    csound->curip = ip;
-    csound->ids = (OPDS *)ip;
-    if(csound->realtime_audio_flag == 0) {
-    /* do init pass for this instr */
-    while ((csound->ids = csound->ids->nxti) != NULL) {
-      /*    if (O->odebug) csound->Message(csound, "init %s:\n",
-            csound->opcodlst[csound->ids->optext->t.opnum].opname);      */
-      (*csound->ids->iopadr)(csound, csound->ids);
-    }
-      ip->init_done = 1;
-    } 
- 
-    if (csound->inerrcnt || ip->p3 == FL(0.0)) {
-      xturnoff_now(csound, ip);
-      ip = NULL; goto endsched;
-    }
-    if (!midi &&                                /* if not MIDI activated, */
-        ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* and still finite time, */
-      double p2;
-      p2 = (double) ip->p2 + csound->timeOffs;
-      ip->offtim = p2 + (double) ip->p3;
-      p2 = ((p2 - csound->icurTime) / csound->ibeatTime) + csound->curBeat;
-      ip->offbet = p2 + ((double) ip->p3*csound->esr / csound->ibeatTime);
-      schedofftim(csound, ip);  /*      put in turnoff list */
-      if (!ip->actflg) {
-        ip = NULL; goto endsched;
-      }
-    }
-    else {
-      ip->offbet = -1.0;
-      ip->offtim = -1.0;        /* else mark indef */
-    }
-    if (UNLIKELY(O->odebug)) {
-      csound->Message(csound, "instr %d now active:\n", insno);
-      showallocs(csound);
-    }
- endsched:
-    /* IV - Nov 16 2002: restore globals */
-    csound->inerrcnt = saved_inerrcnt;
-    csound->reinitflag = saved_reinitflag;
-    csound->tieflag = saved_tieflag;
-    csound->curip = saved_curip;
-    csound->ids = saved_ids;
-    return ip;
-}
-
 /* unlink expired notes from activ chain */
 /*      and mark them inactive           */
 /*    close any files in each fdchain    */
@@ -2264,3 +2064,201 @@ void *init_pass_thread(void *p){
   }
   return NULL;
 }
+
+
+#if SOME_FINE_DAY
+/* VL - 22.01.2013 this function is now obsolete, schedule/schedwhen now use opcodeEvent/I */
+
+/* IV - Nov 16 2002: moved insert_event() here to have access to some static */
+/* functions defined in this file */
+INSDS *insert_event(CSOUND *csound,
+                    MYFLT instr,
+                    MYFLT when,
+                    MYFLT dur,
+                    int narg,
+                    MYFLT **args,
+                    int midi)
+{
+    int pcnt = narg + 3;
+    int insno = (int) instr, saved_inerrcnt = csound->inerrcnt;
+    int saved_reinitflag = csound->reinitflag, saved_tieflag = csound->tieflag;
+    INSDS     *saved_curip = csound->curip, *ip = NULL;
+    INSDS     *prvp, *nxtp;                             /* IV - Nov 16 2002 */
+    OPDS      *saved_ids = csound->ids;
+    OPARMS    *O = csound->oparms;
+    INSTRTXT  *tp;
+
+    if (csound->advanceCnt)
+      return NULL;
+
+    csound->inerrcnt = csound->tieflag = csound->reinitflag = 0;
+    tp = csound->engineState.instrtxtp[insno];
+    if (UNLIKELY(tp == NULL)) {
+      csound->Message(csound,
+                      Str("schedule event ignored. instr %d undefined\n"),
+                      insno);
+      csound->perferrcnt++;
+      goto endsched;            /* IV - Nov 16 2002 */
+    }
+    csound->cpu_power_busy += tp->cpuload;
+    /* if there is no more cpu processing time: */
+    if (UNLIKELY(csound->cpu_power_busy > 100.0)) {
+      csound->cpu_power_busy -= tp->cpuload;
+      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                "100%% of cpu time"));
+      goto endsched;
+    }
+    if (UNLIKELY(tp->maxalloc > 0 && tp->active >= tp->maxalloc)) {
+      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                "instr maxalloc"));
+      goto endsched;
+    }
+    /* Insert this event into event queue */
+    if (UNLIKELY(O->odebug))
+      csound->Message(csound, "activating instr %d\n", insno);
+    if (UNLIKELY((tp->mdepends & 4) && !midi)) {
+      char *name = csound->engineState.instrtxtp[ip->insno]->insname;
+      if (name)
+        csound->Message(csound, Str("instr %s expects midi event data, "
+                                    "cannot run from score\n"), name);
+      else
+        csound->Message(csound, Str("instr %d expects midi event data, "
+                                    "cannot run from score\n"), insno);
+      csound->perferrcnt++;
+      goto endsched;
+    }
+    /* if find this insno, active, with indef (tie) & matching p1 */
+    for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
+      /* if find this insno, active, with indef (tie) & matching p1 */
+      if (ip->actflg && ip->offtim < 0.0 && ip->p1 == instr) {
+        csound->tieflag++;
+        goto init;                      /*     continue that event */
+      }
+    }
+    /* alloc new dspace if needed */
+    if (tp->act_instance == NULL || tp->isNew) {
+      if (O->msglevel & RNGEMSG) {
+      char *name = csound->engineState.instrtxtp[insno]->insname;
+      if (name)
+        csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+      else
+        csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+      }
+      instance(csound, insno);
+      tp->isNew = 0;
+    }
+    /* pop from free instance chain */
+    ip = tp->act_instance;
+    tp->act_instance = ip->nxtact;
+    ip->insno = (int16) insno;
+
+    /* Add an active instrument */
+    tp->active++;
+    tp->instcnt++;
+    nxtp = &(csound->actanchor);    /* now splice into active list */
+    while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL)
+      if (nxtp->insno > insno    ||
+          (nxtp->insno == insno && nxtp->p1 > instr)) {
+        nxtp->prvact = ip;
+        break;
+      }
+    ip->nxtact = nxtp;
+    ip->prvact = prvp;
+    prvp->nxtact = ip;
+    ip->actflg++;             /*        and mark the instr active */
+ init:
+    {
+      int i;
+      int imax = tp->pmax - 3;
+      MYFLT  *flp;
+      if (UNLIKELY((int) tp->pmax != pcnt)) {
+        char *name = csound->engineState.instrtxtp[insno]->insname;
+        if (name)
+          csoundWarning(csound, Str("instr %s pmax = %d, note pcnt = %d"),
+                      name, (int) tp->pmax, pcnt);
+        else
+          csoundWarning(csound, Str("instr %d pmax = %d, note pcnt = %d"),
+                        insno, (int) tp->pmax, pcnt);
+      }
+      ip->p1 = instr;
+      ip->p2 = when;
+      ip->p3 = dur;
+      flp = &(ip->p1) + 3;
+      if (UNLIKELY(O->odebug))
+        csound->Message(csound, Str("psave beg at %p\n"), flp);
+      for (i = 0; i < imax; i++) {
+        if (i < narg)
+          *flp++ = *(args[i]);
+        else
+          *flp++ = FL(0.0);
+      }
+      if (UNLIKELY(O->odebug))
+        csound->Message(csound, Str("   ending at %p\n"), flp);
+    }
+    if (O->Beatmode)
+      ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
+    ip->offbet = (double) ip->p3;
+    ip->offtim = (double) ip->p3;       /* & duplicate p3 for now */
+    ip->xtratim = 0;
+    ip->relesing = 0;
+    ip->m_sust = 0;
+    ip->nxtolap = NULL;
+    /* IV - Nov 16 2002 */
+    ip->opcod_iobufs = NULL;
+    if (midi) {
+      /* should we copy MIDI parameters from the note from which the */
+      /* event was scheduled ? */
+      ip->m_chnbp = saved_curip->m_chnbp;
+      ip->m_pitch = saved_curip->m_pitch;
+      ip->m_veloc = saved_curip->m_veloc;
+    }
+    else
+      ip->m_chnbp = NULL;     /* score event */
+
+    ip->init_done = 0;
+    csound->curip = ip;
+    csound->ids = (OPDS *)ip;
+    if(csound->realtime_audio_flag == 0) {
+    /* do init pass for this instr */
+    while ((csound->ids = csound->ids->nxti) != NULL) {
+      /*    if (O->odebug) csound->Message(csound, "init %s:\n",
+            csound->opcodlst[csound->ids->optext->t.opnum].opname);      */
+      (*csound->ids->iopadr)(csound, csound->ids);
+    }
+      ip->init_done = 1;
+    } 
+ 
+    if (csound->inerrcnt || ip->p3 == FL(0.0)) {
+      xturnoff_now(csound, ip);
+      ip = NULL; goto endsched;
+    }
+    if (!midi &&                                /* if not MIDI activated, */
+        ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* and still finite time, */
+      double p2;
+      p2 = (double) ip->p2 + csound->timeOffs;
+      ip->offtim = p2 + (double) ip->p3;
+      p2 = ((p2 - csound->icurTime) / csound->ibeatTime) + csound->curBeat;
+      ip->offbet = p2 + ((double) ip->p3*csound->esr / csound->ibeatTime);
+      schedofftim(csound, ip);  /*      put in turnoff list */
+      if (!ip->actflg) {
+        ip = NULL; goto endsched;
+      }
+    }
+    else {
+      ip->offbet = -1.0;
+      ip->offtim = -1.0;        /* else mark indef */
+    }
+    if (UNLIKELY(O->odebug)) {
+      csound->Message(csound, "instr %d now active:\n", insno);
+      showallocs(csound);
+    }
+ endsched:
+    /* IV - Nov 16 2002: restore globals */
+    csound->inerrcnt = saved_inerrcnt;
+    csound->reinitflag = saved_reinitflag;
+    csound->tieflag = saved_tieflag;
+    csound->curip = saved_curip;
+    csound->ids = saved_ids;
+    return ip;
+}
+#endif
