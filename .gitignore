@@ -172,3 +172,5 @@ CTestTestfile.cmake
 results.txt
 *.pyc
 Custom.cmake
+Engine/.csound_orc.l.swn
+Engine/.csound_orc.y.swn

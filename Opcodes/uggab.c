@@ -1558,14 +1558,15 @@ static int jittersa(CSOUND *csound, JITTERS *p)
     int  cod = p->cod;
     double phs = p->phs, si = p->si;
 
-    if (p->initflag) {
-      p->initflag = 0;
-      goto next;
-    }
     if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
     if (early) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    if (p->initflag) {
+      p->initflag = 0;
+      n = offset;
+      goto next;
     }
     for (n=offset; n<nsmps; n++) {
       phs += si;
@@ -1944,15 +1945,15 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
     int         cod = p->cod;
     double      phs = p->phs, si = p->si;
 
-    if (p->initflag) {
-      p->initflag = 0;
-      goto next;
-
-    }
     if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
     if (early) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    if (p->initflag) {
+      p->initflag = 0;
+      n = offset;
+      goto next;
     }
     for (n=offset; n<nsmps; n++) {
       phs += si;

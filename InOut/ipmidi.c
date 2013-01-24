@@ -144,7 +144,7 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
     printf("CloseMidiInDevice_\n");
     close(sock);
 #ifdef WIN32
-	WSACleanup();
+        WSACleanup();
 #endif
     return 0;
 }

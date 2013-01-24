@@ -137,6 +137,8 @@ TREE *create_empty_token(CSOUND *csound)
     ans->next = NULL;
     ans->len = 0;
     ans->rate = -1;
+    ans->line = 0;
+    ans->locn  = 0;
     ans->value = NULL;
     return ans;
 }
@@ -1120,7 +1122,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 arraySet->right = currentAns->left;
                 arraySet->right->next = currentAns->right;
                 arraySet->right->next->next =
-                  make_leaf(csound, temp->line, temp->locn, T_IDENT, temp->value);
+                  make_leaf(csound, temp->line, temp->locn, 
+                            T_IDENT, make_token(csound, temp->value->lexeme));
 
                 arraySet->next = current->next;
                 current->next = arraySet;
