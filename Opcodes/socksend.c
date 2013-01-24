@@ -151,6 +151,42 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     return OK;
 }
 
+static int send_send_k(CSOUND *csound, SOCKSEND *p)
+{
+    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+    
+    int     buffersize = p->bsize;
+    MYFLT   *ksig = p->asig;
+    MYFLT   *out = (MYFLT *) p->aux.auxp;
+    int16   *outs = (int16 *) p->aux.auxp;
+    int     ff = p->ff;
+      
+       
+      if (p->wp == buffersize) {
+        /* send the package when we have a full buffer */
+        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
+                            sizeof(p->server_addr)) < 0)) {
+          return csound->PerfError(csound, Str("sendto failed"));
+        }
+        p->wp = 0;
+      }
+      if (ff) { // Scale for 0dbfs and make LE
+        int16 val = (int16)((32768.0* (*ksig))/csound->e0dbfs);
+        union cheat {
+          char  benchar[2];
+          int16 bensht;
+        } ch;
+        ch.benchar[0] = 0xFF & val;
+        ch.benchar[1] = 0xFF & (val >> 8);
+        outs[p->wp] = ch.bensht;
+      }
+      else out[p->wp++] = *ksig;
+   
+    return OK;
+}
+
+
+
 /* UDP version 2 channels */
 static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
@@ -319,6 +355,8 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 static OENTRY socksend_localops[] = {
   { "socksend", S(SOCKSEND), 5, "", "aSiio", (SUBR) init_send, NULL,
     (SUBR) send_send },
+   { "socksend_k", S(SOCKSEND), 3, "", "kSiio", (SUBR) init_send,
+     (SUBR) send_send_k, NULL },
   { "socksends", S(SOCKSENDS), 5, "", "aaSiio", (SUBR) init_sendS, NULL,
     (SUBR) send_sendS },
   { "stsend", S(SOCKSEND), 5, "", "aSi", (SUBR) init_ssend, NULL,
