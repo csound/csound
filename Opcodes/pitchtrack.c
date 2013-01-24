@@ -247,33 +247,33 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       MYFLT totalfreq, peakfr, tmpfr1, tmpfr2, m, var, stdev;
 
       if (height < h1 || height < h2 ||
-	  h1 < FL(0.00001)*totalpower ||
-	  h2 < FL(0.00001)*totalpower) continue;
+          h1 < FL(0.00001)*totalpower ||
+          h2 < FL(0.00001)*totalpower) continue;
 
       peakfr= ((spec[i-8] - spec[i+8]) * (FL(2.0) * spec[i] -
-					  spec[i+8] - spec[i-8]) +
-	       (spec[i-7] - spec[i+9]) * (FL(2.0) * spec[i+1] -
-					  spec[i+9] - spec[i-7])) /
-	(height + height);
+                                          spec[i+8] - spec[i-8]) +
+               (spec[i-7] - spec[i+9]) * (FL(2.0) * spec[i+1] -
+                                          spec[i+9] - spec[i-7])) /
+        (height + height);
       tmpfr1=  ((spec[i-12] - spec[i+4]) *
-		(FL(2.0) * spec[i-4] - spec[i+4] - spec[i-12]) +
-		(spec[i-11] - spec[i+5]) * (FL(2.0) * spec[i-3] -
-					    spec[i+5] - spec[i-11])) /
-	(FL(2.0) * h1) - 1;
+                (FL(2.0) * spec[i-4] - spec[i+4] - spec[i-12]) +
+                (spec[i-11] - spec[i+5]) * (FL(2.0) * spec[i-3] -
+                                            spec[i+5] - spec[i-11])) /
+        (FL(2.0) * h1) - 1;
       tmpfr2= ((spec[i-4] - spec[i+12]) * (FL(2.0) * spec[i+4] -
-					   spec[i+12] - spec[i-4]) +
-	       (spec[i-3] - spec[i+13]) * (FL(2.0) * spec[i+5] -
-					   spec[i+13] - spec[i-3])) /
-	(FL(2.0) * h2) + 1;
+                                           spec[i+12] - spec[i-4]) +
+               (spec[i-3] - spec[i+13]) * (FL(2.0) * spec[i+5] -
+                                           spec[i+13] - spec[i-3])) /
+        (FL(2.0) * h2) + 1;
 
 
       m = FL(0.333333333333) * (peakfr + tmpfr1 + tmpfr2);
       var = FL(0.5) * ((peakfr-m)*(peakfr-m) +
-		       (tmpfr1-m)*(tmpfr1-m) + (tmpfr2-m)*(tmpfr2-m));
+                       (tmpfr1-m)*(tmpfr1-m) + (tmpfr2-m)*(tmpfr2-m));
 
       totalfreq = (i>>2) + m;
       if (var * totalpower > THRSH * height
-	  || var < FL(1.0e-30)) continue;
+          || var < FL(1.0e-30)) continue;
 
       stdev = (MYFLT)sqrt((double)var);
       if (totalfreq < 4) totalfreq = 4;
@@ -296,33 +296,33 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       MYFLT weightbandwidth = (binbandwidth < FL(1.0) ? FL(1.0) : binbandwidth);
       MYFLT weightamp = FL(4.0) * peaklist[i].ploudness / totalloudness;
       for (j = 0; j < NPARTIALONSET; j++) {
-	MYFLT bin = pit - partialonset[j];
-	if (bin < maxbin) {
-	  MYFLT para, pphase, score = FL(30.0) * weightamp /
-	    ((j+p->npartial) * weightbandwidth);
-	  int firstbin = bin + FL(0.5) - FL(0.5) * putbandwidth;
-	  int lastbin = bin + FL(0.5) + FL(0.5) * putbandwidth;
-	  int ibw = lastbin - firstbin;
-	  if (firstbin < -BINGUARD) break;
-	  para = FL(1.0) / (putbandwidth * putbandwidth);
-	  for (k = 0, pphase = firstbin-bin; k <= ibw;
-	       k++,pphase += FL(1.0))
-	    histogram[k+firstbin] += score * (FL(1.0) - para * pphase * pphase);
+        MYFLT bin = pit - partialonset[j];
+        if (bin < maxbin) {
+          MYFLT para, pphase, score = FL(30.0) * weightamp /
+            ((j+p->npartial) * weightbandwidth);
+          int firstbin = bin + FL(0.5) - FL(0.5) * putbandwidth;
+          int lastbin = bin + FL(0.5) + FL(0.5) * putbandwidth;
+          int ibw = lastbin - firstbin;
+          if (firstbin < -BINGUARD) break;
+          para = FL(1.0) / (putbandwidth * putbandwidth);
+          for (k = 0, pphase = firstbin-bin; k <= ibw;
+               k++,pphase += FL(1.0))
+            histogram[k+firstbin] += score * (FL(1.0) - para * pphase * pphase);
 
-	}
+        }
       }
     }
 
 
     for (best = 0, indx = -1, j=0; j < maxbin; j++)
       if (histogram[j] > best)
-	indx = j,  best = histogram[j];
+        indx = j,  best = histogram[j];
 
     histpeak.hvalue = best;
     histpeak.hindex = indx;
 
     putfreq = EXP((FL(1.0) / BPEROOVERLOG2) *
-		  (histpeak.hindex + FL(96.0)));
+                  (histpeak.hindex + FL(96.0)));
     for (j = 0; j < npeak; j++) {
       MYFLT fpnum = peaklist[j].pfreq/putfreq;
       int pnum = (int)(fpnum + FL(0.5));
@@ -331,16 +331,16 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       if (pnum > 16 || pnum < 1) continue;
       deviation = FL(1.0) - fpnum/fipnum;
       if (deviation > -PARTIALDEVIANCE && deviation < PARTIALDEVIANCE) {
-	MYFLT stdev, weight;
-	npartials++;
-	if (pnum < 8) nbelow8++;
-	cumpow += peaklist[j].ppow;
-	cumstrength += SQRT(SQRT(peaklist[j].ppow));
-	stdev = (peaklist[j].pwidth > MINBW ?
-		 peaklist[j].pwidth : MINBW);
-	weight = FL(1.0) / ((stdev*fipnum) * (stdev*fipnum));
-	freqden += weight;
-	freqnum += weight * peaklist[j].pfreq/fipnum;
+        MYFLT stdev, weight;
+        npartials++;
+        if (pnum < 8) nbelow8++;
+        cumpow += peaklist[j].ppow;
+        cumstrength += SQRT(SQRT(peaklist[j].ppow));
+        stdev = (peaklist[j].pwidth > MINBW ?
+                 peaklist[j].pwidth : MINBW);
+        weight = FL(1.0) / ((stdev*fipnum) * (stdev*fipnum));
+        freqden += weight;
+        freqnum += weight * peaklist[j].pfreq/fipnum;
       }
     }
     if ((nbelow8 < 4 || npartials < 7) && cumpow < FL(0.01) * totalpower)
@@ -350,10 +350,10 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       MYFLT freqinbins = freqnum/freqden;
       pitchpow = pitchpow * pitchpow;
       if (freqinbins < MINFREQINBINS)
-	histpeak.hvalue = 0;
+        histpeak.hvalue = 0;
       else {
-	p->cps = histpeak.hpitch = hzperbin * freqnum/freqden;
-	histpeak.hloud = FL(DBSCAL) * LOG(pitchpow/n);
+        p->cps = histpeak.hpitch = hzperbin * freqnum/freqden;
+        histpeak.hloud = FL(DBSCAL) * LOG(pitchpow/n);
       }
     }
 
@@ -368,7 +368,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
 
   if (UNLIKELY(winsize < MINWINSIZ || winsize > MAXWINSIZ)) {
     csound->Warning(csound, Str("ptrack: FFT size out of range; using %d\n"),
-		    winsize = DEFAULTWINSIZ);
+                    winsize = DEFAULTWINSIZ);
   }
 
   tmp = winsize;
@@ -381,7 +381,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
 
   if (UNLIKELY(winsize != (1 << powtwo))) {
     csound->Warning(csound, Str("ptrack: FFT size not a power of 2; using %d\n"),
-		    winsize = (1 << powtwo));
+                    winsize = (1 << powtwo));
   }
   p->hopsize = *p->size;
   if (!p->signal.auxp || p->signal.size < p->hopsize*sizeof(MYFLT)) {
@@ -509,12 +509,12 @@ int pitchafproc(CSOUND *csound, PITCHAF *p)
     if (lag == len) {
       float max = 0.0f;
       for (i=0; i < len; i++) {
-	if (cor[i] > max) {
-	  max = cor[i];
-	  if (i) imax = i;
-	}
-	buff1[i] = buff2[i];
-	cor[i] = FL(0.0);
+        if (cor[i] > max) {
+          max = cor[i];
+          if (i) imax = i;
+        }
+        buff1[i] = buff2[i];
+        cor[i] = FL(0.0);
       }
       len = csound->GetSr(csound)/(*p->kfmin);
       if (len > p->size) len = p->size;

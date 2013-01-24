@@ -42,6 +42,7 @@ typedef struct {
     MYFLT   *iWinSize;
     MYFLT   *iBufSize;
     MYFLT   *iSkipInit;
+    MYFLT   *forceSync;
  /* ------------------------------------- */
     int     initDone;
     int     nChannels;
@@ -61,6 +62,11 @@ typedef struct {
     SNDFILE *sf;
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
+    AUXCH   auxData2;
+  MYFLT *aOut_buf;
+  MYFLT aOut_bufsize;
+  void *cb;
+  int  async;
 } DISKIN2;
 
 int diskin2_init(CSOUND *csound, DISKIN2 *p);

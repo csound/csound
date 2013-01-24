@@ -136,18 +136,18 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       /* Add directory of CSD file to search paths before orchname gets
        * replaced with temp orch name if default paths is enabled */
       if (!O->noDefaultPaths) {
-	fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
-	csoundAppendEnv(csound, "SADIR", fileDir);
-	csoundAppendEnv(csound, "SSDIR", fileDir);
-	csoundAppendEnv(csound, "INCDIR", fileDir);
-	csoundAppendEnv(csound, "MFDIR", fileDir);
-	mfree(csound, fileDir);
+        fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+        csoundAppendEnv(csound, "SADIR", fileDir);
+        csoundAppendEnv(csound, "SSDIR", fileDir);
+        csoundAppendEnv(csound, "INCDIR", fileDir);
+        csoundAppendEnv(csound, "MFDIR", fileDir);
+        mfree(csound, fileDir);
       }
 
       csound->csdname = csound->orchname; /* save original CSD name */
       if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
-	csound->Die(csound, Str("Reading CSD failed ... stopping"));
+        csound->Die(csound, Str("Reading CSD failed ... stopping"));
       }
 
       csdFound = 1;

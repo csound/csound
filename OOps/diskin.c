@@ -35,6 +35,8 @@
 #include "diskin.h"
 #include <math.h>
 
+#ifdef SOME_FINE_DAY  /* this code is deprecated, diskin now uses diskin2 code, see diskin2.c */
+
 static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
 {
     int32 nsmps, bufsmps;
@@ -187,7 +189,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     //fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
     //                      "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-	 		    "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels*8, 0);
+                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels*8, 0);
     if (UNLIKELY(fd == NULL)) {
       return
         csound->InitError(csound, Str("diskin: %s: failed to open file"), name);
@@ -332,51 +334,7 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
     return OK;
 }
 
-
-
-int soundinew_(CSOUND *csound, SOUNDINEW *p)
-{
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nn, nsmps = CS_KSMPS, chn;
-    MYFLT *buf = p->buf;
-    int32 pos = p->bufpos, fpos = p->fpos;
-    int bufsize = p->bufSize, filelength = p->fileLength;
-
-    if (p->initDone <= 0) {
-      if (UNLIKELY(!p->initDone))
-        return csound->PerfError(csound, Str("diskin: not initialised"));
-      p->initDone = 1;
-    }  
-   
-    /* clear outputs to zero first */
-    for (chn = 0; chn < p->nChannels; chn++)
-      for (nn = 0; nn < nsmps; nn++)
-        p->aOut[chn][nn] = FL(0.0);
-    if (early) nsmps -= early;
-   
- 
-    for (nn = offset; nn < nsmps; nn++) {
-      if(pos < 0 || pos >= bufsize){
-	if(fpos < 0){
-	  fpos += filelength;
-	  //csound->FSeekAsync(csound,p->fdch.fd, fpos, SEEK_SET);
-	}
-        else if (fpos >= filelength){
-	  fpos -= filelength;      
-	  //csound->FSeekAsync(csound,p->fdch.fd, fpos, SEEK_SET);
-	}
-        csound->FSeekAsync(csound,p->fdch.fd, fpos, SEEK_SET);	
-        csound->ReadAsync(csound, p->fdch.fd, buf,bufsize);
-        if(pos < 0) pos += bufsize;
-        else pos -= bufsize;
-       }
-      p->aOut[0][nn] = buf[pos];
-      pos--; fpos--;
-    }
-    p->fpos = fpos; p->bufpos = pos;
-    return OK;
-}
+#endif /* SOME_FINE_DAY */
 
 static int soundout_deinit(CSOUND *csound, void *pp)
 {
@@ -490,7 +448,7 @@ int soundout(CSOUND *csound, SNDOUT *p)
     if (early) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
-	
+        
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
       }

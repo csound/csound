@@ -29,13 +29,13 @@ int clean_suite1(void)
 void test_type_system(void)
 {
   CSOUND* csound = csoundCreate(NULL);
-  //csoundReset(csound);
+  csoundReset(csound);
   //    csoundAddStandardTypes(csound, pool);
   
   TYPE_POOL* pool = csound->typePool;
   CS_VAR_POOL* varPool = csound->engineState.varPool;
   
-  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, "a1");
+  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, "a1", NULL);
   CU_ASSERT_PTR_NOT_NULL(var);
   //printf("Var type created: %s\n", var->varType->varTypeName);
   
@@ -51,7 +51,7 @@ void test_type_system(void)
 }
 
 
-int main()
+int main(int argc, char** argv)
 {
   CU_pSuite pSuite = NULL;
   

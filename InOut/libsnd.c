@@ -683,7 +683,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         csound->audtran = csound->rtplay_callback;
         STA(outbufrem)  = parm.bufSamp_SW * parm.nChannels;
         STA(pipdevout)  = 2;      /* no backward seeks !   */
-        csound->realtime_audio_flag = 1;
+        if(O->realtime == 1) csound->realtime_audio_flag = 1; /* set realtime priority mode */
         goto outset;            /* no header needed      */
       }
       else if (strcmp(fName, "null") == 0) {

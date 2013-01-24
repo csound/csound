@@ -24,18 +24,24 @@
 #include "csoundCore.h"
 #include "remote.h"
 
+/* Somewhat revised from the original.  Pete G. Nov 2012
+   More correct, I think, but I could be wrong... (:-/)
+*/
 #ifdef HAVE_SOCKETS
-#ifndef WIN32
-#include <sys/ioctl.h>
-#ifdef LINUX
-#include <linux/if.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-extern int inet_aton (const char *, struct in_addr *);
-#endif
-#include <net/if.h>
-#endif
+  #ifndef WIN32
+    #include <sys/ioctl.h>
+    #ifdef LINUX
+      #include <linux/if.h>
+    #endif
+    #ifdef __HAIKU__
+	    #include <sys/sockio.h>
+    #endif
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    extern int inet_aton (const char *, struct in_addr *);
+    #include <net/if.h>
+  #endif /* not WIN32 */
 #endif /* HAVE_SOCKETS */
 
 #define MAXREMOTES 10
@@ -50,43 +56,76 @@ void remoteRESET(CSOUND *csound)
 }
 
 #ifdef HAVE_SOCKETS
-
- /* get the IPaddress of this machine */
-static int getIpAddress(char *ipaddr, char *ifname)
+#include <netdb.h>
+#if 0
+static int foo(char *ipaddr)
 {
-    int ret = 1;
-#ifdef WIN32
     /* VL 12/10/06: something needs to go here */
     /* gethostbyname is the real answer; code below is unsafe */
     char hostname[1024];
     struct hostent *he;
     struct sockaddr_in sin;
     gethostname(hostname, sizeof(hostname));
+    printf("hostname=%s\n", hostname);
     he = gethostbyname(hostname);
 
     memset(&sin, 0, sizeof (struct sockaddr_in));
     memmove(&sin.sin_addr, he->h_addr_list[0], he->h_length);
     strcpy(ipaddr, inet_ntoa (sin.sin_addr));
-    ret = 0;
+    printf("IP: %s\n", ipaddr);
+    return 0;
+}
+#endif
 
+ /* get the IPaddress of this machine */
+static int getIpAddress(char *ipaddr)
+{
+#ifdef WIN32
+    /* VL 12/10/06: something needs to go here */
+    /* gethostbyname is the real answer; code below is unsafe */
+    char hostname[1024];
+    struct hostent *he;
+    struct sockaddr_in sin;
+    if (gethostname(hostname, sizeof(hostname))<0) return 1;
+    if ((he = gethostbyname(hostname))==NULL) return 1;
+
+    memset(&sin, 0, sizeof (struct sockaddr_in));
+    memmove(&sin.sin_addr, he->h_addr_list[0], he->h_length);
+    strcpy(ipaddr, inet_ntoa (sin.sin_addr));
+    return 0;
 #else
+    int ret = 1;
     struct ifreq ifr;
     int fd;
 
     fd = socket(AF_INET,SOCK_DGRAM, 0);
     if (fd >= 0) {
-      strcpy(ifr.ifr_name, ifname);
-
+#ifdef MACOSX
+      strcpy(ifr.ifr_name, "en0");
+#else
+      strcpy(ifr.ifr_name, "eth0");
+#endif
       if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
         char *local;
         local = inet_ntoa(((struct sockaddr_in *)(&ifr.ifr_addr))->sin_addr);
         strcpy(ipaddr, local);
+        printf("IP for remote: %s\n", ipaddr);
+        ret = 0;
+      }
+      else {
+        strcpy(ifr.ifr_name, "wlan0");
+      if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
+        char *local;
+        local = inet_ntoa(((struct sockaddr_in *)(&ifr.ifr_addr))->sin_addr);
+        strcpy(ipaddr, local);
+          printf("IP for remote: %s\n", ipaddr);
         ret = 0;
       }
     }
+    }
     close(fd);
-#endif
     return ret;
+#endif
 }
 
 char remoteID(CSOUND *csound)
@@ -160,7 +199,7 @@ static int callox(CSOUND *csound)
 
     /* get IP adrs of this machine */
     /* FIXME: don't hardcode eth0 */
-    if (UNLIKELY(getIpAddress(ST(ipadrs), "eth0") < 0)) {
+    if (UNLIKELY(getIpAddress(ST(ipadrs)) != 0)) {
       csound->Message(csound, Str("unable to get local ip address."));
       goto error;
     }
