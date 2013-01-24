@@ -1474,7 +1474,7 @@ int inch_opcode(CSOUND *csound, INCH *p)
     uint32_t nc, nChannels = p->INCOUNT;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps =CS_KSMPS, ch;
+    uint32_t n, nsmps = CS_KSMPS, ch;
     MYFLT *sp, *ain;
     if (UNLIKELY(nChannels != p->OUTOCOUNT))
       return
@@ -1747,8 +1747,8 @@ int outch(CSOUND *csound, OUTCH *p)
     uint32_t    ch;
     MYFLT       *sp, *apn;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t    nsmps =CS_KSMPS,  i, j, n;
-    uint32_t    early  = nsmps-p->h.insdshead->ksmps_no_end;
+    uint32_t    nsmps = CS_KSMPS,  i, j, n;
+    uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
     uint32_t    count = p->INOCOUNT;
     MYFLT       **args = p->args;
     uint32_t    nchnls = csound->nchnls;
@@ -1761,7 +1761,7 @@ int outch(CSOUND *csound, OUTCH *p)
         sp = csound->spout;
         for (n=0; n<nsmps; n++) {
           for (i = 1; i <= nchnls; i++) {
-            *sp = ((i == ch && n>=offset && n<=early) ? apn[n] : FL(0.0));
+            *sp = ((i == ch && n>=offset && n<early) ? apn[n] : FL(0.0));
             sp++;
           }
         }
@@ -1770,7 +1770,7 @@ int outch(CSOUND *csound, OUTCH *p)
       else {
         sp = csound->spout + (ch - 1);
         for (n=0; n<early; n++) {
-          if (n>offset) *sp += apn[n];
+          if (n>=offset) *sp += apn[n];
           sp += nchnls;
         }
       }

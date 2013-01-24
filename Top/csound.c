@@ -66,10 +66,12 @@ extern "C" {
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
 
-  /* **** MAJOR PROBLEM: PTHREAD_SPINLOCK_INITIALIZER is not defined in Linux */
+/* 
+ **** MAJOR PROBLEM: PTHREAD_SPINLOCK_INITIALIZER is not defined in
+      Linux or Haiku */
 
-#ifdef linux
-  #define PTHREAD_SPINLOCK_INITIALIZER 0
+#if defined(linux) || defined(__HAIKU__)
+#define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
 #endif /* PARCS */
 
@@ -441,6 +443,9 @@ extern "C" {
     0,               /* file_io_start   */
     NULL,            /* file_io_threadlock */
     0,               /* realtime_audio_flag */
+    NULL,            /* init pass thread */
+    0,               /* init pass loop  */
+    NULL,            /* init pass threadlock */
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
@@ -477,7 +482,7 @@ extern "C" {
     NULL,           /*  csRandState         */
     0,              /*  randSeed1           */
     0,              /*  randSeed2           */
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && (defined(PARCS))
     PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock           */
 #else
     0,              /*  memlock             */
@@ -788,11 +793,15 @@ extern "C" {
     //    0,              /* opcode_weight_cache_ctr */
     {NULL,NULL},    /* opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE] */
     0,              /* opcode_weight_have_cache */
-    {NULL,NULL},    /* ache[DAG_2_CACHE_SIZE] */
+    {NULL,NULL},    /* cache[DAG_2_CACHE_SIZE] */
     /* statics from cs_par_orc_semantic_analysis */
     NULL,           /* instCurr */
     NULL,           /* instRoot */
     0,              /* inInstr */
+#ifdef NEW_DAG
+    1,              /* dag_changed */
+    0,              /* dag_num_active */
+#endif
 #endif /* PARCS */
     0,              /* tempStatus */
     0,              /* orcLineOffset */
@@ -806,8 +815,8 @@ extern "C" {
     {0, 0, 0},      /* For extra strings in scores */
     NULL,            /* pow2 table */
     NULL,            /* cps conv table */
-	NULL,            /* output of preprocessor */
-	NULL             /* message buffer struct */
+        NULL,            /* output of preprocessor */
+        NULL             /* message buffer struct */
   };
 
   /* from threads.c */
@@ -854,7 +863,8 @@ extern "C" {
   }
 
 #if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
-                         !defined(__BEOS__) && !defined(__MACH__))
+                         !defined(__HAIKU__) && !defined(__BEOS__) && \
+                         !defined(__MACH__))
   static char *signal_to_string(int sig)
   {
       switch(sig) {
@@ -1021,7 +1031,7 @@ extern "C" {
 
   static void install_signal_handler(void)
   {
-      int i;
+      unsigned int i;
       for (i = 0; sigs[i] >= 0; i++) {
         signal(sigs[i], signal_handler);
       }
@@ -1534,6 +1544,10 @@ int kperf(CSOUND *csound)
         csp_dag_build(csound, &dag2, ip);
 #endif
         TIMER_END(thread, "Dag ");
+#ifdef NEW_DAG
+        if (csound->dag_changed) dag_build(csound, ip);
+        dag_reinit(csound);     /* set to initial state */
+#endif
 
         TRACE_1("{Time: %f}\n", csound->GetScoreTime(csound));
 #if TRACE > 1
@@ -1571,16 +1585,18 @@ int kperf(CSOUND *csound)
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
           csound->pds = (OPDS*) ip;
-	  if(ip->offtim > 0 && time_end > ip->offtim){
+          if(ip->offtim > 0 && time_end > ip->offtim){
             /* this is the last cycle of performance */
-	    // csound->Message(csound, "last cycle %d: %f %f %d\n", 
-	    //          ip->insno, csound->icurTime/csound->esr, 
-	    //            ip->offtim, ip->no_end);
+            // csound->Message(csound, "last cycle %d: %f %f %d\n", 
+            //          ip->insno, csound->icurTime/csound->esr, 
+            //            ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
-	  }
-          while ((csound->pds = csound->pds->nxtp) != NULL) {
-            (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
           }
+          if(ip->init_done == 1) /* if init-pass has been done */
+            while ((csound->pds = csound->pds->nxtp) != NULL) {
+            (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+            }
+          //else if(csound->pds->nxtp != NULL) csound->Message(csound, "init not done %s \n", csound->pds->nxtp->optext->t.opcod);
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */  
           ip->ksmps_no_end = 0;  /* reset end of loop samples */     
           ip = nxt; /* but this does not allow for all deletions */
@@ -1636,6 +1652,9 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     } while (kperf(csound));
       return 0;
 }
+
+
+
 
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 {
@@ -1729,11 +1748,11 @@ PUBLIC int csoundPerform(CSOUND *csound)
             csp_weights_dump_normalised(csound);
           }
           
-#endif /* PARCS */
+#endif /* PARCS  */
           return done;
         }
       } while (kperf(csound));
-    } while ((unsigned char) csound->performState == (unsigned char) 0);
+    } while ((unsigned char) csound->performState == (unsigned char) '\0');
     csoundMessage(csound, Str("csoundPerform(): stopped.\n"));
     csound->performState = 0;
     return 0;
@@ -3586,26 +3605,26 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
 
     csoundDestroyMessageBuffer(csound);
     nBytes = sizeof(csMsgBuffer);
-	if (!toStdOut) {
-		nBytes += (size_t) 16384;
-	}
+        if (!toStdOut) {
+                nBytes += (size_t) 16384;
+        }
     pp = (csMsgBuffer*) malloc(nBytes);
     pp->mutex_ = csoundCreateMutex(0);
-    pp->firstMsg = (csMsgStruct*) 0;
-    pp->lastMsg = (csMsgStruct*) 0;
+    pp->firstMsg = (csMsgStruct*) NULL;
+    pp->lastMsg = (csMsgStruct*) NULL;
     pp->msgCnt = 0;
     if (!toStdOut) {
       pp->buf = (char*) pp + (int) sizeof(csMsgBuffer);
-	  pp->buf[0] = (char) '\0';
+          pp->buf[0] = (char) '\0';
     } else {
-	  pp->buf = (char*) 0;
-	}
-	csound->message_buffer = (void*) pp;
-	if (!toStdOut) {
-		csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
-	} else {
-		csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
-	}
+          pp->buf = (char*) NULL;
+        }
+        csound->message_buffer = (void*) pp;
+        if (!toStdOut) {
+                csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
+        } else {
+                csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
+        }
 }
 
 /**
@@ -3622,15 +3641,8 @@ const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
 
     if (pp && pp->msgCnt) {
       csoundLockMutex(pp->mutex_);
-#ifndef PARCS
-      if (pp->firstMsg) {
-#else /* PARCS */
-        if (pp->firstMsg)
-#endif /* PARCS */
-          msg = &(pp->firstMsg->s[0]);
-#ifndef PARCS
-      }
-#endif /* ! PARCS */
+      if (pp->firstMsg)
+        msg = &(pp->firstMsg->s[0]);
       csoundUnlockMutex(pp->mutex_);
     }
     return msg;
@@ -3643,14 +3655,14 @@ const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
 
 int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     int         attr = 0;
 
     if (pp && pp->msgCnt) {
-	  csoundLockMutex(pp->mutex_);
-	  if (pp->firstMsg) {
-		  attr = pp->firstMsg->attr;
-	  }
+          csoundLockMutex(pp->mutex_);
+          if (pp->firstMsg) {
+                  attr = pp->firstMsg->attr;
+          }
       csoundUnlockMutex(pp->mutex_);
     }
     return attr;
@@ -3662,7 +3674,7 @@ int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
 
 void PUBLIC csoundPopFirstMessage(CSOUND *csound)
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
 
     if (pp) {
       csMsgStruct *tmp;
@@ -3671,26 +3683,12 @@ void PUBLIC csoundPopFirstMessage(CSOUND *csound)
       if (tmp) {
         pp->firstMsg = tmp->nxt;
         pp->msgCnt--;
-#ifndef PARCS
-        if (!pp->firstMsg) {
-#else /* PARCS */
-          if (!pp->firstMsg)
-#endif /* PARCS */
-            pp->lastMsg = (csMsgStruct*) 0;
-#ifndef PARCS
-        }
-#endif /* ! PARCS */
+        if (!pp->firstMsg)
+          pp->lastMsg = (csMsgStruct*) 0;
       }
       csoundUnlockMutex(pp->mutex_);
-#ifndef PARCS
-      if (tmp) {
-#else /* PARCS */
-        if (tmp)
-#endif /* PARCS */
-          free((void*) tmp);
-#ifndef PARCS
-      }
-#endif /* ! PARCS */
+      if (tmp)
+        free((void*) tmp);
     }
 }
 
@@ -3700,7 +3698,7 @@ void PUBLIC csoundPopFirstMessage(CSOUND *csound)
 
 int PUBLIC csoundGetMessageCnt(CSOUND *csound)
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     int         cnt = 0;
 
     if (pp) {
@@ -3717,7 +3715,7 @@ int PUBLIC csoundGetMessageCnt(CSOUND *csound)
 
 void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
 {
-	csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     csound->message_buffer = NULL;
     csoundSetMessageCallback(csound, NULL);
     if (!pp) {
@@ -3726,7 +3724,7 @@ void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
     while (csoundGetMessageCnt(csound) > 0) {
         csoundPopFirstMessage(csound);
     }
-    csoundSetHostData(csound, (void*) 0);
+    csoundSetHostData(csound, NULL);
     csoundDestroyMutex(pp->mutex_);
     free((void*) pp);
 }
@@ -3746,7 +3744,7 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
       exit(-1);
     }
     p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
-    p->nxt = (csMsgStruct*) 0;
+    p->nxt = (csMsgStruct*) NULL;
     p->attr = attr;
     strcpy(&(p->s[0]), pp->buf);
     if (pp->firstMsg == (csMsgStruct*) 0) {
@@ -3778,12 +3776,12 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
       len = vfprintf(stdout, fmt, args);
     }
     p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
-    p->nxt = (csMsgStruct*) 0;
+    p->nxt = (csMsgStruct*) NULL;
     p->attr = attr;
     vsprintf(&(p->s[0]), fmt, args_save);
     va_end(args_save);
     csoundLockMutex(pp->mutex_);
-    if (pp->firstMsg == (csMsgStruct*) 0)
+    if (pp->firstMsg == (csMsgStruct*) NULL)
       pp->firstMsg = p;
     else
       pp->lastMsg->nxt = p;

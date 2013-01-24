@@ -228,12 +228,16 @@ extern "C" {
 
 
   void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
-                     const char *name, void *param, const char *env,
-				     int csFileType, int buffsize, int isTemporary);
+                                     const char *name, void *param, 
+                                     const char *env,
+                                     int csFileType, int buffsize, 
+                                     int isTemporary);
 
-  unsigned int csoundReadAsync(CSOUND *csound, void *handle, MYFLT *buf, int items);
+  unsigned int csoundReadAsync(CSOUND *csound, void *handle, 
+                               MYFLT *buf, int items);
  
-  unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf, int items);
+  unsigned int csoundWriteAsync(CSOUND *csound, void *handle, 
+                                MYFLT *buf, int items);
 
   int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence);
 

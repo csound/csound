@@ -222,7 +222,7 @@ static const char *longUsageList[] = {
   Str_noop("--weight-dump=F\t\tFile to save weight information"),
   Str_noop("--compute-weights\t\tUse opcode weigts"),
 #endif
-  Str_noop("--sample-accurate\t\tStart instuments ar sample accuracy rather rthar krate"),
+  Str_noop("--realtime \t\t realtime priority mode"),
   " ",
   Str_noop("--help\t\t\tLong help"),
   
@@ -900,6 +900,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 #endif
     else if (!(strcmp(s, "sample-accurate"))){
       O->sampleAccurate = 1;
+      return 1;
+    }
+    else if (!(strcmp(s, "realtime"))){
+      O->realtime = 1;
       return 1;
     }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);

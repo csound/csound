@@ -58,6 +58,22 @@ static const char *envVar_list[] = {
     NULL
 };
 
+typedef struct CSFILE_ {
+    struct CSFILE_  *nxt;
+    struct CSFILE_  *prv;
+    int             type;
+    int             fd;
+    FILE            *f;
+    SNDFILE         *sf;
+    void            *cb;
+    int    async_flag;
+    int    items;
+    int    pos;
+    MYFLT *buf;
+    int    bufsize;
+    char            fullName[1]; 
+} CSFILE;
+
 #define ENV_DB          (((CSOUND*) csound)->envVarDB)
 
 #if defined(MSVC)
@@ -93,21 +109,6 @@ typedef struct nameChain_s {
     struct nameChain_s  *nxt;
     char    s[1];
 } nameChain_t;
-
-typedef struct CSFILE_ {
-    struct CSFILE_  *nxt;
-    struct CSFILE_  *prv;
-    int             type;
-    int             fd;
-    FILE            *f;
-    SNDFILE         *sf;
-    void            *cb;
-    int    items;
-    int    pos;
-    MYFLT *buf;
-    int    bufsize;
-    char            fullName[1]; 
-} CSFILE;
 
 /* Space for 16 global environment variables, */
 /* 32 bytes for name and 480 bytes for value. */
@@ -1184,6 +1185,9 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     }
     /* return with opaque file handle */
     p->cb = NULL;
+    p->async_flag = 0;
+    p->buf = NULL;
+    p->bufsize = 0;
     return (void*) p;
 
  err_return:
@@ -1301,20 +1305,29 @@ int csoundFileClose(CSOUND *csound, void *fd)
           retval |= close(p->fd);
         break;
     }
-
-    if(p->cb != NULL && csound->file_io_start == 0) {
-        csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
-        mfree(csound, p->buf);
-        csound->FreeCircularBuffer(csound, p->cb);
-        csound->DestroyThreadLock(csound->file_io_threadlock);
-    }
-    /* unlink from chain of open files */
+   
+   if(p->async_flag == ASYNC_GLOBAL) {
+     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+        /* unlink from chain of open files */
     if (p->prv == NULL)
       csound->open_files = (void*) p->nxt;
     else
       p->prv->nxt = p->nxt;
     if (p->nxt != NULL)
       p->nxt->prv = p->prv;
+    if(p->buf != NULL) mfree(csound, p->buf);
+    p->bufsize = 0;
+    csound->FreeCircularBuffer(csound, p->cb);
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+   } else {
+   /* unlink from chain of open files */
+    if (p->prv == NULL)
+      csound->open_files = (void*) p->nxt;
+    else
+      p->prv->nxt = p->nxt;
+    if (p->nxt != NULL)
+      p->nxt->prv = p->prv;
+   }
     /* free allocated memory */
     mfree(csound, fd);
     
@@ -1328,6 +1341,11 @@ void close_all_files(CSOUND *csound)
 {
     while (csound->open_files != NULL)
       csoundFileClose(csound, csound->open_files);
+    if (csound->file_io_start) {
+        pthread_join(csound->file_io_thread, NULL);
+        if (csound->file_io_threadlock != NULL)
+         csound->DestroyThreadLock(csound->file_io_threadlock);
+    }
 }
 
 /* The fromScore parameter should be 1 if opening a score include file,
@@ -1366,9 +1384,11 @@ void *file_iothread(void *p);
 
 void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env,
-				   int csFileType, int buffsize, int isTemporary){
+                                   int csFileType, int buffsize, int isTemporary){
   CSFILE *p;
-  p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,csFileType,isTemporary);
+  if((p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,
+					    csFileType,isTemporary)) == NULL)
+              return NULL;
 
   if(csound->file_io_start == 0) {
     csound->file_io_start = 1;
@@ -1377,23 +1397,35 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
     pthread_create(&csound->file_io_thread,NULL, file_iothread, (void *) csound); 
   }
   csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+  p->async_flag = ASYNC_GLOBAL;
+ 
   p->cb = csound->CreateCircularBuffer(csound, buffsize*4);
   p->items = 0;
   p->pos = 0;
   p->bufsize = buffsize;
   p->buf = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*buffsize);
   csound->NotifyThreadLock(csound->file_io_threadlock);
+
+  if(p->cb == NULL || p->buf == NULL) {
+    /* close file immediately */
+    csoundFileClose(csound, (void *) p);
+    return NULL;
+  }
   return (void *) p;
 }
 
-unsigned int csoundReadAsync(CSOUND *csound, void *handle, MYFLT *buf, int items){
+unsigned int csoundReadAsync(CSOUND *csound, void *handle,
+                             MYFLT *buf, int items)
+{
     CSFILE *p = handle;
     if(p != NULL &&  p->cb != NULL)
     return csound->ReadCircularBuffer(csound, p->cb, buf, items); 
     else return 0;
 }
 
-unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf, int items){
+unsigned int csoundWriteAsync(CSOUND *csound, void *handle, 
+                              MYFLT *buf, int items)
+{
     CSFILE *p = handle;
     if(p != NULL &&  p->cb != NULL)
     return csound->WriteCircularBuffer(csound, p->cb, buf, items); 
@@ -1406,7 +1438,7 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
      switch (p->type) {
       case CSFILE_FD_R:
-	break;
+        break;
       case CSFILE_FD_W:
         break;
       case CSFILE_STD:
@@ -1428,23 +1460,23 @@ static int read_files(CSOUND *csound){
   CSFILE *current = (CSFILE *) csound->open_files;
   if(current == NULL) return 0;
   while(current){
-    if(current->cb != NULL) {
+    if(current->async_flag == ASYNC_GLOBAL) {
     int m = current->pos, l, n = current->items;
     int items = current->bufsize;
     MYFLT *buf = current->buf;
     switch (current->type) {
       case CSFILE_FD_R:
-	break;
+        break;
       case CSFILE_FD_W:
         break;
       case CSFILE_STD:
         break;
       case CSFILE_SND_R:
        if(n == 0) {
-	   n = sf_read_MYFLT(current->sf, buf, items);
+           n = sf_read_MYFLT(current->sf, buf, items);
            m = 0;
-	}
-	l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n); 
+        }
+        l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n); 
         m += l;
         n -= l; 
         current->items = n;

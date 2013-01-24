@@ -105,6 +105,7 @@
 %token S_ELIPSIS
 %token T_ARRAY
 %token T_ARRAY_IDENT
+%token T_VAR_TYPE
 %token T_MAPI
 %token T_MAPK
 %token T_TADD
@@ -182,7 +183,8 @@ extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LOCN csound_orcget_locn(scanner)
 extern int csound_orcget_locn(void *);
 extern int csound_orcget_lineno(void *);
- extern ORCTOKEN *make_string(CSOUND *, char *);
+extern ORCTOKEN *make_string(CSOUND *, char *);
+extern char* convertArrayName(CSOUND*, char*);
 %}
 %%
 
@@ -219,7 +221,7 @@ instlist  : INTEGER_TOKEN ',' instlist
           | label ',' instlist
               {
 #ifdef PARCS
-                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$1)->lexeme);
+                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$1)->lexeme));
 #endif
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
@@ -230,7 +232,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
                   ans->rate = (int) '+';
 #ifdef PARCS
-                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$2)->lexeme);
+                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$2)->lexeme));
 #endif
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
           | '+' label
@@ -481,7 +483,13 @@ ans       : ident               { $$ = $1; }
           | ans ',' arrayexpr     { $$ = appendToTree(csound, $1, $3); }
           ;
 
-arrayexpr : ident '[' iexp ']' { $$ = make_node(csound, LINE, LOCN, T_ARRAY, $1, $3); }
+arrayexpr : ident '[' iexp ']' 
+          { 
+            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+            $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
+                   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
+
+          }
 
 
 ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
@@ -690,7 +698,11 @@ iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
 
 ifac      : ident               { $$ = $1; }
           | constant            { $$ = $1; }
-          | ident '[' iexp ']' { $$ = make_node(csound, LINE, LOCN, T_ARRAY, $1, $3); }
+          | ident '[' iexp ']' { 
+            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+            $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
+                   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
+           }
          /* | T_IDENT_T '[' iexp ']'
           {
               $$ = make_node(csound,LINE,LOCN, S_TABREF,
@@ -834,7 +846,11 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
           ;
 
 
-arrayident: ident '[' ']' { $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, $1->value); }
+arrayident: ident '[' ']' 
+          { 
+            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, arrayName)); 
+          }
 
 ident : T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
 

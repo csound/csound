@@ -182,7 +182,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
       csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
     if (UNLIKELY(overlap > N / 2))
       csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
-#ifdef OPLC
+#ifdef OLPC
     if (UNLIKELY(overlap < CS_KSMPS))
       csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 #endif
@@ -423,6 +423,7 @@ static void anal_tick(CSOUND *csound, PVSANAL *p,MYFLT samp)
       p->inptr = 0;
 
     }
+    //printf("inptr = %d fsig->overlap=%d\n", p->inptr, p->fsig->overlap);
     inbuf[p->inptr++] = samp;
 
 }
@@ -838,7 +839,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
 {
     int i,j,k,ii,NO,NO2;
     float *anal;                                        /* RWD MUST be 32bit */
-    MYFLT *syn, /* *bsyn,*/ *output;
+    MYFLT *syn, *output;
     MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
     int32 N = p->fsig->N;
     MYFLT *obufptr,*outbuf,*synWindow;
@@ -858,7 +859,6 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     outbuf = (MYFLT *) (p->overlapbuf.auxp);
     synWindow = (MYFLT *) (p->synwinbuf.auxp) + synWinLen;
 
-    //bsyn = syn+1;
     /* reconversion: The magnitude and angle-difference-per-second in syn
        (assuming an intermediate sampling rate of rOut) are
        converted to real and imaginary values and are returned in syn.
@@ -892,7 +892,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
         /* this is spread across several frame cycles, as the problem does not
            develop for a while */
 
-        angledif = p->TwoPioverR * ( /* *i1 */ syn[ii+1]  - ((MYFLT) i * p->Fexact));
+        angledif = p->TwoPioverR * ( /* *i1 */ syn[ii+1] - ((MYFLT)i * p->Fexact));
         the_phase = /* *(oldOutPhase + i) */ oldOutPhase[i] + angledif;
         if (i== p->bin_index)
           the_phase = (MYFLT) fmod(the_phase,TWOPI);
@@ -1041,7 +1041,7 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
       nsmps -= early;
       memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (i=offset;i < nsmps;i++)
+    for (i=offset; i<nsmps; i++)
       aout[i] = synth_tick(csound, p);
     return OK;
 }

@@ -333,6 +333,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->type = type;
     ans->left = left;
     ans->right = right;
+    ans->value = NULL;          /* New code -- JPff */
     ans->next = NULL;
     ans->len = 2;
     ans->rate = -1;
@@ -361,6 +362,35 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     ans->locn  = locn;
     csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
+}
+
+/** Utility function to rewrite array names from xxx to [xxx, as csound
+ *  uses first letter to denote type.  Also handles if name starts with g;
+ *  used by parser (csound_orc.y)
+ */
+char* convertArrayName(CSOUND* csound, char* arrayName) {
+    if(arrayName == NULL) {
+        return NULL;
+    }
+    int len = strlen(arrayName);
+    
+    if(len == 0) {
+        return NULL;
+    }
+    
+    char* newArrayName = mmalloc(csound, (len + 2)* sizeof(char));
+    
+    if(arrayName[0] == 'g') {
+        newArrayName[0] = 'g';
+        newArrayName[1] = '[';
+        memcpy(newArrayName + 2, arrayName + 1, len - 1);
+    } else {
+        newArrayName[0] = '[';
+        memcpy(newArrayName + 1, arrayName, len);
+    }
+    newArrayName[len + 1] = 0;
+    
+    return newArrayName;
 }
 
 /** Utility function to create assignment statements
@@ -399,21 +429,21 @@ void delete_tree(CSOUND *csound, TREE *l)
         return;
       }
       if (l->value) {
-       if (l->value->lexeme) { 
-         printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
+       if (l->value->lexeme) {
+         //printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
         mfree(csound, l->value->lexeme);
-        l->value->lexeme = NULL;
+        //l->value->lexeme = NULL;
        }
-       printf("Free val %p\n", l->value);
+      //printf("Free val %p\n", l->value);
        mfree(csound, l->value);
-       l->value = NULL;
+       //l->value = NULL;
       }
       delete_tree(csound, l->left);
-      l->left = NULL;
+      //l->left = NULL;
       delete_tree(csound, l->right);
-      l->right = NULL;
+      //l->right = NULL;
       l = l->next;
-      printf("Free %p\n", old);
+      //printf("Free %p\n", old);
       mfree(csound, old);
     }
 }
@@ -895,7 +925,8 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
       csound->Message(csound, "Null type in tree -- aborting\n");
       exit(2);
     }
-    else if(strcmp(tree->value->lexeme, "init") == 0 && tree->left->type == T_ARRAY_IDENT) {
+    else if (strcmp(tree->value->lexeme, "init") == 0 && 
+            tree->left->type == T_ARRAY_IDENT) {
         // rewrite init as array_init
         tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
                                                strlen("array_init") + 1);

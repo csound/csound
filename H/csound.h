@@ -53,7 +53,8 @@
  *
  * \subsection section_api_apilist The Csound Application Programming Interfaces
  *
- * The Csound Application Programming Interface (API) reference is contained herein.
+ * The Csound Application Programming Interface (API) reference is contained
+ * herein.
  * The Csound API actually consists of several APIs:
  *
  * - The basic Csound C API. Include csound.h and link with libcsound.a.
@@ -112,8 +113,8 @@
  * also have a Python interface in the CsoundAC Python extension
  * module.
  *
- * You can build CsoundAC into your own software using the CsoundAC shared library and
- * CsoundAC.hpp header file.
+ * You can build CsoundAC into your own software using the CsoundAC
+ * shared library and CsoundAC.hpp header file.
  *
  * \section section_api_cscore Cscore
  *
@@ -2045,20 +2046,24 @@ extern "C" {
  /**
   * Read from circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *out - buffer with at least items samples where buffer contents will be read into
+  * MYFLT *out - buffer with at least items samples where buffer contents 
+  *              will be read into
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
   */
-  PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer, MYFLT *out, int items);
+  PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
+                                      MYFLT *out, int items);
 
  /**
   * Write to circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *inp - buffer with at least items samples to bet written into circular buffer
+  * MYFLT *inp - buffer with at least items samples to bet written into
+  *              circular buffer
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
   */
-  PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p, const MYFLT *inp, int items);
+  PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
+                                       const MYFLT *inp, int items);
 
   PUBLIC void csoundFlushCircularBuffer(CSOUND *csound, void *p);
 

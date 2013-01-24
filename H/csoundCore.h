@@ -178,7 +178,11 @@ typedef struct {
 #define ARG_LOCAL 4
 #define ARG_LABEL 5
 
-  typedef struct CORFIL {
+#define ASYNC_GLOBAL 1
+#define ASYNC_LOCAL  2
+
+
+typedef struct CORFIL {
     char    *body;
     unsigned int     len;
     unsigned int     p;
@@ -212,6 +216,7 @@ typedef struct {
     int     useCsdLineCounts;
     int     calculateWeights;
     int     sampleAccurate;  /* switch for score events sample accuracy */
+    int     realtime; /* realtime priority mode  */
   } OPARMS;
 
   typedef struct arglst {
@@ -220,10 +225,10 @@ typedef struct {
   } ARGLST;
 
   typedef struct arg {
-	  int type;
-	  void* argPtr;
-	  int index;
-	  struct arg* next;
+          int type;
+          void* argPtr;
+          int index;
+          struct arg* next;
   } ARG;
 //  typedef struct argoffs {
 //    int     count;
@@ -309,9 +314,10 @@ typedef struct {
 
   typedef struct {
     int     size;             /* 0...size-1 */
+    int     arrayMemberSize;
     CS_TYPE* arrayType;
     MYFLT* data;
-    AUXCH   aux;
+//    AUXCH   aux;
   } ARRAYDAT;
     
    typedef struct {
@@ -442,6 +448,7 @@ typedef struct {
     uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
     uint32_t no_end;      /* samps left at the end for sample accuracy (calculated) */
     uint32_t ksmps_no_end; /* samps left at the end for sample accuracy (used by opcodes) */
+    int    init_done;
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
     MYFLT   p1;
@@ -1159,7 +1166,7 @@ typedef struct NAME__ {
     void (*FlushCircularBuffer)(CSOUND *, void *);
     void (*FreeCircularBuffer)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
-			   const char *, int, int, int);
+                           const char *, int, int, int);
     unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
     unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
@@ -1203,6 +1210,9 @@ typedef struct NAME__ {
     int          file_io_start;
     void         *file_io_threadlock;
     int          realtime_audio_flag;
+    pthread_t    init_pass_thread;
+    int          init_pass_loop;
+    void         *init_pass_threadlock;
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t spoutlock, spinlock;
 #else
@@ -1563,6 +1573,10 @@ typedef struct NAME__ {
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
     int           inInstr;
+#ifdef NEW_DAG
+    int           dag_changed;
+    int           dag_num_active;
+#endif
 #endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
@@ -1579,7 +1593,7 @@ typedef struct NAME__ {
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
     char          *filedir[64]; /* for location directory */
-	void * message_buffer;
+        void * message_buffer;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

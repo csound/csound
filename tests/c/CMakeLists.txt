@@ -24,6 +24,13 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/../../H")
 target_link_libraries(csoundMessageBufferTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
 add_test(NAME TestCsoundMessageBuffer
 	COMMAND $<TARGET_FILE:csoundMessageBufferTest> ${TEST_ARGS})
+
+add_executable(csoundOrcSemanticsTest csound_orc_semantics_test.c)
+target_link_libraries(csoundOrcSemanticsTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME csoundOrcSemanticsTest
+	COMMAND $<TARGET_FILE:csoundOrcSemanticsTest> ${TEST_ARGS})
+
+
 endif()
 
 

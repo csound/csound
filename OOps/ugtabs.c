@@ -632,8 +632,8 @@ int table_copy(CSOUND *csound, TGP *p){
   FUNC *dest, *src;
   int32 len1, len2, i, rp;
   if (UNLIKELY((dest = csound->FTnp2Find(csound, p->ftable)) == NULL ||
-	       (src = csound->FTnp2Find(csound, p->ftsrc)) == NULL)){
-	csound->Warning(csound,  Str("table: could not find ftables %d and/or %d"), (int) *p->ftable, (int) *p->ftsrc);
+               (src = csound->FTnp2Find(csound, p->ftsrc)) == NULL)){
+        csound->Warning(csound,  Str("table: could not find ftables %d and/or %d"), (int) *p->ftable, (int) *p->ftsrc);
     return NOTOK;
   }
   len1 = dest->flen;
@@ -690,17 +690,17 @@ int table_mix(CSOUND *csound, TABLMIX *p){
       p1 = i+off1;                 
       p2 = i+off2;
       if(np2) {
-	while(p0 < 0) p0 += flen;
+        while(p0 < 0) p0 += flen;
         while(p0 >= len1) p0 -= flen;
       }
       else p0 &= ftp->lenmask;
       if(np21) {
-	while(p1 < 0) p1 += len1;
+        while(p1 < 0) p1 += len1;
         while(p1 >= len1) p1 -= len1;
       }
       else p1 &= ftp1->lenmask;
       if(np22) {
-	while(p2 < 0) p2 += len2;
+        while(p2 < 0) p2 += len2;
         while(p2 >= len2) p1 -= len2;
       }
       else p2 &= ftp2->lenmask;
@@ -713,17 +713,17 @@ int table_mix(CSOUND *csound, TABLMIX *p){
       p1 = i+off1;                 
       p2 = i+off2;
       if(np2) {
-	while(p0 < 0) p0 += flen;
+        while(p0 < 0) p0 += flen;
         while(p0 >= len1) p0 -= flen;
       }
       else p0 &= ftp->lenmask;
       if(np21) {
-	while(p1 < 0) p1 += len1;
+        while(p1 < 0) p1 += len1;
         while(p1 >= len1) p1 -= len1;
       }
       else p1 &= ftp1->lenmask;
       if(np22) {
-	while(p2 < 0) p2 += len2;
+        while(p2 < 0) p2 += len2;
         while(p2 >= len2) p1 -= len2;
       }
       else p2 &= ftp2->lenmask;
