@@ -36,7 +36,7 @@ enum state { INACTIVE = 4,         /* No task */
 	     INPROGRESS = 1,       /* Has been started */
 	     DONE = 0 };           /* Has been completed */
 
-/* Array of states of each task */
+/* Array of states of each task -- need to move to CSOUND structure */
 static enum state *task_status = NULL;          /* OPT : Structure lay out */
 static taskID *task_watch = NULL; 
 
@@ -55,6 +55,29 @@ static watchList ** task_dep;                        /* OPT : Structure lay out 
 static int task_max_size;
 static int dag_dispatched;
 
+static void dag_print_state(CSOUND *csound)
+{
+    int i;
+    printf("*** %d tasks\n");
+    for (i=0; i<csound->dag_num_active; i++) {
+      printf("%d: ", i);
+      switch (task_status[i]) {
+      case DONE:
+        printf("status=DONE\n"); break;
+      case INPROGRESS:
+        printf("status=INPROGRESS\n"); break;
+      case AVAILABLE:
+        printf("status=AVAILABLE\n"); break;
+      case WAITING:
+        printf("status=WAITING for task %d\n", task_watch[i]);
+        break;
+      default:
+        printf("status=???\n"); break;
+      }
+    }
+    printf("\n");
+}
+	     
 /* For now allocate a fixed maximum number of tasks; FIXME */
 void create_dag(CSOUND *csound)
 {
@@ -135,6 +158,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       printf("**************need to extend task vector\n");
       exit(1);
     }
+    for (i=0; i<csound->dag_num_active; i++) task_status[i] = AVAILABLE;
     csound->dag_changed = 0;
     printf("dag_num_active = %d\n", csound->dag_num_active);
     i = 0; chain = save;
@@ -164,12 +188,14 @@ void dag_build(CSOUND *csound, INSDS *chain)
           n->id = i;
           n->next = task_dep[j];
           task_dep[j] = n;
+          task_status[j] = WAITING;
           printf("yes ");
         }
         j++; next = next->nxtact;
       }
       i++; chain = chain->nxtact;
     }
+    dag_print_state(csound);
 }
 
 void dag_reinit(CSOUND *csound)
