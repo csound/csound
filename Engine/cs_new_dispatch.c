@@ -58,7 +58,7 @@ static int dag_dispatched;
 static void dag_print_state(CSOUND *csound)
 {
     int i;
-    printf("*** %d tasks\n");
+    printf("*** %d tasks\n", csound->dag_num_active);
     for (i=0; i<csound->dag_num_active; i++) {
       printf("%d: ", i);
       switch (task_status[i]) {
@@ -68,8 +68,16 @@ static void dag_print_state(CSOUND *csound)
         printf("status=INPROGRESS\n"); break;
       case AVAILABLE:
         printf("status=AVAILABLE\n"); break;
-      case WAITING:
-        printf("status=WAITING for task %d\n", task_watch[i]);
+      case WAITING: 
+        {
+          watchList *tt = task_dep[i];
+          printf("status=WAITING for task %d (", task_watch[i]);
+          while (tt) { 
+            printf("%d ", tt->id);
+            tt = tt->next;
+          }
+          printf(")\n");
+        }
         break;
       default:
         printf("status=???\n"); break;
@@ -113,7 +121,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
     return current_instr;
 }
 
-static int dag_intersect(CSOUND *csound, struct set_t *current, struct set_t *later)
+static int dag_intersect(CSOUND *csound, struct set_t *current, struct set_t *later, int cnt)
 {
     struct set_t *ans;
     int res = 0;
@@ -136,9 +144,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
     int i;
     if (task_status == NULL) create_dag(csound); /* Should move elsewhere */
     else { 
-      memset(task_watch, '\0', sizeof(enum state)*(task_max_size=INIT_SIZE));
+      memset(task_watch, '\0', sizeof(enum state)*task_max_size);
       for (i=0; i<task_max_size; i++) {
         dag_free_watch(csound, task_dep[i]);
+        task_watch[i] = 0;
         task_dep[i] = NULL;
       }
     }
@@ -171,28 +180,29 @@ void dag_build(CSOUND *csound, INSDS *chain)
       //csp_set_print(csound, current_instr->write);
       while (next) {
         INSTR_SEMANTICS *later_instr = dag_get_info(csound, next->insno);
+        int cnt = 0;
         printf("%d ", j);
         //csp_set_print(csound, later_instr->read);
         //csp_set_print(csound, later_instr->write);
         //csp_set_print(csound, later_instr->read_write);
-        if (dag_intersect(csound, current_instr->write, later_instr->read) ||
-            dag_intersect(csound, current_instr->read_write, later_instr->read) ||
-            dag_intersect(csound, current_instr->read, later_instr->write) ||
-            dag_intersect(csound, current_instr->write, later_instr->write) ||
-            dag_intersect(csound, current_instr->read_write, later_instr->write) ||
-            dag_intersect(csound, current_instr->read, later_instr->read_write) ||
-            dag_intersect(csound, current_instr->write, later_instr->read_write) ||
-            dag_intersect(csound, 
-                          current_instr->read_write, later_instr->read_write)) {
+        if (dag_intersect(csound, current_instr->write, later_instr->read, cnt++) ||
+            dag_intersect(csound, current_instr->read_write, later_instr->read, cnt++) ||
+            dag_intersect(csound, current_instr->read, later_instr->write, cnt++) ||
+            dag_intersect(csound, current_instr->write, later_instr->write, cnt++) ||
+            dag_intersect(csound, current_instr->read_write, later_instr->write, cnt++) ||
+            dag_intersect(csound, current_instr->read, later_instr->read_write, cnt++) ||
+            dag_intersect(csound, current_instr->write, later_instr->read_write, cnt++)) {
           watchList *n = (watchList*)mmalloc(csound, sizeof(watchList));
           n->id = i;
           n->next = task_dep[j];
           task_dep[j] = n;
           task_status[j] = WAITING;
-          printf("yes ");
+          task_watch[j] = i;
+          printf("yes-%d ", cnt);
         }
         j++; next = next->nxtact;
       }
+      if (task_dep[i]) task_watch[i] = task_dep[i]->id;
       i++; chain = chain->nxtact;
     }
     dag_print_state(csound);

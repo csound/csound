@@ -265,6 +265,7 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
 
 void csp_orc_sa_instr_finalize(CSOUND *csound)
 {
+    csp_orc_sa_print_list(csound);
     csound->instCurr = NULL;
     csound->inInstr = 0;
 }
