@@ -21,9 +21,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include "csGblMtx.h"
 
 /* Used as an error value */
 typedef int taskID;
@@ -153,13 +155,8 @@ void dag_build(CSOUND *csound, INSDS *chain)
     }
     csound->dag_num_active = 0;
     while (chain != NULL) {
-      INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
+      //INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
       csound->dag_num_active++;
-      printf("insno %d: %p/%p/%p %d/%d/%d\n",
-             chain->insno, current_instr->read, current_instr->write,
-             current_instr->read_write, current_instr->read->count,
-             current_instr->write->count, current_instr->read_write->count);
-      //csp_dag_add(csound, dag, current_instr, chain);
       //dag->weight += current_instr->weight;
       chain = chain->nxtact;
     }
@@ -227,6 +224,90 @@ void dag_reinit(CSOUND *csound)
     }
     for (i=csound->dag_num_active; i<task_max_size; i++)
       task_status[i] = DONE;
+}
+
+void dag_add_work(CSOUND *csound, taskID i)
+{
+}
+
+/* **** Thread code ****  */
+
+static int getThreadIndex(CSOUND *csound, void *threadId)
+{
+#ifndef mac_classic
+    int index = 0;
+    THREADINFO *current = csound->multiThreadedThreadInfo;
+    
+    if (current == NULL) return -1;
+    while(current != NULL) {
+      if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
+        return index;
+      index++;
+      current = current->next;
+    }
+#endif
+    return -1;
+}
+
+unsigned long dag_kperfThread(void * cs)
+{
+    INSDS *start;
+    CSOUND *csound = (CSOUND *)cs;
+    void *threadId;
+    int index;
+    int numThreads;
+
+    /* Wait for start */
+    csound->WaitBarrier(csound->barrier2);
+
+    threadId = csound->GetCurrentThreadID();
+    index = getThreadIndex(csound, threadId);
+    numThreads = csound->oparms->numThreads;
+    start = NULL;
+    csound->Message(csound,
+                    "Multithread performance: insno: %3d  thread %d of "
+                    "%d starting.\n",
+                    start ? start->insno : -1,
+                    index,
+                    numThreads);
+    if (index < 0) {
+      csound->Die(csound, "Bad ThreadId");
+      return ULONG_MAX;
+    }
+    index++;
+
+    while (1) {
+
+      csound->WaitBarrier(csound->barrier1);
+      csound_global_mutex_lock();
+      if (csound->multiThreadedComplete == 1) {
+        csound_global_mutex_unlock();
+        free(threadId);
+        csound->Message(csound,
+           "Multithread performance: insno: %3d  thread "
+           "%d of %d exiting.\n",
+           start->insno,
+           index,
+           numThreads);
+        return 0UL;
+      }
+      csound_global_mutex_unlock();
+      
+      /* TIMER_T_END(mutex, index, "Mutex "); */
+      
+      TIMER_INIT(thread, "");
+      TIMER_T_START(thread, index, "");
+
+      // DO WORK nodePerf(csound, index);
+
+      TIMER_T_END(thread, index, "");
+      
+      TRACE_1("[%i] Done\n", index);
+
+      SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
+      csound->WaitBarrier(csound->barrier2);
+      TRACE_1("[%i] Barrier2 Done\n", index);
+    }
 }
 
 #if 0

@@ -198,10 +198,7 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       if (code&TW) csp_set_add(csound, ww, strdup("##tab"));
       if (code&CR) csp_set_add(csound, rr, strdup("##chn"));
       if (code&CW) csp_set_add(csound, ww, strdup("##chn"));
-      if (code&SB) {
-        csp_set_add(csound, rr, strdup("##stk"));
-        csp_set_add(csound, ww, strdup("##stk"));
-      }
+      if (code&WR) csp_set_add(csound, ww, strdup("##wri"));
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
       if (code&_QQ) csound->Message(csound, "opcode deprecated");
     }
