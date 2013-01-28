@@ -33,7 +33,9 @@
 #define CW (0x2000)
 #define CB (0x3000)
 
-#define SB (0x4000)
+#define ST CW
+
+#define WR (0x4000)
 #define _QQ (0x8000)
 
 
