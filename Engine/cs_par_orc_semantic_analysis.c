@@ -123,6 +123,36 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
                   "Invalid NULL parameter set to add to global read, "
                   "write lists\n");
     }
+    /* else { */
+    /*   struct set_t *new = NULL; */
+    /*   csp_set_union(csound, write, read, &new); */
+    /*   if (write->count == 1 && read->count == 1 && new->count == 1) { */
+    /*     /\* this is a read_write list thing *\/ */
+    /*     struct set_t *new_read_write = NULL; */
+    /*     csp_set_union(csound, csound->instCurr->read_write, new, &new_read_write); */
+    /*     csp_set_dealloc(csound, &csound->instCurr->read_write); */
+    /*     csound->instCurr->read_write = new_read_write; */
+    /*   } */
+    else {
+      csp_orc_sa_global_write_add_list(csound, write);
+      csp_orc_sa_global_read_add_list(csound, read);
+      /* csp_set_dealloc(csound, &new); */
+    }
+}
+
+void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
+                                           struct set_t *write,
+                                           struct set_t *read)
+{
+    if (csound->instCurr == NULL) {
+      csound->DebugMsg(csound,
+                      "Add global read, write lists without any instruments\n");
+    }
+    else if (UNLIKELY(write == NULL  || read == NULL)) {
+      csound->Die(csound,
+                  "Invalid NULL parameter set to add to global read, "
+                  "write lists\n");
+    }
     else {
       struct set_t *new = NULL;
       csp_set_union(csound, write, read, &new);
