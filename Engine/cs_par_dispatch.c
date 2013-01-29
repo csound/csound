@@ -242,28 +242,26 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
            * that is same global read and written in this operation */
           if (left->count == 1 && right->count == 1 && new->count == 1) {
             char *global_var = NULL;
-            csp_set_get_num(new, 0, (void **)&global_var);
-
-            struct global_var_lock_t *gvar =
-              global_var_lock_find(csound, global_var);
-
-            /* add_token(csound, "str", A_TYPE); */
-
+            struct global_var_lock_t *gvar;
             char buf[8];
-            snprintf(buf, 8, "%i", gvar->index);
+            ORCTOKEN *lock_tok, *unlock_tok, *var_tok, *var0_tok;;
+            TREE *lock_leaf, *unlock_leaf;
 
-            ORCTOKEN *lock_tok   = lookup_token(csound, "##globallock");
-            ORCTOKEN *unlock_tok = lookup_token(csound, "##globalunlock");
-            ORCTOKEN *var_tok    = make_int(csound, buf);
+            csp_set_get_num(new, 0, (void **)&global_var);
+            gvar       = global_var_lock_find(csound, global_var);
+            lock_tok   = lookup_token(csound, "##globallock");
+            unlock_tok = lookup_token(csound, "##globalunlock");
+            var_tok    = make_int(csound, buf);
+            var0_tok    = make_int(csound, buf);
 
-            TREE *lock_leaf = make_leaf(csound, current->line, current->locn,
-                                        T_OPCODE, lock_tok);
+            lock_leaf  = make_leaf(csound, current->line, current->locn,
+                                   T_OPCODE, lock_tok);
             lock_leaf->right = make_leaf(csound, current->line, current->locn,
                                          INTEGER_TOKEN, var_tok);
-            TREE *unlock_leaf = make_leaf(csound, current->line, current->locn,
-                                          T_OPCODE, unlock_tok);
+            unlock_leaf = make_leaf(csound, current->line, current->locn,
+                                    T_OPCODE, unlock_tok);
             unlock_leaf->right = make_leaf(csound, current->line, current->locn,
-                                           INTEGER_TOKEN, var_tok);
+                                           INTEGER_TOKEN, var0_tok);
 
             if (previous == NULL) {
               TREE *old_current = lock_leaf;
