@@ -37,7 +37,7 @@
  * external prototypes not in headers
  */
 extern ORCTOKEN *lookup_token(CSOUND *csound, char *);
-
+extern void print_tree(CSOUND *, char *, TREE *);
 /***********************************************************************
  * static function prototypes
  */
@@ -221,7 +221,10 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
         if (instr->read_write->count > 0 &&
             instr->read->count == 0 &&
             instr->write->count == 0) {
+          csound->Message(csound, Str("Instr %d needs locks"), instr->insno);
+          //print_tree(csound, "before locks", root);
           current->right = csp_locks_insert(csound, current->right);
+          //print_tree(csound, "after locks", root);
         }
         break;
 
@@ -232,51 +235,51 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
       case '=':
         /*if (current->type == '=')*/
         {
-          struct set_t *left = NULL, *right  = NULL;
-          left = csp_orc_sa_globals_find(csound, current->left);
-          right = csp_orc_sa_globals_find(csound, current->right);
-
+          struct set_t *left = csp_orc_sa_globals_find(csound, current->left);
+          struct set_t *right = csp_orc_sa_globals_find(csound, current->right);
           struct set_t *new = NULL;
           csp_set_union(csound, left, right, &new);
           /* add locks if this is a read-write global variable
            * that is same global read and written in this operation */
           if (left->count == 1 && right->count == 1 && new->count == 1) {
             char *global_var = NULL;
-            csp_set_get_num(new, 0, (void **)&global_var);
-
-            struct global_var_lock_t *gvar =
-              global_var_lock_find(csound, global_var);
-
-            /* add_token(csound, "str", A_TYPE); */
-
+            struct global_var_lock_t *gvar;
             char buf[8];
+            ORCTOKEN *lock_tok, *unlock_tok, *var_tok, *var0_tok;;
+            TREE *lock_leaf, *unlock_leaf;
+
+            csp_set_get_num(new, 0, (void **)&global_var);
+            gvar       = global_var_lock_find(csound, global_var);
+            lock_tok   = lookup_token(csound, "##globallock");
+            unlock_tok = lookup_token(csound, "##globalunlock");
             snprintf(buf, 8, "%i", gvar->index);
+            var_tok    = make_int(csound, buf);
+            var0_tok   = make_int(csound, buf);
 
-            ORCTOKEN *lock_tok   = lookup_token(csound, "##globallock");
-            ORCTOKEN *unlock_tok = lookup_token(csound, "##globalunlock");
-            ORCTOKEN *var_tok    = make_int(csound, buf);
-
-            TREE *lock_leaf = make_leaf(csound, current->line, current->locn,
-                                        T_OPCODE, lock_tok);
+            lock_leaf  = make_leaf(csound, current->line, current->locn,
+                                   T_OPCODE, lock_tok);
             lock_leaf->right = make_leaf(csound, current->line, current->locn,
                                          INTEGER_TOKEN, var_tok);
-            TREE *unlock_leaf = make_leaf(csound, current->line, current->locn,
-                                          T_OPCODE, unlock_tok);
+            unlock_leaf = make_leaf(csound, current->line, current->locn,
+                                    T_OPCODE, unlock_tok);
             unlock_leaf->right = make_leaf(csound, current->line, current->locn,
-                                           INTEGER_TOKEN, var_tok);
+                                           INTEGER_TOKEN, var0_tok);
 
             if (previous == NULL) {
               TREE *old_current = lock_leaf;
               lock_leaf->next = current;
               unlock_leaf->next = current->next;
               current->next = unlock_leaf;
-              current = old_current;
+              current = unlock_leaf;
+              //print_tree(csound, "changed to\n", lock_leaf);
             }
             else {
               previous->next = lock_leaf;
               lock_leaf->next = current;
               unlock_leaf->next = current->next;
               current->next = unlock_leaf;
+              current = unlock_leaf;
+              //print_tree(csound, "changed-1 to\n", lock_leaf);
             }
           }
 
@@ -1124,7 +1127,6 @@ void csp_dag_add(CSOUND *csound, DAG *dag,
       (DAG_NODE **)csound->ReAlloc(csound, old,
                                    sizeof(DAG_NODE *) * (dag->count + 1));
     dag->all[dag->count++] = dag_node;
-    //dag->count++;
 
     if (dag->count == 1) {
       dag->insds_chain_start = dag->all[0];
@@ -1237,20 +1239,14 @@ inline static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
 
 inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
 {
-#ifdef CAUTIOUS
-    if (UNLIKELY(dag == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter dag"));
-#endif
-
     int dag_root_ctr = 0;
     while (dag_root_ctr < dag->count) {
       int dag_curr_ctr = dag_root_ctr + 1;
       while (dag_curr_ctr < dag->count) {
 
-        /* csound->Message(csound, "=== %s <> %s ===\n",
-            dag->all[dag_root_ctr]->instr->name,
-            dag->all[dag_curr_ctr]->instr->name); */
-
+        /* csound->Message(csound, "=== %s <> %s ===\n", */
+        /*     dag->all[dag_root_ctr]->instr->name, */
+        /*     dag->all[dag_curr_ctr]->instr->name); */
         int depends = DAG_NO_LINK;
         struct set_t *write_intersection = NULL;
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write,
@@ -1261,10 +1257,10 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &write_intersection);
 
-        /* csound->Message(csound,
-                           "write_intersection depends: %i\n", depends);
-           csp_set_print(csound, dag->all[dag_root_ctr]->instr->write);
-           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read); */
+        /* csound->Message(csound, */
+        /*                    "write_intersection depends: %i\n", depends); */
+        /* csp_set_print(csound, dag->all[dag_root_ctr]->instr->write); */
+        /* csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read); */
 
         struct set_t *read_intersection = NULL;
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read,
@@ -1275,10 +1271,10 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &read_intersection);
 
-        /* csound->Message(csound,
-                           "read_intersection depends: %i\n", depends);
-           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
-           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
+        /* csound->Message(csound, */
+        /*                    "read_intersection depends: %i\n", depends); */
+        /* csp_set_print(csound, dag->all[dag_root_ctr]->instr->read); */
+        /* csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
         struct set_t *double_write_intersection = NULL;
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write,
@@ -1289,10 +1285,10 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &double_write_intersection);
 
-        /* csound->Message(csound, "double_write_intersection depends: %i\n",
-                           depends);
-           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
-           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
+        /* csound->Message(csound, "double_write_intersection depends: %i\n", */
+        /*                    depends); */
+        /* csp_set_print(csound, dag->all[dag_root_ctr]->instr->read); */
+        /* csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
         struct set_t *readwrite_write_intersection = NULL;
         csp_set_intersection(csound,
@@ -1304,11 +1300,11 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &readwrite_write_intersection);
 
-        /* csound->Message(csound,
-                           "readwrite_write_intersection depends: %i\n",
-                           depends);
-           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
-           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
+        /* csound->Message(csound, */
+        /*                    "readwrite_write_intersection depends: %i\n", */
+        /*                    depends); */
+        /* csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write); */
+        /* csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
         struct set_t *readwrite_read_intersection = NULL;
         csp_set_intersection(csound,
@@ -1320,12 +1316,12 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &readwrite_read_intersection);
 
-        /* csound->Message(csound,
-                           "readwrite_read_intersection depends: %i\n",
-                           depends);
-           csp_set_print(csound,
-                         dag->all[dag_root_ctr]->instr->read_write);
-           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
+        /* csound->Message(csound, */
+        /*                    "readwrite_read_intersection depends: %i\n", */
+        /*                    depends); */
+        /*    csp_set_print(csound, */
+        /*                  dag->all[dag_root_ctr]->instr->read_write); */
+        /*    csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
         struct set_t *read_readwrite_intersection = NULL;
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read,
@@ -1336,12 +1332,12 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &read_readwrite_intersection);
 
-        /* csound->Message(csound,
-                           "read_readwrite_intersection depends: %i\n",
-                           depends);
-           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
-           csp_set_print(csound,
-                         dag->all[dag_curr_ctr]->instr->read_write); */
+        /* csound->Message(csound, */
+        /*                 "read_readwrite_intersection depends: %i\n", */
+        /*                 depends); */
+        /* csp_set_print(csound, dag->all[dag_root_ctr]->instr->read); */
+        /* csp_set_print(csound, */
+        /*               dag->all[dag_curr_ctr]->instr->read_write);  */
 
         struct set_t *write_readwrite_intersection = NULL;
         csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write,
@@ -1352,12 +1348,12 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &write_readwrite_intersection);
 
-        /* csound->Message(csound,
-                           "write_readwrite_intersection depends: %i\n",
-                           depends);
-           csp_set_print(csound, dag->all[dag_root_ctr]->instr->write);
-           csp_set_print(csound,
-                          dag->all[dag_curr_ctr]->instr->read_write); */
+        /* csound->Message(csound, */
+        /*                 "write_readwrite_intersection depends: %i\n", */
+        /*                 depends); */
+        /* csp_set_print(csound, dag->all[dag_root_ctr]->instr->write); */
+        /* csp_set_print(csound, */
+        /*               dag->all[dag_curr_ctr]->instr->read_write); */
 
         struct set_t *readwrite_readwrite_intersection = NULL;
         csp_set_intersection(csound,
@@ -1369,12 +1365,12 @@ inline static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &readwrite_readwrite_intersection);
 
-        /* csound->Message(csound,
-                           "readwrite_readwrite_intersection depends: %i\n",
-                           depends);
-           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
-           csp_set_print(csound,
-                         dag->all[dag_curr_ctr]->instr->read_write); */
+        /* csound->Message(csound, */
+        /*                 "readwrite_readwrite_intersection depends: %i\n", */
+        /*                 depends); */
+        /* csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write); */
+        /* csp_set_print(csound, */
+        /*               dag->all[dag_curr_ctr]->instr->read_write); */
 
         if (depends & DAG_STRONG_LINK) {
           dag->table_ori[dag_root_ctr][dag_curr_ctr] = DAG_STRONG_LINK;

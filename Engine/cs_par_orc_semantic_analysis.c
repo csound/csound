@@ -56,7 +56,6 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
        so this is a good default
      */
     instr->weight = 1;
-
     csp_set_alloc_string(csound, &(instr->read_write));
     csp_set_alloc_string(csound, &(instr->write));
     csp_set_alloc_string(csound, &(instr->read));
@@ -112,6 +111,36 @@ void csp_orc_sa_print_list(CSOUND *csound)
 }
 
 void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
+                                           struct set_t *write,
+                                           struct set_t *read)
+{
+    if (csound->instCurr == NULL) {
+      csound->DebugMsg(csound,
+                      "Add global read, write lists without any instruments\n");
+    }
+    else if (UNLIKELY(write == NULL  || read == NULL)) {
+      csound->Die(csound,
+                  "Invalid NULL parameter set to add to global read, "
+                  "write lists\n");
+    }
+    /* else { */
+    /*   struct set_t *new = NULL; */
+    /*   csp_set_union(csound, write, read, &new); */
+    /*   if (write->count == 1 && read->count == 1 && new->count == 1) { */
+    /*     /\* this is a read_write list thing *\/ */
+    /*     struct set_t *new_read_write = NULL; */
+    /*     csp_set_union(csound, csound->instCurr->read_write, new, &new_read_write); */
+    /*     csp_set_dealloc(csound, &csound->instCurr->read_write); */
+    /*     csound->instCurr->read_write = new_read_write; */
+    /*   } */
+    else {
+      csp_orc_sa_global_write_add_list(csound, write);
+      csp_orc_sa_global_read_add_list(csound, read);
+      /* csp_set_dealloc(csound, &new); */
+    }
+}
+
+void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
                                            struct set_t *write,
                                            struct set_t *read)
 {
@@ -193,16 +222,14 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       struct set_t *ww = NULL;
       csp_set_alloc_string(csound, &ww);
       csp_set_alloc_string(csound, &rr);
-      if (code&ZR) csp_set_add(csound, rr, "##zak");
-      if (code&ZW) csp_set_add(csound, ww, "##zak");
-      if (code&TR) csp_set_add(csound, rr, "##tab");
-      if (code&TW) csp_set_add(csound, ww, "##tab");
-      if (code&CR) csp_set_add(csound, rr, "##chn");
-      if (code&CW) csp_set_add(csound, ww, "##chn");
-      if (code&SB) {
-        csp_set_add(csound, rr, "##stk");
-        csp_set_add(csound, ww, "##stk");
-      }
+      if (code&ZR) csp_set_add(csound, rr, strdup("##zak"));
+      if (code&ZW) csp_set_add(csound, ww, strdup("##zak"));
+      if (code&TR) csp_set_add(csound, rr, strdup("##tab"));
+      if (code&TW) csp_set_add(csound, ww, strdup("##tab"));
+      if (code&CR) csp_set_add(csound, rr, strdup("##chn"));
+      if (code&CW) csp_set_add(csound, ww, strdup("##chn"));
+      if (code&WR) csp_set_add(csound, ww, strdup("##wri"));
+      csp_orc_sa_global_read_write_add_list(csound, ww, rr);
       if (code&_QQ) csound->Message(csound, "opcode deprecated");
     }
 }
@@ -219,6 +246,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
+    name = strdup(name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
       csound->instRoot = instr_semantics_alloc(csound, name);
@@ -246,24 +274,25 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
 {
     while (x) {
       if (x->type == INTEGER_TOKEN) {
-        csp_orc_sa_instr_add(csound, x->value->lexeme);
+        csp_orc_sa_instr_add(csound, strdup(x->value->lexeme));
         return;
       }
       if (x->type == T_IDENT) {
-        csp_orc_sa_instr_add(csound, x->value->lexeme);
+        csp_orc_sa_instr_add(csound, strdup(x->value->lexeme));
         return;
       }
       if (UNLIKELY(x->type != T_INSTLIST)) {
         csound->DebugMsg(csound,"type %d not T_INSTLIST\n", x->type);
         csound->Die(csound, "Not a proper list of ints");
       }
-      csp_orc_sa_instr_add(csound, x->left->value->lexeme);
+      csp_orc_sa_instr_add(csound, strdup(x->left->value->lexeme));
       x = x->right;
     }
 }
 
 void csp_orc_sa_instr_finalize(CSOUND *csound)
 {
+    csp_orc_sa_print_list(csound);
     csound->instCurr = NULL;
     csound->inInstr = 0;
 }
@@ -286,8 +315,9 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     csp_set_dealloc(csound, &left);
     csp_set_dealloc(csound, &right);
 
-    if(node->type == T_IDENT && node->value->lexeme[0] == 'g') {
-      csp_set_add(csound, current_set, node->value->lexeme);
+    if ((node->type == T_IDENT || node->type == LABEL_TOKEN) &&
+        node->value->lexeme[0] == 'g') {
+      csp_set_add(csound, current_set, strdup(node->value->lexeme));
     }
 
     if (node->next != NULL) {
@@ -325,9 +355,7 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
       }
       current_instr = current_instr->next;
     }
-
     snprintf(buf, BUF_LENGTH, "%i", insno);
-
     current_instr = csp_orc_sa_instr_get_by_name(csound, buf);
     if (current_instr != NULL) {
       current_instr->insno = insno;

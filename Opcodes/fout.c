@@ -1221,7 +1221,7 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
 static OENTRY localops[] = { 
     {"fprints",    S(FPRINTF),     1,  "",     "TSM", 
         (SUBR) fprintf_i, (SUBR) NULL,(SUBR) NULL, NULL, 0 },
-    { "fprintks",   S(FPRINTF),     3,  "",     "TSM", 
+    { "fprintks",   S(FPRINTF),     3|WR,  "",     "TSM", 
         (SUBR) fprintf_set,     (SUBR) fprintf_k,   (SUBR) NULL, NULL, 0         },
     { "vincr",      S(INCR),        4,  "",     "aa",
         (SUBR) NULL,            (SUBR) NULL,        (SUBR) incr, NULL, 0         },
