@@ -38,6 +38,8 @@ static  void    schedofftim(CSOUND *, INSDS *);
         void    timexpire(CSOUND *, double);
 static  void    instance(CSOUND *, int);
 
+extern int argsRequired(char* argString);
+
 int init0(CSOUND *csound)
 {
     INSTRTXT  *tp = csound->engineState.instrtxtp[0];
@@ -1932,6 +1934,7 @@ static void instance(CSOUND *csound, int insno)
     OPARMS    *O = csound->oparms;
     int       odebug = O->odebug;
     ARG*          arg;
+    int       argStringCount;
 
 //    lopdsp = csound->lopds;
 //    largp = (LARGNO*) csound->larg;
@@ -2061,7 +2064,7 @@ static void instance(CSOUND *csound, int insno)
           arg = arg->next;
       }
 
-      for ( ; ep->outypes[n] != (char) 0; n++)  /* if more outypes, pad */
+      for (argStringCount = argsRequired(ep->outypes); n < argStringCount; n++)  /* if more outypes, pad */
         argpp[n] = NULL;
 
       arg = ttp->inArgs;
