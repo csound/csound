@@ -67,9 +67,6 @@ static int array_init(CSOUND *csound, void *p)
     ARRAYINIT* t = (ARRAYINIT*)p;
     ARRAYDAT* arrayDat = t->arrayDat;
     int size = MYFLT2LRND(*t->size);
-    
-//    MYFLT data = *arrayDat->data;
-//    int i;
         
     CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, NULL);
     
@@ -735,9 +732,9 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 
 static OENTRY arrayvars_localops[] =
 {
-    { "array_init", sizeof(ARRAYINIT), 1, "[", "i", (SUBR)array_init },
-    { "array_set", sizeof(ARRAY_SET), 3, "", "[k?", (SUBR)array_set, (SUBR)array_set },
-    { "array_get", sizeof(ARRAY_GET), 3, "?", "[k", (SUBR)array_get, (SUBR)array_get },
+    { "array_init", sizeof(ARRAYINIT), 1, "[?;", "i", (SUBR)array_init },
+    { "array_set", sizeof(ARRAY_SET), 3, "", "[?;k?", (SUBR)array_set, (SUBR)array_set },
+    { "array_get", sizeof(ARRAY_GET), 3, "?", "[?;k", (SUBR)array_get, (SUBR)array_get },
 //  { "##plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
 //  { "##suntab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
 //  { "##negtab",  sizeof(TABARITH), 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
