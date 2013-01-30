@@ -994,9 +994,9 @@ OENTRY opcodlst_1[] = {
 { "remove",      S(DELETEIN),         1,      "",             "T",
    (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
 #ifdef PARCS
-{ "##globallock",   S(GLOBAL_LOCK_UNLOCK), 3, "", "k",
+{ "##globallock",   S(GLOBAL_LOCK_UNLOCK), 3, "", "i",
                     globallock,   globallock,   NULL},
-{ "##globalunlock", S(GLOBAL_LOCK_UNLOCK), 3, "", "k",
+{ "##globalunlock", S(GLOBAL_LOCK_UNLOCK), 3, "", "i",
                     globalunlock, globalunlock, NULL},
 #endif
 { "##error",S(ERRFN), 1,          "i",     "i",   error_fn, NULL,    NULL    },
