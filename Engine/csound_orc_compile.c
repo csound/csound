@@ -579,6 +579,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     ip->mdepends = 0;
     ip->opdstot = 0;
+    
 
     ip->pmax = 3L;
 
@@ -822,8 +823,9 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
                                       insno_priority, engineState))) {
         synterr(csound, Str("instr %s redefined"), c);
       }
-      ip->insname = c;
-
+     
+      ip->insname =  csound->Malloc(csound, strlen(c) + 1);
+      strcpy(ip->insname, c);
     }
     current = statements;
     while (current != NULL) {
@@ -1249,7 +1251,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                                 engineState))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
-                instrtxt->insname = c;
+                instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
+                strcpy(instrtxt->insname, c);
               }
             }
             else {
@@ -1272,7 +1275,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                                 engineState))) {
                   synterr(csound, Str("instr %s redefined"), c);
                 }
-                instrtxt->insname = c;
+                instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
+                strcpy(instrtxt->insname, c);
               }
               break;
             }
