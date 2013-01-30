@@ -37,7 +37,7 @@
  * external prototypes not in headers
  */
 extern ORCTOKEN *lookup_token(CSOUND *csound, char *);
-
+extern void print_tree(CSOUND *, char *, TREE *);
 /***********************************************************************
  * static function prototypes
  */
@@ -221,7 +221,10 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
         if (instr->read_write->count > 0 &&
             instr->read->count == 0 &&
             instr->write->count == 0) {
+          csound->Message(csound, Str("Instr %d needs locks"), instr->insno);
+          //print_tree(csound, "before locks", root);
           current->right = csp_locks_insert(csound, current->right);
+          //print_tree(csound, "after locks", root);
         }
         break;
 
@@ -232,10 +235,8 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
       case '=':
         /*if (current->type == '=')*/
         {
-          struct set_t *left = NULL, *right  = NULL;
-          left = csp_orc_sa_globals_find(csound, current->left);
-          right = csp_orc_sa_globals_find(csound, current->right);
-
+          struct set_t *left = csp_orc_sa_globals_find(csound, current->left);
+          struct set_t *right = csp_orc_sa_globals_find(csound, current->right);
           struct set_t *new = NULL;
           csp_set_union(csound, left, right, &new);
           /* add locks if this is a read-write global variable
@@ -251,8 +252,9 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
             gvar       = global_var_lock_find(csound, global_var);
             lock_tok   = lookup_token(csound, "##globallock");
             unlock_tok = lookup_token(csound, "##globalunlock");
+            snprintf(buf, 8, "%i", gvar->index);
             var_tok    = make_int(csound, buf);
-            var0_tok    = make_int(csound, buf);
+            var0_tok   = make_int(csound, buf);
 
             lock_leaf  = make_leaf(csound, current->line, current->locn,
                                    T_OPCODE, lock_tok);
@@ -268,13 +270,16 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
               lock_leaf->next = current;
               unlock_leaf->next = current->next;
               current->next = unlock_leaf;
-              current = old_current;
+              current = unlock_leaf;
+              //print_tree(csound, "changed to\n", lock_leaf);
             }
             else {
               previous->next = lock_leaf;
               lock_leaf->next = current;
               unlock_leaf->next = current->next;
               current->next = unlock_leaf;
+              current = unlock_leaf;
+              //print_tree(csound, "changed-1 to\n", lock_leaf);
             }
           }
 
