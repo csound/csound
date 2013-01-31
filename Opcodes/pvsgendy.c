@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include "pstream.h"
 
 typedef struct {
@@ -72,18 +72,18 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
     int     i, N = p->fin->N;
     MYFLT   mrate = *p->kmrate;
     MYFLT   frate = *p->kfrate;
-    float   *fin = (float *) p->fin->frame.auxp;
-    float   *fout = (float *) p->fout->frame.auxp;
+    float   *finf = (float *) p->fin->frame.auxp;
+    float   *foutf = (float *) p->fout->frame.auxp;
 
-    if (UNLIKELY(fout == NULL)) goto err1;
+    if (UNLIKELY(foutf == NULL)) goto err1;
 
     if (p->fin->sliding) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
-      for (n=0; n<offset; n++) fout[i].re = fout[i].im = FL(0.0);
-      for (n=nspms-early; n<nspms; n++) fout[i].re = fout[i].im = FL(0.0);
+      for (n=0; n<offset; n+=2) foutf[n] = foutf[n+1] = FL(0.0);
+      for (n=nsmps-early; n<nsmps; n+=2) foutf[n] = foutf[n+1] = FL(0.0);
       nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         int change = 0;
@@ -102,8 +102,8 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
     if (p->lastframe < p->fin->framecount) {
       for (i = 0; i < N; i += 2) {
         MYFLT x = frate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX/(MYFLT)(i+1);
-        fout[i+1] = fin[i+1] + x;
-        fout[i] = fin[i] + mrate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
+        foutf[i+1] = finf[i+1] + x;
+        foutf[i] = finf[i] + mrate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
