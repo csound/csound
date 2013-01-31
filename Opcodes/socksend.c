@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include <sys/types.h>
 #ifdef WIN32
 #include <winsock2.h>
