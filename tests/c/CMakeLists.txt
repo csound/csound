@@ -30,6 +30,10 @@ target_link_libraries(csoundOrcSemanticsTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
 add_test(NAME csoundOrcSemanticsTest
 	COMMAND $<TARGET_FILE:csoundOrcSemanticsTest> ${TEST_ARGS})
 
+add_executable(csoundOrcCompileTest csound_orc_compile_test.c)
+target_link_libraries(csoundOrcCompileTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME csoundOrcCompileTest
+	COMMAND $<TARGET_FILE:csoundOrcCompileTest> ${TEST_ARGS})
 
 endif()
 

@@ -48,6 +48,10 @@ pvsfread.
 
   - other features?
 
+12) More user control over size of graphs (request from Menno)
+
+13) Functions of more than 1 argument
+
 rc1 aimed for 28 Feb
 
 =====

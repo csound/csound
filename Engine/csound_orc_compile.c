@@ -161,17 +161,77 @@ static inline void append_optxt(OPTXT *op1, OPTXT *op2)
   last_optxt(op1)->nxtop = op2;
 }
 
+/** Counts number of args in argString, taking into account array identifiers */
+int argsRequired(char* argString) {
+    
+    int retVal = 0;
+    char* t = argString;
+    
+    if(t != NULL) {        
+        while(*t != '\0') {
+            retVal++;
+            if (*t == '[') {
+                while(*t != ';' && *t != '\0') {
+                    t++;
+                }
+            }
+            t++;
+            
+        }
+    }
+    return retVal;
+}
+
+/** Splits args in argString into char**, taking into account array identifiers */
+char** splitArgs(CSOUND* csound, char* argString) {
+    
+    int argCount = argsRequired(argString);
+    char** args = mmalloc(csound, sizeof(char**) * (argCount + 1));
+    char* t = argString;
+    int i = 0;
+    
+    if(t != NULL) {
+        while(*t != '\0' ) {
+            char* part;
+            
+            if (*t == '[') {
+                int len = 0;
+                char* start = t;
+                while(*t != ';' && *t != '\0') {
+                    t++;
+                    len++;
+                }
+                part = mmalloc(csound, sizeof(char) * (len + 1));
+                stpncpy(part, start, len);
+                part[len] = '\0';
+                
+            } else {
+                part = mmalloc(csound, sizeof(char) * 2);
+                part[0] = *t;
+                part[1] = '\0';
+            }
+            args[i] = part;
+            t++;
+            i++;
+        }
+    }
+    
+    args[argCount] = NULL;
+    
+    return args;
+}
+
 void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 {
     int n = tp->inlist->count;
     char *s;
-    char *types = ep->intypes;
-    int nreqd = strlen(types);
+    int nreqd = argsRequired(ep->intypes);
+    char **types = splitArgs(csound, ep->intypes);
     //int lgprevdef = 0;
     char      tfound = '\0', treqd;
 
     if (n > nreqd) {                 /* IV - Oct 24 2002: end of new code */
-      if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
+      if ((treqd = *types[nreqd-1]) == 'n') {  /* indef args: */
         int incnt = -1;                       /* Should count args */
         if (!(incnt & 01))                    /* require odd */
           synterr(csound, Str("missing or extra arg"));
@@ -186,16 +246,16 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       s = tp->inlist->arg[n];
 
       if (n >= nreqd) {               /* det type required */
-        switch (types[nreqd-1]) {
+        switch (*types[nreqd-1]) {
         case 'M':
         case 'N':
         case 'Z':
         case 'y':
-        case 'z':   treqd = types[nreqd-1]; break;
+        case 'z':   treqd = *types[nreqd-1]; break;
         default:    treqd = 'i';    /*   (indef in-type) */
         }
       }
-      else treqd = types[n];          /*       or given)   */
+      else treqd = *types[n];          /*       or given)   */
       if (treqd == 'l') {             /* if arg takes lbl  */
         csound->DebugMsg(csound, "treqd = l");
         //        lblrequest(csound, s);        /*      req a search */
@@ -248,6 +308,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 //        }
 //      }//
     }
+    mfree(csound, types);
     //csound->DebugMsg(csound, "xincod = %d", tp->xincod);
 }
 
@@ -256,12 +317,12 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 {
     int n = tp->outlist->count;
     char *s;
-    char *types = ep->outypes;
-    int nreqd = -1;
+    char **types = splitArgs(csound, ep->outypes);
+    int nreqd = argsRequired(ep->outypes);
     char      tfound = '\0', treqd;
 
-    if (nreqd < 0)    /* for other opcodes */
-      nreqd = strlen(types = ep->outypes);
+//    if (nreqd < 0)    /* for other opcodes */
+//      nreqd = argsRequired(types = ep->outypes);
 /* if ((n != nreqd) && */        /* IV - Oct 24 2002: end of new code */
 /*          !(n > 0 && n < nreqd &&
             (types[n] == (char) 'm' || types[n] == (char) 'z' ||
@@ -276,7 +337,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     while (n--) {                                     /* outargs:  */
       //long    tfound_m;       /* IV - Oct 31 2002 */
       s = tp->outlist->arg[n];
-      treqd = types[n];
+      treqd = *types[n];
       tfound = argtyp2(s);                     /*  found    */
       /* IV - Oct 31 2002 */
 //      tfound_m = STA(typemask_tabl)[(unsigned char) tfound];
@@ -299,6 +360,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 //                s, ep->opname, line);
 //      }
     }
+    mfree(csound, types);
 }
 
 
@@ -1364,6 +1426,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     char        **argp;
 
     int n, inreqd;
+    char**  argStringParts;
     ARGLST      *outlist, *inlist;
     optxt = (OPTXT *)tp;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
@@ -1401,11 +1464,12 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       if ((inlist = ttp->inlist) == NULL || !inlist->count)
         ttp->inArgs = NULL;
       else {
-        inreqd = strlen(ep->intypes);
+        inreqd = argsRequired(ep->intypes);
+        argStringParts = splitArgs(csound, ep->intypes);
         argp = inlist->arg;                     /* get inarg indices */
         for (n=0; n < inlist->count; n++, argp++) {
           ARG* arg = NULL;
-          if (n < inreqd && ep->intypes[n] == 'l') {
+          if (n < inreqd && *argStringParts[n] == 'l') {
             arg = csound->Calloc(csound, sizeof(ARG));
             arg->type = ARG_LABEL;
             arg->argPtr = mmalloc(csound, strlen(*argp) + 1);
@@ -1430,7 +1494,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
         }
 
         ttp->inArgCount = argCount(ttp->inArgs);
-
+        mfree(csound, argStringParts);
       }
     }
 }

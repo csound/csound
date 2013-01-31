@@ -38,10 +38,12 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x);
 /* finish the current instrument */
 void csp_orc_sa_instr_finalize(CSOUND *csound);
 
-/* add the globals read and written to the current instrument
+/* add the globals read and written to the current instrument; second case
  * if write and read contain the same global and size of both is 1 then
  * that global is added to the read-write list of the current instrument */
 void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
+                                           struct set_t *write, struct set_t *read);
+void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
                                            struct set_t *write, struct set_t *read);
 
 /* add to the read and write lists of the current instrument */
