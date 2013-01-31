@@ -34,6 +34,12 @@ char *csound_orcget_text ( void *scanner );
 extern  char argtyp2(char*);
 extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
+
+/* from csound_orc_compile.c */
+extern int argsRequired(char* arrayName);
+extern char** splitArgs(CSOUND* csound, char* argString);
+
+
 /* TREE* force_rate(TREE* a, char t) */
 /* {                               /\* Ensure a is of type t *\/ */
 /*     return a; */
@@ -834,9 +840,11 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     int nreqd = 0;
     int incnt = tree_arg_list_count(l->right);
     TREE * temp;
+    char** inArgParts;
 
     if (ep->intypes != NULL) {
-      nreqd = strlen(ep->intypes);
+      nreqd = argsRequired(ep->intypes);
+      inArgParts = splitArgs(csound, ep->intypes);
     }
 
     if (PARSER_DEBUG) {
@@ -846,7 +854,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     }
     if (incnt < nreqd) {         /*  or set defaults: */
       do {
-        switch (ep->intypes[incnt]) {
+        switch (*inArgParts[incnt]) {
         case 'O':             /* Will this work?  Doubtful code.... */
         case 'o':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
