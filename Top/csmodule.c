@@ -675,7 +675,7 @@ int csoundLoadModules(CSOUND *csound)
  */
 int csoundLoadModules(CSOUND *csound)
 {
-#ifdef HAVE_DIRENT_H
+#if (defined(HAVE_DIRENT_H) && (TARGET_OS_IPHONE == 0))
     DIR             *dir;
     struct dirent   *f;
     const char      *dname, *fname;
@@ -700,9 +700,9 @@ int csoundLoadModules(CSOUND *csound)
     }
     dir = opendir(dname);
     if (UNLIKELY(dir == (DIR*) NULL)) {
-      csound->ErrorMsg(csound, Str("Error opening plugin directory '%s': %s"),
+      csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
                                dname, strerror(errno));
-      return CSOUND_ERROR;
+      return CSOUND_SUCCESS;
     }
     /* load database for deferred plugin loading */
 /*     n = csoundLoadOpcodeDB(csound, dname); */
