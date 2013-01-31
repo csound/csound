@@ -892,6 +892,7 @@ add_subdirectory(util1)
 add_subdirectory(SDIF)
 add_subdirectory(po)
 add_subdirectory(tests/c)
+add_subdirectory(tests/commandline)
 
 # uninstall target
 configure_file(
