@@ -42,6 +42,8 @@ void test_type_system(void)
     result = convertArrayName(csound, "gkSignals");
     CU_ASSERT_STRING_EQUAL(result, "g[kSignals");
     
+    result = convertArrayName(csound, "g[kSignals");
+    CU_ASSERT_STRING_EQUAL(result, "g[[kSignals");
 }
 
 

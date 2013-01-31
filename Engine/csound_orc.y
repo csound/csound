@@ -381,7 +381,6 @@ statement : ident '=' expr NEWLINE
               TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
               ans->left = (TREE *)$1;
               ans->right = (TREE *)$3;
-              //print_tree(csound, "TABLE ASSIGN", ans);
               $$ = ans; 
 
           }
@@ -502,14 +501,22 @@ ans       : ident               { $$ = $1; }
           | ans ',' arrayexpr     { $$ = appendToTree(csound, $1, $3); }
           ;
 
-arrayexpr : ident '[' iexp ']' 
+arrayexpr :  arrayexpr '[' iexp ']'
+          {
+            appendToTree(csound, $1->right, $3);
+            char* oldName = $1->left->value->lexeme;
+            $1->left->value = make_token(csound, convertArrayName(csound, oldName));
+            mfree(csound, oldName);
+            $$ = $1;
+          }
+          | ident '[' iexp ']' 
           { 
             char* arrayName = convertArrayName(csound, $1->value->lexeme);
             $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
-                   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
+	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
 
           }
-
+          ;
 
 ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
           {
@@ -717,11 +724,7 @@ iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
 
 ifac      : ident               { $$ = $1; }
           | constant            { $$ = $1; }
-          | ident '[' iexp ']' { 
-            char* arrayName = convertArrayName(csound, $1->value->lexeme);
-            $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
-                   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
-           }
+          | arrayexpr		{ $$ = $1; }
          /* | T_IDENT_T '[' iexp ']'
           {
               $$ = make_node(csound,LINE,LOCN, S_TABREF,
@@ -865,11 +868,17 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
           ;
 
 
-arrayident: ident '[' ']' 
-          { 
+arrayident: arrayident '[' ']' {          
+            char* arrayName = $1->value->lexeme;
+            $1->value = make_token(csound, convertArrayName(csound, arrayName));
+            mfree(csound, arrayName);
+            $$ = $1;
+          }
+          | ident '[' ']' {
             char* arrayName = convertArrayName(csound, $1->value->lexeme);
             $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, arrayName)); 
-          }
+          };
+
 
 ident : T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
 

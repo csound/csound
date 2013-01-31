@@ -34,7 +34,7 @@ extern "C" {
         CS_TYPE* varType;
         int memBlockSize;
         int memBlockIndex;
-        /* void* memblock; */
+        int dimensions;  // used by arrays
         int refCount;
         struct csvariable* next;
         CS_TYPE* subType;

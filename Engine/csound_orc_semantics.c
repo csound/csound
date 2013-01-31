@@ -436,7 +436,7 @@ void delete_tree(CSOUND *csound, TREE *l)
       }
       if (l->value) {
        if (l->value->lexeme) {
-         //printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
+         printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
         mfree(csound, l->value->lexeme);
         //l->value->lexeme = NULL;
        }

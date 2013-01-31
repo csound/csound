@@ -1119,10 +1119,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             
             TREE* arraySet = create_opcode_token(csound, "array_set");
             arraySet->right = currentAns->left;
-            arraySet->right->next = currentAns->right;
-            arraySet->right->next->next =
-            make_leaf(csound, temp->line, temp->locn,
-                      T_IDENT, make_token(csound, temp->value->lexeme));
+            arraySet->right->next = make_leaf(csound, temp->line, temp->locn,
+                                                T_IDENT, make_token(csound, temp->value->lexeme));
+            arraySet->right->next->next = currentAns->right;
             
             arraySet->next = current->next;
             current->next = arraySet;
