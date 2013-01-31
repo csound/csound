@@ -1107,33 +1107,33 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         {
           TREE* currentArg = current->right;
           TREE* currentAns = current->left;
+          char anstype, argtype;
+
           //csound->Message(csound, "Assignment Statement.\n");
+            
+          if (currentAns->type == T_ARRAY) {
+            anstype = argtyp2(currentAns->left->value->lexeme);
+            TREE* temp = create_ans_token(csound,
+                                          create_out_arg(csound, anstype));
+            current->left = temp;
+            
+            TREE* arraySet = create_opcode_token(csound, "array_set");
+            arraySet->right = currentAns->left;
+            arraySet->right->next = currentAns->right;
+            arraySet->right->next->next =
+            make_leaf(csound, temp->line, temp->locn,
+                      T_IDENT, make_token(csound, temp->value->lexeme));
+            
+            arraySet->next = current->next;
+            current->next = arraySet;
+            currentAns = temp;
+            
+          }
+            
           if (currentArg->left || currentArg->right) {
-            char anstype, argtype;
             //csound->Message(csound, "expansion case\n");
+            anstype = argtyp2( currentAns->value->lexeme);
               
-            if (currentAns->type == T_ARRAY) {
-                anstype = argtyp2(currentAns->left->value->lexeme);
-                TREE* temp = create_ans_token(csound,
-                                              create_out_arg(csound, anstype));
-                current->left = temp;
-                
-                TREE* arraySet = create_opcode_token(csound, "array_set");
-                arraySet->right = currentAns->left;
-                arraySet->right->next = currentAns->right;
-                arraySet->right->next->next =
-                  make_leaf(csound, temp->line, temp->locn, 
-                            T_IDENT, make_token(csound, temp->value->lexeme));
-
-                arraySet->next = current->next;
-                current->next = arraySet;
-                currentAns = temp;
-
-            } else {
-                anstype = argtyp2( currentAns->value->lexeme);
-            }
-              
-
             //print_tree(csound, "Assignment\n", current);
             expressionNodes =
               create_expression(csound, currentArg,
