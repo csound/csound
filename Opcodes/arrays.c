@@ -65,6 +65,7 @@ static int array_del(CSOUND *csound, void *p)
 static int array_init(CSOUND *csound, ARRAYINIT *p)
 {
     ARRAYDAT* arrayDat = p->arrayDat;
+    int i;
     
     int inArgCount = p->INOCOUNT;
     
@@ -75,14 +76,14 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
     
     arrayDat->dimensions = inArgCount;
     arrayDat->sizes = mcalloc(csound, sizeof(int) * inArgCount);
-    for (int i = 0; i < inArgCount; i++) {
+    for (i = 0; i < inArgCount; i++) {
         arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[0]);
     }
     
     int size = arrayDat->sizes[0];
     
     if(inArgCount > 1) {
-        for (int i = 1; i < inArgCount; i++) {
+        for (i = 1; i < inArgCount; i++) {
             size *= arrayDat->sizes[i];
         }
         size = MYFLT2LRND(size);
@@ -109,6 +110,7 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
 static int array_set(CSOUND* csound, ARRAY_SET *p) {
     ARRAYDAT* dat = p->arrayDat;
     MYFLT* mem = dat->data;
+    int i;
     
     int indefArgCount = p->INOCOUNT - 2;
     
@@ -120,7 +122,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
     int index = MYFLT2LRND(*p->indexes[end]);
     
     if(indefArgCount > 1) {
-        for (int i = end - 1; i >= 0; i--) {
+        for (i = end - 1; i >= 0; i--) {
             index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
         }
     }
@@ -134,6 +136,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
 static int array_get(CSOUND* csound, ARRAY_GET *p) {
     ARRAYDAT* dat = p->arrayDat;
     MYFLT* mem = dat->data;
+    int i;
     
     int indefArgCount = p->INOCOUNT - 1;
     
@@ -145,7 +148,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
     int index = MYFLT2LRND(*p->indexes[end]);
     
     if(indefArgCount > 1) {
-        for (int i = end - 1; i >= 0; i--) {
+        for (i = end - 1; i >= 0; i--) {
             index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
         }
     }
