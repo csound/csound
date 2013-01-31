@@ -1,12 +1,28 @@
 /*
 ** CSound-parallel-dispatch.c
 ** 
-** Martin Brain
-** mjb@cs.bath.ac.uk
-** 04/08/12
+**    Copyright (C)  Martin Brain (mjb@cs.bath.ac.uk) 04/08/12
 **
-** Realisation in code John ffitch Jan 2013
+**    Realisation in code John ffitch Jan 2013
 **
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+
+
 ** Fast system for managing task dependencies and dispatching to threads.
 ** 
 ** Has a DAG of tasks and has to assign them to worker threads while respecting
@@ -21,9 +37,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include "csGblMtx.h"
 
 /* Used as an error value */
 typedef int taskID;
@@ -36,7 +54,7 @@ enum state { INACTIVE = 4,         /* No task */
 	     INPROGRESS = 1,       /* Has been started */
 	     DONE = 0 };           /* Has been completed */
 
-/* Array of states of each task */
+/* Array of states of each task -- need to move to CSOUND structure */
 static enum state *task_status = NULL;          /* OPT : Structure lay out */
 static taskID *task_watch = NULL; 
 
@@ -55,6 +73,37 @@ static watchList ** task_dep;                        /* OPT : Structure lay out 
 static int task_max_size;
 static int dag_dispatched;
 
+static void dag_print_state(CSOUND *csound)
+{
+    int i;
+    printf("*** %d tasks\n", csound->dag_num_active);
+    for (i=0; i<csound->dag_num_active; i++) {
+      printf("%d: ", i);
+      switch (task_status[i]) {
+      case DONE:
+        printf("status=DONE\n"); break;
+      case INPROGRESS:
+        printf("status=INPROGRESS\n"); break;
+      case AVAILABLE:
+        printf("status=AVAILABLE\n"); break;
+      case WAITING: 
+        {
+          watchList *tt = task_dep[i];
+          printf("status=WAITING for task %d (", task_watch[i]);
+          while (tt) { 
+            printf("%d ", tt->id);
+            tt = tt->next;
+          }
+          printf(")\n");
+        }
+        break;
+      default:
+        printf("status=???\n"); break;
+      }
+    }
+    printf("\n");
+}
+	     
 /* For now allocate a fixed maximum number of tasks; FIXME */
 void create_dag(CSOUND *csound)
 {
@@ -90,7 +139,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
     return current_instr;
 }
 
-static int dag_intersect(CSOUND *csound, struct set_t *current, struct set_t *later)
+static int dag_intersect(CSOUND *csound, struct set_t *current, struct set_t *later, int cnt)
 {
     struct set_t *ans;
     int res = 0;
@@ -113,21 +162,17 @@ void dag_build(CSOUND *csound, INSDS *chain)
     int i;
     if (task_status == NULL) create_dag(csound); /* Should move elsewhere */
     else { 
-      memset(task_watch, '\0', sizeof(enum state)*(task_max_size=INIT_SIZE));
+      memset(task_watch, '\0', sizeof(enum state)*task_max_size);
       for (i=0; i<task_max_size; i++) {
         dag_free_watch(csound, task_dep[i]);
+        task_watch[i] = 0;
         task_dep[i] = NULL;
       }
     }
     csound->dag_num_active = 0;
     while (chain != NULL) {
-      INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
+      //INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
       csound->dag_num_active++;
-      printf("insno %d: %p/%p/%p %d/%d/%d\n",
-             chain->insno, current_instr->read, current_instr->write,
-             current_instr->read_write, current_instr->read->count,
-             current_instr->write->count, current_instr->read_write->count);
-      //csp_dag_add(csound, dag, current_instr, chain);
       //dag->weight += current_instr->weight;
       chain = chain->nxtact;
     }
@@ -135,6 +180,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       printf("**************need to extend task vector\n");
       exit(1);
     }
+    for (i=0; i<csound->dag_num_active; i++) task_status[i] = AVAILABLE;
     csound->dag_changed = 0;
     printf("dag_num_active = %d\n", csound->dag_num_active);
     i = 0; chain = save;
@@ -147,29 +193,32 @@ void dag_build(CSOUND *csound, INSDS *chain)
       //csp_set_print(csound, current_instr->write);
       while (next) {
         INSTR_SEMANTICS *later_instr = dag_get_info(csound, next->insno);
+        int cnt = 0;
         printf("%d ", j);
         //csp_set_print(csound, later_instr->read);
         //csp_set_print(csound, later_instr->write);
         //csp_set_print(csound, later_instr->read_write);
-        if (dag_intersect(csound, current_instr->write, later_instr->read) ||
-            dag_intersect(csound, current_instr->read_write, later_instr->read) ||
-            dag_intersect(csound, current_instr->read, later_instr->write) ||
-            dag_intersect(csound, current_instr->write, later_instr->write) ||
-            dag_intersect(csound, current_instr->read_write, later_instr->write) ||
-            dag_intersect(csound, current_instr->read, later_instr->read_write) ||
-            dag_intersect(csound, current_instr->write, later_instr->read_write) ||
-            dag_intersect(csound, 
-                          current_instr->read_write, later_instr->read_write)) {
+        if (dag_intersect(csound, current_instr->write, later_instr->read, cnt++) ||
+            dag_intersect(csound, current_instr->read_write, later_instr->read, cnt++) ||
+            dag_intersect(csound, current_instr->read, later_instr->write, cnt++) ||
+            dag_intersect(csound, current_instr->write, later_instr->write, cnt++) ||
+            dag_intersect(csound, current_instr->read_write, later_instr->write, cnt++) ||
+            dag_intersect(csound, current_instr->read, later_instr->read_write, cnt++) ||
+            dag_intersect(csound, current_instr->write, later_instr->read_write, cnt++)) {
           watchList *n = (watchList*)mmalloc(csound, sizeof(watchList));
           n->id = i;
           n->next = task_dep[j];
           task_dep[j] = n;
-          printf("yes ");
+          task_status[j] = WAITING;
+          task_watch[j] = i;
+          printf("yes-%d ", cnt);
         }
         j++; next = next->nxtact;
       }
+      if (task_dep[i]) task_watch[i] = task_dep[i]->id;
       i++; chain = chain->nxtact;
     }
+    dag_print_state(csound);
 }
 
 void dag_reinit(CSOUND *csound)
@@ -191,6 +240,90 @@ void dag_reinit(CSOUND *csound)
     }
     for (i=csound->dag_num_active; i<task_max_size; i++)
       task_status[i] = DONE;
+}
+
+void dag_add_work(CSOUND *csound, taskID i)
+{
+}
+
+/* **** Thread code ****  */
+
+static int getThreadIndex(CSOUND *csound, void *threadId)
+{
+#ifndef mac_classic
+    int index = 0;
+    THREADINFO *current = csound->multiThreadedThreadInfo;
+    
+    if (current == NULL) return -1;
+    while(current != NULL) {
+      if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
+        return index;
+      index++;
+      current = current->next;
+    }
+#endif
+    return -1;
+}
+
+unsigned long dag_kperfThread(void * cs)
+{
+    INSDS *start;
+    CSOUND *csound = (CSOUND *)cs;
+    void *threadId;
+    int index;
+    int numThreads;
+
+    /* Wait for start */
+    csound->WaitBarrier(csound->barrier2);
+
+    threadId = csound->GetCurrentThreadID();
+    index = getThreadIndex(csound, threadId);
+    numThreads = csound->oparms->numThreads;
+    start = NULL;
+    csound->Message(csound,
+                    "Multithread performance: insno: %3d  thread %d of "
+                    "%d starting.\n",
+                    start ? start->insno : -1,
+                    index,
+                    numThreads);
+    if (index < 0) {
+      csound->Die(csound, "Bad ThreadId");
+      return ULONG_MAX;
+    }
+    index++;
+
+    while (1) {
+
+      csound->WaitBarrier(csound->barrier1);
+      csound_global_mutex_lock();
+      if (csound->multiThreadedComplete == 1) {
+        csound_global_mutex_unlock();
+        free(threadId);
+        csound->Message(csound,
+           "Multithread performance: insno: %3d  thread "
+           "%d of %d exiting.\n",
+           start->insno,
+           index,
+           numThreads);
+        return 0UL;
+      }
+      csound_global_mutex_unlock();
+      
+      /* TIMER_T_END(mutex, index, "Mutex "); */
+      
+      TIMER_INIT(thread, "");
+      TIMER_T_START(thread, index, "");
+
+      // DO WORK nodePerf(csound, index);
+
+      TIMER_T_END(thread, index, "");
+      
+      TRACE_1("[%i] Done\n", index);
+
+      SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
+      csound->WaitBarrier(csound->barrier2);
+      TRACE_1("[%i] Barrier2 Done\n", index);
+    }
 }
 
 #if 0

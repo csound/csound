@@ -34,6 +34,7 @@
 %token S_LT
 %token S_LE
 %token S_EQ
+%token S_ADDIN
 %token S_TASSIGN
 %token S_TABREF
 %token S_GT
@@ -349,10 +350,28 @@ statement : ident '=' expr NEWLINE
                   ans->right = (TREE *)$3;
                   /* ans->value->lexeme = get_assignment_type(csound,
                      ans->left->value->lexeme, ans->right->value->lexeme); */
-
+                  //print_tree(csound, "=", ans);
                   $$ = ans;
 #ifdef PARCS
                   csp_orc_sa_global_read_write_add_list(csound,
+                                    csp_orc_sa_globals_find(csound, ans->left),
+                                    csp_orc_sa_globals_find(csound, ans->right));
+#endif
+                }
+          | ident S_ADDIN expr NEWLINE
+                { 
+                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
+                                        make_token(csound, "="));
+                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
+                  ans->left = (TREE *)$1;
+                  ans->right = make_node(csound,LINE,LOCN, '+', 
+                                         make_leaf(csound,LINE,LOCN, 
+                                                   $1->value->type, repeat),
+                                         (TREE *)$3);
+                  //print_tree(csound, "+=", ans);
+                  $$ = ans;
+#ifdef PARCS
+                  csp_orc_sa_global_read_write_add_list1(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
 #endif
@@ -853,26 +872,6 @@ arrayident: ident '[' ']'
           }
 
 ident : T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
-
-/*ident     : T_IDENT_I  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_I, (ORCTOKEN *)$1); }
-          | T_IDENT_K  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_K, (ORCTOKEN *)$1); }
-          | T_IDENT_F  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_F, (ORCTOKEN *)$1); }
-          | T_IDENT_W  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_W, (ORCTOKEN *)$1); }
-          | T_IDENT_S  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_S, (ORCTOKEN *)$1); }
-          | T_IDENT_T  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_T, (ORCTOKEN *)$1); }
-          | T_IDENT_A  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_A, (ORCTOKEN *)$1); }
-          | T_IDENT_P  { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_P, (ORCTOKEN *)$1); }
-          | gident     { $$ = $1; }
-          ;
-
-gident    : T_IDENT_GI { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_GI, (ORCTOKEN *)$1); }
-          | T_IDENT_GK { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_GK, (ORCTOKEN *)$1); }
-          | T_IDENT_GF { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_GF, (ORCTOKEN *)$1); }
-          | T_IDENT_GW { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_GW, (ORCTOKEN *)$1); }
-          | T_IDENT_GS { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_GS, (ORCTOKEN *)$1); }
-          | T_IDENT_GT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_GS, (ORCTOKEN *)$1); }
-          | T_IDENT_GA { $$ = make_leaf(csound, LINE,LOCN, T_IDENT_GA, (ORCTOKEN *)$1); }
-          ;*/
 
 constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
                                            INTEGER_TOKEN, (ORCTOKEN *)$1); }
