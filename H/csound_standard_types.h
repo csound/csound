@@ -28,6 +28,11 @@ extern "C" {
     extern const CS_TYPE CS_VAR_TYPE_B;
     extern const CS_TYPE CS_VAR_TYPE_b;
     extern const CS_TYPE CS_VAR_TYPE_ARRAY;
+    
+    typedef struct arrayVarInit {
+        int dimensions;
+        CS_TYPE* type;
+    } ARRAY_VAR_INIT;
 
 #ifdef	__cplusplus
 }
