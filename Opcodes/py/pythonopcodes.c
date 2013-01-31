@@ -67,7 +67,7 @@ static PyObject *
 run_statement_in_given_context(char *string, PyObject *private)
 {
     PyObject  *module, *public;
-
+    
     module = PyImport_AddModule("__main__");
     if (module == NULL) {
       PyErr_SetString(PyExc_RuntimeError, "couldn't find module __main__");
@@ -152,19 +152,25 @@ static CS_NOINLINE int pyErrMsg(void *p, const char *msg)
     return NOTOK;
 }
 
-static int pythonInitialized = 0;
-
 static int pyinit(CSOUND *csound, PYINIT *p)
 {
     (void) csound;
     (void) p;
-    if (!pythonInitialized) {
+    int *py_initialize_done;
+
+    if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL){
+    csound->CreateGlobalVariable(csound, "PY_INITIALIZE", sizeof(int));
+    py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE");
+    *py_initialize_done = 0;
+    }
+
+    if (*py_initialize_done == 0) {
 #ifdef mac_classic
       PyMac_Initialize();
 #else
       Py_Initialize();
 #endif
-      pythonInitialized = 1;
+    *py_initialize_done = 1;
     }
     return OK;
 }

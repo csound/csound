@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
