@@ -1596,6 +1596,7 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
     char* argLetter;
     CS_VARIABLE* var;
     char* t = s;
+    ARRAY_VAR_INIT varInit;
 
     var = csoundFindVariableWithName(engineState->varPool, s);
 
@@ -1612,8 +1613,21 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
     void* typeArg = NULL;
 
     if(*t == '[') {
-      argLetter[0] = *(t + 1);
-      typeArg = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        int dimensions = 1;
+        CS_TYPE* varType;
+        char* b = t + 1;
+        
+        while(*b == '[' && b != NULL) {
+            b++;
+            dimensions++;
+        }
+        argLetter[0] = *b;
+        
+        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        
+        varInit.dimensions = dimensions;
+        varInit.type = varType;
+        typeArg = &varInit;
     }
 
     argLetter[0] = *t;
@@ -1629,6 +1643,7 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
     char* argLetter;
     CS_VARIABLE* var;
     char* t = s;
+    ARRAY_VAR_INIT varInit;
 
     var = csoundFindVariableWithName(ip->varPool, s);
 
@@ -1644,8 +1659,21 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
     void* typeArg = NULL;
 
     if(*t == '[') {
-      argLetter[0] = *(t + 1);
-      typeArg = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        int dimensions = 1;
+        CS_TYPE* varType;
+        char* b = t + 1;
+        
+        while(*b == '[') {
+            b++;
+            dimensions++;
+        }
+        argLetter[0] = *b;
+        
+        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        
+        varInit.dimensions = dimensions;
+        varInit.type = varType;
+        typeArg = &varInit;
     }
 
     argLetter[0] = *t;
