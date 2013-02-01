@@ -498,7 +498,8 @@ typedef struct CORFIL {
   typedef struct oentry {
     char    *opname;
     uint16  dsblksiz;
-    uint16  thread;
+    uint16  flags;
+    uint8_t thread;
     char    *outypes;
     char    *intypes;
     int     (*iopadr)(CSOUND *, void *p);
@@ -944,7 +945,7 @@ typedef struct NAME__ {
     void (*SetExitGraphCallback)(CSOUND *, int (*exitGraphCallback)(CSOUND *));
     int (*NewOpcodeList)(CSOUND *, opcodeListEntry **);
     void (*DisposeOpcodeList)(CSOUND *, opcodeListEntry *);
-    int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz,
+    int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
                         int thread, const char *outypes, const char *intypes,
                         int (*iopadr)(CSOUND *, void *),
                         int (*kopadr)(CSOUND *, void *),

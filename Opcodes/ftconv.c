@@ -304,7 +304,7 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
 int ftconv_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "ftconv",
-                                (int) sizeof(FTCONV), TR|5, "mmmmmmmm", "aiiooo",
+                                (int) sizeof(FTCONV), TR, 5, "mmmmmmmm", "aiiooo",
                                 (int (*)(CSOUND *, void *)) ftconv_init,
                                 (int (*)(CSOUND *, void *)) NULL,
                                 (int (*)(CSOUND *, void *)) ftconv_perf);

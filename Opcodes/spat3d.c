@@ -873,11 +873,11 @@ static int    spat3dt(CSOUND *csound, SPAT3D *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    { "spat3d", S(SPAT3D), 5, "aaaa", "akkkiiiiio",
+    { "spat3d", S(SPAT3D), 0, 5, "aaaa", "akkkiiiiio",
                     (SUBR) spat3dset,   NULL,   (SUBR) spat3d   },
-    { "spat3di",S(SPAT3D), 5, "aaaa", "aiiiiiio",
+    { "spat3di",S(SPAT3D), 0, 5, "aaaa", "aiiiiiio",
                     (SUBR) spat3diset,  NULL,   (SUBR) spat3di  },
-    { "spat3dt",S(SPAT3D), 1, "", "iiiiiiiio",
+    { "spat3dt",S(SPAT3D), 0, 1, "", "iiiiiiiio",
                     (SUBR) spat3dt,     NULL,   NULL            }
 };
 

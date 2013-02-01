@@ -1221,40 +1221,40 @@ static int binit_process(CSOUND *csound, _PSBIN *p)
 
 static OENTRY localops[] =
   {
-    {"tradsyn", sizeof(_PSYN), 5, "a", "fkkki", (SUBR) psynth_init, NULL,
+    {"tradsyn", sizeof(_PSYN),0,  5, "a", "fkkki", (SUBR) psynth_init, NULL,
      (SUBR) psynth_process}
     ,
-    {"sinsyn", sizeof(_PSYN2), TR|5, "a", "fkki", (SUBR) psynth2_init, NULL,
+    {"sinsyn", sizeof(_PSYN2), TR, 5, "a", "fkki", (SUBR) psynth2_init, NULL,
      (SUBR) psynth2_process}
     ,
-    {"resyn", sizeof(_PSYN), TR|5, "a", "fkkki", (SUBR) psynth_init, NULL,
+    {"resyn", sizeof(_PSYN), TR, 5, "a", "fkkki", (SUBR) psynth_init, NULL,
      (SUBR) psynth3_process}
     ,
-    {"trscale", sizeof(_PTRANS), 3, "f", "fz", (SUBR) trans_init,
+    {"trscale", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,
      (SUBR) trscale_process}
     ,
-    {"trshift", sizeof(_PTRANS), 3, "f", "fz", (SUBR) trans_init,
+    {"trshift", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,
      (SUBR) trshift_process}
     ,
-    {"trsplit", sizeof(_PSPLIT), 3, "ff", "fz", (SUBR) trsplit_init,
+    {"trsplit", sizeof(_PSPLIT),0,  3, "ff", "fz", (SUBR) trsplit_init,
      (SUBR) trsplit_process}
     ,
-    {"trmix", sizeof(_PSMIX), 3, "f", "ff", (SUBR) trmix_init,
+    {"trmix", sizeof(_PSMIX),0,  3, "f", "ff", (SUBR) trmix_init,
      (SUBR) trmix_process}
     ,
-    {"trlowest", sizeof(_PLOW), 3, "fkk", "fk", (SUBR) trlowest_init,
+    {"trlowest", sizeof(_PLOW),0,  3, "fkk", "fk", (SUBR) trlowest_init,
      (SUBR) trlowest_process}
     ,
-    {"trhighest", sizeof(_PLOW), 3, "fkk", "fk", (SUBR) trlowest_init,
+    {"trhighest", sizeof(_PLOW),0,  3, "fkk", "fk", (SUBR) trlowest_init,
      (SUBR) trhighest_process}
     ,
-    {"trfilter", sizeof(_PSFIL), 3, "f", "fki", (SUBR) trfil_init,
+    {"trfilter", sizeof(_PSFIL),0,  3, "f", "fki", (SUBR) trfil_init,
      (SUBR) trfil_process}
     ,
-    {"trcross", sizeof(_PSCROSS), 3, "f", "ffkz", (SUBR) trcross_init,
+    {"trcross", sizeof(_PSCROSS),0,  3, "f", "ffkz", (SUBR) trcross_init,
      (SUBR) trcross_process}
     ,
-    {"binit", sizeof(_PSBIN), 3, "f", "fi", (SUBR) binit_init,
+    {"binit", sizeof(_PSBIN),0,  3, "f", "fi", (SUBR) binit_init,
      (SUBR) binit_process}
   };
 

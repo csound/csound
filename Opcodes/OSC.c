@@ -763,12 +763,12 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND), 3, "", "kSiSSN", (SUBR)osc_send_set, (SUBR)osc_send },
+  { "OSCsend", S(OSCSEND), 0, 3, "", "kSiSSN", (SUBR)osc_send_set, (SUBR)osc_send },
 #ifdef VARGA
-{ "OSCrecv", S(OSCRECV), 1, "", "iSo",    (SUBR)OSCrecv_init },
+{ "OSCrecv", S(OSCRECV), 0, 1, "", "iSo",    (SUBR)OSCrecv_init },
 #endif
-{ "OSCinit", S(OSCINIT), 1, "i", "i", (SUBR)osc_listener_init },
-{ "OSClisten", S(OSCLISTEN),3, "k", "iSSN", (SUBR)OSC_list_init, (SUBR)OSC_list}
+{ "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
+{ "OSClisten", S(OSCLISTEN),0, 3, "k", "iSSN", (SUBR)OSC_list_init, (SUBR)OSC_list}
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)

@@ -380,7 +380,8 @@ static void error(CSOUND *csound, const char* a, const char* b)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "wgpluck",S(WGPLUCK),5,"a","iikiiia",(SUBR)pluckPluck,NULL,(SUBR)pluckGetSamps}
+{ "wgpluck",S(WGPLUCK),0, 5,"a","iikiiia",
+   (SUBR)pluckPluck,NULL,(SUBR)pluckGetSamps}
 };
 
 int pluck_init_(CSOUND *csound)

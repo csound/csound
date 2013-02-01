@@ -735,11 +735,12 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
 #define S(x)    sizeof(x)
 
 static OENTRY pitchtrack_localops[] = {
-  {"ptrack", S(PITCHTRACK), 5, "kk", "aio",
+  {"ptrack", S(PITCHTRACK), 0, 5, "kk", "aio",
    (SUBR)pitchtrackinit, NULL, (SUBR)pitchtrackprocess},
-  {"pitchac", S(PITCHTRACK), 5, "k", "akki",
+  {"pitchac", S(PITCHTRACK), 0, 5, "k", "akki",
    (SUBR)pitchafset, NULL, (SUBR)pitchafproc},
-  {"plltrack", S(PLLTRACK), 5, "aa", "akOOOOO",   (SUBR)plltrack_set, NULL, (SUBR)plltrack_perf}
+  {"plltrack", S(PLLTRACK), 0, 5, "aa", "akOOOOO",   
+   (SUBR)plltrack_set, NULL, (SUBR)plltrack_perf}
 
 };
 

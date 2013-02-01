@@ -834,7 +834,7 @@ babo(CSOUND *csound, void *entry)
 #define S(x)    sizeof(x)
 
 static OENTRY babo_localops[] = {
-  { "babo",   S(BABO), TR|5, "aa", "akkkiiijj",(SUBR)baboset, NULL, (SUBR)babo   },
+  { "babo",   S(BABO), TR, 5, "aa", "akkkiiijj",(SUBR)baboset, NULL, (SUBR)babo   },
 };
 
 LINKAGE_BUILTIN(babo_localops)

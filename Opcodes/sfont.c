@@ -2539,30 +2539,30 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "sfload",S(SFLOAD),     1,    "i",    "T",      (SUBR)SfLoad, NULL, NULL },
-{ "sfpreset",S(SFPRESET), 1,    "i",    "iiii",   (SUBR)SfPreset         },
-{ "sfplay", S(SFPLAY), 5, "aa", "iixxiooo",        (SUBR)SfPlay_set,
+  { "sfload",S(SFLOAD),     0, 1,    "i",    "T",      (SUBR)SfLoad, NULL, NULL },
+{ "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
+{ "sfplay", S(SFPLAY), 0, 5, "aa", "iixxiooo",        (SUBR)SfPlay_set,
                                                   NULL, (SUBR)SfPlay     },
-{ "sfplaym", S(SFPLAYMONO), 5, "a", "iixxiooo",    (SUBR)SfPlayMono_set,
+{ "sfplaym", S(SFPLAYMONO), 0, 5, "a", "iixxiooo",    (SUBR)SfPlayMono_set,
                                                   NULL, (SUBR)SfPlayMono },
-{ "sfplist",S(SFPLIST),   1,    "",     "i",      (SUBR)Sfplist          },
-{ "sfilist",S(SFPLIST),   1,    "",     "i",      (SUBR)Sfilist          },
-{ "sfpassign",S(SFPASSIGN), 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
-{ "sfinstrm", S(SFIPLAYMONO),5, "a", "iixxiiooo",  (SUBR)SfInstrPlayMono_set,
+{ "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
+{ "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
+{ "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
+{ "sfinstrm", S(SFIPLAYMONO),0, 5, "a", "iixxiiooo",  (SUBR)SfInstrPlayMono_set,
                                                   NULL, (SUBR)SfInstrPlayMono },
-{ "sfinstr", S(SFIPLAY),  5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
+{ "sfinstr", S(SFIPLAY),  0, 5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
                                                   NULL,(SUBR)SfInstrPlay },
-{ "sfplay3", S(SFPLAY),   5,    "aa", "iixxiooo",  (SUBR)SfPlay_set,
+{ "sfplay3", S(SFPLAY),   0, 5,    "aa", "iixxiooo",  (SUBR)SfPlay_set,
                                                   NULL, (SUBR)SfPlay3  },
-{ "sfplay3m", S(SFPLAYMONO), 5, "a", "iixxiooo",   (SUBR)SfPlayMono_set,
+{ "sfplay3m", S(SFPLAYMONO), 0, 5, "a", "iixxiooo",   (SUBR)SfPlayMono_set,
                                                   NULL,(SUBR)SfPlayMono3 },
-{ "sfinstr3", S(SFIPLAY), 5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
+{ "sfinstr3", S(SFIPLAY), 0, 5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
                                                   NULL, (SUBR)SfInstrPlay3 },
-{ "sfinstr3m", S(SFIPLAYMONO), 5, "a", "iixxiiooo",(SUBR)SfInstrPlayMono_set,
+{ "sfinstr3m", S(SFIPLAYMONO), 0, 5, "a", "iixxiiooo",(SUBR)SfInstrPlayMono_set,
                                                   NULL, (SUBR)SfInstrPlayMono3 },
-{ "sflooper", S(sflooper), 5, "aa", "iikkikkkoooo",        (SUBR)sflooper_init,
+{ "sflooper", S(sflooper), 0, 5, "aa", "iikkikkkoooo",        (SUBR)sflooper_init,
                                                   NULL, (SUBR)sflooper_process },
-{ NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
+{ NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
 int sfont_ModuleCreate(CSOUND *csound)
@@ -2593,8 +2593,8 @@ int sfont_ModuleInit(CSOUND *csound)
 
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound,
-                                  ep->opname, ep->dsblksiz, ep->thread,
-                                  ep->outypes, ep->intypes,
+                                  ep->opname, ep->dsblksiz, ep->flags,
+                                  ep->thread, ep->outypes, ep->intypes,
                                   (int (*)(CSOUND *, void*)) ep->iopadr,
                                   (int (*)(CSOUND *, void*)) ep->kopadr,
                                   (int (*)(CSOUND *, void*)) ep->aopadr);

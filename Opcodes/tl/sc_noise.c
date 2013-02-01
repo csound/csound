@@ -237,17 +237,17 @@ static OENTRY scnoise_localops[] = {
   { "dust",      0xffff },
   { "dust2",     0xffff },
   { "gausstrig", 0xffff },
-  { "dust.k",      sizeof(DUST), 3, "k", "kk",
+  { "dust.k",      sizeof(DUST), 0,3, "k", "kk",
     (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
-  { "dust.a",      sizeof(DUST), 5, "a", "kk",
+  { "dust.a",      sizeof(DUST), 0,5, "a", "kk",
     (SUBR)dust_init, NULL, (SUBR)dust_process_arate },
-  { "dust2.k",     sizeof(DUST), 3, "k", "kk",
+  { "dust2.k",     sizeof(DUST), 0,3, "k", "kk",
     (SUBR)dust_init, (SUBR)dust2_process_krate, NULL },
-  { "dust2.a",     sizeof(DUST), 5, "a", "kk",
+  { "dust2.a",     sizeof(DUST), 0,5, "a", "kk",
     (SUBR)dust_init, NULL, (SUBR)dust2_process_arate },
-  { "gausstrig.k", sizeof(GAUSSTRIG), 3, "k", "kkko",
+  { "gausstrig.k", sizeof(GAUSSTRIG), 0,3, "k", "kkko",
     (SUBR)gausstrig_init, (SUBR)gausstrig_process_krate, NULL },
-  { "gausstrig.a", sizeof(GAUSSTRIG), 5, "a", "kkko",
+  { "gausstrig.a", sizeof(GAUSSTRIG), 0,5, "a", "kkko",
     (SUBR)gausstrig_init, NULL, (SUBR)gausstrig_process_arate }
 };
 
