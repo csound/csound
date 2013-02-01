@@ -45,7 +45,8 @@
 
 /* Used as an error value */
 typedef int taskID;
-#define INVALID -1
+#define INVALID (-1)
+#define WAIT    (-2)
 
 /* Each task has a status */
 enum state { INACTIVE = 4,         /* No task */
@@ -57,6 +58,7 @@ enum state { INACTIVE = 4,         /* No task */
 /* Array of states of each task -- need to move to CSOUND structure */
 static enum state *task_status = NULL;          /* OPT : Structure lay out */
 static taskID *task_watch = NULL; 
+static INSDS **task_map = NULL; 
 
 /* INV : Read by multiple threads, updated by only one */
 /* Thus use atomic read and write */
@@ -110,6 +112,7 @@ void create_dag(CSOUND *csound)
     /* Allocate the main task status and watchlists */
     task_status = mcalloc(csound, sizeof(enum state)*(task_max_size=INIT_SIZE));
     task_watch = mcalloc(csound, sizeof(taskID)*task_max_size);
+    task_map = mcalloc(csound, sizeof(INSDS*)*task_max_size);
     task_dep = (watchList **)mcalloc(csound, sizeof(watchList*)*task_max_size);
 }
 
@@ -216,6 +219,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
         j++; next = next->nxtact;
       }
       if (task_dep[i]) task_watch[i] = task_dep[i]->id;
+      task_map[i] = chain;
       i++; chain = chain->nxtact;
     }
     dag_print_state(csound);
@@ -265,6 +269,42 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     return -1;
 }
 
+taskID dag_get_task(CSOUND *csound)
+{
+    int i;
+    for (i=0; i<csound->dag_num_active; i++) {
+      if (task_status[i]==AVAILABLE) {
+        return (taskID)i;
+      }
+    }
+    if (dag_dispatched==csound->dag_num_active)
+      return (taskID)INVALID;
+    else return (taskID)WAIT;
+}
+
+// run one task from index
+void dag_nodePerf(CSOUND *csound, taskID work)
+{
+    INSDS *insds = task_map[work];
+    OPDS  *opstart = NULL;
+    int update_hdl = -1;
+    int played_count = 0;
+
+    played_count++;
+        
+    TRACE_2("DAG_work [%i] Playing: %s [%p]\n", 
+            work, instr->name, insds);
+
+    opstart = (OPDS *)insds;
+    while ((opstart = opstart->nxtp) != NULL) {
+      (*opstart->opadr)(csound, opstart); /* run each opcode */
+    }
+    insds->ksmps_offset = 0; /* reset sample-accuracy offset */
+    TRACE_2("[%i] Played:  %s [%p]\n", work, instr->name, insds);
+
+    return;
+}
+
 unsigned long dag_kperfThread(void * cs)
 {
     INSDS *start;
@@ -293,37 +333,22 @@ unsigned long dag_kperfThread(void * cs)
     index++;
 
     while (1) {
-
+      taskID work;
       csound->WaitBarrier(csound->barrier1);
-      csound_global_mutex_lock();
-      if (csound->multiThreadedComplete == 1) {
-        csound_global_mutex_unlock();
-        free(threadId);
-        csound->Message(csound,
-           "Multithread performance: insno: %3d  thread "
-           "%d of %d exiting.\n",
-           start->insno,
-           index,
-           numThreads);
-        return 0UL;
+      work = dag_get_task(csound);
+      if (work==INVALID) continue;
+      if (work==WAIT) break;
+      if (dag_dispatched == csound->dag_num_active) {
+        continue;
       }
-      csound_global_mutex_unlock();
       
-      /* TIMER_T_END(mutex, index, "Mutex "); */
-      
-      TIMER_INIT(thread, "");
-      TIMER_T_START(thread, index, "");
+      dag_nodePerf(csound, work);
 
-      // DO WORK nodePerf(csound, index);
-
-      TIMER_T_END(thread, index, "");
-      
       TRACE_1("[%i] Done\n", index);
 
-      SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
       csound->WaitBarrier(csound->barrier2);
-      TRACE_1("[%i] Barrier2 Done\n", index);
     }
+    return 0;
 }
 
 #if 0
