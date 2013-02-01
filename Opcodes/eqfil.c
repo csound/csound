@@ -89,7 +89,7 @@ static int equ_process(CSOUND *csound, equ *p)
 }
 
 static OENTRY eqfil_localops[] = {
-  {"eqfil", sizeof(equ), 5,
+  {"eqfil", sizeof(equ), 0, 5,
    "a", "akkko", (SUBR)equ_init, NULL, (SUBR)equ_process},
 };
 

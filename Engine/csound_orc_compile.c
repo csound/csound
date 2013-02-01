@@ -392,7 +392,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     tp->inlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
     tp->inlist->count = 0;
 
-    ip->mdepends |= csound->opcodlst[LABEL].thread;
+    ip->mdepends |= csound->opcodlst[LABEL].flags;
     ip->opdstot += csound->opcodlst[LABEL].dsblksiz;
 
     break;
@@ -423,7 +423,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       /* INITIAL SETUP */
       tp->opnum = opnum;
       tp->opcod = strsav_string(csound->opcodlst[opnum].opname);
-      ip->mdepends |= csound->opcodlst[opnum].thread;
+      ip->mdepends |= csound->opcodlst[opnum].flags;
       ip->opdstot += csound->opcodlst[opnum].dsblksiz;
 
       if (tp->opnum == find_opcode(csound, "array_init")) {
@@ -858,7 +858,7 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
     }
 
     current->nxtop = bp;
-    ip->mdepends = ip->mdepends >> 4;
+    ip->mdepends = ip->mdepends;
     ip->pextrab = ((n = ip->pmax - 3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
     ip->pextrab = ((int) ip->pextrab + 7) & (~7);
     ip->muted = 1;
@@ -1979,6 +1979,6 @@ void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o)
     char *name = o->lexeme;
     int32 opnum = find_opcode(csound, name);
     OENTRY *ep = csound->opcodlst + opnum;
-    if (ep->thread&_QQ)
+    if (ep->flags&_QQ)
       csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
 }

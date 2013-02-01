@@ -234,14 +234,14 @@ static void butter_filter(uint32_t n, uint32_t offset,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "butterhp", S(BFIL),  5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butterlp", S(BFIL),  5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
-{ "butterbp", S(BBFIL), 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
-{ "butterbr", S(BBFIL), 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  },
-{ "buthp",    S(BFIL),  5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butlp",    S(BFIL),  5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
-{ "butbp",    S(BBFIL), 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
-{ "butbr",    S(BBFIL), 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  }
+{ "butterhp", S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
+{ "butterlp", S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
+{ "butterbp", S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
+{ "butterbr", S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  },
+{ "buthp",    S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
+{ "butlp",    S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
+{ "butbp",    S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
+{ "butbr",    S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  }
 };
 
 int butter_init_(CSOUND *csound)

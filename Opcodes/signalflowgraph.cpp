@@ -939,6 +939,7 @@ extern "C"
     /*    {
           (char *)"signalflowgraph",
           sizeof(SignalFlowGraph),
+          0,
           1,
           (char *)"",
           (char *)"",
@@ -949,7 +950,8 @@ extern "C"
     {
       (char *)"outleta",
       sizeof(Outleta),
-      CW|5,
+      CW,
+      5,
       (char *)"",
       (char *)"Sa",
       (SUBR)&Outleta::init_,
@@ -959,7 +961,8 @@ extern "C"
     {
       (char *)"inleta",
       sizeof(Inleta),
-      CR|5,
+      CR,
+      5,
       (char *)"a",
       (char *)"S",
       (SUBR)&Inleta::init_,
@@ -969,7 +972,8 @@ extern "C"
     {
       (char *)"outletk",
       sizeof(Outletk),
-      CW|3,
+      CW,
+      3,
       (char *)"",
       (char *)"Sk",
       (SUBR)&Outletk::init_,
@@ -979,7 +983,8 @@ extern "C"
     {
       (char *)"inletk",
       sizeof(Inletk),
-      CR|3,
+      CR,
+      3,
       (char *)"k",
       (char *)"S",
       (SUBR)&Inletk::init_,
@@ -989,7 +994,8 @@ extern "C"
     {
       (char *)"outletkid",
       sizeof(Outletkid),
-      CW|3,
+      CW,
+      3,
       (char *)"",
       (char *)"SSk",
       (SUBR)&Outletk::init_,
@@ -999,7 +1005,8 @@ extern "C"
     {
       (char *)"inletkid",
       sizeof(Inletkid),
-      CR|3,
+      CR,
+      3,
       (char *)"k",
       (char *)"SS",
       (SUBR)&Inletk::init_,
@@ -1009,7 +1016,8 @@ extern "C"
     {
       (char *)"outletf",
       sizeof(Outletf),
-      CW|5,
+      CW,
+      5,
       (char *)"",
       (char *)"Sf",
       (SUBR)&Outletf::init_,
@@ -1019,7 +1027,8 @@ extern "C"
     {
       (char *)"inletf",
       sizeof(Inletf),
-      CR|5,
+      CR,
+      5,
       (char *)"f",
       (char *)"S",
       (SUBR)&Inletf::init_,
@@ -1029,6 +1038,7 @@ extern "C"
     {
       (char *)"connect",
       sizeof(Connect),
+      0,
       1,
       (char *)"",
       (char *)"TSTS",
@@ -1039,6 +1049,7 @@ extern "C"
     {
       (char *)"alwayson",
       sizeof(AlwaysOn),
+      0,
       1,
       (char *)"",
       (char *)"Tm",
@@ -1049,14 +1060,15 @@ extern "C"
     {
       (char *)"ftgenonce",
       sizeof(FtGenOnce),
-      TW|1,
+      TW,
+      1,
       (char *)"i",
       (char *)"iiiiTm",
       (SUBR)&FtGenOnce::init_,
       0,
       0
     },
-    { 0, 0, 0, 0, 0, (SUBR) 0, (SUBR) 0, (SUBR) 0 }
+    { 0, 0, 0, 0, 0, 0, (SUBR) 0, (SUBR) 0, (SUBR) 0 }
   };
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -1072,6 +1084,7 @@ extern "C"
       err |= csound->AppendOpcode(csound,
                                   ep->opname,
                                   ep->dsblksiz,
+                                  ep->flags,
                                   ep->thread,
                                   ep->outypes,
                                   ep->intypes,

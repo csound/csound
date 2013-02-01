@@ -722,13 +722,13 @@ static int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "xscanu", S(PSCSNUX),TR|5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init,
+{ "xscanu", S(PSCSNUX),TR, 5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init,
                                                     NULL,(SUBR)scsnux },
-{ "xscans", S(PSCSNSX),  TR|5,  "a", "kkiio",         (SUBR)scsnsx_init,
+{ "xscans", S(PSCSNSX),  TR, 5,  "a", "kkiio",         (SUBR)scsnsx_init,
                                                     NULL, (SUBR)scsnsx},
-{ "xscanmap", S(PSCSNMAPX),TR|3, "kk", "ikko",        (SUBR)scsnmapx_init,
+{ "xscanmap", S(PSCSNMAPX),TR, 3, "kk", "ikko",        (SUBR)scsnmapx_init,
                                                    (SUBR)scsnmapx,NULL },
-{ "xscansmap", S(PSCSNMAPX),TR|3,"",   "kkikko",      (SUBR)scsnmapx_init,
+{ "xscansmap", S(PSCSNMAPX),TR, 3,"",   "kkikko",      (SUBR)scsnmapx_init,
                                                    (SUBR)scsnsmapx,NULL }
 };
 

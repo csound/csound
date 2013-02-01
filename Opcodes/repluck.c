@@ -307,9 +307,9 @@ static int streson(CSOUND *csound, STRES *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "repluck", S(WGPLUCK2), 5, "a",  "ikikka",(SUBR)wgpsetin, NULL, (SUBR)wgpluck},
-{ "wgpluck2",S(WGPLUCK2), 5, "a",  "ikikk", (SUBR)wgpset,   NULL, (SUBR)wgpluck},
-{ "streson", S(STRES),    5, "a",  "akk",  (SUBR)stresonset, NULL, (SUBR)streson}
+{ "repluck", S(WGPLUCK2), 0, 5, "a",  "ikikka",(SUBR)wgpsetin, NULL, (SUBR)wgpluck},
+{ "wgpluck2",S(WGPLUCK2), 0, 5, "a",  "ikikk", (SUBR)wgpset,   NULL, (SUBR)wgpluck},
+{ "streson", S(STRES),    0, 5, "a",  "akk",  (SUBR)stresonset, NULL, (SUBR)streson}
 };
 
 int repluck_init_(CSOUND *csound)
