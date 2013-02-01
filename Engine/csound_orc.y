@@ -36,6 +36,8 @@
 %token S_EQ
 %token S_ADDIN
 %token S_SUBIN
+%token S_MULIN
+%token S_DIVIN
 %token S_TASSIGN
 %token S_TABREF
 %token S_GT
@@ -391,6 +393,42 @@ statement : ident '=' expr NEWLINE
                   $$ = ans;
 #ifdef PARCS
                   csp_orc_sa_global_read_write_add_list1(csound,
+                                    csp_orc_sa_globals_find(csound, ans->left),
+                                    csp_orc_sa_globals_find(csound, ans->right));
+#endif
+                }
+          | ident S_MULIN expr NEWLINE
+                { 
+                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
+                                        make_token(csound, "="));
+                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
+                  ans->left = (TREE *)$1;
+                  ans->right = make_node(csound,LINE,LOCN, '*', 
+                                         make_leaf(csound,LINE,LOCN, 
+                                                   $1->value->type, repeat),
+                                         (TREE *)$3);
+                  //print_tree(csound, "-=", ans);
+                  $$ = ans;
+#ifdef PARCS
+                  csp_orc_sa_global_read_write_add_list(csound,
+                                    csp_orc_sa_globals_find(csound, ans->left),
+                                    csp_orc_sa_globals_find(csound, ans->right));
+#endif
+                }
+          | ident S_DIVIN expr NEWLINE
+                { 
+                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
+                                        make_token(csound, "="));
+                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
+                  ans->left = (TREE *)$1;
+                  ans->right = make_node(csound,LINE,LOCN, '/', 
+                                         make_leaf(csound,LINE,LOCN, 
+                                                   $1->value->type, repeat),
+                                         (TREE *)$3);
+                  //print_tree(csound, "-=", ans);
+                  $$ = ans;
+#ifdef PARCS
+                  csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
 #endif
