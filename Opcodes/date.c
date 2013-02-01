@@ -148,11 +148,11 @@ static int readfi(CSOUND *csound, READF *p)
 
 static OENTRY date_localops[] =
 {
-    { "date",   sizeof(DATEMYFLT),  1, "i",    "", (SUBR)datemyfltset   },
-    { "dates",  sizeof(DATESTRING), 1, "S",    "j", (SUBR)datestringset },
-    { "pwd",    sizeof(GETCWD),     1, "S",    "",  (SUBR)getcurdir     },
-    { "readfi", sizeof(READF),      1, "Si",   "T", (SUBR)readfi,       },
-    { "readf",  sizeof(READF),      3, "Sk",   "T", (SUBR)readf_init, (SUBR)readf }
+    { "date",   sizeof(DATEMYFLT),  0, 1, "i",    "", (SUBR)datemyfltset   },
+    { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
+    { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
+    { "readfi", sizeof(READF),      0, 1, "Si",   "T", (SUBR)readfi,       },
+    { "readf",  sizeof(READF),      0, 3, "Sk",   "T", (SUBR)readf_init, (SUBR)readf }
 
 };
 

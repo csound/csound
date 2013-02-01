@@ -573,13 +573,13 @@ static int lp2(CSOUND *csound, LP2 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "svfilter", S(SVF),    5, "aaa", "akko", (SUBR)svfset, NULL, (SUBR)svf     },
-{ "hilbert", S(HILBERT), 5, "aa",  "a",    (SUBR)hilbertset, NULL, (SUBR)hilbert },
-{ "resonr", S(RESONZ),   5, "a",   "akkoo", (SUBR)resonzset, NULL, (SUBR)resonr  },
-{ "resonz", S(RESONZ),   5, "a",   "akkoo", (SUBR)resonzset, NULL, (SUBR)resonz  },
-{ "lowpass2", S(LP2),    5, "a",   "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2       },
-{ "phaser2", S(PHASER2), 5, "a", "akkkkkk",(SUBR)phaser2set, NULL, (SUBR)phaser2 },
-{ "phaser1", S(PHASER1), 5, "a",   "akkko", (SUBR)phaser1set, NULL, (SUBR)phaser1 }
+{ "svfilter", S(SVF),    0, 5, "aaa", "akko", (SUBR)svfset, NULL, (SUBR)svf     },
+{ "hilbert", S(HILBERT), 0, 5, "aa",  "a",    (SUBR)hilbertset, NULL, (SUBR)hilbert },
+{ "resonr", S(RESONZ),   0, 5, "a",   "akkoo", (SUBR)resonzset, NULL, (SUBR)resonr  },
+{ "resonz", S(RESONZ),   0, 5, "a",   "akkoo", (SUBR)resonzset, NULL, (SUBR)resonz  },
+{ "lowpass2", S(LP2),    0, 5, "a",   "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2       },
+{ "phaser2", S(PHASER2), 0, 5, "a", "akkkkkk",(SUBR)phaser2set, NULL, (SUBR)phaser2 },
+{ "phaser1", S(PHASER1), 0, 5, "a",   "akkko", (SUBR)phaser1set, NULL, (SUBR)phaser1 }
 };
 
 int ugsc_init_(CSOUND *csound)

@@ -197,9 +197,9 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "lowres",   S(LOWPR),   5, "a", "akko", (SUBR)lowpr_set, NULL,   (SUBR)lowpr   },
-{ "lowresx",  S(LOWPRX),  5, "a", "akkoo",(SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
-{ "vlowres", S(LOWPR_SEP),5, "a", "akkik",
+{ "lowres",   S(LOWPR),   0, 5, "a", "akko", (SUBR)lowpr_set, NULL,   (SUBR)lowpr   },
+{ "lowresx",  S(LOWPRX),  0, 5, "a", "akkoo",(SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
+{ "vlowres", S(LOWPR_SEP),0, 5, "a", "akkik",
                                   (SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
 };
 

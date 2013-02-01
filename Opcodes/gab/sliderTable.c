@@ -621,20 +621,20 @@ static int ctrl7a(CSOUND *csound, CTRL7a *p)
 #define S(x)    sizeof(x)
 
 OENTRY sliderTable_localops[] = {
-{ "slider8table", S(SLIDER8t), 3, "k",  "iii"
+{ "slider8table", S(SLIDER8t), 0, 3, "k",  "iii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderTable_i8, (SUBR)sliderTable8, (SUBR)NULL },
-{ "slider16table", S(SLIDER8t), 3, "k", "iii"
+{ "slider16table", S(SLIDER8t), 0, 3, "k", "iii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderTable_i16, (SUBR)sliderTable16, (SUBR)NULL },
-{ "slider32table", S(SLIDER8t), 3, "k", "iii"
+{ "slider32table", S(SLIDER8t), 0, 3, "k", "iii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderTable_i32, (SUBR)sliderTable32, (SUBR)NULL },
-{ "slider64table", S(SLIDER8t), 3, "k", "iii"
+{ "slider64table", S(SLIDER8t), 0, 3, "k", "iii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
@@ -644,20 +644,20 @@ OENTRY sliderTable_localops[] = {
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderTable_i64, (SUBR)sliderTable64, (SUBR)NULL },
-{ "slider8tablef", S(SLIDER8tf), 3, "k", "iii"
+{ "slider8tablef", S(SLIDER8tf), 0, 3, "k", "iii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderTable_i8f, (SUBR)sliderTable8f, (SUBR)NULL },
-{ "slider16tablef",S(SLIDER16tf), 3, "k", "iii"
+{ "slider16tablef",S(SLIDER16tf), 0, 3, "k", "iii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderTable_i16f, (SUBR)sliderTable16f, (SUBR)NULL },
-{ "slider32tablef",S(SLIDER32tf), 3, "k", "iii"
+{ "slider32tablef",S(SLIDER32tf), 0, 3, "k", "iii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderTable_i32f, (SUBR)sliderTable32f, (SUBR)NULL },
-{ "slider64tablef",S(SLIDER64tf), 3, "k", "iii"
+{ "slider64tablef",S(SLIDER64tf), 0, 3, "k", "iii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
@@ -667,11 +667,11 @@ OENTRY sliderTable_localops[] = {
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderTable_i64f, (SUBR)sliderTable64f, (SUBR)NULL },
-{ "sliderKawai", S(SLIDERKAWAI),  3, "kkkkkkkkkkkkkkkk",
+{ "sliderKawai", S(SLIDERKAWAI),  0, 3, "kkkkkkkkkkkkkkkk",
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
-{ "ctrl7.a", S(CTRL7a),  5, "a",    "iikkoo", 
+{ "ctrl7.a", S(CTRL7a),  0, 5, "a",    "iikkoo", 
   (SUBR) ctrl7a_set,   NULL,    (SUBR) ctrl7a },
 };
 

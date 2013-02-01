@@ -61,8 +61,8 @@ static int vaset(CSOUND *csound, VA_SET *p)
 #define S(x)    sizeof(x)
 
 static OENTRY vaops_localops[] = {
-  { "vaget", S(VA_GET),    2,      "k", "ka",  NULL, (SUBR)vaget },
-  { "vaset", S(VA_SET),    2,      "",  "kka", NULL, (SUBR)vaset }
+  { "vaget", S(VA_GET),    0, 2,      "k", "ka",  NULL, (SUBR)vaget },
+  { "vaset", S(VA_SET),    0, 2,      "",  "kka", NULL, (SUBR)vaset }
 };
 
 

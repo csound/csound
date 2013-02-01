@@ -1195,11 +1195,11 @@ extern "C" {
      * Returns zero on success.
      */
     PUBLIC int csoundAppendOpcode(CSOUND *, const char *opname,
-            int dsblksiz, int thread,
-            const char *outypes, const char *intypes,
-            int (*iopadr)(CSOUND *, void *),
-            int (*kopadr)(CSOUND *, void *),
-            int (*aopadr)(CSOUND *, void *));
+                                  int dsblksiz, int flags, int thread,
+                                  const char *outypes, const char *intypes,
+                                  int (*iopadr)(CSOUND *, void *),
+                                  int (*kopadr)(CSOUND *, void *),
+                                  int (*aopadr)(CSOUND *, void *));
 
     /*
      * MISCELLANEOUS FUNCTIONS

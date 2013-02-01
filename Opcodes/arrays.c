@@ -784,14 +784,14 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 
 static OENTRY arrayvars_localops[] =
 {
-    { "array_init", sizeof(ARRAYINIT), 1, "[?;", "im", (SUBR)array_init },
-    { "array_set", sizeof(ARRAY_SET), 3, "", "[?;?M", (SUBR)array_set, (SUBR)array_set },
-    { "array_get", sizeof(ARRAY_GET), 3, "?", "[?;M", (SUBR)array_get, (SUBR)array_get },
-//  { "##plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
-//  { "##suntab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
-//  { "##negtab",  sizeof(TABARITH), 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
-//  { "##multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
-//  { "##divtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
+    { "array_init", sizeof(ARRAYINIT), 0, 1, "[?;", "im", (SUBR)array_init },
+    { "array_set", sizeof(ARRAY_SET), 0, 3, "", "[?;?M", (SUBR)array_set, (SUBR)array_set },
+    { "array_get", sizeof(ARRAY_GET), 0, 3, "?", "[?;M", (SUBR)array_get, (SUBR)array_get },
+//  { "##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
+//  { "##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
+//  { "##negtab",  sizeof(TABARITH), 0, 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
+//  { "##multtab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
+//  { "##divtab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
 //  { "##remtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem },
 //  { "##multitab", sizeof(TABARITH1), 3, "t", "ti",
 //                                              (SUBR)tabarithset1, (SUBR)tabimult },

@@ -633,15 +633,15 @@ static int imagefree (CSOUND *csound, IMGSAVE * p)
 #define S(x)    sizeof(x)
 
 static OENTRY image_localops[] = {
-  { "imageload",  S(IMGLOAD),  1, "i", "S",   (SUBR)imageload, NULL, NULL   },
-  { "imagecreate",S(IMGCREATE),1, "i", "ii",  (SUBR)imagecreate, NULL, NULL },
-  { "imagesize",  S(IMGSIZE),  1, "ii", "i",  (SUBR)imagesize, NULL, NULL   },
-  { "imagegetpixel",  S(IMGGETPIXEL),  7, "sss", "ixx",
+  { "imageload",  S(IMGLOAD),  0, 1, "i", "S",   (SUBR)imageload, NULL, NULL   },
+  { "imagecreate",S(IMGCREATE),0, 1, "i", "ii",  (SUBR)imagecreate, NULL, NULL },
+  { "imagesize",  S(IMGSIZE),  0, 1, "ii", "i",  (SUBR)imagesize, NULL, NULL   },
+  { "imagegetpixel",  S(IMGGETPIXEL),  0, 7, "sss", "ixx",
     (SUBR)imagegetpixel, (SUBR)imagegetpixel, (SUBR)imagegetpixel_a   },
-  { "imagesetpixel",  S(IMGSETPIXEL),  7, "", "ixxxxx",
+  { "imagesetpixel",  S(IMGSETPIXEL),  0, 7, "", "ixxxxx",
     (SUBR)imagesetpixel, (SUBR)imagesetpixel, (SUBR)imagesetpixel_a   },
-  { "imagesave",  S(IMGSAVE),  1, "", "iS",   (SUBR)imagesave, NULL, NULL   },
-  { "imagefree",  S(IMGFREE),  1, "", "i",    (SUBR)imagefree, NULL, NULL   },
+  { "imagesave",  S(IMGSAVE),  0, 1, "", "iS",   (SUBR)imagesave, NULL, NULL   },
+  { "imagefree",  S(IMGFREE),  0, 1, "", "i",    (SUBR)imagefree, NULL, NULL   },
 };
 
 

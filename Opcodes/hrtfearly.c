@@ -1792,7 +1792,7 @@ static int early_process(CSOUND *csound, early *p)
 static OENTRY hrtfearly_localops[] =
   {
     {
-      "hrtfearly",   sizeof(early), 5, "aaiii", "axxxxxxSSioopoOoooooooooooooooooo",
+      "hrtfearly",   sizeof(early), 0,5, "aaiii", "axxxxxxSSioopoOoooooooooooooooooo",
       (SUBR)early_init, NULL, (SUBR)early_process
     }
   };

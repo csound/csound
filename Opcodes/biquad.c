@@ -1404,21 +1404,21 @@ static int mode(CSOUND *csound, MODE *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "biquad", S(BIQUAD),   5, "a", "akkkkkko",(SUBR)biquadset, NULL, (SUBR)biquad },
-{ "biquada", S(BIQUAD),  5, "a", "aaaaaaao",(SUBR)biquadset, NULL,(SUBR)biquada },
-{ "moogvcf", S(MOOGVCF), 5, "a", "axxpo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
-{ "moogvcf2", S(MOOGVCF),5, "a", "axxoo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
-{ "rezzy", S(REZZY),     5, "a", "axxoo", (SUBR)rezzyset, NULL, (SUBR)rezzy },
-{ "bqrez", S(REZZY),     5, "a", "axxoo", (SUBR)bqrezset, NULL, (SUBR)bqrez },
-{ "distort1", S(DISTORT),TR|4, "a", "akkkko",  NULL,   NULL,   (SUBR)distort   },
-{ "vco", S(VCO),      TR|5, "a", "xxiVppovoo",(SUBR)vcoset, NULL, (SUBR)vco },
-{ "tbvcf", S(TBVCF),     5, "a", "axxkkp",  (SUBR)tbvcfset, NULL, (SUBR)tbvcf   },
-{ "planet", S(PLANET),5,"aaa","kkkiiiiiiioo", (SUBR)planetset, NULL, (SUBR)planet},
-{ "pareq", S(PAREQ),     5, "a", "akkkoo",(SUBR)pareqset, NULL, (SUBR)pareq },
-{ "nestedap", S(NESTEDAP),5,"a", "aiiiiooooo",
+  { "biquad", S(BIQUAD),   0, 5, "a", "akkkkkko",(SUBR)biquadset, NULL, (SUBR)biquad },
+{ "biquada", S(BIQUAD),  0, 5, "a", "aaaaaaao",(SUBR)biquadset, NULL,(SUBR)biquada },
+{ "moogvcf", S(MOOGVCF), 0, 5, "a", "axxpo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
+{ "moogvcf2", S(MOOGVCF),0, 5, "a", "axxoo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
+{ "rezzy", S(REZZY),     0, 5, "a", "axxoo", (SUBR)rezzyset, NULL, (SUBR)rezzy },
+{ "bqrez", S(REZZY),     0, 5, "a", "axxoo", (SUBR)bqrezset, NULL, (SUBR)bqrez },
+{ "distort1", S(DISTORT),TR, 4, "a", "akkkko",  NULL,   NULL,   (SUBR)distort   },
+{ "vco", S(VCO),      TR, 5, "a", "xxiVppovoo",(SUBR)vcoset, NULL, (SUBR)vco },
+{ "tbvcf", S(TBVCF),     0, 5, "a", "axxkkp",  (SUBR)tbvcfset, NULL, (SUBR)tbvcf   },
+{ "planet", S(PLANET),0, 5,"aaa","kkkiiiiiiioo", (SUBR)planetset, NULL, (SUBR)planet},
+{ "pareq", S(PAREQ),     0, 5, "a", "akkkoo",(SUBR)pareqset, NULL, (SUBR)pareq },
+{ "nestedap", S(NESTEDAP),0, 5,"a", "aiiiiooooo",
                                      (SUBR)nestedapset, NULL, (SUBR)nestedap},
-{ "lorenz", S(LORENZ), 5, "aaa", "kkkkiiiio", (SUBR)lorenzset, NULL, (SUBR)lorenz},
-{ "mode",  S(MODE),   5,      "a", "akko", (SUBR)modeset, NULL, (SUBR)mode   }
+{ "lorenz", S(LORENZ),0,  5, "aaa", "kkkkiiiio", (SUBR)lorenzset, NULL, (SUBR)lorenz},
+{ "mode",  S(MODE),   0, 5,      "a", "akko", (SUBR)modeset, NULL, (SUBR)mode   }
 };
 
 int biquad_init_(CSOUND *csound)

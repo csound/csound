@@ -584,9 +584,9 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "scanu", S(PSCSNU),TR|5, "", "iiiiiiikkkkiikkaii",
+{ "scanu", S(PSCSNU),TR, 5, "", "iiiiiiikkkkiikkaii",
   (SUBR)scsnu_init, NULL, (SUBR)scsnu_play },
-{ "scans", S(PSCSNS),TR|5, "a","kkiio", (SUBR)scsns_init, NULL, (SUBR)scsns_play}
+{ "scans", S(PSCSNS),TR, 5, "a","kkiio", (SUBR)scsns_init, NULL, (SUBR)scsns_play}
 };
 
 static int scansyn_init_(CSOUND *csound)

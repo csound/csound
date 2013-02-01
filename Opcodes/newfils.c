@@ -224,11 +224,11 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
 }
 
 static OENTRY localops[] = {
-  {"moogladder", sizeof(moogladder), 5, "a", "akkp",
+  {"moogladder", sizeof(moogladder), 0, 5, "a", "akkp",
                     (SUBR) moogladder_init, NULL, (SUBR) moogladder_process },
-  {"statevar", sizeof(statevar), 5, "aaaa", "akkop",
+  {"statevar", sizeof(statevar), 0, 5, "aaaa", "akkop",
                     (SUBR) statevar_init, NULL, (SUBR) statevar_process     },
-  {"fofilter", sizeof(fofilter), 5, "a", "akkkp",
+  {"fofilter", sizeof(fofilter), 0, 5, "a", "akkkp",
                     (SUBR) fofilter_init, NULL, (SUBR) fofilter_process     }
 };
 

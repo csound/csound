@@ -564,13 +564,14 @@ public:
   {
     csoundDisposeOpcodeList(csound, opcodelist);
   }
-  virtual int AppendOpcode(const char *opname, int dsblksiz, int thread,
+  virtual int AppendOpcode(const char *opname, int dsblksiz, int flags,
+                           int thread,
                            const char *outypes, const char *intypes,
                            int (*iopadr)(CSOUND *, void *),
                            int (*kopadr)(CSOUND *, void *),
                            int (*aopadr)(CSOUND *, void *))
   {
-    return csoundAppendOpcode(csound, opname, dsblksiz, thread,
+      return csoundAppendOpcode(csound, opname, dsblksiz, flags, thread,
                               outypes, intypes, iopadr, kopadr, aopadr);
   }
   // miscellaneous functions

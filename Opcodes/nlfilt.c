@@ -259,12 +259,12 @@ int pinit(CSOUND *csound, PINIT *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "pcount", S(PFIELD),  1, "i", "",       (SUBR)pcount,    NULL, NULL },
-{ "pindex", S(PFIELD),  1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
-{ "passign", S(PINIT),  1, "IIIIIIIIIIIIIIIIIIIIIIII", "p",
+{ "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
+{ "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
+{ "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "p",
                                           (SUBR)pinit,     NULL, NULL },
-{ "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt },
-{ "nlfilt2",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt2 }
+{ "nlfilt",  S(NLFILT), 0, 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt },
+{ "nlfilt2",  S(NLFILT), 0, 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt2 }
 };
 
 int nlfilt_init_(CSOUND *csound)

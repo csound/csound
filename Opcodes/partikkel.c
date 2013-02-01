@@ -957,7 +957,7 @@ static int partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
 
 static OENTRY partikkel_localops[] = {
     {
-        "partikkel", sizeof(PARTIKKEL), TR|5,
+        "partikkel", sizeof(PARTIKKEL), TR, 5,
         "ammmmmmm",
         "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkioj",
         (SUBR)partikkel_init,
@@ -965,21 +965,21 @@ static OENTRY partikkel_localops[] = {
         (SUBR)partikkel
     },
     {
-        "partikkelsync", sizeof(PARTIKKEL_SYNC), TR|5,
+        "partikkelsync", sizeof(PARTIKKEL_SYNC), TR, 5,
         "am", "i",
         (SUBR)partikkelsync_init,
         (SUBR)NULL,
         (SUBR)partikkelsync
     },
     {
-        "partikkelget", sizeof(PARTIKKEL_GET), TR|3,
+        "partikkelget", sizeof(PARTIKKEL_GET), TR, 3,
         "k", "ki",
         (SUBR)partikkelget_init,
         (SUBR)partikkelget,
         (SUBR)NULL
     },
     {
-        "partikkelset", sizeof(PARTIKKEL_SET), TR|3,
+        "partikkelset", sizeof(PARTIKKEL_SET), TR, 3,
         "", "kki",
         (SUBR)partikkelset_init,
         (SUBR)partikkelset,

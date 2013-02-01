@@ -353,13 +353,13 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 #define S(x)    sizeof(x)
 
 static OENTRY socksend_localops[] = {
-  { "socksend", S(SOCKSEND), 5, "", "aSiio", (SUBR) init_send, NULL,
+  { "socksend", S(SOCKSEND), 0, 5, "", "aSiio", (SUBR) init_send, NULL,
     (SUBR) send_send },
-   { "socksend_k", S(SOCKSEND), 3, "", "kSiio", (SUBR) init_send,
+   { "socksend_k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
      (SUBR) send_send_k, NULL },
-  { "socksends", S(SOCKSENDS), 5, "", "aaSiio", (SUBR) init_sendS, NULL,
+  { "socksends", S(SOCKSENDS), 0, 5, "", "aaSiio", (SUBR) init_sendS, NULL,
     (SUBR) send_sendS },
-  { "stsend", S(SOCKSEND), 5, "", "aSi", (SUBR) init_ssend, NULL,
+  { "stsend", S(SOCKSEND), 0, 5, "", "aSi", (SUBR) init_ssend, NULL,
     (SUBR) send_ssend }
 };
 

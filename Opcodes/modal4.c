@@ -515,11 +515,11 @@ int agogobel(CSOUND *csound, VIBRAPHN *p)
 #define S       sizeof
 
 static OENTRY modal4_localops[] = {
-{ "marimba", S(MARIMBA), TR|5, "a", "kkiiikkiijj",
+{ "marimba", S(MARIMBA), TR, 5, "a", "kkiiikkiijj",
                                  (SUBR)marimbaset, NULL, (SUBR)marimba},
-{ "vibes", S(VIBRAPHN),  TR|5, "a", "kkiiikkii",
+{ "vibes", S(VIBRAPHN),  TR, 5, "a", "kkiiikkii",
                                  (SUBR)vibraphnset,NULL,(SUBR)vibraphn},
-{ "gogobel",S(VIBRAPHN), TR|5, "a", "kkiiikki",
+{ "gogobel",S(VIBRAPHN), TR, 5, "a", "kkiiikki",
                                  (SUBR)agogobelset,NULL, (SUBR)agogobel},
 };
 
