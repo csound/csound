@@ -35,7 +35,8 @@
 #include "diskin.h"
 #include <math.h>
 
-#ifdef SOME_FINE_DAY  /* this code is deprecated, diskin now uses diskin2 code, see diskin2.c */
+#ifdef SOME_FINE_DAY  
+/* this code is deprecated, diskin now uses diskin2 code, see diskin2.c */
 
 static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
 {
@@ -189,7 +190,8 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     //fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
     //                      "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels*8, 0);
+                               "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 
+                               p->bufSize*p->nChannels*8, 0);
     if (UNLIKELY(fd == NULL)) {
       return
         csound->InitError(csound, Str("diskin: %s: failed to open file"), name);
