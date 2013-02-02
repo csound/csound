@@ -21,21 +21,22 @@
     02111-1307 USA
 */
 
-#define ZR (0x0100)
-#define ZW (0x0200)
-#define ZB (0x0300)
+#define ZR (0x0001)
+#define ZW (0x0002)
+#define ZB (0x0003)
 
-#define TR (0x0400)
-#define TW (0x0800)
-#define TB (0x0c00)
+#define TR (0x0004)
+#define TW (0x0008)
+#define TB (0x000c)
 
-#define CR (0x1000)
-#define CW (0x2000)
-#define CB (0x3000)
+#define CR (0x0010)
+#define CW (0x0020)
+#define CB (0x0030)
 
-#define ST CW
+#define ST (0x0040)
 
-#define WR (0x4000)
+#define WR (0x0080)
+
 #define _QQ (0x8000)
 
 
