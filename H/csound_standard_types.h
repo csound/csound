@@ -20,6 +20,7 @@ extern "C" {
     extern const CS_TYPE CS_VAR_TYPE_A;
     extern const CS_TYPE CS_VAR_TYPE_K;
     extern const CS_TYPE CS_VAR_TYPE_I;
+    extern const CS_TYPE CS_VAR_TYPE_S;
     extern const CS_TYPE CS_VAR_TYPE_P;
     extern const CS_TYPE CS_VAR_TYPE_R;
     extern const CS_TYPE CS_VAR_TYPE_C;
