@@ -24,7 +24,7 @@
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
 
-// Used to define STRCOD
+// Used to define STRCOD assumes IEEE arithmetic
 #ifdef USE_DOUBLE
 int64_t MYNAN = 0x7FF8000000000000;
 int ismynan(MYFLT x)
@@ -34,7 +34,7 @@ int ismynan(MYFLT x)
       int32 i[2];
     } ch;
     ch.d = x;
-    printf("checking %.8x %.8x\n", ch.i[0], ch.i[1]);
+    printf("checking %.8x %.8x => %d\n", ch.i[0], ch.i[1], isnan(x));
     return (ch.i[1]==0x7FF80000);
 }
 #else

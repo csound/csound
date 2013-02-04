@@ -30,6 +30,7 @@
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "pstream.h"
+#include "interlocks.h"
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -120,7 +121,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Warning(csound, Str("Instrument %d muted\n"), insno);
       return 0;
     }
-    if (UNLIKELY(tp->mdepends & 04)) {
+    if (UNLIKELY(tp->mdepends & MO)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
         csound->Message(csound, Str("instr %s expects midi event data, "
@@ -2119,7 +2120,7 @@ INSDS *insert_event(CSOUND *csound,
     /* Insert this event into event queue */
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "activating instr %d\n", insno);
-    if (UNLIKELY((tp->mdepends & 4) && !midi)) {
+    if (UNLIKELY((tp->mdepends & MO) && !midi)) {
       char *name = csound->engineState.instrtxtp[ip->insno]->insname;
       if (name)
         csound->Message(csound, Str("instr %s expects midi event data, "
