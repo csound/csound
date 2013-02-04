@@ -1,7 +1,7 @@
 What is New, What has Changed
 =============================
 
-Build system in cmake (and not scons as in Csound5)
+Build system in cmake (and not scons as in Csound5).  
 
 
 Note events can start and end in mid-kcycle.  As Thi sis an
@@ -16,15 +16,24 @@ the same.  Smilarly diskin and diskin2 now use the same code and so
 diskin should be more stable
 
 
+The old parser is totally gone.
+
+
+New syntax in csound6 includes +=, -=, *= and /= operators
+
+
 Arrays....
 
 
 Real-time mode....
 
 
-Template for arate perf-pass opcodes is
+New API functions.....
 
-int perf_opcode(CSOUND *csound, MYOPCODE *p)
+
+Template for arate perf-pass opcodes is
+------------------------------------------------------------------------
+int perf_myopcode(CSOUND *csound, MYOPCODE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -41,4 +50,6 @@ int perf_opcode(CSOUND *csound, MYOPCODE *p)
     }
     return OK;
 }
+------------------------------------------------------------------------
+
 
