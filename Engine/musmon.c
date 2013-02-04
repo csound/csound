@@ -645,7 +645,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       csound->currevent = saved_currevent;
       return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
     case 'q':
-      if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
+      if (ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
@@ -672,7 +672,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'i':
-      if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
+      if (ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
@@ -1195,7 +1195,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
           evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
       case 'q':                         /* mute instrument */
         /* check for a valid instrument number or name */
-        if (evt->strarg != NULL && p[1] == SSTRCOD)
+        if (evt->strarg != NULL && ISSTRCOD(p[1]))
           i = (int) named_instr_find(csound, evt->strarg);
         else
           i = (int) fabs((double) p[1]);

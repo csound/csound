@@ -2929,7 +2929,7 @@ int printksset(CSOUND *csound, PRINTKS *p)
      * the first parameter is "".     */
 
     if (!p->XSTRCODE &&
-        (*p->ifilcod != SSTRCOD || csound->currevent->strarg == NULL)) {
+        (!ISSTRCOD(*p->ifilcod) || csound->currevent->strarg == NULL)) {
       return csound->InitError(csound,
                                Str("printks param 1 was not a \"quoted string\""));
     }

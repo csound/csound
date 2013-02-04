@@ -278,7 +278,7 @@ static int get_absinsno(CSOUND *csound, TRIGINSTR *p)
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (p->XSTRCODE)
       insno = (int)strarg2insno_p(csound, (char*)p->args[0]);
-    else if (*p->args[0] == SSTRCOD)
+    else if (ISSTRCOD(*p->args[0]))
       insno = (int)strarg2insno_p(csound, csound->currevent->strarg);
     else
       insno = (int)FABS(*p->args[0]);
@@ -318,7 +318,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
       p->prvmintim = *p->mintime;
     }
 
-    if (*p->args[0] >= FL(0.0) || *p->args[0] == SSTRCOD) {
+    if (*p->args[0] >= FL(0.0) || ISSTRCOD(*p->args[0])) {
       /* Check for rate limit on event generation */
       if (*p->mintime > FL(0.0) && p->timrem > 0)
         return OK;
@@ -343,7 +343,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
       evt.strarg = (char*) p->args[0];
       evt.p[1] = SSTRCOD;
     }
-    else if (*p->args[0] == SSTRCOD) {
+    else if (ISSTRCOD(*p->args[0])) {
       unquote(name, csound->currevent->strarg, 512);
       evt.strarg = name;
       evt.p[1] = SSTRCOD;
@@ -490,7 +490,7 @@ int schedule(CSOUND *csound, SCHED *p)
     }
     if (p->XSTRCODE)
       which = (int) named_instr_find(csound, (char*) p->which);
-    else if (*p->which == SSTRCOD)
+    else if (ISSTRCOD(*p->which))
       which = (int) named_instr_find(csound, csound->currevent->strarg);
     else
       which = (int) (FL(0.5) + *p->which);
@@ -576,7 +576,7 @@ int kschedule(CSOUND *csound, WSCHED *p)
       int which;
       if (p->XSTRCODE)
         which = (int) named_instr_find(csound, (char*) p->which);
-      else if (*p->which == SSTRCOD)
+      else if (ISSTRCOD(*p->which))
         which = (int) named_instr_find(csound, csound->currevent->strarg);
       else
         which = (int) (FL(0.5) + *p->which);

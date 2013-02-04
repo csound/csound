@@ -165,7 +165,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     else
       memcpy(&(ff.e.p[2]), &(evtblkp->p[2]),
              sizeof(MYFLT) * ((int) ff.e.pcnt - 1));
-    if ((genum = (int32) MYFLT2LRND(ff.e.p[4])) == SSTRCOD) {
+    if (ISSTRCOD(ff.e.p[4])) {
       /* A named gen given so search the list of extra gens */
       NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
       while (n) {
@@ -180,6 +180,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       }
     }
     else {
+      genum = (int32) MYFLT2LRND(ff.e.p[4]);
       if (genum < 0)
         genum = -genum;
       if (UNLIKELY(!genum || genum > csound->genmax)) { /*   & legal gen number x*/
@@ -2168,11 +2169,11 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     va_end(args);
     csound->Message(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
-    if (ff->e.p[4] == SSTRCOD)
+    if (ISSTRCOD(ff->e.p[4]))
       csound->Message(csound, "%s", ff->e.strarg);
     else
       csound->Message(csound, "%8.2f", ff->e.p[4]);
-    if (ff->e.p[5] == SSTRCOD)
+    if (ISSTRCOD(ff->e.p[5]))
       csound->Message(csound, "  \"%s\" ...\n", ff->e.strarg);
     else
       csound->Message(csound, "%8.2f ...\n", ff->e.p[5]);
@@ -2465,7 +2466,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       int   fmt = (int) MYFLT2LRND(ff->e.p[7]);
-      if (filno == (int32) SSTRCOD) {
+      if (ISSTRCOD(ff->e.p[5])) {
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
           strcpy(p->sfname, ff->e.strarg + 1);
@@ -2651,7 +2652,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     }
 
     filno = &ff->e.p[5];
-    if (*filno == SSTRCOD)
+    if (ISSTRCOD(ff->e.p[5]))
       strcpy(filename, (char *)(&ff->e.strarg[0]));
     else
       csound->strarg2name(csound, filename, filno, "pvoc.", 0);
@@ -2726,7 +2727,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     /* memset(&mpainfo, 0, sizeof(mpadec_info_t)); */ /* Is this necessary? */
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
-      if (filno == (int32) SSTRCOD) {
+      if (ISSTRCOD(ff->e.p[5])) {
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
           strncpy(sfname, ff->e.strarg + 1, 1023);
@@ -2736,7 +2737,8 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
         else
           strncpy(sfname, ff->e.strarg, 1023);
       }
-      else if (filno >= 0 && filno <= csound->strsmax &&
+      else if ((filno= (int32) MYFLT2LRND(ff->e.p[5])) >= 0 &&
+               filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno])
         strncpy(sfname, csound->strsets[filno], 1023);
       else

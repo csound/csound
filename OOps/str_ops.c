@@ -101,7 +101,7 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
     int   indx;
 
     ((char*) p->r)[0] = '\0';
-    if (*(p->indx) == SSTRCOD) {
+    if (ISSTRCOD(*(p->indx))) {
       if (csound->currevent->strarg == NULL)
         return OK;
       if ((int) strlen(csound->currevent->strarg) >= csound->strVarMaxLen)
@@ -150,7 +150,7 @@ int strcpy_opcode(CSOUND *csound, STRCPY_OP *p)
 
     if (p->r == p->str)
       return OK;
-    if (*p->str == SSTRCOD){
+    if (ISSTRCOD(*p->str)) {
        csound->strarg2name(csound, (char *)p->r, p->str, "soundin.", p->XSTRCODE);
        return OK;
     }
@@ -407,7 +407,7 @@ int strtod_opcode(CSOUND *csound, STRSET_OP *p)
     if (p->XSTRCODE)
       s = (char*) p->str;
     else {
-      if (*p->str == SSTRCOD)
+      if (ISSTRCOD(*p->str))
         s = csound->currevent->strarg;
       else {
         int ndx = (int) MYFLT2LRND(*p->str);
@@ -437,7 +437,7 @@ int strtol_opcode(CSOUND *csound, STRSET_OP *p)
     if (p->XSTRCODE)
       s = (char*) p->str;
     else {
-      if (*p->str == SSTRCOD)
+      if (ISSTRCOD(*p->str))
         s = csound->currevent->strarg;
       else {
         int ndx = (int) MYFLT2LRND(*p->str);
