@@ -858,7 +858,7 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
     }
 
     current->nxtop = bp;
-    ip->mdepends = ip->mdepends;
+    ip->mdepends = ip->mdepends; // ODD!!!!
     ip->pextrab = ((n = ip->pmax - 3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
     ip->pextrab = ((int) ip->pextrab + 7) & (~7);
     ip->muted = 1;
@@ -1677,7 +1677,6 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
     }
 
     argLetter[0] = *t;
-
 
     type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     var = csoundCreateVariable(csound, csound->typePool, type, s, typeArg);
