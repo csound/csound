@@ -1,0 +1,23 @@
+What is New, What has Changed
+=============================
+
+Build system in cmake (and not scons as in Csound5)
+
+
+Note events can start and end in mid-kcycle.  As Thi sis an
+incompatable change it is only invoked with the command-line option
+--sample-accurate
+is specified.  Not that this does not work for tied notes, and use of
+skipping initialisation has questionable use.
+
+
+A nuber of table access opcodes have been rewritten but should behave
+the same.  Smilarly diskin and diskin2 now use the same code and so
+diskin should be more stable
+
+
+Arrays....
+
+
+Real-time mode....
+
