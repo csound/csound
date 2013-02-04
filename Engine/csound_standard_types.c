@@ -93,6 +93,10 @@ const CS_TYPE CS_VAR_TYPE_I = {
   "i", NULL, "init time var", CS_ARG_TYPE_BOTH, createMyflt, NULL
 };
 
+const CS_TYPE CS_VAR_TYPE_S = {
+    "S", NULL, "String var", CS_ARG_TYPE_BOTH, createMyflt, NULL
+};
+
 const CS_TYPE CS_VAR_TYPE_P = {
   "p", NULL, "p-field", CS_ARG_TYPE_BOTH, createMyflt, NULL
 };
@@ -130,6 +134,7 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_K);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_I);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_S);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_P);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_R);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_C);
