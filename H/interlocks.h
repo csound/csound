@@ -25,17 +25,19 @@
 #define ZW (0x0002)
 #define ZB (0x0003)
 
-#define TR (0x0004)
-#define TW (0x0008)
-#define TB (0x000c)
+#define MO (0x0004)
 
-#define CR (0x0010)
-#define CW (0x0020)
-#define CB (0x0030)
+#define TR (0x0008)
+#define TW (0x0010)
+#define TB (0x0018)
 
-#define ST (0x0040)
+#define CR (0x0020)
+#define CW (0x0040)
+#define CB (0x0060)
 
-#define WR (0x0080)
+#define ST (0x0080)
+
+#define WR (0x0100)
 
 #define _QQ (0x8000)
 
