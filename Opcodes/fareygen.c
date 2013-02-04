@@ -73,11 +73,11 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     va_end(args);
     csound->Message(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
-    if (ff->e.p[4] == SSTRCOD)
+    if (ISSTRCOD(ff->e.p[4]))
       csound->Message(csound, "%s", ff->e.strarg);
     else
       csound->Message(csound, "%8.2f", ff->e.p[4]);
-    if (ff->e.p[5] == SSTRCOD)
+    if (ISSTRCOD(ff->e.p[5]))
       csound->Message(csound, "  \"%s\" ...\n", ff->e.strarg);
     else
       csound->Message(csound, "%8.2f ...\n", ff->e.p[5]);

@@ -286,7 +286,7 @@ static void sensLine(CSOUND *csound, void *userData)
               goto Lerr;
             }                                   /*        pfld carry   */
             e.p[pcnt] = STA(prve).p[pcnt];
-            if (UNLIKELY(e.p[pcnt] == SSTRCOD)) {
+            if (UNLIKELY(ISSTRCOD(e.p[pcnt]))) {
               csound->ErrorMsg(csound, Str("cannot carry string p-field"));
               goto Lerr;
             }

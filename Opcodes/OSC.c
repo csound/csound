@@ -353,7 +353,7 @@ static int osc_event_handler(const char *path, const char *types,
         break;
       case 's':
         /* string argument: cannot have more than one */
-        evt->e.p[i] = (MYFLT) SSTRCOD;
+        evt->e.p[i] = SSTRCOD;
         if (evt->e.strarg != NULL) {
           free(evt->e.strarg);
           free(evt);

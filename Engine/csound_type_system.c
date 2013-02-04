@@ -69,18 +69,19 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
     return 1;
 }
 
-CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool, CS_TYPE* type, char* name, void* typeArg) {
+CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
+                                  CS_TYPE* type, char* name, void* typeArg) 
+{
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
-        if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-            CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
-            var->varType = type;
-            int len = strlen(name);
-            var->varName = (char*)mcalloc(csound, len + 1);
-            strcpy(var->varName, name);
-            return var;
-        }
-        current = current->next;
+      if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
+        CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
+        var->varType = type;
+        var->varName = (char*)mcalloc(csound, strlen(name) + 1);
+        strcpy(var->varName, name);
+        return var;
+      }
+      current = current->next;
     }
     return NULL;
 }
@@ -91,11 +92,11 @@ CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name) {
     
     if(current != NULL && name != NULL) {
         while(current != NULL) {
-            if (strcmp(current->varName, name) == 0) {
-                returnValue = current;
-                break;
-            }
-            current = current->next;
+          if (strcmp(current->varName, name) == 0) {
+            returnValue = current;
+            break;
+          }
+          current = current->next;
         }
     }
     
@@ -107,30 +108,31 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
     CS_VARIABLE* current = pool->head;
     int i;
 
-    for(i = 0; i < index || current != NULL; i++) { /* THIS WAS WRONG!! && or || meant foR , ?? */
-        current = current->next;
+    for(i = 0; i < index || current != NULL; i++) { 
+      /* THIS WAS WRONG!! && or || meant foR , ?? */
+      current = current->next;
     }
 
     return current;
 }
 
 int csoundFindVariable(CS_VAR_POOL* pool, const char* name) {
-	CS_VARIABLE* current = pool->head;
-	int returnValue = -1;
-	int counter = 0;
+    CS_VARIABLE* current = pool->head;
+    int returnValue = -1;
+    int counter = 0;
+    
+    if(current != NULL && name != NULL) {
+      while(current != NULL) {
+        if (strcmp(current->varName, name) == 0) {
+          returnValue = counter;
+          break;
+        }
+        current = current->next;
+        counter++;
+      }
+    }
 
-	if(current != NULL && name != NULL) {
-		while(current != NULL) {
-			if (strcmp(current->varName, name) == 0) {
-				returnValue = counter;
-				break;
-			}
-			current = current->next;
-			counter++;
-		}
-	}
-
-	return returnValue;
+    return returnValue;
 }
 
 
