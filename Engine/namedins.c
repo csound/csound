@@ -382,7 +382,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
         s = mmalloc(csound, strlen((char*) p) + 1);
       strcpy(s, (char*) p);
     }
-    else if (*((MYFLT*) p) == SSTRCOD) {
+    else if (ISSTRCOD(*((MYFLT*) p))) {
       /* p-field string, unquote and copy */
       char  *s2 = csound->currevent->strarg;
       int   i = 0;

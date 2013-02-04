@@ -280,7 +280,7 @@ static int textflash(CSOUND *csound, TXTWIN *p)
 
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
-    if (p->XSTRCODE || *p->val == SSTRCOD) {
+    if (p->XSTRCODE || ISSTRCOD(*p->val)) {
       csound->strarg2name(csound, buffer, p->val, "", p->XSTRCODE);
 /*    csound->Message(csound, "settext %d \"%s\"\n", wind, buffer); */
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);

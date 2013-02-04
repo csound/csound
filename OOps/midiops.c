@@ -376,7 +376,7 @@ int pgmassign(CSOUND *csound, PGMASSIGN *p)
     if (UNLIKELY(chn < 0 || chn > 16))
       return csound->InitError(csound, Str("illegal channel number"));
     /* IV - Oct 31 2002: allow named instruments */
-    if (p->XSTRCODE || *p->inst == SSTRCOD) {
+    if (p->XSTRCODE || ISSTRCOD(*p->inst)) {
       MYFLT buf[128];
       csound->strarg2name(csound, (char*) buf, p->inst, "", 1);
       ins = (int)strarg2insno(csound, buf, 1);

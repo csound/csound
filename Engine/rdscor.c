@@ -24,6 +24,12 @@
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
 
+// Used to define STRCOD
+#ifdef DOUBLE
+int64 MYNAN = 0x7FF8000000000000;
+#else
+int32 MYNAN = 0x7FC00000;
+#endif
 static void dumpline(CSOUND *);
 
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
@@ -46,34 +52,17 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
     }
     if (c == '"') {                             /* if find a quoted string  */
       char *sstrp;
-      if (csound->scnt0==0) {
-        if ((sstrp = csound->sstrbuf) == NULL)
-          sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
-        while ((c = corfile_getc(csound->scstr)) != '"') {
-          if (c=='\\') c = corfile_getc(csound->scstr);
-          *sstrp++ = c;
-        }
-        *sstrp++ = '\0';
-        *pfld = SSTRCOD;                        /*   flag with hifloat      */
-        csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
+      if ((sstrp = csound->sstrbuf) == NULL)
+        sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
+      while ((c = corfile_getc(csound->scstr)) != '"') {
+        if (c=='\\') c = corfile_getc(csound->scstr);
+        *sstrp++ = c;
       }
-      else {
-        int n = csound->scnt0;
-        printf("***Entering dubious code; n=%d\n", n);
-        if ((sstrp = csound->sstrbuf0[n]) == NULL)
-          sstrp = csound->sstrbuf0[n] = mmalloc(csound, SSTRSIZ);
-        while ((c = corfile_getc(csound->scstr)) != '"') {
-          if (c=='\\') c = corfile_getc(csound->scstr);
-          *sstrp++ = c;
-        }
-        *sstrp++ = '\0';
-        *pfld = ((int[4]){SSTRCOD, SSTRCOD1,
-                          SSTRCOD2,SSTRCOD3})[n]; /* flag with hifloat */
-                                                          /* Net  line is wrong*/
-        csound->sstrlen0[n] = sstrp - csound->sstrbuf0[n];  /* & overall length */
-      }
-      csound->scnt0++;
-      return(1);
+      *sstrp++ = '\0';
+      *pfld = SSTRCOD;                        /*   flag with hifloat      */
+       csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
+       csound->scnt0++;
+       return(1);
     }
     if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
       corfile_ungetc(csound->scstr);
@@ -109,9 +98,6 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
-#ifdef BETA
-      csound->Message(csound, "THIS SHOULD NOT HAPPEN -- CONTACT jpff\n");
-#endif
       e->opcod = 'f';             /*     return an 'f 0 3600'    */
       e->p[1] = FL(0.0);
       e->p[2] = FL(INF);

@@ -133,10 +133,18 @@ typedef struct {
 
 #define LOMASK     1023
 
-#define SSTRCOD    3945467
-#define SSTRCOD1   3945466
-#define SSTRCOD2   3945465
-#define SSTRCOD3   3945464
+#ifdef DOUBLE
+  extern int64 MYNAN;
+  //#define SSTRCOD    (nan("0"))
+#define SSTRCOD    (*(double*)&MYNAN)
+#else
+  extern int32 MYNAN;
+  //#define SSTRCOD    (nan("0"))
+#define SSTRCOD    (*(double*)&MYNAN)
+  //#define SSTRCOD    (nanf("0"))
+#endif
+#define ISSTRCOD(X) isnan(X)
+
 #define SSTRSIZ    200
 #define ALLCHNLS   0x7fff
 #define DFLT_SR    FL(44100.0)
