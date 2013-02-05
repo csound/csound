@@ -50,6 +50,19 @@ int ismynan(MYFLT x)
 }
 #endif
 
+char* get_arg_string(CSOUND *csound, MYFLT p)
+{
+    int32 n;
+    char *ss = csound->currevent->strarg;
+    union {
+      MYFLT d;
+      int32 i;
+    } ch;
+    ch.d = p; n = ch.i&0xffff;
+    while (n-- > 0) ss += strlen(ss)+1;
+    return ss;
+}
+
 static void dumpline(CSOUND *);
 
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
@@ -72,17 +85,33 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
     }
     if (c == '"') {                             /* if find a quoted string  */
       char *sstrp;
+      int n = csound->scnt;
       if ((sstrp = csound->sstrbuf) == NULL)
         sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
+      while (n--!=0) {
+        sstrp += strlen(sstrp)+1; 
+        if (sstrp-csound->sstrbuf>SSTRSIZ) {
+          csound->Message(csound, "too many strings\n"); 
+          exit(2);
+        }
+      }
       while ((c = corfile_getc(csound->scstr)) != '"') {
         if (c=='\\') c = corfile_getc(csound->scstr);
         *sstrp++ = c;
       }
       *sstrp++ = '\0';
-      *pfld = SSTRCOD;                        /*   flag with hifloat      */
-       csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
-       csound->scnt0++;
-       return(1);
+      //*pfld = SSTRCOD;                        /*   flag with hifloat      */
+      {
+        union {
+          MYFLT d;
+          int32 i;
+        } ch;
+        ch.d = SSTRCOD; ch.i += csound->scnt++;
+        *pfld = ch.d;           /* set as string with count */
+      }
+      csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
+      printf("csound->sstrlen = %d\n", csound->sstrlen);
+      return(1);
     }
     if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
       corfile_ungetc(csound->scstr);
@@ -127,7 +156,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
     }
   /* else read the real score */
     while ((c = corfile_getc(csound->scstr)) != '\0') {
-      csound->scnt0 = 0;
+      csound->scnt = 0;
       switch (c) {
       case ' ':
       case '\t':
@@ -230,16 +259,18 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         if (!csound->csoundIsScorePending_ && e->opcod == 'i') {
           /* FIXME: should pause and not mute */
           csound->sstrlen = 0;
-          e->opcod = 'f'; e->p[1] = FL(0.0); e->pcnt = 2;
+          e->opcod = 'f'; e->p[1] = FL(0.0); e->pcnt = 2; e->scnt = 0;
           return 1;
         }
         e->pcnt = pp - &e->p[0];                   /* count the pfields */
         if (e->pcnt>=PMAX) e->pcnt += e->c.extra[0]; /* and overflow fields */
         if (csound->sstrlen) {        /* if string arg present, save it */
           e->strarg = mmalloc(csound, csound->sstrlen); /* FIXME:       */
-          strcpy(e->strarg, csound->sstrbuf);           /* leaks memory */
+          memcpy(e->strarg, csound->sstrbuf, csound->sstrlen); /* leaks memory */
+          e->scnt = csound->scnt;
           csound->sstrlen = 0;
         }
+        else { e->strarg = NULL; e->scnt = 0; } /* is this necessary?? */
         return 1;
       }
     }
