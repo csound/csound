@@ -1,3 +1,12 @@
+WHAT NEEDS HEAVY TESTING
+========================
+
+Multiple strings in score
+
+--sample-accurate
+
+
+
 What is New, What has Changed
 =============================
 
@@ -12,7 +21,7 @@ skipping initialisation has questionable use.
 
 
 A number of table access opcodes have been rewritten but should behave
-the same.  Smilarly diskin and diskin2 now use the same code and so
+the same.  Similarly diskin and diskin2 now use the same code and so
 diskin should be more stable
 
 
@@ -32,9 +41,7 @@ Asynchronous file access....
 
 
 The number of strings that can be used in a score line is no longer
-just one, but limited by a maximum length of all string to be less
-than 200 chars.  Hope to remove that restriction soon.  At present
-sensline use is still restricted to one string.
+just one.  At present sensline use is still restricted to one string.
 
 
 New API functions.....
