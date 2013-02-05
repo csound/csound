@@ -87,17 +87,18 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       char *sstrp;
       int n = csound->scnt;
       if ((sstrp = csound->sstrbuf) == NULL)
-        sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
-      while (n--!=0) {
-        sstrp += strlen(sstrp)+1; 
-        if (sstrp-csound->sstrbuf>SSTRSIZ) {
-          csound->Message(csound, "too many strings\n"); 
-          exit(2);
-        }
-      }
+        sstrp = csound->sstrbuf = mmalloc(csound, csound->strsiz=SSTRSIZ);
+      while (n--!=0) sstrp += strlen(sstrp)+1; 
+      n = sstrp-csound->sstrbuf;
       while ((c = corfile_getc(csound->scstr)) != '"') {
         if (c=='\\') c = corfile_getc(csound->scstr);
         *sstrp++ = c;
+        n++;
+        if (n > csound->strsiz-10) {
+          csound->sstrbuf = mrealloc(csound, csound->sstrbuf,
+                                     csound->strsiz+=SSTRSIZ);
+          sstrp = csound->sstrbuf+n;
+        }          
       }
       *sstrp++ = '\0';
       //*pfld = SSTRCOD;                        /*   flag with hifloat      */

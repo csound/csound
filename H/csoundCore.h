@@ -1598,6 +1598,7 @@ typedef struct NAME__ {
     int           parserNamedInstrFlag;
     int           tran_nchnlsi;
     int           scnt;         /* Count of strings */
+    int           strsiz;       /* length of current strings space */
     MYFLT         *powerof2;    /* pow2 table */
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
