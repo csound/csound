@@ -56,7 +56,6 @@
 
 static void sensLine(CSOUND *csound, void *userData);
 
-//#define ST(x)   (((LINEVENT_GLOBALS*) ((CSOUND*) csound)->lineventGlobals)->x)
 #define STA(x)   (csound->lineventStatics.x)
 
 void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
@@ -73,7 +72,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       STA(Linecons) = stdin;
       setvbuf(stdin, NULL, _IONBF, 0);
 #else
-  #if defined(DOSGCC) || defined(WIN32) || defined(mills_macintosh)
+  #if defined(DOSGCC) || defined(WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
   #else
@@ -131,7 +130,7 @@ void RTclose(CSOUND *csound)
       {
         if (strcmp(csound->oparms->Linename, "stdin") != 0)
           close(csound->Linefd);
-  #if !defined(DOSGCC) && !defined(WIN32) && !defined(mills_macintosh)
+  #if !defined(DOSGCC) && !defined(WIN32)
         else
           fcntl(csound->Linefd, F_SETFL, STA(stdmode));
   #endif
@@ -224,7 +223,9 @@ static void sensLine(CSOUND *csound, void *userData)
       
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
-        char    sstrp[SSTRSIZ];
+        char    *sstrp = NULL;
+        int     scnt = 0;
+        int     strsiz;
         e.strarg = NULL;
         c = *cp;
         while (c == ' ' || c == '\t')   /* skip initial white space */
@@ -255,10 +256,10 @@ static void sensLine(CSOUND *csound, void *userData)
             break;
           pcnt++;
           if (c == '"') {                       /* if find character string */
-            if (UNLIKELY(e.strarg != NULL)) {
-              csound->ErrorMsg(csound, Str("multiple string p-fields"));
-              goto Lerr;
-            }
+            if (e.strarg == NULL)
+              e.strarg = sstrp = mmalloc(csound, strsiz=SSTRSIZ);
+            n = scnt;
+            while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
             while ((c = *(++cp)) != '"') {
               if (UNLIKELY(c == LF)) {
@@ -266,14 +267,21 @@ static void sensLine(CSOUND *csound, void *userData)
                 goto Lerr;
               }
               sstrp[n++] = c;                   /*   save in private strbuf */
-              if (UNLIKELY(n >= SSTRSIZ)) {
-                csound->ErrorMsg(csound, Str("string p-field is too long"));
-                goto Lerr;
+              if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
+                e.strarg = mrealloc(csound, e.strarg, strsiz+=SSTRSIZ);
+                sstrp = e.strarg+n;
               }
             }
             sstrp[n] = '\0';
-            e.strarg = &(sstrp[0]);
-            e.p[pcnt] = SSTRCOD;                /*   & store coded float   */
+            {
+              union {
+                MYFLT d;
+                int32 i;
+              } ch;
+              ch.d = SSTRCOD; ch.i += scnt++;
+              e.p[pcnt] = ch.d;           /* set as string with count */
+            }
+            e.scnt = scnt;
             continue;
           }
           if (UNLIKELY(!(isdigit(c) || c == '+' || c == '-' || c == '.')))
