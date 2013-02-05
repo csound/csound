@@ -1441,7 +1441,7 @@ typedef struct NAME__ {
 #define LBUFSIZ   32768
     struct lineventStatics__ {
       char    *Linep, *Linebufend;
-      FILE    *Linecons;
+      FILE    *Linecons;        /* ONLY USED IN mills_macintosh */
       int     stdmode;
       EVTBLK  prve;
       char    Linebuf[LBUFSIZ];
