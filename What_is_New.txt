@@ -26,9 +26,15 @@ Arrays....
 
 
 Real-time mode....
-]
+
 
 Asynchronous file access....
+
+
+The number of strings that can be used in a score line is no longer
+just one, but limited by a maximum length of all string to be less
+than 200 chars.  Hope to remove that restriction soon.  At present
+sensline use is still restricted to one string.
 
 
 New API functions.....

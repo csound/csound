@@ -547,7 +547,8 @@ typedef struct CORFIL {
    * This struct holds the data for one score event.
    */
   typedef struct event {
-    /** String argument (NULL if none) */
+    /** String argument(s) (NULL if none) */
+    int     scnt;
     char    *strarg;
     /** Event type */
     char    opcod;
@@ -563,7 +564,6 @@ typedef struct CORFIL {
       MYFLT   *extra;
       MYFLT   p[2];
     } c;
-    char    estrarg[3];         /* Extra strings */
   } EVTBLK;
 
   typedef struct {
@@ -1597,9 +1597,7 @@ typedef struct NAME__ {
     int           parserUdoflag;
     int           parserNamedInstrFlag;
     int           tran_nchnlsi;
-    int           scnt0;        /* Count of extra strings */
-    char          *sstrbuf0[3]; /* For extra strings in scores */
-    int           sstrlen0[3];  /* lengths for extra strings */
+    int           scnt;         /* Count of strings */
     MYFLT         *powerof2;    /* pow2 table */
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */

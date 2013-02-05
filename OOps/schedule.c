@@ -344,8 +344,9 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
       evt.p[1] = SSTRCOD;
     }
     else if (ISSTRCOD(*p->args[0])) {
-      unquote(name, csound->currevent->strarg, 512);
+      unquote(name, get_arg_string(csound, *p->args[0]), 512);
       evt.strarg = name;
+      evt.scnt = 1;
       evt.p[1] = SSTRCOD;
     }
     else {
@@ -577,7 +578,7 @@ int kschedule(CSOUND *csound, WSCHED *p)
       if (p->XSTRCODE)
         which = (int) named_instr_find(csound, (char*) p->which);
       else if (ISSTRCOD(*p->which))
-        which = (int) named_instr_find(csound, csound->currevent->strarg);
+        which = (int) named_instr_find(csound, get_arg_string(csound,*p->which));
       else
         which = (int) (FL(0.5) + *p->which);
       if (UNLIKELY(which < 1 || which > csound->engineState.maxinsno ||
