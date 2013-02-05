@@ -102,11 +102,13 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
 
     ((char*) p->r)[0] = '\0';
     if (ISSTRCOD(*(p->indx))) {
-      if (csound->currevent->strarg == NULL)
+      char *ss = csound->currevent->strarg;
+      if (ss == NULL)
         return OK;
-      if ((int) strlen(csound->currevent->strarg) >= csound->strVarMaxLen)
+      ss = get_arg_string(csound, *p->indx);
+      if ((int) strlen(ss) >= csound->strVarMaxLen)
         return csound->InitError(csound, Str("strget: buffer overflow"));
-      strcpy((char*) p->r, csound->currevent->strarg);
+      strcpy((char*) p->r, ss);
       return OK;
     }
     indx = (int)((double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
@@ -408,7 +410,7 @@ int strtod_opcode(CSOUND *csound, STRSET_OP *p)
       s = (char*) p->str;
     else {
       if (ISSTRCOD(*p->str))
-        s = csound->currevent->strarg;
+        s = get_arg_string(csound, *p->str);
       else {
         int ndx = (int) MYFLT2LRND(*p->str);
         if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
@@ -438,7 +440,7 @@ int strtol_opcode(CSOUND *csound, STRSET_OP *p)
       s = (char*) p->str;
     else {
       if (ISSTRCOD(*p->str))
-        s = csound->currevent->strarg;
+        s = get_arg_string(csound, *p->str);
       else {
         int ndx = (int) MYFLT2LRND(*p->str);
         if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)

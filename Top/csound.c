@@ -439,13 +439,13 @@ static const CSOUND cenviron_ = {
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
     0.0,            /*  beatTime            */
-    NULL,            /* file_io_thread    */
-    0,               /* file_io_start   */
-    NULL,            /* file_io_threadlock */
-    0,               /* realtime_audio_flag */
-    NULL,            /* init pass thread */
-    0,               /* init pass loop  */
-    NULL,            /* init pass threadlock */
+    (pthread_t)0,   /* file_io_thread    */
+    0,              /* file_io_start   */
+    NULL,           /* file_io_threadlock */
+    0,              /* realtime_audio_flag */
+    (pthread_t)0,   /* init pass thread */
+    0,              /* init pass loop  */
+    NULL,           /* init pass threadlock */
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
@@ -589,7 +589,7 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, NULL, {0,0,0}},   /*  evt */
+    { 0, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, NULL},   /*  evt */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */
@@ -641,9 +641,8 @@ static const CSOUND cenviron_ = {
       NULL,         /* Linecons             */
       0,            /* stdmode              */
       {
-        NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
+        0, NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
         {NULL},
-        {0, 0, 0},
       },            /* EVTBLK  prve         */
       { 0 },        /* Linebuf              */
     },
@@ -810,9 +809,7 @@ static const CSOUND cenviron_ = {
     -1,             /*  parserUdoflag */
     0,              /*  parserNamedInstrFlag */
     0,              /*  tran_nchnlsi */
-    0,              /* Count of extra strings */
-    {NULL, NULL, NULL}, /* For extra strings in scores */
-    {0, 0, 0},      /* For extra strings in scores */
+    0,              /* Count of score strings */
     NULL,            /* pow2 table */
     NULL,            /* cps conv table */
     NULL,            /* output of preprocessor */

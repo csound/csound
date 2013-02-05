@@ -502,7 +502,7 @@ int turnon(CSOUND *csound, TURNON *p)
     EVTBLK  evt;
     int     isNamedInstr;
 
-    evt.strarg = NULL;
+    evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
     isNamedInstr = (int) csound->GetInputArgSMask(p);
@@ -1141,6 +1141,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         return CSOUND_MEMORY;
     }
     if (evt->strarg != NULL) {  /* copy string argument if present */
+      /* NEED TO COPY WHOLE STRING STRUCTURE */
       e->evt.strarg = (char*) malloc((size_t) strlen(evt->strarg) + (size_t) 1);
       if (UNLIKELY(e->evt.strarg == NULL)) {
         free(e);
@@ -1280,6 +1281,7 @@ void musmon_rewind_score(CSOUND *csound)
       csound->icurTime = 0L;
       csound->cyclesRemaining = 0;
       csound->evt.strarg = NULL;
+      csound->evt.scnt = 0;
       csound->evt.opcod  = '\0';
       /* reset tempo */
       if (csound->oparms->Beatmode)
