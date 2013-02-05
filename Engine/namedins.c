@@ -25,8 +25,6 @@
 #include "namedins.h"
 #include <ctype.h>
 
-char* get_arg_string(CSOUND*, MYFLT);
-
 typedef struct namedInstr {
     int32        instno;
     char        *name;
