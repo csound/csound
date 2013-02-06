@@ -36,15 +36,42 @@ Arrays....
 
 Real-time mode....
 
-
 Asynchronous file access....
 
 
 The number of strings that can be used in a score line is no longer
-just one.  At present sensline use is still restricted to one string.
+just one.  It should be open ended now.
 
 
 New API functions.....
+    TREE *(*ParseOrc)(CSOUND *, char *str);
+        Parse an orchestra as a string to the internal tree.
+
+    int (*CompileTree)(CSOUND *, TREE *root);
+        Convert a valid tree to the internal code format
+
+    int (*CompileOrc)(CSOUND *, char *str);
+        Compile a string to internal form
+
+    int (*ReadScore)(CSOUND *, char *str);
+    int (*Start)(CSOUND *);
+    void (*FlushCircularBuffer)(CSOUND *, void *);
+    void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
+                           const char *, int, int, int);
+    unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
+    unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
+    int  (*FSeekAsync)(CSOUND *, void *, int, int);
+    char *(*GetString)(CSOUND *, MYFLT);
+       Extract a string originating from a score-event argument.
+
+functions removed
+    void *(*FileOpen)(CSOUND *,
+                      void*, int, const char*, void*, const char*);
+
+The "private" parts of the API have been changed considerably.  Also
+structures like EVTBLK have changed
+
+The LINKAGE1/FLINKAGE1 macros are renamed as LINKAGE_BUILTIN/FLINKAGE_BUILTIN
 
 
 Template for arate perf-pass opcodes is
