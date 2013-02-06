@@ -457,7 +457,7 @@ extern "C" {
     int     compute_weights;     /* use calculated opcode weights for multicore, 0 or 1  */
     int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
     int     sample_accurate;     /* use sample-level score event accuracy */
-  } CSOUND_CONFIG;
+  } CSOUND_PARAMS;
 
 
     /**
@@ -638,7 +638,7 @@ extern "C" {
      *  Configure Csound
      */
 
-   PUBLIC void csoundConfigure(CSOUND *csound, CSOUND_CONFIG *cfg);
+   PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
 
     /**
      *  Set output destination, type and format
