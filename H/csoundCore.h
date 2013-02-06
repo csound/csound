@@ -143,8 +143,7 @@ typedef struct {
 #define SSTRCOD    (*(float*)&MYNAN)
   //#define SSTRCOD    (nanf("0"))
 #endif
-  extern int ismynan(MYFLT);
-#define ISSTRCOD(X) ismynan(X)
+#define ISSTRCOD(X) isnan(X)
 
 #define SSTRSIZ    200
 #define ALLCHNLS   0x7fff
