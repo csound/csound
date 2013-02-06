@@ -330,6 +330,14 @@ extern "C"
 #include <pstream.h>
 }
 
+#ifdef ST
+#undef ST
+#endif
+
+#ifdef WR
+#undef WR
+#endif
+
 #include <OpcodeBase.hpp>
 #include <complex>
 #include <sstream>
