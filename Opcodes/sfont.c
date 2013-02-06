@@ -1468,9 +1468,6 @@ static void ChangeByteOrder(char *fmt, char *p, int32 size)
 
 static void fill_SfStruct(CSOUND *csound)
 {
-#if defined(SYMANTEC)
-#pragma options(!global_optimizer)
-#endif
     int j, k, i, l, m, size, iStart, iEnd, kk, ll, mStart, mEnd;
     int pbag_num,first_pbag,layer_num;
     int ibag_num,first_ibag,split_num;

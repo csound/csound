@@ -254,7 +254,6 @@ void dag_add_work(CSOUND *csound, taskID i)
 
 static int getThreadIndex(CSOUND *csound, void *threadId)
 {
-#ifndef mac_classic
     int index = 0;
     THREADINFO *current = csound->multiThreadedThreadInfo;
     
@@ -265,7 +264,6 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
       index++;
       current = current->next;
     }
-#endif
     return -1;
 }
 

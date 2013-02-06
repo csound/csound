@@ -41,9 +41,6 @@
 #include "csGblMtx.h"
 #include <stdarg.h>
 #include <signal.h>
-#ifndef mac_classic
-#include <pthread.h>
-#endif
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
@@ -547,8 +544,8 @@ static const CSOUND cenviron_ = {
     /* (STRING_POOL*)NULL, */ /* string pool now in engineState */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-#if defined(__WATCOMC__) || defined(MSVC) ||defined(__POWERPC__) || \
-    defined(mac_classic) || (defined(_WIN32) && defined(__GNUC__))
+#if defined(MSVC) ||defined(__POWERPC__) || \
+    (defined(_WIN32) && defined(__GNUC__))
     {0},
 #else
     {{{0}}},        /*  exitjmp of type jmp_buf */
@@ -638,7 +635,6 @@ static const CSOUND cenviron_ = {
     },
     {
       NULL, NULL,   /* Linep, Linebufend    */
-      NULL,         /* Linecons             */
       0,            /* stdmode              */
       {
         0, NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
@@ -1205,7 +1201,6 @@ extern int sensevents(CSOUND *);
 
 static int getThreadIndex(CSOUND *csound, void *threadId)
 {
-#ifndef mac_classic
     int index = 0;
     THREADINFO *current = csound->multiThreadedThreadInfo;
 
@@ -1219,7 +1214,6 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
       index++;
       current = current->next;
     }
-#endif
     return -1;
 }
 

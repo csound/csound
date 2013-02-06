@@ -175,7 +175,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
               csound->Die(csound, Str("-o cannot be stdin"));
-#if defined(mac_classic) || defined(WIN32)
+#if defined(WIN32)
             if (strcmp(O->outfilename, "stdout") == 0) {
               csound->Die(csound, Str("stdout audio not supported"));
             }

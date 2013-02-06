@@ -31,10 +31,6 @@
 #include <fcntl.h>
 #endif
 
-#if defined(mac_classic) && defined(__MWERKS__)
-#include <unix.h>
-#endif
-
 #include "namedins.h"
 
 /* list of environment variables used by Csound */
@@ -79,7 +75,7 @@ typedef struct CSFILE_ {
 #if defined(MSVC)
 #define RD_OPTS  _O_RDONLY | _O_BINARY
 #define WR_OPTS  _O_TRUNC | _O_CREAT | _O_WRONLY | _O_BINARY,_S_IWRITE
-#elif defined(mac_classic) || defined(WIN32)
+#elif defined(WIN32)
 #define RD_OPTS  O_RDONLY | O_BINARY
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
 #elif defined DOSGCC
@@ -592,18 +588,11 @@ int csoundIsNameFullpath(const char *name)
 #ifdef WIN32
     if (isalpha(name[0]) && name[1] == ':') return 1;
 #endif
-#ifndef mac_classic
     if (name[0] == DIRSEP) /* ||
         (name[0] == '.' && (name[1] == DIRSEP ||
                             (name[1] == '.' && name[2] == DIRSEP)))) */
       return 1;
     return 0;
-#else
-    /* MacOS full paths contain DIRSEP but do not start with it */
-    if (name[0] == DIRSEP || strchr(name, DIRSEP) == NULL)
-      return 0;
-    return 1;
-#endif
 }
 
 /** Check if name is a relative pathname for this platform.  Bare
@@ -611,16 +600,9 @@ int csoundIsNameFullpath(const char *name)
  */
 int csoundIsNameRelativePath(const char *name)
 {
-#ifndef mac_classic
     if (name[0] != DIRSEP && strchr(name, DIRSEP) != NULL)
       return 1;
     return 0;
-#else
-    /* MacOS relative paths begin with DIRSEP */
-    if (name[0] == DIRSEP)
-      return 1;
-    return 0;
-#endif
 }
 
 /** Check if name is a "leaf" (bare) filename for this platform. */
@@ -657,13 +639,8 @@ char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
     }
 
     start2 = path2;
-#ifndef mac_classic
     /* ignore "./" at the beginning */
     if (path2[0] == '.' && path2[1] == DIRSEP) start2 = path2 + 2;
-#else
-    /* ignore the first ':' of path2 if any are present */
-    if (path2[0] == ':') start2 = path2 + 1;
-#endif
 
     result = (char*) mmalloc(csound, (size_t)len1+(size_t)len2+2);
     strcpy(result, path1);
@@ -751,7 +728,6 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
 
     if (csoundIsNameFullpath(tempPath))
     {
-#ifndef mac_classic
         /* check if root directory */
         if (lastIndex == tempPath) {
             partialPath = (char *)mmalloc(csound, 2);
@@ -777,8 +753,6 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
             return partialPath;
         }
 #  endif
-#endif  /* no special case needed on OS 9 for root directory */
-        /* not the root directory or we are on OS 9 */
         len = (lastIndex - tempPath);
 
         partialPath = (char *)mcalloc(csound, len + 1);

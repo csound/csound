@@ -193,8 +193,6 @@ typedef uint_least16_t uint16;
 #    endif
 #  elif defined(MSVC)
 #    define inline  __inline
-#  elif defined(__MWERKS__)
-#    define inline inline
 #  else
 #    define inline
 #  endif
@@ -202,15 +200,10 @@ typedef uint_least16_t uint16;
 
 #if defined(macintosh)
 #  define mac_classic   /* All Mac Compiles Before OSX, including Carbon */
-   /* define mills_macintosh in your prefix file
-      to compile the Mills "Perf" version */
 #  ifndef  USE_GUSI2
 #    include <stat.h>
 #  endif
 #  define  O_NDELAY (0)
-#  define  DIRSEP ':'
-#elif defined(SYMANTEC)
-#  include <unix.h>     /* for open() etc protos on mac */
 #  define  DIRSEP ':'
 #else
 #  define DIRSEP '/'
@@ -219,12 +212,6 @@ typedef uint_least16_t uint16;
 #      include <sys/types.h>
 #    endif
 #  else
-#    ifdef __WATCOMC__
-#      if !defined(O_NDELAY)
-#        define  O_NDELAY (0)
-#      endif
-#      include <io.h>
-#    else
 #      ifdef WIN32
 #        undef  DIRSEP
 #        define DIRSEP '\\'
@@ -241,7 +228,6 @@ typedef uint_least16_t uint16;
 #        ifdef HAVE_SYS_TYPES_H
 #          include <sys/types.h>
 #        endif
-#      endif
 /*  RWD for WIN32 on VC++ */
 #      ifndef MSVC
 #        include <sys/file.h>
