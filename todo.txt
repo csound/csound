@@ -43,7 +43,7 @@ dedicated async read/write. diskgrain and pvsdiskin have not been
 changed but they have realtime safe versions in syncgrain and
 pvsfread. 
 
-  - synchronous init pass in RT mode - added but needs further
+  - asynchronous init pass in RT mode - added but needs further
     testing/evaluation
 
   - other features?

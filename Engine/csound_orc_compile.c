@@ -202,7 +202,7 @@ char** splitArgs(CSOUND* csound, char* argString) {
                     len++;
                 }
                 part = mmalloc(csound, sizeof(char) * (len + 1));
-                stpncpy(part, start, len);
+                strncpy(part, start, len);
                 part[len] = '\0';
                 
             } else {
