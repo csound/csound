@@ -1179,7 +1179,8 @@ typedef struct NAME__ {
     unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
     unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
-    SUBR dummyfn_2[71];
+    char *(*GetString)(CSOUND *, MYFLT);
+    SUBR dummyfn_2[50];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;
