@@ -424,6 +424,42 @@ extern "C" {
     typedef struct windat_  WINDAT;
     typedef struct xyindat_ XYINDAT;
 
+
+  /** 
+   *  csound configuration structure, mirrors part of
+   *  OPARMS, uses more meaningful names
+   */
+
+  typedef struct {
+    int     debug_mode;     /* debug mode, 0 or 1 */
+    int     buffer_frames;  /* number of frames in in/out buffers */
+    int     hardware_buffer_frames; /* ibid. hardware */
+    int     displays;       /* graph displays, 0 or 1 */
+    int     ascii_graphs;   /* use ASCII graphs, 0 or 1 */
+    int     postscript_graphs; /* use postscript graphs, 0 or 1 */
+    int     message_level;     /* message printout control */
+    int     tempo;             /* tempo (sets Beatmode)  */
+    int     ring_bell;         /* bell, 0 or 1 */
+    int     use_cscore;        /* use cscore for processing */
+    int     terminate_on_midi; /* terminate performance at the end of midifile, 0 or 1 */
+    int     heartbeat;         /* print heart beat, 0 or 1 */
+    int     defer_gen01_load ;  /* defer GEN01 load, 0 or 1 */
+    int     midi_key;           /* pfield to map midi key no */    
+    int     midi_key_cps;       /* pfield to map midi key no as cps */
+    int     midi_key_oct;       /* pfield to map midi key no as oct */
+    int     midi_key_pch;       /* pfield to map midi key no as pch */
+    int     midi_velocity;      /* pfield to map midi velocity */
+    int     midi_velocity_amp;   /* pfield to map midi velocity as amplitude */
+    int     no_default_paths;     /* disable relative paths from files, 0 or 1 */    
+    int     number_of_threads;   /* number of threads for multicore performance */
+    int     syntax_check_only;   /* do not compile, only check syntax */
+    int     csd_line_counts;     /* csd line error reporting */
+    int     compute_weights;     /* use calculated opcode weights for multicore, 0 or 1  */
+    int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
+    int     sample_accurate;     /* use sample-level score event accuracy */
+  } CSOUND_CONFIG;
+
+
     /**
      * Real-time audio parameters structure
      */
@@ -597,6 +633,32 @@ extern "C" {
      * Set a csound option
      */
     PUBLIC int csoundSetOption(CSOUND *csound, char *option);
+
+    /**
+     *  Configure Csound
+     */
+
+   PUBLIC void csoundConfigure(CSOUND *csound, CSOUND_CONFIG *cfg);
+
+    /**
+     *  Set output destination, type and format
+     */
+
+  PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format);
+
+
+    /**
+     *  Set input source
+     */
+ 
+  PUBLIC void csoundSetInput(CSOUND *csound, char *name);
+
+
+  PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name);
+  PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name);
+  PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name);
+  PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name);
+
 
     /*
      * PERFORMANCE
