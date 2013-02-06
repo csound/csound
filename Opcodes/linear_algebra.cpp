@@ -4762,7 +4762,7 @@ extern "C"
      csound->AppendOpcode(csound,
                           "la_k_mr_set",
                           sizeof(la_k_mr_set_t),
-                           0,
+                          0,
                           3,
                           "i",
                           "kkk",
@@ -6002,7 +6002,8 @@ extern "C"
                            "i",
                            "iO",
                            (int (*)(CSOUND*,void*)) &la_k_upper_solve_mr_t::init_,
-                           (int (*)(CSOUND*,void*)) &la_k_upper_solve_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 
+                                   &la_k_upper_solve_mr_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     status |=
       csound->AppendOpcode(csound,
@@ -6024,7 +6025,8 @@ extern "C"
                            "i",
                            "iO",
                            (int (*)(CSOUND*,void*)) &la_k_upper_solve_mc_t::init_,
-                           (int (*)(CSOUND*,void*)) &la_k_upper_solve_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*))
+                                    &la_k_upper_solve_mc_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     status |=
       csound->AppendOpcode(csound,
@@ -6046,7 +6048,8 @@ extern "C"
                            "i",
                            "iO",
                            (int (*)(CSOUND*,void*)) &la_k_lower_solve_mr_t::init_,
-                           (int (*)(CSOUND*,void*)) &la_k_lower_solve_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 
+                                    &la_k_lower_solve_mr_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     status |=
       csound->AppendOpcode(csound,
@@ -6068,7 +6071,8 @@ extern "C"
                            "i",
                            "iO",
                            (int (*)(CSOUND*,void*)) &la_k_lower_solve_mc_t::init_,
-                           (int (*)(CSOUND*,void*)) &la_k_lower_solve_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*))
+                                    &la_k_lower_solve_mc_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     status |=
       csound->AppendOpcode(csound,
@@ -6266,7 +6270,8 @@ extern "C"
                            "ii",
                            "ik",
                            (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mr_t::init_,
-                           (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*))
+                                    &la_k_qr_sym_eigen_mr_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     status |=
       csound->AppendOpcode(csound,
@@ -6288,7 +6293,8 @@ extern "C"
                            "ii",
                            "ik",
                            (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mc_t::init_,
-                           (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*))
+                                    &la_k_qr_sym_eigen_mc_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     return status;
   }
