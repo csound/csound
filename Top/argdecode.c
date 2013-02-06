@@ -1232,7 +1232,7 @@ PUBLIC int csoundSetOption(CSOUND *csound, char *option){
   char *args[2] = {"csound", option}; 
   return (argdecode(csound, 2, args) ? 0 : 1);
 }
-PUBLIC void csoundConfigure(CSOUND *csound, CSOUND_CONFIG *p){
+PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
    
   OPARMS *oparms = csound->oparms;
   /* simple ON/OFF switches */
@@ -1240,14 +1240,14 @@ PUBLIC void csoundConfigure(CSOUND *csound, CSOUND_CONFIG *p){
   oparms->displays = p->displays;
   oparms->graphsoff = p->ascii_graphs;
   oparms->postscript = p->postscript_graphs;
-  opamrs->usingcscore = p->use_cscore;
+  oparms->usingcscore = p->use_cscore;
   oparms->ringbell = p->ring_bell;
   oparms->gen01defer = p->defer_gen01_load;
   oparms->termifend =  p->terminate_on_midi;
   oparms->noDefaultPaths = p->no_default_paths;
   oparms->syntaxCheckOnly = p->syntax_check_only;
   oparms->sampleAccurate = p->sample_accurate;
-  oparms->realtime = p->realtime_priority;
+  oparms->realtime = p->realtime_mode;
   oparms->calculateWeights = p->compute_weights;
 
   /* message level */
@@ -1264,8 +1264,8 @@ PUBLIC void csoundConfigure(CSOUND *csound, CSOUND_CONFIG *p){
     oparms->inbufsamps = oparms->outbufsamps = p->buffer_frames;
 
   /* hardware buffer frames */
-  if(p->hw_buffer_frames > 0)
-    oparms->oMaxLag = p->hw_buffer_frames;
+  if(p->hardware_buffer_frames > 0)
+    oparms->oMaxLag = p->hardware_buffer_frames;
   
   /* multicore threads */
   if(p->number_of_threads > 1) 
