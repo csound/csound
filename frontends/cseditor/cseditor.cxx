@@ -27,10 +27,6 @@
 #include <ctype.h>
 #include <errno.h>
 
-#ifdef __MWERKS__
-# define FL_DLL
-#endif
-
 #include <FL/Fl.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Double_Window.H>

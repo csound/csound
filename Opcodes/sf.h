@@ -33,10 +33,6 @@
 #ifdef          MSVC
 #  pragma       pack(push, before, 1)
 #endif
-#if defined(mac_classic)
-#  pragma               pack(1)
-#  define       PACKED
-#endif
 
 struct _splitType {
         int num;

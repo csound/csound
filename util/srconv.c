@@ -251,7 +251,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
               csound->ErrorMsg(csound, Str("-o cannot be stdin"));
               return -1;
             }
-#if defined mac_classic || defined WIN32
+#if defined WIN32
             if (strcmp(O->outfilename, "stdout") == 0) {
               csound->ErrorMsg(csound, Str("stdout audio not supported"));
               return -1;

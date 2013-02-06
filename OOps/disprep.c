@@ -30,9 +30,6 @@
 #ifdef MSVC                   /* Thanks to Richard Dobson */
 # define hypot _hypot
 #endif
-#if defined(__WATCOMC__) || defined(__ncc)
-extern double hypot(double, double);
-#endif
 
 int printv(CSOUND *csound, PRINTV *p)
 {

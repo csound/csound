@@ -506,9 +506,6 @@ extern "C" {
 #ifndef CSOUND_CSDL_H
 
     /* This pragma must come before all public function declarations */
-#if (defined(macintosh) && defined(__MWERKS__))
-#  pragma export on
-#endif
 
     /*
      * INSTANTIATION
@@ -2025,9 +2022,6 @@ extern "C" {
 
 
     /* This pragma must come after all public function declarations */
-#if (defined(macintosh) && defined(__MWERKS__))
-#  pragma export off
-#endif
 
 #endif  /* !CSOUND_CSDL_H */
 
