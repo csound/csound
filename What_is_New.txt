@@ -41,10 +41,30 @@ Asynchronous file access....
 
 
 The number of strings that can be used in a score line is no longer
-just one.  At present sensline use is still restricted to one string.
+just one.
 
 
 New API functions.....
+    TREE *(*ParseOrc)(CSOUND *, char *str);
+    int (*CompileTree)(CSOUND *, TREE *root);
+    int (*CompileOrc)(CSOUND *, char *str);
+    int (*ReadScore)(CSOUND *, char *str);
+    int (*Start)(CSOUND *);
+    void (*FlushCircularBuffer)(CSOUND *, void *);
+    void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
+                           const char *, int, int, int);
+    unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
+    unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
+    int  (*FSeekAsync)(CSOUND *, void *, int, int);
+
+functions removed
+    void *(*FileOpen)(CSOUND *,
+                      void*, int, const char*, void*, const char*);
+
+The "private" parts of the API have been chabged considerably.  Also
+structures like EVTBLK have changed
+
+The LINKAGE1/FLINKAGE1 macros are renamed as LINKAGE_BUILTIN/FLINKAGE_BUILTIN
 
 
 Template for arate perf-pass opcodes is
