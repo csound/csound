@@ -139,7 +139,6 @@ typedef struct {
 #define SSTRCOD    (*(double*)&MYNAN)
 #else
   extern int32 MYNAN;
-  //#define SSTRCOD    (nan("0"))
 #define SSTRCOD    (*(float*)&MYNAN)
   //#define SSTRCOD    (nanf("0"))
 #endif
