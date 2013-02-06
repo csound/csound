@@ -27,27 +27,8 @@
 // Used to define STRCOD assumes IEEE arithmetic
 #ifdef USE_DOUBLE
 int64_t MYNAN = 0x7FF8000000000000;
-int ismynan(MYFLT x)
-{
-    union {
-      double d;
-      int32 i[2];
-    } ch;
-    ch.d = x;
-    printf("checking %.8x %.8x => %d\n", ch.i[0], ch.i[1], isnan(x));
-    return (ch.i[1]==0x7FF80000);
-}
 #else
 int32 MYNAN = 0x7FC00000;
-int ismynan(MYFLT x)
-{
-    union {
-      float d;
-      int32 i[1];
-    } ch;
-    ch.d = x;
-    return ((0xffff0000 & ch.i[0])==0x7FC0000);
-}
 #endif
 
 char* get_arg_string(CSOUND *csound, MYFLT p)
