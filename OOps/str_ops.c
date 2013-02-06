@@ -711,8 +711,6 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
       s = "Win32";
 #elif defined(MACOSX)
       s = "MacOSX";
-#elif defined(mac_classic)
-      s = "MacOS";
 #else
       s = "unknown";
 #endif

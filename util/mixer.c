@@ -207,8 +207,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
               csound->Die(csound, Str("mixer: -o cannot be stdin"));
-#if defined(mac_classic) || defined(SYMANTEC) || defined(BCC) ||  \
-    defined(__WATCOMC__) || defined(WIN32)
+#if defined(WIN32)
             if (strcmp(O->outfilename,"stdout") == 0) {
               csound->Die(csound, Str("mixer: stdout audio not supported"));
             }

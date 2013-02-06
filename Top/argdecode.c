@@ -455,7 +455,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->FMidiname = s;                 /* Midifile name */
       if (!strcmp(O->FMidiname, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
         csoundDie(csound, Str("-F: stdin not supported on this platform"));
 #endif
       }
@@ -507,7 +507,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         csoundDie(csound, Str("input cannot be stdout"));
       if (strcmp(O->infilename, "stdin") == 0) {
         set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
         csoundDie(csound, Str("stdin audio not supported"));
 #endif
       }
@@ -561,9 +561,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->Linename = s;
       if (!strcmp(O->Linename, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
-#if defined(mac_classic)
-        csoundDie(csound, Str("-L: stdin not supported on this platform"));
-#endif
       }
       else
         set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
@@ -664,7 +661,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->Midiname = s;
       if (!strcmp(O->Midiname, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
         csoundDie(csound, Str("-M: stdin not supported on this platform"));
 #endif
       }
@@ -691,7 +688,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         dieu(csound, Str("-o cannot be stdin"));
       if (strcmp(O->outfilename, "stdout") == 0) {
         set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
         csoundDie(csound, Str("stdout audio not supported"));
 #endif
       }
@@ -964,7 +961,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               csoundDie(csound, Str("input cannot be stdout"));
             if (strcmp(O->infilename, "stdin") == 0) {
               set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
               csoundDie(csound, Str("stdin audio not supported"));
 #endif
             }
@@ -980,7 +977,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               dieu(csound, Str("-o cannot be stdin"));
             if (strcmp(O->outfilename, "stdout") == 0) {
               set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
               csoundDie(csound, Str("stdout audio not supported"));
 #endif
             }
@@ -1076,9 +1073,6 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             s += (int) strlen(s);
             if (!strcmp(O->Linename, "stdin")) {
               set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
-#if defined(mac_classic)
-              csoundDie(csound, Str("-L: stdin not supported on this platform"));
-#endif
             }
             else
               set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
@@ -1090,7 +1084,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             s += (int) strlen(s);
             if (!strcmp(O->Midiname, "stdin")) {
               set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
               csoundDie(csound, Str("-M: stdin not supported on this platform"));
 #endif
             }
@@ -1104,7 +1098,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             s += (int) strlen(s);
             if (!strcmp(O->FMidiname, "stdin")) {
               set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
               csoundDie(csound, Str("-F: stdin not supported on this platform"));
 #endif
             }

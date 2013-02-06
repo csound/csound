@@ -24,9 +24,6 @@
 #include "csoundCore.h"     /*                              LINEVENT.C      */
 #include "text.h"
 #include <ctype.h>
-#if (defined(mac_classic) && defined(__MWERKS__))
-#include <console.h>
-#endif
 
 #include "linevent.h"
 
@@ -68,18 +65,13 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
-#if defined(mills_macintosh)
-      STA(Linecons) = stdin;
-      setvbuf(stdin, NULL, _IONBF, 0);
-#else
-  #if defined(DOSGCC) || defined(WIN32)
+#if defined(DOSGCC) || defined(WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
-  #else
+#else
       STA(stdmode) = fcntl(csound->Linefd, F_GETFL, 0);
       if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, STA(stdmode) | O_NDELAY) < 0))
         csoundDie(csound, Str("-L stdin fcntl failed"));
-  #endif
 #endif
     }
 #ifdef PIPES
@@ -91,11 +83,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       else csoundDie(csound, Str("Cannot open %s"), O->Linename);
     }
 #endif
-#if defined(mills_macintosh)
-#define MODE
-#else
 #define MODE ,0
-#endif
 #if defined(MSVC)
 #define O_RDONLY _O_RDONLY
 #endif
@@ -118,15 +106,11 @@ void RTclose(CSOUND *csound)
     csound->oparms->Linein = 0;
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
-#if defined(mills_macintosh)
-    if (STA(Linecons) != NULL)
-      fclose(STA(Linecons));
-#else
-   #ifdef PIPES
+#ifdef PIPES
     if (csound->oparms->Linename[0] == '|')
       _pclose(csound->Linepipe);
     else
-  #endif
+#endif
       {
         if (strcmp(csound->oparms->Linename, "stdin") != 0)
           close(csound->Linefd);
@@ -135,7 +119,6 @@ void RTclose(CSOUND *csound)
           fcntl(csound->Linefd, F_SETFL, STA(stdmode));
   #endif
 }
-#endif      /* !(mills_macintosh */
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
@@ -208,12 +191,7 @@ static void sensLine(CSOUND *csound, void *userData)
     while (1) {
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
-#if defined(mills_macintosh)
-        n = fread((void *) Linend, (size_t) 1,
-                  (size_t) (STA(Linebufend) - Linend), STA(Linecons));
-#else
         n = read(csound->Linefd, Linend, STA(Linebufend) - Linend);
-#endif
         Linend += (n > 0 ? n : 0);
       }
       if (Linend <= STA(Linebuf))
