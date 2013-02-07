@@ -55,13 +55,15 @@ pvsfread.
 13) Functions of more than 1 argument -- actually works, and taninv2
 and divz are also available as functions of 2 args
 
+14) Expose OPARMS or OPARMS-like struct to API users, so that they can
+configure csound with typed system (that in turn can be inspected)
+**** DONE  new configuration functions  and struct ****
+
 
 rc1 aimed for 28 Feb
 
 =====
 Speculation List
-
-1) Expose OPARMS or OPARMS-like struct to API users, so that they can configure csound with typed system (that in turn can be inspected)
 
 2) Allow changes in possible options after start, eg debugging for
 next instrument
