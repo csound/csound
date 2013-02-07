@@ -15,10 +15,12 @@ Csound 6 TODO list
  - memory recovery of POOLs
 
 2) allow any number of strings in score events (except p2,p3). 
+     *** FIXED ***
   - do we need a new parser for score? (started one but a pain)
 
 3) test sample-accurate opcodes, or document those not working
-  - check that kperf code can be used in  multicore mode  in csound.c (possibly changes need to be propagated?)
+  - check that kperf code can be used in  multicore mode  in csound.c
+  (possibly changes need to be propagated?) 
 
 4) Use instrument-local structure rather than global (ksmps mainly)
 
