@@ -52,7 +52,9 @@ pvsfread.
 
 12) More user control over size of graphs (request from Menno)
 
-13) Functions of more than 1 argument
+13) Functions of more than 1 argument -- actually works and taninv2 in
+now a function of 2 args
+
 
 rc1 aimed for 28 Feb
 
