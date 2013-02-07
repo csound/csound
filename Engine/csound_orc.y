@@ -969,6 +969,7 @@ opcode0   : T_OPCODE0
           ;
 
 opcode    : T_OPCODE    { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
+          | T_FUNCTION  { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
           ;
 
 %%
