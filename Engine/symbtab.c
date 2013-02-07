@@ -186,6 +186,7 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "qnan", T_FUNCTION);
     add_token(csound, "##error", T_FUNCTION);
     add_token(csound, "lentab", T_FUNCTION);
+    add_token(csound, "taninv2", T_FUNCTION);
 }
 
 static unsigned int hash(char *s)

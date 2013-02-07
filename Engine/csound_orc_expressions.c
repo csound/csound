@@ -483,7 +483,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
         csound->Message(csound, "Found TABMAP: %s\n", op);
       outarg = create_out_arg(csound, 't');
       break;
-    case T_FUNCTION: /* assumes on single arg input */
+    case T_FUNCTION: /* assumes only single arg input */
       c = arg2;
       if (c == 'p' || c == 'c' || c == 't')   c = 'i';
       sprintf(op, "%s.%c", root->value->lexeme, c);
