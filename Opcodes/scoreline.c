@@ -37,22 +37,22 @@ typedef struct _scorepos {
 
 int messi(CSOUND *csound, INMESS *p)
 {
-    csound->InputMessage(csound, (char *)p->SMess);
+    csoundInputMessage(csound, (char *)p->SMess);
     return OK;
 }
 
 int messk(CSOUND *csound, INMESS *p){
-    if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess);
+    if (*p->ktrig) csoundInputMessage(csound, (char *)p->SMess);
     return OK;
 }
 
 int setscorepos(CSOUND *csound, SCOREPOS *p){
-    csound->SetScoreOffsetSeconds(csound, *p->spos);
+    csoundSetScoreOffsetSeconds(csound, *p->spos);
     return OK;
 }
 
 int rewindscore(CSOUND *csound, SCOREPOS *p){
-    csound->RewindScore(csound);
+    csoundRewindScore(csound);
     return OK;
 }
 
