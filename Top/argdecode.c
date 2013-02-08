@@ -1232,6 +1232,7 @@ PUBLIC int csoundSetOption(CSOUND *csound, char *option){
   char *args[2] = {"csound", option}; 
   return (argdecode(csound, 2, args) ? 0 : 1);
 }
+
 PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
    
   OPARMS *oparms = csound->oparms;
@@ -1283,7 +1284,47 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   /* CSD line counts */
   if(p->csd_line_counts > 0) oparms->useCsdLineCounts = p->csd_line_counts;
 
+  /* kr override */
+  if(p->control_rate_override > 0) oparms->kr_override = p->control_rate_override;
+
+  /* sr override */
+  if(p->sample_rate_override > 0) oparms->sr_override = p->sample_rate_override;
+
 }
+
+PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
+   
+  OPARMS *oparms = csound->oparms;
+ 
+  p->debug_mode = oparms->odebug;
+  p->displays = oparms->displays;
+  p->ascii_graphs = oparms->graphsoff;
+  p->postscript_graphs = oparms->postscript;
+  p->use_cscore = oparms->usingcscore;
+  p->ring_bell = oparms->ringbell;
+  p->defer_gen01_load = oparms->gen01defer;
+  p->terminate_on_midi = oparms->termifend;
+  p->no_default_paths = oparms->noDefaultPaths;
+  p->syntax_check_only = oparms->syntaxCheckOnly;
+  p->sample_accurate = oparms->sampleAccurate;
+  p->realtime_mode = oparms->realtime;
+  p->compute_weights = oparms->calculateWeights;
+  p->message_level = oparms->msglevel;
+  p->tempo = oparms->cmdTempo;
+  p->buffer_frames = oparms->outbufsamps;
+  p->hardware_buffer_frames = oparms->oMaxLag;
+  p->number_of_threads = oparms->numThreads;
+  p->midi_key = oparms->midiKey;
+  p->midi_key_cps = oparms->midiKeyCps;
+  p->midi_key_pch = oparms->midiKeyPch;
+  p->midi_key_oct = oparms->midiKeyOct;
+  p->midi_velocity = oparms->midiVelocity;
+  p->midi_velocity_amp = oparms->midiVelocityAmp;
+  p->csd_line_counts = oparms->useCsdLineCounts;
+  p->control_rate_override = oparms->kr_override;
+  p->sample_rate_override = oparms->sr_override;
+}
+
 
 PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format){
 
