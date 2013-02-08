@@ -261,12 +261,12 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
     }
     /* print debugging info if requested */
     if (csound->oparms->odebug) {
-      csound->Message(csound, Str("Environment variable '%s' has been set to "),
+      csoundMessage(csound, Str("Environment variable '%s' has been set to "),
                               name);
       if (value == NULL)
-        csound->Message(csound, "NULL\n");
+        csoundMessage(csound, "NULL\n");
       else
-        csound->Message(csound, "'%s'\n", s2);
+        csoundMessage(csound, "'%s'\n", s2);
     }
     /* report success */
     return CSOUND_SUCCESS;
@@ -430,7 +430,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
 
  err_return:
     if (UNLIKELY(retval != CSOUND_SUCCESS))
-      csound->Message(csound, Str(msg));
+      csoundMessage(csound, Str(msg));
     if (name != NULL)
       mfree(csound, name);
     return retval;
@@ -1420,7 +1420,7 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
      case CSFILE_SND_R:
      case CSFILE_SND_W:
        ret = sf_seek(p->sf,pos,whence);
-       //csound->Message(csound, "seek set %d \n", pos);
+       //csoundMessage(csound, "seek set %d \n", pos);
        csound->FlushCircularBuffer(csound, p->cb);
        p->items = 0;        
       break;

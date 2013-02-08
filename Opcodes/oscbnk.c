@@ -1722,7 +1722,7 @@ static int vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
       /* if base ftable was specified, generate empty table ... */
       if (base_ftable > 0) {
         csound->FTAlloc(csound, base_ftable, (int) tables->tables[i].size);
-        csound->GetTable(csound, &(tables->tables[i].ftable), base_ftable);
+        csoundGetTable(csound, &(tables->tables[i].ftable), base_ftable);
         base_ftable++;                /* next table number */
       }
       else    /* ... else allocate memory (cannot be accessed as a       */
