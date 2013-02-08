@@ -863,6 +863,7 @@ typedef struct NAME__ {
 
 
   struct CSOUND_ {
+
 #ifdef SOME_FINE_DAY /* these API functions do not need to be mirrored inside CSOUND */
     int (*GetVersion)(void);
     int (*GetAPIVersion)(void);
@@ -892,7 +893,6 @@ typedef struct NAME__ {
     void (*RewindScore)(CSOUND *);
     void (*DeleteUtilityList)(CSOUND *, char **lst);
     void (*DeleteChannelList)(CSOUND *, CsoundChannelListEntry *lst);
-
     void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,
@@ -911,8 +911,6 @@ typedef struct NAME__ {
                       char type, const MYFLT *pFields, long numFields);
     int (*ScoreEventAbsolute)(CSOUND *,
                       char type, const MYFLT *pFields, long numFields, double time_ofs);
-
-    
     int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
     int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
         void (*AddSpinSample)(CSOUND *, int, int, MYFLT);
@@ -939,7 +937,10 @@ typedef struct NAME__ {
     int (*ChanOKGet)(CSOUND *, MYFLT *value, int n); //
     int (*ChanIASet)(CSOUND *, const MYFLT *value, int n); //
     int (*ChanOAGet)(CSOUND *, MYFLT *value, int n); //
-#endif
+        int (*NewOpcodeList)(CSOUND *, opcodeListEntry **);//
+    void (*DisposeOpcodeList)(CSOUND *, opcodeListEntry *);//
+#endif  /* SOME_FINE_DAY */
+
     int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
                                   void *userData, unsigned int typeMask);
     void (*Remove_Callback)(CSOUND *,
@@ -984,8 +985,6 @@ typedef struct NAME__ {
     void (*SetKillGraphCallback)(CSOUND *,
                 void (*killGraphCallback)(CSOUND *, WINDAT *p));
     void (*SetExitGraphCallback)(CSOUND *, int (*exitGraphCallback)(CSOUND *));
-    int (*NewOpcodeList)(CSOUND *, opcodeListEntry **);
-    void (*DisposeOpcodeList)(CSOUND *, opcodeListEntry *);
     int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
                         int thread, const char *outypes, const char *intypes,
                         int (*iopadr)(CSOUND *, void *),
@@ -1011,7 +1010,6 @@ typedef struct NAME__ {
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
     void (*Free)(CSOUND *, void *ptr);
-    /* Internal functions that are needed */
     void (*dispset)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
     void (*display)(CSOUND *, WINDAT *);
     int (*dispexit)(CSOUND *);
@@ -1020,7 +1018,7 @@ typedef struct NAME__ {
     int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
     char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
     int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
-    int (*insert_score_event)(CSOUND *, EVTBLK *, double); //
+    int (*insert_score_event)(CSOUND *, EVTBLK *, double);
     int (*FTAlloc)(CSOUND *, int tableNum, int len);
     int (*FTDelete)(CSOUND *, int tableNum);
     FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
@@ -1169,7 +1167,6 @@ typedef struct NAME__ {
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
                                 int (*callback)(CSOUND *, MEMFIL *));
     void *(*GetNamedGens)(CSOUND *);
- /* SUBR dummyfn_1; */
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
     void *(*CreateCircularBuffer)(CSOUND *, int);
     int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
@@ -1189,12 +1186,7 @@ typedef struct NAME__ {
     void          *printerrormessagesflag;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
-    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */
-    INSTRTXT      *instr0;          /* instr0     */
-    INSTRTXT      **dead_instr_pool;
-    int  dead_instr_no;
-    TYPE_POOL*    typePool;
-    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */   
+    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     OPDS          *ids, *pds;
     unsigned int  ksmps, global_ksmps;
     uint32_t      nchnls;
@@ -1302,6 +1294,11 @@ typedef struct NAME__ {
     int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
     /* end of callbacks */
+    INSTRTXT      *instr0;          /* instr0     */
+    INSTRTXT      **dead_instr_pool;
+    int  dead_instr_no;
+    TYPE_POOL*    typePool;
+    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */ 
     int           nchanik, nchania, nchanok, nchanoa;
     MYFLT         *chanik, *chania, *chanok, *chanoa;
     MYFLT         cpu_power_busy;
