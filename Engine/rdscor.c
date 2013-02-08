@@ -24,13 +24,6 @@
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
 
-// Used to define STRCOD assumes IEEE arithmetic
-#ifdef USE_DOUBLE
-int64_t MYNAN = 0x7FF8000000000000;
-#else
-int32 MYNAN = 0x7FC00000;
-#endif
-
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {
     int32 n;
