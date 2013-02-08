@@ -14,6 +14,7 @@
 #include "CUnit/Basic.h"
 
 extern char* convertArrayName(CSOUND* csound, char* arrayName);
+extern char* addDimensionToArrayName(CSOUND* csound, char* arrayName);
 
 
 int init_suite1(void)
@@ -26,7 +27,7 @@ int clean_suite1(void)
     return 0;
 }
 
-void test_type_system(void)
+void test_convertArrayName(void)
 {
     CSOUND* csound = csoundCreate(NULL);
     
@@ -37,13 +38,32 @@ void test_type_system(void)
     CU_ASSERT_PTR_NULL(result);
     
     result = convertArrayName(csound, "aSignals");
-    CU_ASSERT_STRING_EQUAL(result, "[aSignals");
+    CU_ASSERT_STRING_EQUAL(result, "[a;Signals");
 
     result = convertArrayName(csound, "gkSignals");
-    CU_ASSERT_STRING_EQUAL(result, "g[kSignals");
+    CU_ASSERT_STRING_EQUAL(result, "g[k;Signals");
     
-    result = convertArrayName(csound, "g[kSignals");
-    CU_ASSERT_STRING_EQUAL(result, "g[[kSignals");
+}
+
+void test_addDimensionToArrayName(void)
+{
+    CSOUND* csound = csoundCreate(NULL);
+    
+    char* result = addDimensionToArrayName(csound, NULL);
+    CU_ASSERT_PTR_NULL(result);
+    
+    result = addDimensionToArrayName(csound, "");
+    CU_ASSERT_PTR_NULL(result);
+    
+    result = addDimensionToArrayName(csound, "[a;Signals");
+    CU_ASSERT_STRING_EQUAL(result, "[[a;Signals");
+        
+    result = addDimensionToArrayName(csound, "g[k;Signals");
+    CU_ASSERT_STRING_EQUAL(result, "g[[k;Signals");
+    
+    result = convertArrayName(csound, "kArr");
+    result = addDimensionToArrayName(csound, result);
+    CU_ASSERT_STRING_EQUAL(result, "[[k;Arr");
 }
 
 
@@ -63,8 +83,8 @@ int main()
     }
     
     /* add the tests to the suite */
-    if ((NULL == CU_add_test(pSuite, "Test Type System", test_type_system))
-        //           || (NULL == CU_add_test(pSuite, "test of fread()", testFREAD))
+    if ((NULL == CU_add_test(pSuite, "Test convertArrayName()", test_convertArrayName))
+                   || (NULL == CU_add_test(pSuite, "Test addDimensionToArrayName()", test_addDimensionToArrayName))
         )
     {
         CU_cleanup_registry();

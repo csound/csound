@@ -189,6 +189,8 @@ extern int csound_orcget_locn(void *);
 extern int csound_orcget_lineno(void *);
 extern ORCTOKEN *make_string(CSOUND *, char *);
 extern char* convertArrayName(CSOUND*, char*);
+extern char* addDimensionToArrayName(CSOUND* csound, char* arrayName);
+
 %}
 %%
 
@@ -562,7 +564,7 @@ arrayexpr :  arrayexpr '[' iexp ']'
           {
             appendToTree(csound, $1->right, $3);
             char* oldName = $1->left->value->lexeme;
-            $1->left->value = make_token(csound, convertArrayName(csound, oldName));
+            $1->left->value = make_token(csound, addDimensionToArrayName(csound, oldName));
             mfree(csound, oldName);
             $$ = $1;
           }
@@ -927,7 +929,7 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
 
 arrayident: arrayident '[' ']' {          
             char* arrayName = $1->value->lexeme;
-            $1->value = make_token(csound, convertArrayName(csound, arrayName));
+            $1->value = make_token(csound, addDimensionToArrayName(csound, arrayName));
             mfree(csound, arrayName);
             $$ = $1;
           }
