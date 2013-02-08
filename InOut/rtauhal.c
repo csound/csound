@@ -464,16 +464,19 @@ OSStatus  Csound_Input(void *inRefCon,
   return 0;
 }
 
+#define MICROS 1000000
 static int rtrecord_(CSOUND *csound, MYFLT *inbuff_, int nbytes)
 {
   csdata  *cdata;
   int n = nbytes/sizeof(MYFLT);
   int m = 0, l;
+  MYFLT sr = csound->GetSr(csound);
   cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
   do{
     l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n); 
     m += l;
     n -= l; 
+    usleep(MICROS*n/sr);
   } while(n);
   return nbytes;
 }
@@ -492,7 +495,7 @@ OSStatus  Csound_Render(void *inRefCon,
   int j,k;
   AudioUnitSampleType *buffer;
   int n = inNumberFrames*onchnls;
-  //n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
+  n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
   for (k = 0; k < onchnls; k++) {
     buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
     for(j=0; j < inNumberFrames; j++){
@@ -508,13 +511,14 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int nbytes)
   csdata  *cdata;
   int n = nbytes/sizeof(MYFLT);
   int m = 0, l;
+  MYFLT sr = csound->GetSr(csound);
   cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
-
-  // do {
-  // l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
-  // m += l;
-  // n -= l; 
-  // } while(n);
+  do {
+   l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
+   m += l;
+   n -= l; 
+   usleep(MICROS*n/sr);
+   } while(n);
 }
 
 /* close the I/O device entirely  */
