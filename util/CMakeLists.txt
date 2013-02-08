@@ -12,6 +12,7 @@ make_plugin(stdutil "${stdutil_SRCS}" m ${LIBSNDFILE_LIBRARY})
 
 if(BUILD_UTILITIES) 
     make_utility(atsa        atsa_main.c)
+    make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c)
     make_utility(dnoise      dnoise_main.c)
     make_utility(envext      env_main.c)
