@@ -31,6 +31,7 @@ extern "C" {
 
     typedef struct csvariable {
         char* varName;
+        char* varSimpleName; // reduced from array name
         CS_TYPE* varType;
         int memBlockSize;
         int memBlockIndex;
@@ -76,6 +77,7 @@ extern "C" {
         int poolSize;
     } CS_VAR_POOL;
 
+    PUBLIC char* getVarSimpleName(CSOUND* csound, const char* name);
     PUBLIC CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name);
     PUBLIC int csoundFindVariable(CS_VAR_POOL* pool, const char* name);
     PUBLIC int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var);
