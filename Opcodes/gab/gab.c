@@ -259,7 +259,7 @@ static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
 {
     MYFLT             *ft;
     STDOPCOD_GLOBALS  *pp;
-    if (UNLIKELY(csound->GetTable(csound, &ft, MYFLT2LRND(*p->ifn)) < 0))
+    if (UNLIKELY(csoundGetTable(csound, &ft, MYFLT2LRND(*p->ifn)) < 0))
       return csound->InitError(csound, Str("tab_init: incorrect table number"));
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     pp->tb_ptrs[ndx] = ft;
@@ -585,7 +585,7 @@ static int tabrec_k(CSOUND *csound,TABREC *p)
     if (*p->ktrig_start) {
       if (*p->kfn != p->old_fn) {
         int flen;
-        if ((flen = csound->GetTable(csound, &(p->table), (int) *p->kfn)) < 0)
+        if ((flen = csoundGetTable(csound, &(p->table), (int) *p->kfn)) < 0)
           return csound->PerfError(csound, Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
         *(p->table++) = *p->numtics;
@@ -639,7 +639,7 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
     if (*p->ktrig) {
       if (*p->kfn != p->old_fn) {
         int flen;
-        if ((flen = csound->GetTable(csound, &(p->table), (int) *p->kfn)) < 0)
+        if ((flen = csoundGetTable(csound, &(p->table), (int) *p->kfn)) < 0)
           return csound->PerfError(csound, Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
         p->currtic = 0;

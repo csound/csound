@@ -492,7 +492,7 @@ OSStatus  Csound_Render(void *inRefCon,
   int j,k;
   AudioUnitSampleType *buffer;
   int n = inNumberFrames*onchnls;
-  n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
+  //n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
   for (k = 0; k < onchnls; k++) {
     buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
     for(j=0; j < inNumberFrames; j++){
@@ -509,11 +509,12 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int nbytes)
   int n = nbytes/sizeof(MYFLT);
   int m = 0, l;
   cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
-  do {
-    l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
-    m += l;
-    n -= l; 
-  } while(n);
+
+  // do {
+  // l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
+  // m += l;
+  // n -= l; 
+  // } while(n);
 }
 
 /* close the I/O device entirely  */

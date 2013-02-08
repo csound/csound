@@ -340,7 +340,7 @@ int musmon(CSOUND *csound)
     csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
-      csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
+      csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
     
     if(csound->realtime_audio_flag && csound->init_pass_loop == 0){
@@ -1293,7 +1293,7 @@ void musmon_rewind_score(CSOUND *csound)
     /* apply score offset if non-zero */
     csound->advanceCnt = 0;
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
-      csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
+      csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
     corfile_rewind(csound->scstr);
 }
