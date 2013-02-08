@@ -136,10 +136,10 @@ typedef struct {
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
   //#define SSTRCOD    (nan("0"))
-#define SSTRCOD    (*(double*)&MYNAN)
+#define SSTRCOD    (double)NAN
 #else
   extern int32 MYNAN;
-#define SSTRCOD    (*(float*)&MYNAN)
+#define SSTRCOD    (float)NAN
   //#define SSTRCOD    (nanf("0"))
 #endif
 #define ISSTRCOD(X) isnan(X)
