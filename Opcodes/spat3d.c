@@ -318,7 +318,7 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */
       int fLen;
-      fLen = csound->GetTable(csound, &(p->ftable), (int) *(p->args[xift]));
+      fLen = csoundGetTable(csound, &(p->ftable), (int) *(p->args[xift]));
       if (fLen < 53)
         p->ftable = NULL;
     }
@@ -330,7 +330,7 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
       p->irlen = (int) MYFLT2LRND(*(p->args[xirlen]) * csound->esr);
     if (xioutft >= 0) {                             /* output table */
       int fLen;
-      fLen = csound->GetTable(csound, &(p->outft), (int) *(p->args[xioutft]));
+      fLen = csoundGetTable(csound, &(p->outft), (int) *(p->args[xioutft]));
       if (fLen < 1) {
         p->outft = NULL; p->outftlnth = 0;
       }
