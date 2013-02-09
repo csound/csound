@@ -98,7 +98,7 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
     }
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
     (*p) = newp;
-    (*oldSize) = newSize;
+    (*oldSize) = newSize-1;
 
     return CSOUND_SUCCESS;
 }
@@ -279,7 +279,7 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
 }
 
 /**
-* Receives a PVSDATEX fout from the chano opcode (f-rate) at index 'n'.
+* Receives a PVSDATEX fout from the pvsout opcode (f-rate) at index 'n'.
 * The bus is extended if n exceeds existing spaces, initialising
 * it using the PVSDATEX fout struct parameters.
 * Returns zero on success, CSOUND_ERROR if the index is invalid or
@@ -451,7 +451,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
                                   (void *) fin) != 0))
         return csound->PerfError(csound,
                                  Str("pvsout: memory allocation failure"));
-      else fout = (PVSDATEXT *)csound->chanof;
+       fout = (PVSDATEXT *)csound->chanof;
     }
     size = fout[n].N < fin->N ? fout[n].N : fin->N;
     memcpy(&fout[n], fin, sizeof(PVSDAT)-sizeof(AUXCH));

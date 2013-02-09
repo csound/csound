@@ -632,34 +632,57 @@ extern "C" {
     PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
 
     /**
-     * Set a csound option
+     * Set a single csound option (flag).
+     * NB: blank spaces are not allowed
      */
     PUBLIC int csoundSetOption(CSOUND *csound, char *option);
 
     /**
-     *  Configure Csound
+     *  Configure Csound with a given set of parameters defined in 
+     *  the CSOUND_PARAMS structure
      */
-
    PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
+
+     /**
+     *  Get the current set of parameters from a CSOUND instance in
+     *  a CSOUND_PARAMS structure
+     */
    PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
 
     /**
      *  Set output destination, type and format
+     *  type can be one of  "wav","aiff", "au","raw", "paf", "svx", "nist", "voc",
+     *  "ircam","w64","mat4", "mat5", "pvf","xi", "htk","sds","avr","wavex","sd2",
+     *  "flac", "caf","wve","ogg","mpc2k","rf64", or NULL (use default or realtime IO).
+     *  format can be one of "alaw", "schar", "uchar", "float", "double", "long",  
+     *  "short", "ulaw", "24bit", "vorbis", or NULL (use default or realtime IO).
+     * 
      */
-
   PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format);
-
 
     /**
      *  Set input source
      */
- 
   PUBLIC void csoundSetInput(CSOUND *csound, char *name);
 
-
+   /**
+    *  Set MIDI input device name/number
+    */
   PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name);
+
+   /**
+    *  Set MIDI file input name
+    */
   PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name);
+ 
+   /**
+    *  Set MIDI output device name/number
+    */
   PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name);
+
+   /**
+    *  Set MIDI file utput name
+    */
   PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name);
 
 
