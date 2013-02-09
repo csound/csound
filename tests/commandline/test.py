@@ -106,6 +106,8 @@ def runTest():
 	["test_arrays2.csd", "test gk-array with single dimension, assignment to expression value"],
 	["test_arrays3.csd", "test k-array with single dimension, assignment with number"],
 	["test_arrays_multi.csd", "test multi-dimensionsl k-array, assigment to number and expression"],
+	
+	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
    ]
 
 
