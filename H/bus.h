@@ -229,6 +229,7 @@ int     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
 int     chnrecv_opcode_init(CSOUND *, CHNSEND *);
 int     chnsend_opcode_init(CSOUND *, CHNSEND *);
 
+
 #ifdef __cplusplus
 }
 #endif

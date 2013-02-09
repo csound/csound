@@ -743,9 +743,17 @@ OENTRY opcodlst_1[] = {
                                                    midipitchbend, midipitchbend },
   { "mididefault", S(MIDIDEFAULT),0, 3, "", "xx",   mididefault, mididefault },
   { "invalue",   0xFFFF,   CR,    NULL,   NULL,   NULL, NULL, NULL              },
-  { "invalue.k", S(INVAL),0, 3,     "k",    "T",    invalset, kinval, NULL      },
-  { "invalue.S", S(INVAL),0, 3,     "S",    "T",    invalset_S, kinval_S, NULL  },
-  { "outvalue", S(OUTVAL), CW, 3,     "",     "TU",   outvalset, koutval, NULL  },
+  /* invalue is now the same as chnget */
+  { "invalue.k", /* S(INVAL),0, 3,     "k",    "T",    invalset, kinval, NULL      },*/
+               S(CHNGET),0,           3,      "k",            "S",
+   (SUBR) chnget_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+  { "invalue.S", /* S(INVAL),0, 3,     "S",    "T",    invalset_S, kinval_S, NULL  }, */
+                 S(CHNGET),0,           1,      "S",            "S",
+   (SUBR) chnget_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+  /* { "outvalue", S(OUTVAL), CW, 3,     "",     "TU",   outvalset, koutval, NULL  }, */
+  /* outvalue uses the same mechanism as chnset */
+  { "outvalue", S(CHNGET), CW, 3,     "",     "TU",  outvalset, 
+                                                (SUBR)notinit_opcode_stub, NULL },
 /* IV - Oct 20 2002 */
   { "subinstr", S(SUBINST),0, 5, "mmmmmmmm", "Tm",  subinstrset, NULL, subinstr },
   { "subinstrinit", S(SUBINST),0, 1, "",    "Tm",   subinstrset, NULL, NULL     },
