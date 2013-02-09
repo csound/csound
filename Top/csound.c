@@ -182,7 +182,10 @@ static const CSOUND cenviron_ = {
     csoundChanOKGet,
     csoundChanIASet,
     csoundChanOAGet,
-#endif
+    csoundNewOpcodeList,
+    csoundDisposeOpcodeList,
+#endif  /* SOME_FINE_DAY */
+
     csoundSetCallback,
     csoundRemoveCallback,
     csoundPerformKsmps,
@@ -213,8 +216,6 @@ static const CSOUND cenviron_ = {
     csoundSetDrawGraphCallback,
     csoundSetKillGraphCallback,
     csoundSetExitGraphCallback,
-    csoundNewOpcodeList,
-    csoundDisposeOpcodeList,
     csoundAppendOpcode,
     csoundAppendOpcodes,
     csoundYield,
@@ -398,12 +399,7 @@ static const CSOUND cenviron_ = {
      (INSTRTXT**)NULL,
      {NULL},
      NULL,
-     MAXINSNO}, /* engineState */
-    (INSTRTXT *) NULL, /* instr0  */
-    (INSTRTXT**)NULL,  /* dead_instr_pool */
-    0, /* dead_instr_no */
-    (TYPE_POOL*)NULL, 
-    /* (CS_VAR_POOL*)NULL, */
+     MAXINSNO},     /* engineState          */
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
     DFLT_KSMPS,     /*  ksmps               */
@@ -512,6 +508,11 @@ static const CSOUND cenviron_ = {
     rtrecord_dummy,
     rtclose_dummy,
     /* end of callbacks */
+    (INSTRTXT *) NULL, /* instr0  */
+    (INSTRTXT**)NULL,  /* dead_instr_pool */
+    0, /* dead_instr_no */
+    (TYPE_POOL*)NULL, 
+    /* (CS_VAR_POOL*)NULL, */
     0, 0,           /*  nchanik, nchania    */
     0, 0,           /*  nchanok, nchanoa    */
     NULL, NULL,     /*  chanik, chania      */
