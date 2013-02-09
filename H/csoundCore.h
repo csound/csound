@@ -860,8 +860,6 @@ typedef struct NAME__ {
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
    */
-
-
   struct CSOUND_ {
 
 #ifdef SOME_FINE_DAY /* these API functions do not need to be mirrored inside CSOUND */
