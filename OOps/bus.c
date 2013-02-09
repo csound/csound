@@ -839,12 +839,14 @@ PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
 *     to indicate the direction of the data transfer
 * The callback is not preserved on csoundReset().
 */
-
+/*
 PUBLIC void csoundSetChannelIOCallback(CSOUND *csound,
                                        CsoundChannelIOCallback_t func)
 {
     csound->channelIOCallback_ = func;
 }
+
+*/
 
 /* ------------------------------------------------------------------------ */
 
@@ -1298,6 +1300,10 @@ static int dummy_opcode_stub(CSOUND *csound, void *p)
     return OK;
 }
 
+/*  these opcodes have been removed as they were never used or
+    implemented properly
+*/
+/*
 static int chn_send_recv_opcodes_perf(CSOUND *csound, CHNSEND *p)
 {
     csound->channelIOCallback_(csound, p->name, p->fp, p->type);
@@ -1363,6 +1369,7 @@ int chnsend_opcode_init(CSOUND *csound, CHNSEND *p)
 {
     return chn_send_recv_opcodes_init_(csound, p, CSOUND_OUTPUT_CHANNEL);
 }
+*/
 
 /* ********************************************************************** */
 /* *************** SENSING ********************************************** */

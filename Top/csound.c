@@ -355,7 +355,7 @@ static const CSOUND cenviron_ = {
     csoundUnlockMutex,
     csoundDestroyMutex,
     csoundGetCurrentThreadId,
-    csoundSetChannelIOCallback,
+//   csoundSetChannelIOCallback,
     SetInternalYieldCallback,
     csoundCreateBarrier,
     csoundDestroyBarrier,
@@ -761,7 +761,7 @@ static const CSOUND cenviron_ = {
 //    0L, 0L,         /*  instxtcount, optxtsize  */
     //0L, 0L,         /*  poolcount, gblfixed     */
     //0L, 0L,         /*  gblacount, gblscount    */
-    (CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
+    //(CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
      csoundDoCallback_,  /*  doCsoundCallback    */
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
     csound_str_hash_32, /*  strHash32           */
