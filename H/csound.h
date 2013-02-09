@@ -1103,6 +1103,8 @@ extern "C" {
      */
     PUBLIC void csoundKeyPress(CSOUND *, char c);
 
+#ifdef SOME_FINE_DAY /* this bus mechanism is now deprecated */
+
     /**
      * Control values are specified by a 'channelName' string.
      * Note that the 'invalue' & 'outvalue' channels can be specified by
@@ -1136,6 +1138,8 @@ extern "C" {
             void (*outputValueCalback_)(CSOUND *,
                     const char *channelName,
                     MYFLT value));
+
+#endif
 
     /**
      * Send a new score event. 'type' is the score event type ('a', 'i', 'q',

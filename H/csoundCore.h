@@ -1266,10 +1266,11 @@ typedef struct NAME__ {
 #ifdef __BUILDING_LIBCSOUND
     /* callback function pointers */
     SUBR          first_callback_;
-    void          (*InputValueCallback_)(CSOUND *,
+    /*  deprecated */
+    /*    void          (*InputValueCallback_)(CSOUND *,
                                          const char *channelName, MYFLT *value);
     void          (*OutputValueCallback_)(CSOUND *,
-                                          const char *channelName, MYFLT value);
+    const char *channelName, MYFLT value);*/
     void          (*csoundMessageCallback_)(CSOUND *, int attr,
                                             const char *format, va_list args);
     int           (*csoundConfigureCallback_)(CSOUND *);

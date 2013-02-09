@@ -486,8 +486,9 @@ static const CSOUND cenviron_ = {
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
-    (void (*)(CSOUND *, const char *, MYFLT *)) NULL,
-    (void (*)(CSOUND *, const char *, MYFLT)) NULL,
+    /* deprecated */
+    /*(void (*)(CSOUND *, const char *, MYFLT *)) NULL,
+      (void (*)(CSOUND *, const char *, MYFLT)) NULL,*/
     csoundDefaultMessageCallback,
     (int (*)(CSOUND *)) NULL,
     (void (*)(CSOUND *, WINDAT *windat, const char *name)) NULL, /* was: MakeAscii,*/
@@ -2099,7 +2100,7 @@ PUBLIC void csoundKeyPress(CSOUND *csound, char c)
 /*
  * CONTROL AND EVENTS
  */
-
+#ifdef SOME_FINE_DAY /* deprecated */
 PUBLIC void 
 csoundSetInputValueCallback(CSOUND *csound,
                             void (*inputValueCalback)(CSOUND *csound,
@@ -2117,6 +2118,7 @@ csoundSetOutputValueCallback(CSOUND *csound,
 {
     csound->OutputValueCallback_ = outputValueCalback;
 }
+#endif
 
 PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
                             const MYFLT *pfields, long numFields)

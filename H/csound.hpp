@@ -456,7 +456,8 @@ public:
     csoundKeyPress(csound, c);
   }
   // control and events
-  virtual void SetInputValueCallback(
+  // deprecated
+  /*  virtual void SetInputValueCallback(
       void (*inputValueCallback_)(CSOUND *, const char *, MYFLT *))
   {
     csoundSetInputValueCallback(csound, inputValueCallback_);
@@ -466,6 +467,7 @@ public:
   {
     csoundSetOutputValueCallback(csound, outputValueCallback_);
   }
+  */
   virtual int ScoreEvent(char type, const MYFLT *pFields, long numFields)
   {
     return csoundScoreEvent(csound, type, pFields, numFields);
