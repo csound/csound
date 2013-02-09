@@ -945,10 +945,12 @@ OENTRY opcodlst_1[] = {
    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
   { "chnparams",   S(CHNPARAMS_OPCODE),CR, 1,      "iiiiii",       "S",
    (SUBR) chnparams_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+  /*  these opcodes have never been fully implemented
   { "chnrecv",     S(CHNSEND),       CR, 3,      "",             "So",
    (SUBR) chnrecv_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
   { "chnsend",     S(CHNSEND),0,          3,      "",             "So",
    (SUBR) chnsend_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+  */
 { "chano",       0xFFFD,               CW,      NULL,           NULL,
    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
   { "chano.k",     S(ASSIGN),0,           2,      "",             "kk",

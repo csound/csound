@@ -1148,7 +1148,7 @@ typedef struct NAME__ {
     void (*UnlockMutex)(void *mutex_);
     void (*DestroyMutex)(void *mutex_);
     void *(*GetCurrentThreadID)(void);
-    void (*SetChannelIOCallback)(CSOUND *, CsoundChannelIOCallback_t func);
+    // void (*SetChannelIOCallback)(CSOUND *, CsoundChannelIOCallback_t func);
     void (*SetInternalYieldCallback)(CSOUND *,
                        int (*yieldCallback)(CSOUND *));
     void *(*CreateBarrier)(unsigned int max);
@@ -1543,7 +1543,7 @@ typedef struct NAME__ {
     OPARMS        oparms_;
 //    int32          instxtcount, optxtsize;
     //int32          poolcount, gblfixed, gblacount, gblscount;
-    CsoundChannelIOCallback_t   channelIOCallback_;
+    // CsoundChannelIOCallback_t   channelIOCallback_;
     int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
     const unsigned char *strhash_tabl_8;
     unsigned int  (*strHash32)(const char *s);
@@ -1602,6 +1602,22 @@ typedef struct NAME__ {
         void * message_buffer;
 #endif  /* __BUILDING_LIBCSOUND */
   };
+
+/**
+* Platform-independent function to load a shared library.
+*/
+int csoundOpenLibrary(void **library, const char *libraryPath);
+
+/**
+* Platform-independent function to unload a shared library.
+*/
+int csoundCloseLibrary(void *library);
+
+/**
+* Platform-independent function to get a symbol address in a shared library.
+*/
+void *csoundGetLibrarySymbol(void *library, const char *symbolName);
+
 
 /*
  * Move the C++ guards to enclose the entire file,
