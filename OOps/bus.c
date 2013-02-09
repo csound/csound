@@ -1458,31 +1458,6 @@ static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
     return OK;
 }
 
-/* send string to bus at init time 
-
-int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
-{
-    int   err;
-    int  *lock;
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
-                              CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    if (UNLIKELY(err))
-      return print_chn_err(p, err);
-    if (UNLIKELY((int)strlen((char*) p->arg) >= csound->strVarMaxLen)) {
-
-      return csound->InitError(csound, Str("string is too long"));
-    }
-    p->lock = lock =
-      csoundGetChannelLock(csound, (char*) p->iname,
-                           CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    csoundSpinLock(lock);
-    strcpy((char*) p->fp, (char*) p->arg);
-    csoundSpinUnLock(lock);
-
-    return OK;
-}
-*/
-
 
 /* outvalue now uses chn mehanism 
 */
