@@ -1208,6 +1208,19 @@ extern "C" {
     PUBLIC int *csoundGetChannelLock(CSOUND *,
             const char *name, int type);
 
+  PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, char *name);
+
+  PUBLIC void csoundSetControlChannel(CSOUND *csound, char *name, MYFLT val);
+
+  PUBLIC void csoundGetAudioChannel(CSOUND *csound, char *name, MYFLT *samples);
+
+  PUBLIC void csoundSetAudioChannel(CSOUND *csound, char *name, MYFLT *samples);
+
+  PUBLIC void csoundSetStringChannel(CSOUND *csound, char *name, char *string);
+
+  PUBLIC  void csoundGetStringChannel(CSOUND *csound, char *name, char *string);
+
+
       /**
      * Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
      * The bus is automatically extended if 'n' exceeds any previously used
@@ -1339,10 +1352,9 @@ extern "C" {
     /**
      * Input a NULL-terminated string (as if from a console),
      * used for line events.
-     * This function is not thread-safe if called in a different
-     * thread to csoundPerform, csoundPerformKsmps or csoundPerformBuffer
      */
     PUBLIC void csoundInputMessage(CSOUND *, const char *message);
+
 
     /**
      * Returns the length of a function table (not including the guard point),
@@ -1359,10 +1371,23 @@ extern "C" {
     /**
      * Sets the value of a slot in a function table.
      * The table number and index are assumed to be valid.
-     * This function is not thread-safe if called in a different
-     * thread to csoundPerform, csoundPerformKsmps or csoundPerformBuffer
      */
     PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
+    
+
+    /**
+     * Copy the contents of a function table into a supplied array *dest
+     * The table number is assumed to be valid, and the destination needs to
+     * have sufficient space to receive all the function table contents. 
+     */
+    PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *dest);
+
+    /**
+     * Copy the contents of an array *src into a given function table
+     * The table number is assumed to be valid, and the table needs to
+     * have sufficient space to receive all the array contents. 
+     */
+    PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
    
     /*
      * MIDI
