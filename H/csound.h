@@ -371,6 +371,9 @@ extern "C" {
 
         /* analysis formats */
         CSFTYPE_HETRO,
+#ifdef JPFF
+        CSFTYPE_HETROT,
+#endif
         CSFTYPE_PVC,               /* original PVOC format */
         CSFTYPE_PVCEX,             /* PVOC-EX format */
         CSFTYPE_CVANAL,
@@ -1139,6 +1142,7 @@ extern "C" {
      * Notes: the caller is responsible for freeing the list returned in *lst
      * with csoundDeleteChannelList(). The name pointers may become invalid
      * after calling csoundReset().
+<<<<<<< HEAD
      */
     PUBLIC int csoundListChannels(CSOUND *, CsoundChannelListEntry **lst);
 
