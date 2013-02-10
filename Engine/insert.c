@@ -2041,6 +2041,7 @@ void *init_pass_thread(void *p){
   CSOUND *csound = (CSOUND *) p;
   INSDS *ip;
   while(1) {
+    csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
     ip = csound->actanchor.nxtact;
     /* do init pass for this instr */
     while(ip != NULL){
@@ -2059,7 +2060,6 @@ void *init_pass_thread(void *p){
       }
       ip = nxt; 
     }
-    csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
     if(csound->init_pass_loop == 0) {
       csound->NotifyThreadLock(csound->init_pass_threadlock);
       break;
