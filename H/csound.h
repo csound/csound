@@ -1148,6 +1148,7 @@ extern "C" {
      * Notes: the caller is responsible for freeing the list returned in *lst
      * with csoundDeleteChannelList(). The name pointers may become invalid
      * after calling csoundReset().
+<<<<<<< HEAD
      */
     PUBLIC int csoundListChannels(CSOUND *, CsoundChannelListEntry **lst);
 
