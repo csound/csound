@@ -1,8 +1,8 @@
 %ignore csoundSetCscoreCallback;
 %ignore csoundMessageV;
 %ignore csoundSetMessageCallback;
-%ignore csoundSetInputValueCallback;
-%ignore csoundSetOutputValueCallback;
+//%ignore csoundSetInputValueCallback;
+//%ignore csoundSetOutputValueCallback;
 %ignore csoundSetExternalMidiInOpenCallback;
 %ignore csoundSetExternalMidiReadCallback;
 %ignore csoundSetExternalMidiInCloseCallback;
