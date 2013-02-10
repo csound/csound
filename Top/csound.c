@@ -88,6 +88,7 @@ static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void csoundReset_(CSOUND *);
+int csoundPerformKsmpsInternal(CSOUND *csound);
 
 extern void close_all_files(CSOUND *);
 
@@ -185,7 +186,7 @@ static const CSOUND cenviron_ = {
 
     csoundSetCallback,
     csoundRemoveCallback,
-    csoundPerformKsmps,
+    csoundPerformKsmpsInternal,
     csoundGetSr,
     csoundGetKr,
     csoundGetKsmps,
@@ -1635,6 +1636,35 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
 #endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
+    csoundWaitThreadLockNoTimeout(csound->API_lock);
+    do {
+      if (UNLIKELY((done = sensevents(csound)))) {
+        csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
+        csoundNotifyThreadLock(csound->API_lock);
+        return done;
+      }
+    } while (kperf(csound));
+      csoundNotifyThreadLock(csound->API_lock);
+      return 0;
+}
+
+int csoundPerformKsmpsInternal(CSOUND *csound)
+{
+    int done;
+    int returnValue;
+
+    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
+    if (!(csound->engineStatus & CS_STATE_COMP)){
+      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+      return CSOUND_ERROR;
+    }
+    /* setup jmp for return after an exit() */
+    if ((returnValue = setjmp(csound->exitjmp))) {
+#ifndef MACOSX
+      csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
+#endif
+      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
     do {
       if (UNLIKELY((done = sensevents(csound)))) {
         csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
@@ -1643,7 +1673,6 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     } while (kperf(csound));
       return 0;
 }
-
 
 
 
@@ -1664,9 +1693,11 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 #endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
+    csoundWaitThreadLockNoTimeout(csound->API_lock);
     do {
       done |= sensevents(csound);
     } while (kperf(csound));
+    csoundNotifyThreadLock(csound->API_lock);
     return done;
 }
 
@@ -1691,10 +1722,14 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     }
     csound->sampsNeeded += csound->oparms_.outbufsamps;
     while (csound->sampsNeeded > 0) {
+      csoundWaitThreadLockNoTimeout(csound->API_lock);
       do {
-        if (UNLIKELY((done = sensevents(csound))))
+        if (UNLIKELY((done = sensevents(csound)))){
+          csoundNotifyThreadLock(csound->API_lock);
           return done;
+	}
       } while (kperf(csound));
+      csoundNotifyThreadLock(csound->API_lock);
       csound->sampsNeeded -= csound->nspout;
     }
     return 0;
@@ -1723,8 +1758,10 @@ PUBLIC int csoundPerform(CSOUND *csound)
     }
     do {
       do {
+        csoundWaitThreadLockNoTimeout(csound->API_lock);
         if ((done = sensevents(csound))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
+          csoundNotifyThreadLock(csound->API_lock);
 #ifdef PARCS
           if (csound->oparms->numThreads > 1) {
 #if   defined(LINEAR_CACHE) || defined(HASH_CACHE)
@@ -1737,12 +1774,12 @@ PUBLIC int csoundPerform(CSOUND *csound)
           if (csound->oparms->calculateWeights) {
             /* csp_weights_dump(csound); */
             csp_weights_dump_normalised(csound);
-          }
-          
+          }          
 #endif /* PARCS  */
           return done;
         }
       } while (kperf(csound));
+      csoundNotifyThreadLock(csound->API_lock);
     } while ((unsigned char) csound->performState == (unsigned char) '\0');
     csoundMessage(csound, Str("csoundPerform(): stopped.\n"));
     csound->performState = 0;
@@ -2127,6 +2164,7 @@ PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
 {
     EVTBLK  evt;
     int     i;
+    int ret;
 
     evt.strarg = NULL;
     evt.opcod = type;
@@ -2134,7 +2172,10 @@ PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
     for (i = 0; i < (int) numFields; i++) /* Could be memcpy */
       evt.p[i + 1] = pfields[i];
     //memcpy(&evt.p[1],pfields, numFields*sizeof(MYFLT));
-    return insert_score_event_at_sample(csound, &evt, csound->icurTime);
+    csoundWaitThreadLockNoTimeout(csound->API_lock);
+    ret = insert_score_event_at_sample(csound, &evt, csound->icurTime);
+    csoundNotifyThreadLock(csound->API_lock);
+    return ret;
 }
 
 PUBLIC int csoundScoreEventAbsolute(CSOUND *csound, char type,
@@ -2143,13 +2184,17 @@ PUBLIC int csoundScoreEventAbsolute(CSOUND *csound, char type,
 {
     EVTBLK  evt;
     int     i;
+    int     ret;
     
     evt.strarg = NULL;
     evt.opcod = type;
     evt.pcnt = (int16) numFields;
     for (i = 0; i < (int) numFields; i++)
       evt.p[i + 1] = pfields[i];
-    return insert_score_event(csound, &evt, time_ofs);
+    csoundWaitThreadLockNoTimeout(csound->API_lock);
+    ret = insert_score_event(csound, &evt, time_ofs);
+    csoundNotifyThreadLock(csound->API_lock);
+    return ret;
 }
 
 /*
