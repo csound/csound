@@ -735,7 +735,7 @@ void CsoundCallbackWrapper::SetMessageCallback()
     csoundSetMessageCallback(csound_, MessageCallback_wrapper);
 }
 
-void CsoundCallbackWrapper::SetInputValueCallback()
+  /*void CsoundCallbackWrapper::SetInputValueCallback()
 {
     csoundSetInputValueCallback(csound_, InputValueCallback_wrapper);
 }
@@ -744,7 +744,7 @@ void CsoundCallbackWrapper::SetOutputValueCallback()
 {
     csoundSetOutputValueCallback(csound_, OutputValueCallback_wrapper);
 }
-
+  */
 void CsoundCallbackWrapper::SetYieldCallback()
 {
     csoundSetYieldCallback(csound_, YieldCallback_wrapper);
@@ -845,14 +845,14 @@ int CsoundCallbackWrapper::midiOutCloseCallback(CSOUND *csound, void *userData)
     (void) userData;
     return 0;
 }
-
+  /*
 void CsoundCallbackWrapper::SetChannelIOCallbacks()
 {
     csoundSetChannelIOCallback(csound_,
                                (CsoundChannelIOCallback_t)
                                    ChannelIOCallback_wrapper);
 }
-
+  */
 // ----------------------------------------------------------------------------
 
 static const unsigned char midiMessageByteCnt[32] = {
