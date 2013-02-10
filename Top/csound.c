@@ -428,13 +428,6 @@ static const CSOUND cenviron_ = {
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
     0.0,            /*  beatTime            */
-    (pthread_t)0,   /* file_io_thread    */
-    0,              /* file_io_start   */
-    NULL,           /* file_io_threadlock */
-    0,              /* realtime_audio_flag */
-    (pthread_t)0,   /* init pass thread */
-    0,              /* init pass loop  */
-    NULL,           /* init pass threadlock */
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
@@ -598,6 +591,14 @@ static const CSOUND cenviron_ = {
     0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     0,              /*  strVpooarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
+    (pthread_t)0,   /* file_io_thread    */
+    0,              /* file_io_start   */
+    NULL,           /* file_io_threadlock */
+    0,              /* realtime_audio_flag */
+    (pthread_t)0,   /* init pass thread */
+    0,              /* init pass loop  */
+    NULL,           /* init pass threadlock */
+    NULL,           /* API_lock */
     {  
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
       0, 0, 0, 0,   /*  op warpin linpos lincnt */
@@ -1098,7 +1099,8 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     csoundUnLock();
     csoundReset(csound);
     //csound_aops_init_tables(csound);
-      
+    csound->API_lock = csoundCreateThreadLock();
+    csoundNotifyThreadLock(csound->API_lock);
     return csound;
 }
 
@@ -1608,8 +1610,11 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
     corfile_puts(str, csound->scorestr);
     corfile_flush(csound->scorestr);
     scsortstr(csound, csound->scorestr);
+    /* protect resource */
+    csoundWaitThreadLockNoTimeout(csound->API_lock);
     /* copy sorted score name */
     O->playscore = csound->scstr;
+    csoundNotifyThreadLock(csound->API_lock);
       return CSOUND_SUCCESS;
 }
 

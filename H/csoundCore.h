@@ -1208,13 +1208,6 @@ typedef struct NAME__ {
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
     int64_t       ibeatTime;   /* Beat time in samples */
-    pthread_t    file_io_thread;
-    int          file_io_start;
-    void         *file_io_threadlock;
-    int          realtime_audio_flag;
-    pthread_t    init_pass_thread;
-    int          init_pass_loop;
-    void         *init_pass_threadlock;
 #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t spoutlock, spinlock;
 #else
@@ -1380,6 +1373,14 @@ typedef struct NAME__ {
     int           acount, kcount, icount, Bcount, bcount, tcount;
     int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
+    pthread_t    file_io_thread;
+    int          file_io_start;
+    void         *file_io_threadlock;
+    int          realtime_audio_flag;
+    pthread_t    init_pass_thread;
+    int          init_pass_loop;
+    void         *init_pass_threadlock;
+    void         *API_lock;
     struct sreadStatics__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
