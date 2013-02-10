@@ -743,9 +743,17 @@ OENTRY opcodlst_1[] = {
                                                    midipitchbend, midipitchbend },
   { "mididefault", S(MIDIDEFAULT),0, 3, "", "xx",   mididefault, mididefault },
   { "invalue",   0xFFFF,   CR,    NULL,   NULL,   NULL, NULL, NULL              },
-  { "invalue.k", S(INVAL),0, 3,     "k",    "T",    invalset, kinval, NULL      },
-  { "invalue.S", S(INVAL),0, 3,     "S",    "T",    invalset_S, kinval_S, NULL  },
-  { "outvalue", S(OUTVAL), CW, 3,     "",     "TU",   outvalset, koutval, NULL  },
+  /* invalue is now the same as chnget */
+  { "invalue.k", /* S(INVAL),0, 3,     "k",    "T",    invalset, kinval, NULL      },*/
+               S(CHNGET),0,           3,      "k",            "S",
+   (SUBR) chnget_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+  { "invalue.S", /* S(INVAL),0, 3,     "S",    "T",    invalset_S, kinval_S, NULL  }, */
+                 S(CHNGET),0,           1,      "S",            "S",
+   (SUBR) chnget_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+  /* { "outvalue", S(OUTVAL), CW, 3,     "",     "TU",   outvalset, koutval, NULL  }, */
+  /* outvalue uses the same mechanism as chnset */
+  { "outvalue", S(CHNGET), CW, 3,     "",     "TU",  outvalset, 
+                                                (SUBR)notinit_opcode_stub, NULL },
 /* IV - Oct 20 2002 */
   { "subinstr", S(SUBINST),0, 5, "mmmmmmmm", "Tm",  subinstrset, NULL, subinstr },
   { "subinstrinit", S(SUBINST),0, 1, "",    "Tm",   subinstrset, NULL, NULL     },
@@ -937,10 +945,12 @@ OENTRY opcodlst_1[] = {
    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
   { "chnparams",   S(CHNPARAMS_OPCODE),CR, 1,      "iiiiii",       "S",
    (SUBR) chnparams_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+  /*  these opcodes have never been fully implemented
   { "chnrecv",     S(CHNSEND),       CR, 3,      "",             "So",
    (SUBR) chnrecv_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
   { "chnsend",     S(CHNSEND),0,          3,      "",             "So",
    (SUBR) chnsend_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+  */
 { "chano",       0xFFFD,               CW,      NULL,           NULL,
    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
   { "chano.k",     S(ASSIGN),0,           2,      "",             "kk",

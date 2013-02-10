@@ -73,7 +73,7 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
           return csound->InitError(csound, Str("invalid window type"));
     }
     /* use table created with GEN20 */
-    flen = csound->GetTable(csound, &ftable, -(type));
+    flen = csoundGetTable(csound, &ftable, -(type));
     if (UNLIKELY(flen < 0))
       return csound->InitError(csound, Str("ftable for window not found"));
     inc = (double)flen / (double)(winLen & (~1));

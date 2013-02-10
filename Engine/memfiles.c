@@ -62,19 +62,20 @@ static int Load_File_(CSOUND *csound, const char *filnam,
 }
 
 /* Backwards-compatible wrapper for ldmemfile2().
-   Please use ldmemfile2() or ldmemfile2withCB() in all new code instead. */
+   Please use ldmemfile2() or ldmemfile2withCB() in all new code instead.
 MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
 {
     return ldmemfile2withCB(csound, filnam, CSFTYPE_UNKNOWN, NULL);
 }
-
+*/
 /* Takes an additional parameter specifying the type of the file being opened.
    The type constants are defined in the enumeration CSOUND_FILETYPES.
-   Use ldmemfile2() to load file without additional processing.  */
+   Use ldmemfile2() to load file without additional processing.
 MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
 {
     return ldmemfile2withCB(csound, filnam, csFileType, NULL);
 }
+*/
 
 /* This version of ldmemfile2 allows you to specify a callback procedure
    to process the file's data after it is loaded.  This method ensures that

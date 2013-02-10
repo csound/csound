@@ -170,7 +170,7 @@ struct CSOUND_ {
   void (*display)(CSOUND * /* , WINDAT * */);
     int (*dispexit)(CSOUND *);
     MYFLT (*intpow)(MYFLT, int32);
-    void *(*ldmemfile)(CSOUND *, const char *);  /* use ldmemfile2 instead */
+  //void *(*ldmemfile)(CSOUND *, const char *);  /* use ldmemfile2 instead */
     int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
     char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
   int (*hfgens)(CSOUND * /* , FUNC **, const EVTBLK *, int */);
@@ -336,7 +336,7 @@ struct CSOUND_ {
     void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *,
                       const char *, int, int);
     int (*type2csfiletype)(int type, int encoding);
-    void *(*ldmemfile2)(CSOUND *, const char *, int);
+  //    void *(*ldmemfile2)(CSOUND *, const char *, int);
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
     int (*insert_score_event_at_sample)(CSOUND *, void *, long);
