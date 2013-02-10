@@ -1045,12 +1045,6 @@ extern "C" {
     PUBLIC void csoundSetMessageLevel(CSOUND *, int messageLevel);
 
     /**
-     * Input a NULL-terminated string (as if from a console),
-     * used for line events.
-     */
-    PUBLIC void csoundInputMessage(CSOUND *, const char *message);
-
-    /**
      * Creates a buffer for storing messages printed by Csound.
      * Should be called after creating a Csound instance; note that
      * the message buffer uses the host data pointer, and the buffer
@@ -1337,6 +1331,12 @@ extern "C" {
 
     PUBLIC int csoundScoreEventAbsolute(CSOUND *,
             char type, const MYFLT *pfields, long numFields, double time_ofs);
+
+    /**
+     * Input a NULL-terminated string (as if from a console),
+     * used for line events.
+     */
+    PUBLIC void csoundInputMessage(CSOUND *, const char *message);
 
     /*
      * MIDI

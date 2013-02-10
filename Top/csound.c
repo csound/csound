@@ -5,7 +5,7 @@
  * by means of software alone.
  *
  * Copyright (C) 2001-2006 Michael Gogins, Matt Ingalls, John D. Ramsdell,
- *                         John P. ffitch, Istvan Varga
+ *                         John P. ffitch, Istvan Varga, Victor Lazzarini, Steven Yi
  *
  * L I C E N S E
  *
@@ -23,9 +23,6 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * 29 May 2002 - ma++ merge with CsoundLib.
- * 30 May 2002 - mkg add csound "this" pointer argument back into merge.
- * 27 Jun 2002 - mkg complete Linux dl code and Makefile
  */
 
 //#ifdef __cplusplus
