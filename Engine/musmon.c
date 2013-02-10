@@ -473,6 +473,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
+    if(csound->API_lock != NULL) csoundDestroyThreadLock(csound->API_lock);
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
