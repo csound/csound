@@ -37,12 +37,12 @@ typedef struct _scorepos {
 
 int messi(CSOUND *csound, INMESS *p)
 {
-    csoundInputMessage(csound, (char *)p->SMess);
+    csoundInputMessageInternal(csound, (char *)p->SMess);
     return OK;
 }
 
 int messk(CSOUND *csound, INMESS *p){
-    if (*p->ktrig) csoundInputMessage(csound, (char *)p->SMess);
+    if (*p->ktrig) csoundInputMessageInternal(csound, (char *)p->SMess);
     return OK;
 }
 

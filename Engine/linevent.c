@@ -161,7 +161,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
-PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
+void csoundInputMessageInternal(CSOUND *csound, const char *message)
 {
     int32  size = (int32) strlen(message);
     int n;
