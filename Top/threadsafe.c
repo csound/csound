@@ -21,9 +21,9 @@
 
 #include "csoundCore.h"
 
-void csoundScoreline(CSOUND *csound, const char *message){
+void csoundInputMessage(CSOUND *csound, const char *message){
   csoundWaitThreadLockNoTimeout(csound->API_lock);
-  csoundInputMessage(csound, message);
+  csoundInputMessageInternal(csound, message);
   csoundNotifyThreadLock(csound->API_lock);
 }
 
@@ -58,9 +58,13 @@ MYFLT csoundGetControlChannel(CSOUND *csound, char *name){
 void csoundSetControlChannel(CSOUND *csound, char *name, MYFLT val){
   MYFLT *pval;
   csoundWaitThreadLockNoTimeout(csound->API_lock);
+  /* in realtime mode init pass is executed in a separate thread, so
+     we need to protect it */
+  if(csound->oparms->realtime) csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
   if(csoundGetChannelPtr(csound, &pval, name, 
 			 CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL))
     *pval = val;
+  if(csound->oparms->realtime) csound->NotifyThreadLock(csound->init_pass_threadlock);
   csoundNotifyThreadLock(csound->API_lock);
 }
 
@@ -83,9 +87,11 @@ void csoundSetAudioChannel(CSOUND *csound, char *name, MYFLT *samples){
 void csoundSetStringChannel(CSOUND *csound, char *name, char *string){
   MYFLT  *pstring;
   csoundWaitThreadLockNoTimeout(csound->API_lock);
+  if(csound->oparms->realtime) csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
   if(csoundGetChannelPtr(csound, &pstring, name, 
 			 CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL))
     strcpy((char *) pstring, string);
+  if(csound->oparms->realtime) csound->NotifyThreadLock(csound->init_pass_threadlock);
   csoundNotifyThreadLock(csound->API_lock);
 }
 

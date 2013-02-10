@@ -89,6 +89,7 @@ static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void csoundReset_(CSOUND *);
 int csoundPerformKsmpsInternal(CSOUND *csound);
+void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
 
 extern void close_all_files(CSOUND *);
 
@@ -260,7 +261,7 @@ static const CSOUND cenviron_ = {
     csoundGetDebug,
     csoundTableLength,
     csoundTableGet,
-    csoundTableSet,
+    csoundTableSetInternal,
     csoundCreateThread,
     csoundJoinThread,
     csoundCreateThreadLock,
@@ -3004,9 +3005,20 @@ PUBLIC MYFLT csoundTableGet(CSOUND *csound, int table, int index)
     return csound->flist[table]->ftable[index];
 }
 
-PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
+void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value)
 {
     csound->flist[table]->ftable[index] = value;
+}
+
+PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
+{
+    csoundWaitThreadLockNoTimeout(csound->API_lock);
+    /* in realtime mode init pass is executed in a separate thread, so
+     we need to protect it */
+    if(csound->oparms->realtime) csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
+    csound->flist[table]->ftable[index] = value;
+    if(csound->oparms->realtime) csound->NotifyThreadLock(csound->init_pass_threadlock);
+    csoundNotifyThreadLock(csound->API_lock);
 }
 
 static int csoundDoCallback_(CSOUND *csound, void *p, unsigned int type)

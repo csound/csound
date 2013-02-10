@@ -1619,6 +1619,10 @@ int csoundCloseLibrary(void *library);
 */
 void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
+/**
+* Internal input message function (used in opcodes)
+*/
+  void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
 /*
  * Move the C++ guards to enclose the entire file,
