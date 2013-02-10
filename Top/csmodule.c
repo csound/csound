@@ -183,12 +183,12 @@ static CS_NOINLINE void print_module_error(CSOUND *csound,
                                            const char *fmt, const char *fname,
                                            const csoundModule_t *m, int err)
 {
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str(fmt), fname);
+    csoundMessageS(csound, CSOUNDMSG_ERROR, Str(fmt), fname);
     if (m != NULL && m->fn.p.ErrCodeToStr != NULL)
-      csound->MessageS(csound, CSOUNDMSG_ERROR,
+      csoundMessageS(csound, CSOUNDMSG_ERROR,
                        ": %s\n", Str(m->fn.p.ErrCodeToStr(err)));
     else
-      csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+      csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
 
 static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
@@ -197,7 +197,7 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
 
     myfltSize = n & 0xFF;
     if (UNLIKELY(myfltSize != 0 && myfltSize != (int) sizeof(MYFLT))) {
-      csound->Warning(csound, Str("not loading '%s' (uses incompatible "
+      csoundWarning(csound, Str("not loading '%s' (uses incompatible "
                                   "floating point type)"), fname);
       return -1;
     }
@@ -206,7 +206,7 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       majorVersion = (n & (~0xFFFF)) >> 16;
       if (majorVersion != (int) CS_APIVERSION ||
           (minorVersion > (int) CS_APISUBVER)) { /* NOTE **** REFACTOR *** */
-        csound->Warning(csound, Str("not loading '%s' (incompatible "
+        csoundWarning(csound, Str("not loading '%s' (incompatible "
                                     "with this version of Csound (%d.%d/%d.%d)"),
                         fname, majorVersion,minorVersion,
                         CS_APIVERSION,CS_APISUBVER);
@@ -245,7 +245,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
 /*  #if defined(LINUX) */
 /*       printf("About to open library '%s'\n", libraryPath); */
 /* #endif */
-    err = csound->OpenLibrary(&h, libraryPath);
+    err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
       char ERRSTR[256];
  #if defined(LINUX)
@@ -458,7 +458,7 @@ int csoundLoadModules(CSOUND *csound)
       }
       /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
       if (csoundCheckOpcodeDeny(fname)) {
-        csound->Warning(csound, Str("Library %s omitted\n"), fname);
+        csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
       /* if (csoundCheckOpcodePluginFile(csound, fname) != 0) */
@@ -493,7 +493,7 @@ int csoundLoadExternals(CSOUND *csound)
       return 0;
     /* IV - Feb 19 2005 */
     csound->dl_opcodes_oplibs = NULL;
-    csound->Message(csound, Str("Loading command-line libraries:\n"));
+    csoundMessage(csound, Str("Loading command-line libraries:\n"));
     cnt = 1;
     i = 0;
     do {
@@ -516,9 +516,9 @@ int csoundLoadExternals(CSOUND *csound)
       if (fname[0] != '\0' && !(i && strcmp(fname, lst[i - 1]) == 0)) {
         err = csoundLoadExternal(csound, fname);
         if (UNLIKELY(err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY))
-          csound->Die(csound, Str(" *** error loading '%s'"), fname);
+          csoundDie(csound, Str(" *** error loading '%s'"), fname);
         else if (!err)
-          csound->Message(csound, "  %s\n", fname);
+          csoundMessage(csound, "  %s\n", fname);
       }
     } while (++i < cnt);
     /* file list is no longer needed */
@@ -561,7 +561,7 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
         else {
           length /= (long) sizeof(OENTRY);
           if (length) {
-            if (UNLIKELY(csound->AppendOpcodes(csound, opcodlst_n,
+            if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
                                                (int) length) != 0))
               return CSOUND_ERROR;
           }
@@ -1012,7 +1012,7 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
       if (UNLIKELY(length <= 0L)) return CSOUND_ERROR;
       length /= (long) sizeof(OENTRY);
       if (length) {
-        if (UNLIKELY(csound->AppendOpcodes(csound, opcodlst_n,
+        if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
                                            (int) length) != 0))
           return CSOUND_ERROR;
       }

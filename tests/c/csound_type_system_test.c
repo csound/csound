@@ -29,7 +29,6 @@ int clean_suite1(void)
 void test_type_system(void)
 {
   CSOUND* csound = csoundCreate(NULL);
-  csoundReset(csound);
   //    csoundAddStandardTypes(csound, pool);
   
   TYPE_POOL* pool = csound->typePool;
@@ -50,6 +49,38 @@ void test_type_system(void)
   
 }
 
+void test_get_var_simple_name(void) {
+    CSOUND* csound = csoundCreate(NULL);
+
+    CU_ASSERT_STRING_EQUAL("a1", getVarSimpleName(csound, "a1"));
+    CU_ASSERT_STRING_EQUAL("a1", getVarSimpleName(csound, "[a;1"));
+    CU_ASSERT_STRING_EQUAL("StestString", getVarSimpleName(csound, "StestString"));
+    CU_ASSERT_STRING_EQUAL("StestString", getVarSimpleName(csound, "[S;testString"));
+}
+
+
+//void test_array_name_variable_clashing(void)
+//{
+//    CSOUND* csound = csoundCreate(NULL);
+//    
+//    TYPE_POOL* pool = csound->typePool;
+//    CS_VAR_POOL* varPool = csound->engineState.varPool;
+//
+//    csoundAddStandardTypes(csound, pool);
+//    
+//    CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, "a1", NULL);
+//    CU_ASSERT_PTR_NOT_NULL(var);
+//    //printf("Var type created: %s\n", var->varType->varTypeName);
+//
+//    csoundAddVariable(varPool, var);
+//    
+//    CS_VARIABLE* var2 = csoundFindVariableWithName(csound, varPool, "a1");
+//    CU_ASSERT_PTR_EQUAL(var, var2);
+//    // should return "a1", as "[a;1" is originally a1[]
+//    var2 = csoundFindVariableWithName(csound, varPool, "[a;1");
+//    CU_ASSERT_PTR_EQUAL(var, var2);
+//    
+//}
 
 int main(int argc, char** argv)
 {
@@ -68,7 +99,8 @@ int main(int argc, char** argv)
   
   /* add the tests to the suite */
   if ((NULL == CU_add_test(pSuite, "Test Type System", test_type_system))
-      //           || (NULL == CU_add_test(pSuite, "test of fread()", testFREAD))
+//        || (NULL == CU_add_test(pSuite, "test of array name variable clashing", test_array_name_variable_clashing))
+        || (NULL == CU_add_test(pSuite, "Test getVarSimpleName", test_get_var_simple_name))
       )
   {
     CU_cleanup_registry();

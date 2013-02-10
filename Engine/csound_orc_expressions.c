@@ -958,15 +958,11 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
-                /* VL: added as means of dealing with empty conditionals,
-                   may need revision */
-                if (statements == NULL)
-                   csound->Warning(csound,
-                               Str("Empty statement in "
-                                   "conditional, line %d \n"),
-                               last->right->line);
-                while (statements->next != NULL) {
-                  statements = statements->next;
+                
+                if (statements != NULL) {
+                  while (statements->next != NULL) {
+                    statements = statements->next;
+                  }
                 }
                 if (endLabelCounter > 0) {
                   TREE *endLabel = create_synthetic_ident(csound,
@@ -979,11 +975,19 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                   if (UNLIKELY(PARSER_DEBUG))
                     csound->Message(csound, "Creating simple goto token\n");
 
-                  statements->next = gotoEndLabelToken;
+                  if(statements == NULL) {
+                    gotoToken->next = gotoEndLabelToken;
+                  } else {
+                    statements->next = gotoEndLabelToken;
+                  }
                   gotoEndLabelToken->next = labelEnd;
                 }
                 else {
-                  statements->next = labelEnd;
+                  if(statements == NULL) {
+                    gotoToken->next = labelEnd;
+                  } else {
+                    statements->next = labelEnd;
+                  }
                 }
 
                 ifBlockLast = labelEnd;

@@ -141,7 +141,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       csound->flist[ff.fno] = NULL;
       mfree(csound, (void*) ftp);
       if (UNLIKELY(msg_enabled))
-        csound->Message(csound, Str("ftable %d now deleted\n"), ff.fno);
+        csoundMessage(csound, Str("ftable %d now deleted\n"), ff.fno);
       return 0;
     }
     if (UNLIKELY(ff.fno > csound->maxfnum)) {   /* extend list if necessary */
@@ -201,7 +201,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
         return fterror(&ff, Str("deferred size for GENs 1, 23, 28 or 49 only"));
       }
       if (msg_enabled)
-        csound->Message(csound, Str("ftable %d:\n"), ff.fno);
+        csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
       i = (*csound->gensub[genum])(&ff, NULL);
       ftp = csound->flist[ff.fno];
       if (i != 0) {
@@ -249,7 +249,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       ftp->lenmask = 0xFFFFFFFF; /* gab: fixed for non-powoftwo function tables */
 
     if (msg_enabled)
-      csound->Message(csound, Str("ftable %d:\n"), ff.fno);
+      csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
     if ((*csound->gensub[genum])(&ff, ftp) != 0) {
       csound->flist[ff.fno] = NULL;
       mfree(csound, ftp);
@@ -1333,7 +1333,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
       /* Start counting elements */
       ff->flen = 0;
       while (!feof(infile)) nextval(infile), ff->flen++;
-      csound->Message(csound, Str("%ld elements in %s\n"),
+      csoundMessage(csound, Str("%ld elements in %s\n"),
                               ff->flen, ff->e.strarg);
       rewind(infile);
       /* Allocate memory and read them in now */
@@ -1616,7 +1616,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     xsr = FL(1.0);
     if ((nargs > 3) && (ff->e.p[8] > FL(0.0)))
       xsr = csound->esr / ff->e.p[8];
-    l2 = csound->GetTable(csound, &f2, (int) ff->e.p[5]);
+    l2 = csoundGetTable(csound, &f2, (int) ff->e.p[5]);
     if (UNLIKELY(l2 < 0)) {
       return fterror(ff, Str("GEN30: source ftable not found"));
     }
@@ -1699,7 +1699,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(nargs < 4)) {
       return fterror(ff, Str("insufficient gen arguments"));
     }
-    l2 = csound->GetTable(csound, &f2, (int) ff->e.p[5]);
+    l2 = csoundGetTable(csound, &f2, (int) ff->e.p[5]);
     if (UNLIKELY(l2 < 0)) {
       return fterror(ff, Str("GEN31: source ftable not found"));
     }
@@ -1807,7 +1807,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     while (++j < ntabl) {
       p = paccess(ff,pnum[j]);                /* table number */
       i = (int) MYFLT2LRND(p);
-      l2 = csound->GetTable(csound, &f2, abs(i));
+      l2 = csoundGetTable(csound, &f2, abs(i));
       if (UNLIKELY(l2 < 0)) {
         fterror(ff, Str("GEN32: source ftable %d not found"), abs(i));
         if (x != NULL) free(x);
@@ -1901,7 +1901,7 @@ static int gen33(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int) ftp->flen;
     /* source table */
-    srclen = csound->GetTable(csound, &srcft, (int) ff->e.p[5]);
+    srclen = csoundGetTable(csound, &srcft, (int) ff->e.p[5]);
     if (UNLIKELY(srclen < 0)) {
       return fterror(ff, Str("GEN33: source ftable not found"));
     }
@@ -2173,16 +2173,16 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     va_start(args, s);
     csound->ErrMsgV(csound, buf, s, args);
     va_end(args);
-    csound->Message(csound, "f%3.0f %8.2f %8.2f ",
+    csoundMessage(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (ISSTRCOD(ff->e.p[4]))
-      csound->Message(csound, "%s", ff->e.strarg);
+      csoundMessage(csound, "%s", ff->e.strarg);
     else
-      csound->Message(csound, "%8.2f", ff->e.p[4]);
+      csoundMessage(csound, "%8.2f", ff->e.p[4]);
     if (ISSTRCOD(ff->e.p[5]))
-      csound->Message(csound, "  \"%s\" ...\n", ff->e.strarg);
+      csoundMessage(csound, "  \"%s\" ...\n", ff->e.strarg);
     else
-      csound->Message(csound, "%8.2f ...\n", ff->e.p[5]);
+      csoundMessage(csound, "%8.2f ...\n", ff->e.p[5]);
 
     return -1;
 }
@@ -2444,7 +2444,7 @@ static void needsiz(CSOUND *csound, FGDATA *ff, int32 maxend)
     maxend -= 1; nxtpow = 2;
     while (maxend >>= 1)
       nxtpow <<= 1;
-    csound->Message(csound, Str("non-deferred ftable %d needs size %d\n"),
+    csoundMessage(csound, Str("non-deferred ftable %d needs size %d\n"),
                             (int) ff->fno, nxtpow);
 }
 
@@ -2505,7 +2505,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       p->channel = ALLCHNLS;
     p->analonly = 0;
     if (UNLIKELY(ff->flen == 0 && (csound->oparms->msglevel & 7)))
-      csound->Message(csound, Str("deferred alloc\n"));
+      csoundMessage(csound, Str("deferred alloc\n"));
     if (UNLIKELY((fd = sndgetset(csound, p))==NULL)) {
       /* sndinset to open the file  */
       return fterror(ff, "Failed to open file");
@@ -2516,7 +2516,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         return fterror(ff, Str("deferred size, but filesize unknown"));
       }
       if (csound->oparms->msglevel & 7)
-        csound->Message(csound, Str("  defer length %d\n"), ff->flen - 1);
+        csoundMessage(csound, Str("  defer length %d\n"), ff->flen - 1);
        if (p->channel == ALLCHNLS)
          ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
@@ -2545,7 +2545,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         double natcps;
 #ifdef BETA
         if ((csound->oparms_.msglevel & 7) == 7) {
-          csound->Message(csound,
+          csoundMessage(csound,
                   "Base Note : %u\tDetune    : %u\n"
                   "Low  Note : %u\tHigh Note : %u\n"
                   "Low  Vel. : %u\tHigh Vel. : %u\n"
@@ -2587,7 +2587,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
                           Str("GEN1: input file truncated by ftable size"));
           if ((maxend = ftp->end1) < ftp->end2)
             maxend = ftp->end2;
-          csound->Message(csound,
+          csoundMessage(csound,
                           Str("\tlooping endpoint %d exceeds ftsize %d\n"),
                           maxend, ff->flen);
           needsiz(csound, ff, maxend);
@@ -2829,7 +2829,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       if (UNLIKELY(ff->flen > MAXLEN))
         return fterror(ff, Str("illegal table length"));
       if (csound->oparms->msglevel & 7)
-        csound->Message(csound, Str("  defer length %d\n"), ff->flen);
+        csoundMessage(csound, Str("  defer length %d\n"), ff->flen);
       ftp = ftalloc(ff);
       ftp->lenmask  = 0L;
       ftp->flenfrms = frames;
@@ -3145,7 +3145,7 @@ static int gen53(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(dstflen < 8 || (dstflen & (dstflen - 1)))) {
       return fterror(ff, Str("GEN53: invalid table length"));
     }
-    srcflen = csound->GetTable(csound, &srcftp, srcftno);
+    srcflen = csoundGetTable(csound, &srcftp, srcftno);
     if (UNLIKELY(srcflen < 0)) {
       return fterror(ff, Str("GEN53: invalid source table number"));
     }
@@ -3157,7 +3157,7 @@ static int gen53(FGDATA *ff, FUNC *ftp)
       return fterror(ff, Str("GEN53: invalid source table length"));
     }
     if (winftno) {
-      winflen = csound->GetTable(csound, &winftp, winftno);
+      winflen = csoundGetTable(csound, &winftp, winftno);
       if (UNLIKELY(winflen <= 0 || (winflen & (winflen - 1)))) {
         return fterror(ff, Str("GEN53: invalid window table"));
       }

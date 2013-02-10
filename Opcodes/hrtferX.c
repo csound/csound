@@ -92,7 +92,7 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
     }
 
     if ((mfp = p->mfp) == NULL)
-      mfp = csound->ldmemfile2(csound, filename, CSFTYPE_HRTF);
+      mfp = csound->ldmemfile2withCB(csound, filename, CSFTYPE_HRTF, NULL);
     p->mfp = mfp;
     p->fpbegin = (int16*) mfp->beginp;
     bytrev_test = 0x1234;
