@@ -524,12 +524,12 @@ class PUBLIC CsoundCallbackWrapper {
     }
 #endif
     void SetMessageCallback();
-    void SetInputValueCallback();
-    void SetOutputValueCallback();
+    // void SetInputValueCallback();
+    // void SetOutputValueCallback();
     void SetYieldCallback();
     void SetMidiInputCallback(CsoundArgVList *argv);
     void SetMidiOutputCallback(CsoundArgVList *argv);
-    void SetChannelIOCallbacks();
+    // void SetChannelIOCallbacks();
     CSOUND *GetCsound()
     {
       return csound_;
