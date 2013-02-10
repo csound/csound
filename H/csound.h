@@ -1339,9 +1339,31 @@ extern "C" {
     /**
      * Input a NULL-terminated string (as if from a console),
      * used for line events.
+     * This function is not thread-safe if called in a different
+     * thread to csoundPerform, csoundPerformKsmps or csoundPerformBuffer
      */
     PUBLIC void csoundInputMessage(CSOUND *, const char *message);
 
+    /**
+     * Returns the length of a function table (not including the guard point),
+     * or -1 if the table does not exist.
+     */
+    PUBLIC int csoundTableLength(CSOUND *, int table);
+
+    /**
+     * Returns the value of a slot in a function table.
+     * The table number and index are assumed to be valid.
+     */
+    PUBLIC MYFLT csoundTableGet(CSOUND *, int table, int index);
+
+    /**
+     * Sets the value of a slot in a function table.
+     * The table number and index are assumed to be valid.
+     * This function is not thread-safe if called in a different
+     * thread to csoundPerform, csoundPerformKsmps or csoundPerformBuffer
+     */
+    PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
+   
     /*
      * MIDI
      */
@@ -1544,24 +1566,6 @@ extern "C" {
      * Sets whether Csound is in debug mode.
      */
     PUBLIC void csoundSetDebug(CSOUND *, int debug);
-
-    /**
-     * Returns the length of a function table (not including the guard point),
-     * or -1 if the table does not exist.
-     */
-    PUBLIC int csoundTableLength(CSOUND *, int table);
-
-    /**
-     * Returns the value of a slot in a function table.
-     * The table number and index are assumed to be valid.
-     */
-    PUBLIC MYFLT csoundTableGet(CSOUND *, int table, int index);
-
-    /**
-     * Sets the value of a slot in a function table.
-     * The table number and index are assumed to be valid.
-     */
-    PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
 
     /**
      * Stores pointer to function table 'tableNum' in *tablePtr,
