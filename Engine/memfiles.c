@@ -30,6 +30,44 @@
 #include <sndfile.h>
 #include <string.h>
 
+static int Load_Het_File_(CSOUND *csound, const char *filnam,
+                          char **allocp, int32 *len, int csFileType)
+
+
+{
+    FILE *f;
+    int length = 100;
+    int i = 0;
+    int cc;
+    int16 x;
+    char buffer[10];
+    f = fopen(filnam, "r");
+    csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
+    *allocp = mmalloc(csound, (size_t) length); 
+    for (i=0; i<6; i++) fgetc(f); /* Skip HETRO */
+    fgets(buffer, 10, f);
+    x = atoi(buffer);
+    memcpy(&allocp[i], &x, sizeof(int16));
+    for (i=2;;i+=2) {
+      int p = 0;
+      while ((cc=getc(f))!=',' && cc!='\n' && p<15) {
+        if (cc == EOF) {
+          goto out;
+        }
+        buffer[p++] = cc;
+      }
+      buffer[p]='\0';
+      if (i>=length+2) allocp = mrealloc(csound, allocp, length+=100);
+      x = atoi(buffer);
+      memcpy(&allocp[i], &x, sizeof(int16));
+    }
+ out:
+    csound->Warning(csound, "Not completely written yet\n");
+    fclose(f);                                  /*   and close it      */
+    *len = i;
+    return 0;                                   /*   return 0 for OK   */
+}
+
 static int Load_File_(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int csFileType)
 {
@@ -38,6 +76,14 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     f = fopen(filnam, "rb");
     if (UNLIKELY(f == NULL))                    /* if cannot open the file */
       return 1;                                 /*    return 1             */
+    if (csFileType==CSFTYPE_HETRO) {
+      char buff[8];
+      fgets(buff, 6, f);
+      if (strcmp(buff, "HETRO")==0) {
+        fclose(f);
+        return Load_Het_File(csound, filnam, allocp, len, csFileType);
+      }
+    }
     /* notify the host if it asked */
     csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
     fseek(f, 0L, SEEK_END);                     /* then get its length     */
