@@ -47,10 +47,10 @@ void het_import_usage(CSOUND *csound)
 
 int16 getnum(FILE* inf, char *term)
 {
-    char buff[100];
+    char buff[16];
     int  cc;
     int p = 0;
-    while ((cc=getc(inf))!=',' && cc!='\n' && p<99) {
+    while ((cc=getc(inf))!=',' && cc!='\n' && p<15) {
         if (cc == EOF) {
             *term = '\0';
             return 0;
