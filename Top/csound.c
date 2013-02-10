@@ -233,7 +233,7 @@ static const CSOUND cenviron_ = {
     display,
     dispexit,
     intpow,
-    ldmemfile,
+    //ldmemfile,
     strarg2insno,
     strarg2name,
     hfgens,
@@ -359,7 +359,7 @@ static const CSOUND cenviron_ = {
     csoundWaitBarrier,
     csoundFileOpenWithType,
     type2csfiletype,
-    ldmemfile2,
+    //    ldmemfile2,
     csoundNotifyFileOpened,
     sftype2csfiletype,
     insert_score_event_at_sample,
@@ -3074,8 +3074,8 @@ PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
 /* csoundNotifyFileOpened() should be called by plugins via
    csound->NotifyFileOpened() to let Csound know that they opened a file
    without using one of the standard mechanisms (csound->FileOpen2() or
-   ldmemfile2()).  The notification is passed on to the host if it has set
-   the FileOpen callback. */
+   ldmemfile2withCB()).  The notification is passed on to the host if it 
+   has set the FileOpen callback. */
 void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
                             int csFileType, int writing, int temporary)
 {

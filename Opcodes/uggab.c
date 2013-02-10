@@ -944,6 +944,9 @@ static int fold(CSOUND *csound, FOLD *p)
 static int loopseg_set(CSOUND *csound, LOOPSEG *p)
 {
     p->nsegs   = p->INOCOUNT-3;
+    // Should check this is even
+    if (UNLIKELY((p->nsegs&1)!=0)) 
+      csound->Warning(csound, Str("loop opcode: wrong argument count"));
     p->args[0] = FL(0.0);
     p->phs     = *p->iphase;
     return OK;

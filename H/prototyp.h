@@ -74,8 +74,8 @@ void    add_tmpfile(CSOUND *, char *);
 void    xturnoff(CSOUND *, INSDS *);
 void    xturnoff_now(CSOUND *, INSDS *);
 int     insert_score_event(CSOUND *, EVTBLK *, double);
-MEMFIL  *ldmemfile(CSOUND *, const char *);
-MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
+  //MEMFIL  *ldmemfile(CSOUND *, const char *);
+  //MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
 MEMFIL  *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
                          int (*callback)(CSOUND*, MEMFIL*));
 void    rlsmemfiles(CSOUND *);

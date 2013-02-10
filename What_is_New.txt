@@ -5,6 +5,7 @@ Multiple strings in score
 
 --sample-accurate
 
+Arrays
 
 
 What is New, What has Changed
@@ -13,10 +14,12 @@ What is New, What has Changed
 Build system in cmake (and not scons as in Csound5).  
 
 
-Supporet for old hardware and C compilers has been removed
+Support for old hardware and C compilers has been removed; this
+includes Macintosh OS9 and earlier, Watcom, Borland and Symmantec C
+compilers. 
 
 
-Note events can start and end in mid-kcycle.  As Thi sis an
+Note events can start and end in mid-kcycle.  As this is an
 incompatable change it is only invoked with the command-line option
     --sample-accurate
 is specified.  Not that this does not work for tied notes, and use of
@@ -33,8 +36,10 @@ The old parser is totally gone.
 
 New syntax in csound6 includes +=, -=, *= and /= operators
 
+
 Opcodes like add, sub, mul and div are no longer available in opcode
 format, only via + - * /
+
 
 Functions taninv2 and divz now exist as well as opcodes
 
@@ -43,6 +48,7 @@ Arrays....
 
 
 Real-time mode....
+
 
 Asynchronous file access....
 
