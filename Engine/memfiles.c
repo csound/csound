@@ -81,7 +81,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
       fgets(buff, 6, f);
       if (strcmp(buff, "HETRO")==0) {
         fclose(f);
-        return Load_Het_File(csound, filnam, allocp, len, csFileType);
+        return Load_Het_File_(csound, filnam, allocp, len, csFileType);
       }
     }
     /* notify the host if it asked */
