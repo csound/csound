@@ -806,7 +806,7 @@ struct Connect : public OpcodeBase<Connect> {
   }
 };
 
-struct AlwaysOn : public OpcodeBase<AlwaysOn> {
+struct AlwaysOn  : public OpcodeBase<AlwaysOn> {
   /**
    * Inputs.
    */

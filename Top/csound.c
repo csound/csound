@@ -120,7 +120,8 @@ static void create_opcodlst(CSOUND *csound)
 }
 
 static const CSOUND cenviron_ = {
-    /* ----------------- interface functions (322 total) ----------------- */
+
+#ifdef SOME_FINE_DAY
     csoundGetVersion,
     csoundGetAPIVersion,
     csoundGetHostData,
@@ -133,40 +134,24 @@ static const CSOUND cenviron_ = {
     csoundCompile,
     csoundStart,
     csoundPerform,
-    csoundPerformKsmps,
     csoundPerformBuffer,
     csoundCleanup,
     csoundReset,
     csoundDestroy,
-    csoundGetSr,
-    csoundGetKr,
-    csoundGetKsmps,
-    csoundGetNchnls,
     csoundGetSampleFormat,
     csoundGetSampleSize,
-    csoundGetInputBufferSize,
-    csoundGetOutputBufferSize,
-    csoundGetInputBuffer,
-    csoundGetOutputBuffer,
     csoundGetSpin,
     csoundGetSpout,
     csoundGetScoreTime,
-    csoundSetMakeXYinCallback,
-    csoundSetReadXYinCallback,
-    csoundSetKillXYinCallback,
     csoundIsScorePending,
     csoundSetScorePending,
     csoundGetScoreOffsetSeconds,
     csoundSetScoreOffsetSeconds,
     csoundRewindScore,
-    csoundMessage,
-    csoundMessageS,
-    csoundMessageV,
     csoundDeleteUtilityList,
     csoundDeleteChannelList,
     csoundSetMessageCallback,
     csoundDeleteCfgVarList,
-    csoundGetMessageLevel,
     csoundSetMessageLevel,
     csoundInputMessage,
     csoundKeyPress,
@@ -174,6 +159,51 @@ static const CSOUND cenviron_ = {
     csoundSetOutputValueCallback,
     csoundScoreEvent,
     csoundScoreEventAbsolute,
+    csoundPvsinSet,
+    csoundPvsoutGet,
+    csoundAddSpinSample,
+    csoundGetSpoutSample,
+    csoundChanIKSetValue,
+    csoundChanOKGetValue,
+    csoundChanIASetSample,
+    csoundChanOAGetSample,
+    csoundStop,
+    csoundRunCommand,
+    csoundPerformKsmpsAbsolute,
+    csoundOpenLibrary,
+    csoundCloseLibrary,
+    csoundGetLibrarySymbol,
+    csoundSetYieldCallback,
+    csoundGetChannelPtr,
+    csoundListChannels,
+    csoundSetControlChannelParams,
+    csoundGetControlChannelParams,
+    csoundChanIKSet,
+    csoundChanOKGet,
+    csoundChanIASet,
+    csoundChanOAGet,
+    csoundNewOpcodeList,
+    csoundDisposeOpcodeList,
+#endif  /* SOME_FINE_DAY */
+
+    csoundSetCallback,
+    csoundRemoveCallback,
+    csoundPerformKsmps,
+    csoundGetSr,
+    csoundGetKr,
+    csoundGetKsmps,
+    csoundGetNchnls,
+    csoundGetInputBufferSize,
+    csoundGetOutputBufferSize,
+    csoundGetInputBuffer,
+    csoundGetOutputBuffer,
+    csoundSetMakeXYinCallback,
+    csoundSetReadXYinCallback,
+    csoundSetKillXYinCallback,
+    csoundMessage,
+    csoundMessageS,
+    csoundMessageV,
+    csoundGetMessageLevel,
     csoundSetExternalMidiInOpenCallback,
     csoundSetExternalMidiReadCallback,
     csoundSetExternalMidiInCloseCallback,
@@ -186,15 +216,9 @@ static const CSOUND cenviron_ = {
     csoundSetDrawGraphCallback,
     csoundSetKillGraphCallback,
     csoundSetExitGraphCallback,
-    csoundNewOpcodeList,
-    csoundDisposeOpcodeList,
     csoundAppendOpcode,
     csoundAppendOpcodes,
-    csoundOpenLibrary,
-    csoundCloseLibrary,
-    csoundGetLibrarySymbol,
     csoundYield,
-    csoundSetYieldCallback,
     csoundGetEnv,
     csoundFindInputFile,
     csoundFindOutputFile,
@@ -212,7 +236,7 @@ static const CSOUND cenviron_ = {
     display,
     dispexit,
     intpow,
-    ldmemfile,
+    //ldmemfile,
     strarg2insno,
     strarg2name,
     hfgens,
@@ -253,7 +277,6 @@ static const CSOUND cenviron_ = {
     csoundGetRandomSeedFromTime,
     csoundSeedRandMT,
     csoundRandMT,
-    csoundPerformKsmpsAbsolute,
     csoundLocalizeString,
     csoundCreateGlobalVariable,
     csoundQueryGlobalVariable,
@@ -287,7 +310,6 @@ static const CSOUND cenviron_ = {
     csoundRegisterDeinitCallback,
     csoundRegisterResetCallback,
     csoundCreateFileHandle,
-    //csoundFileOpen,
     csoundGetFileName,
     csoundFileClose,
     pvoc_createfile,
@@ -326,46 +348,26 @@ static const CSOUND cenviron_ = {
     csoundLongJmp,
     csoundErrorMsg,
     csoundErrMsgV,
-    csoundGetChannelPtr,
-    csoundListChannels,
-    csoundSetControlChannelParams,
-    csoundGetControlChannelParams,
-    csoundChanIKSet,
-    csoundChanOKGet,
-    csoundChanIASet,
-    csoundChanOAGet,
     dispinit,
     csoundCreateMutex,
     csoundLockMutexNoWait,
     csoundLockMutex,
     csoundUnlockMutex,
     csoundDestroyMutex,
-    csoundRunCommand,
     csoundGetCurrentThreadId,
-    csoundSetChannelIOCallback,
-    csoundSetCallback,
-    csoundRemoveCallback,
-    csoundPvsinSet,
-    csoundPvsoutGet,
+//   csoundSetChannelIOCallback,
     SetInternalYieldCallback,
     csoundCreateBarrier,
     csoundDestroyBarrier,
     csoundWaitBarrier,
     csoundFileOpenWithType,
     type2csfiletype,
-    ldmemfile2,
+    //    ldmemfile2,
     csoundNotifyFileOpened,
     sftype2csfiletype,
     insert_score_event_at_sample,
     csoundGetChannelLock,
     ldmemfile2withCB,
-    csoundAddSpinSample,
-    csoundGetSpoutSample,
-    csoundChanIKSetValue,
-    csoundChanOKGetValue,
-    csoundChanIASetSample,
-    csoundChanOAGetSample,
-    csoundStop,
     csoundGetNamedGens,
     csoundPow2,
     csoundCreateCircularBuffer,
@@ -397,12 +399,7 @@ static const CSOUND cenviron_ = {
      (INSTRTXT**)NULL,
      {NULL},
      NULL,
-     MAXINSNO}, /* engineState */
-    (INSTRTXT *) NULL, /* instr0  */
-    (INSTRTXT**)NULL,  /* dead_instr_pool */
-    0, /* dead_instr_no */
-    (TYPE_POOL*)NULL, 
-    /* (CS_VAR_POOL*)NULL, */
+     MAXINSNO},     /* engineState          */
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
     DFLT_KSMPS,     /*  ksmps               */
@@ -489,8 +486,9 @@ static const CSOUND cenviron_ = {
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
-    (void (*)(CSOUND *, const char *, MYFLT *)) NULL,
-    (void (*)(CSOUND *, const char *, MYFLT)) NULL,
+    /* deprecated */
+    /*(void (*)(CSOUND *, const char *, MYFLT *)) NULL,
+      (void (*)(CSOUND *, const char *, MYFLT)) NULL,*/
     csoundDefaultMessageCallback,
     (int (*)(CSOUND *)) NULL,
     (void (*)(CSOUND *, WINDAT *windat, const char *name)) NULL, /* was: MakeAscii,*/
@@ -511,6 +509,11 @@ static const CSOUND cenviron_ = {
     rtrecord_dummy,
     rtclose_dummy,
     /* end of callbacks */
+    (INSTRTXT *) NULL, /* instr0  */
+    (INSTRTXT**)NULL,  /* dead_instr_pool */
+    0, /* dead_instr_no */
+    (TYPE_POOL*)NULL, 
+    /* (CS_VAR_POOL*)NULL, */
     0, 0,           /*  nchanik, nchania    */
     0, 0,           /*  nchanok, nchanoa    */
     NULL, NULL,     /*  chanik, chania      */
@@ -758,7 +761,7 @@ static const CSOUND cenviron_ = {
 //    0L, 0L,         /*  instxtcount, optxtsize  */
     //0L, 0L,         /*  poolcount, gblfixed     */
     //0L, 0L,         /*  gblacount, gblscount    */
-    (CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
+    //(CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
      csoundDoCallback_,  /*  doCsoundCallback    */
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
     csound_str_hash_32, /*  strHash32           */
@@ -1535,7 +1538,7 @@ int kperf(CSOUND *csound)
         dag_reinit(csound);     /* set to initial state */
 #endif
 
-        TRACE_1("{Time: %f}\n", csound->GetScoreTime(csound));
+        TRACE_1("{Time: %f}\n", csoundGetScoreTime(csound));
 #if TRACE > 1
         csp_dag_print(csound, dag2);
 #endif
@@ -2097,7 +2100,7 @@ PUBLIC void csoundKeyPress(CSOUND *csound, char c)
 /*
  * CONTROL AND EVENTS
  */
-
+#ifdef SOME_FINE_DAY /* deprecated */
 PUBLIC void 
 csoundSetInputValueCallback(CSOUND *csound,
                             void (*inputValueCalback)(CSOUND *csound,
@@ -2115,6 +2118,7 @@ csoundSetOutputValueCallback(CSOUND *csound,
 {
     csound->OutputValueCallback_ = outputValueCalback;
 }
+#endif
 
 PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
                             const MYFLT *pfields, long numFields)
@@ -2945,7 +2949,7 @@ PUBLIC void csoundSetDebug(CSOUND *csound, int debug)
 PUBLIC int csoundTableLength(CSOUND *csound, int table)
 {
     MYFLT *tablePtr;
-    return csound->GetTable(csound, &tablePtr, table);
+    return csoundGetTable(csound, &tablePtr, table);
 }
 
 PUBLIC MYFLT csoundTableGet(CSOUND *csound, int table, int index)
@@ -3073,8 +3077,8 @@ PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
 /* csoundNotifyFileOpened() should be called by plugins via
    csound->NotifyFileOpened() to let Csound know that they opened a file
    without using one of the standard mechanisms (csound->FileOpen2() or
-   ldmemfile2()).  The notification is passed on to the host if it has set
-   the FileOpen callback. */
+   ldmemfile2withCB()).  The notification is passed on to the host if it 
+   has set the FileOpen callback. */
 void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
                             int csFileType, int writing, int temporary)
 {

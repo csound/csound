@@ -120,7 +120,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
           csound->Message(csound, "    %s\n", lst[i]);
       }
     }
-    csound->DeleteUtilityList(csound, lst);
+    csoundDeleteUtilityList(csound, lst);
     n = -1;
  err_return:
     memcpy((void*) &(csound->exitjmp), (void*) saved_exitjmp, sizeof(jmp_buf));

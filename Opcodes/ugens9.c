@@ -44,7 +44,8 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
-      if (UNLIKELY((mfp = csound->ldmemfile2(csound, cvfilnam, CSFTYPE_CVANAL))
+      if (UNLIKELY((mfp =
+                    csound->ldmemfile2withCB(csound, cvfilnam, CSFTYPE_CVANAL,NULL))
                    == NULL)) {
         return csound->InitError(csound,
                                  Str("CONVOLVE cannot load %s"), cvfilnam);
