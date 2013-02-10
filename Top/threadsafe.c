@@ -58,17 +58,15 @@ int csoundScoreEventAbsolute_TS(CSOUND *csound,
 			     char type, const MYFLT *pfields, long numFields, double time_ofs){
   int ret;
   csoundWaitThreadLockNoTimeout(csound->API_lock);
-  ret = csoundScoreEventAbsolute(csound, type, pFields, numFields, time_ofs);
+  ret = csoundScoreEventAbsolute(csound, type, pfields, numFields, time_ofs);
   csoundNotifyThreadLock(csound->API_lock);
   return ret;
 }
 
 void csoundInputMessage_TS(CSOUND *csound, const char *message){
-  int ret;
   csoundWaitThreadLockNoTimeout(csound->API_lock);
-  ret = csoundInputMessage(csound, message);
+  csoundInputMessage(csound, message);
   csoundNotifyThreadLock(csound->API_lock);
-  return ret;
 }
 
 void csoundTableSet_TS(CSOUND *csound, int table, int index, MYFLT value){
@@ -76,7 +74,7 @@ void csoundTableSet_TS(CSOUND *csound, int table, int index, MYFLT value){
   /* in realtime mode init pass is executed in a separate thread, so
      we need to protect it */
   if(csound->oparms->realtime) csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
-  csoundTableSet(csound,tabke,index,value);
+  csoundTableSet(csound,table,index,value);
    if(csound->oparms->realtime) csound->NotifyThreadLock(csound->init_pass_threadlock);
   csoundNotifyThreadLock(csound->API_lock);
 }
@@ -101,7 +99,7 @@ void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable){
    csoundNotifyThreadLock(csound->API_lock);
 }
 
-MYFLT csoundGetControlChannel(CSOUND *csound, char *channel){
+MYFLT csoundGetControlChannel(CSOUND *csound, char *name){
   MYFLT val=FL(0.0), *pval;
   if(csoundGetChannelPtr(csound, &pval, name, 
 			 CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
@@ -109,7 +107,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, char *channel){
   return val;
 }
 
-void csoundSetControlChannel(CSOUND *csound, char *channel, MYFLT val){
+void csoundSetControlChannel(CSOUND *csound, char *name, MYFLT val){
   MYFLT *pval;
   csoundWaitThreadLockNoTimeout(csound->API_lock);
   if(csoundGetChannelPtr(csound, &pval, name, 
@@ -118,39 +116,39 @@ void csoundSetControlChannel(CSOUND *csound, char *channel, MYFLT val){
   csoundNotifyThreadLock(csound->API_lock);
 }
 
-void csoundGetAudioChannel(CSOUND *csound, char *channel, MYFLT *samples){
+void csoundGetAudioChannel(CSOUND *csound, char *name, MYFLT *samples){
   MYFLT  *psamples;
   if(csoundGetChannelPtr(csound, &psamples, name, 
 			 CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL))
   memcpy(samples, psamples, csoundGetKsmps(csound)*sizeof(MYFLT));
 }
 
-void csoundSetAudioChannel(CSOUND *csound, char *channel, MYFLT *samples){
+void csoundSetAudioChannel(CSOUND *csound, char *name, MYFLT *samples){
   MYFLT  *psamples;
   csoundWaitThreadLockNoTimeout(csound->API_lock);
-  if(csoundGetChannelPtr(csound, &pval, name, 
+  if(csoundGetChannelPtr(csound, &psamples, name, 
 			 CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL))
   memcpy(psamples, samples, csoundGetKsmps(csound)*sizeof(MYFLT));
   csoundNotifyThreadLock(csound->API_lock);
 }
 
-void csoundSetStringChannel(CSOUND *csound, char *channel, MYFLT *string){
+void csoundSetStringChannel(CSOUND *csound, char *name, char *string){
   MYFLT  *pstring;
   csoundWaitThreadLockNoTimeout(csound->API_lock);
-  if(csoundGetChannelPtr(csound, &pval, name, 
+  if(csoundGetChannelPtr(csound, &pstring, name, 
 			 CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL))
-  strcpy(pstring, string);
+    strcpy((char *) pstring, string);
   csoundNotifyThreadLock(csound->API_lock);
 }
 
-void csoundSetStringChannel(CSOUND *csound, char *channel, MYFLT *string){
+void csoundGetStringChannel(CSOUND *csound, char *name, char *string){
   MYFLT  *pstring;
-  if(csoundGetChannelPtr(csound, &pval, name, 
+  if(csoundGetChannelPtr(csound, &pstring, name, 
 			 CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL))
-  strcpy(string, pstring);
+    strcpy(string, (char *) pstring);
 }
 
-int csoundPvsinSet_TS(CSOUND *, const PVSDATEXT *fin, int n){
+int csoundPvsinSet_TS(CSOUND *csound, const PVSDATEXT *fin, int n){
   int ret;
   csoundWaitThreadLockNoTimeout(csound->API_lock);
   ret = csoundPvsinSet(csound, fin, n);

@@ -571,7 +571,8 @@ set(libcsound_SRCS
     Top/one_file.c
     Top/opcode.c
     Top/threads.c
-    Top/utility.c)
+    Top/utility.c
+    Top/threadsafe.c)
 
 set(stdopcod_SRCS 
     Opcodes/ambicode.c      
