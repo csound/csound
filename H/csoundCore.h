@@ -1178,16 +1178,12 @@ typedef struct NAME__ {
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
     char *(*GetString)(CSOUND *, MYFLT);
     SUBR dummyfn_2[50];
-    int           dither_output;
-    void          *flgraphGlobals;
-    char          *delayederrormessages;
-    void          *printerrormessagesflag;
     /* ----------------------- public data fields ----------------------- */
-    /** used by init and perf loops */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
-    OPDS          *ids, *pds;
+    OPDS          *ids, *pds;       /* used by init and perf loops */
     unsigned int  ksmps, global_ksmps;
     uint32_t      nchnls;
+    int           inchnls;      /* Not fully used yet -- JPff */
     int           spoutactive;
     long          kcounter, global_kcounter;
     int           reinitflag;
@@ -1208,11 +1204,6 @@ typedef struct NAME__ {
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
     int64_t       ibeatTime;   /* Beat time in samples */
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
-    pthread_spinlock_t spoutlock, spinlock;
-#else
-    int           spoutlock, spinlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS) */
     /* Widgets */
     void          *widgetGlobals;
     /** reserved for std opcode library  */
@@ -1246,13 +1237,9 @@ typedef struct NAME__ {
     CsoundRandMTState *csRandState;
     int           randSeed1;
     int           randSeed2;
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
-    pthread_spinlock_t memlock;
-#else
-    int           memlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS */
-    int           floatsize;
-    int           inchnls;      /* Not fully used yet -- JPff */
+    /*    int           floatsize; */
+    int           dither_output;
+    void          *flgraphGlobals;
     int   dummyint[7];
     long  dummyint32[10];
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1381,6 +1368,18 @@ typedef struct NAME__ {
     int          init_pass_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
+    #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
+    pthread_spinlock_t spoutlock, spinlock;
+#else
+    int           spoutlock, spinlock;
+#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS) */
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
+    pthread_spinlock_t memlock;
+#else
+    int           memlock;
+#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS */
+    char          *delayederrormessages;
+    void          *printerrormessagesflag;
     struct sreadStatics__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
