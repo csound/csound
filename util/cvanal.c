@@ -35,10 +35,11 @@
 #include "convolve.h"
 
 static int takeFFT(CSOUND *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
-                   long Hlenpadded, SNDFILE *infd, FILE *ofd);
+                   long Hlenpadded, SNDFILE *infd, FILE *ofd, int nf);
 static int quit(CSOUND*, char *msg);
 static int CVAlloc(CSOUND*, CVSTRUCT**, long, int, MYFLT,
                    int, int, long, int, int);
+static void print_ieee(MYFLT x, FILE *ofd);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
@@ -60,6 +61,7 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
     long    Hlenpadded = 1;
     char    err_msg[512];
     int     res;
+    int new_format = 0;
 
     csound->dbfs_to_float = csound->e0dbfs = FL(1.0);
     if (!(--argc)) {
@@ -99,6 +101,9 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
           sscanf(s, "%f", &input_dur);
 #endif
           break;
+        case 'X':
+          new_format = 1;
+          break;
         default:   return quit(csound, Str("unrecognised switch option"));
         }
       else break;
@@ -129,15 +134,33 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("cvanal: Error allocating header\n"));
       return -1;
     }
-    ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "wb",
-                                          "SFDIR", CSFTYPE_CVANAL, 0);
-    if (ofd_handle == NULL) {                   /* open the output CV file */
-      return quit(csound, Str("cannot create output file"));
-    }                                           /* & wrt hdr into the file */
-    if ((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize) {
-      return quit(csound, Str("cannot write header"));
+    if (new_format) {
+      ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "w",
+                                     "SFDIR", CSFTYPE_CVANAL, 0);
+      if (ofd_handle == NULL) {                   /* open the output CV file */
+        return quit(csound, Str("cannot create output file"));
+      }                                           /* & wrt hdr into the file */
+      fprintf(ofd, "CVANAL\n%d %d %d %g %d %d %d %d\n",
+              cvh->headBsize,              /* total number of bytes of data */
+              cvh->dataBsize,              /* total number of bytes of data */
+              cvh->dataFormat,             /* (int) format specifier */
+              (double)cvh->samplingRate,   /* of original sample */
+              cvh->src_chnls,              /* no. of channels in source */
+              cvh->channel,                /* requested channel(s) */
+              cvh->Hlen,                   /* length of impulse reponse */
+              cvh->Format);                /* (int) how words are org'd in frm */
     }
-    res = takeFFT(csound, p, cvh, Hlenpadded, infd, ofd);
+    else {
+      ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "wb",
+                                     "SFDIR", CSFTYPE_CVANAL, 0);
+      if (ofd_handle == NULL) {                   /* open the output CV file */
+        return quit(csound, Str("cannot create output file"));
+      }                                           /* & wrt hdr into the file */
+      if ((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize) {
+        return quit(csound, Str("cannot write header"));
+      }
+    }
+    res = takeFFT(csound, p, cvh, Hlenpadded, infd, ofd, new_format);
     csound->Message(csound, Str("cvanal finished\n"));
     return (res != 0 ? -1 : 0);
 }
@@ -152,7 +175,7 @@ static int quit(CSOUND *csound, char *msg)
 }
 
 static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
-                   long Hlenpadded, SNDFILE *infd, FILE *ofd)
+                   long Hlenpadded, SNDFILE *infd, FILE *ofd, int nf)
 {
     int     i, j, read_in;
     MYFLT   *inbuf, *outbuf;
@@ -189,8 +212,14 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
       outbuf[Hlenpadded] = outbuf[1];
       outbuf[1] = outbuf[Hlenpadded + 1L] = FL(0.0);
       /* write straight out, just the indep vals */
-      if (UNLIKELY(1!=fwrite(outbuf, cvh->dataBsize/nchanls, 1, ofd)))
-        fprintf(stderr, Str("Write failure\n"));
+      if (nf) {
+        int32 i, l;
+        l = (cvh->dataBsize/nchanls)/sizeof(MYFLT);
+        for (i=0; i<l; i++) print_ieee(outbuf[i], ofd);
+      }
+      else
+        if (UNLIKELY(1!=fwrite(outbuf, cvh->dataBsize/nchanls, 1, ofd)))
+          fprintf(stderr, Str("Write failure\n"));
       for (j = Hlenpadded - Hlen; j > 0; j--)
         fp2[j] = FL(0.0);
       fp2 = outbuf;
@@ -246,3 +275,18 @@ int cvanal_init_(CSOUND *csound)
     return retval;
 }
 
+
+typedef union {
+  unsigned char   h[8];
+  double d; 
+} fp_number;
+
+static void print_ieee(MYFLT x, FILE *ofd)
+{
+    int i;
+    fp_number xxx;
+    xxx.d = (double)x;
+    /* deal with byte order here */
+    for (i=7; i>=0; i--) fprintf(ofd, "%.2X", xxx.h[i]);
+    putc('\n', ofd);
+}
