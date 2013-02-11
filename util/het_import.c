@@ -66,6 +66,7 @@ static int het_import(CSOUND *csound, int argc, char **argv)
 {
     FILE *infd;
     FILE *outf;
+    int c;
 
     if (argc!= 3) {
       het_import_usage(csound);
@@ -74,7 +75,7 @@ static int het_import(CSOUND *csound, int argc, char **argv)
 
     infd = fopen(argv[1], "r");
     if (infd == NULL) {
-      csound->Message(csound, Str("Cannot open input comma file%s\n"), argv[1]);
+      csound->Message(csound, Str("Cannot open input comma file %s\n"), argv[1]);
       return 1;
     }
     outf = fopen(argv[2], "wb");
@@ -84,6 +85,16 @@ static int het_import(CSOUND *csound, int argc, char **argv)
       return 1;
     }
 
+    if ((c=getc(infd)) == 'H') {
+      char buf[6];
+      int i;
+      for (i=0; i<4; i++) buf[i]=getc(infd);
+      if (strncmp(buf, "ETRO", 4)!=0) {
+        csound->Message(csound, Str("Not an hetro anaysis file %s\n"), argv[1]);
+        return 1;
+      }
+    }
+    else ungetc(c, infd);
     for (;;) {
       int16 x;
       char term;

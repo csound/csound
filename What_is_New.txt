@@ -53,6 +53,12 @@ Real-time mode....
 Asynchronous file access....
 
 
+Hetro/adsyn analysios file can be machine byte-order independent if
+created with -X.  Down side is a longer file and a little slower
+loading.  The het_export utility will create the independent format,
+anf het_import is no longer necessary.
+
+
 The number of strings that can be used in a score line is no longer
 just one.  It should be open ended now.
 
