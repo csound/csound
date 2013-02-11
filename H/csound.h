@@ -9,21 +9,9 @@
  * software. Since then Csound has received numerous contributions
  * from researchers, programmers, and musicians from around the world.
  *
- * CsoundAC is a Python extension module for doing algorithmic
- * composition, in one which one writes music by programming in
- * Python. Musical events are points in music space with dimensions
- * {time, duration, event type, instrument, pitch as MIDI key,
- * loudness as MIDI velocity, phase, pan, depth, height, pitch-class
- * set, 1}, and pieces are composed by assembling a hierarchical tree
- * of nodes in music space. Each node has its own local transformation
- * of coordinates in music space. Nodes can be empty, contain scores
- * or fragments of scores, generate scores, or transform
- * scores. CsoundAC also contains a Python interface to the Csound
- * API, making it easy to render CsoundAC compositions using Csound.
- *
  * \section section_licenses Licenses
  *
- * \subsection section_csound_license Csound, CsoundAC, and CsoundVST
+ * \subsection section_csound_license Csound
  *
  * Copyright (C) 2001-2005 Michael Gogins, Matt Ingalls, John D. Ramsdell,
  *                         John P. ffitch, Istvan Varga, Victor Lazzarini
@@ -60,25 +48,9 @@
  * - The basic Csound C API. Include csound.h and link with libcsound.a.
  *   This also includes the Cscore API (see below).
  * - The basic Csound C++ API. Include csound.hpp and link with libcsound.a.
- * - The extended Csound C++ API. Include CppSound.hpp and link with
- *   libcsound.a and libcsnd.a,
- *   which adds to the Csound C++ API a CsoundFile class for loading, saving,
- *   and editing Csound orchestra and score files.
- * - The CsoundAC C++ API. Include CsoundAC.hpp and link with libcsound.a,
- *   libcsnd.a, and libCsoundAC.a.
- *   The CsoundAC class contains an instance of the CppSound class,
- *   and provides a class hierarchy for doing algorithmic composition using
- *   Michael Gogins' concept of music graphs (previously known as Silence).
- * - The Csound Python API. Import the csnd Python extension module.
- *   This provides a complete Python wrapper for csound.hpp, CppSound,
- *   and CsoundFile. The Python API provides a complete Python wrapper
- *   for the entire Csound C++ API,
- *   and the Csound C++ API reference also serves as a reference to the Python API.
- * - The CsoundAC Python API. Import the CsoundAC Python extension module.
- *   The Python API provides a complete Python wrapper
- *   for the entire CsoundAC C++ API, including Silence, and the CsoundAC
- *   C++ API reference also serves as a reference to the Python API.
- * - An experimental LISP API.
+ * - The interfaces API, includes a number of auxiliary C++ classes, which
+ *   add functionality and support the wrapping of the Csound API by various
+ *   languages (e.g. Python, Java, Lua).
  *
  * \section section_api_c_example An Example Using the Csound API
  *
@@ -103,18 +75,6 @@
  *   return result;
  * }
  * \endcode
- *
- * \section section_api_example_cpp The CsoundAC C++ API
- *
- * CsoundAC extends the Csound API with C++. There is a C++ class for
- * the Csound API proper (CppSound), another C++ class (CsoundFile)
- * for manipulating Csound files in code, and additional classes for
- * algorithmic composition based on music space. All these C++ classes
- * also have a Python interface in the CsoundAC Python extension
- * module.
- *
- * You can build CsoundAC into your own software using the CsoundAC
- * shared library and CsoundAC.hpp header file.
  *
  * \section section_api_cscore Cscore
  *
@@ -544,6 +504,7 @@ extern "C" {
             const char *channelName,
             MYFLT *channelValuePtr,
             int channelType);
+
 #ifndef CSOUND_CSDL_H
 
     /* This pragma must come before all public function declarations */
@@ -834,6 +795,11 @@ extern "C" {
      * Returns the number of audio output channels.
      */
     PUBLIC uint32_t csoundGetNchnls(CSOUND *);
+
+    /**
+     * Returns the number of audio input channels.
+     */
+    PUBLIC uint32_t csoundGetNchnls_i(CSOUND *csound);
 
     /**
      * Returns the 0dBFS level of the spin/spout buffers.

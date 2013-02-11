@@ -387,9 +387,6 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     },
-    0,                      /*   dither_output  */
-    NULL,                   /*  flgraphsGlobals */
-    NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
     {(CS_VAR_POOL*)NULL,
      (MYFLT_POOL *) NULL,
@@ -404,6 +401,7 @@ static const CSOUND cenviron_ = {
     DFLT_KSMPS,     /*  ksmps               */
     DFLT_KSMPS,     /*  global_ksmps        */
     DFLT_NCHNLS,    /*  nchnls              */
+    -1,             /*  inchns              */
     0,              /*  spoutactive         */
     0L,             /*  kcounter            */
     0L,             /*  global_kcounter     */
@@ -430,13 +428,6 @@ static const CSOUND cenviron_ = {
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
     0.0,            /*  beatTime            */
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
-#else
-    0,              /*  spoutlock           */
-    0,              /*  spinlock            */
-#endif
     NULL,           /*  widgetGlobals       */
     NULL,           /*  stdOp_Env           */
     NULL,           /*  zkstart             */
@@ -466,13 +457,9 @@ static const CSOUND cenviron_ = {
     NULL,           /*  csRandState         */
     0,              /*  randSeed1           */
     0,              /*  randSeed2           */
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && (defined(PARCS))
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock           */
-#else
-    0,              /*  memlock             */
-#endif
-    sizeof(MYFLT),  /*  floatsize           */
-    -1,             /*  inchns              */
+    //    sizeof(MYFLT),  /*  floatsize           */
+    0,                      /*   dither_output  */
+    NULL,                   /*  flgraphsGlobals */
     {0, 0, 0, 0, 0, 0, 0}, /* dummyint[7]; */
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint32[10]; */
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -601,6 +588,19 @@ static const CSOUND cenviron_ = {
     0,              /* init pass loop  */
     NULL,           /* init pass threadlock */
     NULL,           /* API_lock */
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
+#else
+    0,              /*  spoutlock           */
+    0,              /*  spinlock            */
+#endif
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && (defined(PARCS))
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock           */
+#else
+    0,              /*  memlock             */
+#endif
+    NULL, NULL,             /* Delayed messages */
     {  
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
       0, 0, 0, 0,   /*  op warpin linpos lincnt */
@@ -1821,6 +1821,13 @@ PUBLIC uint32_t csoundGetKsmps(CSOUND *csound)
 PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
 {
     return csound->nchnls;
+}
+
+PUBLIC uint32_t csoundGetNchnls_i(CSOUND *csound)
+{
+  if(csound->inchnls > 0)
+    return (uint32_t) csound->inchnls;
+  else return csound->nchnls;
 }
 
 PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)
