@@ -31,6 +31,7 @@ make it easier to maintain *** FIXED ***
 
 7) Analysis formats need to be byte-order/machine independent, and
 reader opcodes need to accept them
+   *** Hetro analysis fixed *** 
 
 8) syntax error checks (undef variables etc) need to be put back.
 

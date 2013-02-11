@@ -65,6 +65,7 @@ static int het_export(CSOUND *csound, int argc, char **argv)
     endata = (int16 *) inf->endp;
     cc = 0;
 
+    fprintf(outf, "HETRO ");
     for (; adp<endata; adp++) {
       if (*adp == END) fputc('\n',outf), cc = 0;
       else fprintf(outf, "%s%hd", (cc ? ",":""), *adp), cc = 1;
