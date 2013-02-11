@@ -1,5 +1,4 @@
 option(BUILD_PD_CLASS "Build the puredata csoundapi~ class" ON)
-option(BUILD_TCLCSOUND "Build the tcl interface and clients" ON)
 option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and libs." OFF)
 
@@ -52,33 +51,6 @@ make_plugin(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}")
 # We do not want the lib prefix
 set_target_properties(csladspa PROPERTIES PREFIX "")
 
-# TCL interface
-if(BUILD_TCLCSOUND)
-    set(TCL_VERSION "" CACHE STRING "Try a specific tcl/tk version first")
-    set(TCL_LIBRARY "tcl${TCL_VERSION}")
-    set(TK_LIBRARY "tk${TCL_VERSION}")
-    find_package(TCL)
-endif()
-check_deps(BUILD_TCLCSOUND1 BUILD_TCLCSOUND TCL_FOUND TK_FOUND)
-if(BUILD_TCLCSOUND1)
-    include_directories(${TCL_INCLUDE_PATH} ${TK_INCLUDE_PATH})
-    make_executable(cstclsh "tclcsound/main_tclsh.c;tclcsound/commands.c" "${CSOUNDLIB};${TCL_LIBRARY}")
-    make_executable(cswish "tclcsound/main_wish.c;tclcsound/commands.c" "${CSOUNDLIB};${TCL_LIBRARY};${TK_LIBRARY}")
-    add_library(tclcsound SHARED tclcsound/tclcsound.c tclcsound/commands.c)
-    target_link_libraries(tclcsound ${CSOUNDLIB} ${TCL_LIBRARY})
-    set_target_properties(tclcsound PROPERTIES
-        LINK_INTERFACE_LIBRARIES ""
-        PREFIX ""
-        RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
-
-    install(TARGETS tclcsound cswish cstclsh
-        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
-        RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}")
-
-endif()
 
 # CSBeats
 
