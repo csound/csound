@@ -36,19 +36,21 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
 
 {
     FILE *f;
-    int length = 100;
+    int length = 1024;
     int i = 0;
     int cc;
     int16 x;
+    char *all;
     char buffer[10];
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
-    *allocp = mmalloc(csound, (size_t) length); 
+    all = (char *)mmalloc(csound, (size_t) length); 
     for (i=0; i<6; i++) fgetc(f); /* Skip HETRO */
-    fgets(buffer, 10, f);
+    fgets(buffer, 10, f);         /* number of partials */
     x = atoi(buffer);
-    memcpy(&allocp[i], &x, sizeof(int16));
-    for (i=2;;i+=2) {
+    memcpy(&all[0], &x, sizeof(int16));
+    /* Read data until end, pack as int16 */
+    for (i=sizeof(int16);;i+=sizeof(int16)) {
       int p = 0;
       while ((cc=getc(f))!=',' && cc!='\n' && p<15) {
         if (cc == EOF) {
@@ -57,14 +59,16 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
         buffer[p++] = cc;
       }
       buffer[p]='\0';
-      if (i>=length+2) allocp = mrealloc(csound, allocp, length+=100);
+      /* Expand as necessary */
+      if (i>=length-4) all = mrealloc(csound, all, length+=1024);
       x = atoi(buffer);
-      memcpy(&allocp[i], &x, sizeof(int16));
+      memcpy(&all[i], &x, sizeof(int16));
     }
  out:
-    csound->Warning(csound, "Not completely written yet\n");
     fclose(f);                                  /*   and close it      */
     *len = i;
+    all = mrealloc(csound, all, i);
+    *allocp = all;
     return 0;                                   /*   return 0 for OK   */
 }
 
