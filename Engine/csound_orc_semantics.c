@@ -232,7 +232,7 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
  *  uses first letter to denote type.  Also handles if name starts with g;
  *  used by parser (csound_orc.y)
  */
-char* convertArrayName(CSOUND* csound, char* arrayName) {
+PUBLIC char* convertArrayName(CSOUND* csound, char* arrayName) {
     if(arrayName == NULL) {
         return NULL;
     }
@@ -260,7 +260,7 @@ char* convertArrayName(CSOUND* csound, char* arrayName) {
     return newArrayName;
 }
 
-char* addDimensionToArrayName(CSOUND* csound, char* arrayName) {
+PUBLIC char* addDimensionToArrayName(CSOUND* csound, char* arrayName) {
     if(arrayName == NULL) {
         return NULL;
     }
