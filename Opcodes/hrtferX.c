@@ -92,7 +92,7 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
     }
 
     if ((mfp = p->mfp) == NULL)
-      mfp = csound->ldmemfile2(csound, filename, CSFTYPE_HRTF);
+      mfp = csound->ldmemfile2withCB(csound, filename, CSFTYPE_HRTF, NULL);
     p->mfp = mfp;
     p->fpbegin = (int16*) mfp->beginp;
     bytrev_test = 0x1234;
@@ -431,7 +431,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 }
 
 static OENTRY hrtferX_localops[] = {
-{ "hrtfer",   sizeof(HRTFER),5, "aa", "akkS", 
+  { "hrtfer",   sizeof(HRTFER), 0, 5, "aa", "akkS", 
                                 (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
 };
 

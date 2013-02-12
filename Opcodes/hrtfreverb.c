@@ -1336,7 +1336,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 static OENTRY hrtfreverb_localops[] =
 {
         {
-                "hrtfreverb", sizeof(hrtfreverb), 5, "aai", "aiiSSoop",
+                "hrtfreverb", sizeof(hrtfreverb), 0,5, "aai", "aiiSSoop",
                 (SUBR)hrtfreverb_init, NULL, (SUBR)hrtfreverb_process
         }
 };

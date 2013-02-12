@@ -306,7 +306,8 @@ extern "C"
     {
       (char*)"MixerSetLevel",
       sizeof(MixerSetLevel),
-      CW|3,
+      CW,
+      3,
       (char*)"",
       (char*)"iik",
       (SUBR)&MixerSetLevel::init_,
@@ -316,7 +317,8 @@ extern "C"
     {
       (char*)"MixerSetLevel_i",
       sizeof(MixerSetLevel),
-      CW|1,
+      CW,
+      1,
       (char*)"",
       (char*)"iii",
       (SUBR)&MixerSetLevel::init_,
@@ -326,7 +328,8 @@ extern "C"
     {
       (char*)"MixerGetLevel",
       sizeof(MixerGetLevel),
-      CR|3,
+      CR,
+      3,
       (char*)"k",
       (char*)"ii",
       (SUBR)&MixerGetLevel::init_,
@@ -336,7 +339,8 @@ extern "C"
     {
       (char*)"MixerSend",
       sizeof(MixerSend),
-      CR|5,
+      CR,
+      5,
       (char*)"",
       (char*)"aiii",
       (SUBR)&MixerSend::init_,
@@ -346,7 +350,8 @@ extern "C"
     {
       (char*)"MixerReceive",
       sizeof(MixerReceive),
-      CW|5,
+      CW,
+      5,
       (char*)"a",
       (char*)"ii",
       (SUBR)&MixerReceive::init_,
@@ -356,6 +361,7 @@ extern "C"
     {
       (char*)"MixerClear",
       sizeof(MixerClear),
+      0,
       4,
       (char*)"",
       (char*)"",
@@ -363,7 +369,7 @@ extern "C"
       0,
       (SUBR)&MixerClear::audio_
     },
-    { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
+    { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
   };
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -378,8 +384,8 @@ extern "C"
 
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound,
-                                  ep->opname, ep->dsblksiz, ep->thread,
-                                  ep->outypes, ep->intypes,
+                                  ep->opname, ep->dsblksiz, ep->flags,
+                                  ep->thread, ep->outypes, ep->intypes,
                                   (int (*)(CSOUND *, void*)) ep->iopadr,
                                   (int (*)(CSOUND *, void*)) ep->kopadr,
                                   (int (*)(CSOUND *, void*)) ep->aopadr);

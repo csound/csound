@@ -241,6 +241,7 @@ extern "C"
       {
         (char*)"doppler",
         sizeof(Doppler),
+        0,
         3,
         (char*)"a",
         (char*)"akkjj",
@@ -249,6 +250,8 @@ extern "C"
         0,
       },
       {
+        0,
+        0,
         0,
         0,
         0,
@@ -271,7 +274,8 @@ extern "C"
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
       {
         status |= csound->AppendOpcode(csound, oentry->opname,
-                                       oentry->dsblksiz, oentry->thread,
+                                       oentry->dsblksiz, oentry->flags, 
+                                       oentry->thread,
                                        oentry->outypes, oentry->intypes,
                                        (int (*)(CSOUND*,void*)) oentry->iopadr,
                                        (int (*)(CSOUND*,void*)) oentry->kopadr,

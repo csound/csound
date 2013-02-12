@@ -1,0 +1,118 @@
+WHAT NEEDS HEAVY TESTING
+========================
+
+Multiple strings in score
+
+--sample-accurate
+
+Arrays
+
+
+What is New, What has Changed
+=============================
+
+Build system in cmake (and not scons as in Csound5).  
+
+
+Support for old hardware and C compilers has been removed; this
+includes Macintosh OS9 and earlier, Watcom, Borland and Symmantec C
+compilers. 
+
+
+Note events can start and end in mid-kcycle.  As this is an
+incompatable change it is only invoked with the command-line option
+    --sample-accurate
+is specified.  Not that this does not work for tied notes, and use of
+skipping initialisation has questionable use.
+
+
+A number of table access opcodes have been rewritten but should behave
+the same.  Similarly diskin and diskin2 now use the same code and so
+diskin should be more stable
+
+
+The old parser is totally gone.
+
+
+New syntax in csound6 includes +=, -=, *= and /= operators
+
+
+Opcodes like add, sub, mul and div are no longer available in opcode
+format, only via + - * /
+
+
+Functions taninv2 and divz now exist as well as opcodes
+
+
+Arrays....
+
+
+Real-time mode....
+
+
+Asynchronous file access....
+
+
+Hetro/adsyn analysios file can be machine byte-order independent if
+created with -X.  Down side is a longer file and a little slower
+loading.  The het_export utility will create the independent format,
+anf het_import is no longer necessary.
+
+
+The number of strings that can be used in a score line is no longer
+just one.  It should be open ended now.
+
+
+New API functions.....
+    TREE *(*ParseOrc)(CSOUND *, char *str);
+        Parse an orchestra as a string to the internal tree.
+
+    int (*CompileTree)(CSOUND *, TREE *root);
+        Convert a valid tree to the internal code format
+
+    int (*CompileOrc)(CSOUND *, char *str);
+        Compile a string to internal form
+
+    int (*ReadScore)(CSOUND *, char *str);
+    int (*Start)(CSOUND *);
+    void (*FlushCircularBuffer)(CSOUND *, void *);
+    void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
+                           const char *, int, int, int);
+    unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
+    unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
+    int  (*FSeekAsync)(CSOUND *, void *, int, int);
+    char *(*GetString)(CSOUND *, MYFLT);
+       Extract a string originating from a score-event argument.
+
+functions removed
+    void *(*FileOpen)(CSOUND *,
+                      void*, int, const char*, void*, const char*);
+
+The "private" parts of the API have been changed considerably.  Also
+structures like EVTBLK have changed
+
+The LINKAGE1/FLINKAGE1 macros are renamed as LINKAGE_BUILTIN/FLINKAGE_BUILTIN
+
+
+Template for arate perf-pass opcodes is
+------------------------------------------------------------------------
+int perf_myopcode(CSOUND *csound, MYOPCODE *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nsmps = CS_KSMPS;
+    ...
+    if (offset) memset(p->res, '\0', offset*sizeof(MYFLT));
+    if (early)  {
+      nsmps -= early;
+      memset(&p->res[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
+        .....
+        p->res[n] = ....
+    }
+    return OK;
+}
+------------------------------------------------------------------------
+
+

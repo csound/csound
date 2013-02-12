@@ -348,24 +348,24 @@ static int MinAbs_krate(CSOUND *csound, MINMAX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY minmax_localops[] = {
-    {"maxaccum", S(MINMAXACCUM), 4, "", "aa", NULL, NULL, (SUBR) MaxAccumulate},
-    {"minaccum", S(MINMAXACCUM), 4, "", "aa", NULL, NULL, (SUBR) MinAccumulate},
-    {"maxabsaccum", S(MINMAXACCUM), 4, "", "aa", NULL, NULL,
+  {"maxaccum", S(MINMAXACCUM), 0, 4, "", "aa", NULL, NULL, (SUBR) MaxAccumulate},
+    {"minaccum", S(MINMAXACCUM), 0, 4, "", "aa", NULL, NULL, (SUBR) MinAccumulate},
+    {"maxabsaccum", S(MINMAXACCUM), 0, 4, "", "aa", NULL, NULL,
      (SUBR) MaxAbsAccumulate},
-    {"minabsaccum", S(MINMAXACCUM), 4, "", "aa", NULL, NULL,
+    {"minabsaccum", S(MINMAXACCUM), 0, 4, "", "aa", NULL, NULL,
      (SUBR) MinAbsAccumulate},
     {"max", 0xffff},
     {"min", 0xffff},
     {"maxabs", 0xffff},
     {"minabs", 0xffff},
-    {"max.a", S(MINMAX), 4, "a", "ay", NULL, NULL, (SUBR) Max_arate},
-    {"min.a", S(MINMAX), 4, "a", "ay", NULL, NULL, (SUBR) Min_arate},
-    {"maxabs.a", S(MINMAX), 4, "a", "ay", NULL, NULL, (SUBR) MaxAbs_arate},
-    {"minabs.a", S(MINMAX), 4, "a", "ay", NULL, NULL, (SUBR) MinAbs_arate},
-    {"max.k", S(MINMAX), 2, "k", "kz", NULL, (SUBR) Max_krate, NULL},
-    {"min.k", S(MINMAX), 2, "k", "kz", NULL, (SUBR) Min_krate, NULL},
-    {"maxabs.k", S(MINMAX), 2, "k", "kz", NULL, (SUBR) MaxAbs_krate, NULL},
-    {"minabs.k", S(MINMAX), 2, "k", "kz", NULL, (SUBR) MinAbs_krate, NULL}
+    {"max.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) Max_arate},
+    {"min.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) Min_arate},
+    {"maxabs.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) MaxAbs_arate},
+    {"minabs.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) MinAbs_arate},
+    {"max.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) Max_krate, NULL},
+    {"min.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) Min_krate, NULL},
+    {"maxabs.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) MaxAbs_krate, NULL},
+    {"minabs.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) MinAbs_krate, NULL}
 };
 
 LINKAGE_BUILTIN(minmax_localops)

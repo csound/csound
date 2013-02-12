@@ -340,7 +340,7 @@ int musmon(CSOUND *csound)
     csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
-      csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
+      csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
     
     if(csound->realtime_audio_flag && csound->init_pass_loop == 0){
@@ -387,11 +387,7 @@ static void delete_pending_rt_events(CSOUND *csound)
 
 static void cs_beep(CSOUND *csound)
 {
-#ifdef mac_classic
-    SysBeep(30L);
-#else
     csound->Message(csound, Str("%c\tbeep!\n"), '\a');
-#endif
 }
 
 PUBLIC int csoundCleanup(CSOUND *csound)
@@ -477,6 +473,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
+    if(csound->API_lock != NULL) csoundDestroyThreadLock(csound->API_lock);
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
@@ -502,7 +499,7 @@ int turnon(CSOUND *csound, TURNON *p)
     EVTBLK  evt;
     int     isNamedInstr;
 
-    evt.strarg = NULL;
+    evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
     isNamedInstr = (int) csound->GetInputArgSMask(p);
@@ -645,7 +642,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       csound->currevent = saved_currevent;
       return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
     case 'q':
-      if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
+      if (ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
@@ -672,7 +669,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'i':
-      if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
+      if (ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
@@ -1141,6 +1138,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         return CSOUND_MEMORY;
     }
     if (evt->strarg != NULL) {  /* copy string argument if present */
+      /* NEED TO COPY WHOLE STRING STRUCTURE */
       e->evt.strarg = (char*) malloc((size_t) strlen(evt->strarg) + (size_t) 1);
       if (UNLIKELY(e->evt.strarg == NULL)) {
         free(e);
@@ -1195,7 +1193,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
           evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
       case 'q':                         /* mute instrument */
         /* check for a valid instrument number or name */
-        if (evt->strarg != NULL && p[1] == SSTRCOD)
+        if (evt->strarg != NULL && ISSTRCOD(p[1]))
           i = (int) named_instr_find(csound, evt->strarg);
         else
           i = (int) fabs((double) p[1]);
@@ -1280,6 +1278,7 @@ void musmon_rewind_score(CSOUND *csound)
       csound->icurTime = 0L;
       csound->cyclesRemaining = 0;
       csound->evt.strarg = NULL;
+      csound->evt.scnt = 0;
       csound->evt.opcod  = '\0';
       /* reset tempo */
       if (csound->oparms->Beatmode)
@@ -1295,7 +1294,7 @@ void musmon_rewind_score(CSOUND *csound)
     /* apply score offset if non-zero */
     csound->advanceCnt = 0;
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
-      csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
+      csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
     corfile_rewind(csound->scstr);
 }

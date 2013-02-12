@@ -125,6 +125,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "<="            { return S_LE; }
 "=="            { return S_EQ; }
 "+="            { return S_ADDIN; }
+"-="            { return S_SUBIN; }
+"*="            { return S_MULIN; }
+"/="            { return S_DIVIN; }
 "="             { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = '=';
                   return '='; }

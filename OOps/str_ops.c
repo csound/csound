@@ -101,12 +101,14 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
     int   indx;
 
     ((char*) p->r)[0] = '\0';
-    if (*(p->indx) == SSTRCOD) {
-      if (csound->currevent->strarg == NULL)
+    if (ISSTRCOD(*(p->indx))) {
+      char *ss = csound->currevent->strarg;
+      if (ss == NULL)
         return OK;
-      if ((int) strlen(csound->currevent->strarg) >= csound->strVarMaxLen)
+      ss = get_arg_string(csound, *p->indx);
+      if ((int) strlen(ss) >= csound->strVarMaxLen)
         return csound->InitError(csound, Str("strget: buffer overflow"));
-      strcpy((char*) p->r, csound->currevent->strarg);
+      strcpy((char*) p->r, ss);
       return OK;
     }
     indx = (int)((double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
@@ -150,7 +152,7 @@ int strcpy_opcode(CSOUND *csound, STRCPY_OP *p)
 
     if (p->r == p->str)
       return OK;
-    if (*p->str == SSTRCOD){
+    if (ISSTRCOD(*p->str)) {
        csound->strarg2name(csound, (char *)p->r, p->str, "soundin.", p->XSTRCODE);
        return OK;
     }
@@ -407,8 +409,8 @@ int strtod_opcode(CSOUND *csound, STRSET_OP *p)
     if (p->XSTRCODE)
       s = (char*) p->str;
     else {
-      if (*p->str == SSTRCOD)
-        s = csound->currevent->strarg;
+      if (ISSTRCOD(*p->str))
+        s = get_arg_string(csound, *p->str);
       else {
         int ndx = (int) MYFLT2LRND(*p->str);
         if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
@@ -437,8 +439,8 @@ int strtol_opcode(CSOUND *csound, STRSET_OP *p)
     if (p->XSTRCODE)
       s = (char*) p->str;
     else {
-      if (*p->str == SSTRCOD)
-        s = csound->currevent->strarg;
+      if (ISSTRCOD(*p->str))
+        s = get_arg_string(csound, *p->str);
       else {
         int ndx = (int) MYFLT2LRND(*p->str);
         if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
@@ -709,15 +711,12 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
       s = "Win32";
 #elif defined(MACOSX)
       s = "MacOSX";
-#elif defined(mac_classic)
-      s = "MacOS";
 #else
       s = "unknown";
 #endif
       break;
     case 7:             /* is the channel I/O callback set ? (0: no, 1: yes) */
-      buf[0] = (csound->channelIOCallback_
-                == (CsoundChannelIOCallback_t) NULL ? '0' : '1');
+      buf[0] = 0;
       buf[1] = '\0';
       break;
     default:

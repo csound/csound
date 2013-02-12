@@ -92,7 +92,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         need_deinit = 1;
     }
     /* get file name, */
-    if (isString || *iFile == SSTRCOD)
+    if (isString || ISSTRCOD(*iFile))
       name = csound->strarg2name(csound, NULL, iFile, "fout.", isString);
     else {
       /* or handle to previously opened file */
@@ -505,7 +505,7 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int               idx = -1;
 
-    if (p->XSTRCODE || *(p->iFile) == SSTRCOD) {
+    if (p->XSTRCODE || ISSTRCOD(*(p->iFile))) {
       char    *fname;
       fname = csound->strarg2name(csound, NULL, p->iFile, "fout.", p->XSTRCODE);
       if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
@@ -1219,31 +1219,31 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
 
 #define S(x)    sizeof(x)
 static OENTRY localops[] = { 
-    {"fprints",    S(FPRINTF),     1,  "",     "TSM", 
+    {"fprints",    S(FPRINTF),      0, 1,  "",     "TSM", 
         (SUBR) fprintf_i, (SUBR) NULL,(SUBR) NULL, NULL, 0 },
-    { "fprintks",   S(FPRINTF),     3|WR,  "",     "TSM", 
+    { "fprintks",   S(FPRINTF),    WR, 3,  "",     "TSM", 
         (SUBR) fprintf_set,     (SUBR) fprintf_k,   (SUBR) NULL, NULL, 0         },
-    { "vincr",      S(INCR),        4,  "",     "aa",
+    { "vincr",      S(INCR),        0, 4,  "",     "aa",
         (SUBR) NULL,            (SUBR) NULL,        (SUBR) incr, NULL, 0         },
-    { "clear",      S(CLEARS),      4,  "",     "y",
+    { "clear",      S(CLEARS),      0, 4,  "",     "y",
         (SUBR) NULL,            (SUBR) NULL,        (SUBR) clear, NULL, 0        },
-    { "fout",       S(OUTFILE),     5,  "",     "Tiy",
+    { "fout",       S(OUTFILE),     0, 5,  "",     "Tiy",
         (SUBR) outfile_set,     (SUBR) NULL,        (SUBR) outfile, NULL, 0      },
-    { "foutk",      S(KOUTFILE),    3,  "",     "Tiz",
+    { "foutk",      S(KOUTFILE),    0, 3,  "",     "Tiz",
         (SUBR) koutfile_set,    (SUBR) koutfile,    (SUBR) NULL, NULL, 0L         },
-    { "fouti",      S(IOUTFILE),    1,  "",     "iiim",
+    { "fouti",      S(IOUTFILE),    0, 1,  "",     "iiim",
         (SUBR) ioutfile_set,    (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
-    { "foutir",     S(IOUTFILE_R),  3,  "",     "iiim",
+    { "foutir",     S(IOUTFILE_R),  0, 3,  "",     "iiim",
         (SUBR) ioutfile_set_r,  (SUBR) ioutfile_r,  (SUBR) NULL, NULL, 0         },
-    { "fiopen",     S(FIOPEN),      1,  "i",    "Ti",
+    { "fiopen",     S(FIOPEN),      0, 1,  "i",    "Ti",
         (SUBR) fiopen,          (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
-    { "ficlose",    S(FICLOSE),     1,  "",     "T",
+    { "ficlose",    S(FICLOSE),     0, 1,  "",     "T",
         (SUBR) ficlose_opcode,  (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
-    { "fin",        S(INFILE),      5,  "",     "Tiiy",
+    { "fin",        S(INFILE),      0, 5,  "",     "Tiiy",
         (SUBR) infile_set,      (SUBR) NULL,        (SUBR) infile_act, NULL, 0   },
-    { "fink",       S(KINFILE),     3,  "",     "Tiiz",
+    { "fink",       S(KINFILE),     0, 3,  "",     "Tiiz",
         (SUBR) kinfile_set,     (SUBR) kinfile,     (SUBR) NULL, NULL, 0         },
-    { "fini",       S(I_INFILE),    1,  "",     "Tiim",
+    { "fini",       S(I_INFILE),    0, 1,  "",     "Tiim",
         (SUBR) i_infile,        (SUBR) NULL,        (SUBR) NULL, NULL, 0         }
 };
 

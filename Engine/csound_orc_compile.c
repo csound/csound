@@ -202,7 +202,7 @@ char** splitArgs(CSOUND* csound, char* argString) {
                     len++;
                 }
                 part = mmalloc(csound, sizeof(char) * (len + 1));
-                stpncpy(part, start, len);
+                strncpy(part, start, len);
                 part[len] = '\0';
                 
             } else {
@@ -392,7 +392,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     tp->inlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
     tp->inlist->count = 0;
 
-    ip->mdepends |= csound->opcodlst[LABEL].thread;
+    ip->mdepends |= csound->opcodlst[LABEL].flags;
     ip->opdstot += csound->opcodlst[LABEL].dsblksiz;
 
     break;
@@ -423,7 +423,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       /* INITIAL SETUP */
       tp->opnum = opnum;
       tp->opcod = strsav_string(csound->opcodlst[opnum].opname);
-      ip->mdepends |= csound->opcodlst[opnum].thread;
+      ip->mdepends |= csound->opcodlst[opnum].flags;
       ip->opdstot += csound->opcodlst[opnum].dsblksiz;
 
       if (tp->opnum == find_opcode(csound, "array_init")) {
@@ -858,7 +858,7 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
     }
 
     current->nxtop = bp;
-    ip->mdepends = ip->mdepends >> 4;
+    ip->mdepends = ip->mdepends; // ODD!!!!
     ip->pextrab = ((n = ip->pmax - 3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
     ip->pextrab = ((int) ip->pextrab + 7) & (~7);
     ip->muted = 1;
@@ -1062,6 +1062,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 
     STRING_VAL* val = engineState->stringPool->values;
     int count = 0;
+    /* lock to ensure thread-safety */
+    csoundWaitThreadLockNoTimeout(csound->API_lock);
+    if(csound->oparms->realtime) csoundWaitThreadLockNoTimeout(csound->init_pass_threadlock);
     while(val != NULL) {
       csound->Message(csound, " merging strings %d) %s\n", count++, val->value);
       string_pool_find_or_add(csound, current_state->stringPool, val->value);
@@ -1142,6 +1145,10 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
         }
       }
     }
+
+    if(csound->oparms->realtime) csoundNotifyThreadLock(csound->init_pass_threadlock);
+    /* notify API lock  */
+    csoundNotifyThreadLock(csound->API_lock);
     return 0;
 }
 
@@ -1596,6 +1603,7 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
     char* argLetter;
     CS_VARIABLE* var;
     char* t = s;
+    ARRAY_VAR_INIT varInit;
 
     var = csoundFindVariableWithName(engineState->varPool, s);
 
@@ -1612,8 +1620,21 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
     void* typeArg = NULL;
 
     if(*t == '[') {
-      argLetter[0] = *(t + 1);
-      typeArg = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        int dimensions = 1;
+        CS_TYPE* varType;
+        char* b = t + 1;
+        
+        while(*b == '[' && b != NULL) {
+            b++;
+            dimensions++;
+        }
+        argLetter[0] = *b;
+        
+        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        
+        varInit.dimensions = dimensions;
+        varInit.type = varType;
+        typeArg = &varInit;
     }
 
     argLetter[0] = *t;
@@ -1629,6 +1650,7 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
     char* argLetter;
     CS_VARIABLE* var;
     char* t = s;
+    ARRAY_VAR_INIT varInit;
 
     var = csoundFindVariableWithName(ip->varPool, s);
 
@@ -1644,12 +1666,24 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
     void* typeArg = NULL;
 
     if(*t == '[') {
-      argLetter[0] = *(t + 1);
-      typeArg = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        int dimensions = 1;
+        CS_TYPE* varType;
+        char* b = t + 1;
+        
+        while(*b == '[') {
+            b++;
+            dimensions++;
+        }
+        argLetter[0] = *b;
+        
+        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        
+        varInit.dimensions = dimensions;
+        varInit.type = varType;
+        typeArg = &varInit;
     }
 
     argLetter[0] = *t;
-
 
     type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     var = csoundCreateVariable(csound, csound->typePool, type, s, typeArg);
@@ -1951,6 +1985,6 @@ void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o)
     char *name = o->lexeme;
     int32 opnum = find_opcode(csound, name);
     OENTRY *ep = csound->opcodlst + opnum;
-    if (ep->thread&_QQ)
+    if (ep->flags&_QQ)
       csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
 }

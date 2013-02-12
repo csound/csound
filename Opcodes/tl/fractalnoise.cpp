@@ -419,9 +419,9 @@ extern "C"
     }
 
     static OENTRY localops[] = {
-      { (char*)"fractalnoise", sizeof(FRACTALNOISE), 5, (char*)"a", (char*)"kk",
+      { (char*)"fractalnoise", sizeof(FRACTALNOISE), 0, 5, (char*)"a", (char*)"kk",
         (SUBR)fractalnoise_init, NULL, (SUBR)fractalnoise_process },
-      { 0, 0, 0, 0, 0, 0, 0, 0, }
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
 
     PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -436,6 +436,7 @@ extern "C"
           status |= csound->AppendOpcode(csound,
                                          oentry->opname,
                                          oentry->dsblksiz,
+                                         oentry->flags,
                                          oentry->thread,
                                          oentry->outypes,
                                          oentry->intypes,

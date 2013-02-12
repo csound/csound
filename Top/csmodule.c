@@ -183,12 +183,12 @@ static CS_NOINLINE void print_module_error(CSOUND *csound,
                                            const char *fmt, const char *fname,
                                            const csoundModule_t *m, int err)
 {
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str(fmt), fname);
+    csoundMessageS(csound, CSOUNDMSG_ERROR, Str(fmt), fname);
     if (m != NULL && m->fn.p.ErrCodeToStr != NULL)
-      csound->MessageS(csound, CSOUNDMSG_ERROR,
+      csoundMessageS(csound, CSOUNDMSG_ERROR,
                        ": %s\n", Str(m->fn.p.ErrCodeToStr(err)));
     else
-      csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+      csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
 
 static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
@@ -197,7 +197,7 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
 
     myfltSize = n & 0xFF;
     if (UNLIKELY(myfltSize != 0 && myfltSize != (int) sizeof(MYFLT))) {
-      csound->Warning(csound, Str("not loading '%s' (uses incompatible "
+      csoundWarning(csound, Str("not loading '%s' (uses incompatible "
                                   "floating point type)"), fname);
       return -1;
     }
@@ -206,7 +206,7 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       majorVersion = (n & (~0xFFFF)) >> 16;
       if (majorVersion != (int) CS_APIVERSION ||
           (minorVersion > (int) CS_APISUBVER)) { /* NOTE **** REFACTOR *** */
-        csound->Warning(csound, Str("not loading '%s' (incompatible "
+        csoundWarning(csound, Str("not loading '%s' (incompatible "
                                     "with this version of Csound (%d.%d/%d.%d)"),
                         fname, majorVersion,minorVersion,
                         CS_APIVERSION,CS_APISUBVER);
@@ -245,7 +245,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
 /*  #if defined(LINUX) */
 /*       printf("About to open library '%s'\n", libraryPath); */
 /* #endif */
-    err = csound->OpenLibrary(&h, libraryPath);
+    err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
       char ERRSTR[256];
  #if defined(LINUX)
@@ -382,290 +382,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
     /* printf("DEBUG %s(%d): not found\n", __FILE__, __LINE__); */
     return 0;
 }
-#ifdef mac_classic
-/* The following code implements scanning of "OPCODE6DIR"
-   and auto-loading of plugins for MacOS 9 */
 
-
-/* These structures describe the 'cfrg' resource used by system sw */
-typedef struct {
-    OSType  codeType;
-    long    updateLevel;
-    long    curVersion;
-    long    oldVersion;
-    long    stackSize;
-    int16   libraryDir;
-    char    fragType;
-    char    fragLocation;
-    long    fragOffset;
-    long    fragLength;
-    long    reservedA;
-    long    reservedB;
-    int16   descLength;
-    Str63   fragName;
-} cfrg_desc;
-
-typedef struct {
-    long    reserved1;
-    long    reserved2;
-    long    version;
-    long    reserved3;
-    long    reserved4;
-    long    reserved5;
-    long    reserved6;
-    long    numFragDesc;
-    cfrg_desc firstDesc;
-} cfrg_rsrc;
-
-
-static void CopyPascalString(StringPtr to, StringPtr from)
-{
-    BlockMoveData(from, to, *from+1);
-    return;
-}
-
-/*  Copies a pascal string to a C string in space you provide.
-    Returns false if it runs out of space. */
-static Boolean CopyPascalToCString(char* target, const StringPtr source,
-                                   size_t availspace)
-{
-    Boolean enough_space = ((size_t)source[0] < availspace);
-    size_t  bytes2copy = (enough_space ? (size_t)source[0] : (availspace-1));
-    unsigned char* pos = source + 1;
-
-    while (bytes2copy--) *target++ = *pos++;
-    *target = '\0';
-    return enough_space;
-}
-
-/* Returns in "me" the location of the currently running host application. */
-static OSErr GetHostLocation( FSSpecPtr me )
-{
-    ProcessSerialNumber psn;
-    ProcessInfoRec      pinfo;
-    OSErr               err;
-
-    /* get info for current process */
-    err = GetCurrentProcess(&psn);
-    if  (UNLIKELY(err != noErr))  return err;
-    pinfo.processInfoLength = sizeof(ProcessInfoRec);
-    pinfo.processName = NULL;
-    pinfo.processAppSpec = me;
-    err = GetProcessInformation(&psn, &pinfo);
-    if  (UNLIKELY(err != noErr))  return err;
-    return noErr;
-}
-
-#define kCsoundExtFolder "\pCsound"
-
-/* Looks for a folder or alias to one named "Csound" in the extensions folder */
-static OSErr FindCsoundExtensionsFolder(FSSpecPtr location)
-{
-    OSErr   err;
-    int16   systemVRefNum;
-    long    extDirID;
-    long    csoundDirID;
-
-    /* find the system extensions folder */
-    err = FindFolder(kOnSystemDisk, kExtensionFolderType, kCreateFolder,
-            &systemVRefNum, &extDirID);
-    if (UNLIKELY(err != noErr)) return err;
-
-    /* look for subfolder named "Csound" */
-    err = FSMakeFSSpec(systemVRefNum, extDirID, kCsoundExtFolder, location);
-    if (err != noErr) return err;  /* does not exist */
-    else {
-        Boolean targetIsFolder;
-        Boolean wasAliased;
-
-        err = ResolveAliasFile(location, true, &targetIsFolder, &wasAliased);
-        if (UNLIKELY(err != noErr)) return err;
-        if (UNLIKELY(!targetIsFolder))
-          return paramErr; /* "Csound" is a file, not a folder */
-    }
-
-    return noErr;
-}
-
-/*  Gets the folder ID for a directory specified via a full FSSpec. */
-static OSErr GetFolderID(const FSSpecPtr loc, long* dirID)
-{
-    OSErr       err;
-    CInfoPBRec  catinfo;
-    Str255      name;
-
-    CopyPascalString(name, loc->name);
-    catinfo.dirInfo.ioCompletion = NULL;
-    catinfo.dirInfo.ioNamePtr = name;
-    catinfo.dirInfo.ioVRefNum = loc->vRefNum;
-    catinfo.dirInfo.ioFDirIndex = 0;    /* we want info about the named folder */
-    catinfo.dirInfo.ioDrDirID = loc->parID;
-
-    err = PBGetCatInfo(&catinfo, false);
-    *dirID = catinfo.dirInfo.ioDrDirID;
-    return err;
-}
-
-/* Gets the name for a library that the Code Fragment Manager needs to load it */
-static OSErr GetFragmentName(CSOUND* csound, FSSpecPtr libr, char* name)
-{
-    OSErr       err;
-    Handle      cfrgh;
-    cfrg_rsrc*  cfrg;
-    int16       refnum;
-
-    const char kIsLib = 0;  /* fragType for import libraries */
-
-    /* open the plugin's resource fork */
-    refnum = FSpOpenResFile(libr, fsRdPerm);
-    err = ResError();
-    if (UNLIKELY(err != noErr)) return err;
-
-    /* load the plugin's 'cfrg' resource */
-    cfrgh = GetResource('cfrg', 0);
-    err = ResError();
-    if  (UNLIKELY(err != noErr)) {
-        CloseResFile(refnum);
-        return err;
-    }
-    cfrg = (cfrg_rsrc*)*cfrgh;
-    if  (UNLIKELY(cfrg->version != 0x00000001 || cfrg->numFragDesc < 1)) {
-        ReleaseResource(cfrgh);
-        CloseResFile(refnum);
-        return -1;
-    }
-    /* we assume the library we want is the first fragment descriptor */
-    if  (LIKELY(cfrg->firstDesc.fragType == kIsLib)) {
-        CopyPascalToCString(name, cfrg->firstDesc.fragName, 255);
-        err = noErr;
-    }
-    else err = -1;
-
-    ReleaseResource(cfrgh);
-    CloseResFile(refnum);
-    return err;
-}
-
-/* Examine each file in theFolder and load it if it is a Csound plugin */
-static OSErr SearchFolderAndLoadPlugins(CSOUND *csound,
-                                        FSSpecPtr theFolder, int* cserr)
-{
-    OSErr      err, err2;
-    int        result;
-    Str63      name;
-    char       fragname[255];
-    CInfoPBRec catinfo;
-    FSSpec     spec;
-    long       folderID;
-    int16      idx = 1;
-
-    const char kFolderBit = (1<<4);
-
-    err = GetFolderID(theFolder, &folderID);
-    if (UNLIKELY(err != noErr)) return err;
-
-    *cserr = CSOUND_SUCCESS;
-    catinfo.hFileInfo.ioCompletion = NULL;
-    catinfo.hFileInfo.ioVRefNum = theFolder->vRefNum;
-    catinfo.hFileInfo.ioNamePtr = name;
-    do {
-        catinfo.hFileInfo.ioFDirIndex = idx;
-        catinfo.hFileInfo.ioDirID = folderID;
-        catinfo.hFileInfo.ioACUser = 0;
-        err = PBGetCatInfo(&catinfo, false);
-        /* ignore folders */
-        if (err == noErr && !(catinfo.hFileInfo.ioFlAttrib & kFolderBit)) {
-            if (catinfo.hFileInfo.ioFlFndrInfo.fdType == 'shlb' &&
-                catinfo.hFileInfo.ioFlFndrInfo.fdCreator == 'Csnd') {
-                /* this is a Csound plugin library */
-                err2 = FSMakeFSSpec(catinfo.hFileInfo.ioVRefNum,
-                                    catinfo.hFileInfo.ioFlParID,
-                                    catinfo.hFileInfo.ioNamePtr, &spec);
-                if (err2 != noErr) continue; /* this really should not happen */
-                err2 = GetFragmentName(csound, &spec, fragname);
-                result = CSOUND_SUCCESS;
-                if (err2 == noErr) result = csoundLoadExternal(csound, fragname);
-                /* record serious errors */
-                if (result != CSOUND_SUCCESS &&
-                    result != CSOUND_ERROR) *cserr = result;
-                /* continue to search folder when one file fails to load */
-            }
-        }
-        ++idx;
-    } while (err == noErr);
-    return noErr;
-}
-
-int csoundLoadModules(CSOUND *csound)
-{
-    OSErr       err;
-    int         cserr;
-    Handle      cfrgh;
-    AliasHandle alias;
-    cfrg_rsrc*  cfrg;
-    int16       alisID;
-    Boolean     wasChanged;
-    FSSpec      pluginDir, fromFile;
-
-    /* find the "Plugins" folder */
-    /* first load the host application's 'cfrg' resource */
-    cfrgh = GetResource('cfrg', 0);
-    err = ResError();
-    if  (UNLIKELY(err != noErr || cfrgh == NULL)) {
-        csound->ErrorMsg(csound, Str("Error opening plugin directory\n"));
-        return CSOUND_ERROR;
-    }
-    cfrg = (cfrg_rsrc*)*cfrgh;
-    if  (UNLIKELY(cfrg->version != 0x00000001 || cfrg->numFragDesc < 1)) {
-        ReleaseResource(cfrgh);
-        csound->ErrorMsg(csound, Str("Error opening plugin directory\n"));
-        return CSOUND_ERROR;
-    }
-    alisID = cfrg->firstDesc.libraryDir;
-    ReleaseResource(cfrgh);
-    cfrgh = NULL; cfrg = NULL;
-
-    /* now load the 'alis' resource that points to "Plugins" */
-    alias = (AliasHandle)GetResource('alis', alisID);
-    err = ResError();
-    if  (UNLIKELY(err != noErr || alias == NULL)) {
-        csound->ErrorMsg(csound, Str("Error opening plugin directory\n"));
-        return CSOUND_ERROR;
-    }
-    /* resolve alias relative to host application */
-    err = GetHostLocation(&fromFile);
-    if  (UNLIKELY(err != noErr)) {
-        ReleaseResource((Handle)alias);
-        csound->ErrorMsg(csound, Str("Error opening plugin directory\n"));
-        return CSOUND_ERROR;
-    }
-    err = ResolveAlias(&fromFile, alias, &pluginDir, &wasChanged);
-    ReleaseResource((Handle)alias);
-    if  (UNLIKELY(err != noErr)) {
-        csound->ErrorMsg(csound, Str("Error opening plugin directory\n"));
-        return CSOUND_ERROR;
-    }
-
-    cserr = CSOUND_SUCCESS;
-    /* search the "Plugins" folder for Csound plugin libraries */
-    err = SearchFolderAndLoadPlugins(csound, &pluginDir, &cserr);
-    if  (UNLIKELY(err != noErr)) {
-        csound->ErrorMsg(csound, Str("Error opening plugin directory\n"));
-        return CSOUND_ERROR;
-    }
-    if  (UNLIKELY(cserr != CSOUND_SUCCESS)) return cserr;
-
-    /* finally, locate and search our Extensions subfolder for plugins */
-    err = FindCsoundExtensionsFolder(&pluginDir);
-    if  (err == noErr)
-        SearchFolderAndLoadPlugins(csound, &pluginDir, &cserr);
-    /* ignore errors from search & we don't care if unable to locate */
-
-    return cserr;
-}
-#endif /* mac_classic library searching */
-
-#ifndef mac_classic
 /**
  * Load plugin libraries for Csound instance 'csound', and call
  * pre-initialisation functions.
@@ -741,7 +458,7 @@ int csoundLoadModules(CSOUND *csound)
       }
       /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
       if (csoundCheckOpcodeDeny(fname)) {
-        csound->Warning(csound, Str("Library %s omitted\n"), fname);
+        csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
       /* if (csoundCheckOpcodePluginFile(csound, fname) != 0) */
@@ -760,7 +477,6 @@ int csoundLoadModules(CSOUND *csound)
     return CSOUND_SUCCESS;
 #endif  /* HAVE_DIRENT_H */
 }
-#endif /* not mac_classic */
 
 static int cmp_func(const void *p1, const void *p2)
 {
@@ -777,7 +493,7 @@ int csoundLoadExternals(CSOUND *csound)
       return 0;
     /* IV - Feb 19 2005 */
     csound->dl_opcodes_oplibs = NULL;
-    csound->Message(csound, Str("Loading command-line libraries:\n"));
+    csoundMessage(csound, Str("Loading command-line libraries:\n"));
     cnt = 1;
     i = 0;
     do {
@@ -800,9 +516,9 @@ int csoundLoadExternals(CSOUND *csound)
       if (fname[0] != '\0' && !(i && strcmp(fname, lst[i - 1]) == 0)) {
         err = csoundLoadExternal(csound, fname);
         if (UNLIKELY(err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY))
-          csound->Die(csound, Str(" *** error loading '%s'"), fname);
+          csoundDie(csound, Str(" *** error loading '%s'"), fname);
         else if (!err)
-          csound->Message(csound, "  %s\n", fname);
+          csoundMessage(csound, "  %s\n", fname);
       }
     } while (++i < cnt);
     /* file list is no longer needed */
@@ -845,7 +561,7 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
         else {
           length /= (long) sizeof(OENTRY);
           if (length) {
-            if (UNLIKELY(csound->AppendOpcodes(csound, opcodlst_n,
+            if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
                                                (int) length) != 0))
               return CSOUND_ERROR;
           }
@@ -1149,92 +865,6 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) dlsymIntern(library, undersym);
 }
 
-#elif defined(mac_classic)
-
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryName)
-{
-    CFragConnectionID connID;
-    Ptr         mainAddr;
-    OSErr       err;
-    Str63       macLibName;
-    Str255      errName;
-
-    *library = NULL;
-    if (LIKELY(strlen(libraryName) < 64)) {
-      strcpy((char*) macLibName, libraryName);
-      c2pstr((char*) macLibName);
-    }
-    else {
- /*   csoundMessage("%s is not a valid library name because it is too long.\n",
-                    libraryName); */
-      return -1;
-    }
-    /* first, test to see if the library is already loaded */
-    err = GetSharedLibrary(macLibName, kPowerPCCFragArch, kFindCFrag,
-                           &connID, &mainAddr, errName);
-    if (UNLIKELY(err == noErr))
-      return -1;        /* already loaded */
-    else if (UNLIKELY(err != cfragLibConnErr)) {  /* some other error occurred */
- /*   csoundMessage("Failed to load plugin library %s with Mac error %d.\n",
-                    libraryName, err); */
-      return -1;
-    }
-    else {  /* attempt to load the library */
-      err = GetSharedLibrary(macLibName, kPowerPCCFragArch, kLoadCFrag,
-                             &connID, &mainAddr, errName);
-      if (UNLIKELY(err != noErr)) {
- /*     csoundMessage("Failed to load plugin library %s with Mac error %d.\n",
-                      libraryName, err); */
-        return -1;
-      }
-    }
-    *library = (void*) connID;
-    return 0;
-}
-
-PUBLIC int csoundCloseLibrary(void *library)
-{
-    CFragConnectionID connID;
-    OSErr       err;
-
-    connID = (CFragConnectionID) library;
-    err = CloseConnection(&connID);
-    return 0 /* (err != noErr) */;  /* ignore errors */
-}
-
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
-    OSErr       err;
-    Ptr         symAddr;
-    CFragSymbolClass  symClass;
-    CFragConnectionID connID;
-    Str255      macProcName;
-
-    connID = (CFragConnectionID) library;
-    if (LIKELY(strlen(procedureName) < 256)) {
-      strcpy((char*) macProcName, procedureName);
-      c2pstr((char*) macProcName);
-    }
-    else {
- /*   csoundMessage("%s is not a valid library procedure name "
-                    "because it is too long.\n", procedureName); */
-      return NULL;
-    }
-    err = FindSymbol(connID, macProcName, &symAddr, &symClass);
-    if (UNLIKELY(err != noErr)) {
- /*   csoundMessage("Failed to find library procedure %s with Mac error %d.\n",
-                    procedureName, err); */
-      return NULL;
-    }
-    else if (UNLIKELY(symClass == kDataCFragSymbol)) {
- /*   csoundMessage("Failed to load procedure %s "
-                    "because it is not a code symbol.\n", procedureName); */
-      return NULL;
-    }
-
-    return (void*) symAddr;
-}
-
 #else /* case for platforms without shared libraries -- added 062404, akozar */
 
 int csoundOpenLibrary(void **library, const char *libraryPath)
@@ -1290,6 +920,7 @@ extern long babo_localops_init(CSOUND *, void *);
 extern long bilbar_localops_init(CSOUND *, void *);
 extern long compress_localops_init(CSOUND *, void *);
 extern long pvsbuffer_localops_init(CSOUND *, void *);
+extern long pvsgendy_localops_init(CSOUND *, void *);
 extern long vosim_localops_init(CSOUND *, void *);
 extern long eqfil_localops_init(CSOUND *, void *);
 extern long modal4_localops_init(CSOUND *, void *);
@@ -1328,6 +959,8 @@ extern long cpumeter_localops_init(CSOUND *, void *);
 extern long mp3in_localops_init(CSOUND *, void *);
 extern long gendy_localops_init(CSOUND *, void *);
 extern long scnoise_localops_init(CSOUND *, void *);
+extern long socksend_localops_init(CSOUND *, void *);
+extern long sockrecv_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -1353,7 +986,8 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
-                                 vaops_localops_init,
+                                 vaops_localops_init, pvsgendy_localops_init, socksend_localops_init,
+				 sockrecv_localops_init,
 #ifndef WIN32
                                  cpumeter_localops_init,
 #endif
@@ -1378,7 +1012,7 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
       if (UNLIKELY(length <= 0L)) return CSOUND_ERROR;
       length /= (long) sizeof(OENTRY);
       if (length) {
-        if (UNLIKELY(csound->AppendOpcodes(csound, opcodlst_n,
+        if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
                                            (int) length) != 0))
           return CSOUND_ERROR;
       }

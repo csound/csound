@@ -406,9 +406,9 @@ static int fl_vkeybd(CSOUND *csound, FLVKEYBD *p) {
 #define S(x)    sizeof(x)
 
 const OENTRY widgetOpcodes_[] = {
-  { (char*)"FLvkeybd", S(FLVKEYBD), 1,  (char*)"", (char*)"Tiiii",
+  { (char*)"FLvkeybd", S(FLVKEYBD), 0, 1,  (char*)"", (char*)"Tiiii",
          (SUBR) fl_vkeybd, (SUBR) NULL, (SUBR) NULL },
-    { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL,(SUBR) NULL }
+  { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL,(SUBR) NULL }
 };
 
 
@@ -436,8 +436,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
     for ( ; ep->opname != NULL; ep++) {
         if (csound->AppendOpcode(csound, ep->opname,
-                                 (int)ep->dsblksiz, (int)ep->thread,
-                                 ep->outypes, ep->intypes,
+                                 (int)ep->dsblksiz, (int)ep->flags,
+                                 (int)ep->thread, ep->outypes, ep->intypes,
                                  ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
             csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
                                    ep->opname);

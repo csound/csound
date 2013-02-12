@@ -34,16 +34,16 @@ int     pvinterpset(CSOUND *, void *), pvinterp(CSOUND *, void *);
 #define S(x)    sizeof(x)
 
 static OENTRY pvoc_localops[] = {
-{ "pvoc",      S(PVOC),      5, "a",  "kkToooo", pvset, NULL, pvoc            },
-{ "tableseg",  S(TABLESEG),  TR|3, "",   "iin",     tblesegset, ktableseg, NULL  },
-{ "ktableseg", S(TABLESEG),  _QQ|TR|3, "",   "iin",  tblesegset, ktableseg, NULL  },
-{ "tablexseg", S(TABLESEG),  TW|3, "",   "iin",     tblesegset, ktablexseg, NULL },
-{ "vpvoc",     S(VPVOC),     TR|5, "a",  "kkToo",   vpvset, NULL, vpvoc          },
-{ "pvread",    S(PVREAD),    3, "kk", "kTi",     pvreadset, pvread, NULL      },
-{ "pvcross",   S(PVCROSS),   5, "a",  "kkTkko",  pvcrossset, NULL, pvcross    },
-{ "pvbufread", S(PVBUFREAD), 3, "",   "kT",      pvbufreadset, pvbufread, NULL},
-{ "pvinterp",  S(PVINTERP),  5, "a",  "kkTkkkkkk", pvinterpset, NULL, pvinterp},
-{ "pvadd",     S(PVADD),     5, "a",  "kkTiiopooo", pvaddset, NULL, pvadd     }
+{ "pvoc",      S(PVOC),      0, 5, "a",  "kkToooo", pvset, NULL, pvoc            },
+{ "tableseg",  S(TABLESEG),  TR, 3, "",   "iin",     tblesegset, ktableseg, NULL  },
+{ "ktableseg", S(TABLESEG),  _QQ|TR, 3, "",   "iin",  tblesegset, ktableseg, NULL  },
+{ "tablexseg", S(TABLESEG),  TW, 3, "",   "iin",     tblesegset, ktablexseg, NULL },
+{ "vpvoc",     S(VPVOC),     TR, 5, "a",  "kkToo",   vpvset, NULL, vpvoc          },
+{ "pvread",    S(PVREAD),  0,  3, "kk", "kTi",     pvreadset, pvread, NULL      },
+{ "pvcross",   S(PVCROSS), 0,  5, "a",  "kkTkko",  pvcrossset, NULL, pvcross    },
+{ "pvbufread", S(PVBUFREAD),0, 3, "",   "kT",      pvbufreadset, pvbufread, NULL},
+{ "pvinterp",  S(PVINTERP), 0, 5, "a",  "kkTkkkkkk", pvinterpset, NULL, pvinterp},
+{ "pvadd",     S(PVADD),   0,  5, "a",  "kkTiiopooo", pvaddset, NULL, pvadd     }
 };
 
 PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)

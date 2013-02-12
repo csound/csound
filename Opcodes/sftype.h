@@ -29,20 +29,12 @@
 #elif defined MSVC
 #  pragma       pack(push, before, 1)
 #  define     PACKED
-#elif defined(mac_classic)
-#  pragma               pack(1)
-#  define     PACKED
-#elif defined(__WATCOMC__)
-#  include <pshpack1.h>
-#  define     PACKED
 #else
 # error No pack defined
 #endif
 
 #ifndef WORDS_BIGENDIAN
 #  if defined(__POWERPC__) || defined(__PPC__) || defined(__ppc__)
-#    define WORDS_BIGENDIAN 1
-#  elif defined(mac_classic)
 #    define WORDS_BIGENDIAN 1
 #  endif
 #endif
@@ -229,11 +221,6 @@ typedef struct
 #define _SFTYPE_H
 #ifdef          MSVC
 #  pragma       pack(pop, before)
-#endif
-#if defined(mac_classic)
-#  pragma               pack(0)
-#elif defined(__WATCOMC__)
-#include <poppack.h>
 #endif
 
 #endif

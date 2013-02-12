@@ -24,9 +24,6 @@
 #ifndef CSOUND_SYSDEP_H
 #define CSOUND_SYSDEP_H
 
-
-
-
 /* check for the presence of a modern compiler (for use of certain features) */
 
 #ifdef HAVE_GCC3
@@ -193,63 +190,34 @@ typedef uint_least16_t uint16;
 #    endif
 #  elif defined(MSVC)
 #    define inline  __inline
-#  elif defined(__MWERKS__)
-#    define inline inline
 #  else
 #    define inline
 #  endif
 #endif
 
-#if defined(macintosh)
-#  define mac_classic   /* All Mac Compiles Before OSX, including Carbon */
-   /* define mills_macintosh in your prefix file
-      to compile the Mills "Perf" version */
-#  ifndef  USE_GUSI2
-#    include <stat.h>
+#define DIRSEP '/'
+#ifdef WIN32
+#  undef  DIRSEP
+#  define DIRSEP '\\'
+#  if !defined(O_NDELAY)
+#    define  O_NDELAY (0)
 #  endif
-#  define  O_NDELAY (0)
-#  define  DIRSEP ':'
-#elif defined(SYMANTEC)
-#  include <unix.h>     /* for open() etc protos on mac */
-#  define  DIRSEP ':'
+#  include <io.h>
 #else
-#  define DIRSEP '/'
-#  ifdef  LATTICE
-#    ifdef HAVE_SYS_TYPES_H
-#      include <sys/types.h>
-#    endif
-#  else
-#    ifdef __WATCOMC__
-#      if !defined(O_NDELAY)
-#        define  O_NDELAY (0)
-#      endif
-#      include <io.h>
-#    else
-#      ifdef WIN32
-#        undef  DIRSEP
-#        define DIRSEP '\\'
-#        if !defined(O_NDELAY)
-#          define  O_NDELAY (0)
-#        endif
-#        include <io.h>
-#      else
-#        ifdef DOSGCC
-#          if !defined(O_NDELAY)
-#            define  O_NDELAY (0)
-#          endif
-#        endif
-#        ifdef HAVE_SYS_TYPES_H
-#          include <sys/types.h>
-#        endif
-#      endif
-/*  RWD for WIN32 on VC++ */
-#      ifndef MSVC
-#        include <sys/file.h>
-#      endif
+#  ifdef DOSGCC
+#    if !defined(O_NDELAY)
+#      define  O_NDELAY (0)
 #    endif
 #  endif
-#  include <sys/stat.h>
+#  ifdef HAVE_SYS_TYPES_H
+#    include <sys/types.h>
+#  endif
+/*  RWD for WIN32 on VC++ */
 #endif
+#ifndef MSVC
+#  include <sys/file.h>
+#endif
+#include <sys/stat.h>
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 

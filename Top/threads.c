@@ -85,24 +85,6 @@ PUBLIC void csoundSleep(size_t milliseconds)
     Sleep((DWORD) milliseconds);
 }
 
-#elif defined(mac_classic)
-
-static CS_NOINLINE void notImplementedWarning_(const char *name)
-{
-    fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
-}
-
-PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
-{
-    notImplementedWarning_("csoundRunCommand");
-    return -1L;
-}
-
-PUBLIC void csoundSleep(size_t milliseconds)
-{
-    notImplementedWarning_("csoundSleep");
-}
-
 #else
 
 #include <sys/wait.h>

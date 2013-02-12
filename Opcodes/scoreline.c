@@ -37,31 +37,31 @@ typedef struct _scorepos {
 
 int messi(CSOUND *csound, INMESS *p)
 {
-    csound->InputMessage(csound, (char *)p->SMess);
+    csoundInputMessageInternal(csound, (char *)p->SMess);
     return OK;
 }
 
 int messk(CSOUND *csound, INMESS *p){
-    if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess);
+    if (*p->ktrig) csoundInputMessageInternal(csound, (char *)p->SMess);
     return OK;
 }
 
 int setscorepos(CSOUND *csound, SCOREPOS *p){
-    csound->SetScoreOffsetSeconds(csound, *p->spos);
+    csoundSetScoreOffsetSeconds(csound, *p->spos);
     return OK;
 }
 
 int rewindscore(CSOUND *csound, SCOREPOS *p){
-    csound->RewindScore(csound);
+    csoundRewindScore(csound);
     return OK;
 }
 
 
 static OENTRY scoreline_localops[] = {
-  {"scoreline_i", sizeof(INMESS), 1, "", "S", (SUBR)messi, NULL, NULL},
-  {"scoreline", sizeof(INMESS), 2, "", "Sk", NULL, (SUBR)messk, NULL},
-  {"setscorepos", sizeof(SCOREPOS), 1, "", "i", (SUBR)setscorepos, NULL, NULL},
-  {"rewindscore", sizeof(SCOREPOS), 1, "", "", (SUBR)rewindscore, NULL, NULL}
+  {"scoreline_i", sizeof(INMESS), 0, 1, "", "S", (SUBR)messi, NULL, NULL},
+  {"scoreline", sizeof(INMESS), 0, 2, "", "Sk", NULL, (SUBR)messk, NULL},
+  {"setscorepos", sizeof(SCOREPOS), 0, 1, "", "i", (SUBR)setscorepos, NULL, NULL},
+  {"rewindscore", sizeof(SCOREPOS), 0, 1, "", "", (SUBR)rewindscore, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(scoreline_localops)

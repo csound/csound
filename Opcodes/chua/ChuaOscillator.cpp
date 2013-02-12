@@ -582,6 +582,7 @@ extern "C"
 //       {
 //         (char*)"chuac",
 //         sizeof(ChuasOscillatorCubic),
+//         0,
 //         5,
 //    // kL,       kR0,  kC2,     kG,       kC1,       iI3, iV2,   iV1,  kstep_size
 //    // 0.00945,  7.5,  2e-007,  0.00105,  1.5e-008,  0,   -0.1,  0.1,  5e-6
@@ -594,6 +595,7 @@ extern "C"
       {
         (char*)"chuap",
         sizeof(ChuasOscillatorPiecewise),
+        0,
         5,
         // kL,       kR0,  kC2,     kG,       kGa, kGb,       kE,         kC1,
         //                  iI3, iV2,   iV1,  kstep_size
@@ -606,6 +608,7 @@ extern "C"
         (SUBR) ChuasOscillatorPiecewise::kontrol_,
       },
       {
+        0,
         0,
         0,
         0,
@@ -628,7 +631,8 @@ extern "C"
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
       {
         status |= csound->AppendOpcode(csound, oentry->opname,
-                                       oentry->dsblksiz, oentry->thread,
+                                       oentry->dsblksiz, oentry->flags,
+                                       oentry->thread,
                                        oentry->outypes, oentry->intypes,
                                        (int (*)(CSOUND*,void*)) oentry->iopadr,
                                        (int (*)(CSOUND*,void*)) oentry->kopadr,

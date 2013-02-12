@@ -571,7 +571,8 @@ set(libcsound_SRCS
     Top/one_file.c
     Top/opcode.c
     Top/threads.c
-    Top/utility.c)
+    Top/utility.c
+    Top/threadsafe.c)
 
 set(stdopcod_SRCS 
     Opcodes/ambicode.c      
@@ -617,7 +618,9 @@ set(stdopcod_SRCS
     Opcodes/ugnorman.c      
     Opcodes/ugsc.c
     Opcodes/wave-terrain.c  
-    Opcodes/stdopcod.c)
+    Opcodes/stdopcod.c
+    Opcodes/socksend.c
+    Opcodes/sockrecv.c)
 
 set(cs_pvs_ops_SRCS
     Opcodes/ifd.c 
@@ -628,7 +631,8 @@ set(cs_pvs_ops_SRCS
     Opcodes/pvsdemix.c 
     Opcodes/pvs_ops.c 
     Opcodes/pvsband.c
-    Opcodes/pvsbuffer.c)
+    Opcodes/pvsbuffer.c
+    Opcodes/pvsgendy.c)
 
 set(oldpvoc_SRCS
     Opcodes/dsputil.c 
@@ -889,6 +893,7 @@ add_subdirectory(util1)
 add_subdirectory(SDIF)
 add_subdirectory(po)
 add_subdirectory(tests/c)
+add_subdirectory(tests/commandline)
 
 # uninstall target
 configure_file(

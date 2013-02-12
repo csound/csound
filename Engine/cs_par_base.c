@@ -30,7 +30,6 @@
 
 int csp_thread_index_get(CSOUND *csound)
 {
-#ifndef mac_classic
     void *threadId = csound->GetCurrentThreadID();
 
     int index = 0;
@@ -49,7 +48,6 @@ int csp_thread_index_get(CSOUND *csound)
       index++;
       current = current->next;
     }
-#endif
     return -1;
 }
 

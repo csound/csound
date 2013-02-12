@@ -36,21 +36,21 @@ typedef struct {
 typedef struct {
     OPDS    h;
     ARRAYDAT* arrayDat;
-    MYFLT* size;
+    MYFLT   *isizes[VARGMAX];
 } ARRAYINIT;
 
 typedef struct {
     OPDS    h;
     ARRAYDAT* arrayDat;
-    MYFLT* index;
     void* value;
+    MYFLT   *indexes[VARGMAX];
 } ARRAY_SET;
 
 typedef struct {
     OPDS    h;
     MYFLT*   out;
     ARRAYDAT* arrayDat;
-    MYFLT* index;
+    MYFLT   *indexes[VARGMAX];
 } ARRAY_GET;
 
 static int array_del(CSOUND *csound, void *p)
@@ -62,15 +62,35 @@ static int array_del(CSOUND *csound, void *p)
     return OK;
 }
 
-static int array_init(CSOUND *csound, void *p)
+static int array_init(CSOUND *csound, ARRAYINIT *p)
 {
-    ARRAYINIT* t = (ARRAYINIT*)p;
-    ARRAYDAT* arrayDat = t->arrayDat;
-    int size = MYFLT2LRND(*t->size);
+    ARRAYDAT* arrayDat = p->arrayDat;
+    int i;
+    
+    int inArgCount = p->INOCOUNT;
+    
+    if(inArgCount == 0) {
+        csoundErrorMsg(csound, "Error: no sizes set for array initialization\n");
+        return CSOUND_ERROR;
+    }
+    
+    arrayDat->dimensions = inArgCount;
+    arrayDat->sizes = mcalloc(csound, sizeof(int) * inArgCount);
+    for (i = 0; i < inArgCount; i++) {
+        arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[0]);
+    }
+    
+    int size = arrayDat->sizes[0];
+    
+    if(inArgCount > 1) {
+        for (i = 1; i < inArgCount; i++) {
+            size *= arrayDat->sizes[i];
+        }
+        size = MYFLT2LRND(size);
+    }
         
     CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, NULL);
     
-    arrayDat->size = size;
 //    if(arrayDat->data != NULL) {
 //        mfree(csound, arrayDat->data);
 //    }
@@ -90,7 +110,23 @@ static int array_init(CSOUND *csound, void *p)
 static int array_set(CSOUND* csound, ARRAY_SET *p) {
     ARRAYDAT* dat = p->arrayDat;
     MYFLT* mem = dat->data;
-    int index = MYFLT2LRND(*p->index);
+    int i;
+    
+    int indefArgCount = p->INOCOUNT - 2;
+    
+    if(indefArgCount == 0) {
+        csoundErrorMsg(csound, "Error: no indexes set for array set\n");
+        return CSOUND_ERROR;
+    }
+    int end = indefArgCount - 1;
+    int index = MYFLT2LRND(*p->indexes[end]);
+    
+    if(indefArgCount > 1) {
+        for (i = end - 1; i >= 0; i--) {
+            index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
+        }
+    }
+    
     int incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     memcpy(mem, p->value, dat->arrayMemberSize);
@@ -100,7 +136,23 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
 static int array_get(CSOUND* csound, ARRAY_GET *p) {
     ARRAYDAT* dat = p->arrayDat;
     MYFLT* mem = dat->data;
-    int index = MYFLT2LRND(*p->index);
+    int i;
+    
+    int indefArgCount = p->INOCOUNT - 1;
+    
+    if(indefArgCount == 0) {
+        csoundErrorMsg(csound, "Error: no indexes set for array set\n");
+        return CSOUND_ERROR;
+    }
+    int end = indefArgCount - 1;
+    int index = MYFLT2LRND(*p->indexes[end]);
+    
+    if(indefArgCount > 1) {
+        for (i = end - 1; i >= 0; i--) {
+            index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
+        }
+    }
+    
     int incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     memcpy(p->out, mem, dat->arrayMemberSize);
@@ -732,14 +784,14 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 
 static OENTRY arrayvars_localops[] =
 {
-    { "array_init", sizeof(ARRAYINIT), 1, "[?;", "i", (SUBR)array_init },
-    { "array_set", sizeof(ARRAY_SET), 3, "", "[?;k?", (SUBR)array_set, (SUBR)array_set },
-    { "array_get", sizeof(ARRAY_GET), 3, "?", "[?;k", (SUBR)array_get, (SUBR)array_get },
-//  { "##plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
-//  { "##suntab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
-//  { "##negtab",  sizeof(TABARITH), 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
-//  { "##multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
-//  { "##divtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
+    { "array_init", sizeof(ARRAYINIT), 0, 1, "[?;", "im", (SUBR)array_init },
+    { "array_set", sizeof(ARRAY_SET), 0, 3, "", "[?;?M", (SUBR)array_set, (SUBR)array_set },
+    { "array_get", sizeof(ARRAY_GET), 0, 3, "?", "[?;M", (SUBR)array_get, (SUBR)array_get },
+//  { "##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
+//  { "##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
+//  { "##negtab",  sizeof(TABARITH), 0, 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
+//  { "##multtab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
+//  { "##divtab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
 //  { "##remtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem },
 //  { "##multitab", sizeof(TABARITH1), 3, "t", "ti",
 //                                              (SUBR)tabarithset1, (SUBR)tabimult },
