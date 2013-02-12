@@ -39,7 +39,6 @@ static int takeFFT(CSOUND *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
 static int quit(CSOUND*, char *msg);
 static int CVAlloc(CSOUND*, CVSTRUCT**, long, int, MYFLT,
                    int, int, long, int, int);
-static void print_ieee(MYFLT x, FILE *ofd);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
@@ -169,7 +168,7 @@ static int quit(CSOUND *csound, char *msg)
 {
     csound->Message(csound, Str("cvanal error: %s\n"), msg);
     csound->Message(csound, Str("Usage: cvanal [-d<duration>] "
-                            "[-c<channel>] [-b<begin time>] <input soundfile>"
+                            "[-c<channel>] [-b<begin time>] [-X] <input soundfile>"
                             " <output impulse response FFT file> \n"));
     return -1;
 }
@@ -215,7 +214,7 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
       if (nf) {
         int32 i, l;
         l = (cvh->dataBsize/nchanls)/sizeof(MYFLT);
-        for (i=0; i<l; i++) print_ieee(outbuf[i], ofd);
+        for (i=0; i<l; i++) fprintf(ofd, "%a\n", outbuf[i]);
       }
       else
         if (UNLIKELY(1!=fwrite(outbuf, cvh->dataBsize/nchanls, 1, ofd)))
@@ -275,18 +274,3 @@ int cvanal_init_(CSOUND *csound)
     return retval;
 }
 
-
-typedef union {
-  unsigned char   h[8];
-  double d; 
-} fp_number;
-
-static void print_ieee(MYFLT x, FILE *ofd)
-{
-    int i;
-    fp_number xxx;
-    xxx.d = (double)x;
-    /* deal with byte order here */
-    for (i=7; i>=0; i--) fprintf(ofd, "%.2X", xxx.h[i]);
-    putc('\n', ofd);
-}
