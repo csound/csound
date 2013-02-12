@@ -384,15 +384,42 @@ char* convertArrayName(CSOUND* csound, char* arrayName) {
         return NULL;
     }
     
-    char* newArrayName = mmalloc(csound, (len + 2)* sizeof(char));
+    char* newArrayName = mmalloc(csound, (len + 3)* sizeof(char));
+    if(arrayName[0] == 'g') {
+        newArrayName[0] = 'g';
+        newArrayName[1] = '[';
+        newArrayName[2] = arrayName[1];
+        newArrayName[3] = ';';
+        memcpy(newArrayName + 4, arrayName + 2, len - 2);
+    } else {
+        newArrayName[0] = '[';
+        newArrayName[1] = arrayName[0];
+        newArrayName[2] = ';';
+        memcpy(newArrayName + 3, arrayName + 1, len - 1);
+    }
+    newArrayName[len + 2] = 0;
     
+    return newArrayName;
+}
+
+char* addDimensionToArrayName(CSOUND* csound, char* arrayName) {
+    if(arrayName == NULL) {
+        return NULL;
+    }
+    int len = strlen(arrayName);
+    
+    if(len == 0) {
+        return NULL;
+    }
+    
+    char* newArrayName = mmalloc(csound, (len + 2)* sizeof(char));
     if(arrayName[0] == 'g') {
         newArrayName[0] = 'g';
         newArrayName[1] = '[';
         memcpy(newArrayName + 2, arrayName + 1, len - 1);
     } else {
         newArrayName[0] = '[';
-        memcpy(newArrayName + 1, arrayName, len);
+        memcpy(newArrayName + 1, arrayName , len);
     }
     newArrayName[len + 1] = 0;
     
@@ -436,7 +463,7 @@ void delete_tree(CSOUND *csound, TREE *l)
       }
       if (l->value) {
        if (l->value->lexeme) {
-         //printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
+         printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
         mfree(csound, l->value->lexeme);
         //l->value->lexeme = NULL;
        }

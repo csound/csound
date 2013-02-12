@@ -116,7 +116,8 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                         (int) csound->GetInputArgSMask(p));
 
     /* load memfile */
-    if (UNLIKELY((*mfp = csound->ldmemfile2(csound, fname, CSFTYPE_ATS)) == NULL)) {
+    if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,
+                                                  CSFTYPE_ATS, NULL)) == NULL)) {
       csound->InitError(csound,
                         Str("%s: Ats file %s not read (does it exist?)"),
                         opname, fname);
@@ -2143,25 +2144,25 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    { "ATSread",        S(ATSREAD),         3,  "kk",   "kTi",
+    { "ATSread",        S(ATSREAD),       0,  3,  "kk",   "kTi",
         (SUBR) atsreadset,          (SUBR) atsread,         (SUBR) NULL      },
-    { "ATSreadnz",      S(ATSREADNZ),       3,  "k",    "kTi",
+    { "ATSreadnz",      S(ATSREADNZ),      0, 3,  "k",    "kTi",
         (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL      },
-    { "ATSadd",         S(ATSADD),          TR|5,  "a",    "kkTiiopo",
+    { "ATSadd",         S(ATSADD),          TR, 5,  "a",    "kkTiiopo",
         (SUBR) atsaddset,           (SUBR) NULL,            (SUBR) atsadd    },
-    { "ATSaddnz",       S(ATSADDNZ),        5,  "a",    "kTiop",
+    { "ATSaddnz",       S(ATSADDNZ),       0, 5,  "a",    "kTiop",
         (SUBR) atsaddnzset,         (SUBR) NULL,            (SUBR) atsaddnz  },
-    { "ATSsinnoi",      S(ATSSINNOI),       5,  "a",    "kkkkTiop",
+    { "ATSsinnoi",      S(ATSSINNOI),       0,5,  "a",    "kkkkTiop",
         (SUBR) atssinnoiset,        (SUBR) NULL,            (SUBR) atssinnoi },
-    { "ATSbufread",     S(ATSBUFREAD),      3,  "",     "kkTiop",
+    { "ATSbufread",     S(ATSBUFREAD),      0,3,  "",     "kkTiop",
         (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) NULL      },
-    { "ATSpartialtap",  S(ATSPARTIALTAP),   3,  "kk",   "i",
+    { "ATSpartialtap",  S(ATSPARTIALTAP),   0,3,  "kk",   "i",
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL      },
-    { "ATSinterpread",  S(ATSINTERPREAD),   3,  "k",    "k",
+    { "ATSinterpread",  S(ATSINTERPREAD),   0,3,  "k",    "k",
         (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL      },
-    { "ATScross",       S(ATSCROSS),        TR|5,  "a",    "kkTikkiopoo",
+    { "ATScross",       S(ATSCROSS),        TR, 5,  "a",    "kkTikkiopoo",
         (SUBR) atscrossset,         (SUBR) NULL,            (SUBR) atscross  },
-    { "ATSinfo",        S(ATSINFO),         1,  "i",    "Ti",
+    { "ATSinfo",        S(ATSINFO),         0,1,  "i",    "Ti",
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }
 };
 

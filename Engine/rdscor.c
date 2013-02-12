@@ -24,6 +24,19 @@
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
 
+char* get_arg_string(CSOUND *csound, MYFLT p)
+{
+    int32 n;
+    char *ss = csound->currevent->strarg;
+    union {
+      MYFLT d;
+      int32 i;
+    } ch;
+    ch.d = p; n = ch.i&0xffff;
+    while (n-- > 0) ss += strlen(ss)+1;
+    return ss;
+}
+
 static void dumpline(CSOUND *);
 
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
@@ -46,33 +59,33 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
     }
     if (c == '"') {                             /* if find a quoted string  */
       char *sstrp;
-      if (csound->scnt0==0) {
-        if ((sstrp = csound->sstrbuf) == NULL)
-          sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
-        while ((c = corfile_getc(csound->scstr)) != '"') {
-          if (c=='\\') c = corfile_getc(csound->scstr);
-          *sstrp++ = c;
-        }
-        *sstrp++ = '\0';
-        *pfld = SSTRCOD;                        /*   flag with hifloat      */
-        csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
+      int n = csound->scnt;
+      if ((sstrp = csound->sstrbuf) == NULL)
+        sstrp = csound->sstrbuf = mmalloc(csound, csound->strsiz=SSTRSIZ);
+      while (n--!=0) sstrp += strlen(sstrp)+1; 
+      n = sstrp-csound->sstrbuf;
+      while ((c = corfile_getc(csound->scstr)) != '"') {
+        if (c=='\\') c = corfile_getc(csound->scstr);
+        *sstrp++ = c;
+        n++;
+        if (n > csound->strsiz-10) {
+          csound->sstrbuf = mrealloc(csound, csound->sstrbuf,
+                                     csound->strsiz+=SSTRSIZ);
+          sstrp = csound->sstrbuf+n;
+        }          
       }
-      else {
-        int n = csound->scnt0;
-        printf("***Entering dubious code; n=%d\n", n);
-        if ((sstrp = csound->sstrbuf0[n]) == NULL)
-          sstrp = csound->sstrbuf0[n] = mmalloc(csound, SSTRSIZ);
-        while ((c = corfile_getc(csound->scstr)) != '"') {
-          if (c=='\\') c = corfile_getc(csound->scstr);
-          *sstrp++ = c;
-        }
-        *sstrp++ = '\0';
-        *pfld = ((int[4]){SSTRCOD, SSTRCOD1,
-                          SSTRCOD2,SSTRCOD3})[n]; /* flag with hifloat */
-                                                          /* Net  line is wrong*/
-        csound->sstrlen0[n] = sstrp - csound->sstrbuf0[n];  /* & overall length */
+      *sstrp++ = '\0';
+      //*pfld = SSTRCOD;                        /*   flag with hifloat      */
+      {
+        union {
+          MYFLT d;
+          int32 i;
+        } ch;
+        ch.d = SSTRCOD; ch.i += csound->scnt++;
+        *pfld = ch.d;           /* set as string with count */
       }
-      csound->scnt0++;
+      csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
+      printf("csound->sstrlen = %d\n", csound->sstrlen);
       return(1);
     }
     if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
@@ -109,9 +122,6 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
-#ifdef BETA
-      csound->Message(csound, "THIS SHOULD NOT HAPPEN -- CONTACT jpff\n");
-#endif
       e->opcod = 'f';             /*     return an 'f 0 3600'    */
       e->p[1] = FL(0.0);
       e->p[2] = FL(INF);
@@ -121,7 +131,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
     }
   /* else read the real score */
     while ((c = corfile_getc(csound->scstr)) != '\0') {
-      csound->scnt0 = 0;
+      csound->scnt = 0;
       switch (c) {
       case ' ':
       case '\t':
@@ -224,16 +234,18 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         if (!csound->csoundIsScorePending_ && e->opcod == 'i') {
           /* FIXME: should pause and not mute */
           csound->sstrlen = 0;
-          e->opcod = 'f'; e->p[1] = FL(0.0); e->pcnt = 2;
+          e->opcod = 'f'; e->p[1] = FL(0.0); e->pcnt = 2; e->scnt = 0;
           return 1;
         }
         e->pcnt = pp - &e->p[0];                   /* count the pfields */
         if (e->pcnt>=PMAX) e->pcnt += e->c.extra[0]; /* and overflow fields */
         if (csound->sstrlen) {        /* if string arg present, save it */
           e->strarg = mmalloc(csound, csound->sstrlen); /* FIXME:       */
-          strcpy(e->strarg, csound->sstrbuf);           /* leaks memory */
+          memcpy(e->strarg, csound->sstrbuf, csound->sstrlen); /* leaks memory */
+          e->scnt = csound->scnt;
           csound->sstrlen = 0;
         }
+        else { e->strarg = NULL; e->scnt = 0; } /* is this necessary?? */
         return 1;
       }
     }

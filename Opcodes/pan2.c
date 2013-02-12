@@ -114,7 +114,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
 
 static OENTRY pan2_localops[] =
 {
-  { "pan2", sizeof(PAN2), 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run }
+  { "pan2", sizeof(PAN2), 0, 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run }
 };
 
 LINKAGE_BUILTIN(pan2_localops)

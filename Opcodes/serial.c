@@ -436,23 +436,23 @@ int serialPeekByte(CSOUND *csound, SERIALPEEK *p)
 #define S(x)    sizeof(x)
 
 static OENTRY serial_localops[] = {
-    { (char *)"serialBegin", S(SERIALBEGIN), 1, (char *)"i", (char *)"So",
+    { (char *)"serialBegin", S(SERIALBEGIN), 0, 1, (char *)"i", (char *)"So",
       (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL   },
-    { (char *)"serialEnd", S(SERIALEND), 2, (char *)"", (char *)"i",
+    { (char *)"serialEnd", S(SERIALEND), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialEnd, (SUBR)NULL   },
-    { (char *)"serialWrite_i", S(SERIALWRITE), 1, (char *)"", (char *)"iT",
+    { (char *)"serialWrite_i", S(SERIALWRITE), 0, 1, (char *)"", (char *)"iT",
       (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL   },
-    { (char *)"serialWrite", S(SERIALWRITE), 2|WR, (char *)"", (char *)"iU",
+    { (char *)"serialWrite", S(SERIALWRITE), WR, 2, (char *)"", (char *)"iU",
       (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL   },
-    { (char *)"serialRead", S(SERIALREAD), 2, (char *)"k", (char *)"i",
+    { (char *)"serialRead", S(SERIALREAD), 0, 2, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL   },
-    { (char *)"serialPrint", S(SERIALPRINT), 2|WR, (char *)"", (char *)"i",
+    { (char *)"serialPrint", S(SERIALPRINT), WR,2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
-    { (char *)"serialFlush", S(SERIALFLUSH), 2, (char *)"", (char *)"i",
+    { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
-    /* { (char *)"serialAvailable", S(SERIALAVAIL), 2, (char *)"k", (char *)"i", */
+    /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
     /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
-    /* { (char *)"serialPeekByte", S(SERIALPEEK), 2, (char *)"k", (char *)"i", */
+    /* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */
     /*   (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   } */
 };
 

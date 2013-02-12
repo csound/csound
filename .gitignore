@@ -174,3 +174,4 @@ results.txt
 Custom.cmake
 Engine/.csound_orc.l.swn
 Engine/.csound_orc.y.swn
+*.swm

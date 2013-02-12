@@ -456,7 +456,8 @@ public:
     csoundKeyPress(csound, c);
   }
   // control and events
-  virtual void SetInputValueCallback(
+  // deprecated
+  /*  virtual void SetInputValueCallback(
       void (*inputValueCallback_)(CSOUND *, const char *, MYFLT *))
   {
     csoundSetInputValueCallback(csound, inputValueCallback_);
@@ -466,6 +467,7 @@ public:
   {
     csoundSetOutputValueCallback(csound, outputValueCallback_);
   }
+  */
   virtual int ScoreEvent(char type, const MYFLT *pFields, long numFields)
   {
     return csoundScoreEvent(csound, type, pFields, numFields);
@@ -564,13 +566,14 @@ public:
   {
     csoundDisposeOpcodeList(csound, opcodelist);
   }
-  virtual int AppendOpcode(const char *opname, int dsblksiz, int thread,
+  virtual int AppendOpcode(const char *opname, int dsblksiz, int flags,
+                           int thread,
                            const char *outypes, const char *intypes,
                            int (*iopadr)(CSOUND *, void *),
                            int (*kopadr)(CSOUND *, void *),
                            int (*aopadr)(CSOUND *, void *))
   {
-    return csoundAppendOpcode(csound, opname, dsblksiz, thread,
+      return csoundAppendOpcode(csound, opname, dsblksiz, flags, thread,
                               outypes, intypes, iopadr, kopadr, aopadr);
   }
   // miscellaneous functions
@@ -817,10 +820,12 @@ public:
   {
     return csoundDeleteConfigurationVariable(csound, name);
   }
+  /* removed
   virtual void SetChannelIOCallback(CsoundChannelIOCallback_t func)
   {
     csoundSetChannelIOCallback(csound, func);
   }
+  */
   // constructors
   // FIXME: should throw exception on failure ?
   Csound()

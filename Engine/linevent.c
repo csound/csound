@@ -24,9 +24,6 @@
 #include "csoundCore.h"     /*                              LINEVENT.C      */
 #include "text.h"
 #include <ctype.h>
-#if (defined(mac_classic) && defined(__MWERKS__))
-#include <console.h>
-#endif
 
 #include "linevent.h"
 
@@ -56,7 +53,6 @@
 
 static void sensLine(CSOUND *csound, void *userData);
 
-//#define ST(x)   (((LINEVENT_GLOBALS*) ((CSOUND*) csound)->lineventGlobals)->x)
 #define STA(x)   (csound->lineventStatics.x)
 
 void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
@@ -69,18 +65,13 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
-#if defined(mills_macintosh)
-      STA(Linecons) = stdin;
-      setvbuf(stdin, NULL, _IONBF, 0);
-#else
-  #if defined(DOSGCC) || defined(WIN32) || defined(mills_macintosh)
+#if defined(DOSGCC) || defined(WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
-  #else
+#else
       STA(stdmode) = fcntl(csound->Linefd, F_GETFL, 0);
       if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, STA(stdmode) | O_NDELAY) < 0))
         csoundDie(csound, Str("-L stdin fcntl failed"));
-  #endif
 #endif
     }
 #ifdef PIPES
@@ -92,11 +83,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       else csoundDie(csound, Str("Cannot open %s"), O->Linename);
     }
 #endif
-#if defined(mills_macintosh)
-#define MODE
-#else
 #define MODE ,0
-#endif
 #if defined(MSVC)
 #define O_RDONLY _O_RDONLY
 #endif
@@ -119,24 +106,19 @@ void RTclose(CSOUND *csound)
     csound->oparms->Linein = 0;
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
-#if defined(mills_macintosh)
-    if (STA(Linecons) != NULL)
-      fclose(STA(Linecons));
-#else
-   #ifdef PIPES
+#ifdef PIPES
     if (csound->oparms->Linename[0] == '|')
       _pclose(csound->Linepipe);
     else
-  #endif
+#endif
       {
         if (strcmp(csound->oparms->Linename, "stdin") != 0)
           close(csound->Linefd);
-  #if !defined(DOSGCC) && !defined(WIN32) && !defined(mills_macintosh)
+  #if !defined(DOSGCC) && !defined(WIN32)
         else
           fcntl(csound->Linefd, F_SETFL, STA(stdmode));
   #endif
 }
-#endif      /* !(mills_macintosh */
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
@@ -179,7 +161,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
-PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
+void csoundInputMessageInternal(CSOUND *csound, const char *message)
 {
     int32  size = (int32) strlen(message);
     int n;
@@ -209,12 +191,7 @@ static void sensLine(CSOUND *csound, void *userData)
     while (1) {
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
-#if defined(mills_macintosh)
-        n = fread((void *) Linend, (size_t) 1,
-                  (size_t) (STA(Linebufend) - Linend), STA(Linecons));
-#else
         n = read(csound->Linefd, Linend, STA(Linebufend) - Linend);
-#endif
         Linend += (n > 0 ? n : 0);
       }
       if (Linend <= STA(Linebuf))
@@ -224,7 +201,9 @@ static void sensLine(CSOUND *csound, void *userData)
       
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
-        char    sstrp[SSTRSIZ];
+        char    *sstrp = NULL;
+        int     scnt = 0;
+        int     strsiz;
         e.strarg = NULL;
         c = *cp;
         while (c == ' ' || c == '\t')   /* skip initial white space */
@@ -255,10 +234,10 @@ static void sensLine(CSOUND *csound, void *userData)
             break;
           pcnt++;
           if (c == '"') {                       /* if find character string */
-            if (UNLIKELY(e.strarg != NULL)) {
-              csound->ErrorMsg(csound, Str("multiple string p-fields"));
-              goto Lerr;
-            }
+            if (e.strarg == NULL)
+              e.strarg = sstrp = mmalloc(csound, strsiz=SSTRSIZ);
+            n = scnt;
+            while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
             while ((c = *(++cp)) != '"') {
               if (UNLIKELY(c == LF)) {
@@ -266,14 +245,21 @@ static void sensLine(CSOUND *csound, void *userData)
                 goto Lerr;
               }
               sstrp[n++] = c;                   /*   save in private strbuf */
-              if (UNLIKELY(n >= SSTRSIZ)) {
-                csound->ErrorMsg(csound, Str("string p-field is too long"));
-                goto Lerr;
+              if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
+                e.strarg = mrealloc(csound, e.strarg, strsiz+=SSTRSIZ);
+                sstrp = e.strarg+n;
               }
             }
             sstrp[n] = '\0';
-            e.strarg = &(sstrp[0]);
-            e.p[pcnt] = SSTRCOD;                /*   & store coded float   */
+            {
+              union {
+                MYFLT d;
+                int32 i;
+              } ch;
+              ch.d = SSTRCOD; ch.i += scnt++;
+              e.p[pcnt] = ch.d;           /* set as string with count */
+            }
+            e.scnt = scnt;
             continue;
           }
           if (UNLIKELY(!(isdigit(c) || c == '+' || c == '-' || c == '.')))
@@ -286,7 +272,7 @@ static void sensLine(CSOUND *csound, void *userData)
               goto Lerr;
             }                                   /*        pfld carry   */
             e.p[pcnt] = STA(prve).p[pcnt];
-            if (UNLIKELY(e.p[pcnt] == SSTRCOD)) {
+            if (UNLIKELY(ISSTRCOD(e.p[pcnt]))) {
               csound->ErrorMsg(csound, Str("cannot carry string p-field"));
               goto Lerr;
             }

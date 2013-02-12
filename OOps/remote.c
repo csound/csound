@@ -565,6 +565,7 @@ int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
     int nn;
     MYFLT *f, *g;
     cpp->strarg = NULL;                     /* copy the initial header */
+    cpp->scnt = 0;
     cpp->opcod = evt->opcod;
     cpp->pcnt = evt->pcnt;
     f = &evt->p2orig;

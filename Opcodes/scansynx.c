@@ -301,8 +301,9 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         unquote(filnam, csound->currevent->strarg);
       else strcpy(filnam, (char*) p->i_f);
       /* readfile if reqd */
-      if (UNLIKELY((mfp = csound->ldmemfile2(csound, filnam,
-                                             CSFTYPE_XSCANU_MATRIX)) == NULL)) {
+      if (UNLIKELY((mfp =
+                    csound->ldmemfile2withCB(csound, filnam,
+                                       CSFTYPE_XSCANU_MATRIX, NULL)) == NULL)) {
         return csound->InitError(csound, Str("SCANU cannot load %s"), filnam);
       }
       else {
@@ -722,13 +723,13 @@ static int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "xscanu", S(PSCSNUX),TR|5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init,
+{ "xscanu", S(PSCSNUX),TR, 5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init,
                                                     NULL,(SUBR)scsnux },
-{ "xscans", S(PSCSNSX),  TR|5,  "a", "kkiio",         (SUBR)scsnsx_init,
+{ "xscans", S(PSCSNSX),  TR, 5,  "a", "kkiio",         (SUBR)scsnsx_init,
                                                     NULL, (SUBR)scsnsx},
-{ "xscanmap", S(PSCSNMAPX),TR|3, "kk", "ikko",        (SUBR)scsnmapx_init,
+{ "xscanmap", S(PSCSNMAPX),TR, 3, "kk", "ikko",        (SUBR)scsnmapx_init,
                                                    (SUBR)scsnmapx,NULL },
-{ "xscansmap", S(PSCSNMAPX),TR|3,"",   "kkikko",      (SUBR)scsnmapx_init,
+{ "xscansmap", S(PSCSNMAPX),TR, 3,"",   "kkikko",      (SUBR)scsnmapx_init,
                                                    (SUBR)scsnsmapx,NULL }
 };
 

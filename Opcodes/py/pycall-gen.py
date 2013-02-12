@@ -31,6 +31,9 @@ def generate_pycall_common_init_code(f, n, pre, post, rate, triggered=0):
     print >> f, '{'
     print >> f, '    char      command[1024];'
     print >> f, '    PyObject  *result;'
+    print >> f, '   int *py_initialize_done;'
+    print >> f, '   if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||*py_initialize_done == 0)' 
+    print >> f, '   return NOTOK;'
     print >> f
     if triggered:
         print >> f, '    if (!*p->trigger) {'
@@ -116,6 +119,9 @@ def generate_pylcall_irate_method(f, n, triggered=0):
     name = 'pylcall%d%s_irate' % (n, t)
     print >> f, 'static int %s(CSOUND *csound, PYCALL%d%s *p)' % (name, n, T)
     print >> f, '{'
+    print >> f, '   int *py_initialize_done;'
+    print >> f, '   if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||*py_initialize_done == 0)' 
+    print >> f, '   return NOTOK;'
     print >> f, '    create_private_namespace_if_needed(&p->h);'
     print >> f, '    return OK;'
     print >> f, '}'

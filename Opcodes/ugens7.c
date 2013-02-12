@@ -596,9 +596,9 @@ static int harmon(CSOUND *csound, HARMON *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "fof",    S(FOFS),   TR|5, "a","xxxkkkkkiiiiooo",(SUBR)fofset,NULL,(SUBR)fof   },
-{ "fof2",   S(FOFS),   TR|5, "a","xxxkkkkkiiiikko",(SUBR)fofset2,NULL,(SUBR)fof  },
-{ "harmon", S(HARMON), 5, "a",  "akkkkiii",(SUBR)harmset,NULL,  (SUBR)harmon  }
+{ "fof",    S(FOFS),   TR, 5, "a","xxxkkkkkiiiiooo",(SUBR)fofset,NULL,(SUBR)fof   },
+{ "fof2",   S(FOFS),   TR, 5, "a","xxxkkkkkiiiikko",(SUBR)fofset2,NULL,(SUBR)fof  },
+{ "harmon", S(HARMON), 0,5, "a",  "akkkkiii",(SUBR)harmset,NULL,  (SUBR)harmon  }
 };
 
 int ugens7_init_(CSOUND *csound)

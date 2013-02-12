@@ -90,7 +90,7 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
 
 static OENTRY jackTransport_localops[] = {
 
-  { "jacktransport",  S(JACKTRANSPORT),  1, "", "ij",
+  { "jacktransport",  S(JACKTRANSPORT),  0, 1, "", "ij",
                        (SUBR)jack_transport, NULL, NULL   },
 };
 

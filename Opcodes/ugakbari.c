@@ -103,12 +103,12 @@ static int gainslider_perf(CSOUND *csound, gainslider *p)
 /* opcode library entries */
 
 static OENTRY ugakbari_localops[] = {
-  { "scale", sizeof(scale), 2, "k", "kkk", NULL, (SUBR)scale_process, NULL },
-  { "expcurve", sizeof(expcurve), 2, "k", "kk", NULL,
+  { "scale", sizeof(scale), 0, 2, "k", "kkk", NULL, (SUBR)scale_process, NULL },
+  { "expcurve", sizeof(expcurve), 0, 2, "k", "kk", NULL,
     (SUBR)expcurve_perf, NULL },
-  { "logcurve", sizeof(logcurve), 2, "k", "kk", NULL,
+  { "logcurve", sizeof(logcurve), 0, 2, "k", "kk", NULL,
     (SUBR)logcurve_perf, NULL },
-  { "gainslider", sizeof(gainslider), 2, "k", "k", NULL,
+  { "gainslider", sizeof(gainslider), 0, 2, "k", "k", NULL,
     (SUBR)gainslider_perf, NULL }
 };
 
