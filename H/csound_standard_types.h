@@ -17,18 +17,18 @@ extern "C" {
 
     PUBLIC void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool);
 
-    extern const CS_TYPE CS_VAR_TYPE_A;
-    extern const CS_TYPE CS_VAR_TYPE_K;
-    extern const CS_TYPE CS_VAR_TYPE_I;
-    extern const CS_TYPE CS_VAR_TYPE_S;
-    extern const CS_TYPE CS_VAR_TYPE_P;
-    extern const CS_TYPE CS_VAR_TYPE_R;
-    extern const CS_TYPE CS_VAR_TYPE_C;
-    extern const CS_TYPE CS_VAR_TYPE_W;
-    extern const CS_TYPE CS_VAR_TYPE_F;
-    extern const CS_TYPE CS_VAR_TYPE_B;
-    extern const CS_TYPE CS_VAR_TYPE_b;
-    extern const CS_TYPE CS_VAR_TYPE_ARRAY;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_A;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_K;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_I;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_S;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_P;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_R;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_C;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_W;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_F;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_B;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_b;
+    PUBLIC extern const CS_TYPE CS_VAR_TYPE_ARRAY;
     
     typedef struct arrayVarInit {
         int dimensions;
