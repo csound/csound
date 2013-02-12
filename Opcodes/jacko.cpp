@@ -1465,6 +1465,7 @@ extern "C"
     {
       (char *)"JackoInit",
       sizeof(JackoInit),
+      0,
       1,
       (char *)"",
       (char *)"SS",
@@ -1475,6 +1476,7 @@ extern "C"
     {
       (char *)"JackoInfo",
       sizeof(JackoInfo),
+      0,
       1,
       (char *)"",
       (char *)"",
@@ -1485,6 +1487,7 @@ extern "C"
     {
       (char *)"JackoFreewheel",
       sizeof(JackoFreewheel),
+      0,
       1,
       (char *)"",
       (char *)"i",
@@ -1495,6 +1498,7 @@ extern "C"
     {
       (char *)"JackoOn",
       sizeof(JackoOn),
+      0,
       1,
       (char *)"",
       (char *)"j",
@@ -1505,6 +1509,7 @@ extern "C"
     {
       (char *)"JackoAudioInConnect",
       sizeof(JackoAudioInConnect),
+      0,
       1,
       (char *)"",
       (char *)"SS",
@@ -1515,6 +1520,7 @@ extern "C"
     {
       (char *)"JackoAudioIn",
       sizeof(JackoAudioIn),
+      0,
       5,
       (char *)"a",
       (char *)"S",
@@ -1525,6 +1531,7 @@ extern "C"
     {
       (char *)"JackoAudioOutConnect",
       sizeof(JackoAudioOutConnect),
+      0,
       1,
       (char *)"",
       (char *)"SS",
@@ -1535,6 +1542,7 @@ extern "C"
     {
       (char *)"JackoAudioOut",
       sizeof(JackoAudioOut),
+      0,
       5,
       (char *)"",
       (char *)"Sa",
@@ -1545,6 +1553,7 @@ extern "C"
     {
       (char *)"JackoMidiInConnect",
       sizeof(JackoMidiInConnect),
+      0,
       1,
       (char *)"",
       (char *)"SS",
@@ -1555,6 +1564,7 @@ extern "C"
     {
       (char *)"JackoMidiOutConnect",
       sizeof(JackoMidiOutConnect),
+      0,
       1,
       (char *)"",
       (char *)"SS",
@@ -1565,6 +1575,7 @@ extern "C"
     {
       (char *)"JackoMidiOut",
       sizeof(JackoMidiOut),
+      0,
       3,
       (char *)"",
       (char *)"SkkkO",
@@ -1575,6 +1586,7 @@ extern "C"
     {
       (char *)"JackoNoteOut",
       sizeof(JackoNoteOut),
+      0,
       3,
       (char *)"",
       (char *)"Siii",
@@ -1585,6 +1597,7 @@ extern "C"
     {
       (char *)"JackoTransport",
       sizeof(JackoTransport),
+      0,
       3,
       (char *)"",
       (char *)"kO", // O defaults to 0.
@@ -1592,7 +1605,7 @@ extern "C"
       (SUBR)&JackoTransport::kontrol_,
       0
     },
-    { 0, 0, 0, 0, 0, (SUBR) 0, (SUBR) 0, (SUBR) 0 }
+    { 0, 0, 0, 0, 0, 0, (SUBR) 0, (SUBR) 0, (SUBR) 0 }
   };
 
 
@@ -1609,6 +1622,7 @@ extern "C"
       err |= csound->AppendOpcode(csound,
                                   ep->opname,
                                   ep->dsblksiz,
+                                  ep->flags,
                                   ep->thread,
                                   ep->outypes,
                                   ep->intypes,

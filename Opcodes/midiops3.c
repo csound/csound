@@ -472,35 +472,35 @@ static OENTRY localops[] = {
 { "slider32", 0xffff,                                                   },
 { "slider64", 0xffff,                                                   },
 { "slider8", 0xffff,                                                    },
-{ "slider8.k", S(SLIDER8), 3, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+{ "slider8.k", S(SLIDER8), 0, 3, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                               "iiiiiiii", (SUBR)slider_i8, (SUBR)slider8, NULL },
-{ "slider8f", S(SLIDER8f), 3, "kkkkkkkk","iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+{ "slider8f", S(SLIDER8f), 0, 3, "kkkkkkkk","iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiii",
                                         (SUBR)slider_i8f, (SUBR)slider8f, NULL },
-{ "slider8.i", S(SLIDER8), 1, "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+{ "slider8.i", S(SLIDER8), 0, 1, "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                           (SUBR)islider8, NULL, NULL },
-{ "slider16.k", S(SLIDER16), 3, "kkkkkkkkkkkkkkkk",
+{ "slider16.k", S(SLIDER16), 0, 3, "kkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiii",
                                         (SUBR)slider_i16, (SUBR)slider16, NULL },
-{ "slider16f", S(SLIDER16f), 3, "kkkkkkkkkkkkkkkk",
+{ "slider16f", S(SLIDER16f), 0, 3, "kkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)slider_i16f, (SUBR)slider16f, NULL },
-{ "slider16.i", S(SLIDER16), 1, "iiiiiiiiiiiiiiii",
+{ "slider16.i", S(SLIDER16), 0, 1, "iiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)islider16, NULL, NULL       },
-{ "slider32.k", S(SLIDER32),  3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+{ "slider32.k", S(SLIDER32),  0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)slider_i32, (SUBR)slider32, NULL  },
-{ "slider32f", S(SLIDER32f), 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+{ "slider32f", S(SLIDER32f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
@@ -508,13 +508,13 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiii",
                                         (SUBR)slider_i32f, (SUBR)slider32f, NULL },
-{ "slider32.i", S(SLIDER32), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+{ "slider32.i", S(SLIDER32), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)islider32, NULL, NULL  },
-{ "slider64.k", S(SLIDER64), 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+{ "slider64.k", S(SLIDER64), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
                               "kkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
@@ -530,7 +530,7 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)slider_i64, (SUBR)slider64, NULL  },
-{ "slider64f", S(SLIDER64f), 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+{ "slider64f", S(SLIDER64f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
                                 "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
@@ -549,7 +549,7 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii",
                                         (SUBR)slider_i64f, (SUBR)slider64f, NULL },
-{ "slider64.i", S(SLIDER64), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+{ "slider64.i", S(SLIDER64), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                 "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
@@ -563,12 +563,12 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiii",
                                         (SUBR)islider64, NULL, NULL  },
-{ "s16b14.k", S(SLIDER16BIT14), 3, "kkkkkkkkkkkkkkkk",
+{ "s16b14.k", S(SLIDER16BIT14), 0, 3, "kkkkkkkkkkkkkkkk",
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                  (SUBR)slider_i16bit14, (SUBR)slider16bit14, NULL},
-{ "s32b14.k", S(SLIDER32BIT14), 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+{ "s32b14.k", S(SLIDER32BIT14), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
@@ -576,14 +576,14 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                  (SUBR)slider_i32bit14, (SUBR)slider32bit14, NULL},
-{ "s16b14.i", S(ISLIDER16BIT14), 1, "iiiiiiiiiiiiiiii",
+{ "s16b14.i", S(ISLIDER16BIT14), 0, 1, "iiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii",
                                         (SUBR)islider16bit14, NULL, NULL  },
-{ "s32b14.i", S(ISLIDER32BIT14), 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+{ "s32b14.i", S(ISLIDER32BIT14), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"

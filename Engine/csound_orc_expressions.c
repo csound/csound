@@ -483,7 +483,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
         csound->Message(csound, "Found TABMAP: %s\n", op);
       outarg = create_out_arg(csound, 't');
       break;
-    case T_FUNCTION: /* assumes on single arg input */
+    case T_FUNCTION: /* assumes only single arg input */
       c = arg2;
       if (c == 'p' || c == 'c' || c == 't')   c = 'i';
       sprintf(op, "%s.%c", root->value->lexeme, c);
@@ -958,15 +958,11 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
-                /* VL: added as means of dealing with empty conditionals,
-                   may need revision */
-                if (statements == NULL)
-                   csound->Warning(csound,
-                               Str("Empty statement in "
-                                   "conditional, line %d \n"),
-                               last->right->line);
-                while (statements->next != NULL) {
-                  statements = statements->next;
+                
+                if (statements != NULL) {
+                  while (statements->next != NULL) {
+                    statements = statements->next;
+                  }
                 }
                 if (endLabelCounter > 0) {
                   TREE *endLabel = create_synthetic_ident(csound,
@@ -979,11 +975,19 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                   if (UNLIKELY(PARSER_DEBUG))
                     csound->Message(csound, "Creating simple goto token\n");
 
-                  statements->next = gotoEndLabelToken;
+                  if(statements == NULL) {
+                    gotoToken->next = gotoEndLabelToken;
+                  } else {
+                    statements->next = gotoEndLabelToken;
+                  }
                   gotoEndLabelToken->next = labelEnd;
                 }
                 else {
-                  statements->next = labelEnd;
+                  if(statements == NULL) {
+                    gotoToken->next = labelEnd;
+                  } else {
+                    statements->next = labelEnd;
+                  }
                 }
 
                 ifBlockLast = labelEnd;
@@ -1107,33 +1111,32 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         {
           TREE* currentArg = current->right;
           TREE* currentAns = current->left;
+          char anstype, argtype;
+
           //csound->Message(csound, "Assignment Statement.\n");
+            
+          if (currentAns->type == T_ARRAY) {
+            anstype = argtyp2(currentAns->left->value->lexeme);
+            TREE* temp = create_ans_token(csound,
+                                          create_out_arg(csound, anstype));
+            current->left = temp;
+            
+            TREE* arraySet = create_opcode_token(csound, "array_set");
+            arraySet->right = currentAns->left;
+            arraySet->right->next = make_leaf(csound, temp->line, temp->locn,
+                                                T_IDENT, make_token(csound, temp->value->lexeme));
+            arraySet->right->next->next = currentAns->right;
+            
+            arraySet->next = current->next;
+            current->next = arraySet;
+            currentAns = temp;
+            
+          }
+            
           if (currentArg->left || currentArg->right) {
-            char anstype, argtype;
             //csound->Message(csound, "expansion case\n");
+            anstype = argtyp2( currentAns->value->lexeme);
               
-            if (currentAns->type == T_ARRAY) {
-                anstype = argtyp2(currentAns->left->value->lexeme);
-                TREE* temp = create_ans_token(csound,
-                                              create_out_arg(csound, anstype));
-                current->left = temp;
-                
-                TREE* arraySet = create_opcode_token(csound, "array_set");
-                arraySet->right = currentAns->left;
-                arraySet->right->next = currentAns->right;
-                arraySet->right->next->next =
-                  make_leaf(csound, temp->line, temp->locn, 
-                            T_IDENT, make_token(csound, temp->value->lexeme));
-
-                arraySet->next = current->next;
-                current->next = arraySet;
-                currentAns = temp;
-
-            } else {
-                anstype = argtyp2( currentAns->value->lexeme);
-            }
-              
-
             //print_tree(csound, "Assignment\n", current);
             expressionNodes =
               create_expression(csound, currentArg,

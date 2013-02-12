@@ -560,17 +560,17 @@ static int Phasine(CSOUND* csound, PHASINE* p)
 #define S(x)    sizeof(x)
 
 static OENTRY shape_localops[] = {
-  /* { "phasine", S(PHASINE), 5, "a", "akp",
+  /* { "phasine", S(PHASINE), 0, 5, "a", "akp",
                         (SUBR)PhasineInit, NULL, (SUBR)Phasine }, */
-  { "powershape", S(POWER_SHAPE), 5, "a", "akp",
+  { "powershape", S(POWER_SHAPE), 0, 5, "a", "akp",
                         (SUBR)PowerShapeInit, NULL, (SUBR)PowerShape },
-  { "polynomial", S(POLYNOMIAL), 4, "a", "az", NULL, NULL, (SUBR)Polynomial },
-  { "chebyshevpoly", S(CHEBPOLY), 5, "a", "az",
+  { "polynomial", S(POLYNOMIAL), 0, 4, "a", "az", NULL, NULL, (SUBR)Polynomial },
+  { "chebyshevpoly", S(CHEBPOLY), 0, 5, "a", "az",
                      (SUBR)ChebyshevPolyInit, NULL, (SUBR)ChebyshevPolynomial },
-  { "pdclip", S(PD_CLIP), 4, "a", "akkop", NULL, NULL, (SUBR)PDClip },
-  { "pdhalf", S(PD_HALF), 4, "a", "akop", NULL, NULL, (SUBR)PDHalfX },
-  { "pdhalfy", S(PD_HALF), 4, "a", "akop", NULL, NULL, (SUBR)PDHalfY },
-  { "syncphasor", S(SYNCPHASOR), 5, "aa", "xao",
+  { "pdclip", S(PD_CLIP), 0, 4, "a", "akkop", NULL, NULL, (SUBR)PDClip },
+  { "pdhalf", S(PD_HALF), 0, 4, "a", "akop", NULL, NULL, (SUBR)PDHalfX },
+  { "pdhalfy", S(PD_HALF), 0, 4, "a", "akop", NULL, NULL, (SUBR)PDHalfY },
+  { "syncphasor", S(SYNCPHASOR), 0, 5, "aa", "xao",
                   (SUBR)SyncPhasorInit, NULL, (SUBR)SyncPhasor },
 };
 

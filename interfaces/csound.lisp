@@ -295,13 +295,13 @@
   (arg0 :pointer)
   (c :char))
 
-(defcfun ("csoundSetInputValueCallback" csoundSetInputValueCallback) :void
-  (arg0 :pointer)
-  (inputValueCalback_ :pointer))
+;;;(defcfun ("csoundSetInputValueCallback" csoundSetInputValueCallback) :void
+;;;  (arg0 :pointer)
+;;;  (inputValueCalback_ :pointer))
 
-(defcfun ("csoundSetOutputValueCallback" csoundSetOutputValueCallback) :void
-  (arg0 :pointer)
-  (outputValueCalback_ :pointer))
+;;;(defcfun ("csoundSetOutputValueCallback" csoundSetOutputValueCallback) :void
+;;;  (arg0 :pointer)
+;;;  (outputValueCalback_ :pointer))
 
 (defcfun ("csoundScoreEvent" csoundScoreEvent) :int
   (arg0 :pointer)
@@ -589,9 +589,9 @@
   (min :pointer)
   (max :pointer))
 
-(defcfun ("csoundSetChannelIOCallback" csoundSetChannelIOCallback) :void
-  (arg0 :pointer)
-  (func :pointer))
+;;;(defcfun ("csoundSetChannelIOCallback" csoundSetChannelIOCallback) :void
+;;;  (arg0 :pointer)
+;;;  (func :pointer))
 
 (defcfun ("csoundRand31" csoundRand31) :int
   (seedVal :pointer))

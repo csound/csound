@@ -112,7 +112,7 @@ static int cell(CSOUND *csound,CELL *p)
 #define S sizeof
 
 static OENTRY localops[] = {
-  {"cell",  S(CELL),  3|TB, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
+  {"cell",  S(CELL),  3, TB, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
 };
 
 LINKAGE

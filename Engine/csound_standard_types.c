@@ -66,11 +66,14 @@ void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
 
 CS_VARIABLE* createArray(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
-    CS_TYPE* type = (CS_TYPE*)p;
+    ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
+    
+    CS_TYPE* type = state->type;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = sizeof(ARRAYDAT);
     var->subType = type;
     var->initializeVariableMemory = &arrayInitMemory;
+    var->dimensions = state->dimensions;
     return var; 
 }
 
@@ -88,6 +91,10 @@ const CS_TYPE CS_VAR_TYPE_K = {
 
 const CS_TYPE CS_VAR_TYPE_I = {
   "i", NULL, "init time var", CS_ARG_TYPE_BOTH, createMyflt, NULL
+};
+
+const CS_TYPE CS_VAR_TYPE_S = {
+    "S", NULL, "String var", CS_ARG_TYPE_BOTH, createMyflt, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
@@ -127,6 +134,7 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_K);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_I);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_S);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_P);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_R);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_C);

@@ -625,6 +625,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidEngine",
         sizeof(FluidEngine),
+        0,
         1,
         (char *)"i",
         (char *)"ppoo",
@@ -635,6 +636,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidLoad",
         sizeof(FluidLoad),
+        0,
         1,
         (char *)"i",
         (char *)"Tio",
@@ -645,6 +647,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidProgramSelect",
         sizeof(FluidProgramSelect),
+        0,
         1,
         (char *)"",
         (char *)"iiiii",
@@ -655,6 +658,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidCCi",
         sizeof(FluidCCI),
+        0,
         1,
         (char *)"",
         (char *)"iiii",
@@ -665,6 +669,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidCCk",
         sizeof(FluidCCK),
+        0,
         3,
         (char *)"",
         (char *)"ikkk",
@@ -675,6 +680,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidNote",
         sizeof(FluidNote),
+        0,
         3,
         (char *)"",
         (char *)"iiii",
@@ -685,6 +691,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidOut",
         sizeof(FluidOut),
+        0,
         5,
         (char *)"aa",
         (char *)"i",
@@ -695,6 +702,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidAllOut",
         sizeof(FluidAllOut),
+        0,
         5,
         (char *)"aa",
         (char *)"",
@@ -705,6 +713,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidControl",
         sizeof(FluidControl),
+        0,
         3,
         (char *)"",
         (char *)"ikkkk",
@@ -715,6 +724,7 @@ static OENTRY localops[] = {
     {
         (char *)"fluidSetInterpMethod",
         sizeof(FluidSetInterpMethod),
+        0,
         1,
         (char *)"",
         (char *)"iii",
@@ -723,6 +733,7 @@ static OENTRY localops[] = {
         (SUBR) 0
     },
     {
+        0,
         0,
         0,
         0,
@@ -751,6 +762,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
         err |= csound->AppendOpcode(csound,
                 ep->opname,
                 ep->dsblksiz,
+                ep->flags,
                 ep->thread,
                 ep->outypes,
                 ep->intypes,

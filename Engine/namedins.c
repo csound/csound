@@ -382,12 +382,13 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
         s = mmalloc(csound, strlen((char*) p) + 1);
       strcpy(s, (char*) p);
     }
-    else if (*((MYFLT*) p) == SSTRCOD) {
+    else if (ISSTRCOD(*((MYFLT*) p))) {
       /* p-field string, unquote and copy */
-      char  *s2 = csound->currevent->strarg;
+      char  *s2 = get_arg_string(csound, *((MYFLT*)p));
       int   i = 0;
+      printf("strarg2name: %g %s\n", *((MYFLT*)p), s2);
       if (s == NULL)
-        s = mmalloc(csound, strlen(csound->currevent->strarg) + 1);
+        s = mmalloc(csound, strlen(s2) + 1);
       if (*s2 == '"')
         s2++;
       while (*s2 != '"' && *s2 != '\0')

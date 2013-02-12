@@ -47,6 +47,9 @@ def generate_x_method(f, action, context, rate0, triggered):
     print >> f, '{'
     print >> f, '    char      source[%d];' % size
     print >> f, '    PyObject  *result;'
+    print >> f, '   int *py_initialize_done;'
+    print >> f, '   if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||*py_initialize_done == 0)' 
+    print >> f, '   return NOTOK;'
     print >> f
 
     if triggered:
@@ -100,6 +103,9 @@ def generate_init_method(f, action, triggered):
         t, T = '', ''
     print >> f, 'static int pyl%(action)s%(t)s_irate(CSOUND *csound, PY%(ACTION)s%(T)s *p)' % locals()
     print >> f, '{'
+    print >> f, '   int *py_initialize_done;'
+    print >> f, '   if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||*py_initialize_done == 0)' 
+    print >> f, '   return NOTOK;'
     print >> f, '    create_private_namespace_if_needed(&p->h);'
     print >> f, '    return OK;'
     print >> f, '}'

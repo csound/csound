@@ -119,11 +119,6 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
               csound->Die(csound, Str("-o cannot be stdin"));
-#ifdef macintosh
-            if (strcmp(O->outfilename, "stdout") == 0) {
-              csound->Die(csound, Str("stdout audio not supported"));
-            }
-#endif
             break;
           case 'S':
             FIND(Str("no start sample"));

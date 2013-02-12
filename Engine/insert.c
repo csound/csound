@@ -30,6 +30,7 @@
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "pstream.h"
+#include "interlocks.h"
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -120,16 +121,16 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Warning(csound, Str("Instrument %d muted\n"), insno);
       return 0;
     }
-    if (UNLIKELY(tp->mdepends & 04)) {
-      char *name = csound->engineState.instrtxtp[insno]->insname;
-      if (UNLIKELY(name))
-        csound->Message(csound, Str("instr %s expects midi event data, "
-                                    "cannot run from score\n"), name);
-      else
-      csound->Message(csound, Str("instr %d expects midi event data, "
-                                  "cannot run from score\n"), insno);
-      return(1);
-    }
+    /* if (UNLIKELY(tp->mdepends & MO)) { */
+    /*   char *name = csound->engineState.instrtxtp[insno]->insname; */
+    /*   if (UNLIKELY(name)) */
+    /*     csound->Message(csound, Str("instr %s expects midi event data, " */
+    /*                                 "cannot run from score\n"), name); */
+    /*   else */
+    /*   csound->Message(csound, Str("instr %d expects midi event data, " */
+    /*                               "cannot run from score\n"), insno); */
+    /*   return(1); */
+    /* } */
     if (tp->cpuload > FL(0.0)) {
       csound->cpu_power_busy += tp->cpuload;
       /* if there is no more cpu processing time*/
@@ -2040,6 +2041,7 @@ void *init_pass_thread(void *p){
   CSOUND *csound = (CSOUND *) p;
   INSDS *ip;
   while(1) {
+    csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
     ip = csound->actanchor.nxtact;
     /* do init pass for this instr */
     while(ip != NULL){
@@ -2058,7 +2060,6 @@ void *init_pass_thread(void *p){
       }
       ip = nxt; 
     }
-    csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
     if(csound->init_pass_loop == 0) {
       csound->NotifyThreadLock(csound->init_pass_threadlock);
       break;
@@ -2119,17 +2120,17 @@ INSDS *insert_event(CSOUND *csound,
     /* Insert this event into event queue */
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "activating instr %d\n", insno);
-    if (UNLIKELY((tp->mdepends & 4) && !midi)) {
-      char *name = csound->engineState.instrtxtp[ip->insno]->insname;
-      if (name)
-        csound->Message(csound, Str("instr %s expects midi event data, "
-                                    "cannot run from score\n"), name);
-      else
-        csound->Message(csound, Str("instr %d expects midi event data, "
-                                    "cannot run from score\n"), insno);
-      csound->perferrcnt++;
-      goto endsched;
-    }
+    /* if (UNLIKELY((tp->mdepends & MO) && !midi)) { */
+    /*   char *name = csound->engineState.instrtxtp[ip->insno]->insname; */
+    /*   if (name) */
+    /*     csound->Message(csound, Str("instr %s expects midi event data, " */
+    /*                                 "cannot run from score\n"), name); */
+    /*   else */
+    /*     csound->Message(csound, Str("instr %d expects midi event data, " */
+    /*                                 "cannot run from score\n"), insno); */
+    /*   csound->perferrcnt++; */
+    /*   goto endsched; */
+    /* } */
     /* if find this insno, active, with indef (tie) & matching p1 */
     for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
       /* if find this insno, active, with indef (tie) & matching p1 */

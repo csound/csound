@@ -2929,12 +2929,13 @@ int printksset(CSOUND *csound, PRINTKS *p)
      * the first parameter is "".     */
 
     if (!p->XSTRCODE &&
-        (*p->ifilcod != SSTRCOD || csound->currevent->strarg == NULL)) {
+        (!ISSTRCOD(*p->ifilcod) || csound->currevent->strarg == NULL)) {
       return csound->InitError(csound,
                                Str("printks param 1 was not a \"quoted string\""));
     }
     else {
-      sarg = (p->XSTRCODE ? (char*) p->ifilcod : csound->currevent->strarg);
+      sarg = (p->XSTRCODE ? (char*) p->ifilcod : 
+                            get_arg_string(csound, *p->ifilcod));
       memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
       sdest = p->txtstring;
       /* Copy the string to the storage place in PRINTKS.

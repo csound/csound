@@ -1278,11 +1278,6 @@ static void ifa(CSOUND *csound)
         if ((STA(op) == 'i' || STA(op) == 'q') && *STA(sp) == '"') {
         /*   csound->DebugMsg(csound,"***Entering second dubious code scnt=%d\n",
                                       csound->scnt0); */
-        /*   STA(bp)->p1val = ((int[4]){SSTRCOD,SSTRCOD1,
-                                       SSTRCOD2,SSTRCOD3})[csound->scnt0++]; */
-        /*   if (csound->scnt0>3) { */
-        /*     csound->scnt0 = 3; */
-        /*   } */
           STA(bp)->p1val = SSTRCOD;      /* allow string name */
         }
         else
@@ -1333,7 +1328,7 @@ static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
     SRTBLK *p = STA(bp);
     int16 n;
 
-    if (STA(bp)->p1val == SSTRCOD && *STA(sp) == '"') {   /* IV - Oct 31 2002 */
+    if (ISSTRCOD(STA(bp)->p1val) && *STA(sp) == '"') {   /* IV - Oct 31 2002 */
       char name[MAXNAME], *c, *s = STA(sp);
       /* unquote instrument name */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';

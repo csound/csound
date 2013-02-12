@@ -31,7 +31,6 @@
 ./Engine/typetabl.h
 ./frontends/cscore/cscore.c
 ./frontends/cscore/cscoremain.c
-./frontends/cscore/cscoremain_MacOS9.c
 ./frontends/cseditor/cseditor.cxx
 ./frontends/csladspa/csladspa.cpp
 ./frontends/csladspa/ladspa.h

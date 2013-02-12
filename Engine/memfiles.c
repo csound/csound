@@ -30,6 +30,48 @@
 #include <sndfile.h>
 #include <string.h>
 
+static int Load_Het_File_(CSOUND *csound, const char *filnam,
+                          char **allocp, int32 *len, int csFileType)
+
+
+{
+    FILE *f;
+    int length = 1024;
+    int i = 0;
+    int cc;
+    int16 x;
+    char *all;
+    char buffer[10];
+    f = fopen(filnam, "r");
+    csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
+    all = (char *)mmalloc(csound, (size_t) length); 
+    for (i=0; i<6; i++) fgetc(f); /* Skip HETRO */
+    fgets(buffer, 10, f);         /* number of partials */
+    x = atoi(buffer);
+    memcpy(&all[0], &x, sizeof(int16));
+    /* Read data until end, pack as int16 */
+    for (i=sizeof(int16);;i+=sizeof(int16)) {
+      int p = 0;
+      while ((cc=getc(f))!=',' && cc!='\n' && p<15) {
+        if (cc == EOF) {
+          goto out;
+        }
+        buffer[p++] = cc;
+      }
+      buffer[p]='\0';
+      /* Expand as necessary */
+      if (i>=length-4) all = mrealloc(csound, all, length+=1024);
+      x = atoi(buffer);
+      memcpy(&all[i], &x, sizeof(int16));
+    }
+ out:
+    fclose(f);                                  /*   and close it      */
+    *len = i;
+    all = mrealloc(csound, all, i);
+    *allocp = all;
+    return 0;                                   /*   return 0 for OK   */
+}
+
 static int Load_File_(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int csFileType)
 {
@@ -38,6 +80,14 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     f = fopen(filnam, "rb");
     if (UNLIKELY(f == NULL))                    /* if cannot open the file */
       return 1;                                 /*    return 1             */
+    if (csFileType==CSFTYPE_HETRO) {
+      char buff[8];
+      fgets(buff, 6, f);
+      if (strcmp(buff, "HETRO")==0) {
+        fclose(f);
+        return Load_Het_File_(csound, filnam, allocp, len, csFileType);
+      }
+    }
     /* notify the host if it asked */
     csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
     fseek(f, 0L, SEEK_END);                     /* then get its length     */
@@ -62,19 +112,20 @@ static int Load_File_(CSOUND *csound, const char *filnam,
 }
 
 /* Backwards-compatible wrapper for ldmemfile2().
-   Please use ldmemfile2() or ldmemfile2withCB() in all new code instead. */
+   Please use ldmemfile2() or ldmemfile2withCB() in all new code instead.
 MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
 {
     return ldmemfile2withCB(csound, filnam, CSFTYPE_UNKNOWN, NULL);
 }
-
+*/
 /* Takes an additional parameter specifying the type of the file being opened.
    The type constants are defined in the enumeration CSOUND_FILETYPES.
-   Use ldmemfile2() to load file without additional processing.  */
+   Use ldmemfile2() to load file without additional processing.
 MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
 {
     return ldmemfile2withCB(csound, filnam, csFileType, NULL);
 }
+*/
 
 /* This version of ldmemfile2 allows you to specify a callback procedure
    to process the file's data after it is loaded.  This method ensures that

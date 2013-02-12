@@ -1,7 +1,7 @@
 /*
     argdecode.c:
 
-    Copyright (C) 1998 John ffitch
+    Copyright (C) 1998-2013 John ffitch, Victor Lazzarini
 
     This file is part of Csound.
 
@@ -455,7 +455,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->FMidiname = s;                 /* Midifile name */
       if (!strcmp(O->FMidiname, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
         csoundDie(csound, Str("-F: stdin not supported on this platform"));
 #endif
       }
@@ -507,7 +507,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         csoundDie(csound, Str("input cannot be stdout"));
       if (strcmp(O->infilename, "stdin") == 0) {
         set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
         csoundDie(csound, Str("stdin audio not supported"));
 #endif
       }
@@ -561,9 +561,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->Linename = s;
       if (!strcmp(O->Linename, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
-#if defined(mac_classic)
-        csoundDie(csound, Str("-L: stdin not supported on this platform"));
-#endif
       }
       else
         set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
@@ -664,7 +661,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->Midiname = s;
       if (!strcmp(O->Midiname, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
         csoundDie(csound, Str("-M: stdin not supported on this platform"));
 #endif
       }
@@ -691,7 +688,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         dieu(csound, Str("-o cannot be stdin"));
       if (strcmp(O->outfilename, "stdout") == 0) {
         set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
         csoundDie(csound, Str("stdout audio not supported"));
 #endif
       }
@@ -964,7 +961,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               csoundDie(csound, Str("input cannot be stdout"));
             if (strcmp(O->infilename, "stdin") == 0) {
               set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
               csoundDie(csound, Str("stdin audio not supported"));
 #endif
             }
@@ -980,7 +977,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               dieu(csound, Str("-o cannot be stdin"));
             if (strcmp(O->outfilename, "stdout") == 0) {
               set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
               csoundDie(csound, Str("stdout audio not supported"));
 #endif
             }
@@ -1076,9 +1073,6 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             s += (int) strlen(s);
             if (!strcmp(O->Linename, "stdin")) {
               set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
-#if defined(mac_classic)
-              csoundDie(csound, Str("-L: stdin not supported on this platform"));
-#endif
             }
             else
               set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
@@ -1090,7 +1084,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             s += (int) strlen(s);
             if (!strcmp(O->Midiname, "stdin")) {
               set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
               csoundDie(csound, Str("-M: stdin not supported on this platform"));
 #endif
             }
@@ -1104,7 +1098,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             s += (int) strlen(s);
             if (!strcmp(O->FMidiname, "stdin")) {
               set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
+#if defined(WIN32)
               csoundDie(csound, Str("-F: stdin not supported on this platform"));
 #endif
             }
@@ -1237,4 +1231,191 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
 PUBLIC int csoundSetOption(CSOUND *csound, char *option){
   char *args[2] = {"csound", option}; 
   return (argdecode(csound, 2, args) ? 0 : 1);
+}
+
+PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
+   
+  OPARMS *oparms = csound->oparms;
+  /* simple ON/OFF switches */
+  oparms->odebug = p->debug_mode;  
+  oparms->displays = p->displays;
+  oparms->graphsoff = p->ascii_graphs;
+  oparms->postscript = p->postscript_graphs;
+  oparms->usingcscore = p->use_cscore;
+  oparms->ringbell = p->ring_bell;
+  oparms->gen01defer = p->defer_gen01_load;
+  oparms->termifend =  p->terminate_on_midi;
+  oparms->noDefaultPaths = p->no_default_paths;
+  oparms->syntaxCheckOnly = p->syntax_check_only;
+  oparms->sampleAccurate = p->sample_accurate;
+  oparms->realtime = p->realtime_mode;
+  oparms->calculateWeights = p->compute_weights;
+
+  /* message level */
+  if(p->message_level > 0)
+   oparms->msglevel = p->message_level;
+
+  /* tempo / beatmode */
+  if(p->tempo > 0) {
+    oparms->cmdTempo = p->tempo;
+    oparms->Beatmode = 1; 
+  }
+  /* buffer frames */
+  if(p->buffer_frames > 0)
+    oparms->inbufsamps = oparms->outbufsamps = p->buffer_frames;
+
+  /* hardware buffer frames */
+  if(p->hardware_buffer_frames > 0)
+    oparms->oMaxLag = p->hardware_buffer_frames;
+  
+  /* multicore threads */
+  if(p->number_of_threads > 1) 
+    oparms->numThreads = p->number_of_threads;
+ 
+  /* MIDI interop */
+  if(p->midi_key > 0) oparms->midiKey = p->midi_key;
+  else if(p->midi_key_cps > 0) oparms->midiKeyCps = p->midi_key_cps;
+  else if(p->midi_key_pch > 0) oparms->midiKeyPch = p->midi_key_pch;
+  else if(p->midi_key_oct > 0) oparms->midiKeyOct = p->midi_key_oct;
+
+  if(p->midi_velocity > 0) oparms->midiVelocity = p->midi_velocity;
+  else if(p->midi_velocity_amp > 0) oparms->midiVelocityAmp = p->midi_velocity_amp;
+
+  /* CSD line counts */
+  if(p->csd_line_counts > 0) oparms->useCsdLineCounts = p->csd_line_counts;
+
+  /* kr override */
+  if(p->control_rate_override > 0) oparms->kr_override = p->control_rate_override;
+
+  /* sr override */
+  if(p->sample_rate_override > 0) oparms->sr_override = p->sample_rate_override;
+
+}
+
+PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
+   
+  OPARMS *oparms = csound->oparms;
+ 
+  p->debug_mode = oparms->odebug;
+  p->displays = oparms->displays;
+  p->ascii_graphs = oparms->graphsoff;
+  p->postscript_graphs = oparms->postscript;
+  p->use_cscore = oparms->usingcscore;
+  p->ring_bell = oparms->ringbell;
+  p->defer_gen01_load = oparms->gen01defer;
+  p->terminate_on_midi = oparms->termifend;
+  p->no_default_paths = oparms->noDefaultPaths;
+  p->syntax_check_only = oparms->syntaxCheckOnly;
+  p->sample_accurate = oparms->sampleAccurate;
+  p->realtime_mode = oparms->realtime;
+  p->compute_weights = oparms->calculateWeights;
+  p->message_level = oparms->msglevel;
+  p->tempo = oparms->cmdTempo;
+  p->buffer_frames = oparms->outbufsamps;
+  p->hardware_buffer_frames = oparms->oMaxLag;
+  p->number_of_threads = oparms->numThreads;
+  p->midi_key = oparms->midiKey;
+  p->midi_key_cps = oparms->midiKeyCps;
+  p->midi_key_pch = oparms->midiKeyPch;
+  p->midi_key_oct = oparms->midiKeyOct;
+  p->midi_velocity = oparms->midiVelocity;
+  p->midi_velocity_amp = oparms->midiVelocityAmp;
+  p->csd_line_counts = oparms->useCsdLineCounts;
+  p->control_rate_override = oparms->kr_override;
+  p->sample_rate_override = oparms->sr_override;
+}
+
+
+PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format){
+
+  OPARMS *oparms = csound->oparms;
+  char *typename;
+  oparms->outfilename = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+  strcpy(oparms->outfilename, name);
+  if (strcmp(oparms->outfilename, "stdout") == 0) {
+        set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
+#if defined(WIN32)
+        csound->Warning(csound, Str("stdout not supported on this platform"));
+#endif
+      }
+  else set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
+
+  oparms->sfwrite = 1;
+  if(type != NULL){
+  int i=0;
+  while((typename = file_type_map[i].format) != NULL) {
+    if(!strcmp(type,typename)) break;     
+    i++;
+    }
+  if(typename != NULL) {
+    oparms->filetyp = file_type_map[i].type;
+  }
+  }
+  if(format != NULL){
+   int i=0;
+   while((typename = sample_format_map[i].longformat) != NULL) {
+    if(!strcmp(type,typename)) break;     
+    i++;
+    }
+  if(format != NULL) {
+    set_output_format(oparms, sample_format_map[i].shortformat);
+  }
+  }
+}
+
+PUBLIC void csoundSetInput(CSOUND *csound, char *name) {
+  OPARMS *oparms = csound->oparms;
+  oparms->infilename = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+  strcpy(oparms->infilename, name);
+  if (strcmp(oparms->infilename, "stdin") == 0) {
+        set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
+#if defined(WIN32)
+        csound->Warning(csound, Str("stdin not supported on this platform"));
+#endif
+      }
+      else
+        set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
+  oparms->sfread = 1;
+}
+
+PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name) {
+   OPARMS *oparms = csound->oparms;
+   oparms->Midiname = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+   strcpy(oparms->Midiname, name);
+   if (!strcmp(oparms->Midiname, "stdin")) {
+        set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+#if defined(WIN32)
+        csound->Warning(csound, Str("stdin not supported on this platform"));
+#endif
+      }
+      else
+        set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
+      oparms->Midiin = 1;   
+}
+
+PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name) {
+   OPARMS *oparms = csound->oparms;
+   oparms->FMidiname = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+   strcpy(oparms->FMidiname, name);
+   if (!strcmp(oparms->FMidiname, "stdin")) {
+        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+#if defined(WIN32)
+        csound->Warning(csound, Str("stdin not supported on this platform"));
+#endif
+      }
+      else
+        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
+      oparms->FMidiin = 1;   
+}
+
+PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name) {
+   OPARMS *oparms = csound->oparms;
+   oparms->FMidioutname = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+   strcpy(oparms->FMidioutname, name);
+}
+
+PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name) {
+   OPARMS *oparms = csound->oparms;
+   oparms->Midioutname = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+   strcpy(oparms->Midioutname, name);
 }

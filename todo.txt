@@ -15,10 +15,12 @@ Csound 6 TODO list
  - memory recovery of POOLs
 
 2) allow any number of strings in score events (except p2,p3). 
+     *** FIXED ***
   - do we need a new parser for score? (started one but a pain)
 
 3) test sample-accurate opcodes, or document those not working
-  - check that kperf code can be used in  multicore mode  in csound.c (possibly changes need to be propagated?)
+  - check that kperf code can be used in  multicore mode  in csound.c
+  (possibly changes need to be propagated?) 
 
 4) Use instrument-local structure rather than global (ksmps mainly)
 
@@ -29,6 +31,7 @@ make it easier to maintain *** FIXED ***
 
 7) Analysis formats need to be byte-order/machine independent, and
 reader opcodes need to accept them
+   *** Hetro analysis fixed *** 
 
 8) syntax error checks (undef variables etc) need to be put back.
 
@@ -43,21 +46,25 @@ dedicated async read/write. diskgrain and pvsdiskin have not been
 changed but they have realtime safe versions in syncgrain and
 pvsfread. 
 
-  - synchronous init pass in RT mode - added but needs further
+  - asynchronous init pass in RT mode - added but needs further
     testing/evaluation
 
   - other features?
 
 12) More user control over size of graphs (request from Menno)
 
-13) Functions of more than 1 argument
+13) Functions of more than 1 argument -- actually works, and taninv2
+and divz are also available as functions of 2 args
+
+14) Expose OPARMS or OPARMS-like struct to API users, so that they can
+configure csound with typed system (that in turn can be inspected)
+**** DONE  new configuration functions  and struct ****
+
 
 rc1 aimed for 28 Feb
 
 =====
 Speculation List
-
-1) Expose OPARMS or OPARMS-like struct to API users, so that they can configure csound with typed system (that in turn can be inspected)
 
 2) Allow changes in possible options after start, eg debugging for
 next instrument

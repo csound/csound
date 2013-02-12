@@ -420,7 +420,7 @@ static int clfilt(CSOUND *csound, CLFILT *p)
 #define S sizeof
 
 static OENTRY localops[] = {
-{ "clfilt", S(CLFILT),  5, "a", "akiioppo",(SUBR)clfiltset, NULL, (SUBR)clfilt },
+{ "clfilt", S(CLFILT),  0, 5, "a", "akiioppo",(SUBR)clfiltset, NULL, (SUBR)clfilt },
 };
 
 int clfilt_init_(CSOUND *csound)

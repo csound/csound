@@ -143,8 +143,8 @@ static int envext(CSOUND *csound, ENV *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "follow",   S(FOL),   5, "a",    "ai",   (SUBR)flwset,  NULL,  (SUBR)follow  },
-{ "follow2",  S(ENV),   5, "a",    "akk",  (SUBR)envset,  NULL,  (SUBR)envext  }
+{ "follow",   S(FOL),   0, 5, "a",    "ai",   (SUBR)flwset,  NULL,  (SUBR)follow  },
+{ "follow2",  S(ENV),   0, 5, "a",    "akk",  (SUBR)envset,  NULL,  (SUBR)envext  }
 };
 
 int follow_init_(CSOUND *csound)

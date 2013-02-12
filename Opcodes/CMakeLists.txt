@@ -52,10 +52,11 @@ endif()
 
 # temporarily do not build on Windows until these opcodes are fixed
 # to compile
-if(NOT WIN32) 
-    make_plugin(udprecv sockrecv.c)
-    make_plugin(udpsend socksend.c)
-endif()
+# these are not plugins anymore
+# if(NOT WIN32) 
+#    make_plugin(udprecv sockrecv.c)
+#    make_plugin(udpsend socksend.c)
+# endif()
 
 set(scansyn_SRCS
     scansyn.c scansynx.c)

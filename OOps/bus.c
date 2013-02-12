@@ -98,7 +98,7 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
     }
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
     (*p) = newp;
-    (*oldSize) = newSize;
+    (*oldSize) = newSize-1;
 
     return CSOUND_SUCCESS;
 }
@@ -272,14 +272,16 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       return CSOUND_SUCCESS;
     }
     size = fout[n].N < fin->N ? fout[n].N : fin->N;
+    csoundWaitThreadLockNoTimeout(csound->API_lock);
     memcpy(&fout[n], fin, sizeof(PVSDATEXT)-sizeof(float *));
+    csoundNotifyThreadLock(csound->API_lock);
     if (LIKELY(size > 0))
        memcpy(fout[n].frame, fin->frame, sizeof(float)*(size+2));
     return CSOUND_SUCCESS;
 }
 
 /**
-* Receives a PVSDATEX fout from the chano opcode (f-rate) at index 'n'.
+* Receives a PVSDATEX fout from the pvsout opcode (f-rate) at index 'n'.
 * The bus is extended if n exceeds existing spaces, initialising
 * it using the PVSDATEX fout struct parameters.
 * Returns zero on success, CSOUND_ERROR if the index is invalid or
@@ -451,7 +453,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
                                   (void *) fin) != 0))
         return csound->PerfError(csound,
                                  Str("pvsout: memory allocation failure"));
-      else fout = (PVSDATEXT *)csound->chanof;
+       fout = (PVSDATEXT *)csound->chanof;
     }
     size = fout[n].N < fin->N ? fout[n].N : fin->N;
     memcpy(&fout[n], fin, sizeof(PVSDAT)-sizeof(AUXCH));
@@ -536,10 +538,14 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
       }
     }
     pp = (void*) malloc((size_t) nbytes);
-          return (CHNENTRY*) NULL;
+   if (pp == NULL) return (CHNENTRY*) NULL;
     memset(pp, 0, (size_t) nbytes);
+#ifndef MACOSX
+#if defined(HAVE_PTHREAD_SPIN_LOCK) 
     pthread_spin_init((int*)((char*) pp + (int)lockOffs),
                       PTHREAD_PROCESS_PRIVATE);
+#endif
+#endif
     if (*p == NULL)
       *p = (MYFLT*) ((char*) pp + (int)dataOffs);
     return (CHNENTRY*) pp;
@@ -835,12 +841,14 @@ PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
 *     to indicate the direction of the data transfer
 * The callback is not preserved on csoundReset().
 */
-
+/*
 PUBLIC void csoundSetChannelIOCallback(CSOUND *csound,
                                        CsoundChannelIOCallback_t func)
 {
     csound->channelIOCallback_ = func;
 }
+
+*/
 
 /* ------------------------------------------------------------------------ */
 
@@ -1294,6 +1302,10 @@ static int dummy_opcode_stub(CSOUND *csound, void *p)
     return OK;
 }
 
+/*  these opcodes have been removed as they were never used or
+    implemented properly
+*/
+/*
 static int chn_send_recv_opcodes_perf(CSOUND *csound, CHNSEND *p)
 {
     csound->channelIOCallback_(csound, p->name, p->fp, p->type);
@@ -1359,6 +1371,7 @@ int chnsend_opcode_init(CSOUND *csound, CHNSEND *p)
 {
     return chn_send_recv_opcodes_init_(csound, p, CSOUND_OUTPUT_CHANNEL);
 }
+*/
 
 /* ********************************************************************** */
 /* *************** SENSING ********************************************** */
@@ -1447,6 +1460,51 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
 }
 
 
+static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
+{
+  if (p->XSTRCODE & 2) return OK;
+    *(p->fp) = *(p->iname);
+    return OK;
+}
+
+
+/* outvalue now uses chn mehanism 
+*/
+int outvalset(CSOUND *csound, CHNGET *p) {
+
+  MYFLT *tmp;
+  int   err=0, ret;
+  tmp = p->iname;   
+  p->iname = p->arg;
+  p->arg = tmp;
+  if (p->XSTRCODE & 2){ 
+    ret =  chnset_opcode_init_S(csound, p);
+    if(ret == OK) 
+    p->h.opadr = (SUBR) chnset_opcode_perf_k_alt;
+  }
+  else {
+  err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if (LIKELY(!err)) {
+      p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+                                CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+      p->h.opadr = (SUBR) chnset_opcode_perf_k_alt;
+    }
+    ret = OK;
+  }
+  tmp = p->iname;
+  p->iname = p->arg;
+  p->arg = tmp;
+  if (LIKELY(!err))   return ret;
+  else return print_chn_err(p, err);
+}
+
+
+
+
+
+
+#ifdef SOME_FINE_DAY
 /* k-rate and string i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
 /*     ma++ ingalls      matt@sonomatics.com */
@@ -1568,3 +1626,4 @@ int outvalset(CSOUND *csound, OUTVAL *p)
 
     return OK;
 }
+#endif

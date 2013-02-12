@@ -118,7 +118,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!((*fltkFlags) & 129))
       for ( ; ep->opname != NULL; ep++) {
         if (csound->AppendOpcode(csound, ep->opname,
-                                 (int)ep->dsblksiz, (int)ep->thread,
+                                 (int)ep->dsblksiz, (int)ep->flags, (int)ep->thread,
                                  ep->outypes, ep->intypes,
                                  ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
           csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
@@ -129,7 +129,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     else if (!((*fltkFlags) & 128)) {
       for ( ; ep->opname != NULL; ep++) {
         if (csound->AppendOpcode(
-                csound, ep->opname, (int)ep->dsblksiz, (int)ep->thread,
+                                 csound, ep->opname, (int)ep->dsblksiz,
+                                 (int)ep->flags,(int)ep->thread,
                 ep->outypes, ep->intypes,
                 (((int)ep->thread & 1) ? dummyWidgetOpcode : (SUBR) 0),
                 (((int)ep->thread & 2) ? dummyWidgetOpcode : (SUBR) 0),

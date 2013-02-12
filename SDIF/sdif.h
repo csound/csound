@@ -306,8 +306,6 @@ void SDIF_Copy4Bytes(char *target, const char *string);
 
 #if defined(__POWERPC__) || defined(__PPC__) || defined(__ppc__)
 #  undef LITTLE_ENDIAN
-#elif defined(mac_classic)
-#  undef LITTLE_ENDIAN
 #endif
 
 SDIFresult SDIF_Write1(const void *block, size_t n, FILE *f);

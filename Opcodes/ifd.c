@@ -255,7 +255,7 @@ static int ifd_process(CSOUND * csound, IFD * p)
 
 static OENTRY localops[] =
   {
-    { "pvsifd", sizeof(IFD), 5, "ff", "aiiip", 
+    { "pvsifd", sizeof(IFD), 0, 5, "ff", "aiiip", 
                              (SUBR) ifd_init, 0, (SUBR) ifd_process}
   };
 
