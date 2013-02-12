@@ -45,7 +45,7 @@ void test_split_args(void) {
     CU_ASSERT_STRING_EQUAL("k", results[0]);
     CU_ASSERT_STRING_EQUAL("a", results[1]);
     CU_ASSERT_STRING_EQUAL("k", results[2]);
-    mfree(csound, results);
+    csound->Free(csound, results);
     
     results = splitArgs(csound, "[a;[k;ka");
     
@@ -53,7 +53,7 @@ void test_split_args(void) {
     CU_ASSERT_STRING_EQUAL("[k", results[1]);
     CU_ASSERT_STRING_EQUAL("k", results[2]);
     CU_ASSERT_STRING_EQUAL("a", results[3]);
-    mfree(csound, results);
+    csound->Free(csound, results);
     
     results = splitArgs(csound, "[[a;[[k;ka");
     
@@ -61,7 +61,7 @@ void test_split_args(void) {
     CU_ASSERT_STRING_EQUAL("[[k", results[1]);
     CU_ASSERT_STRING_EQUAL("k", results[2]);
     CU_ASSERT_STRING_EQUAL("a", results[3]);
-    mfree(csound, results);
+    csound->Free(csound, results);
     
     csoundDestroy(csound);
 }
