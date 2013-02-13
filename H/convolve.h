@@ -40,12 +40,12 @@ typedef struct cvstruct
     int32        headBsize;              /* byte offset from start to data */
     int32        dataBsize;              /* total number of bytes of data */
     int32        dataFormat;             /* (int) format specifier */
-    MYFLT       samplingRate;           /* of original sample */
+    MYFLT        samplingRate;           /* of original sample */
     int32        src_chnls;              /* no. of channels in source */
     int32        channel;                /* requested channel(s) */
     int32        Hlen;                   /* length of impulse reponse */
     int32        Format;                 /* (int) how words are org'd in frm */
-    char        info[CVDFLTBYTS];       /* extendable byte area */
+    char         info[CVDFLTBYTS];       /* extendable byte area */
 } CVSTRUCT;
 
 /* Error codes returned by CONVOLVE file functions */
