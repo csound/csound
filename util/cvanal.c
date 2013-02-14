@@ -214,7 +214,7 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
       if (nf) {
         int32 i, l;
         l = (cvh->dataBsize/nchanls)/sizeof(MYFLT);
-        for (i=0; i<l; i++) fprintf(ofd, "%a\n", outbuf[i]);
+        for (i=0; i<l; i++) fprintf(ofd, "%a\n", (double)outbuf[i]);
       }
       else
         if (UNLIKELY(1!=fwrite(outbuf, cvh->dataBsize/nchanls, 1, ofd)))
