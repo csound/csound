@@ -162,7 +162,7 @@ static inline void append_optxt(OPTXT *op1, OPTXT *op2)
 }
 
 /** Counts number of args in argString, taking into account array identifiers */
-int argsRequired(char* argString) {
+PUBLIC int argsRequired(char* argString) {
     
     int retVal = 0;
     char* t = argString;
@@ -183,7 +183,7 @@ int argsRequired(char* argString) {
 }
 
 /** Splits args in argString into char**, taking into account array identifiers */
-char** splitArgs(CSOUND* csound, char* argString) {
+PUBLIC char** splitArgs(CSOUND* csound, char* argString) {
     
     int argCount = argsRequired(argString);
     char** args = mmalloc(csound, sizeof(char**) * (argCount + 1));

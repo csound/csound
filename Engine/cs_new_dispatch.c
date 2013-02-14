@@ -142,7 +142,8 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
     return current_instr;
 }
 
-static int dag_intersect(CSOUND *csound, struct set_t *current, struct set_t *later, int cnt)
+static int dag_intersect(CSOUND *csound, struct set_t *current, 
+                         struct set_t *later, int cnt)
 {
     struct set_t *ans;
     int res = 0;
@@ -201,13 +202,20 @@ void dag_build(CSOUND *csound, INSDS *chain)
         //csp_set_print(csound, later_instr->read);
         //csp_set_print(csound, later_instr->write);
         //csp_set_print(csound, later_instr->read_write);
-        if (dag_intersect(csound, current_instr->write, later_instr->read, cnt++) ||
-            dag_intersect(csound, current_instr->read_write, later_instr->read, cnt++) ||
-            dag_intersect(csound, current_instr->read, later_instr->write, cnt++) ||
-            dag_intersect(csound, current_instr->write, later_instr->write, cnt++) ||
-            dag_intersect(csound, current_instr->read_write, later_instr->write, cnt++) ||
-            dag_intersect(csound, current_instr->read, later_instr->read_write, cnt++) ||
-            dag_intersect(csound, current_instr->write, later_instr->read_write, cnt++)) {
+        if (dag_intersect(csound, current_instr->write,
+                          later_instr->read, cnt++)       ||
+            dag_intersect(csound, current_instr->read_write,
+                          later_instr->read, cnt++)       ||
+            dag_intersect(csound, current_instr->read,
+                          later_instr->write, cnt++)      ||
+            dag_intersect(csound, current_instr->write,
+                          later_instr->write, cnt++)      ||
+            dag_intersect(csound, current_instr->read_write,
+                          later_instr->write, cnt++)      ||
+            dag_intersect(csound, current_instr->read,
+                          later_instr->read_write, cnt++) ||
+            dag_intersect(csound, current_instr->write,
+                          later_instr->read_write, cnt++)) {
           watchList *n = (watchList*)mmalloc(csound, sizeof(watchList));
           n->id = i;
           n->next = task_dep[j];

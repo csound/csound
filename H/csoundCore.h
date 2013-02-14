@@ -113,9 +113,16 @@ typedef struct {
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
+#ifdef USE_DOUBLE
+#define MAXLEN     0x40000000
+#define FMAXLEN    ((MYFLT)(MAXLEN))
+#define PHMASK     0x3fffffff
+#else
 #define MAXLEN     0x1000000L
 #define FMAXLEN    ((MYFLT)(MAXLEN))
 #define PHMASK     0x0FFFFFFL
+#endif
+
 #define PFRAC(x)   ((MYFLT)((x) & ftp->lomask) * ftp->lodiv)
 #define MAXPOS     0x7FFFFFFFL
 
