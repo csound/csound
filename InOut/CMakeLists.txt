@@ -15,6 +15,9 @@ option(USE_AUDIOUNIT "Build teh CoreAudio AudioUnit I/O module (requires CoreAud
 option(USE_FLTK "Use FLTK for graphs and widget opcodes" ON)
 option(BUILD_VIRTUAL_KEYBOARD "Build Virtual MIDI keyboard" ON)
 
+
+set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
+
 # FIND LIBRARIES AND HEADERS
 
 if(USE_ALSA)

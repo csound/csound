@@ -843,11 +843,24 @@ endif()
 #if(CMAKE_C_COMPILER MATCHES "gcc")
 #    list(APPEND libcsound_CFLAGS -fno-strict-aliasing)
 #endif()
+
 if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
-add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
+# VL 13.02.2013: I have added this code to make the PUBLIC attribute mean
+# something on gcc (OSX, LINUX), since we are using it.
+# see http://gcc.gnu.org/wiki/Visibility
+
+if(NOT WIN32)
+if(CMAKE_C_COMPILER MATCHES "gcc")
+    add_compiler_flags(${libcsound_CFLAGS} -fvisibility=hidden TARGETS ${CSOUNDLIB})
+else()
+   add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
+endif()
+else()
+  add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
+endif()
 
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
 
