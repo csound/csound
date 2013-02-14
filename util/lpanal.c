@@ -364,6 +364,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     double  polyReal[MAXPOLES], polyImag[MAXPOLES];
 #endif
     LPANAL_GLOBALS *lpg;
+    int     new_format=0;
+    FILE    *oFd;
 
     lpc.debug   = 0;
     lpc.verbose = 0;
@@ -454,6 +456,9 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
         case 'a':
                         storePoles = TRUE;
                         break;
+        case 'X':
+                        new_format = 1;
+                        break;
         default:
           {
             char errmsg[256];
@@ -520,7 +525,12 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     }
 
     /* Try to open output file */
-    if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W,
+    if (new_format) {
+      if (csound->FileOpen2(csound, &oFd, CSFILE_STD,
+                            outfilnam, "w", "", CSFTYPE_LPC, 0) == NULL)
+      quit(csound, Str("cannot create output file"));
+    }
+    else if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W,
                           outfilnam, NULL, "", CSFTYPE_LPC, 0) == NULL)
       quit(csound, Str("cannot create output file"));
 
@@ -542,7 +552,13 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
       lph->headersize = LPBUFSIZ;
 
     /* Write header to disk */
-    if ((nb = write(ofd,(char *)lph,(int)lph->headersize)) <
+    if (new_format) {
+      fprintf(oFd, "LPANAL\n%d %d %d %d\n%f %f %f %.2x %.2x %.2x %.2x\n",
+              lph->headersize, lph->lpmagic, lph->npoles, lph->nvals,
+              lph->framrate, lph->srate, lph->duration,
+              lph->text[0], lph->text[1], lph->text[2], lph->text[3]);
+    }
+    else if ((nb = write(ofd,(char *)lph,(int)lph->headersize)) <
         lph->headersize)
       quit(csound,Str("cannot write header"));
 
@@ -697,8 +713,14 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
       }
 
       /* Write frame to disk */
-      if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
-        quit(csound, Str("write error"));
+      if (new_format) {
+        int i, j;
+        for (i=0, j=0; i<osiz; i+=sizeof(MYFLT), j++)
+          fprintf(oFd, "%a\n", coef[j]);
+      }
+      else 
+        if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
+          quit(csound, Str("write error"));
       memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
 
       /* Some unused stuff. I think from when all snd was in mem */
