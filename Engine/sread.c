@@ -554,7 +554,7 @@ static int getscochar(CSOUND *csound, int expand)
         }
       } while (c != '$');
       /* Make string macro or value */
-      sprintf(buffer, "%g", *pv);
+      sprintf(buffer, "%f", *pv);
       {
         S_MACRO *nn = (S_MACRO*) mmalloc(csound, sizeof(S_MACRO));
         nn->name = mmalloc(csound, 2);
