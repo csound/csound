@@ -232,8 +232,12 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
            (ltest & MAXLEN) == 0L;
            lobits++, ltest <<= 1)
         ;
-      if (UNLIKELY(ltest != MAXLEN)) {  /*  flen must be power-of-2 */
-        return fterror(&ff, Str("illegal table length"));
+      if (UNLIKELY(ltest != MAXLEN)) {  /*  flen is not power-of-2 */
+        // return fterror(&ff, Str("illegal table length"));
+        csound->Warning(csound, Str("table %d size not power of two"), ff.fno);
+        lobits = 0;                     
+        nonpowof2_flag = 1; 
+        ff.guardreq = 1;
       }
     }
     ftp = ftalloc(&ff);                 /*  alloc ftable space now  */
