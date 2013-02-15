@@ -49,11 +49,11 @@ typedef int taskID;
 #define WAIT    (-2)
 
 /* Each task has a status */
-enum state { INACTIVE = 4,         /* No task */
-             WAITING = 3,          /* Dependencies have not been finished */
-	     AVAILABLE = 2,        /* Dependencies met, ready to be run */
-	     INPROGRESS = 1,       /* Has been started */
-	     DONE = 0 };           /* Has been completed */
+enum state { INACTIVE = -5,         /* No task */
+             WAITING = -4,          /* Dependencies have not been finished */
+	     AVAILABLE = -3,        /* Dependencies met, ready to be run */
+	     INPROGRESS = -2,       /* Has been started */
+	     DONE = -1 };           /* Has been completed */
 
 /* Array of states of each task -- need to move to CSOUND structure */
 static enum state *task_status = NULL;          /* OPT : Structure lay out */
@@ -279,7 +279,7 @@ taskID dag_get_task(CSOUND *csound)
 {
     int i;
     for (i=0; i<csound->dag_num_active; i++) {
-      if (task_status[i]==AVAILABLE) {
+      if (__sync_bool_compare_and_swap(&(task_status[i]), AVAILABLE, INPROGRESS)) {
         return (taskID)i;
       }
     }
