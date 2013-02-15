@@ -139,7 +139,7 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
       if (ofd_handle == NULL) {                   /* open the output CV file */
         return quit(csound, Str("cannot create output file"));
       }                                           /* & wrt hdr into the file */
-      fprintf(ofd, "CVANAL\n%d %d %d %g %d %d %d %d\n",
+      fprintf(ofd, "CVANAL\n%d %d %d %a %d %d %d %d\n",
               cvh->headBsize,              /* total number of bytes of data */
               cvh->dataBsize,              /* total number of bytes of data */
               cvh->dataFormat,             /* (int) format specifier */
