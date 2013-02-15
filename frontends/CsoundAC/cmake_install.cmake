@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+# Install script for directory: /jpff/Sourceforge/csound/csound6/frontends/CsoundAC
+=======
 # Install script for directory: /home/jpff/Sourceforge/csound/New/csound6/frontends/CsoundAC
+>>>>>>> 42a7f6ef611b04e223ab21a3e3e2549509f0bbd5
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)

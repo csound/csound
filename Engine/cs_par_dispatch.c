@@ -184,17 +184,6 @@ static struct global_var_lock_t
     }
 }
 
-/* static void locks_print(CSOUND *csound)
-   {
-   csound->Message(csound, Str("Current Global Locks\n"));
-   struct global_var_lock_t *cg = csound->global_var_lock_root;
-   while (cg != NULL) {
-   csound->Message(csound, "[%i] %s [%p]\n", cg->index,
-                   cg->name, cg);
-   cg = cg->next;
-   }
-   } */
-
 TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
     csound->Message(csound,
@@ -2407,15 +2396,3 @@ void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain)
 
 #endif
 
-#ifdef TESTING
-static long x = 0;
-
-int waste_time(CSOUND* csound, WASTE *p)
-{
-    int k, n = (int)*p->icnt;
-    for (k=0; k<n; k++) x = (x+1)^1234;
-    for (k=0; k<n; k++) x = (x+1)^1234;
-    for (k=0; k<n; k++) x = (x+1)^1234;
-    return OK;
-}
-#endif
