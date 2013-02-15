@@ -26,13 +26,14 @@
 #include "soundio.h"
 #include "pvfileio.h"
 #include "convolve.h"
+#include "lpc.h"
 #include "pstream.h"
 #include "namedins.h"
 #include <sndfile.h>
 #include <string.h>
 
 static int Load_Het_File_(CSOUND *csound, const char *filnam,
-                          char **allocp, int32 *len, int csFileType)
+                          char **allocp, int32 *len)
 {
     FILE *f;
     int length = 1024;
@@ -42,7 +43,7 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
     char *all;
     char buffer[10];
     f = fopen(filnam, "r");
-    csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
+    csoundNotifyFileOpened(csound, filnam, CSFTYPE_HETRO, 0, 0);
     all = (char *)mmalloc(csound, (size_t) length); 
     for (i=0; i<6; i++) fgetc(f); /* Skip HETRO */
     fgets(buffer, 10, f);         /* number of partials */
@@ -73,39 +74,48 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
 
 static MYFLT read_ieee(FILE* f, int *end)
 {
-    union {
-      double d;
-      struct {int  j,k;}  n;
-      int64_t  i;
-    } x;
-    int sign=1, ex;
-    int64_t man;
-    int64_t bit = 1;
-    char buff[32];
-    char *p;
-    bit <<= 62;
-    p = fgets(buff, 32, f);
-    printf("... %s", buff);
+    char buff[120];
+    double x;
+    char *p = fgets(buff, 120, f);
     if (p==NULL || feof(f)) {
-      printf("ending\n");
-      *end = 1;
+      *end = 1; 
       return FL(0.0);
     }
-    if (strstr(p, "0x0p+0")) {
-      return FL(0.0);
-    }
-    if (buff[0]=='-') sign=-1;
-    p = strchr(buff, '.')+1;
-    sscanf(p, "%lxp%d", &man, &ex);
-    x.i = man;
-    if (man!=(int64_t)0) x.i |= bit;
-    x.d = ldexp(x.d, ex-1);
-    if (sign<0) x.d =-x.d;
-    return (MYFLT)x.d;
+    x = strtod(buff, NULL);
+    return (MYFLT)x;
+    /* union { */
+    /*   double d; */
+    /*   struct {int  j,k;}  n; */
+    /*   int64_t  i; */
+    /* } x; */
+    /* int sign=1, ex; */
+    /* int64_t man; */
+    /* int64_t bit = 1; */
+    /* char buff[32]; */
+    /* char *p; */
+    /* bit <<= 62; */
+    /* p = fgets(buff, 32, f); */
+    /* printf("... %s", buff); */
+    /* if (p==NULL || feof(f)) { */
+    /*   printf("ending\n"); */
+    /*   *end = 1; */
+    /*   return FL(0.0); */
+    /* } */
+    /* if (strstr(p, "0x0p+0")) { */
+    /*   return FL(0.0); */
+    /* } */
+    /* if (buff[0]=='-') sign=-1; */
+    /* p = strchr(buff, '.')+1; */
+    /* sscanf(p, "%lxp%d", &man, &ex); */
+    /* x.i = man; */
+    /* if (man!=(int64_t)0) x.i |= bit; */
+    /* x.d = ldexp(x.d, ex-1); */
+    /* if (sign<0) x.d =-x.d; */
+    /* return (MYFLT)x.d; */
 }
 
 static int Load_CV_File_(CSOUND *csound, const char *filnam,
-                          char **allocp, int32 *len, int csFileType)
+                          char **allocp, int32 *len)
 {
     FILE *f;
     int length = 4096;
@@ -114,21 +124,82 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     MYFLT x;
     char *all;
     CVSTRUCT cvh = {0};
-    int l;
+    char buff[120];
+    char *p;
 
     f = fopen(filnam, "r");
-    csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
+    csoundNotifyFileOpened(csound, filnam, CSFTYPE_CVANAL, 0, 0);
     all = (char *)mmalloc(csound, (size_t) length); 
-    for (i=0; i<6; i++) fgetc(f); /* Skip CVANAL */
+    p = fgets(buff, 120, f); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
-    fscanf(f, "%d %d %d %g %d %d %d %d\n", 
-           &cvh.headBsize, &cvh.dataBsize, &cvh.dataFormat,
-           &cvh.samplingRate, &cvh.src_chnls, &cvh.channel,
-           &cvh.Hlen, &cvh.Format);
+    p = fgets(buff, 120, f);
+    cvh.headBsize = strtol(p, &p, 10);
+    cvh.dataBsize = strtol(p, &p, 10);
+    cvh.dataFormat = strtol(p, &p, 10);
+    cvh.samplingRate = (MYFLT)strtod(p, &p);
+    cvh.src_chnls = strtol(p, &p, 10);
+    cvh.channel = strtol(p, &p, 10);
+    cvh.Hlen = strtol(p, &p, 10);
+    cvh.Format = strtol(p, &p, 10);
+    /* fscanf(f, "%d %d %d %g %d %d %d %d\n",  */
+    /*        &cvh.headBsize, &cvh.dataBsize, &cvh.dataFormat, */
+    /*        &cvh.samplingRate, &cvh.src_chnls, &cvh.channel, */
+    /*        &cvh.Hlen, &cvh.Format); */
     memcpy(&all[0], &cvh, sizeof(CVSTRUCT));
 
     /* Read data until end, pack as int16 */
     for (i=sizeof(CVSTRUCT);;i+=sizeof(MYFLT)) {
+      /* Expand as necessary */
+      if (i>=length-sizeof(MYFLT)-4) {
+        //printf("expanding from %p[%d] to\n", all, length);
+        all = mrealloc(csound, all, length+=4096);
+        //printf("i=%d                     %p[%d]\n", i, all, length);
+      }
+      x = read_ieee(f, &j);
+      if (j) break;
+      memcpy(&all[i], &x, sizeof(MYFLT));
+    }
+    fclose(f);                                  /*   and close it      */
+    //printf("length=%d i=%d\n", length, i);
+    *len = i;
+    all = mrealloc(csound, all, i);
+    *allocp = all;
+    return 0;                                   /*   return 0 for OK   */
+}
+
+static int Load_LP_File_(CSOUND *csound, const char *filnam,
+                          char **allocp, int32 *len)
+{
+    FILE *f;
+    int length = 4096;
+    unsigned int i = 0;
+    int          j = 0;
+    MYFLT x;
+    char *all, *p;
+    LPHEADER lph = {0};
+    char buff[120];
+
+    f = fopen(filnam, "r");
+    csoundNotifyFileOpened(csound, filnam, CSFTYPE_LPC, 0, 0);
+    all = (char *)mmalloc(csound, (size_t) length); 
+    for (i=0; i<6; i++) fgetc(f); /* Skip LPANAL */
+    fscanf(f, "%d %d %d %d\n",
+           &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals);
+    fgets(buff, 120, f);
+    lph.framrate = (MYFLT)strtod(buff, &p);
+    lph.srate = (MYFLT)strtod(p, &p);
+    lph.duration = (MYFLT)strtod(p, &p);
+    lph.text[0] = (char)strtol(p, &p, 0);
+    lph.text[1] = (char)strtol(p, &p, 0);
+    lph.text[2] = (char)strtol(p, &p, 0);
+    lph.text[3] = (char)strtol(p, &p, 0);
+    /* fscanf(f, "%f %f %f %.2x %.2x %.2x %.2x\n", */
+    /*        &lph.framrate, &lph.srate, &lph.duration, */
+    /*        &lph.text[0], &lph.text[1], &lph.text[2], &lph.text[3]); */
+    memcpy(&all[0], &lph, sizeof(lph));
+
+    /* Read data until end, pack as int16 */
+    for (i=sizeof(LPHEADER);;i+=sizeof(MYFLT)) {
       /* Expand as necessary */
       if (i>=length-sizeof(MYFLT)-4) {
         //printf("expanding from %p[%d] to\n", all, length);
@@ -160,7 +231,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
       fgets(buff, 6, f);
       if (strcmp(buff, "HETRO")==0) {
         fclose(f);
-        return Load_Het_File_(csound, filnam, allocp, len, csFileType);
+        return Load_Het_File_(csound, filnam, allocp, len);
       }
     }
     else if (csFileType==CSFTYPE_CVANAL) {
@@ -168,7 +239,15 @@ static int Load_File_(CSOUND *csound, const char *filnam,
       fgets(buff, 7, f);
       if (strcmp(buff, "CVANAL")==0) {
         fclose(f);
-        return Load_CV_File_(csound, filnam, allocp, len, csFileType);
+        return Load_CV_File_(csound, filnam, allocp, len);
+      }
+    }
+    else if (csFileType==CSFTYPE_LPC) {
+      char buff[8];
+      fgets(buff, 7, f);
+      if (strcmp(buff, "LPANAL")==0) {
+        fclose(f);
+        return Load_LP_File_(csound, filnam, allocp, len);
       }
     }
     /* notify the host if it asked */

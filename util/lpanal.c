@@ -553,7 +553,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
     /* Write header to disk */
     if (new_format) {
-      fprintf(oFd, "LPANAL\n%d %d %d %d\n%f %f %f %.2x %.2x %.2x %.2x\n",
+      fprintf(oFd, "LPANAL\n%d %d %d %d\n%f %f %f %d %d %d %d\n",
               lph->headersize, lph->lpmagic, lph->npoles, lph->nvals,
               lph->framrate, lph->srate, lph->duration,
               lph->text[0], lph->text[1], lph->text[2], lph->text[3]);
