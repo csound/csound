@@ -882,7 +882,13 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
 
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
-    *(p->arg) = *(p->fp);
+    union {
+    MYFLT d; 
+    int64_t i;
+    } x;
+    x.i = __sync_add_and_fetch((int64_t *) p->fp, 0);
+    /* *(p->arg) = *(p->fp); */
+    *(p->arg) = x.d;
     return OK;
 }
 
@@ -892,9 +898,11 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
+    csoundSpinLock(p->lock);
     if (offset) memset(p->arg, '\0', offset);
     memcpy(&p->arg[offset], p->fp, sizeof(MYFLT)*(CS_KSMPS-offset-early));
     if (early) memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
+    csoundSpinUnLock(p->lock);
     return OK;
 }
 
@@ -908,7 +916,16 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
-    *(p->arg) = *(p->fp);
+    {
+    union {
+    MYFLT d; 
+    int64_t i;
+    } x;
+    x.i = __sync_add_and_fetch((int64_t *) p->fp, 0);
+    *(p->arg) = x.d;
+    }
+    
+    /* *(p->arg) = *(p->fp); */
 
     return OK;
 }
@@ -953,8 +970,9 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
+    csoundSpinLock(p->lock);
     strcpy((char*) p->arg, (char*) p->fp);
-
+    csoundSpinUnLock(p->lock);
     return OK;
 }
 
@@ -962,7 +980,13 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
-    *(p->fp) = *(p->arg);
+    union {
+    MYFLT d; 
+    int64_t i;
+    } x;
+    x.d = *(p->arg);
+    __sync_or_and_fetch((int64_t *)p->fp, x.i);
+    /* *(p->fp) = *(p->arg); */
     return OK;
 }
 
@@ -992,11 +1016,11 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if (early) nsmps -= early;
     /* Need lock for the channel */
-    //csoundSpinLock(p->lock);
+    csoundSpinLock(p->lock);
     for (n=offset; n<nsmps; n++) {
       p->fp[n] += p->arg[n];
     }
-    //csoundSpinUnLock(p->lock);
+    csoundSpinUnLock(p->lock);
     return OK;
 }
 
@@ -1016,17 +1040,26 @@ static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
 {
     int   err;
-    int *lock;        /* Need lock for the channel */
+    /* int *lock;   */     /* Need lock for the channel */
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
+    union {
+    MYFLT d; 
+    int64_t i;
+    } x;
+    x.d = *(p->arg);
+    __sync_or_and_fetch((int64_t *)p->fp, x.i);
+
+    /*
     p->lock = lock = csoundGetChannelLock(csound, (char*) p->iname,
                                 CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     csoundSpinLock(lock);
     *(p->fp) = *(p->arg);
     csoundSpinUnLock(lock);
+    */
 
     return OK;
 }
@@ -1463,8 +1496,16 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
 static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
 {
   if (p->XSTRCODE & 2) return OK;
-    *(p->fp) = *(p->iname);
+   else {
+    union {
+    MYFLT d; 
+    int64_t i;
+    } x;
+    x.d = *(p->iname);
+    __sync_or_and_fetch((int64_t *)p->fp, x.i);
+      /* *(p->fp) = *(p->iname); */ 
     return OK;
+    }
 }
 
 
