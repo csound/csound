@@ -545,13 +545,6 @@ extern "C" {
     PUBLIC int csoundInitializeCscore(CSOUND *, FILE *insco, FILE *outsco);
 
     /**
-     * Returns a pointer to the requested interface, if available, in the
-     * interface argument, and its version number, in the version argument.
-     * Returns 0 for success.
-     */
-    PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version);
-
-    /**
      * Destroys an instance of Csound.
      */
     PUBLIC void csoundDestroy(CSOUND *);
@@ -596,7 +589,7 @@ extern "C" {
     PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
 
     /**
-     * Set a single csound option (flag).
+     * Set a single csound option (flag). Returns CSOUND_SUCCESS on success.
      * NB: blank spaces are not allowed
      */
     PUBLIC int csoundSetOption(CSOUND *csound, char *option);
@@ -648,7 +641,6 @@ extern "C" {
     *  Set MIDI file utput name
     */
   PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name);
-
 
     /*
      * PERFORMANCE
@@ -1108,7 +1100,6 @@ extern "C" {
      * Notes: the caller is responsible for freeing the list returned in *lst
      * with csoundDeleteChannelList(). The name pointers may become invalid
      * after calling csoundReset().
-<<<<<<< HEAD
      */
     PUBLIC int csoundListChannels(CSOUND *, CsoundChannelListEntry **lst);
 
@@ -1174,17 +1165,17 @@ extern "C" {
     PUBLIC int *csoundGetChannelLock(CSOUND *,
             const char *name, int type);
 
-  PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, char *name);
+  PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name);
 
-  PUBLIC void csoundSetControlChannel(CSOUND *csound, char *name, MYFLT val);
+  PUBLIC void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val);
 
-  PUBLIC void csoundGetAudioChannel(CSOUND *csound, char *name, MYFLT *samples);
+  PUBLIC void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples);
 
-  PUBLIC void csoundSetAudioChannel(CSOUND *csound, char *name, MYFLT *samples);
+  PUBLIC void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples);
 
-  PUBLIC void csoundSetStringChannel(CSOUND *csound, char *name, char *string);
+  PUBLIC void csoundSetStringChannel(CSOUND *csound, const char *name, char *string);
 
-  PUBLIC  void csoundGetStringChannel(CSOUND *csound, char *name, char *string);
+  PUBLIC  void csoundGetStringChannel(CSOUND *csound, const char *name, char *string);
 
 
       /**
@@ -2082,7 +2073,16 @@ extern "C" {
   PUBLIC void csoundFreeCircularBuffer(CSOUND *csound, void *circularbuffer);
 
 
-#ifdef SOME_FINE_DAY /* this bus mechanism is now deprecated */
+#ifdef SOME_FINE_DAY /* these functions are now deprecated */
+
+     /**
+     * Returns a pointer to the requested interface, if available, in the
+     * interface argument, and its version number, in the version argument.
+     * Returns 0 for success.
+     */
+
+    PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version);
+
 
     /**
      * Control values are specified by a 'channelName' string.
