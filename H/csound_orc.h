@@ -14,6 +14,14 @@ enum {
   S_APPLY,
 };
 
+typedef struct type_table {
+    OENTRY* globalOpcodes;
+    OENTRY* udos;
+    CS_VAR_POOL* globalPool;
+    CS_VAR_POOL* localPool;
+} TYPE_TABLE;
+
+
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
 #endif

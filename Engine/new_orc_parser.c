@@ -48,9 +48,10 @@ extern void csound_orcset_lineno(int, void*);
 extern void csound_orclex_destroy(void *);
 extern void init_symbtab(CSOUND*);
 extern void print_tree(CSOUND *, char *, TREE *);
-extern TREE* verify_tree(CSOUND *, TREE *);
+extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
+
 #ifdef PARCS
 extern TREE *csp_locks_insert(CSOUND *csound, TREE *root);
 void csp_locks_cache_build(CSOUND *);
@@ -170,7 +171,9 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
       //print_tree(csound, "AST - INITIAL\n", astTree);
-      astTree = verify_tree(csound, astTree);
+      TYPE_TABLE* typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
+      astTree = verify_tree(csound, astTree, typeTable);
+        mfree(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
 #ifdef PARCS
       if (LIKELY(O->numThreads > 1)) {
