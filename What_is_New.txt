@@ -73,10 +73,8 @@ cvanal will produce machine independent files if -X option is used.
 The convolve opcode will accept either format.  You are excouraged to
 use the machine independent form.
 
-
 The number of strings that can be used in a score line is no longer
 just one.  It should be open ended now.
-
 
 New API functions.....
 
