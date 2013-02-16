@@ -145,9 +145,10 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     /*        &cvh.headBsize, &cvh.dataBsize, &cvh.dataFormat, */
     /*        &cvh.samplingRate, &cvh.src_chnls, &cvh.channel, */
     /*        &cvh.Hlen, &cvh.Format); */
+    cvh.headBsize = sizeof(int32)*8 + sizeof(MYFLT);
     memcpy(&all[0], &cvh, sizeof(CVSTRUCT));
 
-    /* Read data until end, pack as int16 */
+    /* Read data until end, pack as MYFLTs */
     for (i=sizeof(CVSTRUCT);;i+=sizeof(MYFLT)) {
       /* Expand as necessary */
       if (i>=length-sizeof(MYFLT)-4) {
@@ -189,19 +190,24 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     lph.framrate = (MYFLT)strtod(buff, &p);
     lph.srate = (MYFLT)strtod(p, &p);
     lph.duration = (MYFLT)strtod(p, &p);
-    lph.text[0] = (char)strtol(p, &p, 0);
-    lph.text[1] = (char)strtol(p, &p, 0);
-    lph.text[2] = (char)strtol(p, &p, 0);
-    lph.text[3] = (char)strtol(p, &p, 0);
+    /* lph.text[0] = (char)strtol(p, &p, 0); */
+    /* lph.text[1] = (char)strtol(p, &p, 0); */
+    /* lph.text[2] = (char)strtol(p, &p, 0); */
+    /* lph.text[3] = (char)strtol(p, &p, 0); */
+    /* printf("LPHeader %d %d %d %d\n%f %f %f\n", */
+    /*        lph.headersize, lph.lpmagic, lph.npoles, lph.nvals, */
+    /*        lph.framrate, lph.srate, lph.duration); */
     /* fscanf(f, "%f %f %f %.2x %.2x %.2x %.2x\n", */
     /*        &lph.framrate, &lph.srate, &lph.duration, */
     /*        &lph.text[0], &lph.text[1], &lph.text[2], &lph.text[3]); */
-    memcpy(&all[0], &lph, sizeof(lph));
+    // This needs surgery if in/out different MYFLT sizes *** FIX ME ***
+    lph.headersize = sizeof(int32)*4+sizeof(MYFLT)*3;
+    memcpy(&all[0], &lph, lph.headersize);
 
-    /* Read data until end, pack as int16 */
-    for (i=sizeof(LPHEADER);;i+=sizeof(MYFLT)) {
+    /* Read data until end, pack as MYFLTs */
+    for (i=lph.headersize;;i+=sizeof(MYFLT)) {
       /* Expand as necessary */
-      if (i>=length-sizeof(MYFLT)-4) {
+      if (i>=length-sizeof(MYFLT)-8) {
         //printf("expanding from %p[%d] to\n", all, length);
         all = mrealloc(csound, all, length+=4096);
         //printf("i=%d                     %p[%d]\n", i, all, length);
@@ -211,7 +217,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
       memcpy(&all[i], &x, sizeof(MYFLT));
     }
     fclose(f);                                  /*   and close it      */
-    //printf("length=%d i=%d\n", length, i);
+    printf("length=%d i=%d\n", length, i);
     *len = i;
     all = mrealloc(csound, all, i);
     *allocp = all;
