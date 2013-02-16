@@ -33,6 +33,7 @@ make it easier to maintain *** FIXED ***
 reader opcodes need to accept them
    *** Hetro analysis fixed *** 
    *** cvanal analysis fixed *** 
+   *** lpanal analysis fixed *** 
 
 8) syntax error checks (undef variables etc) need to be put back.
 
