@@ -1118,6 +1118,7 @@ static int DummyMidiWrite(CSOUND *csound, void *userData,
 /* random.c */
 extern void csound_init_rand(CSOUND *);
 
+/*
 PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version)
 {
     if (strcmp(name, "CSOUND") != 0)
@@ -1126,6 +1127,7 @@ PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version)
     *version = csoundGetAPIVersion();
     return 0;
 }
+*/
 
 typedef struct CsoundCallbackEntry_s CsoundCallbackEntry_t;
 
