@@ -58,13 +58,14 @@ created with -X.  Down side is a longer file and a little slower
 loading.  The het_export utility will create the independent format
 from the old, and het_import is no longer necessary.
 
-cvanal will produce machine independent files if -X option is used.
-The convolve opcode will accept either format.  You are excouraged to
-use the machine independent form.
+cvanal and lpanal will produce machine independent files if -X option
+is used.  The convolve and lpred etc opcodes will accept either
+format.  You are excouraged to use the machine independent form.
+Analysis files produced with -X can be used on other systems.
 
 
 The number of strings that can be used in a score line is no longer
-just one.  It should be open ended now.
+just one.  It is open ended.
 
 
 New API functions.....
