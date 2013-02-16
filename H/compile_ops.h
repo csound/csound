@@ -2,6 +2,7 @@
 
 typedef struct _compile {
   OPDS h;
+  MYFLT *res;
   MYFLT *str;
 }COMPILE;
 
