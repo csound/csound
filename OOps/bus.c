@@ -882,13 +882,16 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
 
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
+#ifdef HAVE_ATOMIC_BUILTIN
     union {
     MYFLT d; 
     int64_t i;
     } x;
     x.i = __sync_add_and_fetch((int64_t *) p->fp, 0);
-    /* *(p->arg) = *(p->fp); */
     *(p->arg) = x.d;
+#else
+    *(p->arg) = *(p->fp);
+#endif    
     return OK;
 }
 
@@ -916,6 +919,7 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
+#ifdef HAVE_ATOMIC_BUILTIN
     {
     union {
     MYFLT d; 
@@ -924,9 +928,9 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
     x.i = __sync_add_and_fetch((int64_t *) p->fp, 0);
     *(p->arg) = x.d;
     }
-    
-    /* *(p->arg) = *(p->fp); */
-
+#else
+    *(p->arg) = *(p->fp); 
+#endif
     return OK;
 }
 
@@ -980,13 +984,18 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
+#ifdef HAVE_ATOMIC_BUILTIN
     union {
     MYFLT d; 
     int64_t i;
     } x;
     x.d = *(p->arg);
     __sync_or_and_fetch((int64_t *)p->fp, x.i);
-    /* *(p->fp) = *(p->arg); */
+#else
+    csoundSpinLock(p->lock);
+    *(p->fp) = *(p->arg);
+    csoundSpinUnLock(p->lock);
+#endif
     return OK;
 }
 
@@ -1046,21 +1055,20 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
+#ifdef HAVE_ATOMIC_BUILTIN
     union {
     MYFLT d; 
     int64_t i;
     } x;
     x.d = *(p->arg);
     __sync_or_and_fetch((int64_t *)p->fp, x.i);
-
-    /*
+#else
     p->lock = lock = csoundGetChannelLock(csound, (char*) p->iname,
                                 CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     csoundSpinLock(lock);
     *(p->fp) = *(p->arg);
     csoundSpinUnLock(lock);
-    */
-
+#endif    
     return OK;
 }
 
@@ -1497,13 +1505,18 @@ static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
 {
   if (p->XSTRCODE & 2) return OK;
    else {
+#ifdef HAVE_ATOMIC_BUILTIN
     union {
     MYFLT d; 
     int64_t i;
     } x;
     x.d = *(p->iname);
     __sync_or_and_fetch((int64_t *)p->fp, x.i);
-      /* *(p->fp) = *(p->iname); */ 
+#else
+     csoundSpinLock(p->lock);
+     *(p->fp) = *(p->iname); 
+     csoundSpinUnLock(p->lock);
+#endif
     return OK;
     }
 }

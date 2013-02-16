@@ -183,8 +183,9 @@
 
 #if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
 #  define PUBLIC        __declspec(dllexport)
-#elif defined(__GNUC__) && (__GNUC__ >= 4) //&& !defined(__MACH__)
+#elif defined(__GNUC__) && (__GNUC__ >= 4) /* && !defined(__MACH__) */
 #  define PUBLIC        __attribute__ ( (visibility("default")) )
+#  define HAVE_ATOMIC_BUILTIN
 #else
 #  define PUBLIC
 #endif
@@ -1086,6 +1087,17 @@ extern "C" {
      * Note: to find out the type of a channel without actually creating or
      * changing it, set 'type' to zero, so that the return value will be either
      * the type of the channel, or CSOUND_ERROR if it does not exist.
+     *
+     * Operations on **p are not thread-safe by default. The host is required
+     * to take care of threadsafety by
+     * 1) with control channels use __sync_fetch_and_add() / __sync_fetch_and_or()
+     *    gcc atomic builtins to get or set a channel, if available.
+     * 2) For string and audio channels (and controls if option 1 is not available),
+     *    retrieve the channel lock with csoundGetChannelLock() and use csoundSpinLock()
+     *    and csoundSpinUnLock() to protect access to **p.
+     * See Top/threadsafe.c in the Csound library sources for examples.
+     * Optionally, use the channel get/set functions provided below, which are threadsafe
+     * by default.
      */
     PUBLIC int csoundGetChannelPtr(CSOUND *,
             MYFLT **p, const char *name, int type);
@@ -1165,17 +1177,39 @@ extern "C" {
     PUBLIC int *csoundGetChannelLock(CSOUND *,
             const char *name, int type);
 
-  PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name);
+    /**
+     * retrieves the value of control channel identified by *name
+     */
+    PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name);
 
-  PUBLIC void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val);
+    /**
+     * sets the value of control channel identified by *name
+     */
+    PUBLIC void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val);
 
-  PUBLIC void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples);
+    /**
+     * copies the audio channel identified by *name into array *samples which should
+     * contain enough memory for ksmps MYFLTs 
+     */
+    PUBLIC void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples);
+    
+    /**
+     * sets the audio channel identified by *name with data from array *samples which should
+     * contain at least ksmps MYFLTs 
+     */
+    PUBLIC void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples);
+ 
+    /**
+     * copies the string channel identified by *name into *string which should
+     * contain enough memory a string of length csoundGetStrVarMaxLen(csound) (incl. NULL char)
+     */
+    PUBLIC void csoundSetStringChannel(CSOUND *csound, const char *name, char *string);
 
-  PUBLIC void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples);
-
-  PUBLIC void csoundSetStringChannel(CSOUND *csound, const char *name, char *string);
-
-  PUBLIC  void csoundGetStringChannel(CSOUND *csound, const char *name, char *string);
+    /**
+     * sets the string channel identified by *name with *string
+     * which should not be longer than csoundGetStrVarMaxLen(csound) (incl. NULL char)
+     */
+    PUBLIC  void csoundGetStringChannel(CSOUND *csound, const char *name, char *string);
 
 
       /**
@@ -1933,8 +1967,6 @@ extern "C" {
      */
     PUBLIC const char *csoundGetUtilityDescription(CSOUND *,
             const char *utilName);
-
-  
 
     /**
      * Simple linear congruential random number generator:
