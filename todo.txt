@@ -19,7 +19,7 @@ Csound 6 TODO list
   - do we need a new parser for score? (started one but a pain)
 
 3) test sample-accurate opcodes, or document those not working
-  - check that kperf code can be used in  multicore mode  in csound.c
+  - check that kperf code can be used in multicore mode in csound.c
   (possibly changes need to be propagated?) 
 
 4) Use instrument-local structure rather than global (ksmps mainly)
@@ -30,10 +30,11 @@ Csound 6 TODO list
 make it easier to maintain *** FIXED ***
 
 7) Analysis formats need to be byte-order/machine independent, and
-reader opcodes need to accept them
+reader opcodes need to accept them.
    *** Hetro analysis fixed *** 
    *** cvanal analysis fixed *** 
    *** lpanal analysis fixed *** 
+  7a: fix _export programs
 
 8) syntax error checks (undef variables etc) need to be put back.
 
