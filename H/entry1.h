@@ -60,7 +60,7 @@
 #include "cs_par_ops.h"
 #endif
 #include "ugtabs.h"
-
+#include "compile_ops.h"
 
 #define S(x)    sizeof(x)
 

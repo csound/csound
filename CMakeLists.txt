@@ -505,6 +505,7 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/ugrw2.c
     OOps/vdelay.c
+    OOps/compile_ops.c
     Opcodes/babo.c
     Opcodes/bilbar.c
     Opcodes/compress.c
