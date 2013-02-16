@@ -39,8 +39,23 @@ void print_tree(CSOUND *, char *, TREE *);
 extern int argsRequired(char* arrayName);
 extern char** splitArgs(CSOUND* csound, char* argString);
 
+/* from csound_orc_expressions.c */
+extern int is_expression_node(TREE *node);
 
-TREE* verify_tree(CSOUND * csound, TREE *root)
+char* get_arg_type_for_expression(CSOUND* csound, TREE* root) {
+    return NULL;
+}
+
+int verify_expression(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+    return 0;
+}
+
+int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+    csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
+    return 0;
+}
+
+TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 {
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
     
@@ -53,12 +68,23 @@ TREE* verify_tree(CSOUND * csound, TREE *root)
         switch(current->type) {
             case INSTR_TOKEN:
                 if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
-                current->right = verify_tree(csound, current->right);
-                
+                typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+                current->right = verify_tree(csound, current->right, typeTable);
+                mfree(csound, typeTable->localPool);
+                typeTable->localPool = NULL;
                 break;
             case UDO_TOKEN:
                 if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
                 
+                if (current->left == NULL || current->right == NULL) {
+                    
+                }
+                
+                
+                typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+                current->right = verify_tree(csound, current->right, typeTable);
+                mfree(csound, typeTable->localPool);
+                typeTable->localPool = NULL;
                 break;
                 
             case IF_TOKEN:
@@ -67,22 +93,26 @@ TREE* verify_tree(CSOUND * csound, TREE *root)
                 
             default:
                 
-                if (current->right != NULL) {
-                    if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
-                    
-                    if (current->type == '=' && previous != NULL) {
-                        /* '=' should be guaranteed to have left and right
-                         * arg by the time it gets here */
-                        if (previous->left != NULL && previous->left->value != NULL) {
-                            if (strcmp(previous->left->value->lexeme,
-                                       current->right->value->lexeme) == 0) {
-                                
-                            }
-                            
-                        }
-                        
-                    }
-                }
+//                csound->Message(csound, "Statement: %s\n", current->value->lexeme);
+                
+                verify_opcode(csound, current, typeTable);
+                
+//                if (current->right != NULL) {
+//                    if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
+//                    
+//                    if (current->type == '=' && previous != NULL) {
+//                        /* '=' should be guaranteed to have left and right
+//                         * arg by the time it gets here */
+//                        if (previous->left != NULL && previous->left->value != NULL) {
+//                            if (strcmp(previous->left->value->lexeme,
+//                                       current->right->value->lexeme) == 0) {
+//                                
+//                            }
+//                            
+//                        }
+//                        
+//                    }
+//                }
         }
         
         if (anchor == NULL) {
