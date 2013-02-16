@@ -64,7 +64,11 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name){
   x.d = FL(0.0);
   if(csoundGetChannelPtr(csound, &pval, name, 
 			 CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)) 
-   x.i = __sync_add_and_fetch((int64_t *)pval, 0);			 
+#ifdef HAVE_ATOMIC_BUILTIN
+   x.i = __sync_add_and_fetch((int64_t *)pval, 0);
+#else 
+   x.d = *pval;
+#endif			 
   return x.d;
 }
 
@@ -77,7 +81,18 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
   x.d = val;
   if(csoundGetChannelPtr(csound, &pval, name, 
 			 CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL))
+#ifdef HAVE_ATOMIC_BUILTIN
    __sync_or_and_fetch((int64_t *)pval, x.i);
+#else
+  {
+   int    *lock = 
+  csoundGetChannelLock(csound, (char*) name,
+                                CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL); 
+   csoundSpinLock(lock);
+   *pval  = val;
+   csoundSpinUnLock(lock);
+  }
+#endif
 }
 
 void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples){
