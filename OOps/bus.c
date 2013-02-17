@@ -272,9 +272,11 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       return CSOUND_SUCCESS;
     }
     size = fout[n].N < fin->N ? fout[n].N : fin->N;
-    csoundWaitThreadLockNoTimeout(csound->API_lock);
+    //csoundWaitThreadLockNoTimeout(csound->API_lock);
+    csoundLockMutex(csound->API_lock);
     memcpy(&fout[n], fin, sizeof(PVSDATEXT)-sizeof(float *));
-    csoundNotifyThreadLock(csound->API_lock);
+    //csoundNotifyThreadLock(csound->API_lock);
+    csoundUnlockMutex(csound->API_lock);
     if (LIKELY(size > 0))
        memcpy(fout[n].frame, fin->frame, sizeof(float)*(size+2));
     return CSOUND_SUCCESS;
