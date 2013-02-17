@@ -2,17 +2,16 @@ Csound 6 TODO list
 
 1) loadable instruments:
  - AST tree memory recovery needs fixing. *** FIXED ***
- - memory recovery of pools 
- - test extensively (including UDOs and namedins)
- - add support for fast loadable format
- - document AST tree format to allow users to parse into it.
+ - add support for fast loadable format  *** future versions ***
+ - document AST tree format to allow users to parse into it. *** future versions ***
  - API functions  ** done **
  - thread safety ? ** done **
- - UDOs are not replaced, memory recovery needed? 
- - add opcode to compile/load an opcode
- - API step by step construction of TREE?
+ - add opcode to compile/load an orchestra *** done ***
+ - API step by step construction of TREE?  *** future versions ***
  - safe deletion of TREE *** FIXED ***
  - memory recovery of POOLs
+- test extensively (including UDOs and namedins)
+ - UDOs are not replaced, memory recovery needed? 
 
 2) allow any number of strings in score events (except p2,p3). 
      *** FIXED ***
