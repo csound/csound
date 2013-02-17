@@ -21,38 +21,37 @@
 
 #include "csoundCore.h"
 
-
-
 void csoundInputMessage(CSOUND *csound, const char *message){
-  csoundWaitThreadLockNoTimeout(csound->API_lock);
+  csoundLockMutex(csound->API_lock);
   csoundInputMessageInternal(csound, message);
-  csoundNotifyThreadLock(csound->API_lock);
+  csoundUnlockMutex(csound->API_lock);
 }
 
 void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *ptable){
   int len;
   MYFLT *ftab;
-   csoundWaitThreadLockNoTimeout(csound->API_lock);
+ 
+  csoundLockMutex(csound->API_lock);
   /* in realtime mode init pass is executed in a separate thread, so
      we need to protect it */
-  if(csound->oparms->realtime) csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
+  if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table); 
   memcpy(ptable, ftab, len*sizeof(MYFLT));
-  if(csound->oparms->realtime) csound->NotifyThreadLock(csound->init_pass_threadlock);
-  csoundNotifyThreadLock(csound->API_lock); 
+  if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+  csoundUnlockMutex(csound->API_lock);
 }
 
 void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable){
   int len;
   MYFLT *ftab;
-  csoundWaitThreadLockNoTimeout(csound->API_lock);
+ csoundLockMutex(csound->API_lock);
   /* in realtime mode init pass is executed in a separate thread, so
      we need to protect it */
-  if(csound->oparms->realtime) csound->WaitThreadLockNoTimeout(csound->init_pass_threadlock);
+ if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table); 
   memcpy(ftab, ptable, len*sizeof(MYFLT)); 
-  if(csound->oparms->realtime) csound->NotifyThreadLock(csound->init_pass_threadlock);
-  csoundNotifyThreadLock(csound->API_lock);
+  if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+  csoundUnlockMutex(csound->API_lock);
 }
 
 MYFLT csoundGetControlChannel(CSOUND *csound, const char *name){
@@ -106,7 +105,6 @@ void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples){
     memcpy(samples, psamples, csoundGetKsmps(csound)*sizeof(MYFLT));
    csoundSpinUnLock(lock);
   }
-  csoundNotifyThreadLock(csound->API_lock);
 }
 
 void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples){
@@ -120,7 +118,6 @@ void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples){
     memcpy(psamples, samples, csoundGetKsmps(csound)*sizeof(MYFLT));
     csoundSpinUnLock(lock);
   }
-  csoundNotifyThreadLock(csound->API_lock);
 }
 
 void csoundSetStringChannel(CSOUND *csound, const char *name, char *string){
@@ -134,8 +131,6 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string){
     strcpy((char *) pstring, string);
     csoundSpinUnLock(lock);
   }
-  if(csound->oparms->realtime) csound->NotifyThreadLock(csound->init_pass_threadlock);
-  csoundNotifyThreadLock(csound->API_lock);
 }
 
 void csoundGetStringChannel(CSOUND *csound, const char *name, char *string){
@@ -149,8 +144,6 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string){
     strcpy(string, (char *) pstring);
     csoundSpinUnLock(lock);
   }
-  if(csound->oparms->realtime) csound->NotifyThreadLock(csound->init_pass_threadlock);
-  csoundNotifyThreadLock(csound->API_lock);
 }
 
 

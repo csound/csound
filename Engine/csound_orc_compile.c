@@ -1063,8 +1063,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     STRING_VAL* val = engineState->stringPool->values;
     int count = 0;
     /* lock to ensure thread-safety */
-    csoundWaitThreadLockNoTimeout(csound->API_lock);
-    if(csound->oparms->realtime) csoundWaitThreadLockNoTimeout(csound->init_pass_threadlock);
+    csoundLockMutex(csound->API_lock);
+    if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     while(val != NULL) {
       csound->Message(csound, " merging strings %d) %s\n", count++, val->value);
       string_pool_find_or_add(csound, current_state->stringPool, val->value);
@@ -1146,9 +1146,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       }
     }
 
-    if(csound->oparms->realtime) csoundNotifyThreadLock(csound->init_pass_threadlock);
+    if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
-    csoundNotifyThreadLock(csound->API_lock);
+    csoundUnlockMutex(csound->API_lock);
     return 0;
 }
 
