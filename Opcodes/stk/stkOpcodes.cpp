@@ -396,6 +396,7 @@ extern "C"
       {
         (char*)"STKBandedWG",
         sizeof(STKInstrumentAdapter<BandedWG>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -406,6 +407,7 @@ extern "C"
       {
         (char*)"STKBeeThree",
         sizeof(STKInstrumentAdapter<BeeThree>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -416,6 +418,7 @@ extern "C"
       {
         (char*)"STKBlowBotl",
         sizeof(STKInstrumentAdapter<BlowBotl>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -426,6 +429,7 @@ extern "C"
       {
         (char*)"STKBlowHole",
         sizeof(STKInstrumentAdapter1<BlowHole>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -436,6 +440,7 @@ extern "C"
       {
         (char*)"STKBowed",
         sizeof(STKInstrumentAdapter1<Bowed>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -446,6 +451,7 @@ extern "C"
       {
         (char*)"STKBrass",
         sizeof(STKInstrumentAdapter1<Brass>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -456,6 +462,7 @@ extern "C"
       {
         (char*)"STKClarinet",
         sizeof(STKInstrumentAdapter1<Clarinet>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -466,6 +473,7 @@ extern "C"
       {
         (char*)"STKDrummer",
         sizeof(STKInstrumentAdapter<Drummer>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -476,6 +484,7 @@ extern "C"
       {
         (char*)"STKFlute",
         sizeof(STKInstrumentAdapter1<Flute>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -486,6 +495,7 @@ extern "C"
       {
         (char*)"STKFMVoices",
         sizeof(STKInstrumentAdapter<FMVoices>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -496,6 +506,7 @@ extern "C"
       {
         (char*)"STKHevyMetl",
         sizeof(STKInstrumentAdapter<HevyMetl>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -506,6 +517,7 @@ extern "C"
       {
         (char*)"STKMandolin",
         sizeof(STKInstrumentAdapter1<Mandolin>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -516,6 +528,7 @@ extern "C"
       {
         (char*)"STKModalBar",
         sizeof(STKInstrumentAdapter<ModalBar>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -526,6 +539,7 @@ extern "C"
       {
         (char*)"STKMoog",
         sizeof(STKInstrumentAdapter<Moog>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -536,6 +550,7 @@ extern "C"
       {
         (char*)"STKPercFlut",
         sizeof(STKInstrumentAdapter<PercFlut>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -546,6 +561,7 @@ extern "C"
       {
         (char*)"STKPlucked",
         sizeof(STKInstrumentAdapter1<Plucked>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -556,6 +572,7 @@ extern "C"
       {
         (char*)"STKResonate",
         sizeof(STKInstrumentAdapter<Resonate>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -566,6 +583,7 @@ extern "C"
       {
         (char*)"STKRhodey",
         sizeof(STKInstrumentAdapter<Rhodey>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -576,6 +594,7 @@ extern "C"
       {
         (char*)"STKSaxofony",
         sizeof(STKInstrumentAdapter1<Saxofony>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -586,6 +605,7 @@ extern "C"
       {
         (char*)"STKShakers",
         sizeof(STKInstrumentAdapter<Shakers>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -596,6 +616,7 @@ extern "C"
       {
         (char*)"STKSimple",
         sizeof(STKInstrumentAdapter<Simple>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -606,6 +627,7 @@ extern "C"
       {
         (char*)"STKSitar",
         sizeof(STKInstrumentAdapter<Sitar>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -616,6 +638,7 @@ extern "C"
       {
         (char*)"STKStifKarp",
         sizeof(STKInstrumentAdapter1<StifKarp>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -626,6 +649,7 @@ extern "C"
       {
         (char*)"STKTubeBell",
         sizeof(STKInstrumentAdapter<TubeBell>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -636,6 +660,7 @@ extern "C"
       {
         (char*)"STKVoicForm",
         sizeof(STKInstrumentAdapter<VoicForm>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -646,6 +671,7 @@ extern "C"
       {
         (char*)"STKWhistle",
         sizeof(STKInstrumentAdapter<Whistle>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -656,6 +682,7 @@ extern "C"
       {
         (char*)"STKWurley",
         sizeof(STKInstrumentAdapter<Wurley>),
+        0,
         3,
         (char*)"a",
         (char*)"iiJJJJJJJJJJJJJJJJ",
@@ -702,7 +729,8 @@ extern "C"
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
       {
         status |= csound->AppendOpcode(csound, oentry->opname,
-                                       oentry->dsblksiz, oentry->thread,
+                                       oentry->dsblksiz, oentry->flags, 
+                                       oentry->thread,
                                        oentry->outypes, oentry->intypes,
                                        (int (*)(CSOUND*,void*)) oentry->iopadr,
                                        (int (*)(CSOUND*,void*)) oentry->kopadr,
