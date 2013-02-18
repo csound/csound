@@ -283,6 +283,59 @@ taskID dag_get_task(CSOUND *csound)
     else return (taskID)WAIT;
 }
 
+#define ATOMIC_SWAP(x,y) __sync_val_compare_and_swap(&(x),x,y)
+#define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0)
+#define ATOMIC_WRITE(x,val) \
+  {    __sync_and_and_fetch(&(x), 0); __sync_or_and_fetch(&(x), val); }
+// ??? _sync_val_compare_and_swap(&(x), x, val)
+
+watchList DoNotRead = { INVALID, NULL};
+static int moveWatch(watchList **w, watchList *t)
+{
+    watchList *local;
+    t->next = NULL;
+    do {
+      local = ATOMIC_READ(*w);
+      if (local==&DoNotRead) return 0;//was no & earlier
+      else t->next = local;
+    } while (!__sync_bool_compare_and_swap(w,local,t));// ??odd
+    return 1;
+}
+
+void dag_end_task(CSOUND *csound, taskID i)
+{
+    watchList *to_notify, *next;
+    int canQueue;
+    int j, k;
+
+    ATOMIC_WRITE(task_status[i], DONE);
+    to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
+    while (to_notify) {         /* walk the list of watchers */
+      next = to_notify->next;
+      j = to_notify->id;
+      canQueue = 1;
+      for (k=0; k<i; k++) {     /* seek next watch */
+        taskID l = task_dep[j][k];
+        if (ATOMIC_READ(task_status[l]) != DONE) {
+          if (moveWatch(&task_watch[j], to_notify)) {
+            canQueue = 0;
+            break;
+          } 
+          else {
+            /* assert task_status[j] == DONE and we are in race */
+            printf("Racing %d %d %d\n", i, j, k);
+          }
+        }
+      }
+      if (canQueue) {           /*  could use monitor here */
+        task_status[j] = AVAILABLE;
+      }
+      to_notify = next;
+    }
+    dag_print_state(csound);
+    return;    
+}
+
 // run one task from index
 void dag_nodePerf(CSOUND *csound, taskID work)
 {

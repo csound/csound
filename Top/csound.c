@@ -1280,6 +1280,9 @@ inline void multiThreadedLayer(CSOUND *csound, INSDS *layerBegin, INSDS *layerEn
 
 
 #ifdef PARCS
+int dag_get_task(CSOUND *csound);
+void dag_end_task(CSOUND *csound, int task);
+
 inline static int nodePerf(CSOUND *csound, int index)
 {
     INSDS *insds = NULL;
@@ -1287,9 +1290,11 @@ inline static int nodePerf(CSOUND *csound, int index)
     int update_hdl = -1;
     int played_count = 0;
     DAG_NODE *node;
+    int which_task;
 
     do {
       TRACE_2("Consume DAG [%i]\n", index);
+      printf("******** Would select %d\n", which_task = dag_get_task(csound));
       csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl);
         
       if (UNLIKELY(node == NULL)) {
@@ -1346,6 +1351,8 @@ inline static int nodePerf(CSOUND *csound, int index)
       else {
         csound->Die(csound, "Unknown DAG node type");
       }
+
+      printf("******** finished\n"); dag_end_task(csound, which_task);
 
       csp_dag_consume_update(csound->multiThreadedDag, update_hdl);
     } while (!csp_dag_is_finished(csound->multiThreadedDag));
