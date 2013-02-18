@@ -49,19 +49,11 @@ typedef int taskID;
 #define WAIT    (-2)
 
 /* Each task has a status */
-enum state { INACTIVE = -5,         /* No task */
-             WAITING = -4,          /* Dependencies have not been finished */
-	     AVAILABLE = -3,        /* Dependencies met, ready to be run */
-	     INPROGRESS = -2,       /* Has been started */
-	     DONE = -1 };           /* Has been completed */
-
-/* Array of states of each task -- need to move to CSOUND structure */
-static enum state *task_status = NULL;          /* OPT : Structure lay out */
-static taskID *task_watch = NULL; 
-static INSDS **task_map = NULL; 
-
-/* INV : Read by multiple threads, updated by only one */
-/* Thus use atomic read and write */
+enum state { INACTIVE = 5,         /* No task */
+             WAITING = 4,          /* Dependencies have not been finished */
+	     AVAILABLE = 3,        /* Dependencies met, ready to be run */
+	     INPROGRESS = 2,       /* Has been started */
+	     DONE = 1 };           /* Has been completed */
 
 /* Sets of prerequiste tasks for each task */
 typedef struct _watchList {
@@ -69,7 +61,16 @@ typedef struct _watchList {
   struct _watchList *next;
 } watchList;
 
-static watchList ** task_dep;                        /* OPT : Structure lay out */
+/* Array of states of each task -- need to move to CSOUND structure */
+static enum state *task_status = NULL;          /* OPT : Structure lay out */
+static watchList **task_watch = NULL; 
+static INSDS **task_map = NULL; 
+
+/* INV : Read by multiple threads, updated by only one */
+/* Thus use atomic read and write */
+
+static char ** task_dep;                        /* OPT : Structure lay out */
+static watchList * wlmm;
 
 #define INIT_SIZE (100)
 static int task_max_size;
@@ -90,12 +91,10 @@ static void dag_print_state(CSOUND *csound)
         printf("status=AVAILABLE\n"); break;
       case WAITING: 
         {
-          watchList *tt = task_dep[i];
-          printf("status=WAITING for task %d (", task_watch[i]);
-          while (tt) { 
-            printf("%d ", tt->id);
-            tt = tt->next;
-          }
+          char *tt = task_dep[i];
+          int j;
+          printf("status=WAITING for task %d (", wlmm[i].id);
+          for (j=0; j<i; j++) if (tt[j]) printf("%d ", j);
           printf(")\n");
         }
         break;
@@ -103,6 +102,8 @@ static void dag_print_state(CSOUND *csound)
         printf("status=???\n"); break;
       }
     }
+    printf("watches: ");
+    for (i=0; i<csound->dag_num_active; i++) printf("%d<-%d ", i, wlmm[i].id);
     printf("\n");
 }
 	     
@@ -111,18 +112,10 @@ void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     task_status = mcalloc(csound, sizeof(enum state)*(task_max_size=INIT_SIZE));
-    task_watch = mcalloc(csound, sizeof(taskID)*task_max_size);
-    task_map = mcalloc(csound, sizeof(INSDS*)*task_max_size);
-    task_dep = (watchList **)mcalloc(csound, sizeof(watchList*)*task_max_size);
-}
-
-static void dag_free_watch(CSOUND *csound, watchList *x)
-{
-    while (x) {
-      watchList *t=x;
-      x = x->next;
-      mfree(csound, t);
-    }
+    task_watch  = mcalloc(csound, sizeof(watchList**)*task_max_size);
+    task_map    = mcalloc(csound, sizeof(INSDS*)*task_max_size);
+    task_dep    = (char **)mcalloc(csound, sizeof(watchList*)*task_max_size);
+    wlmm        = (watchList *)mcalloc(csound, sizeof(watchList)*task_max_size);
 }
 
 static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
@@ -166,11 +159,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
     int i;
     if (task_status == NULL) create_dag(csound); /* Should move elsewhere */
     else { 
-      memset(task_watch, '\0', sizeof(enum state)*task_max_size);
+      memset(task_watch, '\0', sizeof(watchList*)*task_max_size);
       for (i=0; i<task_max_size; i++) {
-        dag_free_watch(csound, task_dep[i]);
-        task_watch[i] = 0;
-        task_dep[i] = NULL;
+        task_dep[i]= NULL;
+        wlmm[i].id = INVALID;
       }
     }
     csound->dag_num_active = 0;
@@ -184,7 +176,8 @@ void dag_build(CSOUND *csound, INSDS *chain)
       printf("**************need to extend task vector\n");
       exit(1);
     }
-    for (i=0; i<csound->dag_num_active; i++) task_status[i] = AVAILABLE;
+    for (i=0; i<csound->dag_num_active; i++) 
+      task_status[i] = AVAILABLE, wlmm[i].id=-1;
     csound->dag_changed = 0;
     printf("dag_num_active = %d\n", csound->dag_num_active);
     i = 0; chain = save;
@@ -216,17 +209,20 @@ void dag_build(CSOUND *csound, INSDS *chain)
                           later_instr->read_write, cnt++) ||
             dag_intersect(csound, current_instr->write,
                           later_instr->read_write, cnt++)) {
-          watchList *n = (watchList*)mmalloc(csound, sizeof(watchList));
-          n->id = i;
-          n->next = task_dep[j];
-          task_dep[j] = n;
-          task_status[j] = WAITING;
-          task_watch[j] = i;
-          printf("yes-%d ", cnt);
+          if (task_dep[j]==NULL) {
+            /* get dep vector if missing and set watch first time */
+            task_dep[j] = (char*)mcalloc(csound, sizeof(char)*(j-1));
+            task_status[j] = WAITING;
+            wlmm[j].next = task_watch[i];
+            wlmm[j].id = i;
+            task_watch[i] = &wlmm[j]; 
+            printf("set watch %d to %d\n", j, i);
+          }
+          task_dep[j][i] = 1;
+          printf("-yes ");
         }
         j++; next = next->nxtact;
       }
-      if (task_dep[i]) task_watch[i] = task_dep[i]->id;
       task_map[i] = chain;
       i++; chain = chain->nxtact;
     }
@@ -237,21 +233,20 @@ void dag_reinit(CSOUND *csound)
 {
     int i;
     dag_dispatched = 0;
-    for (i=0; i<csound->dag_num_active; i++) {
-      if (task_dep[i]==NULL) {
-        task_status[i] = AVAILABLE;
-        task_watch[i] = -1;     /* Probably unnecessary */
-        //dispatch.add(id);
-        //printf("Task %d available\n", i);
-      }
-      else {
-        task_status[i] = WAITING;
-        task_watch[i] = task_dep[i]->id; //pick_a_watch(i); /* Could optimise here */
-        //printf("Task %d waiting for %d\n", i, task_watch[i]);
-      }
-    }
     for (i=csound->dag_num_active; i<task_max_size; i++)
       task_status[i] = DONE;
+    for (i=0; i<csound->dag_num_active; i++) {
+      int j;
+      for (j=i-1; j>=0; j--)
+        if (task_dep[i] && task_dep[i][j]) {
+          task_status[i] = WAITING;
+          wlmm[i].id = j;
+          wlmm[i].next = task_watch[j];
+          task_watch[j] = &wlmm[i];
+          return;
+        }
+    }
+    task_status[i] = AVAILABLE;
 }
 
 void dag_add_work(CSOUND *csound, taskID i)
@@ -293,7 +288,7 @@ void dag_nodePerf(CSOUND *csound, taskID work)
 {
     INSDS *insds = task_map[work];
     OPDS  *opstart = NULL;
-    int update_hdl = -1;
+    //int update_hdl = -1;
     int played_count = 0;
 
     played_count++;
@@ -384,7 +379,7 @@ typedef struct watchListMemoryManagement {
 
 watchListMemoryManagement *wlmm; /* OPT : Structure lay out */
 
-/* INV : wlmm[X].s.head == X; */  /* OPT : Data structure redundancy */
+/* INV : wlmm[X].s.id == X; */  /* OPT : Data structure redundancy */
 /* INV : status[X] == WAITING => wlmm[X].used */
 /* INV : wlmm[X].s is in watch[Y] => wlmm[X].used */
 
@@ -393,7 +388,7 @@ watchListMemoryManagement *wlmm; /* OPT : Structure lay out */
 
 void initialiseWatch (watchList **w, taskID id) {
   wlmm[id].used = TRUE;
-  wlmm[id].s.head = id;
+  wlmm[id].s.id = id;
   wlmm[id].s.tail = *w;
   *w = &(wlmm[id].s);
 }
@@ -433,7 +428,7 @@ void appendToWL (taskID id, watchList *l) {
 }
 
 void deleteWatch (watchList *t) {
-  wlmm[t->head].used = FALSE;
+  wlmm[t->id].used = FALSE;
 }
 
 
@@ -593,7 +588,7 @@ void workerThread (State *s) {
       next = tasksToNotify->tail;
       
       canQueue = TRUE;
-      foreach (dep in dep[tasksToNotify->head]) {  /* OPT : Watch ordering */ 
+      foreach (dep in dep[tasksToNotify->id]) {  /* OPT : Watch ordering */ 
 	if (atomicRead(status[dep]) != DONE) {
 	  /* NOTE : Race condition */
 	  if (moveWatch(watch[dep],tasksToNotify)) {
@@ -607,7 +602,7 @@ void workerThread (State *s) {
       }
       
       if (canQueue) {                    /* OPT : Save one work item */
-	addWork(*dispatch,tasksToNotify->head);
+	addWork(*dispatch,tasksToNotify->id);
 	deleteWatch(tasksToNotify);
       }
       
@@ -657,7 +652,7 @@ void workerThread (State *s) {
 /* OPT : Structure lay out
  *
  * Some of the fields are not strictly needed and are just there to make
- * the algorithm cleaner and more intelligible.  The head fields of the watch
+ * the algorithm cleaner and more intelligible.  The id fields of the watch
  * lists are not really needed as there is one per task and their position
  * within the watchListMemoryManager array allows the task to be infered.
  * Likewise the used flag in the memory manager is primarily for book-keeping
