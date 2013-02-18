@@ -539,6 +539,7 @@ extern "C"
         {
             (char*)"lua_exec",
             sizeof(cslua_exec),
+            0,
             1,
             (char*)"",
             (char*)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
@@ -552,6 +553,7 @@ extern "C"
         {
             (char*)"lua_iopcall",
             sizeof(cslua_opcall),
+            0,
             1,
             (char*)"",
             (char*)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
@@ -565,6 +567,7 @@ extern "C"
         {
             (char*)"lua_ikopcall",
             sizeof(cslua_opcall),
+            0,
             3,
             (char*)"",
             (char*)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
@@ -578,6 +581,7 @@ extern "C"
         {
             (char*)"lua_iaopcall",
             sizeof(cslua_opcall),
+            0,
             5,
             (char*)"",
             (char*)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
@@ -591,6 +595,7 @@ extern "C"
         {
             (char*)"lua_iopcall_off",
             sizeof(cslua_opcall_off),
+            0,
             1,
             (char*)"",
             (char*)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
@@ -604,6 +609,7 @@ extern "C"
         {
             (char*)"lua_ikopcall_off",
             sizeof(cslua_opcall_off),
+            0,
             3,
             (char*)"",
             (char*)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
@@ -617,6 +623,7 @@ extern "C"
         {
             (char*)"lua_iaopcall_off",
             sizeof(cslua_opcall_off),
+            0,
             5,
             (char*)"",
             (char*)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
@@ -630,6 +637,7 @@ extern "C"
         {
             (char*)"lua_opdef",
             sizeof(cslua_opdef),
+            0,
             1,
             // No outputs.
             (char*)"",
@@ -641,6 +649,7 @@ extern "C"
             0,
         },
         {
+            0,
             0,
             0,
             0,
@@ -665,6 +674,7 @@ extern "C"
             status |= csound->AppendOpcode(csound,
                                            oentry->opname,
                                            oentry->dsblksiz,
+                                           oentry->flags,
                                            oentry->thread,
                                            oentry->outypes,
                                            oentry->intypes,
