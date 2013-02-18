@@ -249,10 +249,10 @@ void *pvs_io_thread(void *pp){
   float  *frame = (float *) p->dframe.auxp;
   int  *on = &p->async; 
   int lc,n, N2=p->N+2; 
-  while(*on) {
+  while (*on) {
       lc = csound->ReadCircularBuffer(csound, p->cb, buf, N2);
       if(lc)  {
-      for(n=0; n < N2; n++) frame[n] = (float) buf[n];
+      for (n=0; n < N2; n++) frame[n] = (float) buf[n];
         csound->PVOC_PutFrames(csound, p->pvfile, frame, 1);
       }
     }
