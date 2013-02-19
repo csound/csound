@@ -25,7 +25,7 @@
 #endif
 
 #ifndef HAVE_GETTIMEOFDAY
-#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
+#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__) || defined(__HAIKU__)
 #define HAVE_GETTIMEOFDAY 1
 #endif
 #endif
@@ -150,7 +150,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 
 
-#if defined(LINUX) || defined(__MACH__) || defined(WIN32)
+#if defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || defined(WIN32)
 
 #include <errno.h>
 #include <pthread.h>
@@ -165,7 +165,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 #define BARRIER_SERIAL_THREAD (-1)
 
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-#ifndef __MACH__
+#if !defined(__MACH__) && !defined(__HAIKU__)
 
 typedef struct barrier {
     pthread_mutex_t mut;
@@ -207,7 +207,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     }
 }
 
-#if !defined(ANDROID) && (defined(LINUX) || defined(WIN32))
+#if !defined(ANDROID) && (defined(LINUX) || defined(__HAIKU__) || defined(WIN32))
 
 PUBLIC void *csoundCreateThreadLock(void)
 {
