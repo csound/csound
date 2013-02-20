@@ -176,7 +176,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
             //        retVal[len + 1] = NULL;
             //        return retVal;
         default:
-            csoundWarning(csound, "Unknown arg type: %d\n", tree->type);
+//            csoundWarning(csound, "Unknown arg type: %d\n", tree->type);
             return NULL;
     }
 }
@@ -215,8 +215,7 @@ PUBLIC char* getArgStringFromTree(CSOUND* csound, TREE* tree) {
             argsLen += strlen(argType);
             argTypes[index++] = argType;
         }
-        
-        
+
         
         current = current->next;
     }
@@ -252,8 +251,8 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     char* leftArgString = getArgStringFromTree(csound, left);
     char* rightArgString = getArgStringFromTree(csound, right);
     
-    csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
-    csound->Message(csound, "    Arg Types Found: %s | %s\n", leftArgString, rightArgString);
+//    csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
+//    csound->Message(csound, "    Arg Types Found: %s | %s\n", leftArgString, rightArgString);
 
 //    OENTRY* entry = find_opcode(csound, root->value->lexeme);
 //    
