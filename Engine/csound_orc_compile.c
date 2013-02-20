@@ -44,7 +44,7 @@ static  void    lgbuild(CSOUND *, INSTRTXT *, char *,
                         int inarg, ENGINE_STATE *engineState);
 static  void    gblnamset(CSOUND *, char *, ENGINE_STATE *engineState);
 static  void    lclnamset(CSOUND *, INSTRTXT* ip, char *);
-static  int     pnum(char *s) ;
+int     pnum(char *s) ;
 static  int     lgexist2(INSTRTXT*, const char *s, ENGINE_STATE *engineState);
 static void     unquote_string(char *, const char *);
 extern void     print_tree(CSOUND *, char *, TREE *);
@@ -866,7 +866,7 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
 }
 
 
-static int pnum(char *s)        /* check a char string for pnum format  */
+int pnum(char *s)        /* check a char string for pnum format  */
 /*   and return the pnum ( >= 0 )       */
 {                               /* else return -1                       */
     int n;
@@ -1715,8 +1715,11 @@ char argtyp2(char *s)
       c = *(++s);
     if (c == 'g')
       c = *(++s);
-    if (c == '[')
-      c = *(++s);
+    if (c == '[') {
+      while(c == '[') {
+        c = *(++s);
+      }
+    }
     if (strchr("akiBbfSt", c) != NULL)
       return(c);
     else return('?');
