@@ -15,6 +15,8 @@
 
 extern char* convertArrayName(CSOUND* csound, char* arrayName);
 extern char* addDimensionToArrayName(CSOUND* csound, char* arrayName);
+extern OENTRIES* find_opcode2(CSOUND* csound, OENTRY* opcodeList, OENTRY* endOpcode, char* opname);
+extern OENTRY* resolve_opcode(OENTRIES* entries, char* outArgTypes, char* inArgTypes);
 
 
 int init_suite1(void)
@@ -66,6 +68,39 @@ void test_addDimensionToArrayName(void)
     CU_ASSERT_STRING_EQUAL(result, "[[k;Arr");
 }
 
+void test_find_opcode2(void) {
+    int i;
+    CSOUND* csound = csoundCreate(NULL);
+
+    OENTRIES* entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "=");
+    printf("Found entries: %d\n", entries->count);
+    
+    for (i = 0; i < entries->count; i++) {
+        printf("%d) %s\t%s\t%s\n", i,
+               entries->entries[i]->opname,
+               entries->entries[i]->outypes,
+               entries->entries[i]->intypes);
+    }
+
+    
+    CU_ASSERT_EQUAL(7, entries->count);
+    mfree(csound, entries);
+    
+    entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "vco2");
+    CU_ASSERT_EQUAL(1, entries->count);
+    mfree(csound, entries);
+}
+
+void test_resolve_opcode(void) {
+    int i;
+    CSOUND* csound = csoundCreate(NULL);
+    
+    OENTRIES* entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "=");
+    CU_ASSERT_EQUAL(7, entries->count);
+    
+    OENTRY* opc = resolve_opcode(entries, "k", "k");
+    CU_ASSERT_PTR_NOT_NULL(opc);
+}
 
 int main()
 {
@@ -84,7 +119,9 @@ int main()
     
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "Test convertArrayName()", test_convertArrayName))
-                   || (NULL == CU_add_test(pSuite, "Test addDimensionToArrayName()", test_addDimensionToArrayName))
+        || (NULL == CU_add_test(pSuite, "Test addDimensionToArrayName()", test_addDimensionToArrayName))
+        || (NULL == CU_add_test(pSuite, "Test find_opcode2()", test_find_opcode2))
+        || (NULL == CU_add_test(pSuite, "Test resolve_opcode()", test_resolve_opcode))
         )
     {
         CU_cleanup_registry();
