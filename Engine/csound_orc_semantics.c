@@ -28,6 +28,7 @@
 #include "csound_orc.h"
 #include "namedins.h"
 #include "parse_param.h"
+#include "csound_type_system.h"
 
 char *csound_orcget_text ( void *scanner );
 
@@ -38,9 +39,147 @@ void print_tree(CSOUND *, char *, TREE *);
 /* from csound_orc_compile.c */
 extern int argsRequired(char* arrayName);
 extern char** splitArgs(CSOUND* csound, char* argString);
+extern int pnum(char*);
 
 /* from csound_orc_expressions.c */
 extern int is_expression_node(TREE *node);
+
+char* cs_strdup(CSOUND* csound, char* str) {
+    size_t len = strlen(str);
+    
+    if(len == 0) {
+        return NULL;
+    }
+    
+    char* retVal = mmalloc(csound, (len + 1) * sizeof(char));
+    memcpy(retVal, str, len * sizeof(char));
+    retVal[len] = NULL;
+    
+    return retVal;
+}
+
+char* cs_strndup(CSOUND* csound, char* str, size_t size) {
+    size_t len = strlen(str);
+    
+    if(len == 0) {
+        return NULL;
+    } else if (size > len) {
+        return cs_strdup(csound, str);
+    } 
+    
+    char* retVal = mmalloc(csound, (size + 1) * sizeof(char));
+    memcpy(retVal, str, size * sizeof(char));
+    retVal[size] = NULL;
+    
+    return retVal;
+}
+
+
+//PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
+//{                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
+//    char* s = identifier;    /*   also set lgprevdef if !c && !p && !S */
+//    char c = *s;
+//    
+//    /* trap this before parsing for a number! */
+//    /* two situations: defined at header level: 0dbfs = 1.0
+//     *  and returned as a value:  idb = 0dbfs
+//     */
+//    if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
+//        (c == '0' && strcmp(s, "0dbfs") != 0))
+//        return cs_strdup(csound, "c");                              /* const */
+//    if (pnum(s) >= 0)
+//        return cs_strdup(csound, "p");                              /* pnum */
+//    if (c == '"')
+//        return cs_strdup(csound, "S");                              /* quoted String */
+//    if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
+//        strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
+//        strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
+//        return cs_strdup(csound, "r");                              /* rsvd */
+//    if (c == 'w')               /* N.B. w NOT YET #TYPE OR GLOBAL */
+//        return cs_strdup(csound, "w");
+//    if (c == '#')
+//        c = *(++s);
+//    if (c == 'g')
+//        c = *(++s);
+//    if (c == '[') {
+//        int len = 1;
+//        while(c != '[') {
+//            c = *(++s);
+//            len++;
+//        }
+//        char* retVal = mmalloc(csound, (len + 2) * sizeof(char)); // add 2 for semicolon and NULL
+//        memcpy(retVal, identifier, len);
+//        retVal[len] = ';';
+//        retVal[len + 1] = NULL;
+//        return retVal;
+//    }
+//    
+//    CS_TYPE* type = csoundGetTypeForVarName(csound->typePool, identifier);
+//    if (type != NULL) {
+//        return cs_strdup(csound, type->varTypeName);
+//    }
+//    
+////        if (strchr("akiBbfSt", c) != NULL)
+////            return(c);
+//    
+//    return NULL;
+//    
+//}
+
+PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
+{                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
+    char* s;
+    CS_TYPE* type;
+    
+    switch(tree->type) {
+        case NUMBER_TOKEN:
+        case INTEGER_TOKEN:
+            return cs_strdup(csound, "c");                              /* const */
+        case STRING_TOKEN:
+            return cs_strdup(csound, "S");                              /* quoted String */
+        case SRATE_TOKEN:
+        case KRATE_TOKEN:
+        case KSMPS_TOKEN:
+        case ZERODBFS_TOKEN:
+        case NCHNLS_TOKEN:
+        case NCHNLSI_TOKEN:
+            return cs_strdup(csound, "r");                              /* rsvd */
+        case LABEL_TOKEN:
+            //FIXME: Need to review why label token is used so much in parser, for now treat as
+            //T_IDENT
+        case T_IDENT:
+            s = tree->value->lexeme;
+            
+            if (pnum(s) >= 0)
+                return cs_strdup(csound, "p");                              /* pnum */
+            if (*s == '#')
+                s++;
+            if (*s == 'g')
+                s++;
+            type = csoundGetTypeForVarName(csound->typePool, s);
+            if (type != NULL) {
+                return cs_strdup(csound, type->varTypeName);
+            } else {
+                return cs_strdup(csound, "l"); // assume it is a label
+            }
+        case T_ARRAY:
+        case T_ARRAY_IDENT:
+            // not yet handled, falling through for now:
+            //        int len = 1;
+            //        while(c != '[') {
+            //            c = *(++s);
+            //            len++;
+            //        }
+            //        char* retVal = mmalloc(csound, (len + 2) * sizeof(char)); // add 2 for semicolon and NULL
+            //        memcpy(retVal, identifier, len);
+            //        retVal[len] = ';';
+            //        retVal[len + 1] = NULL;
+            //        return retVal;
+        default:
+            csoundWarning(csound, "Unknown arg type: %d\n", tree->type);
+            return NULL;
+    }
+}
 
 char* get_arg_type_for_expression(CSOUND* csound, TREE* root) {
     return NULL;
@@ -50,8 +189,89 @@ int verify_expression(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 0;
 }
 
+PUBLIC char* getArgStringFromTree(CSOUND* csound, TREE* tree) {
+
+    int len = tree_arg_list_count(tree);
+    int i;
+    
+    if (len == 0) {
+        return NULL;
+    }
+    
+    char** argTypes = mmalloc(csound, len * sizeof(char*));
+    char* argString = NULL;
+    TREE* current = tree;
+    int index = 0;
+    int argsLen = 0;
+    
+    while (current != NULL) {
+        char* argType = get_arg_type(csound, current);
+
+        //FIXME - fix if argType is NULL and remove the below hack
+        if(argType == NULL) {
+            argsLen += 1;
+            argTypes[index++] = "?";
+        } else {
+            argsLen += strlen(argType);
+            argTypes[index++] = argType;
+        }
+        
+        
+        
+        current = current->next;
+    }
+
+    argString = mmalloc(csound, argsLen);
+    char* temp = argString;
+    
+    for (i = 0; i < len; i++) {
+        int size = strlen(argTypes[i]);
+        memcpy(temp, argTypes[i], size);
+        temp += size;
+    }
+
+    argString[argsLen] = NULL;
+    
+//    for (i = 0; i < len; i++) {
+//         csoundMessage(csound, "%d) Found arg type: %s\n", i, argTypes[i]);
+//    }
+    
+//    return argString;
+    return argString;
+    
+}
+
+/*
+ * Verifies: number of args correct, types of arg correct
+ */
 int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+    
+    TREE* left = root->left;
+    TREE* right = root->right;
+    
+    char* leftArgString = getArgStringFromTree(csound, left);
+    char* rightArgString = getArgStringFromTree(csound, right);
+    
     csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
+    csound->Message(csound, "    Arg Types Found: %s | %s\n", leftArgString, rightArgString);
+
+//    OENTRY* entry = find_opcode(csound, root->value->lexeme);
+//    
+//    if(entry == NULL) {
+//        synterr(csound, "Unknown opcode: %s\n", root->value->lexeme);
+//        return CSOUND_ERROR;
+//    }
+    
+    //csound->Message(csound, "    Arg Types Required: %s | %s\n", entry->outypes, entry->intypes);
+    
+//    print_tree(csound, "OP LEFT: ", left);
+//    print_tree(csound, "OP RIGHT: ", right);
+    
+    //        synterr(csound,
+    //                Str("input arg '%s' used before defined (in opcode %s),"
+    //                    " line %d\n"),
+    //                s, ep->opname, line);
+    
     return 0;
 }
 
@@ -88,6 +308,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                 break;
                 
             case IF_TOKEN:
+            case UNTIL_TOKEN:
                 
                 break;
                 

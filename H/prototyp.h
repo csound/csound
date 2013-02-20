@@ -34,6 +34,8 @@ void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
 void    *mrealloc(CSOUND *, void *, size_t);
 void    mfree(CSOUND *, void *);
+char    *cs_strdup(CSOUND*, char*);
+char    *cs_strndup(CSOUND*, char*, size_t);
 void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
 void    fdrecord(CSOUND *, FDCH *), fdclose(CSOUND *, FDCH *);
 void    fdchclose(CSOUND *, INSDS *);
