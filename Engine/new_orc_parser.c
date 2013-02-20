@@ -172,8 +172,15 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       }
       //print_tree(csound, "AST - INITIAL\n", astTree);
       TYPE_TABLE* typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
+      typeTable->globalOpcodes = csound->opcodlst;
+      typeTable->udos = NULL;
+      typeTable->globalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+      typeTable->localPool = NULL;
+        
       astTree = verify_tree(csound, astTree, typeTable);
-        mfree(csound, typeTable);
+        
+      mfree(csound, typeTable->globalPool);
+      mfree(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
 #ifdef PARCS
       if (LIKELY(O->numThreads > 1)) {
