@@ -522,6 +522,14 @@ typedef struct CORFIL {
     void    *useropinfo;    /* user opcode parameters */
     int     prvnum;         
   } OENTRY;
+    
+  // holds matching oentries from opcodeList
+  // has space for 16 matches and next pointer in case more are found (unlikely though)
+  typedef struct oentries {
+    OENTRY* entries[16];
+    int count;
+    struct oentries* next;
+  } OENTRIES;
 
   typedef struct lblblk {
     OPDS    h;

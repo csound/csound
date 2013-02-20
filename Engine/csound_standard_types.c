@@ -145,3 +145,47 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY);
 
 }
+
+
+/* Type maps for poly, optional, and var arg types
+ * format is in pairs of specified type and types it can resolve into,
+ * termintated by a NULL */
+const char* POLY_IN_TYPES[] = {
+    "x", "ka",
+    "T", "Sik",
+    "U", "Sik", NULL};
+const char* OPTIONAL_IN_TYPES[] = {
+    "o", "i",
+    "p", "i",
+    "q", "i",
+    "v", "i",
+    "j", "i",
+    "h", "i",
+    "O", "k",
+    "J", "k",
+    "V", "k",
+    "P", "k", NULL
+};
+const char* VAR_ARG_IN_TYPES[] = {
+    "m", "i",
+    "M", "ika",
+    "N", "ikaS",
+    "n", "i",   /* this one requires odd number of args... */
+    "y", "a",
+    "z", "k",
+    "Z", "ka",  NULL  /* this one needs to be ka alternatating... */
+};
+
+const char* POLY_OUT_TYPES[] = {
+    "s", "ka", NULL
+};
+
+const char* VAR_ARG_OUT_TYPES[] = {
+    "m", "a",
+    "z", "k",
+    "I", "i", /* had comment of (not implemented yet) in entry1.c */
+    "X", "aki",
+    "N", "akiS",
+    "F", "f", NULL
+};
+
