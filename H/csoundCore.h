@@ -1599,6 +1599,7 @@ typedef struct NAME__ {
 #ifdef NEW_DAG
     int           dag_changed;
     int           dag_num_active;
+    INSDS         **dag_task_map;
 #endif
 #endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
