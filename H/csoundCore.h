@@ -1176,7 +1176,7 @@ typedef struct NAME__ {
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
     int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t); 
-    //int *(*GetChannelLock)(CSOUND *, const char *name, int type);
+     int *(*GetChannelLock)(CSOUND *, const char *name, int type);
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
                                 int (*callback)(CSOUND *, MEMFIL *));
     void *(*GetNamedGens)(CSOUND *);
