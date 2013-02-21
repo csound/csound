@@ -84,11 +84,11 @@ void test_find_opcode2(void) {
 
     
     CU_ASSERT_EQUAL(7, entries->count);
-    mfree(csound, entries);
+    csound->Free(csound, entries);
     
     entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "vco2");
     CU_ASSERT_EQUAL(1, entries->count);
-    mfree(csound, entries);
+    csound->Free(csound, entries);
 }
 
 void test_resolve_opcode(void) {

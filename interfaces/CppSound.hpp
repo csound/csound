@@ -77,7 +77,7 @@ public:
   virtual std::string getOutputSoundfileName() const;
   virtual int perform(int argc, char **argv);
   virtual int perform();
-  virtual int performKsmps(bool absolute);
+  virtual int performKsmps();
   virtual void cleanup();
   virtual void inputMessage(const char *istatement);
   virtual void write(const char *text);
