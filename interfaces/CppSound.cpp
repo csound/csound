@@ -135,14 +135,9 @@ CSOUND *CppSound::getCsound()
   return csound;
 }
 
-int CppSound::performKsmps(bool absolute)
+int CppSound::performKsmps()
 {
-  if(absolute){
-    return PerformKsmpsAbsolute();
-  }
-  else {
     return PerformKsmps();
-  }
 }
 
 void CppSound::cleanup()

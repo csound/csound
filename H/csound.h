@@ -9,7 +9,6 @@
  * software. Since then Csound has received numerous contributions
  * from researchers, programmers, and musicians from around the world.
  *
-
  * \section section_api_outline Outline of the API
  *
  * \subsection section_api_apilist The Csound Application Programming Interfaces
@@ -169,7 +168,298 @@
  *
  * In general, plugins should ONLY access Csound functionality through the
  * API function pointers and public members of the CSOUND structure.
- */
+   Here is a list of the public funtions in CSOUND:
+
+    Attributes:
+    MYFLT (*GetSr)(CSOUND *);
+    MYFLT (*GetKr)(CSOUND *);
+    uint32_t (*GetKsmps)(CSOUND *);
+    uint32_t (*GetNchnls)(CSOUND *);
+    void (*SetDebug)(CSOUND *, int d); 
+    int (*GetDebug)(CSOUND *);
+    int (*GetSizeOfMYFLT)(void);
+    const char *(*GetEnv)(CSOUND *, const char *name);
+
+    Messages:
+    CS_PRINTF2 void (*Message)(CSOUND *, const char *fmt, ...);
+    CS_PRINTF3 void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
+    void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
+    int (*GetMessageLevel)(CSOUND *);
+
+    Error handling:
+    CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
+    CS_PRINTF2 int (*InitError)(CSOUND *, const char *msg, ...);
+    CS_PRINTF2 int (*PerfError)(CSOUND *, const char *msg, ...);
+    CS_PRINTF2 void (*Warning)(CSOUND *, const char *msg, ...);
+    CS_PRINTF2 void (*DebugMsg)(CSOUND *, const char *msg, ...);
+    CS_NORETURN void (*LongJmp)(CSOUND *, int);
+    CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
+    void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
+
+    Performance:
+    int (*PerformKsmps)(CSOUND *);
+    int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
+                                  void *userData, unsigned int typeMask);
+    void (*Remove_Callback)(CSOUND *,
+                            int (*func)(void *, void *, unsigned int));
+
+    Opcodes:
+    int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
+                        int thread, const char *outypes, const char *intypes,
+                        int (*iopadr)(CSOUND *, void *),
+                        int (*kopadr)(CSOUND *, void *),
+                        int (*aopadr)(CSOUND *, void *));
+    int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
+    char *(*GetOpcodeName)(void *p);  
+
+    Opcode arguments:
+    int (*GetInputArgCnt)(void *p);
+    unsigned long (*GetInputArgAMask)(void *p);
+    unsigned long (*GetInputArgSMask)(void *p);
+    char *(*GetInputArgName)(void *p, int n);
+    int (*GetOutputArgCnt)(void *p);
+    unsigned long (*GetOutputArgAMask)(void *p);
+    unsigned long (*GetOutputArgSMask)(void *p);
+    char *(*GetOutputArgName)(void *p, int n);
+
+    P-fields:
+    MYFLT *(*GetPFields)(void *p);
+    int (*GetInstrumentNumber)(void *p);
+
+    Files:
+    char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
+    char *(*FindOutputFile)(CSOUND *,
+                            const char *filename, const char *envList);
+    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
+    int (*sfsampsize)(int format);
+    void *(*SAsndgetset)(CSOUND *,
+                         char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
+    void *(*sndgetset)(CSOUND *, void *);
+    int (*getsndin)(CSOUND *, void *, MYFLT *, int, void *);
+    void (*rewriteheader)(void *ofd);
+    void (*FDRecord)(CSOUND *, FDCH *fdchp);
+    void (*FDClose)(CSOUND *, FDCH *fdchp);
+    void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
+    char *(*GetFileName)(void *);
+    int (*FileClose)(CSOUND *, void *);
+    void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *,
+                      const char *, int, int);
+    int (*type2csfiletype)(int type, int encoding);
+    void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
+    int (*sftype2csfiletype)(int type);
+    MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
+                                int (*callback)(CSOUND *, MEMFIL *));
+    void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
+                           const char *, int, int, int);
+    unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
+    unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
+    int  (*FSeekAsync)(CSOUND *, void *, int, int);
+
+    String conversion, format and localization:
+    int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
+    char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
+    char *(*getstrformat)(int format);
+    char *(*type2string)(int type);
+    char *(*LocalizeString)(const char *);
+    char *(*GetString)(CSOUND *, MYFLT);
+
+    Function tables:
+    int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
+    int (*FTAlloc)(CSOUND *, int tableNum, int len);
+    int (*FTDelete)(CSOUND *, int tableNum);
+    FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
+    FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
+    FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
+    int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
+    int (*TableLength)(CSOUND *, int table); 
+    MYFLT (*TableGet)(CSOUND *, int table, int index); 
+    void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
+    void *(*GetNamedGens)(CSOUND *);
+
+    Events:
+    int (*insert_score_event)(CSOUND *, EVTBLK *, double);
+    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t);
+    int (*CheckEvents)(CSOUND *); 
+
+    MIDI message handling:
+    int (*SetReleaseLength)(void *p, int n);
+    MYFLT (*SetReleaseLengthSeconds)(void *p, MYFLT n);
+    int (*GetMidiChannelNumber)(void *p);
+    MCHNBLK *(*GetMidiChannel)(void *p);
+    int (*GetMidiNoteNumber)(void *p);
+    int (*GetMidiVelocity)(void *p);
+    int (*GetReleaseFlag)(void *p);
+    double (*GetOffTime)(void *p);
+
+    Memory allocation:
+    void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
+    void *(*Malloc)(CSOUND *, size_t nbytes);
+    void *(*Calloc)(CSOUND *, size_t nbytes);
+    void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
+    void (*Free)(CSOUND *, void *ptr);
+
+    Time:
+    void (*InitTimerStruct)(RTCLOCK *);
+    double (*GetRealTime)(RTCLOCK *);
+    double (*GetCPUTime)(RTCLOCK *);
+
+    Power functions:
+    MYFLT (*Pow2)(CSOUND *, MYFLT a);
+    MYFLT (*intpow)(MYFLT, int32);
+
+    Random numbers:
+    uint32_t (*GetRandomSeedFromTime)(void);
+    void (*SeedRandMT)(CsoundRandMTState *p,
+                       const uint32_t *initKey, uint32_t keyLength);
+    uint32_t (*RandMT)(CsoundRandMTState *p);
+    int (*Rand31)(int *seedVal);
+
+    Global and config variables:
+    int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
+    void *(*QueryGlobalVariable)(CSOUND *, const char *name);
+    void *(*QueryGlobalVariableNoCheck)(CSOUND *, const char *name);
+    int (*DestroyGlobalVariable)(CSOUND *, const char *name);
+    int (*CreateConfigurationVariable)(CSOUND *, const char *name,
+                                       void *p, int type, int flags,
+                                       void *min, void *max,
+                                       const char *shortDesc,
+                                       const char *longDesc);
+    int (*SetConfigurationVariable)(CSOUND *, const char *name, void *value);
+    int (*ParseConfigurationVariable)(CSOUND *,
+                                      const char *name, const char *value);
+    csCfgVariable_t *(*QueryConfigurationVariable)(CSOUND *, const char *name);
+    csCfgVariable_t **(*ListConfigurationVariables)(CSOUND *);
+    int (*DeleteConfigurationVariable)(CSOUND *, const char *name);
+    const char *(*CfgErrorCodeToString)(int errcode);
+ 
+    FFT:
+    MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
+    MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
+    void (*ComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*RealFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*InverseRealFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*RealFFTMult)(CSOUND *, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
+                                  int FFTsize, MYFLT scaleFac);
+    void (*RealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+
+    PVOC:
+    int (*PVOC_CreateFile)(CSOUND *, const char *,
+                           uint32, uint32, uint32,
+                           uint32, int32, int, int,
+                           float, float *, uint32);
+    int (*PVOC_OpenFile)(CSOUND *, const char *, void *, void *);
+    int (*PVOC_CloseFile)(CSOUND *, int);
+    int (*PVOC_PutFrames)(CSOUND *, int, const float *, int32);
+    int (*PVOC_GetFrames)(CSOUND *, int, float *, uint32);
+    int (*PVOC_FrameCount)(CSOUND *, int);
+    int (*PVOC_fseek)(CSOUND *, int, int);
+    const char *(*PVOC_ErrorString)(CSOUND *);
+    int (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
+
+    XY callbacks:
+    void (*SetMakeXYinCallback)(CSOUND *,
+                                void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT));
+    void (*SetReadXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
+    void (*SetKillXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
+
+    Misc. callbacks:
+    int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
+                                                void *userData);
+    int (*RegisterDeinitCallback)(CSOUND *, void *p,
+                                            int (*func)(CSOUND *, void *));
+    int (*RegisterResetCallback)(CSOUND *, void *userData,
+                                           int (*func)(CSOUND *, void *));
+
+    Threads and locks:
+    void *(*CreateThread)(uintptr_t (*threadRoutine)(void *), void *userdata);
+    uintptr_t (*JoinThread)(void *thread);
+    void *(*CreateThreadLock)(void);
+    void (*DestroyThreadLock)(void *lock);
+    int (*WaitThreadLock)(void *lock, size_t milliseconds);
+    void (*NotifyThreadLock)(void *lock);
+    void (*WaitThreadLockNoTimeout)(void *lock);
+    void (*Sleep)(size_t milliseconds);
+    void *(*Create_Mutex)(int isRecursive);
+    int (*LockMutexNoWait)(void *mutex_);
+    void (*LockMutex)(void *mutex_);
+    void (*UnlockMutex)(void *mutex_);
+    void (*DestroyMutex)(void *mutex_);
+    void *(*GetCurrentThreadID)(void);
+    void (*SetInternalYieldCallback)(CSOUND *,
+                       int (*yieldCallback)(CSOUND *));
+    void *(*CreateBarrier)(unsigned int max);
+    int (*DestroyBarrier)(void *);
+    int (*WaitBarrier)(void *);
+
+    Circular buffers:
+    void *(*CreateCircularBuffer)(CSOUND *, int);
+    int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
+    int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
+    void (*FlushCircularBuffer)(CSOUND *, void *);
+    void (*FreeCircularBuffer)(CSOUND *, void *);
+
+    Audio IO buffers:
+    long (*GetInputBufferSize)(CSOUND *);
+    long (*GetOutputBufferSize)(CSOUND *);
+    MYFLT *(*GetInputBuffer)(CSOUND *);
+    MYFLT *(*GetOutputBuffer)(CSOUND *);
+
+    RT audio IO:
+    void (*SetPlayopenCallback)(CSOUND *,
+                int (*playopen__)(CSOUND *, const csRtAudioParams *parm));
+    void (*SetRtplayCallback)(CSOUND *,
+                void (*rtplay__)(CSOUND *, const MYFLT *outBuf, int nbytes));
+    void (*SetRecopenCallback)(CSOUND *,
+                int (*recopen__)(CSOUND *, const csRtAudioParams *parm));
+    void (*SetRtrecordCallback)(CSOUND *,
+                int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
+    void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
+    void **(*GetRtRecordUserData)(CSOUND *);
+    void **(*GetRtPlayUserData)(CSOUND *);
+
+    MIDI device IO:
+    void (*SetExternalMidiInOpenCallback)(CSOUND *,
+                int (*func)(CSOUND *, void **, const char *));
+    void (*SetExternalMidiReadCallback)(CSOUND *,
+                int (*func)(CSOUND *, void *, unsigned char *, int));
+    void (*SetExternalMidiInCloseCallback)(CSOUND *,
+                int (*func)(CSOUND *, void *));
+    void (*SetExternalMidiOutOpenCallback)(CSOUND *,
+                int (*func)(CSOUND *, void **, const char *));
+    void (*SetExternalMidiWriteCallback)(CSOUND *,
+                int (*func)(CSOUND *, void *, const unsigned char *, int));
+    void (*SetExternalMidiOutCloseCallback)(CSOUND *,
+                int (*func)(CSOUND *, void *));
+    void (*SetExternalMidiErrorStringCallback)(CSOUND *,
+                const char *(*func)(int));
+
+    Graphs and display:
+    int (*SetIsGraphable)(CSOUND *, int isGraphable);
+    void (*SetMakeGraphCallback)(CSOUND *,
+                void (*makeGraphCallback)(CSOUND *, WINDAT *p,
+                                                    const char *name));
+    void (*SetDrawGraphCallback)(CSOUND *,
+                void (*drawGraphCallback)(CSOUND *, WINDAT *p));
+    void (*SetKillGraphCallback)(CSOUND *,
+                void (*killGraphCallback)(CSOUND *, WINDAT *p));
+    void (*SetExitGraphCallback)(CSOUND *, int (*exitGraphCallback)(CSOUND *));
+    void (*dispset)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
+    void (*display)(CSOUND *, WINDAT *);
+    void (*dispinit)(CSOUND *);
+    int (*dispexit)(CSOUND *);
+
+    Utilities:
+    int (*AddUtility)(CSOUND *, const char *name,
+                      int (*UtilFunc)(CSOUND *, int, char **));
+    int (*RunUtility)(CSOUND *, const char *name, int argc, char **argv);
+    char **(*ListUtilities)(CSOUND *);
+    int (*SetUtilityDescription)(CSOUND *, const char *utilName,
+                                           const char *utilDesc);
+    const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
+ 
+*/
 
 /*
  * Platform-dependent definitions and declarations.
@@ -604,7 +894,8 @@ extern "C" {
      * is reached (positive return value), an error occurs (negative return
      * value), or performance is stopped by calling csoundStop() from another
      * thread (zero return value).
-     * Note that csoundCompile must be called first.
+     * Note that csoundCompile() or csoundCompileOrc(), csoundReadScore(), csoundStart() 
+     * must be called first.
      * In the case of zero return value, csoundPerform() can be called again
      * to continue the stopped performance. Otherwise, csoundReset() should be
      * called to clean up after the finished or failed performance.
@@ -614,23 +905,14 @@ extern "C" {
     /**
      * Senses input events, and performs one control sample worth (ksmps) of
      * audio output.
-     * Note that csoundCompile must be called first.
+     * Note that csoundCompile() or csoundCompileOrc(), csoundReadScore(), csoundStart() 
+     * must be called first.
      * Returns false during performance, and true when performance is finished.
      * If called until it returns true, will perform an entire score.
      * Enables external software to control the execution of Csound,
      * and to synchronize performance with audio input and output.
      */
     PUBLIC int csoundPerformKsmps(CSOUND *);
-
-    /**
-     * Senses input events, and performs one control sample worth (ksmps) of
-     * audio output.
-     * Note that csoundCompile must be called first.
-     * Performs audio whether or not the Csound score has finished.
-     * Enables external software to control the execution of Csound,
-     * and to synchronize performance with audio input and output.
-     */
-    PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *);
 
     /**
      * Performs Csound, sensing real-time and score events
@@ -1001,6 +1283,7 @@ extern "C" {
 
     /**
      *  Read, preprocess, and load a score from an ASCII string
+     *  This substitutes the currently loaded score.
      */
     PUBLIC int csoundReadScore(CSOUND *csound, char *str);
 
@@ -2116,7 +2399,9 @@ extern "C" {
   */
   PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
                                        const MYFLT *inp, int items);
-
+  /**
+   * Empty circular buffer of any remaining data.
+   */
   PUBLIC void csoundFlushCircularBuffer(CSOUND *csound, void *p);
 
  /**
@@ -2125,6 +2410,8 @@ extern "C" {
   PUBLIC void csoundFreeCircularBuffer(CSOUND *csound, void *circularbuffer);
 
   /** @}*/
+
+
 #ifdef SOME_FINE_DAY /* these functions are now deprecated */
 
      /**
@@ -2195,6 +2482,17 @@ extern "C" {
      */
     PUBLIC void csoundSetChannelIOCallback(CSOUND *,
             CsoundChannelIOCallback_t func);
+
+       /**
+     * Senses input events, and performs one control sample worth (ksmps) of
+     * audio output.
+     * Note that csoundCompile() or csoundCompileOrc(), csoundReadScore(), csoundStart() 
+     * must be called first.
+     * Performs audio whether or not the Csound score has finished.
+     * Enables external software to control the execution of Csound,
+     * and to synchronize performance with audio input and output.
+     */
+    PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *);
 #endif
 
 

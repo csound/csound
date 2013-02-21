@@ -342,10 +342,6 @@ public:
   {
     return csoundPerformKsmps(csound);
   }
-  virtual int PerformKsmpsAbsolute()
-  {
-    return csoundPerformKsmpsAbsolute(csound);
-  }
   virtual int PerformBuffer()
   {
     return csoundPerformBuffer(csound);
