@@ -90,6 +90,7 @@ static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void csoundReset_(CSOUND *);
 int csoundPerformKsmpsInternal(CSOUND *csound);
 void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
+INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 
 extern void close_all_files(CSOUND *);
 
@@ -365,7 +366,7 @@ static const CSOUND cenviron_ = {
     csoundNotifyFileOpened,
     sftype2csfiletype,
     insert_score_event_at_sample,
-     csoundGetChannelLock,
+    //csoundGetChannelLock,
     ldmemfile2withCB,
     csoundGetNamedGens,
     csoundPow2,
@@ -379,23 +380,16 @@ static const CSOUND cenviron_ = {
     csoundWriteAsync,
     csoundFSeekAsync,
     get_arg_string,
+    csoundGetInstrumentList,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ----------------------- public data fields ----------------------- */
-    {(CS_VAR_POOL*)NULL,
-     (MYFLT_POOL *) NULL,
-     (STRING_POOL *) NULL,
-     -1,
-     (INSTRTXT**)NULL,
-     {NULL},
-     NULL,
-     MAXINSNO},     /* engineState          */
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
     DFLT_KSMPS,     /*  ksmps               */
@@ -488,6 +482,14 @@ static const CSOUND cenviron_ = {
     rtrecord_dummy,
     rtclose_dummy,
     /* end of callbacks */
+    {(CS_VAR_POOL*)NULL,
+     (MYFLT_POOL *) NULL,
+     (STRING_POOL *) NULL,
+     -1,
+     (INSTRTXT**)NULL,
+     {NULL},
+     NULL,
+     MAXINSNO},     /* engineState          */
     (INSTRTXT *) NULL, /* instr0  */
     (INSTRTXT**)NULL,  /* dead_instr_pool */
     0, /* dead_instr_no */
@@ -3858,6 +3860,10 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     pp->lastMsg = p;
     pp->msgCnt++;
     csoundUnlockMutex(pp->mutex_);
+}
+
+INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
+  return csound->engineState.instrtxtp;
 }
 
 #ifdef never
