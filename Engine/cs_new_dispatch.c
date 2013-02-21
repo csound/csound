@@ -214,7 +214,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
             task_dep[j] = (char*)mcalloc(csound, sizeof(char)*(j-1));
             task_status[j] = WAITING;
             wlmm[j].next = task_watch[i];
-            wlmm[j].id = i;
+            wlmm[j].id = j;
             task_watch[i] = &wlmm[j]; 
             printf("set watch %d to %d\n", j, i);
           }
@@ -240,7 +240,7 @@ void dag_reinit(CSOUND *csound)
       for (j=i-1; j>=0; j--)
         if (task_dep[i] && task_dep[i][j]) {
           task_status[i] = WAITING;
-          wlmm[i].id = j;
+          wlmm[i].id = i;
           wlmm[i].next = task_watch[j];
           task_watch[j] = &wlmm[i];
           return;
@@ -294,11 +294,13 @@ static int moveWatch(watchList **w, watchList *t)
 {
     watchList *local;
     t->next = NULL;
+    printf("moveWatch\n");
     do {
       local = ATOMIC_READ(*w);
       if (local==&DoNotRead) return 0;//was no & earlier
       else t->next = local;
     } while (!__sync_bool_compare_and_swap(w,local,t));// ??odd
+    printf("moveWatch done\n");
     return 1;
 }
 
@@ -310,13 +312,16 @@ void dag_end_task(CSOUND *csound, taskID i)
 
     ATOMIC_WRITE(task_status[i], DONE);
     to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
+    printf("Ending task %d\n", i);
     while (to_notify) {         /* walk the list of watchers */
       next = to_notify->next;
       j = to_notify->id;
+      printf("notify task %d\n", j);
       canQueue = 1;
       for (k=0; k<i; k++) {     /* seek next watch */
         taskID l = task_dep[j][k];
         if (ATOMIC_READ(task_status[l]) != DONE) {
+          printf("found task %d status %d\n", l, task_status[l]);
           if (moveWatch(&task_watch[j], to_notify)) {
             canQueue = 0;
             break;
