@@ -9,34 +9,7 @@
  * software. Since then Csound has received numerous contributions
  * from researchers, programmers, and musicians from around the world.
  *
- * \section section_licenses Licenses
- *
- * \subsection section_csound_license Csound
- *
- * Copyright (C) 2001-2005 Michael Gogins, Matt Ingalls, John D. Ramsdell,
- *                         John P. ffitch, Istvan Varga, Victor Lazzarini
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * \subsection section_manual_license Manual
- *
- * Permission is granted to copy, distribute and/or modify this document
- * under the terms of the GNU Free Documentation License, Version 1.2 or
- * any later version published by the Free Software Foundation; with no
- * Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
- *
+
  * \section section_api_outline Outline of the API
  *
  * \subsection section_api_apilist The Csound Application Programming Interfaces
@@ -103,6 +76,27 @@
  *
  * Everything that can be done using C as in the above examples can also be done
  * in a similar manner in Python or any of the other Csound API languages.
+ *
+ * \section section_licenses License
+ *
+ * \subsection section_csound_license Csound
+ *
+ * Copyright (C) 2001-2005 Michael Gogins, Matt Ingalls, John D. Ramsdell,
+ *                         John P. ffitch, Istvan Varga, Victor Lazzarini
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * \file
  *
@@ -508,12 +502,10 @@ extern "C" {
 
 #ifndef CSOUND_CSDL_H
 
-    /* This pragma must come before all public function declarations */
-
-    /*
-     * INSTANTIATION
+    /** @defgroup INSTANTIATION Instantiation
+     *
+     *  @{
      */
-
     /**
      * Initialise Csound library; should be called once before creating
      * any Csound instances.
@@ -532,20 +524,6 @@ extern "C" {
     PUBLIC CSOUND *csoundCreate(void *hostData);
 
     /**
-     * csoundInitializeCscore() prepares an instance of Csound for Cscore
-     * processing outside of running an orchestra (i.e. "standalone Cscore").
-     * It is an alternative to csoundPreCompile(), csoundCompile(), and
-     * csoundPerform*() and should not be used with these functions.
-     * You must call this function before using the interface in "cscore.h"
-     * when you do not wish to compile an orchestra.
-     * Pass it the already open FILE* pointers to the input and
-     * output score files.
-     * It returns CSOUND_SUCCESS on success and CSOUND_INITIALIZATION or other
-     * error code if it fails.
-     */
-    PUBLIC int csoundInitializeCscore(CSOUND *, FILE *insco, FILE *outsco);
-
-    /**
      * Destroys an instance of Csound.
      */
     PUBLIC void csoundDestroy(CSOUND *);
@@ -559,94 +537,12 @@ extern "C" {
      * Returns the API version number times 100 (1.00 = 100).
      */
     PUBLIC int csoundGetAPIVersion(void);
+    /** @}*/
 
-    /**
-     * Returns host data.
+    /** @defgroup PERFORMANCE Performance
+     *
+     *  @{
      */
-    PUBLIC void *csoundGetHostData(CSOUND *);
-
-    /**
-     * Sets host data.
-     */
-    PUBLIC void csoundSetHostData(CSOUND *, void *hostData);
-
-    /**
-     * Get pointer to the value of environment variable 'name', searching
-     * in this order: local environment of 'csound' (if not NULL), variables
-     * set with csoundSetGlobalEnv(), and system environment variables.
-     * If 'csound' is not NULL, should be called after csoundPreCompile()
-     * or csoundCompile().
-     * Return value is NULL if the variable is not set.
-     */
-    PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
-
-    /**
-     * Set the global value of environment variable 'name' to 'value',
-     * or delete variable if 'value' is NULL.
-     * It is not safe to call this function while any Csound instances
-     * are active.
-     * Returns zero on success.
-     */
-    PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
-
-    /**
-     * Set a single csound option (flag). Returns CSOUND_SUCCESS on success.
-     * NB: blank spaces are not allowed
-     */
-    PUBLIC int csoundSetOption(CSOUND *csound, char *option);
-
-    /**
-     *  Configure Csound with a given set of parameters defined in 
-     *  the CSOUND_PARAMS structure
-     */
-   PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
-
-     /**
-     *  Get the current set of parameters from a CSOUND instance in
-     *  a CSOUND_PARAMS structure
-     */
-   PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
-
-    /**
-     *  Set output destination, type and format
-     *  type can be one of  "wav","aiff", "au","raw", "paf", "svx", "nist", "voc",
-     *  "ircam","w64","mat4", "mat5", "pvf","xi", "htk","sds","avr","wavex","sd2",
-     *  "flac", "caf","wve","ogg","mpc2k","rf64", or NULL (use default or realtime IO).
-     *  format can be one of "alaw", "schar", "uchar", "float", "double", "long",  
-     *  "short", "ulaw", "24bit", "vorbis", or NULL (use default or realtime IO).
-     * 
-     */
-  PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format);
-
-    /**
-     *  Set input source
-     */
-  PUBLIC void csoundSetInput(CSOUND *csound, char *name);
-
-   /**
-    *  Set MIDI input device name/number
-    */
-  PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name);
-
-   /**
-    *  Set MIDI file input name
-    */
-  PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name);
- 
-   /**
-    *  Set MIDI output device name/number
-    */
-  PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name);
-
-   /**
-    *  Set MIDI file utput name
-    */
-  PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name);
-
-    /*
-     * PERFORMANCE
-     */
-
     /**
      * Parse the given orchestra from an ASCII string into a TREE
     */
@@ -661,11 +557,20 @@ extern "C" {
      * Parse, and compile the given orchestra from an ASCII string.
     */
     PUBLIC int csoundCompileOrc(CSOUND *csound, char *str);
-    
+
     /**
-     *  Read, preprocess, and load a score from an ASCII string
+     * csoundInitializeCscore() prepares an instance of Csound for Cscore
+     * processing outside of running an orchestra (i.e. "standalone Cscore").
+     * It is an alternative to csoundPreCompile(), csoundCompile(), and
+     * csoundPerform*() and should not be used with these functions.
+     * You must call this function before using the interface in "cscore.h"
+     * when you do not wish to compile an orchestra.
+     * Pass it the already open FILE* pointers to the input and
+     * output score files.
+     * It returns CSOUND_SUCCESS on success and CSOUND_INITIALIZATION or other
+     * error code if it fails.
      */
-    PUBLIC int csoundReadScore(CSOUND *csound, char *str);
+    PUBLIC int csoundInitializeCscore(CSOUND *, FILE *insco, FILE *outsco);
 
     /**
      *  Read arguments, parse and compile an orchestra, read, process and
@@ -746,11 +651,6 @@ extern "C" {
     PUBLIC void csoundStop(CSOUND *);
 
     /**
-     * Finds th elist of named gens
-     */
-    PUBLIC void *csoundGetNamedGens(CSOUND *);
-
-    /**
      * Prints information about the end of a performance, and closes audio
      * and MIDI devices.
      * Note: after calling csoundCleanup(), the operation of the perform
@@ -765,8 +665,10 @@ extern "C" {
      */
     PUBLIC void csoundReset(CSOUND *);
 
-    /*
-     * ATTRIBUTES
+    /** @}*/
+    /** @defgroup ATTRIBUTES Attributes
+     *
+     *  @{
      */
 
     /**
@@ -800,13 +702,6 @@ extern "C" {
     PUBLIC MYFLT csoundGet0dBFS(CSOUND *);
 
     /**
-     * Returns the number of bytes allocated for a string variable
-     * (the actual length is one less because of the null character
-     * at the end of the string). Should be called after csoundCompile().
-     */
-    PUBLIC int csoundGetStrVarMaxLen(CSOUND *);
-
-    /**
      * Returns the sample format.
      */
     PUBLIC int csoundGetSampleFormat(CSOUND *);
@@ -816,6 +711,125 @@ extern "C" {
      */
     PUBLIC int csoundGetSampleSize(CSOUND *);
 
+    /**
+     * Return the size of MYFLT in bytes.
+     */
+    PUBLIC int csoundGetSizeOfMYFLT(void);
+
+    /**
+     * Returns the number of bytes allocated for a string variable
+     * (the actual length is one less because of the null character
+     * at the end of the string). Should be called after csoundCompile().
+     */
+    PUBLIC int csoundGetStrVarMaxLen(CSOUND *);
+
+    /**
+     * Returns host data.
+     */
+    PUBLIC void *csoundGetHostData(CSOUND *);
+
+    /**
+     * Sets host data.
+     */
+    PUBLIC void csoundSetHostData(CSOUND *, void *hostData);
+
+    /**
+     * Set a single csound option (flag). Returns CSOUND_SUCCESS on success.
+     * NB: blank spaces are not allowed
+     */
+    PUBLIC int csoundSetOption(CSOUND *csound, char *option);
+
+    /**
+     *  Configure Csound with a given set of parameters defined in
+     *  the CSOUND_PARAMS structure
+     */
+   PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
+
+     /**
+     *  Get the current set of parameters from a CSOUND instance in
+     *  a CSOUND_PARAMS structure
+     */
+   PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
+
+   /**
+    * Returns whether Csound is in debug mode.
+    */
+   PUBLIC int csoundGetDebug(CSOUND *);
+
+   /**
+    * Sets whether Csound is in debug mode.
+    */
+   PUBLIC void csoundSetDebug(CSOUND *, int debug);
+
+
+    /** @}*/
+    /** @defgroup FILEIO File Input/Output
+     *
+     *  @{
+     */
+   /**
+    * Returns the output sound file name (-o).
+    */
+  PUBLIC const char *csoundGetOutputFileName(CSOUND *);
+
+   /**
+    *  Set output destination, type and format
+    *  type can be one of  "wav","aiff", "au","raw", "paf", "svx", "nist", "voc",
+    *  "ircam","w64","mat4", "mat5", "pvf","xi", "htk","sds","avr","wavex","sd2",
+    *  "flac", "caf","wve","ogg","mpc2k","rf64", or NULL (use default or realtime IO).
+    *  format can be one of "alaw", "schar", "uchar", "float", "double", "long",
+    *  "short", "ulaw", "24bit", "vorbis", or NULL (use default or realtime IO).
+    *
+    */
+  PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format);
+
+    /**
+     *  Set input source
+     */
+  PUBLIC void csoundSetInput(CSOUND *csound, char *name);
+
+   /**
+    *  Set MIDI input device name/number
+    */
+  PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name);
+
+   /**
+    *  Set MIDI file input name
+    */
+  PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name);
+
+   /**
+    *  Set MIDI output device name/number
+    */
+  PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name);
+
+   /**
+    *  Set MIDI file utput name
+    */
+  PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name);
+
+#if !defined(SWIG)
+    /**
+     * Sets an external callback for receiving notices whenever Csound opens
+     * a file.  The callback is made after the file is successfully opened.
+     * The following information is passed to the callback:
+     *     char*  pathname of the file; either full or relative to current dir
+     *     int    a file type code from the enumeration CSOUND_FILETYPES
+     *     int    1 if Csound is writing the file, 0 if reading
+     *     int    1 if a temporary file that Csound will delete; 0 if not
+     *
+     * Pass NULL to disable the callback.
+     * This callback is retained after a csoundReset() call.
+     */
+    PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
+            void (*func)(CSOUND*, const char*, int, int, int));
+#endif
+
+    /** @}*/
+    /** @defgroup RTAUDIOIO Realtime Audio I/O
+     *
+     *  @{
+     */
     /**
      * Returns the number of samples in Csound's input buffer.
      */
@@ -871,9 +885,14 @@ extern "C" {
     PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel);
 
     /**
-     * Returns the output sound file name (-o).
+     * Return pointer to user data pointer for real time audio input.
      */
-    PUBLIC const char *csoundGetOutputFileName(CSOUND *);
+    PUBLIC void **csoundGetRtRecordUserData(CSOUND *);
+
+    /**
+     * Return pointer to user data pointer for real time audio output.
+     */
+    PUBLIC void **csoundGetRtPlayUserData(CSOUND *);
 
     /**
      * Calling this function with a non-zero 'state' value between
@@ -887,14 +906,109 @@ extern "C" {
     PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state, int bufSize);
 
     /**
+     * Sets a function to be called by Csound for opening real-time
+     * audio playback.
+     */
+    PUBLIC void csoundSetPlayopenCallback(CSOUND *,
+            int (*playopen__)(CSOUND *,
+                    const csRtAudioParams *parm));
+
+    /**
+     * Sets a function to be called by Csound for performing real-time
+     * audio playback.
+     */
+    PUBLIC void csoundSetRtplayCallback(CSOUND *,
+            void (*rtplay__)(CSOUND *,
+                    const MYFLT *outBuf, int nbytes));
+
+    /**
+     * Sets a function to be called by Csound for opening real-time
+     * audio recording.
+     */
+    PUBLIC void csoundSetRecopenCallback(CSOUND *,
+            int (*recopen_)(CSOUND *,
+                    const csRtAudioParams *parm));
+
+    /**
+     * Sets a function to be called by Csound for performing real-time
+     * audio recording.
+     */
+    PUBLIC void csoundSetRtrecordCallback(CSOUND *,
+            int (*rtrecord__)(CSOUND *,
+                    MYFLT *inBuf, int nbytes));
+
+    /**
+     * Sets a function to be called by Csound for closing real-time
+     * audio playback and recording.
+     */
+    PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
+
+    /** @}*/
+    /** @defgroup RTMIDI Realtime Midi I/O
+     *
+     *  @{
+     */
+
+    /**
+     * Sets callback for opening real time MIDI input.
+     */
+    PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
+            int (*func)(CSOUND *, void **userData, const char *devName));
+
+    /**
+     * Sets callback for reading from real time MIDI input.
+     */
+    PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
+            int (*func)(CSOUND *, void *userData,
+                    unsigned char *buf, int nBytes));
+
+    /**
+     * Sets callback for closing real time MIDI input.
+     */
+    PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
+            int (*func)(CSOUND *, void *userData));
+
+    /**
+     * Sets callback for opening real time MIDI output.
+     */
+    PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
+            int (*func)(CSOUND *, void **userData, const char *devName));
+
+    /**
+     * Sets callback for writing to real time MIDI output.
+     */
+    PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
+            int (*func)(CSOUND *, void *userData,
+                    const unsigned char *buf, int nBytes));
+
+    /**
+     * Sets callback for closing real time MIDI output.
+     */
+    PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *,
+            int (*func)(CSOUND *, void *userData));
+
+    /**
+     * Sets callback for converting MIDI error codes to strings.
+     */
+    PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
+            const char *(*func)(int));
+
+    /** @}*/
+    /** @defgroup SCOREHANDLING Score Handling
+     *
+     *  @{
+     */
+
+    /**
+     *  Read, preprocess, and load a score from an ASCII string
+     */
+    PUBLIC int csoundReadScore(CSOUND *csound, char *str);
+
+    /**
      * Returns the current score time in seconds
      * since the beginning of performance.
      */
     PUBLIC double csoundGetScoreTime(CSOUND *);
-
-    /*
-     * SCORE HANDLING
-     */
 
     /**
      * Sets whether Csound score events are performed or not, independently
@@ -961,8 +1075,10 @@ extern "C" {
     PUBLIC int csoundScoreExtract(CSOUND *,
             FILE *inFile, FILE *outFile, FILE *extractFile);
 
-    /*
-     * MESSAGES & TEXT
+    /** @}*/
+    /** @defgroup MESSAGES Messages and Text
+     *
+     *  @{
      */
 
     /**
@@ -1047,16 +1163,11 @@ extern "C" {
      */
     void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound);
 
-    /*
-     * CONTROL AND EVENTS
+    /** @}*/
+    /** @defgroup CONTROLEVENTS Control and Events
+     *
+     *  @{
      */
-
-    /**
-     * Set the ASCII code of the most recent key pressed.
-     * This value is used by the 'sensekey' opcode if a callback
-     * for returning keyboard events is not set (see csoundSetCallback()).
-     */
-    PUBLIC void csoundKeyPress(CSOUND *, char c);
 
  /**
      * Stores a pointer to the specified channel of the bus in *p,
@@ -1346,7 +1457,77 @@ extern "C" {
      */
     PUBLIC void csoundInputMessage(CSOUND *, const char *message);
 
+    /**
+     * Set the ASCII code of the most recent key pressed.
+     * This value is used by the 'sensekey' opcode if a callback
+     * for returning keyboard events is not set (see csoundSetCallback()).
+     */
+    PUBLIC void csoundKeyPress(CSOUND *, char c);
 
+    /**
+     * Register a function to be called once in every control period
+     * by sensevents(). Any number of functions may be registered,
+     * and will be called in the order of registration.
+     * The callback function takes two arguments: the Csound instance
+     * pointer, and the userData pointer as passed to this function.
+     * Returns zero on success.
+     */
+    PUBLIC int csoundRegisterSenseEventCallback(CSOUND *,
+            void (*func)(CSOUND *, void *),
+            void *userData);
+
+    /**
+     * Sets general purpose callback function that will be called on various
+     * events. The callback is preserved on csoundReset(), and multiple
+     * callbacks may be set and will be called in reverse order of
+     * registration. If the same function is set again, it is only moved
+     * in the list of callbacks so that it will be called first, and the
+     * user data and type mask parameters are updated. 'typeMask' can be the
+     * bitwise OR of callback types for which the function should be called,
+     * or zero for all types.
+     * Returns zero on success, CSOUND_ERROR if the specified function
+     * pointer or type mask is invalid, and CSOUND_MEMORY if there is not
+     * enough memory.
+     *
+     * The callback function takes the following arguments:
+     *   void *userData
+     *     the "user data" pointer, as specified when setting the callback
+     *   void *p
+     *     data pointer, depending on the callback type
+     *   unsigned int type
+     *     callback type, can be one of the following (more may be added in
+     *     future versions of Csound):
+     *       CSOUND_CALLBACK_KBD_EVENT
+     *       CSOUND_CALLBACK_KBD_TEXT
+     *         called by the sensekey opcode to fetch key codes. The data
+     *         pointer is a pointer to a single value of type 'int', for
+     *         returning the key code, which can be in the range 1 to 65535,
+     *         or 0 if there is no keyboard event.
+     *         For CSOUND_CALLBACK_KBD_EVENT, both key press and release
+     *         events should be returned (with 65536 (0x10000) added to the
+     *         key code in the latter case) as unshifted ASCII codes.
+     *         CSOUND_CALLBACK_KBD_TEXT expects key press events only as the
+     *         actual text that is typed.
+     * The return value should be zero on success, negative on error, and
+     * positive if the callback was ignored (for example because the type is
+     * not known).
+     */
+    PUBLIC int csoundSetCallback(CSOUND *, int (*func)(void *userData, void *p,
+            unsigned int type),
+            void *userData, unsigned int typeMask);
+
+    /**
+     * Removes a callback previously set with csoundSetCallback().
+     */
+    PUBLIC void csoundRemoveCallback(CSOUND *,
+            int (*func)(void *, void *, unsigned int));
+
+
+    /** @}*/
+    /** @defgroup TABLE Tables
+     *
+     *  @{
+     */
     /**
      * Returns the length of a function table (not including the guard point),
      * or -1 if the table does not exist.
@@ -1379,59 +1560,20 @@ extern "C" {
      * have sufficient space to receive all the array contents. 
      */
     PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
-   
-    /*
-     * MIDI
-     */
 
     /**
-     * Sets callback for opening real time MIDI input.
+     * Stores pointer to function table 'tableNum' in *tablePtr,
+     * and returns the table length (not including the guard point).
+     * If the table does not exist, *tablePtr is set to NULL and
+     * -1 is returned.
      */
-    PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
-            int (*func)(CSOUND *, void **userData, const char *devName));
+    PUBLIC int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
 
-    /**
-     * Sets callback for reading from real time MIDI input.
+    /** @}*/
+    /** @defgroup TABLEDISPLAY Function table display
+     *
+     *  @{
      */
-    PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
-            int (*func)(CSOUND *, void *userData,
-                    unsigned char *buf, int nBytes));
-
-    /**
-     * Sets callback for closing real time MIDI input.
-     */
-    PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
-            int (*func)(CSOUND *, void *userData));
-
-    /**
-     * Sets callback for opening real time MIDI output.
-     */
-    PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
-            int (*func)(CSOUND *, void **userData, const char *devName));
-
-    /**
-     * Sets callback for writing to real time MIDI output.
-     */
-    PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-            int (*func)(CSOUND *, void *userData,
-                    const unsigned char *buf, int nBytes));
-
-    /**
-     * Sets callback for closing real time MIDI output.
-     */
-    PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *,
-            int (*func)(CSOUND *, void *userData));
-
-    /**
-     * Sets callback for converting MIDI error codes to strings.
-     */
-    PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
-            const char *(*func)(int));
-
-    /*
-     * FUNCTION TABLE DISPLAY
-     */
-
     /**
      * Tells Csound whether external graphic table display is supported.
      * Returns the previously set value (initially zero).
@@ -1485,9 +1627,16 @@ extern "C" {
     PUBLIC void csoundSetExitGraphCallback(CSOUND *,
             int (*exitGraphCallback_)(CSOUND *));
 
-    /*
-     * OPCODES
+    /** @}*/
+    /** @defgroup OPCODES Opcodes
+     *
+     *  @{
      */
+
+    /**
+     * Finds the list of named gens
+     */
+    PUBLIC void *csoundGetNamedGens(CSOUND *);
 
     /**
      * Gets an alphabetically sorted list of all opcodes.
@@ -1516,8 +1665,10 @@ extern "C" {
                                   int (*kopadr)(CSOUND *, void *),
                                   int (*aopadr)(CSOUND *, void *));
 
-    /*
-     * MISCELLANEOUS FUNCTIONS
+    /** @}*/
+    /** @defgroup THREADING Threading and concurrency
+     *
+     *  @{
      */
 
     /**
@@ -1530,66 +1681,6 @@ extern "C" {
      * Returns an 'OK to continue' boolean.
      */
     PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback_)(CSOUND *));
-
-    /*
-     * REAL-TIME AUDIO PLAY AND RECORD
-     */
-
-    /**
-     * Sets a function to be called by Csound for opening real-time
-     * audio playback.
-     */
-    PUBLIC void csoundSetPlayopenCallback(CSOUND *,
-            int (*playopen__)(CSOUND *,
-                    const csRtAudioParams *parm));
-
-    /**
-     * Sets a function to be called by Csound for performing real-time
-     * audio playback.
-     */
-    PUBLIC void csoundSetRtplayCallback(CSOUND *,
-            void (*rtplay__)(CSOUND *,
-                    const MYFLT *outBuf, int nbytes));
-
-    /**
-     * Sets a function to be called by Csound for opening real-time
-     * audio recording.
-     */
-    PUBLIC void csoundSetRecopenCallback(CSOUND *,
-            int (*recopen_)(CSOUND *,
-                    const csRtAudioParams *parm));
-
-    /**
-     * Sets a function to be called by Csound for performing real-time
-     * audio recording.
-     */
-    PUBLIC void csoundSetRtrecordCallback(CSOUND *,
-            int (*rtrecord__)(CSOUND *,
-                    MYFLT *inBuf, int nbytes));
-
-    /**
-     * Sets a function to be called by Csound for closing real-time
-     * audio playback and recording.
-     */
-    PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
-
-    /**
-     * Returns whether Csound is in debug mode.
-     */
-    PUBLIC int csoundGetDebug(CSOUND *);
-
-    /**
-     * Sets whether Csound is in debug mode.
-     */
-    PUBLIC void csoundSetDebug(CSOUND *, int debug);
-
-    /**
-     * Stores pointer to function table 'tableNum' in *tablePtr,
-     * and returns the table length (not including the guard point).
-     * If the table does not exist, *tablePtr is set to NULL and
-     * -1 is returned.
-     */
-    PUBLIC int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
 
     /**
      * Creates and starts a new thread of execution.
@@ -1616,21 +1707,6 @@ extern "C" {
      * Returns the value returned by the thread routine.
      */
     PUBLIC uintptr_t csoundJoinThread(void *thread);
-
-    /**
-     * Runs an external command with the arguments specified in 'argv'.
-     * argv[0] is the name of the program to execute (if not a full path
-     * file name, it is searched in the directories defined by the PATH
-     * environment variable). The list of arguments should be terminated
-     * by a NULL pointer.
-     * If 'noWait' is zero, the function waits until the external program
-     * finishes, otherwise it returns immediately. In the first case, a
-     * non-negative return value is the exit status of the command (0 to
-     * 255), otherwise it is the PID of the newly created process.
-     * On error, a negative value is returned.
-     */
-    PUBLIC long csoundRunCommand(const char * const *argv, int noWait);
-
     /**
      * Creates and returns a monitor object, or NULL if not successful.
      * The object is initially in signaled (notified) state.
@@ -1761,6 +1837,8 @@ extern "C" {
 
 #if defined(MSVC)
 
+    /* This pragma must come before all public function declarations */
+
 # pragma intrinsic(_InterlockedExchange)
 # define csoundSpinLock(spinlock)                       \
   {                                                     \
@@ -1835,6 +1913,26 @@ extern "C" {
 
 #endif
 
+    /** @}*/
+    /** @defgroup MISCELLANEOUS Miscellaneous functions
+     *
+     *  @{
+     */
+
+    /**
+     * Runs an external command with the arguments specified in 'argv'.
+     * argv[0] is the name of the program to execute (if not a full path
+     * file name, it is searched in the directories defined by the PATH
+     * environment variable). The list of arguments should be terminated
+     * by a NULL pointer.
+     * If 'noWait' is zero, the function waits until the external program
+     * finishes, otherwise it returns immediately. In the first case, a
+     * non-negative return value is the exit status of the command (0 to
+     * 255), otherwise it is the PID of the newly created process.
+     * On error, a negative value is returned.
+     */
+    PUBLIC long csoundRunCommand(const char * const *argv, int noWait);
+
     /**
      * Initialise a timer structure.
      */
@@ -1879,6 +1977,25 @@ extern "C" {
     PUBLIC char *csoundLocalizeString(const char *s);
 
     /**
+     * Get pointer to the value of environment variable 'name', searching
+     * in this order: local environment of 'csound' (if not NULL), variables
+     * set with csoundSetGlobalEnv(), and system environment variables.
+     * If 'csound' is not NULL, should be called after csoundPreCompile()
+     * or csoundCompile().
+     * Return value is NULL if the variable is not set.
+     */
+    PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
+
+    /**
+     * Set the global value of environment variable 'name' to 'value',
+     * or delete variable if 'value' is NULL.
+     * It is not safe to call this function while any Csound instances
+     * are active.
+     * Returns zero on success.
+     */
+    PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
+
+    /**
      * Allocate nbytes bytes of memory that can be accessed later by calling
      * csoundQueryGlobalVariable() with the specified name; the space is
      * cleared to zero.
@@ -1909,33 +2026,6 @@ extern "C" {
      * not defined.
      */
     PUBLIC int csoundDestroyGlobalVariable(CSOUND *, const char *name);
-
-    /**
-     * Return the size of MYFLT in bytes.
-     */
-    PUBLIC int csoundGetSizeOfMYFLT(void);
-
-    /**
-     * Return pointer to user data pointer for real time audio input.
-     */
-    PUBLIC void **csoundGetRtRecordUserData(CSOUND *);
-
-    /**
-     * Return pointer to user data pointer for real time audio output.
-     */
-    PUBLIC void **csoundGetRtPlayUserData(CSOUND *);
-
-    /**
-     * Register a function to be called once in every control period
-     * by sensevents(). Any number of functions may be registered,
-     * and will be called in the order of registration.
-     * The callback function takes two arguments: the Csound instance
-     * pointer, and the userData pointer as passed to this function.
-     * Returns zero on success.
-     */
-    PUBLIC int csoundRegisterSenseEventCallback(CSOUND *,
-            void (*func)(CSOUND *, void *),
-            void *userData);
 
     /**
      * Run utility with the specified name and command line arguments.
@@ -1991,76 +2081,6 @@ extern "C" {
      */
     PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p);
 
-  
-
-    /**
-     * Sets general purpose callback function that will be called on various
-     * events. The callback is preserved on csoundReset(), and multiple
-     * callbacks may be set and will be called in reverse order of
-     * registration. If the same function is set again, it is only moved
-     * in the list of callbacks so that it will be called first, and the
-     * user data and type mask parameters are updated. 'typeMask' can be the
-     * bitwise OR of callback types for which the function should be called,
-     * or zero for all types.
-     * Returns zero on success, CSOUND_ERROR if the specified function
-     * pointer or type mask is invalid, and CSOUND_MEMORY if there is not
-     * enough memory.
-     *
-     * The callback function takes the following arguments:
-     *   void *userData
-     *     the "user data" pointer, as specified when setting the callback
-     *   void *p
-     *     data pointer, depending on the callback type
-     *   unsigned int type
-     *     callback type, can be one of the following (more may be added in
-     *     future versions of Csound):
-     *       CSOUND_CALLBACK_KBD_EVENT
-     *       CSOUND_CALLBACK_KBD_TEXT
-     *         called by the sensekey opcode to fetch key codes. The data
-     *         pointer is a pointer to a single value of type 'int', for
-     *         returning the key code, which can be in the range 1 to 65535,
-     *         or 0 if there is no keyboard event.
-     *         For CSOUND_CALLBACK_KBD_EVENT, both key press and release
-     *         events should be returned (with 65536 (0x10000) added to the
-     *         key code in the latter case) as unshifted ASCII codes.
-     *         CSOUND_CALLBACK_KBD_TEXT expects key press events only as the
-     *         actual text that is typed.
-     * The return value should be zero on success, negative on error, and
-     * positive if the callback was ignored (for example because the type is
-     * not known).
-     */
-    PUBLIC int csoundSetCallback(CSOUND *, int (*func)(void *userData, void *p,
-            unsigned int type),
-            void *userData, unsigned int typeMask);
-
-    /**
-     * Removes a callback previously set with csoundSetCallback().
-     */
-    PUBLIC void csoundRemoveCallback(CSOUND *,
-            int (*func)(void *, void *, unsigned int));
-
-#if !defined(SWIG)
-    /**
-     * Sets an external callback for receiving notices whenever Csound opens
-     * a file.  The callback is made after the file is successfully opened.
-     * The following information is passed to the callback:
-     *     char*  pathname of the file; either full or relative to current dir
-     *     int    a file type code from the enumeration CSOUND_FILETYPES
-     *     int    1 if Csound is writing the file, 0 if reading
-     *     int    1 if a temporary file that Csound will delete; 0 if not
-     *
-     * Pass NULL to disable the callback.
-     * This callback is retained after a csoundReset() call.
-     */
-    PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
-            void (*func)(CSOUND*, const char*, int, int, int));
-#endif
-
-
-
-
-    /* This pragma must come after all public function declarations */
-
 #endif  /* !CSOUND_CSDL_H */
 
     /* typedefs, macros, and interface functions for configuration variables */
@@ -2104,7 +2124,7 @@ extern "C" {
   */
   PUBLIC void csoundFreeCircularBuffer(CSOUND *csound, void *circularbuffer);
 
-
+  /** @}*/
 #ifdef SOME_FINE_DAY /* these functions are now deprecated */
 
      /**
