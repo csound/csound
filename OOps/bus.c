@@ -357,7 +357,7 @@ int chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
 
 int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 {
-    int     n = (int)MYFLT2LRND(*(p->a)) * csound->global_ksmps;
+    int     n = (int)MYFLT2LRND(*(p->a)) * csound->ksmps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
@@ -366,7 +366,7 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     if ((unsigned int)n >= (unsigned int)csound->nchania) {
       if (UNLIKELY(chan_realloc(csound, &(csound->chania),
                                 &(csound->nchania),
-                                n + csound->global_ksmps) != 0))
+                                n + csound->ksmps) != 0))
         return csound->PerfError(csound,
                                  Str("chani: memory allocation failure"));
     }
@@ -379,7 +379,7 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 
 int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 {
-    int     n = (int)MYFLT2LRND(*(p->a)) * csound->global_ksmps;
+    int     n = (int)MYFLT2LRND(*(p->a)) * csound->ksmps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
@@ -388,7 +388,7 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
       if (UNLIKELY(chan_realloc(csound, &(csound->chanoa),
                                 &(csound->nchanoa),
-                                n + csound->global_ksmps) != 0))
+                                n + csound->ksmps) != 0))
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
     }
@@ -532,7 +532,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
         nbytes += (int)sizeof(MYFLT);
         break;
       case CSOUND_AUDIO_CHANNEL:
-        nbytes += ((int)sizeof(MYFLT) * csound->global_ksmps);
+        nbytes += ((int)sizeof(MYFLT) * csound->ksmps);
         break;
       case CSOUND_STRING_CHANNEL:
         nbytes += ((int)sizeof(MYFLT) * csound->strVarSamples);

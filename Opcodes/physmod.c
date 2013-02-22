@@ -140,13 +140,13 @@ int clarinset(CSOUND *csound, CLARIN *p)
     /*    p->noiseGain = 0.2f; */       /* Arguemnts; suggested values? */
     /*    p->vibrGain = 0.1f; */
       {
-        int relestim = (int)(csound->ekr * FL(0.1));
+        int relestim = (int)(csound->GetKr(csound) * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
-                        - (int32) (csound->ekr * *p->attack));
+      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->GetKr(csound))
+                        - (int32) (csound->GetKr(csound) * *p->attack));
 #ifdef BETA
       csound->Message(csound, "offtim=%f  kloop=%d\n",
                               p->h.insdshead->offtim, p->kloop);
@@ -329,8 +329,8 @@ int fluteset(CSOUND *csound, FLUTE *p)
       p->maxPress = FL(2.3) / FL(0.8);
       p->outputGain = FL(1.001);
       ADSR_keyOn(&p->adsr);
-      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*csound->ekr -
-                               csound->ekr*(*p->dettack)));
+      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*csound->GetKr(csound) -
+                               csound->GetKr(csound)*(*p->dettack)));
 
       p->lastFreq = FL(0.0);
       p->lastJet = -FL(1.0);
@@ -813,13 +813,13 @@ int brassset(CSOUND *csound, BRASS *p)
       /*                     p->lipTarget * (MYFLT)pow(4.0,
                                                        (2.0* p->lipT) -1.0)); */
       {
-        int relestim = (int)(csound->ekr * FL(0.1));
+        int relestim = (int)(csound->GetKr(csound) * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
-                        - (int32) (csound->ekr * *p->dettack));
+      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->GetKr(csound))
+                        - (int32) (csound->GetKr(csound) * *p->dettack));
     }
     return OK;
 }

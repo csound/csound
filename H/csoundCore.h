@@ -1205,7 +1205,6 @@ typedef struct NAME__ {
     MYFLT         onedsr, sicvt;
     MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
     MYFLT         onedksmps;
-    MYFLT         ekr, global_ekr;
     MYFLT         onedkr;
     MYFLT         kicvt;
     MYFLT         e0dbfs, dbfs_to_float;
@@ -1293,12 +1292,14 @@ typedef struct NAME__ {
     int  dead_instr_no;
     TYPE_POOL*    typePool;
     /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */
-    unsigned int  ksmps, global_ksmps; 
+    unsigned int  ksmps; 
     uint32_t      nchnls;
     int           inchnls;
     int           spoutactive;
     long          kcounter, global_kcounter;   
     MYFLT         esr;  
+    MYFLT         ekr;
+    /*MYFLT         global_ekr;*/
     int           nchanik, nchania, nchanok, nchanoa;
     MYFLT         *chanik, *chania, *chanok, *chanoa;
     MYFLT         cpu_power_busy;
