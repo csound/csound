@@ -582,6 +582,25 @@ int clockread(CSOUND *csound, CLKRD *p)
     return OK;
 }
 
+int scratchread(CSOUND *csound, SCRATCHPAD *p)
+{
+    int index = MYFLT2LRND(*p->index);
+    if (index<0 || index>3)
+      return csound->PerfError(csound, Str("scratchpad index out of range"));
+    *p->val = p->h.insdshead->scratchpad[index];
+    return OK;
+}
+
+int scratchwrite(CSOUND *csound, SCRATCHPAD *p)
+{
+    int index = MYFLT2LRND(*p->index);
+    if (index<0 || index>3)
+      return csound->PerfError(csound, Str("scratchpad index out of range"));
+    p->h.insdshead->scratchpad[index] = *p->val;
+    return OK;
+}
+
+
 /* ************************************************************ */
 /* Opcodes from Peter Neubäcker                                 */
 /* ************************************************************ */
