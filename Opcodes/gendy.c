@@ -448,7 +448,7 @@ static int kgendyc(CSOUND *csound, GENDYC *p)
       memdur[index] = p->dur;
       fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
       fphase = (fphase > FL(0.001) ? fphase : FL(0.001));
-      p->phase = (int32)(csound->esr / fphase);
+      p->phase = (int32)(csound->GetSr(csound) / fphase);
       if (p->phase < 2) p->phase = 2;
       p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
       p->curve = p->curve / (p->phase * p->phase + p->phase);
@@ -511,7 +511,7 @@ static int agendyc(CSOUND *csound, GENDYC *p)
         memdur[index] = p->dur;
         fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
         fphase = (fphase > FL(0.001) ? fphase : FL(0.001));
-        p->phase = (int32)(csound->esr / fphase);
+        p->phase = (int32)(csound->GetSr(csound) / fphase);
         if (p->phase < 2) p->phase = 2;
         p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
         p->curve = p->curve / (p->phase * p->phase + p->phase);

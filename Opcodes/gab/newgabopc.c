@@ -345,7 +345,7 @@ static int inRange_i(CSOUND *csound, INRANGE *p)
 /*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; */
     if (!csound->oparms->sfread)
       return csound->InitError(csound, Str("inrg: audio input is not enabled"));
-    p->numChans = csound->nchnls;
+    p->numChans = csound->GetNchnls(csound);
     return OK;
 }
 
@@ -379,64 +379,7 @@ static int inRange(CSOUND *csound, INRANGE *p)
     return OK;
 
 }
-/* -------------------------------------------------------------------- */
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *kstartChan, *argums[VARGMAX];
-        int narg;
-} OUTRANGE;
-
-static int outRange_i(CSOUND *csound, OUTRANGE *p)
-{
-    p->narg = p->INOCOUNT-1;
-    return OK;
-}
-
-
-static int outRange(CSOUND *csound, OUTRANGE *p)
-{
-    int j;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int nchnls = csound->nchnls;
-    MYFLT *ara[VARGMAX];
-    int startChan = (int) *p->kstartChan -1;
-    MYFLT *sp = csound->spout + startChan;
-    int narg = p->narg;
-
-    if (startChan < 0)
-      return csound->PerfError(csound,
-                               Str("outrg: channel number cannot be < 1 "
-                                   "(1 is the first channel)"));
-
-    for (j = 0; j < narg; j++)
-      ara[j] = p->argums[j];
-
-    if (!csound->spoutactive) {
-      memset(sp, 0, nsmps * nchnls * sizeof(MYFLT));
-      for (n=offset; n<nsmps-early; n++) {
-        int i;
-        MYFLT *sptemp = sp;
-        for (i=0; i < narg; i++)
-          sptemp[i] = ara[i][n];
-        sp += nchnls;
-      }
-      csound->spoutactive = 1;
-    }
-    else {
-      for (n=offset; n<nsmps-early; n++) {
-        int i;
-        MYFLT *sptemp = sp;
-        for (i=0; i < narg; i++)
-          sptemp[i] += ara[i][n];
-        sp += nchnls;
-      }
-    }
-    return OK;
-}
-/* -------------------------------------------------------------------- */
 #include "Opcodes/uggab.h"
 
 static int lposc_set(CSOUND *csound, LPOSC *p)
@@ -449,7 +392,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
        csound->Message(csound,
                        Str("lposc: no sample rate stored in function;"
                            " assuming=sr\n"));
-       p->fsr=csound->esr;
+       p->fsr=csound->GetSr(csound);
     }
     p->ftp    = ftp;
     p->tablen = ftp->flen;
@@ -470,7 +413,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
 static int lposca(CSOUND *csound, LPOSC *p)
 {
     double  *phs= &p->phs;
-    double  si= *p->freq * (p->fsr/csound->esr);
+    double  si= *p->freq * (p->fsr/csound->GetSr(csound));
     MYFLT   *out = p->out,  *amp=p->amp;
     MYFLT   *ft =  p->ftp->ftable, *curr_samp;
     MYFLT   fract;
@@ -522,9 +465,9 @@ static int lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
     if (!(fsr = ftp->gen01args.sample_rate)) {
       csound->Message(csound, Str("lposcil: no sample rate stored in function;"
                                   " assuming=sr\n"));
-      p->fsr=csound->esr;
+      p->fsr=csound->GetSr(csound);
     }
-    p->fsrUPsr = fsr/csound->esr;
+    p->fsrUPsr = fsr/csound->GetSr(csound);
     p->ft     = ftp->ftable;
     p->tablen = ftp->flen/2;
     /* changed from
@@ -689,8 +632,9 @@ static OENTRY localops[] = {
   { "lposcilsa2", S(LPOSC_ST), TR, 5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo_no_trasp},
   /* { "dashow.i", S(DSH), 0,1,  "ii","iiii", (SUBR)dashow     }, */
   /* { "dashow.k", S(DSH), 0,2,  "kk","kkkk", NULL, (SUBR)dashow   }, */
-  { "inrg", S(INRANGE), 0,5, "", "ky", (SUBR)inRange_i, (SUBR)NULL, (SUBR)inRange },
-  { "outrg", S(OUTRANGE), 0,5, "", "ky", (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange}
+  { "inrg", S(INRANGE), 0,5, "", "ky", (SUBR)inRange_i, (SUBR)NULL, (SUBR)inRange }
+
+
 };
 
 

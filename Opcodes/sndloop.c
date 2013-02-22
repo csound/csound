@@ -213,8 +213,8 @@ typedef struct _pvsmorph {
 
 static int sndloop_init(CSOUND *csound, sndloop *p)
 {
-    p->durs = (int32) (*(p->dur)*csound->esr); /* dur in samps */
-    p->cfds = (int32) (*(p->cfd)*csound->esr); /* fade in samps */
+    p->durs = (int32) (*(p->dur)*csound->GetSr(csound)); /* dur in samps */
+    p->cfds = (int32) (*(p->cfd)*csound->GetSr(csound)); /* fade in samps */
     if (UNLIKELY(p->durs < p->cfds))
       return
         csound->InitError(csound, Str("crossfade cannot be longer than loop\n"));
@@ -297,9 +297,9 @@ static int sndloop_process(CSOUND *csound, sndloop *p)
 static int flooper_init(CSOUND *csound, flooper *p)
 {
     MYFLT *tab, *buffer, a = FL(0.0), inc;
-    int32 cfds = (int32) (*(p->cfd)*csound->esr);     /* fade in samps  */
-    int32 starts = (int32) (*(p->start)*csound->esr); /* start in samps */
-    int32 durs = (int32)  (*(p->dur)*csound->esr);    /* dur in samps   */
+    int32 cfds = (int32) (*(p->cfd)*csound->GetSr(csound));     /* fade in samps  */
+    int32 starts = (int32) (*(p->start)*csound->GetSr(csound)); /* start in samps */
+    int32 durs = (int32)  (*(p->dur)*csound->GetSr(csound));    /* dur in samps   */
     int32 len, i;
 
     if (UNLIKELY(cfds > durs))
