@@ -136,7 +136,7 @@ public:
             fluidSettings = new_fluid_settings();
             if (fluidSettings != NULL) {
                 fluid_settings_setnum(fluidSettings,
-                        (char *)"synth.sample-rate", (double) csound->esr);
+                        (char *)"synth.sample-rate", (double) csound->GetSr(csound));
                 fluid_settings_setint(fluidSettings,
                         (char *)"synth.midi-channels", channelCount);
                 fluid_settings_setint(fluidSettings,
@@ -157,7 +157,7 @@ public:
                 //csound_global_mutex_unlock();
                 log(csound, "Created fluidEngine 0x%p with sampling rate = %f, "
                     "chorus %s, reverb %s, channels %d, voices %d.\n",
-                    fluidSynth, (double) csound->esr,
+                    fluidSynth, (double) csound->GetSr(csound),
                     chorusEnabled ? "on" : "off",
                     reverbEnabled ? "on" : "off",
                     channelCount,

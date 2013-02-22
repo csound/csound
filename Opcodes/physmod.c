@@ -123,13 +123,13 @@ int clarinset(CSOUND *csound, CLARIN *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq)
-        p->length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / *p->lowestFreq + FL(1.0));
       else if (*p->frequency)
-        p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound, Str("No base frequency for clarinet "
                                     "-- assuming 50Hz\n"));
-        p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->delayLine, p->length);
       p->reedTable.offSet = FL(0.7);
@@ -140,13 +140,13 @@ int clarinset(CSOUND *csound, CLARIN *p)
     /*    p->noiseGain = 0.2f; */       /* Arguemnts; suggested values? */
     /*    p->vibrGain = 0.1f; */
       {
-        int relestim = (int)(csound->ekr * FL(0.1));
+        int relestim = (int)(csound->GetKr(csound) * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
-                        - (int32) (csound->ekr * *p->attack));
+      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->GetKr(csound))
+                        - (int32) (csound->GetKr(csound) * *p->attack));
 #ifdef BETA
       csound->Message(csound, "offtim=%f  kloop=%d\n",
                               p->h.insdshead->offtim, p->kloop);
@@ -171,18 +171,18 @@ int clarin(CSOUND *csound, CLARIN *p)
     MYFLT vTime = p->v_time;
 
     if (p->envelope.rate==FL(0.0)) {
-      p->envelope.rate =  amp /(*p->attack*csound->esr);
+      p->envelope.rate =  amp /(*p->attack*csound->GetSr(csound));
       p->envelope.value = p->envelope.target = FL(0.55) + amp*FL(0.30);
     }
     p->outputGain = amp + FL(0.001);
     DLineL_setDelay(&p->delayLine, /* length - approx filter delay */
-        (csound->esr/ *p->frequency) * FL(0.5) - FL(1.5));
+        (csound->GetSr(csound)/ *p->frequency) * FL(0.5) - FL(1.5));
     p->v_rate = *p->vibFreq * p->vibr->flen * csound->onedsr;
                                 /* Check to see if into decay yet */
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
       p->envelope.state = 1;  /* Start change */
-      p->envelope.rate = p->envelope.value / (*p->dettack * csound->esr);
+      p->envelope.rate = p->envelope.value / (*p->dettack * csound->GetSr(csound));
       p->envelope.target =  FL(0.0);
 #ifdef BETA
       csound->Message(csound, "Set off phase time = %f Breath v,r = %f, %f\n",
@@ -291,13 +291,13 @@ int fluteset(CSOUND *csound, FLUTE *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
       if (*p->lowestFreq!=FL(0.0))
-        length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
+        length = (int32) (csound->GetSr(csound) / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
-        length = (int32) (csound->esr / *p->frequency + FL(1.0));
+        length = (int32) (csound->GetSr(csound) / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound, Str("No base frequency for flute "
                                     "-- assumed to be 50Hz\n"));
-        length = (int32) (csound->esr / FL(50.0) + FL(1.0));
+        length = (int32) (csound->GetSr(csound) / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->boreDelay, length);
       length = length >> 1;        /* ??? really; yes from later version */
@@ -329,8 +329,8 @@ int fluteset(CSOUND *csound, FLUTE *p)
       p->maxPress = FL(2.3) / FL(0.8);
       p->outputGain = FL(1.001);
       ADSR_keyOn(&p->adsr);
-      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*csound->ekr -
-                               csound->ekr*(*p->dettack)));
+      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*csound->GetKr(csound) -
+                               csound->GetKr(csound)*(*p->dettack)));
 
       p->lastFreq = FL(0.0);
       p->lastJet = -FL(1.0);
@@ -369,21 +369,21 @@ int flute(CSOUND *csound, FLUTE *p)
       /* freq = (2/3)*p->frequency as we're overblowing here */
       /* but 1/(2/3) is 1.5 so multiply for speed */
                             /* Length - approx. filter delay */
-      temp = FL(1.5)* csound->esr / p->lastFreq - FL(2.0);
+      temp = FL(1.5)* csound->GetSr(csound) / p->lastFreq - FL(2.0);
       DLineL_setDelay(&p->boreDelay, temp); /* Length of bore tube */
       DLineL_setDelay(&p->jetDelay, temp * p->lastJet); /* jet delay shorter */
     }
     else if (*p->jetRatio != p->lastJet) { /* Freq same but jet changed */
       p->lastJet = *p->jetRatio;
                                             /* Length - approx. filter delay */
-      temp = FL(1.5)* csound->esr / p->lastFreq - FL(2.0);
+      temp = FL(1.5)* csound->GetSr(csound) / p->lastFreq - FL(2.0);
       DLineL_setDelay(&p->jetDelay, temp * p->lastJet); /* jet delay shorter */
     }
                                 /* End SetFreq */
 
     if (p->kloop>FL(0.0) && p->h.insdshead->relesing) p->kloop=FL(1.0);
     if ((--p->kloop) == 0) {
-      p->adsr.releaseRate = p->adsr.value / (*p->dettack * csound->esr);
+      p->adsr.releaseRate = p->adsr.value / (*p->dettack * csound->GetSr(csound));
       p->adsr.target = FL(0.0);
       p->adsr.rate = p->adsr.releaseRate;
       p->adsr.state = RELEASE;
@@ -496,13 +496,13 @@ int bowedset(CSOUND *csound, BOWED *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
-        length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
+        length = (int32) (csound->GetSr(csound) / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
-        length = (int32) (csound->esr / *p->frequency + FL(1.0));
+        length = (int32) (csound->GetSr(csound) / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound, Str("unknown lowest frequency for bowed string "
                                     "-- assuming 50Hz\n"));
-        length = (int32) (csound->esr / FL(50.0) + FL(1.0));
+        length = (int32) (csound->GetSr(csound) / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->neckDelay, length);
       length = length >> 1; /* Unsure about this; seems correct in later code */
@@ -566,7 +566,7 @@ int bowed(CSOUND *csound, BOWED *p)
     if (p->lastfreq != *p->frequency) {
       /* delay - approx. filter delay */
       p->lastfreq = *p->frequency;
-      p->baseDelay = csound->esr / p->lastfreq - FL(4.0);
+      p->baseDelay = csound->GetSr(csound) / p->lastfreq - FL(4.0);
       freq_changed = 1;
     }
     if (p->lastbeta != *p->betaRatio ||
@@ -779,13 +779,13 @@ int brassset(CSOUND *csound, BRASS *p)
     p->frq = *p->frequency;     /* Remember */
     if (*p->lowestFreq>=FL(0.0)) {
       if (*p->lowestFreq!=FL(0.0))
-        p->length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / *p->lowestFreq + FL(1.0));
       else if (p->frq!=FL(0.0))
-        p->length = (int32) (csound->esr / p->frq + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / p->frq + FL(1.0));
       else {
         csound->Warning(csound, Str("No base frequency for brass "
                                     "-- assumed to be 50Hz\n"));
-        p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / FL(50.0) + FL(1.0));
       }
       make_DLineA(csound, &p->delayLine, p->length);
       make_LipFilt(&p->lipFilter);
@@ -800,7 +800,7 @@ int brassset(CSOUND *csound, BRASS *p)
       ADSR_keyOn(&p->adsr);
 
       /* Set frequency */
-      /*      p->slideTarget = (csound->esr / p->frq * FL(2.0)) + 3.0f; */
+      /*      p->slideTarget = (csound->GetSr(csound) / p->frq * FL(2.0)) + 3.0f; */
       /* fudge correction for filter delays */
       /*      DLineA_setDelay(&p->delayLine, p->slideTarget);*/
       /* we'll play a harmonic  */
@@ -813,13 +813,13 @@ int brassset(CSOUND *csound, BRASS *p)
       /*                     p->lipTarget * (MYFLT)pow(4.0,
                                                        (2.0* p->lipT) -1.0)); */
       {
-        int relestim = (int)(csound->ekr * FL(0.1));
+        int relestim = (int)(csound->GetKr(csound) * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
-                        - (int32) (csound->ekr * *p->dettack));
+      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->GetKr(csound))
+                        - (int32) (csound->GetKr(csound) * *p->dettack));
     }
     return OK;
 }
@@ -847,7 +847,7 @@ int brass(CSOUND *csound, BRASS *p)
     }
     if (p->frq != *p->frequency) {             /* Set frequency if changed */
       p->frq = *p->frequency;
-      p->slideTarget = (csound->esr / p->frq * FL(2.0)) + FL(3.0);
+      p->slideTarget = (csound->GetSr(csound) / p->frq * FL(2.0)) + FL(3.0);
                         /* fudge correction for filter delays */
        /*  we'll play a harmonic */
       if (DLineA_setDelay(csound, &p->delayLine, p->slideTarget)) return OK;

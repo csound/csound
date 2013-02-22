@@ -1824,3 +1824,93 @@ int error_fn(CSOUND *csound, ERRFN *p)
 {
     return csound->InitError(csound, Str("Unknown function called"));
 }
+
+ /* ------------------------------------------------------------------------ */
+
+int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, j, nsmps = CS_KSMPS;
+
+    if (csound->spoutactive) {
+      int   k = 0;
+      for (i = 0; i<nsmps; i++) {
+        for (j = 0; j<csound->GetNchnls(csound); j++) {
+          if (i<offset||i>nsmps-early) 
+            p->ar[j][i] = FL(0.0);
+          else
+            p->ar[j][i] = csound->spout[k];
+          k++;
+        }
+      }
+    }
+    else {
+      for (j = 0; j<csound->GetNchnls(csound); j++) {
+        for (i = 0; i<CS_KSMPS; i++) {
+          p->ar[j][i] = FL(0.0);
+        }
+      }
+    }
+    return OK;
+}
+
+int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
+{
+    if (UNLIKELY(csound->GetOutputArgCnt(p) != (int)csound->GetNchnls(csound)))
+      return csound->InitError(csound, Str("number of arguments != nchnls"));
+    p->h.opadr = (SUBR) monitor_opcode_perf;
+    return OK;
+}
+
+/* -------------------------------------------------------------------- */
+
+int outRange_i(CSOUND *csound, OUTRANGE *p)
+{
+    p->narg = p->INOCOUNT-1;
+    return OK;
+}
+
+int outRange(CSOUND *csound, OUTRANGE *p)
+{
+    int j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int nchnls = csound->GetNchnls(csound);
+    MYFLT *ara[VARGMAX];
+    int startChan = (int) *p->kstartChan -1;
+    MYFLT *sp = csound->spout + startChan;
+    int narg = p->narg;
+
+    if (startChan < 0)
+      return csound->PerfError(csound,
+                               Str("outrg: channel number cannot be < 1 "
+                                   "(1 is the first channel)"));
+
+    for (j = 0; j < narg; j++)
+      ara[j] = p->argums[j];
+
+    if (!csound->spoutactive) {
+      memset(sp, 0, nsmps * nchnls * sizeof(MYFLT));
+      for (n=offset; n<nsmps-early; n++) {
+        int i;
+        MYFLT *sptemp = sp;
+        for (i=0; i < narg; i++)
+          sptemp[i] = ara[i][n];
+        sp += nchnls;
+      }
+      csound->spoutactive = 1;
+    }
+    else {
+      for (n=offset; n<nsmps-early; n++) {
+        int i;
+        MYFLT *sptemp = sp;
+        for (i=0; i < narg; i++)
+          sptemp[i] += ara[i][n];
+        sp += nchnls;
+      }
+    }
+    return OK;
+}
+/* -------------------------------------------------------------------- */

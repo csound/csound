@@ -95,12 +95,12 @@ void Modal4_setRatioAndReson(CSOUND *csound,
                              Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
 {
     MYFLT temp;
-    if (ratio* m->baseFreq < csound->esr * FL(0.5)) {
+    if (ratio* m->baseFreq < csound->GetSr(csound) * FL(0.5)) {
       m->ratios[whichOne] = ratio;
     }
     else {
       temp = ratio;
-      while (temp* m->baseFreq > FL(0.5)*csound->esr) temp *= FL(0.5);
+      while (temp* m->baseFreq > FL(0.5)*csound->GetSr(csound)) temp *= FL(0.5);
       m->ratios[whichOne] = temp;
     }
     m->resons[whichOne] = reson;
@@ -296,13 +296,13 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 1;
     {
-      int relestim = (int) (csound->ekr * *p->dettack);
+      int relestim = (int) (csound->GetKr(csound) * *p->dettack);
       /* 0.1 second decay extention */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
-                      - (int32) (csound->ekr * *p->dettack));
+    p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->GetKr(csound))
+                      - (int32) (csound->GetKr(csound) * *p->dettack));
     return OK;
 }
 

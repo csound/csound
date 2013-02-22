@@ -76,7 +76,7 @@ static void settempo(CSOUND *csound, MYFLT tempo)
     if (tempo <= FL(0.0)) return;
     if (csound->oparms->Beatmode==1)
       csound->ibeatTime = (int64_t)(csound->esr*60.0 / (double) tempo);
-    csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
+    csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->ekr);
 }
 
 int gettempo(CSOUND *csound, GTEMPO *p)
@@ -738,7 +738,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     case 'a':
       {
         int64_t kCnt;
-        kCnt = (int64_t) ((double) csound->global_ekr * (double) evt->p[3] + 0.5);
+        kCnt = (int64_t) ((double) csound->ekr * (double) evt->p[3] + 0.5);
         if (kCnt > csound->advanceCnt) {
           csound->advanceCnt = kCnt;
           csound->Message(csound,
@@ -1091,7 +1091,7 @@ int sensevents(CSOUND *csound)
 static inline uint64_t time2kcnt(CSOUND *csound, double tval)
 {
     if (tval > 0.0) {
-      tval *= (double) csound->global_ekr;
+      tval *= (double) csound->ekr;
 #ifdef HAVE_C99
       return (uint64_t) llrint(tval);
 #else

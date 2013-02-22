@@ -123,8 +123,8 @@ static int hilbertset(CSOUND *csound, HILBERT *p)
     double polefreq, rc, alpha, beta;
     /* calculate coefficients for allpass filters, based on sampling rate */
     for (j=0; j<12; j++) {
-      /*      p->coef[j] = (1 - (15 * PI * pole[j]) / csound->esr) /
-              (1 + (15 * PI * pole[j]) / csound->esr); */
+      /*      p->coef[j] = (1 - (15 * PI * pole[j]) / csound->GetSr(csound)) /
+              (1 + (15 * PI * pole[j]) / csound->GetSr(csound)); */
       polefreq = poles[j] * 15.0;
       rc = 1.0 / (2.0 * PI * polefreq);
       alpha = 1.0 / rc;
@@ -545,7 +545,7 @@ static int lp2(CSOUND *csound, LP2 *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     temp = (double)(csound->mpidsr * kfco / kres);
-      /* (-PI_F * kfco / (kres * csound->esr)); */
+      /* (-PI_F * kfco / (kres * csound->GetSr(csound))); */
     a = 2.0 * cos((double) (kfco * csound->tpidsr)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;

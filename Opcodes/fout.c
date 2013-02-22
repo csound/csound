@@ -220,8 +220,8 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         sf_command(sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
       }
-      /* if (csound->ksmps >= 512)
-        buf_reqd = csound->ksmps * ((SF_INFO*) fileParams)->channels;
+      /* if (csound->GetKsmps(csound) >= 512)
+        buf_reqd = csound->GetKsmps(csound) * ((SF_INFO*) fileParams)->channels;
       else
         buf_reqd = (1 + (int)(512 / CS_KSMPS)) * CS_KSMPS
                    * ((SF_INFO*) fileParams)->channels;
@@ -370,7 +370,7 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
       sfinfo.format |= FORMAT2SF(csound->oparms->outformat);
     if (!SF2TYPE(sfinfo.format))
       sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
+    sfinfo.samplerate = (int) MYFLT2LRND(csound->GetSr(csound));
     p->nargs = p->INOCOUNT - 2;
     p->buf_pos = 0;
 
@@ -440,7 +440,7 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
       p->guard_pos = 512 * p->nargs;
 
     sfinfo.channels = p->nargs;
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->ekr);
+    sfinfo.samplerate = (int) MYFLT2LRND(csound->GetKr(csound));
     format_ = (int) MYFLT2LRND(*p->iflag);
     if ((unsigned int) format_ >= (unsigned int) 10)
       sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
@@ -695,7 +695,7 @@ static int infile_set(CSOUND *csound, INFILE *p)
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
+    sfinfo.samplerate = (int) MYFLT2LRND(csound->GetSr(csound));
     if ((int) MYFLT2LRND(*p->iflag) == 0)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
     else
@@ -796,7 +796,7 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
     int     n, buf_reqd;
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->ekr);
+    sfinfo.samplerate = (int) MYFLT2LRND(csound->GetKr(csound));
     if ((int) MYFLT2LRND(*p->iflag) == 0)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
     else

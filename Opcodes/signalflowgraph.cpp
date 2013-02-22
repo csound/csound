@@ -579,8 +579,8 @@ struct Inletf : public OpcodeBase<Inletf> {
               fsignal->sliding = 0;
               if (sourceOutlet->fsignal->sliding) {
                 if (fsignal->frame.auxp == NULL ||
-                    fsignal->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-                  csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+                    fsignal->frame.size < sizeof(MYFLT) * csound->GetKsmps(csound) * (N + 2))
+                  csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->GetKsmps(csound),
                                    &fsignal->frame);
                 fsignal->NB = sourceOutlet->fsignal->NB;
                 fsignal->sliding = 1;

@@ -167,7 +167,7 @@ static int gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
       p->frq0 = *p->kfrq;
       frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
       dev = *p->kdev;
-      nextsamps = (int)(csound->esr / frq);
+      nextsamps = (int)(csound->GetSr(csound) / frq);
       p->rand = csoundRand31(&p->rand);
       r1 = (MYFLT)p->rand * dv2_31;
       p->rand = csoundRand31(&p->rand);
@@ -206,7 +206,7 @@ static int gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
         p->frq0 = *p->kfrq;
         frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
         dev = *p->kdev;
-        nextsamps = (int)(csound->esr / frq);
+        nextsamps = (int)(csound->GetSr(csound) / frq);
         p->rand = csoundRand31(&p->rand);
         r1 = (MYFLT)p->rand * dv2_31;
         p->rand = csoundRand31(&p->rand);

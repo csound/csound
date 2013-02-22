@@ -4207,11 +4207,11 @@ extern "C" {
 
   static int FLprintkset(CSOUND *csound, FLPRINTK *p)
   {
-      if (*p->ptime < FL(1.0) / csound->global_ekr)
-        p->ctime = FL(1.0) / csound->global_ekr;
+    if (*p->ptime < FL(1.0) / csound->GetKr(csound))
+      p->ctime = FL(1.0) / csound->GetKr(csound);
       else        p->ctime = *p->ptime;
 
-      p->initime = (MYFLT) csound->kcounter * csound->onedkr;
+      p->initime = (MYFLT) csound->GetKcounter(csound) * csound->onedkr;
       p->cysofar = -1;
       return OK;
   }
@@ -4221,7 +4221,7 @@ extern "C" {
       MYFLT   timel;
       long    cycles;
 
-      timel = ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
+      timel = ((MYFLT) csound->GetKcounter(csound) * csound->onedkr) - p->initime;
       cycles = (long)(timel / p->ctime);
       if (p->cysofar < cycles) {
         p->cysofar = cycles;
@@ -5578,7 +5578,7 @@ extern "C" {
   //     int nchnls = csound->nchnls;
   //     int      n = (csound->oparms->sfread) ? nchnls * 2 : nchnls;
   //     MYFLT temp[MAXCHNLS];
-  //     int smps = csound->ksmps;
+  //     int smps = csound->GetKsmps(csound);
   //     MYFLT max[MAXCHNLS];
   //     MYFLT *spo = csound->spout;
   //     MYFLT *spi = csound->spin;

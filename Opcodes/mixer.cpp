@@ -32,8 +32,8 @@ static void createBuss(CSOUND *csound, size_t buss)
 #endif
   if(busses[csound].find(buss) == busses[csound].end())
     {
-      size_t channels = csound->nchnls;
-      size_t frames = csound->ksmps;
+      size_t channels = csound->GetNchnls(csound);
+      size_t frames = csound->GetKsmps(csound);
       busses[csound][buss].resize(channels);
       for(size_t channel = 0; channel < channels; channel++)
         {
@@ -171,7 +171,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
     buss = static_cast<size_t>(*ibuss);
     createBuss(csound, buss);
     channel = static_cast<size_t>(*ichannel);
-    frames = csound->ksmps;
+    frames = csound->GetKsmps(csound);
     busspointer = &busses[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerSend::init: instance %p send %d buss "
@@ -225,7 +225,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
   {
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
-    frames = csound->ksmps;
+    frames = csound->GetKsmps(csound);
     createBuss(csound, buss);
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerReceive::init...\n");
