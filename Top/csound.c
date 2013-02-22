@@ -1302,7 +1302,8 @@ inline static int nodePerf(CSOUND *csound, int index)
 #define WAIT    (-2)
 
     while(1) {
-      printf("******** Select task %d\n", which_task = dag_get_task(csound));
+      which_task = dag_get_task(csound);
+      //printf("******** Select task %d\n", which_task);
       if (which_task==WAIT) continue;
       if (which_task==INVALID) return played_count;
       insds = task_map[which_task];
@@ -1311,7 +1312,7 @@ inline static int nodePerf(CSOUND *csound, int index)
           (*opstart->opadr)(csound, opstart); /* run each opcode */
         }
         played_count++;
-        printf("******** finished task %d\n", which_task);
+        //printf("******** finished task %d\n", which_task);
         dag_end_task(csound, which_task);
     }
 #else
@@ -1538,7 +1539,7 @@ int kperf(CSOUND *csound)
       if (csound->multiThreadedThreadInfo != NULL) {
 #ifdef NEW_DAG
         if (csound->dag_changed) dag_build(csound, ip);
-        dag_reinit(csound);     /* set to initial state */
+        else dag_reinit(csound);     /* set to initial state */
 #else
         struct dag_t *dag2 = NULL;
 
