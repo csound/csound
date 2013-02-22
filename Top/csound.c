@@ -90,6 +90,7 @@ static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void csoundReset_(CSOUND *);
 int csoundPerformKsmpsInternal(CSOUND *csound);
 void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
+INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 
 extern void close_all_files(CSOUND *);
 
@@ -365,7 +366,7 @@ static const CSOUND cenviron_ = {
     csoundNotifyFileOpened,
     sftype2csfiletype,
     insert_score_event_at_sample,
-     csoundGetChannelLock,
+    //csoundGetChannelLock,
     ldmemfile2withCB,
     csoundGetNamedGens,
     csoundPow2,
@@ -379,23 +380,16 @@ static const CSOUND cenviron_ = {
     csoundWriteAsync,
     csoundFSeekAsync,
     get_arg_string,
+    csoundGetInstrumentList,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ----------------------- public data fields ----------------------- */
-    {(CS_VAR_POOL*)NULL,
-     (MYFLT_POOL *) NULL,
-     (STRING_POOL *) NULL,
-     -1,
-     (INSTRTXT**)NULL,
-     {NULL},
-     NULL,
-     MAXINSNO},     /* engineState          */
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
     DFLT_KSMPS,     /*  ksmps               */
@@ -488,6 +482,14 @@ static const CSOUND cenviron_ = {
     rtrecord_dummy,
     rtclose_dummy,
     /* end of callbacks */
+    {(CS_VAR_POOL*)NULL,
+     (MYFLT_POOL *) NULL,
+     (STRING_POOL *) NULL,
+     -1,
+     (INSTRTXT**)NULL,
+     {NULL},
+     NULL,
+     MAXINSNO},     /* engineState          */
     (INSTRTXT *) NULL, /* instr0  */
     (INSTRTXT**)NULL,  /* dead_instr_pool */
     0, /* dead_instr_no */
@@ -797,6 +799,7 @@ static const CSOUND cenviron_ = {
 #ifdef NEW_DAG
     1,              /* dag_changed */
     0,              /* dag_num_active */
+    NULL,           /* dag_task_map */
 #endif
 #endif /* PARCS */
     0,              /* tempStatus */
@@ -1283,22 +1286,39 @@ inline void multiThreadedLayer(CSOUND *csound, INSDS *layerBegin, INSDS *layerEn
 #ifdef NEW_DAG 
 int dag_get_task(CSOUND *csound);
 void dag_end_task(CSOUND *csound, int task);
+void dag_build(CSOUND *csound, INSDS *chain);
+void dag_reinit(CSOUND *csound);
 #endif
 
 inline static int nodePerf(CSOUND *csound, int index)
 {
     INSDS *insds = NULL;
     OPDS  *opstart = NULL;
-    int update_hdl = -1;
     int played_count = 0;
-    DAG_NODE *node;
+#ifdef NEW_DAG
     int which_task;
+    INSDS **task_map = (INSDS*)csound->dag_task_map;
+#define INVALID (-1)
+#define WAIT    (-2)
 
+    while(1) {
+      printf("******** Select task %d\n", which_task = dag_get_task(csound));
+      if (which_task==WAIT) continue;
+      if (which_task==INVALID) return played_count;
+      insds = task_map[which_task];
+        opstart = task_map[which_task];
+        while ((opstart = opstart->nxtp) != NULL) {
+          (*opstart->opadr)(csound, opstart); /* run each opcode */
+        }
+        played_count++;
+        printf("******** finished task %d\n", which_task);
+        dag_end_task(csound, which_task);
+    }
+#else
+    int update_hdl = -1;
+    DAG_NODE *node;
     do {
       TRACE_2("Consume DAG [%i]\n", index);
-#ifdef NEW_DAG 
-      printf("******** Would select %d\n", which_task = dag_get_task(csound));
-#endif
       csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl);
         
       if (UNLIKELY(node == NULL)) {
@@ -1306,21 +1326,14 @@ inline static int nodePerf(CSOUND *csound, int index)
       }
 
       if (node->hdr.type == DAG_NODE_INDV) {
-#if (TRACE&4) == 4
-        instr = node->instr;
-#endif
         insds = node->insds;
         played_count++;
         
-        TRACE_2("DAG_NODE_INDV [%i] Playing: %s [%p]\n", 
-                index, instr->name, insds);
-
         opstart = (OPDS *)insds;
         while ((opstart = opstart->nxtp) != NULL) {
           (*opstart->opadr)(csound, opstart); /* run each opcode */
         }
         insds->ksmps_offset = 0; /* reset sample-accuracy offset */
-        TRACE_2("[%i] Played:  %s [%p]\n", index, instr->name, insds);
       }
       else if (node->hdr.type == DAG_NODE_LIST) {
         played_count += node->count;
@@ -1328,16 +1341,7 @@ inline static int nodePerf(CSOUND *csound, int index)
         int node_ctr = 0;
         while (node_ctr < node->count) {
           DAG_NODE *play_node = node->nodes[node_ctr];
-#if (TRACE&4) == 4
-          instr = play_node->instr;
-#endif
           insds = play_node->insds;
-          TRACE_1("DAG_NODE_LIST: node->nodes=%p: play_node = %p, "
-                  "instr=%p, insds=%p\n",
-                  node->nodes, play_node, instr, insds);
-          
-          TRACE_2("[%i] Playing: %s [%p]\n", index, instr->name, insds);
-          
           opstart = (OPDS *)insds;
           while ((opstart = opstart->nxtp) != NULL) {
             /* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", 
@@ -1345,7 +1349,6 @@ inline static int nodePerf(CSOUND *csound, int index)
             (*opstart->opadr)(csound, opstart); /* run each opcode */
           }
           insds->ksmps_offset = 0; /* reset sample-accuracy offset */
-          TRACE_2("[%i] Played:  %s [%p]\n", index, instr->name, insds);
           node_ctr++;
         }
       }
@@ -1355,12 +1358,9 @@ inline static int nodePerf(CSOUND *csound, int index)
       else {
         csound->Die(csound, "Unknown DAG node type");
       }
-
-#ifdef NEW_DAG 
-      printf("******** finished\n"); dag_end_task(csound, which_task);
-#endif
       csp_dag_consume_update(csound->multiThreadedDag, update_hdl);
     } while (!csp_dag_is_finished(csound->multiThreadedDag));
+#endif
       
     return played_count;
 }
@@ -1533,30 +1533,26 @@ int kperf(CSOUND *csound)
       TIMER_START(thread, "Clock Sync ");
       TIMER_END(thread, "Clock Sync ");
 
-      SHARK_SIGNPOST(KPERF_SYM);
-      TRACE_1("[%i] kperf\n", 0);
-
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
-        struct dag_t *dag2 = NULL;
-
-        TIMER_START(thread, "Dag ");
-#if defined(LINEAR_CACHE) || defined(HASH_CACHE)
-        csp_dag_cache_fetch(csound, &dag2, ip);
-        csp_dag_build(csound, &dag2, ip);
-#endif
-        TIMER_END(thread, "Dag ");
 #ifdef NEW_DAG
         if (csound->dag_changed) dag_build(csound, ip);
         dag_reinit(csound);     /* set to initial state */
-#endif
+#else
+        struct dag_t *dag2 = NULL;
 
+        TIMER_START(thread, "Dag ");
+# if defined(LINEAR_CACHE) || defined(HASH_CACHE)
+        csp_dag_cache_fetch(csound, &dag2, ip);
+        csp_dag_build(csound, &dag2, ip);
+# endif
         TRACE_1("{Time: %f}\n", csoundGetScoreTime(csound));
 #if TRACE > 1
         csp_dag_print(csound, dag2);
 #endif
         csound->multiThreadedDag = dag2;
+#endif
 
         /* process this partition */
         TRACE_1("[%i] Barrier1 Reached\n", 0);
@@ -1576,10 +1572,12 @@ int kperf(CSOUND *csound)
         TIMER_END(thread, "");
 
         /* #if !defined(LINEAR_CACHE) && !defined(HASH_CACHE) */
-#if defined(LINEAR_CACHE) || defined(HASH_CACHE)
+#ifndef NEW_DAG
+# if defined(LINEAR_CACHE) || defined(HASH_CACHE)
         csp_dag_dealloc(csound, &dag2);
-#else
+# else
         dag2 = NULL;
+# endif
 #endif
         csound->multiThreadedDag = NULL;
       }
@@ -1778,17 +1776,19 @@ PUBLIC int csoundPerform(CSOUND *csound)
           csoundUnlockMutex(csound->API_lock);
 #ifdef PARCS
           if (csound->oparms->numThreads > 1) {
-#if   defined(LINEAR_CACHE) || defined(HASH_CACHE)
+# if   !defined(NEW_DAG) && (defined(LINEAR_CACHE) || defined(HASH_CACHE))
             csp_dag_cache_print(csound);
-#endif
+# endif
             csound->multiThreadedComplete = 1;
             
             csound->WaitBarrier(csound->barrier1);
           }
+# ifndef NEW_DAG
           if (csound->oparms->calculateWeights) {
             /* csp_weights_dump(csound); */
             csp_weights_dump_normalised(csound);
           }          
+# endif
 #endif /* PARCS  */
           return done;
         }
@@ -3858,6 +3858,10 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     pp->lastMsg = p;
     pp->msgCnt++;
     csoundUnlockMutex(pp->mutex_);
+}
+
+INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
+  return csound->engineState.instrtxtp;
 }
 
 #ifdef never

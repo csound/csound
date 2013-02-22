@@ -64,7 +64,7 @@ typedef struct _watchList {
 /* Array of states of each task -- need to move to CSOUND structure */
 static enum state *task_status = NULL;          /* OPT : Structure lay out */
 static watchList **task_watch = NULL; 
-static INSDS **task_map = NULL; 
+//static INSDS **task_map = NULL; 
 
 /* INV : Read by multiple threads, updated by only one */
 /* Thus use atomic read and write */
@@ -75,6 +75,7 @@ static watchList * wlmm;
 #define INIT_SIZE (100)
 static int task_max_size;
 static int dag_dispatched;
+static int dag_done;
 
 static void dag_print_state(CSOUND *csound)
 {
@@ -103,8 +104,14 @@ static void dag_print_state(CSOUND *csound)
       }
     }
     printf("watches: ");
-    for (i=0; i<csound->dag_num_active; i++) printf("%d<-%d ", i, wlmm[i].id);
-    printf("\n");
+    for (i=0; i<csound->dag_num_active; i++) {
+      watchList *t = task_watch[i];
+      printf("\t%d: ", i);
+      while (t) {
+        printf("%d ", t->id); t = t->next;
+      }
+      printf("\n");
+    }
 }
 	     
 /* For now allocate a fixed maximum number of tasks; FIXME */
@@ -113,8 +120,8 @@ void create_dag(CSOUND *csound)
     /* Allocate the main task status and watchlists */
     task_status = mcalloc(csound, sizeof(enum state)*(task_max_size=INIT_SIZE));
     task_watch  = mcalloc(csound, sizeof(watchList**)*task_max_size);
-    task_map    = mcalloc(csound, sizeof(INSDS*)*task_max_size);
-    task_dep    = (char **)mcalloc(csound, sizeof(watchList*)*task_max_size);
+    csound->dag_task_map    = mcalloc(csound, sizeof(INSDS*)*task_max_size);
+    task_dep    = (char **)mcalloc(csound, sizeof(char*)*task_max_size);
     wlmm        = (watchList *)mcalloc(csound, sizeof(watchList)*task_max_size);
 }
 
@@ -156,8 +163,11 @@ static int dag_intersect(CSOUND *csound, struct set_t *current,
 void dag_build(CSOUND *csound, INSDS *chain)
 {
     INSDS *save = chain;
+    INSDS **task_map;
     int i;
-    if (task_status == NULL) create_dag(csound); /* Should move elsewhere */
+    printf("DAG BUILD************************\n");
+    if (task_status == NULL) 
+      create_dag(csound); /* Should move elsewhere */
     else { 
       memset(task_watch, '\0', sizeof(watchList*)*task_max_size);
       for (i=0; i<task_max_size; i++) {
@@ -165,6 +175,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
         wlmm[i].id = INVALID;
       }
     }
+    task_map = csound->dag_task_map;
     csound->dag_num_active = 0;
     while (chain != NULL) {
       //INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
@@ -177,7 +188,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       exit(1);
     }
     for (i=0; i<csound->dag_num_active; i++) 
-      task_status[i] = AVAILABLE, wlmm[i].id=-1;
+      task_status[i] = AVAILABLE, wlmm[i].id=i;
     csound->dag_changed = 0;
     printf("dag_num_active = %d\n", csound->dag_num_active);
     i = 0; chain = save;
@@ -233,6 +244,8 @@ void dag_reinit(CSOUND *csound)
 {
     int i;
     dag_dispatched = 0;
+    dag_done = 0;
+    printf("DAG REINIT************************\n");
     for (i=csound->dag_num_active; i<task_max_size; i++)
       task_status[i] = DONE;
     for (i=0; i<csound->dag_num_active; i++) {
@@ -247,10 +260,6 @@ void dag_reinit(CSOUND *csound)
         }
     }
     task_status[i] = AVAILABLE;
-}
-
-void dag_add_work(CSOUND *csound, taskID i)
-{
 }
 
 /* **** Thread code ****  */
@@ -270,24 +279,38 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     return -1;
 }
 
+/* #define ATOMIC_SWAP(x,y) __sync_val_compare_and_swap(&(x),x,y) */
+/* #define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0) */
+/* #define ATOMIC_WRITE(x,val) \ */
+/*   {    __sync_and_and_fetch(&(x), 0); __sync_or_and_fetch(&(x), val); } */
+// ??? _sync_val_compare_and_swap(&(x), x, val)
+// #define ATOMIC_SWAP(x,y) { tmp = x; x = y; y = tmp; }
+#define ATOMIC_READ(x) (x)
+#define ATOMIC_WRITE(x,val) x = val
+
 taskID dag_get_task(CSOUND *csound)
 {
     int i;
+    int morework = 0;
+    printf("**GetTask from %d\n", csound->dag_num_active);
     for (i=0; i<csound->dag_num_active; i++) {
+      printf("**%d %d (%d)\n", i, task_status[i], morework);
       if (__sync_bool_compare_and_swap(&(task_status[i]), AVAILABLE, INPROGRESS)) {
+        dag_dispatched++;
         return (taskID)i;
       }
+      else if (ATOMIC_READ(task_status[i])=WAITING) printf("**%d waiting\n", i);
+      else if (ATOMIC_READ(task_status[i])=INPROGRESS) printf("**%d active\n", i);
+      else if (ATOMIC_READ(task_status[i])==DONE) {
+        printf("**%d done\n", i); morework++;
+      }
     }
-    if (dag_dispatched==csound->dag_num_active)
-      return (taskID)INVALID;
-    else return (taskID)WAIT;
+    dag_print_state(csound);
+    if (morework==csound->dag_num_active) return (taskID)INVALID;
+    printf("taskstodo=%d(dispatched=%d finished=%d)\n",
+           morework, dag_dispatched, dag_done);
+    return (taskID)WAIT;
 }
-
-#define ATOMIC_SWAP(x,y) __sync_val_compare_and_swap(&(x),x,y)
-#define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0)
-#define ATOMIC_WRITE(x,val) \
-  {    __sync_and_and_fetch(&(x), 0); __sync_or_and_fetch(&(x), val); }
-// ??? _sync_val_compare_and_swap(&(x), x, val)
 
 watchList DoNotRead = { INVALID, NULL};
 static int moveWatch(watchList **w, watchList *t)
@@ -310,8 +333,10 @@ void dag_end_task(CSOUND *csound, taskID i)
     int canQueue;
     int j, k;
 
+    dag_done++;
     ATOMIC_WRITE(task_status[i], DONE);
-    to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
+    to_notify = task_watch[i]; task_watch[i]= &DoNotRead;
+                               //ATOMIC_SWAP(task_watch[i], &DoNotRead);
     printf("Ending task %d\n", i);
     while (to_notify) {         /* walk the list of watchers */
       next = to_notify->next;
@@ -344,7 +369,7 @@ void dag_end_task(CSOUND *csound, taskID i)
 // run one task from index
 void dag_nodePerf(CSOUND *csound, taskID work)
 {
-    INSDS *insds = task_map[work];
+    INSDS *insds = csound->dag_task_map[work];
     OPDS  *opstart = NULL;
     //int update_hdl = -1;
     int played_count = 0;
