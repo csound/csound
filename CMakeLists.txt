@@ -402,6 +402,7 @@ endif()
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
 include_directories(./H)
+include_directories(./include)
 include_directories(./Engine)
  
 #adding this for files that #include SDIF/sdif*
@@ -746,10 +747,10 @@ endif()
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
 # ADDING HERE TO GRAB LIST OF HEADERS IN CASE OF BUILDING OSX FRAMEWORK
-add_subdirectory(H)
+add_subdirectory(include)
 
 if(APPLE)
-    string(REGEX REPLACE "([^;]+)(;|$)" "H/\\1\\2" csheaders "${csheaders}")
+    string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
     set(libcsound_SRCS "${libcsound_SRCS};${csheaders}")
 endif()
 
