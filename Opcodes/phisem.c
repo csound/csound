@@ -190,8 +190,8 @@ static MYFLT noise_tick(CSOUND *csound)
 static int cabasaset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->shake_maxSave = FL(0.0);
@@ -292,8 +292,8 @@ static int cabasa(CSOUND *csound, CABASA *p)
 static int sekereset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -402,8 +402,8 @@ static int sekere(CSOUND *csound, SEKERE *p)
 static int sandset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -430,8 +430,8 @@ static int sandset(CSOUND *csound, SEKERE *p)
 static int stixset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -457,8 +457,8 @@ static int stixset(CSOUND *csound, SEKERE *p)
 static int crunchset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->shake_maxSave = FL(0.0);
@@ -484,8 +484,8 @@ static int guiroset(CSOUND *csound, GUIRO *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00    = FL(0.0);
     p->outputs01    = FL(0.0);
@@ -650,8 +650,8 @@ static int tambourset(CSOUND *csound, TAMBOURINE *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -795,8 +795,8 @@ static int bambooset(CSOUND *csound, BAMBOO *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -937,8 +937,8 @@ static int wuterset(CSOUND *csound, WUTER *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-             - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+             - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -1116,8 +1116,8 @@ static int sleighset(CSOUND *csound, SLEIGHBELLS *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00 = FL(0.0);
     p->outputs01 = FL(0.0);

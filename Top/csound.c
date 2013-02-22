@@ -91,6 +91,9 @@ static void csoundReset_(CSOUND *);
 int csoundPerformKsmpsInternal(CSOUND *csound);
 void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
 INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
+long csoundGetKcounter(CSOUND *csound);
+void set_util_sr(CSOUND *csound, MYFLT sr);
+void set_util_nchnls(CSOUND *csound, int nchnls);
 
 extern void close_all_files(CSOUND *);
 
@@ -193,6 +196,8 @@ static const CSOUND cenviron_ = {
     csoundGetKr,
     csoundGetKsmps,
     csoundGetNchnls,
+    csoundGetNchnls_i,
+    csoundGetKcounter,
     csoundGetInputBufferSize,
     csoundGetOutputBufferSize,
     csoundGetInputBuffer,
@@ -381,6 +386,8 @@ static const CSOUND cenviron_ = {
     csoundFSeekAsync,
     get_arg_string,
     csoundGetInstrumentList,
+    set_util_sr,
+    set_util_nchnls,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -392,16 +399,8 @@ static const CSOUND cenviron_ = {
     /* ----------------------- public data fields ----------------------- */
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
-    DFLT_KSMPS,     /*  ksmps               */
-    DFLT_KSMPS,     /*  global_ksmps        */
-    DFLT_NCHNLS,    /*  nchnls              */
-    -1,             /*  inchns              */
-    0,              /*  spoutactive         */
-    0L,             /*  kcounter            */
-    0L,             /*  global_kcounter     */
     0,              /*  reinitflag          */
     0,              /*  tieflag             */
-    DFLT_SR,        /*  esr                 */
     FL(0.0),        /*  onedsr              */
     FL(0.0),        /*  sicvt               */
     FL(-1.0),       /*  tpidsr              */
@@ -409,8 +408,6 @@ static const CSOUND cenviron_ = {
     FL(-1.0),       /*  mpidsr              */
     FL(-1.0),       /*  mtpdsr              */
     FL(0.0),        /*  onedksmps           */
-    DFLT_KR,        /*  ekr                 */
-    DFLT_KR,        /*  global_ekr          */
     FL(0.0),        /*  onedkr              */
     FL(0.0),        /*  kicvt               */
     DFLT_DBFS,      /*  e0dbfs              */
@@ -494,6 +491,15 @@ static const CSOUND cenviron_ = {
     (INSTRTXT**)NULL,  /* dead_instr_pool */
     0, /* dead_instr_no */
     (TYPE_POOL*)NULL, 
+    DFLT_KSMPS,     /*  ksmps               */
+    DFLT_NCHNLS,    /*  nchnls              */
+    -1,             /*  inchns              */
+     0,              /*  spoutactive         */
+    0L,             /*  kcounter            */
+    0L,             /*  global_kcounter     */
+    DFLT_SR,        /*  esr                 */
+    DFLT_KR,        /*  ekr                 */
+    /*DFLT_KR, */       /*  global_ekr          */
     /* (CS_VAR_POOL*)NULL, */
     0, 0,           /*  nchanik, nchania    */
     0, 0,           /*  nchanok, nchanoa    */
@@ -3864,6 +3870,12 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
 INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
   return csound->engineState.instrtxtp;
 }
+long csoundGetKcounter(CSOUND *csound){
+  return csound->kcounter;
+}
+
+void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
+void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
 
 #ifdef never
 void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)

@@ -410,7 +410,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         p->v[i] = f->ftable[i];
     }
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * csound->esr;
+    p->rate = *p->i_rate * csound->GetSr(csound);
 
       /* Initialize index */
     p->idx  = 0;

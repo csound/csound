@@ -724,7 +724,7 @@ static void AtsAmpGate(            /* adaption of PvAmpGate by Richard Karpen */
 
 static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat)
 {
-    radat->size = (int) MYFLT2LRND(csound->esr / freq);
+    radat->size = (int) MYFLT2LRND(csound->GetSr(csound) / freq);
     radat->cnt = 0;
     radat->a1 = (int32) csound->Rand31(&(csound->randSeed1));
     radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
@@ -759,7 +759,7 @@ static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
       radat->a1 = radat->a2;
       radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
       radat->cnt = 0;
-      radat->size = (int) MYFLT2LRND(csound->esr / freq);
+      radat->size = (int) MYFLT2LRND(csound->GetSr(csound) / freq);
     }
 
     output = (((MYFLT) (radat->a2 - radat->a1) / (MYFLT) radat->size)

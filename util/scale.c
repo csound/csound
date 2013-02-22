@@ -266,12 +266,13 @@ static int scale(CSOUND *csound, int argc, char **argv)
         O->rewrt_hdr = 0;
       if (O->outfilename == NULL)
         O->outfilename = "test";
-      csound->esr = sc.p->sr;
-      csound->nchnls = sc.p->nchanls;
+      csound->SetUtilSr(csound, (MYFLT)sc.p->sr); 
+      csound->SetUtilNchnls(csound, sc.p->nchanls);
+     
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.frames = -1;
-      sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
-      sfinfo.channels = csound->nchnls;
+      sfinfo.samplerate = (int) MYFLT2LRND( sc.p->sr);
+      sfinfo.channels = sc.p->nchanls;
       sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
       /* open file for write */
       fd = NULL;
@@ -390,7 +391,7 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
     double  dur;
     SOUNDIN *p;
 
-    csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
+    csound->SetUtilSr(csound, FL(0.0));         /* set esr 0. with no orchestra   */
     thissc->p = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);

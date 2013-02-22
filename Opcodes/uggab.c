@@ -662,7 +662,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
     if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
       csound->Warning(csound, Str("losc: no sample rate stored in function "
                                   "assuming=sr\n"));
-      p->fsr=csound->esr;
+      p->fsr=csound->GetSr(csound);
     }
     p->ftp    = ftp;
     p->tablen = ftp->flen;
@@ -1228,13 +1228,13 @@ static int lineto(CSOUND *csound, LINETO *p)
       p->val_incremented = p->current_val;
       p->current_time = FL(0.0);
       p->incr = (*p->ksig - p->current_val)
-                / ((int32) (csound->ekr * p->old_time) -1); /* by experiment */
+                / ((int32) (csound->GetKr(csound) * p->old_time) -1); /* by experiment */
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
       p->val_incremented += p->incr;
     }
-    p->current_time += 1/csound->ekr;
+    p->current_time += 1/csound->GetKr(csound);
     *p->kr = p->val_incremented;
     return OK;
 }
@@ -1259,7 +1259,7 @@ static int tlineto(CSOUND *csound, LINETO2 *p)
       /* p->val_incremented = p->current_val; */
       p->current_time = FL(0.0);
       p->incr = (*p->ksig - p->current_val)
-                / ((int32) (csound->ekr * p->old_time) + 1);
+                / ((int32) (csound->GetKr(csound) * p->old_time) + 1);
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {

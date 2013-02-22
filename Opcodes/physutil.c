@@ -355,9 +355,9 @@ void ADSR_setAttackTime(CSOUND *csound, ADSR *a, MYFLT aTime)
     if (UNLIKELY(aTime < FL(0.0))) {
       csound->Warning(csound,
                       Str("negative times not allowed!!, correcting\n"));
-      a->attackRate = FL(1.0) /(-aTime*csound->esr);
+      a->attackRate = FL(1.0) /(-aTime*csound->GetSr(csound));
     }
-    else a->attackRate = FL(1.0) / (aTime*csound->esr);
+    else a->attackRate = FL(1.0) / (aTime*csound->GetSr(csound));
 }
 
 void ADSR_setDecayTime(CSOUND *csound, ADSR *a, MYFLT aTime)
@@ -365,9 +365,9 @@ void ADSR_setDecayTime(CSOUND *csound, ADSR *a, MYFLT aTime)
     if (UNLIKELY(aTime < FL(0.0))) {
       csound->Warning(csound,
                       Str("negative times not allowed!!, correcting\n"));
-      a->decayRate = FL(1.0) /(-aTime*csound->esr);
+      a->decayRate = FL(1.0) /(-aTime*csound->GetSr(csound));
     }
-    else a->decayRate = FL(1.0) / (aTime*csound->esr);
+    else a->decayRate = FL(1.0) / (aTime*csound->GetSr(csound));
 }
 
 void ADSR_setReleaseTime(CSOUND *csound, ADSR *a, MYFLT aTime)
@@ -375,9 +375,9 @@ void ADSR_setReleaseTime(CSOUND *csound, ADSR *a, MYFLT aTime)
     if (UNLIKELY(aTime < FL(0.0))) {
       csound->Warning(csound,
                       Str("negative times not allowed!!, correcting\n"));
-      a->releaseRate = FL(1.0) /(-aTime*csound->esr);
+      a->releaseRate = FL(1.0) /(-aTime*csound->GetSr(csound));
     }
-    else a->releaseRate = FL(1.0) / (aTime*csound->esr);
+    else a->releaseRate = FL(1.0) / (aTime*csound->GetSr(csound));
 }
 
 void ADSR_setAllTimes(CSOUND *csound, ADSR *a, MYFLT attTime, MYFLT decTime,
