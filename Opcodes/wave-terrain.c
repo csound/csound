@@ -255,7 +255,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
         fc2 = (fpoint->ftable[i] - fpoint->ftable[next]) * fstiff->ftable[i];
         force = fc1 + fc2;
         p->newvel[i] = (fvel->ftable[i]
-                        - force / (fmass->ftable[i] * csound->ekr))
+                        - force / (fmass->ftable[i] * csound->GetKr(csound)))
                        * fdamp->ftable[i];
         p->newloc[i] = fpoint->ftable[i] + p->newvel[i] * CS_ONEDKR;
 

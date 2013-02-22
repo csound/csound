@@ -308,7 +308,7 @@ class mydsp : public dsp {
         }
   virtual void compute (CSOUND* csound, MYFLT* output, void *p)
         {
-            int     nn = csound->ksmps;
+            int     nn = csound->GetKsmps(csound);
             uint32_t offset = ((OPDATA *) p)->h.insdshead->ksmps_offset;
             uint32_t early  = ((OPDATA *) p)->h.insdshead->ksmps_no_end;
             MYFLT   fSlow0  = POWER(FL(10.0),(FL(0.08333333333333333) * fslider0));
@@ -404,7 +404,7 @@ extern "C"
     {
         p->faust = new mydsp;
         p->cs_interface = new csUI;
-        p->faust->init((int)csound->esr);
+        p->faust->init((int)csound->GetSr(csound));
         p->faust->buildUserInterface(p->cs_interface);
         csound->RegisterDeinitCallback(csound, p,
                                        (int (*)(CSOUND*, void*)) fractalnoise_cleanup);

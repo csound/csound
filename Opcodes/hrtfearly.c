@@ -295,7 +295,7 @@ static int early_init(CSOUND *csound, early *p)
       sr = 44100;
     p->sr = sr;
 
-    if (UNLIKELY(csound->esr != sr))
+    if (UNLIKELY(csound->GetSr(csound) != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible "
                           "with HRTF processing SR of: %.0f\n\n"), sr);

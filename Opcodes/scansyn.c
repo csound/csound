@@ -305,7 +305,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     }
 
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * csound->esr;
+    p->rate = *p->i_rate * csound->GetSr(csound);
 
       /* Initialize index */
     p->idx = 0;

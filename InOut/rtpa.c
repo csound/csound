@@ -261,7 +261,7 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
         pa_PrintErrMsg(csound, Str("Inconsistent full-duplex sample rates"));
         goto err_return;
       }
-      if (((pabs->inParm.bufSamp_SW / csound->ksmps) * csound->ksmps)
+      if (((pabs->inParm.bufSamp_SW / csound->GetKsmps(csound)) * csound->GetKsmps(csound))
           != pabs->inParm.bufSamp_SW)
         csound->MessageS(csound,
                          CSOUNDMSG_WARNING,
