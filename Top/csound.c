@@ -408,8 +408,6 @@ static const CSOUND cenviron_ = {
     FL(-1.0),       /*  mpidsr              */
     FL(-1.0),       /*  mtpdsr              */
     FL(0.0),        /*  onedksmps           */
-    DFLT_KR,        /*  ekr                 */
-    DFLT_KR,        /*  global_ekr          */
     FL(0.0),        /*  onedkr              */
     FL(0.0),        /*  kicvt               */
     DFLT_DBFS,      /*  e0dbfs              */
@@ -494,13 +492,14 @@ static const CSOUND cenviron_ = {
     0, /* dead_instr_no */
     (TYPE_POOL*)NULL, 
     DFLT_KSMPS,     /*  ksmps               */
-    DFLT_KSMPS,     /*  global_ksmps        */
     DFLT_NCHNLS,    /*  nchnls              */
     -1,             /*  inchns              */
      0,              /*  spoutactive         */
     0L,             /*  kcounter            */
     0L,             /*  global_kcounter     */
     DFLT_SR,        /*  esr                 */
+    DFLT_KR,        /*  ekr                 */
+    /*DFLT_KR, */       /*  global_ekr          */
     /* (CS_VAR_POOL*)NULL, */
     0, 0,           /*  nchanik, nchania    */
     0, 0,           /*  nchanok, nchanoa    */

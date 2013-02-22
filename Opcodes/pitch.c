@@ -73,7 +73,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
                                 /* End of rms */
                                 /* Initialise spectrum */
     /* for mac roundoff */
-    p->timcount = (int)(csound->ekr * *p->iprd + FL(0.001));
+    p->timcount = (int)(csound->GetKr(csound) * *p->iprd + FL(0.001));
     nocts = (int)*p->iocts; if (UNLIKELY(nocts<=0)) nocts = 6;
     nfreqs = (int)*p->ifrqs; if (UNLIKELY(nfreqs<=0)) nfreqs = 12;
     ncoefs = nocts * nfreqs;
@@ -1678,7 +1678,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
       if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
         segp->cnt = 0;
       else
-        segp->cnt = (int32)(dur * csound->ekr);
+        segp->cnt = (int32)(dur * csound->GetKr(csound));
         segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
@@ -1732,7 +1732,7 @@ int trnset_bkpt(CSOUND *csound, TRANSEG *p)
       if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
         segp->cnt = 0;
       else
-        segp->cnt = (int32)(dur * csound->ekr);
+        segp->cnt = (int32)(dur * csound->GetKr(csound));
         segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
@@ -1876,7 +1876,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
       if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
         segp->cnt = 0;
       else
-        segp->cnt = (int32)(dur * csound->ekr);
+        segp->cnt = (int32)(dur * csound->GetKr(csound));
         segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
