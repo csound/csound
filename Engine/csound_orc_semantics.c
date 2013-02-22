@@ -217,7 +217,7 @@ PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree) {
         current = current->next;
     }
 
-    argString = mmalloc(csound, argsLen);
+    argString = mmalloc(csound, (argsLen + 1) * sizeof(char));
     char* temp = argString;
     
     for (i = 0; i < len; i++) {
