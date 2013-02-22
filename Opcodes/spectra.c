@@ -1230,6 +1230,8 @@ static OENTRY spectra_localops[] = {
 { "clockon", S(CLOCK), 0,  3,  "",  "i",    (SUBR)clockset, (SUBR)clockon, NULL  },
 { "clockoff", S(CLOCK),0,  3,  "",  "i",    (SUBR)clockset, (SUBR)clockoff, NULL },
 { "readclock", S(CLKRD),0, 1,  "i", "i",    (SUBR)clockread, NULL, NULL          },
+{ "readscratch", S(SCRATCHPAD),0, 1, "i", "o", (SUBR)scratchread, NULL, NULL     },
+{ "writescratch", S(SCRATCHPAD),0, 1, "", "io", (SUBR)scratchwrite, NULL, NULL   },
 { "pitchamdf",S(PITCHAMDF),0,5,"kk","aiioppoo",
                                      (SUBR)pitchamdfset, NULL, (SUBR)pitchamdf },
 { "hsboscil",S(HSBOSC), TR, 5, "a", "kkkiiioo",(SUBR)hsboscset,NULL,(SUBR)hsboscil },
