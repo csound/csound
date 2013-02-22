@@ -454,6 +454,7 @@ typedef struct CORFIL {
     MYFLT   ekr;               /* and of rates */
     MYFLT   onedksmps, onedkr, kicvt;
 #endif
+    MYFLT   scratchpad[4];      /* Persistent data */
     
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
