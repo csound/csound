@@ -38,7 +38,7 @@ static const char   *version = "0.1alpha";
 *****************************************************************************/
 void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
 {
-    int     Ksmps = csound->ksmps;
+    int     Ksmps = csound->GetKsmps(csound);
     unsigned long PortCount;
     LADSPA_Descriptor *Descriptor;
     uint32 i;
@@ -182,7 +182,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     /* TODO check if plugin has already been loaded and use same function */
     csound = p->h.insdshead->csound;
     int     SampleRate = (int) MYFLT2LRND(csound->esr);
-    int     Ksmps = csound->ksmps;
+    int     Ksmps = csound->GetKsmps(csound);
     int     i;
     LADSPA_Descriptor_Function pfDescriptorFunction;
     DSSI_Descriptor_Function pfDSSIDescriptorFunction;
@@ -708,7 +708,7 @@ int dssiaudio(CSOUND * csound, DSSIAUDIO * p)
     int     i, j;
     int     icnt = csound->GetInputArgCnt(p) - 1;
     int     ocnt = csound->GetOutputArgCnt(p);
-    unsigned long Ksmps = (unsigned long) csound->ksmps;
+    unsigned long Ksmps = (unsigned long) csound->GetKsmps(csound);
 
     if (p->DSSIPlugin_->Active == 1) {
       for (j = 0; j < icnt; j++) {
@@ -760,7 +760,7 @@ int dssictls_init(CSOUND * csound, DSSICTLS * p)
             Crash if audio port selected */
     const LADSPA_Descriptor *Descriptor;
     int     Number = *p->iDSSIhandle;
-    int     Sr = (int) MYFLT2LRND(csound->esr);
+    int     Sr = (int) MYFLT2LRND(csound->GetSr(csound));
     unsigned long PortIndex = *p->iport;
     int     i;
     unsigned long ControlPort = 0;
