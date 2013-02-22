@@ -106,7 +106,8 @@ PUBLIC int Sched(CSOUND *csound, MYFLT  *args[], int numargs) {
     if(starttime < FL(0.0)) {
       starttime = FL(0.0);
     }
-    starttime += (double) csound->global_kcounter / (double)csound->global_ekr;
+    starttime += (double) csound->GetKcounter(csound) / (double) csound->GetKr(csound);
+    /*starttime += (double) csound->global_kcounter / (double)csound->global_ekr;*/
    /* Copy all arguments to the new event */
     for (i = 0; i < numargs; i++)
       evt.p[i] = *args[i];

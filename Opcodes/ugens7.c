@@ -258,7 +258,7 @@ static int harmset(CSOUND *csound, HARMON *p)
       return csound->InitError(csound, Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
-      int32 nbufs = (int32)(csound->ekr * FL(3.0) / minfrq) + 1;
+      int32 nbufs = (int32)(csound->GetKr(csound) * FL(3.0) / minfrq) + 1;
       int32 nbufsmps = nbufs * CS_KSMPS;
       int32 maxprd = (int32)(csound->GetSr(csound) / minfrq);
       int32 totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
@@ -273,7 +273,7 @@ static int harmset(CSOUND *csound, HARMON *p)
       p->lomaxdist = maxprd;
       p->minfrq = minfrq;
     }
-    if ((p->autoktim = MYFLT2LONG(*p->iptrkprd * csound->ekr)) < 1)
+    if ((p->autoktim = MYFLT2LONG(*p->iptrkprd * csound->GetKr(csound))) < 1)
       p->autoktim = 1;
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
     p->lsicvt = FL(65536.0) * csound->onedsr;

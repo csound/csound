@@ -4207,8 +4207,8 @@ extern "C" {
 
   static int FLprintkset(CSOUND *csound, FLPRINTK *p)
   {
-      if (*p->ptime < FL(1.0) / csound->global_ekr)
-        p->ctime = FL(1.0) / csound->global_ekr;
+    if (*p->ptime < FL(1.0) / csound->GetKr(csound))
+      p->ctime = FL(1.0) / csound->GetKr(csound);
       else        p->ctime = *p->ptime;
 
       p->initime = (MYFLT) csound->GetKcounter(csound) * csound->onedkr;

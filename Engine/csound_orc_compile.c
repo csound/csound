@@ -738,9 +738,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->sicvt = FMAXLEN / csound->esr;
     csound->kicvt = FMAXLEN / csound->ekr;
     csound->onedsr = FL(1.0) / csound->esr;
-    csound->onedkr = FL(1.0) / csound->ekr;
-    csound->global_ksmps     = csound->ksmps;
-    csound->global_ekr       = csound->ekr;
+    csound->onedkr = FL(1.0) / csound->ekr;    
     csound->global_kcounter  = csound->kcounter;
 
     close_instrument(csound, ip);
@@ -1899,8 +1897,6 @@ void initialize_instrument0(CSOUND *csound)
     csound->kicvt = FMAXLEN / csound->ekr;
     csound->onedsr = FL(1.0) / csound->esr;
     csound->onedkr = FL(1.0) / csound->ekr;
-    csound->global_ksmps     = csound->ksmps;
-    csound->global_ekr       = csound->ekr;
     csound->global_kcounter  = csound->kcounter;
     /* these calls were moved to musmon() in musmon.c */
     reverbinit(csound);
