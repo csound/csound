@@ -1192,9 +1192,9 @@ typedef struct NAME__ {
     unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
     char *(*GetString)(CSOUND *, MYFLT);
+    INSTRTXT **(*GetInstrumentList)(CSOUND *);
     SUBR dummyfn_2[50];
     /* ----------------------- public data fields ----------------------- */
-    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     OPDS          *ids, *pds;       /* used by init and perf loops */
     unsigned int  ksmps, global_ksmps;
     uint32_t      nchnls;
@@ -1288,6 +1288,7 @@ typedef struct NAME__ {
     int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
     /* end of callbacks */
+    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     INSTRTXT      *instr0;          /* instr0     */
     INSTRTXT      **dead_instr_pool;
     int  dead_instr_no;
@@ -1598,6 +1599,7 @@ typedef struct NAME__ {
 #ifdef NEW_DAG
     int           dag_changed;
     int           dag_num_active;
+    INSDS         **dag_task_map;
 #endif
 #endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
