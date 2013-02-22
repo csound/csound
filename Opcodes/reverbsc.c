@@ -167,7 +167,7 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 
     /* check for valid parameters */
     if (*(p->iSampleRate) <= FL(0.0))
-      p->sampleRate = (double) csound->esr;
+      p->sampleRate = (double) csound->GetSr(csound);
     else
       p->sampleRate = (double) *(p->iSampleRate);
     if (UNLIKELY(p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE)) {

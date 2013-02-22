@@ -383,11 +383,11 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       else O->outfilename = "test";
     }
 #endif
-    csound->esr = (MYFLT) mixin[0].p->sr;
+    csound->SetUtilSr(csound, (MYFLT)mixin[0].p->sr); 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
-    sfinfo.channels = csound->nchnls = (int) mixin[0].p->nchanls;
+    sfinfo.samplerate = (int) MYFLT2LRND((MYFLT) mixin[0].p->sr);
+    sfinfo.channels /*= csound->nchnls*/ = (int) mixin[0].p->nchanls;
     sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     if (strcmp(O->outfilename, "stdout") == 0) {
       outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 0);
@@ -519,7 +519,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     MYFLT   dur;
     SOUNDIN *p;
 
-    csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
+    csound->SetUtilSr(csound, FL(0.0));         /* set esr 0. with no orchestra   */
     ddd->p = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->analonly = 1;
     p->channel = ALLCHNLS;

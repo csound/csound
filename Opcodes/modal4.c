@@ -95,12 +95,12 @@ void Modal4_setRatioAndReson(CSOUND *csound,
                              Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
 {
     MYFLT temp;
-    if (ratio* m->baseFreq < csound->esr * FL(0.5)) {
+    if (ratio* m->baseFreq < csound->GetSr(csound) * FL(0.5)) {
       m->ratios[whichOne] = ratio;
     }
     else {
       temp = ratio;
-      while (temp* m->baseFreq > FL(0.5)*csound->esr) temp *= FL(0.5);
+      while (temp* m->baseFreq > FL(0.5)*csound->GetSr(csound)) temp *= FL(0.5);
       m->ratios[whichOne] = temp;
     }
     m->resons[whichOne] = reson;
