@@ -346,7 +346,7 @@ void dag_end_task(CSOUND *csound, taskID i)
       for (k=0; k<i; k++) {     /* seek next watch */
         taskID l = task_dep[j][k];
         if (ATOMIC_READ(task_status[l]) != DONE) {
-          printf("found task %d status %d\n", l, task_status[l]);
+          printf("found task %d to watch %d status %d\n", l, j, task_status[l]);
           if (moveWatch(&task_watch[j], to_notify)) {
             canQueue = 0;
             break;
@@ -356,6 +356,7 @@ void dag_end_task(CSOUND *csound, taskID i)
             printf("Racing %d %d %d\n", i, j, k);
           }
         }
+        else { printf("not %d\n", l); }
       }
       if (canQueue) {           /*  could use monitor here */
         task_status[j] = AVAILABLE;
@@ -366,74 +367,6 @@ void dag_end_task(CSOUND *csound, taskID i)
     return;    
 }
 
-// run one task from index
-void dag_nodePerf(CSOUND *csound, taskID work)
-{
-    INSDS *insds = csound->dag_task_map[work];
-    OPDS  *opstart = NULL;
-    //int update_hdl = -1;
-    int played_count = 0;
-
-    played_count++;
-        
-    TRACE_2("DAG_work [%i] Playing: %s [%p]\n", 
-            work, instr->name, insds);
-
-    opstart = (OPDS *)insds;
-    while ((opstart = opstart->nxtp) != NULL) {
-      (*opstart->opadr)(csound, opstart); /* run each opcode */
-    }
-    insds->ksmps_offset = 0; /* reset sample-accuracy offset */
-    TRACE_2("[%i] Played:  %s [%p]\n", work, instr->name, insds);
-
-    return;
-}
-
-unsigned long dag_kperfThread(void * cs)
-{
-    INSDS *start;
-    CSOUND *csound = (CSOUND *)cs;
-    void *threadId;
-    int index;
-    int numThreads;
-
-    /* Wait for start */
-    csound->WaitBarrier(csound->barrier2);
-
-    threadId = csound->GetCurrentThreadID();
-    index = getThreadIndex(csound, threadId);
-    numThreads = csound->oparms->numThreads;
-    start = NULL;
-    csound->Message(csound,
-                    "Multithread performance: insno: %3d  thread %d of "
-                    "%d starting.\n",
-                    start ? start->insno : -1,
-                    index,
-                    numThreads);
-    if (index < 0) {
-      csound->Die(csound, "Bad ThreadId");
-      return ULONG_MAX;
-    }
-    index++;
-
-    while (1) {
-      taskID work;
-      csound->WaitBarrier(csound->barrier1);
-      work = dag_get_task(csound);
-      if (work==INVALID) continue;
-      if (work==WAIT) break;
-      if (dag_dispatched == csound->dag_num_active) {
-        continue;
-      }
-      
-      dag_nodePerf(csound, work);
-
-      TRACE_1("[%i] Done\n", index);
-
-      csound->WaitBarrier(csound->barrier2);
-    }
-    return 0;
-}
 
 #if 0
 /* INV : Acyclic */

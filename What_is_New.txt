@@ -8,6 +8,12 @@ Multiple strings in score
 Arrays
 
 
+WHAT IS KNOWN NOT TO WORK
+=========================
+
+Multicore is unfinished and may well give totally wrong answers
+
+
 What is New, What has Changed
 =============================
 
