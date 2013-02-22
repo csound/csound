@@ -100,7 +100,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       p->nfreqs = nfreqs;
       p->curq = Q;
       p->ncoefs = ncoefs;
-      dwnp->srate = csound->esr;
+      dwnp->srate = csound->GetSr(csound);
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
       oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
       dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
@@ -738,7 +738,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     int         octcnt = p->octcnt;
     MYFLT       octstart, octoffs, octbase;
     int         octshift, i, mtablen;
-    MYFLT       hesr = csound->esr / FL(2.0);
+    MYFLT       hesr = csound->GetSr(csound) / FL(2.0);
 
     ftp = p->ftp;
     mixtp = p->mixtp;
@@ -814,13 +814,13 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (downs < (-FL(1.9))) {
       upsamp = (int)MYFLT2LONG((-downs));
       downsamp = 0;
-      srate = csound->esr * (MYFLT)upsamp;
+      srate = csound->GetSr(csound) * (MYFLT)upsamp;
     }
     else {
       downsamp = (int)MYFLT2LONG(downs);
       if (UNLIKELY(downsamp < 1))
         downsamp = 1;
-      srate = csound->esr / (MYFLT)downsamp;
+      srate = csound->GetSr(csound) / (MYFLT)downsamp;
       upsamp = 0;
     }
 
@@ -1602,7 +1602,7 @@ int clip(CSOUND *csound, CLIP *p)
 
 int impulse_set(CSOUND *csound, IMPULSE *p)
 {
-    p->next = (unsigned int)MYFLT2LONG(*p->offset * csound->esr);
+    p->next = (unsigned int)MYFLT2LONG(*p->offset * csound->GetSr(csound));
     return OK;
 }
 
@@ -1619,7 +1619,7 @@ int impulse(CSOUND *csound, IMPULSE *p)
       int sfreq;                /* Converted to samples */
       if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
       else if (frq < FL(0.0)) sfreq = -(int)frq; /* Negative cnts in sample */
-      else sfreq = (int)(frq*csound->esr); /* Normal case */
+      else sfreq = (int)(frq*csound->GetSr(csound)); /* Normal case */
       if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
       if (early) {
         nsmps -= early;
@@ -1674,7 +1674,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
       MYFLT dur = **argp++;
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
-      MYFLT d = dur * csound->esr;
+      MYFLT d = dur * csound->GetSr(csound);
       if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
         segp->cnt = 0;
       else
@@ -1728,7 +1728,7 @@ int trnset_bkpt(CSOUND *csound, TRANSEG *p)
       MYFLT d;
       dur -= totdur;
       totdur += dur;
-      d = dur * csound->esr;
+      d = dur * csound->GetSr(csound);
       if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
         segp->cnt = 0;
       else
@@ -1872,7 +1872,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
       double dur = (double)**argp++;
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
-      MYFLT d = dur * csound->esr;
+      MYFLT d = dur * csound->GetSr(csound);
       if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
         segp->cnt = 0;
       else
@@ -2148,10 +2148,10 @@ int lpf18db(CSOUND *csound, LPF18 *p)
 int wavesetset(CSOUND *csound, BARRI *p)
 {
     if (*p->len == FL(0.0))
-      p->length = 1 + (int)(p->h.insdshead->p3 * csound->esr * FL(0.5));
+      p->length = 1 + (int)(p->h.insdshead->p3 * csound->GetSr(csound) * FL(0.5));
     else
       p->length = 1 + (int)*p->len;
-    if (UNLIKELY(p->length <= 1)) p->length = (int)csound->esr;
+    if (UNLIKELY(p->length <= 1)) p->length = (int)csound->GetSr(csound);
     csound->AuxAlloc(csound, (int32)p->length*sizeof(MYFLT), &p->auxch);
     p->cnt = 1;
     p->start = 0;

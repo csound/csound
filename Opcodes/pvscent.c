@@ -51,7 +51,7 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     int32 i,N = p->fin->N;
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
-    MYFLT j, binsize = csound->esr/(MYFLT)N;
+    MYFLT j, binsize = csound->GetSr(csound)/(MYFLT)N;
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
       int NB = p->fin->NB;
@@ -87,7 +87,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
 
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
-      MYFLT j, binsize = csound->esr/(MYFLT)N;
+      MYFLT j, binsize = csound->GetSr(csound)/(MYFLT)N;
       int NB = p->fin->NB;
       if (offset) memset(a, '\0', offset*sizeof(MYFLT));
       if (early) {
@@ -111,7 +111,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
       int32 i,N = p->fin->N;
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
-      MYFLT j, binsize = csound->esr/(MYFLT)N;
+      MYFLT j, binsize = csound->GetSr(csound)/(MYFLT)N;
       float *fin = (float *) p->fin->frame.auxp;
       nsmps -= early;
       for (n=offset; n<nsmps; n++) {
@@ -192,7 +192,8 @@ static int cent_k(CSOUND *csound, CENT *p)
       MYFLT d = FL(0.0);
       MYFLT *windowed = (MYFLT *) p->windowed.auxp;
       MYFLT *win = (MYFLT *) p->win.auxp;
-      MYFLT mag, cf, binsize = csound->esr/(MYFLT)fsize;
+      MYFLT mag, cf, binsize = csound->GetSr(csound)
+/(MYFLT)fsize;
       for (i=0,k=n; i < fsize; i++){
         windowed[i] = frame[k]*win[i];
         if (k == fsize-1) k=0;

@@ -420,14 +420,14 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
     grain->chan2 = p->num_outputs > chan + 1 ? chan + 1 : 0;
 
     /* duration in samples */
-    samples = (int)((csound->esr*(*p->duration)/1000.0) + 0.5);
+    samples = (int)((csound->GetSr(csound)*(*p->duration)/1000.0) + 0.5);
     /* if grainlength is below one sample, we'll just cancel it */
     if (samples <= 0) {
         return_grain(&p->gpool, node);
         return OK;
     }
     rcp_samples = 1.0/(double)samples;
-    grain->start = n + offset*csound->esr;
+    grain->start = n + offset*csound->GetSr(csound);
     grain->stop = grain->start + samples;
     /* implement sub-sample grain placement for synchronous grains */
     if (offset == 0.0 && p->graininc > 1e-6)
@@ -463,7 +463,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
             /* limit dsf harmonics to nyquist to avoid aliasing.
              * minumum number of harmonics is 2, since 1 would yield just dc,
              * which we remove anyway */
-            nh = 0.5*csound->esr/fabs(maxfreq);
+            nh = 0.5*csound->GetSr(csound)/fabs(maxfreq);
             if (nh > fabs(*p->harmonics))
                 nh = fabs(*p->harmonics);
             grain->harmonics = (unsigned)nh + 1;

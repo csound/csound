@@ -479,14 +479,14 @@ typedef struct CORFIL {
 #define CS_ONEDKR    (p->h.insdshead->onedkr)
 #define CS_KICVT     (p->h.insdshead->kicvt)
 #else
-#define CS_KSMPS     (csound->ksmps)
-#define CS_KCNT      (csound->kcounter)
-#define CS_EKR       (csound->ekr)
+#define CS_KSMPS     (csound->GetKsmps(csound))
+#define CS_KCNT      (csound->GetKcounter(csound))
+#define CS_EKR       (csound->Getkr(csound))
 #define CS_ONEDKSMPS (csound->onedksmps)
 #define CS_ONEDKR    (csound->onedkr)
 #define CS_KICVT     (csound->kicvt)
 #endif
-#define CS_ESR       (csound->esr)
+#define CS_ESR       (csound->GetSr(csound))
 
   typedef int (*SUBR)(CSOUND *, void *);
 
@@ -963,6 +963,8 @@ typedef struct NAME__ {
     MYFLT (*GetKr)(CSOUND *);
     uint32_t (*GetKsmps)(CSOUND *);
     uint32_t (*GetNchnls)(CSOUND *);
+    uint32_t (*GetNchnls_i)(CSOUND *);
+    long (*GetKcounter)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
@@ -1193,17 +1195,14 @@ typedef struct NAME__ {
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
     char *(*GetString)(CSOUND *, MYFLT);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
+    void (*SetUtilSr)(CSOUND *, MYFLT); 
+    void (*SetUtilNchnls)(CSOUND *, int);
     SUBR dummyfn_2[50];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;       /* used by init and perf loops */
-    unsigned int  ksmps, global_ksmps;
-    uint32_t      nchnls;
-    int           inchnls;      /* Not fully used yet -- JPff */
-    int           spoutactive;
-    long          kcounter, global_kcounter;
     int           reinitflag;
     int           tieflag;
-    MYFLT         esr, onedsr, sicvt;
+    MYFLT         onedsr, sicvt;
     MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
     MYFLT         onedksmps;
     MYFLT         ekr, global_ekr;
@@ -1293,7 +1292,13 @@ typedef struct NAME__ {
     INSTRTXT      **dead_instr_pool;
     int  dead_instr_no;
     TYPE_POOL*    typePool;
-    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */ 
+    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */
+    unsigned int  ksmps, global_ksmps; 
+    uint32_t      nchnls;
+    int           inchnls;
+    int           spoutactive;
+    long          kcounter, global_kcounter;   
+    MYFLT         esr;  
     int           nchanik, nchania, nchanok, nchanoa;
     MYFLT         *chanik, *chania, *chanok, *chanoa;
     MYFLT         cpu_power_busy;

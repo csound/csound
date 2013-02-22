@@ -113,7 +113,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
       mp3dec_uninit(mpa);
       return csound->InitError(csound, mp3dec_error(r));
     }
-    skip = (int)(*p->iSkipTime*csound->esr+1);
+    skip = (int)(*p->iSkipTime*csound->GetSr(csound)+1);
     /* maxsize = mpainfo.decoded_sample_size */
     /*          *mpainfo.decoded_frame_samples */
     /*          *mpainfo.frames; */
@@ -144,10 +144,10 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     if (*(p->iSkipInit) != FL(0.0))
       return OK;
     /* set file parameters from header info */
-    if ((int) (csound->esr + FL(0.5)) != mpainfo.frequency) {
+    if ((int) (csound->GetSr(csound) + FL(0.5)) != mpainfo.frequency) {
       csound->Warning(csound, Str("mp3in: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
-                      mpainfo.frequency, (int) (csound->esr + FL(0.5)));
+                      mpainfo.frequency, (int) (csound->GetSr(csound) + FL(0.5)));
     }
     /* initialise buffer */
     p->bufSize = buffersize;
