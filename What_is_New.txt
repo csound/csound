@@ -12,7 +12,7 @@ WHAT IS KNOWN NOT TO WORK
 =========================
 
 Multicore is unfinished and may well give totally wrong answers; runs
-simple examples but may freeze.
+simple examples but may freeze; hope to fix soon.
 
 
 What is New, What has Changed
@@ -90,8 +90,7 @@ Asynchronous file access....
 Functions for asynchronous audio file access have been added (see
 below)
 
-Analysis formats...
-
+Analysis formats:
 Hetro/adsyn analysis files can be machine byte-order independent if
 created with -X.  Down side is a longer file and a little slower
 loading.  The het_export utility will create the independent format
@@ -102,8 +101,15 @@ is used.  The convolve and lpred etc opcodes will accept either
 format.  You are excouraged to use the machine independent form.
 Analysis files produced with -X can be used on other systems.
 
+
 The number of strings that can be used in a score line is no longer
 just one.  It is open ended.
+
+Each instance of any instrument has a scratchpad of 4 values that
+persist; allows values to carry to next use of the instrument; hope it
+may be useful in legato etc.
+
+
 
 New API functions.....
 

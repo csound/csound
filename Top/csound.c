@@ -1325,7 +1325,6 @@ inline static int nodePerf(CSOUND *csound, int index)
     int update_hdl = -1;
     DAG_NODE *node;
     do {
-      TRACE_2("Consume DAG [%i]\n", index);
       csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl);
         
       if (UNLIKELY(node == NULL)) {
@@ -1400,43 +1399,24 @@ unsigned long kperfThread(void * cs)
 
     while (1) {
 
-      TRACE_1("[%i] Barrier1 Reached\n", index);
       SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
       csound->WaitBarrier(csound->barrier1);
-
-      TRACE_1("[%i] Go\n", index);
-
-      /* TIMER_INIT(mutex, "Mutex ");
-         TIMER_T_START(mutex, index, "Mutex "); */
 
       csound_global_mutex_lock();
       if (csound->multiThreadedComplete == 1) {
         csound_global_mutex_unlock();
         free(threadId);
-        /* csound->Message(csound,
-           "Multithread performance: insno: %3d  thread "
-           "%d of %d exiting.\n",
-           start->insno,
-           index,
-           numThreads); */
         return 0UL;
       }
       csound_global_mutex_unlock();
-      
-      /* TIMER_T_END(mutex, index, "Mutex "); */
       
       TIMER_INIT(thread, "");
       TIMER_T_START(thread, index, "");
 
       nodePerf(csound, index);
 
-      TIMER_T_END(thread, index, "");
-      
-      TRACE_1("[%i] Done\n", index);
-
       SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
       csound->WaitBarrier(csound->barrier2);
-      TRACE_1("[%i] Barrier2 Done\n", index);
     }
 }
 #endif /* ! PARCS */
@@ -1554,31 +1534,18 @@ int kperf(CSOUND *csound)
         csp_dag_cache_fetch(csound, &dag2, ip);
         csp_dag_build(csound, &dag2, ip);
 # endif
-        TRACE_1("{Time: %f}\n", csoundGetScoreTime(csound));
-#if TRACE > 1
-        csp_dag_print(csound, dag2);
-#endif
         csound->multiThreadedDag = dag2;
 #endif
 
         /* process this partition */
-        TRACE_1("[%i] Barrier1 Reached\n", 0);
         SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
         csound->WaitBarrier(csound->barrier1);
 
-        TIMER_START(thread, "[0] ");
-
         (void) nodePerf(csound, 0);
-
-        TIMER_END(thread, "[0] ");
 
         SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
-        TRACE_1("[%i] Barrier2 Done\n", 0);
-        TIMER_END(thread, "");
-
-        /* #if !defined(LINEAR_CACHE) && !defined(HASH_CACHE) */
 #ifndef NEW_DAG
 # if defined(LINEAR_CACHE) || defined(HASH_CACHE)
         csp_dag_dealloc(csound, &dag2);
@@ -1593,18 +1560,17 @@ int kperf(CSOUND *csound)
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
           csound->pds = (OPDS*) ip;
-          if(ip->offtim > 0 && time_end > ip->offtim){
+          if (ip->offtim > 0 && time_end > ip->offtim){
             /* this is the last cycle of performance */
             // csound->Message(csound, "last cycle %d: %f %f %d\n", 
             //          ip->insno, csound->icurTime/csound->esr, 
             //            ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-          if(ip->init_done == 1) /* if init-pass has been done */
+          if (ip->init_done == 1) /* if init-pass has been done */
             while ((csound->pds = csound->pds->nxtp) != NULL) {
-            (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+              (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
             }
-          //else if(csound->pds->nxtp != NULL) csound->Message(csound, "init not done %s \n", csound->pds->nxtp->optext->t.opcod);
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */  
           ip->ksmps_no_end = 0;  /* reset end of loop samples */     
           ip = nxt; /* but this does not allow for all deletions */
