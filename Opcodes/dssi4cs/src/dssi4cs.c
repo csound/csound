@@ -181,7 +181,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
 {
     /* TODO check if plugin has already been loaded and use same function */
     csound = p->h.insdshead->csound;
-    int     SampleRate = (int) MYFLT2LRND(csound->esr);
+    int     SampleRate = (int) MYFLT2LRND(csound->GetSr(csound));
     int     Ksmps = csound->GetKsmps(csound);
     int     i;
     LADSPA_Descriptor_Function pfDescriptorFunction;

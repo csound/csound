@@ -49,11 +49,10 @@ typedef int taskID;
 #define WAIT    (-2)
 
 /* Each task has a status */
-enum state { INACTIVE = 5,         /* No task */
-             WAITING = 4,          /* Dependencies have not been finished */
-	     AVAILABLE = 3,        /* Dependencies met, ready to be run */
-	     INPROGRESS = 2,       /* Has been started */
-	     DONE = 1 };           /* Has been completed */
+enum state { WAITING = 3,          /* Dependencies have not been finished */
+	     AVAILABLE = 2,        /* Dependencies met, ready to be run */
+	     INPROGRESS = 1,       /* Has been started */
+	     DONE = 0 };           /* Has been completed */
 
 /* Sets of prerequiste tasks for each task */
 typedef struct _watchList {
@@ -286,13 +285,11 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     return -1;
 }
 
-/* #define ATOMIC_SWAP(x,y) __sync_val_compare_and_swap(&(x),x,y) */
-/* #define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0) */
+#define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0)
 /* #define ATOMIC_WRITE(x,val) \ */
 /*   {    __sync_and_and_fetch(&(x), 0); __sync_or_and_fetch(&(x), val); } */
 // ??? _sync_val_compare_and_swap(&(x), x, val)
-// #define ATOMIC_SWAP(x,y) { tmp = x; x = y; y = tmp; }
-#define ATOMIC_READ(x) (x)
+//#define ATOMIC_READ(x) (x)
 #define ATOMIC_WRITE(x,val) x = val
 
 taskID dag_get_task(CSOUND *csound)
@@ -346,9 +343,14 @@ void dag_end_task(CSOUND *csound, taskID i)
     int j, k;
 
     dag_done++;
-    ATOMIC_WRITE(task_status[i], DONE);
+    __sync_and_and_fetch(&task_status[i], DONE); /* as DONE is zero */
     to_notify = task_watch[i]; task_watch[i]= &DoNotRead;
-                               //ATOMIC_SWAP(task_watch[i], &DoNotRead);
+    {
+      watchList *tmp;
+      do {
+	tmp = task_watch[i];
+      } while (!__sync_bool_compare_and_swap(&task_watch[i],tmp,&DoNotRead));
+    }                           //ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
     next = to_notify;
     while (to_notify) {         /* walk the list of watchers */
