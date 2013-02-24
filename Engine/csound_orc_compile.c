@@ -346,7 +346,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         tp->xoutcod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xoutcod_str |= (1 << n);
-      csound->Message(csound, "treqd %c, tfound %c \n", treqd, tfound);
+      //csound->Message(csound, "treqd %c, tfound %c \n", treqd, tfound);
       /* if (tfound_m & ARGTYP_w) */
       /*   if (STA(lgprevdef)) { */
       /*     synterr(csound, Str("output name previously used, " */

@@ -567,14 +567,14 @@ void delete_tree(CSOUND *csound, TREE *l)
         return;
       }
       if (l->value) {
-       if (l->value->lexeme) {
-         printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
-        mfree(csound, l->value->lexeme);
-        //l->value->lexeme = NULL;
-       }
-      //printf("Free val %p\n", l->value);
-       mfree(csound, l->value);
-       //l->value = NULL;
+        if (l->value->lexeme) {
+          //printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
+          mfree(csound, l->value->lexeme);
+          //l->value->lexeme = NULL;
+        }
+        //printf("Free val %p\n", l->value);
+        mfree(csound, l->value);
+        //l->value = NULL;
       }
       delete_tree(csound, l->left);
       //l->left = NULL;
