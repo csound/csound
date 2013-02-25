@@ -43,6 +43,7 @@ extern int pnum(char*);
 
 /* from csound_orc_expressions.c */
 extern int is_expression_node(TREE *node);
+extern int is_boolean_expression_node(TREE *node);
     
 
 char* cs_strdup(CSOUND* csound, char* str) {
@@ -81,10 +82,43 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
     char* s;
     CS_TYPE* type;
     
+    // TODO - this should probably do a lookup of opcode and get the return type of the opcode,
+    // rather than do observation of the op arg vals; this needs review
+    if (is_expression_node(tree)) {
+        
+        char* argTypeRight = get_arg_type(csound, tree->right);
+        
+        if(tree->left != NULL) {
+            char* argTypeLeft = get_arg_type(csound, tree->left);
+            
+            if (strcmp(argTypeLeft, "a") == 0 || strcmp(argTypeRight, "a") == 0) {
+                return cs_strdup(csound, "a");
+            } else if(strcmp(argTypeLeft, "i") == 0 || strcmp(argTypeRight, "i") == 0) {
+                return cs_strdup(csound, "i");
+            } else if(strcmp(argTypeLeft, "t") == 0 || strcmp(argTypeRight, "t") == 0) {
+                return cs_strdup(csound, "t");
+            } else {
+                return cs_strdup(csound, "k");
+            }
+        } else {
+            return argTypeRight;
+        }
+                
+    }
+    
+    if (is_boolean_expression_node(tree)) {
+        char* argTypeLeft = get_arg_type(csound, tree->left);
+        char* argTypeRight = get_arg_type(csound, tree->right);
+
+        // FIXME - needs to check if B or b
+        return cs_strdup(csound, "b");
+    }
+    
     switch(tree->type) {
         case NUMBER_TOKEN:
         case INTEGER_TOKEN:
             return cs_strdup(csound, "c");                              /* const */
+//            return cs_strdup(csound, "i");
         case STRING_TOKEN:
             return cs_strdup(csound, "S");                              /* quoted String */
         case SRATE_TOKEN:
@@ -94,6 +128,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
         case NCHNLS_TOKEN:
         case NCHNLSI_TOKEN:
             return cs_strdup(csound, "r");                              /* rsvd */
+//            return cs_strdup(csound, "i");
         case LABEL_TOKEN:
             //FIXME: Need to review why label token is used so much in parser, for now treat as
             //T_IDENT
@@ -102,6 +137,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
             
             if (pnum(s) >= 0)
                 return cs_strdup(csound, "p");                              /* pnum */
+//                return cs_strdup(csound, "i");
             if (*s == '#')
                 s++;
             if (*s == 'g')
@@ -126,7 +162,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
             //        retVal[len + 1] = NULL;
             //        return retVal;
         default:
-//            csoundWarning(csound, "Unknown arg type: %d\n", tree->type);
+            csoundWarning(csound, "Unknown arg type: %d\n", tree->type);
 //            print_tree(csound, "Arg Tree\n", tree);
             return NULL;
     }
@@ -134,10 +170,6 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 
 char* get_arg_type_for_expression(CSOUND* csound, TREE* root) {
     return NULL;
-}
-
-int verify_expression(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
-    return 0;
 }
 
 int out_arg_type_matches(char* foundArg, char* specifiedArg) {
@@ -237,21 +269,57 @@ PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree) {
     
 }
 
+
+/* verifies expression args are correct and returns arg type for answer to top most expression */
+char* verify_expression(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+    
+    TREE* left = root->left;
+    TREE* right = root->right;
+    
+    if (is_boolean_expression_node(root)) {
+        
+    }
+    
+    return NULL;
+}
+
 /*
- * Verifies: number of args correct, types of arg correct
+ * Verifies: 
+ *    -number of args correct
+ *    -types of arg correct
+ *    -expressions are valid and types correct
  */
 int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     
     TREE* left = root->left;
     TREE* right = root->right;
+    int i;
     
     char* leftArgString = get_arg_string_from_tree(csound, left);
     char* rightArgString = get_arg_string_from_tree(csound, right);
     
-//    csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
-//    csound->Message(csound, "    Arg Types Found: %s | %s\n", leftArgString, rightArgString);
+    csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
+    csound->Message(csound, "    Arg Types Found: %s | %s\n", leftArgString, rightArgString);
 
-//    OENTRY* entry = find_opcode(csound, root->value->lexeme);
+    OENTRIES* entries = find_opcode2(csound, typeTable->globalOpcodes, typeTable->globalOpcodesEnd,
+                                 root->value->lexeme);
+    if (entries->count == 0) {
+        synterr(csound, "Unable to find opcode with name: %s\n", root->value->lexeme);
+        return 1;
+    }
+    
+    OENTRY* oentry = resolve_opcode(entries, leftArgString, rightArgString);
+    
+    if (oentry == NULL) {
+        synterr(csound, "Unable to find opcode entry for \'%s\' with matching argument types:\n",
+                root->value->lexeme, leftArgString, rightArgString);
+        csoundMessage(csound, "Found: %s\t%s\t%s\n", leftArgString, root->value->lexeme, rightArgString);
+        csoundMessage(csound, "Candidate opcode entries:\n");
+        for (i = 0; i < entries->count; i++) {
+            oentry = entries->entries[i];
+            csoundMessage(csound, "\t%s\t%s\t%s\n", oentry->outypes, oentry->opname, oentry->intypes);
+        }
+    }
 //    
 //    if(entry == NULL) {
 //        synterr(csound, "Unknown opcode: %s\n", root->value->lexeme);
@@ -293,7 +361,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                 if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
                 
                 if (current->left == NULL || current->right == NULL) {
-                    
+                        
                 }
                 
                 
