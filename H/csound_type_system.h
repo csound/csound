@@ -22,11 +22,10 @@ extern "C" {
     
     typedef struct cstype {
         char* varTypeName;
-        char* varMemberName; /* Used when member of aggregate type */
         char* varDescription;
         int argtype; // used to denote if allowed as in-arg, out-arg, or both        
         struct csvariable* (*createVariable)(void*, void*);
-        struct cstype* members;        
+        struct cstype** unionTypes;
     } CS_TYPE;
 
     typedef struct csvariable {
