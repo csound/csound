@@ -69,7 +69,7 @@ Opcodes like add, sub, mul and div are no longer available in opcode
 format, only via + - * /
 
 
-Functions taninv2 and divz now exist as well as opcodes
+Functions of two arguments taninv2 and divz now exist as well as opcodes
 
 
 Arrays....
