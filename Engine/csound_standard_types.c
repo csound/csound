@@ -82,52 +82,54 @@ CS_VARIABLE* createArray(void* csound, void* p) {
 //#define ARGTYP_l        0x00000800L     /* label */
 
 const CS_TYPE CS_VAR_TYPE_A = {
-  "a", NULL, "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, NULL
+  "a", "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_K = {
-  "k", NULL, "control rate var", CS_ARG_TYPE_BOTH, createMyflt, NULL
+  "k", "control rate var", CS_ARG_TYPE_BOTH, createMyflt, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_I = {
-  "i", NULL, "init time var", CS_ARG_TYPE_BOTH, createMyflt, NULL
+  "i", "init time var", CS_ARG_TYPE_BOTH, createMyflt, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_S = {
-    "S", NULL, "String var", CS_ARG_TYPE_BOTH, createMyflt, NULL
+    "S", "String var", CS_ARG_TYPE_BOTH, createMyflt, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
-  "p", NULL, "p-field", CS_ARG_TYPE_BOTH, createMyflt, NULL
+  "p", "p-field", CS_ARG_TYPE_BOTH, createMyflt, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_R = {
-  "r", NULL, "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, NULL
+  "r", "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_C = {
-  "c", NULL, "constant", CS_ARG_TYPE_IN, createMyflt, NULL
+  "c", "constant", CS_ARG_TYPE_IN, createMyflt, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_W = {
-  "w", NULL, "spectral", CS_ARG_TYPE_BOTH, createWsig, NULL
+  "w", "spectral", CS_ARG_TYPE_BOTH, createWsig, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_F = {
-  "f", NULL, "f-sig", CS_ARG_TYPE_BOTH, createFsig, NULL
+  "f", "f-sig", CS_ARG_TYPE_BOTH, createFsig, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", NULL, "boolean", CS_ARG_TYPE_BOTH, createBool, NULL
+  "B", "boolean", CS_ARG_TYPE_BOTH, createBool, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", NULL, "boolean", CS_ARG_TYPE_BOTH, createBool, NULL
+  "b", "boolean", CS_ARG_TYPE_BOTH, createBool, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
-   "[", NULL, "array", CS_ARG_TYPE_BOTH, createArray, NULL
+   "[", "array", CS_ARG_TYPE_BOTH, createArray, NULL
 };
+
+
 
 void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
 
