@@ -282,7 +282,7 @@ int is_expression_node(TREE *node)
 }
 
 /* Returns if passed in TREE node is a boolean expression */
-static int is_boolean_expression_node(TREE *node)
+int is_boolean_expression_node(TREE *node)
 {
     if (node == NULL) {
       return 0;
