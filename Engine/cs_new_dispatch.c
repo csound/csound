@@ -3,7 +3,7 @@
 ** 
 **    Copyright (C)  Martin Brain (mjb@cs.bath.ac.uk) 04/08/12
 **
-**    Realisation in code John ffitch Jan 2013
+**    Realisation in code for Csound John ffitch Feb 2013
 **
     This file is part of Csound.
 
@@ -166,7 +166,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
     INSDS *save = chain;
     INSDS **task_map;
     int i;
-    printf("DAG BUILD***************************************\n");
+    //printf("DAG BUILD***************************************\n");
     if (task_status == NULL) 
       create_dag(csound); /* Should move elsewhere */
     else { 
@@ -269,11 +269,7 @@ void dag_reinit(CSOUND *csound)
 }
 
 #define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0)
-/* #define ATOMIC_WRITE(x,val) \ */
-/*   {    __sync_and_and_fetch(&(x), 0); __sync_or_and_fetch(&(x), val); } */
-// ??? _sync_val_compare_and_swap(&(x), x, val)
 //#define ATOMIC_READ(x) (x)
-#define ATOMIC_WRITE(x,val) x = val
 
 taskID dag_get_task(CSOUND *csound)
 {
@@ -300,6 +296,7 @@ taskID dag_get_task(CSOUND *csound)
 }
 
 watchList DoNotRead = { INVALID, NULL};
+
 static int moveWatch(CSOUND *csound, watchList **w, watchList *t)
 {
     watchList *local=*w;
@@ -309,7 +306,7 @@ static int moveWatch(CSOUND *csound, watchList **w, watchList *t)
       //dag_print_state(csound);
       local = ATOMIC_READ(*w);
       if (local==&DoNotRead) {
-        printf("local is DoNotRead\n");
+        //printf("local is DoNotRead\n");
         return 0;//was no & earlier
       }
       else t->next = local;
@@ -326,13 +323,12 @@ void dag_end_task(CSOUND *csound, taskID i)
     int j, k;
 
     __sync_and_and_fetch(&task_status[i], DONE); /* as DONE is zero */
-    to_notify = task_watch[i]; task_watch[i]= &DoNotRead;
-    {
-      watchList *tmp;
+    //    to_notify = ATOMIC_READ(task_watch[i]);// task_watch[i]= &DoNotRead;
+    {                                      /* ATOMIC_SWAP */
       do {
-	tmp = task_watch[i];
-      } while (!__sync_bool_compare_and_swap(&task_watch[i],tmp,&DoNotRead));
-    }                           //ATOMIC_SWAP(task_watch[i], &DoNotRead);
+	to_notify = ATOMIC_READ(task_watch[i]);
+      } while (!__sync_bool_compare_and_swap(&task_watch[i],to_notify,&DoNotRead));
+    } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
     next = to_notify;
     while (to_notify) {         /* walk the list of watchers */
@@ -352,7 +348,7 @@ void dag_end_task(CSOUND *csound, taskID i)
           } 
           else {
             /* assert task_status[j] == DONE and we are in race */
-            printf("Racing status %d %d %d %d\n", task_status[j], i, j, k);
+            //printf("Racing status %d %d %d %d\n", task_status[j], i, j, k);
           }
         }
         //else { printf("not %d\n", k); }
@@ -367,31 +363,24 @@ void dag_end_task(CSOUND *csound, taskID i)
 }
 
 
-#if 0
 /* INV : Acyclic */
 /* INV : Each entry is read by a single thread,
  *       no writes (but see OPT : Watch ordering) */
 /* Thus no protection needed */
-
-/* Used to mark lists that should not be added to, see NOTE : Race condition */
-watchList nullList;
-watchList *doNotAdd = &nullList;
-watchList endwatch = { NULL, NULL };
-
-/* Lists of tasks that depend on the given task */
-watchList ** watch;         /* OPT : Structure lay out */
 
 /* INV : Watches for different tasks are disjoint */
 /* INV : Multiple threads can add to a watch list but only one will remove
  *       These are the only interactions */
 /* Thus the use of CAS / atomic operations */
 
-/* Static memory management for watch list cells */
-typedef struct watchListMemoryManagement {
-  enum bool used;
-  watchList s;
-} watchListMemoryManagement;
+/* Used to mark lists that should not be added to, see NOTE : Race condition */
+#if 0
+watchList nullList;
+watchList *doNotAdd = &nullList;
+watchList endwatch = { NULL, NULL };
 
+/* Lists of tasks that depend on the given task */
+watchList ** watch;         /* OPT : Structure lay out */
 watchListMemoryManagement *wlmm; /* OPT : Structure lay out */
 
 /* INV : wlmm[X].s.id == X; */  /* OPT : Data structure redundancy */

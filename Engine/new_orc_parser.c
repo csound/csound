@@ -52,12 +52,6 @@ extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 
-#ifdef PARCS
-extern TREE *csp_locks_insert(CSOUND *csound, TREE *root);
-void csp_locks_cache_build(CSOUND *);
-void csp_weights_calculate(CSOUND *, TREE *);
-#endif
-
 
 void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
 {
@@ -182,25 +176,12 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       mfree(csound, typeTable->globalPool);
       mfree(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
-#ifdef PARCS
-      if (LIKELY(O->numThreads > 1)) {
-        /* insert the locks around global variables before expr expansion */
-        astTree = csp_locks_insert(csound, astTree);
-        csp_locks_cache_build(csound);
-      }
-#endif /* PARCS */
 
       astTree = csound_orc_expand_expressions(csound, astTree);
 
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
       }
-#ifdef PARCS
-      if (LIKELY(O->numThreads > 1)) {
-        /* calculate the weights for the instruments */
-        csp_weights_calculate(csound, astTree);
-      }
-#endif /* PARCS */
 
     ending:
       csound_orclex_destroy(pp.yyscanner);
