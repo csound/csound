@@ -13,6 +13,8 @@ set(TCL_VERSION 8.5)
 
 #### NOTE the processor type needs setting
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -O3 -mtune=core2")
+## also to test multicore
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -Wno-missing-field-initializers -Wno-unused-parameter -O3 -mtune=core2 -DJPFF -DNEW_DAG")
 
 include(CheckCCompilerFlag)
 check_c_compiler_flag(-ftree-vectorize HAS_TREE_VECTORISE)

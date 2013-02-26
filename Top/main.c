@@ -371,8 +371,6 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       }
 
       csound->WaitBarrier(csound->barrier2);
-
-      csp_parallel_compute_spec_setup(csound);
     }
 #endif
     csound->engineStatus |= CS_STATE_COMP;
