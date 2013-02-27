@@ -89,9 +89,7 @@ typedef struct {
   MYFLT  *auxp;                 /* pointer to input file */
   MYFLT  *adp;                  /* pointer to front of sample file */
   double *c_p,*s_p;             /* pointers to space for sine and cos terms */
-#ifdef JPFF
   int    newformat;             /* flag for m/c independent format */
-#endif
 } HET;
 
 #if INCSDIF
@@ -132,9 +130,7 @@ static void init_het(HET *thishet)
     thishet->amp_min   = 64;            /* amplitude cutout threshold */
     thishet->bufsiz    = 1;             /* circular buffer size */
     thishet->skip      = 0;             /* JPff: this was missing */
-#ifdef JPFF
-    thishet->newformat = 0;
-#endif
+    thishet->newformat = 1;
 }
 
 static int hetro(CSOUND *csound, int argc, char **argv)
@@ -226,11 +222,12 @@ static int hetro(CSOUND *csound, int argc, char **argv)
           sscanf(s,"%f",&thishet->freq_c);
 #endif
           break;
-#ifdef JPFF
         case 'X':
           het.newformat = 1;
           break;
-#endif
+        case 'x':
+          het.newformat = 0;
+          break;
         case '-':
           FIND(Str("no log file"));
           while (*s++); s--;
@@ -610,27 +607,21 @@ static int filedump(HET *thishet, CSOUND *csound)
       TIME[pnt] = (int16)(pnt * timesiz);
 
     /* fullpath else cur dir */
-#ifdef JPFF
     if (thishet->newformat) {
       if (csound->FileOpen2(csound, &ff, CSFILE_STD, thishet->outfilnam,
                               "w", "", CSFTYPE_HETROT, 0) == NULL)
       return quit(csound, Str("cannot create output file\n"));
-    }
-    else
-#endif
+    } else
       if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W, thishet->outfilnam,
-                             NULL, "", CSFTYPE_HETRO, 0) == NULL)
+                            NULL, "", CSFTYPE_HETRO, 0) == NULL)
         return quit(csound, Str("cannot create output file\n"));
-
-#ifdef JPFF
+    
     if (thishet->newformat)
       fprintf(ff,"HETRO %d\n", thishet->hmax);        /* Header */
-    else 
-#endif
-      {
-        if (UNLIKELY(write(ofd, (char*)&thishet->hmax, sizeof(thishet->hmax))<0))
-          csound->Message(csound,Str("Write failure\n")); /* Write header */
-      }
+    else {
+      if (UNLIKELY(write(ofd, (char*)&thishet->hmax, sizeof(thishet->hmax))<0))
+        csound->Message(csound,Str("Write failure\n")); /* Write header */
+    }
     for (pnt=0; pnt < thishet->num_pts; pnt++) {
       ampsum = 0.0;
       for (h = 0; h < thishet->hmax; h++)
@@ -711,18 +702,15 @@ static int filedump(HET *thishet, CSOUND *csound)
       *fp++ = END;
       mpoints = ((mp - magout) / 2) - 1;
       nbytes = (mp - magout) * sizeof(int16);
-#ifdef JPFF
       if (thishet->newformat) {
         int i;
         for (i=0; i<(mp - magout); i++)
           fprintf(ff,"%hd%c", magout[i], i==(mp-magout-1)?'\n':',');
       }
-      else 
-#endif
-        { 
-          if (UNLIKELY(write(ofd, (char *)magout, nbytes)<0))
-            csound->Message(csound, Str("Write failure\n"));
-        }
+      else { 
+        if (UNLIKELY(write(ofd, (char *)magout, nbytes)<0))
+          csound->Message(csound, Str("Write failure\n"));
+      }
 #ifdef DEBUG
       {
         int i;
@@ -734,19 +722,16 @@ static int filedump(HET *thishet, CSOUND *csound)
       lenfil += nbytes;
       fpoints = ((fp - frqout) / 2) - 1;
       nbytes = (fp - frqout) * sizeof(int16);
-#ifdef JPFF
       if (thishet->newformat) {
         int i;
         for (i=0; i<fp - frqout; i++)
           fprintf(ff,"%hd%c", frqout[i], i==(fp-frqout-1)?'\n':',');
         fprintf(ff,"\n");
       }
-      else 
-#endif
-        { 
-          if (UNLIKELY(write(ofd, (char *)frqout, nbytes)<0))
-            csound->Message(csound, Str("Write failure\n"));
-        }
+      else { 
+        if (UNLIKELY(write(ofd, (char *)frqout, nbytes)<0))
+          csound->Message(csound, Str("Write failure\n"));
+      }
 #ifdef DEBUG
       {
         int i;
