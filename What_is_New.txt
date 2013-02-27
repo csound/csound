@@ -8,13 +8,6 @@ Multiple strings in score
 Arrays
 
 
-WHAT IS KNOWN NOT TO WORK
-=========================
-
-Multicore is unfinished and may well give totally wrong answers; runs
-simple examples but may freeze; hope to fix soon.
-
-
 What is New, What has Changed
 =============================
 
@@ -63,6 +56,11 @@ The old parser is totally gone.
 New syntax in csound6 includes +=, -=, *= and /= operators
 Please use += and -= for accumulating reverbs as it gives better
 multicore behaviour.
+
+
+Multicore support is totally rewritten using a different algorithm for
+task-dispatch, which should use less memory and fewer locks.
+
 
 
 Opcodes like add, sub, mul and div are no longer available in opcode

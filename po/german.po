@@ -246,170 +246,34 @@ msgstr ""
 msgid "modified opcod: %s"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:112 Engine/cs_par_dispatch.c:125
+#: Engine/cs_par_dispatch.c:64 Engine/cs_par_dispatch.c:77
 #, c-format
 msgid "Poorly specified global lock index: %i [max: %i]\n"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:139 Engine/cs_par_dispatch.c:159
+#: Engine/cs_par_dispatch.c:91 Engine/cs_par_dispatch.c:111
 msgid "Invalid NULL parameter name for a global variable\n"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:190
+#: Engine/cs_par_dispatch.c:142
 msgid "Inserting Parallelism Constructs into AST\n"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:213
+#: Engine/cs_par_dispatch.c:165
 #, c-format
 msgid "Instr %d needs locks"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:293
+#: Engine/cs_par_dispatch.c:245
 msgid "[End Inserting Parallelism Constructs into AST]\n"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:365
-msgid "Calculating Instrument weight from AST\n"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:401 Engine/cs_par_dispatch.c:480
-#, c-format
-msgid "WARNING: Unexpected node type in weight calculation walk %i\n"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:411
-msgid "[End Calculating Instrument weight from AST]\n"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:416
-msgid "Calculating Instrument weights from AST\n"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:459
-msgid "[End Calculating Instrument weights from AST]\n"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:545
-msgid "Failed to allocate Opcode Weight cache entry"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:560 Engine/cs_par_dispatch.c:587
-#: Engine/cs_par_dispatch.c:628
-msgid "Invalid NULL Parameter name"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:578
-#, fuzzy, c-format
-msgid "WARNING: no weight found for opcode: %s\n"
-msgstr "ACHTUNG: konnte nicht %s entfernen\n"
-
-#: Engine/cs_par_dispatch.c:657 Engine/cs_par_dispatch.c:748
-msgid "No Weights to Dump (Using Defaults)\n"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:698 Engine/cs_par_dispatch.c:828
-#, c-format
-msgid "Opcode Weight Spec File not found at: %s"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:752
-msgid "Weights Dump\n"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:898
-#, c-format
-msgid "Parallel Spec File not found at: %s"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:904
-msgid "Parallel Spec File invalid format expected weight_min parameter"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:909
-msgid "Parallel Spec File invalid format expected weight_max parameter"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:913
-msgid "Parallel Spec File invalid format expected roots_avail_min parameter"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:917
-msgid "Parallel Spec File invalid format expected roots_avail_max parameter"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:981 Engine/cs_par_dispatch.c:1005
-#: Engine/cs_par_dispatch.c:1132 Engine/cs_par_dispatch.c:1411
-#: Engine/cs_par_dispatch.c:1427 Engine/cs_par_dispatch.c:1449
-#: Engine/cs_par_dispatch.c:1477 Engine/cs_par_dispatch.c:1499
-#: Engine/cs_par_dispatch.c:1523 Engine/cs_par_dispatch.c:1615
-#: Engine/cs_par_dispatch.c:1670 Engine/cs_par_dispatch.c:1763
-#: Engine/cs_par_dispatch.c:1816 Engine/cs_par_dispatch.c:2362
-msgid "Invalid NULL Parameter dag"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:986
-msgid "Failed to allocate dag"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:1038 Engine/cs_par_dispatch.c:1061
-#: Engine/cs_par_dispatch.c:1083 Engine/cs_par_dispatch.c:1085
-msgid "Invalid NULL Parameter dag_node"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:1040
-#, fuzzy
-msgid "Invalid NULL Parameter instr"
-msgstr "unzulässiger Name für Instrument"
-
-#: Engine/cs_par_dispatch.c:1042
-msgid "Invalid NULL Parameter insds"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:1047 Engine/cs_par_dispatch.c:1069
-msgid "Failed to allocate dag_node"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:1064
-msgid "Invalid Parameter count must be greater than 0"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:1206 Engine/cs_par_dispatch.c:1479
-#: Engine/cs_par_dispatch.c:2295 Engine/cs_par_dispatch.c:2336
-#: Engine/cs_par_dispatch.c:2363
-msgid "Invalid NULL Parameter chain"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:1218
+#: Engine/cs_new_dispatch.c:139
 #, c-format
 msgid "Failed to find semantic information for instrument '%i'"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:1525
-msgid "Invalid NULL Parameter node"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:1527
-msgid "Invalid NULL Parameter update_hdl"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:1618
-msgid "Invalid Parameter update_hdl is outside the DAG range"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:2247
-#, c-format
-msgid "Parallel Dump File not found at: %s for writing"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:2293 Engine/cs_par_dispatch.c:2335
-msgid "Invalid NULL Parameter entry"
-msgstr ""
-
-#: Engine/cs_par_dispatch.c:2307
-msgid "Failed to allocate Dag2 cache entry"
-msgstr ""
-
-#: Engine/cs_par_orc_semantic_analysis.c:204
+#: Engine/cs_par_orc_semantic_analysis.c:201
 msgid "Invalid NULL parameter set to add to a global read_list\n"
 msgstr ""
 
@@ -1015,7 +879,7 @@ msgstr ""
 
 #: Engine/linevent.c:83 Engine/linevent.c:92 OOps/dumpf.c:57 OOps/dumpf.c:82
 #: OOps/dumpf.c:107 OOps/dumpf.c:132 OOps/dumpf.c:276 OOps/dumpf.c:303
-#: OOps/dumpf.c:330 OOps/dumpf.c:357 OOps/dumpf.c:528 util/hetro.c:260
+#: OOps/dumpf.c:330 OOps/dumpf.c:357 OOps/dumpf.c:528 util/hetro.c:257
 #, c-format
 msgid "Cannot open %s"
 msgstr ""
@@ -1186,22 +1050,22 @@ msgstr ""
 msgid "Beat mode not in force"
 msgstr ""
 
-#: Engine/musmon.c:173 Top/csound.c:2955
+#: Engine/musmon.c:173 Top/csound.c:2929
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
 msgstr ""
 
-#: Engine/musmon.c:176 Top/csound.c:2958
+#: Engine/musmon.c:176 Top/csound.c:2932
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr ""
 
-#: Engine/musmon.c:181 Top/csound.c:2947
+#: Engine/musmon.c:181 Top/csound.c:2921
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
 msgstr ""
 
-#: Engine/musmon.c:184 Top/csound.c:2950
+#: Engine/musmon.c:184 Top/csound.c:2924
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
 msgstr ""
@@ -1395,16 +1259,16 @@ msgstr ""
 msgid "cannot find the specified instrument or opcode"
 msgstr ""
 
-#: Engine/new_orc_parser.c:99 Top/main.c:204
+#: Engine/new_orc_parser.c:93 Top/main.c:204
 #, c-format
 msgid "Failed to open input file %s\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:129
+#: Engine/new_orc_parser.c:123
 msgid "Unmatched #ifdef\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:208
+#: Engine/new_orc_parser.c:189
 msgid "Stopping on parser failure\n"
 msgstr ""
 
@@ -7204,7 +7068,7 @@ msgstr ""
 msgid "Error allocating argument stack"
 msgstr ""
 
-#: Opcodes/stackops.c:201 Top/argdecode.c:1223 util/envext.c:99
+#: Opcodes/stackops.c:201 Top/argdecode.c:1194 util/envext.c:99
 #: util/scale.c:248
 msgid "too many arguments"
 msgstr "zu viele Argumente"
@@ -8399,236 +8263,212 @@ msgstr ""
 msgid "--sample-accurate\t\tUse sample-accurate timing of score events"
 msgstr ""
 
-#: Top/argdecode.c:221
-msgid "--weight-info=F\t\tFile of weight information"
-msgstr ""
-
-#: Top/argdecode.c:222
-msgid "--weight-dump=F\t\tFile to save weight information"
-msgstr ""
-
-#: Top/argdecode.c:223
-msgid "--compute-weights\t\tUse opcode weigts"
-msgstr ""
-
-#: Top/argdecode.c:225
+#: Top/argdecode.c:220
 msgid "--realtime \t\t realtime priority mode"
 msgstr ""
 
-#: Top/argdecode.c:227
+#: Top/argdecode.c:222
 msgid "--help\t\t\tLong help"
 msgstr ""
 
-#: Top/argdecode.c:243
+#: Top/argdecode.c:238
 #, c-format
 msgid "flag defaults: csound -s -otest -b%d -B%d -m%d\n"
 msgstr ""
 
-#: Top/argdecode.c:250 Top/argdecode.c:266
+#: Top/argdecode.c:245 Top/argdecode.c:261
 msgid "Usage:\tcsound [-flags] orchfile scorefile\n"
 msgstr ""
 
-#: Top/argdecode.c:251 Top/argdecode.c:267 util/envext.c:53
+#: Top/argdecode.c:246 Top/argdecode.c:262 util/envext.c:53
 msgid "Legal flags are:\n"
 msgstr ""
 
-#: Top/argdecode.c:252
+#: Top/argdecode.c:247
 msgid ""
 "Long format:\n"
 "\n"
 msgstr ""
 
-#: Top/argdecode.c:257
+#: Top/argdecode.c:252
 msgid ""
 "\n"
 "Short form:\n"
 msgstr ""
 
-#: Top/argdecode.c:270
+#: Top/argdecode.c:265
 msgid "Csound Command ERROR:\t"
 msgstr ""
 
-#: Top/argdecode.c:403
+#: Top/argdecode.c:398
 #, c-format
 msgid "unknown output format: '%s'"
 msgstr ""
 
-#: Top/argdecode.c:421 Top/argdecode.c:989
+#: Top/argdecode.c:416 Top/argdecode.c:960
 msgid "no iobufsamps"
 msgstr ""
 
-#: Top/argdecode.c:428 Top/argdecode.c:996
+#: Top/argdecode.c:423 Top/argdecode.c:967
 msgid "no hardware bufsamps"
 msgstr ""
 
-#: Top/argdecode.c:454 Top/argdecode.c:1096
+#: Top/argdecode.c:449 Top/argdecode.c:1067
 msgid "no midifile name"
 msgstr ""
 
-#: Top/argdecode.c:459 Top/argdecode.c:1102
+#: Top/argdecode.c:454 Top/argdecode.c:1073
 msgid "-F: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:469
+#: Top/argdecode.c:464
 msgid "no midi output file name"
 msgstr ""
 
-#: Top/argdecode.c:498
+#: Top/argdecode.c:493
 msgid "invalid python variable definition syntax"
 msgstr ""
 
-#: Top/argdecode.c:504 Top/argdecode.c:957
+#: Top/argdecode.c:499 Top/argdecode.c:928
 msgid "no infilename"
 msgstr ""
 
-#: Top/argdecode.c:507 Top/argdecode.c:961
+#: Top/argdecode.c:502 Top/argdecode.c:932
 msgid "input cannot be stdout"
 msgstr ""
 
-#: Top/argdecode.c:511 Top/argdecode.c:965
+#: Top/argdecode.c:506 Top/argdecode.c:936
 msgid "stdin audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:546 Top/argdecode.c:1029
+#: Top/argdecode.c:541 Top/argdecode.c:1000
 msgid "no control rate"
 msgstr ""
 
-#: Top/argdecode.c:560 Top/argdecode.c:1071
+#: Top/argdecode.c:555 Top/argdecode.c:1042
 msgid "no Linein score device_name"
 msgstr ""
 
-#: Top/argdecode.c:576 Top/argdecode.c:582 Top/argdecode.c:1037
+#: Top/argdecode.c:571 Top/argdecode.c:577 Top/argdecode.c:1008
 msgid "no message level"
 msgstr ""
 
-#: Top/argdecode.c:589
+#: Top/argdecode.c:584
 msgid "no message amps"
 msgstr ""
 
-#: Top/argdecode.c:598
+#: Top/argdecode.c:593
 msgid "no message range"
 msgstr ""
 
-#: Top/argdecode.c:607
+#: Top/argdecode.c:602
 msgid "no message warnings"
 msgstr ""
 
-#: Top/argdecode.c:616
+#: Top/argdecode.c:611
 msgid "no message raw"
 msgstr ""
 
-#: Top/argdecode.c:625
+#: Top/argdecode.c:620
 msgid "no message dB"
 msgstr ""
 
-#: Top/argdecode.c:634
+#: Top/argdecode.c:629
 msgid "no message colours"
 msgstr ""
 
-#: Top/argdecode.c:643
+#: Top/argdecode.c:638
 msgid "no benchmark level"
 msgstr ""
 
-#: Top/argdecode.c:651
+#: Top/argdecode.c:646
 msgid "no value for --csd-line-nums"
 msgstr ""
 
-#: Top/argdecode.c:660 Top/argdecode.c:1082
+#: Top/argdecode.c:655 Top/argdecode.c:1053
 msgid "no midi device_name"
 msgstr ""
 
-#: Top/argdecode.c:665 Top/argdecode.c:1088
+#: Top/argdecode.c:660 Top/argdecode.c:1059
 msgid "-M: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:685 Top/argdecode.c:973 util/envext.c:84 util/mixer.c:205
+#: Top/argdecode.c:680 Top/argdecode.c:944 util/envext.c:84 util/mixer.c:205
 #: util/scale.c:173 util/srconv.c:247 util/xtrct.c:117
 msgid "no outfilename"
 msgstr ""
 
-#: Top/argdecode.c:688 Top/argdecode.c:977 util/scale.c:177 util/srconv.c:251
+#: Top/argdecode.c:683 Top/argdecode.c:948 util/scale.c:177 util/srconv.c:251
 #: util/xtrct.c:121
 msgid "-o cannot be stdin"
 msgstr ""
 
-#: Top/argdecode.c:692 Top/argdecode.c:981 util/scale.c:180 util/srconv.c:256
+#: Top/argdecode.c:687 Top/argdecode.c:952 util/scale.c:180 util/srconv.c:256
 msgid "stdout audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:702 Top/argdecode.c:1177 util/hetro.c:235
+#: Top/argdecode.c:697 Top/argdecode.c:1148 util/hetro.c:232
 msgid "no log file"
 msgstr ""
 
-#: Top/argdecode.c:757 Top/argdecode.c:941
+#: Top/argdecode.c:752 Top/argdecode.c:912
 msgid "no utility name"
 msgstr ""
 
-#: Top/argdecode.c:769 Top/argdecode.c:1051
+#: Top/argdecode.c:764 Top/argdecode.c:1022
 msgid "no xfilename"
 msgstr ""
 
 #: Top/argdecode.c:877
-msgid "no weight-info"
-msgstr ""
-
-#: Top/argdecode.c:883
-msgid "no weight-dump"
-msgstr ""
-
-#: Top/argdecode.c:889
-msgid "no weights"
-msgstr ""
-
-#: Top/argdecode.c:906
 #, c-format
 msgid "unknown long option: '--%s'"
 msgstr ""
 
-#: Top/argdecode.c:1024
+#: Top/argdecode.c:995
 msgid "no sample rate"
 msgstr ""
 
-#: Top/argdecode.c:1056
+#: Top/argdecode.c:1027
 msgid "no tempo value"
 msgstr ""
 
-#: Top/argdecode.c:1061
+#: Top/argdecode.c:1032
 msgid "illegal tempo"
 msgstr ""
 
-#: Top/argdecode.c:1110
+#: Top/argdecode.c:1081
 msgid "no MIDI output device"
 msgstr ""
 
-#: Top/argdecode.c:1160
+#: Top/argdecode.c:1131
 msgid "No indirection file"
 msgstr ""
 
-#: Top/argdecode.c:1167
+#: Top/argdecode.c:1138
 #, c-format
 msgid "Cannot open indirection file %s\n"
 msgstr ""
 
-#: Top/argdecode.c:1196
+#: Top/argdecode.c:1167
 #, fuzzy
 msgid "no number of threads"
 msgstr "unzulässiger Name für Instrument"
 
-#: Top/argdecode.c:1206 util/envext.c:94 util/mixer.c:315 util/scale.c:241
+#: Top/argdecode.c:1177 util/envext.c:94 util/mixer.c:315 util/scale.c:241
 #: util/xtrct.c:236
 #, c-format
 msgid "unknown flag -%c"
 msgstr ""
 
-#: Top/argdecode.c:1213
+#: Top/argdecode.c:1184
 msgid "error: orchestra and score name not allowed in .csoundrc"
 msgstr ""
 
-#: Top/argdecode.c:1338
+#: Top/argdecode.c:1307
 msgid "stdout not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:1373 Top/argdecode.c:1388 Top/argdecode.c:1403
+#: Top/argdecode.c:1342 Top/argdecode.c:1357 Top/argdecode.c:1372
 msgid "stdin not supported on this platform"
 msgstr ""
 
@@ -8751,90 +8591,90 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1620 Top/csound.c:1649 Top/csound.c:1677
+#: Top/csound.c:1600 Top/csound.c:1629 Top/csound.c:1657
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1627 Top/csound.c:1655
+#: Top/csound.c:1607 Top/csound.c:1635
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1704
+#: Top/csound.c:1684
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:1740
+#: Top/csound.c:1720
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1748
+#: Top/csound.c:1728
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1771
+#: Top/csound.c:1745
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2062
+#: Top/csound.c:2036
 msgid "WARNING: "
 msgstr "ACHTUNG: "
 
-#: Top/csound.c:2208
+#: Top/csound.c:2182
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2209
+#: Top/csound.c:2183
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2238 Top/csound.c:2274
+#: Top/csound.c:2212 Top/csound.c:2248
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2242 Top/csound.c:2278
+#: Top/csound.c:2216 Top/csound.c:2252
 #, c-format
 msgid " *** error: unknown rtaudio module: '%s'"
 msgstr ""
 
-#: Top/csound.c:2360
+#: Top/csound.c:2334
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2365 Top/csound.c:2399
+#: Top/csound.c:2339 Top/csound.c:2373
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2368 Top/csound.c:2402
+#: Top/csound.c:2342 Top/csound.c:2376
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2394
+#: Top/csound.c:2368
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2416
+#: Top/csound.c:2390
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2537
+#: Top/csound.c:2511
 msgid "xyin not supported. use invalue opcode instead."
 msgstr ""
 
-#: Top/csound.c:2648
+#: Top/csound.c:2622
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2671
+#: Top/csound.c:2645
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3182
+#: Top/csound.c:3156
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3212
+#: Top/csound.c:3186
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
@@ -9454,8 +9294,8 @@ msgid "Error: sound not optimised !"
 msgstr ""
 
 #: util/atsa.c:1946 util/atsa.c:1951 util/atsa.c:1962 util/atsa.c:1965
-#: util/atsa.c:1969 util/atsa.c:1978 util/cvanal.c:221 util/hetro.c:632
-#: util/hetro.c:724 util/hetro.c:748
+#: util/atsa.c:1969 util/atsa.c:1978 util/cvanal.c:221 util/hetro.c:623
+#: util/hetro.c:712 util/hetro.c:733
 #, fuzzy
 msgid "Write failure\n"
 msgstr "*** Speicherallozierungausfall\n"
@@ -9617,11 +9457,11 @@ msgstr ""
 msgid "Soundfile analysis for ATS opcodes"
 msgstr ""
 
-#: util/cvanal.c:74 util/hetro.c:162 util/lpanal.c:405 util/pvanal.c:175
+#: util/cvanal.c:74 util/hetro.c:158 util/lpanal.c:405 util/pvanal.c:175
 msgid "no sampling rate"
 msgstr ""
 
-#: util/cvanal.c:82 util/hetro.c:170 util/lpanal.c:411 util/pvanal.c:182
+#: util/cvanal.c:82 util/hetro.c:166 util/lpanal.c:411 util/pvanal.c:182
 msgid "no channel"
 msgstr ""
 
@@ -9629,11 +9469,11 @@ msgstr ""
 msgid "channel must be in the range 1 to 4"
 msgstr ""
 
-#: util/cvanal.c:88 util/hetro.c:174 util/lpanal.c:413 util/pvanal.c:185
+#: util/cvanal.c:88 util/hetro.c:170 util/lpanal.c:413 util/pvanal.c:185
 msgid "no begin time"
 msgstr ""
 
-#: util/cvanal.c:96 util/hetro.c:182 util/lpanal.c:419 util/pvanal.c:192
+#: util/cvanal.c:96 util/hetro.c:178 util/lpanal.c:419 util/pvanal.c:192
 msgid "no duration time"
 msgstr ""
 
@@ -10024,142 +9864,142 @@ msgstr ""
 msgid "translate text form to hetro analysis file"
 msgstr ""
 
-#: util/hetro.c:155
+#: util/hetro.c:151
 msgid "no arguments"
 msgstr ""
 
-#: util/hetro.c:190
+#: util/hetro.c:186
 msgid "no fundamental estimate"
 msgstr ""
 
-#: util/hetro.c:198
+#: util/hetro.c:194
 msgid "no harmonic count"
 msgstr ""
 
-#: util/hetro.c:201
+#: util/hetro.c:197
 #, c-format
 msgid "over %d harmonics but continuing"
 msgstr ""
 
-#: util/hetro.c:204
+#: util/hetro.c:200
 #, c-format
 msgid "h of %d too low, reset to 1\n"
 msgstr ""
 
-#: util/hetro.c:210
+#: util/hetro.c:206
 msgid "no amplitude maximum"
 msgstr ""
 
-#: util/hetro.c:214
+#: util/hetro.c:210
 msgid "no amplitude minimum"
 msgstr ""
 
-#: util/hetro.c:218
+#: util/hetro.c:214
 msgid "no number of output points"
 msgstr ""
 
-#: util/hetro.c:222
+#: util/hetro.c:218
 msgid "no filter cutoff"
 msgstr ""
 
-#: util/hetro.c:239
+#: util/hetro.c:236
 msgid "Invalid switch option"
 msgstr ""
 
-#: util/hetro.c:245 util/lpanal.c:475
+#: util/hetro.c:242 util/lpanal.c:475
 msgid "incorrect number of filenames"
 msgstr ""
 
-#: util/hetro.c:250
+#: util/hetro.c:247
 #, c-format
 msgid "Filter cutoff freq. = %f\n"
 msgstr ""
 
-#: util/hetro.c:254 util/lpanal.c:491 util/lpanal.c:509
+#: util/hetro.c:251 util/lpanal.c:491 util/lpanal.c:509
 msgid "input and begin times cannot be less than zero"
 msgstr ""
 
-#: util/hetro.c:271
+#: util/hetro.c:268
 #, c-format
 msgid "Read error on %s\n"
 msgstr ""
 
-#: util/hetro.c:281 util/hetro.c:287
+#: util/hetro.c:278 util/hetro.c:284
 msgid "number of output points is too great"
 msgstr ""
 
-#: util/hetro.c:343
+#: util/hetro.c:340
 #, c-format
 msgid "analyzing harmonic #%d\n"
 msgstr ""
 
-#: util/hetro.c:344
+#: util/hetro.c:341
 #, c-format
 msgid "freq estimate %6.1f,"
 msgstr ""
 
-#: util/hetro.c:349
+#: util/hetro.c:346
 #, c-format
 msgid " max found %6.1f, rel amp %6.1f\n"
 msgstr ""
 
-#: util/hetro.c:357
+#: util/hetro.c:354
 msgid "Unable to write to SDIF file\n"
 msgstr ""
 
-#: util/hetro.c:580
+#: util/hetro.c:577
 #, c-format
 msgid ""
 "hetro:  %s\n"
 "\tanalysis aborted"
 msgstr ""
 
-#: util/hetro.c:617 util/hetro.c:623
+#: util/hetro.c:613 util/hetro.c:617
 msgid "cannot create output file\n"
 msgstr ""
 
-#: util/hetro.c:642
+#: util/hetro.c:633
 #, c-format
 msgid "scale = %f\n"
 msgstr ""
 
-#: util/hetro.c:760
+#: util/hetro.c:745
 #, c-format
 msgid "harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"
 msgstr ""
 
-#: util/hetro.c:764
+#: util/hetro.c:749
 #, c-format
 msgid "wrote %ld bytes to %s\n"
 msgstr ""
 
-#: util/hetro.c:796
+#: util/hetro.c:781
 msgid "OOPS: SDIF does not work on this machine!\n"
 msgstr ""
 
-#: util/hetro.c:822
+#: util/hetro.c:807
 #, c-format
 msgid "Error creating %s\n"
 msgstr ""
 
-#: util/hetro.c:850
+#: util/hetro.c:835
 msgid "Error writing SDIF frame header.\n"
 msgstr ""
 
-#: util/hetro.c:859
+#: util/hetro.c:844
 msgid "Error writing SDIF matrix header.\n"
 msgstr ""
 
-#: util/hetro.c:872
+#: util/hetro.c:857
 msgid "Error writing SDIF data.\n"
 msgstr ""
 
-#: util/hetro.c:879
+#: util/hetro.c:864
 #, c-format
 msgid "wrote %ld 1TRC frames to %s\n"
 msgstr ""
 
-#: util/hetro.c:907
+#: util/hetro.c:892
 msgid "Soundfile analysis for adsyn"
 msgstr ""
 
@@ -11148,6 +10988,14 @@ msgstr ""
 #: util/xtrct.c:369
 msgid "Extract part of a sound file"
 msgstr ""
+
+#, fuzzy
+#~ msgid "WARNING: no weight found for opcode: %s\n"
+#~ msgstr "ACHTUNG: konnte nicht %s entfernen\n"
+
+#, fuzzy
+#~ msgid "Invalid NULL Parameter instr"
+#~ msgstr "unzulässiger Name für Instrument"
 
 #~ msgid "LABELS list is full...extending to %d\n"
 #~ msgstr "LABELS Liste ist volles... Verlängern bis %d\n"
