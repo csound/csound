@@ -33,8 +33,6 @@
 ** NOTE marks notes
 */
 
-#ifdef PAR_CS
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -741,4 +739,3 @@ void newdag_alloc(CSOUND *csound, int numtasks)
 
 #endif
 
-#endif
