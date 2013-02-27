@@ -228,7 +228,6 @@ typedef struct CORFIL {
     int     numThreads;
     int     syntaxCheckOnly;
     int     useCsdLineCounts;
-    int     calculateWeights;
     int     sampleAccurate;  /* switch for score events sample accuracy */
     int     realtime; /* realtime priority mode  */
   } OPARMS;
@@ -1584,9 +1583,6 @@ typedef struct NAME__ {
     /* INSDS         *multiThreadedStart; */
     /* INSDS         *multiThreadedEnd; */
 #ifdef PARCS
-    char                *weight_info;
-    char                *weight_dump;
-    char                *weights;
     struct dag_t        *multiThreadedDag;
     pthread_barrier_t   *barrier1;
     pthread_barrier_t   *barrier2;
@@ -1594,11 +1590,6 @@ typedef struct NAME__ {
     struct global_var_lock_t *global_var_lock_root;
     struct global_var_lock_t **global_var_lock_cache;
     int           global_var_lock_count;
-    //    int           opcode_weight_cache_ctr;
-    struct opcode_weight_cache_entry_t
-                  *opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
-    int           opcode_weight_have_cache;
-    struct        dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
     /* statics from cs_par_orc_semantic_analysis */
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
