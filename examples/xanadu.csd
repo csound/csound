@@ -4,7 +4,7 @@ csound -R -W -f -d  -o Xanadu.wav temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 sr          =           44100
-ksmps       =           1
+ksmps       =           100
 nchnls      =           2
 ;--------------------------------------------------------
 ;Instrument 1 : plucked strings chorused left/right and

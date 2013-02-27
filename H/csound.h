@@ -1187,6 +1187,16 @@ extern "C" {
      */
     PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state, int bufSize);
 
+
+     /**
+      * This function can be called to obtain a list of available input or output
+      * audio devices. If list is NULL, the function will only return the number
+      * of devices (isOutput=1 for out devices, 0 for in devices).
+      * If list is non-NULL a formatted list of device names will be copied into
+      * the string, which will have to contain enough memory to hold it
+      */
+    PUBLIC int csoundAudioDevList(CSOUND *csound, char *list, int isOutput);
+
     /**
      * Sets a function to be called by Csound for opening real-time
      * audio playback.
@@ -1224,6 +1234,13 @@ extern "C" {
      * audio playback and recording.
      */
     PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
+
+    /**
+     * Sets a function that is called to obtain a list of audio devices
+     * (See csoundAudioDevList())
+     */
+    PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
+						 int (*audiodevlist__)(CSOUND *, char *list, int isOutput));
 
     /** @}*/
     /** @defgroup RTMIDI Realtime Midi I/O
