@@ -182,10 +182,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     tp->active++;
     tp->instcnt++;
 #ifdef PARCS
-#ifdef NEW_DAG
     csound->dag_changed++;      /* Need to remake DAG */
     //printf("**** dag changed by insert\n");
-#endif
 #endif
     nxtp = &(csound->actanchor);    /* now splice into activ lst */
     while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
@@ -690,10 +688,8 @@ static void deact(CSOUND *csound, INSDS *ip)
     if (ip->fdchp != NULL)
       fdchclose(csound, ip);
 #ifdef PARCS
-# ifdef NEW_DAG
     csound->dag_changed++;
     //printf("**** dag changed by deact\n");
-# endif
 #endif
 }
 
@@ -751,10 +747,8 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
       /* no extra time needed: deactivate immediately */
       deact(csound, ip);
 #ifdef PARCS
-#ifdef NEW_DAG
       csound->dag_changed++;      /* Need to remake DAG */
       //printf("**** dag changed by xturnoff\n");
-#endif
 #endif
     }
 }

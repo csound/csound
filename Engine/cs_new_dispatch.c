@@ -33,7 +33,7 @@
 ** NOTE marks notes
 */
 
-#ifdef NEW_DAG
+#ifdef PAR_CS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -116,7 +116,7 @@ static void dag_print_state(CSOUND *csound)
 }
 	     
 /* For now allocate a fixed maximum number of tasks; FIXME */
-void create_dag(CSOUND *csound)
+inline void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     task_status = mcalloc(csound, sizeof(enum state)*(task_max_size=INIT_SIZE));
@@ -172,7 +172,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
     else { 
       memset(task_watch, '\0', sizeof(watchList*)*task_max_size);
       for (i=0; i<task_max_size; i++) {
-        task_dep[i]= NULL;
+        if (task_dep[i]) {
+          //mfree(csound, task_dep);
+          task_dep[i]= NULL;
+        }
         wlmm[i].id = INVALID;
       }
     }
@@ -269,7 +272,6 @@ void dag_reinit(CSOUND *csound)
 }
 
 #define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0)
-//#define ATOMIC_READ(x) (x)
 
 taskID dag_get_task(CSOUND *csound)
 {
@@ -297,7 +299,7 @@ taskID dag_get_task(CSOUND *csound)
 
 watchList DoNotRead = { INVALID, NULL};
 
-static int moveWatch(CSOUND *csound, watchList **w, watchList *t)
+inline static int moveWatch(CSOUND *csound, watchList **w, watchList *t)
 {
     watchList *local=*w;
     t->next = NULL;
