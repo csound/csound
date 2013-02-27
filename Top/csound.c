@@ -785,19 +785,12 @@ static const CSOUND cenviron_ = {
     //NULL,           /* multiThreadedStart */
     //NULL,           /* multiThreadedEnd */
 #ifdef PARCS
-    NULL,           /* weight_info */
-    NULL,           /* weight_dump */
-    NULL,           /* weights */
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
     NULL,           /* global_var_lock_root */
     NULL,           /* global_var_lock_cache */
     0,              /* global_var_lock_count */
-    //    0,              /* opcode_weight_cache_ctr */
-    {NULL,NULL},    /* opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE] */
-    0,              /* opcode_weight_have_cache */
-    {NULL,NULL},    /* cache[DAG_2_CACHE_SIZE] */
     /* statics from cs_par_orc_semantic_analysis */
     NULL,           /* instCurr */
     NULL,           /* instRoot */
@@ -1301,7 +1294,6 @@ inline static int nodePerf(CSOUND *csound, int index)
     INSDS *insds = NULL;
     OPDS  *opstart = NULL;
     int played_count = 0;
-#ifdef NEW_DAG
     int which_task;
     INSDS **task_map = (INSDS*)csound->dag_task_map;
 #define INVALID (-1)
@@ -1321,52 +1313,50 @@ inline static int nodePerf(CSOUND *csound, int index)
         //printf("******** finished task %d\n", which_task);
         dag_end_task(csound, which_task);
     }
-#else
-    int update_hdl = -1;
-    DAG_NODE *node;
-    do {
-      csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl);
+    /* int update_hdl = -1; */
+    /* DAG_NODE *node; */
+    /* do { */
+    /*   csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl); */
         
-      if (UNLIKELY(node == NULL)) {
-        return played_count;
-      }
+    /*   if (UNLIKELY(node == NULL)) { */
+    /*     return played_count; */
+    /*   } */
 
-      if (node->hdr.type == DAG_NODE_INDV) {
-        insds = node->insds;
-        played_count++;
+    /*   if (node->hdr.type == DAG_NODE_INDV) { */
+    /*     insds = node->insds; */
+    /*     played_count++; */
         
-        opstart = (OPDS *)insds;
-        while ((opstart = opstart->nxtp) != NULL) {
-          (*opstart->opadr)(csound, opstart); /* run each opcode */
-        }
-        insds->ksmps_offset = 0; /* reset sample-accuracy offset */
-      }
-      else if (node->hdr.type == DAG_NODE_LIST) {
-        played_count += node->count;
+    /*     opstart = (OPDS *)insds; */
+    /*     while ((opstart = opstart->nxtp) != NULL) { */
+    /*       (*opstart->opadr)(csound, opstart); /\* run each opcode *\/ */
+    /*     } */
+    /*     insds->ksmps_offset = 0; /\* reset sample-accuracy offset *\/ */
+    /*   } */
+    /*   else if (node->hdr.type == DAG_NODE_LIST) { */
+    /*     played_count += node->count; */
 
-        int node_ctr = 0;
-        while (node_ctr < node->count) {
-          DAG_NODE *play_node = node->nodes[node_ctr];
-          insds = play_node->insds;
-          opstart = (OPDS *)insds;
-          while ((opstart = opstart->nxtp) != NULL) {
-            /* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", 
-               opstart, opstart->opadr, opstart->optext->t.opcod); */
-            (*opstart->opadr)(csound, opstart); /* run each opcode */
-          }
-          insds->ksmps_offset = 0; /* reset sample-accuracy offset */
-          node_ctr++;
-        }
-      }
-      else if (node->hdr.type == DAG_NODE_DAG) {
-        csound->Die(csound, "Recursive DAGs not implemented");
-      }
-      else {
-        csound->Die(csound, "Unknown DAG node type");
-      }
-      csp_dag_consume_update(csound->multiThreadedDag, update_hdl);
-    } while (!csp_dag_is_finished(csound->multiThreadedDag));
-#endif
+    /*     int node_ctr = 0; */
+    /*     while (node_ctr < node->count) { */
+    /*       DAG_NODE *play_node = node->nodes[node_ctr]; */
+    /*       insds = play_node->insds; */
+    /*       opstart = (OPDS *)insds; */
+    /*       while ((opstart = opstart->nxtp) != NULL) { */
+    /*         /\* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n",  */
+    /*            opstart, opstart->opadr, opstart->optext->t.opcod); *\/ */
+    /*         (*opstart->opadr)(csound, opstart); /\* run each opcode *\/ */
+    /*       } */
+    /*       insds->ksmps_offset = 0; /\* reset sample-accuracy offset *\/ */
+    /*       node_ctr++; */
+    /*     } */
+    /*   } */
+    /*   else if (node->hdr.type == DAG_NODE_DAG) { */
+    /*     csound->Die(csound, "Recursive DAGs not implemented"); */
+    /*   } */
+    /*   else { */
+    /*     csound->Die(csound, "Unknown DAG node type"); */
+    /*   } */
+    /*   csp_dag_consume_update(csound->multiThreadedDag, update_hdl); */
+    /* } while (!csp_dag_is_finished(csound->multiThreadedDag)); */
       
     return played_count;
 }
@@ -1511,48 +1501,38 @@ int kperf(CSOUND *csound)
 #endif
     }
 #else /* PARCS */
-      /* barrier1 = csound->multiThreadedBarrier1; */
-      /* barrier2 = csound->multiThreadedBarrier2; */
     ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
-      TIMER_INIT(thread, "");
-      TIMER_START(thread, "Clock Sync ");
-      TIMER_END(thread, "Clock Sync ");
-
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
-#ifdef NEW_DAG
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
-#else
-        struct dag_t *dag2 = NULL;
-
-        TIMER_START(thread, "Dag ");
-# if defined(LINEAR_CACHE) || defined(HASH_CACHE)
-        csp_dag_cache_fetch(csound, &dag2, ip);
-        csp_dag_build(csound, &dag2, ip);
-# endif
-        csound->multiThreadedDag = dag2;
-#endif
+/*         struct dag_t *dag2 = NULL; */
+/*         TIMER_START(thread, "Dag "); */
+/* # if defined(LINEAR_CACHE) || defined(HASH_CACHE) */
+/*         csp_dag_cache_fetch(csound, &dag2, ip); */
+/*         csp_dag_build(csound, &dag2, ip); */
+/* # endif */
+/*         csound->multiThreadedDag = dag2; */
 
         /* process this partition */
-        SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
+        //SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
         csound->WaitBarrier(csound->barrier1);
 
         (void) nodePerf(csound, 0);
 
-        SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
+        //SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
-#ifndef NEW_DAG
-# if defined(LINEAR_CACHE) || defined(HASH_CACHE)
-        csp_dag_dealloc(csound, &dag2);
-# else
-        dag2 = NULL;
-# endif
-#endif
+/* #ifndef NEW_DAG */
+/* # if defined(LINEAR_CACHE) || defined(HASH_CACHE) */
+/*         csp_dag_dealloc(csound, &dag2); */
+/* # else */
+/*         dag2 = NULL; */
+/* # endif */
+/* #endif */
         csound->multiThreadedDag = NULL;
       }
       else {
@@ -1756,12 +1736,6 @@ PUBLIC int csoundPerform(CSOUND *csound)
             
             csound->WaitBarrier(csound->barrier1);
           }
-# ifndef NEW_DAG
-          if (csound->oparms->calculateWeights) {
-            /* csp_weights_dump(csound); */
-            csp_weights_dump_normalised(csound);
-          }          
-# endif
 #endif /* PARCS  */
           return done;
         }

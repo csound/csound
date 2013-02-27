@@ -105,12 +105,12 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     FUNC    *ftp;
     FGDATA  ff;
     int nonpowof2_flag=0; /* gab: fixed for non-powoftwo function tables*/
-    union {
-      double d;
-      int32  i[2];
-    } cheat;
+    /* union { */
+    /*   double d; */
+    /*   int32  i[2]; */
+    /* } cheat; */
 
-    cheat.d = evtblkp->p[5];
+    /* cheat.d = evtblkp->p[5]; */
     //printf("string=%s p[5]=%8x %8x\n", evtblkp->strarg, cheat.i[0], cheat.i[1]);
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
