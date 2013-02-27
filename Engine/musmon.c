@@ -472,7 +472,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
-    if(csound->API_lock != NULL) csoundDestroyMutex(csound->API_lock);
+    
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
@@ -486,7 +486,7 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
     STA(ep) = &a->e[1];                  /* from 1st evlist member */
     STA(epend) = STA(ep) + a->nevents;    /*   to last              */
     while (csoundPerform(csound) == 0)  /* play list members      */
-      ;
+      
     return OK;
 }
 
