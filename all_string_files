@@ -7,6 +7,7 @@
 ./Engine/csound_orc_semantics.c
 ./Engine/cs_par_base.c
 ./Engine/cs_par_dispatch.c
+./Engine/cs_new_dispatch.c
 ./Engine/cs_par_orc_semantic_analysis.c
 ./Engine/entry1.c
 ./Engine/envvar.c

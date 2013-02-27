@@ -795,11 +795,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* instCurr */
     NULL,           /* instRoot */
     0,              /* inInstr */
-#ifdef NEW_DAG
     1,              /* dag_changed */
     0,              /* dag_num_active */
     NULL,           /* dag_task_map */
-#endif
 #endif /* PARCS */
     0,              /* tempStatus */
     0,              /* orcLineOffset */
@@ -1282,12 +1280,10 @@ inline void multiThreadedLayer(CSOUND *csound, INSDS *layerBegin, INSDS *layerEn
 
 
 #ifdef PARCS
-#ifdef NEW_DAG 
 int dag_get_task(CSOUND *csound);
 void dag_end_task(CSOUND *csound, int task);
 void dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
-#endif
 
 inline static int nodePerf(CSOUND *csound, int index)
 {
@@ -1526,13 +1522,6 @@ int kperf(CSOUND *csound)
         //SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
-/* #ifndef NEW_DAG */
-/* # if defined(LINEAR_CACHE) || defined(HASH_CACHE) */
-/*         csp_dag_dealloc(csound, &dag2); */
-/* # else */
-/*         dag2 = NULL; */
-/* # endif */
-/* #endif */
         csound->multiThreadedDag = NULL;
       }
       else {
@@ -1729,9 +1718,6 @@ PUBLIC int csoundPerform(CSOUND *csound)
           csoundUnlockMutex(csound->API_lock);
 #ifdef PARCS
           if (csound->oparms->numThreads > 1) {
-# if   !defined(NEW_DAG) && (defined(LINEAR_CACHE) || defined(HASH_CACHE))
-            csp_dag_cache_print(csound);
-# endif
             csound->multiThreadedComplete = 1;
             
             csound->WaitBarrier(csound->barrier1);
