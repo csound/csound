@@ -1594,11 +1594,9 @@ typedef struct NAME__ {
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
     int           inInstr;
-#ifdef NEW_DAG
     int           dag_changed;
     int           dag_num_active;
     INSDS         **dag_task_map;
-#endif
 #endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
