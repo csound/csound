@@ -1170,6 +1170,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
         pp = nxt;
       } while (pp != (CsoundCallbackEntry_t*) NULL);
     }
+    if(csound->API_lock != NULL) csoundDestroyMutex(csound->API_lock);
     free((void*) csound);
 }
 
