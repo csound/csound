@@ -709,6 +709,10 @@ extern "C" {
     int     control_rate_override; /* overriding control rate */
   } CSOUND_PARAMS;
 
+    /**
+     * Device information
+     */
+
 
     /**
      * Real-time audio parameters structure
