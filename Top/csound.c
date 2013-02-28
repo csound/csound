@@ -84,7 +84,7 @@ static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 static void rtclose_dummy(CSOUND *);
-static int  audio_dev_list_dummy(CSOUND *, char *, int);
+static int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
@@ -121,6 +121,22 @@ static void create_opcodlst(CSOUND *csound)
       free(saved_opcodlst);
     if (err)
       csoundDie(csound, Str("Error allocating opcode list"));
+}
+
+#define MAX_MODULES 64
+
+void module_list_add(CSOUND *csound, char *drv, char *type){
+    MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
+    if(modules != NULL){
+     int i = 0;
+     while(modules[i] != NULL && i < MAX_MODULES){
+       if(!strcmp(modules[i]->module, drv)) return;
+       i++;
+     }
+     modules[i] = (MODULE_INFO *) csound->Malloc(csound, sizeof(MODULE_INFO));
+     strncpy(modules[i]->module, drv, 11);
+     strncpy(modules[i]->type, type, 11);
+    }
 }
 
 static const CSOUND cenviron_ = {
@@ -390,6 +406,7 @@ static const CSOUND cenviron_ = {
     csoundGetInstrumentList,
     set_util_sr,
     set_util_nchnls,
+    module_list_add,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -2271,8 +2288,7 @@ static void rtclose_dummy(CSOUND *csound)
     csound->rtRecord_userdata = NULL;
 }
 
-static int  audio_dev_list_dummy(CSOUND *csound, char *list, int isOutput){
-  if(list != NULL) strcpy(list, "");
+static int  audio_dev_list_dummy(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
   return 0;
 }
 
@@ -2314,12 +2330,12 @@ PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
 }
 
 PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-					     int (*audiodevlist__)(CSOUND *, char *list, int isOutput))
+					     int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput))
 {
     csound->audio_dev_list_callback = audiodevlist__;
 }
 
-PUBLIC int csoundAudioDevList(CSOUND *csound, char *list, int isOutput){
+PUBLIC int csoundAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
   return csound->audio_dev_list_callback(csound,list,isOutput);
 }
 
@@ -2762,6 +2778,20 @@ PUBLIC void csoundReset_(CSOUND *csound)
     free(saved_env);
 }
 
+PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
+  char *s;
+  if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
+         strncpy(s, module, 20);
+}
+
+PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
+   MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
+   if(modules[no] == NULL || no >= MAX_MODULES) return CSOUND_ERROR;
+   *module = modules[no]->module;
+   *type = modules[no]->type;
+   return CSOUND_SUCCESS;
+}
+
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
@@ -2907,6 +2937,12 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (UNLIKELY(err==CSOUND_ERROR))
         csound->Die(csound, "Failed during csoundInitStaticModules");
+
+
+     csoundCreateGlobalVariable(csound, "_MODULES", (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
+     char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
+     memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
+
       err = csoundLoadModules(csound);
       if (csound->delayederrormessages && 
           csound->printerrormessagesflag==NULL) {

@@ -712,7 +712,13 @@ extern "C" {
     /**
      * Device information
      */
-
+    typedef struct {
+      const char device_name[64];
+      const char device_id[64];
+      const char rt_module[64];
+      int max_nchnls;
+      int isOutput;
+    } CS_AUDIODEVICE;
 
     /**
      * Real-time audio parameters structure
@@ -1053,6 +1059,8 @@ extern "C" {
      *
      *  @{
      */
+
+ 
    /**
     * Returns the output sound file name (-o).
     */
@@ -1065,6 +1073,7 @@ extern "C" {
     *  "flac", "caf","wve","ogg","mpc2k","rf64", or NULL (use default or realtime IO).
     *  format can be one of "alaw", "schar", "uchar", "float", "double", "long",
     *  "short", "ulaw", "24bit", "vorbis", or NULL (use default or realtime IO).
+    *   For RT audio, use device_id from CS_AUDIODEVICE for a given audio device.
     *
     */
   PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format);
@@ -1116,6 +1125,26 @@ extern "C" {
      *
      *  @{
      */
+
+     /**
+     *  Sets the current RT audio module 
+     */
+    PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module);
+
+     /**
+      * retrieves a module name and type ("audio" or "midi")
+      * given a number
+      * Modules are added to list as csound loads them
+      * returns CSOUND_SUCCESS on success and CSOUND_ERROR if module <number> was not found
+      * eg. 
+      *  char *name, *type;
+      *  int n = 0;
+      *  while(!csoundGetModule(csound, n++, &name, &type)) 
+      *       printf("Module %d:  %s (%s) \n", n, name, type);
+      *       
+      */
+   PUBLIC int csoundGetModule(CSOUND *csound, int number, char **name, char **type);
+
     /**
      * Returns the number of samples in Csound's input buffer.
      */
@@ -1196,10 +1225,13 @@ extern "C" {
       * This function can be called to obtain a list of available input or output
       * audio devices. If list is NULL, the function will only return the number
       * of devices (isOutput=1 for out devices, 0 for in devices).
-      * If list is non-NULL a formatted list of device names will be copied into
-      * the string, which will have to contain enough memory to hold it
+      * If list is non-NULL, then it should contain enough memory for one CS_AUDIODEVICE
+      * structure per device.
+      * Hosts will typically call this function twice: first to obtain a number of devices,
+      * then, after allocating space for each device information structure, pass
+      * an array of CS_AUDIODEVICE structs to be filled.
       */
-    PUBLIC int csoundAudioDevList(CSOUND *csound, char *list, int isOutput);
+    PUBLIC int csoundAudioDevList(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput);
 
     /**
      * Sets a function to be called by Csound for opening real-time
@@ -1244,7 +1276,7 @@ extern "C" {
      * (See csoundAudioDevList())
      */
     PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-						 int (*audiodevlist__)(CSOUND *, char *list, int isOutput));
+						 int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
 
     /** @}*/
     /** @defgroup RTMIDI Realtime Midi I/O

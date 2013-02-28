@@ -1494,6 +1494,11 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     int     i;
     char    buf[9];
 
+   csound->module_list_add(csound, "devfile", "midi");
+   csound->module_list_add(csound, "alsaseq", "midi");
+   csound->module_list_add(csound, "alsa", "midi");
+   csound->module_list_add(csound, "alsa", "audio");
+
     csCfgVariable_t *cfg;
     int priority;
     cfg = csound->QueryConfigurationVariable(csound, "rtscheduler");
@@ -1518,6 +1523,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtplayCallback(csound, rtplay_);
       csound->SetRtrecordCallback(csound, rtrecord_);
       csound->SetRtcloseCallback(csound, rtclose_);
+      
     }
     s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
     i = 0;
@@ -1534,6 +1540,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
       csound->SetExternalMidiWriteCallback(csound, midi_out_write);
       csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
+      
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
       if (csound->oparms->msglevel & 0x400)
