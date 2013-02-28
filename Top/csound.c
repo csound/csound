@@ -815,9 +815,15 @@ static const CSOUND cenviron_ = {
     NULL,           /* instCurr */
     NULL,           /* instRoot */
     0,              /* inInstr */
+    /* new dag model statics */
     1,              /* dag_changed */
     0,              /* dag_num_active */
     NULL,           /* dag_task_map */
+    NULL,           /* dag_task_status */
+    NULL,           /* dag_task_watch */
+    NULL,           /* dag_wlmm */
+    NULL,           /* dag_task_dep */
+    0 ,             /* dag_task_max_size */
 #endif /* PARCS */
     0,              /* tempStatus */
     0,              /* orcLineOffset */

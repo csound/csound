@@ -609,7 +609,7 @@ static int filedump(HET *thishet, CSOUND *csound)
     /* fullpath else cur dir */
     if (thishet->newformat) {
       if (csound->FileOpen2(csound, &ff, CSFILE_STD, thishet->outfilnam,
-                              "w", "", CSFTYPE_HETROT, 0) == NULL)
+                              "w", "", CSFTYPE_HETRO, 0) == NULL)
       return quit(csound, Str("cannot create output file\n"));
     } else
       if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W, thishet->outfilnam,

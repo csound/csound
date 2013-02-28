@@ -1,7 +1,7 @@
 /*
     cs_par_ops.h:
 
-    Copyright (C) 2010 Chriss Wilson and John ffitch
+    Copyright (C) 2010 Chris Wilson and John ffitch
 
     This file is part of Csound.
 
@@ -28,9 +28,3 @@ typedef struct {
     OPDS    h;
     MYFLT   *gvar_ix;
 } GLOBAL_LOCK_UNLOCK;
-
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *icnt;
-} WASTE;
