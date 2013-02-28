@@ -871,6 +871,15 @@ typedef struct NAME__ {
     int           maxinsno;
   } ENGINE_STATE;
 
+
+  /**
+   * plugin module info
+   */ 
+  typedef struct {
+    char module[12];
+    char type[12];
+  } MODULE_INFO;
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1199,6 +1208,7 @@ typedef struct NAME__ {
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
     void (*SetUtilSr)(CSOUND *, MYFLT); 
     void (*SetUtilNchnls)(CSOUND *, int);
+    void (*module_list_add)(CSOUND *, char *, char *);
     SUBR dummyfn_2[50];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;       /* used by init and perf loops */
@@ -1287,7 +1297,7 @@ typedef struct NAME__ {
     int           (*recopen_callback)(CSOUND *, const csRtAudioParams *parm);
     int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
-    int           (*audio_dev_list_callback)(CSOUND *, char *, int);
+    int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
     /* end of callbacks */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     INSTRTXT      *instr0;          /* instr0     */
