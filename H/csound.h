@@ -1136,12 +1136,13 @@ extern "C" {
       * given a number
       * Modules are added to list as csound loads them
       * returns CSOUND_SUCCESS on success and CSOUND_ERROR if module <number> was not found
-      * eg. 
+      * 
+       * \code
       *  char *name, *type;
       *  int n = 0;
       *  while(!csoundGetModule(csound, n++, &name, &type)) 
       *       printf("Module %d:  %s (%s) \n", n, name, type);
-      *       
+      * \endcode       
       */
    PUBLIC int csoundGetModule(CSOUND *csound, int number, char **name, char **type);
 
@@ -1211,7 +1212,7 @@ extern "C" {
 
     /**
      * Calling this function with a non-zero 'state' value between
-     * csoundPreCompile() and csoundCompile() will disable all default
+     * csoundPreCompile() and the start of performance will disable all default
      * handling of sound I/O by the Csound library, allowing the host
      * application to use the spin/spout/input/output buffers directly.
      * If 'bufSize' is greater than zero, the buffer size (-b) will be
@@ -1229,7 +1230,18 @@ extern "C" {
       * structure per device.
       * Hosts will typically call this function twice: first to obtain a number of devices,
       * then, after allocating space for each device information structure, pass
-      * an array of CS_AUDIODEVICE structs to be filled.
+      * an array of CS_AUDIODEVICE structs to be filled:
+      *
+      * \code
+      *   int i,n = csoundAudioDevList(csound,NULL,1);
+      *   CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *) 
+      *       malloc(n*sizeof(CS_AUDIODEVICE));
+      *   csoundAudioDevList(csound,devs,1);
+      *   for(i=0; i < n; i++) 
+      *       csound->Message(csound, " %d: %s (%s)\n", 
+      *             i, devs[i].device_id, devs[i].device_name);
+      *   free(devs);        
+      * \endcode
       */
     PUBLIC int csoundAudioDevList(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput);
 
