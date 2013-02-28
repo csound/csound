@@ -84,6 +84,7 @@ static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 static void rtclose_dummy(CSOUND *);
+static int  audio_dev_list_dummy(CSOUND *, char *, int);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
@@ -232,6 +233,7 @@ static const CSOUND cenviron_ = {
     csoundSetRecopenCallback,
     csoundSetRtrecordCallback,
     csoundSetRtcloseCallback,
+    csoundSetAudioDeviceListCallback,
     csoundAuxAlloc,
     mmalloc,
     mcalloc,
@@ -478,6 +480,7 @@ static const CSOUND cenviron_ = {
     recopen_dummy,
     rtrecord_dummy,
     rtclose_dummy,
+    audio_dev_list_dummy,
     /* end of callbacks */
     {(CS_VAR_POOL*)NULL,
      (MYFLT_POOL *) NULL,
@@ -1173,6 +1176,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
         pp = nxt;
       } while (pp != (CsoundCallbackEntry_t*) NULL);
     }
+    if(csound->API_lock != NULL) csoundDestroyMutex(csound->API_lock);
     free((void*) csound);
 }
 
@@ -2273,6 +2277,11 @@ static void rtclose_dummy(CSOUND *csound)
     csound->rtRecord_userdata = NULL;
 }
 
+static int  audio_dev_list_dummy(CSOUND *csound, char *list, int isOutput){
+  if(list != NULL) strcpy(list, "");
+  return 0;
+}
+
 PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
                                       int (*playopen__)(CSOUND *,
                                                         const csRtAudioParams
@@ -2309,6 +2318,18 @@ PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
 {
     csound->rtclose_callback = rtclose__;
 }
+
+PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
+					     int (*audiodevlist__)(CSOUND *, char *list, int isOutput))
+{
+    csound->audio_dev_list_callback = audiodevlist__;
+}
+
+PUBLIC int csoundAudioDevList(CSOUND *csound, char *list, int isOutput){
+  return csound->audio_dev_list_callback(csound,list,isOutput);
+}
+
+
 
 /* dummy real time MIDI functions */
 
@@ -3805,6 +3826,7 @@ INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
 long csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
+
 
 void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
