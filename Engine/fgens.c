@@ -2316,6 +2316,7 @@ static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
     /* The soundfile hasn't been loaded yet, so call GEN01 */
     strcpy(strarg, ftp->gen01args.strarg);
     memset(&ff, 0, sizeof(FGDATA));
+    ff.csound = csound;
     ff.fno = fno;
     ff.e.strarg = strarg;
     ff.e.opcod = 'f';
@@ -2411,7 +2412,12 @@ FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
       return NULL;
     }
     if (ftp->flen == 0) {
-      ftp = gen01_defer_load(csound, fno);
+      if(csound->oparms->gen01defer)
+       ftp = gen01_defer_load(csound, fno);
+      else {
+        csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
+        return NULL;
+      }
       if (UNLIKELY(ftp == NULL))
         csound->inerrcnt++;
     }

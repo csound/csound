@@ -561,27 +561,29 @@ static void rtclose_(CSOUND *csound)
     PA_BLOCKING_STREAM *pabs;
     pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
                                                              "_rtpaGlobals");
+
+    csound->Message(csound, "closing device\n");
     if (pabs == NULL)
       return;
-
+    
     pabs->complete = 1;
 
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
       int       i;
-      pabs->paStream = NULL;
+      
       for (i = 0; i < 4; i++) {
 #if NO_FULLDUPLEX_PA_LOCK
         if (!pabs->noPaLock)
 #endif
           csound->NotifyThreadLock(pabs->paLock);
         csound->NotifyThreadLock(pabs->clientLock);
-//        Pa_Sleep(80);
+        //Pa_Sleep(80);
       }
-
+      
       Pa_StopStream(stream);
       Pa_CloseStream(stream);
-//      Pa_Sleep(80);
+      //Pa_Sleep(80);
     }
 
     if (pabs->clientLock != NULL) {
@@ -603,7 +605,7 @@ static void rtclose_(CSOUND *csound)
       free(pabs->inputBuffer);
       pabs->inputBuffer = NULL;
     }
-
+    pabs->paStream = NULL;
     *(csound->GetRtRecordUserData(csound)) = NULL;
     *(csound->GetRtPlayUserData(csound)) = NULL;
     csound->DestroyGlobalVariable(csound, "_rtpaGlobals");
@@ -773,7 +775,7 @@ static void rtplay_blocking(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 static void rtclose_blocking(CSOUND *csound)
 {
     DEVPARAMS *dev;
-
+    csound->Message(csound, "closing device\n");
     dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     if (dev != NULL) {
       *(csound->GetRtRecordUserData(csound)) = NULL;
