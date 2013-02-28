@@ -393,9 +393,12 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *dev, int isOutput){
   csdata  *cdata;
-  char tmp[64];
+  char tmp[64], *s;
   Device_Info *devinfo;
   int n=0, i;
+
+  if ((s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO")) == NULL)
+      return 0;
   
   if(!isOutput){
    cdata = (csdata *) csound->rtRecord_userdata;
@@ -406,6 +409,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *dev, int isOutput){
        strncpy(dev[n].device_name,  devinfo[i].name, 63);
        sprintf(tmp, "dac%d", devinfo[i].indevnum);
        strncpy(dev[n].device_id, tmp, 63);
+       strncpy(dev[n].rt_module, s, 63);
        dev[n].max_nchnls = devinfo[i].inchannels;
        dev[n].isOutput = 0;
      }
@@ -422,6 +426,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *dev, int isOutput){
       strncpy(dev[n].device_name,  devinfo[i].name, 63); 
       sprintf(tmp, "dac%d", devinfo[i].outdevnum); 
       strncpy(dev[n].device_id, tmp, 63); 
+      strncpy(dev[n].rt_module, s, 63);
       dev[n].max_nchnls = devinfo[i].outchannels;
       dev[n].isOutput = 1; 
        } 
