@@ -713,12 +713,21 @@ extern "C" {
      * Device information
      */
     typedef struct {
-      const char device_name[64];
-      const char device_id[64];
-      const char rt_module[64];
+      char device_name[64];
+      char device_id[64];
+      char rt_module[64];
       int max_nchnls;
       int isOutput;
     } CS_AUDIODEVICE;
+
+    typedef struct {
+      char device_name[64];
+      char interface_name[64];
+      char device_id[64];
+      char midi_module[64];
+      int isOutput;
+    } CS_MIDIDEVICE;
+    
 
     /**
      * Real-time audio parameters structure
@@ -1295,6 +1304,17 @@ extern "C" {
      *
      *  @{
      */
+    /**
+      * This function can be called to obtain a list of available input or output
+      * midi devices. If list is NULL, the function will only return the number
+      * of devices (isOutput=1 for out devices, 0 for in devices).
+      * If list is non-NULL, then it should contain enough memory for one CS_MIDIDEVICE
+      * structure per device.
+      * Hosts will typically call this function twice: first to obtain a number of devices,
+      * then, after allocating space for each device information structure, pass
+      * an array of CS_MIDIDEVICE structs to be filled. (see also csoundAudioDevList())
+      */
+    PUBLIC int csoundMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput);
 
     /**
      * Sets callback for opening real time MIDI input.
@@ -1339,6 +1359,14 @@ extern "C" {
      */
     PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
             const char *(*func)(int));
+   
+    
+    /**
+     * Sets a function that is called to obtain a list of MIDI devices
+     * (See csoundMIDIDevList())
+     */
+    PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
+						int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
 
     /** @}*/
     /** @defgroup SCOREHANDLING Score Handling
