@@ -105,12 +105,12 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     FUNC    *ftp;
     FGDATA  ff;
     int nonpowof2_flag=0; /* gab: fixed for non-powoftwo function tables*/
-    union {
-      double d;
-      int32  i[2];
-    } cheat;
+    /* union { */
+    /*   double d; */
+    /*   int32  i[2]; */
+    /* } cheat; */
 
-    cheat.d = evtblkp->p[5];
+    /* cheat.d = evtblkp->p[5]; */
     //printf("string=%s p[5]=%8x %8x\n", evtblkp->strarg, cheat.i[0], cheat.i[1]);
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
@@ -2316,6 +2316,7 @@ static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
     /* The soundfile hasn't been loaded yet, so call GEN01 */
     strcpy(strarg, ftp->gen01args.strarg);
     memset(&ff, 0, sizeof(FGDATA));
+    ff.csound = csound;
     ff.fno = fno;
     ff.e.strarg = strarg;
     ff.e.opcod = 'f';
@@ -2411,7 +2412,12 @@ FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
       return NULL;
     }
     if (ftp->flen == 0) {
-      ftp = gen01_defer_load(csound, fno);
+      if(csound->oparms->gen01defer)
+       ftp = gen01_defer_load(csound, fno);
+      else {
+        csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
+        return NULL;
+      }
       if (UNLIKELY(ftp == NULL))
         csound->inerrcnt++;
     }

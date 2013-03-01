@@ -84,6 +84,7 @@ static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 static void rtclose_dummy(CSOUND *);
+static int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
@@ -120,6 +121,22 @@ static void create_opcodlst(CSOUND *csound)
       free(saved_opcodlst);
     if (err)
       csoundDie(csound, Str("Error allocating opcode list"));
+}
+
+#define MAX_MODULES 64
+
+void module_list_add(CSOUND *csound, char *drv, char *type){
+    MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
+    if(modules != NULL){
+     int i = 0;
+     while(modules[i] != NULL && i < MAX_MODULES){
+       if(!strcmp(modules[i]->module, drv)) return;
+       i++;
+     }
+     modules[i] = (MODULE_INFO *) csound->Malloc(csound, sizeof(MODULE_INFO));
+     strncpy(modules[i]->module, drv, 11);
+     strncpy(modules[i]->type, type, 11);
+    }
 }
 
 static const CSOUND cenviron_ = {
@@ -232,6 +249,7 @@ static const CSOUND cenviron_ = {
     csoundSetRecopenCallback,
     csoundSetRtrecordCallback,
     csoundSetRtcloseCallback,
+    csoundSetAudioDeviceListCallback,
     csoundAuxAlloc,
     mmalloc,
     mcalloc,
@@ -388,6 +406,7 @@ static const CSOUND cenviron_ = {
     csoundGetInstrumentList,
     set_util_sr,
     set_util_nchnls,
+    module_list_add,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -478,6 +497,7 @@ static const CSOUND cenviron_ = {
     recopen_dummy,
     rtrecord_dummy,
     rtclose_dummy,
+    audio_dev_list_dummy,
     /* end of callbacks */
     {(CS_VAR_POOL*)NULL,
      (MYFLT_POOL *) NULL,
@@ -785,28 +805,25 @@ static const CSOUND cenviron_ = {
     //NULL,           /* multiThreadedStart */
     //NULL,           /* multiThreadedEnd */
 #ifdef PARCS
-    NULL,           /* weight_info */
-    NULL,           /* weight_dump */
-    NULL,           /* weights */
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
     NULL,           /* global_var_lock_root */
     NULL,           /* global_var_lock_cache */
     0,              /* global_var_lock_count */
-    //    0,              /* opcode_weight_cache_ctr */
-    {NULL,NULL},    /* opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE] */
-    0,              /* opcode_weight_have_cache */
-    {NULL,NULL},    /* cache[DAG_2_CACHE_SIZE] */
     /* statics from cs_par_orc_semantic_analysis */
     NULL,           /* instCurr */
     NULL,           /* instRoot */
     0,              /* inInstr */
-#ifdef NEW_DAG
+    /* new dag model statics */
     1,              /* dag_changed */
     0,              /* dag_num_active */
     NULL,           /* dag_task_map */
-#endif
+    NULL,           /* dag_task_status */
+    NULL,           /* dag_task_watch */
+    NULL,           /* dag_wlmm */
+    NULL,           /* dag_task_dep */
+    0 ,             /* dag_task_max_size */
 #endif /* PARCS */
     0,              /* tempStatus */
     0,              /* orcLineOffset */
@@ -1176,6 +1193,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
         pp = nxt;
       } while (pp != (CsoundCallbackEntry_t*) NULL);
     }
+    if(csound->API_lock != NULL) csoundDestroyMutex(csound->API_lock);
     free((void*) csound);
 }
 
@@ -1289,19 +1307,16 @@ inline void multiThreadedLayer(CSOUND *csound, INSDS *layerBegin, INSDS *layerEn
 
 
 #ifdef PARCS
-#ifdef NEW_DAG 
 int dag_get_task(CSOUND *csound);
 void dag_end_task(CSOUND *csound, int task);
 void dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
-#endif
 
 inline static int nodePerf(CSOUND *csound, int index)
 {
     INSDS *insds = NULL;
     OPDS  *opstart = NULL;
     int played_count = 0;
-#ifdef NEW_DAG
     int which_task;
     INSDS **task_map = (INSDS*)csound->dag_task_map;
 #define INVALID (-1)
@@ -1321,52 +1336,50 @@ inline static int nodePerf(CSOUND *csound, int index)
         //printf("******** finished task %d\n", which_task);
         dag_end_task(csound, which_task);
     }
-#else
-    int update_hdl = -1;
-    DAG_NODE *node;
-    do {
-      csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl);
+    /* int update_hdl = -1; */
+    /* DAG_NODE *node; */
+    /* do { */
+    /*   csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl); */
         
-      if (UNLIKELY(node == NULL)) {
-        return played_count;
-      }
+    /*   if (UNLIKELY(node == NULL)) { */
+    /*     return played_count; */
+    /*   } */
 
-      if (node->hdr.type == DAG_NODE_INDV) {
-        insds = node->insds;
-        played_count++;
+    /*   if (node->hdr.type == DAG_NODE_INDV) { */
+    /*     insds = node->insds; */
+    /*     played_count++; */
         
-        opstart = (OPDS *)insds;
-        while ((opstart = opstart->nxtp) != NULL) {
-          (*opstart->opadr)(csound, opstart); /* run each opcode */
-        }
-        insds->ksmps_offset = 0; /* reset sample-accuracy offset */
-      }
-      else if (node->hdr.type == DAG_NODE_LIST) {
-        played_count += node->count;
+    /*     opstart = (OPDS *)insds; */
+    /*     while ((opstart = opstart->nxtp) != NULL) { */
+    /*       (*opstart->opadr)(csound, opstart); /\* run each opcode *\/ */
+    /*     } */
+    /*     insds->ksmps_offset = 0; /\* reset sample-accuracy offset *\/ */
+    /*   } */
+    /*   else if (node->hdr.type == DAG_NODE_LIST) { */
+    /*     played_count += node->count; */
 
-        int node_ctr = 0;
-        while (node_ctr < node->count) {
-          DAG_NODE *play_node = node->nodes[node_ctr];
-          insds = play_node->insds;
-          opstart = (OPDS *)insds;
-          while ((opstart = opstart->nxtp) != NULL) {
-            /* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", 
-               opstart, opstart->opadr, opstart->optext->t.opcod); */
-            (*opstart->opadr)(csound, opstart); /* run each opcode */
-          }
-          insds->ksmps_offset = 0; /* reset sample-accuracy offset */
-          node_ctr++;
-        }
-      }
-      else if (node->hdr.type == DAG_NODE_DAG) {
-        csound->Die(csound, "Recursive DAGs not implemented");
-      }
-      else {
-        csound->Die(csound, "Unknown DAG node type");
-      }
-      csp_dag_consume_update(csound->multiThreadedDag, update_hdl);
-    } while (!csp_dag_is_finished(csound->multiThreadedDag));
-#endif
+    /*     int node_ctr = 0; */
+    /*     while (node_ctr < node->count) { */
+    /*       DAG_NODE *play_node = node->nodes[node_ctr]; */
+    /*       insds = play_node->insds; */
+    /*       opstart = (OPDS *)insds; */
+    /*       while ((opstart = opstart->nxtp) != NULL) { */
+    /*         /\* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n",  */
+    /*            opstart, opstart->opadr, opstart->optext->t.opcod); *\/ */
+    /*         (*opstart->opadr)(csound, opstart); /\* run each opcode *\/ */
+    /*       } */
+    /*       insds->ksmps_offset = 0; /\* reset sample-accuracy offset *\/ */
+    /*       node_ctr++; */
+    /*     } */
+    /*   } */
+    /*   else if (node->hdr.type == DAG_NODE_DAG) { */
+    /*     csound->Die(csound, "Recursive DAGs not implemented"); */
+    /*   } */
+    /*   else { */
+    /*     csound->Die(csound, "Unknown DAG node type"); */
+    /*   } */
+    /*   csp_dag_consume_update(csound->multiThreadedDag, update_hdl); */
+    /* } while (!csp_dag_is_finished(csound->multiThreadedDag)); */
       
     return played_count;
 }
@@ -1511,48 +1524,31 @@ int kperf(CSOUND *csound)
 #endif
     }
 #else /* PARCS */
-      /* barrier1 = csound->multiThreadedBarrier1; */
-      /* barrier2 = csound->multiThreadedBarrier2; */
     ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
-      TIMER_INIT(thread, "");
-      TIMER_START(thread, "Clock Sync ");
-      TIMER_END(thread, "Clock Sync ");
-
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
-#ifdef NEW_DAG
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
-#else
-        struct dag_t *dag2 = NULL;
-
-        TIMER_START(thread, "Dag ");
-# if defined(LINEAR_CACHE) || defined(HASH_CACHE)
-        csp_dag_cache_fetch(csound, &dag2, ip);
-        csp_dag_build(csound, &dag2, ip);
-# endif
-        csound->multiThreadedDag = dag2;
-#endif
+/*         struct dag_t *dag2 = NULL; */
+/*         TIMER_START(thread, "Dag "); */
+/* # if defined(LINEAR_CACHE) || defined(HASH_CACHE) */
+/*         csp_dag_cache_fetch(csound, &dag2, ip); */
+/*         csp_dag_build(csound, &dag2, ip); */
+/* # endif */
+/*         csound->multiThreadedDag = dag2; */
 
         /* process this partition */
-        SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
+        //SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
         csound->WaitBarrier(csound->barrier1);
 
         (void) nodePerf(csound, 0);
 
-        SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
+        //SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
-#ifndef NEW_DAG
-# if defined(LINEAR_CACHE) || defined(HASH_CACHE)
-        csp_dag_dealloc(csound, &dag2);
-# else
-        dag2 = NULL;
-# endif
-#endif
         csound->multiThreadedDag = NULL;
       }
       else {
@@ -1749,19 +1745,10 @@ PUBLIC int csoundPerform(CSOUND *csound)
           csoundUnlockMutex(csound->API_lock);
 #ifdef PARCS
           if (csound->oparms->numThreads > 1) {
-# if   !defined(NEW_DAG) && (defined(LINEAR_CACHE) || defined(HASH_CACHE))
-            csp_dag_cache_print(csound);
-# endif
             csound->multiThreadedComplete = 1;
             
             csound->WaitBarrier(csound->barrier1);
           }
-# ifndef NEW_DAG
-          if (csound->oparms->calculateWeights) {
-            /* csp_weights_dump(csound); */
-            csp_weights_dump_normalised(csound);
-          }          
-# endif
 #endif /* PARCS  */
           return done;
         }
@@ -2307,6 +2294,10 @@ static void rtclose_dummy(CSOUND *csound)
     csound->rtRecord_userdata = NULL;
 }
 
+static int  audio_dev_list_dummy(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+  return 0;
+}
+
 PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
                                       int (*playopen__)(CSOUND *,
                                                         const csRtAudioParams
@@ -2343,6 +2334,18 @@ PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
 {
     csound->rtclose_callback = rtclose__;
 }
+
+PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
+					     int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput))
+{
+    csound->audio_dev_list_callback = audiodevlist__;
+}
+
+PUBLIC int csoundAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
+  return csound->audio_dev_list_callback(csound,list,isOutput);
+}
+
+
 
 /* dummy real time MIDI functions */
 
@@ -2781,6 +2784,20 @@ PUBLIC void csoundReset_(CSOUND *csound)
     free(saved_env);
 }
 
+PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
+  char *s;
+  if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
+         strncpy(s, module, 20);
+}
+
+PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
+   MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
+   if(modules[no] == NULL || no >= MAX_MODULES) return CSOUND_ERROR;
+   *module = modules[no]->module;
+   *type = modules[no]->type;
+   return CSOUND_SUCCESS;
+}
+
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
@@ -2926,6 +2943,12 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (UNLIKELY(err==CSOUND_ERROR))
         csound->Die(csound, "Failed during csoundInitStaticModules");
+
+
+     csoundCreateGlobalVariable(csound, "_MODULES", (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
+     char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
+     memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
+
       err = csoundLoadModules(csound);
       if (csound->delayederrormessages && 
           csound->printerrormessagesflag==NULL) {
@@ -3839,6 +3862,7 @@ INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
 long csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
+
 
 void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }

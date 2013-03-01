@@ -431,15 +431,26 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT *out = p->out, sr = csound->GetSr(csound);
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
-    MYFLT *tab = p->sfunc->ftable;
+    MYFLT *tab;
     double *ndx = p->ndx;
     MYFLT frac0, frac1, *etab;
     int loop_end = p->lend, loop_start = p->lstart,
-      crossfade = p->cfade, len = p->sfunc->flen;
+      crossfade = p->cfade, len;
     MYFLT count = p->count,fadein, fadeout;
     int *firsttime = &p->firsttime, elen, mode=p->mode,
         init = p->init, ijump = *p->ijump;
     uint32 tndx0, tndx1;
+    FUNC *func;
+    func = csound->FTnp2Find(csound, p->ifn);
+
+    if(p->sfunc != func) {
+    p->sfunc = func;
+    if(func == NULL) return csound->PerfError(csound, "table %d invalid\n", (int) *p->ifn);
+    if (p->ndx[0] >= p->sfunc->flen)
+       p->ndx[0] = (double) p->sfunc->flen - 1.0;
+    }
+    tab = p->sfunc->ftable;
+    len = p->sfunc->flen;
 
     if (p->efunc != NULL) {
       etab = p->efunc->ftable;
