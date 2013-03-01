@@ -108,6 +108,8 @@ def runTest():
 	["test_arrays_multi.csd", "test multi-dimensionsl k-array, assigment to number and expression"],
 	
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
+
+	["test_semantics_undefined_var.csd", "test undefined var", 1],
    ]
 
 
