@@ -46,8 +46,8 @@ typedef struct {
 
 static int bar_init(CSOUND *csound, BAR *p)
 {
-    if (*p->iK >= FL(0.0)) {
-      double  K = *p->iK;       /* ~=3.0  stiffness parameter, dimensionless */
+    if (*p->iK >= FL(0.0) || p->w_aux.auxp == NULL) {
+      double  K = FABS(*p->iK);       /* ~=3.0  stiffness parameter, dimensionless */
       double  T30 = *p->iT30;   /* ~=5.0; 30 db decay time (s) */
       double  b = *p->ib;       /* ~=0.001 high-frequency loss parameter
                                    (keep small) */
@@ -78,10 +78,12 @@ static int bar_init(CSOUND *csound, BAR *p)
       p->step = p->first = 0;
       p->N = N;
     }
+    /* 
     else {
       if (UNLIKELY(p->w_aux.auxp == NULL))
         return csound->InitError(csound, Str("No data to continue"));
     }
+    */
     p->first = 0;
 
     return OK;
