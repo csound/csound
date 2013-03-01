@@ -153,41 +153,44 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
  * format is in pairs of specified type and types it can resolve into,
  * termintated by a NULL */
 const char* POLY_IN_TYPES[] = {
-    "x", "ka",
-    "T", "Sik",
-    "U", "Sik", NULL};
+    "x", "kacpri",
+    "T", "Sicp",
+    "U", "Sikcpr",
+    "i", "cpri",
+    "k", "cprki", NULL};
 const char* OPTIONAL_IN_TYPES[] = {
-    "o", "i",
-    "p", "i",
-    "q", "i",
-    "v", "i",
-    "j", "i",
-    "h", "i",
-    "O", "k",
-    "J", "k",
-    "V", "k",
-    "P", "k", NULL
+    "o", "icpr",
+    "p", "icpr",
+    "q", "icpr",
+    "v", "icpr",
+    "j", "icpr",
+    "h", "icpr",
+    "O", "kicpr",
+    "J", "kicpr",
+    "V", "kicpr",
+    "P", "kicpr", NULL
 };
 const char* VAR_ARG_IN_TYPES[] = {
-    "m", "i",
-    "M", "ika",
-    "N", "ikaS",
-    "n", "i",   /* this one requires odd number of args... */
+    "m", "icrp",
+    "M", "icrpka",
+    "N", "icrpkaS",
+    "n", "icrp",   /* this one requires odd number of args... */
     "y", "a",
-    "z", "k",
-    "Z", "ka",  NULL  /* this one needs to be ka alternatating... */
+    "z", "kicrp",
+    "Z", "kaicrp",  NULL  /* this one needs to be ka alternatating... */
 };
 
 const char* POLY_OUT_TYPES[] = {
-    "s", "ka", NULL
+    "s", "ka",
+    "i", "pi", NULL
 };
 
 const char* VAR_ARG_OUT_TYPES[] = {
     "m", "a",
     "z", "k",
-    "I", "i", /* had comment of (not implemented yet) in entry1.c */
-    "X", "aki",
-    "N", "akiS",
+    "I", "Sip", /* had comment of (not implemented yet) in entry1.c */
+    "X", "akip",
+    "N", "akipS",
     "F", "f", NULL
 };
 
