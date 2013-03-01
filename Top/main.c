@@ -211,10 +211,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
-      OENTRY *ep;
-     for (ep = (OENTRY*) csound->opcodlst; ep < (OENTRY*) csound->oplstend; ep++) 
-        printf("opcode: %s \n",  ep->opname);
-
     csoundCompileOrc(csound, NULL);
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
