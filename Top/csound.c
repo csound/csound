@@ -1292,6 +1292,7 @@ inline static int nodePerf(CSOUND *csound, int index)
     int played_count = 0;
     int which_task;
     INSDS **task_map = (INSDS*)csound->dag_task_map;
+    double time_end;
 #define INVALID (-1)
 #define WAIT    (-2)
 
@@ -1300,11 +1301,19 @@ inline static int nodePerf(CSOUND *csound, int index)
       //printf("******** Select task %d\n", which_task);
       if (which_task==WAIT) continue;
       if (which_task==INVALID) return played_count;
-      insds = task_map[which_task];
+         /* VL: the validity of icurTime needs to be checked */
+        time_end = (csound->ksmps+csound->icurTime)/csound->esr;
+        insds = task_map[which_task];
+        if (insds->offtim > 0 && time_end > insds->offtim){
+            /* this is the last cycle of performance */
+            insds->ksmps_no_end = insds->no_end;
+          }
         opstart = task_map[which_task];
         while ((opstart = opstart->nxtp) != NULL) {
           (*opstart->opadr)(csound, opstart); /* run each opcode */
         }
+        insds->ksmps_offset = 0; /* reset sample-accuracy offset */  
+        insds->ksmps_no_end = 0;  /* reset end of loop samples */  
         played_count++;
         //printf("******** finished task %d\n", which_task);
         dag_end_task(csound, which_task);
