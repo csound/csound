@@ -209,7 +209,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
-    /* VL 30-12-12 called below line 290 */
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
       OENTRY *ep;
@@ -284,13 +283,13 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     int     n;
    
    /* VL 30-12-12 csoundInitModules is always called here now to enable
-       Csound to start without callinf csoundCompile, but directly from csoundCompileOrc()
+       Csound to start without calling csoundCompile, but directly from csoundCompileOrc()
        and csoundReadOrc()
     */
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to start with no orchestra */
      if (csoundInitModules(csound) != 0)
         csound->LongJmp(csound, 1);
-     csoundCompileOrc(csound, "instr 1 \n endin \n");
+        csoundCompileOrc(csound, "instr 1 \n endin \n");
      }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
