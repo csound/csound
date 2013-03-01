@@ -16,7 +16,12 @@
 extern char* convertArrayName(CSOUND* csound, char* arrayName);
 extern char* addDimensionToArrayName(CSOUND* csound, char* arrayName);
 extern OENTRIES* find_opcode2(CSOUND* csound, OENTRY* opcodeList, OENTRY* endOpcode, char* opname);
-extern OENTRY* resolve_opcode(OENTRIES* entries, char* outArgTypes, char* inArgTypes);
+extern OENTRY* resolve_opcode(CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
+
+extern bool check_in_arg(char* found, char* required);
+extern bool check_in_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
+extern bool check_out_arg(char* found, char* required);
+extern bool check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
 
 
 int init_suite1(void)
@@ -73,14 +78,14 @@ void test_find_opcode2(void) {
     CSOUND* csound = csoundCreate(NULL);
 
     OENTRIES* entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "=");
-    printf("Found entries: %d\n", entries->count);
+//    printf("Found entries: %d\n", entries->count);
     
-    for (i = 0; i < entries->count; i++) {
-        printf("%d) %s\t%s\t%s\n", i,
-               entries->entries[i]->opname,
-               entries->entries[i]->outypes,
-               entries->entries[i]->intypes);
-    }
+//    for (i = 0; i < entries->count; i++) {
+//        printf("%d) %s\t%s\t%s\n", i,
+//               entries->entries[i]->opname,
+//               entries->entries[i]->outypes,
+//               entries->entries[i]->intypes);
+//    }
 
     
     CU_ASSERT_EQUAL(7, entries->count);
@@ -92,14 +97,159 @@ void test_find_opcode2(void) {
 }
 
 void test_resolve_opcode(void) {
-    int i;
     CSOUND* csound = csoundCreate(NULL);
     
     OENTRIES* entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "=");
     CU_ASSERT_EQUAL(7, entries->count);
     
-    OENTRY* opc = resolve_opcode(entries, "k", "k");
+    OENTRY* opc = resolve_opcode(csound, entries, "k", "k");
     CU_ASSERT_PTR_NOT_NULL(opc);
+    csound->Free(csound, entries);
+    
+    
+    entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "vco2");
+    CU_ASSERT_EQUAL(1, entries->count);
+    
+    opc = resolve_opcode(csound, entries, "a", "cc");
+    CU_ASSERT_PTR_NOT_NULL(opc);
+    csound->Free(csound, entries);
+    
+    
+    entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "passign");
+    CU_ASSERT_EQUAL(1, entries->count);
+    int i;
+    for (i = 0; i < entries->count; i++) {
+        printf("%d) %s\t%s\t%s\n", i,
+               entries->entries[i]->opname,
+               entries->entries[i]->outypes,
+               entries->entries[i]->intypes);
+    }
+    
+    opc = resolve_opcode(csound, entries, "iiiiS", NULL);
+    CU_ASSERT_PTR_NOT_NULL(opc);
+    csound->Free(csound, entries);
+
+}
+
+void test_check_in_arg(void) {
+    CU_ASSERT_FALSE(check_in_arg(NULL, NULL));
+    CU_ASSERT_FALSE(check_in_arg("a", NULL));
+    CU_ASSERT_FALSE(check_in_arg(NULL, "a"));
+    CU_ASSERT_TRUE(check_in_arg("a", "a"));
+    CU_ASSERT_FALSE(check_in_arg("a", "k"));
+    CU_ASSERT_TRUE(check_in_arg("c", "i"));
+    CU_ASSERT_TRUE(check_in_arg("i", "k"));    
+    
+    // checking union types
+    CU_ASSERT_TRUE(check_in_arg("k", "x"));
+    CU_ASSERT_TRUE(check_in_arg("a", "x"));
+    CU_ASSERT_TRUE(check_in_arg("S", "T"));
+    CU_ASSERT_TRUE(check_in_arg("i", "T"));
+    CU_ASSERT_FALSE(check_in_arg("k", "T"));
+    CU_ASSERT_TRUE(check_in_arg("S", "U"));
+    CU_ASSERT_TRUE(check_in_arg("i", "U"));
+    CU_ASSERT_TRUE(check_in_arg("k", "U"));
+    CU_ASSERT_TRUE(check_in_arg("i", "k"));
+    CU_ASSERT_TRUE(check_in_arg("p", "k"));
+    CU_ASSERT_TRUE(check_in_arg("c", "k"));
+    CU_ASSERT_TRUE(check_in_arg("r", "k"));
+    CU_ASSERT_TRUE(check_in_arg("c", "i"));
+    CU_ASSERT_TRUE(check_in_arg("r", "k"));
+    CU_ASSERT_TRUE(check_in_arg("p", "k"));
+
+
+    
+    // checking var-arg types
+    CU_ASSERT_FALSE(check_in_arg("a", "m"));
+    CU_ASSERT_TRUE(check_in_arg("i", "m"));
+    CU_ASSERT_TRUE(check_in_arg("i", "M"));    
+    CU_ASSERT_TRUE(check_in_arg("k", "M"));
+    CU_ASSERT_TRUE(check_in_arg("a", "M"));
+    CU_ASSERT_TRUE(check_in_arg("a", "N"));
+    CU_ASSERT_TRUE(check_in_arg("k", "N"));
+    CU_ASSERT_TRUE(check_in_arg("i", "N"));
+    CU_ASSERT_TRUE(check_in_arg("S", "N"));
+    
+    CU_ASSERT_TRUE(check_in_arg("i", "n"));
+    CU_ASSERT_TRUE(check_in_arg("a", "y"));
+    CU_ASSERT_TRUE(check_in_arg("k", "z"));
+    CU_ASSERT_TRUE(check_in_arg("k", "Z"));
+    CU_ASSERT_TRUE(check_in_arg("a", "Z"));
+    
+    //array
+    CU_ASSERT_FALSE(check_in_arg("a", "[a;"));
+    CU_ASSERT_FALSE(check_in_arg("[a;", "a"));
+    CU_ASSERT_TRUE(check_in_arg("[a;", "[a;"));
+    CU_ASSERT_FALSE(check_in_arg("[k;", "[a;"));
+    CU_ASSERT_TRUE(check_in_arg("[a;", "[?;"));
+}
+
+void test_check_in_args(void) {
+    CSOUND* csound = csoundCreate(NULL);
+    
+    CU_ASSERT_TRUE(check_in_args(csound, NULL, ""));
+    CU_ASSERT_TRUE(check_in_args(csound, "", NULL));
+    CU_ASSERT_TRUE(check_in_args(csound, NULL, NULL));
+    CU_ASSERT_TRUE(check_in_args(csound, "", ""));
+    
+    CU_ASSERT_TRUE(check_in_args(csound, "akiSakiS", "N"));
+    CU_ASSERT_TRUE(check_in_args(csound, "akiSakiS", "aN"));
+    CU_ASSERT_FALSE(check_in_args(csound, "akiSakiS", "akiSakiSa"));
+    
+    CU_ASSERT_TRUE(check_in_args(csound, "cc", "kkoM"));
+
+}
+
+
+void test_check_out_arg(void) {
+    CU_ASSERT_FALSE(check_out_arg(NULL, NULL));
+    CU_ASSERT_FALSE(check_out_arg("a", NULL));
+    CU_ASSERT_FALSE(check_out_arg(NULL, "a"));
+    CU_ASSERT_TRUE(check_out_arg("a", "a"));
+    CU_ASSERT_FALSE(check_out_arg("a", "k"));
+    CU_ASSERT_FALSE(check_out_arg("i", "k"));
+
+    CU_ASSERT_FALSE(check_out_arg("c", "i"));
+    
+    // checking union types
+    CU_ASSERT_TRUE(check_out_arg("k", "s"));
+    CU_ASSERT_TRUE(check_out_arg("a", "s"));
+    CU_ASSERT_TRUE(check_out_arg("p", "i"));    
+    
+    // checking var-arg types
+    CU_ASSERT_TRUE(check_out_arg("a", "m"));
+    CU_ASSERT_TRUE(check_out_arg("k", "z"));
+    CU_ASSERT_TRUE(check_out_arg("i", "I"));
+    CU_ASSERT_TRUE(check_out_arg("a", "X"));
+    CU_ASSERT_TRUE(check_out_arg("k", "X"));
+    CU_ASSERT_TRUE(check_out_arg("i", "X"));
+    CU_ASSERT_FALSE(check_out_arg("S", "X"));
+    CU_ASSERT_TRUE(check_out_arg("a", "N"));
+    CU_ASSERT_TRUE(check_out_arg("k", "N"));
+    CU_ASSERT_TRUE(check_out_arg("i", "N"));
+    CU_ASSERT_TRUE(check_out_arg("S", "N"));
+    CU_ASSERT_TRUE(check_out_arg("f", "F"));
+
+    //array
+    CU_ASSERT_FALSE(check_out_arg("a", "[a;"));
+    CU_ASSERT_FALSE(check_out_arg("[a;", "a"));
+    CU_ASSERT_TRUE(check_out_arg("[a;", "[a;"));
+    CU_ASSERT_FALSE(check_out_arg("[k;", "[a;"));
+    CU_ASSERT_TRUE(check_out_arg("[a;", "[?;"));
+
+}
+
+void test_check_out_args(void) {
+    CSOUND* csound = csoundCreate(NULL);
+
+    CU_ASSERT_TRUE(check_out_args(csound, NULL, ""));
+    CU_ASSERT_TRUE(check_out_args(csound, "", NULL));
+    CU_ASSERT_TRUE(check_out_args(csound, NULL, NULL));
+    CU_ASSERT_TRUE(check_out_args(csound, "", ""));
+    
+    CU_ASSERT_TRUE(check_out_args(csound, "akiSakiS", "N"));
+    CU_ASSERT_TRUE(check_out_args(csound, "akiSakiS", "aN"));
+    CU_ASSERT_FALSE(check_out_args(csound, "akiSakiS", "akiSakiSa"));
 }
 
 int main()
@@ -122,6 +272,10 @@ int main()
         || (NULL == CU_add_test(pSuite, "Test addDimensionToArrayName()", test_addDimensionToArrayName))
         || (NULL == CU_add_test(pSuite, "Test find_opcode2()", test_find_opcode2))
         || (NULL == CU_add_test(pSuite, "Test resolve_opcode()", test_resolve_opcode))
+        || (NULL == CU_add_test(pSuite, "Test check_out_arg()", test_check_out_arg))
+        || (NULL == CU_add_test(pSuite, "Test check_out_args()", test_check_out_args))
+        || (NULL == CU_add_test(pSuite, "Test check_in_arg()", test_check_in_arg))
+        || (NULL == CU_add_test(pSuite, "Test check_in_args()", test_check_in_args))
         )
     {
         CU_cleanup_registry();

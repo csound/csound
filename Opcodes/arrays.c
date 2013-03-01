@@ -784,7 +784,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 
 static OENTRY arrayvars_localops[] =
 {
-    { "array_init", sizeof(ARRAYINIT), 0, 1, "[?;", "im", (SUBR)array_init },
+    { "init", sizeof(ARRAYINIT), 0, 1, "[?;", "m", (SUBR)array_init },
     { "array_set", sizeof(ARRAY_SET), 0, 3, "", "[?;?M", (SUBR)array_set, (SUBR)array_set },
     { "array_get", sizeof(ARRAY_GET), 0, 3, "?", "[?;M", (SUBR)array_get, (SUBR)array_get },
 //  { "##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
