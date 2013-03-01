@@ -198,7 +198,7 @@ static int nterpol_init(CSOUND *csound, INTERPOL *p)
     else
       return csound->InitError(csound, Str("Min and max the same"));
     return OK;
-}
+ }
 
 static int knterpol(CSOUND *csound, INTERPOL *p)
 {
@@ -344,6 +344,7 @@ static int poscka(CSOUND *csound, POSC *p)
 
 static int poscak(CSOUND *csound, POSC *p)
 {
+   
     FUNC        *ftp = p->ftp;
     MYFLT       *out = p->out, *ft;
     MYFLT       *curr_samp, fract;
