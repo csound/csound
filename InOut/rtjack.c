@@ -978,7 +978,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-
+    csound->module_list_add(csound,"jack", "audio");
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
       return 0;
