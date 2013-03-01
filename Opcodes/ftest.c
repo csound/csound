@@ -87,15 +87,15 @@ static int sonetable(FGDATA *ff, FUNC *ftp)
 
 /* GENwave by Gleb Rogozinsky 2012 */
 typedef struct {
-  MYFLT   *pWF, *pSF;
-  MYFLT   *pFil[2];
-  int     *size;
+  MYFLT        *pWF, *pSF;
+  MYFLT        *pFil[2];
+  unsigned int *size;
 } WAVELET;
 
-static int deconvolve(MYFLT *pInp, WAVELET *pwaveS, int *pnewLen,
+static int deconvolve(MYFLT *pInp, WAVELET *pwaveS, unsigned int *pnewLen,
                       MYFLT *pBuf, int *pOrder)
 {
-    int i, j;
+    unsigned int i, j;
     *pnewLen *= 2;
     for (j = 0; j < *pnewLen; j++) {
       for (i = 0; i < *pwaveS->size; i++)
@@ -117,7 +117,7 @@ static int wavetable(FGDATA *ff, FUNC *ftp)
     MYFLT   resc = ff->e.p[7];
     int     ffilno = (int)ff->e.p[5];
     unsigned int     i;
-    int     steps, newLen, *pnewLen;
+    unsigned int     steps, newLen, *pnewLen;
     int     nargs = ff->e.pcnt - 4;
     int     *pOrder, *xfree;
     FUNC    *srcfil = csound->flist[ffilno];

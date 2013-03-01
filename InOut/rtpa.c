@@ -100,39 +100,54 @@ static int initPortAudio(CSOUND *csound)
 }
 
 /* list available input or output devices; returns the number of devices */
-
-static int listPortAudioDevices_blocking(CSOUND *csound,
-                                         int print_list, int play)
-{
-    PaDeviceInfo  *dev_info;
+int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+     PaDeviceInfo  *dev_info;
     int           i, j, ndev;
+    char          tmp[256], *s;
+
+     if ((s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO")) == NULL)
+      return 0;
 
     ndev = (int) Pa_GetDeviceCount();
     for (i = j = 0; i < ndev; i++) {
       dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) i);
-      if ((play && dev_info->maxOutputChannels > 0) ||
-          (!play && dev_info->maxInputChannels > 0))
+      if ((isOutput && dev_info->maxOutputChannels > 0) ||
+          (!isOutput && dev_info->maxInputChannels > 0))
         j++;
     }
-    if (!j) {
-      pa_PrintErrMsg(csound, Str("No %s devices are available\n"),
-                             (play ? Str("output") : Str("input")));
-      return 0;
-    }
-    if (!print_list)
-      return j;
-    csound->Message(csound, Str("PortAudio: available %s devices:\n"),
-                            (play ? Str("output") : Str("input")));
+    if (!j) return 0;
+    if(list!=NULL) {
     for (i = j = 0; i < ndev; i++) {
       dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) i);
-      if ((play && dev_info->maxOutputChannels > 0) ||
-          (!play && dev_info->maxInputChannels > 0)) {
-        csound->Message(csound, " %3d: %s\n", j, dev_info->name);
+      if ((isOutput && dev_info->maxOutputChannels > 0) ||
+          (!isOutput && dev_info->maxInputChannels > 0)) {
+        strncpy(list[j].device_name, dev_info->name, 63);
+	sprintf(tmp, "dac%d", j);
+        strncpy(list[j].device_id, tmp, 63);
+        strncpy(list[j].rt_module, s, 63);
+        list[j].max_nchnls = isOutput ?  dev_info->maxOutputChannels : dev_info->maxInputChannels;
+        list[j].isOutput = isOutput;
         j++;
       }
     }
-    return j;
+    }
+    return j;     
 }
+
+
+static int listPortAudioDevices_blocking(CSOUND *csound,
+                                         int print_list, int play)
+{
+    int i,n = listDevices(csound, NULL, play);
+    CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *) csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
+    listDevices(csound, devs, play);
+    for(i=0; i < n; i++) csound->Message(csound, " %3d: %s (%s)\n", i, devs[i].device_id, devs[i].device_name);
+    csound->Free(csound, devs);
+    return n;
+}
+
+
+
 
 /* select PortAudio device; returns the actual device number */
 
@@ -534,27 +549,29 @@ static void rtclose_(CSOUND *csound)
     PA_BLOCKING_STREAM *pabs;
     pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
                                                              "_rtpaGlobals");
+
+    csound->Message(csound, "closing device\n");
     if (pabs == NULL)
       return;
-
+    
     pabs->complete = 1;
 
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
       int       i;
-      pabs->paStream = NULL;
+      
       for (i = 0; i < 4; i++) {
 #if NO_FULLDUPLEX_PA_LOCK
         if (!pabs->noPaLock)
 #endif
           csound->NotifyThreadLock(pabs->paLock);
         csound->NotifyThreadLock(pabs->clientLock);
-//        Pa_Sleep(80);
+        //Pa_Sleep(80);
       }
-
+      
       Pa_StopStream(stream);
       Pa_CloseStream(stream);
-//      Pa_Sleep(80);
+      //Pa_Sleep(80);
     }
 
     if (pabs->clientLock != NULL) {
@@ -576,7 +593,7 @@ static void rtclose_(CSOUND *csound)
       free(pabs->inputBuffer);
       pabs->inputBuffer = NULL;
     }
-
+    pabs->paStream = NULL;
     *(csound->GetRtRecordUserData(csound)) = NULL;
     *(csound->GetRtPlayUserData(csound)) = NULL;
     csound->DestroyGlobalVariable(csound, "_rtpaGlobals");
@@ -746,7 +763,7 @@ static void rtplay_blocking(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 static void rtclose_blocking(CSOUND *csound)
 {
     DEVPARAMS *dev;
-
+    csound->Message(csound, "closing device\n");
     dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     if (dev != NULL) {
       *(csound->GetRtRecordUserData(csound)) = NULL;
@@ -785,7 +802,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *s, drv[12];
     int     i;
-
+    csound->module_list_add(csound, "pa_bl", "audio");
+    csound->module_list_add(csound, "pa_cb", "audio");
     if ((s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO")) == NULL)
       return 0;
     for (i = 0; s[i] != '\0' && i < 11; i++)
@@ -808,6 +826,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtplayCallback(csound, rtplay_blocking);
       csound->SetRtrecordCallback(csound, rtrecord_blocking);
       csound->SetRtcloseCallback(csound, rtclose_blocking);
+      csound->SetAudioDeviceListCallback(csound, listDevices);
     }
     else {
       csound->Message(csound, Str("using callback interface\n"));
@@ -816,7 +835,10 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtplayCallback(csound, rtplay_);
       csound->SetRtrecordCallback(csound, rtrecord_);
       csound->SetRtcloseCallback(csound, rtclose_);
+      csound->SetAudioDeviceListCallback(csound, listDevices);
     }
+
+    csound->module_list_add(csound, drv, "audio");
     return 0;
 }
 

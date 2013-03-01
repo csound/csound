@@ -262,7 +262,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     char    *s;
     int     i;
     char    buf[9];
-
+    csound->module_list_add(csound, "pulse", "audio");
     s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     i = 0;
     if (s != NULL) {

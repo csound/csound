@@ -228,7 +228,6 @@ typedef struct CORFIL {
     int     numThreads;
     int     syntaxCheckOnly;
     int     useCsdLineCounts;
-    int     calculateWeights;
     int     sampleAccurate;  /* switch for score events sample accuracy */
     int     realtime; /* realtime priority mode  */
   } OPARMS;
@@ -872,6 +871,15 @@ typedef struct NAME__ {
     int           maxinsno;
   } ENGINE_STATE;
 
+
+  /**
+   * plugin module info
+   */ 
+  typedef struct {
+    char module[12];
+    char type[12];
+  } MODULE_INFO;
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1021,6 +1029,8 @@ typedef struct NAME__ {
     void (*SetRtrecordCallback)(CSOUND *,
                 int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
+    void (*SetAudioDeviceListCallback)(CSOUND *csound,
+				       void (*audiodevlist__)(CSOUND *, char *list, int isOutput));
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
@@ -1198,6 +1208,7 @@ typedef struct NAME__ {
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
     void (*SetUtilSr)(CSOUND *, MYFLT); 
     void (*SetUtilNchnls)(CSOUND *, int);
+    void (*module_list_add)(CSOUND *, char *, char *);
     SUBR dummyfn_2[50];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;       /* used by init and perf loops */
@@ -1286,6 +1297,7 @@ typedef struct NAME__ {
     int           (*recopen_callback)(CSOUND *, const csRtAudioParams *parm);
     int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
+    int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
     /* end of callbacks */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     INSTRTXT      *instr0;          /* instr0     */
@@ -1584,9 +1596,6 @@ typedef struct NAME__ {
     /* INSDS         *multiThreadedStart; */
     /* INSDS         *multiThreadedEnd; */
 #ifdef PARCS
-    char                *weight_info;
-    char                *weight_dump;
-    char                *weights;
     struct dag_t        *multiThreadedDag;
     pthread_barrier_t   *barrier1;
     pthread_barrier_t   *barrier2;
@@ -1594,20 +1603,18 @@ typedef struct NAME__ {
     struct global_var_lock_t *global_var_lock_root;
     struct global_var_lock_t **global_var_lock_cache;
     int           global_var_lock_count;
-    //    int           opcode_weight_cache_ctr;
-    struct opcode_weight_cache_entry_t
-                  *opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
-    int           opcode_weight_have_cache;
-    struct        dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
     /* statics from cs_par_orc_semantic_analysis */
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
     int           inInstr;
-#ifdef NEW_DAG
     int           dag_changed;
     int           dag_num_active;
     INSDS         **dag_task_map;
-#endif
+    enum state    *dag_task_status;
+    watchList     **dag_task_watch;
+    watchList     *dag_wlmm;
+    char          **dag_task_dep;
+    int           dag_task_max_size;
 #endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
