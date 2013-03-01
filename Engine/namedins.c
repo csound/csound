@@ -456,6 +456,7 @@ int find_opcode(CSOUND *csound, char *opname)
     /* now find entry in opcode chain */
     n = ((int*) csound->opcode_list)[h];
     while (n) {
+     
       if (!sCmp(opname, csound->opcodlst[n].opname))
         return n;
       n = csound->opcodlst[n].prvnum;
