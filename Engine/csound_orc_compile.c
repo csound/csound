@@ -426,10 +426,6 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       ip->mdepends |= csound->opcodlst[opnum].flags;
       ip->opdstot += csound->opcodlst[opnum].dsblksiz;
 
-      if (tp->opnum == find_opcode(csound, "array_init")) {
-        //break;
-      }
-
       /* BUILD ARG LISTS */
     {
       int incount = tree_arg_list_count(root->right);
