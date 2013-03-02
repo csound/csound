@@ -1784,7 +1784,7 @@ PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel)
     return csound->spout[index];
 }
 
-PUBLIC const char *csoundGetOutputFileName(CSOUND *csound)
+PUBLIC const char *csoundGetOutputName(CSOUND *csound)
 {
     return (const char*) csound->oparms_.outfilename;
 }
@@ -2729,6 +2729,15 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
    if (csoundInitModules(csound) != 0)
              csound->LongJmp(csound, 1);
 }
+
+PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
+  char *s;
+  if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
+         strncpy(s, module, 20);
+   if (csoundInitModules(csound) != 0)
+             csound->LongJmp(csound, 1);
+}
+
 
 PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
    MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
