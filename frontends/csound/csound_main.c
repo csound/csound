@@ -131,9 +131,24 @@ int main(int argc, char **argv)
 
     /*  Create Csound. */
     csound = csoundCreate(NULL);
+    csoundSetRTAudioModule(csound, "auhal");
+    {
+             int i,n = csoundAudioDevList(csound,NULL,1);
+	     csoundMessage(csound, "%d devices\n", n);
+         CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *) 
+             malloc(n*sizeof(CS_AUDIODEVICE));
+         csoundAudioDevList(csound,devs,1);
+         for(i=0; i < n; i++) 
+             csoundMessage(csound, "%d: %s (%s)\n", 
+                   i, devs[i].device_id, devs[i].device_name);
+         free(devs);  
+    }    
+
 
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
+    
+
     while (!result){
       result = csoundPerformKsmps(csound);
 
