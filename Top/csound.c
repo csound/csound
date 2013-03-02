@@ -2726,6 +2726,8 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
   char *s;
   if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
          strncpy(s, module, 20);
+   if (csoundInitModules(csound) != 0)
+             csound->LongJmp(csound, 1);
 }
 
 PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
@@ -2900,6 +2902,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       /* VL: moved here from main.c */
       if (csoundInitModules(csound) != 0)
             csound->LongJmp(csound, 1);
+     
 
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
