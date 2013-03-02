@@ -51,13 +51,19 @@
 #include <sstream>
 #include <stdlib.h>
 
-#if defined(WIN32)
-#define PUBLIC __declspec(dllexport)
-#include <io.h>
-#elif defined(__GNUC__) && !defined(__MACH__)
-#define PUBLIC __attribute__ ( (visibility("default")) )
+#ifndef PUBLIC
+#if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
+#  define PUBLIC        __declspec(dllexport)
+#elif defined(__GNUC__) && (__GNUC__ >= 4) /* && !defined(__MACH__) */
+#  define PUBLIC        __attribute__ ( (visibility("default")) )
+#  define HAVE_ATOMIC_BUILTIN
 #else
-#define PUBLIC
+#  define PUBLIC
+#endif
+#endif
+
+#if defined(WIN32)
+#include <io.h>
 #endif
 #endif
 

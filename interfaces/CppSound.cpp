@@ -50,7 +50,7 @@ int CppSound::compile(int argc, char **argv_)
     }
   else
     {
-      const char *outfilename = GetOutputFileName();
+      const char *outfilename = GetOutputName();
       if (outfilename) {
         renderedSoundfile = outfilename;
       }

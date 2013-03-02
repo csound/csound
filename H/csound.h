@@ -1071,9 +1071,9 @@ extern "C" {
 
  
    /**
-    * Returns the output sound file name (-o).
+    * Returns the output audio output name (-o).
     */
-  PUBLIC const char *csoundGetOutputFileName(CSOUND *);
+  PUBLIC const char *csoundGetOutputName(CSOUND *);
 
    /**
     *  Set output destination, type and format
@@ -1304,6 +1304,12 @@ extern "C" {
      *
      *  @{
      */
+
+    /**
+     *  Sets the current MIDI IO module 
+     */
+    PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module);
+
     /**
       * This function can be called to obtain a list of available input or output
       * midi devices. If list is NULL, the function will only return the number
