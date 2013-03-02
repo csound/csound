@@ -30,6 +30,7 @@
 #include "System.hpp"
 #include "CsoundFile.hpp"
 #include "Conversions.hpp"
+#include <csound.h>
 
 namespace csound
 {
