@@ -339,9 +339,12 @@ struct Inleta : public OpcodeBase<Inleta> {
           // Skip inactive instances.
           if (sourceOutlet->head.insdshead->actflg) {
             // Loop over the samples in the inlet buffer.
-            for (int sampleI = 0;
-                 sampleI < sampleN;
-                 sampleI++) {
+            uint32_t sampleOffset = kperiodOffset();
+            uint32_t sampleI;
+            for (sampleI = 0; sampleI < sampleOffset; ++sampleI) {
+                asignal[sampleI] = FL(0.0);
+            }
+            for ( ; sampleI < sampleN; ++sampleI) {
               asignal[sampleI] += sourceOutlet->asignal[sampleI];
             }
           }
