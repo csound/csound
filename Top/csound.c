@@ -2896,6 +2896,11 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (err != CSOUND_SUCCESS)
         csound->Die(csound, "Failed during csoundLoadModules");
+
+      /* VL: moved here from main.c */
+      if (csoundInitModules(csound) != 0)
+            csound->LongJmp(csound, 1);
+
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
       dbfs_init(csound, DFLT_DBFS);
