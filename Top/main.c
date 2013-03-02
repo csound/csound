@@ -209,8 +209,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
-    if (csoundInitModules(csound) != 0)
-      csound->LongJmp(csound, 1);
+    
+    /* VL: moved to csoundReset() in csound.c
+      if (csoundInitModules(csound) != 0)
+      csound->LongJmp(csound, 1); */
     csoundCompileOrc(csound, NULL);
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
@@ -283,8 +285,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
        and csoundReadOrc()
     */
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to start with no orchestra */
-     if (csoundInitModules(csound) != 0)
-        csound->LongJmp(csound, 1);
+      /* VL: moved to csoundReset() in csound.c    
+ if (csoundInitModules(csound) != 0)
+ csound->LongJmp(csound, 1); */
         csoundCompileOrc(csound, "instr 1 \n endin \n");
      }
 
