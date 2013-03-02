@@ -2588,6 +2588,11 @@ extern "C" {
     PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *);
 #endif
 
+PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
+
+PUBLIC int csoundCloseLibrary(void *library);
+
+PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName);
 
 
 #ifdef __cplusplus
