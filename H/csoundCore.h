@@ -1033,7 +1033,9 @@ typedef struct NAME__ {
                 int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
     void (*SetAudioDeviceListCallback)(CSOUND *csound,
-				       void (*audiodevlist__)(CSOUND *, char *list, int isOutput));
+				       void (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+    void (*SetMIDIDeviceListCallback)(CSOUND *csound,
+				       void (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
@@ -1301,6 +1303,7 @@ typedef struct NAME__ {
     int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
     int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
+    int           (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int);
     /* end of callbacks */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     INSTRTXT      *instr0;          /* instr0     */

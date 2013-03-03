@@ -62,6 +62,17 @@ public:
   {
     return reinterpret_cast<T *>(opcode)->audio(csound);
   }
+  /**
+   * For sample accurate timing, kperf may be called at some  
+   * offset after the first frame of the kperiod. Hence, opcodes
+   * must output zeros up until the offset, and then output 
+   * their signal until the end of the kperiod. After the first 
+   * kperiod of activation, the offset will always be 0.
+   */
+  uint32_t kperiodOffset() const
+  {
+      return head.insdshead->ksmps_offset;
+  }
   void log(CSOUND *csound, const char *format,...)
   {
     va_list args;
