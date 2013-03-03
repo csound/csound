@@ -148,23 +148,24 @@ int tonsetx(CSOUND *csound, TONEX *p)
     }
     if (UNLIKELY((p->loop = (int) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (unsigned int)(p->loop*sizeof(double)) > p->aux.size))
-      csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
+                    (unsigned int)(p->loop*sizeof(double)) > p->aux.size))
+        csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
     if (LIKELY(!(*p->istor))) {
-      memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
+    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
     }
     return OK;
 }
 
 int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
 {
+    MYFLT       *ar = p->ar;
+    double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int    j;
-    MYFLT  *ar;
-    double c1, c2, *yt1;
+    int      j, lp = p->loop;
+
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = (double)*p->khp;
@@ -172,25 +173,20 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
-    c1 = p->c1;
-    c2 = p->c2;
-    yt1= p->yt1;
-    nsmps = CS_KSMPS;
-    ar = p->ar;
-    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
-    if (offset)  memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (j=0; j< p->loop; j++) {
+   
+     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+     if (offset)  memset(ar, '\0', offset*sizeof(MYFLT));
+      if (early) {
+        nsmps -= early;
+        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      } 
+    for (j=0; j< lp; j++) {
       /* Should *yt1 be reset to something?? */
-      for (n=offset; n<nsmps; n++) {
-        double x = c1 * ar[n] + c2 * yt1[j];
+      for (n=0; n<nsmps; n++) {
+	double x = c1 * ar[n] + c2 * yt1[j];
         yt1[j] = x;
         ar[n] = (MYFLT)x;
       }
-      yt1++;
     }
     return OK;
 }
