@@ -207,8 +207,8 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     pmall_data *next = NULL;
 
 
-    if (start_portmidi(csound) != 0)
-      return -1;
+    //if (start_portmidi(csound) != 0)
+    // return -1;
     /* check if there are any devices available */
     cntdev = portMidi_getDeviceCount(0);
     portMidi_listDevices(csound, 0);
@@ -289,8 +289,8 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
     PmDeviceInfo *info;
     PortMidiStream *midistream;
 
-    if (UNLIKELY(start_portmidi(csound) != 0))
-      return -1;
+    //if (UNLIKELY(start_portmidi(csound) != 0))
+    //  return -1;
     /* check if there are any devices available */
     cntdev = portMidi_getDeviceCount(1);
     if (UNLIKELY(cntdev < 1)) {
@@ -498,6 +498,13 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetExternalMidiWriteCallback(csound, WriteMidiData_);
     csound->SetExternalMidiOutCloseCallback(csound, CloseMidiOutDevice_);
     csound->SetMIDIDeviceListCallback(csound,listDevices);
+    if (UNLIKELY(start_portmidi(csound) != 0))
+      return -1;
+    return 0;
+}
+
+PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+  stop_portmidi(csound, NULL);
     return 0;
 }
 

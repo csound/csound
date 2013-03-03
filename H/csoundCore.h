@@ -1033,9 +1033,9 @@ typedef struct NAME__ {
                 int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
     void (*SetAudioDeviceListCallback)(CSOUND *csound,
-				       void (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+				       int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
     void (*SetMIDIDeviceListCallback)(CSOUND *csound,
-				       void (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
+				       int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
