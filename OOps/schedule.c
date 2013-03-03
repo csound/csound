@@ -40,11 +40,13 @@ int schedule(CSOUND *csound, SCHED *p){
   pp.args[1] = p->which;
   pp.args[2] = p->when;
   pp.args[3] = p->dur;
-  pp.INOCOUNT = p->INOCOUNT+1;
-  for(i=4; i < p->INOCOUNT ; i++) {
+  pp.argno = p->INOCOUNT+1;
+  for(i=4; i < pp.argno ; i++) {
     pp.args[i] = p->argums[i-4];
   }
-  return eventOpcodeI(csound, &pp);
+  pp.flag = 1;
+  int res = eventOpcodeI(csound, &pp);
+  return res; 
 }
 
 int ifschedule(CSOUND *csound, WSCHED *p)
@@ -65,12 +67,13 @@ int kschedule(CSOUND *csound, WSCHED *p) {
   pp.args[1] = p->which;
   pp.args[2] = p->when;
   pp.args[3] = p->dur;
-  pp.INOCOUNT = p->INOCOUNT;
-  for(i=4; i < p->INOCOUNT ; i++) {
+   pp.argno = p->INOCOUNT+1;
+  for(i=4; i < pp.argno ; i++) {
     pp.args[i] = p->argums[i-4];
   }
   p->todo =0;
-  return eventOpcode(csound, &pp);
+  int res = eventOpcode(csound, &pp);
+  return res; 
   }
   else return OK;
 }
