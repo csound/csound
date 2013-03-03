@@ -716,7 +716,7 @@ static int grain2(CSOUND *csound, GRAIN2 *p)
       }
     }
     aout = p->ar;                       /* audio output         */
-    for (nn = offset; nn<nsmps; n++) {
+    for (nn = offset; nn<nsmps; nn++) {
       i = p->nr_osc;
       do {
         /* grain waveform */

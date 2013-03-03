@@ -216,6 +216,7 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, OENTRY* opcodeList, OENTRY* endOpc
     int opLen = strlen(opname);
     
     for (i=0; opc < endOpcode; opc++, i++) {
+     
         if(strncmp(opname, opc->opname, opLen) == 0) {
             // hack to work with how opcodes are currently defined with ".x" endings for polymorphism
             if(opc->opname[opLen] == 0 || opc->opname[opLen] == '.') {
@@ -801,7 +802,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->rate = -1;
     ans->line = line;
     ans->locn  = locn;
-    csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
+    //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
 
