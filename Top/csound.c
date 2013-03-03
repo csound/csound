@@ -85,6 +85,7 @@ static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 static void rtclose_dummy(CSOUND *);
 static int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
+static int  midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
@@ -250,6 +251,7 @@ static const CSOUND cenviron_ = {
     csoundSetRtrecordCallback,
     csoundSetRtcloseCallback,
     csoundSetAudioDeviceListCallback,
+    csoundSetMIDIDeviceListCallback,
     csoundAuxAlloc,
     mmalloc,
     mcalloc,
@@ -498,6 +500,7 @@ static const CSOUND cenviron_ = {
     rtrecord_dummy,
     rtclose_dummy,
     audio_dev_list_dummy,
+    midi_dev_list_dummy,
     /* end of callbacks */
     {(CS_VAR_POOL*)NULL,
      (MYFLT_POOL *) NULL,
@@ -1741,7 +1744,7 @@ PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel)
     return csound->spout[index];
 }
 
-PUBLIC const char *csoundGetOutputFileName(CSOUND *csound)
+PUBLIC const char *csoundGetOutputName(CSOUND *csound)
 {
     return (const char*) csound->oparms_.outfilename;
 }
@@ -2180,6 +2183,10 @@ static int  audio_dev_list_dummy(CSOUND *csound, CS_AUDIODEVICE *list, int isOut
   return 0;
 }
 
+static int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+  return 0;
+}
+
 PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
                                       int (*playopen__)(CSOUND *,
                                                         const csRtAudioParams
@@ -2223,10 +2230,19 @@ PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
     csound->audio_dev_list_callback = audiodevlist__;
 }
 
+PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
+					     int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput))
+{
+    csound->midi_dev_list_callback = mididevlist__;
+}
+
 PUBLIC int csoundAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
   return csound->audio_dev_list_callback(csound,list,isOutput);
 }
 
+PUBLIC int csoundMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput){
+  return csound->midi_dev_list_callback(csound,list,isOutput);
+}
 
 
 /* dummy real time MIDI functions */
@@ -2670,7 +2686,18 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
   char *s;
   if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
          strncpy(s, module, 20);
+   if (csoundInitModules(csound) != 0)
+             csound->LongJmp(csound, 1);
 }
+
+PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
+  char *s;
+  if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
+         strncpy(s, module, 20);
+   if (csoundInitModules(csound) != 0)
+             csound->LongJmp(csound, 1);
+}
+
 
 PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
    MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
@@ -2840,6 +2867,12 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (err != CSOUND_SUCCESS)
         csound->Die(csound, "Failed during csoundLoadModules");
+
+      /* VL: moved here from main.c */
+      if (csoundInitModules(csound) != 0)
+            csound->LongJmp(csound, 1);
+     
+
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
       dbfs_init(csound, DFLT_DBFS);
