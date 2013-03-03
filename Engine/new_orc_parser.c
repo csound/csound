@@ -133,6 +133,7 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       PARSE_PARM  pp;
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
+      
       init_symbtab(csound);
 
       csound_orcdebug = O->odebug;

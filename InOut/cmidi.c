@@ -73,6 +73,31 @@ void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 
 }
 
+static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+  int k, endpoints;
+  MIDIEndpointRef endpoint;
+  CFStringRef name = NULL;
+  CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
+  char tmp[64];
+  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));  
+  if(isOutput) return 0;
+  endpoints = MIDIGetNumberOfSources();
+  if(list == NULL) return endpoints;
+  for(k=0; k < endpoints; k++) {
+    endpoint = MIDIGetSource(k);
+    MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
+    strncpy(list[k].device_name, CFStringGetCStringPtr(name, defaultEncoding), 63);
+    sprintf(tmp, "%d", k);
+    strncpy(list[k].device_id, tmp, 63);
+    list[k].isOutput = isOutput;
+    strcpy(list[k].interface_name, "");
+    strncpy(list[k].midi_module, drv, 63);
+  }
+  if(name) CFRelease(name);
+  return endpoints;
+}
+
+
 /* csound MIDI input open callback, sets the device for input */
 static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
@@ -89,7 +114,6 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
     refcon->mdata = mdata;
     refcon->p = 0;
     refcon->q = 0;
-
     /* MIDI client */
     cname = CFStringCreateWithCString(NULL, "my client", defaultEncoding);
     ret = MIDIClientCreate(cname, NULL, NULL, &mclient);
@@ -251,6 +275,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetExternalMidiOutOpenCallback(csound, MidiOutDeviceOpen);
     csound->SetExternalMidiWriteCallback(csound, MidiDataWrite);
     csound->SetExternalMidiOutCloseCallback(csound, MidiOutDeviceClose);
+    csound->SetMIDIDeviceListCallback(csound,listDevices);
     return 0;
 }
 
