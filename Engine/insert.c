@@ -178,6 +178,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->onedkr = csound->onedkr;
     ip->kicvt = csound->kicvt;
 #endif
+    ip->pds = csound->pds;
     /* Add an active instrument */
     tp->active++;
     tp->instcnt++;
@@ -1432,7 +1433,7 @@ void timexpire(CSOUND *csound, double time)
 
 int subinstr(CSOUND *csound, SUBINST *p)
 {
-    OPDS    *saved_pds = csound->pds;
+    OPDS    *saved_pds = CS_PDS;
     int     saved_sa = csound->spoutactive;
     MYFLT   *pbuf, *saved_spout = csound->spout;
     uint32_t frame, chan;
@@ -1447,9 +1448,9 @@ int subinstr(CSOUND *csound, SUBINST *p)
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
 
     /*  run each opcode  */
-    csound->pds = (OPDS *)p->ip;
-    while ((csound->pds = csound->pds->nxtp) != NULL) {
-      (*csound->pds->opadr)(csound, csound->pds);
+    CS_PDS = (OPDS *)p->ip;
+    while ((CS_PDS = CS_PDS->nxtp) != NULL) {
+      (*CS_PDS->opadr)(csound, CS_PDS);
     }
 
     /* copy outputs */
@@ -1471,10 +1472,10 @@ int subinstr(CSOUND *csound, SUBINST *p)
     /* restore spouts */
     csound->spout = saved_spout;
     csound->spoutactive = saved_sa;
-    csound->pds = saved_pds;
+    CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
-      while (csound->pds->nxtp) csound->pds = csound->pds->nxtp;
+      while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
     return OK;
 }
 
@@ -1482,7 +1483,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
 int useropcd1(CSOUND *csound, UOPCODE *p)
 {
-    OPDS    *saved_pds = csound->pds;
+    OPDS    *saved_pds = CS_PDS;
     int     g_ksmps, ofs = 0, n;
     MYFLT   /*g_ekr, */g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
     int32    g_kcounter;
@@ -1528,9 +1529,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          }
 
         /*  run each opcode  */
-        csound->pds = (OPDS *) (p->ip);
-        while ((csound->pds = csound->pds->nxtp)) {
-          (*csound->pds->opadr)(csound, csound->pds);
+        CS_PDS = (OPDS *) (p->ip);
+        while ((CS_PDS = CS_PDS->nxtp)) {
+          (*CS_PDS->opadr)(csound, CS_PDS);
         }
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
@@ -1564,9 +1565,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
          }
         /*  run each opcode  */
-        csound->pds = (OPDS *) (p->ip);
-        while ((csound->pds = csound->pds->nxtp)) {
-          (*csound->pds->opadr)(csound, csound->pds);
+        CS_PDS = (OPDS *) (p->ip);
+        while ((CS_PDS = CS_PDS->nxtp)) {
+          (*CS_PDS->opadr)(csound, CS_PDS);
         }
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
@@ -1605,10 +1606,10 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     csound->onedksmps = g_onedksmps;
     csound->kicvt = g_kicvt;
     csound->kcounter = g_kcounter;
-    csound->pds = saved_pds;
+    CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
-      while (csound->pds->nxtp) csound->pds = csound->pds->nxtp;
+      while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     return OK;
 }
 
@@ -1616,11 +1617,11 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
 int useropcd2(CSOUND *csound, UOPCODE *p)
 {
-    OPDS    *saved_pds = csound->pds;
+    OPDS    *saved_pds = CS_PDS;
     int     n;
     MYFLT   **tmp, *ptr1, *ptr2;
 
-     if (!(csound->pds = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
+     if (!(CS_PDS = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
 
     /* FOR SOME REASON the opcode has no perf code */
     //csound->Message(csound, "end input\n"); 
@@ -1657,8 +1658,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
       /*  run each opcode  */
       do {
-        (*csound->pds->opadr)(csound, csound->pds);
-      } while ((csound->pds = csound->pds->nxtp));
+        (*CS_PDS->opadr)(csound, CS_PDS);
+      } while ((CS_PDS = CS_PDS->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; ptr2 = *(++tmp);
@@ -1689,8 +1690,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
          }
       /*  run each opcode  */
       do {
-        (*csound->pds->opadr)(csound, csound->pds);
-      } while ((csound->pds = csound->pds->nxtp));
+        (*CS_PDS->opadr)(csound, CS_PDS);
+      } while ((CS_PDS = CS_PDS->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
@@ -1711,10 +1712,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        }
  endop:
     /* restore globals */
-    csound->pds = saved_pds;
+    CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
-      while (csound->pds->nxtp) csound->pds = csound->pds->nxtp;
+      while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     return OK;
 }
 
