@@ -349,7 +349,9 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
       return csound->PerfError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
-    evt.pcnt = p->INOCOUNT - 1;
+    if(p->flag==1) evt.pcnt = p->argno;
+    else
+      evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (p->XSTRCODE & 2) {
@@ -378,14 +380,16 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
     EVTBLK  evt;
     int     i, err = 0;
     char    opcod;
-
+    
     opcod = ((char*) p->args[0])[0];
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') || ((char*) p->args[0])[1] != '\0'))
       return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
-    evt.pcnt = p->INOCOUNT - 1;
+    if(p->flag==1) evt.pcnt = p->argno;
+    else
+      evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (p->XSTRCODE & 2) {
@@ -393,13 +397,14 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
           return csound->InitError(csound, Str(errmsg_2));
         evt.p[1] = SSTRCOD;
         evt.strarg = (char*) p->args[1];
+        for (i = 2; i <= evt.pcnt; i++)
+           evt.p[i] = *p->args[i];
       }
       else {
-        evt.p[1] = *p->args[1];
-        evt.strarg = NULL;
-      }
-      for (i = 2; i <= evt.pcnt; i++)
+	evt.strarg = NULL;
+      for (i = 1; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
+      }
     }
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;

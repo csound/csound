@@ -233,8 +233,8 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
                                                              "_rtpaGlobals");
     if (pabs == NULL)
       return -1;
-    if (initPortAudio(csound) != 0)
-      goto err_return;
+    //if (initPortAudio(csound) != 0)
+    //goto err_return;
 
     if ((int) Pa_GetDeviceCount() <= 0) {
       pa_PrintErrMsg(csound, Str("No sound device is available"));
@@ -700,8 +700,8 @@ static int playopen_blocking(CSOUND *csound, const csRtAudioParams *parm)
     DEVPARAMS *dev;
     int       retval;
 
-    if (initPortAudio(csound) != 0)
-      return -1;
+    // if (initPortAudio(csound) != 0)
+    //  return -1;
     /* check if the device is already opened */
     if (*(csound->GetRtPlayUserData(csound)) != NULL)
       return 0;
@@ -812,7 +812,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "PORTAUDIO") == 0 || strcmp(drv, "PA") == 0 ||
           strcmp(drv, "PA_BL") == 0 || strcmp(drv, "PA_CB") == 0))
       return 0;
-    csound->Message(csound, Str("rtaudio: PortAudio module enabled ... "));
+    csound->Message(csound, Str("rtaudio: PortAudio module enabled ... \n"));
     /* set function pointers */
 #ifdef LINUX
     if (strcmp(drv, "PA_CB") != 0)
@@ -827,6 +827,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtrecordCallback(csound, rtrecord_blocking);
       csound->SetRtcloseCallback(csound, rtclose_blocking);
       csound->SetAudioDeviceListCallback(csound, listDevices);
+      initPortAudio(csound);
     }
     else {
       csound->Message(csound, Str("using callback interface\n"));
@@ -836,6 +837,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtrecordCallback(csound, rtrecord_);
       csound->SetRtcloseCallback(csound, rtclose_);
       csound->SetAudioDeviceListCallback(csound, listDevices);
+      initPortAudio(csound);
     }
 
     csound->module_list_add(csound, drv, "audio");
