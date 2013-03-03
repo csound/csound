@@ -451,7 +451,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->rate = -1;
     ans->line = line;
     ans->locn  = locn;
-    csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
+    //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
 
