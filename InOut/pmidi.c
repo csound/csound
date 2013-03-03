@@ -123,27 +123,37 @@ static PmDeviceInfo *portMidi_getDeviceInfo(int dev, int output)
     return ((PmDeviceInfo*)Pm_GetDeviceInfo((PmDeviceID) i));
 }
 
+static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+  int i, cnt;
+  PmDeviceInfo  *info;
+  char tmp[64];
+  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
+  cnt = portMidi_getDeviceCount(isOutput);
+  if(list == NULL) return cnt;
+  for (i = 0; i < cnt; i++) {
+      info = portMidi_getDeviceInfo(i, isOutput);
+      strncpy(list[i].device_name, info->name, 63);
+      sprintf(tmp, "%d", i);
+      strncpy(list[i].device_id, tmp, 63);
+      list[i].isOutput = isOutput;
+      if (info->interf != NULL) 
+         strncpy(list[i].interface_name, info->interf, 63);
+      else strcpy(list[i].interface_name, "");
+     strncpy(list[i].midi_module, drv, 63);
+  } 
+  return cnt;    
+}
+
 static void portMidi_listDevices(CSOUND *csound, int output)
 {
-    int           i, cnt;
-    PmDeviceInfo  *info;
-
-    cnt = portMidi_getDeviceCount(output);
-    if (UNLIKELY(cnt < 1))
-      return;
-    if (output)
-      csound->Message(csound, Str("The available MIDI out devices are:\n"));
-    else
-      csound->Message(csound, Str("The available MIDI in devices are:\n"));
-    for (i = 0; i < cnt; i++) {
-      info = portMidi_getDeviceInfo(i, output);
-      if (info->interf != NULL)
-        csound->Message(csound, " %3d: %s (%s)\n", i, info->name, info->interf);
-      else
-        csound->Message(csound, " %3d: %s\n", i, info->name);
-
-    }
+    int i,n = listDevices(csound, NULL, output);
+    CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
+    listDevices(csound, devs, output);
+    for(i=0; i < n; i++) csound->Message(csound, "%s: %s (%s)\n", devs[i].device_id, devs[i].device_name, devs[i].midi_module);
+    csound->Free(csound, devs);
 }
+
+
 
 /* reference count for PortMidi initialisation */
 
@@ -473,7 +483,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-   csound->module_list_add(csound, "pmidi", "midi");
+    csound->module_list_add(csound, "pmidi", "midi");
     drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
     if (drv == NULL)
       return 0;
@@ -487,6 +497,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetExternalMidiOutOpenCallback(csound, OpenMidiOutDevice_);
     csound->SetExternalMidiWriteCallback(csound, WriteMidiData_);
     csound->SetExternalMidiOutCloseCallback(csound, CloseMidiOutDevice_);
+    csound->SetMIDIDeviceListCallback(csound,listDevices);
     return 0;
 }
 
