@@ -85,6 +85,7 @@ static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 static void rtclose_dummy(CSOUND *);
 static int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
+static int  midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
@@ -250,6 +251,7 @@ static const CSOUND cenviron_ = {
     csoundSetRtrecordCallback,
     csoundSetRtcloseCallback,
     csoundSetAudioDeviceListCallback,
+    csoundSetMIDIDeviceListCallback,
     csoundAuxAlloc,
     mmalloc,
     mcalloc,
@@ -498,6 +500,7 @@ static const CSOUND cenviron_ = {
     rtrecord_dummy,
     rtclose_dummy,
     audio_dev_list_dummy,
+    midi_dev_list_dummy,
     /* end of callbacks */
     {(CS_VAR_POOL*)NULL,
      (MYFLT_POOL *) NULL,
@@ -833,10 +836,10 @@ static const CSOUND cenviron_ = {
     0,              /*  parserNamedInstrFlag */
     0,              /*  tran_nchnlsi */
     0,              /* Count of score strings */
-    NULL,            /* pow2 table */
-    NULL,            /* cps conv table */
-    NULL,            /* output of preprocessor */
-    NULL             /* message buffer struct */
+    0,            /* pow2 table */
+    0,            /* cps conv table */
+    0,            /* output of preprocessor */
+    0             /* message buffer struct */
 };
 
 /* from threads.c */
@@ -1275,33 +1278,6 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
     }
     **start = s;
 }
-#if defined(USE_OPENMP)
-inline void multiThreadedLayer(CSOUND *csound, INSDS *layerBegin, INSDS *layerEnd)
-{
-    // A single thread iterates over all instrument instances
-    // in the current layer...
-    INSDS *currentInstance;
-#pragma omp parallel
-    {
-#pragma omp single
-      {
-        for (currentInstance = layerBegin;
-             currentInstance && (currentInstance != layerEnd);
-             currentInstance = currentInstance->nxtact) {
-          // ...but each instance is computed in its own thread.
-#pragma omp task firstprivate(currentInstance)
-          {
-            OPDS *currentOpcode = (OPDS *)currentInstance;
-            while ((currentOpcode = currentOpcode->nxtp)) {
-              (*currentOpcode->opadr)(csound, currentOpcode);
-            }
-            currentInstance->ksmps_offset = 0; /* reset sample-accuracy offset */
-          }
-        }
-      }
-    }
-}
-#endif
 
 
 
@@ -1319,6 +1295,7 @@ inline static int nodePerf(CSOUND *csound, int index)
     int played_count = 0;
     int which_task;
     INSDS **task_map = (INSDS*)csound->dag_task_map;
+    double time_end;
 #define INVALID (-1)
 #define WAIT    (-2)
 
@@ -1327,60 +1304,26 @@ inline static int nodePerf(CSOUND *csound, int index)
       //printf("******** Select task %d\n", which_task);
       if (which_task==WAIT) continue;
       if (which_task==INVALID) return played_count;
-      insds = task_map[which_task];
+         /* VL: the validity of icurTime needs to be checked */
+        time_end = (csound->ksmps+csound->icurTime)/csound->esr;
+        insds = task_map[which_task];
+        if (insds->offtim > 0 && time_end > insds->offtim){
+            /* this is the last cycle of performance */
+            insds->ksmps_no_end = insds->no_end;
+          }
         opstart = task_map[which_task];
         while ((opstart = opstart->nxtp) != NULL) {
+          /* In case of jumping need this repeat of opstart */
+          opstart->insdshead->pds = opstart;
           (*opstart->opadr)(csound, opstart); /* run each opcode */
+          opstart = opstart->insdshead->pds;
         }
+        insds->ksmps_offset = 0; /* reset sample-accuracy offset */  
+        insds->ksmps_no_end = 0;  /* reset end of loop samples */  
         played_count++;
         //printf("******** finished task %d\n", which_task);
         dag_end_task(csound, which_task);
     }
-    /* int update_hdl = -1; */
-    /* DAG_NODE *node; */
-    /* do { */
-    /*   csp_dag_consume(csound->multiThreadedDag, &node, &update_hdl); */
-        
-    /*   if (UNLIKELY(node == NULL)) { */
-    /*     return played_count; */
-    /*   } */
-
-    /*   if (node->hdr.type == DAG_NODE_INDV) { */
-    /*     insds = node->insds; */
-    /*     played_count++; */
-        
-    /*     opstart = (OPDS *)insds; */
-    /*     while ((opstart = opstart->nxtp) != NULL) { */
-    /*       (*opstart->opadr)(csound, opstart); /\* run each opcode *\/ */
-    /*     } */
-    /*     insds->ksmps_offset = 0; /\* reset sample-accuracy offset *\/ */
-    /*   } */
-    /*   else if (node->hdr.type == DAG_NODE_LIST) { */
-    /*     played_count += node->count; */
-
-    /*     int node_ctr = 0; */
-    /*     while (node_ctr < node->count) { */
-    /*       DAG_NODE *play_node = node->nodes[node_ctr]; */
-    /*       insds = play_node->insds; */
-    /*       opstart = (OPDS *)insds; */
-    /*       while ((opstart = opstart->nxtp) != NULL) { */
-    /*         /\* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n",  */
-    /*            opstart, opstart->opadr, opstart->optext->t.opcod); *\/ */
-    /*         (*opstart->opadr)(csound, opstart); /\* run each opcode *\/ */
-    /*       } */
-    /*       insds->ksmps_offset = 0; /\* reset sample-accuracy offset *\/ */
-    /*       node_ctr++; */
-    /*     } */
-    /*   } */
-    /*   else if (node->hdr.type == DAG_NODE_DAG) { */
-    /*     csound->Die(csound, "Recursive DAGs not implemented"); */
-    /*   } */
-    /*   else { */
-    /*     csound->Die(csound, "Unknown DAG node type"); */
-    /*   } */
-    /*   csp_dag_consume_update(csound->multiThreadedDag, update_hdl); */
-    /* } while (!csp_dag_is_finished(csound->multiThreadedDag)); */
-      
     return played_count;
 }
 
@@ -1434,27 +1377,11 @@ unsigned long kperfThread(void * cs)
 }
 #endif /* ! PARCS */
 
-inline void singleThreadedLayer(CSOUND *csound,
-                                INSDS *layerBegin, INSDS *layerEnd)
-{
-    INSDS *currentInstance;
-    for (currentInstance = layerBegin;
-         currentInstance && (currentInstance != layerEnd);
-         currentInstance = currentInstance->nxtact) {
-      csound->pds = (OPDS *)currentInstance;
-      while ((csound->pds = csound->pds->nxtp)) {
-        (*csound->pds->opadr)(csound, csound->pds);
-      }
-      currentInstance->ksmps_offset = 0; /* reset sample-accuracy offset */
-    }
-}
 
 int kperf(CSOUND *csound)
 {
-#ifdef PARCS
     /* void *barrier1, *barrier2; */
     INSDS *ip;
-#endif /* PARCS */
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
     csound->icurTime += csound->ksmps;
@@ -1478,55 +1405,9 @@ int kperf(CSOUND *csound)
     if (csound->oparms_.sfread)         /*   if audio_infile open  */
       csound->spinrecv(csound);         /*      fill the spin buf  */
     csound->spoutactive = 0;            /*   make spout inactive   */
-#ifndef PARCS
-    if (csound->actanchor.nxtact) {
-#if defined(USE_OPENMP)
-      if (csound->oparms->numThreads > 1) {
-        INSDS *layerBegin;
-        INSDS *currentInstance;
-        int layerInstances = 0;
-        for (currentInstance = layerBegin = csound->actanchor.nxtact;
-             currentInstance;
-             currentInstance = currentInstance->nxtact) {
-          if (!currentInstance->nxtact) {
-            if (layerInstances > 1) {
-              multiThreadedLayer(csound, layerBegin, 0);
-            } else {
-              singleThreadedLayer(csound, layerBegin, 0);
-            }
-          } else {
-            layerInstances++;
-            if (((int) layerBegin->insno) != ((int) currentInstance->insno)) {
-              if (layerInstances > 1) {
-                multiThreadedLayer(csound, layerBegin, currentInstance);
-              } else {
-                singleThreadedLayer(csound, layerBegin, currentInstance);
-              }
-              layerBegin = currentInstance;
-              layerInstances = 0;
-            }
-          }
-        }
-      } else {
-        singleThreadedLayer(csound, csound->actanchor.nxtact, 0);
-      }
-#else /* MPI */
-      INSDS *ip = csound->actanchor.nxtact;
-      while (ip != NULL) {                /* for each instr active:  */
-        INSDS *nxt = ip->nxtact;
-        csound->pds = (OPDS*) ip;
-        while ((csound->pds = csound->pds->nxtp) != NULL) {
-          (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
-        }
-        ip->ksmps_offset = 0; /* reset sample-accuracy offset */
-        ip = nxt; /* but this does not allow for all deletions */
-      }
-#endif
-    }
-#else /* PARCS */
     ip = csound->actanchor.nxtact;
-
     if (ip != NULL) {
+#ifdef PARCS
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
@@ -1552,11 +1433,12 @@ int kperf(CSOUND *csound)
         csound->multiThreadedDag = NULL;
       }
       else {
+#endif
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
           csound->pds = (OPDS*) ip;
-          if (ip->offtim > 0 && time_end > ip->offtim){
+          if (ip->offtim > 0 && time_end > ip->offtim && csound->oparms->sampleAccurate){
             /* this is the last cycle of performance */
             // csound->Message(csound, "last cycle %d: %f %f %d\n", 
             //          ip->insno, csound->icurTime/csound->esr, 
@@ -1565,15 +1447,18 @@ int kperf(CSOUND *csound)
           }
           if (ip->init_done == 1) /* if init-pass has been done */
             while ((csound->pds = csound->pds->nxtp) != NULL) {
+              csound->pds->insdshead->pds = csound->pds;
               (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+              csound->pds = csound->pds->insdshead->pds;
             }
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */  
           ip->ksmps_no_end = 0;  /* reset end of loop samples */     
           ip = nxt; /* but this does not allow for all deletions */
         }
+#ifdef PARCS
       }
+#endif
     }
-#endif /* PARCS */
     if (!csound->spoutactive) {             /*   results now in spout? */
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
     }
@@ -1859,7 +1744,7 @@ PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel)
     return csound->spout[index];
 }
 
-PUBLIC const char *csoundGetOutputFileName(CSOUND *csound)
+PUBLIC const char *csoundGetOutputName(CSOUND *csound)
 {
     return (const char*) csound->oparms_.outfilename;
 }
@@ -1983,10 +1868,10 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
 }
 
 PUBLIC void csoundSetDefaultMessageCallback(
-                                            void (*csoundMessageCallback)(CSOUND *csound,
-                                                                          int attr,
-                                                                          const char *format,
-                                                                          va_list args))
+           void (*csoundMessageCallback)(CSOUND *csound,
+                                         int attr,
+                                         const char *format,
+                                         va_list args))
 {
     if (csoundMessageCallback) {
       msgcallback_ = csoundMessageCallback;
@@ -1996,10 +1881,10 @@ PUBLIC void csoundSetDefaultMessageCallback(
 }
 
 PUBLIC void csoundSetMessageCallback(CSOUND *csound,
-                                     void (*csoundMessageCallback)(CSOUND *csound,
-                                                                   int attr,
-                                                                   const char *format,
-                                                                   va_list args))
+            void (*csoundMessageCallback)(CSOUND *csound,
+                                          int attr,
+                                          const char *format,
+                                          va_list args))
 {
     /* Protect against a null callback. */
     if (csoundMessageCallback) {
@@ -2298,6 +2183,10 @@ static int  audio_dev_list_dummy(CSOUND *csound, CS_AUDIODEVICE *list, int isOut
   return 0;
 }
 
+static int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+  return 0;
+}
+
 PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
                                       int (*playopen__)(CSOUND *,
                                                         const csRtAudioParams
@@ -2341,10 +2230,19 @@ PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
     csound->audio_dev_list_callback = audiodevlist__;
 }
 
+PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
+					     int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput))
+{
+    csound->midi_dev_list_callback = mididevlist__;
+}
+
 PUBLIC int csoundAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
   return csound->audio_dev_list_callback(csound,list,isOutput);
 }
 
+PUBLIC int csoundMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput){
+  return csound->midi_dev_list_callback(csound,list,isOutput);
+}
 
 
 /* dummy real time MIDI functions */
@@ -2788,7 +2686,18 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
   char *s;
   if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
          strncpy(s, module, 20);
+   if (csoundInitModules(csound) != 0)
+             csound->LongJmp(csound, 1);
 }
+
+PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
+  char *s;
+  if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
+         strncpy(s, module, 20);
+   if (csoundInitModules(csound) != 0)
+             csound->LongJmp(csound, 1);
+}
+
 
 PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
    MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
@@ -2958,6 +2867,12 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (err != CSOUND_SUCCESS)
         csound->Die(csound, "Failed during csoundLoadModules");
+
+      /* VL: moved here from main.c */
+      if (csoundInitModules(csound) != 0)
+            csound->LongJmp(csound, 1);
+     
+
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
       dbfs_init(csound, DFLT_DBFS);
@@ -3868,11 +3783,44 @@ void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
 
 #ifdef never
+
 void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
 {                           /* Surely a memcpy*/
     memcpy(dest, src, size*sizeof(MYFLT));
 }
+
+/* Old kperf code etc */
+
+#if defined(USE_OPENMP)
+inline void multiThreadedLayer(CSOUND *csound, INSDS *layerBegin, INSDS *layerEnd)
+{
+    // A single thread iterates over all instrument instances
+    // in the current layer...
+    INSDS *currentInstance;
+#pragma omp parallel
+    {
+#pragma omp single
+      {
+        for (currentInstance = layerBegin;
+             currentInstance && (currentInstance != layerEnd);
+             currentInstance = currentInstance->nxtact) {
+          // ...but each instance is computed in its own thread.
+#pragma omp task firstprivate(currentInstance)
+          {
+            OPDS *currentOpcode = (OPDS *)currentInstance;
+            while ((currentOpcode = currentOpcode->nxtp)) {
+              (*currentOpcode->opadr)(csound, currentOpcode);
+            }
+            currentInstance->ksmps_offset = 0; /* reset sample-accuracy offset */
+          }
+        }
+      }
+    }
+}
 #endif
+
+#endif
+
 
 //#ifdef __cplusplus
 //}

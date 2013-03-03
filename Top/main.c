@@ -209,9 +209,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
-    /* VL 30-12-12 called below line 290 */
-    //if (csoundInitModules(csound) != 0)
-    //csound->LongJmp(csound, 1);
+    
+     /* VL: added this also to csoundReset() in csound.c   */ 
+      if (csoundInitModules(csound) != 0)
+      csound->LongJmp(csound, 1); 
     csoundCompileOrc(csound, NULL);
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
@@ -278,22 +279,22 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 {
     OPARMS  *O = csound->oparms;
     int     n;
-     
+   
+   /* VL 30-12-12 csoundInitModules is always called here now to enable
+       Csound to start without calling csoundCompile, but directly from csoundCompileOrc()
+       and csoundReadOrc()
+    */
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to start with no orchestra */
-     csoundCompileOrc(csound, "instr 1 \n endin \n");
+      /* VL: added this also to csoundReset() in csound.c   */ 
+      if (csoundInitModules(csound) != 0)
+           csound->LongJmp(csound, 1); 
+        csoundCompileOrc(csound, "instr 1 \n endin \n");
      }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    /* VL 30-12-12 csoundInitModules is always called here now to enable
-       Csound to start without callinf csoundCompile, but directly from csoundCompileOrc()
-       and csoundReadOrc()
-     */
-    //if (csound->orchname == NULL) {
-      if (csoundInitModules(csound) != 0)
-        csound->LongJmp(csound, 1);
-      //}
+    
     /* if sound file type is still not known, check SFOUTYP */
     if (O->filetyp <= 0) {
       const char  *envoutyp;
@@ -380,6 +381,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
 
   int result = csoundCompileArgs(csound,argc,argv);
+ 
   if(result == CSOUND_SUCCESS) return csoundStart(csound);
   else return result;
 }

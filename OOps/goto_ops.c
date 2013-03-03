@@ -36,7 +36,7 @@ int igoto(CSOUND *csound, GOTO *p)
 
 int kgoto(CSOUND *csound, GOTO *p)
 {
-    csound->pds = p->lblblk->prvp;
+    CS_PDS = p->lblblk->prvp;
     return OK;
 }
 
@@ -50,7 +50,7 @@ int icgoto(CSOUND *csound, CGOTO *p)
 int kcgoto(CSOUND *csound, CGOTO *p)
 {
     if (*p->cond)
-      csound->pds = p->lblblk->prvp;
+      CS_PDS = p->lblblk->prvp;
     return OK;
 }
 
@@ -66,7 +66,7 @@ int ingoto(CSOUND *csound, CGOTO *p)
 int kngoto(CSOUND *csound, CGOTO *p)
 {
     if (!*p->cond)
-      csound->pds = p->lblblk->prvp;
+      CS_PDS = p->lblblk->prvp;
     return OK;
 }
 
@@ -82,7 +82,7 @@ int iingoto(CSOUND *csound, CGOTO *p)
 
 int kingoto(CSOUND *csound, CGOTO *p)
 {
-    csound->pds = p->lblblk->prvp;
+    CS_PDS = p->lblblk->prvp;
     return OK;
 }
 #endif
@@ -100,7 +100,7 @@ int timout(CSOUND *csound, TIMOUT *p)
     if (p->cnt1)                            /* once delay has expired, */
       p->cnt1--;
     else if (--p->cnt2 >= 0L)               /*  br during idur countdown */
-      csound->pds = p->lblblk->prvp;
+      CS_PDS = p->lblblk->prvp;
     return OK;
 }
 
@@ -159,15 +159,15 @@ int ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
 
 int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
-    INSDS  *lcurip = csound->pds->insdshead;
+    INSDS  *lcurip = CS_PDS->insdshead;
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
     while (lcurip->opcod_iobufs)
       lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
     xturnoff(csound, lcurip);
     if (lcurip->xtratim <= 0)
-      while (csound->pds->nxtp != NULL)
-        csound->pds = csound->pds->nxtp;                /* loop to last opds */
+      while (CS_PDS->nxtp != NULL)
+        CS_PDS = CS_PDS->nxtp;                /* loop to last opds */
     return OK;
 }
 
@@ -237,8 +237,8 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
       }
     }
     if (!p->h.insdshead->actflg) {  /* if current note was deactivated: */
-      while (csound->pds->nxtp != NULL)
-        csound->pds = csound->pds->nxtp;            /* loop to last opds */
+      while (CS_PDS->nxtp != NULL)
+        CS_PDS = CS_PDS->nxtp;            /* loop to last opds */
     }
     return OK;
 }
@@ -292,7 +292,7 @@ int loop_l_p(CSOUND *csound, LOOP_OPS *p)
     /* if ((kndxvar += kincr) < klimit) kgoto l */
     *(p->ndxvar) += *(p->incr);
     if (*(p->ndxvar) < *(p->limit))
-      csound->pds = p->l->prvp;
+      CS_PDS = p->l->prvp;
     return OK;
 }
 
@@ -301,7 +301,7 @@ int loop_le_p(CSOUND *csound, LOOP_OPS *p)
     /* if ((kndxvar += kincr) <= klimit) kgoto l */
     *(p->ndxvar) += *(p->incr);
     if (*(p->ndxvar) <= *(p->limit))
-      csound->pds = p->l->prvp;
+      CS_PDS = p->l->prvp;
     return OK;
 }
 
@@ -310,7 +310,7 @@ int loop_g_p(CSOUND *csound, LOOP_OPS *p)
     /* if ((kndxvar -= kdecr) > klimit) kgoto l */
     *(p->ndxvar) -= *(p->incr);
     if (*(p->ndxvar) > *(p->limit))
-      csound->pds = p->l->prvp;
+      CS_PDS = p->l->prvp;
     return OK;
 }
 
@@ -319,6 +319,6 @@ int loop_ge_p(CSOUND *csound, LOOP_OPS *p)
     /* if ((kndxvar -= kdecr) >= klimit) kgoto l */
     *(p->ndxvar) -= *(p->incr);
     if (*(p->ndxvar) >= *(p->limit))
-      csound->pds = p->l->prvp;
+      CS_PDS = p->l->prvp;
     return OK;
 }
