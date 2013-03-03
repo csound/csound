@@ -1546,13 +1546,12 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
     csCfgVariable_t *cfg;
     int priority;
-    cfg = csound->QueryConfigurationVariable(csound, "rtscheduler");
-    priority = *(cfg->i.p);
-
-    if (priority != 0) set_scheduler_priority(csound, priority);
-
-    csound->DeleteConfigurationVariable(csound, "rtscheduler");
-    csound->DestroyGlobalVariable(csound, "::priority");
+    if((cfg = csound->QueryConfigurationVariable(csound, "rtscheduler")) != NULL){    
+        priority = *(cfg->i.p);
+        if (priority != 0) set_scheduler_priority(csound, priority);
+         csound->DeleteConfigurationVariable(csound, "rtscheduler");
+         csound->DestroyGlobalVariable(csound, "::priority");
+    }
 
     s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     i = 0;
