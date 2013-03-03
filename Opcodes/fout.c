@@ -77,7 +77,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
     char              *name;
     int               idx, csFileType, need_deinit = 0;
 
-    p->async = 0;
+    if (p != (FOUT_FILE*) NULL) p->async = 0;
     if (fp != NULL) {
       if (fileType == CSFILE_STD)
         *((FILE**) fp) = (FILE*) NULL;

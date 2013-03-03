@@ -449,10 +449,11 @@ typedef struct CORFIL {
     CSOUND  *csound;
 #ifdef JPFF
     int     kcounter;
-    unsigned int     ksmps;                  /* Instrument copy of ksmps */
-    MYFLT   ekr;               /* and of rates */
+    unsigned int     ksmps;     /* Instrument copy of ksmps */
+    MYFLT   ekr;                /* and of rates */
     MYFLT   onedksmps, onedkr, kicvt;
 #endif
+    struct opds  *pds;          /* Used for jumping */
     MYFLT   scratchpad[4];      /* Persistent data */
     
     /* user defined opcode I/O buffers */
@@ -471,7 +472,7 @@ typedef struct CORFIL {
     MYFLT   p3;
   } INSDS;
 
-#ifdef CS_KSMPS
+#ifdef JPFF
 #define CS_KSMPS     (p->h.insdshead->ksmps)
 #define CS_KCNT      (p->h.insdshead->kcounter)
 #define CS_EKR       (p->h.insdshead->ekr)
@@ -485,8 +486,10 @@ typedef struct CORFIL {
 #define CS_ONEDKSMPS (csound->onedksmps)
 #define CS_ONEDKR    (csound->onedkr)
 #define CS_KICVT     (csound->kicvt)
+#define CS_PDS       (csound->pds)
 #endif
 #define CS_ESR       (csound->GetSr(csound))
+#define CS_PDS       (p->h.insdshead->pds)
 
   typedef int (*SUBR)(CSOUND *, void *);
 
@@ -1030,9 +1033,9 @@ typedef struct NAME__ {
                 int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
     void (*SetAudioDeviceListCallback)(CSOUND *csound,
-				       void (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+				       int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
     void (*SetMIDIDeviceListCallback)(CSOUND *csound,
-				       void (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
+				       int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
