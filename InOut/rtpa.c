@@ -105,6 +105,9 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     int           i, j, ndev;
     char          tmp[256], *s;
 
+    if (initPortAudio(csound) != 0)
+      return 0;
+
      if ((s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO")) == NULL)
       return 0;
 
@@ -233,8 +236,8 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
                                                              "_rtpaGlobals");
     if (pabs == NULL)
       return -1;
-    //if (initPortAudio(csound) != 0)
-    //goto err_return;
+   if (initPortAudio(csound) != 0)
+      goto err_return;
 
     if ((int) Pa_GetDeviceCount() <= 0) {
       pa_PrintErrMsg(csound, Str("No sound device is available"));
@@ -700,8 +703,8 @@ static int playopen_blocking(CSOUND *csound, const csRtAudioParams *parm)
     DEVPARAMS *dev;
     int       retval;
 
-    // if (initPortAudio(csound) != 0)
-    //  return -1;
+    if (initPortAudio(csound) != 0)
+      return -1;
     /* check if the device is already opened */
     if (*(csound->GetRtPlayUserData(csound)) != NULL)
       return 0;
@@ -827,7 +830,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtrecordCallback(csound, rtrecord_blocking);
       csound->SetRtcloseCallback(csound, rtclose_blocking);
       csound->SetAudioDeviceListCallback(csound, listDevices);
-      initPortAudio(csound);
     }
     else {
       csound->Message(csound, Str("using callback interface\n"));
@@ -837,7 +839,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtrecordCallback(csound, rtrecord_);
       csound->SetRtcloseCallback(csound, rtclose_);
       csound->SetAudioDeviceListCallback(csound, listDevices);
-      initPortAudio(csound);
     }
 
     csound->module_list_add(csound, drv, "audio");
