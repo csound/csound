@@ -616,9 +616,7 @@ extern "C" {
 
         /* analysis formats */
         CSFTYPE_HETRO,
-#ifdef JPFF
         CSFTYPE_HETROT,
-#endif
         CSFTYPE_PVC,               /* original PVOC format */
         CSFTYPE_PVCEX,             /* PVOC-EX format */
         CSFTYPE_CVANAL,
