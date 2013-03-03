@@ -149,7 +149,7 @@ int32 named_instr_find(CSOUND *csound, char *s)
 {
     INSTRNAME     *inm;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
-
+    printf("hah of %s is %d\n",s,h);
     if (!csound->engineState.instrumentNames)
       return 0L;                              /* no named instruments defined */
     /* now find instrument */
@@ -175,7 +175,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno, ENGINE
     INSTRNAME   **inm_base = 
       (INSTRNAME**) engineState->instrumentNames, *inm, *inm2;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
-
+    printf("hash of %s is %d\n", s, h);
     if (UNLIKELY(!inm_base))
       /* no named instruments defined yet */
       inm_base = engineState->instrumentNames =
@@ -189,7 +189,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno, ENGINE
     inm = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
     inm2 = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
     /* and store parameters */
-    inm->name = s; inm->ip = ip;
+    inm->name = strdup(s); inm->ip = ip;
     inm2->instno = insno;
     inm2->name = (char*) inm;   /* hack */
     /* link into chain */
