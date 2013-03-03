@@ -836,10 +836,10 @@ static const CSOUND cenviron_ = {
     0,              /*  parserNamedInstrFlag */
     0,              /*  tran_nchnlsi */
     0,              /* Count of score strings */
-    NULL,            /* pow2 table */
-    NULL,            /* cps conv table */
-    NULL,            /* output of preprocessor */
-    NULL             /* message buffer struct */
+    0,            /* pow2 table */
+    0,            /* cps conv table */
+    0,            /* output of preprocessor */
+    0             /* message buffer struct */
 };
 
 /* from threads.c */
