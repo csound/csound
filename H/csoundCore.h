@@ -486,7 +486,6 @@ typedef struct CORFIL {
 #define CS_ONEDKSMPS (csound->onedksmps)
 #define CS_ONEDKR    (csound->onedkr)
 #define CS_KICVT     (csound->kicvt)
-#define CS_PDS       (csound->pds)
 #endif
 #define CS_ESR       (csound->GetSr(csound))
 #define CS_PDS       (p->h.insdshead->pds)
