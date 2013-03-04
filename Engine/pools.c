@@ -147,7 +147,7 @@ STRING_VAL* string_pool_find_or_add(CSOUND* csound, STRING_POOL* pool, char* val
     STRING_VAL* retVal = string_pool_find(pool, value);
     
     if(retVal == NULL) {
-        STRING_VAL* val = csound->Malloc(csound, sizeof(STRING_VAL));
+        STRING_VAL* val = (STRING_VAL *)csound->Malloc(csound, sizeof(STRING_VAL));
         val->value = (char*) csound->Malloc(csound, strlen(value) + 1);
         strcpy(val->value, value);
 
