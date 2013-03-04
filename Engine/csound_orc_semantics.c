@@ -201,7 +201,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 /* Finds OENTRIES that match the given opcode name.  May return multiple OENTRY*'s for each
  * entry in a polyMorphic opcode.
  */
-PUBLIC OENTRIES* find_opcode2(CSOUND* csound, OENTRY* opcodeList, OENTRY* endOpcode, char* opname) {
+PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
     
     if (opname == NULL) {
         return NULL;
@@ -210,12 +210,12 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, OENTRY* opcodeList, OENTRY* endOpc
     int listIndex = 0;
     int i;
     
-    OENTRY* opc = opcodeList;
+    OENTRY* opc = csound->opcode_list;
     OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
     
     int opLen = strlen(opname);
     
-    for (i=0; opc < endOpcode; opc++, i++) {
+    for (i=0; opc < csound->oplstend; opc++, i++) {
      
         if(strncmp(opname, opc->opname, opLen) == 0) {
             // hack to work with how opcodes are currently defined with ".x" endings for polymorphism
@@ -583,8 +583,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
     csound->Message(csound, "    Arg Types Found: %s | %s\n", leftArgString, rightArgString);
 
-    OENTRIES* entries = find_opcode2(csound, typeTable->globalOpcodes, typeTable->globalOpcodesEnd,
-                                 root->value->lexeme);
+    OENTRIES* entries = find_opcode2(csound, root->value->lexeme);
     if (entries->count == 0) {
         synterr(csound, "Unable to find opcode with name: %s\n", root->value->lexeme);
         return 1;
