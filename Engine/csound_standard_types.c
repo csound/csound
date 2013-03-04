@@ -64,6 +64,13 @@ void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
     dat->arrayType = var->subType;
 }
 
+CS_VARIABLE* createString(void* csound, void* p) {
+    CSOUND* cs = (CSOUND*)csound;
+    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+    var->memBlockSize = sizeof (MYFLT) * 256;
+    return var;
+}
+
 CS_VARIABLE* createArray(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
@@ -94,7 +101,7 @@ const CS_TYPE CS_VAR_TYPE_I = {
 };
 
 const CS_TYPE CS_VAR_TYPE_S = {
-    "S", "String var", CS_ARG_TYPE_BOTH, createMyflt, NULL
+    "S", "String var", CS_ARG_TYPE_BOTH, createString, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
