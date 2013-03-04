@@ -234,7 +234,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
         ;
       if (UNLIKELY(ltest != MAXLEN)) {  /*  flen is not power-of-2 */
         // return fterror(&ff, Str("illegal table length"));
-        csound->Warning(csound, Str("table %d size not power of two"), ff.fno);
+        //csound->Warning(csound, Str("table %d size not power of two"), ff.fno);
         lobits = 0;                     
         nonpowof2_flag = 1; 
         ff.guardreq = 1;
