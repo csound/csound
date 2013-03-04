@@ -660,11 +660,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
             case LABEL_TOKEN:
                 // TODO: Check that label needs verifying...
                 break;
-            default:
+//            default:
                 
 //                csound->Message(csound, "Statement: %s\n", current->value->lexeme);
                 
-                verify_opcode(csound, current, typeTable);
+//                verify_opcode(csound, current, typeTable);
                 
 //                if (current->right != NULL) {
 //                    if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
