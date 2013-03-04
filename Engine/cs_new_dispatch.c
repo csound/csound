@@ -114,7 +114,7 @@ static void dag_print_state(CSOUND *csound)
 }
 	     
 /* For now allocate a fixed maximum number of tasks; FIXME */
-inline void create_dag(CSOUND *csound)
+void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size=INIT_SIZE;
