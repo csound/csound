@@ -92,7 +92,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
     int     n;
 
     *p->ifno = FL(0.0);
-    ftevt = (EVTBLK*) malloc(sizeof(EVTBLK)); /* Can use malloc direct as local */
+    ftevt =(EVTBLK*) malloc(sizeof(EVTBLK)); /* Can use malloc direct as local */
     ftevt->opcod = 'f';
     ftevt->strarg = NULL;
     fp = &ftevt->p[0];
@@ -104,19 +104,19 @@ static int ftgen(CSOUND *csound, FTGEN *p)
     
     if ((n = csound->GetInputArgSMask(p)))
       if (n&0x8) {              /* Named gen */
-        NAMEDGEN *n = (NAMEDGEN*) csound->GetNamedGens(csound);
-        while (n) {
-          if (strcmp(n->name, (char *)p->p4) == 0) {    /* Look up by name */
-            break;
+        NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
+        while (named) {
+	  if (strcmp(named->name, (char *) p->p4) == 0) {    /* Look up by name */
+	   break;
           }
-          n = n->next;                            /*  and round again         */
+          named = named->next;                            /*  and round again         */
         }
-        if (UNLIKELY(n == NULL)) {
+        if (UNLIKELY(named == NULL)) {
           return csound->InitError(csound,
                                    Str("Named gen \"%s\" not defined"),
                                    (char *)p->p4);
         }
-        else fp[4] = n->genum;
+        else fp[4] = named->genum;
         fp[5] = *p->p5;
       }
       else {  /* string argument: */
@@ -132,7 +132,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
           ftevt->strarg = (char*) p->p5;
           break;
         default:
-          csound->Free(csound, ftevt);
+          free(ftevt);
           return csound->InitError(csound, Str("ftgen string arg not allowed"));
         }
       }

@@ -122,39 +122,6 @@ static PmDeviceInfo *portMidi_getDeviceInfo(int dev, int output)
       return NULL;
     return ((PmDeviceInfo*)Pm_GetDeviceInfo((PmDeviceID) i));
 }
-
-static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
-  int i, cnt;
-  PmDeviceInfo  *info;
-  char tmp[64];
-  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
-  cnt = portMidi_getDeviceCount(isOutput);
-  if(list == NULL) return cnt;
-  for (i = 0; i < cnt; i++) {
-      info = portMidi_getDeviceInfo(i, isOutput);
-      strncpy(list[i].device_name, info->name, 63);
-      sprintf(tmp, "%d", i);
-      strncpy(list[i].device_id, tmp, 63);
-      list[i].isOutput = isOutput;
-      if (info->interf != NULL) 
-         strncpy(list[i].interface_name, info->interf, 63);
-      else strcpy(list[i].interface_name, "");
-     strncpy(list[i].midi_module, drv, 63);
-  } 
-  return cnt;    
-}
-
-static void portMidi_listDevices(CSOUND *csound, int output)
-{
-    int i,n = listDevices(csound, NULL, output);
-    CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
-    listDevices(csound, devs, output);
-    for(i=0; i < n; i++) csound->Message(csound, "%s: %s (%s)\n", devs[i].device_id, devs[i].device_name, devs[i].midi_module);
-    csound->Free(csound, devs);
-}
-
-
-
 /* reference count for PortMidi initialisation */
 
 static unsigned long portmidi_init_cnt = 0UL;
@@ -197,6 +164,41 @@ static int start_portmidi(CSOUND *csound)
     return csound->RegisterResetCallback(csound, NULL, stop_portmidi);
 }
 
+static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+  int i, cnt;
+  PmDeviceInfo  *info;
+  char tmp[64];
+  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
+
+  if (UNLIKELY(start_portmidi(csound) != 0))
+      return 0;
+
+  cnt = portMidi_getDeviceCount(isOutput);
+  if(list == NULL) return cnt;
+  for (i = 0; i < cnt; i++) {
+      info = portMidi_getDeviceInfo(i, isOutput);
+      strncpy(list[i].device_name, info->name, 63);
+      sprintf(tmp, "%d", i);
+      strncpy(list[i].device_id, tmp, 63);
+      list[i].isOutput = isOutput;
+      if (info->interf != NULL) 
+         strncpy(list[i].interface_name, info->interf, 63);
+      else strcpy(list[i].interface_name, "");
+     strncpy(list[i].midi_module, drv, 63);
+  } 
+  return cnt;    
+}
+
+static void portMidi_listDevices(CSOUND *csound, int output)
+{
+    int i,n = listDevices(csound, NULL, output);
+    CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
+    listDevices(csound, devs, output);
+    for(i=0; i < n; i++) csound->Message(csound, "%s: %s (%s)\n", devs[i].device_id, devs[i].device_name, devs[i].midi_module);
+    csound->Free(csound, devs);
+}
+
+
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
     int         cntdev, devnum, opendevs, i;
@@ -209,7 +211,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 
 
     if (start_portmidi(csound) != 0)
-     return -1;
+      return -1;
     /* check if there are any devices available */
     cntdev = portMidi_getDeviceCount(0);
     portMidi_listDevices(csound, 0);
@@ -291,7 +293,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
     PortMidiStream *midistream;
 
     if (UNLIKELY(start_portmidi(csound) != 0))
-     return -1;
+      return -1;
     /* check if there are any devices available */
     cntdev = portMidi_getDeviceCount(1);
     if (UNLIKELY(cntdev < 1)) {
@@ -499,13 +501,12 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetExternalMidiWriteCallback(csound, WriteMidiData_);
     csound->SetExternalMidiOutCloseCallback(csound, CloseMidiOutDevice_);
     csound->SetMIDIDeviceListCallback(csound,listDevices);
-    //if (UNLIKELY(start_portmidi(csound) != 0))
-    //return -1;
+   
     return 0;
 }
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound) {
-  // stop_portmidi(csound, NULL);
+
     return 0;
 }
 
