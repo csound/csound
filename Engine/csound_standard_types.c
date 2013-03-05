@@ -16,7 +16,8 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
     int ksmps;
     CSOUND* csound = (CSOUND*)cs;
     
-    //FIXME - this needs to take into account local ksmps, once context work is complete
+    //FIXME - this needs to take into account local ksmps, once
+    //context work is complete
 //    if(instr != NULL) {
 //      OPDS* p = (OPDS*)instr;
 //      ksmps = CS_KSMPS;
@@ -67,7 +68,7 @@ void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
 CS_VARIABLE* createString(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
-    var->memBlockSize = sizeof (MYFLT) * 256;
+    var->memBlockSize = cs->strVarMaxLen;
     return var;
 }
 

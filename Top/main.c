@@ -29,11 +29,9 @@
 
 #include "csound_orc.h"
 
-#ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
-#endif
 
 #if defined(USE_OPENMP)
 #include <omp.h>
@@ -342,7 +340,6 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
                       csound->oparms->numThreads);
     }
 #endif
-#ifdef PARCS
     if (O->numThreads > 1) {
       void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
       int i;
@@ -373,7 +370,6 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
       csound->WaitBarrier(csound->barrier2);
     }
-#endif
     csound->engineStatus |= CS_STATE_COMP;
     return musmon(csound);
 }

@@ -24,21 +24,13 @@
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
-#define VERSION "6.00alpha1"
+#define VERSION "6.00alpha2"
 
 /* Define to the full name of this package. */
-#ifndef PARCS
 #define CS_PACKAGE_NAME     "Csound"
-#else /* PARCS */
-#define CS_PACKAGE_NAME     "ParCsound"
-#endif /* PARCS */
 
 /* Define to the full name and version of this package. */
-#ifndef PARCS
 #define CS_PACKAGE_STRING   "Csound " VERSION
-#else /* PARCS */
-#define CS_PACKAGE_STRING   "ParCsound " VERSION
-#endif /* PARCS */
 
 /* Define to the one symbol short name of this package. */
 #define CS_PACKAGE_TARNAME  "csound"
@@ -46,7 +38,7 @@
 /* Define to the version of this package. */
 #define CS_PACKAGE_VERSION  VERSION
 #define CS_VERSION          (6)
-#define CS_SUBVER           (-10)
+#define CS_SUBVER           (-8)
 #define CS_PATCHLEVEL       (0)
 
 #define CS_APIVERSION       3   /* should be increased anytime a new version

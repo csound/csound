@@ -56,9 +56,7 @@
 #include "pstream.h"
 #include "remote.h"
 #include "resize.h"
-#ifdef PARCS
 #include "cs_par_ops.h"
-#endif
 #include "ugtabs.h"
 #include "compile_ops.h"
 
