@@ -30,9 +30,7 @@
 
 #include "sysdep.h"
 #include <pthread.h>
-#ifdef PARCS
 #include "cs_par_structs.h"
-#endif /* PARCS */
 #include <stdarg.h>
 #include <setjmp.h>
 #include "csound_type_system.h"
@@ -1408,16 +1406,16 @@ typedef struct NAME__ {
     int          init_pass_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
-    #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
+    #if defined(HAVE_PTHREAD_SPIN_LOCK)
     pthread_spinlock_t spoutlock, spinlock;
 #else
     int           spoutlock, spinlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS) */
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
+#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
     pthread_spinlock_t memlock;
 #else
     int           memlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS */
+#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
     char          *delayederrormessages;
     void          *printerrormessagesflag;
     struct sreadStatics__ {
@@ -1600,7 +1598,6 @@ typedef struct NAME__ {
     THREADINFO    *multiThreadedThreadInfo;
     /* INSDS         *multiThreadedStart; */
     /* INSDS         *multiThreadedEnd; */
-#ifdef PARCS
     struct dag_t        *multiThreadedDag;
     pthread_barrier_t   *barrier1;
     pthread_barrier_t   *barrier2;
@@ -1620,7 +1617,6 @@ typedef struct NAME__ {
     watchList     *dag_wlmm;
     char          **dag_task_dep;
     int           dag_task_max_size;
-#endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */

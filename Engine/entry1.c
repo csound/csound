@@ -970,12 +970,10 @@ OENTRY opcodlst_1[] = {
    (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
   { "remove",      S(DELETEIN),0,         1,      "",             "T",
    (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
-#ifdef PARCS
   { "##globallock",   S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
                     globallock,   globallock,   NULL},
   { "##globalunlock", S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
                     globalunlock, globalunlock, NULL},
-#endif
   { "##error",S(ERRFN),0, 1,          "i",     "i",   error_fn, NULL,    NULL    },
   { "exprandi.i",S(PRANDI),0, 1,      "i",    "kxx",  iexprndi, NULL,    NULL    },
   { "exprandi.k",S(PRANDI),0, 3,      "k",    "kxx",  exprndiset, kexprndi, NULL },
