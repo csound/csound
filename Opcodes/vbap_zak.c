@@ -526,7 +526,7 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     p->updated_gains = p->end_gains + p->n;
     /* reading in loudspeaker info */
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
-                                                        "vbap_ls_table"));
+                                                        "vbap_ls_table_0"));
     p->dim           = (int) ls_table[0];
     p->ls_am         = (int) ls_table[1];
     p->ls_set_am     = (int) ls_table[2];
