@@ -211,6 +211,10 @@ int vbap_init(CSOUND *csound, VBAP *p)
      }
     sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
+
+    if (ls_table==NULL)
+      return csound->InitError(csound, Str("could not find layout table no.%d"), (int)*p->layout );
+
     p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
     p->ls_am     = (int)ls_table[1];
     p->ls_set_am = (int)ls_table[2];
@@ -512,7 +516,8 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
 
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
                                                         "vbap_ls_table_0"));
-
+    if (ls_table==NULL)
+      return csound->InitError(csound, Str("could not find layout table no.0"));
     p->number = cnt;
     /* reading in loudspeaker info */
     p->dim       = (int)ls_table[0];
