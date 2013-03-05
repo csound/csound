@@ -68,7 +68,7 @@ void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
 CS_VARIABLE* createString(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
-    var->memBlockSize = sizeof (MYFLT) * 256;
+    var->memBlockSize = cs->strVarMaxLen;
     return var;
 }
 

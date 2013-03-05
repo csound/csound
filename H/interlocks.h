@@ -35,7 +35,7 @@
 #define CW (0x0040)
 #define CB (0x0060)
 
-#define ST (0x0080)
+#define SK (0x0080)
 
 #define WR (0x0100)
 
