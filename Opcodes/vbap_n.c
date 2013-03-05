@@ -202,12 +202,13 @@ int vbap_init(CSOUND *csound, VBAP *p)
     int cnt = p->number = (int)(p->OUTOCOUNT);
     char name[24];
     
+     if((!strcmp(p->h.optext->t.opcod, "vbap")) == 0) {
     p->audio = p->out_array[cnt]; 
     p->azi = p->out_array[cnt+1];
     p->ele = p->out_array[cnt+2];
     p->spread = p->out_array[cnt+3];
-    p->layout = p->out_array[cnt+4];
-
+    p->layout = p->out_array[cnt+4]; 
+     }
     sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
     p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
@@ -500,10 +501,19 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     int     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
-    int cnt = p->number = (int)p->OUTOCOUNT;
+    int cnt = (int)p->h.optext->t.outArgCount;
+    if((!strcmp(p->h.optext->t.opcod, "vbapmove")) == 0) {
+    p->audio = p->out_array[cnt]; 
+    p->dur = p->out_array[cnt+1];
+    p->spread = p->out_array[cnt+2];
+    p->field_am = p->out_array[cnt+3];
+    memcpy(p->fld, &(p->out_array[cnt+4]), sizeof(MYFLT *)*(p->h.optext->t.inArgCount-4));
+    }
 
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
-                                                        "vbap_ls_table"));
+                                                        "vbap_ls_table_0"));
+
+    p->number = cnt;
     /* reading in loudspeaker info */
     p->dim       = (int)ls_table[0];
     p->ls_am     = (int)ls_table[1];
