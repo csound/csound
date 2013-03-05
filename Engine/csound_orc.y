@@ -165,10 +165,8 @@
 #include "namedins.h"
 
 #include "csound_orc.h"
-#ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#endif
 #include "parse_param.h"
 
     //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
@@ -226,9 +224,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                                          INTEGER_TOKEN, (ORCTOKEN *)$1), $3); }
           | label ',' instlist
               {
-#ifdef PARCS
                   csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$1)->lexeme));
-#endif
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
                                          T_IDENT, (ORCTOKEN *)$1), $3); }
@@ -237,9 +233,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   TREE *ans;
                   ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
                   ans->rate = (int) '+';
-#ifdef PARCS
                   csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$2)->lexeme));
-#endif
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
           | '+' label
               {
@@ -256,24 +250,18 @@ instrdecl : INSTR_TOKEN
                 { namedInstrFlag = 1; }
             instlist NEWLINE
                 { namedInstrFlag = 0;
-#ifdef PARCS
                   csp_orc_sa_instr_add_tree(csound, $3);
-#endif
                 }
             statementlist ENDIN_TOKEN NEWLINE
                 {
                     $$ = make_node(csound, LINE,LOCN, INSTR_TOKEN, $3, $6);
-#ifdef PARCS
                     csp_orc_sa_instr_finalize(csound);
-#endif
                 }
           | INSTR_TOKEN NEWLINE error
                 {
                     namedInstrFlag = 0;
                     csound->Message(csound, Str("No number following instr\n"));
-#ifdef PARCS
                     csp_orc_sa_instr_finalize(csound);
-#endif
                 }
           ;
 
@@ -357,11 +345,9 @@ statement : ident '=' expr NEWLINE
                      ans->left->value->lexeme, ans->right->value->lexeme); */
                   //print_tree(csound, "=", ans);
                   $$ = ans;
-#ifdef PARCS
                   csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
-#endif
                 }
           | ident S_ADDIN expr NEWLINE
                 { 
@@ -375,11 +361,9 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "+=", ans);
                   $$ = ans;
-#ifdef PARCS
                   csp_orc_sa_global_read_write_add_list1(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
-#endif
                 }
           | ident S_SUBIN expr NEWLINE
                 { 
@@ -393,11 +377,9 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-#ifdef PARCS
                   csp_orc_sa_global_read_write_add_list1(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
-#endif
                 }
           | ident S_MULIN expr NEWLINE
                 { 
@@ -411,11 +393,9 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-#ifdef PARCS
                   csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
-#endif
                 }
           | ident S_DIVIN expr NEWLINE
                 { 
@@ -429,11 +409,9 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-#ifdef PARCS
                   csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
-#endif
                 }
           | arrayexpr '=' expr NEWLINE
 	  {
@@ -455,11 +433,9 @@ statement : ident '=' expr NEWLINE
                                                     T_IDENT_A, (ORCTOKEN *)$1)));
               //print_tree(csound, "K2A Assign\n", ans);
               $$ = ans;
-#ifdef PARCS
               csp_orc_sa_global_read_add_list(csound,
                                               csp_orc_sa_globals_find(csound,
                                                                       ans->right));
-#endif
           }
           | T_IDENT_T '=' texp NEWLINE
           {
@@ -477,11 +453,6 @@ statement : ident '=' expr NEWLINE
               ans->right = appendToTree(csound, $3, $6);
               //print_tree(csound, "TABLE ASSIGN", ans);
               $$ = ans; 
-  /* #ifdef PARCS */
-  /*                   csp_orc_sa_global_read_write_add_list(csound, */
-  /*                      csp_orc_sa_globals_find(csound, ans->left) */
-  /*                   csp_orc_sa_globals_find(csound, ans->right)); */
-  /* #endif */
 /*
           }
 */
@@ -492,12 +463,10 @@ statement : ident '=' expr NEWLINE
                   $2->right = $3;
 
                   $$ = $2;
-#ifdef PARCS
                   csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, $2->left),
                                     csp_orc_sa_globals_find(csound, $2->right));
                   csp_orc_sa_interlocks(csound, $2->value);
-#endif
                   query_deprecated_opcode(csound, $2->value);
                 }
           | opcode0 exprlist NEWLINE
@@ -506,12 +475,10 @@ statement : ident '=' expr NEWLINE
                   ((TREE *)$1)->right = (TREE *)$2;
 
                   $$ = $1;
-#ifdef PARCS
                   csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
                   csp_orc_sa_interlocks(csound, $1->value);
-#endif
                   query_deprecated_opcode(csound, $1->value);
                 }
           | LABEL_TOKEN
@@ -833,10 +800,8 @@ ifac      : ident               { $$ = $1; }
 function  : T_FUNCTION  { 
              csound->DebugMsg(csound,"FUNCTION ans=%p, token=%p %p\n",
                     $1, ((ORCTOKEN *)$1)->value);
-#ifdef PARCS
     //                if ((ORCTOKEN *)$1->value != 0)
              csp_orc_sa_interlocksf(csound, ((ORCTOKEN *)$1)->value);
-#endif
              $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, (ORCTOKEN *)$1); 
                 }
 
