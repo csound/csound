@@ -15,7 +15,7 @@
 
 extern char* convertArrayName(CSOUND* csound, char* arrayName);
 extern char* addDimensionToArrayName(CSOUND* csound, char* arrayName);
-extern OENTRIES* find_opcode2(CSOUND* csound, OENTRY* opcodeList, OENTRY* endOpcode, char* opname);
+extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern OENTRY* resolve_opcode(CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
 
 extern bool check_in_arg(char* found, char* required);
@@ -77,7 +77,7 @@ void test_find_opcode2(void) {
     int i;
     CSOUND* csound = csoundCreate(NULL);
 
-    OENTRIES* entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "=");
+    OENTRIES* entries = find_opcode2(csound, "=");
 //    printf("Found entries: %d\n", entries->count);
     
 //    for (i = 0; i < entries->count; i++) {
@@ -91,7 +91,7 @@ void test_find_opcode2(void) {
     CU_ASSERT_EQUAL(7, entries->count);
     csound->Free(csound, entries);
     
-    entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "vco2");
+    entries = find_opcode2(csound, "vco2");
     CU_ASSERT_EQUAL(1, entries->count);
     csound->Free(csound, entries);
 }
@@ -99,7 +99,7 @@ void test_find_opcode2(void) {
 void test_resolve_opcode(void) {
     CSOUND* csound = csoundCreate(NULL);
     
-    OENTRIES* entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "=");
+    OENTRIES* entries = find_opcode2(csound, "=");
     CU_ASSERT_EQUAL(7, entries->count);
     
     OENTRY* opc = resolve_opcode(csound, entries, "k", "k");
@@ -107,7 +107,7 @@ void test_resolve_opcode(void) {
     csound->Free(csound, entries);
     
     
-    entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "vco2");
+    entries = find_opcode2(csound, "vco2");
     CU_ASSERT_EQUAL(1, entries->count);
     
     opc = resolve_opcode(csound, entries, "a", "cc");
@@ -115,7 +115,7 @@ void test_resolve_opcode(void) {
     csound->Free(csound, entries);
     
     
-    entries = find_opcode2(csound, csound->opcodlst, csound->oplstend, "passign");
+    entries = find_opcode2(csound, "passign");
     CU_ASSERT_EQUAL(1, entries->count);
     int i;
     for (i = 0; i < entries->count; i++) {

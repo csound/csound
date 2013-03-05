@@ -51,6 +51,7 @@ extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
+extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
 
 
 void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
@@ -185,8 +186,10 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
           csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
                           csound->synterrcnt, csound->synterrcnt==1?"":"s");
           goto ending;
-      } 
-
+      }
+        
+      //csp_orc_analyze_tree(csound, astTree);
+        
       astTree = csound_orc_expand_expressions(csound, astTree);
 
       if (UNLIKELY(PARSER_DEBUG)) {
