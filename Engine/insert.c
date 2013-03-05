@@ -182,10 +182,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     /* Add an active instrument */
     tp->active++;
     tp->instcnt++;
-#ifdef PARCS
     csound->dag_changed++;      /* Need to remake DAG */
     //printf("**** dag changed by insert\n");
-#endif
     nxtp = &(csound->actanchor);    /* now splice into activ lst */
     while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
       if (nxtp->insno > insno ||
@@ -249,14 +247,15 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     csound->curip    = ip;
     csound->ids      = (OPDS *)ip;
  
-    if(csound->realtime_audio_flag == 0) {
-    /* do init pass for this instr */
-    while ((csound->ids = csound->ids->nxti) != NULL) {
-       if (O->odebug) csound->Message(csound, "init %s:\n",
-            csound->opcodlst[csound->ids->optext->t.opnum].opname);      
-      (*csound->ids->iopadr)(csound, csound->ids);
-    }
-    ip->init_done = 1;
+    if (csound->realtime_audio_flag == 0) {
+      /* do init pass for this instr */
+      while ((csound->ids = csound->ids->nxti) != NULL) {
+        if (O->odebug)
+          csound->Message(csound, "init %s:\n",
+                          csound->opcodlst[csound->ids->optext->t.opnum].opname);
+        (*csound->ids->iopadr)(csound, csound->ids);
+      }
+      ip->init_done = 1;
     }
 
     csound->tieflag = csound->reinitflag = 0;
@@ -688,10 +687,8 @@ static void deact(CSOUND *csound, INSDS *ip)
     csound->engineState.instrtxtp[ip->insno]->act_instance = ip;
     if (ip->fdchp != NULL)
       fdchclose(csound, ip);
-#ifdef PARCS
     csound->dag_changed++;
     //printf("**** dag changed by deact\n");
-#endif
 }
 
 /* Turn off a particular insalloc, also remove from list of active */
@@ -747,10 +744,8 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
     else {
       /* no extra time needed: deactivate immediately */
       deact(csound, ip);
-#ifdef PARCS
       csound->dag_changed++;      /* Need to remake DAG */
       //printf("**** dag changed by xturnoff\n");
-#endif
     }
 }
 
