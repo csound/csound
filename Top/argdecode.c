@@ -63,9 +63,7 @@ static const char *shortUsageList[] = {
   Str_noop("--help\tprint long usage options"),
   Str_noop("-U unam\trun utility program unam"),
   Str_noop("-C\tuse Cscore processing of scorefile"),
-#ifdef PARCS
   Str_noop("-j N\tuse N processes"),
-#endif
   Str_noop("-I\tI-time only orch run"),
   Str_noop("-n\tno sound onto disk"),
   Str_noop("-i fnam\tsound input filename"),
