@@ -16,7 +16,8 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
     int ksmps;
     CSOUND* csound = (CSOUND*)cs;
     
-    //FIXME - this needs to take into account local ksmps, once context work is complete
+    //FIXME - this needs to take into account local ksmps, once
+    //context work is complete
 //    if(instr != NULL) {
 //      OPDS* p = (OPDS*)instr;
 //      ksmps = CS_KSMPS;

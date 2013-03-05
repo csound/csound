@@ -55,7 +55,6 @@
 #include "pvfileio.h"
 #include "fftlib.h"
   //#include "csound_orc.h"
-#ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
@@ -67,7 +66,6 @@
 #if defined(linux) || defined(__HAIKU__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
-#endif /* PARCS */
 
 #if defined(USE_OPENMP)
 #include <omp.h>
@@ -619,14 +617,14 @@ static const CSOUND cenviron_ = {
     0,              /* init pass loop  */
     NULL,           /* init pass threadlock */
     NULL,           /* API_lock */
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
 #else
     0,              /*  spoutlock           */
     0,              /*  spinlock            */
 #endif
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && (defined(PARCS))
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock           */
 #else
     0,              /*  memlock             */
@@ -807,7 +805,6 @@ static const CSOUND cenviron_ = {
     NULL,           /* multiThreadedThreadInfo */
     //NULL,           /* multiThreadedStart */
     //NULL,           /* multiThreadedEnd */
-#ifdef PARCS
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
@@ -827,7 +824,6 @@ static const CSOUND cenviron_ = {
     NULL,           /* dag_wlmm */
     NULL,           /* dag_task_dep */
     0 ,             /* dag_task_max_size */
-#endif /* PARCS */
     0,              /* tempStatus */
     0,              /* orcLineOffset */
     0,              /* scoLineOffset */
@@ -1282,7 +1278,6 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
 
 
 
-#ifdef PARCS
 int dag_get_task(CSOUND *csound);
 void dag_end_task(CSOUND *csound, int task);
 void dag_build(CSOUND *csound, INSDS *chain);
@@ -1375,8 +1370,6 @@ unsigned long kperfThread(void * cs)
       csound->WaitBarrier(csound->barrier2);
     }
 }
-#endif /* ! PARCS */
-
 
 int kperf(CSOUND *csound)
 {
@@ -1407,33 +1400,22 @@ int kperf(CSOUND *csound)
     csound->spoutactive = 0;            /*   make spout inactive   */
     ip = csound->actanchor.nxtact;
     if (ip != NULL) {
-#ifdef PARCS
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
-/*         struct dag_t *dag2 = NULL; */
-/*         TIMER_START(thread, "Dag "); */
-/* # if defined(LINEAR_CACHE) || defined(HASH_CACHE) */
-/*         csp_dag_cache_fetch(csound, &dag2, ip); */
-/*         csp_dag_build(csound, &dag2, ip); */
-/* # endif */
-/*         csound->multiThreadedDag = dag2; */
 
         /* process this partition */
-        //SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
         csound->WaitBarrier(csound->barrier1);
 
         (void) nodePerf(csound, 0);
 
-        //SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
         csound->multiThreadedDag = NULL;
       }
       else {
-#endif
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
@@ -1455,9 +1437,7 @@ int kperf(CSOUND *csound)
           ip->ksmps_no_end = 0;  /* reset end of loop samples */     
           ip = nxt; /* but this does not allow for all deletions */
         }
-#ifdef PARCS
       }
-#endif
     }
     if (!csound->spoutactive) {             /*   results now in spout? */
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
@@ -1628,13 +1608,11 @@ PUBLIC int csoundPerform(CSOUND *csound)
         if ((done = sensevents(csound))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
           csoundUnlockMutex(csound->API_lock);
-#ifdef PARCS
           if (csound->oparms->numThreads > 1) {
             csound->multiThreadedComplete = 1;
             
             csound->WaitBarrier(csound->barrier1);
           }
-#endif /* PARCS  */
           return done;
         }
       } while (kperf(csound));
