@@ -359,3 +359,63 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
     }
     return current_instr;
 }
+
+/* ANALYZE TREE */
+
+void csp_orc_analyze_tree(CSOUND* csound, TREE* root) {
+    if (PARSER_DEBUG) csound->Message(csound, "Performing csp analysis\n");
+    
+    TREE *current = root;
+    TREE *left, *temp, *right;
+    
+    while(current != NULL) {
+        switch(current->type) {
+            case INSTR_TOKEN:
+                if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
+                
+                temp = current->left;
+                
+                // FIXME - need to figure out why csp_orc_sa_instr_add is called by itself in csound_orc.y
+                csp_orc_sa_instr_add_tree(csound, temp);
+                
+                csp_orc_analyze_tree(csound, current->right);
+                
+                csp_orc_sa_instr_finalize(csound);
+                
+                break;
+            case UDO_TOKEN:
+                if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
+              
+                csp_orc_analyze_tree(csound, current->right);
+                
+                break;
+                
+            case IF_TOKEN:
+            case UNTIL_TOKEN:
+                break;
+            case LABEL_TOKEN:
+                break;
+            default:
+                if (PARSER_DEBUG) csound->Message(csound, "Statement: %s\n", current->value->lexeme);
+                
+                if(current->left != NULL) {
+                    csp_orc_sa_global_read_write_add_list(csound,
+                            csp_orc_sa_globals_find(csound, current->left),
+                            csp_orc_sa_globals_find(csound, current->right));
+                
+                } else {
+                    csp_orc_sa_global_read_add_list(csound,
+                                                    csp_orc_sa_globals_find(csound,
+                                                                            current->right));
+                }
+                
+                break;
+        }
+        
+        current = current->next;
+        
+    }
+    
+    if (PARSER_DEBUG) csound->Message(csound, "[End csp analysis]\n");
+    
+}
