@@ -167,6 +167,7 @@ int32 named_instr_find(CSOUND *csound, char *s)
 /* allocate entry for named instrument ip with name s (s must not be freed */
 /* after the call, because only the pointer is stored); instrument number */
 /* is set to insno */
+/* Above remark out of date as I added strdup -- JPff march 2013 */
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
