@@ -1420,7 +1420,9 @@ int kperf(CSOUND *csound)
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
           csound->pds = (OPDS*) ip;
-          if (ip->offtim > 0 && time_end > ip->offtim && csound->oparms->sampleAccurate){
+          if (ip->offtim > 0              && 
+              time_end > ip->offtim       && 
+              csound->oparms->sampleAccurate) {
             /* this is the last cycle of performance */
             // csound->Message(csound, "last cycle %d: %f %f %d\n", 
             //          ip->insno, csound->icurTime/csound->esr, 
@@ -1471,12 +1473,14 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     int returnValue;
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (!(csound->engineStatus & CS_STATE_COMP)){
-      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
+      csound->Warning(csound, 
+                      Str("Csound not ready for performance: csoundStart() "
+                          "has not been called \n"));
       return CSOUND_ERROR;
     }
     /* setup jmp for return after an exit() */
-    if ((returnValue = setjmp(csound->exitjmp))) {
+    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
 #ifndef MACOSX
       csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
 #endif
@@ -1500,12 +1504,14 @@ int csoundPerformKsmpsInternal(CSOUND *csound)
     int returnValue;
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (!(csound->engineStatus & CS_STATE_COMP)){
-      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
+      csound->Warning(csound,
+                      Str("Csound not ready for performance: csoundStart() "
+                          "has not been called \n"));
       return CSOUND_ERROR;
     }
     /* setup jmp for return after an exit() */
-    if ((returnValue = setjmp(csound->exitjmp))) {
+        if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
 #ifndef MACOSX
       csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
 #endif
@@ -1517,7 +1523,7 @@ int csoundPerformKsmpsInternal(CSOUND *csound)
         return done;
       }
     } while (kperf(csound));
-      return 0;
+    return 0;
 }
 
 
@@ -1528,12 +1534,14 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
     int returnValue;
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (!(csound->engineStatus & CS_STATE_COMP)){
-      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
+      csound->Warning(csound,
+                      Str("Csound not ready for performance: csoundStart() "
+                          "has not been called \n"));
       return CSOUND_ERROR;
     }
     /* setup jmp for return after an exit() */
-    if ((returnValue = setjmp(csound->exitjmp))) {
+    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
 #ifndef MACOSX
       csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
 #endif
@@ -1554,13 +1562,15 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     int returnValue;
     int done;
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (!(csound->engineStatus & CS_STATE_COMP)){
-      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
+      csound->Warning(csound,
+                      Str("Csound not ready for performance: csoundStart() "
+                          "has not been called \n"));
       return CSOUND_ERROR;
     }
-
+        
     /* Setup jmp for return after an exit(). */
-    if ((returnValue = setjmp(csound->exitjmp))) {
+    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
 #ifndef MACOSX
       csoundMessage(csound, Str("Early return from csoundPerformBuffer().\n"));
 #endif
@@ -1589,14 +1599,16 @@ PUBLIC int csoundPerform(CSOUND *csound)
     int returnValue;
 
    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (!(csound->engineStatus & CS_STATE_COMP)){
-      csound->Warning(csound, "Csound not ready for performance: csoundStart() has not been called \n");
+    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
+      csound->Warning(csound, 
+                      Str("Csound not ready for performance: csoundStart() "
+                          "has not been called \n"));
       return CSOUND_ERROR;
     }
 
     csound->performState = 0;
     /* setup jmp for return after an exit() */
-    if ((returnValue = setjmp(csound->exitjmp))) {
+    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
 #ifndef MACOSX
       csoundMessage(csound, Str("Early return from csoundPerform().\n"));
 #endif
