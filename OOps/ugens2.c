@@ -77,8 +77,8 @@ int ephsor(CSOUND *csound, EPHSOR *p)
     double      incr, R = *p->kR;
 
     rs = p->sr;
-    if (offset) memset(rs, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -146,8 +146,8 @@ int phsor(CSOUND *csound, PHSOR *p)
     double      incr;
 
     rs = p->sr;
-    if (offset) memset(rs, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -497,8 +497,8 @@ int tablefn(CSOUND *csound, TABLE *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;            /* RWD fix */
     rslt = p->rslt;
-    if (koffset) memset(rslt, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(koffset)) memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -737,8 +737,8 @@ int tabli(CSOUND *csound, TABLE   *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     rslt   = p->rslt;
-    if (koffset) memset(rslt, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(koffset)) memset(rslt, '\0', koffset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -813,8 +813,8 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     rslt = p->rslt;
-    if (koffset) memset(rslt, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(koffset)) memset(rslt, '\0', koffset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1088,8 +1088,8 @@ int osciln(CSOUND *csound, OSCILN *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->ftp==NULL)) goto err1;
-    if (offset) memset(rs, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1173,8 +1173,8 @@ int osckk(CSOUND *csound, OSC *p)
     lobits = ftp->lobits;
     amp = *p->xamp;
     ar = p->sr; 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1208,8 +1208,8 @@ int oscka(CSOUND *csound, OSC *p)
     cpsp = p->xcps;
     phs = p->lphs;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1242,8 +1242,8 @@ int oscak(CSOUND *csound, OSC *p)
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     ampp = p->xamp;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1275,8 +1275,8 @@ int oscaa(CSOUND *csound, OSC *p)
     ampp = p->xamp;
     cpsp = p->xcps;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1328,8 +1328,8 @@ int osckki(CSOUND *csound, OSC   *p)
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     amp = *p->xamp;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1364,8 +1364,8 @@ int osckai(CSOUND *csound, OSC   *p)
     cpsp = p->xcps;
     phs = p->lphs;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1402,8 +1402,8 @@ int oscaki(CSOUND *csound, OSC   *p)
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     ampp = p->xamp;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1439,8 +1439,8 @@ int oscaai(CSOUND *csound, OSC   *p)
     ampp = p->xamp;
     cpsp = p->xcps;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1518,8 +1518,8 @@ int osckk3(CSOUND *csound, OSC   *p)
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     amp = *p->xamp;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1577,8 +1577,8 @@ int oscka3(CSOUND *csound, OSC   *p)
     cpsp = p->xcps;
     phs = p->lphs;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1631,8 +1631,8 @@ int oscak3(CSOUND *csound, OSC   *p)
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     ampp = p->xamp;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1684,8 +1684,8 @@ int oscaa3(CSOUND *csound, OSC   *p)
     ampp = p->xamp;
     cpsp = p->xcps;
     ar = p->sr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

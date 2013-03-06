@@ -497,7 +497,7 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
       for (nn = 0; nn < nsmps; nn++)
         p->aOut[chn][nn] = FL(0.0);
     /* file read position */
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
       case 1:                   /* ---- no interpolation ---- */
@@ -854,7 +854,7 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
    for (chn = 0; chn < chans; chn++)
       for (nn = 0; nn < nsmps; nn++)
         p->aOut[chn][nn] = FL(0.0);
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     }
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
@@ -1066,9 +1066,9 @@ int soundin(CSOUND *csound, SOUNDIN_ *p)
     if (UNLIKELY(p->fdch.fd == NULL)) {
       return csound->PerfError(csound, Str("soundin: not initialised"));
     }
-    if (offset) for (i=0; i<p->nChannels; i++)
+    if (UNLIKELY(offset)) for (i=0; i<p->nChannels; i++)
                   memset(p->aOut[i], '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       for (i=0; i<p->nChannels; i++)
         memset(&(p->aOut[i][nsmps]), '\0', early*sizeof(MYFLT));

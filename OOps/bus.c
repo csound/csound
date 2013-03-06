@@ -370,10 +370,10 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound,
                                  Str("chani: memory allocation failure"));
     }
-    if (offset) memset(p->r, '\0', offset * sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->r, '\0', offset * sizeof(MYFLT));
     memcpy(&p->r[offset], &(csound->chania[n]),
            sizeof(MYFLT) * (CS_KSMPS-offset-early));
-    if (early) memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
+    if (UNLIKELY(early)) memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
     return OK;
 }
 
@@ -392,10 +392,10 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
     }
-    if (offset) memset(&(csound->chanoa[n]), '\0', offset);
+    if (UNLIKELY(offset)) memset(&(csound->chanoa[n]), '\0', offset);
     memcpy(&(csound->chanoa[n+offset]), &p->r[offset],
            sizeof(MYFLT) * (CS_KSMPS - offset-early));
-    if (early)
+    if (UNLIKELY(early))
       memset(&csound->chanoa[n+CS_KSMPS-early], '\0', sizeof(MYFLT) * early);
     return OK;
 }
@@ -904,9 +904,9 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     csoundSpinLock(p->lock);
-    if (offset) memset(p->arg, '\0', offset);
+    if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
     memcpy(&p->arg[offset], p->fp, sizeof(MYFLT)*(CS_KSMPS-offset-early));
-    if (early) memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
+    if (UNLIKELY(early)) memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     csoundSpinUnLock(p->lock);
     return OK;
 }
@@ -1009,10 +1009,10 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
    /* Need lock for the channel */
     csoundSpinLock(p->lock);
-    if (offset) memset(p->fp, '\0', sizeof(MYFLT)*offset);
+    if (UNLIKELY(offset)) memset(p->fp, '\0', sizeof(MYFLT)*offset);
     memcpy(&p->fp[offset], &p->arg[offset],
            sizeof(MYFLT)*(CS_KSMPS-offset-early));
-    if (early) memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
+    if (UNLIKELY(early)) memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
     csoundSpinUnLock(p->lock);
     return OK;
 }
@@ -1025,7 +1025,7 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
     uint32_t nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     /* Need lock for the channel */
     csoundSpinLock(p->lock);
     for (n=offset; n<nsmps; n++) {
