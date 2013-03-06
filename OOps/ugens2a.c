@@ -201,7 +201,7 @@ int ptablefn(CSOUND *csound, TABLE *p)
     if (UNLIKELY(ftp==NULL)) goto err1;            /* RWD fix */
     rslt = p->rslt;
     if (koffset) memset(rslt, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -361,7 +361,7 @@ int ptabli(CSOUND *csound, TABLE   *p)
     if (UNLIKELY(ftp==NULL)) goto err1;
     rslt   = p->rslt;
     if (koffset) memset(rslt, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -443,7 +443,7 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
     if (UNLIKELY(ftp==NULL)) goto err1;
     rslt = p->rslt;
     if (koffset) memset(rslt, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
