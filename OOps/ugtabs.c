@@ -100,39 +100,40 @@ int tabler_kontrol(CSOUND *csound, TABL *p){
 
 
 
-int tabler_audio(CSOUND *csound, TABL *p){
-  int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
-  int mask = p->ftp->lenmask;
-  MYFLT *sig = p->sig;
-  MYFLT *ndx_f = p->ndx;
-  MYFLT *func = p->ftp->ftable;
-  MYFLT offset = *p->offset;
-  MYFLT mul = p->mul;
-  int32 iwrap = p->iwrap;
-  uint32_t    koffset = p->h.insdshead->ksmps_offset;
-  uint32_t    early  = p->h.insdshead->ksmps_no_end;
+int tabler_audio(CSOUND *csound, TABL *p)
+{
+    int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
+    int mask = p->ftp->lenmask;
+    MYFLT *sig = p->sig;
+    MYFLT *ndx_f = p->ndx;
+    MYFLT *func = p->ftp->ftable;
+    MYFLT offset = *p->offset;
+    MYFLT mul = p->mul;
+    int32 iwrap = p->iwrap;
+    uint32_t    koffset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
 
- if (koffset) memset(sig, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(koffset)) memset(sig, '\0', koffset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
   
- for(n=koffset; n < nsmps; n++){
-   ndx = MYFLOOR((ndx_f[n] + offset)*mul);
-   if(iwrap) {
-    if(p->np2){
-      while(ndx >= len) ndx -= len;
-      while(ndx < 0)  ndx += len;
-    }
-    else ndx &= mask;
-  } else {
+    for(n=koffset; n < nsmps; n++){
+      ndx = MYFLOOR((ndx_f[n] + offset)*mul);
+      if(iwrap) {
+        if(p->np2){
+          while(ndx >= len) ndx -= len;
+          while(ndx < 0)  ndx += len;
+        }
+        else ndx &= mask;
+      } else {
     if(UNLIKELY(ndx >= len)) ndx = len - 1;
     else if (UNLIKELY(ndx < 0)) ndx = 0;
-  }
-  p->sig[n] = func[ndx]; 
-}
-  return OK;
+      }
+      p->sig[n] = func[ndx]; 
+    }
+    return OK;
 }
 
 int tableir_init(CSOUND *csound, TABL *p){
@@ -202,44 +203,45 @@ int tableir_kontrol(CSOUND *csound, TABL *p){
   return OK;
 }
 
-int tableir_audio(CSOUND *csound, TABL *p){
-  int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
-  int mask = p->ftp->lenmask;
-  MYFLT *sig = p->sig;
-  MYFLT *ndx_f = p->ndx;
-  MYFLT *func = p->ftp->ftable;
-  MYFLT offset = *p->offset;
-  MYFLT mul = p->mul, tmp, frac;
-  int32 iwrap = p->iwrap;
-  uint32_t    koffset = p->h.insdshead->ksmps_offset;
-  uint32_t    early  = p->h.insdshead->ksmps_no_end;
-
- if (koffset) memset(sig, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+int tableir_audio(CSOUND *csound, TABL *p)
+{
+    int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
+    int mask = p->ftp->lenmask;
+    MYFLT *sig = p->sig;
+    MYFLT *ndx_f = p->ndx;
+    MYFLT *func = p->ftp->ftable;
+    MYFLT offset = *p->offset;
+    MYFLT mul = p->mul, tmp, frac;
+    int32 iwrap = p->iwrap;
+    uint32_t    koffset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+  
+    if (UNLIKELY(koffset)) memset(sig, '\0', koffset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
   
- for(n=koffset; n < nsmps; n++){
-  MYFLT x1, x2;
-  tmp = (ndx_f[n] + offset)*mul;
-  ndx = MYFLOOR(tmp);
-  frac = tmp - ndx;
-  if(iwrap) {
-    if(p->np2){
-      while(ndx >= len) ndx -= len;
-      while(ndx < 0)  ndx += len;
+    for (n=koffset; n < nsmps; n++){
+      MYFLT x1, x2;
+      tmp = (ndx_f[n] + offset)*mul;
+      ndx = MYFLOOR(tmp);
+      frac = tmp - ndx;
+      if(iwrap) {
+        if(p->np2){
+          while(ndx >= len) ndx -= len;
+          while(ndx < 0)  ndx += len;
+        }
+        else ndx &= mask;
+      } else {
+        if(UNLIKELY(ndx >= len)) ndx = len - 1;
+        else if (UNLIKELY(ndx < 0)) ndx = 0;
+      }
+      x1 = func[ndx];
+      x2 = func[ndx+1];
+      p->sig[n] = x1 + (x2 - x1)*frac; 
     }
-    else ndx &= mask;
-  } else {
-    if(UNLIKELY(ndx >= len)) ndx = len - 1;
-    else if (UNLIKELY(ndx < 0)) ndx = 0;
-  }
-  x1 = func[ndx];
-  x2 = func[ndx+1];
-  p->sig[n] = x1 + (x2 - x1)*frac; 
-}
-  return OK;
+    return OK;
 }
 
 int table3r_init(CSOUND *csound, TABL *p){
@@ -353,8 +355,8 @@ int table3r_audio(CSOUND *csound, TABL *p){
   uint32_t    koffset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
 
- if (koffset) memset(sig, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+ if (UNLIKELY(koffset) memset(sig, '\0', koffset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -559,7 +561,7 @@ int tablew_audio(CSOUND *csound, TABL *p){
   uint32_t    koffset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
 
- if (early) nsmps -= early;
+ if (UNLIKELY(early)) nsmps -= early;
 
  for(n=koffset; n < nsmps; n++){
    ndx = MYFLOOR((ndx_f[n] + offset)*mul + (iwrap==2 ? 0.5:0));
@@ -756,8 +758,8 @@ int table_ra(CSOUND *csound, TABLRA *p){
 
   if(pos < 0) return csound->PerfError(csound, Str("table: could not read negative pos %d"), pos);
 
-  if (koffset) memset(sig, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+  if (UNLIKELY(koffset)) memset(sig, '\0', koffset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -798,7 +800,7 @@ int table_wa(CSOUND *csound, TABLWA *p){
 
   if(pos < 0) return csound->PerfError(csound, Str("table: could not read negative pos %d"), pos);
 
-  if (early) nsmps -= early;
+  if (UNLIKELY(early)) nsmps -= early;
      
   func = ftp->ftable; 
   len = ftp->flen;
