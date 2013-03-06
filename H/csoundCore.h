@@ -1412,9 +1412,9 @@ typedef struct NAME__ {
     int           spoutlock, spinlock;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t memlock;
+    pthread_spinlock_t memlock, spinlock;
 #else
-    int           memlock;
+    int           memlock, spinlock1;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
     char          *delayederrormessages;
     void          *printerrormessagesflag;
@@ -1478,7 +1478,8 @@ typedef struct NAME__ {
       char    *Linep, *Linebufend;
       int     stdmode;
       EVTBLK  prve;
-      char    Linebuf[LBUFSIZ];
+      char    *Linebuf;
+      int     linebufsiz;
     } lineventStatics;
     struct musmonStatics__ {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
