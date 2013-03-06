@@ -156,7 +156,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
-      if (O->msglevel & RNGEMSG) {
+      if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csound->Message(csound, Str("new alloc for instr %s:\n"), name);
@@ -272,10 +272,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       duration_samps =  ip->p3 * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
       duration_kcycles = CEIL(duration_samps/csound->ksmps);
-      /* ksmps_offset = */ 
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
-      //ip->no_end = duration_kcycles*csound->ksmps - duration_samps 
-      //                                            - ip->ksmps_offset;
       ip->no_end = csound->ksmps - 
         ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
  /* the ksmps_no_end field is initially 0, set to no_end in the last perf cycle */
@@ -381,7 +378,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
-      if (O->msglevel & RNGEMSG) {
+      if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csound->Message(csound, Str("new alloc for instr %s:\n"), name);
@@ -2131,7 +2128,7 @@ INSDS *insert_event(CSOUND *csound,
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
-      if (O->msglevel & RNGEMSG) {
+      if (UNLIKELY(O->msglevel & RNGEMSG)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (name)
         csound->Message(csound, Str("new alloc for instr %s:\n"), name);
