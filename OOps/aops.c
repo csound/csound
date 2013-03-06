@@ -1706,33 +1706,59 @@ int outq4(CSOUND *csound, OUTM *p)
     return OK;
 }
 
-static int outn(CSOUND *csound, uint32_t n, OUTX *p)
+inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
-    uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  i, j, k=0;
-    uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
-    CSOUND_SPOUT_SPINLOCK
-    if (!csound->spoutactive) {
-      for (j=0; j<nsmps; j++) {
-        for (i=0; i<n; i++) {
-          csound->spout[k + i] = (j<offset||j>early) ? FL(0.0) : p->asig[i][j];
+    if (csound->oparms->sampleAccurate) {
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
+      CSOUND_SPOUT_SPINLOCK
+      if (!csound->spoutactive) {
+        for (j=0; j<nsmps; j++) {
+          for (i=0; i<n; i++) {
+            csound->spout[k + i] = (j<offset||j>early) ? FL(0.0) : p->asig[i][j];
+          }
+          for ( ; i < csound->nchnls; i++) {
+            csound->spout[k + i] = FL(0.0);
+          }
+          k += csound->nchnls;
         }
-        for ( ; i < csound->nchnls; i++) {
-          csound->spout[k + i] = FL(0.0);
-        }
-        k += csound->nchnls;
+        csound->spoutactive = 1;
       }
-      csound->spoutactive = 1;
+      else {
+        for (j=offset; j<early; j++) {
+          for (i=0; i<n; i++) {
+            csound->spout[k + i] += p->asig[i][j];
+          }
+          k += csound->nchnls;
+        }
+      }
+      CSOUND_SPOUT_SPINUNLOCK
     }
     else {
-      for (j=0; j<early; j++) {
-        for (i=0; i<n; i++) {
-          if (j>=offset) csound->spout[k + i] += p->asig[i][j];
+      CSOUND_SPOUT_SPINLOCK
+      if (!csound->spoutactive) {
+        for (j=0; j<nsmps; j++) {
+          for (i=0; i<n; i++) {
+            csound->spout[k + i] = p->asig[i][j];
+          }
+          for ( ; i < csound->nchnls; i++) {
+            csound->spout[k + i] = FL(0.0);
+          }
+          k += csound->nchnls;
         }
-        k += csound->nchnls;
+        csound->spoutactive = 1;
       }
+      else {
+        for (j=0; j<nsmps; j++) {
+          for (i=0; i<n; i++) {
+            csound->spout[k + i] += p->asig[i][j];
+          }
+          k += csound->nchnls;
+        }
+      }
+      CSOUND_SPOUT_SPINUNLOCK
     }
-    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1769,8 +1795,8 @@ int outch(CSOUND *csound, OUTCH *p)
       }
       else {
         sp = csound->spout + (ch - 1);
-        for (n=0; n<early; n++) {
-          if (n>=offset) *sp += apn[n];
+        for (n=offset; n<early; n++) {
+          /* if (n>=offset)*/ *sp += apn[n];
           sp += nchnls;
         }
       }
