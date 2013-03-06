@@ -1706,7 +1706,7 @@ int outq4(CSOUND *csound, OUTM *p)
     return OK;
 }
 
-static int outn(CSOUND *csound, uint32_t n, OUTX *p)
+inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  i, j, k=0;
@@ -1725,9 +1725,9 @@ static int outn(CSOUND *csound, uint32_t n, OUTX *p)
       csound->spoutactive = 1;
     }
     else {
-      for (j=0; j<early; j++) {
+      for (j=offset; j<early; j++) {
         for (i=0; i<n; i++) {
-          if (j>=offset) csound->spout[k + i] += p->asig[i][j];
+          csound->spout[k + i] += p->asig[i][j];
         }
         k += csound->nchnls;
       }
@@ -1769,8 +1769,8 @@ int outch(CSOUND *csound, OUTCH *p)
       }
       else {
         sp = csound->spout + (ch - 1);
-        for (n=0; n<early; n++) {
-          if (n>=offset) *sp += apn[n];
+        for (n=offset; n<early; n++) {
+          /* if (n>=offset)*/ *sp += apn[n];
           sp += nchnls;
         }
       }

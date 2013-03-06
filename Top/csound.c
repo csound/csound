@@ -1373,7 +1373,6 @@ unsigned long kperfThread(void * cs)
 
 int kperf(CSOUND *csound)
 {
-    /* void *barrier1, *barrier2; */
     INSDS *ip;
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
@@ -1419,10 +1418,9 @@ int kperf(CSOUND *csound)
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
-          csound->pds = (OPDS*) ip;
-          if (ip->offtim > 0              && 
-              time_end > ip->offtim       && 
-              csound->oparms->sampleAccurate) {
+          if (UNLIKELY(csound->oparms->sampleAccurate &&
+                       ip->offtim > 0                 && 
+                       time_end > ip->offtim)) {
             /* this is the last cycle of performance */
             // csound->Message(csound, "last cycle %d: %f %f %d\n", 
             //          ip->insno, csound->icurTime/csound->esr, 
@@ -1430,6 +1428,7 @@ int kperf(CSOUND *csound)
             ip->ksmps_no_end = ip->no_end;
           }
           if (ip->init_done == 1) /* if init-pass has been done */
+            csound->pds = (OPDS*) ip;
             while ((csound->pds = csound->pds->nxtp) != NULL) {
               csound->pds->insdshead->pds = csound->pds;
               (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
