@@ -72,9 +72,9 @@ int buzz(CSOUND *csound, BUZZ *p)
     inc = (int32)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
-      printf("early=%d\n", early);
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      //printf("early=%d\n", early);
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -178,8 +178,8 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     scal =  *ampp * p->rsumr;
     inc = (int32)(*cpsp * csound->sicvt);
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -311,8 +311,8 @@ int pluck(CSOUND *csound, PLUCK *p)
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
     if (UNLIKELY(phsinc > ltwopi)) goto err2;
-    if (koffset) memset(ar, '\0', koffset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(koffset)) memset(ar, '\0', koffset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -521,8 +521,8 @@ int arand(CSOUND *csound, RAND *p)
     MYFLT       base = *p->base;
 
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -641,8 +641,8 @@ int randh(CSOUND *csound, RANDH *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -767,8 +767,8 @@ int randi(CSOUND *csound, RANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
