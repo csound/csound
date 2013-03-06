@@ -51,7 +51,7 @@ int apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
     MYFLT norm = (p->norm!=NULL ? *p->norm : FL(1.0));
     if (norm==FL(0.0)) norm = FL(1.0);
     memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -279,8 +279,8 @@ int auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
     uint32_t n, nsmps = CS_KSMPS;
     double  scale = (double)*p->arg1 * (1.0 / 4294967295.03125);
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -305,7 +305,7 @@ int alinear(CSOUND *csound, PRAND *p)   /* Linear random functions      */
     MYFLT arg1 = *p->arg1;
 
     memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -329,8 +329,8 @@ int atrian(CSOUND *csound, PRAND *p)    /* Triangle random functions  */
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -388,8 +388,8 @@ int aexprndi(CSOUND *csound, PRANDI *p)
     ampp = p->xamp;
     ar = p->ar;
     inc = (int32)(cpsp[0] * csound->sicvt);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -421,8 +421,8 @@ int aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -445,8 +445,8 @@ int abiexp(CSOUND *csound, PRAND *p)    /* Bilateral exponential rand */
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -469,8 +469,8 @@ int agaus(CSOUND *csound, PRAND *p)     /* Gaussian random functions */
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -493,8 +493,8 @@ int acauchy(CSOUND *csound, PRAND *p)   /* Cauchy random functions */
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -546,8 +546,8 @@ int agaussi(CSOUND *csound, PRANDI *p)
     ampp = p->xamp;
     ar = p->ar;
     inc = (int32)(*cpsp * csound->sicvt);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -585,8 +585,8 @@ int apcauchy(CSOUND *csound, PRAND *p)  /* +ve Cauchy random functions */
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -644,8 +644,8 @@ int acauchyi(CSOUND *csound, PRANDI *p)
     ampp = p->xamp;
     ar = p->ar;
     inc = (int32)(*cpsp * csound->sicvt);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -679,8 +679,8 @@ int abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
     MYFLT arg2 = *p->arg2;
     MYFLT arg3 = *p->arg3;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -704,8 +704,8 @@ int aweib(CSOUND *csound, PRAND *p)     /* Weibull randon functions */
     MYFLT arg1 = *p->arg1;
     MYFLT arg2 = *p->arg2;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -728,8 +728,8 @@ int apoiss(CSOUND *csound, PRAND *p)    /*      Poisson random funcions */
     MYFLT *out = p->out;
     MYFLT arg1 = *p->arg1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

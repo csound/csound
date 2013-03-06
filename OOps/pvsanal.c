@@ -1036,8 +1036,8 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
     if (p->fsig->sliding) return pvssynth(csound, p);
-    if (offset) memset(aout, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
     }
