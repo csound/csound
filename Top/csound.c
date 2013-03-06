@@ -1388,7 +1388,7 @@ int kperf(CSOUND *csound)
       return 1;
     /* PC GUI needs attention, but avoid excessively frequent */
     /* calls of csoundYield() */
-    if (--(csound->evt_poll_cnt) < 0) {
+    if (UNLIKELY(--(csound->evt_poll_cnt) < 0)) {
       csound->evt_poll_cnt = csound->evt_poll_maxcnt;
       if (!csoundYield(csound))
         csound->LongJmp(csound, 1);
