@@ -1500,7 +1500,7 @@ int inch_opcode(CSOUND *csound, INCH *p)
         sp = csound->spin + (ch - 1);
         ain = p->ar[nc];
         if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
-        if (UNLIKELY(early) {
+        if (UNLIKELY(early)) {
           nsmps -= early;
           memset(&ain[nsmps], '\0', early*sizeof(MYFLT));
         }

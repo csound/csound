@@ -146,10 +146,10 @@ static int mtable_a(CSOUND *csound,MTABLE *p)
     table = p->ftable;
     len = p->len;
     xbmul = p->xbmul;
-    if (offset) 
+    if (UNLIKELY(offset)) 
       for (j=0; j < nargs; j++) 
         memset(out[j], '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       for (j=0; j < nargs; j++) 
         memset(&out[j][nsmps], '\0', early*sizeof(MYFLT));
@@ -246,10 +246,10 @@ static int mtab_a(CSOUND *csound,MTAB *p)
     long len;
     table = p->ftable;
     len = p->len;
-    if (offset) 
+    if (UNLIKELY(offset)) 
       for (j=0; j < nargs; j++) 
         memset(out[j], '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       for (j=0; j < nargs; j++) 
         memset(&out[j][nsmps], '\0', early*sizeof(MYFLT));
@@ -351,7 +351,7 @@ static int mtablew_a(CSOUND *csound,MTABLEW *p)
     table = p->ftable;
     len = p->len;
     xbmul = p->xbmul;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (k=offset; k<nsmps; k++) {
       long indx = (ixmode) ? ((long)(*xndx++ * xbmul)%len) * nargs :
                              ((long) *xndx++ %len) * nargs;
@@ -439,7 +439,7 @@ static int mtabw_a(CSOUND *csound,MTABW *p)
     }
     table = p->ftable;
     len = p->len;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (k=offset; k<nsmps; k++) {
       long indx = ((long) *xndx++ %len) * nargs;
       for (j=0; j < nargs; j++) {
