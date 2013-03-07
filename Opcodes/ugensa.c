@@ -98,8 +98,8 @@ static int fog(CSOUND *csound, FOGS *p)
     fund_inc = (int32)(*fund * csound->sicvt);
     form_inc = (int32)(*ptch * fogcvt);  /*form_inc = *form * csound->sicvt;*/
 /*      speed_inc = *speed * fogcvt; */   /*JMC for FOG--out for phs version*/
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

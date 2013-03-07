@@ -568,7 +568,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
     if (UNLIKELY(!p->fmenvtab))
         return PERFERROR("unable to load FM envelope table");
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     /* start grain scheduling */
     for (n = koffset; n < nsmps; ++n) {
         if (p->sync[n] >= FL(1.0)) {

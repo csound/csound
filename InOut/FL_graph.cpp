@@ -301,8 +301,8 @@ extern "C" {
       return (uintptr_t) ST(form);
   }
 
-  int CsoundYield_FLTK(CSOUND *csound)
-  {
+  int CsoundYield_FLTK(CSOUND *csound){
+  
 #ifndef NO_FLTK_THREADS
 
       /* nothing to do, unless no widget thread is running */

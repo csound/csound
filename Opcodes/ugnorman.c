@@ -609,7 +609,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     /* initialise output to zero */
     ar = p->aoutput;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     if (*p->igatefun > FL(0.0))
       AtsAmpGate(buf, *p->iptls, p->AmpGateFunc, p->MaxAmp);
 
@@ -1029,7 +1029,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     ar = p->aoutput;
 
     memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     synthme = p->bandoffset;
     nsynthed = 0;
@@ -1343,7 +1343,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     ar = p->aoutput;
 
     memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     oscbuf = p->oscbuf;
 
@@ -2107,7 +2107,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     /* initialise output to zero */
     ar = p->aoutput;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;

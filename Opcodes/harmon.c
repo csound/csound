@@ -148,11 +148,11 @@ static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
     }
     inp1 = q->inp1;
     inp2 = q->inp2;
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(inp1, '\0', offset*sizeof(MYFLT));
       memset(inp2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&inp1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&inp2[nsmps], '\0', early*sizeof(MYFLT));

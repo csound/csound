@@ -129,7 +129,7 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;   /* load once */
       for (n=offset; n<nsmps; n++)  { /* for loops compile better */
@@ -228,8 +228,8 @@ static int fastab(CSOUND *csound, FASTAB *p)
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
-    if (offset) memset(rslt, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -378,8 +378,8 @@ static int nlalp(CSOUND *csound, NLALP *p)
     knfact = (double)*p->knfact;
     tm0 = p->m0;
     tm1 = p->m1;
-    if (offset) memset(rp, '\0', offset*sizeof(MYFLT));
-     if (early) {
+    if (UNLIKELY(offset)) memset(rp, '\0', offset*sizeof(MYFLT));
+     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rp[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -539,8 +539,8 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     count = p->count;
 
     ar = p->sr;
-    if (offset) memset(ar, 0, nsmps*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, 0, nsmps*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -722,7 +722,7 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
     int flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     switch(flag) {
     case 1: /* absolute maximum */
       for (n=offset; n<nsmps; n++) {

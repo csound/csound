@@ -244,8 +244,8 @@ static int sndloop_process(CSOUND *csound, sndloop *p)
     if (on) recon = p->rst; /* restart recording if switched on again */
     else recon = 0;  /* else do not record */
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -363,8 +363,8 @@ static int flooper_process(CSOUND *csound, flooper *p)
     MYFLT  frac;
     int tndx, loop_off = p->loop_off;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -463,7 +463,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
 
     /* loop parameters & check */
     if (pitch < FL(0.0)) pitch = FL(0.0);
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -471,7 +471,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     if (*firsttime) { 
       int loopsize;
       /* offset non zero only if firsttime */
-      if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
       loop_start = (int) (*p->loop_start*sr);
       loop_end =   (int) (*p->loop_end*sr);
       p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
@@ -742,14 +742,14 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
     int *firsttime = &p->firsttime, elen, init = p->init;
     uint32 tndx0, tndx1;
 
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (pitch < FL(0.0)) pitch = FL(0.0);
     if (*firsttime) {
       int loopsize;
-      if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
       loop_start = MYFLT2LRND(*p->loop_start*sr);
       loop_end =   MYFLT2LRND (*p->loop_end*sr);
       p->lstart = loop_start = (loop_start < 0 ? 0 : loop_start);

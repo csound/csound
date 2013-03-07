@@ -472,8 +472,8 @@ int limit(CSOUND *csound, LIMIT *p)
      * Whilst doing the test, load the limit local variables.
      */
 
-    if (offset) memset(adest, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(adest, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early))) {
       nsmps -= early;
       memset(&adest[nsmps], '\0', early*sizeof(MYFLT));
     }

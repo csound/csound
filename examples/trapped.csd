@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -d -m911 -W --expression-opt -otest.wav temp.orc temp.sco
+csound -d 
 </CsOptions>
 <CsInstruments>
 ;============================================================================;

@@ -175,7 +175,7 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int outsamps = p->outsamps, rcvsamps = p->rcvsamps;
     memset(asig, 0, sizeof(MYFLT)*nsmps);
-   if (early) nsmps -= early;
+   if (UNLIKELY(early)) nsmps -= early;
        
     for(i=offset; i < nsmps ; i++){ 
       if(outsamps >= rcvsamps){
@@ -258,7 +258,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
       memset(asigl, 0, sizeof(MYFLT)*nsmps);
       memset(asigr, 0, sizeof(MYFLT)*nsmps);
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for(i=offset; i < nsmps ; i++){ 
       if(outsamps >= rcvsamps){
        outsamps =  0;

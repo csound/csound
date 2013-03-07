@@ -75,7 +75,6 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         }          
       }
       *sstrp++ = '\0';
-      //*pfld = SSTRCOD;                        /*   flag with hifloat      */
       {
         union {
           MYFLT d;
@@ -85,7 +84,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         *pfld = ch.d;           /* set as string with count */
       }
       csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
-      printf("csound->sstrlen = %d\n", csound->sstrlen);
+      //printf("csound->sstrlen = %d\n", csound->sstrlen);
       return(1);
     }
     if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
