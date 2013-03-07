@@ -1613,8 +1613,8 @@ typedef struct NAME__ {
     int           dag_changed;
     int           dag_num_active;
     INSDS         **dag_task_map;
-    enum state    *dag_task_status;
-    watchList     **dag_task_watch;
+    volatile enum state    *dag_task_status;
+    volatile watchList     **dag_task_watch;
     watchList     *dag_wlmm;
     char          **dag_task_dep;
     int           dag_task_max_size;
