@@ -1027,7 +1027,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
       memset(outl, '\0', offset*sizeof(MYFLT));
       memset(outr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outr[nsmps], '\0', early*sizeof(MYFLT));

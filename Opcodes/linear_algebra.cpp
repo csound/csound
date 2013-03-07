@@ -841,7 +841,7 @@ public:
     uint32_t early  = head.insdshead->ksmps_no_end;
     size_t frame_count = csound->GetKcounter(csound) * ksmps;
     size_t array_i = frame_count % vector_size;
-    if (early) ksmps -= early;
+    if (UNLIKELY(early)) ksmps -= early;
     for (size_t i = offset; i < ksmps; ++i, ++array_i) {
       lhs->vr[array_i] = a_a[i];
     }
@@ -942,7 +942,7 @@ public:
     size_t frameCount = csound->GetKcounter(csound) * csound->GetKsmps(csound);
     size_t vectorSize = gmm::vect_size(rhs->vr);
     size_t array_i = frameCount % vectorSize;
-    if (early) ksmps -= early;
+    if (UNLIKELY(early)) ksmps -= early;
     for (size_t i = 0; i < ksmps; ++i, ++array_i) {
       a_a[i] = rhs->vr[array_i];
     }
