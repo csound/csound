@@ -366,11 +366,11 @@ static int inRange(CSOUND *csound, INRANGE *p)
                                Str("inrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (i = 0; i < narg; i++) {
       ara[i] = p->argums[i];
-      if (offset) memset(ara[i], '\0', offset*sizeof(MYFLT));
-      if (early) memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(ara[i], '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));
     }
     for (j=offset; j<nsmps; j++)  {
       for (i=0; i<narg; i++)
@@ -429,8 +429,8 @@ static int lposca(CSOUND *csound, LPOSC *p)
     else if (end <= 2) end = 2;
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -503,11 +503,11 @@ static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
     else if (end <= 2) end = 2;
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -543,11 +543,11 @@ static int lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));

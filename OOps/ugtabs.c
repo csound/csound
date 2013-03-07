@@ -343,58 +343,59 @@ int table3r_kontrol(CSOUND *csound, TABL *p){
   return OK;
 }
 
-int table3r_audio(CSOUND *csound, TABL *p){
-  int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
-  int mask = p->ftp->lenmask;
-  MYFLT *sig = p->sig;
-  MYFLT *ndx_f = p->ndx;
-  MYFLT *func = p->ftp->ftable;
-  MYFLT offset = *p->offset;
-  MYFLT mul = p->mul, tmp, frac;
-  int32 iwrap = p->iwrap;
-  uint32_t    koffset = p->h.insdshead->ksmps_offset;
-  uint32_t    early  = p->h.insdshead->ksmps_no_end;
-
- if (UNLIKELY(koffset) memset(sig, '\0', koffset*sizeof(MYFLT));
+int table3r_audio(CSOUND *csound, TABL *p)
+{
+    int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
+    int mask = p->ftp->lenmask;
+    MYFLT *sig = p->sig;
+    MYFLT *ndx_f = p->ndx;
+    MYFLT *func = p->ftp->ftable;
+    MYFLT offset = *p->offset;
+    MYFLT mul = p->mul, tmp, frac;
+    int32 iwrap = p->iwrap;
+    uint32_t    koffset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+  
+    if (UNLIKELY(koffset)) memset(sig, '\0', koffset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
   
- for(n=koffset; n < nsmps; n++){
-  MYFLT x0,x1,x2,x3,temp1,fracub,fracsq;
-  tmp = (ndx_f[n] + offset)*mul;
-  ndx = MYFLOOR(tmp);
-  frac = tmp - ndx;
-  if(iwrap) {
-    if(p->np2){
-      while(ndx >= len) ndx -= len;
-      while(ndx < 0)  ndx += len;
-    }
-    else ndx &= mask;
-  } else {
-    if(UNLIKELY(ndx >= len)) ndx = len - 1;
-    else if (UNLIKELY(ndx < 0)) ndx = 0;
-  }
+    for (n=koffset; n < nsmps; n++){
+      MYFLT x0,x1,x2,x3,temp1,fracub,fracsq;
+      tmp = (ndx_f[n] + offset)*mul;
+      ndx = MYFLOOR(tmp);
+      frac = tmp - ndx;
+      if(iwrap) {
+        if(p->np2) {
+          while(ndx >= len) ndx -= len;
+          while(ndx < 0)  ndx += len;
+        }
+        else ndx &= mask;
+      } else {
+        if(UNLIKELY(ndx >= len)) ndx = len - 1;
+        else if (UNLIKELY(ndx < 0)) ndx = 0;
+      }
   
-   if(UNLIKELY(ndx<1 || ndx==len-1 || len <4)) {
-    x1 = func[ndx];
-    x2 = func[ndx+1];
-    p->sig[n] = x1 + (x2 - x1)*frac;
-  } else {
-    x0 = func[ndx-1];
-    x1 = func[ndx];
-    x2 = func[ndx+1];
-    x3 = func[ndx+2]; 
-    fracsq = frac*frac;
-    fracub = fracsq*x0;
-    temp1 = x3+x1+x1+x1;
-    p->sig[n] =  x1 + FL(0.5)*fracub + 
-      frac*(x2 - fracub/FL(6.0) - temp1/FL(6.0) - x0/FL(3.0)) +   
-      fracsq*frac*(temp1/FL(6.0) - FL(0.5)*x2) + fracsq*(FL(0.5)*x2 - x1);
-  }
-}
- return OK;
+      if (UNLIKELY(ndx<1 || ndx==len-1 || len <4)) {
+        x1 = func[ndx];
+        x2 = func[ndx+1];
+        p->sig[n] = x1 + (x2 - x1)*frac;
+      } else {
+        x0 = func[ndx-1];
+        x1 = func[ndx];
+        x2 = func[ndx+1];
+        x3 = func[ndx+2]; 
+        fracsq = frac*frac;
+        fracub = fracsq*x0;
+        temp1 = x3+x1+x1+x1;
+        p->sig[n] =  x1 + FL(0.5)*fracub + 
+          frac*(x2 - fracub/FL(6.0) - temp1/FL(6.0) - x0/FL(3.0)) +   
+          fracsq*frac*(temp1/FL(6.0) - FL(0.5)*x2) + fracsq*(FL(0.5)*x2 - x1);
+      }
+    }
+    return OK;
 }
 
 int tablkt_setup(CSOUND *csound, TABL *p){
