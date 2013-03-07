@@ -256,8 +256,8 @@ static int cabasa(CSOUND *csound, CABASA *p)
       shakeEnergy = FL(0.0);
     }
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -362,8 +362,8 @@ static int sekere(CSOUND *csound, SEKERE *p)
       shakeEnergy = FL(0.0);
     }
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -589,8 +589,8 @@ static int guiro(CSOUND *csound, GUIRO *p)
       MYFLT gains0       = p->gains0;
       MYFLT gains1       = p->gains1;
       MYFLT amp          = *p->amp;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -742,8 +742,8 @@ static int tambourine(CSOUND *csound, TAMBOURINE *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -881,8 +881,8 @@ static int bamboo(CSOUND *csound, BAMBOO *p)
       MYFLT sndLevel    = p->sndLevel;
       MYFLT soundDecay  = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -1025,8 +1025,8 @@ static int wuter(CSOUND *csound, WUTER *p)
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
 
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -1212,8 +1212,8 @@ static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2, inputs3, inputs4;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }

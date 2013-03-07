@@ -290,8 +290,8 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 
    /* Recover audio output pointer... */
    ar   = p->ar;
-   if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

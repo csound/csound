@@ -55,8 +55,8 @@ static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *p)
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -78,8 +78,8 @@ static int MinAccumulate(CSOUND *csound, MINMAXACCUM *p)
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -102,8 +102,8 @@ static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
     MYFLT   *in = p->ain;
     MYFLT   inabs;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -125,8 +125,8 @@ static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
     MYFLT   *in = p->ain;
     MYFLT   inabs;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -152,8 +152,8 @@ static int Max_arate(CSOUND *csound, MINMAX *p)
     MYFLT   **in2 = p->xin2toN;
     MYFLT   max, temp;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -182,8 +182,8 @@ static int Min_arate(CSOUND *csound, MINMAX *p)
     MYFLT   **in2 = p->xin2toN;
     MYFLT   min, temp;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -213,8 +213,8 @@ static int MaxAbs_arate(CSOUND *csound, MINMAX *p)
     MYFLT   **in2 = p->xin2toN;
     MYFLT   max, temp;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -243,8 +243,8 @@ static int MinAbs_arate(CSOUND *csound, MINMAX *p)
     MYFLT   **in2 = p->xin2toN;
     MYFLT   min, temp;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

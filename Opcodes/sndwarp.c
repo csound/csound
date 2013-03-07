@@ -129,11 +129,11 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
       timewarpby = p->xtimewarp;
       amp = p->xamp;
 
-      if (offset) {
+      if (UNLIKELY(offset)) {
         memset(r1, '\0', offset*sizeof(MYFLT));
         if (p->OUTOCOUNT >1) memset(r2, '\0', offset*sizeof(MYFLT));
       }
-     if (early) {
+     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&r1[nsmps], '\0', early*sizeof(MYFLT));
       if (p->OUTOCOUNT >1) memset(&r2[nsmps], '\0', early*sizeof(MYFLT));
@@ -295,7 +295,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     exp = p->exp;
     ftpWind = p->ftpWind;
     ftpSamp = p->ftpSamp;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (i=0; i<*p->ioverlap; i++) {
       resample = p->xresample;
       timewarpby = p->xtimewarp;

@@ -115,8 +115,8 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     xlfr    = p->xlfr;
 
     memset(buf, '\0', bufsize*sizeof(MYFLT));
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

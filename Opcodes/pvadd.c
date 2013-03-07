@@ -161,7 +161,7 @@ int pvadd(CSOUND *csound, PVADD *p)
 
     ar = p->rslt;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     oscphase = p->oscphase;
     for (i = (int) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;

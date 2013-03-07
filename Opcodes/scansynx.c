@@ -472,8 +472,8 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -628,8 +628,8 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
     MYFLT amp = *p->k_amp;
     PSCSNUX *pp = p->p;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

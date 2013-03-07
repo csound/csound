@@ -67,8 +67,8 @@ static int equ_process(CSOUND *csound, equ *p)
     a = (1.0-c)/(1.0+c);
     g = *p->g;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       ksmps -= early;
       memset(&out[ksmps], '\0', early*sizeof(MYFLT));
     }
