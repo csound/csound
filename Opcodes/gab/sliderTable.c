@@ -603,8 +603,8 @@ static int ctrl7a(CSOUND *csound, CTRL7a *p)
     value = p->yt1 = p->c1 * value + p->c2 * p->yt1;
     ar = p->r;
     val = p->prev;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
