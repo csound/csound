@@ -462,7 +462,8 @@ void deleteWatch (watchList *t) {
 
 typedef struct monitor {
   pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
-  unsigned int threadsWaiting = 0;    /* Shadows the length of workAvailable wait queue */
+  unsigned int threadsWaiting = 0;    /* Shadows the length of 
+                                         workAvailable wait queue */
   queue<taskID> q;                    /* OPT : Dispatch order */
   pthread_cond_t workAvailable = PTHREAD_COND_INITIALIZER;
   pthread_cond_t done = PTHREAD_COND_INITIALIZER;
