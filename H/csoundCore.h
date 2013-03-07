@@ -1412,7 +1412,7 @@ typedef struct NAME__ {
     int           spoutlock, spinlock;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t memlock, spinlock;
+    pthread_spinlock_t memlock, spinlock1;
 #else
     int           memlock, spinlock1;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
