@@ -183,8 +183,8 @@ int perf_myopcode(CSOUND *csound, MYOPCODE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
     ...
-    if (offset) memset(p->res, '\0', offset*sizeof(MYFLT));
-    if (early)  {
+    if (UNLIKELY(offset)) memset(p->res, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early))  {
       nsmps -= early;
       memset(&p->res[nsmps], '\0', early*sizeof(MYFLT));
     }
