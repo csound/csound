@@ -31,7 +31,11 @@ extern void handle_polymorphic_opcode(CSOUND*, TREE *);
 extern void handle_optional_args(CSOUND *, TREE *);
 extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
-extern int find_opcode(CSOUND *csound, char *opname);
+extern int find_opcode_num(CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound);
+extern int find_opcode_num_by_tree(CSOUND* csound, char* opname, TREE* left, TREE* right);
+extern OENTRIES* find_opcode2(CSOUND *, char*);
+char resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
+
 
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int);
 TREE * create_expression(CSOUND *, TREE *, int, int);
@@ -99,7 +103,7 @@ char * get_boolean_arg(CSOUND *csound, int type)
 {
     char* s = (char *)csound->Malloc(csound, 8);
     sprintf(s, "#%c%d", type?'B':'b',csound->Bcount++);
-
+    
     return s;
 }
 
@@ -375,6 +379,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
     TREE *anchor = NULL, *last;
     TREE * opTree;
     int opnum;
+    OENTRIES* opentries;
     /* HANDLE SUB EXPRESSIONS */
 
     if (root->type=='?') return create_cond_expression(csound, root, line, locn);
@@ -485,22 +490,29 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       break;
     case T_FUNCTION: /* assumes only single arg input */
       c = arg2;
-      if (c == 'p' || c == 'c' || c == 't')   c = 'i';
-      sprintf(op, "%s.%c", root->value->lexeme, c);
+//      if (c == 'p' || c == 'c' || c == 't')   c = 'i';
+//      sprintf(op, "%s.%c", root->value->lexeme, c);
+      op = cs_strdup(csound, root->value->lexeme);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found OP: %s\n", op);
       /* VL: some non-existing functions were appearing here
          looking for opcodes that did not exist */
-      if ((opnum = find_opcode(csound, op))==0) {
+      opentries = find_opcode2(csound, root->value->lexeme);
+
+      if (opentries->count == 0) {
                                 /* This is a little like overkill */
-        strncpy(op, "##error", 80);
-        opnum = find_opcode(csound, op);
+        opnum = find_opcode_num(csound, "##error", "i", "i");
         csound->Warning(csound,
                     Str("error: function %s with arg type %c not found, "
                         "line %d \n"),
                     root->value->lexeme, c, line);
+        c = 'i';
+      } else {
+          char temp[2];
+          temp[0] = c;
+          temp[1] = 0;
+        c = resolve_opcode_get_outarg(csound, opentries, temp);
       }
-      c = csound->opcodlst[opnum].outypes[0];
       outarg = create_out_arg(csound, c);
       break;
     case S_UMINUS:
@@ -1129,6 +1141,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             
             arraySet->next = current->next;
             current->next = arraySet;
+              
             currentAns = temp;
             
           }

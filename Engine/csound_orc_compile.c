@@ -33,7 +33,6 @@
 #include "oload.h"
 #include "insert.h"
 #include "pstream.h"
-#include "namedins.h"
 #include "typetabl.h"
 #include "csound_standard_types.h"
 
@@ -52,6 +51,11 @@ extern void delete_tree(CSOUND *csound, TREE *l);
 void close_instrument(CSOUND *csound, INSTRTXT * ip);
 char argtyp2(char *s);
 void debugPrintCsound(CSOUND* csound);
+
+extern int find_opcode_num(CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound);
+extern int find_opcode_num_by_tree(CSOUND* csound, char* opname, TREE* left, TREE* right);
+
+
 /*  removed ; from end of #define as it can mess things */
 #define strsav_string(a) string_pool_save_string(csound, csound->stringSavePool, a)
 
@@ -197,13 +201,14 @@ PUBLIC char** splitArgs(CSOUND* csound, char* argString) {
             if (*t == '[') {
                 int len = 0;
                 char* start = t;
-                while(*t != ';' && *t != '\0') {
+                while(*t != ';') {
                     t++;
                     len++;
                 }
-                part = mmalloc(csound, sizeof(char) * (len + 1));
+                part = mmalloc(csound, sizeof(char) * (len + 2));
                 strncpy(part, start, len);
-                part[len] = '\0';
+                part[len] = ';';
+                part[len + 1] = '\0';
                 
             } else {
                 part = mmalloc(csound, sizeof(char) * 2);
@@ -379,6 +384,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
   int n, nreqd;;
   optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
   tp = &(optxt->t);
+  OENTRY* oentry;
 
   switch(root->type) {
   case LABEL_TOKEN:
@@ -411,13 +417,14 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       /* replace opcode if needed */
       if (!strcmp(root->value->lexeme, "xin") &&
           nreqd > OPCODENUMOUTS_LOW) {
-        if (nreqd > OPCODENUMOUTS_HIGH)
-          opnum = find_opcode(csound, ".xin256");
-        else
-          opnum = find_opcode(csound, ".xin64");
+        if (nreqd > OPCODENUMOUTS_HIGH) {
+          opnum = find_opcode_num(csound, "##xin256", "i", NULL);
+        } else {
+          opnum = find_opcode_num(csound, "##xin64", "i", NULL);
+        }
       }
       else {
-        opnum = find_opcode(csound, root->value->lexeme);
+        opnum = find_opcode_num_by_tree(csound, root->value->lexeme, root->left, root->right);
       }
 
       /* INITIAL SETUP */
