@@ -329,13 +329,11 @@ inline static int moveWatch(CSOUND *csound, watchList **w, watchList *t)
     return 1;
 }
 
-int dag_end_task(CSOUND *csound, taskID i)
+void dag_end_task(CSOUND *csound, taskID i)
 {
     watchList *to_notify, *next;
     int canQueue;
-    taskID j;
-    int k;
-    taskID next_task = (taskID)INVALID;
+    int j, k;
     watchList **task_watch = csound->dag_task_watch;
     ATOMIC_WRITE(csound->dag_task_status[i], DONE); /* as DONE is zero */
     {                                      /* ATOMIC_SWAP */
@@ -370,18 +368,12 @@ int dag_end_task(CSOUND *csound, taskID i)
         //else { printf("not %d\n", k); }
       }
       if (canQueue) {           /*  could use monitor here */
-	if (next_task == (taskID)INVALID) {
-	  /* Claim the first queueable task */
-	  next_task = j;
-	  ATOMIC_WRITE(csound->dag_task_status[j], INPROGRESS);
-	} else {
-	  csound->dag_task_status[j] = AVAILABLE;
-	}
+        csound->dag_task_status[j] = AVAILABLE;
       }
       to_notify = next;
     }
     //dag_print_state(csound);
-    return next_task;    
+    return;    
 }
 
 
