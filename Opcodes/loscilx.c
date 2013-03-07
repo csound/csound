@@ -396,8 +396,8 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
       winFact = (MYFLT) (((double) p->winFact - tmp1) * tmp2 + tmp1);
     }
     ampScale = *(p->xamp) * p->ampScale;
-    if (offset) memset(p->ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
     }

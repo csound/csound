@@ -317,8 +317,8 @@ static int push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
               uint32_t nsmps = CS_KSMPS;
               src = p->args[i];
               dst = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
-              if (offset) memset(dst, '\0', offset*sizeof(MYFLT));
-              if (early) {
+              if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(MYFLT));
+              if (UNLIKELY(early)) {
                 nsmps -= early;
                 memset(&dst[nsmps], '\0', early*sizeof(MYFLT));
               }
@@ -415,8 +415,8 @@ static int pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
               uint32_t nsmps = CS_KSMPS;
               src = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
               dst = p->args[i];
-              if (offset) memset(dst, '\0', offset*sizeof(MYFLT));
-              if (early) {
+              if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(MYFLT));
+              if (UNLIKELY(early)) {
                 nsmps -= early;
                 memset(&dst[nsmps], '\0', early*sizeof(MYFLT));
               }

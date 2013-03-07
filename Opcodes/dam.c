@@ -100,8 +100,8 @@ static int dam(CSOUND *csound, DAM *p)
     power       = p->power;
 
  /* Process ksmps samples */
-    if (offset) memset(aout, '\0', offset*sizeof(MYFLT));
-     if (early) {
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
     }

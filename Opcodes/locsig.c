@@ -113,7 +113,7 @@ static int locsig(CSOUND *csound, LOCSIG *p)
       rrev4 = p->rrev4;
     }
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(r1, '\0', offset*sizeof(MYFLT));
       memset(r2, '\0', offset*sizeof(MYFLT));
       if (p->OUTOCOUNT == 4) {
@@ -121,7 +121,7 @@ static int locsig(CSOUND *csound, LOCSIG *p)
         memset(r4, '\0', offset*sizeof(MYFLT));
       }
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&r1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&r2[nsmps], '\0', early*sizeof(MYFLT));
@@ -198,7 +198,7 @@ static int locsend(CSOUND *csound, LOCSEND *p)
 /*     } */
     /*
       Quicker form is: */
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(p->r1, '\0', offset*sizeof(MYFLT));
       memset(p->r2, '\0', offset*sizeof(MYFLT));
       if (p->OUTOCOUNT == 4) {
@@ -206,7 +206,7 @@ static int locsend(CSOUND *csound, LOCSEND *p)
         memset(p->r4, '\0', offset*sizeof(MYFLT));
       }
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->r1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&p->r2[nsmps], '\0', early*sizeof(MYFLT));

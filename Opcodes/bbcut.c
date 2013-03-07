@@ -118,8 +118,8 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out;          /* intermedaites for enveloping grains */
 
-    if (offset) memset(p->aout, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -354,11 +354,11 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(p->aout1, '\0', offset*sizeof(MYFLT));
       memset(p->aout2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aout1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&p->aout2[nsmps], '\0', early*sizeof(MYFLT));

@@ -183,11 +183,11 @@ int mp3in(CSOUND *csound, MP3IN *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t i, n, nsmps = CS_KSMPS;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(al, '\0', offset*sizeof(MYFLT));
       memset(ar, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&al[nsmps], '\0', early*sizeof(MYFLT));
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));

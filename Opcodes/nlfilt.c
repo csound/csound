@@ -96,8 +96,8 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -170,8 +170,8 @@ static int nlfilt2(CSOUND *csound, NLFILT *p)
     maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

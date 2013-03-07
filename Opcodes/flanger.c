@@ -56,8 +56,8 @@ static int flanger(CSOUND *csound, FLANGER *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -125,8 +125,8 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     }
     c1= p->c1;
     c2= p->c2;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -257,8 +257,8 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     yt1_1= p->yt1_1;
     yt1_2= p->yt1_2;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

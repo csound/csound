@@ -220,8 +220,8 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     }
 
     /* write left channel output */
-    if (offset) memset(p->aOutL, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->aOutL, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aOutL[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -256,8 +256,8 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
       }
     }
     /* write right channel output */
-    if (offset) memset(p->aOutR, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->aOutR, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aOutR[nsmps], '\0', early*sizeof(MYFLT));
     }

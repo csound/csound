@@ -52,8 +52,8 @@ static int follow(CSOUND *csound, FOL *p)
     MYFLT       max = p->max;
     int32       count = p->count;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -121,8 +121,8 @@ static int envext(CSOUND *csound, ENV *p)
       //EXP(-FL(1.0)/(csound->GetSr(csound)* p->lastrel));
     }
     else gr = p->gr;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

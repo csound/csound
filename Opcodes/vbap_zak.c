@@ -58,15 +58,15 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
     /* write audio to result audio streams weighted
        with gain factors */
     outptr = p->out_array;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     invfloatn =  FL(1.0)/(nsmps-offset);
     for (j=0; j<n; j++) {
       inptr = p->audio;
       ogain = p->beg_gains[j];
       ngain = p->end_gains[j];
       gainsubstr = ngain - ogain;
-      if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
           for (i = offset; i < nsmps; i++) {
@@ -282,8 +282,8 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
        with gain factors */
     invfloatn =  FL(1.0)/(nsmps-offset);
     outptr = p->out_array;
-    if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
     }
