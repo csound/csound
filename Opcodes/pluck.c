@@ -207,8 +207,8 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
     len_t pickupSamp=(len_t)(M * *p->pickupPos);
     if (UNLIKELY(pickupSamp<1)) pickupSamp = 1;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

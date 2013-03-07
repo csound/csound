@@ -193,8 +193,8 @@ static int agendy(CSOUND *csound, GENDY *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-     if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -328,8 +328,8 @@ static int agendyx(CSOUND *csound, GENDYX *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -474,8 +474,8 @@ static int agendyc(CSOUND *csound, GENDYC *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       memset(&out[remain+offset], '\0', early*sizeof(MYFLT));
     }
     do {

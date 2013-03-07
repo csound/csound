@@ -103,8 +103,8 @@ static int fof(CSOUND *csound, FOFS *p)
     ftp1 = p->ftp1;
     ftp2 = p->ftp2;
     fund_inc = (int32)(*fund * csound->sicvt);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -430,8 +430,8 @@ static int harmon(CSOUND *csound, HARMON *p)
     phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
     phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
     outp = p->ar;
-    if (offset) memset(outp, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(outp, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
     }

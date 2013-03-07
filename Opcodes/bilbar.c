@@ -114,8 +114,8 @@ static int bar_run(CSOUND *csound, BAR *p)
       return csound->PerfError(csound,
                                Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -400,11 +400,11 @@ int play_pp(CSOUND *csound, CSPP *p)
       p->init = 0;
     }
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(ar, '\0', offset*sizeof(MYFLT));
       if (p->stereo) memset(ar1, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       if (p->stereo) memset(&ar1[nsmps], '\0', early*sizeof(MYFLT));

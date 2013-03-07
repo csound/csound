@@ -183,8 +183,8 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
       pickup   = pickup>>OVERSHT;
     }
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -279,8 +279,8 @@ static int streson(CSOUND *csound, STRES *p)
     fracdelay = tdelay - (delay + 0.5); /* fractional delay */
     vdt = size - delay;       /* set the var delay */
     a = (1.0-fracdelay)/(1.0+fracdelay);   /* set the all-pass gain */
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

@@ -154,8 +154,8 @@ int mandolin(CSOUND *csound, MANDOL *p)
         loopGain = (FL(1.0) - amp) * FL(0.5);
     }
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

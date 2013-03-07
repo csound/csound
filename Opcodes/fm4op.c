@@ -317,8 +317,8 @@ int tubebell(CSOUND *csound, FM4OP *p)
     p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -440,8 +440,8 @@ int wurley(CSOUND *csound, FM4OP *p)
     p->w_rate[3] =               p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -550,8 +550,8 @@ int heavymet(CSOUND *csound, FM4OP *p)
     p->w_rate[2] = temp * p->ratios[2] * p->waves[2]->flen;
     p->w_rate[3] = temp * p->ratios[3] * p->waves[3]->flen;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -657,8 +657,8 @@ int hammondB3(CSOUND *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[95];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[95];
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1018,8 +1018,8 @@ int FMVoice(CSOUND *csound, FM4OPV *q)
     q->tilt[2] = amp * amp * amp;
     p->gains[3] = FM4Op_gains[(int) (*p->control2 * FL(0.78125))];
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1137,8 +1137,8 @@ int percflute(CSOUND *csound, FM4OP *p)
     p->gains[3] = amp * FM4Op_gains[85] * FL(0.5);
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

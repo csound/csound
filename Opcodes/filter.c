@@ -278,8 +278,8 @@ static int afilter(CSOUND *csound, FILTER* p)
     double poleSamp, zeroSamp, inSamp;
 
     /* Outer loop */
-    if (offset) memset(p->out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -398,8 +398,8 @@ static int azfilter(CSOUND *csound, ZFILTER* p)
     /* and a contains their associated real coefficients. */
 
     /* Outer loop */
-    if (offset) memset(p->out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
     }

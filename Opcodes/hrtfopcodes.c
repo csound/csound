@@ -595,11 +595,11 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outsigl, '\0', offset*sizeof(MYFLT));
       memset(outsigr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
@@ -1903,11 +1903,11 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
 
     MYFLT sr = p->sr;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outsigl, '\0', offset*sizeof(MYFLT));
       memset(outsigr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
@@ -2285,11 +2285,11 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outsigl, '\0', offset*sizeof(MYFLT));
       memset(outsigr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));

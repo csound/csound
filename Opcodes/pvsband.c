@@ -93,8 +93,8 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
-
-      if (early) nsmps -= early;
+      
+      if (UNLIKELY(early)) nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         int change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
@@ -201,7 +201,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
       uint32_t n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
 
-      if (early) nsmps -= early;
+      if (UNLIKELY(early)) nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         int change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
