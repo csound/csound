@@ -147,13 +147,13 @@ static int space(CSOUND *csound, SPACE *p)
     rrev3 = p->rrev3;
     rrev4 = p->rrev4;
     sigp = p->asig;
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(r1, '\0', offset*sizeof(MYFLT));
       memset(r2, '\0', offset*sizeof(MYFLT));
       memset(r3, '\0', offset*sizeof(MYFLT));
       memset(r4, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&r1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&r2[nsmps], '\0', early*sizeof(MYFLT));

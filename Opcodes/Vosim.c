@@ -130,8 +130,8 @@ int vosim(CSOUND* csound, VOSIM *p)
     ftdata = ftp->ftable;
     lobits = ftp->lobits;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

@@ -234,7 +234,7 @@ static int ifd_process(CSOUND * csound, IFD * p)
     int     frames = p->frames;
     int     cnt = p->cnt;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (n = offset; n < nsmps; n++) {
       for (i = 0; i < frames; i++) {
         sigframe[i * fftsize + counter[i]] = sigin[n];

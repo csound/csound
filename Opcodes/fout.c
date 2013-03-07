@@ -274,7 +274,7 @@ static int outfile(CSOUND *csound, OUTFILE *p)
     uint32_t nargs = p->nargs;
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     if (p->f.sf == NULL) {
       if (p->f.f != NULL) { /* VL: make sure there is an open file */
         FILE  *fp = p->f.f;
@@ -745,10 +745,10 @@ static int infile_act(CSOUND *csound, INFILE *p)
     MYFLT *buf = (MYFLT *) p->buf.auxp;
 
     ksmps = nsmps;
-    if (offset)
+    if (UNLIKELY(offset))
       for (i = 0; i < nargs; i++)
             memset(p->argums[i], '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       for (i = 0; i < nargs; i++)
             memset(&p->argums[i][nsmps], '\0', offset*sizeof(MYFLT));
@@ -961,7 +961,7 @@ static int incr(CSOUND *csound, INCR *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (n = offset; n < nsmps; n++)
       avar[n] += aincr[n];
     return OK;

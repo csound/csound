@@ -363,7 +363,7 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (n = offset ; n < nsmps ; n++) {
 
       /* Put audio input in external force */
@@ -505,8 +505,8 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
     MYFLT t = (MYFLT)p->p->idx/p->p->rate;
     MYFLT *out = p->a_out;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

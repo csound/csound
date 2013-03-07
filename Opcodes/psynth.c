@@ -164,8 +164,8 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
 
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -331,8 +331,8 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -464,8 +464,8 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

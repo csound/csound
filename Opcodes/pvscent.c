@@ -89,8 +89,8 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
       MYFLT d = FL(0.0);
       MYFLT j, binsize = csound->GetSr(csound)/(MYFLT)N;
       int NB = p->fin->NB;
-      if (offset) memset(a, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(a, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&a[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -180,7 +180,7 @@ static int cent_k(CSOUND *csound, CENT *p)
     MYFLT *frame = (MYFLT *) p->frame.auxp, *asig = p->asig;
 
     int fsize = p->fsize;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (i=0; i < nsmps; i++){
       frame[n] = asig[i];
       if (n == fsize-1) n=0;

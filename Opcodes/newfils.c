@@ -69,8 +69,8 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     tune = (1.0 - exp(-(TWOPI*f*fcr))) / thermal;   /* filter tuning  */
     res4 = 4.0*(double)res*acr;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -135,13 +135,13 @@ static int statevar_process(CSOUND *csound,statevar *p)
 
     if (q < lim) q = lim;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outhp, '\0', offset*sizeof(MYFLT));
       memset(outlp, '\0', offset*sizeof(MYFLT));
       memset(outbp, '\0', offset*sizeof(MYFLT));
       memset(outbr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outhp[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outlp[nsmps], '\0', early*sizeof(MYFLT));
@@ -200,8 +200,8 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     rad1 =  pow(10.0, fsc/(dec*csound->GetSr(csound)));  /* filter radii */
     rad2 =  pow(10.0, fsc/(ris*csound->GetSr(csound)));
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

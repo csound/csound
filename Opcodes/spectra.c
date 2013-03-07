@@ -255,7 +255,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
     SPECDAT *specp;
     double  c;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     do {
       SIG = *sigp++;                        /* for each source sample:     */
       if (offset--) SIG = FL(0.0);          /* for sample accuracy         */

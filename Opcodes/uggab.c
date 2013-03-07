@@ -40,8 +40,8 @@ static int wrap(CSOUND *csound, WRAP *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (offset) memset(adest, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(adest, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&adest[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -112,8 +112,8 @@ static int mirror(CSOUND *csound, WRAP *p)
     xlow = *p->xlow;
     xhigh = *p->xhigh;
 
-    if (offset) memset(adest, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(adest, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&adest[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -214,8 +214,8 @@ static int anterpol(CSOUND *csound, INTERPOL *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -256,7 +256,7 @@ static int posckk(CSOUND *csound, POSC *p)
     if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, Str("poscil: not initialised"));
     ft = p->ftp->ftable;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (n=offset; n<nsmps; n++) {
       curr_samp = ft + (int32)phs;
       fract     = (MYFLT)(phs - (int32)phs);
@@ -286,8 +286,8 @@ static int poscaa(CSOUND *csound, POSC *p)
     if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, Str("poscil: not initialised"));
     ft = p->ftp->ftable;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -322,8 +322,8 @@ static int poscka(CSOUND *csound, POSC *p)
     if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, Str("poscil: not initialised"));
     ft = p->ftp->ftable;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -358,8 +358,8 @@ static int poscak(CSOUND *csound, POSC *p)
     if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, Str("poscil: not initialised"));
     ft = p->ftp->ftable;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -412,8 +412,8 @@ static int posc3kk(CSOUND *csound, POSC *p)
     if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -466,8 +466,8 @@ static int posc3ak(CSOUND *csound, POSC *p)
     if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -521,8 +521,8 @@ static int posc3ka(CSOUND *csound, POSC *p)
     if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -577,8 +577,8 @@ static int posc3aa(CSOUND *csound, POSC *p)
     if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -698,8 +698,8 @@ static int lposc(CSOUND *csound, LPOSC *p)
       end = p->tablen;
     looplength = end - loop;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -731,8 +731,8 @@ static int lposc3(CSOUND *csound, LPOSC *p)
     if ((end = *p->kend) > p->tablen || end <=0 ) end = p->tablen;
     looplength = end - loop;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -772,8 +772,8 @@ static int sum(CSOUND *csound, SUM *p)
     int   count = (int) p->INOCOUNT;
     MYFLT *ar = p->ar, **args = p->argums;
     MYFLT *ag = *args;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -797,8 +797,8 @@ static int product(CSOUND *csound, SUM *p)
     MYFLT *ar = p->ar, **args = p->argums;
     MYFLT *ag = *args;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -859,8 +859,8 @@ static int resony(CSOUND *csound, RESONY *p)
       asig = p->asig;
 
       memset(buffer, 0, nsmps*sizeof(MYFLT));
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -920,8 +920,8 @@ static int fold(CSOUND *csound, FOLD *p)
     double index = p->index;
     int32 sample_index = p->sample_index;
     MYFLT value = p->value;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1562,8 +1562,8 @@ static int jittersa(CSOUND *csound, JITTERS *p)
     int  cod = p->cod;
     double phs = p->phs, si = p->si;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1636,8 +1636,8 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
     }
     table = p->ftp->ftable;
     flen = p->ftp->flen;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1704,8 +1704,8 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
     flen = p->ftp->flen;
 
     rge -= min;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1737,8 +1737,8 @@ static int aRangeRand(CSOUND *csound, RANGERAND *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT rge = max - min;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1806,8 +1806,8 @@ static int randomi(CSOUND *csound, RANDOMI *p)
     amp =  (*p->max - min);
     ar = p->ar;
     inc = (int32)(*cpsp++ * csound->sicvt);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1873,8 +1873,8 @@ static int randomh(CSOUND *csound, RANDOMH *p)
     amp  = (*p->max - min);
     ar   = p->ar;
     inc  = (int32)(*cpsp++ * csound->sicvt);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1949,8 +1949,8 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
     int         cod = p->cod;
     double      phs = p->phs, si = p->si;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
