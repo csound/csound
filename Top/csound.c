@@ -1284,22 +1284,19 @@ int dag_end_task(CSOUND *csound, int task);
 void dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 
-#define INVALID (-1)
-#define WAIT    (-2)
-
 inline static int nodePerf(CSOUND *csound, int index)
 {
     INSDS *insds = NULL;
     OPDS  *opstart = NULL;
     int played_count = 0;
-    taskID which_task = (taskID)INVALID;
+    int which_task;
     INSDS **task_map = (INSDS*)csound->dag_task_map;
     double time_end;
+#define INVALID (-1)
+#define WAIT    (-2)
 
     while(1) {
-      if (which_task == (taskID)INVALID) {
-	which_task = dag_get_task(csound);
-      }
+      which_task = dag_get_task(csound);
       //printf("******** Select task %d\n", which_task);
       if (which_task==WAIT) continue;
       if (which_task==INVALID) return played_count;
@@ -1321,7 +1318,7 @@ inline static int nodePerf(CSOUND *csound, int index)
         insds->ksmps_no_end = 0;  /* reset end of loop samples */  
         played_count++;
         //printf("******** finished task %d\n", which_task);
-        which_task = dag_end_task(csound, which_task);
+        dag_end_task(csound, which_task);
     }
     return played_count;
 }
