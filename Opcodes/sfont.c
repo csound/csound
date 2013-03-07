@@ -467,7 +467,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
     arate = (p->XINCODE) ? 1 : 0;
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -557,7 +557,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -739,7 +739,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -827,7 +827,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     if (arate) {
       while (j--) {
         double looplength = *endloop - *startloop;
@@ -1002,7 +1002,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1095,7 +1095,7 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1266,7 +1266,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1354,7 +1354,7 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -2322,7 +2322,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
     if (pit < FL(0.0)) pit = FL(0.0);
     memset(outL, 0, nsmps*sizeof(MYFLT));
     memset(outR, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     for(k=0; k < spltNum; k++){
 

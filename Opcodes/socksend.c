@@ -123,7 +123,7 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     int16   *outs = (int16 *) p->aux.auxp;
     int     ff = p->ff;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (i = offset, wp = p->wp; i < nsmps; i++, wp++) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
@@ -250,7 +250,7 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     uint32_t i, nsmps = CS_KSMPS;
     int     ff = p->ff;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     /* store the samples of the channels interleaved in the packet */
     /* (left, right) */
     for (i = offset, wp = p->wp; i < nsmps; i++, wp += 2) {

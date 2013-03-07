@@ -1031,11 +1031,11 @@ static int early_process(CSOUND *csound, early *p)
     }
 
     /* a rate... */
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outsigl, '\0', offset*sizeof(MYFLT));
       memset(outsigr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));

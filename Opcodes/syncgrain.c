@@ -102,8 +102,8 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       vecsize -= early;
       memset(&output[vecsize], '\0', early*sizeof(MYFLT));
     }
@@ -263,8 +263,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       vecsize -= early;
       memset(&output[vecsize], '\0', early*sizeof(MYFLT));
     }
@@ -506,8 +506,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       vecsize -= early;
       memset(&output[vecsize], '\0', early*sizeof(MYFLT));
     }

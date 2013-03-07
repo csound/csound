@@ -796,11 +796,10 @@ babo(CSOUND *csound, void *entry)
         *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
         *(p->lx), *(p->ly), *(p->lz));
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outleft,  '\0', offset*sizeof(MYFLT));
       memset(outright, '\0', offset*sizeof(MYFLT));
-    }
-    if (early) {
+    } if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outleft[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outright[nsmps], '\0', early*sizeof(MYFLT));

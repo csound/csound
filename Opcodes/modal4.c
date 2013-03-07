@@ -326,8 +326,8 @@ int marimba(CSOUND *csound, MARIMBA *p)
       Modal4_setFreq(csound, m, *p->frequency);
       p->first = 0;
     }
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -419,8 +419,8 @@ int vibraphn(CSOUND *csound, VIBRAPHN *p)
     }
     p->m4.v_rate = *p->vibFreq;
     p->m4.vibrGain =*p->vibAmt;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -500,8 +500,8 @@ int agogobel(CSOUND *csound, VIBRAPHN *p)
       Modal4_setFreq(csound, m, *p->frequency);
       p->first = 0;
     }
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

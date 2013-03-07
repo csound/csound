@@ -1413,9 +1413,9 @@ typedef struct NAME__ {
     int           spoutlock, spinlock;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t memlock;
+    pthread_spinlock_t memlock, spinlock1;
 #else
-    int           memlock;
+    int           memlock, spinlock1;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
     char          *delayederrormessages;
     void          *printerrormessagesflag;
@@ -1479,7 +1479,8 @@ typedef struct NAME__ {
       char    *Linep, *Linebufend;
       int     stdmode;
       EVTBLK  prve;
-      char    Linebuf[LBUFSIZ];
+      char    *Linebuf;
+      int     linebufsiz;
     } lineventStatics;
     struct musmonStatics__ {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
@@ -1613,8 +1614,8 @@ typedef struct NAME__ {
     int           dag_changed;
     int           dag_num_active;
     INSDS         **dag_task_map;
-    enum state    *dag_task_status;
-    watchList     **dag_task_watch;
+    volatile enum state    *dag_task_status;
+    volatile watchList     **dag_task_watch;
     watchList     *dag_wlmm;
     char          **dag_task_dep;
     int           dag_task_max_size;

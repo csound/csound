@@ -95,8 +95,8 @@ int oscils(CSOUND *csound, OSCILS *p)
     /* copy object data to local variables */
     ar = p->ar;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -154,8 +154,8 @@ int lphasor(CSOUND *csound, LPHASOR *p)
     loop_mode = p->loop_mode;
     trns = (double)*xtrns;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -257,8 +257,8 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     onedpi_d = 1.0 / PI;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT)); 
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT)); 
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

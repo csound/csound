@@ -55,8 +55,8 @@ static int dcblockr(CSOUND *csound, DCBlocker* p)
     double      inputs = p->inputs;
     MYFLT       *samp = p->in;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -158,8 +158,8 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
     del1size = p->delay1.size/sizeof(double);
     iirdelsize = p->iirdelay1.size/sizeof(double);
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

@@ -61,8 +61,10 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
+    STA(linebufsiz) = LBUFSIZ;
+    STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     STA(prve).opcod = ' ';
-    STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
+    STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
 #if defined(DOSGCC) || defined(WIN32)
@@ -134,10 +136,20 @@ static inline int containsLF(char *cp, char *endp)
     return 0;
 }
 
-static CS_NOINLINE int linevent_alloc(CSOUND *csound)
+static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
 {
     volatile jmp_buf tmpExitJmp;
     int         err;
+
+    if(reallocsize > 0) {
+      STA(Linebuf) = (char *) csound->ReAlloc(csound, (void *) STA(Linebuf), reallocsize);
+      STA(linebufsiz) = reallocsize;
+      STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
+    } else if(STA(Linebuf)==NULL) {
+       STA(linebufsiz) = LBUFSIZ;
+       STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
+    }
+    if(STA(Linebuf) == NULL) return 1;
 
     if (STA(Linep)) return 0;
     csound->Linefd = -1;
@@ -151,7 +163,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
     /*     (LINEVENT_GLOBALS*) mcalloc(csound, sizeof(LINEVENT_GLOBALS)); */
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     STA(prve).opcod = ' ';
-    STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
+    STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
 
@@ -166,14 +178,16 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int32  size = (int32) strlen(message);
     int n;
 
-    if ((n=linevent_alloc(csound)) != 0) return;
+    if ((n=linevent_alloc(csound, 0)) != 0) return;
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
+      int extralloc = STA(Linep) + size - STA(Linebufend);
+      if ((n=linevent_alloc(csound, STA(linebufsiz) + extralloc ), 0) != 0){
       csoundErrorMsg(csound, Str("LineBuffer Overflow - "
                                  "Input Data has been Lost"));
       return;
+      }
     }
-
     memcpy(STA(Linep), message, size);
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';

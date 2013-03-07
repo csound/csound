@@ -195,8 +195,8 @@ int pvoc(CSOUND *csound, PVOC *p)
     scaleFac = p->scale;
     if (pex > FL(1.0))
       scaleFac /= pex;
-    if (offset) memset(p->rslt, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->rslt, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->rslt[nsmps], '\0', early*sizeof(MYFLT));
     }

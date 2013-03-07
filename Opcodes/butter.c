@@ -74,8 +74,8 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
 
     in = p->ain;
     out = p->sr;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -117,8 +117,8 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
       return OK;
     }
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -152,8 +152,8 @@ static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
       memset(out, 0, CS_KSMPS*sizeof(MYFLT));
       return OK;
     }
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -184,8 +184,8 @@ static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
     in = p->ain;
     out = p->sr;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

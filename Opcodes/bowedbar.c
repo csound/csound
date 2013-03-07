@@ -186,8 +186,8 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
     }
     maxVelocity = FL(0.03) + (FL(0.5) * amp);
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

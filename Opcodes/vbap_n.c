@@ -55,7 +55,7 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
 
     /* write audio to result audio streams weighted
        with gain factors*/
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     invfloatn =  FL(1.0)/(nsmps-offset);
     for (j=0; j<cnt; j++) {
       inptr      = p->audio;
@@ -63,8 +63,8 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
       ogain      = p->beg_gains[j];
       ngain      = p->end_gains[j];
       gainsubstr = ngain - ogain;
-      if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
           for (i = offset; i < nsmps; i++) {
@@ -280,13 +280,13 @@ int vbap_moving(CSOUND *csound, VBAP_MOVING *p)
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     invfloatn = FL(1.0)/(nsmps-offset);
     for (j=0; j<cnt ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
-      if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
       ogain  = p->beg_gains[j];
       ngain  = p->end_gains[j];
       gainsubstr = ngain - ogain;

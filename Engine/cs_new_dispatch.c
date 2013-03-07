@@ -278,6 +278,8 @@ void dag_reinit(CSOUND *csound)
 }
 
 #define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0)
+#define ATOMIC_WRITE(x,v) __sync_fetch_and_and(&(x), v)
+#define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
 
 taskID dag_get_task(CSOUND *csound)
 {
@@ -287,7 +289,7 @@ taskID dag_get_task(CSOUND *csound)
     enum state *task_status = csound->dag_task_status;
     //printf("**GetTask from %d\n", csound->dag_num_active);
     for (i=0; i<active; i++) {
-      if (__sync_bool_compare_and_swap(&(task_status[i]), AVAILABLE, INPROGRESS)) {
+      if (ATOMIC_CAS(&(task_status[i]), AVAILABLE, INPROGRESS)) {
         return (taskID)i;
       }
       //else if (ATOMIC_READ(task_status[i])==WAITING)
@@ -321,7 +323,7 @@ inline static int moveWatch(CSOUND *csound, watchList **w, watchList *t)
         return 0;//was no & earlier
       }
       else t->next = local;
-    } while (!__sync_bool_compare_and_swap(w,local,t));
+    } while (!ATOMIC_CAS(w,local,t));
     //dag_print_state(csound);
     //printf("moveWatch done\n");
     return 1;
@@ -333,11 +335,11 @@ void dag_end_task(CSOUND *csound, taskID i)
     int canQueue;
     int j, k;
     watchList **task_watch = csound->dag_task_watch;
-    __sync_and_and_fetch(&csound->dag_task_status[i], DONE); /* as DONE is zero */
+    ATOMIC_WRITE(csound->dag_task_status[i], DONE); /* as DONE is zero */
     {                                      /* ATOMIC_SWAP */
       do {
 	to_notify = ATOMIC_READ(task_watch[i]);
-      } while (!__sync_bool_compare_and_swap(&task_watch[i],to_notify,&DoNotRead));
+      } while (!ATOMIC_CAS(&task_watch[i],to_notify,&DoNotRead));
     } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
     next = to_notify;
@@ -350,7 +352,8 @@ void dag_end_task(CSOUND *csound, taskID i)
         if (csound->dag_task_dep[j][k]==0) continue;
         //printf("investigating task %d (%d)\n", k, csound->dag_task_status[k]);
         if (ATOMIC_READ(csound->dag_task_status[k]) != DONE) {
-          //printf("found task %d to watch %d status %d\n", k, j, csound->dag_task_status[k]);
+          //printf("found task %d to watch %d status %d\n", 
+          //       k, j, csound->dag_task_status[k]);
           if (moveWatch(csound, &task_watch[k], to_notify)) {
             //printf("task %d now watches %d\n", j, k);
             canQueue = 0;
@@ -358,7 +361,8 @@ void dag_end_task(CSOUND *csound, taskID i)
           } 
           else {
             /* assert csound->dag_task_status[j] == DONE and we are in race */
-            //printf("Racing status %d %d %d %d\n", csound->dag_task_status[j], i, j, k);
+            //printf("Racing status %d %d %d %d\n", 
+            //       csound->dag_task_status[j], i, j, k);
           }
         }
         //else { printf("not %d\n", k); }
@@ -450,7 +454,8 @@ void deleteWatch (watchList *t) {
 
 typedef struct monitor {
   pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
-  unsigned int threadsWaiting = 0;    /* Shadows the length of workAvailable wait queue */
+  unsigned int threadsWaiting = 0;    /* Shadows the length of 
+                                         workAvailable wait queue */
   queue<taskID> q;                    /* OPT : Dispatch order */
   pthread_cond_t workAvailable = PTHREAD_COND_INITIALIZER;
   pthread_cond_t done = PTHREAD_COND_INITIALIZER;

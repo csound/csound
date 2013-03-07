@@ -55,11 +55,11 @@ static int pan2run(CSOUND *csound, PAN2 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(ar, '\0', offset*sizeof(MYFLT));
       memset(al, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       memset(&al[nsmps], '\0', early*sizeof(MYFLT));
