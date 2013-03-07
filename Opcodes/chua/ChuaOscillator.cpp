@@ -237,12 +237,12 @@ public:
     uint32_t offset = head.insdshead->ksmps_offset;
     uint32_t early  = head.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(I3, '\0', offset*sizeof(MYFLT));
       memset(V1, '\0', offset*sizeof(MYFLT));
       memset(V2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       memset(&I3[nsmps-early], '\0', early*sizeof(MYFLT));
       memset(&V1[nsmps-early], '\0', early*sizeof(MYFLT));
       memset(&V2[nsmps-early], '\0', early*sizeof(MYFLT));
@@ -487,12 +487,12 @@ public:
     // to preserve the clarity of the original code.
     uint32_t offset = head.insdshead->ksmps_offset;
     uint32_t early  = head.insdshead->ksmps_no_end;
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(I3, '\0', offset*sizeof(MYFLT));
       memset(V1, '\0', offset*sizeof(MYFLT));
       memset(V2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       ksmps -= early;
       memset(&I3[ksmps], '\0', early*sizeof(MYFLT));
       memset(&V1[ksmps], '\0', early*sizeof(MYFLT));
