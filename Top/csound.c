@@ -1496,10 +1496,11 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
                           "has not been called \n"));
       return CSOUND_ERROR;
     }
-    if(csound->jumpset == 0) {
+    if (csound->jumpset == 0) {
+      int returnValue;
       csound->jumpset = 1;
-    /* setup jmp for return after an exit() */
-        if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) 
+      /* setup jmp for return after an exit() */
+      if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) 
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     csoundLockMutex(csound->API_lock);
