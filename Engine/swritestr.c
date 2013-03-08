@@ -131,6 +131,8 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
         corfile_putc(c, sco);
       corfile_putc(LF, sco);
       break;
+    case -1:
+      break;
     default:
       csound->Message(csound,
                       Str("swrite: unexpected opcode, section %d line %d\n"),
