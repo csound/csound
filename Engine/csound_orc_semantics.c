@@ -50,14 +50,15 @@ extern int is_boolean_expression_node(TREE *node);
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len = strlen(str);
-    
-    if(len == 0) {
+    char* retVal;
+
+    if (len == 0) {
         return NULL;
     }
     
-    char* retVal = mmalloc(csound, (len + 1) * sizeof(char));
+    retVal = mmalloc(csound, (len + 1) * sizeof(char));
     memcpy(retVal, str, len * sizeof(char));
-    retVal[len] = NULL;
+    retVal[len] = '\0';
     
     return retVal;
 }
@@ -73,7 +74,7 @@ char* cs_strndup(CSOUND* csound, char* str, size_t size) {
     
     char* retVal = mmalloc(csound, (size + 1) * sizeof(char));
     memcpy(retVal, str, size * sizeof(char));
-    retVal[size] = NULL;
+    retVal[size] = '\0';
     
     return retVal;
 }
@@ -83,7 +84,6 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char* s;
     char* t;
-    int len;
     CS_TYPE* type;
     
     // TODO - this should probably do a lookup of opcode and get the return type of the opcode,
@@ -188,7 +188,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
             char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
             memcpy(retVal, s, len);
             retVal[len] = ';';
-            retVal[len + 1] = NULL;
+            retVal[len + 1] = '\0';
             
             return retVal;
 
@@ -208,27 +208,29 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
         return NULL;
     }
     
-    int listIndex = 0;
-    int i;
+    {
+      int listIndex = 0;
+      int i;
     
-    OENTRY* opc = csound->opcode_list;
-    OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
+      OENTRY* opc = (OENTRY*)csound->opcode_list; /* THIS IS WRONG opcode_list defined as int* !!! */
+      OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
     
-    int opLen = strlen(opname);
+      int opLen = strlen(opname);
     
-    for (i=0; opc < csound->oplstend; opc++, i++) {
-     
-      if (strncmp(opname, opc->opname, opLen) == 0) {
-        // hack to work with how opcodes are currently defined with 
-        //".x" endings for polymorphism
-        if (opc->opname[opLen] == 0 || opc->opname[opLen] == '.') {
-          retVal->entries[listIndex++] = opc;
+      for (i=0; opc < csound->oplstend; opc++, i++) { /* Comparing pointer? */
+      
+        if (strncmp(opname, opc->opname, opLen) == 0) {
+          // hack to work with how opcodes are currently defined with 
+          //".x" endings for polymorphism
+          if (opc->opname[opLen] == 0 || opc->opname[opLen] == '.') {
+            retVal->entries[listIndex++] = opc;
+          }
         }
       }
-    }
-    retVal->count = listIndex;
+      retVal->count = listIndex;
     
-    return retVal;
+      return retVal;
+    }
 }
 
 int is_in_optional_arg(char arg) {
@@ -547,7 +549,7 @@ PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree) {
         temp += size;
     }
 
-    argString[argsLen] = NULL;
+    argString[argsLen] = '\0';
     
 //    for (i = 0; i < len; i++) {
 //         csoundMessage(csound, "%d) Found arg type: %s\n", i, argTypes[i]);
@@ -1328,80 +1330,81 @@ void print_tree(CSOUND * csound, char* msg, TREE *l)
 void handle_optional_args(CSOUND *csound, TREE *l)
 {
     if (l == NULL || l->type == LABEL_TOKEN) return;
+    {
+      int opnum = find_opcode(csound, l->value->lexeme);
+      OENTRY *ep = csound->opcodlst + opnum;
+      int nreqd = 0;
+      int incnt = tree_arg_list_count(l->right);
+      TREE * temp;
+      char** inArgParts = NULL;
 
-    int opnum = find_opcode(csound, l->value->lexeme);
-    OENTRY *ep = csound->opcodlst + opnum;
-    int nreqd = 0;
-    int incnt = tree_arg_list_count(l->right);
-    TREE * temp;
-    char** inArgParts;
+      if (ep->intypes != NULL) {
+        nreqd = argsRequired(ep->intypes);
+        inArgParts = splitArgs(csound, ep->intypes);
+      }
 
-    if (ep->intypes != NULL) {
-      nreqd = argsRequired(ep->intypes);
-      inArgParts = splitArgs(csound, ep->intypes);
-    }
+      if (PARSER_DEBUG) {
+        csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
+                        ep->opname, incnt, nreqd);
+        csound->Message(csound, "ep->intypes = >%s<\n", ep->intypes);
+      }
+      if (incnt < nreqd) {         /*  or set defaults: */
+        do {
+          switch (*inArgParts[incnt]) {
+          case 'O':             /* Will this work?  Doubtful code.... */
+          case 'o':
+            temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
+                             make_int(csound, "0"));
+            if (l->right==NULL) l->right = temp;
+            else appendToTree(csound, l->right, temp);
+            break;
+          case 'P':
+          case 'p':
+            temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
+                             make_int(csound, "1"));
+            if (l->right==NULL) l->right = temp;
+            else appendToTree(csound, l->right, temp);
+            break;
+          case 'q':
+            temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN, 
+                             make_int(csound, "10"));
+            if (l->right==NULL) l->right = temp;
+            else appendToTree(csound, l->right, temp);
+            break;
 
-    if (PARSER_DEBUG) {
-      csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
-                      ep->opname, incnt, nreqd);
-      csound->Message(csound, "ep->intypes = >%s<\n", ep->intypes);
-    }
-    if (incnt < nreqd) {         /*  or set defaults: */
-      do {
-        switch (*inArgParts[incnt]) {
-        case 'O':             /* Will this work?  Doubtful code.... */
-        case 'o':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "0"));
-          if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
-          break;
-        case 'P':
-        case 'p':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "1"));
-          if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
-          break;
-        case 'q':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN, 
-                           make_int(csound, "10"));
-          if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
-          break;
-
-        case 'V':
-        case 'v':
-          temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN,
-                           make_num(csound, ".5"));
-          if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
-          break;
-        case 'h':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "127"));
-          if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
-          break;
-        case 'J':
-        case 'j':
-          temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "-1"));
-          if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
-          break;
-        case 'M':
-        case 'N':
-        case 'm':
-          nreqd--;
-          break;
-        default:
-          synterr(csound,
-                  Str("insufficient required arguments for opcode %s on line %d\n"),
-                  ep->opname, l->line, l->locn);
-        }
-        incnt++;
-      } while (incnt < nreqd);
+          case 'V':
+          case 'v':
+            temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN,
+                             make_num(csound, ".5"));
+            if (l->right==NULL) l->right = temp;
+            else appendToTree(csound, l->right, temp);
+            break;
+          case 'h':
+            temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
+                             make_int(csound, "127"));
+            if (l->right==NULL) l->right = temp;
+            else appendToTree(csound, l->right, temp);
+            break;
+          case 'J':
+          case 'j':
+            temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
+                             make_int(csound, "-1"));
+            if (l->right==NULL) l->right = temp;
+            else appendToTree(csound, l->right, temp);
+            break;
+          case 'M':
+          case 'N':
+          case 'm':
+            nreqd--;
+            break;
+          default:
+            synterr(csound,
+                    Str("insufficient required arguments for opcode %s on line %d\n"),
+                    ep->opname, l->line, l->locn);
+          }
+          incnt++;
+        } while (incnt < nreqd);
+      }
     }
 }
 

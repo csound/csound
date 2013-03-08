@@ -219,7 +219,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         FUNC  header;
         int   fno = (int) MYFLT2LRND(**argp);
         MYFLT fno_f = (MYFLT) fno;
-        int   n;
+        size_t   n;
 
         memset(&header, 0, sizeof(FUNC));
         /* ***** Need to do byte order here ***** */
@@ -246,7 +246,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         char  s[64], *s1;
         int   fno = (int) MYFLT2LRND(**argp);
         MYFLT fno_f = (MYFLT) fno;
-        int32  j;
+        uint32_t  j;
         char *endptr;
 
         memset(&header, 0, sizeof(FUNC));

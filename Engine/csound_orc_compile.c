@@ -318,7 +318,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     int n = tp->outlist->count;
     char *s;
     char **types = splitArgs(csound, ep->outypes);
-    int nreqd = argsRequired(ep->outypes);
+    //int nreqd = argsRequired(ep->outypes);
     char      tfound = '\0', treqd;
 
 //    if (nreqd < 0)    /* for other opcodes */

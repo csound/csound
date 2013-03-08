@@ -86,7 +86,7 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
       for (n=nsmps-early; n<nsmps; n+=2) foutf[n] = foutf[n+1] = FL(0.0);
       nsmps -= early;
       for (n=offset; n<nsmps; n++) {
-        int change = 0;
+        //int change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         for (i = 0; i < NB-1; i++) {
