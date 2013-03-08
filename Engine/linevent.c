@@ -217,7 +217,7 @@ static void sensLine(CSOUND *csound, void *userData)
         EVTBLK  e;
         char    *sstrp = NULL;
         int     scnt = 0;
-        int     strsiz;
+        int     strsiz = 0;
         e.strarg = NULL;
         c = *cp;
         while (c == ' ' || c == '\t')   /* skip initial white space */

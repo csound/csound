@@ -91,7 +91,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     int color_type;
     unsigned char *image_data;
     png_bytepp row_pointers;
-    int i;
+    unsigned int i;
 
     Image *img;
 

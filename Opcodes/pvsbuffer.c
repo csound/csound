@@ -255,7 +255,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     MYFLT frac, *tab1, *tab2, *tab;
     FUNC *ftab;
     float *fout, *buffer;
-    int overlap, i, N;
+    uint32_t overlap, i, N;
 
     if (*p->hptr != p->optr){
       char varname[32];

@@ -124,7 +124,7 @@ static int platerev(CSOUND *csound, PLATE *p)
     double wi[40], wo[40], sdi[40], cdi[40], sdo[40], cdo[40];
 
     if (UNLIKELY(early)) nsmps -= early;
-    for (qq=0; qq<(int32_t)p->nin; qq++) {
+    for (qq=0; qq<(uint32_t)p->nin; qq++) {
       double delta = TWOPI*(double)p->in_param[3*qq]*dt;
       cdi[qq] = cos(delta);
       sdi[qq] = sin(delta);

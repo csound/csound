@@ -183,7 +183,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     csound = p->h.insdshead->csound;
     int     SampleRate = (int) MYFLT2LRND(csound->GetSr(csound));
     int     Ksmps = csound->GetKsmps(csound);
-    int     i;
+    unsigned long     i;
     LADSPA_Descriptor_Function pfDescriptorFunction;
     DSSI_Descriptor_Function pfDSSIDescriptorFunction;
     LADSPA_Descriptor *LDescriptor;
