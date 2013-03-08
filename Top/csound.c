@@ -836,7 +836,8 @@ static const CSOUND cenviron_ = {
     0,            /* pow2 table */
     0,            /* cps conv table */
     0,            /* output of preprocessor */
-    0             /* message buffer struct */
+    0,             /* message buffer struct */
+    0              /* jumpset */
 };
 
 /* from threads.c */
@@ -1483,6 +1484,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
      return CSOUND_SUCCESS;
 }
 
+
 PUBLIC int csoundPerformKsmps(CSOUND *csound)
 {
     int done;
@@ -1493,6 +1495,12 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
                       Str("Csound not ready for performance: csoundStart() "
                           "has not been called \n"));
       return CSOUND_ERROR;
+    }
+    if(csound->jumpset == 0) {
+      csound->jumpset = 1;
+    /* setup jmp for return after an exit() */
+        if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) 
+        return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     csoundLockMutex(csound->API_lock);
     do {
