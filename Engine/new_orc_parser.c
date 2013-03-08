@@ -168,11 +168,10 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       }
       //print_tree(csound, "AST - INITIAL\n", astTree);
       TYPE_TABLE* typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
-      typeTable->globalOpcodes = csound->opcodlst;
-      typeTable->globalOpcodesEnd = csound->oplstend;
       typeTable->udos = NULL;
       typeTable->globalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
       typeTable->localPool = NULL;
+      typeTable->labelList = NULL;
         
       astTree = verify_tree(csound, astTree, typeTable);
         

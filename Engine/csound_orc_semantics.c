@@ -32,6 +32,8 @@
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 
+
+
 char *csound_orcget_text ( void *scanner );
 
 extern  char argtyp2(char*);
@@ -46,7 +48,24 @@ extern int pnum(char*);
 /* from csound_orc_expressions.c */
 extern int is_expression_node(TREE *node);
 extern int is_boolean_expression_node(TREE *node);
+
+
+typedef struct _cons {
+    void* value; // should be car, but using val
+    struct _cons* next; // should be cdr, but using next to follow csound linked list conventions
+} CONS_CELL;
+
+/* uses malloc instead of mmalloc, should really only be used in temporary calculations 
+   and discarded by function use end */
+CONS_CELL* cs_cons(void* val, CONS_CELL* cons) {
+    CONS_CELL* cell = malloc(sizeof(CONS_CELL));
     
+    cell->value = val;
+    cell->next = cons;
+    
+    return cell;
+}
+
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len = strlen(str);
@@ -78,7 +97,7 @@ char* cs_strndup(CSOUND* csound, char* str, size_t size) {
     return retVal;
 }
 
-
+//FIXME - this needs to get a TYPE_TABLE here with a label list to check if it is a LABEL
 PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char* s;
@@ -122,11 +141,15 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
     }
     
     if (is_boolean_expression_node(tree)) {
-//        char* argTypeLeft = get_arg_type(csound, tree->left);
-//        char* argTypeRight = get_arg_type(csound, tree->right);
+        char* argTypeLeft = get_arg_type(csound, tree->left);
+        char* argTypeRight = get_arg_type(csound, tree->right);
 
-        // FIXME - needs to check if B or b
-        return cs_strdup(csound, "b");
+        if (*argTypeLeft == 'k' || *argTypeRight == 'k'
+            || *argTypeLeft == 'B' || *argTypeRight == 'B') {
+            return cs_strdup(csound, "b");
+        } else {
+            return cs_strdup(csound, "b");
+        }
     }
     
     switch(tree->type) {
@@ -180,13 +203,15 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
                 
                 return retVal;
             }
-            
-            type = csoundGetTypeForVarName(csound->typePool, s);
-            if (type != NULL) {
-                return cs_strdup(csound, type->varTypeName);
-            } else {
-                return cs_strdup(csound, "l"); // assume it is a label
+
+            if (*s != 'c') { // <- FIXME: this is here because labels are not checked correctly at the moment
+                type = csoundGetTypeForVarName(csound->typePool, s);
+                if (type != NULL) {
+                    return cs_strdup(csound, type->varTypeName);
+                }
             }
+            
+            return cs_strdup(csound, "l"); // assume it is a label
         case T_ARRAY:
         case T_ARRAY_IDENT:
             
@@ -772,6 +797,42 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 0;
 }
 
+/* Walks tree and finds all label: definitions */
+char** get_label_list(CSOUND* csound, TREE* root) {
+    CONS_CELL* head = NULL;
+    CONS_CELL* temp;
+    int len = 0;
+    TREE* current = root;
+    int i = 0;
+    char** retVal;
+    
+    while(current != NULL) {
+        if(current->type == LABEL_TOKEN) {
+            char* labelText = current->value->lexeme;
+            head = cs_cons(cs_strndup(csound, labelText, strlen(labelText) - 1), head);
+            len++;
+        }
+        current = current->next;
+    }
+    
+    if (len == 0) {
+        return NULL;
+    }
+    
+    retVal = malloc((len + 1) * sizeof(char*));
+    retVal[len] = NULL; // null terminate list
+    
+    for (i = len - 1; i >= 0; i--) {
+        retVal[i] = head->value;
+        temp = head;
+        head = head->next;
+        free(temp);
+    }
+    
+    return retVal;
+}
+
+
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 {
     TREE *anchor = NULL;   
@@ -785,9 +846,15 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+        typeTable->labelList = get_label_list(csound, current->right);
+        
         current->right = verify_tree(csound, current->right, typeTable);
+        
+        free(typeTable->labelList);
         mfree(csound, typeTable->localPool);
+              
         typeTable->localPool = NULL;
+        typeTable->labelList = NULL;
         break;
       case UDO_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
