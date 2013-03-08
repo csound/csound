@@ -1460,19 +1460,27 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
 {
     OPARMS  *O = csound->oparms;
      /* protect resource */
-    csoundLockMutex(csound->API_lock);
+    
     if(csound->scorestr != NULL &&
-       csound->scorestr->body != NULL)
-      corfile_rewind(csound->scorestr);
-    else
-      csound->scorestr = corfile_create_w();
+       csound->scorestr->body != NULL) 
+         corfile_rewind(csound->scorestr);
+
+    csound->scorestr = corfile_create_w();
     corfile_puts(str, csound->scorestr);
     corfile_flush(csound->scorestr);
-    scsortstr(csound, csound->scorestr);
     /* copy sorted score name */
-    O->playscore = csound->scstr;
+    csoundLockMutex(csound->API_lock);
+    if(csound->scstr == NULL) {
+       scsortstr(csound, csound->scorestr);
+       O->playscore = csound->scstr;
+    }
+    else {
+      const char *sc = scsortstr(csound, csound->scorestr);
+      csoundInputMessageInternal(csound, sc);
+      corfile_rm(&(csound->scorestr));
+    } 
     csoundUnlockMutex(csound->API_lock);
-      return CSOUND_SUCCESS;
+     return CSOUND_SUCCESS;
 }
 
 PUBLIC int csoundPerformKsmps(CSOUND *csound)
