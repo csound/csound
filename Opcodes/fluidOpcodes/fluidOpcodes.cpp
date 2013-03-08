@@ -392,11 +392,11 @@ public:
         {
           uint32_t offset = head.insdshead->ksmps_offset;
           uint32_t early  = head.insdshead->ksmps_no_end;
-          if (offset) {
+          if (UNLIKELY(offset)) {
             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
             memset(aRightOut, '\0', offset*sizeof(MYFLT));
              }
-          if (early) {
+          if (UNLIKELY(early)) {
             ksmps -= early;
             memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
             memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
@@ -437,11 +437,11 @@ public:
         {
           uint32_t offset = head.insdshead->ksmps_offset;
           uint32_t early  = head.insdshead->ksmps_no_end;
-          if (offset) {
+          if (UNLIKELY(offset)) {
             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
             memset(aRightOut, '\0', offset*sizeof(MYFLT));
           }
-          if (early) {
+          if (UNLIKELY(early)) {
             ksmps -= early;
             memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
             memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
@@ -518,10 +518,10 @@ noteOff:
                                                  midiChannel, midiData1);
                     if (printMsgs)
                         csound->Message(csound,
-                                "result: %d \n Note off: c:%3d k:%3d\n",
-                                result,
-                                midiChannel,
-                                midiData1);
+                                        Str("result: %d \n Note off: c:%3d k:%3d\n"),
+                                        result,
+                                        midiChannel,
+                                        midiData1);
                     break;
                 case (int) 0x90:
                     if (!midiData2) {

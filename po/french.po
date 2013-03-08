@@ -680,24 +680,24 @@ msgstr "Instrument %s muet\n"
 msgid "Instrument %d muted\n"
 msgstr "Instrument %d muet\n"
 
-#: Engine/insert.c:139 Engine/insert.c:361 Engine/insert.c:2101
+#: Engine/insert.c:139 Engine/insert.c:358 Engine/insert.c:2098
 #, c-format
 msgid "cannot allocate last note because it exceeds 100%% of cpu time"
 msgstr ""
 "impossible d'allouer la derni??re note car elle d??passe 100%% du temps cpu"
 
-#: Engine/insert.c:145 Engine/insert.c:367 Engine/insert.c:2106
+#: Engine/insert.c:145 Engine/insert.c:364 Engine/insert.c:2103
 msgid "cannot allocate last note because it exceeds instr maxalloc"
 msgstr ""
 "impossible d'allouer la derni??re note car le nombre maximum d'allocations "
 "d'instr est atteint"
 
-#: Engine/insert.c:162 Engine/insert.c:387 Engine/insert.c:2137
+#: Engine/insert.c:162 Engine/insert.c:384 Engine/insert.c:2134
 #, c-format
 msgid "new alloc for instr %s:\n"
 msgstr "nouvelle allocation de l'instr %s :\n"
 
-#: Engine/insert.c:164 Engine/insert.c:389 Engine/insert.c:2139
+#: Engine/insert.c:164 Engine/insert.c:386 Engine/insert.c:2136
 #, c-format
 msgid "new alloc for instr %d:\n"
 msgstr "nouvelle allocation de l'instr %d :\n"
@@ -712,51 +712,51 @@ msgstr "l'instr %s utilise %d p-champs alors qu'il n'en a re??u que %d"
 msgid "instr %d uses %d p-fields but is given %d"
 msgstr "l'instr %d utilise %d p-champs alors qu'il n'en a re??u que %d"
 
-#: Engine/insert.c:333 Engine/insert.c:566
+#: Engine/insert.c:330 Engine/insert.c:563
 #, c-format
 msgid "instr %s now active:\n"
 msgstr "instr %s activ?? : \n"
 
-#: Engine/insert.c:335 Engine/insert.c:568
+#: Engine/insert.c:332 Engine/insert.c:565
 #, c-format
 msgid "instr %d now active:\n"
 msgstr "instr %d activ?? : \n"
 
-#: Engine/insert.c:376
+#: Engine/insert.c:373
 #, c-format
 msgid "activating instr %s\n"
 msgstr "activation de l'instrument %s\n"
 
-#: Engine/insert.c:378
+#: Engine/insert.c:375
 #, c-format
 msgid "activating instr %d\n"
 msgstr "activation de l'instrument %d\n"
 
-#: Engine/insert.c:403
+#: Engine/insert.c:400
 #, c-format
 msgid "MIDI note overlaps with key %d on same channel"
 msgstr "la note MIDI chevauche la touche %d sur le m??me canal"
 
-#: Engine/insert.c:676
+#: Engine/insert.c:673
 #, c-format
 msgid "removed instance of instr %s\n"
 msgstr "une instance de l'instrument %s a ??t?? enlev??e\n"
 
-#: Engine/insert.c:678
+#: Engine/insert.c:675
 #, c-format
 msgid "removed instance of instr %d\n"
 msgstr "une instance de l'instrument %d a ??t?? enlev??e\n"
 
-#: Engine/insert.c:804
+#: Engine/insert.c:801
 msgid "inactive allocs returned to freespace\n"
 msgstr "les allocation inactives ont ??t?? rendues ?? l'espace libre\n"
 
-#: Engine/insert.c:829
+#: Engine/insert.c:826
 #, c-format
 msgid "could not find playing instr %f\n"
 msgstr "impossible de trouver l'instr actif %f\n"
 
-#: Engine/insert.c:842
+#: Engine/insert.c:839
 msgid ""
 "\n"
 "INIT ERROR: "
@@ -764,22 +764,22 @@ msgstr ""
 "\n"
 "ERREUR D'INITIALISATION : "
 
-#: Engine/insert.c:855
+#: Engine/insert.c:852
 #, c-format
 msgid "INIT ERROR in instr %d (opcode %s): "
 msgstr "ERREUR D'INITIALISATION dans l'instr %d (opcode %s) : "
 
-#: Engine/insert.c:858
+#: Engine/insert.c:855
 #, c-format
 msgid "INIT ERROR in instr %d (subinstr %d): "
 msgstr "ERREUR D'INITIALISATION dans l'instr %d (subinstr %d) : "
 
-#: Engine/insert.c:862
+#: Engine/insert.c:859
 #, c-format
 msgid "INIT ERROR in instr %d: "
 msgstr "ERREUR D'INITIALISATION dans l'instr %d : "
 
-#: Engine/insert.c:880
+#: Engine/insert.c:877
 msgid ""
 "\n"
 "PERF ERROR: "
@@ -787,53 +787,53 @@ msgstr ""
 "\n"
 "ERREUR D'EXECUTION : "
 
-#: Engine/insert.c:893
+#: Engine/insert.c:890
 #, c-format
 msgid "PERF ERROR in instr %d (opcode %s): "
 msgstr "ERREUR D'EXECUTION dans l'instr %d (opcode %s) : "
 
-#: Engine/insert.c:896
+#: Engine/insert.c:893
 #, c-format
 msgid "PERF ERROR in instr %d (subinstr %d): "
 msgstr "ERREUR D'EXECUTION dans l'instr %d (subinstr %d) : "
 
-#: Engine/insert.c:900
+#: Engine/insert.c:897
 #, c-format
 msgid "PERF ERROR in instr %d: "
 msgstr "ERREUR D'EXECUTION dans l'instr %d :"
 
-#: Engine/insert.c:905
+#: Engine/insert.c:902
 msgid "   note aborted\n"
 msgstr "    note interrompue\n"
 
-#: Engine/insert.c:933
+#: Engine/insert.c:930
 msgid "subinstr: number of output args greater than nchnls"
 msgstr "subinstr : nombre d'arguments de sortie sup??rieur ?? nchnls"
 
-#: Engine/insert.c:974
+#: Engine/insert.c:971
 msgid "subinstr: too many p-fields"
 msgstr "subinstr : trop de p-champs"
 
-#: Engine/insert.c:1036
+#: Engine/insert.c:1033
 #, c-format
 msgid "%s: invalid local ksmps value: %d"
 msgstr "%s : valeur locale de ksmps non valide : %d"
 
-#: Engine/insert.c:1165 OOps/bus.c:861 Opcodes/stackops.c:287
+#: Engine/insert.c:1162 OOps/bus.c:861 Opcodes/stackops.c:287
 #, c-format
 msgid "%s: not initialised"
 msgstr "%s : non initialis??"
 
-#: Engine/insert.c:1325
+#: Engine/insert.c:1322
 #, c-format
 msgid "setksmps: invalid ksmps value: %d"
 msgstr "setksmps : valeur de ksmps non valide : %d"
 
-#: Engine/insert.c:1437
+#: Engine/insert.c:1434
 msgid "subinstr: not initialised"
 msgstr "subinstr : non initialis??"
 
-#: Engine/insert.c:1800
+#: Engine/insert.c:1797
 #, c-format
 msgid ""
 "instr %d allocated at %p\n"
@@ -842,108 +842,108 @@ msgstr ""
 "instr %d allou?? ?? %p\n"
 "\tlclbas %p, opds %p\n"
 
-#: Engine/insert.c:1817
+#: Engine/insert.c:1814
 #, c-format
 msgid "op %d (%s) allocated at %p\n"
 msgstr "op %d (%s) allou?? ?? %p\n"
 
-#: Engine/insert.c:1842
+#: Engine/insert.c:1839
 msgid "null iopadr"
 msgstr "iopadr null"
 
-#: Engine/insert.c:1853
+#: Engine/insert.c:1850
 msgid "null opadr"
 msgstr "opadr null"
 
-#: Engine/insert.c:1940
+#: Engine/insert.c:1937
 msgid "inconsistent opds total"
 msgstr "total d'opds non coh??rent"
 
-#: Engine/insert.c:1989
+#: Engine/insert.c:1986
 #, c-format
 msgid "Instrument %s is still active"
 msgstr "L'instrument %s est toujours actif"
 
-#: Engine/insert.c:1992
+#: Engine/insert.c:1989
 #, c-format
 msgid "Instrument %d is still active"
 msgstr "L'instrument %d est toujours actif"
 
-#: Engine/insert.c:2092
+#: Engine/insert.c:2089
 #, c-format
 msgid "schedule event ignored. instr %d undefined\n"
 msgstr "??v??nement programm?? ignor??. L'instr %d n'est pas d??fini\n"
 
-#: Engine/insert.c:2171
+#: Engine/insert.c:2168
 #, c-format
 msgid "instr %s pmax = %d, note pcnt = %d"
 msgstr "instr %s pmax = %d, pcnt de note = %d"
 
-#: Engine/insert.c:2174
+#: Engine/insert.c:2171
 #, c-format
 msgid "instr %d pmax = %d, note pcnt = %d"
 msgstr "instr %d pmax = %d, pcnt de note = %d"
 
-#: Engine/insert.c:2182
+#: Engine/insert.c:2179
 #, c-format
 msgid "psave beg at %p\n"
 msgstr "psave d??but ?? %p\n"
 
-#: Engine/insert.c:2190
+#: Engine/insert.c:2187
 #, c-format
 msgid "   ending at %p\n"
 msgstr "   fin ?? %p\n"
 
-#: Engine/linevent.c:74
+#: Engine/linevent.c:76
 msgid "-L stdin fcntl failed"
 msgstr "-L stdin fcntl a ??chou??"
 
-#: Engine/linevent.c:83 Engine/linevent.c:92 OOps/dumpf.c:57 OOps/dumpf.c:82
+#: Engine/linevent.c:85 Engine/linevent.c:94 OOps/dumpf.c:57 OOps/dumpf.c:82
 #: OOps/dumpf.c:107 OOps/dumpf.c:132 OOps/dumpf.c:276 OOps/dumpf.c:303
 #: OOps/dumpf.c:330 OOps/dumpf.c:357 OOps/dumpf.c:528 util/hetro.c:257
 #, c-format
 msgid "Cannot open %s"
 msgstr "Impossible d'ouvrir %s"
 
-#: Engine/linevent.c:93 Engine/linevent.c:107
+#: Engine/linevent.c:95 Engine/linevent.c:109
 #, c-format
 msgid "stdmode = %.8x Linefd = %d\n"
 msgstr "stdmode = %.8x Linefd = %d\n"
 
-#: Engine/linevent.c:172
+#: Engine/linevent.c:186
 msgid "LineBuffer Overflow - Input Data has been Lost"
 msgstr "D??passement du Tampon de Ligne - Les donn??es en entr??e sont perdues"
 
-#: Engine/linevent.c:224
+#: Engine/linevent.c:238
 #, c-format
 msgid "unknown opcode %c"
 msgstr "opcode %c inconnu"
 
-#: Engine/linevent.c:244
+#: Engine/linevent.c:258
 msgid "unmatched quotes"
 msgstr "guillemets non appari??s"
 
-#: Engine/linevent.c:271
+#: Engine/linevent.c:285
 msgid "dot carry has no reference"
 msgstr "le point de report de valeur (carry) n'a pas de r??f??rence"
 
-#: Engine/linevent.c:276
+#: Engine/linevent.c:290
 msgid "cannot carry string p-field"
 msgstr "impossible de reporter un p-champ cha??ne de caract??res"
 
-#: Engine/linevent.c:287
+#: Engine/linevent.c:301
 msgid "too few pfields"
 msgstr "pas assez de p-champs"
 
-#: Engine/linevent.c:291
+#: Engine/linevent.c:305
 msgid "-L with negative p2 illegal"
 msgstr "-L avec un p2 n??gatif est ill??gal"
 
-#: Engine/linevent.c:302
+#: Engine/linevent.c:316
 msgid "too many pfields"
 msgstr "trop de p-champs"
 
-#: Engine/linevent.c:314
+#: Engine/linevent.c:328
 #, c-format
 msgid ""
 "illegal RT scoreline:\n"
@@ -954,23 +954,23 @@ msgstr ""
 "%s\n"
 "%*s"
 
-#: Engine/linevent.c:336
+#: Engine/linevent.c:350
 msgid "event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\""
 msgstr ""
 "event : le param??tre 1 doit ??tre \"a\", \"i\", \"q\", \"f\", ou \"e\""
 
-#: Engine/linevent.c:338
+#: Engine/linevent.c:352
 msgid "event: string name is allowed only for \"i\" and \"q\" events"
 msgstr ""
 "event : un identifiant sous forme de cha??ne n'est permis qu'avec les ??v??"
 "nements \"i\" et \"q\""
 
-#: Engine/linevent.c:371
+#: Engine/linevent.c:385
 #, c-format
 msgid "event: error creating '%c' event"
 msgstr "event : erreur en cr??ant l'??v??nement '%c'"
 
-#: Engine/linevent.c:416
+#: Engine/linevent.c:430
 #, c-format
 msgid "event_i: error creating '%c' event"
 msgstr "event_i: erreur en cr??ant l'??v??nement '%c'"
@@ -1204,14 +1204,10 @@ msgid "Setting instrument %s %s\n"
 msgstr "Lancement de l'instrument  %s %s\n"
 
 #: Engine/musmon.c:652 Engine/musmon.c:666
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:207
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:208
 msgid "off"
 msgstr "arr??t"
 
 #: Engine/musmon.c:652 Engine/musmon.c:666
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:207
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:208
 msgid "on"
 msgstr "marche"
 
@@ -3169,6 +3165,320 @@ msgstr "virtual_keyboard.cpp : erreur lors de l'allocation des options FLTK"
 msgid "Error registering opcode '%s'"
 msgstr "Erreur en enregistrant l'opcode '%s'"
 
+#: InOut/widgets.cpp:1082
+msgid ""
+"Invalid snapshot. Perhaps you modified orchestra widget code after you saved "
+"the snapshot bank."
+msgstr ""
+"Instantan?? non valide. Peut-??tre avez-vous modifi?? le code d'un widget de "
+"l'orchestre apr??s avoir sauvegard?? la banque d'instantan??s."
+
+#: InOut/widgets.cpp:1275
+msgid "No name for FLbutbank"
+msgstr "Pas de nom pour FLbutbank"
+
+#: InOut/widgets.cpp:1526
+msgid "FLsetsnap: invalid table"
+msgstr "FLsetsnap : table non valide"
+
+#: InOut/widgets.cpp:1531
+msgid "setsnap saving\n"
+msgstr ""
+
+#: InOut/widgets.cpp:1564
+msgid ""
+"Saving could overwrite the old file.\n"
+"Are you sure to save ?"
+msgstr ""
+"La sauvegarde ??crasera l'ancien fichier.\n"
+" Etes-vous s??r ?"
+
+#: InOut/widgets.cpp:1565
+msgid "Warning"
+msgstr ""
+
+#: InOut/widgets.cpp:1576
+msgid ""
+"Saving could overwrite the old file.\n"
+"Are you sure you want to save ?"
+msgstr ""
+"La sauvegarde ??crasera l'ancien fichier\n"
+"Etes-vous certain de vouloir sauvegarder ?"
+
+#: InOut/widgets.cpp:1578
+msgid "No"
+msgstr "Non"
+
+#: InOut/widgets.cpp:1578
+msgid "Yes"
+msgstr "Oui"
+
+#: InOut/widgets.cpp:1588
+msgid "FLsavesnap: cannot open file"
+msgstr "FLsavesnap : impossible d'ouvrir le fichier"
+
+#: InOut/widgets.cpp:1642
+msgid "FLloadsnap: cannot open file"
+msgstr "FLloadsnap : impossible d'ouvrir le fichier"
+
+#: InOut/widgets.cpp:1687
+msgid ""
+"unmatched widget, probably due to a modified orchestra. Modifying an "
+"orchestra makes it incompatible with old snapshot files"
+msgstr ""
+"widget non appari??, probablement ?? cause d'une modification de l'orchestre."
+"La modification d'un orchestre le rend incompatible avec les anciens "
+"fichiers d'instantan??s"
+
+#: InOut/widgets.cpp:2059
+msgid "end of widget thread\n"
+msgstr "fin du thread de widget\n"
+
+#: InOut/widgets.cpp:2085
+msgid "FLrun was already called"
+msgstr "FLrun a d??j?? ??t?? appel??"
+
+#: InOut/widgets.cpp:2088
+msgid "FL_run: memory allocation failure"
+msgstr "FL_run : ??chec de l'allocation m??moire"
+
+#: InOut/widgets.cpp:2191 InOut/widgets.cpp:2211
+msgid "Error: Unable to fork process\n"
+msgstr "Erreur : Impossible de lancer le processus\n"
+
+#: InOut/widgets.cpp:2612
+msgid "FLpanel_end: invalid stack pointer: verify its placement"
+msgstr "FLpanel_end : pointeur de pile non valide : v??rifier sa position"
+
+#: InOut/widgets.cpp:2616
+msgid ""
+"FLpanel_end: invalid stack count: verify FLpanel/FLpanel_end count and "
+"placement"
+msgstr ""
+"FLpanel_end : compte de la pile non valide : v??rifier le nombre de FLpanel/"
+"FLpanel_end et leurs positions"
+
+#: InOut/widgets.cpp:2642 InOut/widgets.cpp:2675
+msgid "FLscroll_end: invalid stack pointer: verify its placement"
+msgstr "FLscroll_end : pointeur de pile non valide : v??rifier sa position"
+
+#: InOut/widgets.cpp:2646
+msgid ""
+"FLscroll_end: invalid stack count: verify FLscroll/FLscroll_end count and "
+"placement"
+msgstr ""
+"FLscroll_end : compte de la pile non valide : v??rifier le nombre de "
+"FLscroll/FLscroll_end et leurs positions"
+
+#: InOut/widgets.cpp:2679
+msgid ""
+"FLtabs_end: invalid stack count: verify FLtabs/FLtabs_end count and placement"
+msgstr ""
+"FLtabs_end : pointeur de pile non valide : v??rifier le nombre de FLtabs/"
+"FLtabs_end et leurs positions"
+
+#: InOut/widgets.cpp:2724
+msgid "FLgroup_end: invalid stack pointer: verify its placement"
+msgstr "FLgroup_end : pointeur de pile non valide : v??rifier sa position"
+
+#: InOut/widgets.cpp:2728
+msgid ""
+"FLgroup_end: invalid stack count: verify FLgroup/FLgroup_end count and "
+"placement"
+msgstr ""
+"FLgroup_end : compte de la pile non valide : verifier le nombre de FLgroup/"
+"FLgroup_end et leurs positions"
+
+#: InOut/widgets.cpp:2764
+msgid "FLpack_end: invalid stack pointer: verify its placement"
+msgstr "FLpack_end : pointeur de pile non valide : v??rifier sa position"
+
+#: InOut/widgets.cpp:2768
+msgid ""
+"FLpack_end: invalid stack count: verify FLpack/FLpack_end count and placement"
+msgstr ""
+"FLpack_end : compte de la pile non valide : v??rifier le nombre de FLpack/"
+"FLpack_end et leurs positions"
+
+#: InOut/widgets.cpp:2849
+msgid "System error: value() method called from non-valuator object"
+msgstr ""
+
+#: InOut/widgets.cpp:2922
+msgid "FLvalue cannot be set by FLsetVal.\n"
+msgstr "FLvalue ne peut pas ??tre rempli par FLsetVal.\n"
+
+#: InOut/widgets.cpp:2940
+#, c-format
+msgid "(fl_setWidgetValuei): not fully implemented yet; exp=%d"
+msgstr "(fl_setWidgetValuei) : pas encore totalement impl??ment?? ; exp=%d"
+
+#: InOut/widgets.cpp:2960
+msgid "FLvalue cannot be set by FLsetVal\n"
+msgstr "FLvalue ne peut pas ??tre rempli par FLsetVal\n"
+
+#: InOut/widgets.cpp:2978
+#, c-format
+msgid "(fl_setWidgetValue_set): not fully implemented yet; exp=%d"
+msgstr "(fl_setWidgetValue_set) : pas encore totalement impl??ment?? ; exp=%d"
+
+#: InOut/widgets.cpp:3327 InOut/widgets.cpp:4753
+msgid "FLslider exponential, using non-labeled slider"
+msgstr "FLslider exponentiel, utilisation d'une r??glette sans ??tiquette"
+
+#: InOut/widgets.cpp:3350
+msgid "FLslider: invalid slider type"
+msgstr "FLslider : type de r??glette non valide"
+
+#: InOut/widgets.cpp:3363 InOut/widgets.cpp:4171
+msgid "FLslider: zero is illegal in exponential operations"
+msgstr "FLslider : z??ro est interdit dans les op??rations exponentielles"
+
+#: InOut/widgets.cpp:3425 InOut/widgets.cpp:4502 InOut/widgets.cpp:4715
+#: InOut/widgets.cpp:4894
+msgid "invalid ZAK space allocation"
+msgstr "espace d'allocation ZAK non valide"
+
+#: InOut/widgets.cpp:3540
+msgid "FLslidBnk: zero is illegal in exponential operations"
+msgstr "FLslidBnk : z??ro est interdit dans les op??rations exponentielles"
+
+#: InOut/widgets.cpp:3638 InOut/widgets.cpp:3672
+msgid "FLjoy X axe: zero is illegal in exponential operations"
+msgstr "FLjoy axe X : z??ro est interdit dans les op??rations exponentielles"
+
+#: InOut/widgets.cpp:3767
+msgid "FLknob: invalid knob type"
+msgstr "FLknob : type de bouton rotatif non valide"
+
+#: InOut/widgets.cpp:3783
+msgid "FLknob: zero is illegal in exponential operations"
+msgstr "FLknob : z??ro est interdit dans les op??rations exponentielles"
+
+#: InOut/widgets.cpp:3884 InOut/widgets.cpp:4008
+#, c-format
+msgid "FLbutton \"%s\" ignoring snapshot capture retrieve"
+msgstr "FLbutton \"%s\" ignore les instantan??s de capture et de restitution"
+
+#: InOut/widgets.cpp:3926
+msgid "FLbutton: invalid button type"
+msgstr "FLbutton : type de bouton non valide"
+
+#: InOut/widgets.cpp:3959
+msgid "FLcloseButton: invalid stack pointer: verify its placement"
+msgstr "FLcloseButton : pointeur de pile non valide : v??rifier sa position"
+
+#: InOut/widgets.cpp:3978
+#, c-format
+msgid "Command Found: %s\n"
+msgstr "Commande trouv??e : %s\n"
+
+#: InOut/widgets.cpp:3981
+msgid "About"
+msgstr ""
+
+#: InOut/widgets.cpp:4051
+msgid "FLbuttonBank: invalid button type"
+msgstr "FLbuttonBank : type de bouton non valide"
+
+#: InOut/widgets.cpp:4089
+#, c-format
+msgid "FLcount \"%s\" ignoring snapshot capture retrieve"
+msgstr "FLcount \"%s\" ignore les instantan??s de capture et de restitution"
+
+#: InOut/widgets.cpp:4157
+msgid "FLroller: invalid roller type"
+msgstr "FLroller : type de molette non valide"
+
+#: InOut/widgets.cpp:4354
+msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
+msgstr ""
+"FLhvsBox : une surface carr??e doit ??tre d??limit??e par au moins 2 lignes"
+
+#: InOut/widgets.cpp:4403
+msgid "FLkeyIn: invalid table number"
+msgstr "FLkeyIn : num??ro de table non valide"
+
+#: InOut/widgets.cpp:4407
+msgid "FLkeyIn: table too short!"
+msgstr "FLkeyIn : table trop courte !"
+
+#: InOut/widgets.cpp:4626
+msgid "FLvslidBnk: zero is illegal in exponential operations"
+msgstr "FLvslidBnk : z??ro est ill??gal dans les op??rations exponentielles"
+
+#: InOut/widgets.cpp:4804 InOut/widgets.cpp:4984
+msgid "FLsliderBank: zero is illegal in exponential operations"
+msgstr "FLsliderBank : z??ro est ill??gal dans les op??rations exponentielles"
+
+#: InOut/widgets.cpp:4933
+msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
+msgstr ""
+"FLslidBnk2 : FLslider exponentiel, utilisant une r??glette sans ??tiquette"
+
+#: InOut/widgets.cpp:5065 InOut/widgets.cpp:5131
+msgid "FLsldBnkSet: invalid table number"
+msgstr "FLsldBnkSet : num??ro de table non valide"
+
+#: InOut/widgets.cpp:5070 InOut/widgets.cpp:5136
+#, fuzzy
+msgid "FLslidBnkSet: table too short!"
+msgstr "FLslidBnkSetk : table trop courte !"
+
+#: InOut/widgets.cpp:5078 InOut/widgets.cpp:5145
+msgid "FLsldBnkSet: invalid outable number"
+msgstr "FLsldBnkSet : num??ro de outable non valide"
+
+#: InOut/widgets.cpp:5083 InOut/widgets.cpp:5151
+msgid "FLslidBnkSet: too many sliders to reset!"
+msgstr "FLslidBnkSet : trop de r??glettes ?? r??initialiser !"
+
+#: InOut/widgets.cpp:5107
+msgid "FLslidBnkSet: function mapping not available"
+msgstr "FLslidBnkSet : type de fonction (lin. ou exp.) non disponible"
+
+#: InOut/widgets.cpp:5179 InOut/widgets.cpp:5267 InOut/widgets.cpp:5356
+msgid ""
+"FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range "
+"for input"
+msgstr ""
+"FLslidBnk2Setk : valeur hors limites : le mappage de fonction n??cessite en "
+"entr??e l'intervalle de 0 ?? 1"
+
+#: InOut/widgets.cpp:5209
+msgid "FLsldBnkSetk: invalid table number"
+msgstr "FLslidBnkSetk : num??ro de table non valide"
+
+#: InOut/widgets.cpp:5214 InOut/widgets.cpp:5302
+msgid "FLslidBnkSetk: table too short!"
+msgstr "FLslidBnkSetk : table trop courte !"
+
+#: InOut/widgets.cpp:5222
+msgid "FLsldBnkSetk: invalid outable number"
+msgstr "FLslidBnkSetk : num??ro de outable non valide"
+
+#: InOut/widgets.cpp:5228 InOut/widgets.cpp:5316
+msgid "FLslidBnkSetk: too many sliders to reset!"
+msgstr "FLslidBnkSetk : trop de r??glettes ?? r??initialiser !"
+
+#: InOut/widgets.cpp:5297
+msgid "FLslidBnkSetk: invalid table number"
+msgstr "FLslidBnkSetk : num??ro de table non valide"
+
+#: InOut/widgets.cpp:5310
+msgid "FLslidBnkSetk: invalid outable number"
+msgstr "FLslidBnkSetk : num??ro de outable non valide"
+
+#: InOut/widgets.cpp:5388
+msgid "FLxyin: none of X limits can be zero in exponential mode!"
+msgstr ""
+"FLxyin : aucune des limites de X ne peut ??tre z??ro en mode exponentiel !"
+
+#: InOut/widgets.cpp:5415
+msgid "FLxyin: none of Y limits can be zero in exponential mode!"
+msgstr ""
+"FLxyin : aucune des limites de Y ne peut ??tre z??ro en mode exponentiel !"
+
 #: InOut/winEPS.c:132
 #, c-format
 msgid "** Warning **  PostScript file %s cannot be opened\n"
@@ -3252,24 +3562,24 @@ msgstr "Pas de table d'accordage %d"
 msgid "cpstun: invalid table"
 msgstr "cpstun : table non valide"
 
-#: OOps/aops.c:1482
+#: OOps/aops.c:1491
 msgid "Input and output argument count differs in inch"
 msgstr "Les nombres d'arguments d'entr??e et de sortie diff??rent dans inch"
 
-#: OOps/aops.c:1486
+#: OOps/aops.c:1495
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr "Canal d'entr??e %d trop grand ; ignor??"
 
-#: OOps/aops.c:1825
+#: OOps/aops.c:1860
 msgid "Unknown function called"
 msgstr "Appel de fonction inconnue"
 
-#: OOps/aops.c:1861
+#: OOps/aops.c:1896
 msgid "number of arguments != nchnls"
 msgstr "nombre d'arguments != nchnls"
 
-#: OOps/aops.c:1888
+#: OOps/aops.c:1923
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 "outrg : le num??ro de canal ne peut pas ??tre < 1 (1 est le premier canal)"
@@ -4757,116 +5067,116 @@ msgstr "pluck : kcps sup??rieur au taux d'??chantillonnage"
 msgid "Seeding from current time %lu\n"
 msgstr "Graine ?? partir de l'horloge %lu\n"
 
-#: OOps/ugens5.c:287 OOps/ugens5.c:394 Opcodes/gab/gab.c:48 Opcodes/ugsc.c:209
+#: OOps/ugens5.c:287 OOps/ugens5.c:395 Opcodes/gab/gab.c:48 Opcodes/ugsc.c:209
 #, c-format
 msgid "illegal reson iscl value, %f"
 msgstr "valeur ill??gale de iscl dans reson, %f"
 
-#: OOps/ugens5.c:611
+#: OOps/ugens5.c:612
 #, c-format
 msgid "LPREAD cannot load %s"
 msgstr "LPREAD ne peut pas charger %s"
 
-#: OOps/ugens5.c:622
+#: OOps/ugens5.c:623
 #, c-format
 msgid "Using %s type of file.\n"
 msgstr "Utilisation du type de fichier %s.\n"
 
-#: OOps/ugens5.c:623
+#: OOps/ugens5.c:624
 msgid "pole"
 msgstr "p??le"
 
-#: OOps/ugens5.c:623
+#: OOps/ugens5.c:624
 msgid "filter coefficient"
 msgstr "coefficient du filtre"
 
-#: OOps/ugens5.c:628
+#: OOps/ugens5.c:629
 msgid "lpheader overriding inputs"
 msgstr "l'en-t??te du fichier prend le pas sur les param??tres"
 
-#: OOps/ugens5.c:632
+#: OOps/ugens5.c:633
 msgid "lpfile srate != orch sr"
 msgstr "taux d'??chantillonnage du fichier != sr de l'orch"
 
-#: OOps/ugens5.c:640
+#: OOps/ugens5.c:641
 #, c-format
 msgid "file %s bytes are in wrong order"
 msgstr "dans le fichier %s les octets ne sont pas dans le bon ordre"
 
-#: OOps/ugens5.c:650
+#: OOps/ugens5.c:651
 msgid "insufficient args and no file header"
 msgstr "nombre d'arguments insuffisant et pas d'en-t??te de fichier"
 
-#: OOps/ugens5.c:655
+#: OOps/ugens5.c:656
 msgid "npoles > MAXPOLES"
 msgstr "npoles > MAXPOLES"
 
-#: OOps/ugens5.c:663
+#: OOps/ugens5.c:664
 #, c-format
 msgid "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"
 msgstr "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"
 
-#: OOps/ugens5.c:679 util/lpanal.c:324
+#: OOps/ugens5.c:680 util/lpanal.c:324
 #, c-format
 msgid "magnitude: %f   Phase: %f\n"
 msgstr "magnitude : %f   Phase : %f\n"
 
-#: OOps/ugens5.c:682 util/lpanal.c:327
+#: OOps/ugens5.c:683 util/lpanal.c:327
 #, c-format
 msgid "Real: %f   Imag: %f\n"
 msgstr "Partie r??elle : %f   Partie imaginaire : %f\n"
 
-#: OOps/ugens5.c:849
+#: OOps/ugens5.c:850
 msgid "lpread: not initialised"
 msgstr "lpread : non initialis??"
 
-#: OOps/ugens5.c:854
+#: OOps/ugens5.c:855
 msgid "lpread timpnt < 0"
 msgstr "lpread : timpnt < 0"
 
-#: OOps/ugens5.c:860
+#: OOps/ugens5.c:861
 msgid "lpread ktimpnt truncated to last frame"
 msgstr "lpread : ktimpnt tronqu?? ?? la derni??re trame"
 
-#: OOps/ugens5.c:890 OOps/ugens5.c:1389
+#: OOps/ugens5.c:891 OOps/ugens5.c:1390
 msgid "Interpolation failed"
 msgstr "L'interpolation a ??chou??"
 
-#: OOps/ugens5.c:947
+#: OOps/ugens5.c:948
 msgid "this opcode only works with LPC pole analysis type (-a)\n"
 msgstr ""
 "cet opcode ne fonctionne qu'avec le type d'analyse de p??le par CPL (-a)\n"
 
-#: OOps/ugens5.c:1081
+#: OOps/ugens5.c:1082
 msgid "Pole file not supported for this opcode !"
 msgstr "Fichier de p??les non support?? par cet opcode !"
 
-#: OOps/ugens5.c:1107
+#: OOps/ugens5.c:1108
 #, c-format
 msgid "illegal frqratio, %5.2f"
 msgstr "frqratio ill??gal, %5.2f"
 
-#: OOps/ugens5.c:1317
+#: OOps/ugens5.c:1318
 msgid "lpslot number should be positive"
 msgstr "le num??ro de lpslot doit ??tre positif"
 
-#: OOps/ugens5.c:1337
+#: OOps/ugens5.c:1338
 msgid "LPC slot is not allocated"
 msgstr "le slot LPC n'est pas allou??"
 
-#: OOps/ugens5.c:1345
+#: OOps/ugens5.c:1346
 msgid "lpinterpol works only with poles files.."
 msgstr "lpinterpol ne travaille qu'avec des fichiers de p??les.."
 
-#: OOps/ugens5.c:1349
+#: OOps/ugens5.c:1350
 msgid "The poles files have different pole count"
 msgstr "Les fichiers de p??les ont un nombre de p??les diff??rent"
 
-#: OOps/ugens5.c:1355
+#: OOps/ugens5.c:1356
 msgid "padding error"
 msgstr "erreur de padding"
 
-#: OOps/ugens5.c:1374
+#: OOps/ugens5.c:1375
 msgid "lpinterpol: not initialised"
 msgstr "lpinterpol : non initialis??"
 
@@ -5170,11 +5480,11 @@ msgstr "outz : index < 0. Pas de sortie."
 msgid "Illegal resonk iscl value, %f"
 msgstr "La valeur iscl de resonk est ill??gale, %f"
 
-#: OOps/ugtabs.c:36 OOps/ugtabs.c:69 OOps/ugtabs.c:146 OOps/ugtabs.c:255
-#: OOps/ugtabs.c:412 OOps/ugtabs.c:427 OOps/ugtabs.c:441 OOps/ugtabs.c:455
-#: OOps/ugtabs.c:469 OOps/ugtabs.c:482 OOps/ugtabs.c:500 OOps/ugtabs.c:585
-#: OOps/ugtabs.c:600 OOps/ugtabs.c:613 OOps/ugtabs.c:624 OOps/ugtabs.c:656
-#: OOps/ugtabs.c:662 OOps/ugtabs.c:668 OOps/ugtabs.c:751 OOps/ugtabs.c:793
+#: OOps/ugtabs.c:36 OOps/ugtabs.c:69 OOps/ugtabs.c:147 OOps/ugtabs.c:257
+#: OOps/ugtabs.c:415 OOps/ugtabs.c:430 OOps/ugtabs.c:444 OOps/ugtabs.c:458
+#: OOps/ugtabs.c:472 OOps/ugtabs.c:485 OOps/ugtabs.c:503 OOps/ugtabs.c:588
+#: OOps/ugtabs.c:603 OOps/ugtabs.c:616 OOps/ugtabs.c:627 OOps/ugtabs.c:659
+#: OOps/ugtabs.c:665 OOps/ugtabs.c:671 OOps/ugtabs.c:754 OOps/ugtabs.c:796
 #, c-format
 msgid "table: could not find ftable %d"
 msgstr "table : ftable %d introuvable"
@@ -5183,16 +5493,16 @@ msgstr "table : ftable %d introuvable"
 msgid "table: index type inconsistent with output"
 msgstr "table : type de l'indice en contradiction avec la sortie"
 
-#: OOps/ugtabs.c:402
+#: OOps/ugtabs.c:405
 msgid "tablekt: index type inconsistent with output"
 msgstr "tablekt : type de l'indice en contradiction avec la sortie"
 
-#: OOps/ugtabs.c:636
+#: OOps/ugtabs.c:639
 #, c-format
 msgid "table: could not find ftables %d and/or %d"
 msgstr "table : ftables %d et/ou %d introuvables"
 
-#: OOps/ugtabs.c:757 OOps/ugtabs.c:799
+#: OOps/ugtabs.c:760 OOps/ugtabs.c:802
 #, c-format
 msgid "table: could not read negative pos %d"
 msgstr "table : impossible de lire ?? la position n??gative %d"
@@ -5646,42 +5956,16 @@ msgstr ""
 "wguide2 : les arguments xfreq1 et xfreq2 doivent ??tre tous les deux de taux-"
 "a ou de taux-k et i"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:195
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:152
 msgid "error allocating fluid engine\n"
 msgstr "erreur ?? l'allocation du moteur fluid\n"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:203
-#, c-format
-msgid ""
-"Created fluidEngine %d with sampling rate = %f, chorus %s, reverb %s, "
-"channels %d, polyphony %d.\n"
-msgstr ""
-"fluidEngine %d a ??t?? cr??e avec un taux d'??chantillonnage = %f, chorus "
-"%s, reverb %s, canaux %d, polyphonie %d.\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:230
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:392
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:563
-#, c-format
-msgid "Illegal Engine Number: %i.\n"
-msgstr "Num??ro de moteur ill??gal : %i.\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:238
-#, c-format
-msgid "Loading SoundFont : %s.\n"
-msgstr "Chargement de SoundFont : %s.\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:244
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:212
 #, c-format
 msgid "fluid: unable to load %s"
 msgstr "fluid : impossible d'ouvrir le fichier %s"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:262
-#, c-format
-msgid "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n"
-msgstr "SoundFont : %3d  Banque : %3d  Preset : %3d  %s\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:493
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:521
 #, c-format
 msgid ""
 "result: %d \n"
@@ -5690,41 +5974,7 @@ msgstr ""
 "r??sultat : %d \n"
 " Note off : c:%3d k:%3d\n"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:501
-#, c-format
-msgid ""
-"result: %d \n"
-"Note on: c:%3d k:%3d v:%3d\n"
-msgstr ""
-"r??sultat : %d \n"
-" Note on : c:%3d k:%3d v:%3d\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:506
-#, c-format
-msgid "Key pressure (not handled): c:%3d k:%3d v:%3d\n"
-msgstr "Pression de touche (non trait??e) : c:%3d k:%3d v:%3d\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:514
-#, c-format
-msgid "Result: %d Control change: c:%3d c:%3d v:%3d\n"
-msgstr "R??sultat : %d Changement de contr??le : c:%3d c:%3d v:%3d\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:521
-#, c-format
-msgid "Result: %d Program change: c:%3d p:%3d\n"
-msgstr "R??sultat : %d Changement de programme : c:%3d p:%3d\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:534
-#, c-format
-msgid "Result: %d, Pitch bend:     c:%d b:%d\n"
-msgstr "R??sultat : %d, Pitch bend :     c:%d b:%d\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:540
-#, c-format
-msgid "System exclusive (not handled): c:%3d v1:%3d v2:%3d\n"
-msgstr "Syst??me exclusif (non trait??) : c:%3d v1:%3d v2:%3d\n"
-
-#: Opcodes/fluidOpcodes/fluidOpcodes.c:572
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:612
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr "M??thode d'interpolation ill??gale : doit valoir 0, 1, 4 ou 7.\n"
 
@@ -9995,28 +10245,28 @@ msgstr "Erreur de d??-initialisation du module '%s'"
 msgid "Error allocating opcode list"
 msgstr "Erreur lors de l'allocation de la liste d'opcodes"
 
-#: Top/csound.c:1477 Top/csound.c:1508 Top/csound.c:1538 Top/csound.c:1566
-#: Top/csound.c:1603
+#: Top/csound.c:1486 Top/csound.c:1511 Top/csound.c:1541 Top/csound.c:1568
+#: Top/csound.c:1604
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:1484 Top/csound.c:1515 Top/csound.c:1545
-msgid "Early return from csoundPerformKsmps().\n"
-msgstr "Retour pr??matur?? de csoundPerformKsmps().\n"
-
-#: Top/csound.c:1491 Top/csound.c:1521
+#: Top/csound.c:1495 Top/csound.c:1524
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr "La partition est finie dans csoundPerformKsmps().\n"
 
-#: Top/csound.c:1574
+#: Top/csound.c:1518 Top/csound.c:1548 Top/csound.c:3789
+msgid "Early return from csoundPerformKsmps().\n"
+msgstr "Retour pr??matur?? de csoundPerformKsmps().\n"
+
+#: Top/csound.c:1575
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr "Retour pr??matur?? de csoundPerformBuffer().\n"
 
-#: Top/csound.c:1612
+#: Top/csound.c:1613
 msgid "Early return from csoundPerform().\n"
 msgstr "Retour pr??matur?? de csoundPerform().\n"
 
-#: Top/csound.c:1620
+#: Top/csound.c:1621
 msgid "Score finished in csoundPerform().\n"
 msgstr "La partition est finie dans csoundPerform().\n"
 
@@ -12514,6 +12764,44 @@ msgstr "traitement scot termin??\n"
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
 
+#~ msgid ""
+#~ "Created fluidEngine %d with sampling rate = %f, chorus %s, reverb %s, "
+#~ "channels %d, polyphony %d.\n"
+#~ msgstr ""
+#~ "fluidEngine %d a ??t?? cr??e avec un taux d'??chantillonnage = %f, chorus "
+#~ "%s, reverb %s, canaux %d, polyphonie %d.\n"
+
+#~ msgid "Illegal Engine Number: %i.\n"
+#~ msgstr "Num??ro de moteur ill??gal : %i.\n"
+
+#~ msgid "Loading SoundFont : %s.\n"
+#~ msgstr "Chargement de SoundFont : %s.\n"
+
+#~ msgid "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n"
+#~ msgstr "SoundFont : %3d  Banque : %3d  Preset : %3d  %s\n"
+
+#~ msgid ""
+#~ "result: %d \n"
+#~ "Note on: c:%3d k:%3d v:%3d\n"
+#~ msgstr ""
+#~ "r??sultat : %d \n"
+#~ " Note on : c:%3d k:%3d v:%3d\n"
+
+#~ msgid "Key pressure (not handled): c:%3d k:%3d v:%3d\n"
+#~ msgstr "Pression de touche (non trait??e) : c:%3d k:%3d v:%3d\n"
+
+#~ msgid "Result: %d Control change: c:%3d c:%3d v:%3d\n"
+#~ msgstr "R??sultat : %d Changement de contr??le : c:%3d c:%3d v:%3d\n"
+
+#~ msgid "Result: %d Program change: c:%3d p:%3d\n"
+#~ msgstr "R??sultat : %d Changement de programme : c:%3d p:%3d\n"
+
+#~ msgid "Result: %d, Pitch bend:     c:%d b:%d\n"
+#~ msgstr "R??sultat : %d, Pitch bend :     c:%d b:%d\n"
+
+#~ msgid "System exclusive (not handled): c:%3d v1:%3d v2:%3d\n"
+#~ msgstr "Syst??me exclusif (non trait??) : c:%3d v1:%3d v2:%3d\n"
+
 #~ msgid "table %d size not power of two"
 #~ msgstr "la taille de la table %d n'est pas une puissance de deux"
 
@@ -13158,239 +13446,6 @@ msgstr "scot : %d erreurs.\n"
 
 #~ msgid "rtaudio: AuHAL module enabled\n"
 #~ msgstr "rtaudio : module AuHAL activ??\n"
-
-#~ msgid ""
-#~ "Invalid snapshot. Perhaps you modified orchestra widget code after you "
-#~ "saved the snapshot bank."
-#~ msgstr ""
-#~ "Instantan?? non valide. Peut-??tre avez-vous modifi?? le code d'un widget "
-#~ "de l'orchestre apr??s avoir sauvegard?? la banque d'instantan??s."
-
-#~ msgid "No name for FLbutbank"
-#~ msgstr "Pas de nom pour FLbutbank"
-
-#~ msgid "FLsetsnap: invalid table"
-#~ msgstr "FLsetsnap : table non valide"
-
-#~ msgid ""
-#~ "Saving could overwrite the old file.\n"
-#~ "Are you sure to save ?"
-#~ msgstr ""
-#~ "La sauvegarde ??crasera l'ancien fichier.\n"
-#~ " Etes-vous s??r ?"
-
-#~ msgid ""
-#~ "Saving could overwrite the old file.\n"
-#~ "Are you sure you want to save ?"
-#~ msgstr ""
-#~ "La sauvegarde ??crasera l'ancien fichier\n"
-#~ "Etes-vous certain de vouloir sauvegarder ?"
-
-#~ msgid "No"
-#~ msgstr "Non"
-
-#~ msgid "Yes"
-#~ msgstr "Oui"
-
-#~ msgid "FLsavesnap: cannot open file"
-#~ msgstr "FLsavesnap : impossible d'ouvrir le fichier"
-
-#~ msgid "FLloadsnap: cannot open file"
-#~ msgstr "FLloadsnap : impossible d'ouvrir le fichier"
-
-#~ msgid ""
-#~ "unmatched widget, probably due to a modified orchestra. Modifying an "
-#~ "orchestra makes it incompatible with old snapshot files"
-#~ msgstr ""
-#~ "widget non appari??, probablement ?? cause d'une modification de "
-#~ "l'orchestre.La modification d'un orchestre le rend incompatible avec les "
-#~ "anciens fichiers d'instantan??s"
-
-#~ msgid "end of widget thread\n"
-#~ msgstr "fin du thread de widget\n"
-
-#~ msgid "FLrun was already called"
-#~ msgstr "FLrun a d??j?? ??t?? appel??"
-
-#~ msgid "FL_run: memory allocation failure"
-#~ msgstr "FL_run : ??chec de l'allocation m??moire"
-
-#~ msgid "Error: Unable to fork process\n"
-#~ msgstr "Erreur : Impossible de lancer le processus\n"
-
-#~ msgid "FLpanel_end: invalid stack pointer: verify its placement"
-#~ msgstr "FLpanel_end : pointeur de pile non valide : v??rifier sa position"
-
-#~ msgid ""
-#~ "FLpanel_end: invalid stack count: verify FLpanel/FLpanel_end count and "
-#~ "placement"
-#~ msgstr ""
-#~ "FLpanel_end : compte de la pile non valide : v??rifier le nombre de "
-#~ "FLpanel/FLpanel_end et leurs positions"
-
-#~ msgid "FLscroll_end: invalid stack pointer: verify its placement"
-#~ msgstr "FLscroll_end : pointeur de pile non valide : v??rifier sa position"
-
-#~ msgid ""
-#~ "FLscroll_end: invalid stack count: verify FLscroll/FLscroll_end count and "
-#~ "placement"
-#~ msgstr ""
-#~ "FLscroll_end : compte de la pile non valide : v??rifier le nombre de "
-#~ "FLscroll/FLscroll_end et leurs positions"
-
-#~ msgid ""
-#~ "FLtabs_end: invalid stack count: verify FLtabs/FLtabs_end count and "
-#~ "placement"
-#~ msgstr ""
-#~ "FLtabs_end : pointeur de pile non valide : v??rifier le nombre de FLtabs/"
-#~ "FLtabs_end et leurs positions"
-
-#~ msgid "FLgroup_end: invalid stack pointer: verify its placement"
-#~ msgstr "FLgroup_end : pointeur de pile non valide : v??rifier sa position"
-
-#~ msgid ""
-#~ "FLgroup_end: invalid stack count: verify FLgroup/FLgroup_end count and "
-#~ "placement"
-#~ msgstr ""
-#~ "FLgroup_end : compte de la pile non valide : verifier le nombre de "
-#~ "FLgroup/FLgroup_end et leurs positions"
-
-#~ msgid "FLpack_end: invalid stack pointer: verify its placement"
-#~ msgstr "FLpack_end : pointeur de pile non valide : v??rifier sa position"
-
-#~ msgid ""
-#~ "FLpack_end: invalid stack count: verify FLpack/FLpack_end count and "
-#~ "placement"
-#~ msgstr ""
-#~ "FLpack_end : compte de la pile non valide : v??rifier le nombre de FLpack/"
-#~ "FLpack_end et leurs positions"
-
-#~ msgid "FLvalue cannot be set by FLsetVal.\n"
-#~ msgstr "FLvalue ne peut pas ??tre rempli par FLsetVal.\n"
-
-#~ msgid "(fl_setWidgetValuei): not fully implemented yet; exp=%d"
-#~ msgstr "(fl_setWidgetValuei) : pas encore totalement impl??ment?? ; exp=%d"
-
-#~ msgid "FLvalue cannot be set by FLsetVal\n"
-#~ msgstr "FLvalue ne peut pas ??tre rempli par FLsetVal\n"
-
-#~ msgid "(fl_setWidgetValue_set): not fully implemented yet; exp=%d"
-#~ msgstr ""
-#~ "(fl_setWidgetValue_set) : pas encore totalement impl??ment?? ; exp=%d"
-
-#~ msgid "FLslider exponential, using non-labeled slider"
-#~ msgstr "FLslider exponentiel, utilisation d'une r??glette sans ??tiquette"
-
-#~ msgid "FLslider: invalid slider type"
-#~ msgstr "FLslider : type de r??glette non valide"
-
-#~ msgid "FLslider: zero is illegal in exponential operations"
-#~ msgstr "FLslider : z??ro est interdit dans les op??rations exponentielles"
-
-#~ msgid "invalid ZAK space allocation"
-#~ msgstr "espace d'allocation ZAK non valide"
-
-#~ msgid "FLslidBnk: zero is illegal in exponential operations"
-#~ msgstr "FLslidBnk : z??ro est interdit dans les op??rations exponentielles"
-
-#~ msgid "FLjoy X axe: zero is illegal in exponential operations"
-#~ msgstr ""
-#~ "FLjoy axe X : z??ro est interdit dans les op??rations exponentielles"
-
-#~ msgid "FLknob: invalid knob type"
-#~ msgstr "FLknob : type de bouton rotatif non valide"
-
-#~ msgid "FLknob: zero is illegal in exponential operations"
-#~ msgstr "FLknob : z??ro est interdit dans les op??rations exponentielles"
-
-#~ msgid "FLbutton \"%s\" ignoring snapshot capture retrieve"
-#~ msgstr ""
-#~ "FLbutton \"%s\" ignore les instantan??s de capture et de restitution"
-
-#~ msgid "FLbutton: invalid button type"
-#~ msgstr "FLbutton : type de bouton non valide"
-
-#~ msgid "FLcloseButton: invalid stack pointer: verify its placement"
-#~ msgstr "FLcloseButton : pointeur de pile non valide : v??rifier sa position"
-
-#~ msgid "Command Found: %s\n"
-#~ msgstr "Commande trouv??e : %s\n"
-
-#~ msgid "FLbuttonBank: invalid button type"
-#~ msgstr "FLbuttonBank : type de bouton non valide"
-
-#~ msgid "FLcount \"%s\" ignoring snapshot capture retrieve"
-#~ msgstr "FLcount \"%s\" ignore les instantan??s de capture et de restitution"
-
-#~ msgid "FLroller: invalid roller type"
-#~ msgstr "FLroller : type de molette non valide"
-
-#~ msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
-#~ msgstr ""
-#~ "FLhvsBox : une surface carr??e doit ??tre d??limit??e par au moins 2 "
-#~ "lignes"
-
-#~ msgid "FLkeyIn: invalid table number"
-#~ msgstr "FLkeyIn : num??ro de table non valide"
-
-#~ msgid "FLkeyIn: table too short!"
-#~ msgstr "FLkeyIn : table trop courte !"
-
-#~ msgid "FLvslidBnk: zero is illegal in exponential operations"
-#~ msgstr "FLvslidBnk : z??ro est ill??gal dans les op??rations exponentielles"
-
-#~ msgid "FLsliderBank: zero is illegal in exponential operations"
-#~ msgstr ""
-#~ "FLsliderBank : z??ro est ill??gal dans les op??rations exponentielles"
-
-#~ msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
-#~ msgstr ""
-#~ "FLslidBnk2 : FLslider exponentiel, utilisant une r??glette sans ??tiquette"
-
-#~ msgid "FLsldBnkSet: invalid table number"
-#~ msgstr "FLsldBnkSet : num??ro de table non valide"
-
-#~ msgid "FLsldBnkSet: invalid outable number"
-#~ msgstr "FLsldBnkSet : num??ro de outable non valide"
-
-#~ msgid "FLslidBnkSet: too many sliders to reset!"
-#~ msgstr "FLslidBnkSet : trop de r??glettes ?? r??initialiser !"
-
-#~ msgid "FLslidBnkSet: function mapping not available"
-#~ msgstr "FLslidBnkSet : type de fonction (lin. ou exp.) non disponible"
-
-#~ msgid ""
-#~ "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 "
-#~ "range for input"
-#~ msgstr ""
-#~ "FLslidBnk2Setk : valeur hors limites : le mappage de fonction n??cessite "
-#~ "en entr??e l'intervalle de 0 ?? 1"
-
-#~ msgid "FLsldBnkSetk: invalid table number"
-#~ msgstr "FLslidBnkSetk : num??ro de table non valide"
-
-#~ msgid "FLslidBnkSetk: table too short!"
-#~ msgstr "FLslidBnkSetk : table trop courte !"
-
-#~ msgid "FLsldBnkSetk: invalid outable number"
-#~ msgstr "FLslidBnkSetk : num??ro de outable non valide"
-
-#~ msgid "FLslidBnkSetk: too many sliders to reset!"
-#~ msgstr "FLslidBnkSetk : trop de r??glettes ?? r??initialiser !"
-
-#~ msgid "FLslidBnkSetk: invalid table number"
-#~ msgstr "FLslidBnkSetk : num??ro de table non valide"
-
-#~ msgid "FLslidBnkSetk: invalid outable number"
-#~ msgstr "FLslidBnkSetk : num??ro de outable non valide"
-
-#~ msgid "FLxyin: none of X limits can be zero in exponential mode!"
-#~ msgstr ""
-#~ "FLxyin : aucune des limites de X ne peut ??tre z??ro en mode exponentiel !"
-
-#~ msgid "FLxyin: none of Y limits can be zero in exponential mode!"
-#~ msgstr ""
-#~ "FLxyin : aucune des limites de Y ne peut ??tre z??ro en mode exponentiel !"
 
 #~ msgid ""
 #~ "\n"
