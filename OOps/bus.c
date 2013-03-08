@@ -1338,12 +1338,12 @@ int chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
     return OK;
 }
 
-static int dummy_opcode_stub(CSOUND *csound, void *p)
-{
-    (void) csound;
-    (void) p;
-    return OK;
-}
+/* static int dummy_opcode_stub(CSOUND *csound, void *p) */
+/* { */
+/*     (void) csound; */
+/*     (void) p; */
+/*     return OK; */
+/* } */
 
 /*  these opcodes have been removed as they were never used or
     implemented properly

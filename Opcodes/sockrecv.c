@@ -195,7 +195,6 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 static int init_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
-    int     bufnos;
 #ifdef WIN32
     WSADATA wsaData = {0};
     int err;

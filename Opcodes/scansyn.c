@@ -48,7 +48,7 @@ static int scsnu_initw(CSOUND *csound, PSCSNU *p)
       return csound->InitError(csound,
                                Str("scanu: Could not find ifnnit ftable"));
     }
-    if (UNLIKELY(fi->flen != p->len))
+    if (UNLIKELY((int)fi->flen != p->len))
       return csound->InitError(csound, Str("scanu: Init table has bad size"));
     memcpy(p->x0, fi->ftable, p->len*sizeof(MYFLT));
     memcpy(p->x1, fi->ftable, p->len*sizeof(MYFLT));
@@ -196,7 +196,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Get parameter table pointers and check lengths */
     SCANSYN_GLOBALS *pp;
     FUNC    *f;
-    int     len;
+    unsigned int     len;
 
     /* Mass */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_m)) == NULL)) {
@@ -211,7 +211,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
       return csound->InitError(csound,
                                Str("scanu: Could not find ifncentr table"));
     }
-    if (UNLIKELY(f->flen != len))
+    if (UNLIKELY((int)f->flen != len))
       return csound->InitError(csound, Str("scanu: Parameter tables should all "
                                            "have the same length"));
     p->c = f->ftable;

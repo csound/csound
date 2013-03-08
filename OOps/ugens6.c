@@ -48,7 +48,7 @@ int downsamp(CSOUND *csound, DOWNSAMP *p)
       asig = p->asig;
       sum = FL(0.0);
       len = p->len;
-      if (len>(int)CS_KSMPS-early) len = early;
+      if (len>(int)(CS_KSMPS-early)) len = early;
       for (n=offset; n<len; n++) {
         sum += asig[n];
       }

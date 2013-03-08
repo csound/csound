@@ -86,7 +86,7 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
         (float*) csound->Malloc(csound, data.nAnalysisBins * 2 * sizeof(float));
 
       for (i=1;;i++) {
-        int j;
+        unsigned int j;
         if (1!=csound->PVOC_GetFrames(csound, inf, frame, 1)) break;
         for (j=0; j<data.nAnalysisBins*2; j++)
           fprintf(outf, "%s%g", (j==0 ? "" : ","), frame[j]);

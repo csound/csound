@@ -1290,7 +1290,7 @@ inline static int nodePerf(CSOUND *csound, int index)
     OPDS  *opstart = NULL;
     int played_count = 0;
     int which_task;
-    INSDS **task_map = (INSDS*)csound->dag_task_map;
+    INSDS **task_map = (INSDS**)csound->dag_task_map;
     double time_end;
 #define INVALID (-1)
 #define WAIT    (-2)
@@ -1486,7 +1486,6 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
 PUBLIC int csoundPerformKsmps(CSOUND *csound)
 {
     int done;
-    int returnValue;
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
@@ -1528,7 +1527,7 @@ int csoundPerformKsmpsInternal(CSOUND *csound)
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
    do {
-      if (done = sensevents(csound)) {
+     if ((done = sensevents(csound))) {
         csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
         return done;
       }
@@ -1604,7 +1603,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
 PUBLIC int csoundPerform(CSOUND *csound)
 {
     int done;
-    int returnValue, res;
+    int returnValue;
 
    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
@@ -3611,7 +3610,7 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
 #ifdef MSVC
 const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
 #else
-const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
+const char */*PUBLIC*/ csoundGetFirstMessage(CSOUND *csound)
 #endif
 {
     csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;

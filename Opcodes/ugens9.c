@@ -167,7 +167,7 @@ static void writeFromCircBuf(
 
 static int convolve(CSOUND *csound, CONVOLVE *p)
 {
-    int    nsmpso=CS_KSMPS,nsmpsi=CS_KSMPS,nsmpso_sav,outcnt_sav;
+    int    nsmpso=CS_KSMPS,nsmpsi=CS_KSMPS,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
     int32  i,j;
     MYFLT  *ar[4];
@@ -186,7 +186,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     MYFLT  scaleFac;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nn;
+    uint32_t nn,nsmpso_sav;
 
     scaleFac = csound->GetInverseRealFFTScale(csound, (int) Hlenpadded);
     ar[0] = p->ar1;
@@ -221,7 +221,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
       incount += i;
       nsmpso_sav = CS_KSMPS-early;
       for (nn=0; i>0; nn++, i--) {
-        if (nn<offset|| nn>nsmpso_sav)
+        if (nn<offset|| nn>(uint32_t)nsmpso_sav)
           *fftbufind++ = FL(0.0);
         else
           *fftbufind++ = scaleFac * ai[nn];

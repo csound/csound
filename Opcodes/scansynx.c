@@ -349,8 +349,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
             p->f[wd] |= (1<<bt);
           }
           else {
-            csound->Message(csound, Str("(%d,%d) is out of range\n"), i, j);
-          }
+            csound->Message(csound, Str("(%d,%d) is out of range\n"), i, j);          }
 #endif
           while (*pp++ != '\n') ;
         }
