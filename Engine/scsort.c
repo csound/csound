@@ -24,35 +24,44 @@
 #include "csoundCore.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
 
-extern void sort(CSOUND*), twarp(CSOUND*), swritestr(CSOUND*);
+extern void sort(CSOUND*), twarp(CSOUND*), swritestr(CSOUND*, CORFIL *sco, int first);
 extern void sfree(CSOUND *csound);
-extern void sread_init(CSOUND *csound);
+//extern void sread_init(CSOUND *csound);
 extern int  sread(CSOUND *csound);
 
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */
 
-extern void sread_initstr(CSOUND *);
-void scsortstr(CSOUND *csound, CORFIL *scin)
+extern void sread_initstr(CSOUND *, CORFIL *sco);
+char *scsortstr(CSOUND *csound, CORFIL *scin)
 {
     int     n;
-    int     m = 0;
+    int     m = 0, first = 0;
+    CORFIL *sco;
 
     csound->scoreout = NULL;
-    csound->scstr = corfile_create_w();
+    if(csound->scstr == NULL) {
+       first = 1;
+       sco = csound->scstr = corfile_create_w();
+    }
+    else sco = corfile_create_w();
     csound->sectcnt = 0;
-    sread_initstr(csound);
+    sread_initstr(csound, scin);
 
     while ((n = sread(csound)) > 0) {
       sort(csound);
       twarp(csound);
-      swritestr(csound);
+      swritestr(csound, sco, first);
       m++;
     }
+    if(first){
     if (m==0)
-      corfile_puts("f0 800000000000.0\ne\n", csound->scstr); /* ~25367 years */
-    else corfile_puts("e\n", csound->scstr);
-    corfile_flush(csound->scstr);
+      corfile_puts("f0 800000000000.0\ne\n", sco); /* ~25367 years */
+    else corfile_puts("e\n", sco);
+    }
+    corfile_flush(sco);
     sfree(csound);              /* return all memory used */
+    //printf("score: \n %s \n", sco->body);
+    return sco->body;
 }
 

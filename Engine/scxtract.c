@@ -27,14 +27,14 @@
 extern void readxfil(CSOUND *, FILE *), extract(CSOUND *);
 extern void sfree(CSOUND *csound);
 extern int  sread(CSOUND *csound);
-extern void sread_init(CSOUND *csound);
-extern void swritestr(CSOUND *csound);
+//extern void sread_init(CSOUND *csound);
+extern void swritestr(CSOUND *csound, CORFIL *sco, int first);
 
 /* called from xmain.c or some other main */
 /*   extracts events from each score sect */
 /*   according to the controlling xfile   */
 
-extern void sread_initstr(CSOUND *);
+extern void sread_initstr(CSOUND *, CORFIL *sco);
 int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
 {
     int     n;
@@ -44,13 +44,13 @@ int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
     csound->scstr = corfile_create_w();
     csound->sectcnt = 0;
     readxfil(csound, xfile);
-    sread_initstr(csound);
+    sread_initstr(csound, scin);
 
     while ((n = sread(csound)) > 0) {
       /*  allout();   */
       /*  textout();  */
       extract(csound);
-      swritestr(csound);
+      swritestr(csound, csound->scstr, 1);
     }
     corfile_flush(csound->scstr);
     sfree(csound);              /* return all memory used */
