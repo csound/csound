@@ -759,6 +759,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
     STA(macros) = mm;
 }
 
+#if never
 void sread_init(CSOUND *csound)
 {
     /* sread_alloc_globals(csound); */
@@ -772,8 +773,9 @@ void sread_init(CSOUND *csound)
     STA(str)->line = 1; STA(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
 }
+#endif
 
-void sread_initstr(CSOUND *csound)
+void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
     STA(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
@@ -781,7 +783,7 @@ void sread_initstr(CSOUND *csound)
     STA(input_cnt) = 0;
     STA(str) = STA(inputs);
     STA(str)->fd = NULL;
-    STA(str)->fd =  STA(str)->cf = csound->scorestr;
+    STA(str)->fd =  STA(str)->cf = sco;
     STA(str)->is_marked_repeat = 0;
     STA(str)->line = 1; STA(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
