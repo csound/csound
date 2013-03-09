@@ -60,8 +60,12 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     else corfile_puts("e\n", sco);
     }
     corfile_flush(sco);
-    sfree(csound);              /* return all memory used */
-    //printf("score: \n %s \n", sco->body);
-    return sco->body;
+    sfree(csound);
+    if(first) return sco->body;
+    else {
+      char *str = strdup(sco->body);
+      corfile_rm(&(sco));
+      return str;
+    }
 }
 
