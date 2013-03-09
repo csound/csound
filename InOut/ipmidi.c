@@ -25,6 +25,7 @@
 
 #include <sys/types.h>
 #ifdef WIN32
+/* This is the wrong library */
 #include <ws2tcpip.h>
 #else
 #include <sys/socket.h>

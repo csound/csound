@@ -544,7 +544,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
     memset(pp, 0, (size_t) nbytes);
 #ifndef MACOSX
 #if defined(HAVE_PTHREAD_SPIN_LOCK) 
-    pthread_spin_init((int*)((char*) pp + (int)lockOffs),
+    pthread_spin_init((pthread_spinlock_t*)((char*) pp + (int)lockOffs),
                       PTHREAD_PROCESS_PRIVATE);
 #endif
 #endif
@@ -1051,7 +1051,6 @@ static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
 {
     int   err;
-    /* int *lock;   */     /* Need lock for the channel */
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
@@ -1065,11 +1064,15 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
     x.d = *(p->arg);
     __sync_or_and_fetch((int64_t *)p->fp, x.i);
 #else
-    p->lock = lock = csoundGetChannelLock(csound, (char*) p->iname,
-                                CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    csoundSpinLock(lock);
-    *(p->fp) = *(p->arg);
-    csoundSpinUnLock(lock);
+    {
+      int *lock;       /* Need lock for the channel */
+      p->lock = lock = 
+        csoundGetChannelLock(csound, (char*) p->iname,
+                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+      csoundSpinLock(lock);
+      *(p->fp) = *(p->arg);
+      csoundSpinUnLock(lock);
+    }
 #endif    
     return OK;
 }
