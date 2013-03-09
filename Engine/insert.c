@@ -266,12 +266,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
      /* new code for sample-accurate timing, not for tied notes */
     if (O->sampleAccurate & !tie) {
-      int64_t start_time_samps, start_time_kcycles, duration_kcycles;
+      int64_t start_time_samps, start_time_kcycles;
       double duration_samps;
       start_time_samps = (int64_t) (ip->p2 * csound->esr);
       duration_samps =  ip->p3 * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
-      duration_kcycles = CEIL(duration_samps/csound->ksmps);
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
       ip->no_end = csound->ksmps - 
         ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;

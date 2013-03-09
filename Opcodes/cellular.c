@@ -45,13 +45,13 @@ static int cell_set(CSOUND *csound,CELL *p)
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-      if (UNLIKELY( elements > ftp->flen ))
+      if (UNLIKELY( elements > (int)ftp->flen ))
         return csound->InitError(csound, Str("cell: invalid num of elements"));
     }
     else return csound->InitError(csound, Str("cell: invalid output table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
-      if (UNLIKELY(elements > ftp->flen ))
+      if (UNLIKELY(elements > (int)ftp->flen ))
         return csound->InitError(csound, Str("cell: invalid num of elements"));
     }
     else

@@ -38,7 +38,7 @@ typedef struct {
     MYFLT       *ain[40];
  // Internals
     double       s00, s10, s01, s11, s20, s02, t00, t01, t10;
-    int          nin, nout, Nx, Ny;
+    uint32_t     nin, nout, Nx, Ny;
     double       *u, *u1, *u2;
     AUXCH        auxch;
     double       L, dy, dt;
@@ -56,17 +56,17 @@ static int platerev_init(CSOUND *csound, PLATE *p)
                  (POWER(10.0, FL(3.0)*dt/(*p->decay))-FL(1.0)); /* loss constant */
     double b2 = *p->loss;
     double dxmin = 2.0*sqrt(dt*(b2+hypot(*p->loss, *p->stiff)));
-    int Nx = (p->Nx = floor(1.0/dxmin));
-    int Nx5 = Nx+5;
+    uint32_t Nx = (p->Nx = (uint32_t)floor(1.0/dxmin));
+    uint32_t Nx5 = Nx+5;
     double dx = 1.0/(double)Nx;
-    int Ny = (p->Ny = floor(a*Nx));
+    uint32_t Ny = (p->Ny = (uint32_t)floor(a*Nx));
     double dy = (p->dy = *p->asp/Ny);
     double alf = dx/dy;
     double mu = dt*(*p->stiff)*Nx*Nx;
     double mu2 = mu*mu;
     double eta = 1.0/(1.0+sig*dt);
     double V = 2.0*b2*dt*Nx*Nx;
-    int qq;
+    uint32_t qq;
 
     p->nin = (int) (p->INOCOUNT) - 7; p->nout = (int) (p->OUTOCOUNT);
     if (UNLIKELY((inp = csound->FTnp2Find(csound,p->tabins)) == NULL ||
@@ -111,8 +111,8 @@ static int platerev(CSOUND *csound, PLATE *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, j, nsmps = CS_KSMPS;
-    int Ny = p->Ny, Nx = p->Nx;
-    int Nx5 = Nx+5;
+    uint32_t Ny = p->Ny, Nx = p->Nx;
+    uint32_t Nx5 = Nx+5;
     int bc =  (int) MYFLT2LONG(*p->bndry);
     double *u = p->u, *u1 = p->u1, *u2 = p->u2;
     double s00 = p->s00, s10 = p->s10, s01 = p->s01,
@@ -124,7 +124,7 @@ static int platerev(CSOUND *csound, PLATE *p)
     double wi[40], wo[40], sdi[40], cdi[40], sdo[40], cdo[40];
 
     if (UNLIKELY(early)) nsmps -= early;
-    for (qq=0; qq<(int32_t)p->nin; qq++) {
+    for (qq=0; qq<(uint32_t)p->nin; qq++) {
       double delta = TWOPI*(double)p->in_param[3*qq]*dt;
       cdi[qq] = cos(delta);
       sdi[qq] = sin(delta);

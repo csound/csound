@@ -136,7 +136,7 @@ typedef struct _cent {
   OPDS    h;
   MYFLT   *ans;
   MYFLT  *asig, *ktrig, *ifftsize;
-  int fsize, count;
+  uint32_t fsize, count;
   MYFLT old;
   AUXCH frame, windowed, win;
 } CENT;
@@ -179,9 +179,9 @@ static int cent_k(CSOUND *csound, CENT *p)
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT *frame = (MYFLT *) p->frame.auxp, *asig = p->asig;
 
-    int fsize = p->fsize;
+    uint32_t fsize = (uint32_t)p->fsize;
     if (UNLIKELY(early)) nsmps -= early;
-    for (i=0; i < nsmps; i++){
+    for (i=offset; i < nsmps; i++){
       frame[n] = asig[i];
       if (n == fsize-1) n=0;
       else n++;

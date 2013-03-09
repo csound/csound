@@ -163,6 +163,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "endif"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ENDIF_TOKEN;
                   return ENDIF_TOKEN; }
+"fi"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ENDIF_TOKEN;
+                  return ENDIF_TOKEN; }
 "until"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
@@ -170,6 +173,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   (*lvalp)->type = DO_TOKEN;
                   return DO_TOKEN; }
 "od"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = OD_TOKEN;
+                  return OD_TOKEN; }
+"enduntil"      { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = OD_TOKEN;
                   return OD_TOKEN; }
 

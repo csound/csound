@@ -42,8 +42,8 @@ typedef struct dats{
 static int sinit(CSOUND *csound, DATASPACE *p)
 {
 
-    int N =  *p->iN;
-    unsigned int nchans, i;;
+    int N =  *p->iN, ui;
+    unsigned int nchans, i;
     unsigned int size;
     int decim = *p->idecim;
 
@@ -86,10 +86,11 @@ static int sinit(CSOUND *csound, DATASPACE *p)
     size = N*sizeof(MYFLT);
     if (p->win.auxp == NULL || p->win.size < size)
       csound->AuxAlloc(csound, size, &p->win);
-
-    for (i=0; i < N; i++)
-      ((MYFLT *)p->win.auxp)[i] = 0.5 - 0.5*cos(i*2*PI/N);
-
+    {
+      MYFLT x = FL(2.0)*PI_F/N;
+      for (ui=0; ui < N; i++)
+        ((MYFLT *)p->win.auxp)[ui] = FL(0.5) - FL(0.5)*COS((MYFLT)ui*x);
+    }
     p->N = N;
     p->decim = decim;
     return OK;
