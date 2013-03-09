@@ -1648,7 +1648,7 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
 static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
 {
     CS_TYPE* type;
-    char* argLetter;
+    char argLetter[2];
     CS_VARIABLE* var;
     char* t = s;
     ARRAY_VAR_INIT varInit;
@@ -1659,7 +1659,6 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
       return;
     }
 
-    argLetter = csound->Malloc(csound, 2 * sizeof(char));
     argLetter[1] = 0;
 
     if (*t == '#')  t++;
