@@ -255,6 +255,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
         p->tmpBuf[n] = (MYFLT) x;
       }
     }
+    nsmps = csound->GetKsmps(csound);
     /* write right channel output */
     if (UNLIKELY(offset)) memset(p->aOutR, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
