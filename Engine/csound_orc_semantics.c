@@ -681,7 +681,7 @@ PUBLIC OENTRY* find_opcode_new(CSOUND* csound, char* opname, char* outArgsFound,
 
 PUBLIC int find_opcode_num(CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound) {
     
-    csound->Message(csound, "Searching for opcode: %s | %s | %s\n", outArgsFound, opname, inArgsFound);
+//    csound->Message(csound, "Searching for opcode: %s | %s | %s\n", outArgsFound, opname, inArgsFound);
     
     OENTRIES* opcodes = find_opcode2(csound, opname);
     
@@ -769,6 +769,16 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                         return 0;
                     }
                     break;
+                case T_ARRAY:
+                    varName = current->left->value->lexeme;
+
+                    pool = (*varName == 'g') ? typeTable->globalPool : typeTable->localPool;
+                    
+                    if (csoundFindVariableWithName(pool, varName) == NULL) {
+                        synterr(csound, "Variable '%s' used before defined\n", varName);
+                        return 0;
+                    }
+                    break;
                 default:
                     //synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
 //                    printf("\t->FOUND OTHER: %s %d\n", current->value->lexeme, current->type);
@@ -783,17 +793,60 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
     return 1;
 }
 
-/* return 1 on succcess, 0 on failure */
-int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
-    TREE* current;
+void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
+    
     CS_TYPE* type;
     CS_VARIABLE* var;
-    char* varName, *t;
+    char *t;
     CS_VAR_POOL* pool;
     char argLetter[2];
     ARRAY_VAR_INIT varInit;
     void* typeArg = NULL;
 
+    pool = (*varName == 'g') ? typeTable->globalPool : typeTable->localPool;
+    
+    var = csoundFindVariableWithName(pool, varName);
+    if (var == NULL) {
+        t = varName;
+        argLetter[1] = 0;
+        
+        if (*t == '#') t++;
+        if (*t == 'g') t++;
+        
+        if(*t == '[') {
+            int dimensions = 1;
+            CS_TYPE* varType;
+            char* b = t + 1;
+            
+            while(*b == '[') {
+                b++;
+                dimensions++;
+            }
+            argLetter[0] = *b;
+            
+            varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+            
+            varInit.dimensions = dimensions;
+            varInit.type = varType;
+            typeArg = &varInit;
+        }
+        
+        argLetter[0] = *t;
+        
+        type = csoundGetTypeForVarName(csound->typePool, argLetter);
+        
+        var = csoundCreateVariable(csound, csound->typePool, type, varName, typeArg);
+        csoundAddVariable(pool, var);
+    } else {
+        //TODO - implement reference count increment
+    }
+
+}
+
+/* return 1 on succcess, 0 on failure */
+int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
+    TREE* current;
+    char* varName;
     
     if (tree == NULL) {
         return 1;
@@ -804,48 +857,17 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
     while (current != NULL) {
         
         switch (current->type) {
+            case T_ARRAY_IDENT:
             case LABEL_TOKEN:
             case T_IDENT:
                 varName = current->value->lexeme;
+                add_arg(csound, varName, typeTable);
                 
-                pool = (*varName == 'g') ? typeTable->globalPool : typeTable->localPool;
+                break;
+            case T_ARRAY:
+                varName = current->left->value->lexeme;
+                add_arg(csound, varName, typeTable);
                 
-                var = csoundFindVariableWithName(pool, varName);
-                if (var == NULL) {
-                    t = varName;
-                    argLetter[1] = 0;
-                    
-                    if (*t == '#') t++;
-                    if (*t == 'g') t++;
-                    
-                    if(*t == '[') {
-                        int dimensions = 1;
-                        CS_TYPE* varType;
-                        char* b = t + 1;
-                        
-                        while(*b == '[') {
-                            b++;
-                            dimensions++;
-                        }
-                        argLetter[0] = *b;
-                        
-                        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-                        
-                        varInit.dimensions = dimensions;
-                        varInit.type = varType;
-                        typeArg = &varInit;
-                    }
-                    
-                    argLetter[0] = *t;
-                    
-                    type = csoundGetTypeForVarName(csound->typePool, argLetter);
-            
-                    var = csoundCreateVariable(csound, csound->typePool, type, varName, typeArg);
-                    csoundAddVariable(pool, var);
-                } else {
-                    //TODO - implement reference count increment
-                }
-
                 break;
             default:
                 //synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
