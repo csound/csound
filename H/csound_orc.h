@@ -15,11 +15,10 @@ enum {
 };
 
 typedef struct type_table {
-    OENTRY* globalOpcodes;
-    OENTRY* globalOpcodesEnd;
     OENTRY* udos;
     CS_VAR_POOL* globalPool;
     CS_VAR_POOL* localPool;
+    char** labelList;
 } TYPE_TABLE;
 
 
