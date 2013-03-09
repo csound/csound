@@ -1476,8 +1476,9 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
        O->playscore = csound->scstr;
     }
     else {
-      const char *sc = scsortstr(csound, csound->scorestr);
-      csoundInputMessageInternal(csound, sc);
+      char *sc = scsortstr(csound, csound->scorestr);
+      csoundInputMessageInternal(csound, (const char *) sc);
+      free(sc);
       corfile_rm(&(csound->scorestr));
     } 
     csoundUnlockMutex(csound->API_lock);
