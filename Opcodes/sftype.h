@@ -43,7 +43,7 @@
 #  undef WORDS_BIGENDIAN
 #endif
 
-#ifndef WIN32
+#ifndef MSVC
 typedef uint32_t    DWORD;
 #endif
 /*  typedef int     BOOL; */
