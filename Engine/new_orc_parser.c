@@ -173,19 +173,20 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       typeTable->localPool = NULL;
       typeTable->labelList = NULL;
         
-      astTree = verify_tree(csound, astTree, typeTable);
+      err = verify_tree(csound, astTree, typeTable);
         
       mfree(csound, typeTable->globalPool);
       mfree(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
         
       //FIXME - synterrcnt should not be global
-      if (csound->synterrcnt){
+      if (!err || csound->synterrcnt){
           err = 3;
           csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
                           csound->synterrcnt, csound->synterrcnt==1?"":"s");
           goto ending;
       }
+      err = 0;
         
       //csp_orc_analyze_tree(csound, astTree);
         

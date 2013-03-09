@@ -118,9 +118,8 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
       if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
         CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
         var->varType = type;
-        var->varName = (char*)mcalloc(csound, strlen(name) + 1);
-        strcpy(var->varName, name);
-          
+        var->varName = cs_strdup(csound, name);
+  
         if(name[0] == '[') {
           var->varSimpleName = getVarSimpleName(csound, name);
         }
