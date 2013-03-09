@@ -1150,7 +1150,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       saved_curip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
     }
-
+    
     return OK;
 }
 
@@ -1158,8 +1158,14 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 int useropcd(CSOUND *csound, UOPCODE *p)
 {
-    return csoundPerfError(csound, Str("%s: not initialised"),
-                                   p->h.optext->t.opcod);
+  //if(p->h.nxtp) return csoundPerfError(csound, Str("%s: not initialised"),
+  //                  p->h.optext->t.opcod);
+  //else 
+  /* VL - not marking this as a perf error allows recursive UDOs to work 
+     This is a (harmless) hack, but it would be nice to know why there is
+     one extra call to a UDO which is not initialised in a recursive run
+   */
+   return OK;
 }
 
 /* IV - Sep 1 2002: new opcodes: xin, xout */
@@ -1608,8 +1614,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
 int useropcd2(CSOUND *csound, UOPCODE *p)
 {
-    OPDS    *saved_pds = CS_PDS;
-    int     n;
+   int     n; 
+   OPDS    *saved_pds = CS_PDS; 
     MYFLT   **tmp, *ptr1, *ptr2;
 
      if (!(CS_PDS = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
@@ -1649,7 +1655,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
       /*  run each opcode  */
       do {
-        (*CS_PDS->opadr)(csound, CS_PDS);
+        (CS_PDS->opadr)(csound, CS_PDS);
       } while ((CS_PDS = CS_PDS->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
