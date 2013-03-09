@@ -25,7 +25,7 @@
 
 #include <sys/types.h>
 #ifdef WIN32
-/* This is the wrong library */
+#include <winsock2.h>
 #include <ws2tcpip.h>
 #else
 #include <sys/socket.h>
@@ -125,15 +125,14 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     timeout.tv_usec = 0;
 
     rc = select(sock + 1, &rset, NULL, NULL, &timeout);
-    if (rc > 0)
-      {
+    if (rc > 0) {
 #ifdef WIN32
-        n = recv(sock, mbuf, nbytes, 0);
+      n = recv(sock, mbuf, nbytes, 0);
 #else
-        n = read(sock, mbuf, nbytes);
+      n = read(sock, mbuf, nbytes);
 #endif
-        printf("ReadMidiData__ n = %d\n", n);
-      }
+      printf("ReadMidiData__ n = %d\n", n);
+    }
 
     /* return the number of bytes read */
     return n;
@@ -145,7 +144,7 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
     printf("CloseMidiInDevice_\n");
     close(sock);
 #ifdef WIN32
-        WSACleanup();
+    WSACleanup();
 #endif
     return 0;
 }
