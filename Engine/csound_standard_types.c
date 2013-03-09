@@ -165,7 +165,8 @@ const char* POLY_IN_TYPES[] = {
     "T", "Sicp",
     "U", "Sikcpr",
     "i", "cpri",
-    "k", "cprki", NULL};
+    "k", "cprki",
+    "B", "Bb", NULL};
 const char* OPTIONAL_IN_TYPES[] = {
     "o", "icpr",
     "p", "icpr",
