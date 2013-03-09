@@ -1461,7 +1461,6 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
 {
     OPARMS  *O = csound->oparms;
      /* protect resource */
-    
     if(csound->scorestr != NULL &&
        csound->scorestr->body != NULL) 
          corfile_rewind(csound->scorestr);
