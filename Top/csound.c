@@ -609,11 +609,19 @@ static const CSOUND cenviron_ = {
     0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     0,              /*  strVpooarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
+#ifdef WIN32
+    (pthread_t){NULL, 0},   /* file_io_thread    */
+#else
     (pthread_t)0,   /* file_io_thread    */
+#endif
     0,              /* file_io_start   */
     NULL,           /* file_io_threadlock */
     0,              /* realtime_audio_flag */
+#ifdef WIN32
+    (pthread_t){NULL, 0},   /* file_io_thread    */
+#else
     (pthread_t)0,   /* init pass thread */
+#endif
     0,              /* init pass loop  */
     NULL,           /* init pass threadlock */
     NULL,           /* API_lock */
