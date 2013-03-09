@@ -283,7 +283,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
                             /* ..so we won't run into buf2Size problems */
       goto err2;
     }
-    if (UNLIKELY(outlen<(int)2*CS_KSMPS)) {   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int)(2*CS_KSMPS))) {   /* minimum post-squeeze windowlength */
       goto err3;
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */

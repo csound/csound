@@ -53,14 +53,16 @@ typedef struct {
     MYFLT   *indexes[VARGMAX];
 } ARRAY_GET;
 
+#ifdef SOME_FINE_DAY
 static int array_del(CSOUND *csound, void *p)
 {
     ARRAYDAT *t = ((ARRAYDEL*)p)->arrayDat;
     t->arrayType = NULL; // types cleaned up later
     mfree(csound, t->data);
-    mfree(csound, p);
+    mfree(csound, p);           /* Unlikely to free the p */
     return OK;
 }
+#endif
 
 static int array_init(CSOUND *csound, ARRAYINIT *p)
 {

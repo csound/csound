@@ -148,6 +148,7 @@
 ./InOut/virtual_keyboard/SliderData.cpp
 ./InOut/virtual_keyboard/SliderData.hpp
 ./InOut/virtual_keyboard/virtual_keyboard.cpp
+./InOut/widgets.cpp
 ./InOut/widgets.h
 ./InOut/widglobals.h
 ./InOut/winEPS.c
@@ -229,6 +230,7 @@
 ./Opcodes/date.c
 ./Opcodes/dcblockr.c
 ./Opcodes/dcblockr.h
+./Opcodes/doppler.cpp
 ./Opcodes/dsputil.c
 ./Opcodes/dsputil.h
 ./Opcodes/dssi4cs/src/dssi.h
@@ -246,7 +248,7 @@
 ./Opcodes/filter.h
 ./Opcodes/flanger.c
 ./Opcodes/flanger.h
-./Opcodes/fluidOpcodes/fluidOpcodes.c
+./Opcodes/fluidOpcodes/fluidOpcodes.cpp
 ./Opcodes/fluidOpcodes/fluidOpcodes.h
 ./Opcodes/flute.h
 ./Opcodes/fm4op.c
@@ -463,6 +465,8 @@
 ./Top/utility.c
 ./frontends/CsoundAC/Cell.cpp
 ./frontends/CsoundAC/Cell.hpp
+./frontends/CsoundAC/ChordLindenmayer.cpp
+./frontends/CsoundAC/ChordLindenmayer.hpp
 ./frontends/CsoundAC/Composition.cpp
 ./frontends/CsoundAC/Composition.hpp
 ./frontends/CsoundAC/Conversions.cpp
@@ -497,6 +501,8 @@
 ./frontends/CsoundAC/Rescale.hpp
 ./frontends/CsoundAC/Score.cpp
 ./frontends/CsoundAC/Score.hpp
+./frontends/CsoundAC/ScoreModel.cpp
+./frontends/CsoundAC/ScoreModel.hpp
 ./frontends/CsoundAC/ScoreNode.cpp
 ./frontends/CsoundAC/ScoreNode.hpp
 ./frontends/CsoundAC/Sequence.cpp
@@ -514,6 +520,21 @@
 ./frontends/CsoundAC/Voicelead.hpp
 ./frontends/CsoundAC/VoiceleadingNode.cpp
 ./frontends/CsoundAC/VoiceleadingNode.hpp
+./frontends/CsoundAC/algrd_internal.h
+./frontends/CsoundAC/algsmfrd_internal.h
+./frontends/CsoundAC/allegro.cpp
+./frontends/CsoundAC/allegro.h
+./frontends/CsoundAC/allegrord.cpp
+./frontends/CsoundAC/allegroserial.cpp
+./frontends/CsoundAC/allegrosmfrd.cpp
+./frontends/CsoundAC/allegrosmfwr.cpp
+./frontends/CsoundAC/allegrowr.cpp
+./frontends/CsoundAC/mfmidi.cpp
+./frontends/CsoundAC/mfmidi.h
+./frontends/CsoundAC/strparse.cpp
+./frontends/CsoundAC/strparse.h
+./frontends/CsoundAC/trace.cpp
+./frontends/CsoundAC/trace.h
 ./frontends/CsoundVST/CsoundVST.cpp
 ./frontends/CsoundVST/CsoundVST.hpp
 ./frontends/CsoundVST/CsoundVSTMain.cpp
@@ -575,6 +596,7 @@
 ./interfaces/filebuilding.h
 ./interfaces/pyMsgCb.cpp
 ./interfaces/pyMsgCb_stub.cpp
+./pluginSDK/examplePlugin.c
 ./util/atsa.c
 ./util/atsa_main.c
 ./util/csanalyze.c

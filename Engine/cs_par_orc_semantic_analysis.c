@@ -366,7 +366,7 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root) {
     if (PARSER_DEBUG) csound->Message(csound, "Performing csp analysis\n");
     
     TREE *current = root;
-    TREE *left, *temp, *right;
+    TREE *temp;
     
     while(current != NULL) {
         switch(current->type) {

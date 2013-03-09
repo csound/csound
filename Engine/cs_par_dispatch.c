@@ -207,7 +207,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
                                            INTEGER_TOKEN, var0_tok);
 
             if (previous == NULL) {
-              TREE *old_current = lock_leaf;
+              //TREE *old_current = lock_leaf;
               lock_leaf->next = current;
               unlock_leaf->next = current->next;
               current->next = unlock_leaf;
