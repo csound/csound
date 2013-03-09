@@ -189,7 +189,7 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     MYFLT  freq = *p->freq;
     MYFLT  ris = *p->ris;
     MYFLT  dec = *p->dec;
-    double  *delay = p->delay,ang,fsc,rad1,rad2;
+    double  *delay = p->delay,ang,fsc,rrad1,rrad2;
     double  w1,y1,w2,y2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -197,8 +197,8 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
 
     ang = (double)csound->tpidsr*freq;         /* pole angle */
     fsc = sin(ang) - 3.0;                      /* freq scl   */
-    rad1 =  pow(10.0, fsc/(dec*csound->GetSr(csound)));  /* filter radii */
-    rad2 =  pow(10.0, fsc/(ris*csound->GetSr(csound)));
+    rrad1 =  pow(10.0, fsc/(dec*csound->GetSr(csound)));  /* filter radii */
+    rrad2 =  pow(10.0, fsc/(ris*csound->GetSr(csound)));
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -207,12 +207,12 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     }
     for (i=offset;i<nsmps;i++) {
 
-      w1  = in[i] + 2.0*rad1*cos(ang)*delay[0] - rad1*rad1*delay[1];
+      w1  = in[i] + 2.0*rrad1*cos(ang)*delay[0] - rrad1*rrad1*delay[1];
       y1 =  w1 - delay[1];
       delay[1] = delay[0];
       delay[0] = w1;
 
-      w2  = in[i] + 2.0*rad2*cos(ang)*delay[2] - rad2*rad2*delay[3];
+      w2  = in[i] + 2.0*rrad2*cos(ang)*delay[2] - rrad2*rrad2*delay[3];
       y2 =  w2 - delay[3];
       delay[3] = delay[2];
       delay[2] = w2;
