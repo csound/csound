@@ -836,7 +836,8 @@ static const CSOUND cenviron_ = {
     0,            /* pow2 table */
     0,            /* cps conv table */
     0,            /* output of preprocessor */
-    0             /* message buffer struct */
+    0,             /* message buffer struct */
+    0              /* jumpset */
 };
 
 /* from threads.c */
@@ -1290,7 +1291,7 @@ inline static int nodePerf(CSOUND *csound, int index)
     OPDS  *opstart = NULL;
     int played_count = 0;
     int which_task;
-    INSDS **task_map = (INSDS*)csound->dag_task_map;
+    INSDS **task_map = (INSDS**)csound->dag_task_map;
     double time_end;
 #define INVALID (-1)
 #define WAIT    (-2)
@@ -1460,25 +1461,33 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
 {
     OPARMS  *O = csound->oparms;
      /* protect resource */
-    csoundLockMutex(csound->API_lock);
+    
     if(csound->scorestr != NULL &&
-       csound->scorestr->body != NULL)
-      corfile_rewind(csound->scorestr);
-    else
-      csound->scorestr = corfile_create_w();
+       csound->scorestr->body != NULL) 
+         corfile_rewind(csound->scorestr);
+
+    csound->scorestr = corfile_create_w();
     corfile_puts(str, csound->scorestr);
     corfile_flush(csound->scorestr);
-    scsortstr(csound, csound->scorestr);
     /* copy sorted score name */
-    O->playscore = csound->scstr;
+    csoundLockMutex(csound->API_lock);
+    if(csound->scstr == NULL) {
+       scsortstr(csound, csound->scorestr);
+       O->playscore = csound->scstr;
+    }
+    else {
+      const char *sc = scsortstr(csound, csound->scorestr);
+      csoundInputMessageInternal(csound, sc);
+      corfile_rm(&(csound->scorestr));
+    } 
     csoundUnlockMutex(csound->API_lock);
-      return CSOUND_SUCCESS;
+     return CSOUND_SUCCESS;
 }
+
 
 PUBLIC int csoundPerformKsmps(CSOUND *csound)
 {
     int done;
-    int returnValue;
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
@@ -1486,6 +1495,13 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
                       Str("Csound not ready for performance: csoundStart() "
                           "has not been called \n"));
       return CSOUND_ERROR;
+    }
+    if (csound->jumpset == 0) {
+      int returnValue;
+      csound->jumpset = 1;
+      /* setup jmp for return after an exit() */
+      if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) 
+        return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     csoundLockMutex(csound->API_lock);
     do {
@@ -1520,7 +1536,7 @@ int csoundPerformKsmpsInternal(CSOUND *csound)
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
    do {
-      if (done = sensevents(csound)) {
+     if ((done = sensevents(csound))) {
         csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
         return done;
       }
@@ -1596,7 +1612,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
 PUBLIC int csoundPerform(CSOUND *csound)
 {
     int done;
-    int returnValue, res;
+    int returnValue;
 
    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
@@ -3603,7 +3619,7 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
 #ifdef MSVC
 const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
 #else
-const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
+const char */*PUBLIC*/ csoundGetFirstMessage(CSOUND *csound)
 #endif
 {
     csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;

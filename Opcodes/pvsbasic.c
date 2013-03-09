@@ -508,7 +508,7 @@ int pvstanal(CSOUND *csound, PVST *p)
     MYFLT time = *p->ktime;
     float tmp_real, tmp_im, powrat;
 
-    if (p->scnt >= hsize) {
+    if ((int)p->scnt >= hsize) {
 
       /* audio samples are stored in a function table */
       ft = csound->FTnp2Find(csound,p->knum);

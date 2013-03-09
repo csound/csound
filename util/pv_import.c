@@ -133,7 +133,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
         exit(1);
       }
       for (i=1;;i++) {
-        int j;
+        unsigned int j;
         for (j=0; j<data.nAnalysisBins*2; j++) {
           char term;
           frame[j] = getnum(inf, &term);

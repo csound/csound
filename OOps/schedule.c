@@ -31,22 +31,22 @@
 int eventOpcode(CSOUND *csound, LINEVENT *p);
 int eventOpcodeI(CSOUND *csound, LINEVENT *p);
 
-int schedule(CSOUND *csound, SCHED *p){
-  LINEVENT pp;
-  unsigned int i;
-  pp.h = p->h;
-  char c[2] = "i";
-  pp.args[0] = (MYFLT *) c;
-  pp.args[1] = p->which;
-  pp.args[2] = p->when;
-  pp.args[3] = p->dur;
-  pp.argno = p->INOCOUNT+1;
-  for(i=4; i < pp.argno ; i++) {
-    pp.args[i] = p->argums[i-4];
-  }
-  pp.flag = 1;
-  int res = eventOpcodeI(csound, &pp);
-  return res; 
+int schedule(CSOUND *csound, SCHED *p)
+{
+    LINEVENT pp;
+    int i;
+    pp.h = p->h;
+    char c[2] = "i";
+    pp.args[0] = (MYFLT *) c;
+    pp.args[1] = p->which;
+    pp.args[2] = p->when;
+    pp.args[3] = p->dur;
+    pp.argno = p->INOCOUNT+1;
+    for (i=4; i < pp.argno ; i++) {
+      pp.args[i] = p->argums[i-4];
+    }
+    pp.flag = 1;
+    return eventOpcodeI(csound, &pp);
 }
 
 int ifschedule(CSOUND *csound, WSCHED *p)
@@ -56,26 +56,25 @@ int ifschedule(CSOUND *csound, WSCHED *p)
     return OK;
 }
 
-int kschedule(CSOUND *csound, WSCHED *p) {
-
-  if (p->todo && *p->trigger != FL(0.0)) {
-  LINEVENT pp;
-  unsigned int i;
-  pp.h = p->h;
-  char c[2] = "i";
-  pp.args[0] = (MYFLT *) c;
-  pp.args[1] = p->which;
-  pp.args[2] = p->when;
-  pp.args[3] = p->dur;
-   pp.argno = p->INOCOUNT+1;
-  for(i=4; i < pp.argno ; i++) {
-    pp.args[i] = p->argums[i-4];
-  }
-  p->todo =0;
-  int res = eventOpcode(csound, &pp);
-  return res; 
-  }
-  else return OK;
+int kschedule(CSOUND *csound, WSCHED *p) 
+{
+    if (p->todo && *p->trigger != FL(0.0)) {
+      LINEVENT pp;
+      int i;
+      pp.h = p->h;
+      char c[2] = "i";
+      pp.args[0] = (MYFLT *) c;
+      pp.args[1] = p->which;
+      pp.args[2] = p->when;
+      pp.args[3] = p->dur;
+      pp.argno = p->INOCOUNT+1;
+      for(i=4; i < pp.argno ; i++) {
+        pp.args[i] = p->argums[i-4];
+      }
+      p->todo =0;
+      return eventOpcode(csound, &pp);
+    }
+    else return OK;
 }
 
 /* tables are 4096 entries always */
