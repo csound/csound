@@ -1086,7 +1086,7 @@ int sphstset(CSOUND *csound, SPECHIST *p)
     outp = (MYFLT *) p->wacout->auxch.auxp;
     if (UNLIKELY(lclp==NULL || outp==NULL)) { /* RWD fix */
       return csound->InitError(csound,
-                               Str("spechist: local buffers not intiialised"));
+                               Str("spechist: local buffers not initialised"));
     }
     memset(lclp,0,npts*sizeof(MYFLT));      /* clr local & out spec bufs */
     memset(outp,0,npts*sizeof(MYFLT));
