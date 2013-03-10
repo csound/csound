@@ -250,9 +250,9 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
 #define S(x)    sizeof(x)
 
 static OENTRY p5g_localops[] = {
-  {"p5gconnect", S(P5GLOVEINIT), 3, "", "",
+  {"p5gconnect", S(P5GLOVEINIT), 0, 3, "", "",
         (SUBR)p5glove_find, (SUBR)p5glove_poll, NULL, (SUBR)p5glove_closer },
-  {"p5gdata", S(P5GLOVE), 3, "k", "k", (SUBR)p5g_data_init, (SUBR)p5g_data }
+  {"p5gdata", S(P5GLOVE), 0, 3, "k", "k", (SUBR)p5g_data_init, (SUBR)p5g_data }
 };
 
 LINKAGE_BUILTIN(p5g_localops)
