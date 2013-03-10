@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2012-10-03 22:03+0100\n"
+"PO-Revision-Date: 2013-03-10 15:39+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (USA)\n"
 "Language: \n"
@@ -1745,9 +1745,9 @@ msgid "Failed to initialise real time audio input"
 msgstr "Failed to initialize real time audio input"
 
 #: InOut/libsnd.c:500 InOut/libsnd.c:519
-#, fuzzy, c-format
+#, c-format
 msgid "isfinit: cannot open %s -- %s"
-msgstr "isfinit: can't open %s"
+msgstr "isfinit: can't open %s -- %s"
 
 #: InOut/libsnd.c:506
 #, c-format
@@ -1784,7 +1784,7 @@ msgid "Failed to initialise real time audio output"
 msgstr "Failed to initialize real time audio output"
 
 #: InOut/libsnd.c:725 InOut/libsnd.c:732 InOut/libsnd.c:744
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "sfinit: cannot open fd %d\n"
 "%s"
@@ -2534,10 +2534,10 @@ msgstr ""
 #: InOut/rtalsa.c:1342 InOut/rtalsa.c:1434
 #, c-format
 msgid "ALSASEQ: cannot set client name '%s' (%s)"
-msgstr ""
+msgstr "ALSASEQ: can't set client name '%s' (%s)"
 
 #: InOut/rtalsa.c:1354
-#, fuzzy, c-format
+#, c-format
 msgid "ALSASEQ: cannot create input port (%s)"
 msgstr "ALSASEQ: can't create input port (%s)"
 
@@ -2549,7 +2549,7 @@ msgstr ""
 #: InOut/rtalsa.c:1366 InOut/rtalsa.c:1458
 #, c-format
 msgid "ALSASEQ: cannot create midi event (%s)"
-msgstr ""
+msgstr "ALSASEQ: can't create midi event (%s)"
 
 #: InOut/rtalsa.c:1417
 msgid "ALSASEQ output: memory allocation failure"
@@ -2641,12 +2641,12 @@ msgstr ""
 
 #: InOut/rtcoreaudio.c:307
 msgid " *** CoreAudio: open: could not set buffer size\n"
-msgstr ""
+msgstr " *** CoreAudio: open: couldn't set buffer size\n"
 
 #: InOut/rtcoreaudio.c:352
 #, c-format
 msgid " *** CoreAudio: open: could not set device parameter sr: %d \n"
-msgstr ""
+msgstr " *** CoreAudio: open: couldn't set device parameter sr: %d \n"
 
 #: InOut/rtcoreaudio.c:355
 #, c-format
@@ -2735,7 +2735,7 @@ msgstr ""
 #: InOut/rtjack.c:416
 #, c-format
 msgid "sample rate %d does not match JACK sample rate %d"
-msgstr ""
+msgstr "sample rate %d doesn't match JACK sample rate %d"
 
 #: InOut/rtjack.c:422
 msgid "invalid period size (-b)"
@@ -3085,9 +3085,8 @@ msgid "No name for FLbutbank"
 msgstr ""
 
 #: InOut/widgets.cpp:1526
-#, fuzzy
 msgid "FLsetsnap: invalid table"
-msgstr "vecdly: not initialized"
+msgstr "FLsetsnap: invalid table"
 
 #: InOut/widgets.cpp:1531
 msgid "setsnap saving\n"
@@ -3286,9 +3285,8 @@ msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
 msgstr ""
 
 #: InOut/widgets.cpp:4403
-#, fuzzy
 msgid "FLkeyIn: invalid table number"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: InOut/widgets.cpp:4407
 msgid "FLkeyIn: table too short!"
@@ -3307,18 +3305,16 @@ msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
 msgstr ""
 
 #: InOut/widgets.cpp:5065 InOut/widgets.cpp:5131
-#, fuzzy
 msgid "FLsldBnkSet: invalid table number"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: InOut/widgets.cpp:5070 InOut/widgets.cpp:5136
 msgid "FLslidBnkSet: table too short!"
 msgstr ""
 
 #: InOut/widgets.cpp:5078 InOut/widgets.cpp:5145
-#, fuzzy
 msgid "FLsldBnkSet: invalid outable number"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: InOut/widgets.cpp:5083 InOut/widgets.cpp:5151
 msgid "FLslidBnkSet: too many sliders to reset!"
@@ -3335,32 +3331,28 @@ msgid ""
 msgstr ""
 
 #: InOut/widgets.cpp:5209
-#, fuzzy
 msgid "FLsldBnkSetk: invalid table number"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: InOut/widgets.cpp:5214 InOut/widgets.cpp:5302
 msgid "FLslidBnkSetk: table too short!"
 msgstr ""
 
 #: InOut/widgets.cpp:5222
-#, fuzzy
 msgid "FLsldBnkSetk: invalid outable number"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: InOut/widgets.cpp:5228 InOut/widgets.cpp:5316
 msgid "FLslidBnkSetk: too many sliders to reset!"
 msgstr ""
 
 #: InOut/widgets.cpp:5297
-#, fuzzy
 msgid "FLslidBnkSetk: invalid table number"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: InOut/widgets.cpp:5310
-#, fuzzy
 msgid "FLslidBnkSetk: invalid outable number"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: InOut/widgets.cpp:5388
 msgid "FLxyin: none of X limits can be zero in exponential mode!"
@@ -3425,7 +3417,7 @@ msgstr ""
 #: OOps/aops.c:144 OOps/aops.c:170
 #, c-format
 msgid "Cannot be more In arguments than Out in init (%d,%d)"
-msgstr ""
+msgstr "Can't be more In arguments than Out in init (%d,%d)"
 
 #: OOps/aops.c:227 OOps/aops.c:246
 #, c-format
@@ -3542,14 +3534,14 @@ msgid "Seeding with %u\n"
 msgstr ""
 
 #: OOps/compile_ops.c:13
-#, fuzzy, c-format
+#, c-format
 msgid "compileorc: could not open %s\n"
-msgstr "pvsfwrite: couldn't open file %s\n"
+msgstr "compileorc: couldn't open %s\n"
 
 #: OOps/compile_ops.c:24
-#, fuzzy, c-format
+#, c-format
 msgid "compileorc: could not read %s\n"
-msgstr "diskgrain: couldn't read file \n"
+msgstr "compileorc: couldn't read %s\n"
 
 #: OOps/diskin.c:162
 msgid "diskin: invalid number of channels"
@@ -4495,7 +4487,7 @@ msgstr ""
 
 #: OOps/schedule.c:512 OOps/schedule.c:594
 msgid "schedule in MIDI mode is not implemented correctly, do not use it\n"
-msgstr ""
+msgstr "schedule in MIDI mode isn't implemented correctly, don't use it\n"
 
 #: OOps/sndinfUG.c:50 OOps/sndinfUG.c:209
 msgid "no infile specified in the commandline"
@@ -4717,34 +4709,28 @@ msgid "oscil3: not initialised"
 msgstr "oscil3: not initialized"
 
 #: OOps/ugens2a.c:41
-#, fuzzy
 msgid "table does not exist"
-msgstr "ftable doesn't exist"
+msgstr "table doesn't exist"
 
 #: OOps/ugens2a.c:184
-#, fuzzy
 msgid "ptable(krate): not initialised"
-msgstr "table(krate): not initialized"
+msgstr "ptable(krate): not initialized"
 
 #: OOps/ugens2a.c:288
-#, fuzzy
 msgid "ptablei(krate): not initialised"
-msgstr "tablei(krate): not initialized"
+msgstr "ptablei(krate): not initialized"
 
 #: OOps/ugens2a.c:347
-#, fuzzy
 msgid "ptable3(krate): not initialised"
-msgstr "table3(krate): not initialized"
+msgstr "ptable3(krate): not initialized"
 
 #: OOps/ugens2a.c:428
-#, fuzzy
 msgid "ptablei: not initialised"
-msgstr "tablei: not initialized"
+msgstr "ptablei: not initialized"
 
 #: OOps/ugens2a.c:502
-#, fuzzy
 msgid "ptable3: not initialised"
-msgstr "table3: not initialized"
+msgstr "ptable3: not initialized"
 
 #: OOps/ugens2a.c:538 OOps/ugrw1.c:922 OOps/ugrw1.c:1238
 #, c-format
@@ -4941,7 +4927,7 @@ msgstr ""
 
 #: OOps/ugens5.c:1338
 msgid "LPC slot is not allocated"
-msgstr ""
+msgstr "LPC slot isn't allocated"
 
 #: OOps/ugens5.c:1346
 msgid "lpinterpol works only with poles files.."
@@ -5110,7 +5096,7 @@ msgstr ""
 
 #: OOps/ugrw1.c:2193
 msgid "No zk space: zakinit has not been called yet."
-msgstr ""
+msgstr "No zk space: zakinit hasn't been called yet."
 
 #: OOps/ugrw1.c:2212
 msgid "zkr index > isizek. Returning 0."
@@ -5178,7 +5164,7 @@ msgstr ""
 
 #: OOps/ugrw1.c:2463
 msgid "No za space: zakinit has not been called yet."
-msgstr ""
+msgstr "No za space: zakinit hasn't been called yet."
 
 #: OOps/ugrw1.c:2491
 msgid "zar index > isizea. Returning 0."
@@ -5210,7 +5196,7 @@ msgstr ""
 
 #: OOps/ugrw1.c:2714
 msgid "zacl first or last > isizea. Not clearing."
-msgstr ""
+msgstr "zacl first or last > isizea. Not clearing."
 
 #: OOps/ugrw1.c:2718
 msgid "zacl first or last < 0. Not clearing."
@@ -5231,7 +5217,7 @@ msgstr ""
 
 #: OOps/ugrw1.c:2934
 msgid "printks param 1 was not a \"quoted string\""
-msgstr ""
+msgstr "printks param 1 wasn't a \"quoted string\""
 
 #: OOps/ugrw1.c:3152
 msgid "printks not initialised"
@@ -5263,9 +5249,9 @@ msgstr ""
 #: OOps/ugtabs.c:472 OOps/ugtabs.c:485 OOps/ugtabs.c:503 OOps/ugtabs.c:588
 #: OOps/ugtabs.c:603 OOps/ugtabs.c:616 OOps/ugtabs.c:627 OOps/ugtabs.c:659
 #: OOps/ugtabs.c:665 OOps/ugtabs.c:671 OOps/ugtabs.c:754 OOps/ugtabs.c:796
-#, fuzzy, c-format
+#, c-format
 msgid "table: could not find ftable %d"
-msgstr "couldn't find table number %d\n"
+msgstr "table: couldn't find ftable %d"
 
 #: OOps/ugtabs.c:65
 msgid "table: index type inconsistent with output"
@@ -5276,14 +5262,14 @@ msgid "tablekt: index type inconsistent with output"
 msgstr ""
 
 #: OOps/ugtabs.c:639
-#, fuzzy, c-format
+#, c-format
 msgid "table: could not find ftables %d and/or %d"
-msgstr "couldn't find table number %d\n"
+msgstr "table: couldn't find ftables %d and/or %d"
 
 #: OOps/ugtabs.c:760 OOps/ugtabs.c:802
-#, fuzzy, c-format
+#, c-format
 msgid "table: could not read negative pos %d"
-msgstr "diskgrain: couldn't read file \n"
+msgstr "table: couldn't read negative pos %d"
 
 #: OOps/vdelay.c:140 OOps/vdelay.c:400 OOps/vdelay.c:468 OOps/vdelay.c:545
 #: OOps/vdelay.c:621 OOps/vdelay.c:715 OOps/vdelay.c:809
@@ -5465,7 +5451,7 @@ msgstr ""
 
 #: Opcodes/ambicode1.c:172
 msgid "The number of input arguments is not valid."
-msgstr ""
+msgstr "The number of input arguments isn't valid."
 
 #: Opcodes/ambicode1.c:176
 msgid "The isetup value should be between 1 and 5."
@@ -5473,7 +5459,7 @@ msgstr ""
 
 #: Opcodes/ambicode1.c:202
 msgid "The output channel count does not match the isetup value."
-msgstr ""
+msgstr "The output channel count doesn't match the isetup value."
 
 #: Opcodes/babo.c:743
 #, c-format
@@ -5608,21 +5594,19 @@ msgstr ""
 
 #: Opcodes/date.c:90
 msgid "cannot determine current directory"
-msgstr ""
+msgstr "can't determine current directory"
 
 #: Opcodes/date.c:118
-#, fuzzy
 msgid "readf: failed to open file"
-msgstr "oggplay: couldn't open file"
+msgstr ""
 
 #: Opcodes/date.c:134
 msgid "readf: read failure"
 msgstr ""
 
 #: Opcodes/date.c:144
-#, fuzzy
 msgid "readi failed to initialise"
-msgstr "lpread: not initialized"
+msgstr "readi failed to initialize"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:594
 #, c-format
@@ -5639,9 +5623,9 @@ msgid "DSSI4CS: Not initialised or wrong argument types."
 msgstr "DSSI4CS: Not initialized or wrong argument types."
 
 #: Opcodes/dssi4cs/src/load.c:120
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to load plugin \"%s\": %s"
-msgstr "Can't open input file %s\n"
+msgstr ""
 
 #: Opcodes/dssi4cs/src/load.c:155
 #, c-format
@@ -5754,14 +5738,14 @@ msgid "invalid file name"
 msgstr ""
 
 #: Opcodes/fout.c:167
-#, fuzzy, c-format
+#, c-format
 msgid "error opening file '%s'"
-msgstr "can't open input file %s"
+msgstr ""
 
 #: Opcodes/fout.c:212
-#, fuzzy, c-format
+#, c-format
 msgid "error opening sound file '%s'"
-msgstr "can't open input file %s"
+msgstr ""
 
 #: Opcodes/fout.c:522
 #, c-format
@@ -5820,23 +5804,21 @@ msgid "ftgen error"
 msgstr ""
 
 #: Opcodes/ftgen.c:179
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid table number: %d"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/ftgen.c:348
 msgid "ftload: error allocating ftable"
 msgstr ""
 
 #: Opcodes/ftgen.c:350
-#, fuzzy
 msgid "ftload: no table numbers"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/ftgen.c:352
-#, fuzzy
 msgid "ftload: unable to open file"
-msgstr "oggplay: couldn't open file"
+msgstr ""
 
 #: Opcodes/ftgen.c:355
 msgid "ftload: incorrect file"
@@ -5851,9 +5833,8 @@ msgid "ftsave: no table numbers"
 msgstr ""
 
 #: Opcodes/ftgen.c:473
-#, fuzzy
 msgid "ftsave: unable to open file"
-msgstr "ftsave: failed to write file"
+msgstr ""
 
 #: Opcodes/ftgen.c:475
 msgid "ftsave: failed to write file"
@@ -5876,9 +5857,9 @@ msgid "tab_i: incorrect table number"
 msgstr ""
 
 #: Opcodes/gab/gab.c:198
-#, fuzzy, c-format
+#, c-format
 msgid "tab_i off end: table number: %d\n"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/gab.c:211
 msgid "tabw_i: incorrect table number"
@@ -5917,9 +5898,8 @@ msgid "adsynt2: partial count is greater than amptable size!"
 msgstr ""
 
 #: Opcodes/gab/gab.c:525
-#, fuzzy
 msgid "adsynt2: not initialised"
-msgstr "adsynt: not initialized"
+msgstr "adsynt2: not initialized"
 
 #: Opcodes/gab/gab.c:756
 msgid "max_k: invalid imaxflag value"
@@ -6083,9 +6063,9 @@ msgid "mtablew: incorrect table number"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:483 Opcodes/gab/vectorial.c:542
-#, fuzzy, c-format
+#, c-format
 msgid "vadd_i: invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:499
 msgid "vadd_i: ifn length exceeded"
@@ -6104,9 +6084,9 @@ msgid "vmult: ifn1 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:601
-#, fuzzy, c-format
+#, c-format
 msgid "vpow_i: invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:618
 msgid "vpow_i: ifn length exceeded"
@@ -6117,9 +6097,9 @@ msgid "vpow: ifn1 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:662
-#, fuzzy, c-format
+#, c-format
 msgid "vexp_i: invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:678
 msgid "vexp_i: ifn length exceeded"
@@ -6130,14 +6110,14 @@ msgid "vexp: ifn1 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:723
-#, fuzzy, c-format
+#, c-format
 msgid "vectorsop: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:728
-#, fuzzy, c-format
+#, c-format
 msgid "vectorsop: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:768
 msgid "vcopy: ifn1 length exceeded"
@@ -6148,14 +6128,14 @@ msgid "vcopy: ifn2 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:813
-#, fuzzy, c-format
+#, c-format
 msgid "vcopy_i: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:818
-#, fuzzy, c-format
+#, c-format
 msgid "vcopy_i: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:840
 msgid "vcopy_i: ifn1 length exceeded"
@@ -6174,14 +6154,14 @@ msgid "vaddv: ifn2 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:941
-#, fuzzy, c-format
+#, c-format
 msgid "vaddv_i: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:946
-#, fuzzy, c-format
+#, c-format
 msgid "vaddv_i: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:968
 msgid "vaddv_i: ifn1 length exceeded"
@@ -6200,14 +6180,14 @@ msgid "vsubv: ifn2 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:1063
-#, fuzzy, c-format
+#, c-format
 msgid "vsubv_i: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1068
-#, fuzzy, c-format
+#, c-format
 msgid "vsubv_i: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1090
 msgid "vsubv_i: ifn1 length exceeded"
@@ -6226,14 +6206,14 @@ msgid "vmultv: ifn2 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:1191
-#, fuzzy, c-format
+#, c-format
 msgid "vmultv_i: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1196
-#, fuzzy, c-format
+#, c-format
 msgid "vmultv_i: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1218
 msgid "vmultv_i: ifn1 length exceeded"
@@ -6252,14 +6232,14 @@ msgid "vdivv: ifn2 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:1318
-#, fuzzy, c-format
+#, c-format
 msgid "vdivv_i: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1323
-#, fuzzy, c-format
+#, c-format
 msgid "vdivv_i: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1345
 msgid "vdivv_i: ifn1 length exceeded"
@@ -6278,14 +6258,14 @@ msgid "vpowv: ifn2 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:1446
-#, fuzzy, c-format
+#, c-format
 msgid "vpowv_i: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1451
-#, fuzzy, c-format
+#, c-format
 msgid "vpowv_i: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1473
 msgid "vpowv_i: ifn1 length exceeded"
@@ -6304,14 +6284,14 @@ msgid "vexpv: ifn2 length exceeded"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:1573
-#, fuzzy, c-format
+#, c-format
 msgid "vexpv_i: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1578
-#, fuzzy, c-format
+#, c-format
 msgid "vexpv_i: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1600
 msgid "vexpv_i: ifn1 length exceeded"
@@ -6326,14 +6306,14 @@ msgid "vmap: Error: ifn1 and ifn2 can not be the same"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:1660
-#, fuzzy, c-format
+#, c-format
 msgid "vmap: ifn1 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1665
-#, fuzzy, c-format
+#, c-format
 msgid "vmap: ifn2 invalid table number %i"
-msgstr "couldn't find table number %d\n"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:1687
 msgid "vmap: ifn1 length exceeded"
@@ -6403,19 +6383,16 @@ msgid "vecdelay: invalid num of elements"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:2105
-#, fuzzy
 msgid "vecdly: invalid output table"
-msgstr "vecdly: not initialized"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:2112
-#, fuzzy
 msgid "vecdly: invalid input table"
-msgstr "vecdly: not initialized"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:2119
-#, fuzzy
 msgid "vecdly: invalid delay table"
-msgstr "vecdly: not initialized"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:2164
 msgid "vecdly: not initialised"
@@ -7813,9 +7790,8 @@ msgid "No ports available"
 msgstr ""
 
 #: Opcodes/serial.c:251
-#, fuzzy
 msgid "serial: failed to allocate globals"
-msgstr "failed to initialize remote globals."
+msgstr ""
 
 #: Opcodes/serial.c:268
 #, c-format
@@ -7969,7 +7945,7 @@ msgstr ""
 
 #: Opcodes/sndloop.c:220
 msgid "crossfade cannot be longer than loop\n"
-msgstr ""
+msgstr "crossfade can't be longer than loop\n"
 
 #: Opcodes/sndloop.c:307
 msgid "crossfade longer than loop duration\n"
@@ -8195,8 +8171,8 @@ msgid "specscal: not initialised"
 msgstr "specscal: not initialized"
 
 #: Opcodes/spectra.c:1089
-msgid "spechist: local buffers not intiialised"
-msgstr ""
+msgid "spechist: local buffers not initialised"
+msgstr "spechist: local buffers not initialized"
 
 #: Opcodes/spectra.c:1121
 msgid "spechist: not initialised"
@@ -8286,7 +8262,7 @@ msgstr "diskgrain: couldn't open file\n"
 #: Opcodes/syncgrain.c:439
 msgid ""
 "diskgrain: soundfile channel numbers do not match the number of outputs \n"
-msgstr ""
+msgstr "diskgrain: soundfile channel numbers don't match the number of outputs \n"
 
 #: Opcodes/syncgrain.c:451
 msgid "diskgrain: could not read file \n"
@@ -8298,7 +8274,7 @@ msgstr "tabsum: No table"
 
 #: Opcodes/tabsum.c:55
 msgid "tabsum: Not initialised"
-msgstr "tabsum: not initialized"
+msgstr "tabsum: Not initialized"
 
 #: Opcodes/tabvars.c:191 Opcodes/tabvars.c:242 Opcodes/tabvars.c:262
 msgid "division by zero in t-var"
@@ -8504,7 +8480,7 @@ msgstr ""
 #: Opcodes/ugnorman.c:133
 #, c-format
 msgid "%s: either %s is not an ATS file or the byte endianness is wrong"
-msgstr ""
+msgstr "%s: either %s isn't an ATS file or the byte endianness is wrong"
 
 #: Opcodes/ugnorman.c:141
 #, c-format
@@ -8597,7 +8573,7 @@ msgstr ""
 
 #: Opcodes/ugnorman.c:850
 msgid "ATSADDNZ: This file type has not been implemented in this code yet."
-msgstr ""
+msgstr "ATSADDNZ: This file type hasn't been implemented in this code yet."
 
 #: Opcodes/ugnorman.c:873
 msgid "ATSADDNZ: Band(s) out of range, max band allowed is 25"
@@ -8773,9 +8749,9 @@ msgid "Warning: truncating elevation to 2-D plane\n"
 msgstr ""
 
 #: Opcodes/vbap1.c:172 Opcodes/vbap_n.c:216
-#, fuzzy, c-format
+#, c-format
 msgid "could not find layout table no.%d"
-msgstr "couldn't find table number %d\n"
+msgstr "couldn't find layout table no.%d"
 
 #: Opcodes/vbap1.c:179 Opcodes/vbap1.c:437 Opcodes/vbap_n.c:223
 #: Opcodes/vbap_n.c:528
@@ -8806,9 +8782,8 @@ msgid "Wrong dimension"
 msgstr ""
 
 #: Opcodes/vbap_n.c:520
-#, fuzzy
 msgid "could not find layout table no.0"
-msgstr "couldn't find table number %d\n"
+msgstr "couldn't find layout table no.0"
 
 #: Opcodes/vbap_zak.c:352
 msgid "Missing fields in vbapzmove\n"
@@ -8867,7 +8842,7 @@ msgstr ""
 
 #: Opcodes/wave-terrain.c:182
 msgid "Table lengths do not agree!!"
-msgstr ""
+msgstr "Table lengths don't agree!!"
 
 #: Opcodes/wiimote.c:120
 msgid "unable to open wiimote\n"
@@ -9003,7 +8978,7 @@ msgstr ""
 
 #: Top/argdecode.c:89 util/srconv.c:752
 msgid "-K\tDo not generate PEAK chunks"
-msgstr ""
+msgstr "-K\tDon't generate PEAK chunks"
 
 #: Top/argdecode.c:90
 msgid "-v\tverbose orch translation"
@@ -9135,7 +9110,7 @@ msgstr ""
 
 #: Top/argdecode.c:133
 msgid "--nopeaks\t\tDo not write peak information"
-msgstr ""
+msgstr "--nopeaks\t\tDon't write peak information"
 
 #: Top/argdecode.c:135
 msgid "--nodisplays\t\tSuppress all displays"
@@ -9758,7 +9733,7 @@ msgstr ""
 #: Top/csound.c:1486 Top/csound.c:1511 Top/csound.c:1541 Top/csound.c:1568
 #: Top/csound.c:1604
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
-msgstr ""
+msgstr "Csound not ready for performance: csoundStart() hasn't been called \n"
 
 #: Top/csound.c:1495 Top/csound.c:1524
 msgid "Score finished in csoundPerformKsmps().\n"
@@ -9841,7 +9816,7 @@ msgstr ""
 
 #: Top/csound.c:3109
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
-msgstr "Can't open /proc/cpuinfo. Support for RDTSC is not available.\n"
+msgstr "Can't open /proc/cpuinfo. Support for RDTSC isn't available.\n"
 
 #: Top/csound.c:3139
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
@@ -9975,7 +9950,7 @@ msgstr ""
 #: Top/new_opts.c:121 Top/new_opts.c:128 Top/new_opts.c:204
 #, c-format
 msgid " *** '%s' is not a valid Csound command line option.\n"
-msgstr ""
+msgstr " *** '%s' isn't a valid Csound command line option.\n"
 
 #: Top/new_opts.c:123 Top/new_opts.c:130 Top/new_opts.c:206
 msgid " *** Type 'csound --help' for the list of available options.\n"
@@ -9984,7 +9959,7 @@ msgstr ""
 #: Top/new_opts.c:139 Top/new_opts.c:158
 #, c-format
 msgid " *** type of option '%s' is not boolean\n"
-msgstr ""
+msgstr " *** type of option '%s' isn't boolean\n"
 
 #: Top/new_opts.c:147 Top/new_opts.c:153 Top/new_opts.c:165
 #, c-format
@@ -10167,7 +10142,7 @@ msgstr ""
 #: Top/threads.c:539
 #, c-format
 msgid "%s() is not implemented on this platform.\n"
-msgstr ""
+msgstr "%s() isn't implemented on this platform.\n"
 
 #: Top/utility.c:100
 #, c-format
@@ -10414,7 +10389,7 @@ msgstr ""
 #: util/atsa.c:2136
 #, c-format
 msgid "atsa: %d frames are not enough for analysis, need at least %d"
-msgstr ""
+msgstr "atsa: %d frames aren't enough for analysis, need at least %d"
 
 #: util/atsa.c:2145
 #, c-format
@@ -10884,9 +10859,9 @@ msgid "Usage: het_import csvtext_file het_file\n"
 msgstr ""
 
 #: util/het_import.c:78
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot open input comma file %s\n"
-msgstr "Can't open input comma file%s\n"
+msgstr "Can't open input comma file %s\n"
 
 #: util/het_import.c:83
 #, c-format
@@ -10894,9 +10869,9 @@ msgid "Cannot open output hetro file %s\n"
 msgstr "Can't open output hetro file %s\n"
 
 #: util/het_import.c:93
-#, fuzzy, c-format
+#, c-format
 msgid "Not an hetro anaysis file %s\n"
-msgstr "Can't open output hetro file %s\n"
+msgstr ""
 
 #: util/het_import.c:123
 msgid "translate text form to hetro analysis file"
@@ -11435,7 +11410,7 @@ msgstr ""
 
 #: util/pv_import.c:73 util/pv_import.c:93
 msgid "Not a PV file\n"
-msgstr "Can't open PV file\n"
+msgstr ""
 
 #: util/pv_import.c:132
 msgid "Memory failure\n"
@@ -11863,7 +11838,7 @@ msgstr ""
 #: util/srconv.c:734
 msgid ""
 "-P num\tpitch transposition ratio (srate/r) [do not specify both P and r]"
-msgstr ""
+msgstr "-P num\tpitch transposition ratio (srate/r) [don't specify both P and r]"
 
 #: util/srconv.c:736
 msgid "-Q num\tquality factor (1 to 8: default = 2)"
@@ -12160,14 +12135,6 @@ msgstr ""
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr ""
-
-#, fuzzy
-#~ msgid "table %d size not power of two"
-#~ msgstr "ftable doesn't exist"
-
-#, fuzzy
-#~ msgid "WARNING: no weight found for opcode: %s\n"
-#~ msgstr "WARNING: can't open csoundrc file %s\n"
 
 #~ msgid "Parallel Dump File not found at: %s for writing"
 #~ msgstr "Parallel Dump File not found at: %s for writing"
