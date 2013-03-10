@@ -1042,11 +1042,19 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
               
         break;
-                
+              
       case IF_TOKEN:
+      case ELSEIF_TOKEN:
       case UNTIL_TOKEN:
-        
+        check_args_exist(csound, current->left, typeTable);
+        verify_tree(csound, current->right->right, typeTable);
+              
         break;
+              
+      case ELSE_TOKEN:
+        verify_tree(csound, current->right, typeTable);
+        break;
+              
       case LABEL_TOKEN:
         // TODO: Check that label needs verifying...
         break;
