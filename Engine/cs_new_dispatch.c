@@ -169,7 +169,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
     if (csound->dag_task_status == NULL) 
       create_dag(csound); /* Should move elsewhere */
     else { 
-      memset(csound->dag_task_watch, '\0', 
+      memset((void*)csound->dag_task_watch, '\0', 
              sizeof(watchList*)*csound->dag_task_max_size);
       for (i=0; i<csound->dag_task_max_size; i++) {
         if (csound->dag_task_dep[i]) {
@@ -251,8 +251,8 @@ void dag_reinit(CSOUND *csound)
 {
     int i;
     int max = csound->dag_task_max_size;
-    enum state *task_status = csound->dag_task_status;
-    watchList **task_watch = csound->dag_task_watch;
+    volatile enum state *task_status = csound->dag_task_status;
+    watchList * volatile *task_watch = csound->dag_task_watch;
     watchList *wlmm = csound->dag_wlmm;
     if (UNLIKELY(csound->oparms->odebug))
       printf("DAG REINIT************************\n");
@@ -286,7 +286,7 @@ taskID dag_get_task(CSOUND *csound)
     int i;
     int morework = 0;
     int active = csound->dag_num_active;
-    enum state *task_status = csound->dag_task_status;
+    volatile enum state *task_status = csound->dag_task_status;
     //printf("**GetTask from %d\n", csound->dag_num_active);
     for (i=0; i<active; i++) {
       if (ATOMIC_CAS(&(task_status[i]), AVAILABLE, INPROGRESS)) {
@@ -310,7 +310,7 @@ taskID dag_get_task(CSOUND *csound)
 /* This static is OK as not written */
 static watchList DoNotRead = { INVALID, NULL};
 
-inline static int moveWatch(CSOUND *csound, watchList **w, watchList *t)
+inline static int moveWatch(CSOUND *csound, watchList * volatile *w, watchList *t)
 {
     watchList *local=*w;
     t->next = NULL;
@@ -334,7 +334,7 @@ void dag_end_task(CSOUND *csound, taskID i)
     watchList *to_notify, *next;
     int canQueue;
     int j, k;
-    watchList **task_watch = csound->dag_task_watch;
+    watchList * volatile *task_watch = csound->dag_task_watch;
     ATOMIC_WRITE(csound->dag_task_status[i], DONE); /* as DONE is zero */
     {                                      /* ATOMIC_SWAP */
       do {
