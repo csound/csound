@@ -170,11 +170,13 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       TYPE_TABLE* typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
       typeTable->globalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
-      typeTable->localPool = NULL;
+      typeTable->instr0LocalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+
+      typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
         
       err = verify_tree(csound, astTree, typeTable);
-        
+      mfree(csound, typeTable->instr0LocalPool);
       mfree(csound, typeTable->globalPool);
       mfree(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
