@@ -1,8 +1,7 @@
 /*
-** CSound-parallel-dispatch.c
+**  cs_new_dispatch.c
 ** 
 **    Copyright (C)  Martin Brain (mjb@cs.bath.ac.uk) 04/08/12
-**
 **    Realisation in code for Csound John ffitch Feb 2013
 **
     This file is part of Csound.
