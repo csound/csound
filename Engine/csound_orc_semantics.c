@@ -1017,7 +1017,7 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         mfree(csound, typeTable->labelList);
         mfree(csound, typeTable->localPool);
               
-        typeTable->localPool = NULL;
+        typeTable->localPool = typeTable->instr0LocalPool;
         typeTable->labelList = NULL;
               
         if (!retCode) {
@@ -1035,7 +1035,7 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         
         mfree(csound, typeTable->labelList);
         mfree(csound, typeTable->localPool);
-        typeTable->localPool = NULL;
+        typeTable->localPool = typeTable->instr0LocalPool;
               
         if (!retCode) {
           return 0;
@@ -1045,13 +1045,16 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
               
       case IF_TOKEN:
       case ELSEIF_TOKEN:
-      case UNTIL_TOKEN:
         check_args_exist(csound, current->left, typeTable);
-        verify_tree(csound, current->right->right, typeTable);
-              
+        verify_tree(csound, current->right->right, typeTable);      
         break;
               
       case ELSE_TOKEN:
+        verify_tree(csound, current->right, typeTable);
+        break;
+              
+      case UNTIL_TOKEN:
+        check_args_exist(csound, current->left, typeTable);
         verify_tree(csound, current->right, typeTable);
         break;
               
