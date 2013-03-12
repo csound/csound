@@ -105,13 +105,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     FUNC    *ftp;
     FGDATA  ff;
     int nonpowof2_flag=0; /* gab: fixed for non-powoftwo function tables*/
-    /* union { */
-    /*   double d; */
-    /*   int32  i[2]; */
-    /* } cheat; */
 
-    /* cheat.d = evtblkp->p[5]; */
-    //printf("string=%s p[5]=%8x %8x\n", evtblkp->strarg, cheat.i[0], cheat.i[1]);
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
       csound->gensub = (GEN*) mmalloc(csound, sizeof(GEN) * (GENMAX + 1));
@@ -2223,6 +2217,34 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
     display(csound, &dwindow);
 }
 
+static void generate_sine_tab(CSOUND *csound)
+{                               /* Assume power of 2 length */
+    int flen = csound->sinelength;
+    size_t  nBytes = sizeof(FUNC) + (size_t) flen * sizeof(MYFLT);
+    FUNC    *ftp = (FUNC*) mcalloc(csound, nBytes);
+    double  tpdlen = TWOPI / (double) flen;
+    MYFLT *ftable = &ftp->ftable[0];
+    unsigned int i;
+    int ltest, lobits;
+    for (ltest = flen, lobits = 0;
+           (ltest & MAXLEN) == 0L;
+           lobits++, ltest <<= 1)
+        ;
+    ftp->lobits   = lobits;
+    i = (1 << lobits);
+    ftp->lomask   = (int32) (i - 1);
+    ftp->lodiv    = FL(1.0) / (MYFLT) i;        /*    & other useful vals   */
+    ftp->flen = ftp->flenfrms = flen;
+    ftp->fno = -1;
+    ftp->lenmask = flen - 1;
+    ftp->nchanls = 1;
+    for (i = 1; i<ftp->flen; i++) 
+      ftable[i] = (MYFLT) sin(i*tpdlen);
+    ftable[0] = ftable[ftp->flen] = FL(0.0);
+    csound->sinetable = ftp;
+    return;
+}
+
 /* alloc ftable space for fno (or replace one) */
 /*  set ftp to point to that structure         */
 
@@ -2265,7 +2287,12 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
     FUNC    *ftp;
     int     fno;
 
-    if (UNLIKELY((fno = (int) *argp) <= 0 ||
+    fno = (int) *argp;
+    if (UNLIKELY(fno == -1)) {
+      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
+      return csound->sinetable;
+    }
+    if (UNLIKELY(fno <= 0                 ||
         fno > csound->maxfnum       ||
                  (ftp = csound->flist[fno]) == NULL)) {
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
@@ -2292,7 +2319,12 @@ FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
     FUNC    *ftp;
     int     fno;
 
-    if (UNLIKELY((fno = (int) *argp) <= 0 ||
+    fno = (int) *argp;
+    if (UNLIKELY(fno == -1)) {
+      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
+      return csound->sinetable;
+    }
+    if (UNLIKELY(fno <= 0           ||
         fno > csound->maxfnum       ||
                  (ftp = csound->flist[fno]) == NULL)) {
       return NULL;
@@ -2381,8 +2413,13 @@ FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
     /* Check limits, and then index  directly into the flist[] which
      * contains pointers to FUNC data structures for each table.
      */
-    if (UNLIKELY((fno = (int) *argp) <= 0 ||
-        fno > csound->maxfnum           ||
+    fno = (int) *argp;
+    if (UNLIKELY(fno == -1)) {
+      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
+      return csound->sinetable;
+    }
+    if (UNLIKELY(fno <= 0                 ||
+                 fno > csound->maxfnum    ||
                  (ftp = csound->flist[fno]) == NULL)) {
       csoundPerfError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
@@ -2403,10 +2440,14 @@ FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
 FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
-    int     fno;
+    int     fno = (int) *argp;
 
-    if (UNLIKELY((fno = (int) *argp) <= 0 ||
-        fno > csound->maxfnum    ||
+    if (UNLIKELY(fno == -1)) {
+      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
+      return csound->sinetable;
+    }
+    if (UNLIKELY(fno <= 0 ||
+                 fno > csound->maxfnum    ||
                  (ftp = csound->flist[fno]) == NULL)) {
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;

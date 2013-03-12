@@ -841,11 +841,14 @@ static const CSOUND cenviron_ = {
     0,              /*  parserNamedInstrFlag */
     0,              /*  tran_nchnlsi */
     0,              /* Count of score strings */
-    0,            /* pow2 table */
-    0,            /* cps conv table */
-    0,            /* output of preprocessor */
-    0,             /* message buffer struct */
-    0              /* jumpset */
+    0,              /* length of current strings space */
+    NULL,           /* sinetable */
+    8192,           /* sinesize */
+    NULL,           /* pow2 table */
+    NULL,           /* cps conv table */
+    NULL,           /* output of preprocessor */
+    NULL,           /* message buffer struct */
+    0               /* jumpset */
 };
 
 /* from threads.c */
@@ -1123,7 +1126,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     if (UNLIKELY(csound == NULL)) return NULL;
     memcpy(csound, &cenviron_, sizeof(CSOUND));
     csound->oparms = &(csound->oparms_);
-    csound->hostdata = hostdata;;
+    csound->hostdata = hostdata;
     p = (csInstance_t*) malloc(sizeof(csInstance_t));
     if (UNLIKELY(p == NULL)) {
       free(csound);
