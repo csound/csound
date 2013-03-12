@@ -466,8 +466,8 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nn, nsmps = CS_KSMPS, i;
-    int chn;
+    int nsmps = CS_KSMPS;
+    int chn, i, nn;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
     int32   ndx;
@@ -649,7 +649,8 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 int diskin_file_read(CSOUND *csound, DISKIN2 *p)
 {
      /* nsmps is bufsize in frames */ 
-    uint32_t nn, nsmps = p->aOut_bufsize - p->h.insdshead->ksmps_offset,i;
+    int nsmps = p->aOut_bufsize - p->h.insdshead->ksmps_offset;
+    int i, nn;
     int chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
