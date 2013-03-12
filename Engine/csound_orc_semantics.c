@@ -924,12 +924,15 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                       "with matching argument types:\n", root->value->lexeme);
         csoundMessage(csound, "Found: %s\t%s\t%s\n", 
                       leftArgString, root->value->lexeme, rightArgString);
-        csoundMessage(csound, "Candidate opcode entries:\n");
-        for (i = 0; i < entries->count; i++) {
-            oentry = entries->entries[i];
-            csoundMessage(csound, "\t%s\t%s\t%s\n", 
-                          oentry->outypes, oentry->opname, oentry->intypes);
-        }
+        csoundMessage(csound, "Line: %d Loc: %d\n",
+                      root->line, root->locn);
+
+//        csoundMessage(csound, "Candidate opcode entries:\n");
+//        for (i = 0; i < entries->count; i++) {
+//            oentry = entries->entries[i];
+//            csoundMessage(csound, "\t%s\t%s\t%s\n", 
+//                          oentry->outypes, oentry->opname, oentry->intypes);
+//        }
     }
 //    
 //    if(entry == NULL) {
