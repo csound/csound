@@ -215,7 +215,8 @@ static const char *longUsageList[] = {
   Str_noop("\t\t\tvelocity number to pfield N as amplitude"),
   Str_noop("--no-default-paths\tTurn off relative paths from CSD/ORC/SCO"),
   Str_noop("--sample-accurate\t\tUse sample-accurate timing of score events"),
-  Str_noop("--realtime \t\t realtime priority mode"),
+  Str_noop("--realtime\t\trealtime priority mode"),
+  Str_noop("--sinesize\t\tlegth of internal sine table"),
   " ",
   Str_noop("--help\t\t\tLong help"),
   
@@ -865,12 +866,17 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       longusage(csound);
       csound->LongJmp(csound, 0);
     }
-    else if (!(strcmp(s, "sample-accurate"))){
+    else if (!(strcmp(s, "sample-accurate"))) {
       O->sampleAccurate = 1;
       return 1;
     }
-    else if (!(strcmp(s, "realtime"))){
+    else if (!(strcmp(s, "realtime"))) {
       O->realtime = 1;
+      return 1;
+    }
+    else if (!(strncmp(s, "sinesize=", 9))) {
+      s += 9;
+      csound->sinelength = atoi(s);
       return 1;
     }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
