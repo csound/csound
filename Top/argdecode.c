@@ -875,9 +875,14 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp(s, "sinesize=", 9))) {
-      s += 9;
-      csound->sinelength = atoi(s);
-      return 1;
+      {
+        int i = 1, n;
+        s += 9;
+        n = atoi(s);
+        while (i<=n && i< MAXLEN) i <<= 1;
+        csound->sinelength = i;
+        return 1;
+      }
     }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
