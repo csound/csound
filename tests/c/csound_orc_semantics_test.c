@@ -154,6 +154,11 @@ void test_resolve_opcode(void) {
     int opnum = resolve_opcode_num(csound, entries, "k", "[k;c");
     CU_ASSERT_TRUE(opnum > 0);
     
+    
+    entries = find_opcode2(csound, ">");
+    
+    opnum = resolve_opcode_num(csound, entries, "b", "kk");
+    CU_ASSERT_TRUE(opnum > 0);
 }
 
 void test_find_opcode_new(void) {
