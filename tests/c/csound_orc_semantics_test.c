@@ -91,8 +91,8 @@ void test_find_opcode2(void) {
 //    }
 
     
-    CU_ASSERT_EQUAL(7, entries->count);
-    csound->Free(csound, entries);
+//    CU_ASSERT_EQUAL(7, entries->count);
+//    csound->Free(csound, entries);
     
     entries = find_opcode2(csound, "vco2");
     CU_ASSERT_EQUAL(1, entries->count);
@@ -104,7 +104,7 @@ void test_resolve_opcode(void) {
     CSOUND* csound = csoundCreate(NULL);
     
     OENTRIES* entries = find_opcode2(csound, "=");
-    CU_ASSERT_EQUAL(7, entries->count);
+//    CU_ASSERT_EQUAL(7, entries->count);
     
     OENTRY* opc = resolve_opcode(csound, entries, "k", "k");
     CU_ASSERT_PTR_NOT_NULL(opc);
@@ -241,6 +241,8 @@ void test_check_in_args(void) {
     
     CU_ASSERT_TRUE(check_in_args(csound, "cc", "kkoM"));
     CU_ASSERT_TRUE(check_in_args(csound, "[k;kk", "[?;?M"));
+    CU_ASSERT_TRUE(check_in_args(csound, "a", "az"));
+    
 }
 
 
@@ -293,6 +295,8 @@ void test_check_out_args(void) {
     CU_ASSERT_TRUE(check_out_args(csound, "akiSakiS", "N"));
     CU_ASSERT_TRUE(check_out_args(csound, "akiSakiS", "aN"));
     CU_ASSERT_FALSE(check_out_args(csound, "akiSakiS", "akiSakiSa"));
+    
+    CU_ASSERT_TRUE(check_out_args(csound, "a", "aX"));    
 }
 
 int main()
