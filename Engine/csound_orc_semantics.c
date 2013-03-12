@@ -922,7 +922,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     if (oentry == NULL) {
       synterr(csound, "Unable to find opcode entry for \'%s\' "
                       "with matching argument types:\n", root->value->lexeme);
-        csoundMessage(csound, "Found: %s\t%s\t%s\n", 
+        csoundMessage(csound, "Found: %s %s %s\n", 
                       leftArgString, root->value->lexeme, rightArgString);
         csoundMessage(csound, "Line: %d Loc: %d\n",
                       root->line, root->locn);
