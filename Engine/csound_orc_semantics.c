@@ -197,7 +197,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
                 char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
                 memcpy(retVal, s, len);
                 retVal[len] = ';';
-                retVal[len + 1] = (char) NULL;
+                retVal[len + 1] = '\0';
                 
                 return retVal;
             }
@@ -898,7 +898,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     
     TREE* left = root->left;
     TREE* right = root->right;
-    int i;
+    //int i;
     
     if (!check_args_exist(csound, root->right, typeTable)) {
         return 0;
@@ -922,7 +922,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     if (oentry == NULL) {
       synterr(csound, "Unable to find opcode entry for \'%s\' "
                       "with matching argument types:\n", root->value->lexeme);
-        csoundMessage(csound, "Found: %s\t%s\t%s\n", 
+        csoundMessage(csound, "Found: %s %s %s\n", 
                       leftArgString, root->value->lexeme, rightArgString);
         csoundMessage(csound, "Line: %d Loc: %d\n",
                       root->line, root->locn);
@@ -1009,7 +1009,7 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 {
     TREE *anchor = NULL;   
     TREE *current = root;
-    TREE *previous = NULL;
+    //TREE *previous = NULL;
     int retCode;
     
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
@@ -1097,7 +1097,7 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           anchor = current;
         }
         
-        previous = current;
+        //previous = current;
         current = current->next;
         
     }
