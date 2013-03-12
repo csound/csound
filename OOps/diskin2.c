@@ -473,6 +473,7 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
     int32   ndx;
     int     wsized2, warp;
 
+
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if(!p->initDone && !p->iSkipInit){
       return csound->PerfError(csound, Str("diskin2: not initialised"));
