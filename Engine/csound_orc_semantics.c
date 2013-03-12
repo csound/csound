@@ -521,9 +521,15 @@ PUBLIC int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs) {
             } 
         }
     }
-
+    
     if (returnVal && varArg == NULL) {
-       returnVal = (argTypeIndex == argsRequiredCount);
+     
+        if (argTypeIndex < argsRequiredCount) {
+            char* argRequired = argsRequired[argTypeIndex];
+            returnVal = is_out_var_arg(*argRequired);
+        } else {
+            returnVal = 1;
+        }
     }
     
     mfree(csound, argsFound);
