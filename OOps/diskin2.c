@@ -471,12 +471,13 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nn, nsmps = CS_KSMPS, i;
-    int chn;
-    double  d, frac_d, x, c, v, pidwarp_d;
-    MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
-    int32   ndx;
-    int     wsized2, warp;
+    uint32_t nsmps = CS_KSMPS, i;
+    int32    nn;
+    int      chn;
+    double   d, frac_d, x, c, v, pidwarp_d;
+    MYFLT    frac, a0, a1, a2, a3, onedwarp, winFact;
+    int32    ndx;
+    int      wsized2, warp;
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if(!p->initDone && !p->iSkipInit){
