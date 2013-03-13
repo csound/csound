@@ -110,6 +110,7 @@ def runTest():
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
 
 	["test_semantics_undefined_var.csd", "test undefined var", 1],
+	["test_invalid_expression.csd", "test expression", 1],
    ]
 
 
