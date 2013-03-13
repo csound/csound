@@ -222,7 +222,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
                 return cs_strdup(csound, "a");
             }
             else if (*arg1 == 'k' || *arg2 == 'k' || *ans == 'B') {
-                return cs_strdup(csound, "a");
+                return cs_strdup(csound, "k");
             }
             else {
                 return cs_strdup(csound, "i");
