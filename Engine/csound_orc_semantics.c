@@ -143,7 +143,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
         case T_ARRAY:
             return "array_get";
     }
-    csound->Warning(csound, "Unknown function type found: %d\n", tree->type);
+    csound->Warning(csound, "Unknown function type found: %d [%c]\n", tree->type, tree->type);
     return NULL;
 }
 
@@ -170,6 +170,24 @@ char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
     return NULL;
 }
 
+//FIXME - current just returns subtype but assumes single char type name,
+// should check for long type names, as well as check dimensions and remove one
+char* get_array_sub_type(CSOUND* csound, char* arrayName) {
+    char temp[2];
+    char *t = arrayName;
+    
+    if (*t == '#') t++;
+    if (*t == 'g') t++;    
+
+    
+    while (*t == '[') {
+        t++;
+    }
+    temp[0] = *t;
+    temp[1] = 0;
+    return cs_strdup(csound, temp);
+}
+
 //FIXME - this needs to get a TYPE_TABLE here with a label list to check if it is a LABEL
 PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
@@ -177,13 +195,38 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
     char* t;
     CS_TYPE* type;
     
-    // TODO - this should probably do a lookup of opcode and get the return type of the opcode,
-    // rather than do observation of the op arg vals; this needs review
     if (is_expression_node(tree)) {
         TREE* nodeToCheck = tree;
         
-        if (tree->type == '?') { // FIXME - need to check all nodes of ternary expression...
-            nodeToCheck = tree->right;
+        if (tree->type == T_ARRAY) {
+            //FIXME - should verify that arg expression is valid for array_get/array_set
+            return get_array_sub_type(csound, tree->left->value->lexeme);
+        }
+        
+        if (tree->type == '?') {
+            char* arg1, *arg2, *ans;
+            
+            ans = get_arg_type(csound, tree->left);
+            if (ans == NULL || (*ans != 'b' && *ans != 'B')) {
+                synterr(csound, "non-boolean expression found for ternary operator, line %d\n",
+                        tree->line);
+                return NULL;
+            }
+            arg1 = get_arg_type(csound, tree->right->left);
+            arg2 = get_arg_type(csound, tree->right->right);
+            
+            // FIXME - this uses the current expression expansion code
+            // this needs to be changed to do an opcode lookup
+            // but first :i, :k, and :a should be changed to overridden :cond opcodes
+            if (*arg1 == 'a' || *arg2 == 'a') {
+                return cs_strdup(csound, "a");
+            }
+            else if (*arg1 == 'k' || *arg2 == 'k' || *ans == 'B') {
+                return cs_strdup(csound, "a");
+            }
+            else {
+                return cs_strdup(csound, "i");
+            }
         }
         
         char* argTypeRight = get_arg_type(csound, nodeToCheck->right);
