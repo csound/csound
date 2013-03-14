@@ -48,7 +48,7 @@ static int scsnu_initw(CSOUND *csound, PSCSNU *p)
       return csound->InitError(csound,
                                Str("scanu: Could not find ifnnit ftable"));
     }
-    if (UNLIKELY(fi->flen != p->len))
+    if (UNLIKELY((int)fi->flen != p->len))
       return csound->InitError(csound, Str("scanu: Init table has bad size"));
     memcpy(p->x0, fi->ftable, p->len*sizeof(MYFLT));
     memcpy(p->x1, fi->ftable, p->len*sizeof(MYFLT));
@@ -196,7 +196,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Get parameter table pointers and check lengths */
     SCANSYN_GLOBALS *pp;
     FUNC    *f;
-    int     len;
+    unsigned int     len;
 
     /* Mass */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_m)) == NULL)) {
@@ -211,7 +211,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
       return csound->InitError(csound,
                                Str("scanu: Could not find ifncentr table"));
     }
-    if (UNLIKELY(f->flen != len))
+    if (UNLIKELY((int)f->flen != len))
       return csound->InitError(csound, Str("scanu: Parameter tables should all "
                                            "have the same length"));
     p->c = f->ftable;
@@ -305,7 +305,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     }
 
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * csound->esr;
+    p->rate = *p->i_rate * csound->GetSr(csound);
 
       /* Initialize index */
     p->idx = 0;
@@ -363,7 +363,7 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (n = offset ; n < nsmps ; n++) {
 
       /* Put audio input in external force */
@@ -505,8 +505,8 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
     MYFLT t = (MYFLT)p->p->idx/p->p->rate;
     MYFLT *out = p->a_out;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

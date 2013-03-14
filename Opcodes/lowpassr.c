@@ -61,8 +61,8 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -112,8 +112,8 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
     asig = p->asig;
-    if (offset) memset(p->ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -161,8 +161,8 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
     ynm2 = p->ynm2;
     asig = p->asig;
 
-    if (offset) memset(p->ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
     }

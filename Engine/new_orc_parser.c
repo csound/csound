@@ -51,12 +51,7 @@ extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
-
-#ifdef PARCS
-extern TREE *csp_locks_insert(CSOUND *csound, TREE *root);
-void csp_locks_cache_build(CSOUND *);
-void csp_weights_calculate(CSOUND *, TREE *);
-#endif
+extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
 
 
 void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
@@ -139,6 +134,7 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       PARSE_PARM  pp;
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
+      
       init_symbtab(csound);
 
       csound_orcdebug = O->odebug;
@@ -172,35 +168,35 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       }
       //print_tree(csound, "AST - INITIAL\n", astTree);
       TYPE_TABLE* typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
-      typeTable->globalOpcodes = csound->opcodlst;
       typeTable->udos = NULL;
       typeTable->globalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
-      typeTable->localPool = NULL;
+      typeTable->instr0LocalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+
+      typeTable->localPool = typeTable->instr0LocalPool;
+      typeTable->labelList = NULL;
         
-      astTree = verify_tree(csound, astTree, typeTable);
-        
+      err = verify_tree(csound, astTree, typeTable);
+      mfree(csound, typeTable->instr0LocalPool);
       mfree(csound, typeTable->globalPool);
       mfree(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
-#ifdef PARCS
-      if (LIKELY(O->numThreads > 1)) {
-        /* insert the locks around global variables before expr expansion */
-        astTree = csp_locks_insert(csound, astTree);
-        csp_locks_cache_build(csound);
+        
+      //FIXME - synterrcnt should not be global
+      if (!err || csound->synterrcnt){
+          err = 3;
+          csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
+                          csound->synterrcnt, csound->synterrcnt==1?"":"s");
+          goto ending;
       }
-#endif /* PARCS */
-
+      err = 0;
+        
+      //csp_orc_analyze_tree(csound, astTree);
+        
       astTree = csound_orc_expand_expressions(csound, astTree);
 
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
       }
-#ifdef PARCS
-      if (LIKELY(O->numThreads > 1)) {
-        /* calculate the weights for the instruments */
-        csp_weights_calculate(csound, astTree);
-      }
-#endif /* PARCS */
 
     ending:
       csound_orclex_destroy(pp.yyscanner);

@@ -33,7 +33,6 @@
 #include "oload.h"
 #include "insert.h"
 #include "pstream.h"
-#include "namedins.h"
 #include "typetabl.h"
 #include "csound_standard_types.h"
 
@@ -52,6 +51,11 @@ extern void delete_tree(CSOUND *csound, TREE *l);
 void close_instrument(CSOUND *csound, INSTRTXT * ip);
 char argtyp2(char *s);
 void debugPrintCsound(CSOUND* csound);
+
+extern int find_opcode_num(CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound);
+extern int find_opcode_num_by_tree(CSOUND* csound, char* opname, TREE* left, TREE* right);
+
+
 /*  removed ; from end of #define as it can mess things */
 #define strsav_string(a) string_pool_save_string(csound, csound->stringSavePool, a)
 
@@ -197,13 +201,14 @@ PUBLIC char** splitArgs(CSOUND* csound, char* argString) {
             if (*t == '[') {
                 int len = 0;
                 char* start = t;
-                while(*t != ';' && *t != '\0') {
+                while(*t != ';') {
                     t++;
                     len++;
                 }
-                part = mmalloc(csound, sizeof(char) * (len + 1));
+                part = mmalloc(csound, sizeof(char) * (len + 2));
                 strncpy(part, start, len);
-                part[len] = '\0';
+                part[len] = ';';
+                part[len + 1] = '\0';
                 
             } else {
                 part = mmalloc(csound, sizeof(char) * 2);
@@ -318,7 +323,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     int n = tp->outlist->count;
     char *s;
     char **types = splitArgs(csound, ep->outypes);
-    int nreqd = argsRequired(ep->outypes);
+    //int nreqd = argsRequired(ep->outypes);
     char      tfound = '\0', treqd;
 
 //    if (nreqd < 0)    /* for other opcodes */
@@ -346,7 +351,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         tp->xoutcod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xoutcod_str |= (1 << n);
-      csound->Message(csound, "treqd %c, tfound %c \n", treqd, tfound);
+      //csound->Message(csound, "treqd %c, tfound %c \n", treqd, tfound);
       /* if (tfound_m & ARGTYP_w) */
       /*   if (STA(lgprevdef)) { */
       /*     synterr(csound, Str("output name previously used, " */
@@ -379,6 +384,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
   int n, nreqd;;
   optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
   tp = &(optxt->t);
+  OENTRY* oentry;
 
   switch(root->type) {
   case LABEL_TOKEN:
@@ -411,13 +417,14 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       /* replace opcode if needed */
       if (!strcmp(root->value->lexeme, "xin") &&
           nreqd > OPCODENUMOUTS_LOW) {
-        if (nreqd > OPCODENUMOUTS_HIGH)
-          opnum = find_opcode(csound, ".xin256");
-        else
-          opnum = find_opcode(csound, ".xin64");
+        if (nreqd > OPCODENUMOUTS_HIGH) {
+          opnum = find_opcode_num(csound, "##xin256", "i", NULL);
+        } else {
+          opnum = find_opcode_num(csound, "##xin64", "i", NULL);
+        }
       }
       else {
-        opnum = find_opcode(csound, root->value->lexeme);
+        opnum = find_opcode_num_by_tree(csound, root->value->lexeme, root->left, root->right);
       }
 
       /* INITIAL SETUP */
@@ -425,10 +432,6 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       tp->opcod = strsav_string(csound->opcodlst[opnum].opname);
       ip->mdepends |= csound->opcodlst[opnum].flags;
       ip->opdstot += csound->opcodlst[opnum].dsblksiz;
-
-      if (tp->opnum == find_opcode(csound, "array_init")) {
-        //break;
-      }
 
       /* BUILD ARG LISTS */
     {
@@ -738,9 +741,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->sicvt = FMAXLEN / csound->esr;
     csound->kicvt = FMAXLEN / csound->ekr;
     csound->onedsr = FL(1.0) / csound->esr;
-    csound->onedkr = FL(1.0) / csound->ekr;
-    csound->global_ksmps     = csound->ksmps;
-    csound->global_ekr       = csound->ekr;
+    csound->onedkr = FL(1.0) / csound->ekr;    
     csound->global_kcounter  = csound->kcounter;
 
     close_instrument(csound, ip);
@@ -1647,7 +1648,7 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
 static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
 {
     CS_TYPE* type;
-    char* argLetter;
+    char argLetter[2];
     CS_VARIABLE* var;
     char* t = s;
     ARRAY_VAR_INIT varInit;
@@ -1658,7 +1659,6 @@ static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
       return;
     }
 
-    argLetter = csound->Malloc(csound, 2 * sizeof(char));
     argLetter[1] = 0;
 
     if (*t == '#')  t++;
@@ -1899,8 +1899,6 @@ void initialize_instrument0(CSOUND *csound)
     csound->kicvt = FMAXLEN / csound->ekr;
     csound->onedsr = FL(1.0) / csound->esr;
     csound->onedkr = FL(1.0) / csound->ekr;
-    csound->global_ksmps     = csound->ksmps;
-    csound->global_ekr       = csound->ekr;
     csound->global_kcounter  = csound->kcounter;
     /* these calls were moved to musmon() in musmon.c */
     reverbinit(csound);

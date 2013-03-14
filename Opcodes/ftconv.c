@@ -250,10 +250,10 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
     if (p->initDone <= 0) goto err1;
     nSamples = p->partSize;
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);
-    if (offset)
+    if (UNLIKELY(offset))
       for (n = 0; n < p->nChannels; n++)
         memset(p->aOut[n], '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       for (n = 0; n < p->nChannels; n++)
         memset(&p->aOut[n][nsmps], '\0', early*sizeof(MYFLT));

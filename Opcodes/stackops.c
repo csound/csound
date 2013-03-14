@@ -317,8 +317,8 @@ static int push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
               uint32_t nsmps = CS_KSMPS;
               src = p->args[i];
               dst = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
-              if (offset) memset(dst, '\0', offset*sizeof(MYFLT));
-              if (early) {
+              if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(MYFLT));
+              if (UNLIKELY(early)) {
                 nsmps -= early;
                 memset(&dst[nsmps], '\0', early*sizeof(MYFLT));
               }
@@ -415,8 +415,8 @@ static int pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
               uint32_t nsmps = CS_KSMPS;
               src = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
               dst = p->args[i];
-              if (offset) memset(dst, '\0', offset*sizeof(MYFLT));
-              if (early) {
+              if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(MYFLT));
+              if (UNLIKELY(early)) {
                 nsmps -= early;
                 memset(&dst[nsmps], '\0', early*sizeof(MYFLT));
               }
@@ -609,65 +609,21 @@ static int pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
     return OK;
 }
 
- /* ------------------------------------------------------------------------ */
 
-typedef struct MONITOR_OPCODE_ {
-    OPDS    h;
-    MYFLT   *ar[24];
-} MONITOR_OPCODE;
-
-static int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
-{
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t i, j, nsmps = CS_KSMPS;
-
-    if (csound->spoutactive) {
-      int   k = 0;
-      for (i = 0; i<nsmps; i++) {
-        for (j = 0; j<csound->nchnls; j++) {
-          if (i<offset||i>nsmps-early) 
-            p->ar[j][i] = FL(0.0);
-          else
-            p->ar[j][i] = csound->spout[k];
-          k++;
-        }
-      }
-    }
-    else {
-      for (j = 0; j<csound->nchnls; j++) {
-        for (i = 0; i<CS_KSMPS; i++) {
-          p->ar[j][i] = FL(0.0);
-        }
-      }
-    }
-    return OK;
-}
-
-static int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
-{
-    if (UNLIKELY(csound->GetOutputArgCnt(p) != (int)csound->nchnls))
-      return csound->InitError(csound, Str("number of arguments != nchnls"));
-    p->h.opadr = (SUBR) monitor_opcode_perf;
-    return OK;
-}
 
  /* ------------------------------------------------------------------------ */
 
 static OENTRY stackops_localops[] = {
-  { "stack",  sizeof(STACK_OPCODE), ST, 1,  "",                                "i",
+  { "stack",  sizeof(STACK_OPCODE), SK, 1,  "",                                "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
-  { "push",   sizeof(PUSH_OPCODE),  ST, 3,  "",                                "N",
+  { "push",   sizeof(PUSH_OPCODE),  SK, 3,  "",                                "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "pop",    sizeof(POP_OPCODE),   ST, 3,  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+  { "pop",    sizeof(POP_OPCODE),   SK, 3,  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
       (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "push_f", sizeof(PUSH_OPCODE),  ST, 3,  "",                                "f",
+  { "push_f", sizeof(PUSH_OPCODE),  SK, 3,  "",                                "f",
       (SUBR) push_f_opcode_init, (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
-  { "pop_f",  sizeof(POP_OPCODE),   ST, 3,  "f",                               "",
-      (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
-  /* ----------------------------------------------------------------------- */
-  { "monitor",  sizeof(MONITOR_OPCODE), 0, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
-    (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL }
+  { "pop_f",  sizeof(POP_OPCODE),   SK, 3,  "f",                               "",
+      (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL }
 };
 
 LINKAGE_BUILTIN(stackops_localops)

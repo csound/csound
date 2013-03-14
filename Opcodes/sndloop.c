@@ -213,8 +213,8 @@ typedef struct _pvsmorph {
 
 static int sndloop_init(CSOUND *csound, sndloop *p)
 {
-    p->durs = (int32) (*(p->dur)*csound->esr); /* dur in samps */
-    p->cfds = (int32) (*(p->cfd)*csound->esr); /* fade in samps */
+    p->durs = (int32) (*(p->dur)*csound->GetSr(csound)); /* dur in samps */
+    p->cfds = (int32) (*(p->cfd)*csound->GetSr(csound)); /* fade in samps */
     if (UNLIKELY(p->durs < p->cfds))
       return
         csound->InitError(csound, Str("crossfade cannot be longer than loop\n"));
@@ -244,8 +244,8 @@ static int sndloop_process(CSOUND *csound, sndloop *p)
     if (on) recon = p->rst; /* restart recording if switched on again */
     else recon = 0;  /* else do not record */
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -297,9 +297,9 @@ static int sndloop_process(CSOUND *csound, sndloop *p)
 static int flooper_init(CSOUND *csound, flooper *p)
 {
     MYFLT *tab, *buffer, a = FL(0.0), inc;
-    int32 cfds = (int32) (*(p->cfd)*csound->esr);     /* fade in samps  */
-    int32 starts = (int32) (*(p->start)*csound->esr); /* start in samps */
-    int32 durs = (int32)  (*(p->dur)*csound->esr);    /* dur in samps   */
+    int32 cfds = (int32) (*(p->cfd)*csound->GetSr(csound));     /* fade in samps  */
+    int32 starts = (int32) (*(p->start)*csound->GetSr(csound)); /* start in samps */
+    int32 durs = (int32)  (*(p->dur)*csound->GetSr(csound));    /* dur in samps   */
     int32 len, i;
 
     if (UNLIKELY(cfds > durs))
@@ -363,8 +363,8 @@ static int flooper_process(CSOUND *csound, flooper *p)
     MYFLT  frac;
     int tndx, loop_off = p->loop_off;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -431,15 +431,26 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT *out = p->out, sr = csound->GetSr(csound);
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
-    MYFLT *tab = p->sfunc->ftable;
+    MYFLT *tab;
     double *ndx = p->ndx;
     MYFLT frac0, frac1, *etab;
     int loop_end = p->lend, loop_start = p->lstart,
-      crossfade = p->cfade, len = p->sfunc->flen;
+      crossfade = p->cfade, len;
     MYFLT count = p->count,fadein, fadeout;
     int *firsttime = &p->firsttime, elen, mode=p->mode,
         init = p->init, ijump = *p->ijump;
     uint32 tndx0, tndx1;
+    FUNC *func;
+    func = csound->FTnp2Find(csound, p->ifn);
+
+    if(p->sfunc != func) {
+    p->sfunc = func;
+    if(func == NULL) return csound->PerfError(csound, "table %d invalid\n", (int) *p->ifn);
+    if (p->ndx[0] >= p->sfunc->flen)
+       p->ndx[0] = (double) p->sfunc->flen - 1.0;
+    }
+    tab = p->sfunc->ftable;
+    len = p->sfunc->flen;
 
     if (p->efunc != NULL) {
       etab = p->efunc->ftable;
@@ -452,7 +463,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
 
     /* loop parameters & check */
     if (pitch < FL(0.0)) pitch = FL(0.0);
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -460,7 +471,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     if (*firsttime) { 
       int loopsize;
       /* offset non zero only if firsttime */
-      if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
       loop_start = (int) (*p->loop_start*sr);
       loop_end =   (int) (*p->loop_end*sr);
       p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
@@ -731,14 +742,14 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
     int *firsttime = &p->firsttime, elen, init = p->init;
     uint32 tndx0, tndx1;
 
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (pitch < FL(0.0)) pitch = FL(0.0);
     if (*firsttime) {
       int loopsize;
-      if (offset) memset(out, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
       loop_start = MYFLT2LRND(*p->loop_start*sr);
       loop_end =   MYFLT2LRND (*p->loop_end*sr);
       p->lstart = loop_start = (loop_start < 0 ? 0 : loop_start);

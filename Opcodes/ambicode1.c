@@ -145,13 +145,13 @@ abformenc(CSOUND * csound, AMBIC * p) {
        unoptimised code is doing the right thing!) */
 
     /* Process channels: */
-    if (early) sampleCount -= early;
+    if (UNLIKELY(early)) sampleCount -= early;
     for (channelIndex = 0; channelIndex < channelCount; channelIndex++) {
       coefficient = coefficients[channelIndex];
       input = p->ain;
       output = p->aouts[channelIndex];
-      if (offset) memset(output, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&output[sampleCount], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&output[sampleCount], '\0', early*sizeof(MYFLT));
       for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++)
         output[sampleIndex] = coefficient * input[sampleIndex];
     }
@@ -231,11 +231,11 @@ abformdec(CSOUND * csound, AMBID * p) {
          array at the origin. Works better than front-facing
          arrangements for most purposes, as a composer using this opcode
          probably wants to hear the back stage. */
-      if (offset) {
+      if (UNLIKELY(offset)) {
         memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
       }
-      if (early) {
+      if (UNLIKELY(early)) {
         sampleCount -= early;
         memset(&p->aouts[0][sampleCount], '\0', early*sizeof(MYFLT));
         memset(&p->aouts[1][sampleCount], '\0', early*sizeof(MYFLT));
@@ -251,13 +251,13 @@ abformdec(CSOUND * csound, AMBID * p) {
       break;
     case 2: /* Quad */
       assert(p->OUTOCOUNT == 4);
-      if (offset) {
+      if (UNLIKELY(offset)) {
         memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[2], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[3], '\0', offset*sizeof(MYFLT));
       }
-      if (early) {
+      if (UNLIKELY(early)) {
         sampleCount -= early;
         memset(&p->aouts[0][sampleCount], '\0', early*sizeof(MYFLT));
         memset(&p->aouts[1][sampleCount], '\0', early*sizeof(MYFLT));
@@ -281,13 +281,13 @@ abformdec(CSOUND * csound, AMBID * p) {
       break;
     case 3: /* 5.0 */
       assert(p->OUTOCOUNT == 5);
-      if (offset) {
+      if (UNLIKELY(offset)) {
         memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[2], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[3], '\0', offset*sizeof(MYFLT));
       }
-     if (early) {
+     if (UNLIKELY(early)) {
       sampleCount -= early;
       memset(&p->aouts[0][sampleCount], '\0', early*sizeof(MYFLT));
       memset(&p->aouts[1][sampleCount], '\0', early*sizeof(MYFLT));
@@ -323,13 +323,13 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else {
         /* This is the full matrix. */
-        if (offset) {
+        if (UNLIKELY(offset)) {
           memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
           memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
           memset(p->aouts[2], '\0', offset*sizeof(MYFLT));
           memset(p->aouts[3], '\0', offset*sizeof(MYFLT));
         }
-        if (early) {
+        if (UNLIKELY(early)) {
           sampleCount -= early;
           memset(&p->aouts[0][sampleCount], '\0', early*sizeof(MYFLT));
           memset(&p->aouts[1][sampleCount], '\0', early*sizeof(MYFLT));
@@ -369,10 +369,10 @@ abformdec(CSOUND * csound, AMBID * p) {
       assert(p->OUTOCOUNT == 8);
       if (p->INOCOUNT == 1 + 4) {
         /* First order 'in-phase' decode: */
-        if (offset) 
+        if (UNLIKELY(offset)) 
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
-        if (early) {
+        if (UNLIKELY(early)) {
           sampleCount -= early;
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(&p->aouts[sampleIndex][sampleCount], '\0', early*sizeof(MYFLT));
@@ -401,10 +401,10 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else if (p->INOCOUNT == 1 + 9) {
         /* Second order 'in-phase' / 'controlled opposites' decode: */
-        if (offset) 
+        if (UNLIKELY(offset)) 
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
-        if (early) {
+        if (UNLIKELY(early)) {
           sampleCount -= early;
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(&p->aouts[sampleIndex][sampleCount], '\0', early*sizeof(MYFLT));
@@ -443,10 +443,10 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else {
         assert(p->INOCOUNT == 1 + 16);
-        if (offset) 
+        if (UNLIKELY(offset)) 
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
-        if (early) {
+        if (UNLIKELY(early)) {
           sampleCount -= early;
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(&p->aouts[sampleIndex][sampleCount], '\0', early*sizeof(MYFLT));
@@ -514,10 +514,10 @@ abformdec(CSOUND * csound, AMBID * p) {
     case 5: /* Cube: */
       assert(p->OUTOCOUNT == 8);
       /* First order 'in-phase' decode: */
-      if (offset) 
+      if (UNLIKELY(offset)) 
         for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
           memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
-        if (early) {
+      if (UNLIKELY(early)) {
           sampleCount -= early;
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(&p->aouts[sampleIndex][sampleCount], '\0', early*sizeof(MYFLT));

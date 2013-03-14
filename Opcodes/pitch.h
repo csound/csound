@@ -67,6 +67,12 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
+        MYFLT   *val;
+        MYFLT   *index;
+} SCRATCHPAD;
+
+typedef struct {
+        OPDS    h;
         MYFLT   *ins;
         MYFLT   *onoff;
 } MUTE;
@@ -269,6 +275,8 @@ int clockoff(CSOUND *, CLOCK *p);
 int clockon(CSOUND *, CLOCK *p);
 int clockread(CSOUND *, CLKRD *p);
 int clockset(CSOUND *, CLOCK *p);
+int scratchread(CSOUND *, SCRATCHPAD *p);
+int scratchwrite(CSOUND *, SCRATCHPAD *p);
 int cpuperc(CSOUND *, CPU_PERC *p);
 int hsboscil(CSOUND *, HSBOSC *p);
 int hsboscset(CSOUND *, HSBOSC *p);

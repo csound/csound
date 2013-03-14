@@ -78,6 +78,7 @@ void init_symbtab(CSOUND *csound)
      */
 
     for (ep = (OENTRY*) csound->opcodlst; ep < (OENTRY*) csound->oplstend; ep++) {
+      //printf("opcode: %s \n",  ep->opname);
         if (ep->dsblksiz >= 0xfffb) {
           char * polyName;
           len = strlen(ep->opname) + 1;
@@ -557,8 +558,8 @@ int add_udo_definition(CSOUND *csound, char *opname,
     }
 
     /* IV - Oct 31 2002: check if opcode is already defined */
-    newopnum = find_opcode(csound, opname);
-
+    newopnum = find_opcode_num(csound, opname, outtypes, intypes);
+    
     if (newopnum) {
         /* IV - Oct 31 2002: redefine old opcode if possible */
       if (UNLIKELY(newopnum < SETEND || !strcmp(opname, "subinstr"))) {
@@ -583,7 +584,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* IV - Oct 31 2002: */
     /* create a fake opcode so we can call it as such */
-    opc = csound->opcodlst + find_opcode(csound, ".userOpcode");
+    opc = csound->opcodlst + find_opcode_num(csound, "##userOpcode", NULL, NULL);
     memcpy(&tmpEntry, opc, sizeof(OENTRY));
     tmpEntry.opname = (char*)mmalloc(csound, 1+strlen(opname));
     strcpy(tmpEntry.opname, opname);

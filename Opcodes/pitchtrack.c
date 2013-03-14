@@ -536,7 +536,7 @@ int pitchafproc(CSOUND *csound, PITCHAF *p)
 */
 
 #define ROOT2 (1.4142135623730950488)
-enum {LP=0, LP2, HP};
+enum {LP1=0, LP2, HP};
 
 typedef struct biquad_ {
   double a0, a1, a2, b1, b2;
@@ -572,7 +572,7 @@ void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int TYPE)
       biquad->a2 = biquad->a0; 
       break;
   
-    case LP:
+    case LP1:
       k = 1.0/tan(csound->pidsr*fr);
       ksq = k*k;
       biquad->a0 = 1.0 / ( 1.0 + ROOT2 * k + ksq);
@@ -602,7 +602,7 @@ int plltrack_set(CSOUND *csound, PLLTRACK *p)
     p->x1 = p->cos_x = p->sin_x = 0.0;
     p->x2 = 1.0;
     p->klpf_o = p->klpfQ_o = p->klf_o = p->khf_o = 0.0; 
-    update_coefs(csound,10.0, 0.0, &p->fils[4], LP);
+    update_coefs(csound,10.0, 0.0, &p->fils[4], LP1);
     p->ace = p->xce = 0.0;
     for (i=0; i < 6; i++) 
       p->fils[i].del1 = p->fils[i].del2 = 0.0;
@@ -644,9 +644,9 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     scal = 2.0*csound->pidsr;
 
     if (p->khf_o != khf) {
-      update_coefs(csound, khf, 0.0, &biquad[0], LP);
-      update_coefs(csound, khf, 0.0, &biquad[1], LP);
-      update_coefs(csound, khf, 0.0, &biquad[2], LP);
+      update_coefs(csound, khf, 0.0, &biquad[0], LP1);
+      update_coefs(csound, khf, 0.0, &biquad[1], LP1);
+      update_coefs(csound, khf, 0.0, &biquad[2], LP1);
       p->khf_o = khf;
     }
 

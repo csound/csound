@@ -31,20 +31,22 @@
 int eventOpcode(CSOUND *csound, LINEVENT *p);
 int eventOpcodeI(CSOUND *csound, LINEVENT *p);
 
-int schedule(CSOUND *csound, SCHED *p){
-  LINEVENT pp;
-  unsigned int i;
-  pp.h = p->h;
-  char c[2] = "i";
-  pp.args[0] = (MYFLT *) c;
-  pp.args[1] = p->which;
-  pp.args[2] = p->when;
-  pp.args[3] = p->dur;
-  pp.INOCOUNT = p->INOCOUNT+1;
-  for(i=4; i < p->INOCOUNT ; i++) {
-    pp.args[i] = p->argums[i-4];
-  }
-  return eventOpcodeI(csound, &pp);
+int schedule(CSOUND *csound, SCHED *p)
+{
+    LINEVENT pp;
+    int i;
+    pp.h = p->h;
+    char c[2] = "i";
+    pp.args[0] = (MYFLT *) c;
+    pp.args[1] = p->which;
+    pp.args[2] = p->when;
+    pp.args[3] = p->dur;
+    pp.argno = p->INOCOUNT+1;
+    for (i=4; i < pp.argno ; i++) {
+      pp.args[i] = p->argums[i-4];
+    }
+    pp.flag = 1;
+    return eventOpcodeI(csound, &pp);
 }
 
 int ifschedule(CSOUND *csound, WSCHED *p)
@@ -54,25 +56,25 @@ int ifschedule(CSOUND *csound, WSCHED *p)
     return OK;
 }
 
-int kschedule(CSOUND *csound, WSCHED *p) {
-
-  if (p->todo && *p->trigger != FL(0.0)) {
-  LINEVENT pp;
-  unsigned int i;
-  pp.h = p->h;
-  char c[2] = "i";
-  pp.args[0] = (MYFLT *) c;
-  pp.args[1] = p->which;
-  pp.args[2] = p->when;
-  pp.args[3] = p->dur;
-  pp.INOCOUNT = p->INOCOUNT;
-  for(i=4; i < p->INOCOUNT ; i++) {
-    pp.args[i] = p->argums[i-4];
-  }
-  p->todo =0;
-  return eventOpcode(csound, &pp);
-  }
-  else return OK;
+int kschedule(CSOUND *csound, WSCHED *p) 
+{
+    if (p->todo && *p->trigger != FL(0.0)) {
+      LINEVENT pp;
+      int i;
+      pp.h = p->h;
+      char c[2] = "i";
+      pp.args[0] = (MYFLT *) c;
+      pp.args[1] = p->which;
+      pp.args[2] = p->when;
+      pp.args[3] = p->dur;
+      pp.argno = p->INOCOUNT+1;
+      for(i=4; i < pp.argno ; i++) {
+        pp.args[i] = p->argums[i-4];
+      }
+      p->todo =0;
+      return eventOpcode(csound, &pp);
+    }
+    else return OK;
 }
 
 /* tables are 4096 entries always */
@@ -173,8 +175,8 @@ int lfoa(CSOUND *csound, LFO *p)
     inc = (int32)((*p->xcps * (MYFLT)MAXPHASE) * csound->onedsr);
     amp = *p->kamp;
     ar = p->res;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -307,7 +309,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
 
     /* Check if mintime has changed */
     if (p->prvmintim != *p->mintime) {
-      int32 timrem = (int32) (*p->mintime * csound->global_ekr + FL(0.5));
+      int32 timrem = (int32) (*p->mintime * csound->ekr + FL(0.5));
       if (timrem > 0) {
         /* Adjust countdown for new mintime */
         p->timrem += timrem - p->prvktim;
@@ -368,7 +370,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
     }
     /* Reset min pause counter */
     if (*p->mintime > FL(0.0))
-      p->timrem = (int32) (*p->mintime * csound->global_ekr + FL(0.5));
+      p->timrem = (int32) (*p->mintime * csound->ekr + FL(0.5));
     else
       p->timrem = 0;
     return

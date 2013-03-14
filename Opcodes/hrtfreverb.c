@@ -276,7 +276,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       sr = 44100;
     p->sr = sr;
 
-    if (UNLIKELY(csound->esr != sr))
+    if (UNLIKELY(csound->GetSr(csound) != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible with"
                           " HRTF processing SR of: %.0f\n\n"), sr);
@@ -1023,11 +1023,11 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         ztf2 = p->ztf2;
       }
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outl, '\0', offset*sizeof(MYFLT));
       memset(outr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outr[nsmps], '\0', early*sizeof(MYFLT));

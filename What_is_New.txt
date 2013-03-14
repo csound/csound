@@ -14,6 +14,11 @@ What is New, What has Changed
 Build system in cmake (and not scons as in Csound5).  
 
 
+The loadable opcodes are found in the directory namd in the
+environment variables OPCODE6DIR64 or OPCODE6DIR (note the 6) so it
+can co-exist with Csound5
+
+
 Support for old hardware and C compilers has been removed; this
 includes Macintosh OS9 and earlier, Watcom, Borland and Symmantec C
 compilers. 
@@ -49,13 +54,20 @@ ires is 0 if successful and non-0 if compilation failed.
 The old parser is totally gone.
 
 New syntax in csound6 includes +=, -=, *= and /= operators
+Please use += and -= for accumulating reverbs as it gives better
+multicore behaviour.
+
+
+Multicore support is totally rewritten using a different algorithm for
+task-dispatch, which should use less memory and fewer locks.
+
 
 
 Opcodes like add, sub, mul and div are no longer available in opcode
 format, only via + - * /
 
 
-Functions taninv2 and divz now exist as well as opcodes
+Functions of two arguments taninv2 and divz now exist as well as opcodes
 
 
 Arrays....
@@ -76,8 +88,7 @@ Asynchronous file access....
 Functions for asynchronous audio file access have been added (see
 below)
 
-Analysis formats...
-
+Analysis formats:
 Hetro/adsyn analysis files can be machine byte-order independent if
 created with -X.  Down side is a longer file and a little slower
 loading.  The het_export utility will create the independent format
@@ -88,8 +99,22 @@ is used.  The convolve and lpred etc opcodes will accept either
 format.  You are excouraged to use the machine independent form.
 Analysis files produced with -X can be used on other systems.
 
+
 The number of strings that can be used in a score line is no longer
 just one.  It is open ended.
+
+Each instance of any instrument has a scratchpad of 4 values that
+persist; allows values to carry to next use of the instrument; hope it
+may be useful in legato etc.
+
+
+If a table number is given as -1 then an internal sine wav equivalent
+to "f. 0 8192 10 1" is used.  Attempts to write to this table will
+give unpredictable results, but is not policed.  The 8192 can be
+change by command line option --sine-size=# where the # is rounded up
+to a power of two.
+
+
 
 New API functions.....
 
@@ -165,8 +190,8 @@ int perf_myopcode(CSOUND *csound, MYOPCODE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
     ...
-    if (offset) memset(p->res, '\0', offset*sizeof(MYFLT));
-    if (early)  {
+    if (UNLIKELY(offset)) memset(p->res, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early))  {
       nsmps -= early;
       memset(&p->res[nsmps], '\0', early*sizeof(MYFLT));
     }

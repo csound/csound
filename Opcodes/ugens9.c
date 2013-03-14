@@ -93,10 +93,10 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     if ((p->nchanls == 1) && (*p->channel > 0))
       p->H += (Hlenpadded + 2) * (int)(*p->channel - 1);
 
-    if (UNLIKELY(cvh->samplingRate != csound->esr)) {
+    if (UNLIKELY(cvh->samplingRate != csound->GetSr(csound))) {
       /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
-                              cvfilnam, cvh->samplingRate, csound->esr);
+                              cvfilnam, cvh->samplingRate, csound->GetSr(csound));
     }
     if (UNLIKELY(cvh->dataFormat != CVMYFLT)) {
       return csound->InitError(csound,
@@ -167,7 +167,7 @@ static void writeFromCircBuf(
 
 static int convolve(CSOUND *csound, CONVOLVE *p)
 {
-    int    nsmpso=CS_KSMPS,nsmpsi=CS_KSMPS,nsmpso_sav,outcnt_sav;
+    int    nsmpso=CS_KSMPS,nsmpsi=CS_KSMPS,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
     int32  i,j;
     MYFLT  *ar[4];
@@ -186,7 +186,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     MYFLT  scaleFac;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nn;
+    uint32_t nn,nsmpso_sav;
 
     scaleFac = csound->GetInverseRealFFTScale(csound, (int) Hlenpadded);
     ar[0] = p->ar1;
@@ -221,7 +221,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
       incount += i;
       nsmpso_sav = CS_KSMPS-early;
       for (nn=0; i>0; nn++, i--) {
-        if (nn<offset|| nn>nsmpso_sav)
+        if (nn<offset|| nn>(uint32_t)nsmpso_sav)
           *fftbufind++ = FL(0.0);
         else
           *fftbufind++ = scaleFac * ai[nn];
@@ -404,14 +404,14 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
                                            "not equal to input channels"));
     }
 
-    if (UNLIKELY(IRfile.sr != csound->esr)) {
+    if (UNLIKELY(IRfile.sr != csound->GetSr(csound))) {
       /* ## RWD suggests performing sr conversion here! */
       csound->Warning(csound, "IR srate != orch's srate");
     }
 
     /* make sure the partition size is nonzero and a power of 2  */
     if (*p->partitionSize <= 0)
-      partitionSize = csound->oparms->outbufsamps / csound->nchnls;
+      partitionSize = csound->oparms->outbufsamps / csound->GetNchnls(csound);
     else
       partitionSize = *p->partitionSize;
 

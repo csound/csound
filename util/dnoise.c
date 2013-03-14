@@ -485,8 +485,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
                                      O->outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
-    csound->esr = (MYFLT) p->sr;
-    csound->nchnls = Chans = p->nchanls;
+
+    csound->SetUtilSr(csound, (MYFLT)p->sr); 
+    csound->SetUtilNchnls(csound, Chans = p->nchanls);
 
     /* read header info */
     if (R < FL(0.0))

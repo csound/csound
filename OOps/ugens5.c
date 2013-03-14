@@ -124,8 +124,8 @@ int tone(CSOUND *csound, TONE *p)
     }
     ar = p->ar;
     asig = p->asig;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -148,23 +148,24 @@ int tonsetx(CSOUND *csound, TONEX *p)
     }
     if (UNLIKELY((p->loop = (int) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (unsigned int)(p->loop*sizeof(double)) > p->aux.size))
-      csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
+                    (unsigned int)(p->loop*sizeof(double)) > p->aux.size))
+        csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
     if (LIKELY(!(*p->istor))) {
-      memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
+    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
     }
     return OK;
 }
 
 int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
 {
+    MYFLT       *ar = p->ar;
+    double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int    j;
-    MYFLT  *ar;
-    double c1, c2, *yt1;
+    int      j, lp = p->loop;
+
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = (double)*p->khp;
@@ -172,25 +173,20 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
-    c1 = p->c1;
-    c2 = p->c2;
-    yt1= p->yt1;
-    nsmps = CS_KSMPS;
-    ar = p->ar;
+   
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
-    if (offset)  memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (j=0; j< p->loop; j++) {
+    } 
+    for (j=0; j< lp; j++) {
       /* Should *yt1 be reset to something?? */
-      for (n=offset; n<nsmps; n++) {
+      for (n=0; n<nsmps; n++) {
         double x = c1 * ar[n] + c2 * yt1[j];
         yt1[j] = x;
         ar[n] = (MYFLT)x;
       }
-      yt1++;
     }
     return OK;
 }
@@ -233,8 +229,8 @@ int atone(CSOUND *csound, TONE *p)
 /*      p->c1 = c1 = 1.0 - c2; */
     }
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -267,8 +263,8 @@ int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
     }
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -346,7 +342,8 @@ int reson(CSOUND *csound, RESON *p)
     double      yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
 
     if (*p->kcf != (MYFLT)p->prvcf) {
-      p->prvcf = (double)*p->kcf;      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+      p->prvcf = (double)*p->kcf;
+      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
       flag = 1;                 /* Mark as changed */
     }
     if (*p->kbw != (MYFLT)p->prvbw) {
@@ -368,8 +365,8 @@ int reson(CSOUND *csound, RESON *p)
     }
     asig = p->asig;
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -448,8 +445,8 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     yt2  = p->yt2;
     ar = p->ar;
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -549,8 +546,8 @@ int areson(CSOUND *csound, RESON *p)
     }
     asig = p->asig;
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1031,8 +1028,8 @@ int lpreson(CSOUND *csound, LPRESON *p)
       }
     }
 
-    if (offset) memset(rslt, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1130,8 +1127,8 @@ int lpfreson(CSOUND *csound, LPFRESON *p)
       ampscale = FL(1.0);
     }
     x = p->prvout;
-    if (offset) memset(rslt, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1207,7 +1204,7 @@ int rms(CSOUND *csound, RMS *p)
 
     q = p->prvq;
     asig = p->asig;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (n=offset; n<nsmps; n++) {
       double as = (double)asig[n];
       q = c1 * as * as + c2 * q;
@@ -1228,7 +1225,7 @@ int gain(CSOUND *csound, GAIN *p)
 
     q = p->prvq;
     asig = p->asig;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (n = offset; n < nsmps-early; n++) {
       double as = (double)asig[n];
       q = c1 * as * as + c2 * q;
@@ -1239,8 +1236,8 @@ int gain(CSOUND *csound, GAIN *p)
     else
       a = *p->krms;
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1275,8 +1272,8 @@ int balance(CSOUND *csound, BALANCE *p)
     asig = p->asig;
     csig = p->csig;
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1432,8 +1429,8 @@ int limit(CSOUND *csound, LIMIT *p)
     ans = p->ans;
     asig  = p->sig;
 
-    if (offset) memset(ans, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ans, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
     }

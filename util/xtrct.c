@@ -274,12 +274,13 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     O->sfheader = 1;
     if (O->outfilename == NULL)
       O->outfilename = "test";
-    csound->esr = (MYFLT)xtrc.p->sr;
-    csound->nchnls = xtrc.outputs;
+
+    csound->SetUtilSr(csound, (MYFLT)xtrc.p->sr); 
+    csound->SetUtilNchnls(csound, xtrc.outputs);
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
-    sfinfo.channels = csound->nchnls;
+    sfinfo.samplerate = (int) ((MYFLT)xtrc.p->sr + FL(0.5));
+    sfinfo.channels = xtrc.outputs;
     sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     /* open file for write */
     fd = NULL;
@@ -313,7 +314,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
     SNDFILE*    infd;
     MYFLT       dur;
 
-    csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
+    csound->SetUtilSr(csound,FL(0.0));      /* set esr 0. with no orchestra   */
     x->p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     x->p->channel = ALLCHNLS;
     x->p->skiptime = FL(0.0);

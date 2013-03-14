@@ -61,8 +61,10 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
+    STA(linebufsiz) = LBUFSIZ;
+    STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     STA(prve).opcod = ' ';
-    STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
+    STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
 #if defined(DOSGCC) || defined(WIN32)
@@ -134,10 +136,20 @@ static inline int containsLF(char *cp, char *endp)
     return 0;
 }
 
-static CS_NOINLINE int linevent_alloc(CSOUND *csound)
+static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
 {
     volatile jmp_buf tmpExitJmp;
     int         err;
+
+    if(reallocsize > 0) {
+      STA(Linebuf) = (char *) csound->ReAlloc(csound, (void *) STA(Linebuf), reallocsize);
+      STA(linebufsiz) = reallocsize;
+      STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
+    } else if(STA(Linebuf)==NULL) {
+       STA(linebufsiz) = LBUFSIZ;
+       STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
+    }
+    if(STA(Linebuf) == NULL) return 1;
 
     if (STA(Linep)) return 0;
     csound->Linefd = -1;
@@ -151,7 +163,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
     /*     (LINEVENT_GLOBALS*) mcalloc(csound, sizeof(LINEVENT_GLOBALS)); */
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     STA(prve).opcod = ' ';
-    STA(Linebufend) = STA(Linebuf) + LBUFSIZ;
+    STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
 
@@ -166,14 +178,16 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int32  size = (int32) strlen(message);
     int n;
 
-    if ((n=linevent_alloc(csound)) != 0) return;
+    if ((n=linevent_alloc(csound, 0)) != 0) return;
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
+      int extralloc = STA(Linep) + size - STA(Linebufend);
+      if ((n=linevent_alloc(csound, STA(linebufsiz) + extralloc ), 0) != 0){
       csoundErrorMsg(csound, Str("LineBuffer Overflow - "
                                  "Input Data has been Lost"));
       return;
+      }
     }
-
     memcpy(STA(Linep), message, size);
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';
@@ -203,7 +217,7 @@ static void sensLine(CSOUND *csound, void *userData)
         EVTBLK  e;
         char    *sstrp = NULL;
         int     scnt = 0;
-        int     strsiz;
+        int     strsiz = 0;
         e.strarg = NULL;
         c = *cp;
         while (c == ' ' || c == '\t')   /* skip initial white space */
@@ -349,7 +363,9 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
       return csound->PerfError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
-    evt.pcnt = p->INOCOUNT - 1;
+    if(p->flag==1) evt.pcnt = p->argno;
+    else
+      evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (p->XSTRCODE & 2) {
@@ -378,14 +394,16 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
     EVTBLK  evt;
     int     i, err = 0;
     char    opcod;
-
+    
     opcod = ((char*) p->args[0])[0];
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') || ((char*) p->args[0])[1] != '\0'))
       return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
-    evt.pcnt = p->INOCOUNT - 1;
+    if(p->flag==1) evt.pcnt = p->argno;
+    else
+      evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (p->XSTRCODE & 2) {
@@ -393,13 +411,14 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
           return csound->InitError(csound, Str(errmsg_2));
         evt.p[1] = SSTRCOD;
         evt.strarg = (char*) p->args[1];
+        for (i = 2; i <= evt.pcnt; i++)
+           evt.p[i] = *p->args[i];
       }
       else {
-        evt.p[1] = *p->args[1];
-        evt.strarg = NULL;
-      }
-      for (i = 2; i <= evt.pcnt; i++)
+	evt.strarg = NULL;
+      for (i = 1; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
+      }
     }
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;

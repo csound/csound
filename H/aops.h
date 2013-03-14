@@ -165,3 +165,18 @@ typedef struct {
     MYFLT   *res, *arg;
 } ERRFN;
 
+typedef struct MONITOR_OPCODE_ {
+    OPDS    h;
+    MYFLT   *ar[24];
+} MONITOR_OPCODE;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *kstartChan, *argums[VARGMAX];
+        int narg;
+} OUTRANGE;
+
+int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
+int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
+int outRange_i(CSOUND *csound, OUTRANGE *p);
+int outRange(CSOUND *csound, OUTRANGE *p);

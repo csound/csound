@@ -468,7 +468,7 @@
 #if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
 #  define PUBLIC        __declspec(dllexport)
 #elif defined(__GNUC__) && (__GNUC__ >= 4) /* && !defined(__MACH__) */
-#  define PUBLIC        __attribute__ ( (visibility("default")) )
+#  define PUBLIC    __attribute__ ( (visibility("default")) )
 #  define HAVE_ATOMIC_BUILTIN
 #else
 #  define PUBLIC
@@ -616,9 +616,7 @@ extern "C" {
 
         /* analysis formats */
         CSFTYPE_HETRO,
-#ifdef JPFF
         CSFTYPE_HETROT,
-#endif
         CSFTYPE_PVC,               /* original PVOC format */
         CSFTYPE_PVCEX,             /* PVOC-EX format */
         CSFTYPE_CVANAL,
@@ -709,6 +707,25 @@ extern "C" {
     int     control_rate_override; /* overriding control rate */
   } CSOUND_PARAMS;
 
+    /**
+     * Device information
+     */
+    typedef struct {
+      char device_name[64];
+      char device_id[64];
+      char rt_module[64];
+      int max_nchnls;
+      int isOutput;
+    } CS_AUDIODEVICE;
+
+    typedef struct {
+      char device_name[64];
+      char interface_name[64];
+      char device_id[64];
+      char midi_module[64];
+      int isOutput;
+    } CS_MIDIDEVICE;
+    
 
     /**
      * Real-time audio parameters structure
@@ -1049,10 +1066,12 @@ extern "C" {
      *
      *  @{
      */
+
+ 
    /**
-    * Returns the output sound file name (-o).
+    * Returns the output audio output name (-o).
     */
-  PUBLIC const char *csoundGetOutputFileName(CSOUND *);
+  PUBLIC const char *csoundGetOutputName(CSOUND *);
 
    /**
     *  Set output destination, type and format
@@ -1061,6 +1080,7 @@ extern "C" {
     *  "flac", "caf","wve","ogg","mpc2k","rf64", or NULL (use default or realtime IO).
     *  format can be one of "alaw", "schar", "uchar", "float", "double", "long",
     *  "short", "ulaw", "24bit", "vorbis", or NULL (use default or realtime IO).
+    *   For RT audio, use device_id from CS_AUDIODEVICE for a given audio device.
     *
     */
   PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format);
@@ -1112,6 +1132,27 @@ extern "C" {
      *
      *  @{
      */
+
+     /**
+     *  Sets the current RT audio module 
+     */
+    PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module);
+
+     /**
+      * retrieves a module name and type ("audio" or "midi")
+      * given a number
+      * Modules are added to list as csound loads them
+      * returns CSOUND_SUCCESS on success and CSOUND_ERROR if module <number> was not found
+      * 
+       * \code
+      *  char *name, *type;
+      *  int n = 0;
+      *  while(!csoundGetModule(csound, n++, &name, &type)) 
+      *       printf("Module %d:  %s (%s) \n", n, name, type);
+      * \endcode       
+      */
+   PUBLIC int csoundGetModule(CSOUND *csound, int number, char **name, char **type);
+
     /**
      * Returns the number of samples in Csound's input buffer.
      */
@@ -1178,7 +1219,7 @@ extern "C" {
 
     /**
      * Calling this function with a non-zero 'state' value between
-     * csoundPreCompile() and csoundCompile() will disable all default
+     * csoundPreCompile() and the start of performance will disable all default
      * handling of sound I/O by the Csound library, allowing the host
      * application to use the spin/spout/input/output buffers directly.
      * If 'bufSize' is greater than zero, the buffer size (-b) will be
@@ -1186,6 +1227,30 @@ extern "C" {
      * specified.
      */
     PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state, int bufSize);
+
+
+     /**
+      * This function can be called to obtain a list of available input or output
+      * audio devices. If list is NULL, the function will only return the number
+      * of devices (isOutput=1 for out devices, 0 for in devices).
+      * If list is non-NULL, then it should contain enough memory for one CS_AUDIODEVICE
+      * structure per device.
+      * Hosts will typically call this function twice: first to obtain a number of devices,
+      * then, after allocating space for each device information structure, pass
+      * an array of CS_AUDIODEVICE structs to be filled:
+      *
+      * \code
+      *   int i,n = csoundAudioDevList(csound,NULL,1);
+      *   CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *) 
+      *       malloc(n*sizeof(CS_AUDIODEVICE));
+      *   csoundAudioDevList(csound,devs,1);
+      *   for(i=0; i < n; i++) 
+      *       csound->Message(csound, " %d: %s (%s)\n", 
+      *             i, devs[i].device_id, devs[i].device_name);
+      *   free(devs);        
+      * \endcode
+      */
+    PUBLIC int csoundAudioDevList(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput);
 
     /**
      * Sets a function to be called by Csound for opening real-time
@@ -1225,11 +1290,35 @@ extern "C" {
      */
     PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
 
+    /**
+     * Sets a function that is called to obtain a list of audio devices
+     * (See csoundAudioDevList())
+     */
+    PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
+						 int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+
     /** @}*/
     /** @defgroup RTMIDI Realtime Midi I/O
      *
      *  @{
      */
+
+    /**
+     *  Sets the current MIDI IO module 
+     */
+    PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module);
+
+    /**
+      * This function can be called to obtain a list of available input or output
+      * midi devices. If list is NULL, the function will only return the number
+      * of devices (isOutput=1 for out devices, 0 for in devices).
+      * If list is non-NULL, then it should contain enough memory for one CS_MIDIDEVICE
+      * structure per device.
+      * Hosts will typically call this function twice: first to obtain a number of devices,
+      * then, after allocating space for each device information structure, pass
+      * an array of CS_MIDIDEVICE structs to be filled. (see also csoundAudioDevList())
+      */
+    PUBLIC int csoundMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput);
 
     /**
      * Sets callback for opening real time MIDI input.
@@ -1274,6 +1363,14 @@ extern "C" {
      */
     PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
             const char *(*func)(int));
+   
+    
+    /**
+     * Sets a function that is called to obtain a list of MIDI devices
+     * (See csoundMIDIDevList())
+     */
+    PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
+						int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
 
     /** @}*/
     /** @defgroup SCOREHANDLING Score Handling
@@ -2495,6 +2592,11 @@ extern "C" {
     PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *);
 #endif
 
+PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
+
+PUBLIC int csoundCloseLibrary(void *library);
+
+PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName);
 
 
 #ifdef __cplusplus

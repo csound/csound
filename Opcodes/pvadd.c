@@ -161,13 +161,13 @@ int pvadd(CSOUND *csound, PVADD *p)
 
     ar = p->rslt;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     oscphase = p->oscphase;
     for (i = (int) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;
       phase = (int32) *oscphase;
       frq = p->buf[i * 2 + 1] * *p->kfmod;
-      if (p->buf[i * 2 + 1] == FL(0.0) || frq >= csound->esr * FL(0.5)) {
+      if (p->buf[i * 2 + 1] == FL(0.0) || frq >= csound->GetSr(csound) * FL(0.5)) {
         incr = 0;               /* Hope then does not matter */
         amp = FL(0.0);
       }
@@ -221,7 +221,7 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
     p->maxFr    = pp.nframes - 1;
     p->asr      = pp.srate;
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->esr / (MYFLT) pp.overlap;
+    p->frPrtim = csound->GetSr(csound) / (MYFLT) pp.overlap;
     return OK;
 }
 

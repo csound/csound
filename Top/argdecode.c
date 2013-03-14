@@ -63,9 +63,7 @@ static const char *shortUsageList[] = {
   Str_noop("--help\tprint long usage options"),
   Str_noop("-U unam\trun utility program unam"),
   Str_noop("-C\tuse Cscore processing of scorefile"),
-#ifdef PARCS
-  Str_noop("-j N\tuse N processes"),
-#endif
+  Str_noop("-j N\tuse N processes in performance"),
   Str_noop("-I\tI-time only orch run"),
   Str_noop("-n\tno sound onto disk"),
   Str_noop("-i fnam\tsound input filename"),
@@ -217,12 +215,8 @@ static const char *longUsageList[] = {
   Str_noop("\t\t\tvelocity number to pfield N as amplitude"),
   Str_noop("--no-default-paths\tTurn off relative paths from CSD/ORC/SCO"),
   Str_noop("--sample-accurate\t\tUse sample-accurate timing of score events"),
-#ifdef PARCS
-  Str_noop("--weight-info=F\t\tFile of weight information"),
-  Str_noop("--weight-dump=F\t\tFile to save weight information"),
-  Str_noop("--compute-weights\t\tUse opcode weigts"),
-#endif
-  Str_noop("--realtime \t\t realtime priority mode"),
+  Str_noop("--realtime\t\trealtime priority mode"),
+  Str_noop("--sinesize\t\tlegth of internal sine table"),
   " ",
   Str_noop("--help\t\t\tLong help"),
   
@@ -781,9 +775,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       if (*s != '\0') {
         if (isdigit(*s)) full = *s++ - '0';
       }
-      csoundLoadExternals(csound);
-      if (csoundInitModules(csound) != 0)
-        csound->LongJmp(csound, 1);
+      /* VL: moved to csoundReset() in csound.c
+              csoundLoadExternals(csound);
+              if (csoundInitModules(csound) != 0)
+	      csound->LongJmp(csound, 1); */
       list_opcodes(csound, full);
       csound->LongJmp(csound, 0);
     }
@@ -871,37 +866,23 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       longusage(csound);
       csound->LongJmp(csound, 0);
     }
-#ifdef PARCS
-    else if (!(strncmp(s, "weight-info=", 12))) {
-      s += 12;
-      if (*s=='\0') dieu(csound, Str("no weight-info"));
-      csound->weight_info = s;
-      return 1;
-    }
-    else if (!(strncmp(s, "weight-dump=", 12))) {
-      s += 12;
-      if (*s=='\0') dieu(csound, Str("no weight-dump"));
-      csound->weight_dump = s;
-      return 1;
-    }
-    else if (!(strncmp(s, "weights=", 8))) {
-      s += 8;
-      if (*s=='\0') dieu(csound, Str("no weights"));
-      csound->weights = s;
-      return 1;
-    }
-    else if (!(strcmp(s, "compute-weights"))) {
-      O->calculateWeights = 1;
-      return 1;
-    }
-#endif
-    else if (!(strcmp(s, "sample-accurate"))){
+    else if (!(strcmp(s, "sample-accurate"))) {
       O->sampleAccurate = 1;
       return 1;
     }
-    else if (!(strcmp(s, "realtime"))){
+    else if (!(strcmp(s, "realtime"))) {
       O->realtime = 1;
       return 1;
+    }
+    else if (!(strncmp(s, "sinesize=", 9))) {
+      {
+        int i = 1, n;
+        s += 9;
+        n = atoi(s);
+        while (i<=n && i< MAXLEN) i <<= 1;
+        csound->sinelength = i;
+        return 1;
+      }
     }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
@@ -1140,9 +1121,10 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               if (*s != '\0') {
                 if (isdigit(*s)) full = *s++ - '0';
               }
+	      /* VL: moved to csoundReset() in csound.c
               csoundLoadExternals(csound);
               if (csoundInitModules(csound) != 0)
-                csound->LongJmp(csound, 1);
+	      csound->LongJmp(csound, 1); */
               list_opcodes(csound, full);
             }
             csound->LongJmp(csound, 0);
@@ -1249,7 +1231,6 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   oparms->syntaxCheckOnly = p->syntax_check_only;
   oparms->sampleAccurate = p->sample_accurate;
   oparms->realtime = p->realtime_mode;
-  oparms->calculateWeights = p->compute_weights;
 
   /* message level */
   if(p->message_level > 0)
@@ -1308,7 +1289,6 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
   p->syntax_check_only = oparms->syntaxCheckOnly;
   p->sample_accurate = oparms->sampleAccurate;
   p->realtime_mode = oparms->realtime;
-  p->compute_weights = oparms->calculateWeights;
   p->message_level = oparms->msglevel;
   p->tempo = oparms->cmdTempo;
   p->buffer_frames = oparms->outbufsamps;

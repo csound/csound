@@ -1079,10 +1079,9 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       opcode_name = fld->opcode_name = ((OPDS *) (v.opcode))->optext->t.opcod;
       if (UNLIKELY(opcode_name.c_str() == NULL))
         {
-          csound->InitError(csound, "%s",
-                                   Str("Invalid snapshot. Perhaps you modified "
-                                       "orchestra widget code after you saved "
-                                       "the snapshot bank."));
+          csound->InitError(csound, Str("Invalid snapshot. Perhaps you modified "
+                                        "orchestra widget code after you saved "
+                                        "the snapshot bank."));
           goto err;
         }
       else if (opcode_name == "FLslider") {
@@ -1306,7 +1305,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 {
     if (is_empty == 1) {
       /*  FIXME: should have CSOUND* pointer here */
-      /*  return csound->InitError(csound, "empty snapshot"); */
+      /*  return csound->InitError(csound, Str("empty snapshot")); */
       return -1;
     }
     FLlock(); //<=================
@@ -1523,13 +1522,13 @@ extern "C" {
             table[index*numfields+j] = snap.fields[j].value;
           }
         }
-        else return csound->InitError(csound, "%s",
-                                             Str("FLsetsnap: invalid table"));
+        else return csound->InitError(csound,
+                                      Str("FLsetsnap: invalid table"));
       }
       else { // else store it into snapshot bank
         if ((int) ST(snapshots)[group].size() < index+1)
           ST(snapshots)[group].resize(index+1);
-        csound->Message(csound, "setsnap saving\n");
+        csound->Message(csound, Str("setsnap saving\n"));
         ST(snapshots)[group][index]=snap;
         *p->inum_snap = ST(snapshots)[group].size();
       }
@@ -1563,7 +1562,7 @@ extern "C" {
       string  filename;
 #ifdef WIN32
       int id = MessageBox(NULL, Str("Saving could overwrite the old file.\n"
-                                    "Are you sure to save ?"), "Warning",
+                                    "Are you sure to save ?"), Str("Warning"),
                           MB_SYSTEMMODAL | MB_ICONWARNING | MB_OKCANCEL);
       if (id != IDOK)
         return OK;
@@ -1585,7 +1584,7 @@ extern "C" {
       csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
       s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
       if (UNLIKELY(s2 == NULL))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLsavesnap: cannot open file"));
       strcpy(s, s2);
       csound->Free(csound, s2);
@@ -1639,7 +1638,7 @@ extern "C" {
       csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
       s2 = csound->FindInputFile(csound, s, "SNAPDIR");
       if (UNLIKELY(s2 == NULL))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLloadsnap: cannot open file"));
       strcpy(s, s2);
       csound->Free(csound, s2);
@@ -1685,7 +1684,6 @@ extern "C" {
           if (UNLIKELY(!(opc_orig == opc))) {
             //return csound->InitError(csound,
             csound->Message(csound,
-                            "%s",
                             Str("unmatched widget, probably due to a "
                                 "modified orchestra. Modifying an "
                                 "orchestra makes it incompatible with "
@@ -2189,7 +2187,7 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
 
       _exit(0);
     } else if (UNLIKELY(pId < 0)) {
-      p->csound->Message(p->csound, "%s",
+      p->csound->Message(p->csound,
                          Str("Error: Unable to fork process\n"));
     }
 
@@ -2610,11 +2608,11 @@ extern "C" {
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLpanel")))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLpanel_end: invalid stack pointer: "
                                      "verify its placement"));
       if (UNLIKELY(adrstk.count != ST(stack_count)))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLpanel_end: invalid stack count: "
                                      "verify FLpanel/FLpanel_end count and"
                                      " placement"));
@@ -2640,11 +2638,11 @@ extern "C" {
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLscroll")))
         return
-          csound->InitError(csound, "%s",
+          csound->InitError(csound,
                             Str("FLscroll_end: invalid stack pointer: "
                                 "verify its placement"));
       if (UNLIKELY(adrstk.count != ST(stack_count)))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                             Str("FLscroll_end: invalid stack count: "
                                 "verify FLscroll/FLscroll_end count "
                                 "and placement"));
@@ -2673,14 +2671,14 @@ extern "C" {
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLtabs")))
         return
-          csound->InitError(csound, "%s",
-                                    Str("FLscroll_end: invalid stack pointer: "
-                                        "verify its placement"));
+          csound->InitError(csound,
+                            Str("FLscroll_end: invalid stack pointer: "
+                                "verify its placement"));
       if (UNLIKELY(adrstk.count != ST(stack_count)))
-        return csound->InitError(csound, "%s",
-                                         Str("FLtabs_end: invalid stack count: "
-                                             "verify FLtabs/FLtabs_end count and "
-                                             "placement"));
+        return csound->InitError(csound,
+                                 Str("FLtabs_end: invalid stack count: "
+                                     "verify FLtabs/FLtabs_end count and "
+                                     "placement"));
       ((Fl_Scroll*) adrstk.WidgAddress)->end();
 
       ST(AddrStack).pop_back();
@@ -2722,11 +2720,11 @@ extern "C" {
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLgroup")))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLgroup_end: invalid stack pointer: "
                                      "verify its placement"));
       if (UNLIKELY(adrstk.count != ST(stack_count)))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLgroup_end: invalid stack count: "
                                      "verify FLgroup/FLgroup_end count and"
                                      " placement"));
@@ -2762,11 +2760,11 @@ extern "C" {
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLpack")))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLpack_end: invalid stack pointer: "
                                      "verify its placement"));
       if (UNLIKELY(adrstk.count != ST(stack_count)))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLpack_end: invalid stack count: "
                                      "verify FLpack/FLpack_end count and "
                                      "placement"));
@@ -2848,8 +2846,8 @@ static int fl_getWidgetTypeFromOpcodeName(CSOUND *csound, void *p)
       return 4;
     if (strcmp(opname, "FLbox") != 0)
       return 0;
-    csound->Warning(csound, "System error: value() method called from "
-                    "non-valuator object");
+    csound->Warning(csound, Str("System error: value() method called from "
+                                "non-valuator object"));
     return -1;
 }
 
@@ -2920,7 +2918,7 @@ extern "C" {
 
       widgetType = fl_getWidgetTypeFromOpcodeName(csound, v.opcode);
       if (UNLIKELY(widgetType == 4)) {
-        csound->InitError(csound, "%s",
+        csound->InitError(csound,
                           Str("FLvalue cannot be set by FLsetVal.\n"));
         return NOTOK;
       }
@@ -2958,7 +2956,7 @@ extern "C" {
 
       widgetType = fl_getWidgetTypeFromOpcodeName(csound, v.opcode);
       if (UNLIKELY(widgetType == 4)) {
-        csound->InitError(csound, "%s",
+        csound->InitError(csound,
                           Str("FLvalue cannot be set by FLsetVal\n"));
         return NOTOK;
       }
@@ -3325,7 +3323,7 @@ extern "C" {
         itype = itype - 20;
       }
       if (UNLIKELY(itype > 10 && iexp == EXP_)) {
-        csound->Warning(csound, "%s",
+        csound->Warning(csound,
                         Str("FLslider exponential, using non-labeled slider"));
         itype -= 10;
       }
@@ -3348,7 +3346,7 @@ extern "C" {
       case 4:  o->type(FL_VERT_SLIDER); break;
       case 5:  o->type(FL_HOR_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
       case 6:  o->type(FL_VERT_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
-      default: return csound->InitError(csound, "%s",
+      default: return csound->InitError(csound,
                                         Str("FLslider: invalid slider type"));
       }
       if (plastic) o->box(FL_PLASTIC_DOWN_BOX);
@@ -3361,7 +3359,7 @@ extern "C" {
         break;
       case EXP_ : //exponential
         if (UNLIKELY(min == 0 || max == 0))
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
                                    Str("FLslider: zero is illegal "
                                        "in exponential operations"));
         range = max - min;
@@ -3423,7 +3421,7 @@ extern "C" {
                    csound->zklast > (long)(*p->inumsliders+*p->ioutablestart_ndx)))
           outable = csound->zkstart + (long) *p->ioutablestart_ndx;
         else {
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
                                    Str("invalid ZAK space allocation"));
         }
       }
@@ -3538,7 +3536,7 @@ extern "C" {
         case EXP_ : //exponential
           if (UNLIKELY(min == 0 || max == 0))
             return
-              csound->InitError(csound, "%s",
+              csound->InitError(csound,
                                 Str("FLslidBnk: zero is illegal "
                                     "in exponential operations"));
           range = max - min;
@@ -3636,7 +3634,7 @@ extern "C" {
         o->xbounds(*p->iminx,*p->imaxx); break;
       case EXP_: //exponential
         { if (UNLIKELY(*p->iminx == 0 || *p->imaxx == 0))
-            return csound->InitError(csound, "%s",
+            return csound->InitError(csound,
                                      Str("FLjoy X axe: zero is illegal "
                                          "in exponential operations"));
           MYFLT range = *p->imaxx - *p->iminx;
@@ -3670,7 +3668,7 @@ extern "C" {
         o->ybounds(*p->imaxy,*p->iminy); break;
       case EXP_ : //exponential
         { if (UNLIKELY(*p->iminy == 0 || *p->imaxy == 0))
-            return csound->InitError(csound, "%s",
+            return csound->InitError(csound,
                                      Str("FLjoy X axe: zero is illegal "
                                          "in exponential operations"));
           MYFLT range = *p->imaxy - *p->iminy;
@@ -3765,7 +3763,7 @@ extern "C" {
         o->box(_FL_OSHADOW_BOX);
         break;
       default:
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLknob: invalid knob type"));
       }
       widget_attributes(csound, o);
@@ -3781,7 +3779,7 @@ extern "C" {
         {
           MYFLT min = p->min = *p->imin, max = *p->imax;
           if (UNLIKELY(min == 0 || max == 0))
-            return csound->InitError(csound, "%s",
+            return csound->InitError(csound,
                                      Str("FLknob: zero is illegal "
                                          "in exponential operations"));
           MYFLT range = max - min;
@@ -3924,7 +3922,7 @@ extern "C" {
         }
         break;
       default:
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLbutton: invalid button type"));
       }
       Fl_Button *o = w;
@@ -3957,7 +3955,7 @@ extern "C" {
 
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLpanel")))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLcloseButton: invalid stack"
                                      " pointer: verify its placement"));
 
@@ -3980,7 +3978,7 @@ extern "C" {
       csound->Message(csound, Str("Command Found: %s\n"), p->commandString);
 
       w = new Fl_Button((int)*p->ix, (int)*p->iy,
-                        (int)*p->iwidth, (int)*p->iheight, "About");
+                        (int)*p->iwidth, (int)*p->iheight, Str("About"));
 
       Fl_Button *o = w;
 
@@ -4049,7 +4047,7 @@ extern "C" {
               w->down_box(FL_PLASTIC_DOWN_BOX);
             }
             break;
-          default: return csound->InitError(csound, "%s",
+          default: return csound->InitError(csound,
                                             Str("FLbuttonBank: "
                                                 "invalid button type"));
           }
@@ -4155,7 +4153,7 @@ extern "C" {
         o->type(FL_VERTICAL);
         break;
       default:
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLroller: invalid roller type"));
       }
       widget_attributes(csound, o);
@@ -4169,7 +4167,7 @@ extern "C" {
         {
           MYFLT min = p->min, max = *p->imax;
           if (UNLIKELY(min == 0 || max == 0))
-            return csound->InitError(csound, "%s",
+            return csound->InitError(csound,
                                      Str("FLslider: zero is illegal "
                                          "in exponential operations"));
           MYFLT range = max - min;
@@ -4207,11 +4205,11 @@ extern "C" {
 
   static int FLprintkset(CSOUND *csound, FLPRINTK *p)
   {
-      if (*p->ptime < FL(1.0) / csound->global_ekr)
-        p->ctime = FL(1.0) / csound->global_ekr;
+    if (*p->ptime < FL(1.0) / csound->GetKr(csound))
+      p->ctime = FL(1.0) / csound->GetKr(csound);
       else        p->ctime = *p->ptime;
 
-      p->initime = (MYFLT) csound->kcounter * csound->onedkr;
+      p->initime = (MYFLT) csound->GetKcounter(csound) * csound->onedkr;
       p->cysofar = -1;
       return OK;
   }
@@ -4221,7 +4219,7 @@ extern "C" {
       MYFLT   timel;
       long    cycles;
 
-      timel = ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
+      timel = ((MYFLT) csound->GetKcounter(csound) * csound->onedkr) - p->initime;
       cycles = (long)(timel / p->ctime);
       if (p->cysofar < cycles) {
         p->cysofar = cycles;
@@ -4352,7 +4350,7 @@ extern "C" {
   static int fl_hvsbox(CSOUND *csound,FL_HVSBOX *p)
   {
       if (UNLIKELY(*p->numlinesX < 2 || *p->numlinesY < 2))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLhvsBox: a square area must be"
                                      " delimited by 2 lines at least"));
 
@@ -4401,11 +4399,11 @@ extern "C" {
         if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL))
           p->table = ftp->ftable;
         else {
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
                                    Str("FLkeyIn: invalid table number"));
         }
         if (UNLIKELY(ftp->flen < 512)) {
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
                                    Str("FLkeyIn: table too short!"));
         }
       }
@@ -4500,7 +4498,7 @@ extern "C" {
                    csound->zklast>(long)(*p->inumsliders+*p->ioutablestart_ndx)))
           outable = csound->zkstart + (long) *p->ioutablestart_ndx;
         else {
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
 			           Str("invalid ZAK space allocation"));
         }
       }
@@ -4624,7 +4622,7 @@ extern "C" {
         case EXP_ : //exponential
           if (UNLIKELY(min == 0 || max == 0))
             return
-              csound->InitError(csound, "%s",
+              csound->InitError(csound,
                                 Str("FLvslidBnk: zero is illegal "
                                     "in exponential operations"));
           range = max - min;
@@ -4713,7 +4711,7 @@ extern "C" {
                    csound->zklast>(long)(*p->inumsliders + *p->ioutablestart_ndx)))
           outable = csound->zkstart + (long) *p->ioutablestart_ndx;
         else {
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
                                    Str("invalid ZAK space allocation"));
         }
       }
@@ -4751,7 +4749,7 @@ extern "C" {
           slider_type = slider_type - 20;
         }
         if (UNLIKELY(slider_type > 10 && iexp == EXP_)) {
-          csound->Warning(csound, "%s",
+          csound->Warning(csound,
                           Str("FLslider exponential, using non-labeled slider"));
           slider_type -= 10;
         }
@@ -4802,7 +4800,7 @@ extern "C" {
         case EXP_ : //exponential
           if (UNLIKELY(min == 0 || max == 0))
             return
-              csound->InitError(csound, "%s",
+              csound->InitError(csound,
                                 Str("FLsliderBank: zero is illegal "
                                     "in exponential operations"));
           range = max - min;
@@ -4892,7 +4890,7 @@ extern "C" {
                    csound->zklast>(long)(*p->inumsliders + *p->ioutablestart_ndx)))
           outable = csound->zkstart + (long) *p->ioutablestart_ndx;
         else {
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
                                    Str("invalid ZAK space allocation"));
         }
       }
@@ -4931,7 +4929,7 @@ extern "C" {
           slider_type -= 20;
         }
         if (UNLIKELY(slider_type > 10 && iexp == EXP_)) {
-          csound->Warning(csound, "%s",
+          csound->Warning(csound,
                           Str("FLslidBnk2: FLslider exponential, "
                               "using non-labeled slider"));
           slider_type -= 10;
@@ -4982,7 +4980,7 @@ extern "C" {
         case EXP_ : //exponential
           if (UNLIKELY(min == 0 || max == 0))
             return
-              csound->InitError(csound, "%s",
+              csound->InitError(csound,
                                 Str("FLsliderBank: zero is illegal "
                                     "in exponential operations"));
           range = max - min;
@@ -5063,12 +5061,12 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
         table = ftp->ftable;
       else {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLsldBnkSet: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
       if (UNLIKELY( ftp->flen < startInd + numslid)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSet: table too short!"));
       }
       FLSLIDERBANK *q = (FLSLIDERBANK *)ST(AddrSetValue)[ (int) *p->ihandle].opcode;
@@ -5076,12 +5074,12 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, q->ioutable)) != NULL))
         outable = ftp->ftable;
       else {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLsldBnkSet: invalid outable number"));
       }
       if (numslid == 0) numslid = (int)(q->elements - *p->startSlid);
       if (UNLIKELY( q->elements > startSlid + numslid)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSet: too many sliders to reset!"));
       }
       for (int j = startSlid, k = startInd; j< numslid + startSlid; j++, k++) {
@@ -5105,7 +5103,7 @@ extern "C" {
           }
           break;
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
                                    Str("FLslidBnkSet: "
                                        "function mapping not available"));
         }
@@ -5129,12 +5127,12 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
         table = ftp->ftable;
       else {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLsldBnkSet: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
       if (UNLIKELY( ftp->flen < startInd + numslid)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSet: table too short!"));
       }
       FLSLIDERBANK2 *q =
@@ -5143,13 +5141,13 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, q->ioutable)) != NULL))
         outable = ftp->ftable;
       else {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLsldBnkSet: invalid outable number"));
       }
 
       if (numslid == 0) numslid = (int)(q->elements - *p->startSlid);
       if (UNLIKELY( q->elements > startSlid + numslid)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSet: too many sliders to reset!"));
       }
 
@@ -5177,7 +5175,7 @@ extern "C" {
           {
             //      val = table[k];
             if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-              csound->PerfError(csound, "%s",
+              csound->PerfError(csound,
                                 Str("FLslidBnk2Setk: value out of range: "
                                     "function mapping requires a 0 to 1 "
                                     "range for input"));
@@ -5207,12 +5205,12 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
         p->table = ftp->ftable;
       else {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                   Str("FLsldBnkSetk: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
       if (UNLIKELY( ftp->flen < p->startind + p->numslid)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSetk: table too short!"));
       }
       p->q = (FLSLIDERBANK2 *) ST(AddrSetValue)[ (int) *p->ihandle].opcode;
@@ -5220,13 +5218,13 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->q->ioutable)) != NULL))
         p->outable = ftp->ftable;
       else {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLsldBnkSetk: invalid outable number"));
       }
 
       if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
       if (UNLIKELY( p->q->elements < p->startslid + p->numslid)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSetk: too many sliders to reset!"));
       }
       return OK;
@@ -5265,7 +5263,7 @@ extern "C" {
             {
               val = table[k];
               if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-                csound->PerfError(csound, "%s",
+                csound->PerfError(csound,
                                   Str("FLslidBnk2Setk: value out of range:"
                                       " function mapping requires a 0 to 1"
                                       " range for input"));
@@ -5295,12 +5293,12 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
         p->table = ftp->ftable;
       else {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSetk: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
       if (UNLIKELY( ftp->flen < p->startind + p->numslid)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSetk: table too short!"));
       }
       p->q = (FLSLIDERBANK *) ST(AddrSetValue)[ (int) *p->ihandle].opcode;
@@ -5308,13 +5306,13 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->q->ioutable)) != NULL))
         p->outable = ftp->ftable;
       else {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSetk: invalid outable number"));
       }
 
       if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
       if (UNLIKELY( p->q->elements < p->startslid + p->numslid)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound,
                                  Str("FLslidBnkSetk:"
                                      " too many sliders to reset!"));
       }
@@ -5354,7 +5352,7 @@ extern "C" {
             {
               val = table[k];
               if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-                csound->PerfError(csound, "%s",
+                csound->PerfError(csound,
                                   Str("FLslidBnk2Setk: value out of range: "
                                       "function mapping requires a 0 to 1 range "
                                       "for input"));
@@ -5387,7 +5385,6 @@ extern "C" {
         p->expx = EXP_;
         if (UNLIKELY(*p->ioutx_min == 0 || *p->ioutx_max==0))
           return csound->InitError(csound,
-                                   "%s",
                                    Str("FLxyin: none of X limits can be zero in"
                                        " exponential mode!"));
         p->basex = pow((double) (*p->ioutx_max / *p->ioutx_min),
@@ -5414,7 +5411,7 @@ extern "C" {
       case -1: // EXP
         p->expy = EXP_;
         if (UNLIKELY(*p->iouty_min == 0 || *p->iouty_max==0))
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound,
                                    Str("FLxyin: none of Y limits can "
                                        "be zero in exponential mode!"));
         p->basey = pow((double) (*p->iouty_max / *p->iouty_min),
@@ -5578,7 +5575,7 @@ extern "C" {
   //     int nchnls = csound->nchnls;
   //     int      n = (csound->oparms->sfread) ? nchnls * 2 : nchnls;
   //     MYFLT temp[MAXCHNLS];
-  //     int smps = csound->ksmps;
+  //     int smps = csound->GetKsmps(csound);
   //     MYFLT max[MAXCHNLS];
   //     MYFLT *spo = csound->spout;
   //     MYFLT *spi = csound->spin;

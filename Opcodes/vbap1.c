@@ -168,6 +168,9 @@ int vbap1_init(CSOUND *csound, VBAP1 *p)
     char name[24];
     sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
+    if (ls_table==NULL)
+      return csound->InitError(csound, Str("could not find layout table no.%d"), (int)*p->layout );
+    p->number = p->OUTOCOUNT;
     p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
     p->ls_am     = (int)ls_table[1];
     p->ls_set_am = (int)ls_table[2];
@@ -461,10 +464,10 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     }
     if (p->dim == 2)
       p->point_change_interval =
-        (int)(csound->ekr * *p->dur /(fabs(*p->field_am) - 1.0));
+        (int)(csound->GetKr(csound) * *p->dur /(fabs(*p->field_am) - 1.0));
     else if (LIKELY(p->dim == 3))
       p->point_change_interval =
-        (int)(csound->ekr * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
+        (int)(csound->GetKr(csound) * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
       csound->Die(csound, Str("Wrong dimension"));
     p->point_change_counter = 0;

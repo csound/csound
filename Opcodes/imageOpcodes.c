@@ -91,7 +91,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     int color_type;
     unsigned char *image_data;
     png_bytepp row_pointers;
-    int i;
+    unsigned int i;
 
     Image *img;
 
@@ -502,12 +502,12 @@ static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
     h = img->h;
 
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(r, '\0', offset*sizeof(MYFLT));
       memset(g, '\0', offset*sizeof(MYFLT));
       memset(b, '\0', offset*sizeof(MYFLT));
     } 
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));
       memset(&g[nsmps], '\0', early*sizeof(MYFLT));
@@ -558,7 +558,7 @@ static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
     w = img->w;
     h = img->h;
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (i = offset; i < nsmps; i++) {
 
       x = tx[i]*w;

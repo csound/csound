@@ -29,7 +29,7 @@
 static int flanger_set (CSOUND *csound, FLANGER *p)
 {
         /*---------------- delay  -----------------------*/
-    p->maxdelay = (uint32)(*p->maxd  * csound->esr);
+    p->maxdelay = (uint32)(*p->maxd  * csound->GetSr(csound));
     csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
     p->left = 0;
     p->yt1 = FL(0.0);
@@ -56,15 +56,15 @@ static int flanger(CSOUND *csound, FLANGER *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
                 /*---------------- delay -----------------------*/
       buf[indx] = in[n] + (yt1 * feedback);
-      fv1 = indx - (*freq_del++ * csound->esr); /* Make sure inside the buffer*/
+      fv1 = indx - (*freq_del++ * csound->GetSr(csound)); /* Make sure inside the buffer*/
       while (fv1 < 0)
         fv1 += maxdelay;
       while (fv1 >= maxdelay) fv1 -= maxdelay; /* Is this necessary? JPff */
@@ -84,7 +84,7 @@ static int flanger(CSOUND *csound, FLANGER *p)
 static int wguide1set (CSOUND *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
-    p->maxd = (uint32) (MAXDELAY * csound->esr);
+    p->maxd = (uint32) (MAXDELAY * csound->GetSr(csound));
     csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux);
     p->left = 0;
         /*---------------- filter -----------------------*/
@@ -102,7 +102,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     MYFLT *out = p->ar;  /* assign object data to local variables   */
     MYFLT *in = p->asig;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
-    MYFLT *freq_del =  p->xdel; /*(1 / *p->xdel)  * csound->esr; */
+    MYFLT *freq_del =  p->xdel; /*(1 / *p->xdel)  * csound->GetSr(csound); */
     MYFLT feedback =  *p->kfeedback;
     MYFLT  fv1, fv2, out_delay,bufv1 ;
     unsigned int maxdM1 = p->maxd-1;
@@ -125,8 +125,8 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     }
     c1= p->c1;
     c2= p->c2;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -137,7 +137,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         buf[indx] = in[n] + (yt1 * feedback);
         if (UNLIKELY(fd<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd = FL(1.0)/MAXDELAY;
-        fv1 = indx - (csound->esr / fd); /* Make sure inside the buffer */
+        fv1 = indx - (csound->GetSr(csound) / fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1 = fv1 + (MYFLT)p->maxd;
         }
@@ -157,7 +157,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         buf[indx] = in[n] + (yt1 * feedback);
         if (UNLIKELY(fd<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd = FL(1.0)/MAXDELAY;
-        fv1 = indx - (csound->esr / fd); /* Make sure inside the buffer */
+        fv1 = indx - (csound->GetSr(csound) / fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1 = fv1 + (MYFLT)p->maxd;
         }
@@ -178,7 +178,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
 static int wguide2set (CSOUND *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
-    p->maxd = (uint32) (MAXDELAY * csound->esr);
+    p->maxd = (uint32) (MAXDELAY * csound->GetSr(csound));
     csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux1);
     p->left1 = 0;
         /*---------------- delay2 -----------------------*/
@@ -217,7 +217,7 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     /*---------------- delay1 -----------------------*/
     uint32 indx1;
     MYFLT  *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT  *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * csound->esr; */
+    MYFLT  *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * csound->GetSr(csound); */
     MYFLT  feedback1 =  *p->kfeedback1;
     MYFLT  fv1_1, fv2_1, out_delay1 ;
     int32  v1_1;
@@ -226,7 +226,7 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
         /*---------------- delay2 -----------------------*/
     uint32 indx2;
     MYFLT  *buf2 = (MYFLT *)p->aux2.auxp;
-    MYFLT  *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * csound->esr;*/
+    MYFLT  *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * csound->GetSr(csound);*/
     MYFLT  feedback2 =  *p->kfeedback2;
     MYFLT  fv1_2, fv2_2, out_delay2 ;
     int32  v1_2;
@@ -257,8 +257,8 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     yt1_1= p->yt1_1;
     yt1_2= p->yt1_2;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -272,8 +272,8 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
           fd1 = FL(1.0)/MAXDELAY;
         if (UNLIKELY(fd2<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd2 = FL(1.0)/MAXDELAY;
-        fv1_1 = indx1 - (csound->esr / fd1); /* Make sure inside the buffer */
-        fv1_2 = indx2 - (csound->esr / fd2); /* Make sure inside the buffer */
+        fv1_1 = indx1 - (csound->GetSr(csound) / fd1); /* Make sure inside the buffer */
+        fv1_2 = indx2 - (csound->GetSr(csound) / fd2); /* Make sure inside the buffer */
         while (fv1_1 < 0)    fv1_1 += p->maxd;
         while (fv1_2 < 0)    fv1_2 += p->maxd;
         fv2_1 = (fv1_1<maxdM1)?
@@ -301,8 +301,8 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
           fd1 = FL(1.0)/MAXDELAY;
         if (UNLIKELY(fd2<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd2 = FL(1.0)/MAXDELAY;
-        fv1_1 = indx1 - (csound->esr / fd1); /* Make sure inside the buffer */
-        fv1_2 = indx2 - (csound->esr / fd2); /* Make sure inside the buffer */
+        fv1_1 = indx1 - (csound->GetSr(csound) / fd1); /* Make sure inside the buffer */
+        fv1_2 = indx2 - (csound->GetSr(csound) / fd2); /* Make sure inside the buffer */
         while (fv1_1 < 0)    fv1_1 += p->maxd;
         while (fv1_2 < 0)    fv1_2 += p->maxd;
         fv2_1 = (fv1_1<maxdM1)?

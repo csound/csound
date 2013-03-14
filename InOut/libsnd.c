@@ -59,7 +59,8 @@ static inline void alloc_globals(CSOUND *csound)
 
 static void spoutsf(CSOUND *csound)
 {
-    int     n, chn = 0, spoutrem = csound->nspout;
+    uint32_t   chn = 0;
+    int     n, spoutrem = csound->nspout;
     MYFLT   *sp = csound->spout;
     MYFLT   absamp;
     uint32  nframes = STA(nframes);
@@ -108,10 +109,11 @@ static void spoutsf(CSOUND *csound)
 
 static void spoutsf_noscale(CSOUND *csound)
 {
-    int     n, chn = 0, spoutrem = csound->nspout;
-    MYFLT   *sp = csound->spout;
-    MYFLT   absamp;
-    uint32  nframes = STA(nframes);
+    uint32_t chn = 0;
+    int      n, spoutrem = csound->nspout;
+    MYFLT    *sp = csound->spout;
+    MYFLT    absamp;
+    uint32   nframes = STA(nframes);
 
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */

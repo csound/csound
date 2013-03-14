@@ -136,7 +136,7 @@ public:
             fluidSettings = new_fluid_settings();
             if (fluidSettings != NULL) {
                 fluid_settings_setnum(fluidSettings,
-                        (char *)"synth.sample-rate", (double) csound->esr);
+                        (char *)"synth.sample-rate", (double) csound->GetSr(csound));
                 fluid_settings_setint(fluidSettings,
                         (char *)"synth.midi-channels", channelCount);
                 fluid_settings_setint(fluidSettings,
@@ -157,7 +157,7 @@ public:
                 //csound_global_mutex_unlock();
                 log(csound, "Created fluidEngine 0x%p with sampling rate = %f, "
                     "chorus %s, reverb %s, channels %d, voices %d.\n",
-                    fluidSynth, (double) csound->esr,
+                    fluidSynth, (double) csound->GetSr(csound),
                     chorusEnabled ? "on" : "off",
                     reverbEnabled ? "on" : "off",
                     channelCount,
@@ -392,11 +392,11 @@ public:
         {
           uint32_t offset = head.insdshead->ksmps_offset;
           uint32_t early  = head.insdshead->ksmps_no_end;
-          if (offset) {
+          if (UNLIKELY(offset)) {
             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
             memset(aRightOut, '\0', offset*sizeof(MYFLT));
              }
-          if (early) {
+          if (UNLIKELY(early)) {
             ksmps -= early;
             memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
             memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
@@ -437,11 +437,11 @@ public:
         {
           uint32_t offset = head.insdshead->ksmps_offset;
           uint32_t early  = head.insdshead->ksmps_no_end;
-          if (offset) {
+          if (UNLIKELY(offset)) {
             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
             memset(aRightOut, '\0', offset*sizeof(MYFLT));
           }
-          if (early) {
+          if (UNLIKELY(early)) {
             ksmps -= early;
             memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
             memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
@@ -518,10 +518,10 @@ noteOff:
                                                  midiChannel, midiData1);
                     if (printMsgs)
                         csound->Message(csound,
-                                "result: %d \n Note off: c:%3d k:%3d\n",
-                                result,
-                                midiChannel,
-                                midiData1);
+                                        Str("result: %d \n Note off: c:%3d k:%3d\n"),
+                                        result,
+                                        midiChannel,
+                                        midiData1);
                     break;
                 case (int) 0x90:
                     if (!midiData2) {

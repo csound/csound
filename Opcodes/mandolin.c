@@ -82,14 +82,14 @@ int mandolinset(CSOUND *csound, MANDOL *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq!=FL(0.0)) {
-        p->length = (int32) (csound->esr / (*p->lowestFreq * FL(0.9)) + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / (*p->lowestFreq * FL(0.9)) + FL(1.0));
       }
       else if (LIKELY(*p->frequency!=FL(0.0))) {
-        p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / *p->frequency + FL(1.0));
       }
       else {
         csound->Warning(csound, Str("No base frequency for mandolin"));
-        p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / FL(50.0) + FL(1.0));
       }
       p->lastFreq = FL(50.0);
 /*     p->baseLoopGain = 0.995; */
@@ -101,7 +101,7 @@ int mandolinset(CSOUND *csound, MANDOL *p)
       make_OneZero(&p->filter2);
       p->lastLength = p->length * FL(0.5);
 /*    soundfile->normalize(0.05);    Empirical hack here transferred to use  */
-      p->lastLength = ( csound->esr / p->lastFreq);        /* length - delays */
+      p->lastLength = ( csound->GetSr(csound) / p->lastFreq);        /* length - delays */
 /*    DLineA_setDelay(&p->delayLine1, (p->lastLength / *p->detuning) - 0.5f); */
 /*    DLineA_setDelay(&p->delayLine2, (p->lastLength * *p->detuning) - 0.5f); */
 
@@ -116,12 +116,12 @@ int mandolinset(CSOUND *csound, MANDOL *p)
       p->dampTime = (int32) p->lastLength; /* See tick method below */
       p->waveDone = 0;
       {
-        int relestim = (int)(csound->ekr * FL(0.1));
+        int relestim = (int)(csound->GetKr(csound) * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int)(p->h.insdshead->offtim * csound->ekr);   /* ??? */
+      p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound));   /* ??? */
     }
     return OK;
 }
@@ -143,7 +143,7 @@ int mandolin(CSOUND *csound, MANDOL *p)
 
     if (p->lastFreq != *p->frequency) {
       p->lastFreq = *p->frequency;
-      p->lastLength = ( csound->esr / p->lastFreq);        /* length - delays */
+      p->lastLength = ( csound->GetSr(csound) / p->lastFreq);        /* length - delays */
       DLineA_setDelay(csound, &p->delayLine1,
                               (p->lastLength / *p->detuning) - FL(0.5));
       DLineA_setDelay(csound, &p->delayLine2,
@@ -154,8 +154,8 @@ int mandolin(CSOUND *csound, MANDOL *p)
         loopGain = (FL(1.0) - amp) * FL(0.5);
     }
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

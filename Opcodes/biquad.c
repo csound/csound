@@ -59,8 +59,8 @@ static int biquad(CSOUND *csound, BIQUAD *p)
     double a0 = 1.0 / *p->a0, a1 = a0 * *p->a1, a2 = a0 * *p->a2;
     double b0 = a0 * *p->b0, b1 = a0 * *p->b1, b2 = a0 * *p->b2;
 
-    if (offset) memset(p->out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -91,8 +91,8 @@ static int biquada(CSOUND *csound, BIQUAD *p)
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     in   = p->in;
     out  = p->out;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -160,8 +160,8 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
       k     = res*scale;
     }
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -244,11 +244,11 @@ static int rezzy(CSOUND *csound, REZZY *p)
     rez    = (double)*rezptr;
 
     /* Freq. is adjusted based on sample rate */
-    fqcadj = 0.149659863*(double)csound->esr;
+    fqcadj = 0.149659863*(double)csound->GetSr(csound);
     /* Try to keep the resonance under control     */
     if (rez < 1.0) rez = 1.0;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -376,8 +376,8 @@ static int distort(CSOUND *csound, DISTORT *p)
     shape1 += pregain;
     shape2 -= pregain;
     postgain *= FL(0.5);
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -401,7 +401,7 @@ static int distort(CSOUND *csound, DISTORT *p)
 static int vcoset(CSOUND *csound, VCO *p)
 {
     /* Number of bytes in the delay */
-    uint32 ndel = (uint32)(*p->maxd * csound->esr);
+    uint32 ndel = (uint32)(*p->maxd * csound->GetSr(csound));
     FUNC  *ftp;    /* Pointer to a sine function */
     //MYFLT ndsave;
 
@@ -472,7 +472,7 @@ static int vco(CSOUND *csound, VCO *p)
 
     ftp = p->ftp;
     if (UNLIKELY(buf==NULL || ftp==NULL)) goto err1;            /* RWD fix */
-    maxd = (uint32) (*p->maxd * csound->esr);
+    maxd = (uint32) (*p->maxd * csound->GetSr(csound));
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     /* End of VDelay insert */
@@ -485,7 +485,7 @@ static int vco(CSOUND *csound, VCO *p)
     cpsp = p->xcps;
     fqc = *cpsp;
     //rtfqc = SQRT(fqc);
-    knh = (int)(csound->esr*p->nyq/fqc);
+    knh = (int)(csound->GetSr(csound)*p->nyq/fqc);
     if (UNLIKELY((n = (int)knh) <= 0)) {
       csound->Warning(csound, "knh=%x nyq=%f fqc=%f\n"
                       "vco knh (%d) <= 0; taken as 1\n", knh, p->nyq, fqc, n);
@@ -499,8 +499,8 @@ static int vco(CSOUND *csound, VCO *p)
     inc = (int32)(fqc * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -531,7 +531,7 @@ static int vco(CSOUND *csound, VCO *p)
 
         /* VDelay inserted here */
         buf[indx] = pulse;
-        fv1 = (MYFLT) indx - csound->esr * pw / fqc;
+        fv1 = (MYFLT) indx - csound->GetSr(csound) * pw / fqc;
 
         v1 = (int32) fv1;
         if (fv1 < FL(0.0)) v1--;
@@ -581,7 +581,7 @@ static int vco(CSOUND *csound, VCO *p)
 
         /* VDelay inserted here */
         buf[indx] = pulse;
-        fv1 = (MYFLT) indx - csound->esr * pw / fqc;
+        fv1 = (MYFLT) indx - csound->GetSr(csound) * pw / fqc;
 
         v1 = (int32) fv1;
         if (fv1 < FL(0.0)) v1--;
@@ -604,7 +604,7 @@ static int vco(CSOUND *csound, VCO *p)
         p->ynm1 = sqr;
         p->ynm2 = tri;
         ar[n] =  tri * amp * fqc
-                 / (csound->esr * FL(0.42) * (FL(0.05) + pw - pw * pw));
+                 / (csound->GetSr(csound) * FL(0.42) * (FL(0.05) + pw - pw * pw));
       }
     }
     /*-----------------------------------------------------*/
@@ -686,12 +686,12 @@ static int planet(CSOUND *csound, PLANET *p)
     mass1 = *p->mass1;
     mass2 = *p->mass2;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outx, '\0', offset*sizeof(MYFLT));
       memset(outy, '\0', offset*sizeof(MYFLT));
       memset(outz, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outx[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outy[nsmps], '\0', early*sizeof(MYFLT));
@@ -812,8 +812,8 @@ static int pareq(CSOUND *csound, PAREQ *p)
       a0 = 1.0 / a0;
       p->a1 *= a0; p->a2 *= a0; p->b0 *= a0; p->b1 *= a0; p->b2 *= a0;
     }
-    if (offset) memset(p->out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -848,13 +848,13 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
 
-    npts2 = (int32)(*p->del2 * csound->esr);
-    npts3 = (int32)(*p->del3 * csound->esr);
-    npts1 = (int32)(*p->del1 * csound->esr) - npts2 -npts3;
+    npts2 = (int32)(*p->del2 * csound->GetSr(csound));
+    npts3 = (int32)(*p->del3 * csound->GetSr(csound));
+    npts1 = (int32)(*p->del1 * csound->GetSr(csound)) - npts2 -npts3;
 
-    if (UNLIKELY(((int32)(*p->del1 * csound->esr)) <=
-                 ((int32)(*p->del2 * csound->esr) +
-                  (int32)(*p->del3 * csound->esr)))) {
+    if (UNLIKELY(((int32)(*p->del1 * csound->GetSr(csound))) <=
+                 ((int32)(*p->del2 * csound->GetSr(csound)) +
+                  (int32)(*p->del3 * csound->GetSr(csound))))) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     npts = npts1 + npts2 + npts3;
@@ -920,8 +920,8 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
     outp = p->out;
     inp  = p->in;
 
-    if (offset) memset(outp, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(outp, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1072,12 +1072,12 @@ static int lorenz(CSOUND *csound, LORENZ *p)
     y     = p->valy;
     z     = p->valz;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outx, '\0', offset*sizeof(MYFLT));
       memset(outy, '\0', offset*sizeof(MYFLT));
       memset(outz, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outx[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outy[nsmps], '\0', early*sizeof(MYFLT));
@@ -1161,8 +1161,8 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
       q    = q1*fco1*fco1*0.0005;
       fc   = fco1*(double)csound->onedsr*(44100.0/8.0);
     }
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1232,8 +1232,8 @@ static int bqrez(CSOUND *csound, REZZY *p)
       gamma = (beta + 1.0) * cos2;
     }
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1366,7 +1366,7 @@ static int mode(CSOUND *csound, MODE *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     double kfreq  = *p->kfreq*TWOPI;
-    double kalpha = (csound->esr/kfreq);
+    double kalpha = (csound->GetSr(csound)/kfreq);
     double kbeta  = kalpha*kalpha;
     double d      = 0.5*kalpha;
 
@@ -1377,8 +1377,8 @@ static int mode(CSOUND *csound, MODE *p)
     double xn, yn;
     double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
-    if (offset) memset(p->aout, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }

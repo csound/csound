@@ -55,8 +55,10 @@ void remoteRESET(CSOUND *csound)
     csound->remoteGlobals = NULL;
 }
 
-#ifdef HAVE_SOCKETS
+#if defined(HAVE_SOCKETS)
+#ifndef (WIN32
 #include <netdb.h>
+#endif
 #if 0
 static int foo(char *ipaddr)
 {

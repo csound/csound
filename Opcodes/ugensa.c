@@ -39,7 +39,7 @@ static int fogset(CSOUND *csound, FOGS *p)
       OVERLAP *ovp, *nxtovp;
       int32   olaps;
       p->fogcvt = FMAXLEN/(p->ftp1)->flen; /*JMC for FOG*/
-      p->durtogo = (int32)(*p->itotdur * csound->esr);
+      p->durtogo = (int32)(*p->itotdur * csound->GetSr(csound));
       if (!skip) { /* legato: skip all memory management */
         p->spdphs = 0L; /*JMC for FOG*/
         if (*p->iphs == FL(0.0))                  /* if fundphs zero,  */
@@ -98,8 +98,8 @@ static int fog(CSOUND *csound, FOGS *p)
     fund_inc = (int32)(*fund * csound->sicvt);
     form_inc = (int32)(*ptch * fogcvt);  /*form_inc = *form * csound->sicvt;*/
 /*      speed_inc = *speed * fogcvt; */   /*JMC for FOG--out for phs version*/
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -171,7 +171,7 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
     MYFLT       octamp = *amp, oct;
     MYFLT       form = *ptch / csound->sicvt, fogcvt = p->fogcvt;
     int32   rismps, newexp = 0;
-    if ((ovp->timrem = (int32)(*p->kdur * csound->esr)) > p->durtogo &&
+    if ((ovp->timrem = (int32)(*p->kdur * csound->GetSr(csound))) > p->durtogo &&
         (*p->iskip==FL(0.0)))  /* ringtime    */
       return(0);
     if ((oct = *p->koct) > 0.0) {                   /* octaviation */
@@ -216,7 +216,7 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
-    if ((ovp->dectim = (int32)(*p->kdec * csound->esr)) > 0) /*      fnb dec  */
+    if ((ovp->dectim = (int32)(*p->kdec * csound->GetSr(csound))) > 0) /*      fnb dec  */
       ovp->decinc = (int32)(csound->sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     return(1);

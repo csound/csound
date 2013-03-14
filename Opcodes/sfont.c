@@ -363,21 +363,21 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
             p->leftlevel[spltNum] = (MYFLT) sqrt(1.0-pan) * attenuation;
             p->rightlevel[spltNum] = (MYFLT) sqrt(pan) * attenuation;
             p->mode[spltNum]= split->sampleModes;
-            p->attack[spltNum] = split->attack*csound->ekr;
-            p->decay[spltNum] = split->decay*csound->ekr;
+            p->attack[spltNum] = split->attack*csound->GetKr(csound);
+            p->decay[spltNum] = split->decay*csound->GetKr(csound);
             p->sustain[spltNum] = split->sustain;
-            p->release[spltNum] = split->release*csound->ekr;
+            p->release[spltNum] = split->release*csound->GetKr(csound);
 
             if (*p->ienv > 1) {
-              p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
+              p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
               p->decr[spltNum] = pow((split->sustain+0.0001),
-                                     1.0/(csound->ekr*split->decay+0.0001));
+                                     1.0/(csound->GetKr(csound)*split->decay+0.0001));
               if (split->attack != 0.0) p->env[spltNum] = 0.0;
               else p->env[spltNum] = 1.0;
             }
             else if (*p->ienv > 0) {
-              p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
-              p->decr[spltNum] = (split->sustain-1.0)/(csound->ekr*split->decay);
+              p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
+              p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*split->decay);
               if (split->attack != 0.0) p->env[spltNum] = 0.0;
               else p->env[spltNum] = 1.0;
             }
@@ -467,7 +467,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
     arate = (p->XINCODE) ? 1 : 0;
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -557,7 +557,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -689,21 +689,21 @@ static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
               split->startLoopOffset - start;
             p->endloop[spltNum] = sample->dwEndloop + split->endLoopOffset - start;
             p->mode[spltNum]= split->sampleModes;
-            p->attack[spltNum] = split->attack*csound->ekr;
-            p->decay[spltNum] = split->decay*csound->ekr;
+            p->attack[spltNum] = split->attack*csound->GetKr(csound);
+            p->decay[spltNum] = split->decay*csound->GetKr(csound);
             p->sustain[spltNum] = split->sustain;
-            p->release[spltNum] = split->release*csound->ekr;
+            p->release[spltNum] = split->release*csound->GetKr(csound);
 
             if (*p->ienv > 1) {
-             p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
+             p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
              p->decr[spltNum] = pow((split->sustain+0.0001),
-                                    1.0/(csound->ekr*split->decay+0.0001));
+                                    1.0/(csound->GetKr(csound)*split->decay+0.0001));
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
             }
             else if (*p->ienv > 0) {
-            p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->ekr*split->decay);
+            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
+            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
             }
@@ -739,7 +739,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -827,7 +827,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     if (arate) {
       while (j--) {
         double looplength = *endloop - *startloop;
@@ -952,21 +952,21 @@ static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
           p->rightlevel[spltNum] = pan * attenuation;
           p->mode[spltNum]= split->sampleModes;
 
-          p->attack[spltNum] = split->attack*csound->ekr;
-          p->decay[spltNum] = split->decay*csound->ekr;
+          p->attack[spltNum] = split->attack*csound->GetKr(csound);
+          p->decay[spltNum] = split->decay*csound->GetKr(csound);
           p->sustain[spltNum] = split->sustain;
-          p->release[spltNum] = split->release*csound->ekr;
+          p->release[spltNum] = split->release*csound->GetKr(csound);
 
           if (*p->ienv > 1) {
-            p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
+            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
             p->decr[spltNum] = pow((split->sustain+0.0001),
-                                   1.0/(csound->ekr*split->decay+0.0001));
+                                   1.0/(csound->GetKr(csound)*split->decay+0.0001));
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
           else if (*p->ienv > 0) {
-            p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->ekr*split->decay);
+            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
+            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
@@ -1002,7 +1002,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1095,7 +1095,7 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1216,21 +1216,21 @@ static int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
             split->startLoopOffset - start;
           p->endloop[spltNum] = sample->dwEndloop + split->endLoopOffset - start;
           p->mode[spltNum]= split->sampleModes;
-          p->attack[spltNum] = split->attack*csound->ekr;
-          p->decay[spltNum] = split->decay*csound->ekr;
+          p->attack[spltNum] = split->attack*csound->GetKr(csound);
+          p->decay[spltNum] = split->decay*csound->GetKr(csound);
           p->sustain[spltNum] = split->sustain;
-          p->release[spltNum] = split->release*csound->ekr;
+          p->release[spltNum] = split->release*csound->GetKr(csound);
 
           if (*p->ienv > 1) {
-            p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
+            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
             p->decr[spltNum] = pow((split->sustain+0.0001),
-                                   1.0/(csound->ekr*split->decay+0.0001));
+                                   1.0/(csound->GetKr(csound)*split->decay+0.0001));
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
           else if (*p->ienv > 0) {
-            p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->ekr*split->decay);
+            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
+            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
@@ -1266,7 +1266,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -1354,7 +1354,7 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
     arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (arate) {
       while (j--) {
@@ -2322,7 +2322,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
     if (pit < FL(0.0)) pit = FL(0.0);
     memset(outL, 0, nsmps*sizeof(MYFLT));
     memset(outR, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     for(k=0; k < spltNum; k++){
 

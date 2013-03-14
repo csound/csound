@@ -69,7 +69,7 @@ static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
       tmp = (int) MYFLT2LRND(*(p->iChannels));
       sfinfo.channels = (tmp > 0 ? tmp : 1);
       tmp = (int) MYFLT2LRND(*(p->iSampleRate));
-      sfinfo.samplerate = (tmp > 0 ? tmp : (int) MYFLT2LRND(csound->esr));
+      sfinfo.samplerate = (tmp > 0 ? tmp : (int) MYFLT2LRND(csound->GetSr(csound)));
     }
     sf = csound->LoadSoundFile(csound, fname,  &sfinfo);
     if (UNLIKELY(sf == NULL)) {
@@ -203,10 +203,10 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       }
       if (*(p->ibas) > FL(0.0)) {
         frqScale = sf->sampleRate
-                   / ((double) csound->esr * (double) *(p->ibas));
+                   / ((double) csound->GetSr(csound) * (double) *(p->ibas));
       }
       else
-        frqScale = sf->sampleRate / ((double) csound->esr * sf->baseFreq);
+        frqScale = sf->sampleRate / ((double) csound->GetSr(csound) * sf->baseFreq);
       p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
       p->nFrames = (int32) sf->nFrames;
     }
@@ -238,7 +238,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       if (*(p->ibas) > FL(0.0)) {
         if (ftp->gen01args.sample_rate > FL(0.0))
           frqScale = (double) ftp->gen01args.sample_rate
-                     / ((double) csound->esr * (double) *(p->ibas));
+                     / ((double) csound->GetSr(csound) * (double) *(p->ibas));
         else
           frqScale = 1.0 / (double) *(p->ibas);
       }
@@ -246,7 +246,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
         frqScale = (double) ftp->cpscvt * (1.0 / (double) LOFACT);
       }
       else if (ftp->gen01args.sample_rate > FL(0.0))
-        frqScale = (double) ftp->gen01args.sample_rate / (double) csound->esr;
+        frqScale = (double) ftp->gen01args.sample_rate / (double) csound->GetSr(csound);
       p->ampScale = FL(1.0);
       p->nFrames = ftp->flenfrms + 1L;
     }
@@ -396,8 +396,8 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
       winFact = (MYFLT) (((double) p->winFact - tmp1) * tmp2 + tmp1);
     }
     ampScale = *(p->xamp) * p->ampScale;
-    if (offset) memset(p->ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
     }
