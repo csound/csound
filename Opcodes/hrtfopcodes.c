@@ -255,7 +255,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       sr = 44100;
     p->sr = sr;
 
-    if (UNLIKELY(csound->esr != sr))
+    if (UNLIKELY(csound->GetSr(csound) != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible"
                           " with HRTF processing SR of: %.0f\n\n"), sr);
@@ -595,11 +595,11 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outsigl, '\0', offset*sizeof(MYFLT));
       memset(outsigr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
@@ -1438,7 +1438,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       sr = FL(44100.0);
     p->sr = sr;
 
-    if (UNLIKELY(csound->esr != sr))
+    if (UNLIKELY(csound->GetSr(csound) != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible with "
                           "HRTF processing SR of: %.0f\n\n"), sr);
@@ -1903,11 +1903,11 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
 
     MYFLT sr = p->sr;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outsigl, '\0', offset*sizeof(MYFLT));
       memset(outsigr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
@@ -2066,7 +2066,7 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       sr = 44100;
     p->sr = sr;
 
-    if (UNLIKELY(csound->esr != sr))
+    if (UNLIKELY(csound->GetSr(csound) != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible"
                           "with HRTF processing SR of: %.0f\n\n"), sr);
@@ -2285,11 +2285,11 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outsigl, '\0', offset*sizeof(MYFLT));
       memset(outsigr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));

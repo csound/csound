@@ -419,9 +419,9 @@ public:
   {
     return csoundGetSpout(csound);
   }
-  virtual const char *GetOutputFileName()
+  virtual const char *GetOutputName()
   {
-    return csoundGetOutputFileName(csound);
+    return csoundGetOutputName(csound);
   }
   virtual void SetHostImplementedAudioIO(int state, int bufSize)
   {

@@ -360,9 +360,9 @@ int voicformset(CSOUND *csound, VOICF *p)
     FormSwep_clear(p->filters[3]);
     {
       MYFLT temp, freq = *p->frequency;
-      if ((freq * FL(22.0)) > csound->esr)      {
+      if ((freq * FL(22.0)) > csound->GetSr(csound))      {
         csound->Warning(csound,"This note is too high!!\n");
-        freq = csound->esr / FL(22.0);
+        freq = csound->GetSr(csound) / FL(22.0);
       }
       p->basef = freq;
       temp = FABS(FL(1500.0) - freq) + FL(200.0);
@@ -402,8 +402,8 @@ int voicform(CSOUND *csound, VOICF *p)
     }
 /*  voicprint(csound, p); */
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

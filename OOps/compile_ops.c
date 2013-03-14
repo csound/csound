@@ -38,3 +38,8 @@ int compile_str_i(CSOUND *csound, COMPILE *p){
   *p->res = FL(csoundCompileOrc(csound, (char *)p->str));
   return OK;
 }
+
+int read_score_i(CSOUND *csound, COMPILE *p){
+  *p->res = FL(csoundReadScore(csound, (char *)p->str));
+  return OK;
+}

@@ -87,7 +87,7 @@ static int pluckExcite(CSOUND *csound, WGPLUCK* p)
 static int pluckPluck(CSOUND *csound, WGPLUCK* p)
 {
     /* ndelay = total required delay - 1.0 */
-    len_t ndelay = (len_t) (csound->esr / *p->freq - FL(1.0));
+    len_t ndelay = (len_t) (csound->GetSr(csound) / *p->freq - FL(1.0));
 
 #ifdef WG_VERBOSE
     csound->Message(csound, "pluckPluck -- allocating memory...");
@@ -140,7 +140,7 @@ static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
     /* Define the required magnitude response of H1 at w0 and PI */
 
     /* Constrain attenuation specification to dB per second */
-    MYFLT NRecip = p->wg.f0 * csound->onedsr;  /*  N=t*csound->esr/f0  */
+    MYFLT NRecip = p->wg.f0 * csound->onedsr;  /*  N=t*csound->GetSr(csound)/f0  */
     MYFLT H1_w0 = POWER(FL(10.0),-A_w0*FL(0.05)*NRecip);
     MYFLT H1_PI = POWER(FL(10.0),-A_PI*FL(0.05)*NRecip);
     {
@@ -207,8 +207,8 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
     len_t pickupSamp=(len_t)(M * *p->pickupPos);
     if (UNLIKELY(pickupSamp<1)) pickupSamp = 1;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -339,7 +339,7 @@ static void waveguideWaveguide(CSOUND *csound,
 
     /* Calculate the size of the delay lines and set them */
     /* Set pointers to appropriate positions in instrument memory */
-    size = csound->esr / freq - FL(1.0);
+    size = csound->GetSr(csound) / freq - FL(1.0);
 
     /* construct the fractional part of the delay */
     df = (size - (len_t)size); /* fractional delay amount */

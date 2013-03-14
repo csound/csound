@@ -213,7 +213,7 @@ public:
       * additional data, e.g. for opcode state, after the opcode output and
       * input arguments, as limited by the available space.
       */
-    MYFLT *arguments[0x3000];
+    MYFLT *arguments[1000];
     const char *opcodename;
 public:
     /**
@@ -331,7 +331,7 @@ public:
       * additional data, e.g. for opcode state, after the opcode output and
       * input arguments, as limited by the available space.
       */
-    MYFLT *arguments[0x3000];
+    MYFLT *arguments[1000];
     const char *opcodename;
 public:
     /**

@@ -447,7 +447,7 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
       p->eqq_scl = *(p->args[17]) - (p->eqq_ofs= *(p->args[16]));/* EQ Q     */
     }
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (osc_cnt = 0, o = p->osc; osc_cnt < p->nr_osc; osc_cnt++, o++) {
       if (p->init_k) oscbnk_lfo(p, o);
       ph = o->osc_phs;                        /* phase        */
@@ -679,7 +679,7 @@ static int grain2(CSOUND *csound, GRAIN2 *p)
 
     /* clear output signal */
     memset(aout, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (p->nr_osc == -1) {
       return OK;                   /* nothing to render */
@@ -716,7 +716,7 @@ static int grain2(CSOUND *csound, GRAIN2 *p)
       }
     }
     aout = p->ar;                       /* audio output         */
-    for (nn = offset; nn<nsmps; n++) {
+    for (nn = offset; nn<nsmps; nn++) {
       i = p->nr_osc;
       do {
         /* grain waveform */
@@ -836,7 +836,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
 
     /* clear output */
     memset(p->ar, 0, nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     if (UNLIKELY((p->seed == 0L) || (p->osc == NULL))) goto err1;
 
@@ -1089,8 +1089,8 @@ static int rnd31a(CSOUND *csound, RND31 *p)
     scl = *(p->scl); out = p->out;
     /* random distribution */
     rpow = *(p->rpow);
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1183,8 +1183,8 @@ static int osckkikt(CSOUND *csound, OSCKT *p)
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
     v = *(p->xcps) * csound->onedsr; frq = OSCBNK_PHS2INT(v);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1220,8 +1220,8 @@ static int osckaikt(CSOUND *csound, OSCKT *p)
     ft = p->ft; phs = p->phs; a = *(p->xamp); ar = p->sr; xcps = p->xcps;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1273,8 +1273,8 @@ static int oscakikt(CSOUND *csound, OSCKT *p)
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
     v = *(p->xcps) * csound->onedsr; frq = OSCBNK_PHS2INT(v);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-     if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1310,8 +1310,8 @@ static int oscaaikt(CSOUND *csound, OSCKT *p)
     ft = p->ft; phs = p->phs; ar = p->sr; xcps = p->xcps; xamp = p->xamp;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1376,8 +1376,8 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
     p->old_phs = *(p->kphs);
     frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
     /* read from table with interpolation */
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1443,8 +1443,8 @@ static int osckts(CSOUND *csound, OSCKTS *p)
       phs = OSCBNK_PHS2INT(v);
     }
     /* read from table with interpolation */
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1873,11 +1873,11 @@ static int vco2ftset(CSOUND *csound, VCO2FT *p)
 #endif
     p->base_ftnum = (*(p->vco2_tables))[w]->base_ftnum;
     if (*(p->inyx) > FL(0.5))
-      p->p_scl = FL(0.5) * csound->esr;
+      p->p_scl = FL(0.5) * csound->GetSr(csound);
     else if (*(p->inyx) < FL(0.001))
-      p->p_scl = FL(0.001) * csound->esr;
+      p->p_scl = FL(0.001) * csound->GetSr(csound);
     else
-      p->p_scl = *(p->inyx) * csound->esr;
+      p->p_scl = *(p->inyx) * csound->GetSr(csound);
     p->p_min = p->p_scl / (MYFLT) VCO2_MAX_NPART;
     /* in case of vco2ift opcode, find table number now */
     if (!strcmp(p->h.optext->t.opcod, "vco2ift"))
@@ -2038,8 +2038,8 @@ static int vco2(CSOUND *csound, VCO2 *p)
       }
     }
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -2162,12 +2162,12 @@ static int denorms(CSOUND *csound, DENORMS *p)
       STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
       seed = p->seedptr = &(pp->denorm_seed);
     }
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     do {
       r = DENORM_RND;
       ar = *args++;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       for (nn=offset; nn<nsmps; nn++) {
         ar[nn] += r;
       }
@@ -2184,7 +2184,7 @@ static int delaykset(CSOUND *csound, DELAYK *p)
     if (mode & 1) return OK;            /* skip initialisation */
     p->mode = mode;
     /* calculate delay time */
-    npts = (int) (*p->idel * csound->ekr + FL(1.5));
+    npts = (int) (*p->idel * csound->GetKr(csound) + FL(1.5));
     if (UNLIKELY(npts < 1))
       return csound->InitError(csound, Str("delayk: invalid delay time "
                                            "(must be >= 0)"));
@@ -2224,7 +2224,7 @@ static int vdelaykset(CSOUND *csound, VDELAYK *p)
       return OK;                /* skip initialisation */
     p->mode = mode;
     /* calculate max. delay time */
-    npts = (int) (*p->imdel * csound->ekr + FL(1.5));
+    npts = (int) (*p->imdel * csound->GetKr(csound) + FL(1.5));
     if (UNLIKELY(npts < 1))
       return csound->InitError(csound, Str("vdel_k: invalid max delay time "
                                            "(must be >= 0)"));
@@ -2246,7 +2246,7 @@ static int vdelayk(CSOUND *csound, VDELAYK *p)
     if (UNLIKELY(!buf))
       return csound->PerfError(csound, Str("vdel_k: not initialised"));
     buf[p->wrtp] = *(p->ksig);              /* write input signal to buffer */
-    n = (int) MYFLT2LONG(*(p->kdel) * csound->ekr); /* calculate delay time */
+    n = (int) MYFLT2LONG(*(p->kdel) * csound->GetKr(csound)); /* calculate delay time */
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("vdel_k: invalid delay time "
                                            "(must be >= 0)"));
@@ -2328,7 +2328,7 @@ static int rbjeq(CSOUND *csound, RBJEQ *p)
       new_frq = 1;
       p->old_kcps = *(p->kcps);
       /* calculate variables that depend on freq., and are used by all modes */
-      p->omega = (double) p->old_kcps * TWOPI / (double) csound->esr;
+      p->omega = (double) p->old_kcps * TWOPI / (double) csound->GetSr(csound);
       p->cs = cos(p->omega);
       p->sn = sqrt(1.0 - p->cs * p->cs);
     }
@@ -2337,8 +2337,8 @@ static int rbjeq(CSOUND *csound, RBJEQ *p)
     /* copy object data to local variables */
     ar = p->ar; asig = p->asig;
     xnm1 = p->xnm1; xnm2 = p->xnm2; ynm1 = p->ynm1; ynm2 = p->ynm2;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

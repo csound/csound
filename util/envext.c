@@ -115,7 +115,7 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
     double  dur;
     SOUNDIN *p;
 
-    csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
+    csound->SetUtilSr(csound, FL(0.0));      /* set esr 0. with no orchestra   */
     *pp = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);

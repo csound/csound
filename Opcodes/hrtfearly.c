@@ -295,7 +295,7 @@ static int early_init(CSOUND *csound, early *p)
       sr = 44100;
     p->sr = sr;
 
-    if (UNLIKELY(csound->esr != sr))
+    if (UNLIKELY(csound->GetSr(csound) != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible "
                           "with HRTF processing SR of: %.0f\n\n"), sr);
@@ -1031,11 +1031,11 @@ static int early_process(CSOUND *csound, early *p)
     }
 
     /* a rate... */
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outsigl, '\0', offset*sizeof(MYFLT));
       memset(outsigr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));

@@ -66,8 +66,8 @@ int foscil(CSOUND *csound, FOSC *p)
     amp  = *ampp;
     xcar = *carp;
     xmod = *modp;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -143,8 +143,8 @@ int foscili(CSOUND *csound, FOSC *p)
     amp  = *ampp;
     xcar = *carp;
     xmod = *modp;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -406,15 +406,15 @@ int loscil(CSOUND *csound, LOSC *p)
     }
     phs = p->lphs;
     ar1 = p->ar1;
-    if (n) memset(ar1, '\0', n*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(n)) memset(ar1, '\0', n*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar1[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (p->stereo) {
       ar2 = p->ar2;
-      if (n) memset(ar2, '\0', n*sizeof(MYFLT));
-      if (early) memset(&ar2[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(n)) memset(ar2, '\0', n*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&ar2[nsmps], '\0', early*sizeof(MYFLT));
       goto phsck2;
     }
  phschk:
@@ -616,15 +616,15 @@ int loscil3(CSOUND *csound, LOSC *p)
     }
     phs = p->lphs;
     ar1 = p->ar1;
-    if (n) memset(ar1, '\0', n*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(n)) memset(ar1, '\0', n*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar1[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (p->stereo) {
       ar2 = p->ar2;
-      if (n) memset(ar1, '\0', n*sizeof(MYFLT));
-      if (early) memset(&ar2[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(n)) memset(ar1, '\0', n*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&ar2[nsmps], '\0', early*sizeof(MYFLT));
       goto phsck2;
     }
  phschk:
@@ -893,7 +893,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
     frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
     /* 1024 * msecs of analysis */
     memset(p->rslt,0,sizeof(MYFLT)*nsmps);
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     timkincr = (int32)(*p->ksmod*FL(1024000.0)*CS_ONEDKR);
     curtim = (int16)(p->mksecs >> 10);          /* cvt mksecs to msecs */
     curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */

@@ -85,9 +85,9 @@ static int hm234set(CSOUND *csound, HARM234 *q, HARMON2 *p)
     q->hmrngflg = 0;
     if (q->auxch.auxp == NULL || minoct < q->minoct) {
       MYFLT minfrq = POWER(FL(2.0), minoct) * ONEPT;
-      int16 nbufs = (int16)(csound->ekr * 3 / minfrq) + 1;/* recalc max pulse prd */
+      int16 nbufs = (int16)(csound->GetKr(csound) * 3 / minfrq) + 1;/* recalc max pulse prd */
       int16 nbufsmps = nbufs * CS_KSMPS;
-      int16 maxprd = (int16)(csound->esr * 2 / minfrq);   /* incl sigmoid ends */
+      int16 maxprd = (int16)(csound->GetSr(csound) * 2 / minfrq);   /* incl sigmoid ends */
       int16 cnt;
       int32  totalsiz = nbufsmps * 2 + maxprd * 4 + (SLEN+1);
       MYFLT *pulsbuf, *sigp;                            /*  & realloc buffers */
@@ -140,7 +140,7 @@ static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
     if ((koct = *q->koct) != q->prvoct) {               /* if new pitch estimate */
       if (koct >= q->minoct) {                          /*   above requested low */
         MYFLT cps = POWER(FL(2.0), koct) * ONEPT;     /*   recalc pulse period */
-        q->period = (int16) (csound->esr / cps);
+        q->period = (int16) (csound->GetSr(csound) / cps);
         if (!q->cpsmode)
           q->sicvt = cps * FL(65536.0) * csound->onedsr; /* k64dsr;*/
       }
@@ -148,11 +148,11 @@ static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
     }
     inp1 = q->inp1;
     inp2 = q->inp2;
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(inp1, '\0', offset*sizeof(MYFLT));
       memset(inp2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&inp1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&inp2[nsmps], '\0', early*sizeof(MYFLT));

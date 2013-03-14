@@ -119,7 +119,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
       }
     }
 
-    if (UNLIKELY((*p->igskip < 0) || (*p->igskip * csound->esr > ftp->flen) )) {
+    if (UNLIKELY((*p->igskip < 0) || (*p->igskip * csound->GetSr(csound) > ftp->flen) )) {
       return csound->InitError(csound, Str("granule_set: must be positive and "
                                            "less than function table length"));
     }
@@ -128,8 +128,8 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
                                            "igskip_os must be greater then 0"));
     }
 
-    p->gstart = (int32)(*p->igskip * csound->esr);
-    p->glength = (int32)(*p->ilength * csound->esr);
+    p->gstart = (int32)(*p->igskip * csound->GetSr(csound));
+    p->glength = (int32)(*p->ilength * csound->GetSr(csound));
     p->gend = p->gstart + p->glength;
 
     if (UNLIKELY(*p->kgap < 0)) {
@@ -160,7 +160,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
 
                                 /* Initialize variables....*/
-    p->gskip_os = (int32)(*p->igskip_os * csound->esr);/* in number of samples */
+    p->gskip_os = (int32)(*p->igskip_os * csound->GetSr(csound));/* in number of samples */
     p->gap_os = *p->igap_os / FL(100.0);
     p->gsize_os = *p->igsize_os / FL(100.0);
 
@@ -168,8 +168,8 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
       p->fpnt[nvoice] = 0;
       p->cnt[nvoice]  = 0;
       p->phs[nvoice]  = FL(0.0);
-      p->gskip[nvoice] = (int32)(*p->igskip * csound->esr);
-      p->gap[nvoice] = (int32)(*p->kgap * csound->esr);
+      p->gskip[nvoice] = (int32)(*p->igskip * csound->GetSr(csound));
+      p->gap[nvoice] = (int32)(*p->kgap * csound->GetSr(csound));
     }
 
     if (*p->igap_os != 0) {
@@ -206,7 +206,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
 
     for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
-      p->gsize[nvoice] = (int32)(*p->kgsize * csound->esr * p->pshift[nvoice]);
+      p->gsize[nvoice] = (int32)(*p->kgsize * csound->GetSr(csound) * p->pshift[nvoice]);
 
     if (*p->igsize_os != 0) {
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
@@ -290,8 +290,8 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 
    /* Recover audio output pointer... */
    ar   = p->ar;
-   if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -403,12 +403,12 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
                (tmpfloat1*FL(0.5))+FL(1.0) : tmpfloat1+FL(1.0);
            }
 
-           *gap = (int32)(*p->kgap * csound->esr);
+           *gap = (int32)(*p->kgap * csound->GetSr(csound));
            if (*p->igap_os != 0) {
              *gap += (int32)((*gap * p->gap_os) * grand(p));
            }
 
-           *gsize = (int32)(*p->kgsize * csound->esr * *pshift);
+           *gsize = (int32)(*p->kgsize * csound->GetSr(csound) * *pshift);
            if (*p->igsize_os != 0)
              *gsize += (int32)((*gsize * p->gsize_os) * grand(p));
 

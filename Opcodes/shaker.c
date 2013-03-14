@@ -78,8 +78,8 @@ int shakerset(CSOUND *csound, SHAKER *p)
     p->gain_norm = FL(0.0005);
     p->shake_num = (int)*p->times;
     ADSR_keyOn(&p->envelope);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->freq = -FL(1.0);        /* So will get changed */
     return OK;
 }
@@ -113,8 +113,8 @@ int shaker(CSOUND *csound, SHAKER *p)
     if ((--p->kloop) == 0) {
       p->shake_num = 0;
     }
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

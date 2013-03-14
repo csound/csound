@@ -156,7 +156,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
-      if (O->msglevel & RNGEMSG) {
+      if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csound->Message(csound, Str("new alloc for instr %s:\n"), name);
@@ -178,15 +178,12 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->onedkr = csound->onedkr;
     ip->kicvt = csound->kicvt;
 #endif
+    ip->pds = csound->pds;
     /* Add an active instrument */
     tp->active++;
     tp->instcnt++;
-#ifdef PARCS
-#ifdef NEW_DAG
     csound->dag_changed++;      /* Need to remake DAG */
-    printf("**** dag changed by insert\n");
-#endif
-#endif
+    //printf("**** dag changed by insert\n");
     nxtp = &(csound->actanchor);    /* now splice into activ lst */
     while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
       if (nxtp->insno > insno ||
@@ -250,14 +247,15 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     csound->curip    = ip;
     csound->ids      = (OPDS *)ip;
  
-    if(csound->realtime_audio_flag == 0) {
-    /* do init pass for this instr */
-    while ((csound->ids = csound->ids->nxti) != NULL) {
-       if (O->odebug) csound->Message(csound, "init %s:\n",
-            csound->opcodlst[csound->ids->optext->t.opnum].opname);      
-      (*csound->ids->iopadr)(csound, csound->ids);
-    }
-    ip->init_done = 1;
+    if (csound->realtime_audio_flag == 0) {
+      /* do init pass for this instr */
+      while ((csound->ids = csound->ids->nxti) != NULL) {
+        if (O->odebug)
+          csound->Message(csound, "init %s:\n",
+                          csound->opcodlst[csound->ids->optext->t.opnum].opname);
+        (*csound->ids->iopadr)(csound, csound->ids);
+      }
+      ip->init_done = 1;
     }
 
     csound->tieflag = csound->reinitflag = 0;
@@ -268,27 +266,23 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
      /* new code for sample-accurate timing, not for tied notes */
     if (O->sampleAccurate & !tie) {
-      int64_t start_time_samps, start_time_kcycles, duration_kcycles;
+      int64_t start_time_samps, start_time_kcycles;
       double duration_samps;
       start_time_samps = (int64_t) (ip->p2 * csound->esr);
       duration_samps =  ip->p3 * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
-      duration_kcycles = CEIL(duration_samps/csound->ksmps);
-      /* ksmps_offset = */ 
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
-      //ip->no_end = duration_kcycles*csound->ksmps - duration_samps 
-      //                                            - ip->ksmps_offset;
       ip->no_end = csound->ksmps - 
         ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
  /* the ksmps_no_end field is initially 0, set to no_end in the last perf cycle */
       ip->ksmps_no_end = 0;
-      if (ip->no_end) {
-        //        printf(">>>> %d\n",((int)duration_samps+ip->ksmps_offset));
-        printf(">>>> no_end=%d (%ld,%d,%f,%d)\n",
-               ip->no_end, (long)duration_kcycles, csound->ksmps,
-               duration_samps, ip->ksmps_offset);
-        //printf("   > p2=%f p3=%f\n", ip->p2, ip->p3);
-      }
+      /* if (ip->no_end) { */
+      /*   //        printf(">>>> %d\n",((int)duration_samps+ip->ksmps_offset)); */
+      /*   printf(">>>> no_end=%d (%ld,%d,%f,%d)\n", */
+      /*          ip->no_end, (long)duration_kcycles, csound->ksmps, */
+      /*          duration_samps, ip->ksmps_offset); */
+      /*   //printf("   > p2=%f p3=%f\n", ip->p2, ip->p3); */
+      /* } */
     }
     else {
      /* ksmps_offset = */ 
@@ -383,7 +377,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
-      if (O->msglevel & RNGEMSG) {
+      if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csound->Message(csound, Str("new alloc for instr %s:\n"), name);
@@ -689,12 +683,8 @@ static void deact(CSOUND *csound, INSDS *ip)
     csound->engineState.instrtxtp[ip->insno]->act_instance = ip;
     if (ip->fdchp != NULL)
       fdchclose(csound, ip);
-#ifdef PARCS
-# ifdef NEW_DAG
     csound->dag_changed++;
-    printf("**** dag changed by deact\n");
-# endif
-#endif
+    //printf("**** dag changed by deact\n");
 }
 
 /* Turn off a particular insalloc, also remove from list of active */
@@ -750,12 +740,8 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
     else {
       /* no extra time needed: deactivate immediately */
       deact(csound, ip);
-#ifdef PARCS
-#ifdef NEW_DAG
       csound->dag_changed++;      /* Need to remake DAG */
-      printf("**** dag changed by xturnoff\n");
-#endif
-#endif
+      //printf("**** dag changed by xturnoff\n");
     }
 }
 
@@ -1164,7 +1150,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       saved_curip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
     }
-
+    
     return OK;
 }
 
@@ -1172,8 +1158,15 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 int useropcd(CSOUND *csound, UOPCODE *p)
 {
-    return csoundPerfError(csound, Str("%s: not initialised"),
-                                   p->h.optext->t.opcod);
+  //if(p->h.nxtp) 
+  //return csoundPerfError(csound, Str("%s: not initialised"),
+  //                p->h.optext->t.opcod);
+  //else 
+  /* VL - not marking this as a perf error allows recursive UDOs to work 
+     This is a (harmless) hack, but it would be nice to know why there is
+     one extra call to a UDO which is not initialised in a recursive run
+   */
+  return OK;
 }
 
 /* IV - Sep 1 2002: new opcodes: xin, xout */
@@ -1438,7 +1431,7 @@ void timexpire(CSOUND *csound, double time)
 
 int subinstr(CSOUND *csound, SUBINST *p)
 {
-    OPDS    *saved_pds = csound->pds;
+    OPDS    *saved_pds = CS_PDS;
     int     saved_sa = csound->spoutactive;
     MYFLT   *pbuf, *saved_spout = csound->spout;
     uint32_t frame, chan;
@@ -1453,9 +1446,9 @@ int subinstr(CSOUND *csound, SUBINST *p)
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
 
     /*  run each opcode  */
-    csound->pds = (OPDS *)p->ip;
-    while ((csound->pds = csound->pds->nxtp) != NULL) {
-      (*csound->pds->opadr)(csound, csound->pds);
+    CS_PDS = (OPDS *)p->ip;
+    while ((CS_PDS = CS_PDS->nxtp) != NULL) {
+      (*CS_PDS->opadr)(csound, CS_PDS);
     }
 
     /* copy outputs */
@@ -1477,10 +1470,10 @@ int subinstr(CSOUND *csound, SUBINST *p)
     /* restore spouts */
     csound->spout = saved_spout;
     csound->spoutactive = saved_sa;
-    csound->pds = saved_pds;
+    CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
-      while (csound->pds->nxtp) csound->pds = csound->pds->nxtp;
+      while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
     return OK;
 }
 
@@ -1488,7 +1481,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
 int useropcd1(CSOUND *csound, UOPCODE *p)
 {
-    OPDS    *saved_pds = csound->pds;
+    OPDS    *saved_pds = CS_PDS;
     int     g_ksmps, ofs = 0, n;
     MYFLT   /*g_ekr, */g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
     int32    g_kcounter;
@@ -1534,9 +1527,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          }
 
         /*  run each opcode  */
-        csound->pds = (OPDS *) (p->ip);
-        while ((csound->pds = csound->pds->nxtp)) {
-          (*csound->pds->opadr)(csound, csound->pds);
+        CS_PDS = (OPDS *) (p->ip);
+        while ((CS_PDS = CS_PDS->nxtp)) {
+          (*CS_PDS->opadr)(csound, CS_PDS);
         }
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
@@ -1570,9 +1563,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
          }
         /*  run each opcode  */
-        csound->pds = (OPDS *) (p->ip);
-        while ((csound->pds = csound->pds->nxtp)) {
-          (*csound->pds->opadr)(csound, csound->pds);
+        CS_PDS = (OPDS *) (p->ip);
+        while ((CS_PDS = CS_PDS->nxtp)) {
+          (*CS_PDS->opadr)(csound, CS_PDS);
         }
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
@@ -1611,10 +1604,10 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     csound->onedksmps = g_onedksmps;
     csound->kicvt = g_kicvt;
     csound->kcounter = g_kcounter;
-    csound->pds = saved_pds;
+    CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
-      while (csound->pds->nxtp) csound->pds = csound->pds->nxtp;
+      while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     return OK;
 }
 
@@ -1622,11 +1615,11 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
 int useropcd2(CSOUND *csound, UOPCODE *p)
 {
-    OPDS    *saved_pds = csound->pds;
-    int     n;
+   int     n; 
+   OPDS    *saved_pds = CS_PDS; 
     MYFLT   **tmp, *ptr1, *ptr2;
 
-     if (!(csound->pds = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
+     if (!(CS_PDS = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
 
     /* FOR SOME REASON the opcode has no perf code */
     //csound->Message(csound, "end input\n"); 
@@ -1663,8 +1656,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
       /*  run each opcode  */
       do {
-        (*csound->pds->opadr)(csound, csound->pds);
-      } while ((csound->pds = csound->pds->nxtp));
+        (CS_PDS->opadr)(csound, CS_PDS);
+      } while ((CS_PDS = CS_PDS->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; ptr2 = *(++tmp);
@@ -1695,8 +1688,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
          }
       /*  run each opcode  */
       do {
-        (*csound->pds->opadr)(csound, csound->pds);
-      } while ((csound->pds = csound->pds->nxtp));
+        (*CS_PDS->opadr)(csound, CS_PDS);
+      } while ((CS_PDS = CS_PDS->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
@@ -1717,10 +1710,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        }
  endop:
     /* restore globals */
-    csound->pds = saved_pds;
+    CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
-      while (csound->pds->nxtp) csound->pds = csound->pds->nxtp;
+      while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     return OK;
 }
 
@@ -2141,7 +2134,7 @@ INSDS *insert_event(CSOUND *csound,
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
-      if (O->msglevel & RNGEMSG) {
+      if (UNLIKELY(O->msglevel & RNGEMSG)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (name)
         csound->Message(csound, Str("new alloc for instr %s:\n"), name);

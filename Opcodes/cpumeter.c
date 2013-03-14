@@ -53,7 +53,7 @@ typedef struct {
         MYFLT   *k0, *kk[8], *itrig;
         AUXCH   cpu_a;
         CPU_t   *cpus;
-        int     cpu_max;
+        uint32_t cpu_max;
         int     cnt, trig;
         FILE    *fp;
 } CPUMETER;
@@ -90,7 +90,7 @@ int cpupercent_init(CSOUND *csound, CPUMETER* p)
     csound->AuxAlloc(csound,k*sizeof(CPU_t), &(p->cpu_a));
     p->cpus = (CPU_t *) p->cpu_a.auxp;
     k = cpupercent_renew(csound, p);
-    p->cnt = (p->trig = (int)(*p->itrig * csound->esr));
+    p->cnt = (p->trig = (int)(*p->itrig * csound->GetSr(csound)));
     return k;
 }
 
@@ -100,7 +100,7 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
     SIC_t u_frme, s_frme, n_frme, i_frme,
       w_frme, x_frme, y_frme, z_frme, tot_frme, tz;
     double scale;
-    int k/*, num*/;
+    uint32_t k;
     CPU_t *cpu = p->cpus;
     char buf[SMLBUFSIZ];
 

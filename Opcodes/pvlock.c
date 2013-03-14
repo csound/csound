@@ -1,5 +1,5 @@
 /*
-    crossfm.c:
+    pvlock.c:
 
     Copyright (C) 2009 V Lazzarini
 
@@ -42,8 +42,8 @@ typedef struct dats{
 static int sinit(CSOUND *csound, DATASPACE *p)
 {
 
-    int N =  *p->iN;
-    unsigned int nchans, i;;
+    int N =  *p->iN, ui;
+    unsigned int nchans, i;
     unsigned int size;
     int decim = *p->idecim;
 
@@ -86,10 +86,11 @@ static int sinit(CSOUND *csound, DATASPACE *p)
     size = N*sizeof(MYFLT);
     if (p->win.auxp == NULL || p->win.size < size)
       csound->AuxAlloc(csound, size, &p->win);
-
-    for (i=0; i < N; i++)
-      ((MYFLT *)p->win.auxp)[i] = 0.5 - 0.5*cos(i*2*PI/N);
-
+    {
+      MYFLT x = FL(2.0)*PI_F/N;
+      for (ui=0; ui < N; i++)
+        ((MYFLT *)p->win.auxp)[ui] = FL(0.5) - FL(0.5)*COS((MYFLT)ui*x);
+    }
     p->N = N;
     p->decim = decim;
     return OK;
@@ -132,7 +133,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
            time[n] is current read position in secs
            esr is sampling rate
         */
-        spos  = hsize*(int)((time[n])*csound->esr/hsize);
+        spos  = hsize*(int)((time[n])*csound->GetSr(csound)/hsize);
         sizefrs = size/nchans;
         while(spos > sizefrs - N) spos -= sizefrs;
         while(spos <= hsize)  spos += sizefrs;
@@ -280,7 +281,7 @@ static int sinit2(CSOUND *csound, DATASPACE *p)
     for (i=0; i < p->nchans; i++)
     if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
       csound->AuxAlloc(csound, size, &p->nwin[i]);
-    p->pos = *p->offset*csound->esr + p->hsize;
+    p->pos = *p->offset*csound->GetSr(csound) + p->hsize;
     p->tscale  = 0;
     p->accum = 0;
     return OK;

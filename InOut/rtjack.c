@@ -563,7 +563,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
                    p->bufSize != parm->bufSamp_SW))
         rtJack_Error(csound, -1,
                      Str("input and output parameters are not consistent"));
-      if (UNLIKELY(((parm->bufSamp_SW / csound->ksmps) * csound->ksmps)
+      if (UNLIKELY(((parm->bufSamp_SW / csound->GetKsmps(csound)) * csound->GetKsmps(csound))
                    != parm->bufSamp_SW))
         rtJack_Error(csound, -1,
                      Str("period size (-b) must be an integer multiple of ksmps"));
@@ -978,7 +978,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-
+    csound->module_list_add(csound,"jack", "audio");
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
       return 0;

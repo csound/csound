@@ -78,7 +78,7 @@ int pvset(CSOUND *csound, PVOC *p)
     p->mems = memsize;
     p->frPktim = ((MYFLT)CS_KSMPS)/((MYFLT) p->frInc);
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->esr/((MYFLT) p->frInc);
+    p->frPrtim = csound->GetSr(csound)/((MYFLT) p->frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
@@ -148,7 +148,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
       goto err2;           /* ..so we won't run into buf2Size problems */
-    if (UNLIKELY(outlen<(int)2*nsmps))     /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int)(2*nsmps)))     /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;       /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -195,8 +195,8 @@ int pvoc(CSOUND *csound, PVOC *p)
     scaleFac = p->scale;
     if (pex > FL(1.0))
       scaleFac /= pex;
-    if (offset) memset(p->rslt, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->rslt, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->rslt[nsmps], '\0', early*sizeof(MYFLT));
     }

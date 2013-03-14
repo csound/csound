@@ -58,15 +58,15 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
     /* write audio to result audio streams weighted
        with gain factors */
     outptr = p->out_array;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     invfloatn =  FL(1.0)/(nsmps-offset);
     for (j=0; j<n; j++) {
       inptr = p->audio;
       ogain = p->beg_gains[j];
       ngain = p->end_gains[j];
       gainsubstr = ngain - ogain;
-      if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
           for (i = offset; i < nsmps; i++) {
@@ -282,8 +282,8 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
        with gain factors */
     invfloatn =  FL(1.0)/(nsmps-offset);
     outptr = p->out_array;
-    if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -526,7 +526,7 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     p->updated_gains = p->end_gains + p->n;
     /* reading in loudspeaker info */
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
-                                                        "vbap_ls_table"));
+                                                        "vbap_ls_table_0"));
     p->dim           = (int) ls_table[0];
     p->ls_am         = (int) ls_table[1];
     p->ls_set_am     = (int) ls_table[2];
@@ -557,10 +557,10 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
                   2 + (p->dim - 2) * 2);
     }
     if (p->dim == 2)
-      p->point_change_interval = (int) (csound->ekr * *p->dur
+      p->point_change_interval = (int) (csound->GetKr(csound) * *p->dur
                                         / (fabs(*p->field_am) - 1.0));
     else if (LIKELY(p->dim == 3))
-      p->point_change_interval = (int) (csound->ekr * *p->dur
+      p->point_change_interval = (int) (csound->GetKr(csound) * *p->dur
                                         / (fabs(*p->field_am) * 0.5 - 1.0));
     else
       csound->Die(csound, Str("Wrong dimension"));

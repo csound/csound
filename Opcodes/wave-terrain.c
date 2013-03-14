@@ -69,8 +69,8 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
     MYFLT dtpidsr = csound->tpidsr;
     MYFLT *aout = p->aout;
 
-    if (offset) memset(aout, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -255,15 +255,15 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
         fc2 = (fpoint->ftable[i] - fpoint->ftable[next]) * fstiff->ftable[i];
         force = fc1 + fc2;
         p->newvel[i] = (fvel->ftable[i]
-                        - force / (fmass->ftable[i] * csound->ekr))
+                        - force / (fmass->ftable[i] * csound->GetKr(csound)))
                        * fdamp->ftable[i];
         p->newloc[i] = fpoint->ftable[i] + p->newvel[i] * CS_ONEDKR;
 
       }
     }
 
-    if (offset) memset(aout, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
     }

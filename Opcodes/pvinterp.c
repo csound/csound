@@ -67,9 +67,9 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
-    if (p->asr != csound->esr) {                /* & chk the data */
+    if (p->asr != csound->GetSr(csound)) {                /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
-                              pvfilnam, p->asr, csound->esr);
+                              pvfilnam, p->asr, csound->GetSr(csound));
     }
     if (p->frSiz > PVFRAMSIZE) {
       return csound->InitError(csound,
@@ -88,7 +88,7 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
     p->frPtr = (float*) pp.data;
     p->maxFr = pp.nframes - 1;
     p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
-    p->frPrtim = csound->esr / (MYFLT) frInc;
+    p->frPrtim = csound->GetSr(csound) / (MYFLT) frInc;
     p->prFlg = 1;       /* true */
     /* amplitude scale for PVOC */
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
@@ -169,9 +169,9 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
-    if (p->asr != csound->esr) {                /* & chk the data */
+    if (p->asr != csound->GetSr(csound)) {                /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
-                              pvfilnam, p->asr, csound->esr);
+                              pvfilnam, p->asr, csound->GetSr(csound));
     }
     if (UNLIKELY(p->frSiz != p->pvbufread->frSiz)) {
       return csound->InitError(csound,
@@ -190,7 +190,7 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     /* highest possible frame index */
     p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->esr / (MYFLT) frInc;
+    p->frPrtim = csound->GetSr(csound) / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
     /* amplitude scale for PVOC */
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
@@ -244,7 +244,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
                            /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<(int)2*CS_KSMPS)) 
+    if (UNLIKELY(outlen<(int)(2*CS_KSMPS))) 
       goto err3;   /* minimum post-squeeze windowlength */
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -310,7 +310,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
 /************************************************************/
 int pvcrossset(CSOUND *csound, PVCROSS *p)
 {
-    int      i;
+    uint32_t i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
     int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
@@ -341,9 +341,9 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
-    if (p->asr != csound->esr) {                /* & chk the data */
+    if (p->asr != csound->GetSr(csound)) {                /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
-                              pvfilnam, p->asr, csound->esr);
+                              pvfilnam, p->asr, csound->GetSr(csound));
     }
     if (UNLIKELY(p->frSiz != p->pvbufread->frSiz)) {
       return csound->InitError(csound,
@@ -362,7 +362,7 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     /* highest possible frame index */
     p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->esr / (MYFLT) frInc;
+    p->frPrtim = csound->GetSr(csound) / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
     /* amplitude scale for PVOC */
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
@@ -418,7 +418,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     if (UNLIKELY(outlen>PVFFTSIZE))   /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<(int)2*CS_KSMPS))   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int)(2*CS_KSMPS)))   /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;

@@ -417,13 +417,14 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       tvslope = tvdy / tvdx;
       tvnxt = 1;
     }
-
-    if (P != FL(0.0)) {         /* This is not right *********  */
-      csound->esr = Rin;
+     /* This is not right *********  */
+      if (P != FL(0.0)) {        
+	csound->SetUtilSr(csound,Rin); 
     }
     if (P == FL(0.0)) {
-      csound->esr = Rout;
+      csound->SetUtilSr(csound,Rout); 
     }
+     
     if (O->outformat == 0)
       O->outformat = p->format;
     O->sfsampsize = csound->sfsampsize(FORMAT2SF(O->outformat));
@@ -478,8 +479,8 @@ static int srconv(CSOUND *csound, int argc, char **argv)
                                       O->outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
-    csound->esr = (MYFLT) p->sr;
-    csound->nchnls = Chans = p->nchanls;
+    csound->SetUtilSr(csound, (MYFLT)p->sr); 
+    csound->SetUtilNchnls(csound, Chans = p->nchanls);
 
     outbufsiz = OBUF * O->sfsampsize;                   /* calc outbuf size */
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),

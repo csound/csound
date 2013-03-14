@@ -597,6 +597,7 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
       if (STA(repeat_index) > 1) {
         char c[41];
         int j;
+        memset(c, '\0', 41);
         for (j = 0; j<STA(repeat_index); j++) {
           c[j]=' ';
           c[j+1]='\0';
@@ -630,6 +631,7 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
       i = i + STA(repeat_inc_n);
       {
         char buffer[128];
+        memset(buffer, '\0', 128);
         sprintf(buffer, "%d", i);
 #ifdef MACDEBUG
         csound->DebugMsg(csound,"%s(%d) new i = %s\n",
@@ -648,6 +650,7 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
       if (STA(repeat_index) > 1) {
         char c[41];
         int j;
+         memset(c, '\0', 41);
         for (j = 0; j<STA(repeat_index); j++) {
           c[j]=' ';
           c[j+1]='\0';
@@ -759,6 +762,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
     STA(macros) = mm;
 }
 
+#if never
 void sread_init(CSOUND *csound)
 {
     /* sread_alloc_globals(csound); */
@@ -772,8 +776,9 @@ void sread_init(CSOUND *csound)
     STA(str)->line = 1; STA(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
 }
+#endif
 
-void sread_initstr(CSOUND *csound)
+void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
     STA(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
@@ -781,7 +786,7 @@ void sread_initstr(CSOUND *csound)
     STA(input_cnt) = 0;
     STA(str) = STA(inputs);
     STA(str)->fd = NULL;
-    STA(str)->fd =  STA(str)->cf = csound->scorestr;
+    STA(str)->fd =  STA(str)->cf = sco;
     STA(str)->is_marked_repeat = 0;
     STA(str)->line = 1; STA(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
@@ -1152,6 +1157,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           }
         }
         break;
+      case -1:
+	break;
       default:
         csound->Message(csound,Str("sread is confused on legal opcodes\n"));
         break;

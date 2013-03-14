@@ -24,7 +24,9 @@
 #include "csoundCore.h"                         /*      WINDOW.C        */
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
-#include "namedins.h"                           /*  dpwe 16may90        */
+                                                /*  dpwe 16may90        */
+
+extern OENTRY* find_opcode_new(CSOUND*, char*, char*, char*);
 
 extern void MakeAscii(CSOUND *, WINDAT *, const char *);
 extern void DrawAscii(CSOUND *, WINDAT *);
@@ -83,7 +85,7 @@ void dispinit(CSOUND *csound)
 
     if (O->displays && !(O->graphsoff || O->postscript)) {
       if (!csound->isGraphable_)
-      find_opcode(csound, "FLrun");       /* load FLTK for displays */
+      find_opcode_new(csound, "FLrun", NULL, NULL);       /* load FLTK for displays */
       if (csound->isGraphable_)
         return;         /* provided by window driver: is this session able? */
     }

@@ -74,7 +74,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
                       Str("vosim: zero kfund. 'Infinite' length event generated."));
     }
     else {
-        p->timrem = (int32)(csound->esr / fundabs);
+        p->timrem = (int32)(csound->GetSr(csound) / fundabs);
         if (UNLIKELY(p->timrem == 0)) {
           p->timrem = CS_KSMPS;
           p->pulstogo = 0;
@@ -130,8 +130,8 @@ int vosim(CSOUND* csound, VOSIM *p)
     ftdata = ftp->ftable;
     lobits = ftp->lobits;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

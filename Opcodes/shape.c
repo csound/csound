@@ -62,8 +62,8 @@ static int PowerShape(CSOUND* csound, POWER_SHAPE* p)
     MYFLT*    out = p->aout;
     MYFLT*    in = p->ain;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -113,8 +113,8 @@ static int Polynomial(CSOUND* csound, POLYNOMIAL* p)
     MYFLT **coeff = p->kcoefficients;
     MYFLT sum, x;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -203,8 +203,8 @@ static int ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
     }
 
     /* Use our final coeff. to evaluate the poly. for each input sample */
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -262,8 +262,8 @@ static int PDClip(CSOUND* csound, PD_CLIP* p)
     low = center - unwidth*maxampl;       /* min value of unclipped input */
     high = unwidth*maxampl + center;      /* max value of unclipped input */
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -306,8 +306,8 @@ static int PDHalfX(CSOUND* csound, PD_HALF* p)
     maxampl = *(p->ifullscale);
     if (maxampl == FL(0.0))  maxampl = FL(1.0);
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -362,8 +362,8 @@ static int PDHalfY(CSOUND* csound, PD_HALF* p)
     MYFLT*    in = p->ain;
 
     maxampl = *(p->ifullscale);
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -444,8 +444,8 @@ int SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
     syncin = p->asyncin;
     phase = p->curphase;
     cpsIsARate = (csound->GetInputArgAMask(p) & 1); /* check first input arg rate */
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -530,8 +530,8 @@ static int Phasine(CSOUND* csound, PHASINE* p)
     adjust = *(p->kphaseadjust);
     last = p->lastin;
     maxampl = p->maxamplitude;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&[nsmps], '\0', early*sizeof(MYFLT));
     }

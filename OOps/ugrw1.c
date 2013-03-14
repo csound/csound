@@ -1101,7 +1101,7 @@ int tablew(CSOUND *csound, TABLEW *p)
     xbmul  = (MYFLT)p->xbmul;
     offset = p->offset;
                 /* Main loop - for the number of a samples in a k cycle. */
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
 
     for (n=koffset; n<nsmps; n++) {
       /* Read in the next raw index and increment the pointer ready for the
@@ -1973,8 +1973,8 @@ int tablera(CSOUND *csound, TABLERA *p)
     writeloc = p->adest;
     /* Transfer the data, whilst updating pointers and masking to get
      * final read address.     */
-    if (offset) memset(writeloc, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       loopcount -= early;
       memset(&writeloc[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -2498,8 +2498,8 @@ int zar(CSOUND *csound, ZAR *p)
       /* Now read from the array in za space and write to the destination.
        * See notes in zkr() on pointer arithmetic.     */
       readloc = csound->zastart + (indx * CS_KSMPS);
-      if (offset) memset(writeloc, '\0', offset*sizeof(MYFLT));
-    if (early) {
+      if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&writeloc[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -2542,8 +2542,8 @@ int zarg(CSOUND *csound, ZARG *p)
         /* Now read from the array in za space multiply by kgain and write
          * to the destination.       */
         readloc = csound->zastart + (indx * CS_KSMPS);
-        if (offset) memset(writeloc, '\0', offset*sizeof(MYFLT));
-        if (early) {
+        if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
           nsmps -= early;
           memset(&writeloc[nsmps], '\0', early*sizeof(MYFLT));
         }
@@ -2582,8 +2582,8 @@ int zaw(CSOUND *csound, ZAW *p)
     else {
         /* Now write to the array in za space pointed to by indx.    */
       writeloc = csound->zastart + (indx * CS_KSMPS);
-      if (offset) memset(writeloc, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&writeloc[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -2622,8 +2622,8 @@ int zawm(CSOUND *csound, ZAWM *p)
       writeloc = csound->zastart + (indx * CS_KSMPS);
       if (*p->mix == 0) {
         /* Normal write mode.  */
-        if (offset) memset(writeloc, '\0', offset*sizeof(MYFLT));
-        if (early) {
+        if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
           nsmps -= early;
           memset(&writeloc[nsmps], '\0', early*sizeof(MYFLT));
         }
@@ -2631,7 +2631,7 @@ int zawm(CSOUND *csound, ZAWM *p)
       }
       else {
         /* Mix mode - add to the existing value.   */
-        if (early) nsmps -= early;
+        if (UNLIKELY(early)) nsmps -= early;
         for (n=offset; n<nsmps; n++) {
           writeloc[n] += readloc[n];
         }
@@ -2660,8 +2660,8 @@ int zamod(CSOUND *csound, ZAMOD *p)
      * increment it. Likewise the location to write the result to.     */
     readsig = p->sig;
     writeloc = p->rslt;
-    if (offset) memset(writeloc, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&writeloc[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -2682,7 +2682,7 @@ int zamod(CSOUND *csound, ZAMOD *p)
     }
     else {                      /* Now read the values from za space.    */
       readloc = csound->zastart + (indx * CS_KSMPS);
-      if (early) nsmps -= early;
+      if (UNLIKELY(early)) nsmps -= early;
       if (mflag == 0) {
         for (n=offset; n<nsmps; n++) {
           writeloc[n] = readsig[n] + readloc[n];
@@ -3214,7 +3214,7 @@ int peaka(CSOUND *csound, PEAK *p)
     asigin = p->xsigin;
     peak = p->kpeakout;
     pp = *peak;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (n=offset;n<nsmps;n++) {
       if (pp < FABS(asigin[n]))
         pp = FABS(asigin[n]);

@@ -8,6 +8,7 @@ option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
 option(BUILD_PYTHON_OPCODES "Build the Python opcodes" ON)
 option(BUILD_LUA_OPCODES "Build the Lua opcodes" ON)
 option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON) 
+option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON) 
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 
@@ -26,6 +27,8 @@ find_package(PythonLibs)
 find_package(Lua51)
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
+check_include_file(p5glove.h P5GLOVE_H)
+find_library(P5GLOVE_LIB p5glove)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
@@ -140,6 +143,10 @@ if(BUILD_WIIMOTE_OPCODES)
     make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
 endif()
 
+check_deps(BUILD_P5GLOVE_OPCODES P5GLOVE_H)
+if(BUILD_P5GLOVE_OPCODES)
+    make_plugin(p5g p5glove.c ${P5GLOVE_LIB})
+endif()
 
 # OGG Opcode previously was built only for OLPC
 #if(VORBISFILE_LIBRARY)
@@ -162,8 +169,4 @@ endif()
 #set_target_properties(sfont
 #    PROPERTIES COMPILER_FLAGS "${sfont_FLAGS}")
     
-#if p5gfound==1:
-#  P5GEnvironment = pluginEnvironment.Clone()
-#  makePlugin(P5GEnvironment, 'p5g', ['p5glove.c'])
-
 add_subdirectory(stk)

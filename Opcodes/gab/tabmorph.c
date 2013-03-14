@@ -150,8 +150,8 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
     MYFLT *tabndx1 = p->xtabndx1;
     MYFLT *tabndx2 = p->xtabndx2;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -232,8 +232,8 @@ static int atabmorphi(CSOUND *csound, TABMORPH *p)
     interpoint = *p->xinterpoint;
     interpoint -= (int) interpoint; /* to limit to zero to 1 range */
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
