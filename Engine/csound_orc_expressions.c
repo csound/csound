@@ -308,7 +308,7 @@ int is_boolean_expression_node(TREE *node)
 
 static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line, int locn)
 {
-    char *op = (char*)mmalloc(csound, 4), arg1, arg2, ans, *outarg = NULL;
+    char arg1, arg2, ans, *outarg = NULL;
     char outype;
     TREE *anchor = create_boolean_expression(csound, root->left, line, locn);
     TREE *last;
@@ -316,6 +316,8 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line, int lo
     TREE *b;
     TREE *c = root->right->left, *d = root->right->right;
     last = anchor;
+    char condInTypes[4];
+    
     while (last->next != NULL) {
       last = last->next;
     }
@@ -344,21 +346,17 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line, int lo
     arg1 = argtyp2( c->value->lexeme);
     arg2 = argtyp2( d->value->lexeme);
     ans  = argtyp2( b->value->lexeme);
-    if (arg1 == 'a' || arg2 == 'a') {
-      strcpy(op,":a");
-      outype = 'a';
-    }
-    else if (arg1 == 'k' || arg2 == 'k' || ans == 'B') {
-      strcpy(op,":k");
-      outype = 'k';
-    }
-    else {
-      strcpy(op,":i");
-      outype = 'i';
-    }
-
+    
+    condInTypes[0] = ans;
+    condInTypes[1] = arg1;
+    condInTypes[2] = arg2;
+    condInTypes[3] = 0;
+    
+    OENTRIES* entries = find_opcode2(csound, ":cond");
+    outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
+    
     outarg = create_out_arg(csound, outype);
-    opTree = create_opcode_token(csound, op);
+    opTree = create_opcode_token(csound, cs_strdup(csound, ":cond"));
     opTree->left = create_ans_token(csound, outarg);
     opTree->right = b;
     opTree->right->next = c;
