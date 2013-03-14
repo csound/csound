@@ -37,7 +37,7 @@ static int fofset0(CSOUND *csound, FOFS *p, int flag)
         (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL) {
       OVRLAP *ovp, *nxtovp;
       int32  olaps;
-      p->durtogo = (int32)(*p->itotdur * csound->esr);
+      p->durtogo = (int32)(*p->itotdur * csound->GetSr(csound));
       if (!skip) { /* legato: skip all memory management */
         if (*p->iphs == FL(0.0))                /* if fundphs zero,  */
           p->fundphs = MAXLEN;                  /*   trigger new FOF */
@@ -103,8 +103,8 @@ static int fof(CSOUND *csound, FOFS *p)
     ftp1 = p->ftp1;
     ftp2 = p->ftp2;
     fund_inc = (int32)(*fund * csound->sicvt);
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -185,7 +185,7 @@ static int newpulse(CSOUND *csound,
     MYFLT   octamp = *amp, oct;
     int32   rismps, newexp = 0;
 
-    if ((ovp->timrem = (int32)(*p->kdur * csound->esr)) > p->durtogo &&
+    if ((ovp->timrem = (int32)(*p->kdur * csound->GetSr(csound))) > p->durtogo &&
         (*p->iskip==FL(0.0))) /* ringtime */
       return(0);
     if ((oct = *p->koct) > FL(0.0)) {                   /* octaviation */
@@ -226,7 +226,7 @@ static int newpulse(CSOUND *csound,
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
-    if ((ovp->dectim = (int32)(*p->kdec * csound->esr)) > 0) /*  fnb dec  */
+    if ((ovp->dectim = (int32)(*p->kdec * csound->GetSr(csound))) > 0) /*  fnb dec  */
       ovp->decinc = (int32)(csound->sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     if (!p->foftype) {
@@ -258,9 +258,9 @@ static int harmset(CSOUND *csound, HARMON *p)
       return csound->InitError(csound, Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
-      int32 nbufs = (int32)(csound->ekr * FL(3.0) / minfrq) + 1;
+      int32 nbufs = (int32)(csound->GetKr(csound) * FL(3.0) / minfrq) + 1;
       int32 nbufsmps = nbufs * CS_KSMPS;
-      int32 maxprd = (int32)(csound->esr / minfrq);
+      int32 maxprd = (int32)(csound->GetSr(csound) / minfrq);
       int32 totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
       csound->AuxAlloc(csound, (size_t)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
@@ -273,7 +273,7 @@ static int harmset(CSOUND *csound, HARMON *p)
       p->lomaxdist = maxprd;
       p->minfrq = minfrq;
     }
-    if ((p->autoktim = MYFLT2LONG(*p->iptrkprd * csound->ekr)) < 1)
+    if ((p->autoktim = MYFLT2LONG(*p->iptrkprd * csound->GetKr(csound))) < 1)
       p->autoktim = 1;
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
     p->lsicvt = FL(65536.0) * csound->onedsr;
@@ -315,7 +315,7 @@ static int harmon(CSOUND *csound, HARMON *p)
     qval = p->prvq;
     if (*p->kest != p->prvest &&
         *p->kest != FL(0.0)) {    /* if new pitch estimate */
-      MYFLT estperiod = csound->esr / *p->kest;
+      MYFLT estperiod = csound->GetSr(csound) / *p->kest;
       double b = 2.0 - cos((double)(*p->kest * csound->tpidsr));
       p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
       p->c1 = FL(1.0) - p->c2;
@@ -430,8 +430,8 @@ static int harmon(CSOUND *csound, HARMON *p)
     phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
     phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
     outp = p->ar;
-    if (offset) memset(outp, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(outp, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
     }

@@ -54,9 +54,9 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     DelayLine   *lower_rail;
     MYFLT   plk = *p->plk;
                                 /* Initialize variables....*/
-    npts = (int)(csound->esr / *p->icps);/* Length of full delay */
+    npts = (int)(csound->GetSr(csound) / *p->icps);/* Length of full delay */
     while (npts < 512) {        /* Minimum rail length is 256 */
-      npts += (int)(csound->esr / *p->icps);
+      npts += (int)(csound->GetSr(csound) / *p->icps);
       scale++;
     }
     rail_len = npts/2/* + 1*/;      /* but only need half length */
@@ -183,8 +183,8 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
       pickup   = pickup>>OVERSHT;
     }
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -245,7 +245,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 static int stresonset(CSOUND *csound, STRES *p)
 {
     int n;
-    p->size = (int) (csound->esr/20);   /* size of delay line */
+    p->size = (int) (csound->GetSr(csound)/20);   /* size of delay line */
     csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->aux);
     p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
@@ -274,13 +274,13 @@ static int streson(CSOUND *csound, STRES *p)
 
     freq = *p->afr;
     if (freq < FL(20.0)) freq = FL(20.0);   /* lowest freq is 20 Hz */
-    tdelay = csound->esr/freq;
+    tdelay = csound->GetSr(csound)/freq;
     delay = (int) (tdelay - 0.5); /* comb delay */
     fracdelay = tdelay - (delay + 0.5); /* fractional delay */
     vdt = size - delay;       /* set the var delay */
     a = (1.0-fracdelay)/(1.0+fracdelay);   /* set the all-pass gain */
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

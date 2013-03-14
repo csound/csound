@@ -94,16 +94,16 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     int     datasize = p->datasize, envtablesize = p->envtablesize;
 
     pitch  = *p->pitch;
-    fperiod = FABS(csound->esr/(*p->fr));
+    fperiod = FABS(csound->GetSr(csound)/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = csound->esr * *p->grsize;
+    grsize = csound->GetSr(csound) * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       vecsize -= early;
       memset(&output[vecsize], '\0', early*sizeof(MYFLT));
     }
@@ -254,17 +254,17 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
                               loop_start, loop_end, loopsize);     */
 
     pitch  = *p->pitch;
-    fperiod = FABS(csound->esr/(*p->fr));
+    fperiod = FABS(csound->GetSr(csound)/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = csound->esr * *p->grsize;
+    grsize = csound->GetSr(csound) * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       vecsize -= early;
       memset(&output[vecsize], '\0', early*sizeof(MYFLT));
     }
@@ -407,7 +407,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
       return NOTOK;
 
     p->olaps = (int) *p->ols + 1;
-    p->dataframes = (int)(*p->max*csound->esr*4);
+    p->dataframes = (int)(*p->max*csound->GetSr(csound)*4);
     if (p->dataframes < MINFBUFSIZE)
       p->dataframes =  MINFBUFSIZE;
     if (UNLIKELY(p->olaps < 2))
@@ -441,7 +441,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     }
 
     if (*p->ioff >= 0)
-      sf_seek(p->sf,*p->ioff * csound->esr, SEEK_SET);
+      sf_seek(p->sf,*p->ioff * csound->GetSr(csound), SEEK_SET);
 
     if (LIKELY(sf_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0)) {
       p->read1 = 1;
@@ -459,7 +459,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
 
     p->start = 0.0f;
     p->frac = 0.0f;
-    p->pos = *p->ioff*csound->esr;
+    p->pos = *p->ioff*csound->GetSr(csound);
     p->trigger = 0.0f;
     p->flen = sfinfo.frames;
 
@@ -497,17 +497,17 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     hdatasize = hdataframes*chans;
 
     pitch  = *p->pitch;
-    fperiod = FABS(csound->esr/(*p->fr));
+    fperiod = FABS(csound->GetSr(csound)/(*p->fr));
     //if (UNLIKELY(fperiod  < FL(0.0))) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = csound->esr * *p->grsize;
+    grsize = csound->GetSr(csound) * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     if (grsize > hdataframes) grsize = hdataframes;
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
-    if (offset) memset(output, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       vecsize -= early;
       memset(&output[vecsize], '\0', early*sizeof(MYFLT));
     }

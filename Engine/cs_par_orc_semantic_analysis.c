@@ -55,7 +55,6 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
     /* always check for greater than 0 in optimisation
        so this is a good default
      */
-    instr->weight = 1;
     csp_set_alloc_string(csound, &(instr->read_write));
     csp_set_alloc_string(csound, &(instr->write));
     csp_set_alloc_string(csound, &(instr->read));
@@ -102,8 +101,6 @@ void csp_orc_sa_print_list(CSOUND *csound)
 
       csound->Message(csound, "  read_write: ");
       csp_set_print(csound, current->read_write);
-
-      csound->Message(csound, "  weight: %u\n", current->weight);
 
       current = current->next;
     }
@@ -292,7 +289,7 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
 
 void csp_orc_sa_instr_finalize(CSOUND *csound)
 {
-    csp_orc_sa_print_list(csound);
+    //csp_orc_sa_print_list(csound);
     csound->instCurr = NULL;
     csound->inInstr = 0;
 }
@@ -361,4 +358,64 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
       current_instr->insno = insno;
     }
     return current_instr;
+}
+
+/* ANALYZE TREE */
+
+void csp_orc_analyze_tree(CSOUND* csound, TREE* root) {
+    if (PARSER_DEBUG) csound->Message(csound, "Performing csp analysis\n");
+    
+    TREE *current = root;
+    TREE *temp;
+    
+    while(current != NULL) {
+        switch(current->type) {
+            case INSTR_TOKEN:
+                if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
+                
+                temp = current->left;
+                
+                // FIXME - need to figure out why csp_orc_sa_instr_add is called by itself in csound_orc.y
+                csp_orc_sa_instr_add_tree(csound, temp);
+                
+                csp_orc_analyze_tree(csound, current->right);
+                
+                csp_orc_sa_instr_finalize(csound);
+                
+                break;
+            case UDO_TOKEN:
+                if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
+              
+                csp_orc_analyze_tree(csound, current->right);
+                
+                break;
+                
+            case IF_TOKEN:
+            case UNTIL_TOKEN:
+                break;
+            case LABEL_TOKEN:
+                break;
+            default:
+                if (PARSER_DEBUG) csound->Message(csound, "Statement: %s\n", current->value->lexeme);
+                
+                if(current->left != NULL) {
+                    csp_orc_sa_global_read_write_add_list(csound,
+                            csp_orc_sa_globals_find(csound, current->left),
+                            csp_orc_sa_globals_find(csound, current->right));
+                
+                } else {
+                    csp_orc_sa_global_read_add_list(csound,
+                                                    csp_orc_sa_globals_find(csound,
+                                                                            current->right));
+                }
+                
+                break;
+        }
+        
+        current = current->next;
+        
+    }
+    
+    if (PARSER_DEBUG) csound->Message(csound, "[End csp analysis]\n");
+    
 }

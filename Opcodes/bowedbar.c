@@ -90,14 +90,14 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
 
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
-        p->length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
-        p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound,
                         Str("unknown lowest frequency for bowed bar -- "
                             "assuming 50Hz\n"));
-        p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
+        p->length = (int32) (csound->GetSr(csound) / FL(50.0) + FL(1.0));
       }
     }
 
@@ -143,7 +143,7 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
       p->freq = *p->frequency;
       if (p->freq > FL(1568.0)) p->freq = FL(1568.0);
 
-      p->length = (int)(csound->esr/p->freq);
+      p->length = (int)(csound->GetSr(csound)/p->freq);
       p->nr_modes = NR_MODES;   /* reset for frequency shift */
       for (i = 0; i<NR_MODES; i++) {
         if ((int)(p->length/p->modes[i]) > 4)
@@ -186,8 +186,8 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
     }
     maxVelocity = FL(0.03) + (FL(0.5) * amp);
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

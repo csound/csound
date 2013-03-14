@@ -53,14 +53,16 @@ typedef struct {
     MYFLT   *indexes[VARGMAX];
 } ARRAY_GET;
 
+#ifdef SOME_FINE_DAY
 static int array_del(CSOUND *csound, void *p)
 {
     ARRAYDAT *t = ((ARRAYDEL*)p)->arrayDat;
     t->arrayType = NULL; // types cleaned up later
     mfree(csound, t->data);
-    mfree(csound, p);
+    mfree(csound, p);           /* Unlikely to free the p */
     return OK;
 }
+#endif
 
 static int array_init(CSOUND *csound, ARRAYINIT *p)
 {
@@ -784,7 +786,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 
 static OENTRY arrayvars_localops[] =
 {
-    { "array_init", sizeof(ARRAYINIT), 0, 1, "[?;", "im", (SUBR)array_init },
+    { "init.0", sizeof(ARRAYINIT), 0, 1, "[?;", "m", (SUBR)array_init },
     { "array_set", sizeof(ARRAY_SET), 0, 3, "", "[?;?M", (SUBR)array_set, (SUBR)array_set },
     { "array_get", sizeof(ARRAY_GET), 0, 3, "?", "[?;M", (SUBR)array_get, (SUBR)array_get },
 //  { "##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },

@@ -79,7 +79,7 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 
     /* allocate space- need no more than a half bar at current
        tempo and barlength */
-    M = ((size_t)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    M = ((size_t)(csound->GetSr(csound)*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       csound->AuxAlloc(csound, M, &p->repeatbuffer);
     }
@@ -95,7 +95,7 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
     /* samp per unit= samp per bar/ subdiv */
     /* = samp per beat * beats per bar /subdiv */
     /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
-    p->samplesperunit = roundoffint(((MYFLT)csound->esr*(FL(1.0)/(*p->bps)))*
+    p->samplesperunit = roundoffint(((MYFLT)csound->GetSr(csound)*(FL(1.0)/(*p->bps)))*
                                     (*p->barlength/(MYFLT)p->Subdiv));
 
     /* enveloping */
@@ -118,8 +118,8 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out;          /* intermedaites for enveloping grains */
 
-    if (offset) memset(p->aout, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -315,7 +315,7 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 
     /* allocate space- need no more than a half bar at current tempo
        and barlength */
-    M = 2*((size_t)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    M = 2*((size_t)(csound->GetSr(csound)*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       /* multiply by 2 for stereo buffer */
       csound->AuxAlloc(csound, M, &p->repeatbuffer);
@@ -331,7 +331,7 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
     /* samp per unit= samp per bar/ subdiv */
     /* = samp per beat * beats per bar /subdiv */
     /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
-    p->samplesperunit = roundoffint(((MYFLT)csound->esr/
+    p->samplesperunit = roundoffint(((MYFLT)csound->GetSr(csound)/
                                      (*p->bps))*(*p->barlength/
                                                  (MYFLT)p->Subdiv));
 
@@ -354,11 +354,11 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(p->aout1, '\0', offset*sizeof(MYFLT));
       memset(p->aout2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aout1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&p->aout2[nsmps], '\0', early*sizeof(MYFLT));

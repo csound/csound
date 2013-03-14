@@ -167,7 +167,7 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 
     /* check for valid parameters */
     if (*(p->iSampleRate) <= FL(0.0))
-      p->sampleRate = (double) csound->esr;
+      p->sampleRate = (double) csound->GetSr(csound);
     else
       p->sampleRate = (double) *(p->iSampleRate);
     if (UNLIKELY(p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE)) {
@@ -221,11 +221,11 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
       dampFact = 2.0 - cos(p->prv_LPFreq * TWOPI / p->sampleRate);
       dampFact = p->dampFact = dampFact - sqrt(dampFact * dampFact - 1.0);
     }
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(p->aoutL, '\0', offset*sizeof(MYFLT));
       memset(p->aoutR, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aoutL[nsmps], '\0', early*sizeof(MYFLT));
       memset(&p->aoutR[nsmps], '\0', early*sizeof(MYFLT));

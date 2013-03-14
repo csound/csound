@@ -605,7 +605,7 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
-    size_t frame_count = csound->kcounter * ksmps;
+    size_t frame_count = csound->GetKcounter(csound) * ksmps;
     size_t index = frame_count % vector_size;
     if (index == 0) {
       *k_current = 1.0;
@@ -839,9 +839,9 @@ public:
   {
     uint32_t offset = head.insdshead->ksmps_offset;
     uint32_t early  = head.insdshead->ksmps_no_end;
-    size_t frame_count = csound->kcounter * ksmps;
+    size_t frame_count = csound->GetKcounter(csound) * ksmps;
     size_t array_i = frame_count % vector_size;
-    if (early) ksmps -= early;
+    if (UNLIKELY(early)) ksmps -= early;
     for (size_t i = offset; i < ksmps; ++i, ++array_i) {
       lhs->vr[array_i] = a_a[i];
     }
@@ -939,10 +939,10 @@ public:
     uint32_t offset = head.insdshead->ksmps_offset;
     uint32_t early  = head.insdshead->ksmps_no_end;
     memset(a_a, '\0', offset*sizeof(MYFLT));
-    size_t frameCount = csound->kcounter * csound->ksmps;
+    size_t frameCount = csound->GetKcounter(csound) * csound->GetKsmps(csound);
     size_t vectorSize = gmm::vect_size(rhs->vr);
     size_t array_i = frameCount % vectorSize;
-    if (early) ksmps -= early;
+    if (UNLIKELY(early)) ksmps -= early;
     for (size_t i = 0; i < ksmps; ++i, ++array_i) {
       a_a[i] = rhs->vr[array_i];
     }

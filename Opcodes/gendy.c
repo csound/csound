@@ -193,8 +193,8 @@ static int agendy(CSOUND *csound, GENDY *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-     if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -328,8 +328,8 @@ static int agendyx(CSOUND *csound, GENDYX *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -448,7 +448,7 @@ static int kgendyc(CSOUND *csound, GENDYC *p)
       memdur[index] = p->dur;
       fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
       fphase = (fphase > FL(0.001) ? fphase : FL(0.001));
-      p->phase = (int32)(csound->esr / fphase);
+      p->phase = (int32)(csound->GetSr(csound) / fphase);
       if (p->phase < 2) p->phase = 2;
       p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
       p->curve = p->curve / (p->phase * p->phase + p->phase);
@@ -474,8 +474,8 @@ static int agendyc(CSOUND *csound, GENDYC *p)
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       memset(&out[remain+offset], '\0', early*sizeof(MYFLT));
     }
     do {
@@ -511,7 +511,7 @@ static int agendyc(CSOUND *csound, GENDYC *p)
         memdur[index] = p->dur;
         fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
         fphase = (fphase > FL(0.001) ? fphase : FL(0.001));
-        p->phase = (int32)(csound->esr / fphase);
+        p->phase = (int32)(csound->GetSr(csound) / fphase);
         if (p->phase < 2) p->phase = 2;
         p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
         p->curve = p->curve / (p->phase * p->phase + p->phase);

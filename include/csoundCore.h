@@ -30,9 +30,7 @@
 
 #include "sysdep.h"
 #include <pthread.h>
-#ifdef PARCS
 #include "cs_par_structs.h"
-#endif /* PARCS */
 #include <stdarg.h>
 #include <setjmp.h>
 #include "csound_type_system.h"
@@ -228,7 +226,6 @@ typedef struct CORFIL {
     int     numThreads;
     int     syntaxCheckOnly;
     int     useCsdLineCounts;
-    int     calculateWeights;
     int     sampleAccurate;  /* switch for score events sample accuracy */
     int     realtime; /* realtime priority mode  */
   } OPARMS;
@@ -450,10 +447,12 @@ typedef struct CORFIL {
     CSOUND  *csound;
 #ifdef JPFF
     int     kcounter;
-    unsigned int     ksmps;                  /* Instrument copy of ksmps */
-    MYFLT   ekr;               /* and of rates */
+    unsigned int     ksmps;     /* Instrument copy of ksmps */
+    MYFLT   ekr;                /* and of rates */
     MYFLT   onedksmps, onedkr, kicvt;
 #endif
+    struct opds  *pds;          /* Used for jumping */
+    MYFLT   scratchpad[4];      /* Persistent data */
     
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
@@ -471,7 +470,7 @@ typedef struct CORFIL {
     MYFLT   p3;
   } INSDS;
 
-#ifdef CS_KSMPS
+#ifdef JPFF
 #define CS_KSMPS     (p->h.insdshead->ksmps)
 #define CS_KCNT      (p->h.insdshead->kcounter)
 #define CS_EKR       (p->h.insdshead->ekr)
@@ -479,14 +478,15 @@ typedef struct CORFIL {
 #define CS_ONEDKR    (p->h.insdshead->onedkr)
 #define CS_KICVT     (p->h.insdshead->kicvt)
 #else
-#define CS_KSMPS     (csound->ksmps)
-#define CS_KCNT      (csound->kcounter)
-#define CS_EKR       (csound->ekr)
+#define CS_KSMPS     (csound->GetKsmps(csound))
+#define CS_KCNT      (csound->GetKcounter(csound))
+#define CS_EKR       (csound->Getkr(csound))
 #define CS_ONEDKSMPS (csound->onedksmps)
 #define CS_ONEDKR    (csound->onedkr)
 #define CS_KICVT     (csound->kicvt)
 #endif
-#define CS_ESR       (csound->esr)
+#define CS_ESR       (csound->GetSr(csound))
+#define CS_PDS       (p->h.insdshead->pds)
 
   typedef int (*SUBR)(CSOUND *, void *);
 
@@ -527,6 +527,7 @@ typedef struct CORFIL {
   // has space for 16 matches and next pointer in case more are found (unlikely though)
   typedef struct oentries {
     OENTRY* entries[16];
+    int opnum[16];
     int count;
     struct oentries* next;
   } OENTRIES;
@@ -871,6 +872,15 @@ typedef struct NAME__ {
     int           maxinsno;
   } ENGINE_STATE;
 
+
+  /**
+   * plugin module info
+   */ 
+  typedef struct {
+    char module[12];
+    char type[12];
+  } MODULE_INFO;
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -963,6 +973,8 @@ typedef struct NAME__ {
     MYFLT (*GetKr)(CSOUND *);
     uint32_t (*GetKsmps)(CSOUND *);
     uint32_t (*GetNchnls)(CSOUND *);
+    uint32_t (*GetNchnls_i)(CSOUND *);
+    long (*GetKcounter)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
@@ -1018,6 +1030,10 @@ typedef struct NAME__ {
     void (*SetRtrecordCallback)(CSOUND *,
                 int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
+    void (*SetAudioDeviceListCallback)(CSOUND *csound,
+				       int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+    void (*SetMIDIDeviceListCallback)(CSOUND *csound,
+				       int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
@@ -1193,20 +1209,17 @@ typedef struct NAME__ {
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
     char *(*GetString)(CSOUND *, MYFLT);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
+    void (*SetUtilSr)(CSOUND *, MYFLT); 
+    void (*SetUtilNchnls)(CSOUND *, int);
+    void (*module_list_add)(CSOUND *, char *, char *);
     SUBR dummyfn_2[50];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;       /* used by init and perf loops */
-    unsigned int  ksmps, global_ksmps;
-    uint32_t      nchnls;
-    int           inchnls;      /* Not fully used yet -- JPff */
-    int           spoutactive;
-    long          kcounter, global_kcounter;
     int           reinitflag;
     int           tieflag;
-    MYFLT         esr, onedsr, sicvt;
+    MYFLT         onedsr, sicvt;
     MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
     MYFLT         onedksmps;
-    MYFLT         ekr, global_ekr;
     MYFLT         onedkr;
     MYFLT         kicvt;
     MYFLT         e0dbfs, dbfs_to_float;
@@ -1287,13 +1300,23 @@ typedef struct NAME__ {
     int           (*recopen_callback)(CSOUND *, const csRtAudioParams *parm);
     int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
+    int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
+    int           (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int);
     /* end of callbacks */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     INSTRTXT      *instr0;          /* instr0     */
     INSTRTXT      **dead_instr_pool;
     int  dead_instr_no;
     TYPE_POOL*    typePool;
-    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */ 
+    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */
+    unsigned int  ksmps; 
+    uint32_t      nchnls;
+    int           inchnls;
+    int           spoutactive;
+    long          kcounter, global_kcounter;   
+    MYFLT         esr;  
+    MYFLT         ekr;
+    /*MYFLT         global_ekr;*/
     int           nchanik, nchania, nchanok, nchanoa;
     MYFLT         *chanik, *chania, *chanok, *chanoa;
     MYFLT         cpu_power_busy;
@@ -1384,16 +1407,16 @@ typedef struct NAME__ {
     int          init_pass_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
-    #if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
+    #if defined(HAVE_PTHREAD_SPIN_LOCK)
     pthread_spinlock_t spoutlock, spinlock;
 #else
     int           spoutlock, spinlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS) */
-#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
-    pthread_spinlock_t memlock;
+#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+    pthread_spinlock_t memlock, spinlock1;
 #else
-    int           memlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS */
+    int           memlock, spinlock1;
+#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
     char          *delayederrormessages;
     void          *printerrormessagesflag;
     struct sreadStatics__ {
@@ -1456,7 +1479,8 @@ typedef struct NAME__ {
       char    *Linep, *Linebufend;
       int     stdmode;
       EVTBLK  prve;
-      char    Linebuf[LBUFSIZ];
+      char    *Linebuf;
+      int     linebufsiz;
     } lineventStatics;
     struct musmonStatics__ {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
@@ -1576,10 +1600,6 @@ typedef struct NAME__ {
     THREADINFO    *multiThreadedThreadInfo;
     /* INSDS         *multiThreadedStart; */
     /* INSDS         *multiThreadedEnd; */
-#ifdef PARCS
-    char                *weight_info;
-    char                *weight_dump;
-    char                *weights;
     struct dag_t        *multiThreadedDag;
     pthread_barrier_t   *barrier1;
     pthread_barrier_t   *barrier2;
@@ -1587,21 +1607,18 @@ typedef struct NAME__ {
     struct global_var_lock_t *global_var_lock_root;
     struct global_var_lock_t **global_var_lock_cache;
     int           global_var_lock_count;
-    //    int           opcode_weight_cache_ctr;
-    struct opcode_weight_cache_entry_t
-                  *opcode_weight_cache[OPCODE_WEIGHT_CACHE_SIZE];
-    int           opcode_weight_have_cache;
-    struct        dag_cache_entry_t *cache[DAG_2_CACHE_SIZE];
     /* statics from cs_par_orc_semantic_analysis */
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
     int           inInstr;
-#ifdef NEW_DAG
     int           dag_changed;
     int           dag_num_active;
     INSDS         **dag_task_map;
-#endif
-#endif
+    volatile enum state    *dag_task_status;
+    watchList     * volatile *dag_task_watch;
+    watchList     *dag_wlmm;
+    char          **dag_task_dep;
+    int           dag_task_max_size;
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */
@@ -1612,11 +1629,14 @@ typedef struct NAME__ {
     int           tran_nchnlsi;
     int           scnt;         /* Count of strings */
     int           strsiz;       /* length of current strings space */
+    FUNC          *sinetable;   /* A useful table */
+    int           sinelength;   /* Size of table */
     MYFLT         *powerof2;    /* pow2 table */
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
     char          *filedir[64]; /* for location directory */
-        void * message_buffer;
+    void * message_buffer;
+    int           jumpset;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

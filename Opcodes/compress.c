@@ -58,7 +58,7 @@ static int compset(CSOUND *csound, CMPRS *p)
     p->curatt = (MYFLT) MAXPOS;
     p->currls = (MYFLT) MAXPOS;
     /* round to nearest integer */
-    if ((delsmps = MYFLT2LONG(*p->ilook * csound->esr)) <= 0L)
+    if ((delsmps = MYFLT2LONG(*p->ilook * csound->GetSr(csound))) <= 0L)
       delsmps = 1L;                             /* alloc 2 delay bufs   */
     csound->AuxAlloc(csound, delsmps * 2 * sizeof(MYFLT), &p->auxch);
     p->abuf = (MYFLT *)p->auxch.auxp;
@@ -126,8 +126,8 @@ static int compress(CSOUND *csound, CMPRS *p)
     ar = p->ar;
     ainp = p->aasig;
     cinp = p->acsig;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -239,8 +239,8 @@ static int distort(CSOUND *csound, DIST *p)
     dcur = p->prvd;
     asig = p->asig;
     ar = p->ar;
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

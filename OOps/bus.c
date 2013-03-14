@@ -357,7 +357,7 @@ int chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
 
 int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 {
-    int     n = (int)MYFLT2LRND(*(p->a)) * csound->global_ksmps;
+    int     n = (int)MYFLT2LRND(*(p->a)) * csound->ksmps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
@@ -366,20 +366,20 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     if ((unsigned int)n >= (unsigned int)csound->nchania) {
       if (UNLIKELY(chan_realloc(csound, &(csound->chania),
                                 &(csound->nchania),
-                                n + csound->global_ksmps) != 0))
+                                n + csound->ksmps) != 0))
         return csound->PerfError(csound,
                                  Str("chani: memory allocation failure"));
     }
-    if (offset) memset(p->r, '\0', offset * sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->r, '\0', offset * sizeof(MYFLT));
     memcpy(&p->r[offset], &(csound->chania[n]),
            sizeof(MYFLT) * (CS_KSMPS-offset-early));
-    if (early) memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
+    if (UNLIKELY(early)) memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
     return OK;
 }
 
 int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 {
-    int     n = (int)MYFLT2LRND(*(p->a)) * csound->global_ksmps;
+    int     n = (int)MYFLT2LRND(*(p->a)) * csound->ksmps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
@@ -388,14 +388,14 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
       if (UNLIKELY(chan_realloc(csound, &(csound->chanoa),
                                 &(csound->nchanoa),
-                                n + csound->global_ksmps) != 0))
+                                n + csound->ksmps) != 0))
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
     }
-    if (offset) memset(&(csound->chanoa[n]), '\0', offset);
+    if (UNLIKELY(offset)) memset(&(csound->chanoa[n]), '\0', offset);
     memcpy(&(csound->chanoa[n+offset]), &p->r[offset],
            sizeof(MYFLT) * (CS_KSMPS - offset-early));
-    if (early)
+    if (UNLIKELY(early))
       memset(&csound->chanoa[n+CS_KSMPS-early], '\0', sizeof(MYFLT) * early);
     return OK;
 }
@@ -532,7 +532,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
         nbytes += (int)sizeof(MYFLT);
         break;
       case CSOUND_AUDIO_CHANNEL:
-        nbytes += ((int)sizeof(MYFLT) * csound->global_ksmps);
+        nbytes += ((int)sizeof(MYFLT) * csound->ksmps);
         break;
       case CSOUND_STRING_CHANNEL:
         nbytes += ((int)sizeof(MYFLT) * csound->strVarSamples);
@@ -544,7 +544,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
     memset(pp, 0, (size_t) nbytes);
 #ifndef MACOSX
 #if defined(HAVE_PTHREAD_SPIN_LOCK) 
-    pthread_spin_init((int*)((char*) pp + (int)lockOffs),
+    pthread_spin_init((pthread_spinlock_t*)((char*) pp + (int)lockOffs),
                       PTHREAD_PROCESS_PRIVATE);
 #endif
 #endif
@@ -904,9 +904,9 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     csoundSpinLock(p->lock);
-    if (offset) memset(p->arg, '\0', offset);
+    if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
     memcpy(&p->arg[offset], p->fp, sizeof(MYFLT)*(CS_KSMPS-offset-early));
-    if (early) memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
+    if (UNLIKELY(early)) memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     csoundSpinUnLock(p->lock);
     return OK;
 }
@@ -1009,10 +1009,10 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
    /* Need lock for the channel */
     csoundSpinLock(p->lock);
-    if (offset) memset(p->fp, '\0', sizeof(MYFLT)*offset);
+    if (UNLIKELY(offset)) memset(p->fp, '\0', sizeof(MYFLT)*offset);
     memcpy(&p->fp[offset], &p->arg[offset],
            sizeof(MYFLT)*(CS_KSMPS-offset-early));
-    if (early) memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
+    if (UNLIKELY(early)) memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
     csoundSpinUnLock(p->lock);
     return OK;
 }
@@ -1025,7 +1025,7 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
     uint32_t nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     /* Need lock for the channel */
     csoundSpinLock(p->lock);
     for (n=offset; n<nsmps; n++) {
@@ -1051,7 +1051,6 @@ static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
 {
     int   err;
-    /* int *lock;   */     /* Need lock for the channel */
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
@@ -1065,11 +1064,15 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
     x.d = *(p->arg);
     __sync_or_and_fetch((int64_t *)p->fp, x.i);
 #else
-    p->lock = lock = csoundGetChannelLock(csound, (char*) p->iname,
-                                CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    csoundSpinLock(lock);
-    *(p->fp) = *(p->arg);
-    csoundSpinUnLock(lock);
+    {
+      int *lock;       /* Need lock for the channel */
+      p->lock = lock = 
+        csoundGetChannelLock(csound, (char*) p->iname,
+                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+      csoundSpinLock(lock);
+      *(p->fp) = *(p->arg);
+      csoundSpinUnLock(lock);
+    }
 #endif    
     return OK;
 }
@@ -1338,12 +1341,12 @@ int chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
     return OK;
 }
 
-static int dummy_opcode_stub(CSOUND *csound, void *p)
-{
-    (void) csound;
-    (void) p;
-    return OK;
-}
+/* static int dummy_opcode_stub(CSOUND *csound, void *p) */
+/* { */
+/*     (void) csound; */
+/*     (void) p; */
+/*     return OK; */
+/* } */
 
 /*  these opcodes have been removed as they were never used or
     implemented properly

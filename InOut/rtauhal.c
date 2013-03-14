@@ -41,6 +41,15 @@ typedef float AudioUnitSampleType;
 #endif
 
 
+typedef struct {
+  char name[128];
+  int outchannels;
+  int inchannels;
+  int indevnum;
+  int outdevnum;
+} Device_Info;
+
+
 typedef struct csdata_ {
   AudioDeviceID dev;
   AudioStreamBasicDescription format;
@@ -60,17 +69,12 @@ typedef struct csdata_ {
   int disp;
   AudioDeviceID defdevin;
   AudioDeviceID defdevout;
+  int devnos;
+  int devin;
+  int devout;
   void *incb;
   void *outcb;
 } csdata;
-
-typedef struct {
-  char name[128];
-  int outchannels;
-  int inchannels;
-  int indevnum;
-  int outdevnum;
-} Device_Info;
 
 
 OSStatus  Csound_Input(void *inRefCon,
@@ -93,9 +97,9 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
   UInt32  psize, devnum, devnos;
   AudioDeviceID dev;
   AudioDeviceID *sysdevs;
-  Device_Info *devinfo;
   AudioStreamBasicDescription format;
   int     i;
+  Device_Info *devinfo;
   UInt32  bufframes, nchnls;
   int devouts = 0, devins = 0;
   double srate;
@@ -133,7 +137,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
   AudioObjectGetPropertyData(kAudioObjectSystemObject,
                              &prop, 0, NULL, &psize, sysdevs);
 
-  
+  cdata->devnos = devnos;
   for (i = 0; i < devnos; i++) {
     AudioBufferList *b;
     int devchannels, k, n;
@@ -182,29 +186,30 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     if(devchannels) {
         devouts++;
         devinfo[i].outdevnum = devouts;
-    } else devinfo[i].outdevnum = -1; 
+    } else devinfo[i].outdevnum = -1;
     free(b);
   }
     
    
   if(cdata->disp)
-    csound->Message(csound,
-                    "==========================================================\n");
+   csound->Message(csound,
+                 "==========================================================\n");
 
-    if(isInput) csound->Message(csound, "AuHAL Module: found %d input device(s):\n", devins);
-    else csound->Message(csound, "AuHAL Module: found %d output device(s):\n", devouts);
+  if(isInput) csound->Message(csound, "AuHAL Module: found %d input device(s):\n", devins);
+   else csound->Message(csound, "AuHAL Module: found %d output device(s):\n", devouts);
  
     for (i = 0; i < devnos; i++) {
-      if(isInput) {
-      if(devinfo[i].inchannels)
-        csound->Message(csound, "%d: %s (%d channels) \n", devinfo[i].indevnum, devinfo[i].name, devinfo[i].inchannels);
-      }
-      else {
-      if(devinfo[i].outchannels)
-        csound->Message(csound, "%d: %s (%d channels) \n", devinfo[i].outdevnum, devinfo[i].name, devinfo[i].outchannels);
-      }     
+     if(isInput) {
+    	if(devinfo[i].inchannels) {
+       csound->Message(csound, "%d: %s (%d channels) \n", devinfo[i].indevnum, devinfo[i].name, devinfo[i].inchannels);
+       
+    	}
     }
-  
+     else {
+    if(devinfo[i].outchannels)
+      csound->Message(csound, "%d: %s (%d channels) \n", devinfo[i].outdevnum, devinfo[i].name, devinfo[i].outchannels);
+    }     
+    }
    
   if (parm->devName != NULL) devnum = atoi(parm->devName);
   else devnum = parm->devNum;
@@ -227,7 +232,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     else {
       prop.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
      for(i=0; i < devnos; i++) {
-        if(devinfo[i].outdevnum == devnum) CoreAudioDev = i;
+        if(devinfo[i].outdevnum == devnum)  CoreAudioDev = i;
       }
       if(CoreAudioDev >= 0) {
         dev  = sysdevs[CoreAudioDev];
@@ -385,11 +390,126 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
 }
 
+int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+  UInt32  psize, devnum, devnos;
+  AudioDeviceID dev;
+  AudioDeviceID *sysdevs;
+  Device_Info *devinfo;
+  int     i;
+  int devouts = 0, devins = 0;
+
+  AudioObjectPropertyAddress prop = {
+    kAudioObjectPropertyName,
+    kAudioObjectPropertyScopeGlobal,
+    kAudioObjectPropertyElementMaster
+  };
+  CFStringRef devName;
+  CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
+  prop.mSelector = kAudioHardwarePropertyDevices;
+  AudioObjectGetPropertyDataSize(kAudioObjectSystemObject,
+                                 &prop, 0, NULL, &psize);
+  devnos = psize / sizeof(AudioDeviceID);
+  sysdevs = (AudioDeviceID *) malloc(psize);
+  devinfo = (Device_Info *) malloc(devnos*sizeof*devinfo);
+  AudioObjectGetPropertyData(kAudioObjectSystemObject,
+                             &prop, 0, NULL, &psize, sysdevs);
+
+  for (i = 0; i < devnos; i++) {
+    AudioBufferList *b;
+    int devchannels, k, n;
+    int numlists;
+    psize = sizeof(CFStringRef);
+    prop.mScope = kAudioObjectPropertyScopeGlobal;
+    prop.mSelector = kAudioObjectPropertyName;
+    AudioObjectGetPropertyData(sysdevs[i],
+                               &prop, 0, NULL, &psize, &devName);
+    strcpy(devinfo[i].name, CFStringGetCStringPtr(devName, defaultEncoding));
+    CFRelease(devName); 
+
+    devchannels = 0;
+    prop.mScope = kAudioDevicePropertyScopeInput;
+    prop.mSelector =  kAudioDevicePropertyStreamConfiguration;
+    AudioObjectGetPropertyDataSize(sysdevs[i],
+                                   &prop, 0, NULL, &psize);
+    b = (AudioBufferList *) malloc(psize);
+    numlists = psize / sizeof(AudioBufferList);
+    AudioObjectGetPropertyData(sysdevs[i],
+                               &prop, 0, NULL, &psize, b);
+    for(n=0; n < numlists; n++){
+      for(k=0; k < b[n].mNumberBuffers; k++)
+        devchannels += b[n].mBuffers[k].mNumberChannels;
+    }
+    devinfo[i].inchannels = devchannels;
+    if(devchannels) {
+        devins++;
+        devinfo[i].indevnum = devins;
+    } else devinfo[i].indevnum = -1; 
+    free(b);
+
+    devchannels = 0;
+    prop.mScope = kAudioDevicePropertyScopeOutput;
+    AudioObjectGetPropertyDataSize(sysdevs[i],
+                                   &prop, 0, NULL, &psize);
+    b = (AudioBufferList *) malloc(psize);
+    numlists = psize /sizeof(AudioBufferList);
+    AudioObjectGetPropertyData(sysdevs[i],
+                               &prop, 0, NULL, &psize, b);
+    for(n=0; n < numlists; n++){
+      for(k=0; k < b[n].mNumberBuffers; k++)
+        devchannels += b[n].mBuffers[k].mNumberChannels;
+    }
+    devinfo[i].outchannels = devchannels;
+    if(devchannels) {
+        devouts++;
+        devinfo[i].outdevnum = devouts;
+    } else devinfo[i].outdevnum = -1;
+    free(b);
+  }
+  if(list==NULL){
+    return (isOutput ? devouts : devins);
+  } else {
+
+  char tmp[64], *s;
+  int n=0, i;
+
+  if ((s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO")) == NULL)
+      return 0;
+  
+  if(!isOutput){
+   for(i=0; i < devnos; i++) {
+     if(devinfo[i].inchannels) {
+       strncpy(list[n].device_name,  devinfo[i].name, 63);
+       sprintf(tmp, "dac%d", devinfo[i].indevnum);
+       strncpy(list[n].device_id, tmp, 63);
+       strncpy(list[n].rt_module, s, 63);
+       list[n].max_nchnls = devinfo[i].inchannels;
+       list[n].isOutput = 0;
+     n++;
+     }
+   }
+   return n;
+  } else {
+   for(i=0; i < devnos; i++){
+     if(devinfo[i].outchannels) {
+      strncpy(list[n].device_name,  devinfo[i].name, 63); 
+      sprintf(tmp, "dac%d", devinfo[i].outdevnum); 
+      strncpy(list[n].device_id, tmp, 63); 
+      strncpy(list[n].rt_module, s, 63);
+      list[n].max_nchnls = devinfo[i].outchannels;
+      list[n].isOutput = 1;
+     n++;
+   }
+  }
+   return n;
+  }
+  }
+}
+
 /* open for audio input */
 static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
 {
   csdata  *cdata;
-
+ 
   if (csound->rtRecord_userdata != NULL)
     return 0;
 
@@ -408,15 +528,15 @@ static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
   cdata->csound = cdata->csound;
   cdata->inputBuffer =
     (MYFLT *) calloc (csound->GetInputBufferSize(csound), sizeof(MYFLT));
-
   cdata->incb = csound->CreateCircularBuffer(csound, parm->bufSamp_HW*parm->nChannels);
-  return AuHAL_open(csound, parm, cdata, 1);
+  int ret = AuHAL_open(csound, parm, cdata, 1);
+  return ret;
 }
 
 /* open for audio output */
 static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
 {
-  csdata  *cdata;
+  csdata  *cdata;  
   if(csound->rtRecord_userdata != NULL)
     cdata = (csdata *) csound->rtRecord_userdata;
   else {
@@ -431,9 +551,9 @@ static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
   cdata->outputBuffer =
     (MYFLT *) calloc (csound->GetOutputBufferSize(csound), sizeof(MYFLT));
   memset(cdata->outputBuffer, 0, csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
-
   cdata->outcb = csound->CreateCircularBuffer(csound, parm->bufSamp_HW*parm->nChannels);
-  return AuHAL_open(csound, parm, cdata, 0);
+  int ret = AuHAL_open(csound, parm,cdata,0);
+  return ret;
 }
 
 OSStatus  Csound_Input(void *inRefCon,
@@ -596,6 +716,7 @@ static void rtclose_(CSOUND *csound)
 int csoundModuleInit(CSOUND *csound)
 {
   char   *drv;
+  csound->module_list_add(csound, "auhal", "audio");
   drv = (char *) csound->QueryGlobalVariable(csound, "_RTAUDIO");
   if (drv == NULL)
     return 0;
@@ -604,13 +725,14 @@ int csoundModuleInit(CSOUND *csound)
         strcmp(drv, "coreaudio") == 0 || strcmp(drv, "CoreAudio") == 0 ||
         strcmp(drv, "COREAUDIO") == 0))
     return 0;
-  if (csound->oparms->msglevel & 0x400)
+  //if (csound->oparms->msglevel & 0x400)
     csound->Message(csound, Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
   csound->SetPlayopenCallback(csound, playopen_);
   csound->SetRecopenCallback(csound, recopen_);
   csound->SetRtplayCallback(csound, rtplay_);
   csound->SetRtrecordCallback(csound, rtrecord_);
   csound->SetRtcloseCallback(csound, rtclose_);
+  csound->SetAudioDeviceListCallback(csound, listDevices);
   return 0;
 }
 

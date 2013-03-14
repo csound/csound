@@ -85,11 +85,11 @@ int xfm(CSOUND *csound, CROSSFM *p)
     sig1 = p->sig1;
     sig2 = p->sig2;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -156,11 +156,11 @@ int xfmi(CSOUND *csound, CROSSFM *p)
     sig1 = p->sig1;
     sig2 = p->sig2;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -230,11 +230,11 @@ int xpm(CSOUND *csound, CROSSFM *p)
     sig1 = p->sig1;
     sig2 = p->sig2;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -301,11 +301,11 @@ int xpmi(CSOUND *csound, CROSSFM *p)
     sig1 = p->sig1;
     sig2 = p->sig2;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -375,11 +375,11 @@ int xfmpm(CSOUND *csound, CROSSFM *p)
     sig1 = p->sig1;
     sig2 = p->sig2;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -446,11 +446,11 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
     sig1 = p->sig1;
     sig2 = p->sig2;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));

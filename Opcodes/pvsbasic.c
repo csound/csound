@@ -215,7 +215,7 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
     if ((p->pvfile  = csound->PVOC_CreateFile(csound, fname,
                                               p->fin->N,
                                               p->fin->overlap, 1, p->fin->format,
-                                              csound->esr, STYPE_16,
+                                              csound->GetSr(csound), STYPE_16,
                                               p->fin->wintype, 0.0f, NULL,
                                               p->fin->winsize)) == -1)
       return csound->InitError(csound,
@@ -353,7 +353,7 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
     p->fout->format = pvdata.wAnalFormat;
     p->fout->framecount = 1;
     p->scnt = p->fout->overlap;
-    p->pos = *p->ioff * csound->esr/N;
+    p->pos = *p->ioff * csound->GetSr(csound)/N;
     p->oldpos = -1;
 
     p->chn = (int) (*p->ichn <= p->chans ? *p->ichn : p->chans) -1;
@@ -482,11 +482,11 @@ int pvstanalset(CSOUND *csound, PVST *p)
       ((MYFLT *)p->win.auxp)[i] *= 2./p->scale;
 
     p->rotfac = hsize*TWOPI/N;
-    p->factor = csound->esr/(hsize*TWOPI);
-    p->fund = csound->esr/N;
+    p->factor = csound->GetSr(csound)/(hsize*TWOPI);
+    p->fund = csound->GetSr(csound)/N;
     p->scnt = p->fout[0]->overlap;
     p->tscale  = 1;
-    p->pos =  *p->offset*csound->esr;
+    p->pos =  *p->offset*csound->GetSr(csound);
     p->accum = 0.0;
     return OK;
 }
@@ -508,7 +508,7 @@ int pvstanal(CSOUND *csound, PVST *p)
     MYFLT time = *p->ktime;
     float tmp_real, tmp_im, powrat;
 
-    if (p->scnt >= hsize) {
+    if ((int)p->scnt >= hsize) {
 
       /* audio samples are stored in a function table */
       ft = csound->FTnp2Find(csound,p->knum);
@@ -810,7 +810,7 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t n, nsmps = CS_KSMPS;
       int NB = p->fout->NB;
-      harm = (int)(csound->esr/(2*ffun));
+      harm = (int)(csound->GetSr(csound)/(2*ffun));
       if (type==1) famp *= FL(1.456)/POWER((MYFLT)harm, FL(1.0)/FL(2.4));
       else if (type==2) famp *= FL(1.456)/POWER((MYFLT)harm, FL(0.25));
       else if (type==3) famp *= FL(1.456)/POWER((MYFLT)harm, FL(1.0)/FL(160.0));
@@ -822,8 +822,8 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
       for (n=0; n<nsmps; n++) {
         int m;
         fout = (CMPLX*) p->fout->frame.auxp + n*NB;
-        w = csound->esr/p->fout->N;
-        /*         harm = (int)(csound->esr/(2*ffun)); */
+        w = csound->GetSr(csound)/p->fout->N;
+        /*         harm = (int)(csound->GetSr(csound)/(2*ffun)); */
         memset(fout, '\0', NB*sizeof(CMPLX));
         if (n<offset) continue;
         for (m=1; m <= harm; m++) {
@@ -846,8 +846,8 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
       return OK;
     }
     if (p->lastframe > p->fout->framecount) {
-      w = csound->esr/p->fout->N;
-      harm = (int)(csound->esr/(2*ffun));
+      w = csound->GetSr(csound)/p->fout->N;
+      harm = (int)(csound->GetSr(csound)/(2*ffun));
       if (type==1) famp *= FL(1.456)/pow(harm, FL(1.0)/FL(2.4));
       else if (type==2) famp *= FL(1.456)/POWER(harm, FL(0.25));
       else if (type==3) famp *= FL(1.456)/POWER(harm, FL(1.0)/FL(160.0));
@@ -1330,7 +1330,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
     float   *fout = (float *) p->fout->frame.auxp;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-    float sr = csound->esr, binf;
+    float sr = csound->GetSr(csound), binf;
     int coefs = (int) *p->coefs;
 
     if (UNLIKELY(fout == NULL)) goto err1;
@@ -1366,8 +1366,8 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
             fout[i].re = fin[i].re * (fin[i].re / max);
           fout[i].im = fin[i].im * pscal;
           /* Remove aliases */
-          if (fout[i].im>=csound->esr*0.5 ||
-              fout[i].im<= -csound->esr*0.5)
+          if (fout[i].im>=csound->GetSr(csound)*0.5 ||
+              fout[i].im<= -csound->GetSr(csound)*0.5)
             fout[i].re=0.0;
         }
 
@@ -1553,7 +1553,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
     float   *fout = (float *) p->fout->frame.auxp;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-    float sr = csound->esr, binf;
+    float sr = csound->GetSr(csound), binf;
     int coefs = (int) *p->coefs;
 
     if (UNLIKELY(fout == NULL)) goto err1;
@@ -1589,8 +1589,8 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
             fout[i].re = fin[i].re * (fin[i].re / max);
           fout[i].im = (fin[i].im + pshift);
           /* Remove aliases */
-          if (fout[i].im>=csound->esr*0.5 ||
-              fout[i].im<= -csound->esr*0.5)
+          if (fout[i].im>=csound->GetSr(csound)*0.5 ||
+              fout[i].im<= -csound->GetSr(csound)*0.5)
             fout[i].re = 0.0;
         }
         if (g!=1.0f)
@@ -1750,7 +1750,7 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
     float   *fout = (float *) p->fout->frame.auxp;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-    float sr = csound->esr, binf;
+    float sr = csound->GetSr(csound), binf;
     int lowest =  abs((int) (*p->klowest * N * csound->onedsr));;
     int coefs = (int) *p->coefs;
 
@@ -1874,7 +1874,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
       csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
     if (p->fin->sliding) {
       csound->InitError(csound, Str("pvsblur does not work sliding yet"));
-      delayframes = (int) (FL(0.5) + *p->maxdel * csound->esr);
+      delayframes = (int) (FL(0.5) + *p->maxdel * csound->GetSr(csound));
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
         csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
@@ -1888,7 +1888,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     }
     else
       {
-        p->frpsec = csound->esr / olap;
+        p->frpsec = csound->GetSr(csound) / olap;
 
         delayframes = (int) (*p->maxdel * p->frpsec);
 
@@ -1906,7 +1906,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     for (j = 0; j < framesize * delayframes; j += framesize)
       for (i = 0; i < N + 2; i += 2) {
         delay[i + j] = 0.0f;
-        delay[i + j + 1] = i * csound->esr / N;
+        delay[i + j + 1] = i * csound->GetSr(csound) / N;
       }
 
     p->fout->N = N;

@@ -96,7 +96,7 @@ extern "C" {
     //       }
 
     plugin->Debug("vstaudio_init.\n");
-    p->framesPerBlock = csound->ksmps;
+    p->framesPerBlock = csound->Getksmps(csound);
     p->pluginInChannels  = (size_t) plugin->getNumInputs();
     p->pluginOutChannels = (size_t) plugin->getNumOutputs();
     p->opcodeOutChannels = (size_t) csound->GetOutputArgCnt(data);

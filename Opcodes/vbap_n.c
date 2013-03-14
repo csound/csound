@@ -55,7 +55,7 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
 
     /* write audio to result audio streams weighted
        with gain factors*/
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     invfloatn =  FL(1.0)/(nsmps-offset);
     for (j=0; j<cnt; j++) {
       inptr      = p->audio;
@@ -63,8 +63,8 @@ int vbap(CSOUND *csound, VBAP *p) /* during note performance: */
       ogain      = p->beg_gains[j];
       ngain      = p->end_gains[j];
       gainsubstr = ngain - ogain;
-      if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
           for (i = offset; i < nsmps; i++) {
@@ -201,8 +201,20 @@ int vbap_init(CSOUND *csound, VBAP *p)
     LS_SET  *ls_set_ptr;
     int cnt = p->number = (int)(p->OUTOCOUNT);
     char name[24];
+    
+     if((!strcmp(p->h.optext->t.opcod, "vbap")) == 0) {
+    p->audio = p->out_array[cnt]; 
+    p->azi = p->out_array[cnt+1];
+    p->ele = p->out_array[cnt+2];
+    p->spread = p->out_array[cnt+3];
+    p->layout = p->out_array[cnt+4]; 
+     }
     sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
+
+    if (ls_table==NULL)
+      return csound->InitError(csound, Str("could not find layout table no.%d"), (int)*p->layout );
+
     p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
     p->ls_am     = (int)ls_table[1];
     p->ls_set_am = (int)ls_table[2];
@@ -268,13 +280,13 @@ int vbap_moving(CSOUND *csound, VBAP_MOVING *p)
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     invfloatn = FL(1.0)/(nsmps-offset);
     for (j=0; j<cnt ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
-      if (offset) memset(outptr, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
       ogain  = p->beg_gains[j];
       ngain  = p->end_gains[j];
       gainsubstr = ngain - ogain;
@@ -493,10 +505,20 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     int     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
-    int cnt = p->number = (int)p->OUTOCOUNT;
+    int cnt = (int)p->h.optext->t.outArgCount;
+    if((!strcmp(p->h.optext->t.opcod, "vbapmove")) == 0) {
+    p->audio = p->out_array[cnt]; 
+    p->dur = p->out_array[cnt+1];
+    p->spread = p->out_array[cnt+2];
+    p->field_am = p->out_array[cnt+3];
+    memcpy(p->fld, &(p->out_array[cnt+4]), sizeof(MYFLT *)*(p->h.optext->t.inArgCount-4));
+    }
 
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
-                                                        "vbap_ls_table"));
+                                                        "vbap_ls_table_0"));
+    if (ls_table==NULL)
+      return csound->InitError(csound, Str("could not find layout table no.0"));
+    p->number = cnt;
     /* reading in loudspeaker info */
     p->dim       = (int)ls_table[0];
     p->ls_am     = (int)ls_table[1];
@@ -532,10 +554,10 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     }
     if (p->dim == 2)
       p->point_change_interval =
-        (int)(csound->ekr * *p->dur /(fabs(*p->field_am) - 1.0));
+        (int)(csound->GetKr(csound) * *p->dur /(fabs(*p->field_am) - 1.0));
     else if (LIKELY(p->dim == 3))
       p->point_change_interval =
-        (int)(csound->ekr * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
+        (int)(csound->GetKr(csound) * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
       csound->Die(csound, Str("Wrong dimension"));
     p->point_change_counter = 0;

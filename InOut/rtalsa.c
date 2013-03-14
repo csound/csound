@@ -507,6 +507,51 @@ static void list_devices(CSOUND *csound)
     free(line_);
 }
 
+#if NEEDS_CHECKING
+
+int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+
+   FILE * f = fopen("/proc/asound/pcm", "r");
+    /*file presents this format:
+    02-00: Analog PCM : Mona : playback 6 : capture 4*/
+    char *line, *line_;
+    line = (char *) calloc (128, sizeof(char));
+    line_ = (char *) calloc (128, sizeof(char));
+    char card_[] = "  ";
+    char num_[] = "  ";
+    char *temp;
+    char tmp[64];
+    int n =0;
+    if (f)  {
+      while (fgets(line, 128, f))  {   /* Read one line*/
+        strcpy(line_, line);
+        temp = strtok (line, "-");
+        strncpy (card_, temp, 2);
+        temp = strtok (NULL, ":");
+        strncpy (num_, temp, 2);
+        int card = atoi (card_);
+        int num = atoi (num_);
+        temp = strchr (line_, ':');
+        if (temp)
+          temp = temp + 2;
+	if(list != NULL) {
+         strncpy(list[n].device_name, temp, 63);
+         sprintf(tmp, "hw:%i,%i", card, num);
+         strncpy(list[n].device_id, tmp, 63);
+         list[n].max_nchnls = -1;
+         list[n].isOutput = isOutput;
+	}
+        n++;
+      }
+    }
+    fclose(f);
+    free(line);
+    free(line_);
+    return n;
+}
+
+#endif
+
 static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
 {    DEVPARAMS *dev;
     void      **userDataPtr;
@@ -1494,15 +1539,21 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     int     i;
     char    buf[9];
 
-    csCfgVariable_t *cfg;
-    int priority;
-    cfg = csound->QueryConfigurationVariable(csound, "rtscheduler");
-    priority = *(cfg->i.p);
+   csound->module_list_add(csound, "devfile", "midi");
+   csound->module_list_add(csound, "alsaseq", "midi");
+   csound->module_list_add(csound, "alsa", "midi");
+   csound->module_list_add(csound, "alsa", "audio");
 
-    if (priority != 0) set_scheduler_priority(csound, priority);
-
-    csound->DeleteConfigurationVariable(csound, "rtscheduler");
-    csound->DestroyGlobalVariable(csound, "::priority");
+   {
+     csCfgVariable_t *cfg;
+     int priority;
+     if ((cfg = csound->QueryConfigurationVariable(csound, "rtscheduler")) != NULL) {
+       priority = *(cfg->i.p);
+       if (priority != 0) set_scheduler_priority(csound, priority);
+       csound->DeleteConfigurationVariable(csound, "rtscheduler");
+       csound->DestroyGlobalVariable(csound, "::priority");
+     }
+   }
 
     s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     i = 0;
@@ -1518,6 +1569,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtplayCallback(csound, rtplay_);
       csound->SetRtrecordCallback(csound, rtrecord_);
       csound->SetRtcloseCallback(csound, rtclose_);
+      
     }
     s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
     i = 0;
@@ -1534,6 +1586,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
       csound->SetExternalMidiWriteCallback(csound, midi_out_write);
       csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
+      
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
       if (csound->oparms->msglevel & 0x400)

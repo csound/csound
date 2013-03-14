@@ -21,7 +21,7 @@ int main(int argc, char **argv)
          /* new compilation */
     	csoundCompileOrc(csound, instrument);
 	/* schedule an event on instr 2 */
-        csoundInputMessage(csound, "i2 0 8 10000 110 \n");
+        csoundReadScore(csound, "i2 0 1 10000 110 \n i2 + 1 1000 660");
         compile_again = 1;
       }
     }

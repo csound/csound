@@ -24,7 +24,7 @@ endin
 </CsInstruments>
 <CsScore>
 f 1 0 1024 10 1
-i 1 0 20
+i 1 0 .5 
 e
 
 </CsScore>

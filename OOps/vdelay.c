@@ -63,8 +63,8 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     if (UNLIKELY(buf==NULL)) goto err1;        /* RWD fix */
     maxd = (uint32) (1+*p->imaxd * ESR);
     indx = p->left;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -155,8 +155,8 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     maxd = (uint32) (*p->imaxd * ESR);
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -350,8 +350,8 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
-    if (offset) memset(out1, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -421,8 +421,8 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    if (offset) memset(out1, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -491,11 +491,11 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -569,11 +569,11 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -652,13 +652,13 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
       memset(out3, '\0', offset*sizeof(MYFLT));
       memset(out4, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -746,13 +746,13 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
       memset(out3, '\0', offset*sizeof(MYFLT));
       memset(out4, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -847,8 +847,8 @@ int multitap_play(CSOUND *csound, MDEL *p)
     MYFLT max = (MYFLT)p->max;
 
     if (UNLIKELY(buf==NULL)) goto err1;           /* RWD fix */
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -1150,7 +1150,7 @@ int reverbx(CSOUND *csound, NREV2 *p)
     in = p->in;
     memcpy(buf, in, nsmps*sizeof(MYFLT));
     memset(out, 0,  nsmps*sizeof(MYFLT));
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
       if (UNLIKELY(hdif > FL(1.0))) {
         csound->Warning(csound, Str("High frequency diffusion>1\n"));

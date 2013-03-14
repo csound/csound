@@ -108,6 +108,9 @@ def runTest():
 	["test_arrays_multi.csd", "test multi-dimensionsl k-array, assigment to number and expression"],
 	
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
+
+	["test_semantics_undefined_var.csd", "test undefined var", 1],
+	["test_invalid_expression.csd", "test expression", 1],
    ]
 
 
@@ -133,16 +136,18 @@ def runTest():
             executable = (csoundExecutable == "") and "../csound" or csoundExecutable
             command = "%s %s %s %s &> %s"%(executable, parserType, runArgs, filename, tempfile)
             retVal = os.system(command)
-
-        print "Test %i: %s (%s)\nReturn Code: %i"%(counter, desc, filename, retVal)
-        print expectedResult
+  
+        out = ""
         if (retVal == 0) == (expectedResult == 0):
             testPass += 1
-            print "Result: PASS\n"
+            out = "[pass] - "
         else:
             testFail += 1
-            print "Result: FAIL\n"
-        
+            out = "[FAIL] - "
+
+	out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
+)
+	print out
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)

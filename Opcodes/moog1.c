@@ -217,8 +217,8 @@ int Moog1(CSOUND *csound, MOOG1 *p)
     }
     p->vibr.rate = *p->vibf * p->vibr.wave->flen * csound->onedsr;
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }

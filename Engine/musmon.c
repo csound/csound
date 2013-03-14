@@ -38,7 +38,7 @@ extern  int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
 extern  int     insert(CSOUND *, int, EVTBLK*);
 extern  void    MidiOpen(CSOUND *);
 extern  void    m_chn_init_all(CSOUND *);
-extern  void    scsortstr(CSOUND *, CORFIL *);
+//extern  char *  scsortstr(CSOUND *, CORFIL *);
 extern  void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
 extern  void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
 extern  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
@@ -76,7 +76,7 @@ static void settempo(CSOUND *csound, MYFLT tempo)
     if (tempo <= FL(0.0)) return;
     if (csound->oparms->Beatmode==1)
       csound->ibeatTime = (int64_t)(csound->esr*60.0 / (double) tempo);
-    csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
+    csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->ekr);
 }
 
 int gettempo(CSOUND *csound, GTEMPO *p)
@@ -224,7 +224,7 @@ int musmon(CSOUND *csound)
 
     /* kperf() will not call csoundYield() more than 250 times per second */
     csound->evt_poll_cnt    = 0;
-    csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 250.0);
+    csound->evt_poll_maxcnt = (int) (250.0 /(double) csound->ekr); /* VL this was wrong: kr/250 originally */
     /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O->Midiin || O->FMidiin || O->RMidiin) {
       O->RTevents = 1;
@@ -472,7 +472,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
-    if(csound->API_lock != NULL) csoundDestroyMutex(csound->API_lock);
+    
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
@@ -486,7 +486,7 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
     STA(ep) = &a->e[1];                  /* from 1st evlist member */
     STA(epend) = STA(ep) + a->nevents;    /*   to last              */
     while (csoundPerform(csound) == 0)  /* play list members      */
-      ;
+      ;                                 /* NB: empoty loop */
     return OK;
 }
 
@@ -738,7 +738,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     case 'a':
       {
         int64_t kCnt;
-        kCnt = (int64_t) ((double) csound->global_ekr * (double) evt->p[3] + 0.5);
+        kCnt = (int64_t) ((double) csound->ekr * (double) evt->p[3] + 0.5);
         if (kCnt > csound->advanceCnt) {
           csound->advanceCnt = kCnt;
           csound->Message(csound,
@@ -1091,7 +1091,7 @@ int sensevents(CSOUND *csound)
 static inline uint64_t time2kcnt(CSOUND *csound, double tval)
 {
     if (tval > 0.0) {
-      tval *= (double) csound->global_ekr;
+      tval *= (double) csound->ekr;
 #ifdef HAVE_C99
       return (uint64_t) llrint(tval);
 #else

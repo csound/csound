@@ -63,7 +63,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->handle->header.wintype = p->fin->wintype;
     p->handle->header.format  = p->fin->format;
     p->handle->header.framecount = p->fin->framecount;
-    p->nframes = p->handle->frames = (*p->len) * csound->esr/hop;
+    p->nframes = p->handle->frames = (*p->len) * csound->GetSr(csound)/hop;
     if (p->buffer.auxp == NULL ||
         p->buffer.size < sizeof(float) * (N + 2) * p->nframes)
       csound->AuxAlloc(csound, (N + 2) * sizeof(float) * p->nframes, &p->buffer);
@@ -111,7 +111,7 @@ static int pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
         fout[i+1] = fin[i+1];
       }
       p->handle->header.framecount = p->lastframe = p->fin->framecount;
-      p->pos = p->cframes/(csound->esr/p->fin->overlap);
+      p->pos = p->cframes/(csound->GetSr(csound)/p->fin->overlap);
       p->cframes++;
       if (p->cframes == p->nframes)p->cframes = 0;
     }
@@ -181,7 +181,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
  static int pvsbufreadproc(CSOUND *csound, PVSBUFFERREAD *p){
 
     unsigned int posi, frames;
-    MYFLT pos, sr = csound->esr;
+    MYFLT pos, sr = csound->GetSr(csound);
     FSIG_HANDLE *handle =  p->handle, **phandle;
     MYFLT frac;
     float *fout, *buffer;
@@ -250,12 +250,12 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 {
     unsigned int posi, frames;
-    MYFLT pos, sr = csound->esr;
+    MYFLT pos, sr = csound->GetSr(csound);
     FSIG_HANDLE *handle =  p->handle, **phandle;
     MYFLT frac, *tab1, *tab2, *tab;
     FUNC *ftab;
     float *fout, *buffer;
-    int overlap, i, N;
+    uint32_t overlap, i, N;
 
     if (*p->hptr != p->optr){
       char varname[32];

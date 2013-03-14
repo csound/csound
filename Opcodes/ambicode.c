@@ -165,13 +165,13 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     /* update coefficients */
     ambicode_set_coefficients(p);
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(rsltp_w, '\0', offset*sizeof(MYFLT));
       memset(rsltp_x, '\0', offset*sizeof(MYFLT));
       memset(rsltp_y, '\0', offset*sizeof(MYFLT));
       memset(rsltp_z, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&rsltp_w[nsmps], '\0', early*sizeof(MYFLT));
       memset(&rsltp_x[nsmps], '\0', early*sizeof(MYFLT));
@@ -193,14 +193,14 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     else if (p->OUTOCOUNT == 9 && p->INOCOUNT >= 6) {
       /* 2nd order */
 
-      if (offset) {
+      if (UNLIKELY(offset)) {
         memset(rsltp_r, '\0', offset*sizeof(MYFLT));
         memset(rsltp_s, '\0', offset*sizeof(MYFLT));
         memset(rsltp_t, '\0', offset*sizeof(MYFLT));
         memset(rsltp_u, '\0', offset*sizeof(MYFLT));
         memset(rsltp_v, '\0', offset*sizeof(MYFLT));
       }
-      if (early) {
+      if (UNLIKELY(early)) {
         memset(&rsltp_r[nsmps], '\0', early*sizeof(MYFLT));
         memset(&rsltp_s[nsmps], '\0', early*sizeof(MYFLT));
         memset(&rsltp_t[nsmps], '\0', early*sizeof(MYFLT));
@@ -228,7 +228,7 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     else if (p->OUTOCOUNT == 16 && p->INOCOUNT >= 7) {
       /* 3rd order */
 
-      if (offset) {
+      if (UNLIKELY(offset)) {
         memset(rsltp_r, '\0', offset*sizeof(MYFLT));
         memset(rsltp_s, '\0', offset*sizeof(MYFLT));
         memset(rsltp_t, '\0', offset*sizeof(MYFLT));
@@ -242,7 +242,7 @@ static int aambicode(CSOUND *csound, AMBIC *p)
         memset(rsltp_p, '\0', offset*sizeof(MYFLT));
         memset(rsltp_q, '\0', offset*sizeof(MYFLT));
       }
-      if (early) {
+      if (UNLIKELY(early)) {
         memset(&rsltp_r[nsmps], '\0', early*sizeof(MYFLT));
         memset(&rsltp_s[nsmps], '\0', early*sizeof(MYFLT));
         memset(&rsltp_t[nsmps], '\0', early*sizeof(MYFLT));
@@ -678,9 +678,9 @@ static int aambideco(CSOUND *csound, AMBID *p)
     rsltp[5] = p->m5;
     rsltp[6] = p->m6;
     rsltp[7] = p->m7;
-    if (offset) for (i = 0; i < p->OUTOCOUNT; i++)
+    if (UNLIKELY(offset)) for (i = 0; i < p->OUTOCOUNT; i++)
                   memset(rsltp[i], '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       for (i = 0; i < p->OUTOCOUNT; i++)
         memset(&rsltp[i][nsmps], '\0', early*sizeof(MYFLT));

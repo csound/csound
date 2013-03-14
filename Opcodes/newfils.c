@@ -59,7 +59,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     if (res < 0) res = 0;
 
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq/csound->esr);
+    fc =  (double)(freq/csound->GetSr(csound));
     f  =  fc/2;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -69,8 +69,8 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     tune = (1.0 - exp(-(TWOPI*f*fcr))) / thermal;   /* filter tuning  */
     res4 = 4.0*(double)res*acr;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -135,13 +135,13 @@ static int statevar_process(CSOUND *csound,statevar *p)
 
     if (q < lim) q = lim;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(outhp, '\0', offset*sizeof(MYFLT));
       memset(outlp, '\0', offset*sizeof(MYFLT));
       memset(outbp, '\0', offset*sizeof(MYFLT));
       memset(outbr, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&outhp[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outlp[nsmps], '\0', early*sizeof(MYFLT));
@@ -189,7 +189,7 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     MYFLT  freq = *p->freq;
     MYFLT  ris = *p->ris;
     MYFLT  dec = *p->dec;
-    double  *delay = p->delay,ang,fsc,rad1,rad2;
+    double  *delay = p->delay,ang,fsc,rrad1,rrad2;
     double  w1,y1,w2,y2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -197,22 +197,22 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
 
     ang = (double)csound->tpidsr*freq;         /* pole angle */
     fsc = sin(ang) - 3.0;                      /* freq scl   */
-    rad1 =  pow(10.0, fsc/(dec*csound->esr));  /* filter radii */
-    rad2 =  pow(10.0, fsc/(ris*csound->esr));
+    rrad1 =  pow(10.0, fsc/(dec*csound->GetSr(csound)));  /* filter radii */
+    rrad2 =  pow(10.0, fsc/(ris*csound->GetSr(csound)));
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (i=offset;i<nsmps;i++) {
 
-      w1  = in[i] + 2.0*rad1*cos(ang)*delay[0] - rad1*rad1*delay[1];
+      w1  = in[i] + 2.0*rrad1*cos(ang)*delay[0] - rrad1*rrad1*delay[1];
       y1 =  w1 - delay[1];
       delay[1] = delay[0];
       delay[0] = w1;
 
-      w2  = in[i] + 2.0*rad2*cos(ang)*delay[2] - rad2*rad2*delay[3];
+      w2  = in[i] + 2.0*rrad2*cos(ang)*delay[2] - rrad2*rrad2*delay[3];
       y2 =  w2 - delay[3];
       delay[3] = delay[2];
       delay[2] = w2;

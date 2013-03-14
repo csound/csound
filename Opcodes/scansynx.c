@@ -349,8 +349,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
             p->f[wd] |= (1<<bt);
           }
           else {
-            csound->Message(csound, Str("(%d,%d) is out of range\n"), i, j);
-          }
+            csound->Message(csound, Str("(%d,%d) is out of range\n"), i, j);          }
 #endif
           while (*pp++ != '\n') ;
         }
@@ -410,7 +409,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         p->v[i] = f->ftable[i];
     }
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * csound->esr;
+    p->rate = *p->i_rate * csound->GetSr(csound);
 
       /* Initialize index */
     p->idx  = 0;
@@ -472,8 +471,8 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -628,8 +627,8 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
     MYFLT amp = *p->k_amp;
     PSCSNUX *pp = p->p;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

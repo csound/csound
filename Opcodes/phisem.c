@@ -190,8 +190,8 @@ static MYFLT noise_tick(CSOUND *csound)
 static int cabasaset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->shake_maxSave = FL(0.0);
@@ -256,8 +256,8 @@ static int cabasa(CSOUND *csound, CABASA *p)
       shakeEnergy = FL(0.0);
     }
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -292,8 +292,8 @@ static int cabasa(CSOUND *csound, CABASA *p)
 static int sekereset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -362,8 +362,8 @@ static int sekere(CSOUND *csound, SEKERE *p)
       shakeEnergy = FL(0.0);
     }
 
-    if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -402,8 +402,8 @@ static int sekere(CSOUND *csound, SEKERE *p)
 static int sandset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -430,8 +430,8 @@ static int sandset(CSOUND *csound, SEKERE *p)
 static int stixset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -457,8 +457,8 @@ static int stixset(CSOUND *csound, SEKERE *p)
 static int crunchset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->shake_maxSave = FL(0.0);
@@ -484,8 +484,8 @@ static int guiroset(CSOUND *csound, GUIRO *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00    = FL(0.0);
     p->outputs01    = FL(0.0);
@@ -589,8 +589,8 @@ static int guiro(CSOUND *csound, GUIRO *p)
       MYFLT gains0       = p->gains0;
       MYFLT gains1       = p->gains1;
       MYFLT amp          = *p->amp;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -650,8 +650,8 @@ static int tambourset(CSOUND *csound, TAMBOURINE *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -742,8 +742,8 @@ static int tambourine(CSOUND *csound, TAMBOURINE *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -795,8 +795,8 @@ static int bambooset(CSOUND *csound, BAMBOO *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -881,8 +881,8 @@ static int bamboo(CSOUND *csound, BAMBOO *p)
       MYFLT sndLevel    = p->sndLevel;
       MYFLT soundDecay  = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -937,8 +937,8 @@ static int wuterset(CSOUND *csound, WUTER *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-             - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+             - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -1025,8 +1025,8 @@ static int wuter(CSOUND *csound, WUTER *p)
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
 
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }
@@ -1116,8 +1116,8 @@ static int sleighset(CSOUND *csound, SLEIGHBELLS *p)
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+    p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound))
+               - (int)(csound->GetKr(csound) * *p->dettack);
 
     p->outputs00 = FL(0.0);
     p->outputs01 = FL(0.0);
@@ -1212,8 +1212,8 @@ static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
       MYFLT sndLevel = p->sndLevel;
       MYFLT soundDecay = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2, inputs3, inputs4;
-      if (offset) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (early) {
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
         nsmps -= early;
         memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       }

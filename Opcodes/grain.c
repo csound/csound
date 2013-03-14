@@ -58,14 +58,14 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     else
       p->pr = FL(0.0);
 
-    bufsize = sizeof(MYFLT) * (2L * (size_t) (csound->esr * *p->imkglen)
+    bufsize = sizeof(MYFLT) * (2L * (size_t) (csound->GetSr(csound) * *p->imkglen)
                                + (3L * CS_KSMPS));
 
     if (p->aux.auxp == NULL || (unsigned int)bufsize > p->aux.size)
       csound->AuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
-    d +=  (int)(csound->esr * *p->imkglen) + CS_KSMPS;
+    d +=  (int)(csound->GetSr(csound) * *p->imkglen) + CS_KSMPS;
     p->y = d;
 
     p->ampadv = (XINARG1) ? 1 : 0;
@@ -107,7 +107,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 
     if (kglen > *p->imkglen) kglen = *p->imkglen;
 
-    ekglen  = (int32)(csound->esr * kglen);   /* Useful constant */
+    ekglen  = (int32)(csound->GetSr(csound) * kglen);   /* Useful constant */
     inc2    = (int32)(csound->sicvt / kglen); /* Constant for each cycle */
     bufsize = CS_KSMPS + ekglen;
     xdns    = p->xdns;
@@ -115,8 +115,8 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     xlfr    = p->xlfr;
 
     memset(buf, '\0', bufsize*sizeof(MYFLT));
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

@@ -79,12 +79,12 @@ static int svf(CSOUND *csound, SVF *p)
     /* equations derived from Hal Chamberlin, "Musical Applications
      * of Microprocessors.
      */
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(low,  '\0', offset*sizeof(MYFLT));
       memset(high, '\0', offset*sizeof(MYFLT));
       memset(band, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&low[nsmps],  '\0', early*sizeof(MYFLT));
       memset(&high[nsmps], '\0', early*sizeof(MYFLT));
@@ -123,8 +123,8 @@ static int hilbertset(CSOUND *csound, HILBERT *p)
     double polefreq, rc, alpha, beta;
     /* calculate coefficients for allpass filters, based on sampling rate */
     for (j=0; j<12; j++) {
-      /*      p->coef[j] = (1 - (15 * PI * pole[j]) / csound->esr) /
-              (1 + (15 * PI * pole[j]) / csound->esr); */
+      /*      p->coef[j] = (1 - (15 * PI * pole[j]) / csound->GetSr(csound)) /
+              (1 + (15 * PI * pole[j]) / csound->GetSr(csound)); */
       polefreq = poles[j] * 15.0;
       rc = 1.0 / (2.0 * PI * polefreq);
       alpha = 1.0 / rc;
@@ -151,11 +151,11 @@ static int hilbert(CSOUND *csound, HILBERT *p)
     out2 = p->out2;
     in = p->in;
 
-    if (offset) {
+    if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
     }
-    if (early) {
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
       memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
@@ -258,8 +258,8 @@ static int resonr(CSOUND *csound, RESONZ *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -321,8 +321,8 @@ static int resonz(CSOUND *csound, RESONZ *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -399,8 +399,8 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     wp = csound->pidsr * coef;
     beta = (FL(1.0) - wp)/(FL(1.0) + wp);
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -474,8 +474,8 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
     if (ksep <= FL(0.0))
       ksep = -ksep;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -545,7 +545,7 @@ static int lp2(CSOUND *csound, LP2 *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     temp = (double)(csound->mpidsr * kfco / kres);
-      /* (-PI_F * kfco / (kres * csound->esr)); */
+      /* (-PI_F * kfco / (kres * csound->GetSr(csound))); */
     a = 2.0 * cos((double) (kfco * csound->tpidsr)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
@@ -555,8 +555,8 @@ static int lp2(CSOUND *csound, LP2 *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

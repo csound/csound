@@ -33,10 +33,10 @@
 static int flwset(CSOUND *csound, FOL *p)
 {
     p->wgh = p->max = FL(0.0);
-    p->length = (int32)(*p->len * csound->esr);
+    p->length = (int32)(*p->len * csound->GetSr(csound));
     if (UNLIKELY(p->length<=0L)) {           /* RWD's suggestion */
       csound->Warning(csound, Str("follow - zero length!"));
-      p->length = (int32)csound->esr;
+      p->length = (int32)csound->GetSr(csound);
     }
     p->count = p->length;
     return OK;
@@ -52,8 +52,8 @@ static int follow(CSOUND *csound, FOL *p)
     MYFLT       max = p->max;
     int32       count = p->count;
 
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
@@ -83,12 +83,12 @@ static int envset(CSOUND *csound, ENV *p)
     if (p->lastatt<=FL(0.0))
       p->ga = EXP(- FL(69.0775527898)*csound->onedsr);
     else
-      p->ga = EXP(- FL(6.90775527898)/(csound->esr* p->lastatt));
+      p->ga = EXP(- FL(6.90775527898)/(csound->GetSr(csound)* p->lastatt));
     p->lastrel = *p->release;
     if (p->lastrel<=FL(0.0))
       p->gr = EXP(- FL(69.0775527898)*csound->onedsr);
     else
-      p->gr = EXP(- FL(6.90775527898)/(csound->esr* p->lastrel));
+      p->gr = EXP(- FL(6.90775527898)/(csound->GetSr(csound)* p->lastrel));
     p->envelope = FL(0.0);
     return OK;
 }
@@ -107,8 +107,8 @@ static int envext(CSOUND *csound, ENV *p)
         ga = p->ga = EXP(- FL(69.0775527898)*csound->onedsr);
       // EXP(-FL(10000.0)*csound->onedsr);
       else
-        ga = p->ga = EXP(- FL(6.90775527898)/(csound->esr* p->lastatt));
-      //EXP(-FL(1.0)/(csound->esr* p->lastatt));
+        ga = p->ga = EXP(- FL(6.90775527898)/(csound->GetSr(csound)* p->lastatt));
+      //EXP(-FL(1.0)/(csound->GetSr(csound)* p->lastatt));
     }
     else ga = p->ga;
     if (p->lastrel!=*p->release) {
@@ -117,12 +117,12 @@ static int envext(CSOUND *csound, ENV *p)
         gr = p->gr = EXP(- FL(69.0775527898)*csound->onedsr);
       //EXP(-FL(100.0)*csound->onedsr);
       else
-        gr = p->gr = EXP(- FL(6.90775527898)/(csound->esr* p->lastrel));
-      //EXP(-FL(1.0)/(csound->esr* p->lastrel));
+        gr = p->gr = EXP(- FL(6.90775527898)/(csound->GetSr(csound)* p->lastrel));
+      //EXP(-FL(1.0)/(csound->GetSr(csound)* p->lastrel));
     }
     else gr = p->gr;
-    if (offset) memset(out, '\0', offset*sizeof(MYFLT));
-    if (early) {
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }

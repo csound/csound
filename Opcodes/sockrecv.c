@@ -112,7 +112,9 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+#ifndef WIN32
     fcntl(p->sock, F_SETFL, O_NONBLOCK);
+#endif
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError
         (csound, Str("creating socket"));
@@ -170,12 +172,12 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *asig = p->ptr1;
     MYFLT   *buf = p->buf;
-    int     i, nsmps = csound->ksmps;
+    int     i, nsmps = csound->GetKsmps(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int outsamps = p->outsamps, rcvsamps = p->rcvsamps;
     memset(asig, 0, sizeof(MYFLT)*nsmps);
-   if (early) nsmps -= early;
+   if (UNLIKELY(early)) nsmps -= early;
        
     for(i=offset; i < nsmps ; i++){ 
       if(outsamps >= rcvsamps){
@@ -195,7 +197,6 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 static int init_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
-    int     bufnos;
 #ifdef WIN32
     WSADATA wsaData = {0};
     int err;
@@ -205,7 +206,9 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
 
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+#ifndef WIN32
     fcntl(p->sock, F_SETFL, O_NONBLOCK);
+#endif
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
@@ -250,7 +253,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
     MYFLT   *asigl = p->ptr1;
     MYFLT   *asigr = p->ptr2;
     MYFLT   *buf = p->buf;
-    int     i, nsmps = csound->ksmps;
+    int     i, nsmps = csound->GetKsmps(csound);
     int outsamps = p->outsamps, rcvsamps = p->rcvsamps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -258,7 +261,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
       memset(asigl, 0, sizeof(MYFLT)*nsmps);
       memset(asigr, 0, sizeof(MYFLT)*nsmps);
 
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for(i=offset; i < nsmps ; i++){ 
       if(outsamps >= rcvsamps){
        outsamps =  0;

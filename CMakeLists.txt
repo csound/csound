@@ -278,6 +278,7 @@ if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
     add_compiler_flags("-fvisibility=hidden" LINKER)
 endif()
 
+
 if(BUILD_RELEASE)
     add_definitions("-D_CSOUND_RELEASE_")
     if(LINUX)
@@ -803,7 +804,7 @@ endif()
 
 if(APPLE)
     message(STATUS "Building on OSX")
-    add_definitions(-DMACOSX -DPIPES)
+    add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS)
     list(APPEND libcsound_LIBS m dl) 
 endif()
 
@@ -850,13 +851,15 @@ if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
+
 # VL 13.02.2013: I have added this code to make the PUBLIC attribute mean
 # something on gcc (OSX, LINUX), since we are using it.
 # see http://gcc.gnu.org/wiki/Visibility
 
 if(NOT WIN32)
 if(CMAKE_C_COMPILER MATCHES "gcc")
-    add_compiler_flags(${libcsound_CFLAGS} -fvisibility=hidden TARGETS ${CSOUNDLIB})
+    add_compiler_flags(${libcsound_CFLAGS} -fvisibility=hidden
+    -ffast-math -mfpmath=sse -fomit-frame-pointer TARGETS ${CSOUNDLIB})
 else()
    add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
 endif()

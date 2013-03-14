@@ -65,7 +65,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 
     p->maxFr   = -1 + ftpSamp->flen;
     p->prFlg   = 1;    /* true */
-    p->begin   = (int)(*p->ibegin * csound->esr);
+    p->begin   = (int)(*p->ibegin * csound->GetSr(csound));
 
     exp        = p->exp;
     iwsize = *p->iwsize;
@@ -129,11 +129,11 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
       timewarpby = p->xtimewarp;
       amp = p->xamp;
 
-      if (offset) {
+      if (UNLIKELY(offset)) {
         memset(r1, '\0', offset*sizeof(MYFLT));
         if (p->OUTOCOUNT >1) memset(r2, '\0', offset*sizeof(MYFLT));
       }
-     if (early) {
+     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&r1[nsmps], '\0', early*sizeof(MYFLT));
       if (p->OUTOCOUNT >1) memset(&r2[nsmps], '\0', early*sizeof(MYFLT));
@@ -142,7 +142,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
         if (exp[i].cnt < exp[i].wsize) goto skipover;
 
         if (*p->itimemode!=0)
-          exp[i].offset=(csound->esr * *timewarpby)+p->begin;
+          exp[i].offset=(csound->GetSr(csound) * *timewarpby)+p->begin;
         else
           exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
 
@@ -235,7 +235,7 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
 
     p->maxFr  = -1L + (int32)(ftpSamp->flen*FL(0.5));
     p->prFlg = 1;    /* true */
-    p->begin = (int)(*p->ibegin * csound->esr);
+    p->begin = (int)(*p->ibegin * csound->GetSr(csound));
     iwsize = *p->iwsize;
     exp = p->exp;
     for (i=0; i< nsections; i++) {
@@ -295,7 +295,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     exp = p->exp;
     ftpWind = p->ftpWind;
     ftpSamp = p->ftpSamp;
-    if (early) nsmps -= early;
+    if (UNLIKELY(early)) nsmps -= early;
     for (i=0; i<*p->ioverlap; i++) {
       resample = p->xresample;
       timewarpby = p->xtimewarp;
@@ -305,7 +305,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
         if (exp[i].cnt < exp[i].wsize) goto skipover;
 
         if (*p->itimemode!=0)
-          exp[i].offset=(csound->esr * *timewarpby)+p->begin;
+          exp[i].offset=(csound->GetSr(csound) * *timewarpby)+p->begin;
         else
           exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
 
