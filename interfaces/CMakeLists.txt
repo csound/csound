@@ -121,7 +121,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         ADD_CUSTOM_COMMAND(TARGET _jcsound
             POST_BUILD
             COMMAND cmake -E make_directory ./csnd
-            COMMAND ${JAVA_COMPILE} *.java -d ./csnd
+            COMMAND ${JAVA_COMPILE} *.java -d . 
             COMMAND ${JAVA_ARCHIVE} cf ../csnd.jar csnd
             COMMENT "Building JAVA package csnd.jar")
 
