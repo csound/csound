@@ -535,6 +535,8 @@ static const CSOUND cenviron_ = {
     (OENTRY*) NULL, /*  opcodlst     */
     (int*) NULL,  /*  opcode_list         */
     (OENTRY*) NULL, /*  opcodlstend         */
+    (OENTRIES *) NULL, /* opcodelist */
+    (OENTRIES *) NULL, /* opcodelist_end */
     /* -1,  */          /*  maxopcno  now in engineState           */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
@@ -2540,57 +2542,60 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     return 0;
 }
 
-/* static CS_NOINLINE int opcode_list_new_oentries(CSOUND *csound, */
-/*                                               const OENTRY *ep) */
-/* { */
-/*     int     oldCnt = 0; */
-/*     int     h = 0; */
+static CS_NOINLINE int opcode_list_new_oentries(CSOUND *csound,
+                                              const OENTRY *ep)
+{
+    int     oldCnt = 0;
+    int     h = 0;
 
-/*     if (ep->opname == NULL) */
-/*       return CSOUND_ERROR; */
-/*     if (ep->opname[0] != (char) 0) */
-/*       h = (int) name_hash_2(csound, ep->opname); */
-/*     else if (csound->opcodelist != NULL) */
-/*       return CSOUND_ERROR; */
-/*     if (csound->opcodelist != NULL) { */
-/*       int   n; */
-/*       oldCnt = (int) ((OENTRY*) csound->opcodelist_end - (OENTRY*) csound->opcodelist); */
-/*       /\* check if this opcode is already defined *\/ */
-/*       n = csound->opcode_list[h]; */
-/*       while (n) { */
-/*         if (!sCmp(csound->opcodelist[n].opname, ep->opname)) { */
-/*           int tmp = csound->opcodelist[n].count; */
-/*           /\* add as an overloaded opcode *\/ */
-/*           memcpy(&(csound->opcodelist[n].entries[count]), ep, sizeof(OENTRY)); */
-/*           csound->opcodlst[count].entries[count]->useropinfo = NULL; */
-/*           csound->opcodlst[n].prvnum = tmp; */
-
-
-/*           return CSOUND_SUCCESS; */
-/*         } */
-/*         n = csound->opcodlst[n].prvnum; */
-/*       } */
-/*     } */
-/*     if (!(oldCnt & 0x7F)) { */
-/*       OENTRY  *newList; */
-/*       size_t  nBytes = (size_t) (oldCnt + 0x80) * sizeof(OENTRY); */
-/*       if (!oldCnt) */
-/*         newList = (OENTRY*) malloc(nBytes); */
-/*       else */
-/*         newList = (OENTRY*) realloc(csound->opcodlst, nBytes); */
-/*       if (newList == NULL) */
-/*         return CSOUND_MEMORY; */
-/*       csound->opcodlst = newList; */
-/*       csound->oplstend = ((OENTRY*) newList + (int) oldCnt); */
-/*       memset(&(csound->opcodlst[oldCnt]), 0, sizeof(OENTRY) * 0x80); */
-/*     } */
-/*     memcpy(&(csound->opcodlst[oldCnt]), ep, sizeof(OENTRY)); */
-/*     csound->opcodlst[oldCnt].useropinfo = NULL; */
-/*     csound->opcodlst[oldCnt].prvnum = csound->opcode_list[h]; */
-/*     csound->opcode_list[h] = oldCnt; */
-/*     csound->oplstend = (OENTRY*) csound->oplstend + (int) 1; */
-/*     return 0; */
-/* } */
+    if (ep->opname == NULL)
+      return CSOUND_ERROR;
+    if (ep->opname[0] != (char) 0)
+      h = (int) name_hash_2(csound, ep->opname);
+    else if (csound->opcodelist != NULL)
+      return CSOUND_ERROR;
+    if (csound->opcodelist != NULL) {
+      int   n;
+      oldCnt = (int) ((OENTRY*) csound->opcodelist_end - (OENTRY*) csound->opcodelist);
+      /* check if this opcode is already defined */
+      n = csound->opcode_list[h];
+      while (n) {
+        if (!sCmp(csound->opcodelist[n].opname, ep->opname)) {
+          int count = csound->opcodelist[n].count;
+          /* add as an overloaded opcode */
+          csound->opcodelist[n].entries[count] =  (OENTRY *) csound->Calloc(csound, sizeof(OENTRY));
+          memcpy(&(csound->opcodelist[n].entries[count]), ep, sizeof(OENTRY));
+          csound->opcodelist[count].entries[count]->useropinfo = NULL;
+          csound->opcodelist[count].entries[count]->prvnum = csound->opcodelist[count].entries[count-1]->prvnum;
+          csound->opcodelist[n].count++;     
+          return CSOUND_SUCCESS;
+        }
+        n = csound->opcodelist[n].prvnum;
+      }
+    }
+    if (!(oldCnt & 0x7F)) {
+      OENTRIES  *newList;
+      size_t  nBytes = (size_t) (oldCnt + 0x80) * sizeof(OENTRIES);
+      if (!oldCnt)
+        newList = (OENTRIES*) csound->Calloc(csound, nBytes);
+      else
+        newList = (OENTRIES*) csound->ReAlloc(csound, csound->opcodelist, nBytes);
+      if (newList == NULL)
+        return CSOUND_MEMORY;
+      csound->opcodelist = newList;
+      csound->opcodelist_end = ((OENTRIES *) newList + (int) oldCnt);
+      memset(&(csound->opcodelist[oldCnt]), 0, sizeof(OENTRIES) * 0x80);
+    }
+    csound->opcodelist[oldCnt].entries[0] = (OENTRY *)csound->Calloc(csound, sizeof(OENTRY));
+    memcpy(&(csound->opcodelist[oldCnt].entries[0]), ep, sizeof(OENTRY));
+    csound->opcodelist[oldCnt].entries[0]->useropinfo = NULL;
+    csound->opcodelist[oldCnt].entries[0]->prvnum = csound->opcode_list[h];
+    csound->opcodelist[oldCnt].prvnum = csound->opcode_list[h];
+    csound->opcodelist[oldCnt].count = 1;  
+    csound->opcode_list[h] = oldCnt;
+    csound->opcodelist_end = (OENTRIES*) csound->opcodelist_end + (int) 1;
+    return 0;
+}
 
 
 

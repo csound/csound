@@ -1096,9 +1096,9 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 //    csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
 //    csound->Message(csound, "    Arg Types Found: %s | %s\n",
 //                    leftArgString, rightArgString);
-
+   
     OENTRIES* entries = find_opcode2(csound, root->value->lexeme);
-    if (entries->count == 0) {
+    if (entries == NULL || entries->count == 0) {
       synterr(csound, "Unable to find opcode with name: %s\n", root->value->lexeme);
       return 0;
     }
@@ -1272,13 +1272,13 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case LABEL_TOKEN:
         // TODO: Check that label needs verifying...
         break;
-        default:
-                
+      default:
+               
 //        csound->Message(csound, "Statement: %s\n", current->value->lexeme);
                 
-          if(!verify_opcode(csound, current, typeTable)) {
-            return 0;
-          }
+	if(!verify_opcode(csound, current, typeTable)) {
+	  return 0;
+	  }
                 
 //        if (current->right != NULL) {
 //          if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
