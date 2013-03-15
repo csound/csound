@@ -2680,7 +2680,11 @@ PUBLIC void csoundReset_(CSOUND *csound)
      * Copy everything EXCEPT the function pointers.
      * We do it by saving them and copying them back again...
      */
+    /* VL 15.03.2013 - I am not sure why this is needed, but
+       it probably needs to be reviewed with the changes in
+       the CSOUND struct */
     /* hope that this does not fail... */
+
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
@@ -2693,9 +2697,10 @@ PUBLIC void csoundReset_(CSOUND *csound)
     length = (uintptr_t) p2 - (uintptr_t) p1;
     memcpy(p1, (void*) &(saved_env->first_callback_), (size_t) length);
     csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
+    csound->API_lock = saved_env->API_lock;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
-    free(saved_env);
+    free(saved_env); 
 }
 
 PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
