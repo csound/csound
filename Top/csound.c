@@ -2127,11 +2127,11 @@ static int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
         csoundErrorMsg(csound,
                        Str(" *** error: rtaudio module set to empty string"));
       else {
-        print_opcodedir_warning(csound);
+        // print_opcodedir_warning(csound);
         csoundErrorMsg(csound,
-                       Str(" *** error: unknown rtaudio module: '%s'"), s);
+                       Str(" unknown rtaudio module: '%s', using dummy module"), s);
       }
-      return CSOUND_ERROR;
+      // return CSOUND_ERROR;
     }
     p = get_dummy_rtaudio_globals(csound);
     csound->rtPlay_userdata = (void*) p;
@@ -2163,11 +2163,11 @@ static int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
         csoundErrorMsg(csound,
                        Str(" *** error: rtaudio module set to empty string"));
       else {
-        print_opcodedir_warning(csound);
+        // print_opcodedir_warning(csound);
         csoundErrorMsg(csound,
-                       Str(" *** error: unknown rtaudio module: '%s'"), s);
+                       Str(" unknown rtaudio module: '%s', using dummy module"), s);
       }
-      return CSOUND_ERROR;
+      // return CSOUND_ERROR;
     }
     p = (double*) get_dummy_rtaudio_globals(csound) + 2;
     csound->rtRecord_userdata = (void*) p;
