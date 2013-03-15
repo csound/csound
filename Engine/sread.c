@@ -162,8 +162,10 @@ static void print_input_backtrace(CSOUND *csound, int needLFs,
 
     do {
       if (curr == STA(inputs)) lastinput = 1;
-      if (UNLIKELY(!curr->mac || !curr->mac->name))
-        csoundDie(csound, Str("Internal error in print_input_backtrace()"));
+      if (UNLIKELY(!curr->mac || !curr->mac->name)){
+        csound->Warning(csound, Str("Internal error in print_input_backtrace()"));
+        return;
+      }
       switch(lastsource) {
       case 0: m = Str("  included from line %d of macro %s%s"); break;
       case 1: m = Str("  called from line %d of macro %s%s"); break;

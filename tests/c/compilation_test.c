@@ -14,6 +14,7 @@ int main(int argc, char **argv)
 
     csoundInitialize(&argc, &argv, 0);
     csound = csoundCreate(NULL);
+    csoundReset(csound);
     result = csoundCompile(csound, argc, argv);
     while(!result){
     result = csoundPerformKsmps(csound);
