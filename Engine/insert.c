@@ -1158,15 +1158,15 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 int useropcd(CSOUND *csound, UOPCODE *p)
 {
-  //if(p->h.nxtp) 
-  //return csoundPerfError(csound, Str("%s: not initialised"),
-  //                p->h.optext->t.opcod);
-  //else 
-  /* VL - not marking this as a perf error allows recursive UDOs to work 
-     This is a (harmless) hack, but it would be nice to know why there is
-     one extra call to a UDO which is not initialised in a recursive run
-   */
-  return OK;
+    //if(p->h.nxtp) 
+    //return csoundPerfError(csound, Str("%s: not initialised"),
+    //                p->h.optext->t.opcod);
+    //else 
+    /* VL - not marking this as a perf error allows recursive UDOs to work 
+       This is a (harmless) hack, but it would be nice to know why there is
+       one extra call to a UDO which is not initialised in a recursive run
+    */
+    return OK;
 }
 
 /* IV - Sep 1 2002: new opcodes: xin, xout */
