@@ -1414,7 +1414,9 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
 {
     int retVal;
     TREE *root = csoundParseOrc(csound, str);
+    if(root != NULL) {
     retVal = csoundCompileTree(csound, root);
+    } else return  CSOUND_ERROR;
     //print_tree(csound, "Before delete", root);
     delete_tree(csound, root);
     if (csound->oparms->odebug)

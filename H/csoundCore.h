@@ -529,6 +529,7 @@ typedef struct CORFIL {
     OENTRY* entries[16];
     int opnum[16];
     int count;
+    char *opname;
     struct oentries* next;
   } OENTRIES;
 
