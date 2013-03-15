@@ -7,8 +7,9 @@ int main(int argc, char **argv)
     int     result, compile_again=0;
     char  *instrument = 
     "instr 2 \n"
-    "k1 expon p4, p3, p4*0.001anm,d \n"
+    "k1 expon p4, p3, p4*0.001 \n"
     "a1 vco2  k1, p5   \n"
+    "ga2 = a1"
     "out  a1   \n"
     "endin \n";
 
