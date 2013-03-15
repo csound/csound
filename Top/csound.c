@@ -1319,7 +1319,7 @@ inline static int nodePerf(CSOUND *csound, int index)
             /* this is the last cycle of performance */
             insds->ksmps_no_end = insds->no_end;
           }
-        opstart = task_map[which_task];
+        opstart = (OPDS*)task_map[which_task];
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
           opstart->insdshead->pds = opstart;
