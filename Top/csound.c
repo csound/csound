@@ -2537,9 +2537,64 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     csound->opcodlst[oldCnt].prvnum = csound->opcode_list[h];
     csound->opcode_list[h] = oldCnt;
     csound->oplstend = (OENTRY*) csound->oplstend + (int) 1;
-
     return 0;
 }
+
+/* static CS_NOINLINE int opcode_list_new_oentries(CSOUND *csound, */
+/*                                               const OENTRY *ep) */
+/* { */
+/*     int     oldCnt = 0; */
+/*     int     h = 0; */
+
+/*     if (ep->opname == NULL) */
+/*       return CSOUND_ERROR; */
+/*     if (ep->opname[0] != (char) 0) */
+/*       h = (int) name_hash_2(csound, ep->opname); */
+/*     else if (csound->opcodelist != NULL) */
+/*       return CSOUND_ERROR; */
+/*     if (csound->opcodelist != NULL) { */
+/*       int   n; */
+/*       oldCnt = (int) ((OENTRY*) csound->opcodelist_end - (OENTRY*) csound->opcodelist); */
+/*       /\* check if this opcode is already defined *\/ */
+/*       n = csound->opcode_list[h]; */
+/*       while (n) { */
+/*         if (!sCmp(csound->opcodelist[n].opname, ep->opname)) { */
+/*           int tmp = csound->opcodelist[n].count; */
+/*           /\* add as an overloaded opcode *\/ */
+/*           memcpy(&(csound->opcodelist[n].entries[count]), ep, sizeof(OENTRY)); */
+/*           csound->opcodlst[count].entries[count]->useropinfo = NULL; */
+/*           csound->opcodlst[n].prvnum = tmp; */
+
+
+/*           return CSOUND_SUCCESS; */
+/*         } */
+/*         n = csound->opcodlst[n].prvnum; */
+/*       } */
+/*     } */
+/*     if (!(oldCnt & 0x7F)) { */
+/*       OENTRY  *newList; */
+/*       size_t  nBytes = (size_t) (oldCnt + 0x80) * sizeof(OENTRY); */
+/*       if (!oldCnt) */
+/*         newList = (OENTRY*) malloc(nBytes); */
+/*       else */
+/*         newList = (OENTRY*) realloc(csound->opcodlst, nBytes); */
+/*       if (newList == NULL) */
+/*         return CSOUND_MEMORY; */
+/*       csound->opcodlst = newList; */
+/*       csound->oplstend = ((OENTRY*) newList + (int) oldCnt); */
+/*       memset(&(csound->opcodlst[oldCnt]), 0, sizeof(OENTRY) * 0x80); */
+/*     } */
+/*     memcpy(&(csound->opcodlst[oldCnt]), ep, sizeof(OENTRY)); */
+/*     csound->opcodlst[oldCnt].useropinfo = NULL; */
+/*     csound->opcodlst[oldCnt].prvnum = csound->opcode_list[h]; */
+/*     csound->opcode_list[h] = oldCnt; */
+/*     csound->oplstend = (OENTRY*) csound->oplstend + (int) 1; */
+/*     return 0; */
+/* } */
+
+
+
+
 
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
