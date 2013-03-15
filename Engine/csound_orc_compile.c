@@ -1081,12 +1081,16 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     CS_VARIABLE* gVar = engineState->varPool->head;
     count = 0;
     while(gVar != NULL) {
+      CS_VARIABLE* var; 
       count++;
       csound->Message(csound, " merging  %d) %s:%s\n", count,
-                      gVar->varName, gVar->varType->varTypeName);
-      csoundAddVariable(current_state->varPool,
-                        csoundCreateVariable(csound, csound->typePool,
-                                             gVar->varType, gVar->varName, NULL));
+                      gVar->varName, gVar->varType->varTypeName); 
+      var = csoundFindVariableWithName(current_state->varPool, gVar->varName);
+      if(var == NULL){
+      var = csoundCreateVariable(csound, csound->typePool,
+				 gVar->varType, gVar->varName, NULL);
+      csoundAddVariable(current_state->varPool, var);
+      }
       gVar = gVar->next;
     }
     /* do we need to recalculate global pool and allocate memory ? */
@@ -1095,12 +1099,10 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       recalculateVarPoolMemory(csound, current_state->varPool);
       /* VL 15.3.2013 realloc will not work because it messes with the
          memory that has been set in a running instance
-         The best we can do at the moment is to alloc new memory and
-         leave the old behind. This means that global variables of different
-         compilations will not talk to each other
-      */
-      csound->globalVarPool = mmalloc(csound, //csound->globalVarPool,
-                                       current_state->varPool->poolSize);
+         The best we can do at the moment is to alloc plenty of
+         memory to start with so that new vars can be accommodated there */
+      //csound->globalVarPool = krealloc(csound, csound->globalVarPool,
+      //                             current_state->varPool->poolSize);
     }
     /* merge opcodinfo */
     insert_opcodes(csound, csound->opcodeInfo, current_state);
@@ -1381,9 +1383,10 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
       /* create memblock for global variables */
       recalculateVarPoolMemory(csound, engineState->varPool);
-      csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize);
+      /* VL: 15.3.2013 allocating 10 times for space than requested,
+         for use with variables allocated later */
+      csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize*10);
       initializeVarPool(csound->globalVarPool, engineState->varPool);
-
 
       MYFLT* globals = csound->globalVarPool;
       globals[0] = csound->esr;           /*   & enter        */
