@@ -7,7 +7,7 @@ int main(int argc, char **argv)
     int     result, compile_again=0;
     char  *instrument = 
     "instr 2 \n"
-    "k1 expon p4, p3, p4*0.001 \n"
+    "k1 expon p4, p3, p4*0.001anm,d \n"
     "a1 vco2  k1, p5   \n"
     "out  a1   \n"
     "endin \n";
@@ -22,7 +22,7 @@ int main(int argc, char **argv)
          /* new compilation */
     	csoundCompileOrc(csound, instrument);
 	/* schedule an event on instr 2 */
-        csoundReadScore(csound, "i2 0 1 10000 110 \n i2 + 1 1000 660");
+        csoundReadScore(csound, "i1 0 1 10000 110 \n i1 + 1 1000 660");
         compile_again = 1;
       }
     }
