@@ -387,7 +387,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
       /* p-field string, unquote and copy */
       char  *s2 = get_arg_string(csound, *((MYFLT*)p));
       int   i = 0;
-      printf("strarg2name: %g %s\n", *((MYFLT*)p), s2);
+      //printf("strarg2name: %g %s\n", *((MYFLT*)p), s2);
       if (s == NULL)
         s = mmalloc(csound, strlen(s2) + 1);
       if (*s2 == '"')
