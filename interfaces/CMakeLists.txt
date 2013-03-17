@@ -76,7 +76,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME csnd)
 
-        set(SWIG_MODULE_csnd_EXTRA_DEPS ../H/csound.h ../H/cfgvar.h ../H/csound.hpp
+        set(SWIG_MODULE_csnd_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
@@ -111,7 +111,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES CPLUSPLUS ON)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES SWIG_FLAGS "${javaSwigOptions}")
 
-        set(SWIG_MODULE__jcsound_EXTRA_DEPS ../H/csound.h ../H/cfgvar.h ../H/csound.hpp
+        set(SWIG_MODULE__jcsound_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
@@ -148,7 +148,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             SWIG_MODULE_NAME luaCsnd)
 
 
-        set(SWIG_MODULE_luaCsnd_EXTRA_DEPS ../H/csound.h ../H/cfgvar.h ../H/csound.hpp
+        set(SWIG_MODULE_luaCsnd_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
