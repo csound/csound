@@ -924,18 +924,16 @@ typedef struct NAME__ {
                                               va_list valist));
     void (*DeleteCfgVarList)(csCfgVariable_t **lst);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
-
-
+#ifdef SOME_FIND_DAY
     void (*InputMessage)(CSOUND *, const char *message__);
     void (*KeyPressed)(CSOUND *, char c__);
-#ifdef SOME_FIND_DAY
+
     void (*SetInputValueCallback)(CSOUND *,
                 void (*inputValueCalback)(CSOUND *, const char *channelName,
                                                     MYFLT *value));
     void (*SetOutputValueCallback)(CSOUND *,
                 void (*outputValueCalback)(CSOUND *, const char *channelName,
-                                                     MYFLT value));
-#endif                                                  
+                                                     MYFLT value));                                                  
     int (*ScoreEvent)(CSOUND *,
                       char type, const MYFLT *pFields, long numFields);
     int (*ScoreEventAbsolute)(CSOUND *,
@@ -950,7 +948,6 @@ typedef struct NAME__ {
     MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
     void (*Stop)(CSOUND *);
     long (*RunCommand)(const char * const *argv, int noWait);
-#ifdef SOME_FIND_DAY
     int (*PerformKsmpsAbsolute)(CSOUND *);
 #endif
     int (*OpenLibrary)(void **library, const char *libraryPath);  //
