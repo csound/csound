@@ -888,6 +888,7 @@ typedef struct NAME__ {
    * to run one instance of Csound.
    */
   struct CSOUND_ {
+#ifdef SOME_FIND_DAY
     int (*GetVersion)(void);
     int (*GetAPIVersion)(void);
     void *(*GetHostData)(CSOUND *);
@@ -916,12 +917,15 @@ typedef struct NAME__ {
     void (*RewindScore)(CSOUND *);
     void (*DeleteUtilityList)(CSOUND *, char **lst);
     void (*DeleteChannelList)(CSOUND *, CsoundChannelListEntry *lst);
+#endif 
     void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,
                                               va_list valist));
     void (*DeleteCfgVarList)(csCfgVariable_t **lst);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
+
+
     void (*InputMessage)(CSOUND *, const char *message__);
     void (*KeyPressed)(CSOUND *, char c__);
 #ifdef SOME_FIND_DAY
@@ -931,7 +935,7 @@ typedef struct NAME__ {
     void (*SetOutputValueCallback)(CSOUND *,
                 void (*outputValueCalback)(CSOUND *, const char *channelName,
                                                      MYFLT value));
-#endif                                                     
+#endif                                                  
     int (*ScoreEvent)(CSOUND *,
                       char type, const MYFLT *pFields, long numFields);
     int (*ScoreEventAbsolute)(CSOUND *,
