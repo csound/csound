@@ -23,6 +23,7 @@
 
 #include "KeyboardMapping.hpp"
 #include <stdio.h>
+#include <string.h>
 
 #define LINELENGTH (300)
 
