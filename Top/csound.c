@@ -612,7 +612,7 @@ static const CSOUND cenviron_ = {
     0,              /*  strVpooarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
 #ifdef WIN32
-    (pthread_t){NULL, 0},   /* file_io_thread    */
+    (pthread_t){0, 0},   /* file_io_thread    */
 #else
     (pthread_t)0,   /* file_io_thread    */
 #endif
@@ -620,7 +620,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* file_io_threadlock */
     0,              /* realtime_audio_flag */
 #ifdef WIN32
-    (pthread_t){NULL, 0},   /* file_io_thread    */
+    (pthread_t){0, 0},   /* file_io_thread    */
 #else
     (pthread_t)0,   /* init pass thread */
 #endif
