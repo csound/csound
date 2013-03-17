@@ -139,6 +139,7 @@ void module_list_add(CSOUND *csound, char *drv, char *type){
 }
 
 static const CSOUND cenviron_ = {
+#ifdef SOME_FIND_DAY
     csoundGetVersion,
     csoundGetAPIVersion,
     csoundGetHostData,
@@ -167,10 +168,11 @@ static const CSOUND cenviron_ = {
     csoundRewindScore,
     csoundDeleteUtilityList,
     csoundDeleteChannelList,
+#endif 
     csoundSetMessageCallback,
     csoundDeleteCfgVarList,
     csoundSetMessageLevel,
-    csoundInputMessage,
+     csoundInputMessage,
     csoundKeyPress,
 #ifdef SOME_FINE_DAY /* these functions are now deprecated */
     csoundSetInputValueCallback,
