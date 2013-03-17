@@ -26,64 +26,8 @@
 #include "windin.h"             /* real-time input control units        */
                                 /* 26aug90 dpwe                         */
 
-static int deinit_func(CSOUND *csound, void *p)
-{
-    csound->csoundKillXYinCallback_(csound, &(((XYIN*) p)->w));
-    return OK;
-}
-
 int xyinset(CSOUND *csound, XYIN *p)
 {
-    MYFLT   x, y;
-    MYFLT   iymax  = *p->iymax;
-    MYFLT   iymin  = *p->iymin;
-    MYFLT   ixmax  = *p->ixmax;
-    MYFLT   ixmin  = *p->ixmin;
-    MYFLT   iyinit = *p->iyinit;
-    MYFLT   ixinit = *p->ixinit;
-
-    if (UNLIKELY((p->timcount = (int) (csound->GetKr(csound) * *p->iprd + FL(0.5))) <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd"));
-    }
-    if (UNLIKELY(iymin > iymax)) {        /* swap if wrong order */
-      y = iymin; iymin = iymax; iymax = y;
-    }
-    if (UNLIKELY(iyinit < iymin))
-      iyinit = iymin;
-    else if (UNLIKELY(iyinit > iymax))
-      iyinit = iymax;
-    *(p->kyrslt) = iyinit;
-    y = (*p->iymax != *p->iymin ? (*p->iymax - iyinit) / (*p->iymax - *p->iymin)
-                                  : FL(0.5));
-    p->w.y = y;
-
-    if (UNLIKELY(ixmin > ixmax)) {        /* swap if wrong order */
-      x = ixmin; ixmin = ixmax; ixmax = x;
-    }
-    if (UNLIKELY(ixinit < ixmin))
-      ixinit = ixmin;
-    else if (UNLIKELY(ixinit > ixmax))
-      ixinit = ixmax;
-    *(p->kxrslt) = ixinit;
-    x = (*p->ixmax != *p->ixmin ? (ixinit - *p->ixmin) / (*p->ixmax - *p->ixmin)
-                                  : FL(0.5));
-    p->w.x = x;
-
-    csound->csoundMakeXYinCallback_(csound, &p->w, x, y);
-    csound->RegisterDeinitCallback(csound, (void*) p, deinit_func);
-
-    p->countdown = 1;           /* init counter to run xyin on first call */
-    return OK;
-}
-
-int xyin(CSOUND *csound, XYIN *p)
-{
-    if (UNLIKELY(!(--p->countdown))) {                /* at each countdown   */
-      p->countdown = p->timcount;                     /*   reset counter &   */
-      csound->csoundReadXYinCallback_(csound, &p->w); /*   read cursor postn */
-      *(p->kxrslt) = *p->ixmin + p->w.x * (*p->ixmax - *p->ixmin);
-      *(p->kyrslt) = *p->iymin + (FL(1.0) - p->w.y) * (*p->iymax - *p->iymin);
-    }
-    return OK;
+    return csound->InitError(csound, Str("xyin opcode has been deprecated in Csound6."));
 }
 

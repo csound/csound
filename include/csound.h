@@ -358,12 +358,6 @@
     const char *(*PVOC_ErrorString)(CSOUND *);
     int (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
 
-    XY callbacks:
-    void (*SetMakeXYinCallback)(CSOUND *,
-                                void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT));
-    void (*SetReadXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
-    void (*SetKillXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
-
     Misc. callbacks:
     int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
                                                 void *userData);
@@ -1981,25 +1975,6 @@ extern "C" {
     PUBLIC void csoundSetKillGraphCallback(CSOUND *,
             void (*killGraphCallback_)(CSOUND *,
                     WINDAT *windat));
-
-    /**
-     * Called by external software to set Csound's MakeXYin function.
-     */
-    PUBLIC void csoundSetMakeXYinCallback(CSOUND *,
-            void (*makeXYinCallback_)(CSOUND *, XYINDAT *,
-                    MYFLT x, MYFLT y));
-
-    /**
-     * Called by external software to set Csound's ReadXYin function.
-     */
-    PUBLIC void csoundSetReadXYinCallback(CSOUND *,
-            void (*readXYinCallback_)(CSOUND *, XYINDAT *));
-
-    /**
-     * Called by external software to set Csound's KillXYin function.
-     */
-    PUBLIC void csoundSetKillXYinCallback(CSOUND *,
-            void (*killXYinCallback_)(CSOUND *, XYINDAT *));
 
     /**
      * Called by external software to set Csound's ExitGraph function.

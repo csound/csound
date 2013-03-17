@@ -252,7 +252,7 @@ int     dspset(CSOUND *, void *), kdsplay(CSOUND *, void *);
 int     fdspset(CSOUND *, void *), fdsplay(CSOUND *, void *);
 int     dsplay(CSOUND *, void *), fftset(CSOUND *, void *);
 int     kdspfft(CSOUND *, void *), dspfft(CSOUND *, void *);
-int     xyinset(CSOUND *, void *), xyin(CSOUND *, void *);
+int     xyinset(CSOUND *, void *);
 int     tempeset(CSOUND *, void *), tempest(CSOUND *, void *);
 int     tempset(CSOUND *, void *), tempo(CSOUND *, void *);
 int     old_kdmpset(CSOUND *, void *), old_kdmp2set(CSOUND *, void *);
