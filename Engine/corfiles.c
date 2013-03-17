@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+
 extern int csoundFileClose(CSOUND*, void*);
 
 CORFIL *corfile_create_w(void)
