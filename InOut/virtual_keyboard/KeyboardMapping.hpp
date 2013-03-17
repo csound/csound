@@ -27,6 +27,7 @@
 #include "csdl.h"
 #include "Bank.hpp"
 #include <stdio.h>
+#include <string.h>
 #include <vector>
 
 using namespace std;

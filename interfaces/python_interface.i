@@ -29,7 +29,6 @@
 #else /* fix for OSX */
 %module csnd
 #endif
-
 %include "typemaps.i"
 
 %include "std_string.i"
@@ -45,6 +44,7 @@
 
 %feature("autodoc", "1");
 %{
+    #include <cmath>
     #include <cstddef>
     #include "csound.h"
     #include "cfgvar.h"

@@ -139,8 +139,6 @@ void module_list_add(CSOUND *csound, char *drv, char *type){
 }
 
 static const CSOUND cenviron_ = {
-
-#ifdef SOME_FINE_DAY
     csoundGetVersion,
     csoundGetAPIVersion,
     csoundGetHostData,
@@ -174,8 +172,10 @@ static const CSOUND cenviron_ = {
     csoundSetMessageLevel,
     csoundInputMessage,
     csoundKeyPress,
+#ifdef SOME_FINE_DAY /* these functions are now deprecated */
     csoundSetInputValueCallback,
     csoundSetOutputValueCallback,
+#endif
     csoundScoreEvent,
     csoundScoreEventAbsolute,
     csoundPvsinSet,
@@ -188,7 +188,9 @@ static const CSOUND cenviron_ = {
     csoundChanOAGetSample,
     csoundStop,
     csoundRunCommand,
+#ifdef SOME_FINE_DAY /* these functions are now deprecated */
     csoundPerformKsmpsAbsolute,
+#endif
     csoundOpenLibrary,
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
@@ -203,8 +205,6 @@ static const CSOUND cenviron_ = {
     csoundChanOAGet,
     csoundNewOpcodeList,
     csoundDisposeOpcodeList,
-#endif  /* SOME_FINE_DAY */
-
     csoundSetCallback,
     csoundRemoveCallback,
     csoundPerformKsmpsInternal,
