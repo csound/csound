@@ -1200,7 +1200,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
                      (unsigned int) csound->engineState.maxinsno ||
                      csound->engineState.instrtxtp[i] == NULL)) {
           csoundMessage(csound, Str("insert_score_event(): invalid instrument "
-                                    "number or name" ));
+                                    "number or name\n" ));
           goto err_return;
         }
         break;

@@ -529,6 +529,8 @@ typedef struct CORFIL {
     OENTRY* entries[16];
     int opnum[16];
     int count;
+    char *opname;
+    int prvnum;
     struct oentries* next;
   } OENTRIES;
 
@@ -1322,6 +1324,8 @@ typedef struct NAME__ {
     OENTRY        *opcodlst;
     int           *opcode_list;
     OENTRY        *oplstend; 
+    OENTRIES      *opcodelist;
+    OENTRIES      *opcodelist_end;
     /* int           maxopcno; */
     int32         nrecs;
     FILE*         Linepipe;

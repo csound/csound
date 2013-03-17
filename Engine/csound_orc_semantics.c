@@ -199,12 +199,15 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
         TREE* nodeToCheck = tree;
         
         if (tree->type == T_ARRAY) {
-            //FIXME - should verify that arg expression is valid for array_get/array_set
+            //Note: does not verify here that arg expression is valid for array_get/array_set
+            //This is due to csound_orc.y only allowing expressions and functions and not boolean expressions
+            //If a case arises where this needs to be check, code should be added here
             return get_array_sub_type(csound, tree->left->value->lexeme);
         }
         
         if (tree->type == '?') {
-            char* arg1, *arg2, *ans;
+            char* arg1, *arg2, *ans, out, *retVal;
+            char condInTypes[4];
             
             ans = get_arg_type(csound, tree->left);
             if (ans == NULL || (*ans != 'b' && *ans != 'B')) {
@@ -215,18 +218,39 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
             arg1 = get_arg_type(csound, tree->right->left);
             arg2 = get_arg_type(csound, tree->right->right);
             
+            
+            condInTypes[0] = *ans;
+            condInTypes[1] = *arg1;
+            condInTypes[2] = *arg2;
+            condInTypes[3] = 0;
+            
+            OENTRIES* entries = find_opcode2(csound, ":cond");
+            out = resolve_opcode_get_outarg(csound, entries, condInTypes);
+            
+            if (out == 0) {
+                synterr(csound, "unable to find ternary operator for types '%s ? %s : %s', line %d\n",
+                        ans, arg1, arg2, tree->line);
+                return NULL;
+            }
+            
+            retVal = mmalloc(csound, 2);
+            retVal[0] = out;
+            retVal[1] = 0;
+            
+            return retVal;
+            
             // FIXME - this uses the current expression expansion code
             // this needs to be changed to do an opcode lookup
             // but first :i, :k, and :a should be changed to overridden :cond opcodes
-            if (*arg1 == 'a' || *arg2 == 'a') {
-                return cs_strdup(csound, "a");
-            }
-            else if (*arg1 == 'k' || *arg2 == 'k' || *ans == 'B') {
-                return cs_strdup(csound, "k");
-            }
-            else {
-                return cs_strdup(csound, "i");
-            }
+//            if (*arg1 == 'a' || *arg2 == 'a') {
+//                return cs_strdup(csound, "a");
+//            }
+//            else if (*arg1 == 'k' || *arg2 == 'k' || *ans == 'B') {
+//                return cs_strdup(csound, "k");
+//            }
+//            else {
+//                return cs_strdup(csound, "i");
+//            }
         }
         
         char* argTypeRight = get_arg_type(csound, nodeToCheck->right);
@@ -1072,9 +1096,9 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 //    csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
 //    csound->Message(csound, "    Arg Types Found: %s | %s\n",
 //                    leftArgString, rightArgString);
-
+   
     OENTRIES* entries = find_opcode2(csound, root->value->lexeme);
-    if (entries->count == 0) {
+    if (entries == NULL || entries->count == 0) {
       synterr(csound, "Unable to find opcode with name: %s\n", root->value->lexeme);
       return 0;
     }
@@ -1248,13 +1272,13 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case LABEL_TOKEN:
         // TODO: Check that label needs verifying...
         break;
-        default:
-                
+      default:
+               
 //        csound->Message(csound, "Statement: %s\n", current->value->lexeme);
                 
-          if(!verify_opcode(csound, current, typeTable)) {
-            return 0;
-          }
+	if(!verify_opcode(csound, current, typeTable)) {
+	  return 0;
+	  }
                 
 //        if (current->right != NULL) {
 //          if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");

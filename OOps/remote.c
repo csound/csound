@@ -56,7 +56,7 @@ void remoteRESET(CSOUND *csound)
 }
 
 #if defined(HAVE_SOCKETS)
-#ifndef (WIN32
+#ifndef WIN32
 #include <netdb.h>
 #endif
 #if 0
