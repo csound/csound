@@ -24,9 +24,9 @@
 #if defined(WIN32)
 #include <FL/Fl_Output.H>
 #endif
+#include <csound.h>
 #include "widglobals.h"
 #include <FL/x.H>
-
 
 Fl_Font FONT_TABLE[] = { FL_HELVETICA,                  FL_HELVETICA,
                          FL_HELVETICA_BOLD,             FL_HELVETICA_ITALIC,
@@ -163,11 +163,11 @@ extern "C" {
         if (evt->evt.opcod == '\0')
           evt->evt.opcod = 'i';
         evt->evt.pcnt = numargs - 1;
-        evt->evt.p[1] = evt->evt.p[2] = evt->evt.p[3] = FL(0.0);
+        evt->evt.p[1] = evt->evt.p[2] = evt->evt.p[3] = MYFLT(0.0);
         for (i = 1; i < numargs; i++)
           evt->evt.p[i] = *args[i];
-        if (evt->evt.p[2] < FL(0.0))
-          evt->evt.p[2] = FL(0.0);
+        if (evt->evt.p[2] < MYFLT(0.0))
+          evt->evt.p[2] = MYFLT(0.0);
         /* queue event for insertion by main Csound thread */
         csound->LockMutex(p->mutex_);
         if (p->eventQueue == NULL)
@@ -192,11 +192,11 @@ extern "C" {
           if (e.opcod == '\0')
             e.opcod = 'i';
           e.pcnt = numargs - 1;
-          e.p[1] = e.p[2] = e.p[3] = FL(0.0);
+          e.p[1] = e.p[2] = e.p[3] = MYFLT(0.0);
           for (i = 1; i < numargs; i++)
             e.p[i] = *args[i];
-          if (e.p[2] < FL(0.0))
-            e.p[2] = FL(0.0);
+          if (e.p[2] < MYFLT(0.0))
+            e.p[2] = MYFLT(0.0);
           csound->insert_score_event_at_sample(csound, &e, csound->icurTime);
         }
   }
@@ -2578,7 +2578,7 @@ extern "C" {
       //   }
 
       Fl_Window *o;
-      if (*(p->ikbdsense) == FL(0.0)) {
+      if (*(p->ikbdsense) == MYFLT(0.0)) {
         if (x < 0)
           o = new Fl_Window(width, height, panelName);
         else
@@ -2912,7 +2912,7 @@ extern "C" {
 
   static int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
   {
-      MYFLT           log_base = FL(1.0);
+      MYFLT           log_base = MYFLT(1.0);
       ADDR_SET_VALUE  &v = ST(AddrSetValue)[(int) *p->ihandle];
       int             widgetType;
 
@@ -2950,7 +2950,7 @@ extern "C" {
   {
       p->handle = (int) *(p->ihandle);
 
-      MYFLT           log_base = FL(1.0);
+      MYFLT           log_base = MYFLT(1.0);
       ADDR_SET_VALUE  &v = ST(AddrSetValue)[p->handle];
       int             widgetType;
 
@@ -2988,7 +2988,7 @@ extern "C" {
 
   static int fl_setWidgetValue(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
   {
-      if (*p->ktrig != FL(0.0))
+      if (*p->ktrig != MYFLT(0.0))
         fl_setWidgetValue_(csound, ST(AddrSetValue)[p->handle], p->widgetType,
                            *(p->kvalue), p->log_base);
       return OK;
@@ -3503,8 +3503,8 @@ extern "C" {
           max = minmaxtable[j*2+1];
         }
         else {
-          min = FL(0.0);
-          max = FL(1.0);
+          min = MYFLT(0.0);
+          max = MYFLT(1.0);
         }
         int iexp;
 
@@ -3743,8 +3743,8 @@ extern "C" {
       case 1:
         o = new Fl_Knob(csound, ix, iy, iwidth, iwidth, controlName);
         o->box(FL_NO_BOX);
-        if (*p->icursorsize > FL(0.5))
-          ((Fl_Knob*) o)->cursor((int) (*p->icursorsize + FL(0.5)));
+        if (*p->icursorsize > MYFLT(0.5))
+          ((Fl_Knob*) o)->cursor((int) (*p->icursorsize + MYFLT(0.5)));
         break;
       case 2:
         o = new Fl_Dial(ix, iy, iwidth, iwidth, controlName);
@@ -3830,7 +3830,7 @@ extern "C" {
       else ST(FLcontrol_iheight) = iheight = (int) *p->iheight;
       if (*p->itype < 1) itype = 1;
       else  itype = (int) *p->itype;
-      if (*p->istep < 0) istep = FL(.1);
+      if (*p->istep < 0) istep = MYFLT(.1);
       else  istep = *p->istep;
 
       Fl_Valuator* o;
@@ -4068,7 +4068,7 @@ extern "C" {
 
       ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p,
                                                 ST(currentSnapGroup)));
-      *p->kout = FL(0.0);
+      *p->kout = MYFLT(0.0);
       *p->ihandle = ST(AddrSetValue).size()-1;
       return OK;
   }
@@ -4205,8 +4205,8 @@ extern "C" {
 
   static int FLprintkset(CSOUND *csound, FLPRINTK *p)
   {
-    if (*p->ptime < FL(1.0) / csound->GetKr(csound))
-      p->ctime = FL(1.0) / csound->GetKr(csound);
+    if (*p->ptime < MYFLT(1.0) / csound->GetKr(csound))
+      p->ctime = MYFLT(1.0) / csound->GetKr(csound);
       else        p->ctime = *p->ptime;
 
       p->initime = (MYFLT) csound->GetKcounter(csound) * csound->onedkr;
@@ -4233,7 +4233,7 @@ extern "C" {
 
   static int FLprintk2set(CSOUND *csound, FLPRINTK2 *p)   // IV - Aug 27 2002
   {
-      p->oldvalue = FL(-1.12123e35);        // hack to force printing first value
+      p->oldvalue = MYFLT(-1.12123e35);        // hack to force printing first value
       return OK;
   }
 
@@ -4589,8 +4589,8 @@ extern "C" {
           max = minmaxtable[j*2+1];
         }
         else {
-          min = FL(0.0);
-          max = FL(1.0);
+          min = MYFLT(0.0);
+          max = MYFLT(1.0);
         }
         int iexp;
 

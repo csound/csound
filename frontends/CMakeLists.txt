@@ -9,17 +9,17 @@ option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and li
   if(FLTK_CONFIG_SCRIPT)
     execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --api-version
                     OUTPUT_VARIABLE FLTK_VERSION)
-    string(STRIP ${FLTK_VERSION} FLTK_VERSION)
+    string(STRIP FLTK_VERSION FLTK_VERSION)
     if(FLTK_VERSION GREATER 1.1)
       set(HAVE_FLTK "Fltk")
       set(FLTK_FOUND 1)
       message(STATUS "Using fltk-config script for Fltk " ${FLTK_VERSION})
       execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --includedir
                       OUTPUT_VARIABLE FLTK_INCLUDE_DIR)
-      string(STRIP ${FLTK_INCLUDE_DIR} FLTK_INCLUDE_DIR)
+      string(STRIP FLTK_INCLUDE_DIR FLTK_INCLUDE_DIR)
       execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --ldflags
                       OUTPUT_VARIABLE FLTK_LIBRARIES)
-      string(STRIP ${FLTK_LIBRARIES} FLTK_LIBRARIES)
+      string(STRIP FLTK_LIBRARIES FLTK_LIBRARIES)
       string(REGEX MATCH "fltk[_ ]jpeg" FLTK_JPEG ${FLTK_LIBRARIES})
       string(REGEX MATCH "fltk[_ ]z" FLTK_Z ${FLTK_LIBRARIES})
       string(REGEX MATCH "fltk[_ ]png" FLTK_PNG ${FLTK_LIBRARIES})

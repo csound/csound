@@ -888,8 +888,7 @@ typedef struct NAME__ {
    * to run one instance of Csound.
    */
   struct CSOUND_ {
-
-#ifdef SOME_FINE_DAY /* these API functions do not need to be mirrored inside CSOUND */
+#ifdef SOME_FIND_DAY
     int (*GetVersion)(void);
     int (*GetAPIVersion)(void);
     void *(*GetHostData)(CSOUND *);
@@ -918,20 +917,25 @@ typedef struct NAME__ {
     void (*RewindScore)(CSOUND *);
     void (*DeleteUtilityList)(CSOUND *, char **lst);
     void (*DeleteChannelList)(CSOUND *, CsoundChannelListEntry *lst);
+#endif 
     void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,
                                               va_list valist));
     void (*DeleteCfgVarList)(csCfgVariable_t **lst);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
+
+
     void (*InputMessage)(CSOUND *, const char *message__);
     void (*KeyPressed)(CSOUND *, char c__);
+#ifdef SOME_FIND_DAY
     void (*SetInputValueCallback)(CSOUND *,
                 void (*inputValueCalback)(CSOUND *, const char *channelName,
                                                     MYFLT *value));
     void (*SetOutputValueCallback)(CSOUND *,
                 void (*outputValueCalback)(CSOUND *, const char *channelName,
                                                      MYFLT value));
+#endif                                                  
     int (*ScoreEvent)(CSOUND *,
                       char type, const MYFLT *pFields, long numFields);
     int (*ScoreEventAbsolute)(CSOUND *,
@@ -946,7 +950,9 @@ typedef struct NAME__ {
     MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
     void (*Stop)(CSOUND *);
     long (*RunCommand)(const char * const *argv, int noWait);
+#ifdef SOME_FIND_DAY
     int (*PerformKsmpsAbsolute)(CSOUND *);
+#endif
     int (*OpenLibrary)(void **library, const char *libraryPath);  //
     int (*CloseLibrary)(void *library);//
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);//
@@ -964,8 +970,6 @@ typedef struct NAME__ {
     int (*ChanOAGet)(CSOUND *, MYFLT *value, int n); //
         int (*NewOpcodeList)(CSOUND *, opcodeListEntry **);//
     void (*DisposeOpcodeList)(CSOUND *, opcodeListEntry *);//
-#endif  /* SOME_FINE_DAY */
-
     int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
                                   void *userData, unsigned int typeMask);
     void (*Remove_Callback)(CSOUND *,
