@@ -10,11 +10,11 @@ import time
 
 pyVersion = sys.version.split()[0][:3]
 
-headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h',
-               'H/csound.hpp', 'H/csoundCore.h', 'H/cwindow.h',
-               'H/msg_attr.h', 'H/OpcodeBase.hpp', 'H/pstream.h',
-               'H/pvfileio.h', 'H/soundio.h', 'H/sysdep.h', 'H/text.h',
-               'H/version.h', 'H/float-version-double.h',  'H/float-version.h',
+headerFiles = ['include/cfgvar.h', 'include/cscore.h', 'include/csdl.h', 'include/csound.h',
+               'include/csound.hpp', 'include/csoundCore.h', 'include/cwindow.h',
+               'include/msg_attr.h', 'include/OpcodeBase.hpp', 'include/pstream.h',
+               'include/pvfileio.h', 'include/soundio.h', 'include/sysdep.h', 'include/text.h',
+               'include/version.h', 'include/float-version-double.h',  'include/float-version.h',
                'interfaces/CppSound.hpp', 'interfaces/filebuilding.h',
                'interfaces/CsoundFile.hpp', 'interfaces/csPerfThread.hpp']
 

@@ -14,9 +14,6 @@
 %ignore csoundSetMakeGraphCallback;
 %ignore csoundSetDrawGraphCallback;
 %ignore csoundSetKillGraphCallback;
-%ignore csoundSetMakeXYinCallback;
-%ignore csoundSetReadXYinCallback;
-%ignore csoundSetKillXYinCallback;
 %ignore csoundSetExitGraphCallback;
 %ignore csoundSetYieldCallback;
 %ignore csoundSetPlayopenCallback;
