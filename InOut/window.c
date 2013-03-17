@@ -57,24 +57,6 @@ static int DummyFn3(CSOUND *csound)
 
 /* initial proportions */
 
-static void MkXYDummy(CSOUND *csound, XYINDAT *wdptr, MYFLT x, MYFLT y)
-{
-    IGN(csound);
-    wdptr->windid = 0;  /* xwin = MakeWindow(1);        */
-    wdptr->down = 0;    /* by def released after Make */
-
-    wdptr->m_x = 0;
-    wdptr->m_y = 0;
-    wdptr->x = x;
-    wdptr->y = y;
-}
-
-static void RdXYDummy(CSOUND *csound, XYINDAT *wdptr)
-{
-    csoundWarning(csound,
-                  Str("xyin not supported."));
-    IGN(wdptr);
-}
 
 /* called once on initialisation of program to */
 /*  choose between teletype or bitmap graphics */
@@ -104,9 +86,6 @@ void dispinit(CSOUND *csound)
       csound->csoundDrawGraphCallback_ = DrawAscii;
       csound->csoundKillGraphCallback_ = KillAscii;
     }
-    csound->csoundMakeXYinCallback_ = MkXYDummy;
-    csound->csoundReadXYinCallback_ = RdXYDummy;
-    csound->csoundKillXYinCallback_ = RdXYDummy;
     csound->csoundExitGraphCallback_ = DummyFn3;
 }
 
