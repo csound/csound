@@ -979,10 +979,6 @@ typedef struct NAME__ {
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
     MYFLT *(*GetOutputBuffer)(CSOUND *);
-    void (*SetMakeXYinCallback)(CSOUND *,
-                                void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT));
-    void (*SetReadXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
-    void (*SetKillXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
     CS_PRINTF2 void (*Message)(CSOUND *, const char *fmt, ...);
     CS_PRINTF3 void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
     void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
@@ -1288,9 +1284,6 @@ typedef struct NAME__ {
     void          (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat);
     int           (*csoundExitGraphCallback_)(CSOUND *);
     int           (*csoundYieldCallback_)(CSOUND *);
-    void          (*csoundMakeXYinCallback_)(CSOUND *, XYINDAT *, MYFLT, MYFLT);
-    void          (*csoundReadXYinCallback_)(CSOUND *, XYINDAT *);
-    void          (*csoundKillXYinCallback_)(CSOUND *, XYINDAT *);
     void          (*cscoreCallback_)(CSOUND *);
     void          (*FileOpenCallback_)(CSOUND*, const char*, int, int, int);
     SUBR          last_callback_;

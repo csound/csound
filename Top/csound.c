@@ -218,9 +218,6 @@ static const CSOUND cenviron_ = {
     csoundGetOutputBufferSize,
     csoundGetInputBuffer,
     csoundGetOutputBuffer,
-    csoundSetMakeXYinCallback,
-    csoundSetReadXYinCallback,
-    csoundSetKillXYinCallback,
     csoundMessage,
     csoundMessageS,
     csoundMessageV,
@@ -485,9 +482,6 @@ static const CSOUND cenviron_ = {
     (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
     (int (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
     defaultCsoundYield,
-    (void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT)) NULL, /* was: defaultCsoundMakeXYin, */
-    (void (*)(CSOUND *, XYINDAT *)) NULL, /* was: defaultCsoundReadKillXYin, */
-    (void (*)(CSOUND *, XYINDAT *)) NULL, /* was: defaultCsoundReadKillXYin, */
     cscore_,        /*  cscoreCallback_     */
     (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
     (SUBR) NULL,    /*  last_callback_      */
@@ -2441,49 +2435,6 @@ PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
                                        int (*exitGraphCallback)(CSOUND *))
 {
     csound->csoundExitGraphCallback_ = exitGraphCallback;
-}
-
-#ifdef never
-static void defaultCsoundMakeXYin(CSOUND *csound,
-                                  XYINDAT *xyindat, MYFLT x, MYFLT y)
-{
-    (void) x;
-    (void) y;
-    memset(xyindat, 0, sizeof(XYINDAT));
-    csoundWarning(csound,
-                  Str("xyin not supported. use invalue opcode instead."));
-}
-#endif
-
-#ifdef never
-static void defaultCsoundReadKillXYin(CSOUND *csound, XYINDAT *xyindat)
-{
-    (void) csound;
-    (void) xyindat;
-}
-#endif
-
-PUBLIC void csoundSetMakeXYinCallback(CSOUND *csound,
-                                      void (*makeXYinCallback)(CSOUND *,
-                                                               XYINDAT *xyindat,
-                                                               MYFLT x,
-                                                               MYFLT y))
-{
-    csound->csoundMakeXYinCallback_ = makeXYinCallback;
-}
-
-PUBLIC void csoundSetReadXYinCallback(CSOUND *csound,
-                                      void (*readXYinCallback)(CSOUND *,
-                                                               XYINDAT *xyindat))
-{
-    csound->csoundReadXYinCallback_ = readXYinCallback;
-}
-
-PUBLIC void csoundSetKillXYinCallback(CSOUND *csound,
-                                      void (*killXYinCallback)(CSOUND *,
-                                                               XYINDAT *xyindat))
-{
-    csound->csoundKillXYinCallback_ = killXYinCallback;
 }
 
 /*

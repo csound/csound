@@ -571,21 +571,6 @@ public:
   {
     csoundSetKillGraphCallback(csound, killGraphCallback_);
   }
-  virtual void SetMakeXYinCallback(
-      void (*makeXYinCallback_)(CSOUND *, XYINDAT *, MYFLT x, MYFLT y))
-  {
-    csoundSetMakeXYinCallback(csound, makeXYinCallback_);
-  }
-  virtual void SetReadXYinCallback(
-      void (*readXYinCallback_)(CSOUND *, XYINDAT *))
-  {
-    csoundSetReadXYinCallback(csound, readXYinCallback_);
-  }
-  virtual void SetKillXYinCallback(
-      void (*killXYinCallback_)(CSOUND *, XYINDAT *))
-  {
-    csoundSetKillXYinCallback(csound, killXYinCallback_);
-  }
   virtual void SetExitGraphCallback(
       int (*exitGraphCallback_)(CSOUND *))
   {

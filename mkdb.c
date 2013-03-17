@@ -81,9 +81,6 @@ struct CSOUND_ {
     MYFLT *(*GetSpin)(CSOUND *);
     MYFLT *(*GetSpout)(CSOUND *);
     double (*GetScoreTime)(CSOUND *);
-    void (*SetMakeXYinCallback)(CSOUND *);
-    void (*SetReadXYinCallback)(CSOUND *);
-    void (*SetKillXYinCallback)(CSOUND * );
     int (*IsScorePending)(CSOUND *);
     void (*SetScorePending)(CSOUND *, int pending);
     MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
