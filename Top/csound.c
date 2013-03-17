@@ -172,12 +172,11 @@ static const CSOUND cenviron_ = {
     csoundSetMessageCallback,
     csoundDeleteCfgVarList,
     csoundSetMessageLevel,
+#ifdef SOME_FINE_DAY /* these functions are now deprecated */
      csoundInputMessage,
     csoundKeyPress,
-#ifdef SOME_FINE_DAY /* these functions are now deprecated */
     csoundSetInputValueCallback,
     csoundSetOutputValueCallback,
-#endif
     csoundScoreEvent,
     csoundScoreEventAbsolute,
     csoundPvsinSet,
@@ -190,7 +189,6 @@ static const CSOUND cenviron_ = {
     csoundChanOAGetSample,
     csoundStop,
     csoundRunCommand,
-#ifdef SOME_FINE_DAY /* these functions are now deprecated */
     csoundPerformKsmpsAbsolute,
 #endif
     csoundOpenLibrary,
