@@ -353,18 +353,6 @@
   (arg0 :pointer)
   (killGraphCallback_ :pointer))
 
-(defcfun ("csoundSetMakeXYinCallback" csoundSetMakeXYinCallback) :void
-  (arg0 :pointer)
-  (makeXYinCallback_ :pointer))
-
-(defcfun ("csoundSetReadXYinCallback" csoundSetReadXYinCallback) :void
-  (arg0 :pointer)
-  (readXYinCallback_ :pointer))
-
-(defcfun ("csoundSetKillXYinCallback" csoundSetKillXYinCallback) :void
-  (arg0 :pointer)
-  (killXYinCallback_ :pointer))
-
 (defcfun ("csoundSetExitGraphCallback" csoundSetExitGraphCallback) :void
   (arg0 :pointer)
   (exitGraphCallback_ :pointer))

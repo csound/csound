@@ -35,7 +35,7 @@ cp -upv ../../libcsound.so.5.2  ../../../CSDIST/$DIR/lib
 
 cp -upv ../../libcsound.a  ../../../CSDIST/$DIR/lib
 
-cp -upv ../../H/cfgvar.h ../../H/cscore.h ../../H/csdl.h ../../H/csound.h ../../H/csound.hpp ../../H/csoundCore.h ../../H/cwindow.h ../../H/msg_attr.h ../../H/OpcodeBase.hpp ../../H/pstream.h ../../H/pvfileio.h ../../H/soundio.h ../../H/sysdep.h ../../H/text.h ../../H/version.h ../../interfaces/CsoundFile.hpp ../../interfaces/CppSound.hpp ../../interfaces/filebuilding.h ../../../CSDIST/$DIR/hdr
+cp -upv ../../include/cfgvar.h ../../include/cscore.h ../../include/csdl.h ../../include/csound.h ../../include/csound.hpp ../../include/csoundCore.h ../../include/cwindow.h ../../include/msg_attr.h ../../include/OpcodeBase.hpp ../../include/pstream.h ../../include/pvfileio.h ../../include/soundio.h ../../include/sysdep.h ../../include/text.h ../../include/version.h ../../interfaces/CsoundFile.hpp ../../interfaces/CppSound.hpp ../../interfaces/filebuilding.h ../../../CSDIST/$DIR/hdr
 
 cp -rupv ../../../manual/html ../../../CSDIST/$DIR/doc
 find ../../../CSDIST/$DIR/ -name CVS -exec rm -rf {} \;
