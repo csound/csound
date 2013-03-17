@@ -81,6 +81,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
   if(csoundGetChannelPtr(csound, &pval, name, 
 			 CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL))
 #ifdef HAVE_ATOMIC_BUILTIN
+   __sync_and_and_fetch((int64_t *)pval, 0);
    __sync_or_and_fetch((int64_t *)pval, x.i);
 #else
   {
