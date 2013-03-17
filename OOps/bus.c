@@ -928,7 +928,7 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
     int64_t i;
     } x;
     x.i = __sync_add_and_fetch((int64_t *) p->fp, 0);
-    *(p->arg) = x.d;
+    *(p->arg) =  x.d;
     }
 #else
     *(p->arg) = *(p->fp); 
@@ -992,7 +992,8 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
     int64_t i;
     } x;
     x.d = *(p->arg);
-    __sync_or_and_fetch((int64_t *)p->fp, x.i);
+    __sync_and_and_fetch((int64_t *)(p->fp),0);
+    __sync_or_and_fetch((int64_t *)(p->fp),x.i);
 #else
     csoundSpinLock(p->lock);
     *(p->fp) = *(p->arg);
@@ -1062,6 +1063,7 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
     int64_t i;
     } x;
     x.d = *(p->arg);
+    __sync_and_and_fetch((int64_t *)p->fp, 0);
     __sync_or_and_fetch((int64_t *)p->fp, x.i);
 #else
     {
@@ -1516,6 +1518,7 @@ static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
     int64_t i;
     } x;
     x.d = *(p->iname);
+    __sync_and_and_fetch((int64_t *)p->fp, 0);
     __sync_or_and_fetch((int64_t *)p->fp, x.i);
 #else
      csoundSpinLock(p->lock);
