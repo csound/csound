@@ -11,14 +11,14 @@ if(BUILD_STK_OPCODES)
         if(STK_INCLUDE_DIR)
             include_directories(${STK_INCLUDE_DIR})
 
-            make_plugin(stk-ops stkOpcodes.cpp "stk")
+            make_plugin(stk-ops stkOpcodes.cpp ${STK_LIBRARY})
 
             set_target_properties(stk-ops PROPERTIES
                 OUTPUT_NAME stk)
         endif()
     else()
 
-        set(stk_remove_srcs
+        set(stk_remove_srcs     
             src/InetWvIn.cpp    src/InetWvOut.cpp
             src/Mutex.cpp       src/RtAudio.cpp
             src/RtMidi.cpp
