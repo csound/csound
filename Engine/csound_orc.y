@@ -453,7 +453,6 @@ statement : ident '=' expr NEWLINE
               ans->right = appendToTree(csound, $3, $6);
               //print_tree(csound, "TABLE ASSIGN", ans);
               $$ = ans; 
-/*
           }
 */
           | ans opcode exprlist NEWLINE

@@ -6,9 +6,12 @@
 nchnls=1
 
 instr 1
+ga1 oscil3 p4*0.9, p5*1.1, -1
+   ;out ga1  
+endin
 
-a1 oscils  p4*0.9, p5*1.1, 1
-   out a1
+instr 20
+ out ga1
 endin
 
 </CsInstruments>
@@ -17,10 +20,11 @@ endin
 i1 0 1 1000 500
 i1 + 2 1000 750
 i1 + 3 1000 1000
-
+i20 0 6
 
 </CsScore>
-</CsoundSynthesizer><bsbPanel>
+</CsoundSynthesizer>
+<bsbPanel>
  <label>Widgets</label>
  <objectName/>
  <x>614</x>

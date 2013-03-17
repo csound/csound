@@ -200,8 +200,11 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
 
     ending:
       csound_orclex_destroy(pp.yyscanner);
-      if(err)
-        csoundDie(csound, Str("Stopping on parser failure\n"));
+      if(err) {
+        csound->Warning(csound, Str("Stopping on parser failure\n"));
+        delete_tree(csound, astTree);
+        return NULL;
+      }
 
       astTree = csound_orc_optimize(csound, astTree);
       return astTree;

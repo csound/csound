@@ -529,6 +529,8 @@ static const CSOUND cenviron_ = {
     (OENTRY*) NULL, /*  opcodlst     */
     (int*) NULL,  /*  opcode_list         */
     (OENTRY*) NULL, /*  opcodlstend         */
+    (OENTRIES *) NULL, /* opcodelist */
+    (OENTRIES *) NULL, /* opcodelist_end */
     /* -1,  */          /*  maxopcno  now in engineState           */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
@@ -604,7 +606,7 @@ static const CSOUND cenviron_ = {
     0,              /*  strVpooarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
 #ifdef WIN32
-    (pthread_t){NULL, 0},   /* file_io_thread    */
+    (pthread_t){0, 0},   /* file_io_thread    */
 #else
     (pthread_t)0,   /* file_io_thread    */
 #endif
@@ -612,7 +614,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* file_io_threadlock */
     0,              /* realtime_audio_flag */
 #ifdef WIN32
-    (pthread_t){NULL, 0},   /* file_io_thread    */
+    (pthread_t){0, 0},   /* file_io_thread    */
 #else
     (pthread_t)0,   /* init pass thread */
 #endif
@@ -1313,7 +1315,7 @@ inline static int nodePerf(CSOUND *csound, int index)
             /* this is the last cycle of performance */
             insds->ksmps_no_end = insds->no_end;
           }
-        opstart = task_map[which_task];
+        opstart = (OPDS*)task_map[which_task];
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
           opstart->insdshead->pds = opstart;
@@ -2119,11 +2121,11 @@ static int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
         csoundErrorMsg(csound,
                        Str(" *** error: rtaudio module set to empty string"));
       else {
-        print_opcodedir_warning(csound);
+        // print_opcodedir_warning(csound);
         csoundErrorMsg(csound,
-                       Str(" *** error: unknown rtaudio module: '%s'"), s);
+                       Str(" unknown rtaudio module: '%s', using dummy module"), s);
       }
-      return CSOUND_ERROR;
+      // return CSOUND_ERROR;
     }
     p = get_dummy_rtaudio_globals(csound);
     csound->rtPlay_userdata = (void*) p;
@@ -2155,11 +2157,11 @@ static int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
         csoundErrorMsg(csound,
                        Str(" *** error: rtaudio module set to empty string"));
       else {
-        print_opcodedir_warning(csound);
+        // print_opcodedir_warning(csound);
         csoundErrorMsg(csound,
-                       Str(" *** error: unknown rtaudio module: '%s'"), s);
+                       Str(" unknown rtaudio module: '%s', using dummy module"), s);
       }
-      return CSOUND_ERROR;
+      // return CSOUND_ERROR;
     }
     p = (double*) get_dummy_rtaudio_globals(csound) + 2;
     csound->rtRecord_userdata = (void*) p;
@@ -2488,9 +2490,67 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     csound->opcodlst[oldCnt].prvnum = csound->opcode_list[h];
     csound->opcode_list[h] = oldCnt;
     csound->oplstend = (OENTRY*) csound->oplstend + (int) 1;
-
     return 0;
 }
+
+static CS_NOINLINE int opcode_list_new_oentries(CSOUND *csound,
+                                              const OENTRY *ep)
+{
+    int     oldCnt = 0;
+    int     h = 0;
+
+    if (ep->opname == NULL)
+      return CSOUND_ERROR;
+    if (ep->opname[0] != (char) 0)
+      h = (int) name_hash_2(csound, ep->opname);
+    else if (csound->opcodelist != NULL)
+      return CSOUND_ERROR;
+    if (csound->opcodelist != NULL) {
+      int   n;
+      oldCnt = (int) ((OENTRY*) csound->opcodelist_end - (OENTRY*) csound->opcodelist);
+      /* check if this opcode is already defined */
+      n = csound->opcode_list[h];
+      while (n) {
+        if (!sCmp(csound->opcodelist[n].opname, ep->opname)) {
+          int count = csound->opcodelist[n].count;
+          /* add as an overloaded opcode */
+          csound->opcodelist[n].entries[count] =  (OENTRY *) csound->Calloc(csound, sizeof(OENTRY));
+          memcpy(&(csound->opcodelist[n].entries[count]), ep, sizeof(OENTRY));
+          csound->opcodelist[count].entries[count]->useropinfo = NULL;
+          csound->opcodelist[count].entries[count]->prvnum = csound->opcodelist[count].entries[count-1]->prvnum;
+          csound->opcodelist[n].count++;     
+          return CSOUND_SUCCESS;
+        }
+        n = csound->opcodelist[n].prvnum;
+      }
+    }
+    if (!(oldCnt & 0x7F)) {
+      OENTRIES  *newList;
+      size_t  nBytes = (size_t) (oldCnt + 0x80) * sizeof(OENTRIES);
+      if (!oldCnt)
+        newList = (OENTRIES*) csound->Calloc(csound, nBytes);
+      else
+        newList = (OENTRIES*) csound->ReAlloc(csound, csound->opcodelist, nBytes);
+      if (newList == NULL)
+        return CSOUND_MEMORY;
+      csound->opcodelist = newList;
+      csound->opcodelist_end = ((OENTRIES *) newList + (int) oldCnt);
+      memset(&(csound->opcodelist[oldCnt]), 0, sizeof(OENTRIES) * 0x80);
+    }
+    csound->opcodelist[oldCnt].entries[0] = (OENTRY *)csound->Calloc(csound, sizeof(OENTRY));
+    memcpy(&(csound->opcodelist[oldCnt].entries[0]), ep, sizeof(OENTRY));
+    csound->opcodelist[oldCnt].entries[0]->useropinfo = NULL;
+    csound->opcodelist[oldCnt].entries[0]->prvnum = csound->opcode_list[h];
+    csound->opcodelist[oldCnt].prvnum = csound->opcode_list[h];
+    csound->opcodelist[oldCnt].count = 1;  
+    csound->opcode_list[h] = oldCnt;
+    csound->opcodelist_end = (OENTRIES*) csound->opcodelist_end + (int) 1;
+    return 0;
+}
+
+
+
+
 
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
@@ -2631,7 +2691,11 @@ PUBLIC void csoundReset_(CSOUND *csound)
      * Copy everything EXCEPT the function pointers.
      * We do it by saving them and copying them back again...
      */
+    /* VL 15.03.2013 - I am not sure why this is needed, but
+       it probably needs to be reviewed with the changes in
+       the CSOUND struct */
     /* hope that this does not fail... */
+
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
@@ -2644,9 +2708,10 @@ PUBLIC void csoundReset_(CSOUND *csound)
     length = (uintptr_t) p2 - (uintptr_t) p1;
     memcpy(p1, (void*) &(saved_env->first_callback_), (size_t) length);
     csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
+    csound->API_lock = saved_env->API_lock;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
-    free(saved_env);
+    free(saved_env); 
 }
 
 PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
