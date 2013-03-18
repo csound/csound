@@ -375,9 +375,9 @@ public:
   {
     return csoundGetNchnls(csound);
   }
-  virtual int GetNchnls_i()
+  virtual int GetNchnlsInput()
   {
-    return csoundGetNchnls_i(csound);
+    return csoundGetNchnlsInput(csound);
   }
   virtual MYFLT Get0dBFS()
   {
