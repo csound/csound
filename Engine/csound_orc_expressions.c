@@ -52,6 +52,7 @@ char *create_out_arg(CSOUND *csound, char outype)
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
     case 't': sprintf(s, "#t%d", csound->tcount++); break;
+    case 'S': sprintf(s, "#S%d", csound->tcount++); break;            
     default:  sprintf(s, "#i%d", csound->icount++); break;
     }
     return s;
