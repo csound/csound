@@ -143,7 +143,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
     int indefArgCount = p->INOCOUNT - 1;
     
     if(indefArgCount == 0) {
-        csoundErrorMsg(csound, "Error: no indexes set for array set\n");
+        csoundErrorMsg(csound, "Error: no indexes set for array get\n");
         return CSOUND_ERROR;
     }
     int end = indefArgCount - 1;
