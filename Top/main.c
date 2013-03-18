@@ -211,7 +211,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
      /* VL: added this also to csoundReset() in csound.c   */ 
       if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1); 
-    csoundCompileOrc(csound, NULL);
+     if(csoundCompileOrc(csound, NULL) != 0){
+        csoundDie(csound, Str("cannot compile orchestra \n"));
+     }
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound))
