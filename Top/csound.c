@@ -214,7 +214,7 @@ static const CSOUND cenviron_ = {
     csoundGetKr,
     csoundGetKsmps,
     csoundGetNchnls,
-    csoundGetNchnls_i,
+    csoundGetNchnlsInput,
     csoundGetKcounter,
     csoundGetInputBufferSize,
     csoundGetOutputBufferSize,
@@ -1695,7 +1695,7 @@ PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
     return csound->nchnls;
 }
 
-PUBLIC uint32_t csoundGetNchnls_i(CSOUND *csound)
+PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
 {
   if(csound->inchnls > 0)
     return (uint32_t) csound->inchnls;
