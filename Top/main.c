@@ -60,8 +60,15 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     int     csdFound = 0;
     char    *fileDir;
 
+  
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+
+    if(csound->engineStatus & CS_STATE_COMP){ 
+       csound->Message(csound, "Csound is already started, call csoundReset()\n"
+                                "before starting again \n");
+       return CSOUND_ERROR; 
     }
 
     if (--argc <= 0) {
@@ -211,7 +218,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
      /* VL: added this also to csoundReset() in csound.c   */ 
       if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1); 
-    csoundCompileOrc(csound, NULL);
+     if(csoundCompileOrc(csound, NULL) != 0){
+        csoundDie(csound, Str("cannot compile orchestra \n"));
+     }
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound))
@@ -278,6 +287,12 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     OPARMS  *O = csound->oparms;
     int     n;
    
+   if(csound->engineStatus & CS_STATE_COMP){ 
+       csound->Message(csound, "Csound is already started, call csoundReset()\n"
+                                "before starting again \n");
+       return CSOUND_ERROR; 
+    }
+
    /* VL 30-12-12 csoundInitModules is always called here now to enable
        Csound to start without calling csoundCompile, but directly from csoundCompileOrc()
        and csoundReadOrc()

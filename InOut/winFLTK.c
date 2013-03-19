@@ -91,7 +91,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           (*fltkFlags) |= 64;
 
           if (!((*fltkFlags) & 256))
-	      csound->SetInternalYieldCallback(csound, CsoundYield_FLTK);
+            csound->SetInternalYieldCallback(csound, CsoundYield_FLTK);
           flgraph_init(csound); /* Create space */
           csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
           csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
