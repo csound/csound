@@ -125,7 +125,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       if ((isOutput && dev_info->maxOutputChannels > 0) ||
           (!isOutput && dev_info->maxInputChannels > 0)) {
         strncpy(list[j].device_name, dev_info->name, 63);
-	sprintf(tmp, "dac%d", j);
+        sprintf(tmp, "dac%d", j);
         strncpy(list[j].device_id, tmp, 63);
         strncpy(list[j].rt_module, s, 63);
         list[j].max_nchnls = isOutput ?  dev_info->maxOutputChannels : dev_info->maxInputChannels;

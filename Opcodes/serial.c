@@ -1,7 +1,7 @@
 /*****************************************************
  
-			CSOUND SERIAL PORT OPCODES
-			  ma++ ingalls, 2011/9/4
+                        CSOUND SERIAL PORT OPCODES
+                          ma++ ingalls, 2011/9/4
                      modified for WIndows John ffitch
  * based on "Arduino-serial"
  * Copyright (c) 2006, Tod E. Kurt, tod@todbot.com
@@ -53,22 +53,22 @@
 /*****************************************************
 
 open a port.  baudRate defaults to 9600
-	iPort  serialBegin         SPortName [, baudRate ]
+        iPort  serialBegin         SPortName [, baudRate ]
  
 close a port
-			serialEnd           iPort
+                        serialEnd           iPort
 
 write byte(s) to the port, at i or k rate
-			serialWrite_i       iPort, iByte
-			serialWrite_i       iPort, kByte
-			serialWrite_i       iPort, Sbytes
-			serialWrite         iPort, iByte
-			serialWrite         iPort, kByte
-			serialWrite         iPort, Sbytes
+                        serialWrite_i       iPort, iByte
+                        serialWrite_i       iPort, kByte
+                        serialWrite_i       iPort, Sbytes
+                        serialWrite         iPort, iByte
+                        serialWrite         iPort, kByte
+                        serialWrite         iPort, Sbytes
 
 read the next byte from the input buffer
 returned value will be in the range of 0-255
-	kByte	serialRead          iPort
+        kByte   serialRead          iPort
     
 print to screen any bytes (up to 32k) in input buffer
 note that these bytes will be cleared from the buffer.
@@ -76,10 +76,10 @@ use this opcode mainly for debugging messages.
 if you want to mix debugging and other communication 
 messages over the same port, you will need to manually
 parse the data with the serialRead opcode.
-			serialPrint			iPort
+                        serialPrint                     iPort
  
 clear the input buffer
-			serialFlush         iPort
+                        serialFlush         iPort
 
  
 TODO: (might need some kind of threaded buffer-read?)
@@ -180,7 +180,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     csound = NULL;              /* Not used */
     fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
             serialport,baud);
-	
+        
     fd = open(serialport, O_RDWR | O_NOCTTY | O_NDELAY);
     if (fd == -1)  {
       perror("init_serialport: Unable to open port ");
@@ -208,7 +208,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     }
     cfsetispeed(&toptions, brate);
     cfsetospeed(&toptions, brate);
-	
+        
     // 8N1
     toptions.c_cflag &= ~PARENB;
     toptions.c_cflag &= ~CSTOPB;
@@ -216,13 +216,13 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     toptions.c_cflag |= CS8;
     // no flow control
     toptions.c_cflag &= ~CRTSCTS;
-	
+        
     toptions.c_cflag |= CREAD | CLOCAL;  // turn on READ & ignore ctrl lines
     toptions.c_iflag &= ~(IXON | IXOFF | IXANY); // turn off s/w flow ctrl
-	
+        
     toptions.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // make raw
     toptions.c_oflag &= ~OPOST; // make raw
-	
+        
     // see: http://unixwiz.net/techtips/termios-vmin-vtime.html
     toptions.c_cc[VMIN]  = 0;
     toptions.c_cc[VTIME] = 20;
@@ -231,7 +231,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
       perror("init_serialport: Couldn't set term attributes");
       return -1;
     }
-	
+        
     return fd;
 }
 #else
@@ -450,10 +450,10 @@ static OENTRY serial_localops[] = {
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
-    /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
-    /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
-    /* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */
-    /*   (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   } */
+/* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
+/*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
+/* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */
+/*   (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   } */
 };
 
 LINKAGE_BUILTIN(serial_localops)
