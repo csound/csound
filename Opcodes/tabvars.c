@@ -270,58 +270,58 @@ static int tabirem(CSOUND *csound, TABARITH1 *p)
     return OK;
 }
 
-static int tabqset(CSOUND *csound, TABQUERY *p)
-{
-    if (LIKELY(p->tab->data)) return OK;
-    return csound->InitError(csound, Str("t-variable not initialised"));
-}
+/* static int tabqset(CSOUND *csound, TABQUERY *p) */
+/* { */
+/*     if (LIKELY(p->tab->data)) return OK; */
+/*     return csound->InitError(csound, Str("t-variable not initialised")); */
+/* } */
 
-static int tabmax(CSOUND *csound, TABQUERY *p)
-{
-    TABDAT *t = p->tab;
-    int i, size = t->size;
-    MYFLT ans;
+/* static int tabmax(CSOUND *csound, TABQUERY *p) */
+/* { */
+/*     TABDAT *t = p->tab; */
+/*     int i, size = t->size; */
+/*     MYFLT ans; */
 
-    if (UNLIKELY(t->data == NULL))
-         return csound->PerfError(csound, Str("t-variable not initialised"));
+/*     if (UNLIKELY(t->data == NULL)) */
+/*          return csound->PerfError(csound, Str("t-variable not initialised")); */
 
-    ans = t->data[0];
-    for (i=1; i<size; i++)
-      if (t->data[i]>ans) ans = t->data[i];
-    *p->ans = ans;
-    return OK;
-}
+/*     ans = t->data[0]; */
+/*     for (i=1; i<size; i++) */
+/*       if (t->data[i]>ans) ans = t->data[i]; */
+/*     *p->ans = ans; */
+/*     return OK; */
+/* } */
 
-static int tabmin(CSOUND *csound, TABQUERY *p)
-{
-    TABDAT *t = p->tab;
-    int i, size = t->size;
-    MYFLT ans;
+/* static int tabmin(CSOUND *csound, TABQUERY *p) */
+/* { */
+/*     TABDAT *t = p->tab; */
+/*     int i, size = t->size; */
+/*     MYFLT ans; */
 
-    if (UNLIKELY(t->data == NULL))
-      return csound->PerfError(csound, Str("t-variable not initialised"));
-    ans = t->data[0];
-    for (i=1; i<size; i++)
-      if (t->data[i]<ans) ans = t->data[i];
-    *p->ans = ans;
-    return OK;
-}
+/*     if (UNLIKELY(t->data == NULL)) */
+/*       return csound->PerfError(csound, Str("t-variable not initialised")); */
+/*     ans = t->data[0]; */
+/*     for (i=1; i<size; i++) */
+/*       if (t->data[i]<ans) ans = t->data[i]; */
+/*     *p->ans = ans; */
+/*     return OK; */
+/* } */
 
-static int tabsum(CSOUND *csound, TABQUERY *p)
-{
-    TABDAT *t = p->tab;
-    int i, size = t->size;
-    MYFLT ans;
+/* static int tabsum(CSOUND *csound, TABQUERY *p) */
+/* { */
+/*     TABDAT *t = p->tab; */
+/*     int i, size = t->size; */
+/*     MYFLT ans; */
 
-    if (UNLIKELY(t->data == NULL))
-         return csound->PerfError(csound, Str("t-variable not initialised"));
-    ans = t->data[0];
+/*     if (UNLIKELY(t->data == NULL)) */
+/*          return csound->PerfError(csound, Str("t-variable not initialised")); */
+/*     ans = t->data[0]; */
 
-    for (i=1; i<size; i++)
-      ans += t->data[i];
-    *p->ans = ans;
-    return OK;
-}
+/*     for (i=1; i<size; i++) */
+/*       ans += t->data[i]; */
+/*     *p->ans = ans; */
+/*     return OK; */
+/* } */
 
 static int tabscaleset(CSOUND *csound, TABSCALE *p)
 {
@@ -577,12 +577,12 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
     return OK;
 }
 
-int tablength(CSOUND *csopund, TABQUERY *p)
-{
-    if (UNLIKELY(p->tab==NULL)) *p->ans = -FL(1.0);
-    else *p->ans = p->tab->size;
-    return OK;
-}
+/* int tablength(CSOUND *csopund, TABQUERY *p) */
+/* { */
+/*     if (UNLIKELY(p->tab==NULL)) *p->ans = -FL(1.0); */
+/*     else *p->ans = p->tab->size; */
+/*     return OK; */
+/* } */
 
 static OENTRY tabvars_localops[] =
 {
@@ -598,9 +598,9 @@ static OENTRY tabvars_localops[] =
                                                (SUBR)tabarithset1, (SUBR)tabidiv },
   { "##remitab",  sizeof(TABARITH1), 0,3, "t", "ti",
                                                (SUBR)tabarithset1, (SUBR)tabirem },
-  { "maxtab", sizeof(TABQUERY), 0,3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
-  { "mintab", sizeof(TABQUERY), 0,3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
-  { "sumtab", sizeof(TABQUERY), 0,3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
+  //  { "maxtab", sizeof(TABQUERY), 0,3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
+  //  { "mintab", sizeof(TABQUERY), 0,3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
+  //  { "sumtab", sizeof(TABQUERY), 0,3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
   { "scalet", sizeof(TABSCALE), 0,3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
   { "#copytab", sizeof(TABCPY), 0,3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
   { "#tabgen", sizeof(TABGEN), 0,1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
@@ -609,8 +609,8 @@ static OENTRY tabvars_localops[] =
   { "#tabslice", sizeof(TABSLICE), 0,1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
   { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "tk", NULL, (SUBR) tab2ftab },
   { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "tk", NULL, (SUBR) ftab2tab },
-  { "lentab.i", sizeof(TABQUERY), 0,1, "i", "t", (SUBR) tablength },
-  { "lentab.k", sizeof(TABQUERY), 0,1, "k", "t", NULL, (SUBR) tablength }
+  //  { "lentab.i", sizeof(TABQUERY), 0,1, "i", "t", (SUBR) tablength },
+  //  { "lentab.k", sizeof(TABQUERY), 0,1, "k", "t", NULL, (SUBR) tablength }
 
 };
 // reverse, scramble, mirror, stutter, rotate, ...

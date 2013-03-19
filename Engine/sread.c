@@ -1160,7 +1160,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         }
         break;
       case -1:
-	break;
+        break;
       default:
         csound->Message(csound,Str("sread is confused on legal opcodes\n"));
         break;
