@@ -1036,13 +1036,16 @@ extern "C" {
 
     /**
      *  Configure Csound with a given set of parameters defined in
-     *  the CSOUND_PARAMS structure
+     *  the CSOUND_PARAMS structure. These parameters are the part of the
+     *  OPARMS struct that are configurable through command line flags.
+     *  The CSOUND_PARAMS structure can be obtained using csoundGetParams().
+     *  These options should only be changed before performance has started.
      */
    PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
 
      /**
      *  Get the current set of parameters from a CSOUND instance in
-     *  a CSOUND_PARAMS structure
+     *  a CSOUND_PARAMS structure. See csoundSetParams().
      */
    PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
 
