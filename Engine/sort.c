@@ -261,7 +261,7 @@ void sort(CSOUND *csound)
         bp->preced = 'a';
         break;
       case -1:
-	break;
+        break;
       default:
         csound->Message(csound, Str("sort: illegal opcode %c(%.2x)\n"),
                                 bp->text[0], bp->text[0]);

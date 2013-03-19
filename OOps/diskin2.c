@@ -344,18 +344,20 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     
     // create circular buffer, on fail set mode to synchronous
     if(csound->realtime_audio_flag==1 && *p->forceSync==0 &&
-       (p->cb = csound->CreateCircularBuffer(csound, p->bufSize*p->nChannels*2)) != NULL){
+       (p->cb = csound->CreateCircularBuffer(csound, 
+                                             p->bufSize*p->nChannels*2)) != NULL){
       DISKIN_INST **top, *current;
       int *start;
       // allocate buffer
       n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
       if (n != (int)p->auxData2.size)
-	csound->AuxAlloc(csound, (int32) n, &(p->auxData2));
+        csound->AuxAlloc(csound, (int32) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
       p->aOut_bufsize = CS_KSMPS;
 
-      if ((top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST")) == NULL){
+      if ((top=(DISKIN_INST **)csound->QueryGlobalVariable(csound,
+                                                           "DISKIN_INST")) == NULL){
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
         *top = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));   
@@ -364,33 +366,33 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
         current = *top;
       } 
       else {
-	current = *top;
-	while(current->nxt != NULL) { /* find next empty slot in chain */
-	  current = current->nxt;
-	}
-	current->nxt = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
-	current = current->nxt;
+        current = *top;
+        while(current->nxt != NULL) { /* find next empty slot in chain */
+          current = current->nxt;
+        }
+        current->nxt = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
+        current = current->nxt;
       }
       current->csound = csound;
       current->diskin = p;
       current->nxt = NULL;  
       
       if( *(start = csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START")) == 0) {
-	void *diskin_io_thread(void *p);
-	*start = 1;
-	pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD"), NULL, diskin_io_thread, *top);      
+        void *diskin_io_thread(void *p);
+        *start = 1;
+        pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD"), NULL, diskin_io_thread, *top);      
       }
       csound->RegisterDeinitCallback(csound, p, diskin2_async_deinit);
       p->async = 1;
 
       /* print file information */
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
-	csound->Message(csound, Str("diskin2: opened (asynchronously) '%s':\n"
-				    "         %d Hz, %d channel(s), "
-				    "%ld sample frames\n"),
-			csound->GetFileName(fd),
-			(int)sfinfo.samplerate, (int)sfinfo.channels,
-			(int32) sfinfo.frames);
+        csound->Message(csound, Str("diskin2: opened (asynchronously) '%s':\n"
+                                    "         %d Hz, %d channel(s), "
+                                    "%ld sample frames\n"),
+                        csound->GetFileName(fd),
+                        (int)sfinfo.samplerate, (int)sfinfo.channels,
+                        (int32) sfinfo.frames);
       }
     } 
     else {
@@ -399,12 +401,12 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
       p->async = 0;
       /* print file information */
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
-	csound->Message(csound, Str("diskin2: opened '%s':\n"
-				    "         %d Hz, %d channel(s), "
-				    "%ld sample frames\n"),
-			csound->GetFileName(fd),
-			(int)sfinfo.samplerate, (int)sfinfo.channels,
-			(int32) sfinfo.frames);
+        csound->Message(csound, Str("diskin2: opened '%s':\n"
+                                    "         %d Hz, %d channel(s), "
+                                    "%ld sample frames\n"),
+                        csound->GetFileName(fd),
+                        (int)sfinfo.samplerate, (int)sfinfo.channels,
+                        (int32) sfinfo.frames);
       }
     }
     
@@ -865,7 +867,7 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
       //do {
       // i = 
        csound->ReadCircularBuffer(csound, cb, &samp, 1);
-	//} while(i==0);
+        //} while(i==0);
         p->aOut[chn][nn] = csound->e0dbfs*samp;
       }
     }

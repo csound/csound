@@ -36,9 +36,9 @@ typedef int taskID;
 
 /* Each task has a status */
 enum state { WAITING = 3,          /* Dependencies have not been finished */
-	     AVAILABLE = 2,        /* Dependencies met, ready to be run */
-	     INPROGRESS = 1,       /* Has been started */
-	     DONE = 0 };           /* Has been completed */
+             AVAILABLE = 2,        /* Dependencies met, ready to be run */
+             INPROGRESS = 1,       /* Has been started */
+             DONE = 0 };           /* Has been completed */
 
 /* Sets of prerequiste tasks for each task */
 typedef struct _watchList {
