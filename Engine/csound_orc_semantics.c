@@ -444,44 +444,36 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
     
     if (opname == NULL) {
-      return NULL;
+        return NULL;
     }
     
-    int listIndex = 0, opLen;
-      int i;
-      OENTRY* opc = csound->opcodlst;
-      OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
-
-
-      //trim opcode name if name has . in it
-      char* dot = strchr(opname, '.');
-      if(dot != NULL) {
-        opLen = dot - opname;
-      }
+    int listIndex = 0;
+    int i;
     
+    OENTRY* opc = csound->opcodlst;
+    OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
+    
+    int opLen = strlen(opname);
+
+    //trim opcode name if name has . in it
+    char* dot = strchr(opname, '.');
+    if(dot != NULL) {
+        opLen = dot - opname;
+    }
     
     for (i=0; opc < csound->oplstend; opc++, i++) {
-
      
-        if (strncmp(opname, opc->opname, opLen) == 0) {
-          // hack to work with how opcodes are currently defined with 
-          //".x" endings for polymorphism
-          if (opc->opname[opLen] == 0 || opc->opname[opLen] == '.') {
-            retVal->entries[listIndex] = opc;
-            retVal->opnum[listIndex++] = i;
-          }
+      if (strncmp(opname, opc->opname, opLen) == 0) {
+        // hack to work with how opcodes are currently defined with 
+        //".x" endings for polymorphism
+        if (opc->opname[opLen] == 0 || opc->opname[opLen] == '.') {
+          retVal->entries[listIndex] = opc;
+          retVal->opnum[listIndex++] = i;
         }
-        retVal->count = listIndex;
       }
-      return retVal;
-
-#ifdef VL_OENTRIES_CHANGES
-    OENTRIES *opc;
-    for (opc = csound->opcodelist; opc < csound->opcodelist_end; opc++) 
-      if(strncmp(opname, opc->opname, opLen)==0) return opc;
-    return NULL;
-#endif
-
+      retVal->count = listIndex;
+    }
+    return retVal;
 }
 
 int is_in_optional_arg(char arg) {
