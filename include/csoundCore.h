@@ -1210,9 +1210,9 @@ typedef struct NAME__ {
     void (*SetUtilSr)(CSOUND *, MYFLT); 
     void (*SetUtilNchnls)(CSOUND *, int);
     void (*module_list_add)(CSOUND *, char *, char *);
+    int64_t (*GetCurrentTimeSamples)(CSOUND *);
     SUBR dummyfn_2[50];
     /* ----------------------- public data fields ----------------------- */
-    OPDS          *ids, *pds;       /* used by init and perf loops */
     int           reinitflag;
     int           tieflag;
     MYFLT         onedsr, sicvt;
@@ -1221,15 +1221,6 @@ typedef struct NAME__ {
     MYFLT         onedkr;
     MYFLT         kicvt;
     MYFLT         e0dbfs, dbfs_to_float;
-    /** start time of current section    */
-    double        timeOffs, beatOffs;
-    /** current time in seconds, inc. per kprd */
-    int64_t       icurTime;   /* Current time in samples */
-    double        curTime_inc;
-    /** current time in beats, inc per kprd */
-    double        curBeat, curBeat_inc;
-    /** beat time = 60 / tempo           */
-    int64_t       ibeatTime;   /* Beat time in samples */
     /* Widgets */
     void          *widgetGlobals;
     /** reserved for std opcode library  */
@@ -1243,13 +1234,9 @@ typedef struct NAME__ {
     int           nspin;
     int           nspout;
     OPARMS        *oparms;
-    EVTBLK        *currevent;
-    INSDS         *curip;
     void          *hostdata;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
-    char          *orchname, *scorename;
-    CORFIL        *orchstr, *scorestr;
     int           holdrand;
     /** max. length of string variables + 1  */
     int           strVarMaxLen;
@@ -1298,6 +1285,9 @@ typedef struct NAME__ {
     int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
     int           (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int);
     /* end of callbacks */
+    char          *orchname, *scorename;
+    CORFIL        *orchstr, *scorestr;
+    OPDS          *ids, *pds;       /* used by init and perf loops */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     INSTRTXT      *instr0;          /* instr0     */
     INSTRTXT      **dead_instr_pool;
@@ -1311,6 +1301,17 @@ typedef struct NAME__ {
     long          kcounter, global_kcounter;   
     MYFLT         esr;  
     MYFLT         ekr;
+    /** current time in seconds, inc. per kprd */
+    int64_t       icurTime;   /* Current time in samples */
+    double        curTime_inc;
+    /** start time of current section    */
+    double        timeOffs, beatOffs;
+    /** current time in beats, inc per kprd */
+    double        curBeat, curBeat_inc;
+    /** beat time = 60 / tempo           */
+    int64_t       ibeatTime;   /* Beat time in samples */
+    EVTBLK        *currevent;
+    INSDS         *curip;
     /*MYFLT         global_ekr;*/
     int           nchanik, nchania, nchanok, nchanoa;
     MYFLT         *chanik, *chania, *chanok, *chanoa;
