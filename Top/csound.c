@@ -415,6 +415,7 @@ static const CSOUND cenviron_ = {
     set_util_sr,
     set_util_nchnls,
     module_list_add,
+    csoundGetCurrentTimeSamples,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -424,8 +425,6 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ----------------------- public data fields ----------------------- */
-    (OPDS*) NULL,   /*  ids                 */
-    (OPDS*) NULL,   /*  pds                 */
     0,              /*  reinitflag          */
     0,              /*  tieflag             */
     FL(0.0),        /*  onedsr              */
@@ -439,13 +438,6 @@ static const CSOUND cenviron_ = {
     FL(0.0),        /*  kicvt               */
     DFLT_DBFS,      /*  e0dbfs              */
     FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
-    0.0,            /*  timeOffs            */
-    0.0,            /*  beatOffs            */
-    0l,             /*  curTime             */
-    0l,             /*  curTime_inc         */
-    0.0,            /*  curBeat             */
-    0.0,            /*  curBeat_inc         */
-    0.0,            /*  beatTime            */
     NULL,           /*  widgetGlobals       */
     NULL,           /*  stdOp_Env           */
     NULL,           /*  zkstart             */
@@ -457,13 +449,9 @@ static const CSOUND cenviron_ = {
     0,              /*  nspin               */
     0,              /*  nspout              */
     (OPARMS*) NULL, /*  oparms              */
-    (EVTBLK*) NULL, /*  currevent           */
-    (INSDS*) NULL,  /*  curip               */
     NULL,           /*  hostdata            */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
-    NULL, NULL,     /*  orchname, scorename */
-    NULL, NULL,     /*  orchstr, *scorestr  */
     2345678,        /*  holdrand            */
     256,            /*  strVarMaxLen        */
     /* MAXINSNO, */      /*  maxinsno            */
@@ -505,6 +493,10 @@ static const CSOUND cenviron_ = {
     audio_dev_list_dummy,
     midi_dev_list_dummy,
     /* end of callbacks */
+    NULL, NULL,     /*  orchname, scorename */
+    NULL, NULL,     /*  orchstr, *scorestr  */
+    (OPDS*) NULL,   /*  ids                 */
+    (OPDS*) NULL,   /*  pds                 */
     {(CS_VAR_POOL*)NULL,
      (MYFLT_POOL *) NULL,
      (STRING_POOL *) NULL,
@@ -550,6 +542,15 @@ static const CSOUND cenviron_ = {
     0L,             /*  global_kcounter     */
     DFLT_SR,        /*  esr                 */
     DFLT_KR,        /*  ekr                 */
+    0l,             /*  curTime             */
+    0l,             /*  curTime_inc         */
+    0.0,            /*  timeOffs            */
+    0.0,            /*  beatOffs            */
+    0.0,            /*  curBeat             */
+    0.0,            /*  curBeat_inc         */
+    0.0,            /*  beatTime            */
+    (EVTBLK*) NULL, /*  currevent           */
+    (INSDS*) NULL,  /*  curip               */
     /*DFLT_KR, */       /*  global_ekr          */
     /* (CS_VAR_POOL*)NULL, */
     0, 0,           /*  nchanik, nchania    */
@@ -1708,6 +1709,10 @@ PUBLIC void csoundStop(CSOUND *csound)
 /*
  * ATTRIBUTES
  */
+
+PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound){
+  return csound->icurTime;
+}
 
 PUBLIC MYFLT csoundGetSr(CSOUND *csound)
 {

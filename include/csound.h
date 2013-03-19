@@ -997,6 +997,11 @@ extern "C" {
     PUBLIC MYFLT csoundGet0dBFS(CSOUND *);
 
     /**
+     * Return the current performance time in samples
+     */
+  PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
+
+    /**
      * Returns the sample format.
      */
     PUBLIC int csoundGetSampleFormat(CSOUND *);
