@@ -1341,7 +1341,7 @@ typedef struct NAME__ {
     uint32        maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
     FILE*         scorein;
     FILE*         scoreout;
-    MYFLT         *globalVarPool;
+    /* MYFLT         *globalVarPool; */
     /* MYFLT_POOL*   constantsPool;
        STRING_POOL*  stringPool; */
     int           *argoffspace;
