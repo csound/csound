@@ -446,19 +446,12 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
     if (opname == NULL) {
       return NULL;
     }
-    {
-      int listIndex = 0;
+    
+    int listIndex = 0, opLen;
       int i;
       OENTRY* opc = csound->opcodlst;
       OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
-    
-<<<<<<< HEAD
-    int listIndex = 0;
-    int i;
-    int opLen = strlen(opname);
-=======
-      int opLen = strlen(opname);
->>>>>>> 28aa1b959f8872a7fbcde0672a137dd23c6babb3
+
 
       //trim opcode name if name has . in it
       char* dot = strchr(opname, '.');
@@ -466,15 +459,9 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
         opLen = dot - opname;
       }
     
-<<<<<<< HEAD
-
-    OENTRY* opc = csound->opcodlst;
-    OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
     
     for (i=0; opc < csound->oplstend; opc++, i++) {
-=======
-      for (i=0; opc < csound->oplstend; opc++, i++) {
->>>>>>> 28aa1b959f8872a7fbcde0672a137dd23c6babb3
+
      
         if (strncmp(opname, opc->opname, opLen) == 0) {
           // hack to work with how opcodes are currently defined with 
@@ -487,9 +474,6 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
         retVal->count = listIndex;
       }
       return retVal;
-    }
-<<<<<<< HEAD
-    return retVal;
 
 #ifdef VL_OENTRIES_CHANGES
     OENTRIES *opc;
@@ -497,8 +481,7 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
       if(strncmp(opname, opc->opname, opLen)==0) return opc;
     return NULL;
 #endif
-=======
->>>>>>> 28aa1b959f8872a7fbcde0672a137dd23c6babb3
+
 }
 
 int is_in_optional_arg(char arg) {
