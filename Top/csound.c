@@ -2745,6 +2745,11 @@ PUBLIC void csoundReset(CSOUND *csound)
     int     i, max_len;
     OPARMS  *O = csound->oparms;
 
+    if(csound->engineStatus & CS_STATE_COMP) {
+      /* clear compiled flag */
+      csound->engineStatus |= ~(CS_STATE_COMP);
+    }
+
     csoundReset_(csound);
     if (msgcallback_ != NULL) {
       csoundSetMessageCallback(csound, msgcallback_);

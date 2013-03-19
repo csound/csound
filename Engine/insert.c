@@ -1746,7 +1746,7 @@ static void instance(CSOUND *csound, int insno)
     const OENTRY  *ep;    
     int       n, /*cnt, */pextent, opnum, pextra;
     char      *nxtopds, *opdslim;
-    MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
+    MYFLT     **argpp, *lclbas, /* *gbloffbas,*/ *lcloffbas;
     char*     opMemStart;
     //    int       *ndxp;
     OPARMS    *O = csound->oparms;
@@ -1792,7 +1792,7 @@ static void instance(CSOUND *csound, int insno)
       ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
     }
     
-    gbloffbas = csound->globalVarPool;
+    /* gbloffbas = csound->globalVarPool; */
     lcloffbas = &ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
     initializeVarPool(lclbas, tp->varPool);
@@ -1866,7 +1866,7 @@ static void instance(CSOUND *csound, int insno)
           MYFLT *fltp;
           CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
           if(arg->type == ARG_GLOBAL) {
-                  fltp = gbloffbas + var->memBlockIndex;
+	    fltp = (MYFLT *) var->memBlock; /* gbloffbas + var->memBlockIndex; */
           } else if(arg->type == ARG_LOCAL) {
                   fltp = lclbas + var->memBlockIndex;
           } else if(arg->type == ARG_PFIELD) {
@@ -1895,7 +1895,7 @@ static void instance(CSOUND *csound, int insno)
         } else if(arg->type == ARG_PFIELD) {
           argpp[n] = lcloffbas + arg->index;
         } else if(arg->type == ARG_GLOBAL) {
-          argpp[n] = gbloffbas + var->memBlockIndex;
+          argpp[n] =  (MYFLT *) var->memBlock; /*gbloffbas + var->memBlockIndex; */
         } else if(arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
         } else if(arg->type == ARG_LABEL) {
