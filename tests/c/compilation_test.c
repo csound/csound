@@ -9,8 +9,8 @@ int main(int argc, char **argv)
       "instr 2 \n"
       "k1 expon p4, p3, p4*0.001 \n"
       "a1 vco2  k1, p5   \n"
-      "ga1 = a1  \n"
-      "out  a1   \n"
+      "ga2 = a1  \n"
+      "out  ga2   \n"
        "endin \n";
     csoundInitialize(&argc, &argv, 0);
     csound = csoundCreate(NULL);
