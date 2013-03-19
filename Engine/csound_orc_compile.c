@@ -465,6 +465,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     }
       /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
     {
+       
       OENTRY *ep = csound->opcodlst + tp->opnum;
       int argcount = 0;
       for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
@@ -1405,6 +1406,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                            bp->t.opcod, thread, bp->t.pftype);
           synterr(csound, Str("perf-pass statements illegal in header blk\n"));
         }
+	
       }
 
       ip = &(engineState->instxtanchor);

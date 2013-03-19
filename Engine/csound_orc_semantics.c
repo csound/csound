@@ -437,10 +437,6 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
     
     int listIndex = 0;
     int i;
-    
-    OENTRY* opc = csound->opcodlst;
-    OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
-    
     int opLen = strlen(opname);
 
     //trim opcode name if name has . in it
@@ -448,6 +444,10 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
     if(dot != NULL) {
         opLen = dot - opname;
     }
+    
+
+    OENTRY* opc = csound->opcodlst;
+    OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
     
     for (i=0; opc < csound->oplstend; opc++, i++) {
      
@@ -462,6 +462,13 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
       retVal->count = listIndex;
     }
     return retVal;
+
+#ifdef VL_OENTRIES_CHANGES
+    OENTRIES *opc;
+    for (opc = csound->opcodelist; opc < csound->opcodelist_end; opc++) 
+      if(strncmp(opname, opc->opname, opLen)==0) return opc;
+    return NULL;
+#endif
 }
 
 int is_in_optional_arg(char arg) {
