@@ -98,7 +98,8 @@ void set_util_nchnls(CSOUND *csound, int nchnls);
 extern void close_all_files(CSOUND *);
 
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
-extern OENTRY  opcodlst_1[];
+
+extern OENTRY opcodlst_1[];
 static void create_opcodlst(CSOUND *csound)
 {
     OENTRY  *saved_opcodlst = csound->opcodlst;
@@ -121,6 +122,16 @@ static void create_opcodlst(CSOUND *csound)
     if (err)
       csoundDie(csound, Str("Error allocating opcode list"));
 }
+
+static void create_opcodelist(CSOUND *csound)
+{
+    int     err;
+    /* Basic Entry1 stuff */
+    err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
+    if(err)
+    csoundDie(csound, Str("Error allocating opcode list"));
+}
+
 
 #define MAX_MODULES 64
 
@@ -499,7 +510,32 @@ static const CSOUND cenviron_ = {
      (STRING_POOL *) NULL,
      -1,
      (INSTRTXT**)NULL,
-     {NULL},
+     { NULL, 
+      {
+	0,0,
+	NULL, NULL, NULL, NULL,
+        0,
+        NULL,
+        0,0,0,0,0,0,0},
+      0,0,0,
+      0,
+      NULL,
+      0,
+      0,
+      0,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      0,
+      0,
+      0,
+      FL(0.0),
+      NULL,
+      NULL,
+      0,
+      0 },
      NULL,
      MAXINSNO},     /* engineState          */
     (INSTRTXT *) NULL, /* instr0  */
@@ -549,11 +585,10 @@ static const CSOUND cenviron_ = {
     /* (STRING_POOL*)NULL, */ /* string pool now in engineState */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-#if defined(MSVC) ||defined(__POWERPC__) || \
-    (defined(_WIN32) && defined(__GNUC__))
+#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || (defined(_WIN32) && defined(__GNUC__))
     {0},
 #else
-    {{{0}}},        /*  exitjmp of type jmp_buf */
+   {{{0}}},        /*  exitjmp of type jmp_buf */
 #endif
     NULL,           /*  frstbp              */
     0,              /*  sectcnt             */
@@ -646,7 +681,7 @@ static const CSOUND cenviron_ = {
       0,0,0,        /*  input_size, input_cnt, pop */
       1,            /*  ingappop            */
       -1,           /*  linepos             */
-      { NULL},      /* names               */
+      {NULL}, /* names               */
       {""},         /*  repeat_name_n[RPTDEPTH][NAMELEN] */
       {0},          /*  repeat_cnt_n[RPTDEPTH] */
       {0},          /*  repeat_point_n[RPTDEPTH] */
@@ -1302,6 +1337,7 @@ inline static int nodePerf(CSOUND *csound, int index)
     double time_end;
 #define INVALID (-1)
 #define WAIT    (-2)
+    IGN(index);
 
     while(1) {
       which_task = dag_get_task(csound);
@@ -2192,10 +2228,12 @@ static void rtclose_dummy(CSOUND *csound)
 }
 
 static int  audio_dev_list_dummy(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+  IGN(csound); IGN(list); IGN(isOutput);
   return 0;
 }
 
 static int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+  IGN(csound); IGN(list); IGN(isOutput);
   return 0;
 }
 
@@ -2493,32 +2531,45 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     return 0;
 }
 
+
 static CS_NOINLINE int opcode_list_new_oentries(CSOUND *csound,
-                                              const OENTRY *ep)
+                                               const OENTRY *ep)
 {
     int     oldCnt = 0;
     int     h = 0;
+    OENTRY  *dest; 
+    char opname[64];
 
-    if (ep->opname == NULL)
+    // trim opcode name if name has . in it
+    // this can be removed once OENTRY table is modified
+    char* dot = strchr(ep->opname, '.');
+    if(dot != NULL) strncpy((char *) &opname, ep->opname, dot - ep->opname);
+    else strcpy((char *) &opname, ep->opname);
+   
+    if (opname == NULL)
       return CSOUND_ERROR;
-    if (ep->opname[0] != (char) 0)
-      h = (int) name_hash_2(csound, ep->opname);
-    else if (csound->opcodelist != NULL)
+
+    if (opname[0] != (char) 0)
+      h = (int) name_hash_2(csound, opname);
+      else if (csound->opcodelist != NULL)
       return CSOUND_ERROR;
     if (csound->opcodelist != NULL) {
       int   n;
-      oldCnt = (int) ((OENTRY*) csound->opcodelist_end - (OENTRY*) csound->opcodelist);
+      oldCnt = (int) ((OENTRIES*) csound->opcodelist_end - (OENTRIES*) csound->opcodelist);
       /* check if this opcode is already defined */
       n = csound->opcode_list[h];
       while (n) {
-        if (!sCmp(csound->opcodelist[n].opname, ep->opname)) {
+        if (!sCmp(csound->opcodelist[n].opname, opname)) {
           int count = csound->opcodelist[n].count;
           /* add as an overloaded opcode */
-          csound->opcodelist[n].entries[count] =  (OENTRY *) csound->Calloc(csound, sizeof(OENTRY));
-          memcpy(&(csound->opcodelist[n].entries[count]), ep, sizeof(OENTRY));
-          csound->opcodelist[count].entries[count]->useropinfo = NULL;
-          csound->opcodelist[count].entries[count]->prvnum = csound->opcodelist[count].entries[count-1]->prvnum;
-          csound->opcodelist[n].count++;     
+          if(count < 16) {
+          dest = csound->opcodelist[n].entries[count] =  (OENTRY *) csound->Calloc(csound, sizeof(OENTRY));
+          /* csound->opcodelist[n].opnum[count] = ? */
+          memcpy(dest, ep, sizeof(OENTRY));
+          dest->useropinfo = NULL;
+          /* dest->prvnum = ?; */
+          csound->opcodelist[n].count++;
+	  } 
           return CSOUND_SUCCESS;
         }
         n = csound->opcodelist[n].prvnum;
@@ -2537,19 +2588,17 @@ static CS_NOINLINE int opcode_list_new_oentries(CSOUND *csound,
       csound->opcodelist_end = ((OENTRIES *) newList + (int) oldCnt);
       memset(&(csound->opcodelist[oldCnt]), 0, sizeof(OENTRIES) * 0x80);
     }
-    csound->opcodelist[oldCnt].entries[0] = (OENTRY *)csound->Calloc(csound, sizeof(OENTRY));
-    memcpy(&(csound->opcodelist[oldCnt].entries[0]), ep, sizeof(OENTRY));
-    csound->opcodelist[oldCnt].entries[0]->useropinfo = NULL;
-    csound->opcodelist[oldCnt].entries[0]->prvnum = csound->opcode_list[h];
-    csound->opcodelist[oldCnt].prvnum = csound->opcode_list[h];
+    dest = csound->opcodelist[oldCnt].entries[0] = (OENTRY *)csound->Calloc(csound, sizeof(OENTRY));
+    dest->useropinfo = NULL;
+    memcpy(dest, ep, sizeof(OENTRY));
+    csound->opcodelist[oldCnt].opname = dest->opname;
+    dest->prvnum = csound->opcode_list[h];
+    /* csound->opcodelist[oldCnt].prvnum = csound->opcode_list[h]; */
     csound->opcodelist[oldCnt].count = 1;  
     csound->opcode_list[h] = oldCnt;
     csound->opcodelist_end = (OENTRIES*) csound->opcodelist_end + (int) 1;
     return 0;
 }
-
-
-
 
 
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
@@ -2559,7 +2608,7 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               int (*kopadr)(CSOUND *, void *),
                               int (*aopadr)(CSOUND *, void *))
 {
-    OENTRY  tmpEntry;
+  OENTRY  tmpEntry;
     int     err;
 
     tmpEntry.opname     = (char*) opname;
@@ -2574,7 +2623,6 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     err = opcode_list_new_oentry(csound, &tmpEntry);
     if (UNLIKELY(err))
       csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
-
     return err;
 }
 
@@ -2587,7 +2635,7 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
 
 int csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList, int n)
 {
-    OENTRY  *ep = (OENTRY*) opcodeList;
+  OENTRY  *ep = (OENTRY*) opcodeList;
     int     err, retval = 0;
 
     if (UNLIKELY(opcodeList == NULL))
@@ -2600,6 +2648,7 @@ int csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList, int n)
                        ep->opname);
         retval = err;
       }
+      
       n--, ep++;
     }
     return retval;
