@@ -599,7 +599,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
        outarg = create_out_arg(csound, 'k');
        break;
      case T_ARRAY:
-        strncpy(op, "array_get", 80);
+        strncpy(op, "##array_get", 80);
         outarg = create_out_arg(csound, argtyp2(root->left->value->lexeme));
         break;
     
@@ -1132,7 +1132,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                                           create_out_arg(csound, anstype));
             current->left = temp;
             
-            TREE* arraySet = create_opcode_token(csound, "array_set");
+            TREE* arraySet = create_opcode_token(csound, "##array_set");
             arraySet->right = currentAns->left;
             arraySet->right->next = make_leaf(csound, temp->line, temp->locn,
                                                 T_IDENT, make_token(csound, temp->value->lexeme));
