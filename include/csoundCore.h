@@ -1030,9 +1030,9 @@ typedef struct NAME__ {
                 int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
     void (*SetAudioDeviceListCallback)(CSOUND *csound,
-				       int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+          int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
     void (*SetMIDIDeviceListCallback)(CSOUND *csound,
-				       int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
+          int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
@@ -1042,7 +1042,6 @@ typedef struct NAME__ {
     void (*display)(CSOUND *, WINDAT *);
     int (*dispexit)(CSOUND *);
     MYFLT (*intpow)(MYFLT, int32);
-    //    MEMFIL *(*ldmemfile)(CSOUND *, const char *);  /* use ldmemfile2 instead */
     int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
     char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
     int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);

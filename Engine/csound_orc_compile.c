@@ -537,10 +537,10 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 void addGlobalVariable(CSOUND *csound, 
                        ENGINE_STATE *engineState, 
                        CS_TYPE* type,
-		       char *name,
+                       char *name,
                        void *typeArg) {
   CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
-					 type, name, typeArg);
+                                         type, name, typeArg);
   csoundAddVariable(engineState->varPool, var);
   var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
 }
@@ -597,7 +597,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                                            rType, "$kr", NULL));
     csoundAddVariable(engineState->varPool,
                       csoundCreateVariable(csound, csound->typePool,
-		      rType, "$ksmps", NULL)); 
+                      rType, "$ksmps", NULL)); 
     */
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
@@ -1116,7 +1116,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       var = csoundFindVariableWithName(current_state->varPool, gVar->varName);
       if(var == NULL){
       var = csoundCreateVariable(csound, csound->typePool,
-				 gVar->varType, gVar->varName, NULL);
+                                 gVar->varType, gVar->varName, NULL);
       csoundAddVariable(current_state->varPool, var);
       /* memory has already been allocated, so we just point to it */
       /* when disposing of the engineState global vars, we do not 
@@ -1418,7 +1418,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* VL: 15.3.2013 allocating 10 times for space than requested,
          for use with variables allocated later */
       /* csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize*10);
-	 initializeVarPool(csound->globalVarPool, engineState->varPool);*/
+         initializeVarPool(csound->globalVarPool, engineState->varPool);*/
 
       /*MYFLT* globals = csound->globalVarPool;
       globals[0] = csound->esr;           
