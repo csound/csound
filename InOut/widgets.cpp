@@ -4499,7 +4499,7 @@ extern "C" {
           outable = csound->zkstart + (long) *p->ioutablestart_ndx;
         else {
           return csound->InitError(csound,
-			           Str("invalid ZAK space allocation"));
+                                   Str("invalid ZAK space allocation"));
         }
       }
       else {

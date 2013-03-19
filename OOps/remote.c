@@ -34,7 +34,7 @@
       #include <linux/if.h>
     #endif
     #ifdef __HAIKU__
-	    #include <sys/sockio.h>
+      #include <sys/sockio.h>
     #endif
     #include <sys/socket.h>
     #include <netinet/in.h>

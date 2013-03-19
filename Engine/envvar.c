@@ -1358,34 +1358,35 @@ void *file_iothread(void *p);
 
 void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env,
-                                   int csFileType, int buffsize, int isTemporary){
-  CSFILE *p;
-  if((p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,
-					    csFileType,isTemporary)) == NULL)
-              return NULL;
+                                   int csFileType, int buffsize, int isTemporary)
+{
+    CSFILE *p;
+    if ((p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,
+                                               csFileType,isTemporary)) == NULL)
+      return NULL;
 
-  if(csound->file_io_start == 0) {
-    csound->file_io_start = 1;
-    csound->file_io_threadlock = csound->CreateThreadLock();
+    if (csound->file_io_start == 0) {
+      csound->file_io_start = 1;
+      csound->file_io_threadlock = csound->CreateThreadLock();
+      csound->NotifyThreadLock(csound->file_io_threadlock);
+      pthread_create(&csound->file_io_thread,NULL, file_iothread, (void *) csound); 
+    }
+    csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+    p->async_flag = ASYNC_GLOBAL;
+    
+    p->cb = csound->CreateCircularBuffer(csound, buffsize*4);
+    p->items = 0;
+    p->pos = 0;
+    p->bufsize = buffsize;
+    p->buf = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*buffsize);
     csound->NotifyThreadLock(csound->file_io_threadlock);
-    pthread_create(&csound->file_io_thread,NULL, file_iothread, (void *) csound); 
-  }
-  csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
-  p->async_flag = ASYNC_GLOBAL;
- 
-  p->cb = csound->CreateCircularBuffer(csound, buffsize*4);
-  p->items = 0;
-  p->pos = 0;
-  p->bufsize = buffsize;
-  p->buf = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*buffsize);
-  csound->NotifyThreadLock(csound->file_io_threadlock);
 
-  if(p->cb == NULL || p->buf == NULL) {
-    /* close file immediately */
-    csoundFileClose(csound, (void *) p);
-    return NULL;
-  }
-  return (void *) p;
+    if (p->cb == NULL || p->buf == NULL) {
+      /* close file immediately */
+      csoundFileClose(csound, (void *) p);
+      return NULL;
+    }
+    return (void *) p;
 }
 
 unsigned int csoundReadAsync(CSOUND *csound, void *handle,

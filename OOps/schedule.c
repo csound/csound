@@ -519,7 +519,7 @@ int schedule(CSOUND *csound, SCHED *p)
         p->kicked = insert_event(csound, (MYFLT) which,
                                  (MYFLT) (csound->icurTime/csound->esr -
                                           csound->timeOffs),
-					  dur, p->INOCOUNT - 3, p->argums, p->midi);
+                                 dur, p->INOCOUNT - 3, p->argums, p->midi);
         if (UNLIKELY(p->midi)) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
           rr->parent = p; rr->kicked = p->kicked;
