@@ -139,23 +139,25 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
     ARRAYDAT* dat = p->arrayDat;
     MYFLT* mem = dat->data;
     int i;
-    
+    int incr;
+    int end;
+    int index;
     int indefArgCount = p->INOCOUNT - 1;
     
-    if(indefArgCount == 0) {
+    if (indefArgCount == 0) {
         csoundErrorMsg(csound, "Error: no indexes set for array get\n");
         return CSOUND_ERROR;
     }
-    int end = indefArgCount - 1;
-    int index = MYFLT2LRND(*p->indexes[end]);
+    end = indefArgCount - 1;
+    index = MYFLT2LRND(*p->indexes[end]);
     
-    if(indefArgCount > 1) {
+    if (indefArgCount > 1) {
         for (i = end - 1; i >= 0; i--) {
             index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
         }
     }
     
-    int incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
+    incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     memcpy(p->out, mem, dat->arrayMemberSize);
     return OK;
@@ -205,11 +207,11 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 //    MYFLT *right;
 //} TABARITH1;
 //
-//typedef struct {
-//    OPDS h;
-//    MYFLT  *ans;
-//    TABDAT *tab;
-//} TABQUERY;
+typedef struct {
+    OPDS h;
+    MYFLT  *ans;
+    ARRAYDAT *tab;
+} TABQUERY;
 //
 //typedef struct {
 //    OPDS h;
@@ -437,28 +439,30 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 //    return OK;
 //}
 //
-//static int tabqset(CSOUND *csound, TABQUERY *p)
-//{
-//    if (LIKELY(p->tab->data)) return OK;
-//    return csound->InitError(csound, Str("t-variable not initialised"));
-//}
-//
-//static int tabmax(CSOUND *csound, TABQUERY *p)
-//{
-//    TABDAT *t = p->tab;
-//    int i, size = t->size;
-//    MYFLT ans;
-//
-//    if (UNLIKELY(t->data == NULL))
-//         return csound->PerfError(csound, Str("t-variable not initialised"));
-//
-//    ans = t->data[0];
-//    for (i=1; i<size; i++)
-//      if (t->data[i]>ans) ans = t->data[i];
-//    *p->ans = ans;
-//    return OK;
-//}
-//
+static int tabqset(CSOUND *csound, TABQUERY *p)
+{
+   if (LIKELY(p->tab->data)) return OK;
+   return csound->InitError(csound, Str("t-variable not initialised"));
+}
+
+static int tabmax(CSOUND *csound, TABQUERY *p)
+{
+   ARRAYDAT *t = p->tab;
+   int i, size = t->sizes[0];
+   MYFLT ans;
+
+   if (UNLIKELY(t->data == NULL))
+        return csound->PerfError(csound, Str("t-variable not initialised"));
+   if (UNLIKELY(t->dimensions!=1))
+        return csound->PerfError(csound, Str("t-variable not vector"));
+
+   ans = t->data[0];
+   for (i=1; i<size; i++)
+     if (t->data[i]>ans) ans = t->data[i];
+   *p->ans = ans;
+   return OK;
+}
+
 //static int tabmin(CSOUND *csound, TABQUERY *p)
 //{
 //    TABDAT *t = p->tab;
@@ -794,26 +798,26 @@ static OENTRY arrayvars_localops[] =
 //  { "##negtab",  sizeof(TABARITH), 0, 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
 //  { "##multtab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
 //  { "##divtab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
-//  { "##remtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem },
-//  { "##multitab", sizeof(TABARITH1), 3, "t", "ti",
+//  { "##remtab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem },
+//  { "##multitab", sizeof(TABARITH1), 0, 3, "t", "ti",
 //                                              (SUBR)tabarithset1, (SUBR)tabimult },
-//  { "##divitab",  sizeof(TABARITH1), 3, "t", "ti",
+//  { "##divitab",  sizeof(TABARITH1), 0, 3, "t", "ti",
 //                                               (SUBR)tabarithset1, (SUBR)tabidiv },
-//  { "##remitab",  sizeof(TABARITH1), 3, "t", "ti",
+//  { "##remitab",  sizeof(TABARITH1),0,  3, "t", "ti",
 //                                               (SUBR)tabarithset1, (SUBR)tabirem },
-//  { "maxtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
-//  { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
-//  { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
-//  { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
-//  { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
-//  { "#tabgen", sizeof(TABGEN), 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
-//  { "#tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
-//  { "#tabmap", sizeof(TABMAP), 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf},
-//  { "#tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
-//  { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },
-//  { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab },
-//  { "lentab.i", sizeof(TABQUERY), 1, "i", "t", (SUBR) tablength },
-//  { "lentab.k", sizeof(TABQUERY), 1, "k", "t", NULL, (SUBR) tablength }
+    { "maxtab", sizeof(TABQUERY), 0, 3, "k", "[", (SUBR) tabqset, (SUBR) tabmax },
+//  { "mintab", sizeof(TABQUERY), 0, 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
+//  { "sumtab", sizeof(TABQUERY), 0, 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
+//  { "scalet", sizeof(TABSCALE), 0, 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
+//  { "#copytab", sizeof(TABCPY), 0, 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
+//  { "#tabgen", sizeof(TABGEN), 0, 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
+//  { "#tabmap_i", sizeof(TABMAP), 0, 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
+//  { "#tabmap", sizeof(TABMAP), 0, 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf},
+//  { "#tabslice", sizeof(TABSLICE), 0, 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
+//  { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "tk", NULL, (SUBR) tab2ftab },
+//  { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "tk", NULL, (SUBR) ftab2tab },
+//  { "lentab.i", sizeof(TABQUERY), 0, 1, "i", "t", (SUBR) tablength },
+//  { "lentab.k", sizeof(TABQUERY), 0, 1, "k", "t", NULL, (SUBR) tablength }
 
 };
 
