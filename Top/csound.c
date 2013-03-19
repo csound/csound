@@ -544,7 +544,7 @@ static const CSOUND cenviron_ = {
     { FL(0.0) },    /*  omaxamp             */
     {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
     NULL, NULL,     /*  scorein, scoreout   */
-    NULL,           /*  pool                */
+    /* NULL, */          /*  pool                */
     /* (MYFLT_POOL*)NULL, */ /* constants pool now in engineState */
     /* (STRING_POOL*)NULL, */ /* string pool now in engineState */
     NULL,           /*  argoffspace         */
