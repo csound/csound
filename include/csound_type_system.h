@@ -40,6 +40,7 @@ extern "C" {
         CS_TYPE* subType;
         void (*updateMemBlockSize)(void*, struct csvariable*);
         void (*initializeVariableMemory)(struct csvariable*, MYFLT*);
+        void *memBlock;
     } CS_VARIABLE;
 
 //    typedef struct cstypeinstance {
