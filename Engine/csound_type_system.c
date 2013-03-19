@@ -216,16 +216,17 @@ void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
     pool->poolSize = 0;
     
-	while (current != NULL) {
-	  /* VL 26-12-12: had to revert these lines to avoid memory crashes with higher ksmps */
-        if(current->updateMemBlockSize != NULL) {
-            current->updateMemBlockSize(csound, current);
-        }
+    while (current != NULL) {
+      /* VL 26-12-12: had to revert these lines to avoid memory crashes 
+         with higher ksmps */
+      if(current->updateMemBlockSize != NULL) {
+        current->updateMemBlockSize(csound, current);
+      }
 
-        current->memBlockIndex = pool->poolSize / sizeof(MYFLT);
-        pool->poolSize += current->memBlockSize;
-        
-        current = current->next;
+      current->memBlockIndex = pool->poolSize / sizeof(MYFLT);
+      pool->poolSize += current->memBlockSize;
+      
+      current = current->next;
     }
 }
 

@@ -997,6 +997,11 @@ extern "C" {
     PUBLIC MYFLT csoundGet0dBFS(CSOUND *);
 
     /**
+     * Return the current performance time in samples
+     */
+  PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
+
+    /**
      * Returns the sample format.
      */
     PUBLIC int csoundGetSampleFormat(CSOUND *);
@@ -1294,7 +1299,7 @@ extern "C" {
      * (See csoundAudioDevList())
      */
     PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-						 int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+           int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
 
     /** @}*/
     /** @defgroup RTMIDI Realtime Midi I/O
@@ -1369,7 +1374,7 @@ extern "C" {
      * (See csoundMIDIDevList())
      */
     PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
-						int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
+                                                int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
 
     /** @}*/
     /** @defgroup SCOREHANDLING Score Handling

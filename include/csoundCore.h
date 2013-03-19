@@ -924,18 +924,16 @@ typedef struct NAME__ {
                                               va_list valist));
     void (*DeleteCfgVarList)(csCfgVariable_t **lst);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
-
-
+#ifdef SOME_FIND_DAY
     void (*InputMessage)(CSOUND *, const char *message__);
     void (*KeyPressed)(CSOUND *, char c__);
-#ifdef SOME_FIND_DAY
+
     void (*SetInputValueCallback)(CSOUND *,
                 void (*inputValueCalback)(CSOUND *, const char *channelName,
                                                     MYFLT *value));
     void (*SetOutputValueCallback)(CSOUND *,
                 void (*outputValueCalback)(CSOUND *, const char *channelName,
-                                                     MYFLT value));
-#endif                                                  
+                                                     MYFLT value));                                                  
     int (*ScoreEvent)(CSOUND *,
                       char type, const MYFLT *pFields, long numFields);
     int (*ScoreEventAbsolute)(CSOUND *,
@@ -950,7 +948,6 @@ typedef struct NAME__ {
     MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
     void (*Stop)(CSOUND *);
     long (*RunCommand)(const char * const *argv, int noWait);
-#ifdef SOME_FIND_DAY
     int (*PerformKsmpsAbsolute)(CSOUND *);
 #endif
     int (*OpenLibrary)(void **library, const char *libraryPath);  //
@@ -1033,9 +1030,9 @@ typedef struct NAME__ {
                 int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
     void (*SetAudioDeviceListCallback)(CSOUND *csound,
-				       int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+          int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
     void (*SetMIDIDeviceListCallback)(CSOUND *csound,
-				       int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
+          int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
@@ -1045,7 +1042,6 @@ typedef struct NAME__ {
     void (*display)(CSOUND *, WINDAT *);
     int (*dispexit)(CSOUND *);
     MYFLT (*intpow)(MYFLT, int32);
-    //    MEMFIL *(*ldmemfile)(CSOUND *, const char *);  /* use ldmemfile2 instead */
     int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
     char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
     int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
@@ -1214,9 +1210,9 @@ typedef struct NAME__ {
     void (*SetUtilSr)(CSOUND *, MYFLT); 
     void (*SetUtilNchnls)(CSOUND *, int);
     void (*module_list_add)(CSOUND *, char *, char *);
+    int64_t (*GetCurrentTimeSamples)(CSOUND *);
     SUBR dummyfn_2[50];
     /* ----------------------- public data fields ----------------------- */
-    OPDS          *ids, *pds;       /* used by init and perf loops */
     int           reinitflag;
     int           tieflag;
     MYFLT         onedsr, sicvt;
@@ -1225,15 +1221,6 @@ typedef struct NAME__ {
     MYFLT         onedkr;
     MYFLT         kicvt;
     MYFLT         e0dbfs, dbfs_to_float;
-    /** start time of current section    */
-    double        timeOffs, beatOffs;
-    /** current time in seconds, inc. per kprd */
-    int64_t       icurTime;   /* Current time in samples */
-    double        curTime_inc;
-    /** current time in beats, inc per kprd */
-    double        curBeat, curBeat_inc;
-    /** beat time = 60 / tempo           */
-    int64_t       ibeatTime;   /* Beat time in samples */
     /* Widgets */
     void          *widgetGlobals;
     /** reserved for std opcode library  */
@@ -1247,13 +1234,9 @@ typedef struct NAME__ {
     int           nspin;
     int           nspout;
     OPARMS        *oparms;
-    EVTBLK        *currevent;
-    INSDS         *curip;
     void          *hostdata;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
-    char          *orchname, *scorename;
-    CORFIL        *orchstr, *scorestr;
     int           holdrand;
     /** max. length of string variables + 1  */
     int           strVarMaxLen;
@@ -1302,6 +1285,9 @@ typedef struct NAME__ {
     int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
     int           (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int);
     /* end of callbacks */
+    char          *orchname, *scorename;
+    CORFIL        *orchstr, *scorestr;
+    OPDS          *ids, *pds;       /* used by init and perf loops */
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     INSTRTXT      *instr0;          /* instr0     */
     INSTRTXT      **dead_instr_pool;
@@ -1315,6 +1301,17 @@ typedef struct NAME__ {
     long          kcounter, global_kcounter;   
     MYFLT         esr;  
     MYFLT         ekr;
+    /** current time in seconds, inc. per kprd */
+    int64_t       icurTime;   /* Current time in samples */
+    double        curTime_inc;
+    /** start time of current section    */
+    double        timeOffs, beatOffs;
+    /** current time in beats, inc per kprd */
+    double        curBeat, curBeat_inc;
+    /** beat time = 60 / tempo           */
+    int64_t       ibeatTime;   /* Beat time in samples */
+    EVTBLK        *currevent;
+    INSDS         *curip;
     /*MYFLT         global_ekr;*/
     int           nchanik, nchania, nchanok, nchanoa;
     MYFLT         *chanik, *chania, *chanok, *chanoa;
@@ -1344,7 +1341,7 @@ typedef struct NAME__ {
     uint32        maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
     FILE*         scorein;
     FILE*         scoreout;
-    MYFLT         *globalVarPool;
+    /* MYFLT         *globalVarPool; */
     /* MYFLT_POOL*   constantsPool;
        STRING_POOL*  stringPool; */
     int           *argoffspace;

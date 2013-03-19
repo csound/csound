@@ -534,13 +534,13 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         temp = strchr (line_, ':');
         if (temp)
           temp = temp + 2;
-	if(list != NULL) {
+        if (list != NULL) {
          strncpy(list[n].device_name, temp, 63);
          sprintf(tmp, "hw:%i,%i", card, num);
          strncpy(list[n].device_id, tmp, 63);
          list[n].max_nchnls = -1;
          list[n].isOutput = isOutput;
-	}
+        }
         n++;
       }
     }
