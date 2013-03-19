@@ -751,43 +751,16 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
 //
 //    return OK;
 //}
-//
-//int tablength(CSOUND *csopund, TABQUERY *p)
-//{
-//    if (UNLIKELY(p->tab==NULL)) *p->ans = -FL(1.0);
-//    else *p->ans = p->tab->size;
-//    return OK;
-//}
-//
-//static OENTRY tabvars_localops[] =
-//{
-//  { "##plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
-//  { "##suntab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
-//  { "##negtab",  sizeof(TABARITH), 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
-//  { "##multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
-//  { "##divtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
-//  { "##remtab",  sizeof(TABARITH), 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem },
-//  { "##multitab", sizeof(TABARITH1), 3, "t", "ti",
-//                                              (SUBR)tabarithset1, (SUBR)tabimult },
-//  { "##divitab",  sizeof(TABARITH1), 3, "t", "ti",
-//                                               (SUBR)tabarithset1, (SUBR)tabidiv },
-//  { "##remitab",  sizeof(TABARITH1), 3, "t", "ti",
-//                                               (SUBR)tabarithset1, (SUBR)tabirem },
-//  { "maxtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
-//  { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
-//  { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
-//  { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
-//  { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
-//  { "#tabgen", sizeof(TABGEN), 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
-//  { "#tabmap_i", sizeof(TABMAP), 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
-//  { "#tabmap", sizeof(TABMAP), 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf},
-//  { "#tabslice", sizeof(TABSLICE), 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
-//  { "copy2ftab", sizeof(TABCOPY), TW|2, "", "tk", NULL, (SUBR) tab2ftab },
-//  { "copy2ttab", sizeof(TABCOPY), TR|2, "", "tk", NULL, (SUBR) ftab2tab },
-//  { "lentab.i", sizeof(TABQUERY), 1, "i", "t", (SUBR) tablength },
-//  { "lentab.k", sizeof(TABQUERY), 1, "k", "t", NULL, (SUBR) tablength }
-//
-//};
+
+int tablength(CSOUND *csound, TABQUERY *p)
+{
+   if (UNLIKELY(p->tab==NULL || p->tab->dimensions!=1)) *p->ans = -FL(1.0);
+   else *p->ans = p->tab->sizes[0];
+   return OK;
+}
+
+
+
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
 //          randomly repeats (holds) values based on a probability parameter
@@ -795,8 +768,8 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
 static OENTRY arrayvars_localops[] =
 {
     { "init.0", sizeof(ARRAYINIT), 0, 1, "[?;", "m", (SUBR)array_init },
-    { "array_set", sizeof(ARRAY_SET), 0, 3, "", "[?;?M", (SUBR)array_set, (SUBR)array_set },
-    { "array_get", sizeof(ARRAY_GET), 0, 3, "?", "[?;M", (SUBR)array_get, (SUBR)array_get },
+    { "##array_set", sizeof(ARRAY_SET), 0, 3, "", "[?;?M", (SUBR)array_set, (SUBR)array_set },
+    { "##array_get", sizeof(ARRAY_GET), 0, 3, "?", "[?;M", (SUBR)array_get, (SUBR)array_get },
 //  { "##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
 //  { "##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
 //  { "##negtab",  sizeof(TABARITH), 0, 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
@@ -809,8 +782,9 @@ static OENTRY arrayvars_localops[] =
 //                                               (SUBR)tabarithset1, (SUBR)tabidiv },
 //  { "##remitab",  sizeof(TABARITH1),0,  3, "t", "ti",
 //                                               (SUBR)tabarithset1, (SUBR)tabirem },
-    { "maxtab", sizeof(TABQUERY), 0, 3, "k", "[", (SUBR) tabqset, (SUBR) tabmax },
-    { "sumtab", sizeof(TABQUERY), 0, 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
+    { "maxtab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabmax },
+    { "mintab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabmin },
+    { "sumtab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabsum },
 //  { "scalet", sizeof(TABSCALE), 0, 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
 //  { "#copytab", sizeof(TABCPY), 0, 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
 //  { "#tabgen", sizeof(TABGEN), 0, 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
