@@ -2743,6 +2743,7 @@ PUBLIC void csoundReset_(CSOUND *csound)
     CSOUND    *saved_env;
     void      *p1, *p2;
     uintptr_t length;
+    uintptr_t end, start;
     int n = 0;
 
     csoundCleanup(csound);
@@ -2791,7 +2792,9 @@ PUBLIC void csoundReset_(CSOUND *csound)
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
-    length = (uintptr_t) &(csound->ids) - (uintptr_t) csound;
+    end = (uintptr_t) &(csound->first_callback_); /* used to be &(csound->ids) */
+    start =(uintptr_t)  csound;
+    length = end - start;
     memcpy((void*) csound, (void*) saved_env, (size_t) length);
     csound->oparms = &(csound->oparms_);
     csound->hostdata = saved_env->hostdata;
