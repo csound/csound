@@ -156,7 +156,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
      OPARMS oparms;
      csound->GetOParms(csound, &oparms);
     /* nothing to do, report success */
-    if (oparms->msglevel & 0x400)
+    if (oparms.msglevel & 0x400)
       csound->Message(csound, Str("ipMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
