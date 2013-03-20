@@ -1541,7 +1541,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     char    *s;
     int     i;
     char    buf[9];
-    OPARMS parms;
+    OPARMS oparms;
    csound->GetOParms(csound, &oparms);
 
    csound->module_list_add(csound, "devfile", "midi");
