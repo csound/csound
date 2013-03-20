@@ -1251,7 +1251,14 @@ typedef struct NAME__ {
     void          (*rtclose_callback)(CSOUND *);
     int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
     int           (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int);
+    int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
+    int           (*csoundInternalYieldCallback_)(CSOUND *);
     /* end of callbacks */
+    unsigned int  (*strHash32)(const char *s);
+    void          (*spinrecv)(CSOUND *);
+    void          (*spoutran)(CSOUND *);
+    int           (*audrecv)(CSOUND *, MYFLT *, int);
+    void          (*audtran)(CSOUND *, const MYFLT *, int);
     void          *hostdata;
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
@@ -1259,9 +1266,8 @@ typedef struct NAME__ {
     ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
     INSTRTXT      *instr0;          /* instr0     */
     INSTRTXT      **dead_instr_pool;
-    int  dead_instr_no;
+    int           dead_instr_no;
     TYPE_POOL*    typePool;
-    /* CS_VAR_POOL*  varPool;   */ /* now in ENGINE_STATE */
     unsigned int  ksmps; 
     uint32_t      nchnls;
     int           inchnls;
@@ -1309,9 +1315,6 @@ typedef struct NAME__ {
     uint32        maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
     FILE*         scorein;
     FILE*         scoreout;
-    /* MYFLT         *globalVarPool; */
-    /* MYFLT_POOL*   constantsPool;
-       STRING_POOL*  stringPool; */
     int           *argoffspace;
     INSDS         *frstoff;
     MYFLT         *zkstart;
@@ -1351,7 +1354,6 @@ typedef struct NAME__ {
     SRTBLK        *frstbp;
     int           sectcnt;
     int           inerrcnt, synterrcnt, perferrcnt;
-    /* INSTRTXT      instxtanchor; */ /* in ENGINE_STATE */ 
     INSDS         actanchor;
     int32         rngcnt[MAXCHNLS];
     int16         rngflg, multichan;
@@ -1364,11 +1366,7 @@ typedef struct NAME__ {
     int           evt_poll_cnt;
     int           evt_poll_maxcnt;
     int           Mforcdecs, Mxtroffs, MTrkend;
-    /* MYFLT         tran_sr, tran_kr, tran_ksmps;
-    MYFLT         tran_0dbfs;
-    int           tran_nchnls; */ /* all of these are not needed anymore */
     OPCODINFO     *opcodeInfo; 
-    /*void          *instrumentNames;*/ /*now in engineState */
     STRING_POOL*  stringSavePool;      
 //    void          *strsav_str;
 //    void          *strsav_space;
@@ -1508,10 +1506,7 @@ typedef struct NAME__ {
       FILE          *pin, *pout;
       int           dither;
     } libsndStatics;
-    void          (*spinrecv)(CSOUND *);
-    void          (*spoutran)(CSOUND *);
-    int           (*audrecv)(CSOUND *, MYFLT *, int);
-    void          (*audtran)(CSOUND *, const MYFLT *, int);
+
     int           warped;               /* rdscor.c */
     int           sstrlen;
     char          *sstrbuf;
@@ -1583,16 +1578,16 @@ typedef struct NAME__ {
 //    int32          instxtcount, optxtsize;
     //int32          poolcount, gblfixed, gblacount, gblscount;
     // CsoundChannelIOCallback_t   channelIOCallback_;
-    int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
+
     const unsigned char *strhash_tabl_8;
-    unsigned int  (*strHash32)(const char *s);
+
     REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
     void          *remoteGlobals;
     /* VL: pvs bus */
     int            nchanif, nchanof;
     char           *chanif, *chanof;
     /* VL: internal yield callback */
-    int           (*csoundInternalYieldCallback_)(CSOUND *);
+
     void          *multiThreadedBarrier1;
     void          *multiThreadedBarrier2;
     int           multiThreadedComplete;
