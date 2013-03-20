@@ -57,8 +57,12 @@ Fl_Boxtype BOX_TABLE[] = {  FL_FLAT_BOX,         FL_FLAT_BOX,
 
 void widget_init(CSOUND *csound)
 {
-    if (csound->widgetGlobals == NULL) {
-      csound->widgetGlobals = new WIDGET_GLOBALS;
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *) csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+    if (widgetGlobals == NULL) {
+      csound->CreateGlobalVariable(csound, "WIDGET_GLOBALS", sizeof(WIDGET_GLOBALS));
+      widgetGlobals = (WIDGET_GLOBALS *) csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+
+      //csound->widgetGlobals = new WIDGET_GLOBALS;
       //csound->Calloc(csound, sizeof(WIDGET_GLOBALS));
       //      ST(indrag)            = 0;
       //      ST(sldrag)            = 0;
@@ -92,10 +96,9 @@ extern void graphs_reset(CSOUND *csound);
 int widget_reset(CSOUND *csound, void *pp)
 {
     IGN(pp);
-    if (csound->widgetGlobals != NULL) {
-      //csound->Free(csound, csound->widgetGlobals);
-      delete (WIDGET_GLOBALS*)csound->widgetGlobals;
-      csound->widgetGlobals = NULL;
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+    if (widgetGlobals != NULL) {
+      csound->DestroyGlobalVariable(csound, "WIDGET_GLOBALS");
     }
     graphs_reset(csound);
     return OK;
@@ -470,6 +473,7 @@ void Fl_Spin::draw()
     int sxx = x(), syy = y(), sww = w(), shh = h();
     Fl_Boxtype box1 = (Fl_Boxtype)(box());
     int border_size=Fl::box_dx(box());
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
     if (damage()&~FL_DAMAGE_CHILD) clear_damage(FL_DAMAGE_ALL);
 
@@ -540,6 +544,7 @@ int Fl_Spin::handle(int event)
     int mx = Fl::event_x();
     int my = Fl::event_y();
     int sxx = x(), syy = y(), sww = w(), shh = h();
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
     switch (event) {
     case FL_PUSH:
@@ -613,7 +618,9 @@ Fl_Spin::~Fl_Spin(void)
 Fl_Spin::Fl_Spin(CSOUND *cs, int x, int y, int w, int h, const char* l)
   : Fl_Valuator(x,y,w,h,l)
 {
+    
     csound = cs;
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     soft_ = 0;
     align(FL_ALIGN_LEFT);
     ix=x;
@@ -632,7 +639,7 @@ void Fl_Value_Input_Spin::input_cb(Fl_Widget*, void* v)
     Fl_Value_Input_Spin& t = *(Fl_Value_Input_Spin*)v;
 
     CSOUND *csound = t.csound;
-
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     double nv;
     if (t.step()>=1.0) nv = strtol(t.input.value(), 0, 0);
     else nv = strtod(t.input.value(), 0);
@@ -649,6 +656,7 @@ void Fl_Value_Input_Spin::draw(void)
     sxx += sww - buttonssize(); sww = buttonssize();
     Fl_Boxtype box1 = (Fl_Boxtype)(box()&-2);
     int border_size=Fl::box_dx(box());
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
     if (damage()&~FL_DAMAGE_CHILD) input.clear_damage(FL_DAMAGE_ALL);
     input.box(box());
@@ -705,6 +713,7 @@ void Fl_Value_Input_Spin::resize(int X, int Y, int W, int H)
 
 void Fl_Value_Input_Spin::value_damage(void)
 {
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (ST(hack_o_rama1)) return;
     char buf[128];
     format(buf);
@@ -743,6 +752,7 @@ int Fl_Value_Input_Spin::handle(int event)
     int my = Fl::event_y();
     int sxx = x(), syy = y(), sww = w(), shh = h();
     sxx += sww - buttonssize(); sww = buttonssize();
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
     if (!ST(indrag) && ( !ST(sldrag) || !((mx>=sxx && mx<=(sxx+sww)) &&
                                           (my>=syy && my<=(syy+shh))))  ) {
@@ -843,6 +853,7 @@ Fl_Value_Input_Spin::Fl_Value_Input_Spin(CSOUND * cs, int x, int y,
   : Fl_Valuator(x,y,w,h,l), input(x, y, w, h, 0)
 {
     csound = cs;
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     soft_ = 0;
     //  if (input.parent())  // defeat automatic-add
     //    ((Fl_Group*)input.parent())->remove(input);
@@ -870,7 +881,7 @@ Fl_Value_Input_Spin::Fl_Value_Input_Spin(CSOUND * cs, int x, int y,
 void Fl_Value_Slider_Input::input_cb(Fl_Widget*, void* v) {
     Fl_Value_Slider_Input& t = *(Fl_Value_Slider_Input*)v;
     CSOUND *csound = t.csound;
-
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     double nv;
     if (t.step()>=1.0) nv = strtol(t.input.value(), 0, 0);
     else nv = strtod(t.input.value(), 0);
@@ -886,7 +897,7 @@ void Fl_Value_Slider_Input::draw(void)
     int sxx = x(), syy = y(), sww = w(), shh = h();
     //int bww = w();
     int X = x(), Y = y(), W = w(), H = h();
-
+    
     int border_size=Fl::box_dx(box());
 
     if (horizontal()) {
@@ -929,6 +940,7 @@ void Fl_Value_Slider_Input::resize(int X, int Y, int W, int H)
 
 void Fl_Value_Slider_Input::value_damage()
 {
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (ST(hack_o_rama2)) return;
     char buf[128];
     format(buf);
@@ -942,6 +954,7 @@ int Fl_Value_Slider_Input::handle(int event)
     int my = Fl::event_y();
     int sxx = x(), syy = y(), sww = w(), shh = h();
     int border_size=Fl::box_dx(box());
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (horizontal()) {
       sxx += textboxsize(); sww -= textboxsize();
     }
@@ -1502,12 +1515,14 @@ extern "C" {
 
   static int set_snap(CSOUND *csound, FLSETSNAP *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       SNAPSHOT snap(ST(AddrSetValue), (int) *p->group );
       int numfields = snap.fields.size();
       int index = (int) *p->index;
       int group = (int) *p->group;
       SNAPVEC snapvec_init;
       SNAPSHOT snap_init;
+      
       snap_init.fields.resize(1,VALUATOR_FIELD());
       snapvec_init.resize(1,snap_init);
       if (group+1 > (int) ST(snapshots).size())
@@ -1541,6 +1556,7 @@ extern "C" {
       int group = (int) *p->group;
       SNAPVEC snapvec_init;
       SNAPSHOT snap_init;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       snap_init.fields.resize(1,VALUATOR_FIELD());
       snapvec_init.resize(1,snap_init);
       if (group+1 > (int) ST(snapshots).size())
@@ -1592,6 +1608,7 @@ extern "C" {
 
       fstream file(filename.c_str(), ios::out);
       int group = (int) *p->group;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       for (int j =0; j < (int) ST(snapshots)[group].size(); j++) {
         file << "----------- "<< j << " -----------\n";
         int siz = ST(snapshots)[group][j].fields.size();
@@ -1634,7 +1651,7 @@ extern "C" {
   {
       char     s[MAXNAME], *s2;
       string   filename;
-
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
       s2 = csound->FindInputFile(csound, s, "SNAPDIR");
       if (UNLIKELY(s2 == NULL))
@@ -1752,6 +1769,7 @@ extern "C" {
 static char *GetString(CSOUND *csound, MYFLT *pname, int is_string)
 {
     char    *Name = new char[MAXNAME];
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     ST(allocatedStrings).push_back(Name);
     return csound->strarg2name(csound, Name, pname, "", is_string);
 }
@@ -1759,6 +1777,7 @@ static char *GetString(CSOUND *csound, MYFLT *pname, int is_string)
 class CsoundFLTKKeyboardBuffer {
 private:
   CSOUND  *csound;
+  WIDGET_GLOBALS *widgetGlobals;
   void    *mutex_;
   char    kbdTextBuf[64];
   int     kbdEvtBuf[64];
@@ -1781,6 +1800,7 @@ public:
   CsoundFLTKKeyboardBuffer(CSOUND *csound)
   {
       this->csound = csound;
+      widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       mutex_ = csound->Create_Mutex(0);
       kbdTextBufRPos = 0;
       kbdTextBufWPos = 0;
@@ -1852,12 +1872,14 @@ public:
 class CsoundFLWindow : public Fl_Double_Window {
 public:
   CSOUND *csound_; //gab
+  WIDGET_GLOBALS *widgetGlobals;
   CsoundFLTKKeyboardBuffer  fltkKeyboardBuffer;
   CsoundFLWindow(CSOUND *csound, int w, int h, const char *title = 0)
     : Fl_Double_Window(w, h, title),
       csound_(csound),
       fltkKeyboardBuffer(csound)//gab
   {
+      widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
                            CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
   }
@@ -1867,6 +1889,7 @@ public:
       csound_(csound),
       fltkKeyboardBuffer(csound)//gab
   {
+      widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
                            CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
   }
@@ -1920,6 +1943,7 @@ extern "C"
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
       int j;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 #ifndef NO_FLTK_THREADS
       int *fltkflags = getFLTKFlagsPtr(csound);
       if (fltkflags) {
@@ -1955,7 +1979,7 @@ extern "C"
         }
       }
 #endif  // NO_FLTK_THREADS
-      if(csound->widgetGlobals != NULL) {
+      if(widgetGlobals != NULL) {
         for (j = ST(allocatedStrings).size() - 1; j >= 0; j--)  {
           delete[] ST(allocatedStrings)[j];
           ST(allocatedStrings).pop_back();
@@ -1996,8 +2020,9 @@ extern "C"
         ST(FL_ix)             = 10;
         ST(FL_iy)             = 10;
 
-        delete (WIDGET_GLOBALS*)csound->widgetGlobals;
-        csound->widgetGlobals = NULL;
+        //delete (WIDGET_GLOBALS*)csound->widgetGlobals;
+        csound->DestroyGlobalVariable(csound, "WIDGET_GLOBALS");
+        //csound->widgetGlobals = NULL;
       }
       return 0;
   }
@@ -2014,7 +2039,7 @@ extern "C" {
       volatile widgetsGlobals_t *p;
       CSOUND    *csound = (CSOUND*) userdata;
       int       j;
-
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                           "_widgets_globals");
 #ifdef LINUX
@@ -2073,7 +2098,7 @@ extern "C" {
   int FL_run(CSOUND *csound, FLRUN *p)
   {
       int     *fltkFlags;
-
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       fltkFlags = getFLTKFlagsPtr(csound);
       (*fltkFlags) |= 32;
 #ifndef NO_FLTK_THREADS
@@ -2120,6 +2145,7 @@ extern "C" {
 
   int fl_update(CSOUND *csound, FLRUN *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       Fl_lock(csound);
       for (int j=0; j< (int) ST(AddrSetValue).size()-1; j++) {
         ADDR_SET_VALUE v = ST(AddrSetValue)[j];
@@ -2135,6 +2161,7 @@ extern "C" {
 
 static inline void displ(MYFLT val, MYFLT index, CSOUND *csound)
 {
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (index >= 0) {     // display current value of valuator
       char valString[MAXNAME];
       sprintf(valString, "%.5g", val);
@@ -2446,12 +2473,14 @@ static void fl_callbackLinearValueInput(Fl_Valuator* w, void *a)
 
 static int rand_31_i(CSOUND *csound, int maxVal)
 {
-    double  x = (double) (csound->Rand31(&(csound->randSeed2)) - 1);
+    int seed = csound->GetRandSeed(csound,2);
+    double  x = (double) (csound->Rand31(&seed) - 1);
     return (int) (x * (double) (maxVal + 1) / 2147483646.0);
 }
 
 static void widget_attributes(CSOUND *csound, Fl_Widget *o)
 {
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (ST(FLtext_size) == -2 ) {
       ST(FLtext_size) = -1;
       ST(FLtext_color)= -1;
@@ -2554,6 +2583,7 @@ extern "C" {
   {
       char    *panelName;
       panelName = GetString(csound, p->name, p->XSTRCODE);
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
       *(getFLTKFlagsPtr(csound)) |= 32;
       int      x = (int) *p->ix, y = (int) *p->iy;
@@ -2605,6 +2635,7 @@ extern "C" {
 
   static int EndPanel(CSOUND *csound, FLPANELEND *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLpanel")))
@@ -2624,6 +2655,7 @@ extern "C" {
   //-----------
   static int StartScroll(CSOUND *csound, FLSCROLL *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       Fl_Scroll *o = new Fl_Scroll ((int) *p->ix, (int) *p->iy,
                                     (int) *p->iwidth, (int) *p->iheight);
       ADDR_STACK adrstk(&p->h,o,ST(stack_count));
@@ -2634,6 +2666,7 @@ extern "C" {
 
   static int EndScroll(CSOUND *csound, FLSCROLLEND *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLscroll")))
@@ -2655,6 +2688,7 @@ extern "C" {
   //-----------
   static int StartTabs(CSOUND *csound, FLTABS *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       Fl_Tabs *o = new Fl_Tabs ((int) *p->ix, (int) *p->iy,
                                 (int) *p->iwidth, (int) *p->iheight);
       widget_attributes(csound, o);
@@ -2667,6 +2701,7 @@ extern "C" {
 
   static int EndTabs(CSOUND *csound, FLTABSEND *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLtabs")))
@@ -2688,6 +2723,7 @@ extern "C" {
   //-----------
   static int StartGroup(CSOUND *csound, FLGROUP *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *Name = GetString(csound, p->name, p->XSTRCODE);
       Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
                                   (int) *p->iwidth, (int) *p->iheight,Name);
@@ -2717,6 +2753,7 @@ extern "C" {
 
   static int EndGroup(CSOUND *csound, FLGROUPEND *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLgroup")))
@@ -2738,6 +2775,7 @@ extern "C" {
 
   static int StartPack(CSOUND *csound, FLPACK *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       Fl_Pack *o = new Fl_Pack ((int) *p->ix, (int) *p->iy,
                                 (int) *p->iwidth, (int) *p->iheight);
       Fl_Boxtype borderType = FL_FLAT_BOX;
@@ -2757,6 +2795,7 @@ extern "C" {
 
   static int EndPack(CSOUND *csound, FLSCROLLEND *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
       if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLpack")))
@@ -2778,6 +2817,7 @@ extern "C" {
 
   static int fl_widget_color(CSOUND *csound, FLWIDGCOL *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (*p->red1 < 0) { // reset colors to default
         ST(FLcolor) = (int) *p->red1; //when called without arguments
         ST(FLcolor2) =(int) *p->red1;
@@ -2795,6 +2835,7 @@ extern "C" {
 
   static int fl_widget_color2(CSOUND *csound, FLWIDGCOL2 *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (*p->red < 0) { // reset colors to default
         ST(FLcolor2) =(int) *p->red;
       }
@@ -2808,6 +2849,7 @@ extern "C" {
 
   static int fl_widget_label(CSOUND *csound, FLWIDGLABEL *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (*p->size <= 0) { // reset settings to default
         ST(FLtext_size) = 0; //when called without arguments
         ST(FLtext_font) = -1;
@@ -2912,6 +2954,7 @@ extern "C" {
 
   static int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       MYFLT           log_base = MYFLT(1.0);
       ADDR_SET_VALUE  &v = ST(AddrSetValue)[(int) *p->ihandle];
       int             widgetType;
@@ -2949,7 +2992,7 @@ extern "C" {
   static int fl_setWidgetValue_set(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
   {
       p->handle = (int) *(p->ihandle);
-
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       MYFLT           log_base = MYFLT(1.0);
       ADDR_SET_VALUE  &v = ST(AddrSetValue)[p->handle];
       int             widgetType;
@@ -2988,6 +3031,7 @@ extern "C" {
 
   static int fl_setWidgetValue(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (*p->ktrig != MYFLT(0.0))
         fl_setWidgetValue_(csound, ST(AddrSetValue)[p->handle], p->widgetType,
                            *(p->kvalue), p->log_base);
@@ -2999,6 +3043,7 @@ extern "C" {
 
   static int fl_setColor1(CSOUND *csound, FL_SET_COLOR *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       int color = fl_rgb_color((int) *p->red,
@@ -3010,6 +3055,7 @@ extern "C" {
 
   static int fl_setColor2(CSOUND *csound, FL_SET_COLOR *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       int color = fl_rgb_color((int) *p->red, (int) *p->green, (int) *p->blue);
@@ -3019,6 +3065,7 @@ extern "C" {
 
   static int fl_setTextColor(CSOUND *csound, FL_SET_COLOR *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       int color = fl_rgb_color((int) *p->red, (int) *p->green, (int) *p->blue);
@@ -3028,6 +3075,7 @@ extern "C" {
 
   static int fl_setTextSize(CSOUND *csound, FL_SET_TEXTSIZE *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       o->labelsize((uchar) *p->ivalue);
@@ -3036,6 +3084,7 @@ extern "C" {
 
   static int fl_setFont(CSOUND *csound, FL_SET_FONT *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       Fl_Font font;
@@ -3066,7 +3115,8 @@ extern "C" {
   }
 
   static int fl_setTextType(CSOUND *csound, FL_SET_FONT *p)
-  {
+  {   
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       Fl_Labeltype type;
@@ -3148,6 +3198,7 @@ extern "C" {
       o->labelfont(font);
       o->labelsize((unsigned char)*p->isize);
       o->align(FL_ALIGN_WRAP);
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *)o,
                                                 (void *)p, ST(currentSnapGroup)));
       *p->ihandle = ST(AddrSetValue).size()-1;
@@ -3156,6 +3207,7 @@ extern "C" {
 
   static int fl_setText(CSOUND *csound, FL_SET_TEXT *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *text = GetString(csound, p->itext, p->XSTRCODE);
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -3165,6 +3217,7 @@ extern "C" {
 
   static int fl_setSize(CSOUND *csound, FL_SET_SIZE *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       o->size((short)  *p->iwidth, (short) *p->iheight);
@@ -3173,6 +3226,7 @@ extern "C" {
 
   static int fl_setPosition(CSOUND *csound, FL_SET_POSITION *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       o->position((short)  *p->ix, (short) *p->iy);
@@ -3181,6 +3235,7 @@ extern "C" {
 
   static int fl_hide(CSOUND *csound, FL_WIDHIDE *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       Fl_lock(csound);
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -3191,6 +3246,7 @@ extern "C" {
 
   static int fl_show(CSOUND *csound, FL_WIDSHOW *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       Fl_lock(csound);
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -3201,6 +3257,7 @@ extern "C" {
 
   static int fl_setBox(CSOUND *csound, FL_SETBOX *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       Fl_Boxtype type;
@@ -3235,6 +3292,7 @@ extern "C" {
 
   static int fl_align(CSOUND *csound, FL_TALIGN *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       Fl_Align type;
@@ -3262,6 +3320,7 @@ extern "C" {
 
   static int fl_value(CSOUND *csound, FLVALUE *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *controlName = GetString(csound, p->name, p->XSTRCODE);
       int ix, iy, iwidth, iheight;
       if (*p->ix<0) ix = ST(FL_ix);       else  ST(FL_ix) = ix = (int) *p->ix;
@@ -3290,6 +3349,7 @@ extern "C" {
 
   static int fl_slider(CSOUND *csound, FLSLIDER *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *controlName = GetString(csound, p->name, p->XSTRCODE);
       int ix,iy,iwidth, iheight,itype, iexp;
       bool plastic = false;
@@ -3396,14 +3456,15 @@ extern "C" {
 
   static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
       if (p->XSTRCODE)
         strcpy(s, (char*) p->names);
-      else if ((long) *p->names <= csound->strsmax &&
-               csound->strsets != NULL && csound->strsets[(long) *p->names]) {
-        strcpy(s, csound->strsets[(long) *p->names]);
-      }
+      else if ((long) *p->names <= csound->GetStrsmax(csound) &&
+               csound->GetStrsets(csound,(long) *p->names)) {
+		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+	} 
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -3416,10 +3477,12 @@ extern "C" {
       FUNC *ftp;
       MYFLT *minmaxtable = NULL, *typetable = NULL, *outable, *exptable = NULL;
 
+      MYFLT *zkstart;
+      int zklast = csound->GetZakBounds(csound, &zkstart);
       if (*p->ioutable  < 1) {
-        if (LIKELY(csound->zkstart != NULL &&
-                   csound->zklast > (long)(*p->inumsliders+*p->ioutablestart_ndx)))
-          outable = csound->zkstart + (long) *p->ioutablestart_ndx;
+        if (LIKELY(zkstart != NULL &&
+                   zklast > (long)(*p->inumsliders+*p->ioutablestart_ndx)))
+          outable = zkstart + (long) *p->ioutablestart_ndx;
         else {
           return csound->InitError(csound,
                                    Str("invalid ZAK space allocation"));
@@ -3598,6 +3661,7 @@ extern "C" {
 
   static int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *Name = GetString(csound, p->name, p->XSTRCODE);
       int ix,iy,iwidth, iheight, iexpx, iexpy;
 
@@ -3717,6 +3781,7 @@ extern "C" {
 
   static int fl_knob(CSOUND *csound, FLKNOB *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char    *controlName = GetString(csound, p->name, p->XSTRCODE);
       int     ix, iy, iwidth, itype, iexp;
 
@@ -3816,6 +3881,7 @@ extern "C" {
 
   static int fl_text(CSOUND *csound, FLTEXT *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *controlName = GetString(csound, p->name, p->XSTRCODE);
       int ix,iy,iwidth,iheight,itype;
       MYFLT   istep;
@@ -3872,6 +3938,7 @@ extern "C" {
 
   static int fl_button(CSOUND *csound, FLBUTTON *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *Name = GetString(csound, p->name, p->XSTRCODE);
       int type = (int) *p->itype;
       bool plastic = false;
@@ -3941,6 +4008,7 @@ extern "C" {
 
   static int fl_close_button(CSOUND *csound, FLCLOSEBUTTON *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *Name = GetString(csound, p->name, p->XSTRCODE);
 
       Fl_Button *w;
@@ -3970,6 +4038,7 @@ extern "C" {
 
   static int fl_exec_button(CSOUND *csound, FLEXECBUTTON *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       p->csound = csound;
       Fl_Button *w;
 
@@ -3996,6 +4065,7 @@ extern "C" {
 
   static int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char *Name = (char*)"/0";
       int type = (int) *p->itype;
       bool plastic = false;
@@ -4078,7 +4148,7 @@ extern "C" {
       char *controlName = GetString(csound, p->name, p->XSTRCODE);
       //      int ix,iy,iwidth,iheight,itype;
       //      MYFLT   istep1, istep2;
-
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       Fl_Counter* o = new Fl_Counter((int)*p->ix, (int)*p->iy,
                                      (int)*p->iwidth, (int)*p->iheight,
                                      controlName);
@@ -4115,6 +4185,7 @@ extern "C" {
       char *controlName = GetString(csound, p->name, p->XSTRCODE);
       int ix,iy,iwidth, iheight,itype, iexp ;
       double istep;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (*p->iy < 0) {
         iy = ST(FL_iy);
         ST(FL_iy) += ST(FLroller_iheight) + 15;
@@ -4205,11 +4276,12 @@ extern "C" {
 
   static int FLprintkset(CSOUND *csound, FLPRINTK *p)
   {
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (*p->ptime < MYFLT(1.0) / csound->GetKr(csound))
       p->ctime = MYFLT(1.0) / csound->GetKr(csound);
       else        p->ctime = *p->ptime;
 
-      p->initime = (MYFLT) csound->GetKcounter(csound) * csound->onedkr;
+    p->initime = (MYFLT) csound->GetKcounter(csound) * (1.0/csound->GetKr(csound));
       p->cysofar = -1;
       return OK;
   }
@@ -4218,8 +4290,9 @@ extern "C" {
   {
       MYFLT   timel;
       long    cycles;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
-      timel = ((MYFLT) csound->GetKcounter(csound) * csound->onedkr) - p->initime;
+      timel = ((MYFLT) csound->GetKcounter(csound) * (1.0/csound->GetKr(csound))) - p->initime;
       cycles = (long)(timel / p->ctime);
       if (p->cysofar < cycles) {
         p->cysofar = cycles;
@@ -4240,6 +4313,7 @@ extern "C" {
   static int FLprintk2(CSOUND *csound, FLPRINTK2 *p)
   {
       MYFLT   value = *p->val;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (p->oldvalue != value) {
         char valString[MAXNAME];
         sprintf(valString,"%.5g", *p->val);
@@ -4254,6 +4328,7 @@ extern "C" {
 
   void skin(CSOUND* csound, Fl_Widget *o, int imgNum, bool isTiled)
   {
+    WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 #ifdef CS_IMAGE
       extern void* get_image(CSOUND* csound, int imgNum);
       ImageSTRUCT *bmp =  (ImageSTRUCT*) get_image(csound, imgNum);
@@ -4349,6 +4424,7 @@ extern "C" {
 
   static int fl_hvsbox(CSOUND *csound,FL_HVSBOX *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (UNLIKELY(*p->numlinesX < 2 || *p->numlinesY < 2))
         return csound->InitError(csound,
                                  Str("FLhvsBox: a square area must be"
@@ -4370,6 +4446,7 @@ extern "C" {
 
   static int fl_setHvsValue_set(CSOUND *csound,FL_SET_HVS_VALUE *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       p->WidgAddress = v.WidgAddress;
       p->opcode = v.opcode;
@@ -4413,6 +4490,7 @@ extern "C" {
 
   static int fl_keyin(CSOUND *csound,FLKEYIN *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (ST(last_KEY)) {
         int key;
 
@@ -4436,6 +4514,7 @@ extern "C" {
 
   static int fl_setSnapGroup(CSOUND *csound, FLSETSNAPGROUP *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ST(currentSnapGroup) = (int) *p->group;
       return OK;
   }
@@ -4474,14 +4553,15 @@ extern "C" {
 
   static int fl_vertical_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
       if (p->XSTRCODE)
         strcpy(s, (char*) p->names);
-      else if ((long) *p->names <= csound->strsmax &&
-               csound->strsets != NULL && csound->strsets[(long) *p->names]) {
-        strcpy(s, csound->strsets[(long) *p->names]);
-      }
+      else if ((long) *p->names <= csound->GetStrsmax(csound) &&
+               csound->GetStrsets(csound,(long) *p->names)) {
+		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+	}
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4493,10 +4573,12 @@ extern "C" {
       FUNC *ftp;
       MYFLT *minmaxtable = NULL, *typetable = NULL, *outable, *exptable = NULL;
 
+      MYFLT *zkstart;
+      int zklast = csound->GetZakBounds(csound, &zkstart);
       if (*p->ioutable  < 1) {
-        if (LIKELY(csound->zkstart != NULL &&
-                   csound->zklast>(long)(*p->inumsliders+*p->ioutablestart_ndx)))
-          outable = csound->zkstart + (long) *p->ioutablestart_ndx;
+        if (LIKELY(zkstart != NULL &&
+                   zklast > (long)(*p->inumsliders+*p->ioutablestart_ndx)))
+          outable = zkstart + (long) *p->ioutablestart_ndx;
         else {
           return csound->InitError(csound,
                                    Str("invalid ZAK space allocation"));
@@ -4686,14 +4768,15 @@ extern "C" {
 
   static int fl_slider_bank2(CSOUND *csound, FLSLIDERBANK2 *p)
   {
+     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
       if (p->XSTRCODE)
         strcpy(s, (char*) p->names);
-      else if ((long) *p->names <= csound->strsmax &&
-               csound->strsets != NULL && csound->strsets[(long) *p->names]) {
-        strcpy(s, csound->strsets[(long) *p->names]);
-      }
+      else if ((long) *p->names <= csound->GetStrsmax(csound) &&
+               csound->GetStrsets(csound,(long) *p->names)) {
+		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+	}
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4706,10 +4789,12 @@ extern "C" {
       FUNC *ftp;
       MYFLT *configtable, *outable;
 
+      MYFLT *zkstart;
+      int zklast = csound->GetZakBounds(csound, &zkstart);
       if (*p->ioutable  < 1) {
-        if (LIKELY(csound->zkstart != NULL &&
-                   csound->zklast>(long)(*p->inumsliders + *p->ioutablestart_ndx)))
-          outable = csound->zkstart + (long) *p->ioutablestart_ndx;
+        if (LIKELY(zkstart != NULL &&
+                   zklast>(long)(*p->inumsliders + *p->ioutablestart_ndx)))
+          outable = zkstart + (long) *p->ioutablestart_ndx;
         else {
           return csound->InitError(csound,
                                    Str("invalid ZAK space allocation"));
@@ -4864,15 +4949,16 @@ extern "C" {
 
 
   static int fl_vertical_slider_bank2(CSOUND *csound, FLSLIDERBANK2 *p)
-  {
+  { 
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
       if (p->XSTRCODE)
         strcpy(s, (char*) p->names);
-      else if ((long) *p->names <= csound->strsmax &&
-               csound->strsets != NULL && csound->strsets[(long) *p->names]) {
-        strcpy(s, csound->strsets[(long) *p->names]);
-      }
+      else if ((long) *p->names <= csound->GetStrsmax(csound) &&
+               csound->GetStrsets(csound,(long) *p->names)) {
+		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+	} 
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4885,10 +4971,12 @@ extern "C" {
       FUNC *ftp;
       MYFLT *configtable, *outable;
 
+      MYFLT *zkstart;
+      int zklast = csound->GetZakBounds(csound, &zkstart);
       if (*p->ioutable  < 1) {
-        if (LIKELY(csound->zkstart != NULL &&
-                   csound->zklast>(long)(*p->inumsliders + *p->ioutablestart_ndx)))
-          outable = csound->zkstart + (long) *p->ioutablestart_ndx;
+        if (LIKELY(zkstart != NULL &&
+                   zklast>(long)(*p->inumsliders + *p->ioutablestart_ndx)))
+          outable = zkstart + (long) *p->ioutablestart_ndx;
         else {
           return csound->InitError(csound,
                                    Str("invalid ZAK space allocation"));
@@ -5046,6 +5134,7 @@ extern "C" {
   static int fl_slider_bank_getHandle(CSOUND *csound, FLSLDBNK_GETHANDLE *p)
   //valid only if called immediately after FLslidBnk
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       *p->ihandle = ST(last_sldbnk);
       return OK;
   }
@@ -5057,6 +5146,7 @@ extern "C" {
       int numslid = (int)*p->numSlid;
       int startInd = (int)*p->startInd;
       int startSlid = (int)*p->startSlid;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
         table = ftp->ftable;
@@ -5123,6 +5213,7 @@ extern "C" {
       int numslid = (int)*p->numSlid;
       int startInd = (int)*p->startInd;
       int startSlid = (int)*p->startSlid;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
         table = ftp->ftable;
@@ -5201,6 +5292,7 @@ extern "C" {
       p->numslid = (int)*p->numSlid;
       p->startind = (int)*p->startInd;
       p->startslid = (int)*p->startSlid;
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
         p->table = ftp->ftable;
@@ -5234,6 +5326,7 @@ extern "C" {
 
   static int fl_slider_bank2_setVal_k(CSOUND *csound, FLSLDBNK2_SETK *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if(*p->kflag) {
         FLSLIDERBANK2 *q = p->q;
         MYFLT *table=p->table;
@@ -5285,7 +5378,7 @@ extern "C" {
   static int fl_slider_bank_setVal_k_set(CSOUND *csound, FLSLDBNK_SETK *p)
   {
       FUNC* ftp;
-
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       p->numslid = (int)*p->numSlid;
       p->startind = (int)*p->startInd;
       p->startslid = (int)*p->startSlid;
@@ -5323,6 +5416,7 @@ extern "C" {
 
   static int fl_slider_bank_setVal_k(CSOUND *csound, FLSLDBNK_SETK *p)
   {
+      WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if(*p->kflag) {
         FLSLIDERBANK *q = p->q;
         MYFLT *table=p->table;
@@ -5373,6 +5467,7 @@ extern "C" {
 
   static int FLxyin_set(CSOUND *csound, FLXYIN *p)
   {
+     
       *p->koutx = *p->ioutx; //initial values
       *p->kouty = *p->iouty;
       p->rangex = *p->ioutx_max - *p->ioutx_min;

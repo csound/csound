@@ -172,7 +172,7 @@ public:
 public:
   int init(CSOUND *csound)
   {
-    if (!csound->reinitflag && !csound->tieflag) {
+    if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
       csound->RegisterDeinitCallback(csound, this, &noteoff_);
     }
     // h = step_size; %*(G/C2);
@@ -435,7 +435,7 @@ public:
   size_t ksmps;
   int init(CSOUND *csound)
   {
-    if (!csound->reinitflag && !csound->tieflag) {
+    if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
       csound->RegisterDeinitCallback(csound, this, &noteoff_);
     }
     // NOTE: The original MATLAB code uses 1-based indexing.

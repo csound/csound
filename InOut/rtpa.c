@@ -323,7 +323,7 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
                         (unsigned long) (pabs->mode & 2 ?
                                          pabs->outParm.bufSamp_SW
                                          : pabs->inParm.bufSamp_SW),
-                        (csound->dither_output ?
+                        (csound->GetDitherMode(csound) ?
                          (PaStreamFlags) paNoFlag : (PaStreamFlags) paDitherOff),
                         paBlockingReadWriteStreamCallback,
                         (void*) pabs);
@@ -647,7 +647,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
       err = (int) Pa_OpenStream(&(dev->handle), NULL, &streamParams,
                                 (double) parm->sampleRate,
                                 (unsigned long) parm->bufSamp_SW,
-                                (csound->dither_output?
+                                (csound->GetDitherMode(csound) ?
                                  paNoFlag:paDitherOff),
                                 NULL, NULL);
     }

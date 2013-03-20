@@ -117,7 +117,7 @@ static  int     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
                                         long srate, long chans, long fftsize,
                                         long overlap, long winsize,
                                         pv_wtype wintype, /*int verbose,*/
-                                        double beta);
+			                double beta, int displays);
 static  long    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
                                         long samps, int frametype);
 static  void    chan_split(CSOUND*, const MYFLT *inbuf, MYFLT **chbuf,
@@ -164,8 +164,9 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     char    err_msg[512];
     double  beta = 6.8;
     int verbose = 0;
+    int displays = 0;
 
-    csound->oparms->displays = 0;
+
     if (!(--argc))
       return quit(csound, Str("insufficient arguments"));
       do {
@@ -222,11 +223,11 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
           case 'h':  FIND(Str("no hopsize"));
             sscanf(s, "%ld", &frameIncr);
             break;
-          case 'g':  csound->oparms->displays = 1;
+	  case 'g':  displays = 1;
             break;
           case 'G':  FIND(Str("no latch"));
             sscanf(s, "%d", &latch);
-            csound->oparms->displays = 1;
+            displays = 1;
             break;
           case 'V':  FIND(Str("no output file for trace"));
             {
@@ -298,16 +299,16 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     }
     csound->Message(csound, Str("pvanal: creating pvocex file\n"));
     /* handle all messages in here, for now */
-    if (csound->oparms->displays)
-      csound->dispinit(csound);
+    if (displays)
+        csound->dispinit(csound);
     if (pvxanal(csound, p, infd, outfilnam, p->sr,
                         ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
-                WindowType, /*verbose,*/ beta) != 0) {
+                WindowType, /*verbose,*/ beta, displays) != 0) {
       csound->Message(csound, Str("error generating pvocex file.\n"));
       return -1;
     }
-    if (csound->oparms->displays)
+    if (displays)
       csound->dispexit(csound);
 
     return 0;
@@ -365,8 +366,6 @@ static void PVDisplay_Init(CSOUND *csound, PVDISPLAY *p,
 
     memset(p, 0, sizeof(PVDISPLAY));
     p->csound = csound;
-    if (!csound->oparms->displays)
-      return;
     p->npts = (fftSize / 2) + 1;
     p->dispCntMax = dispCntMax;
     for (i = 0; i < DISPFRAMES; i++)
@@ -377,7 +376,7 @@ static void PVDisplay_Update(PVDISPLAY *p, const float *buf)
 {
     int     i;
 
-    if (!p->csound->oparms->displays || p->dispFrame >= DISPFRAMES)
+    if (p->dispFrame >= DISPFRAMES)
       return;
     for (i = 0; i < p->npts; i++)
       p->dispBufs[p->dispFrame][i] += ((MYFLT) buf[i * 2] * (MYFLT) buf[i * 2]);
@@ -388,7 +387,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int frame)
 {
     int     i;
 
-    if (!p->csound->oparms->displays || p->dispFrame >= DISPFRAMES ||
+    if (p->dispFrame >= DISPFRAMES ||
         p->dispCnt < p->dispCntMax)
       return;
     for (i = 0; i < p->npts; i++)
@@ -410,7 +409,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int frame)
 
 static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    long srate, long chans, long fftsize, long overlap,
-                   long winsize, pv_wtype wintype, /*int verbose,*/ double beta)
+                   long winsize, pv_wtype wintype, /*int verbose,*/ double beta, int displays)
 {
     int         i, k, pvfile = -1, rc = 0;
     pv_stype    stype = STYPE_16;
@@ -473,7 +472,7 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       rc = 1;
       goto error;
     }
-
+    if(displays)
     PVDisplay_Init(csound, &disp, (int) fftsize,
                    (int) (((long) p->getframes * chans / overlap)
                           / DISPFRAMES));
@@ -505,11 +504,11 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
             goto error;
           }
           blocks_written++;
-          PVDisplay_Update(&disp, frame);
+          if(displays) PVDisplay_Update(&disp, frame);
           if ((blocks_written/chans) % 20 == 0) {
             csound->Message(csound, "%ld\n", blocks_written/chans);
         }
-        PVDisplay_Display(&disp, (int) (blocks_written / chans));
+	  if(displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
       }
       }
       if (total_sampsread >= p->getframes*chans)
@@ -537,9 +536,9 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
           goto error;
         }
         blocks_written++;
-        PVDisplay_Update(&disp, frame);
+        if(displays) PVDisplay_Update(&disp, frame);
       }
-      PVDisplay_Display(&disp, (int) (blocks_written / chans));
+      if(displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
     }
     csound->Message(csound, Str("\n%ld %d-chan blocks written to %s\n"),
                     (long) blocks_written / (long) chans, (int) chans, fname);
@@ -833,7 +832,7 @@ static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
     const MYFLT *p_inbuf = inbuf;
 
     len = insize/chans;
-    ampfac = csound->dbfs_to_float;
+    ampfac = (1.0/csound->Get0dBFS(csound));
 
     for (i=0;i < chans;i++)
       buf_c[i] = chbuf[i];

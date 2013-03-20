@@ -585,7 +585,7 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
     p = (RtJackGlobals*) csound->QueryGlobalVariable(csound, "_rtjackGlobals");
     if (p == NULL)
       return -1;
-    csound->rtRecord_userdata = (void*) p;
+    *(csound->GetRtRecordUserData(csound)) = (void*) p;
     rtJack_CopyDevParams(p, &(p->inDevName), parm, 0);
     p->inputEnabled = 1;
     /* allocate pointers to input ports */
@@ -611,7 +611,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
     p = (RtJackGlobals*) csound->QueryGlobalVariable(csound, "_rtjackGlobals");
     if (p == NULL)
       return -1;
-    csound->rtPlay_userdata = (void*) p;
+    *(csound->GetRtPlayUserData(csound)) = (void*) p;
     rtJack_CopyDevParams(p, &(p->outDevName), parm, 1);
     p->outputEnabled = 1;
     /* allocate pointers to output ports */
@@ -729,7 +729,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     RtJackGlobals *p;
     int           i, j, k, nframes, bufpos, bufcnt;
 
-    p = (RtJackGlobals*) csound->rtPlay_userdata;
+    p = (RtJackGlobals*) *(csound->GetRtPlayUserData(csound));
     if (p->jackState != 0) {
       if (p->jackState < 0)
         openJackStreams(p);     /* open audio input */
@@ -765,7 +765,9 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     }
     if (p->xrunFlag) {
       p->xrunFlag = 0;
-      if (csound->oparms->msglevel & 4)
+     OPARMS oparms;
+     csound->GetOParms(csound, &oparms);
+      if (oparms.msglevel & 4)
         csound->Warning(csound, Str("rtjack: xrun in real time audio"));
     }
 
@@ -779,7 +781,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
     RtJackGlobals *p;
     int           i, j, k, nframes;
 
-    p = (RtJackGlobals*) csound->rtPlay_userdata;
+    p = (RtJackGlobals*) *(csound->GetRtPlayUserData(csound));
     if (p == NULL)
       return;
     if (p->jackState != 0) {
@@ -848,8 +850,8 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     pp = (RtJackGlobals*) csound->QueryGlobalVariable(csound, "_rtjackGlobals");
     if (pp == NULL)
       return;
-    csound->rtRecord_userdata = NULL;
-    csound->rtPlay_userdata = NULL;
+    *(csound->GetRtPlayUserData(csound))  = NULL;
+    *(csound->GetRtRecordUserData(csound))  = NULL;
     memcpy(&p, pp, sizeof(RtJackGlobals));
     /* free globals */
     csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
@@ -914,9 +916,11 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     RtJackGlobals   *p;
     int             i, j;
+    OPARMS oparms;
+    csound->GetOParms(csound, &oparms);
 
     /* allocate and initialise globals */
-    if (csound->oparms->msglevel & 0x400)
+    if (oparms.msglevel & 0x400)
       csound->Message(csound, Str("JACK real-time audio module for Csound "
                                   "by Istvan Varga\n"));
     if (csound->CreateGlobalVariable(csound, "_rtjackGlobals",
