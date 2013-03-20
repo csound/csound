@@ -153,7 +153,7 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
-     OPARMS parms;
+     OPARMS oparms;
      csound->GetOParms(csound, &oparms);
     /* nothing to do, report success */
     if (oparms->msglevel & 0x400)
