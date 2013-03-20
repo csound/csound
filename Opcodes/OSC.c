@@ -491,7 +491,7 @@ static CS_NOINLINE OSC_PAT *alloc_pattern(OSCLISTEN *pp)
     strArgMask = (int) (csound->GetInputArgSMask(pp) >> 3);
     /* number of bytes to allocate */
     nbytes = sizeof(OSC_PAT) - sizeof(MYFLT);
-    str_smps = (size_t) csound->strVarMaxLen + sizeof(MYFLT) - (size_t) 1;
+    str_smps = (size_t) csound->GetStrVarMaxLen(csound) + sizeof(MYFLT) - (size_t) 1;
     str_smps /= sizeof(MYFLT);
     for (i = 0; i < cnt; i++)
       nbytes += (((strArgMask & (1 << i)) ? str_smps : (size_t) 1)
@@ -563,7 +563,7 @@ static int OSC_handler(const char *path, const char *types,
             case 's':
               {
                 char  *src = (char*) &(argv[i]->s), *dst = (char*) m->args[i];
-                char  *endp = dst + (pp->csound->strVarMaxLen - 1);
+                char  *endp = dst + (pp->csound->GetStrVarMaxLen(pp->csound) - 1);
                 while (*src != (char) '\0' && dst != endp)
                   *(dst++) = *(src++);
                 *dst = (char) '\0';

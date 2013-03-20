@@ -522,21 +522,21 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
 {
     csdata  *cdata;
- 
-    if (csound->rtRecord_userdata != NULL)
+    void **recordata = csound->GetRtRecordUserData(csound);
+    if (*(csound->GetRtRecordUserData(csound)) != NULL)
       return 0;
 
     /* allocate structure */
 
-    if(csound->rtPlay_userdata != NULL)
-      cdata = (csdata *) csound->rtPlay_userdata;
+    if(*(csound->GetRtPlayUserData(csound) )!= NULL)
+       cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
     else {
-      cdata = (csdata *) calloc(1, sizeof(csdata));
+       cdata = (csdata *) calloc(1, sizeof(csdata));
       cdata->disp = 1;
     }
 
     cdata->inunit = NULL;
-    csound->rtRecord_userdata = (void *) cdata;
+    *recordata = (void *) cdata;
     cdata->inParm =  (csRtAudioParams *) parm;
     cdata->csound = cdata->csound;
     cdata->inputBuffer =
@@ -550,16 +550,18 @@ static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
 /* open for audio output */
 static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
 {
-    csdata  *cdata;  
-    if(csound->rtRecord_userdata != NULL)
-      cdata = (csdata *) csound->rtRecord_userdata;
+    csdata  *cdata;
+    void    **playdata = csound->GetRtPlayUserData(csound);
+  
+    if(*(csound->GetRtRecordUserData(csound)) != NULL)
+      cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
     else {
       cdata = (csdata *) calloc(1, sizeof(csdata));
       cdata->disp = 1;
     }
     cdata->outunit = NULL;
  
-    csound->rtPlay_userdata = (void *) cdata;
+    *playdata = (void *) cdata;
     cdata->outParm =  (csRtAudioParams *) parm;
     cdata->csound = csound;
     cdata->outputBuffer =
@@ -689,8 +691,9 @@ static void rtclose_(CSOUND *csound)
         free(cdata->inputBuffer);
         cdata->inputBuffer = NULL;
       }
-      csound->rtRecord_userdata = NULL;
-      csound->rtPlay_userdata = NULL;
+ 
+      *(csound->GetRtRecordUserData(csound)) == NULL;      
+      *(csound->GetRtPlayUserData(csound)) == NULL;
 
       if(cdata->inputdata) {
         int i;

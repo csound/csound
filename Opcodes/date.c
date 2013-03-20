@@ -64,7 +64,7 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
     time_string = ctime(&temp_time);
     /*    printf("Timestamp = %f\ntimestring=>%s<\n", *p->timstmp, time_string); */
     ((char*) p->Stime_)[0] = '\0';
-    if (UNLIKELY((int) strlen(time_string) >= csound->strVarMaxLen)) {
+    if (UNLIKELY((int) strlen(time_string) >= csound->GetStrVarMaxLen(csound))) {
       return csound->InitError(csound, Str("dates: buffer overflow"));
     }
     /* q = strchr(time_string, '\n'); */
@@ -86,7 +86,7 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
 #else
                  _getcwd
 #endif
-                 (((char*) p->Scd), csound->strVarMaxLen)==NULL))
+                 (((char*) p->Scd), csound->GetStrVarMaxLen(csound))==NULL))
       return csound->InitError(csound, Str("cannot determine current directory"));
     return OK;
 }
@@ -122,7 +122,7 @@ static int readf_init(CSOUND *csound, READF *p)
 static int readf(CSOUND *csound, READF *p)
 {
     ((char*) p->Sline)[0] = '\0';
-    if (UNLIKELY(fgets((char*) p->Sline, csound->strVarMaxLen, p->fd)==NULL)) {
+    if (UNLIKELY(fgets((char*) p->Sline, csound->GetStrVarMaxLen(csound), p->fd)==NULL)) {
       int ff = feof(p->fd);
       fclose(p->fd);
       p->fd = NULL;
