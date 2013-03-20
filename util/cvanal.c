@@ -62,7 +62,7 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
     int     res;
     int new_format = 0;
 
-    csound->dbfs_to_float = csound->e0dbfs = FL(1.0);
+    /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0); */
     if (!(--argc)) {
       return quit(csound, Str("insufficient arguments"));
     }
@@ -191,7 +191,7 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     }
     /* normalize the samples read in. */
     for (i = read_in; i--; ) {
-      *fp1++ *= csound->dbfs_to_float;
+      *fp1++ *= 1.0/csound->Get0dBFS(csound);
     }
 
     fp1 = inbuf;
