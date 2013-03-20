@@ -2815,6 +2815,12 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->engineStatus |= CS_STATE_JMP;
       csound->Die(csound, "Failed during csoundInitEnv");
     }
+#ifdef HAVE_PTHREAD_SPIN_LOCK
+    pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
+    pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
+    pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
+    pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
+#endif
     csound_init_rand(csound);
     /* allow selecting real time audio module */
     max_len = 21;
