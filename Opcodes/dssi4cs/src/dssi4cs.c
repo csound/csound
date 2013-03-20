@@ -720,7 +720,7 @@ int dssiaudio(CSOUND * csound, DSSIAUDIO * p)
       for (j = 0; j < ocnt; j++) {
         for (i = 0; i < Ksmps; i++)
           p->aout[j][i] =
-              p->DSSIPlugin_->audio[p->OutputPorts[j]][i] * csound->e0dbfs;
+	    p->DSSIPlugin_->audio[p->OutputPorts[j]][i] * csound->Get0dBFS(csound);
       }
     }
     else {
