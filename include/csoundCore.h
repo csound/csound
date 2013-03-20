@@ -1251,7 +1251,14 @@ typedef struct NAME__ {
     void          (*rtclose_callback)(CSOUND *);
     int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
     int           (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int);
+    int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
+    int           (*csoundInternalYieldCallback_)(CSOUND *);
     /* end of callbacks */
+    unsigned int  (*strHash32)(const char *s);
+    void          (*spinrecv)(CSOUND *);
+    void          (*spoutran)(CSOUND *);
+    int           (*audrecv)(CSOUND *, MYFLT *, int);
+    void          (*audtran)(CSOUND *, const MYFLT *, int);
     void          *hostdata;
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
@@ -1508,10 +1515,7 @@ typedef struct NAME__ {
       FILE          *pin, *pout;
       int           dither;
     } libsndStatics;
-    void          (*spinrecv)(CSOUND *);
-    void          (*spoutran)(CSOUND *);
-    int           (*audrecv)(CSOUND *, MYFLT *, int);
-    void          (*audtran)(CSOUND *, const MYFLT *, int);
+
     int           warped;               /* rdscor.c */
     int           sstrlen;
     char          *sstrbuf;
@@ -1583,16 +1587,16 @@ typedef struct NAME__ {
 //    int32          instxtcount, optxtsize;
     //int32          poolcount, gblfixed, gblacount, gblscount;
     // CsoundChannelIOCallback_t   channelIOCallback_;
-    int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
+
     const unsigned char *strhash_tabl_8;
-    unsigned int  (*strHash32)(const char *s);
+
     REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
     void          *remoteGlobals;
     /* VL: pvs bus */
     int            nchanif, nchanof;
     char           *chanif, *chanof;
     /* VL: internal yield callback */
-    int           (*csoundInternalYieldCallback_)(CSOUND *);
+
     void          *multiThreadedBarrier1;
     void          *multiThreadedBarrier2;
     int           multiThreadedComplete;
