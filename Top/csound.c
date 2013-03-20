@@ -149,6 +149,40 @@ void module_list_add(CSOUND *csound, char *drv, char *type){
     }
 }
 
+int csoundGetRandSeed(CSOUND *csound, int which){
+  if(which > 1) return csound->randSeed1;
+  else return csound->randSeed2;
+}
+
+char *csoundGetStrsets(CSOUND *csound, long p){
+  if(csound->strsets == NULL) return NULL;
+  else return csound->strsets[p];
+}
+int csoundGetStrsmax(CSOUND *csound){
+  return csound->strsmax;
+}
+
+void csoundGetOParms(CSOUND *csound, OPARMS *p){
+  memcpy(p, csound->oparms, sizeof(OPARMS));
+}
+
+int csoundGetDitherMode(CSOUND *csound){
+  return  csound->dither_output;
+}
+
+int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
+  *zkstart = csound->zkstart;
+  return csound->zklast;
+}
+
+int csoundGetReinitFlag(CSOUND *csound){
+  return csound->reinitflag;
+}
+
+int csoundGetTieFlag(CSOUND *csound){
+  return csound->tieflag;
+}
+
 static const CSOUND cenviron_ = {
 #ifdef SOME_FIND_DAY
     csoundGetVersion,
@@ -416,6 +450,16 @@ static const CSOUND cenviron_ = {
     set_util_nchnls,
     module_list_add,
     csoundGetCurrentTimeSamples,
+    csoundGetStrVarMaxLen,
+    csoundGetRandSeed,
+    csoundGetStrsmax,
+    csoundGetStrsets,
+    csoundGetOParms,
+    csoundGetDitherMode,
+    csoundGetZakBounds,
+    csoundGetTieFlag,
+    csoundGetReinitFlag,
+    csoundGet0dBFS,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -424,50 +468,6 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
-    /* ----------------------- public data fields ----------------------- */
-    0,              /*  reinitflag          */
-    0,              /*  tieflag             */
-    FL(0.0),        /*  onedsr              */
-    FL(0.0),        /*  sicvt               */
-    FL(-1.0),       /*  tpidsr              */
-    FL(-1.0),       /*  pidsr               */
-    FL(-1.0),       /*  mpidsr              */
-    FL(-1.0),       /*  mtpdsr              */
-    FL(0.0),        /*  onedksmps           */
-    FL(0.0),        /*  onedkr              */
-    FL(0.0),        /*  kicvt               */
-    DFLT_DBFS,      /*  e0dbfs              */
-    FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
-    NULL,           /*  widgetGlobals       */
-    NULL,           /*  stdOp_Env           */
-    NULL,           /*  zkstart             */
-    NULL,           /*  zastart             */
-    0L,             /*  zklast              */
-    0L,             /*  zalast              */
-    NULL,           /*  spin                */
-    NULL,           /*  spout               */
-    0,              /*  nspin               */
-    0,              /*  nspout              */
-    (OPARMS*) NULL, /*  oparms              */
-    NULL,           /*  hostdata            */
-    NULL,           /*  rtRecord_userdata   */
-    NULL,           /*  rtPlay_userdata     */
-    2345678,        /*  holdrand            */
-    256,            /*  strVarMaxLen        */
-    /* MAXINSNO, */      /*  maxinsno            */
-    0,              /*  strsmax             */
-    (char**) NULL,  /*  strsets             */
-    /*NULL, */      /*  instrtxtp now part of engineState */
-    { NULL },       /*  m_chnbp             */
-    NULL,           /*  csRtClock           */
-    NULL,           /*  csRandState         */
-    0,              /*  randSeed1           */
-    0,              /*  randSeed2           */
-    //    sizeof(MYFLT),  /*  floatsize           */
-    0,                      /*   dither_output  */
-    NULL,                   /*  flgraphsGlobals */
-    {0, 0, 0, 0, 0, 0, 0}, /* dummyint[7]; */
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint32[10]; */
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
@@ -493,6 +493,7 @@ static const CSOUND cenviron_ = {
     audio_dev_list_dummy,
     midi_dev_list_dummy,
     /* end of callbacks */
+    NULL,           /*  hostdata            */
     NULL, NULL,     /*  orchname, scorename */
     NULL, NULL,     /*  orchstr, *scorestr  */
     (OPDS*) NULL,   /*  ids                 */
@@ -586,6 +587,41 @@ static const CSOUND cenviron_ = {
     /* (STRING_POOL*)NULL, */ /* string pool now in engineState */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
+    NULL,           /*  zkstart             */
+    0L,             /*  zklast              */
+    NULL,           /*  zastart             */
+    0L,             /*  zalast              */
+    NULL,           /*  stdOp_Env           */
+    2345678,        /*  holdrand            */
+    0,              /*  randSeed1           */
+    0,              /*  randSeed2           */
+    NULL,           /*  csRandState         */
+    NULL,           /*  csRtClock           */
+    256,            /*  strVarMaxLen        */
+       0,              /*  strsmax             */
+    (char**) NULL,  /*  strsets             */
+    NULL,           /*  spin                */
+    NULL,           /*  spout               */
+    0,              /*  nspin               */
+    0,              /*  nspout              */
+    (OPARMS*) NULL, /*  oparms              */
+       { NULL },       /*  m_chnbp             */
+        0,                      /*   dither_output  */
+    FL(0.0),        /*  onedsr              */
+    FL(0.0),        /*  sicvt               */
+    FL(-1.0),       /*  tpidsr              */
+    FL(-1.0),       /*  pidsr               */
+    FL(-1.0),       /*  mpidsr              */
+    FL(-1.0),       /*  mtpdsr              */
+    FL(0.0),        /*  onedksmps           */
+    FL(0.0),        /*  onedkr              */
+    FL(0.0),        /*  kicvt               */
+    0,              /*  reinitflag          */
+    0,              /*  tieflag             */
+    DFLT_DBFS,      /*  e0dbfs              */
+    FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */ 
+    NULL,           /*  rtRecord_userdata   */
+    NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || (defined(_WIN32) && defined(__GNUC__))
     {0},
 #else

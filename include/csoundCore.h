@@ -1211,50 +1211,17 @@ typedef struct NAME__ {
     void (*SetUtilNchnls)(CSOUND *, int);
     void (*module_list_add)(CSOUND *, char *, char *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
+    int (*GetStrVarMaxLen)(CSOUND *);
+    int (*GetRandSeed)(CSOUND *, int which);
+    int (*GetStrsmax)(CSOUND *);
+    char *(*GetStrsets)(CSOUND *, long);
+    void (*GetOParms)(CSOUND *, OPARMS *);
+    int (*GetDitherMode)(CSOUND *);
+    int (*GetZakBounds)(CSOUND *, MYFLT **);
+    int (*GetReinitFlag)(CSOUND *);
+    int (*GetTieFlag)(CSOUND *);
+    int (*Get0dBFS) (CSOUND *);
     SUBR dummyfn_2[50];
-    /* ----------------------- public data fields ----------------------- */
-    int           reinitflag;
-    int           tieflag;
-    MYFLT         onedsr, sicvt;
-    MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
-    MYFLT         onedksmps;
-    MYFLT         onedkr;
-    MYFLT         kicvt;
-    MYFLT         e0dbfs, dbfs_to_float;
-    /* Widgets */
-    void          *widgetGlobals;
-    /** reserved for std opcode library  */
-    void          *stdOp_Env;
-    MYFLT         *zkstart;
-    MYFLT         *zastart;
-    long          zklast;
-    long          zalast;
-    MYFLT         *spin;
-    MYFLT         *spout;
-    int           nspin;
-    int           nspout;
-    OPARMS        *oparms;
-    void          *hostdata;
-    void          *rtRecord_userdata;
-    void          *rtPlay_userdata;
-    int           holdrand;
-    /** max. length of string variables + 1  */
-    int           strVarMaxLen;
-    /* int           maxinsno; */ /* now in engineState */
-    int           strsmax;
-    char          **strsets;
-    /* INSTRTXT      **instrtxtp; */ /* now in ENGINE_STATE */
-    /** reserve space for up to 4 MIDI devices */
-    MCHNBLK       *m_chnbp[64];
-    RTCLOCK       *csRtClock;
-    CsoundRandMTState *csRandState;
-    int           randSeed1;
-    int           randSeed2;
-    /*    int           floatsize; */
-    int           dither_output;
-    void          *flgraphGlobals;
-    int   dummyint[7];
-    long  dummyint32[10];
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
     /* callback function pointers */
@@ -1285,6 +1252,7 @@ typedef struct NAME__ {
     int           (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int);
     int           (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int);
     /* end of callbacks */
+    void          *hostdata;
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
     OPDS          *ids, *pds;       /* used by init and perf loops */
@@ -1346,6 +1314,39 @@ typedef struct NAME__ {
        STRING_POOL*  stringPool; */
     int           *argoffspace;
     INSDS         *frstoff;
+    MYFLT         *zkstart;
+    long          zklast;
+    MYFLT         *zastart;
+    long          zalast;
+    /** reserved for std opcode library  */
+    void          *stdOp_Env;
+    int           holdrand;
+    int           randSeed1;
+    int           randSeed2;
+    CsoundRandMTState *csRandState;
+    RTCLOCK       *csRtClock;
+    /** max. length of string variables + 1  */
+    int           strVarMaxLen;
+    int           strsmax;
+    char          **strsets;
+    MYFLT         *spin;
+    MYFLT         *spout;
+    int           nspin;
+    int           nspout;
+    OPARMS        *oparms;
+    /** reserve space for up to 4 MIDI devices */
+    MCHNBLK       *m_chnbp[64];
+    int           dither_output;
+    MYFLT         onedsr, sicvt;
+    MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
+    MYFLT         onedksmps;
+    MYFLT         onedkr;
+    MYFLT         kicvt;
+    int           reinitflag;
+    int           tieflag;
+    MYFLT         e0dbfs, dbfs_to_float;
+    void          *rtRecord_userdata;
+    void          *rtPlay_userdata;
     jmp_buf       exitjmp;
     SRTBLK        *frstbp;
     int           sectcnt;

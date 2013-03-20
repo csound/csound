@@ -69,6 +69,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     int           initFlags = 0;
     int           *fltkFlags;
     int           enableDisplays = 0;
+    OPARMS oparms;
+     csound->GetOParms(csound, &oparms);
 
     if (csound->QueryGlobalVariable(csound,
                                     "FLTK_Flags") == (void*) 0) {
@@ -80,7 +82,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     fltkFlags = getFLTKFlagsPtr(csound);
     if (((*fltkFlags) & 2) == 0 &&
-        !(csound->oparms->graphsoff || csound->oparms->postscript)) {
+        !(oparms.graphsoff || oparms.postscript)) {
 #ifdef LINUX
       Display *dpy = XOpenDisplay(NULL);
       if (dpy != NULL) {
