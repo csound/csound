@@ -609,7 +609,7 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*csound->onedsr;
+    p->fix = (MYFLT)p->tlen*(1.0/csound->GetSr(csound));
     return OK;
 }
 
