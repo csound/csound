@@ -50,6 +50,7 @@ extern void cscore(CSOUND*);
      ./cscore scorein scoreout
 
  */
+void cscoreRESET(CSOUND *csound);
 
 int main(int argc, char **argv)
 {
@@ -68,6 +69,7 @@ int main(int argc, char **argv)
       fprintf(stderr, "Could not instantiate Csound.\n");
       return -1;
     }
+    cscoreRESET(cs);
 
     /* open the command line scorein file */
     if (argc < 2) {
