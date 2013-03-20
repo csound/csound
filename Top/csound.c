@@ -492,7 +492,14 @@ static const CSOUND cenviron_ = {
     rtclose_dummy,
     audio_dev_list_dummy,
     midi_dev_list_dummy,
+    csoundDoCallback_,  /*  doCsoundCallback    */
+    defaultCsoundYield, /* csoundInternalYieldCallback_*/
     /* end of callbacks */
+    csound_str_hash_32, /*  strHash32           */
+    (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
+    (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
+    (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
+    (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
     NULL,           /*  hostdata            */
     NULL, NULL,     /*  orchname, scorename */
     NULL, NULL,     /*  orchstr, *scorestr  */
@@ -773,10 +780,6 @@ static const CSOUND cenviron_ = {
       NULL, NULL,   /*  pin, pout           */
       0,            /*dither                */
     },
-    (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
-    (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
-    (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
-    (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
     0,              /*  warped              */
     0,              /*  sstrlen             */
     (char*) NULL,   /*  sstrbuf             */
@@ -868,14 +871,13 @@ static const CSOUND cenviron_ = {
     //0L, 0L,         /*  poolcount, gblfixed     */
     //0L, 0L,         /*  gblacount, gblscount    */
     //(CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
-     csoundDoCallback_,  /*  doCsoundCallback    */
+ 
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
-    csound_str_hash_32, /*  strHash32           */
+
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */
     NULL, NULL,     /* chanif, chanof       */
-    defaultCsoundYield, /* csoundInternalYieldCallback_*/
     NULL,           /* multiThreadedBarrier1 */
     NULL,           /* multiThreadedBarrier2 */
     0,              /* multiThreadedComplete */
