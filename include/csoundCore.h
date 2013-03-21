@@ -1224,7 +1224,7 @@ typedef struct NAME__ {
     SUBR dummyfn_2[50];
     /**
      *
-      NO MORE PUBLIC VARIABLES IN CSOUND
+      NO MORE PUBLIC VARIABLES IN CSOUND struct
 
       NB: if a new variable member is needed, please add it below, as a 
       private data member.
@@ -1663,20 +1663,7 @@ typedef struct NAME__ {
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
-/**
-* Platform-independent function to load a shared library.
-*/
-int csoundOpenLibrary(void **library, const char *libraryPath);
 
-/**
-* Platform-independent function to unload a shared library.
-*/
-int csoundCloseLibrary(void *library);
-
-/**
-* Platform-independent function to get a symbol address in a shared library.
-*/
-void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
 /**
 * Internal input message function (used in opcodes)
