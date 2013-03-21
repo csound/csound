@@ -561,9 +561,9 @@ static void rtclose_(CSOUND *csound)
 
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
-      int       i;
+      unsigned int i;
       
-      for (i = 0; i < 4; i++) {
+      for (i = 0; i < 4u; i++) {
 #if NO_FULLDUPLEX_PA_LOCK
         if (!pabs->noPaLock)
 #endif
