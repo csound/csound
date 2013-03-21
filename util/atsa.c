@@ -1382,7 +1382,7 @@ static ATS_PEAK *update_tracks(CSOUND *csound, ATS_PEAK *tracks,
 static int residual_get_N(int M, int min_fft_size, int factor);
 static void residual_get_bands(double fft_mag, double *true_bands,
                                int *limits, int bands);
-static double residual_compute_time_domain_energy(ATS_FFT *fft_struct);
+//static double residual_compute_time_domain_energy(ATS_FFT *fft_struct);
 static double residual_get_band_energy(int lo, int hi, ATS_FFT *fft_struct,
                                        double norm);
 static void residual_compute_band_energy(ATS_FFT *fft_struct,
@@ -1407,25 +1407,25 @@ static void residual_get_bands(double fft_mag, double *true_bands,
       limits[k] = (int)floor(true_bands[k] / fft_mag);
 }
 
-static double residual_compute_time_domain_energy(ATS_FFT *fft)
-{
-    /* Parseval's Theorem states:
+/* static double residual_compute_time_domain_energy(ATS_FFT *fft) */
+/* { */
+/*     /\* Parseval's Theorem states: */
 
-       N-1                   N-1
-       sum(|x(n)^2|) =  1/N* sum (|X(k)|^2)
-       n=0                   k=0
+/*        N-1                   N-1 */
+/*        sum(|x(n)^2|) =  1/N* sum (|X(k)|^2) */
+/*        n=0                   k=0 */
 
-       then we multiply the time domain energy by 1/2
-       because we only compute frequency energy between
-       0 Hz and Nyquist only (0 -> N/2)
-     */
-    int     n;
-    double  sum = 0.0;
+/*        then we multiply the time domain energy by 1/2 */
+/*        because we only compute frequency energy between */
+/*        0 Hz and Nyquist only (0 -> N/2) */
+/*      *\/ */
+/*     int     n; */
+/*     double  sum = 0.0; */
 
-    for (n = 0; n < fft->size; n++)
-      sum += fabs((double) fft->data[n] * (double) fft->data[n]);
-    return (sum);
-}
+/*     for (n = 0; n < fft->size; n++) */
+/*       sum += fabs((double) fft->data[n] * (double) fft->data[n]); */
+/*     return (sum); */
+/* } */
 
 static double residual_get_band_energy(int lo, int hi, ATS_FFT *fft,
                                        double norm)
@@ -1475,7 +1475,7 @@ static void residual_compute_band_energy(ATS_FFT *fft, int *band_limits,
 static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
 {
     int     file_sampling_rate, sflen, hop, M, N, frames, *band_limits;
-    int     smp = 0, M_2, st_pt, filptr, i, frame_n, k;
+    int     M_2, st_pt, filptr, i, frame_n, k;
     double  norm = 1.0, threshold, fft_mag, **band_arr = NULL, *band_energy;
     //double  time_domain_energy = 0.0, freq_domain_energy = 0.0, sum = 0.0;
     double  edges[ATSA_CRITICAL_BANDS + 1] = ATSA_CRITICAL_BAND_EDGES;
@@ -1534,7 +1534,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
           fft.data[(k + st_pt) % N] = (MYFLT) bufs[0][filptr];
         filptr++;
       }
-      smp = filptr - M_2 - 1;
+      //smp = filptr - M_2 - 1;
       //time_domain_energy = residual_compute_time_domain_energy(&fft);
       /* take the fft */
       csound->RealFFTnp2(csound, fft.data, N);
