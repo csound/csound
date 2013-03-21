@@ -709,9 +709,9 @@ int dssiaudio(CSOUND * csound, DSSIAUDIO * p)
     else
       Descriptor =
           (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
-    int     i, j;
-    int     icnt = csound->GetInputArgCnt(p) - 1;
-    int     ocnt = csound->GetOutputArgCnt(p);
+    unsigned int i, j;
+    unsigned int icnt = csound->GetInputArgCnt(p) - 1;
+    unsigned int ocnt = csound->GetOutputArgCnt(p);
     unsigned long Ksmps = (unsigned long) csound->GetKsmps(csound);
 
     if (p->DSSIPlugin_->Active == 1) {
@@ -766,7 +766,7 @@ int dssictls_init(CSOUND * csound, DSSICTLS * p)
     int     Number = *p->iDSSIhandle;
     int     Sr = (int) MYFLT2LRND(csound->GetSr(csound));
     unsigned long PortIndex = *p->iport;
-    int     i;
+    unsigned int  i;
     unsigned long ControlPort = 0;
     unsigned long AudioPort = 0;
     unsigned long Port = 0;
