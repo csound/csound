@@ -31,11 +31,14 @@
 
 void MakeAscii(CSOUND *csound, WINDAT *wdptr, const char *n)
 {
+    IGN(n);
+    IGN(csound);
     wdptr->windid = ~((uintptr_t) 0);           /* just so it's not null */
 }
 
 void KillAscii(CSOUND *csound, WINDAT *wdptr)
 {
+    IGN(csound);
     wdptr->windid = 0;          /* just to make out that it's dead */
 }
 

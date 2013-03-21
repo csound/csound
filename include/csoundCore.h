@@ -34,28 +34,6 @@
 #include <stdarg.h>
 #include <setjmp.h>
 #include "csound_type_system.h"
-
-
-/*
-#include <sndfile.h>
-JPff:  But this gives warnings in many files as rewriteheader expects
-to have an argument of SNDFILE*.  Might be able to fix with a void*
-VL: moved to allow opcodes to be built without libsndfile headers
-The libsndfile header is now place only where it is used:
-Engine/envvar.c
-Engine/memfiles.c
-Engine/libsnd_u.c
-OOps/sndinfUG.c
-Opcodes/fout.c
-util/atsa.c
-Opcodes/stdopcode.h
-H/diskin2.h
-H/soundio.h
-util/pvanal.c
-util/sndinfo.c
-util/xtrct.c
-*/
-
 #include "csound.h"
 #include "cscore.h"
 #include "pools.h"

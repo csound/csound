@@ -1162,6 +1162,9 @@ int useropcd(CSOUND *csound, UOPCODE *p)
     //return csoundPerfError(csound, Str("%s: not initialised"),
     //                p->h.optext->t.opcod);
     //else 
+
+  IGN(csound);
+  IGN(p);
     /* VL - not marking this as a perf error allows recursive UDOs to work 
        This is a (harmless) hack, but it would be nice to know why there is
        one extra call to a UDO which is not initialised in a recursive run
