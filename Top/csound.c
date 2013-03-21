@@ -708,7 +708,8 @@ static const CSOUND cenviron_ = {
     0,              /*  spinlock            */
 #endif
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock, spinlock1           */
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock             */
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock1           */
 #else
     0, 0,              /*  memlock, spinlock1             */
 #endif
@@ -2778,12 +2779,6 @@ PUBLIC void csoundReset_(CSOUND *csound)
     remove_tmpfiles(csound);
     rlsmemfiles(csound);
     memRESET(csound);
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-    pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
-#endif
     while (csound->filedir[n])        /* Clear source directory */
       free(csound->filedir[n++]);
     /**
@@ -2862,12 +2857,6 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->engineStatus |= CS_STATE_JMP;
       csound->Die(csound, "Failed during csoundInitEnv");
     }
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-    pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
-#endif
     csound_init_rand(csound);
     /* allow selecting real time audio module */
     max_len = 21;
@@ -2998,7 +2987,8 @@ PUBLIC void csoundReset(CSOUND *csound)
         csound->Die(csound, "Failed during csoundInitStaticModules");
 
 
-     csoundCreateGlobalVariable(csound, "_MODULES", (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
+     csoundCreateGlobalVariable(csound, "_MODULES",
+                                (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
      char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
@@ -3057,6 +3047,12 @@ PUBLIC void csoundReset(CSOUND *csound)
       create_opcodlst(csound);
       csoundLoadExternals(csound);
     }
+/* #ifdef HAVE_PTHREAD_SPIN_LOCK */
+/*     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE); */
+/*     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE); */
+/*     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE); */
+/*     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE); */
+/* #endif */
 }
 
 PUBLIC int csoundGetDebug(CSOUND *csound)

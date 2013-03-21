@@ -87,12 +87,6 @@ void cscoreRESET(CSOUND *csound)
     spaceanchor.h.nxtblk = NULL;
     spaceanchor.h.type = TYP_SPACE;
     spaceanchor.h.size = 0;
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-    pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
-    pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
-#endif
     return;
 }
 
