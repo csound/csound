@@ -140,7 +140,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                                &prop, 0, NULL, &psize, sysdevs);
 
     cdata->devnos = devnos;
-    for (i = 0; i < devnos; i++) {
+    for (i = 0; (unsigned int) i < devnos; i++) {
       AudioBufferList *b;
       int devchannels, k, n;
       int numlists;
@@ -162,7 +162,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, b);
       for(n=0; n < numlists; n++){
-        for(k=0; k < b[n].mNumberBuffers; k++)
+        for(k=0; (unsigned int) k < b[n].mNumberBuffers; k++)
           devchannels += b[n].mBuffers[k].mNumberChannels;
       }
       devinfo[i].inchannels = devchannels;
@@ -181,7 +181,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, b);
       for(n=0; n < numlists; n++){
-        for(k=0; k < b[n].mNumberBuffers; k++)
+        for(k=0; (unsigned int) k < b[n].mNumberBuffers; k++)
           devchannels += b[n].mBuffers[k].mNumberChannels;
       }
       devinfo[i].outchannels = devchannels;
@@ -204,7 +204,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                          Str("AuHAL Module: found %d output device(s):\n"),
                          devouts);
  
-    for (i = 0; i < devnos; i++) {
+    for (i = 0; (unsigned int)  i < devnos; i++) {
       if (isInput) {
         if(devinfo[i].inchannels) {
           csound->Message(csound, "%d: %s (%d channels) \n",
@@ -227,8 +227,8 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       int CoreAudioDev = -1;
       prop.mSelector = kAudioHardwarePropertyDevices;
       if (isInput) {
-        for(i=0; i < devnos; i++) {
-          if(devinfo[i].indevnum == devnum) CoreAudioDev = i;
+        for(i=0; (unsigned int)  i < devnos; i++) {
+          if((unsigned int) devinfo[i].indevnum == devnum) CoreAudioDev = i;
         }
         if(CoreAudioDev >= 0) {
           prop.mSelector = kAudioHardwarePropertyDefaultInputDevice;
@@ -241,8 +241,8 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       }
       else {
         prop.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
-        for(i=0; i < devnos; i++) {
-          if(devinfo[i].outdevnum == devnum)  CoreAudioDev = i;
+        for(i=0;(unsigned int)  i < devnos; i++) {
+          if((unsigned int) devinfo[i].outdevnum == devnum)  CoreAudioDev = i;
         }
         if(CoreAudioDev >= 0) {
           dev  = sysdevs[CoreAudioDev];
@@ -406,8 +406,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 }
 
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
-    UInt32  psize, devnum, devnos;
-    AudioDeviceID dev;
+    UInt32  psize, devnos;
     AudioDeviceID *sysdevs;
     Device_Info *devinfo;
     int     i;
@@ -429,7 +428,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     AudioObjectGetPropertyData(kAudioObjectSystemObject,
                                &prop, 0, NULL, &psize, sysdevs);
 
-    for (i = 0; i < devnos; i++) {
+    for (i = 0; (unsigned int) i < devnos; i++) {
       AudioBufferList *b;
       int devchannels, k, n;
       int numlists;
@@ -451,7 +450,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, b);
       for(n=0; n < numlists; n++){
-        for(k=0; k < b[n].mNumberBuffers; k++)
+        for(k=0; (unsigned int)  k < b[n].mNumberBuffers; k++)
           devchannels += b[n].mBuffers[k].mNumberChannels;
       }
       devinfo[i].inchannels = devchannels;
@@ -470,7 +469,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, b);
       for(n=0; n < numlists; n++){
-        for(k=0; k < b[n].mNumberBuffers; k++)
+        for(k=0; (unsigned int) k < b[n].mNumberBuffers; k++)
           devchannels += b[n].mBuffers[k].mNumberChannels;
       }
       devinfo[i].outchannels = devchannels;
@@ -491,7 +490,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         return 0;
   
       if(!isOutput){
-        for(i=0; i < devnos; i++) {
+        for(i=0; (unsigned int)  i < devnos; i++) {
           if(devinfo[i].inchannels) {
             strncpy(list[n].device_name,  devinfo[i].name, 63);
             sprintf(tmp, "dac%d", devinfo[i].indevnum);
@@ -504,7 +503,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         }
         return n;
       } else {
-        for(i=0; i < devnos; i++){
+        for(i=0;(unsigned int) i < devnos; i++){
           if(devinfo[i].outchannels) {
             strncpy(list[n].device_name,  devinfo[i].name, 63); 
             sprintf(tmp, "dac%d", devinfo[i].outdevnum); 
@@ -588,13 +587,14 @@ OSStatus  Csound_Input(void *inRefCon,
     int j,k;
     AudioUnitSampleType *buffer;
     int n = inNumberFrames*inchnls;
-    int m = 0, l;  
+    int l;
+    IGN(ioData);  
 
     AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber,
                     inNumberFrames, cdata->inputdata);
     for (k = 0; k < inchnls; k++){
       buffer = (AudioUnitSampleType *) cdata->inputdata->mBuffers[k].mData;
-      for(j=0; j < inNumberFrames; j++){
+      for(j=0; (unsigned int) j < inNumberFrames; j++){
         inputBuffer[j*inchnls+k] = buffer[j];
       }
     }
@@ -633,10 +633,14 @@ OSStatus  Csound_Render(void *inRefCon,
     int j,k;
     AudioUnitSampleType *buffer;
     int n = inNumberFrames*onchnls;
+    IGN(ioActionFlags);
+    IGN(inTimeStamp);
+    IGN(inBusNumber);
+
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
     for (k = 0; k < onchnls; k++) {
       buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
-      for(j=0; j < inNumberFrames; j++){
+      for(j=0; (unsigned int) j < inNumberFrames; j++){
         buffer[j] = (AudioUnitSampleType) outputBuffer[j*onchnls+k] ;
       }
     }
@@ -693,8 +697,8 @@ static void rtclose_(CSOUND *csound)
         cdata->inputBuffer = NULL;
       }
  
-      *(csound->GetRtRecordUserData(csound)) == NULL;      
-      *(csound->GetRtPlayUserData(csound)) == NULL;
+      *(csound->GetRtRecordUserData(csound)) = NULL;      
+      *(csound->GetRtPlayUserData(csound)) = NULL;
 
       if(cdata->inputdata) {
         int i;
@@ -755,7 +759,7 @@ int csoundModuleInit(CSOUND *csound)
 
 int csoundModuleCreate(CSOUND *csound)
 {
-    CSOUND *p = csound;
+    IGN(csound);
     return 0;
 }
 
