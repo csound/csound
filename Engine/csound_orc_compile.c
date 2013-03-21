@@ -326,7 +326,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     char *s;
     char **types = splitArgs(csound, ep->outypes);
     //int nreqd = argsRequired(ep->outypes);
-    char      tfound = '\0', treqd;
+    char      tfound = '\0';//, treqd;
 
 //    if (nreqd < 0)    /* for other opcodes */
 //      nreqd = argsRequired(types = ep->outypes);
@@ -344,7 +344,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     while (n--) {                                     /* outargs:  */
       //long    tfound_m;       /* IV - Oct 31 2002 */
       s = tp->outlist->arg[n];
-      treqd = *types[n];
+      //treqd = *types[n];
       tfound = argtyp2(s);                     /*  found    */
       /* IV - Oct 31 2002 */
 //      tfound_m = STA(typemask_tabl)[(unsigned char) tfound];

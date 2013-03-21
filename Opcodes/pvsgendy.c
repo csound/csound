@@ -31,7 +31,7 @@ typedef struct {
     PVSDAT *fin;
     MYFLT  *kmrate;
     MYFLT  *kfrate;
-    int    lastframe;
+    unsigned int lastframe;
 } PVSGENDY;
 
 

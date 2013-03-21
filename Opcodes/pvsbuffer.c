@@ -131,7 +131,7 @@ typedef struct {
   MYFLT *clear;
   MYFLT iclear, optr;
   FSIG_HANDLE *handle;
-  int scnt;
+  unsigned int scnt;
 } PVSBUFFERREAD;
 
 static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)

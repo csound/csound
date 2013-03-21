@@ -207,8 +207,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       //RoverTwoPi, /* R/D divided by 2*Pi */
       //TwoPioverR, /* 2*Pi divided by R/I */
         sum,        /* scale factor for renormalizing windows */
-        rIn,        /* decimated sampling rate */
-        rOut,       /* pre-interpolated sampling rate */
+      //rIn,        /* decimated sampling rate */
+      //rOut,       /* pre-interpolated sampling rate */
         invR,       /* 1. / srate */
         time,       /* nI / srate */
         gain,       /* gain of noise gate */
@@ -843,8 +843,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     for (i = nread; i < ibuflen; i++, f++)
       *f = FL(0.0);
 
-    rIn = ((MYFLT) R / D);
-    rOut = ((MYFLT) R / I);
+    //rIn = ((MYFLT) R / D);
+    //rOut = ((MYFLT) R / I);
     invR = FL(1.0) / R;
     nI = -(aLen / D) * D;    /* input time (in samples) */
     nO = nI;                 /* output time (in samples) */
