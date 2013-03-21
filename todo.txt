@@ -9,7 +9,7 @@ Csound 6 TODO list
  - add opcode to compile/load an orchestra *** done ***
  - API step by step construction of TREE?  *** future versions ***
  - safe deletion of TREE *** FIXED ***
- - memory recovery of POOLs
+ - memory recovery of POOLs ***DONE***
 - test extensively (including UDOs and namedins)
  - UDOs are not replaced, memory recovery needed? 
 

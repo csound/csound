@@ -509,12 +509,14 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
 }
 
 int pvoc_openfile(CSOUND *csound,
-                  const char *filename, PVOCDATA *data, WAVEFORMATEX *fmt)
+                  const char *filename, void *data_, void *fmt_)
 {
     WAVEFORMATPVOCEX  wfpx;
     char              *pname;
     PVOCFILE          *p = NULL;
     int               fd;
+    PVOCDATA         *data = (PVOCDATA *) data_;
+    WAVEFORMATEX      *fmt = (WAVEFORMATEX *) fmt_;
 
     csound->pvErrorCode = -1;
     if (UNLIKELY(data == NULL || fmt == NULL)) {
