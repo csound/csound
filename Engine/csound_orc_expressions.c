@@ -31,8 +31,6 @@ extern void handle_polymorphic_opcode(CSOUND*, TREE *);
 extern void handle_optional_args(CSOUND *, TREE *);
 extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
-extern int find_opcode_num(CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound);
-extern int find_opcode_num_by_tree(CSOUND* csound, char* opname, TREE* left, TREE* right);
 extern OENTRIES* find_opcode2(CSOUND *, char*);
 extern char resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 
