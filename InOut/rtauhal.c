@@ -190,7 +190,6 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         devinfo[i].outdevnum = devouts;
       } else devinfo[i].outdevnum = -1;
       free(b);
-      printf("devno %d\n", i);
     }
     
    
