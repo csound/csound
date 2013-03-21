@@ -659,9 +659,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           }
           else if (current->left->type == KSMPS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
-            /* VL: early assignment to ksmps so memory can be
-               allocated. This is unsafe and needs to be fixed */
-            csound->ksmps = ksmps = uval;
+            ksmps = uval;
           }
           else if (current->left->type == NCHNLS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
@@ -776,6 +774,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->onedkr = FL(1.0) / csound->ekr;    
     csound->global_kcounter  = csound->kcounter;
 
+    if(csound->ksmps != DFLT_KSMPS){
+      reallocateVarPoolMemory(csound, engineState->varPool);
+    }
     close_instrument(csound, ip);
 
     return ip;
@@ -1420,7 +1421,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       }
 
       /* create memblock for global variables */
-      recalculateVarPoolMemory(csound, engineState->varPool);
+      ///recalculateVarPoolMemory(csound, engineState->varPool);
       /* VL: 15.3.2013 allocating 10 times for space than requested,
          for use with variables allocated later */
       /* csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize*10);
