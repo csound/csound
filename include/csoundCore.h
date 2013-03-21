@@ -1218,9 +1218,9 @@ typedef struct NAME__ {
     void (*GetOParms)(CSOUND *, OPARMS *);
     int (*GetDitherMode)(CSOUND *);
     int (*GetZakBounds)(CSOUND *, MYFLT **);
-    int (*GetReinitFlag)(CSOUND *);
     int (*GetTieFlag)(CSOUND *);
-    int (*Get0dBFS) (CSOUND *);
+    int (*GetReinitFlag)(CSOUND *);
+    MYFLT (*Get0dBFS) (CSOUND *);
     SUBR dummyfn_2[50];
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND

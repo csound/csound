@@ -79,7 +79,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         fcntl(stick->devFD, F_SETFL, fcntl(stick->devFD, F_GETFL, 0)|O_NONBLOCK);
         ioctl(stick->devFD, JSIOCGAXES, &stick->numk);
         ioctl(stick->devFD, JSIOCGBUTTONS, &stick->numb);
-        if(UNLIKELY(stick->ftp->flen < 2+(stick->numk)+(stick->numb))) {
+        if (UNLIKELY(stick->ftp->flen < 2u+(stick->numk)+(stick->numb))) {
           csound->Warning
             (csound,
              Str("linuxjoystick: table %d of size %d too small for data size %d"),

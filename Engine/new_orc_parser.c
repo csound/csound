@@ -49,6 +49,7 @@ extern void csound_orclex_destroy(void *);
 extern void init_symbtab(CSOUND*);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
+extern void delete_tree(CSOUND *csound, TREE *l);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);

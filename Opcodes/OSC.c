@@ -665,7 +665,7 @@ static int OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 
 static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
 {
-    void  *x;
+    //void  *x;
     int   i, n;
 
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
@@ -719,9 +719,9 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     p->nxt = p->port->oplst;
     p->port->oplst = (void*) p;
     csound->UnlockMutex(p->port->mutex_);
-    x = lo_server_thread_add_method(p->port->thread,
-                                    p->saved_path, p->saved_types,
-                                    OSC_handler, p->port);
+    (void) lo_server_thread_add_method(p->port->thread,
+                                       p->saved_path, p->saved_types,
+                                       OSC_handler, p->port);
     csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND *, void *)) OSC_listdeinit);
     return OK;
