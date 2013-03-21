@@ -524,7 +524,7 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
    else if (end>t->sizes[0]) end = t->sizes[0];
    else if (end<0) end = 0;
    if (strt<0) strt = 0;
-   else if (strt>t->size) strt = t->sizes[0];
+   else if (strt>t->sizes[0]) strt = t->sizes[0];
    if (end<strt) {
      int x = end; end = strt; strt = x;
    }

@@ -163,7 +163,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
     double  beta = 6.8;
-    int verbose = 0;
+    //int verbose = 0;
     int displays = 0;
 
 
@@ -237,9 +237,9 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
                 return quit(csound, Str("Failed to open text file"));
               csound->Message(csound, Str("Writing text form to file %s\n"), s);
             }
-          case 'v':
-            verbose = 1;
-            break;
+          /* case 'v': */
+          /*   verbose = 1; */
+          /*   break; */
           default:
             return quit(csound, Str("unrecognised switch option"));
           }

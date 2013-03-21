@@ -176,6 +176,7 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
         
+      /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
       err = verify_tree(csound, astTree, typeTable);
       mfree(csound, typeTable->instr0LocalPool);
       mfree(csound, typeTable->globalPool);
