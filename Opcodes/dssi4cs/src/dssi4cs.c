@@ -29,7 +29,7 @@
 #endif
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
-static const char   *version = "0.1alpha";
+//static const char   *version = "0.1alpha";
 
 /* TODO accomodate plugins which return control outputs */
 
@@ -591,11 +591,15 @@ int dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
     int     ocnt = csound->GetOutputArgCnt(p);
 
     if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
-      csound->Die(csound, Str("DSSI4CS: number of audio input channels is greater than %d"),
+      csound->Die(csound,
+                  Str("DSSI4CS: number of audio input channels "
+                      "is greater than %d"),
                   DSSI4CS_MAX_IN_CHANNELS);
 
     if (UNLIKELY(ocnt > DSSI4CS_MAX_OUT_CHANNELS))
-      csound->Die(csound, Str("DSSI4CS: number of audio output channels is greater than %d"),
+      csound->Die(csound,
+                  Str("DSSI4CS: number of audio output channels "
+                      "is greater than %d"),
                   DSSI4CS_MAX_OUT_CHANNELS);
 
 #ifdef DEBUG
@@ -618,10 +622,10 @@ int dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
       Descriptor =
           (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
 
-    long    PortIndex = 0;
-    int     ConnectedInputPorts = 0;
-    int     ConnectedOutputPorts = 0;
-    int     ConnectedPorts = 0;
+    unsigned long PortIndex = 0;
+    int           ConnectedInputPorts = 0;
+    int           ConnectedOutputPorts = 0;
+    int           ConnectedPorts = 0;
     LADSPA_PortDescriptor PortDescriptor = 0;
 
     for (PortIndex = 0; PortIndex < Descriptor->PortCount; PortIndex++) {

@@ -1477,7 +1477,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     int     file_sampling_rate, sflen, hop, M, N, frames, *band_limits;
     int     smp = 0, M_2, st_pt, filptr, i, frame_n, k;
     double  norm = 1.0, threshold, fft_mag, **band_arr = NULL, *band_energy;
-    double  time_domain_energy = 0.0, freq_domain_energy = 0.0, sum = 0.0;
+    //double  time_domain_energy = 0.0, freq_domain_energy = 0.0, sum = 0.0;
     double  edges[ATSA_CRITICAL_BANDS + 1] = ATSA_CRITICAL_BAND_EDGES;
     ATS_FFT fft;
     SF_INFO sfinfo;
@@ -1535,16 +1535,16 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
         filptr++;
       }
       smp = filptr - M_2 - 1;
-      time_domain_energy = residual_compute_time_domain_energy(&fft);
+      //time_domain_energy = residual_compute_time_domain_energy(&fft);
       /* take the fft */
       csound->RealFFTnp2(csound, fft.data, N);
       residual_compute_band_energy(&fft, band_limits, ATSA_CRITICAL_BANDS + 1,
                                    band_energy, norm);
-      sum = 0.0;
-      for (k = 0; k < ATSA_CRITICAL_BANDS; k++) {
-        sum += band_energy[k];
-      }
-      freq_domain_energy = 2.0 * sum;
+      //sum = 0.0;
+      //for (k = 0; k < ATSA_CRITICAL_BANDS; k++) {
+      //  sum += band_energy[k];
+      //}
+      //freq_domain_energy = 2.0 * sum;
       for (k = 0; k < ATSA_CRITICAL_BANDS; k++) {
         if (band_energy[k] < threshold) {
           band_arr[k][frame_n] = 0.0;
