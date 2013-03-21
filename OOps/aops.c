@@ -93,11 +93,14 @@ MYFLT csoundPow2(CSOUND *csound, MYFLT a)
 int rassign(CSOUND *csound, ASSIGN *p)
 {
     /* already assigned by otran */
+   IGN(csound);
+   IGN(p);
     return OK;
 }
 
 int assign(CSOUND *csound, ASSIGN *p)
 {
+    IGN(csound);
     *p->r = *p->a;
     return OK;
 }
@@ -251,7 +254,7 @@ int tabref(CSOUND *csound, TABREF *p)
 
 #define RELATN(OPNAME,OP)                               \
   int OPNAME(CSOUND *csound, RELAT *p)                  \
-  { *p->rbool = (*p->a OP *p->b) ? 1 : 0;  return OK; }
+  { IGN(csound); *p->rbool = (*p->a OP *p->b) ? 1 : 0;  return OK; }
 
 RELATN(gt,>)
 RELATN(ge,>=)
@@ -262,13 +265,13 @@ RELATN(ne,!=)
 
 #define LOGCLX(OPNAME,OP)                                       \
   int OPNAME(CSOUND *csound, LOGCL *p)                          \
-  { *p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
+  {  IGN(csound);*p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
 
 LOGCLX(and,&&)
 LOGCLX(or,||)
 
 #define KK(OPNAME,OP)                                                   \
-  int OPNAME(CSOUND *csound, AOP *p) { *p->r = *p->a OP *p->b; return OK; }
+  int OPNAME(CSOUND *csound, AOP *p) { IGN(csound); *p->r = *p->a OP *p->b; return OK; }
 
 KK(addkk,+)
 KK(subkk,-)
@@ -289,6 +292,7 @@ MYFLT MOD(MYFLT a, MYFLT bb)
 
 int modkk(CSOUND *csound, AOP *p)
 {
+    IGN(csound);
     *p->r = MOD(*p->a, *p->b);
     return OK;
 }
@@ -298,7 +302,7 @@ int modkk(CSOUND *csound, AOP *p)
     MYFLT   *r, a, *b;                          \
     uint32_t offset = p->h.insdshead->ksmps_offset;  \
     uint32_t early  = p->h.insdshead->ksmps_no_end;  \
-    uint32_t n, nsmps = CS_KSMPS;               \
+    uint32_t n, nsmps = CS_KSMPS;      \
     r = p->r;                                   \
     a = *p->a;                                  \
     b = p->b;                                   \
@@ -323,7 +327,7 @@ int modka(CSOUND *csound, AOP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-
+    
     r = p->r;
     a = *p->a;
     b = p->b;
@@ -427,6 +431,7 @@ int modaa(CSOUND *csound, AOP *p)
 
 int divzkk(CSOUND *csound, DIVZ *p)
 {
+    IGN(csound);
     *p->r = (*p->b != FL(0.0) ? *p->a / *p->b : *p->def);
     return OK;
 }
@@ -503,6 +508,7 @@ int divzaa(CSOUND *csound, DIVZ *p)
 
 int conval(CSOUND *csound, CONVAL *p)
 {
+    IGN(csound);
     if (*p->cond)
       *p->r = *p->a;
     else
@@ -531,6 +537,7 @@ int aconval(CSOUND *csound, CONVAL *p)
 int int1(CSOUND *csound, EVAL *p)               /* returns signed whole no. */
 {
     MYFLT intpart;
+    IGN(csound);
     MODF(*p->a, &intpart);
     *p->r = intpart;
     return OK;
@@ -558,6 +565,7 @@ int int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. */
 int frac1(CSOUND *csound, EVAL *p)              /* returns positive frac part */
 {
     MYFLT intpart, fracpart;
+    IGN(csound);
     fracpart = MODF(*p->a, &intpart);
     *p->r = fracpart;
     return OK;
@@ -594,6 +602,7 @@ int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
 
 int int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 {
+    IGN(csound);
     *p->r = (MYFLT) MYFLT2LRND(*p->a);
     return OK;
 }
@@ -617,6 +626,7 @@ int int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer */
 
 int int1_floor(CSOUND *csound, EVAL *p)         /* round down */
 {
+    IGN(csound);
     *p->r = (MYFLT)(MYFLOOR(*p->a));
     return OK;
 }
@@ -640,6 +650,7 @@ int int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
 
 int int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
 {
+    IGN(csound);
     *p->r = (MYFLT)(MYCEIL(*p->a));
     return OK;
 }
@@ -680,7 +691,7 @@ int birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) */
 }
 
 #define LIB1(OPNAME,LIBNAME)  int OPNAME(CSOUND *csound, EVAL *p)       \
-  { *p->r = LIBNAME(*p->a); return OK; }
+  {  IGN(csound); *p->r = LIBNAME(*p->a); return OK; }
 LIB1(abs1,FABS)
 LIB1(exp01,EXP)
 LIB1(log01,LOG)
@@ -699,6 +710,7 @@ LIB1(log21,LOG2)
 
 int atan21(CSOUND *csound, AOP *p)
 {
+    IGN(csound);
     *p->r = ATAN2(*p->a, *p->b);
     return OK;
 }
@@ -757,12 +769,14 @@ int atan2aa(CSOUND *csound, AOP *p)
 
 int dbamp(CSOUND *csound, EVAL *p)
 {
+    IGN(csound);
     *p->r = LOG(FABS(*p->a)) / LOG10D20;
     return OK;
 }
 
 int ampdb(CSOUND *csound, EVAL *p)
 {
+    IGN(csound);
     *p->r = EXP(*p->a * LOG10D20);
     return OK;
 }
@@ -909,6 +923,7 @@ int rtclock(CSOUND *csound, EVAL *p)
 
 int octpch(CSOUND *csound, EVAL *p)
 {
+   IGN(csound);
     double fract, oct;
     fract = modf((double)*p->a, &oct);
     fract *= EIPT3;
@@ -918,6 +933,7 @@ int octpch(CSOUND *csound, EVAL *p)
 
 int pchoct(CSOUND *csound, EVAL *p)
 {
+   IGN(csound);
     double fract, oct;
     fract = modf((double)*p->a, &oct);
     fract *= 0.12;
@@ -927,6 +943,7 @@ int pchoct(CSOUND *csound, EVAL *p)
 
 int cpsoct(CSOUND *csound, EVAL *p)
 {
+    IGN(csound);
     int loct = (int)(*p->a * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
@@ -956,6 +973,7 @@ int acpsoct(CSOUND *csound, EVAL *p)
 
 int octcps(CSOUND *csound, EVAL *p)
 {
+   IGN(csound);
     *p->r = (LOG(*p->a /(MYFLT)ONEPT) / (MYFLT)LOGTWO);
     return OK;
 }
@@ -964,7 +982,7 @@ int cpspch(CSOUND *csound, EVAL *p)
 {
     double fract, oct;
     int    loct;
-
+    IGN(csound);
     fract = modf((double)*p->a, &oct);
     fract *= EIPT3;
     loct = (int)((oct + fract) * OCTRES);
@@ -974,6 +992,7 @@ int cpspch(CSOUND *csound, EVAL *p)
 
 int cpsmidinn(CSOUND *csound, EVAL *p)
 {
+    IGN(csound);
     /* Convert Midi Note number to 8ve.decimal format */
     MYFLT oct = (*p->a / FL(12.0)) + FL(MIDINOTE0);
     /* Lookup in cpsoct table */
@@ -984,6 +1003,7 @@ int cpsmidinn(CSOUND *csound, EVAL *p)
 
 int octmidinn(CSOUND *csound, EVAL *p)
 {
+    IGN(csound);
     /* Convert Midi Note number to 8ve.decimal format */
     *p->r = (*p->a / FL(12.0)) + FL(MIDINOTE0);
     return OK;
@@ -991,6 +1011,7 @@ int octmidinn(CSOUND *csound, EVAL *p)
 
 int pchmidinn(CSOUND *csound, EVAL *p)
 {
+   IGN(csound);
     double fract, oct, octdec;
     /* Convert Midi Note number to 8ve.decimal format */
     octdec = ((double)*p->a / 12.0) + MIDINOTE0;
@@ -1132,6 +1153,7 @@ int cpstun(CSOUND *csound, CPSTUN *p)
 
 int logbasetwo_set(CSOUND *csound, EVAL *p)
 {
+    IGN(p);
     if (UNLIKELY(csound->logbase2 == NULL)) {
       double  x = (1.0 / INTERVAL);
       int     i;
@@ -1816,6 +1838,7 @@ int outch(CSOUND *csound, OUTCH *p)
 
 int is_NaN(CSOUND *csound, ASSIGN *p)
 {
+    IGN(csound);
     *p->r = isnan(*p->a);
     return OK;
 }
@@ -1834,6 +1857,7 @@ int is_NaNa(CSOUND *csound, ASSIGN *p)
 
 int is_inf(CSOUND *csound, ASSIGN *p)
 {
+    IGN(csound);
     *p->r = isinf(*p->a);
     return OK;
 }
@@ -1857,6 +1881,7 @@ int is_infa(CSOUND *csound, ASSIGN *p)
 
 int error_fn(CSOUND *csound, ERRFN *p)
 {
+   IGN(p);
     return csound->InitError(csound, Str("Unknown function called"));
 }
 
@@ -1902,6 +1927,7 @@ int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 
 int outRange_i(CSOUND *csound, OUTRANGE *p)
 {
+   IGN(csound);
     p->narg = p->INOCOUNT-1;
     return OK;
 }
