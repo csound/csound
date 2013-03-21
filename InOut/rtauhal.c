@@ -117,6 +117,8 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     CFStringRef devName;
     CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
 
+
+
     prop.mSelector = (isInput ?
                       kAudioHardwarePropertyDefaultInputDevice :
                       kAudioHardwarePropertyDefaultOutputDevice);
@@ -133,7 +135,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                                    &prop, 0, NULL, &psize);
     devnos = psize / sizeof(AudioDeviceID);
     sysdevs = (AudioDeviceID *) malloc(psize);
-    devinfo = (Device_Info *) malloc(devnos*sizeof*devinfo);
+    devinfo = (Device_Info *) malloc(devnos*sizeof(Device_Info));
     AudioObjectGetPropertyData(kAudioObjectSystemObject,
                                &prop, 0, NULL, &psize, sysdevs);
 
@@ -188,6 +190,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         devinfo[i].outdevnum = devouts;
       } else devinfo[i].outdevnum = -1;
       free(b);
+      printf("devno %d\n", i);
     }
     
    
@@ -560,7 +563,6 @@ static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
       cdata->disp = 1;
     }
     cdata->outunit = NULL;
- 
     *playdata = (void *) cdata;
     cdata->outParm =  (csRtAudioParams *) parm;
     cdata->csound = csound;
