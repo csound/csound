@@ -131,7 +131,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
 
     int j, fareyseq, nvals, nargs, farey_length, mode;
     MYFLT   *fp = ftp->ftable, *pp, *pp2;
-    CSOUND  *csound = ff->csound;
+    //CSOUND  *csound = ff->csound;
     RATIO *flist;
 
     nvals = ff->flen;
@@ -144,7 +144,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
     fareyseq = (int) *pp;
     pp2 = &(ff->e.p[6]);
     mode = (int) *pp2;
-    farey_length = FareyLength (fareyseq);
+    farey_length = FareyLength(fareyseq);
     flist = (RATIO*) calloc(farey_length, sizeof(RATIO));
 
     GenerateFarey (fareyseq, flist, farey_length);

@@ -6,7 +6,9 @@ typedef struct
 {
   OPDS h;
   MYFLT *kresult, *kdev, *ktable;
-  int devFD, numk, numb, timeout, initme;
+  int devFD;
+  unsigned int numk, numb;
+  int timeout, initme;
   MYFLT table;
   int dev;
   FUNC *ftp;

@@ -152,7 +152,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     MYFLT      *outl, *outr; /* output left/right */
     int        outfront, outend; /* circular output indices */
     int        incount, outcount; /* number of samples in/out */
-    int        toread; /* number of samples to read */
+    uint32_t   toread; /* number of samples to read */
     int        i; /* standard loop counter */
     HRTF_DATUM hrtf_data; /* local hrtf instances */
     int        flip; /* flag - true if we need to flip the channels */

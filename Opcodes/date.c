@@ -122,7 +122,8 @@ static int readf_init(CSOUND *csound, READF *p)
 static int readf(CSOUND *csound, READF *p)
 {
     ((char*) p->Sline)[0] = '\0';
-    if (UNLIKELY(fgets((char*) p->Sline, csound->GetStrVarMaxLen(csound), p->fd)==NULL)) {
+    if (UNLIKELY(fgets((char*) p->Sline,
+                       csound->GetStrVarMaxLen(csound), p->fd)==NULL)) {
       int ff = feof(p->fd);
       fclose(p->fd);
       p->fd = NULL;
@@ -139,7 +140,7 @@ static int readf(CSOUND *csound, READF *p)
 
 static int readfi(CSOUND *csound, READF *p)
 {
-    if ((int)p->fd<=0)          /* SHOULD THIS BE ==NULL ?? */
+    if (p->fd==NULL)
       if (UNLIKELY(readf_init(csound, p)!= OK))
         return csound->InitError(csound, Str("readi failed to initialise"));
     return readf(csound, p);
