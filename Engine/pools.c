@@ -13,6 +13,13 @@ MYFLT_POOL* myflt_pool_create(CSOUND* csound) {
     return pool;
 }
 
+void myflt_pool_free(CSOUND *csound, MYFLT_POOL *pool){
+  if(pool != NULL) {
+  csound->Free(csound, pool->values);
+  csound->Free(csound, pool);
+  }
+}
+
 int myflt_pool_indexof(MYFLT_POOL* pool, MYFLT value) {
     int retVal = -1;
     int i;
@@ -64,6 +71,19 @@ STRING_POOL* string_pool_create(CSOUND* csound) {
     return pool;
 }
 
+void string_pool_free(CSOUND* csound, STRING_POOL* pool){
+  if(pool != NULL){
+   STRING_VAL* current = pool->values, *tmp;
+   while(current != NULL){
+    tmp = current;
+    current = current->next;
+    csound->Free(csound, tmp->value);
+    csound->Free(csound, tmp);
+  }
+   csound->Free(csound, pool);
+  }
+}
+
 STRING_VAL* string_pool_find(STRING_POOL* pool, char* value) {
     STRING_VAL* retVal = NULL;
     
@@ -76,9 +96,7 @@ STRING_VAL* string_pool_find(STRING_POOL* pool, char* value) {
         }
         current = current->next;
     }
-    
     return retVal;
-
 }
 //
 //STRING_VAL* string_pool_item_at(STRING_POOL* pool, int index) {

@@ -1135,7 +1135,7 @@ typedef struct NAME__ {
                            uint32, uint32, uint32,
                            uint32, int32, int, int,
                            float, float *, uint32);
-    int (*PVOC_OpenFile)(CSOUND *, const char *, void *, void *);
+    int (*PVOC_OpenFile)(CSOUND *, const char *, void  *, void *);
     int (*PVOC_CloseFile)(CSOUND *, int);
     int (*PVOC_PutFrames)(CSOUND *, int, const float *, int32);
     int (*PVOC_GetFrames)(CSOUND *, int, float *, uint32);

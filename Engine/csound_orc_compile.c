@@ -1193,6 +1193,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 {
     /* FIXME: we need functions to deallocate stringPool, constantPool */
     mfree(csound, engineState->instrumentNames);
+    myflt_pool_free(csound, engineState->constantsPool);
+    string_pool_free(csound, engineState->stringPool);
     mfree(csound, engineState->varPool);
     mfree(csound, engineState);
     return 0;

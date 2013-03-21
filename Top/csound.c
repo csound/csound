@@ -378,7 +378,7 @@ static const CSOUND cenviron_ = {
     csoundGetFileName,
     csoundFileClose,
     pvoc_createfile,
-    (int (*)(CSOUND *, const char *, void *, void *)) pvoc_openfile,
+    pvoc_openfile,
     pvoc_closefile,
     pvoc_putframes,
     pvoc_getframes,
@@ -559,8 +559,6 @@ static const CSOUND cenviron_ = {
     0.0,            /*  beatTime            */
     (EVTBLK*) NULL, /*  currevent           */
     (INSDS*) NULL,  /*  curip               */
-    /*DFLT_KR, */       /*  global_ekr          */
-    /* (CS_VAR_POOL*)NULL, */
     0, 0,           /*  nchanik, nchania    */
     0, 0,           /*  nchanok, nchanoa    */
     NULL, NULL,     /*  chanik, chania      */
@@ -576,7 +574,6 @@ static const CSOUND cenviron_ = {
     (OENTRY*) NULL, /*  opcodlstend         */
     (OENTRIES *) NULL, /* opcodelist */
     (OENTRIES *) NULL, /* opcodelist_end */
-    /* -1,  */          /*  maxopcno  now in engineState           */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */
@@ -589,9 +586,6 @@ static const CSOUND cenviron_ = {
     { FL(0.0) },    /*  omaxamp             */
     {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
     NULL, NULL,     /*  scorein, scoreout   */
-    /* NULL, */          /*  pool                */
-    /* (MYFLT_POOL*)NULL, */ /* constants pool now in engineState */
-    /* (STRING_POOL*)NULL, */ /* string pool now in engineState */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
     NULL,           /*  zkstart             */
@@ -650,10 +644,6 @@ static const CSOUND cenviron_ = {
     0,              /*  evt_poll_cnt        */
     0,              /*  evt_poll_maxcnt     */
     0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
-    /* FL(-1.0), FL(-1.0), */  /*  tran_sr,tran_kr */
-    /* FL(-1.0),   */    /*  tran_ksmps          */
-    /* DFLT_DBFS,  */   /*  tran_0dbfs          */
-    /*  DFLT_NCHNLS, */    /*  tran_nchnls         */
     NULL,           /*  opcodeInfo  */
     /*NULL,   */        /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */
