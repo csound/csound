@@ -78,12 +78,13 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4))
       csound->Message(csound, Str("Read failure\n"));
-    for (i=0; i<(signed int)hdr.headersize-sizeof(LPHEADER)+4; i++)
+    for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
     coef = (MYFLT *)csound->Malloc(csound, (hdr.npoles+hdr.nvals)*sizeof(MYFLT));
     for (i = 0; i<hdr.nvals; i++) {
-      if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf)!=hdr.npoles))
+      if (UNLIKELY(fread(&coef[0], sizeof(MYFLT),
+                         hdr.npoles, inf)!=(size_t)hdr.npoles))
         csound->Message(csound, Str("Read failure\n"));
       for (j=0; j<hdr.npoles; j++)
         fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));
