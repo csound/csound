@@ -48,7 +48,7 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
-    int i, j;
+    unsigned int i, j;
     char *str;
     MYFLT *coef;
 
