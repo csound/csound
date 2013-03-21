@@ -247,19 +247,6 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
         retVal[1] = 0;
             
         return retVal;
-            
-        // FIXME - this uses the current expression expansion code
-        // this needs to be changed to do an opcode lookup
-        // but first :i, :k, and :a should be changed to overridden :cond opcodes
-//            if (*arg1 == 'a' || *arg2 == 'a') {
-//                return cs_strdup(csound, "a");
-//            }
-//            else if (*arg1 == 'k' || *arg2 == 'k' || *ans == 'B') {
-//                return cs_strdup(csound, "k");
-//            }
-//            else {
-//                return cs_strdup(csound, "i");
-//            }
       }
         
       char* argTypeRight = get_arg_type(csound, nodeToCheck->right);
@@ -352,7 +339,6 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
     case NUMBER_TOKEN:
     case INTEGER_TOKEN:
       return cs_strdup(csound, "c");                              /* const */
-//            return cs_strdup(csound, "i");
     case STRING_TOKEN:
             return cs_strdup(csound, "S");                /* quoted String */
     case SRATE_TOKEN:
@@ -362,7 +348,6 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
     case NCHNLS_TOKEN:
     case NCHNLSI_TOKEN:
       return cs_strdup(csound, "r");                              /* rsvd */
-//            return cs_strdup(csound, "i");
     case LABEL_TOKEN:
       //FIXME: Need to review why label token is used so much in parser, 
       //for now treat as T_IDENT
@@ -377,7 +362,6 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 
       if (pnum(s) >= 0)
         return cs_strdup(csound, "p");                              /* pnum */
-//                return cs_strdup(csound, "i");
       if (*s == '#')
         s++;
       if (*s == 'g')
@@ -609,7 +593,7 @@ PUBLIC int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
     if (returnVal && varArg == NULL) {
       while (argTypeIndex < argsRequiredCount) {
         char c = *argsRequired[argTypeIndex++];
-//            printf("CHECKING c: %c\n", c);
+
         if (!is_in_optional_arg(c) && !is_in_var_arg(c)) {
           returnVal = 0;
           break;
@@ -752,7 +736,7 @@ PUBLIC OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
         OENTRY* temp = entries->entries[i];
 //        if (temp->intypes == NULL && temp->outypes == NULL) {
 //            if (outArgTypes == NULL && inArgTypes == NULL) {
-//                <#statements#>
+//                
 //            }
 //            continue;
 //        }
@@ -915,22 +899,6 @@ PUBLIC int find_opcode_num_by_tree(CSOUND* csound, char* opname,
     return retVal;
 }
 
-
-//
-///* verifies expression args are correct and returns arg type for
-//answer to top most expression 
-// char* verify_expression(CSOUND*
-//csound, TREE* root, TYPE_TABLE* typeTable) {
-//    
-//    TREE* left = root->left;
-//    TREE* right = root->right;
-//    
-//    if (is_boolean_expression_node(root)) {
-//        
-//    }
-//    
-//    return NULL;
-//}
 
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]
@@ -1115,10 +1083,6 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     char* leftArgString = get_arg_string_from_tree(csound, left);
     char* rightArgString = get_arg_string_from_tree(csound, right);
     
-//    csound->Message(csound, "Verifying Opcode: %s\n", root->value->lexeme);
-//    csound->Message(csound, "    Arg Types Found: %s | %s\n",
-//                    leftArgString, rightArgString);
-   
     OENTRIES* entries = find_opcode2(csound, root->value->lexeme);
     if (entries == NULL || entries->count == 0) {
       synterr(csound, Str("Unable to find opcode with name: %s\n"),
@@ -1305,19 +1269,6 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           return 0;
         }
                 
-//        if (current->right != NULL) {
-//          if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
-//                    
-//          if (current->type == '=' && previous != NULL) {
-//            /* '=' should be guaranteed to have left and right
-//             * arg by the time it gets here */
-//            if (previous->left != NULL && previous->left->value != NULL) {
-//              if (strcmp(previous->left->value->lexeme,
-//                         current->right->value->lexeme) == 0) {
-//              }
-//            }
-//          }
-//        }
       }
         
       if (anchor == NULL) {
@@ -1675,40 +1626,6 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"STRING_TOKEN: %s\n", l->value->lexeme); break;
     case T_IDENT:
       csound->Message(csound,"T_IDENT: %s\n", l->value->lexeme); break;
-    /*case T_IDENT_I:
-      csound->Message(csound,"IDENT_I: %s\n", l->value->lexeme); break;
-    case T_IDENT_GI:
-      csound->Message(csound,"IDENT_GI: %s\n", l->value->lexeme); break;
-    case T_IDENT_K:
-      csound->Message(csound,"IDENT_K: %s\n", l->value->lexeme); break;
-    case T_IDENT_GK:
-      csound->Message(csound,"IDENT_GK: %s\n", l->value->lexeme); break;
-    case T_IDENT_A:
-      csound->Message(csound,"IDENT_A: %s\n", l->value->lexeme); break;
-    case T_IDENT_GA:
-      csound->Message(csound,"IDENT_GA: %s\n", l->value->lexeme); break;
-    case T_IDENT_S:
-      csound->Message(csound,"IDENT_S: %s\n", l->value->lexeme); break;
-    case T_IDENT_GS:
-      csound->Message(csound,"IDENT_GS: %s\n", l->value->lexeme); break;
-    case T_IDENT_T:
-      csound->Message(csound,"IDENT_T: %s\n", l->value->lexeme); break;
-    case T_IDENT_GT:
-      csound->Message(csound,"IDENT_GT: %s\n", l->value->lexeme); break;
-    case T_IDENT_W:
-      csound->Message(csound,"IDENT_W: %s\n", l->value->lexeme); break;
-    case T_IDENT_GW:
-      csound->Message(csound,"IDENT_GW: %s\n", l->value->lexeme); break;
-    case T_IDENT_F:
-      csound->Message(csound,"IDENT_F: %s\n", l->value->lexeme); break;
-    case T_IDENT_GF:
-      csound->Message(csound,"IDENT_GF: %s\n", l->value->lexeme); break;
-    case T_IDENT_P:
-      csound->Message(csound,"IDENT_P: %s\n", l->value->lexeme); break;
-    case T_IDENT_B:
-      csound->Message(csound,"IDENT_B: %s\n", l->value->lexeme); break;
-    case T_IDENT_b:
-      csound->Message(csound,"IDENT_b: %s\n", l->value->lexeme); break; */
     case INTEGER_TOKEN:
       csound->Message(csound,"INTEGER_TOKEN: %d\n", l->value->value); break;
     case NUMBER_TOKEN:
@@ -2054,122 +1971,5 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     else if (tree->type==0) {
       csound->Message(csound, "Null type in tree -- aborting\n");
       exit(2);
-    }
-//    else if (strcmp(tree->value->lexeme, "init") == 0 && 
-//            tree->left->type == T_ARRAY_IDENT) {
-//        // rewrite init as array_init
-//        tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
-//                                               strlen("array_init") + 1);
-//        strcpy(tree->value->lexeme, "array_init");
-//    }
-    else {
-//      int opnum = find_opcode_num_by_tree(csound, tree->value->lexeme, tree->left, tree->right);
-//      OENTRY *ep = csound->opcodlst + opnum;
-//
-///*     int incnt = tree_arg_list_count(tree->right); */
-//
-//      char * str = (char *)mcalloc(csound, strlen(ep->opname) + 4);
-//      char c, d;
-//
-//      if (ep->dsblksiz >= 0xfffb) {
-//
-//        switch (ep->dsblksiz) {
-//
-//        case 0xffff:
-//          /* use outype to modify some opcodes flagged as translating */
-//          if (PARSER_DEBUG)
-//            csound->Message(csound, "[%s]\n", tree->left->value->lexeme);
-//
-//          c = tree_argtyp(csound, tree->left);
-//          if (c == 'p')   c = 'i';
-//          if (c == '?')   c = 'a';                   /* tmp */
-//          sprintf(str, "%s.%c", ep->opname, c);
-//
-//          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
-//
-//     /*if (find_opcode(csound, str) == 0) {*/
-//     /* synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
-//        str, ST(group)[ST(nxtest)]);*/    /* report syntax error     */
-//     /*ST(nxtest) = 100; */                    /* step way over this line */
-//     /*goto tstnxt;*/                          /* & go to next            */
-//     /*break;*/
-//     /*}*/
-//          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
-//                                                 strlen(str) + 1);
-//          strcpy(tree->value->lexeme, str);
-//          csound->DebugMsg(csound, Str("modified opcod: %s"), str);
-//          break;
-//        case 0xfffe:                              /* Two tags for OSCIL's    */
-//          if (PARSER_DEBUG)
-//            csound->Message(csound, "POLYMORPHIC 0xfffe\n");
-//          c = tree_argtyp(csound, tree->right);
-//          if (c != 'a') c = 'k';
-//          if ((d = tree_argtyp(csound, tree->right->next)) != 'a') d = 'k';
-//          sprintf(str, "%s.%c%c", ep->opname, c, d);
-//          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
-//          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
-//                                                 strlen(str) + 1);
-//          strcpy(tree->value->lexeme, str);
-//          break;
-//        case 0xfffd:                              /* For peak, etc.          */
-//          c = tree_argtyp(csound, tree->right);
-//          if (PARSER_DEBUG)
-//            csound->Message(csound, "POLYMORPHIC 0xfffd\n");
-//          if (c != 'a') c = 'k';
-//          sprintf(str, "%s.%c", ep->opname, c);
-//          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
-//          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
-//                                                 strlen(str) + 1);
-//          strcpy(tree->value->lexeme, str);
-//          break;
-//        case 0xfffc:                              /* For divz types          */
-//          if (PARSER_DEBUG)
-//            csound->Message(csound, "POLYMORPHIC 0xfffc\n");
-//          c = tree_argtyp(csound, tree->right);
-//          d = tree_argtyp(csound, tree->right->next);
-//          if ((c=='i' || c=='c') && (d=='i' || d=='c'))
-//            c = 'i', d = 'i';
-//          else {
-//            if (c != 'a') c = 'k';
-//            if (d != 'a') d = 'k';
-//          }
-//          sprintf(str, "%s.%c%c", ep->opname, c, d);
-//          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
-//          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
-//                                                 strlen(str) + 1);
-//          strcpy(tree->value->lexeme, str);
-//          break;
-//        case 0xfffb:          /* determine opcode by type of first input arg */
-//          if (PARSER_DEBUG)
-//            csound->Message(csound, "POLYMORPHIC 0xfffb\n");
-//          c = tree_argtyp(csound, tree->right);
-//           /* allows a, k, and i types (e.g. Inc, Dec), but not constants */
-//          if (c=='p') c = 'i';
-//          /*if (ST(typemask_tabl)[(unsigned char) c] & (ARGTYP_i | ARGTYP_p))
-//            c = 'i';
-//            sprintf(str, "%s.%c", ST(linopcod), c);*/
-//          sprintf(str, "%s.%c", ep->opname, c);
-//          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
-//          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
-//                                                 strlen(str) + 1);
-//          strcpy(tree->value->lexeme, str);
-//          break;
-//        default:
-//          csound->Message(csound, "Impossible case\n");
-//          break;
-//        }
-//
-//   /*if (!(isopcod(csound, str))) {*/
-//   /* if opcode is not found: report syntax error     */
-//   /*synterr(csound, Str("failed to find %s, input arg illegal type"), str);*/
-//   /*ST(nxtest) = 100;*/                       /* step way over this line */
-//   /*goto tstnxt;*/                            /* & go to next            */
-//   /*}
-//          ST(linopnum) = ST(opnum);
-//          ST(linopcod) = ST(opcod);
-//          csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));*/
-//      }
-
-      /* free(str); */
     }
 }
