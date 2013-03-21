@@ -531,7 +531,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 }
 
 /**
- * Add a global variable
+ * Add a global variable and allocate memory
  * Globals, unlike locals, keep their memory space
  * in separate blocks, pointed by var->memBlock
  */
@@ -659,7 +659,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           }
           else if (current->left->type == KSMPS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
-            ksmps = uval;
+            /* VL: early assignment to ksmps so memory can be
+               allocated. This is unsafe and needs to be fixed */
+            csound->ksmps = ksmps = uval;
           }
           else if (current->left->type == NCHNLS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
