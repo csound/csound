@@ -1222,6 +1222,35 @@ typedef struct NAME__ {
     int (*GetReinitFlag)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
     SUBR dummyfn_2[50];
+    /**
+     *
+      NO MORE PUBLIC VARIABLES IN CSOUND
+
+      NB: if a new variable member is needed, please add it below, as a 
+      private data member.
+
+      If access is required by hosts or plugins, please use the 
+      CreateGlobalVariable() etc. interface, instead of adding to
+      CSOUND.
+
+      If you find that a plugin needs to access existing private data,
+      first check above for an existing interface; if none is available,
+      add one. Please avoid giving full access, or allowing plugins to
+      change the values of private members, by using one of the two methods
+      below:
+
+      1) To get the data member value: 
+         returnType (*GetVar)(CSOUND *)
+
+      2) in case of pointers, data should be copied out to a supplied memory
+         slot, rather than the pointer being obtained:
+         void (*GetData)(CSOUND *, dataType *)
+         
+         dataType var;
+         csound->GetData(csound, &var);
+    *
+    */
+
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
     /* callback function pointers */
