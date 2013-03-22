@@ -729,7 +729,7 @@ extern "C" {
         /** device number (0-1023), 1024: default */
         int     devNum;
         /** buffer fragment size (-b) in sample frames */
-        int     bufSamp_SW;
+        unsigned int     bufSamp_SW;
         /** total buffer size (-B) in sample frames */
         int     bufSamp_HW;
         /** number of channels */
@@ -2227,8 +2227,8 @@ extern "C" {
 #  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 #  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 # else
-#  define csoundSpinLock(spinlock)
-#  define csoundSpinUnLock(spinlock)
+#  define csoundSpinLock(spinlock) pthread_spin_lock((pthread_spinlock_t *)spinlock);
+#  define csoundSpinUnLock(spinlock) pthread_spin_unlock((pthread_spinlock_t *)spinlock);
 #  define CSOUND_SPIN_LOCK
 #  define CSOUND_SPIN_UNLOCK
 #endif
