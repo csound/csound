@@ -1055,12 +1055,14 @@ extern "C" {
    PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
 
    /**
-    * Returns whether Csound is in debug mode.
+    * Returns whether Csound is set to print debug messages sent through the
+    * DebugMsg() internal API function. Anything different to 0 means true.
     */
    PUBLIC int csoundGetDebug(CSOUND *);
 
    /**
-    * Sets whether Csound is in debug mode.
+    * Sets whether Csound prints debug messages from the DebugMsg() internal
+    * API function. Anything different to 0 means true.
     */
    PUBLIC void csoundSetDebug(CSOUND *, int debug);
 
