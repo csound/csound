@@ -36,6 +36,7 @@ int igoto(CSOUND *csound, GOTO *p)
 
 int kgoto(CSOUND *csound, GOTO *p)
 {
+    IGN(csound);
     CS_PDS = p->lblblk->prvp;
     return OK;
 }
@@ -49,6 +50,7 @@ int icgoto(CSOUND *csound, CGOTO *p)
 
 int kcgoto(CSOUND *csound, CGOTO *p)
 {
+   IGN(csound);
     if (*p->cond)
       CS_PDS = p->lblblk->prvp;
     return OK;
@@ -65,6 +67,7 @@ int ingoto(CSOUND *csound, CGOTO *p)
 
 int kngoto(CSOUND *csound, CGOTO *p)
 {
+    IGN(csound);
     if (!*p->cond)
       CS_PDS = p->lblblk->prvp;
     return OK;
@@ -82,6 +85,7 @@ int iingoto(CSOUND *csound, CGOTO *p)
 
 int kingoto(CSOUND *csound, CGOTO *p)
 {
+    IGN(csound);
     CS_PDS = p->lblblk->prvp;
     return OK;
 }
@@ -97,6 +101,7 @@ int timset(CSOUND *csound, TIMOUT *p)
 
 int timout(CSOUND *csound, TIMOUT *p)
 {
+   IGN(csound);
     if (p->cnt1)                            /* once delay has expired, */
       p->cnt1--;
     else if (--p->cnt2 >= 0L)               /*  br during idur countdown */
@@ -150,6 +155,7 @@ int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 
 int ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
 {                                       /* called by ihold statmnt at Itime  */
+    IGN(csound);
     if (!csound->reinitflag) {          /* no-op at reinit                   */
       csound->curip->offbet = -1.0;
       csound->curip->offtim = -1.0;
@@ -159,6 +165,7 @@ int ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
 
 int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
+    IGN(csound);
     INSDS  *lcurip = CS_PDS->insdshead;
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
@@ -290,6 +297,7 @@ int loop_ge_i(CSOUND *csound, LOOP_OPS *p)
 int loop_l_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar += kincr) < klimit) kgoto l */
+    IGN(csound);
     *(p->ndxvar) += *(p->incr);
     if (*(p->ndxvar) < *(p->limit))
       CS_PDS = p->l->prvp;
@@ -299,6 +307,7 @@ int loop_l_p(CSOUND *csound, LOOP_OPS *p)
 int loop_le_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar += kincr) <= klimit) kgoto l */
+    IGN(csound);
     *(p->ndxvar) += *(p->incr);
     if (*(p->ndxvar) <= *(p->limit))
       CS_PDS = p->l->prvp;
@@ -308,6 +317,7 @@ int loop_le_p(CSOUND *csound, LOOP_OPS *p)
 int loop_g_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar -= kdecr) > klimit) kgoto l */
+    IGN(csound);
     *(p->ndxvar) -= *(p->incr);
     if (*(p->ndxvar) > *(p->limit))
       CS_PDS = p->l->prvp;
@@ -317,6 +327,7 @@ int loop_g_p(CSOUND *csound, LOOP_OPS *p)
 int loop_ge_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar -= kdecr) >= klimit) kgoto l */
+    IGN(csound);
     *(p->ndxvar) -= *(p->incr);
     if (*(p->ndxvar) >= *(p->limit))
       CS_PDS = p->l->prvp;
