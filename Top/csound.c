@@ -149,6 +149,40 @@ void module_list_add(CSOUND *csound, char *drv, char *type){
     }
 }
 
+int csoundGetRandSeed(CSOUND *csound, int which){
+  if(which > 1) return csound->randSeed1;
+  else return csound->randSeed2;
+}
+
+char *csoundGetStrsets(CSOUND *csound, long p){
+  if(csound->strsets == NULL) return NULL;
+  else return csound->strsets[p];
+}
+int csoundGetStrsmax(CSOUND *csound){
+  return csound->strsmax;
+}
+
+void csoundGetOParms(CSOUND *csound, OPARMS *p){
+  memcpy(p, csound->oparms, sizeof(OPARMS));
+}
+
+int csoundGetDitherMode(CSOUND *csound){
+  return  csound->dither_output;
+}
+
+int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
+  *zkstart = csound->zkstart;
+  return csound->zklast;
+}
+
+int csoundGetReinitFlag(CSOUND *csound){
+  return csound->reinitflag;
+}
+
+int csoundGetTieFlag(CSOUND *csound){
+  return csound->tieflag;
+}
+
 static const CSOUND cenviron_ = {
 #ifdef SOME_FIND_DAY
     csoundGetVersion,
@@ -344,7 +378,7 @@ static const CSOUND cenviron_ = {
     csoundGetFileName,
     csoundFileClose,
     pvoc_createfile,
-    (int (*)(CSOUND *, const char *, void *, void *)) pvoc_openfile,
+    pvoc_openfile,
     pvoc_closefile,
     pvoc_putframes,
     pvoc_getframes,
@@ -416,6 +450,16 @@ static const CSOUND cenviron_ = {
     set_util_nchnls,
     module_list_add,
     csoundGetCurrentTimeSamples,
+    csoundGetStrVarMaxLen,
+    csoundGetRandSeed,
+    csoundGetStrsmax,
+    csoundGetStrsets,
+    csoundGetOParms,
+    csoundGetDitherMode,
+    csoundGetZakBounds,
+    csoundGetTieFlag,
+    csoundGetReinitFlag,
+    csoundGet0dBFS,
     /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -424,50 +468,6 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
-    /* ----------------------- public data fields ----------------------- */
-    0,              /*  reinitflag          */
-    0,              /*  tieflag             */
-    FL(0.0),        /*  onedsr              */
-    FL(0.0),        /*  sicvt               */
-    FL(-1.0),       /*  tpidsr              */
-    FL(-1.0),       /*  pidsr               */
-    FL(-1.0),       /*  mpidsr              */
-    FL(-1.0),       /*  mtpdsr              */
-    FL(0.0),        /*  onedksmps           */
-    FL(0.0),        /*  onedkr              */
-    FL(0.0),        /*  kicvt               */
-    DFLT_DBFS,      /*  e0dbfs              */
-    FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
-    NULL,           /*  widgetGlobals       */
-    NULL,           /*  stdOp_Env           */
-    NULL,           /*  zkstart             */
-    NULL,           /*  zastart             */
-    0L,             /*  zklast              */
-    0L,             /*  zalast              */
-    NULL,           /*  spin                */
-    NULL,           /*  spout               */
-    0,              /*  nspin               */
-    0,              /*  nspout              */
-    (OPARMS*) NULL, /*  oparms              */
-    NULL,           /*  hostdata            */
-    NULL,           /*  rtRecord_userdata   */
-    NULL,           /*  rtPlay_userdata     */
-    2345678,        /*  holdrand            */
-    256,            /*  strVarMaxLen        */
-    /* MAXINSNO, */      /*  maxinsno            */
-    0,              /*  strsmax             */
-    (char**) NULL,  /*  strsets             */
-    /*NULL, */      /*  instrtxtp now part of engineState */
-    { NULL },       /*  m_chnbp             */
-    NULL,           /*  csRtClock           */
-    NULL,           /*  csRandState         */
-    0,              /*  randSeed1           */
-    0,              /*  randSeed2           */
-    //    sizeof(MYFLT),  /*  floatsize           */
-    0,                      /*   dither_output  */
-    NULL,                   /*  flgraphsGlobals */
-    {0, 0, 0, 0, 0, 0, 0}, /* dummyint[7]; */
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint32[10]; */
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
@@ -492,7 +492,15 @@ static const CSOUND cenviron_ = {
     rtclose_dummy,
     audio_dev_list_dummy,
     midi_dev_list_dummy,
+    csoundDoCallback_,  /*  doCsoundCallback    */
+    defaultCsoundYield, /* csoundInternalYieldCallback_*/
     /* end of callbacks */
+    csound_str_hash_32, /*  strHash32           */
+    (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
+    (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
+    (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
+    (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
+    NULL,           /*  hostdata            */
     NULL, NULL,     /*  orchname, scorename */
     NULL, NULL,     /*  orchstr, *scorestr  */
     (OPDS*) NULL,   /*  ids                 */
@@ -551,8 +559,6 @@ static const CSOUND cenviron_ = {
     0.0,            /*  beatTime            */
     (EVTBLK*) NULL, /*  currevent           */
     (INSDS*) NULL,  /*  curip               */
-    /*DFLT_KR, */       /*  global_ekr          */
-    /* (CS_VAR_POOL*)NULL, */
     0, 0,           /*  nchanik, nchania    */
     0, 0,           /*  nchanok, nchanoa    */
     NULL, NULL,     /*  chanik, chania      */
@@ -568,7 +574,6 @@ static const CSOUND cenviron_ = {
     (OENTRY*) NULL, /*  opcodlstend         */
     (OENTRIES *) NULL, /* opcodelist */
     (OENTRIES *) NULL, /* opcodelist_end */
-    /* -1,  */          /*  maxopcno  now in engineState           */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */
@@ -581,11 +586,43 @@ static const CSOUND cenviron_ = {
     { FL(0.0) },    /*  omaxamp             */
     {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
     NULL, NULL,     /*  scorein, scoreout   */
-    /* NULL, */          /*  pool                */
-    /* (MYFLT_POOL*)NULL, */ /* constants pool now in engineState */
-    /* (STRING_POOL*)NULL, */ /* string pool now in engineState */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
+    NULL,           /*  zkstart             */
+    0L,             /*  zklast              */
+    NULL,           /*  zastart             */
+    0L,             /*  zalast              */
+    NULL,           /*  stdOp_Env           */
+    2345678,        /*  holdrand            */
+    0,              /*  randSeed1           */
+    0,              /*  randSeed2           */
+    NULL,           /*  csRandState         */
+    NULL,           /*  csRtClock           */
+    256,            /*  strVarMaxLen        */
+       0,              /*  strsmax             */
+    (char**) NULL,  /*  strsets             */
+    NULL,           /*  spin                */
+    NULL,           /*  spout               */
+    0,              /*  nspin               */
+    0,              /*  nspout              */
+    (OPARMS*) NULL, /*  oparms              */
+       { NULL },       /*  m_chnbp             */
+        0,                      /*   dither_output  */
+    FL(0.0),        /*  onedsr              */
+    FL(0.0),        /*  sicvt               */
+    FL(-1.0),       /*  tpidsr              */
+    FL(-1.0),       /*  pidsr               */
+    FL(-1.0),       /*  mpidsr              */
+    FL(-1.0),       /*  mtpdsr              */
+    FL(0.0),        /*  onedksmps           */
+    FL(0.0),        /*  onedkr              */
+    FL(0.0),        /*  kicvt               */
+    0,              /*  reinitflag          */
+    0,              /*  tieflag             */
+    DFLT_DBFS,      /*  e0dbfs              */
+    FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */ 
+    NULL,           /*  rtRecord_userdata   */
+    NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || (defined(_WIN32) && defined(__GNUC__))
     {0},
 #else
@@ -607,10 +644,6 @@ static const CSOUND cenviron_ = {
     0,              /*  evt_poll_cnt        */
     0,              /*  evt_poll_maxcnt     */
     0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
-    /* FL(-1.0), FL(-1.0), */  /*  tran_sr,tran_kr */
-    /* FL(-1.0),   */    /*  tran_ksmps          */
-    /* DFLT_DBFS,  */   /*  tran_0dbfs          */
-    /*  DFLT_NCHNLS, */    /*  tran_nchnls         */
     NULL,           /*  opcodeInfo  */
     /*NULL,   */        /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */
@@ -665,7 +698,8 @@ static const CSOUND cenviron_ = {
     0,              /*  spinlock            */
 #endif
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock, spinlock1           */
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock             */
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock1           */
 #else
     0, 0,              /*  memlock, spinlock1             */
 #endif
@@ -737,10 +771,6 @@ static const CSOUND cenviron_ = {
       NULL, NULL,   /*  pin, pout           */
       0,            /*dither                */
     },
-    (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
-    (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
-    (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
-    (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
     0,              /*  warped              */
     0,              /*  sstrlen             */
     (char*) NULL,   /*  sstrbuf             */
@@ -832,14 +862,13 @@ static const CSOUND cenviron_ = {
     //0L, 0L,         /*  poolcount, gblfixed     */
     //0L, 0L,         /*  gblacount, gblscount    */
     //(CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
-     csoundDoCallback_,  /*  doCsoundCallback    */
+ 
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
-    csound_str_hash_32, /*  strHash32           */
+
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */
     NULL, NULL,     /* chanif, chanof       */
-    defaultCsoundYield, /* csoundInternalYieldCallback_*/
     NULL,           /* multiThreadedBarrier1 */
     NULL,           /* multiThreadedBarrier2 */
     0,              /* multiThreadedComplete */
@@ -2705,6 +2734,7 @@ PUBLIC void csoundReset_(CSOUND *csound)
     CSOUND    *saved_env;
     void      *p1, *p2;
     uintptr_t length;
+    uintptr_t end, start;
     int n = 0;
 
     csoundCleanup(csound);
@@ -2753,7 +2783,9 @@ PUBLIC void csoundReset_(CSOUND *csound)
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
-    length = (uintptr_t) &(csound->ids) - (uintptr_t) csound;
+    end = (uintptr_t) &(csound->first_callback_); /* used to be &(csound->ids) */
+    start =(uintptr_t)  csound;
+    length = end - start;
     memcpy((void*) csound, (void*) saved_env, (size_t) length);
     csound->oparms = &(csound->oparms_);
     csound->hostdata = saved_env->hostdata;
@@ -2945,7 +2977,8 @@ PUBLIC void csoundReset(CSOUND *csound)
         csound->Die(csound, "Failed during csoundInitStaticModules");
 
 
-     csoundCreateGlobalVariable(csound, "_MODULES", (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
+     csoundCreateGlobalVariable(csound, "_MODULES",
+                                (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
      char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
@@ -3004,6 +3037,12 @@ PUBLIC void csoundReset(CSOUND *csound)
       create_opcodlst(csound);
       csoundLoadExternals(csound);
     }
+/* #ifdef HAVE_PTHREAD_SPIN_LOCK */
+/*     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE); */
+/*     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE); */
+/*     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE); */
+/*     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE); */
+/* #endif */
 }
 
 PUBLIC int csoundGetDebug(CSOUND *csound)

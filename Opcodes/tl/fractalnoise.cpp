@@ -349,7 +349,7 @@ class mydsp : public dsp {
               memset(&output0[nn], '\0', early*sizeof(MYFLT));
             }
             for (int i=offset; i<nn; i++) {
-              iRec8[0] = (csound->randSeed1 + (1103515245 * iRec8[1]));
+              iRec8[0] = (csound->GetRandSeed(csound, 1) + (1103515245 * iRec8[1]));
               fRec7[0] = -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + 
                           (iRec8[0] * dv2_31);
               fRec6[0] = (0 - (((fConst14 * fRec6[2]) + (fConst13 * fRec6[1]))

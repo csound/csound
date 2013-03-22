@@ -326,7 +326,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     char *s;
     char **types = splitArgs(csound, ep->outypes);
     //int nreqd = argsRequired(ep->outypes);
-    char      tfound = '\0', treqd;
+    char      tfound = '\0';//, treqd;
 
 //    if (nreqd < 0)    /* for other opcodes */
 //      nreqd = argsRequired(types = ep->outypes);
@@ -344,7 +344,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     while (n--) {                                     /* outargs:  */
       //long    tfound_m;       /* IV - Oct 31 2002 */
       s = tp->outlist->arg[n];
-      treqd = *types[n];
+      //treqd = *types[n];
       tfound = argtyp2(s);                     /*  found    */
       /* IV - Oct 31 2002 */
 //      tfound_m = STA(typemask_tabl)[(unsigned char) tfound];
@@ -531,7 +531,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 }
 
 /**
- * Add a global variable
+ * Add a global variable and allocate memory
  * Globals, unlike locals, keep their memory space
  * in separate blocks, pointed by var->memBlock
  */
@@ -774,6 +774,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->onedkr = FL(1.0) / csound->ekr;    
     csound->global_kcounter  = csound->kcounter;
 
+    if(csound->ksmps != DFLT_KSMPS){
+      reallocateVarPoolMemory(csound, engineState->varPool);
+    }
     close_instrument(csound, ip);
 
     return ip;
@@ -1193,6 +1196,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 {
     /* FIXME: we need functions to deallocate stringPool, constantPool */
     mfree(csound, engineState->instrumentNames);
+    myflt_pool_free(csound, engineState->constantsPool);
+    string_pool_free(csound, engineState->stringPool);
     mfree(csound, engineState->varPool);
     mfree(csound, engineState);
     return 0;
@@ -1416,7 +1421,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       }
 
       /* create memblock for global variables */
-      recalculateVarPoolMemory(csound, engineState->varPool);
+      ///recalculateVarPoolMemory(csound, engineState->varPool);
       /* VL: 15.3.2013 allocating 10 times for space than requested,
          for use with variables allocated later */
       /* csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize*10);

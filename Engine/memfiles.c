@@ -123,7 +123,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     int          j = 0;
     MYFLT x;
     char *all;
-    CVSTRUCT cvh = {0};
+    CVSTRUCT cvh = {0,0,0,0,0.0,0,0,0,0,{0}};
     char buff[120];
     char *p;
 
@@ -177,7 +177,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     int          j = 0;
     MYFLT x;
     char *all, *p;
-    LPHEADER lph = {0};
+    LPHEADER lph = {0,0,0,0,0.0,0.0,0.0,{0}};
     char buff[120];
 
     f = fopen(filnam, "r");

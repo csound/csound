@@ -158,7 +158,8 @@ static int cent_i(CSOUND *csound, CENT *p)
     if (p->windowed.auxp == NULL || p->windowed.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->windowed);
     if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT)) {
-      int i; MYFLT *win;
+      unsigned int i; 
+      MYFLT *win;
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->win);
       win = (MYFLT *) p->win.auxp;
     for (i=0; i < p->fsize; i++)
@@ -173,7 +174,7 @@ static int cent_i(CSOUND *csound, CENT *p)
 
 static int cent_k(CSOUND *csound, CENT *p)
 {
-    int n = p->count, k;
+    unsigned int n = p->count, k;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;

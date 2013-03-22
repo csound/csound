@@ -97,7 +97,7 @@
 static  int     dnoise_usage(CSOUND *, int);
 static  void    hamming(MYFLT *, int, int);
 
-static int writebuffer(CSOUND *, SNDFILE *, MYFLT *, int, int *);
+static int writebuffer(CSOUND *, SNDFILE *, MYFLT *, int, int *, OPARMS *);
 
 static void fast(CSOUND *csound, MYFLT *b, int N)
 {
@@ -139,7 +139,8 @@ static void fsst(CSOUND *csound, MYFLT *b, int N)
 
 static int dnoise(CSOUND *csound, int argc, char **argv)
 {
-    OPARMS  *O = csound->oparms;
+     OPARMS  O;
+     csound->GetOParms(csound, &O);
 
     MYFLT   beg = -FL(1.0), end = -FL(1.0);
     long    Beg = 0, End = 99999999;
@@ -206,8 +207,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       //RoverTwoPi, /* R/D divided by 2*Pi */
       //TwoPioverR, /* 2*Pi divided by R/I */
         sum,        /* scale factor for renormalizing windows */
-        rIn,        /* decimated sampling rate */
-        rOut,       /* pre-interpolated sampling rate */
+      //rIn,        /* decimated sampling rate */
+      //rOut,       /* pre-interpolated sampling rate */
         invR,       /* 1. / srate */
         time,       /* nI / srate */
         gain,       /* gain of noise gate */
@@ -251,15 +252,16 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     unsigned int  outbufsiz = 0U;
     int         nrecs = 0;
 
-    csound->e0dbfs = csound->dbfs_to_float = FL(1.0);
+    /* audio is now normalised after call to getsndin  */
+    /* csound->e0dbfs = csound->dbfs_to_float = FL(1.0); */
 
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
-        O->filetyp = TYP_AIFF;
+        O.filetyp = TYP_AIFF;
       else if (strcmp(envoutyp, "WAV") == 0)
-        O->filetyp = TYP_WAV;
+        O.filetyp = TYP_WAV;
       else if (strcmp(envoutyp, "IRCAM") == 0)
-        O->filetyp = TYP_IRCAM;
+        O.filetyp = TYP_IRCAM;
       else {
         csound->Message(csound, Str("%s not a recognised SFOUTYP env setting"),
                                 envoutyp);
@@ -275,9 +277,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
             switch (c) {
             case 'o':
               FIND("no outfilename");
-              O->outfilename = s;                 /* soundout name */
+              O.outfilename = s;                 /* soundout name */
               for ( ; *s != '\0'; s++) ;
-              if (strcmp(O->outfilename, "stdin") == 0) {
+              if (strcmp(O.outfilename, "stdin") == 0) {
                 csound->Message(csound, Str("-o cannot be stdin\n"));
                 return -1;
               }
@@ -288,58 +290,58 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
               for ( ; *s != '\0'; s++) ;
               break;
             case 'A':
-              if (O->filetyp == TYP_WAV)
+              if (O.filetyp == TYP_WAV)
                 csound->Warning(csound,
                                 Str("-A overriding local default WAV out"));
-              O->filetyp = TYP_AIFF;    /* AIFF output request*/
+              O.filetyp = TYP_AIFF;    /* AIFF output request*/
               break;
             case 'J':
-              if (O->filetyp == TYP_AIFF || O->filetyp == TYP_WAV)
+              if (O.filetyp == TYP_AIFF || O.filetyp == TYP_WAV)
                 csound->Warning(csound, Str("-J overriding local default "
                                             "AIFF/WAV out"));
-              O->filetyp = TYP_IRCAM;   /* IRCAM output request */
+              O.filetyp = TYP_IRCAM;   /* IRCAM output request */
               break;
             case 'W':
-              if (O->filetyp == TYP_AIFF)
+              if (O.filetyp == TYP_AIFF)
                 csound->Warning(csound,
                                 Str("-W overriding local default AIFF out"));
-              O->filetyp = TYP_WAV;      /* WAV output request */
+              O.filetyp = TYP_WAV;      /* WAV output request */
               break;
             case 'h':
-              O->filetyp = TYP_RAW;
-              O->sfheader = 0;           /* skip sfheader  */
+              O.filetyp = TYP_RAW;
+              O.sfheader = 0;           /* skip sfheader  */
               break;
             case 'c':
-              O->outformat = AE_CHAR;     /* 8-bit char soundfile */
+              O.outformat = AE_CHAR;     /* 8-bit char soundfile */
               break;
             case '8':
-              O->outformat = AE_UNCH;     /* 8-bit unsigned char file */
+              O.outformat = AE_UNCH;     /* 8-bit unsigned char file */
               break;
             case 'a':
-              O->outformat = AE_ALAW;     /* a-law soundfile */
+              O.outformat = AE_ALAW;     /* a-law soundfile */
               break;
             case 'u':
-              O->outformat = AE_ULAW;     /* mu-law soundfile */
+              O.outformat = AE_ULAW;     /* mu-law soundfile */
               break;
             case 's':
-              O->outformat = AE_SHORT;    /* short_int soundfile */
+              O.outformat = AE_SHORT;    /* short_int soundfile */
               break;
             case 'l':
-              O->outformat = AE_LONG;     /* long_int soundfile */
+              O.outformat = AE_LONG;     /* long_int soundfile */
               break;
             case 'f':
-              O->outformat = AE_FLOAT;    /* float soundfile */
+              O.outformat = AE_FLOAT;    /* float soundfile */
               break;
             case 'R':
-              O->rewrt_hdr = 1;
+              O.rewrt_hdr = 1;
               break;
             case 'H':
               if (isdigit(*s)) {
                 int n;
-                sscanf(s, "%d%n", &O->heartbeat, &n);
+                sscanf(s, "%d%n", &O.heartbeat, &n);
                 s += n;
               }
-              else O->heartbeat = 1;
+              else O.heartbeat = 1;
               break;
             case 't':
               FIND(Str("no t argument"));
@@ -445,44 +447,44 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("error while opening %s"), infile);
       return -1;
     }
-    if (O->outformat == 0) O->outformat = p->format;
-    O->sfsampsize = csound->sfsampsize(FORMAT2SF(O->outformat));
-    if (O->filetyp == TYP_RAW) {
-      O->sfheader = 0;
-      O->rewrt_hdr = 0;
+    if (O.outformat == 0) O.outformat = p->format;
+    O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
+    if (O.filetyp == TYP_RAW) {
+      O.sfheader = 0;
+      O.rewrt_hdr = 0;
     }
     else
-      O->sfheader = 1;
-    if (O->outfilename == NULL)
-      O->outfilename = "test";
+      O.sfheader = 1;
+    if (O.outfilename == NULL)
+      O.outfilename = "test";
     {
       SF_INFO sfinfo;
       char    *name;
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.samplerate = (int) p->sr;
       sfinfo.channels = (int) p->nchanls;
-      sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
-      if (strcmp(O->outfilename, "stdout") != 0) {
-        name = csound->FindOutputFile(csound, O->outfilename, "SFDIR");
+      sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
+      if (strcmp(O.outfilename, "stdout") != 0) {
+        name = csound->FindOutputFile(csound, O.outfilename, "SFDIR");
         if (name == NULL) {
-          csound->Message(csound, Str("cannot open %s.\n"), O->outfilename);
+          csound->Message(csound, Str("cannot open %s.\n"), O.outfilename);
           return -1;
         }
         outfd = sf_open(name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
           csound->NotifyFileOpened(csound, name,
-                      csound->type2csfiletype(O->filetyp, O->outformat), 1, 0);
+                      csound->type2csfiletype(O.filetyp, O.outformat), 1, 0);
         csound->Free(csound, name);
       }
       else
         outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
-        csound->Message(csound, Str("cannot open %s."), O->outfilename);
+        csound->Message(csound, Str("cannot open %s."), O.outfilename);
         return -1;
       }
       /* register file to be closed by csoundReset() */
       (void)csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
-                                     O->outfilename);
+                                     O.outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
 
@@ -590,9 +592,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     outbuf = csound->Malloc(csound, (size_t) outbufsiz); /* & alloc bufspace */
 #endif
     csound->Message(csound, Str("writing %u-byte blks of %s to %s"),
-                    outbufsiz, csound->getstrformat(O->outformat),
-                    O->outfilename);
-    csound->Message(csound, " (%s)\n", csound->type2string(O->filetyp));
+                    outbufsiz, csound->getstrformat(O.outformat),
+                    O.outfilename);
+    csound->Message(csound, " (%s)\n", csound->type2string(O.filetyp));
 /*  spoutran = spoutsf; */
 
     minv = FL(1.0) / (MYFLT)m;
@@ -765,6 +767,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       if (!csound->CheckEvents(csound))
         csound->LongJmp(csound, 1);
       nread = csound->getsndin(csound, fp, ibuf1, ibuflen, pn);
+      for(i=0; i < nread; i++)
+        ibuf1[i] *= 1.0/csound->Get0dBFS(csound);
       if (nread < ibuflen) {
         ERR(Str("dnoise: begin time is greater than EOF of noise file!"));
       }
@@ -774,6 +778,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       csound->LongJmp(csound, 1);
     i = (int) nMin;
     nread = csound->getsndin(csound, fp, ibuf1, i, pn);
+    for(i=0; i < nread; i++)
+        ibuf1[i] *= 1.0/csound->Get0dBFS(csound);
     if (nread < i) {
       ERR(Str("dnoise: begin time is greater than EOF of noise file!"));
     }
@@ -784,6 +790,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         csound->LongJmp(csound, 1);
       lj += (long) N;
       nread = csound->getsndin(csound, fp, fbuf, N, pn);
+      for(i=0; i < nread; i++)
+        fbuf[i] *= 1.0/csound->Get0dBFS(csound);
       if (nread < N)
         break;
 
@@ -828,13 +836,15 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     nread = csound->getsndin(csound, inf, ibuf2, ibuflen, p);
 /*     nread = read(inf, ibuf2, ibuflen*sizeof(MYFLT)); */
 /*     nread /= sizeof(MYFLT); */
+    for(i=0; i < nread; i++)
+        ibuf2[i] *= 1.0/csound->Get0dBFS(csound);
     lnread = nread;
     f = ibuf2 + nread;
     for (i = nread; i < ibuflen; i++, f++)
       *f = FL(0.0);
 
-    rIn = ((MYFLT) R / D);
-    rOut = ((MYFLT) R / I);
+    //rIn = ((MYFLT) R / D);
+    //rOut = ((MYFLT) R / I);
     invR = FL(1.0) / R;
     nI = -(aLen / D) * D;    /* input time (in samples) */
     nO = nI;                 /* output time (in samples) */
@@ -876,6 +886,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
           ibs -= ibuflen;
           /* fill ib2 */
           nread = csound->getsndin(csound, inf, ib2, ibuflen, p);
+          for(i=0; i < nread; i++)
+               ibuf2[i] *= 1.0/csound->Get0dBFS(csound);
           lnread += nread;
           f = ib2 + nread;
           for (i = nread; i < ibuflen; i++, f++)
@@ -891,11 +903,11 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
           }
           else {
             if ((oCnt + obuflen) < nMaxOut) {
-              oCnt += writebuffer(csound, outfd, ob1, obuflen, &nrecs);
+              oCnt += writebuffer(csound, outfd, ob1, obuflen, &nrecs, &O);
             }
             else {
               i = (int) (nMaxOut - oCnt);
-              oCnt += writebuffer(csound, outfd, ob1, i, &nrecs);
+              oCnt += writebuffer(csound, outfd, ob1, i, &nrecs, &O);
             }
           }
           /* zero ob1 */
@@ -1110,12 +1122,12 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     nMaxOut = (long) (nMax * Chans);
     i = (int) (nMaxOut - oCnt);
     if (i > obuflen) {
-      writebuffer(csound, outfd, ob1, obuflen, &nrecs);
+      writebuffer(csound, outfd, ob1, obuflen, &nrecs, &O);
       i -= obuflen;
       ob1 = ob2;
     }
     if (i > 0)
-      writebuffer(csound, outfd, ob1, i, &nrecs);
+      writebuffer(csound, outfd, ob1, i, &nrecs, &O);
 
 /*  csound->rewriteheader(outfd); */
     csound->Message(csound, "\n\n");
@@ -1179,9 +1191,8 @@ static void sndwrterr(CSOUND *csound, int nret, int nput)
 }
 
 static int writebuffer(CSOUND *csound, SNDFILE *outfd,
-                       MYFLT *outbuf, int nsmps, int *nrecs)
+                       MYFLT *outbuf, int nsmps, int *nrecs, OPARMS *O)
 {
-    OPARMS  *O = csound->oparms;
     int     n;
 
     if (outfd == NULL) return 0;

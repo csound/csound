@@ -211,7 +211,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
       return csound->InitError(csound,
                                Str("scanu: Could not find ifncentr table"));
     }
-    if (UNLIKELY((int)f->flen != len))
+    if (UNLIKELY(f->flen != len))
       return csound->InitError(csound, Str("scanu: Parameter tables should all "
                                            "have the same length"));
     p->c = f->ftable;
@@ -228,7 +228,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Spring stiffness */
     {
-      int i, j;
+      unsigned int i, j;
 
       /* Get the table */
       if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
@@ -266,7 +266,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Initialize them ... */
     {
-      int i;
+      unsigned int i;
       for (i = 0 ; i != len ; i++) {
         p->x0[i] = p->x1[i] = p->x2[i]= p->ext[i] = FL(0.0);
 #if PHASE_INTERP == 3
@@ -290,7 +290,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     }
     /* Velocity gets presidential treatment */
     {
-      int i;
+      unsigned int i;
       FUNC *f = csound->FTnp2Find(csound, p->i_v);
       if (UNLIKELY(f == NULL)) {
         return csound->InitError(csound,
@@ -325,7 +325,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Make external force window if we haven't so far */
     if (pp->ewin == NULL) {
-      int i;
+      unsigned int i;
       MYFLT arg =  PI_F/(len-1);
       pp->ewin = (MYFLT*) csound->Calloc(csound, len * sizeof(MYFLT));
       for (i = 0 ; i != len-1 ; i++)
@@ -336,7 +336,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Throw data into list or use table */
     p->id = (int) *p->i_id;
     if (p->id < 0) {
-      if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < len)) {
+      if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < (int)len)) {
         return csound->InitError(csound, Str("scanu: invalid id table"));
       }
     }
@@ -489,7 +489,7 @@ static int scsns_init(CSOUND *csound, PSCSNS *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*csound->onedsr;
+    p->fix = (MYFLT)p->tlen*(1.0/csound->GetSr(csound));
     return OK;
 }
 

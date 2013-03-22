@@ -70,7 +70,7 @@ typedef struct {
   Fl_Window   *form;
 } FLGRAPH_GLOBALS;
 
-#define ST(x)   (((FLGRAPH_GLOBALS*) csound->flgraphGlobals)->x)
+#define ST(x)   ((flgraphGlobals)->x)
 
 /*void printouts(CSOUND *csound){
     csound->Message(csound, "menu object: %p\n", ST(menu));
@@ -83,9 +83,14 @@ typedef struct {
 void flgraph_init(CSOUND *csound)
 {
 
-    if (csound->flgraphGlobals==NULL) {
-      csound->flgraphGlobals =
-        (FLGRAPH_GLOBALS*) csound->Malloc(csound,sizeof(FLGRAPH_GLOBALS));
+    FLGRAPH_GLOBALS *flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+    if (flgraphGlobals==NULL) {
+     csound->CreateGlobalVariable(csound, "FLGRAPH_GLOBALS", sizeof(FLGRAPH_GLOBALS));
+     flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+      //csound->flgraphGlobals =
+      //(FLGRAPH_GLOBALS*) csound->Malloc(csound,sizeof(FLGRAPH_GLOBALS));
     }
       ST(form) = (Fl_Window *) 0;
       ST(choice) = (Fl_Choice *) 0;
@@ -105,6 +110,8 @@ void flgraph_init(CSOUND *csound)
 
 void graph_box::draw()
 {
+    FLGRAPH_GLOBALS *flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
     Fl_Window::draw();
     fl_color(0, 0, 0);
     fl_line_style(FL_SOLID);
@@ -199,6 +206,8 @@ void graph_box::draw()
 
 void add_graph(CSOUND *csound, WINDAT *wdptr)
 {
+    FLGRAPH_GLOBALS *flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
     WINDAT *n = (WINDAT*) malloc(sizeof(WINDAT));
     int    m;
     WINDAT *old;
@@ -250,12 +259,16 @@ void add_graph(CSOUND *csound, WINDAT *wdptr)
 void do_redraw(Fl_Widget *, void *cs)
 {
     CSOUND *csound = (CSOUND*)cs;
+    FLGRAPH_GLOBALS *flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
     ST(graph)->curr = ST(choice)->value();
     ST(graph)->redraw();
 }
 
 void makeWindow(CSOUND *csound, char *name)
 {
+    FLGRAPH_GLOBALS *flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
     if (ST(form))
       return;
 
@@ -285,14 +298,15 @@ extern "C" {
 
   void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
   {
-
+      
       add_graph(csound, wdptr);
       csound->CheckEvents(csound);
   }
 
   uintptr_t MakeWindow_FLTK(CSOUND *csound, char *name)
   {
-
+      FLGRAPH_GLOBALS *flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
       if (ST(form) == NULL) {
         makeWindow(csound, name);
         ST(form)->show();
@@ -315,6 +329,8 @@ extern "C" {
 
   void kill_graph(CSOUND *csound, uintptr_t m)
   {
+      FLGRAPH_GLOBALS *flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
       for (int i = 0; i < NUMOFWINDOWS; i++) {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
         if (n != NULL && ((uintptr_t) n == m ||n->windid == m)) {
@@ -330,6 +346,8 @@ extern "C" {
 
   int ExitGraph_FLTK(CSOUND *csound)
   {
+      FLGRAPH_GLOBALS *flgraphGlobals = 
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
       if (ST(form) && ST(graph_created) == 1) {
 
         if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {

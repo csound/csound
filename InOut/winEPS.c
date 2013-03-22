@@ -99,13 +99,15 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     char      pathnam[1024];
     char      *t;
     time_t    lt;
+    OPARMS oparms;
+     csound->GetOParms(csound, &oparms);
 
     if (csound->winEPS_globals != NULL)
       return;
     csound->winEPS_globals = csound->Calloc(csound, sizeof(winEPS_globals_t));
     pp = (winEPS_globals_t *) csound->winEPS_globals;
 
-    filenam = csound->oparms->outfilename;
+    filenam = oparms.outfilename;
     if (filenam == NULL)
       filenam = "test";     /* O.outfilename not set yet */
 
