@@ -478,7 +478,8 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       parm.devNum = check_rtaudio_name(sfname, &(parm.devName), 0);
       if (parm.devNum >= 0) {
         /* set device parameters */
-        parm.bufSamp_SW   = (int) O->inbufsamps / (int) csound->inchnls;
+        parm.bufSamp_SW   =
+          (unsigned int) O->inbufsamps / (unsigned int) csound->inchnls;
         parm.bufSamp_HW   = O->oMaxLag;
         parm.nChannels    = csound->nchnls;
         parm.sampleFormat = O->informat;
@@ -672,7 +673,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       parm.devNum = check_rtaudio_name(fName, &(parm.devName), 1);
       if (parm.devNum >= 0) {
         /* set device parameters */
-        parm.bufSamp_SW   = (int) O->outbufsamps / (int) csound->nchnls;
+        parm.bufSamp_SW   = (unsigned int) O->outbufsamps / csound->nchnls;
         parm.bufSamp_HW   = O->oMaxLag;
         parm.nChannels    = csound->nchnls;
         parm.sampleFormat = O->outformat;
