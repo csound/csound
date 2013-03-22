@@ -42,8 +42,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
   pulse_globals *p;
   int siz = 64;
+  OPARMS oparms;
+  csound->GetOParms(csound, &oparms);
 
-  if (csound->oparms->msglevel & 0x400)
+  if (oparms.msglevel & 0x400)
     csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
                                 "by Victor Lazzarini\n"));
 
@@ -97,7 +99,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 
     pulse = (pulse_params *) malloc(sizeof(pulse_params));
     pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_SW);
-    csound->rtPlay_userdata = (void *) pulse;
+    *(csound->GetRtPlayUserData(csound))  = (void *) pulse;
     pulse->spec.rate = csound->GetSr(csound);
     pulse->spec.channels = csound->GetNchnls(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
@@ -149,7 +151,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 
   int i, bufsiz, pulserror;
   float *buf;
-  pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
+  pulse_params *pulse = (pulse_params*) *(csound->GetRtPlayUserData(csound));
   //MYFLT norm = csound->e0dbfs;
   bufsiz = nbytes/sizeof(MYFLT);
   buf = pulse->buf;
@@ -165,7 +167,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 static void pulse_close(CSOUND *csound)
 {
     int error;
-    pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
+    pulse_params *pulse = (pulse_params*) *(csound->GetRtPlayUserData(csound));
 
     if (pulse != NULL){
       pa_simple_drain(pulse->ps, &error);
@@ -173,7 +175,7 @@ static void pulse_close(CSOUND *csound)
       free(pulse->buf);
     }
 
-    pulse = (pulse_params*) csound->rtRecord_userdata;
+    pulse = (pulse_params*) *(csound->GetRtRecordUserData(csound)) ;
 
     if (pulse != NULL){
       pa_simple_free(pulse->ps);
@@ -192,7 +194,7 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 
     pulse = (pulse_params *) malloc(sizeof(pulse_params));
     pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_SW);
-    csound->rtRecord_userdata = (void *) pulse;
+    *(csound->GetRtRecordUserData(csound))  = (void *) pulse;
     pulse->spec.rate = csound->GetSr(csound);
     pulse->spec.channels = csound->GetNchnls(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
@@ -240,7 +242,7 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes)
 {
     int i, bufsiz,pulserror;
     float *buf;
-    pulse_params *pulse = (pulse_params*) csound->rtRecord_userdata;
+    pulse_params *pulse = (pulse_params*) *(csound->GetRtRecordUserData(csound)) ;
     //MYFLT norm = csound->e0dbfs;
     bufsiz = nbytes/sizeof(MYFLT);
     buf = pulse->buf;

@@ -219,7 +219,9 @@ public:
                     fluid_synth_get_sfont_by_id(fluidSynth, soundFontId);
                 fluid_preset_t fluidPreset;
                 fluidSoundfont->iteration_start(fluidSoundfont);
-                if (csound->oparms->msglevel & 0x7)
+                OPARMS oparms;
+                 csound->GetOParms(csound, &oparms);
+                if (oparms.msglevel & 0x7)
                     while (fluidSoundfont->iteration_next(fluidSoundfont,
                                                           &fluidPreset)) {
                         log(csound,
@@ -494,7 +496,9 @@ public:
             priorMidiChannel = -1;
             priorMidiData1 = -1;
             priorMidiData2 = -1;
-            printMsgs = ((csound->oparms->msglevel & 7) == 7 ? 1 : 0);
+            OPARMS oparms;
+            csound->GetOParms(csound, &oparms);
+            printMsgs = ((oparms.msglevel & 7) == 7 ? 1 : 0);
         }
         return OK;
     }

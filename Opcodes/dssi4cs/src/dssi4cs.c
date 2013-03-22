@@ -29,7 +29,7 @@
 #endif
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
-static const char   *version = "0.1alpha";
+//static const char   *version = "0.1alpha";
 
 /* TODO accomodate plugins which return control outputs */
 
@@ -591,11 +591,15 @@ int dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
     int     ocnt = csound->GetOutputArgCnt(p);
 
     if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
-      csound->Die(csound, Str("DSSI4CS: number of audio input channels is greater than %d"),
+      csound->Die(csound,
+                  Str("DSSI4CS: number of audio input channels "
+                      "is greater than %d"),
                   DSSI4CS_MAX_IN_CHANNELS);
 
     if (UNLIKELY(ocnt > DSSI4CS_MAX_OUT_CHANNELS))
-      csound->Die(csound, Str("DSSI4CS: number of audio output channels is greater than %d"),
+      csound->Die(csound,
+                  Str("DSSI4CS: number of audio output channels "
+                      "is greater than %d"),
                   DSSI4CS_MAX_OUT_CHANNELS);
 
 #ifdef DEBUG
@@ -618,10 +622,10 @@ int dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
       Descriptor =
           (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
 
-    long    PortIndex = 0;
-    int     ConnectedInputPorts = 0;
-    int     ConnectedOutputPorts = 0;
-    int     ConnectedPorts = 0;
+    unsigned long PortIndex = 0;
+    int           ConnectedInputPorts = 0;
+    int           ConnectedOutputPorts = 0;
+    int           ConnectedPorts = 0;
     LADSPA_PortDescriptor PortDescriptor = 0;
 
     for (PortIndex = 0; PortIndex < Descriptor->PortCount; PortIndex++) {
@@ -705,22 +709,22 @@ int dssiaudio(CSOUND * csound, DSSIAUDIO * p)
     else
       Descriptor =
           (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
-    int     i, j;
-    int     icnt = csound->GetInputArgCnt(p) - 1;
-    int     ocnt = csound->GetOutputArgCnt(p);
+    unsigned int i, j;
+    unsigned int icnt = csound->GetInputArgCnt(p) - 1;
+    unsigned int ocnt = csound->GetOutputArgCnt(p);
     unsigned long Ksmps = (unsigned long) csound->GetKsmps(csound);
 
     if (p->DSSIPlugin_->Active == 1) {
       for (j = 0; j < icnt; j++) {
         for (i = 0; i < Ksmps; i++)
           p->DSSIPlugin_->audio[p->InputPorts[j]][i] =
-              p->ain[j][i] * csound->dbfs_to_float;
+	    p->ain[j][i] * (1.0/csound->Get0dBFS(csound));
       }
       Descriptor->run(p->DSSIPlugin_->Handle, Ksmps);
       for (j = 0; j < ocnt; j++) {
         for (i = 0; i < Ksmps; i++)
           p->aout[j][i] =
-              p->DSSIPlugin_->audio[p->OutputPorts[j]][i] * csound->e0dbfs;
+	    p->DSSIPlugin_->audio[p->OutputPorts[j]][i] * csound->Get0dBFS(csound);
       }
     }
     else {
@@ -762,7 +766,7 @@ int dssictls_init(CSOUND * csound, DSSICTLS * p)
     int     Number = *p->iDSSIhandle;
     int     Sr = (int) MYFLT2LRND(csound->GetSr(csound));
     unsigned long PortIndex = *p->iport;
-    int     i;
+    unsigned int  i;
     unsigned long ControlPort = 0;
     unsigned long AudioPort = 0;
     unsigned long Port = 0;

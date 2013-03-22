@@ -82,6 +82,7 @@ extern "C" {
     PUBLIC int csoundFindVariable(CS_VAR_POOL* pool, const char* name);
     PUBLIC int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var);
     PUBLIC void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
+    PUBLIC void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
     PUBLIC void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool);
 
 #ifdef  __cplusplus

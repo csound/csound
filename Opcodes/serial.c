@@ -177,7 +177,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     int fd;
     speed_t brate;
 
-    csound = NULL;              /* Not used */
+    //csound = NULL;              /* Not used */
     fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
             serialport,baud);
         

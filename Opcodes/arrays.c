@@ -508,23 +508,23 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
 {
    MYFLT min = *p->kmin, max = *p->kmax;
    int strt = (int)MYFLT2LRND(*p->kstart), end = (int)MYFLT2LRND(*p->kend);
-   TABDAT *t = p->tab;
+   ARRAYDAT *t = p->tab;
    MYFLT tmin;
    MYFLT tmax;
    int i;
    MYFLT range;
 
-  if (UNLIKELY(t->data == NULL))
-        return csound->PerfError(csound, Str("t-variable not initialised"));
+   if (UNLIKELY(t->data == NULL || t->dimensions!=1))
+     return csound->PerfError(csound, Str("t-variable not initialised"));
    tmin = t->data[strt];
    tmax = tmin;
 
    // Correct start and ending points
-   if (end<0) end = t->size;
-   else if (end>t->size) end = t->size;
+   if (end<0) end = t->sizes[0];
+   else if (end>t->sizes[0]) end = t->sizes[0];
    else if (end<0) end = 0;
    if (strt<0) strt = 0;
-   else if (strt>t->size) strt = t->size;
+   else if (strt>t->sizes[0]) strt = t->sizes[0];
    if (end<strt) {
      int x = end; end = strt; strt = x;
    }
@@ -785,7 +785,8 @@ static OENTRY arrayvars_localops[] =
     { "maxtab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabmax },
     { "mintab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabmin },
     { "sumtab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabsum },
-//  { "scalet", sizeof(TABSCALE), 0, 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
+    { "scalet", sizeof(TABSCALE), 0, 3, "",  "[k;kkOJ",
+                                               (SUBR) tabscaleset,(SUBR) tabscale },
 //  { "#copytab", sizeof(TABCPY), 0, 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
 //  { "#tabgen", sizeof(TABGEN), 0, 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
 //  { "#tabmap_i", sizeof(TABMAP), 0, 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
