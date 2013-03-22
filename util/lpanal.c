@@ -346,7 +346,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     double  errn, rms1, rms2, filterCoef[MAXPOLES+1];
     MYFLT   *sigbuf, *sigbuf2;      /* changed from short */
     long    n;
-    int     nb, osiz, hsize;
+    unsigned int     osiz, nb;
+    int     hsize;
     LPHEADER    *lph;
     char    *lpbuf, *tp;
     MYFLT   pchlow, pchhigh;
@@ -713,7 +714,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
       /* Write frame to disk */
       if (new_format) {
-        int i, j;
+        unsigned int i, j;
         for (i=0, j=0; i<osiz; i+=sizeof(MYFLT), j++)
           fprintf(oFd, "%a\n", coef[j]);
       }

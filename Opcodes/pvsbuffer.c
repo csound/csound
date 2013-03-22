@@ -181,11 +181,11 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
  static int pvsbufreadproc(CSOUND *csound, PVSBUFFERREAD *p){
 
     unsigned int posi, frames;
-    MYFLT pos, sr = csound->GetSr(csound);
+    MYFLT pos, sr = csound->GetSr(csound), frac;
     FSIG_HANDLE *handle =  p->handle, **phandle;
-    MYFLT frac;
     float *fout, *buffer;
-    int strt = *p->strt, end = *p->end, overlap, i, N;
+    int strt = *p->strt, end = *p->end, i, N;
+    unsigned int overlap;
     p->iclear = *p->clear;
 
    if (*p->hptr != p->optr) {
@@ -221,7 +221,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      while (pos < 0) pos += frames;
      posi = (int) pos;
      if (N == handle->header.N &&
-         overlap == handle->header.overlap){
+         overlap == (unsigned int)handle->header.overlap){
        frame1 = buffer + (N + 2) * posi;
        frame2 = buffer + (N + 2)*(posi != frames-1 ? posi+1 : 0);
        frac = pos - posi;
@@ -252,10 +252,11 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     unsigned int posi, frames;
     MYFLT pos, sr = csound->GetSr(csound);
     FSIG_HANDLE *handle =  p->handle, **phandle;
-    MYFLT frac, *tab1, *tab2, *tab;
-    FUNC *ftab;
-    float *fout, *buffer;
-    uint32_t overlap, i, N;
+    MYFLT    frac, *tab1, *tab2, *tab;
+    FUNC     *ftab;
+    float    *fout, *buffer;
+    uint32_t overlap, i;
+    int      N;
 
     if (*p->hptr != p->optr){
       char varname[32];
@@ -280,24 +281,24 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       float *frame1, *frame2;
       frames = handle->frames-1;
       ftab = csound->FTnp2Find(csound, p->strt);
-      if (ftab->flen < N/2+1)
+      if (UNLIKELY((int)ftab->flen < N/2+1))
         csound->PerfError(csound,
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
       ftab = csound->FTnp2Find(csound, p->end);
-      if (ftab->flen < N/2+1)
+      if (UNLIKELY((int)ftab->flen < N/2+1))
         csound->PerfError(csound,
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab2 = ftab->ftable;
-      for (i=0; i < N+2; i++){
+      for (i=0; i < (unsigned int)N+2; i++){
         pos = (*p->ktime - tab[i])*(sr/overlap);
         while(pos >= frames) pos -= frames;
         while(pos < 0) pos += frames;
         posi = (int) pos;
         if (N == handle->header.N &&
-           overlap == handle->header.overlap){
+            overlap == (unsigned int)handle->header.overlap) {
            frame1 = buffer + (N + 2) * posi;
            frame2 = buffer + (N + 2)*(posi != frames-1 ? posi+1 : 0);
            frac = pos - posi;
