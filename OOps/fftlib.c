@@ -3208,6 +3208,8 @@ static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
 
 MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int FFTsize)
 {
+    IGN(FFTsize);
+    IGN(csound);
     return FL(1.0);
 }
 
@@ -3218,6 +3220,8 @@ MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int FFTsize)
 
 MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
 {
+    IGN(FFTsize);
+    IGN(csound);
     return FL(1.0);
 }
 
@@ -3312,6 +3316,7 @@ void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
 {
     MYFLT re, im;
     int   i;
+    IGN(csound);
 
     if (scaleFac != FL(1.0)) {
       outbuf[0] = buf1[0] * buf2[0] * scaleFac;

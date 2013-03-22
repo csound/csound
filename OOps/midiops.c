@@ -148,6 +148,7 @@ int veloc(CSOUND *csound, MIDIMAP *p)           /* valid only at I-time */
 
 int pchmidi(CSOUND *csound, MIDIKMB *p)
 {
+   IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     double fract, oct, ioct;
     oct = lcurip->m_pitch / 12.0 + 3.0;
@@ -179,6 +180,7 @@ int pchmidib_i(CSOUND *csound, MIDIKMB *p)
 
 int octmidi(CSOUND *csound, MIDIKMB *p)
 {
+    IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     *p->r = lcurip->m_pitch / FL(12.0) + FL(3.0);
     return OK;
@@ -186,6 +188,7 @@ int octmidi(CSOUND *csound, MIDIKMB *p)
 
 int octmidib(CSOUND *csound, MIDIKMB *p)
 {
+    IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     *p->r = (lcurip->m_pitch + (pitchbend_value(lcurip->m_chnbp) *
                                 p->scale)) / FL(12.0) + FL(3.0);
@@ -267,7 +270,7 @@ int ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude */
 int midibset(CSOUND *csound, MIDIKMB *p)
 {
     MCHNBLK *chn;
-
+    IGN(csound);
     chn = p->h.insdshead->m_chnbp;
     if (*p->iscal > FL(0.0))
       p->scale = *p->iscal;
@@ -285,6 +288,7 @@ int midibset(CSOUND *csound, MIDIKMB *p)
 
 int aftset(CSOUND *csound, MIDIKMAP *p)
 {
+   IGN(csound);
     p->lo = *p->ilo;
     p->scale = (*p->ihi - p->lo) * dv127;
     return OK;
@@ -292,6 +296,7 @@ int aftset(CSOUND *csound, MIDIKMAP *p)
 
 int aftouch(CSOUND *csound, MIDIKMAP *p)
 {
+   IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     *p->r = p->lo + MIDI_VALUE(lcurip->m_chnbp, aftouch) * p->scale;
     return OK;
@@ -322,6 +327,7 @@ int mctlset(CSOUND *csound, MIDICTL *p)
 
 int midictl(CSOUND *csound, MIDICTL *p)
 {
+    IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     *p->r = MIDI_VALUE(lcurip->m_chnbp, ctl_val[p->ctlno]) * p->scale + p->lo;
     return OK;
@@ -352,6 +358,7 @@ int maftset(CSOUND *csound, MIDICTL *p)
 
 int midiaft(CSOUND *csound, MIDICTL *p)
 {
+    IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     *p->r = MIDI_VALUE(lcurip->m_chnbp, polyaft[p->ctlno]) * p->scale + p->lo;
     return OK;
@@ -450,6 +457,7 @@ int chanctl(CSOUND *csound, CHANCTL *p)
 
 int ipchbend(CSOUND *csound, MIDIMAP *p)
 {
+    IGN(csound);
     *p->r = *p->ilo + (*p->ihi - *p->ilo) *
             pitchbend_value(p->h.insdshead->m_chnbp);
     return OK;
@@ -457,6 +465,7 @@ int ipchbend(CSOUND *csound, MIDIMAP *p)
 
 int kbndset(CSOUND *csound, MIDIKMAP *p)
 {
+   IGN(csound);
     p->lo = *p->ilo;
     p->scale = *p->ihi - *p->ilo;
     return OK;
@@ -464,6 +473,7 @@ int kbndset(CSOUND *csound, MIDIKMAP *p)
 
 int kpchbend(CSOUND *csound, MIDIKMAP *p)
 {
+   IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     *p->r = p->lo + pitchbend_value(lcurip->m_chnbp) * p->scale;
     return OK;

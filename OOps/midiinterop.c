@@ -32,6 +32,7 @@
 
 int midinoteoff(CSOUND *csound, MIDINOTEON *p)
 {
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -42,6 +43,7 @@ int midinoteoff(CSOUND *csound, MIDINOTEON *p)
 
 int midinoteonkey(CSOUND *csound, MIDINOTEON *p)
 {
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -67,6 +69,7 @@ int midinoteoncps(CSOUND *csound, MIDINOTEON *p)
 int midinoteonoct(CSOUND *csound, MIDINOTEON *p)
 {
     MYFLT octave;
+   IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -82,6 +85,7 @@ int midinoteonpch(CSOUND *csound, MIDINOTEON *p)
     double octave;
     double integer;
     double fraction;
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -97,6 +101,7 @@ int midinoteonpch(CSOUND *csound, MIDINOTEON *p)
 int midipolyaftertouch(CSOUND *csound, MIDIPOLYAFTERTOUCH *p)
 {
     MYFLT scale;
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -109,6 +114,7 @@ int midipolyaftertouch(CSOUND *csound, MIDIPOLYAFTERTOUCH *p)
 int midicontrolchange(CSOUND *csound, MIDICONTROLCHANGE *p)
 {
     MYFLT scale;
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -120,6 +126,7 @@ int midicontrolchange(CSOUND *csound, MIDICONTROLCHANGE *p)
 
 int midiprogramchange(CSOUND *csound, MIDIPROGRAMCHANGE *p)
 {
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -130,6 +137,7 @@ int midiprogramchange(CSOUND *csound, MIDIPROGRAMCHANGE *p)
 int midichannelaftertouch(CSOUND *csound, MIDICHANNELAFTERTOUCH *p)
 {
     MYFLT scale;
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -141,6 +149,7 @@ int midichannelaftertouch(CSOUND *csound, MIDICHANNELAFTERTOUCH *p)
 int midipitchbend(CSOUND *csound, MIDIPITCHBEND *p)
 {
     MYFLT scale;
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
@@ -151,6 +160,7 @@ int midipitchbend(CSOUND *csound, MIDIPITCHBEND *p)
 
 int mididefault(CSOUND *csound, MIDIDEFAULT *p)
 {
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }

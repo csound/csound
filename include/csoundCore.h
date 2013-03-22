@@ -55,7 +55,6 @@ typedef struct {
 #endif /* PTHREAD_BARRIER_SERIAL_THREAd */
 #endif /* __MACH__ */
 
-
 #define OK        (0)
 #define NOTOK     (-1)
 
