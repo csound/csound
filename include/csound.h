@@ -2491,6 +2491,22 @@ extern "C" {
   */
   PUBLIC void csoundFreeCircularBuffer(CSOUND *csound, void *circularbuffer);
 
+  /**
+   * Platform-independent function to load a shared library.
+   */
+  PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
+
+  /**
+   * Platform-independent function to unload a shared library.
+   */
+  PUBLIC int csoundCloseLibrary(void *library);
+
+  /**
+   * Platform-independent function to get a symbol address in a shared library.
+   */
+  PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
+
+
   /** @}*/
 
 
@@ -2576,12 +2592,6 @@ extern "C" {
      */
     PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *);
 #endif
-
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
-
-PUBLIC int csoundCloseLibrary(void *library);
-
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName);
 
 
 #ifdef __cplusplus
