@@ -201,6 +201,7 @@ static void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int     c, n, pcnt;
+    IGN(userData);
    
     while (1) {
       Linend = STA(Linep);
