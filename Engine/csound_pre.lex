@@ -143,7 +143,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                 }
 {MACRONAME}     {
                    MACRO     *mm, *mfound=NULL;
-                   int       i, len, mlen;
+                   unsigned int i, len, mlen;
                    //print_csound_predata(csound, "Macro call", yyscanner);
                    len = strlen(yytext)-1;
                    mlen = 0;
