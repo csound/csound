@@ -96,6 +96,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
 
 void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 {
+
     MYFLT  *psamples;
     int    *lock =
       csoundGetChannelLock(csound, (char*) name,
