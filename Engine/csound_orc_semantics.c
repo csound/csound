@@ -422,6 +422,232 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
     }
 }
 
+PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
+{
+    char* s;
+    char* t;
+    CS_TYPE* type;
+    CS_VAR_POOL* pool;
+    CS_VARIABLE* var;
+    
+    if (is_expression_node(tree)) {
+        TREE* nodeToCheck = tree;
+        
+        if (tree->type == T_ARRAY) {
+            return get_array_sub_type(csound, tree->left->value->lexeme);
+        }
+        
+        if (tree->type == '?') {
+            char* arg1, *arg2, *ans, out, *retVal;
+            char condInTypes[4];
+            
+            ans = get_arg_type2(csound, tree->left, typeTable);
+            if (ans == NULL || (*ans != 'b' && *ans != 'B')) {
+                synterr(csound,
+                        Str("non-boolean expression found for ternary operator,"
+                            " line %d\n"), tree->line);
+                return NULL;
+            }
+            arg1 = get_arg_type2(csound, tree->right->left, typeTable);
+            arg2 = get_arg_type2(csound, tree->right->right, typeTable);
+            
+            condInTypes[0] = *ans;
+            condInTypes[1] = *arg1;
+            condInTypes[2] = *arg2;
+            condInTypes[3] = 0;
+            
+            OENTRIES* entries = find_opcode2(csound, ":cond");
+            out = resolve_opcode_get_outarg(csound, entries, condInTypes);
+            
+            if (out == 0) {
+                synterr(csound,
+                        Str("unable to find ternary operator for "
+                            "types '%s ? %s : %s' line %d\n"),
+                        ans, arg1, arg2, tree->line);
+                return NULL;
+            }
+            
+            retVal = mmalloc(csound, 2);
+            retVal[0] = out;
+            retVal[1] = 0;
+            
+            return retVal;
+        }
+        
+        char* argTypeRight = get_arg_type2(csound, nodeToCheck->right, typeTable);
+        
+        if(nodeToCheck->left != NULL) {
+            char* argTypeLeft = get_arg_type2(csound, nodeToCheck->left, typeTable);
+            
+            char* opname = get_expression_opcode_type(csound, nodeToCheck);
+            
+            if (argTypeLeft == NULL || argTypeRight == NULL) {
+                synterr(csound, Str("Unable to verify arg types for expression '%s'\n"),
+                        opname);
+                return NULL;
+            }
+            
+            OENTRIES* entries = find_opcode2(csound, opname);
+            
+            int len1 = strlen(argTypeLeft);
+            int len2 = strlen(argTypeRight);
+            char* inArgTypes = malloc(len1 + len2 + 1);
+            
+            strncpy(inArgTypes, argTypeLeft, len1);
+            strncpy(inArgTypes + len1, argTypeRight, len2);
+            
+            inArgTypes[len1 + len2] = '\0';
+            
+            char out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
+            
+            if (out == 0) {
+                synterr(csound, Str("error: opcode '%s' for expression with arg types %s not found, "
+                                    "line %d \n"),
+                        opname, inArgTypes, tree->line);
+                return NULL;
+            }
+            
+            char c[2];
+            c[0] = out;
+            c[1] = 0;
+            
+            return cs_strdup(csound, c);
+            
+        } else {
+            return argTypeRight;
+        }
+        
+    }
+    
+    if (is_boolean_expression_node(tree)) {
+        char* argTypeLeft = get_arg_type2(csound, tree->left, typeTable);
+        char* argTypeRight = get_arg_type2(csound, tree->right, typeTable);
+        
+        char* opname = get_boolean_expression_opcode_type(csound, tree);
+        
+        if (argTypeLeft == NULL || argTypeRight == NULL) {
+            synterr(csound,
+                    Str("Unable to verify arg types for boolean expression '%s'\n"),
+                    opname);
+            return NULL;
+        }
+        
+        OENTRIES* entries = find_opcode2(csound, opname);
+        
+        int len1 = strlen(argTypeLeft);
+        int len2 = strlen(argTypeRight);
+        char* inArgTypes = malloc(len1 + len2 + 1);
+        
+        strncpy(inArgTypes, argTypeLeft, len1);
+        strncpy(inArgTypes + len1, argTypeRight, len2);
+        
+        inArgTypes[len1 + len2] = '\0';
+        
+        char out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
+        
+        if (out == 0) {
+            synterr(csound, Str("error: boolean expression '%s' with arg "
+                                "types %s not found, line %d \n"),
+                    opname, inArgTypes, tree->line);
+            return NULL;
+        }
+        
+        char c[2];
+        c[0] = out;
+        c[1] = 0;
+        
+        return cs_strdup(csound, c);
+        
+    }
+    
+    switch(tree->type) {
+        case NUMBER_TOKEN:
+        case INTEGER_TOKEN:
+            return cs_strdup(csound, "c");                              /* const */
+        case STRING_TOKEN:
+            return cs_strdup(csound, "S");                /* quoted String */
+        case SRATE_TOKEN:
+        case KRATE_TOKEN:
+        case KSMPS_TOKEN:
+        case ZERODBFS_TOKEN:
+        case NCHNLS_TOKEN:
+        case NCHNLSI_TOKEN:
+            return cs_strdup(csound, "r");                              /* rsvd */
+        case LABEL_TOKEN:
+            //FIXME: Need to review why label token is used so much in parser,
+            //for now treat as T_IDENT
+        case T_IDENT:
+            s = tree->value->lexeme;
+            
+            if (is_label(s, typeTable->labelList)) {
+                return cs_strdup(csound, "l");
+            }
+            
+            if ((*s >= '1' && *s <= '9') || *s == '.' || *s == '-' || *s == '+' ||
+                (*s == '0' && strcmp(s, "0dbfs") != 0))
+                return cs_strdup(csound, "c");                              /* const */
+            if (*s == '"')
+                return cs_strdup(csound, "S");
+            
+            if (pnum(s) >= 0)
+                return cs_strdup(csound, "p");                              /* pnum */
+            
+            if (*s == '#')
+                s++;
+            
+            pool = (*s == 'g') ?
+            typeTable->globalPool : typeTable->localPool;
+            var = csoundFindVariableWithName(pool, tree->value->lexeme);
+            
+            if (var == NULL) {
+                synterr(csound, Str("Variable '%s' used before defined\n"), tree->value->lexeme);
+                return NULL;
+            }
+            
+            if (var->varType == &CS_VAR_TYPE_ARRAY) {
+                int i, len = var->dimensions + 3;
+                char* retVal = mmalloc(csound, len);
+                retVal[len] = '\0';
+                retVal[len - 1] = *var->subType->varTypeName;
+                for (i = len - 2; i >= 0; i--) {
+                    retVal[i] = '[';
+                }
+                return retVal;
+            } else {
+                return cs_strdup(csound, var->varType->varTypeName);
+            }
+
+            
+        case T_ARRAY:
+        case T_ARRAY_IDENT:
+            
+            s = tree->value->lexeme;
+            
+            if (*s == '#') s++;
+            if (*s == 'g') s++;
+            
+            t = s;
+            
+            int len = 1;
+            while (*t == '[') {
+                t++;
+                len++;
+            }
+            
+            char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
+            memcpy(retVal, s, len);
+            retVal[len] = ';';
+            retVal[len + 1] = '\0';
+            
+            return retVal;
+            
+        default:
+            csoundWarning(csound, Str("Unknown arg type: %d\n"), tree->type);
+            //            print_tree(csound, "Arg Tree\n", tree);
+            return NULL;
+    }
+}
+
 /* Finds OENTRIES that match the given opcode name.  May return multiple
  * OENTRY*'s for each entry in a polyMorphic opcode.
  */
@@ -850,6 +1076,53 @@ PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree) {
     
 }
 
+PUBLIC char* get_arg_string_from_tree2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
+    
+    int len = tree_arg_list_count(tree);
+    int i;
+    
+    if (len == 0) {
+        return NULL;
+    }
+    
+    char** argTypes = mmalloc(csound, len * sizeof(char*));
+    char* argString = NULL;
+    TREE* current = tree;
+    int index = 0;
+    int argsLen = 0;
+    
+    while (current != NULL) {
+        char* argType = get_arg_type2(csound, current, typeTable);
+        
+        //FIXME - fix if argType is NULL and remove the below hack
+        if(argType == NULL) {
+            argsLen += 1;
+            argTypes[index++] = "@";
+        } else {
+            argsLen += strlen(argType);
+            argTypes[index++] = argType;
+        }
+        
+        
+        current = current->next;
+    }
+    
+    argString = mmalloc(csound, (argsLen + 1) * sizeof(char));
+    char* temp = argString;
+    
+    for (i = 0; i < len; i++) {
+        int size = strlen(argTypes[i]);
+        memcpy(temp, argTypes[i], size);
+        temp += size;
+    }
+    
+    argString[argsLen] = '\0';
+    
+    return argString;
+    
+}
+
+
 
 PUBLIC OENTRY* find_opcode_new(CSOUND* csound, char* opname, 
                                char* outArgsFound, char* inArgsFound) {
@@ -1079,9 +1352,11 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     if (!check_args_exist(csound, root->right, typeTable)) {
       return 0;
     }
+    
+    add_args(csound, root->left, typeTable);
 
-    char* leftArgString = get_arg_string_from_tree(csound, left);
-    char* rightArgString = get_arg_string_from_tree(csound, right);
+    char* leftArgString = get_arg_string_from_tree2(csound, left, typeTable);
+    char* rightArgString = get_arg_string_from_tree2(csound, right, typeTable);
     
     OENTRIES* entries = find_opcode2(csound, root->value->lexeme);
     if (entries == NULL || entries->count == 0) {
@@ -1124,7 +1399,8 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     //                    " line %d\n"),
     //                s, ep->opname, line);
     
-    return add_args(csound, root->left, typeTable);
+//    return add_args(csound, root->left, typeTable);
+    return 1;
 }
 
 /* Walks tree and finds all label: definitions */
