@@ -1411,7 +1411,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                            bp->t.opcod, thread, bp->t.pftype);
           synterr(csound, Str("perf-pass statements illegal in header blk\n"));
         }
-	
       }
 
       ip = &(engineState->instxtanchor);
