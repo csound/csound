@@ -718,13 +718,13 @@ int dssiaudio(CSOUND * csound, DSSIAUDIO * p)
       for (j = 0; j < icnt; j++) {
         for (i = 0; i < Ksmps; i++)
           p->DSSIPlugin_->audio[p->InputPorts[j]][i] =
-	    p->ain[j][i] * (1.0/csound->Get0dBFS(csound));
+            p->ain[j][i] * (1.0/csound->Get0dBFS(csound));
       }
       Descriptor->run(p->DSSIPlugin_->Handle, Ksmps);
       for (j = 0; j < ocnt; j++) {
         for (i = 0; i < Ksmps; i++)
           p->aout[j][i] =
-	    p->DSSIPlugin_->audio[p->OutputPorts[j]][i] * csound->Get0dBFS(csound);
+            p->DSSIPlugin_->audio[p->OutputPorts[j]][i] * csound->Get0dBFS(csound);
       }
     }
     else {

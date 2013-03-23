@@ -558,7 +558,7 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
     int       retval;
 
     userDataPtr = (play ? (void**) csound->GetRtPlayUserData(csound)
-		   : (void**) csound->GetRtRecordUserData(csound));
+                   : (void**) csound->GetRtRecordUserData(csound));
     /* check if the device is already opened */
     if (*userDataPtr != NULL)
       return 0;

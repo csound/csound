@@ -7,7 +7,8 @@ int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
         
-        /* printf("Search if type [%s] == [%s]", current->varTypeName, typeInstance->varTypeName); */
+        /* printf("Search if type [%s] == [%s]", 
+                  current->varTypeName, typeInstance->varTypeName); */
 
         if (strcmp(current->cstype->varTypeName,
                 typeInstance->varTypeName) == 0) {
@@ -238,8 +239,9 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
       if(current->updateMemBlockSize != NULL) {
         current->updateMemBlockSize(csound, current);
       }
-      current->memBlock = (MYFLT *)((CSOUND *)csound)->ReAlloc(csound,current->memBlock,
-					  current->memBlockSize);
+      current->memBlock = 
+        (MYFLT *)((CSOUND *)csound)->ReAlloc(csound,current->memBlock, 
+                                             current->memBlockSize);
       pool->poolSize += current->memBlockSize;
       current = current->next;
     }

@@ -3463,8 +3463,8 @@ extern "C" {
         strcpy(s, (char*) p->names);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
-	} 
+        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+      }
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4560,8 +4560,8 @@ extern "C" {
         strcpy(s, (char*) p->names);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
-	}
+        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+      }
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4775,8 +4775,8 @@ extern "C" {
         strcpy(s, (char*) p->names);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
-	}
+        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+      }
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4957,8 +4957,8 @@ extern "C" {
         strcpy(s, (char*) p->names);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
-	} 
+        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+      } 
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
