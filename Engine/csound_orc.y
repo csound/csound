@@ -529,14 +529,15 @@ ans       : ident               { $$ = $1; }
 arrayexpr :  arrayexpr '[' iexp ']'
           {
             appendToTree(csound, $1->right, $3);
-            char* oldName = $1->left->value->lexeme;
-            $1->left->value = make_token(csound, addDimensionToArrayName(csound, oldName));
-            mfree(csound, oldName);
+//            char* oldName = $1->left->value->lexeme;
+//            $1->left->value = make_token(csound, addDimensionToArrayName(csound, oldName));
+//            mfree(csound, oldName);
             $$ = $1;
           }
           | ident '[' iexp ']' 
           { 
-            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+//            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+           char* arrayName = $1->value->lexeme;
             $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
 	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
 
@@ -892,14 +893,18 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
 
 
 arrayident: arrayident '[' ']' {          
-            char* arrayName = $1->value->lexeme;
-            $1->value = make_token(csound, addDimensionToArrayName(csound, arrayName));
-            mfree(csound, arrayName);
+//            char* arrayName = $1->value->lexeme;
+//            $1->value = make_token(csound, addDimensionToArrayName(csound, arrayName));
+//            mfree(csound, arrayName);
+            appendToTree(csound, $1->right, 
+	         make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[")));
             $$ = $1;
           }
           | ident '[' ']' {
-            char* arrayName = convertArrayName(csound, $1->value->lexeme);
-            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, arrayName)); 
+//            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+//            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, arrayName)); 
+            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, $1->value->lexeme)); 
+	    $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
           };
 
 
