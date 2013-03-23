@@ -544,6 +544,9 @@ void addGlobalVariable(CSOUND *csound,
                                          type, name, typeArg);
   csoundAddVariable(engineState->varPool, var);
   var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
+  if (var->initializeVariableMemory != NULL) {
+    var->initializeVariableMemory(var, var->memBlock);
+  }
 }
 
 
