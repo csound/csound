@@ -793,7 +793,7 @@ static int writesdif(CSOUND *csound, HET *thishet)
     scale = thishet->m_ampsum / maxampsum;
     /* SDIF does not specify a range, 'cos it's too clever for that sort
      * of thing, but this seems consistent with existing examples! */
-    scale *= (double) csound->dbfs_to_float;
+    scale *= (double) (1.0/csound->Get0dBFS(csound));
 
     for (h = 0; h < thishet->hmax; h++) {
       for (pnt = 0; pnt < thishet->num_pts; pnt++) {

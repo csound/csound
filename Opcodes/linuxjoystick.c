@@ -25,11 +25,11 @@
 
   ktab = A table to hold input results, should be at least enough elements
          to store one value for each stick axis and one for each button + 2.
-	 The first two elements of the table are initialized with the number
-	 of axes and the number of buttons, respectively, when a joystick is
-	 opened. If a joystick is unplugged during performance, the opcode
-	 will repeatedly attempt to reopen the device with a delay between
-	 attempts.
+         The first two elements of the table are initialized with the number
+         of axes and the number of buttons, respectively, when a joystick is
+         opened. If a joystick is unplugged during performance, the opcode
+         will repeatedly attempt to reopen the device with a delay between
+         attempts.
 
   kresultmask: A bitmask, with a 1 bit for each table index with a new input
                received.
@@ -79,7 +79,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         fcntl(stick->devFD, F_SETFL, fcntl(stick->devFD, F_GETFL, 0)|O_NONBLOCK);
         ioctl(stick->devFD, JSIOCGAXES, &stick->numk);
         ioctl(stick->devFD, JSIOCGBUTTONS, &stick->numb);
-        if(UNLIKELY(stick->ftp->flen < 2+(stick->numk)+(stick->numb))) {
+        if (UNLIKELY(stick->ftp->flen < 2u+(stick->numk)+(stick->numb))) {
           csound->Warning
             (csound,
              Str("linuxjoystick: table %d of size %d too small for data size %d"),

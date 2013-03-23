@@ -7,7 +7,8 @@ int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
         
-        /* printf("Search if type [%s] == [%s]", current->varTypeName, typeInstance->varTypeName); */
+        /* printf("Search if type [%s] == [%s]", 
+                  current->varTypeName, typeInstance->varTypeName); */
 
         if (strcmp(current->cstype->varTypeName,
                 typeInstance->varTypeName) == 0) {
@@ -119,11 +120,7 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
         CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
         var->varType = type;
         var->varName = cs_strdup(csound, name);
-  
-        if(name[0] == '[') {
-          var->varSimpleName = getVarSimpleName(csound, name);
-        }
-          
+            
         return var;
       }
       current = current->next;
@@ -216,18 +213,36 @@ void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
     pool->poolSize = 0;
     
-	while (current != NULL) {
-	  /* VL 26-12-12: had to revert these lines to avoid memory crashes with higher ksmps */
-        if(current->updateMemBlockSize != NULL) {
-            current->updateMemBlockSize(csound, current);
-        }
+    while (current != NULL) {
+      /* VL 26-12-12: had to revert these lines to avoid memory crashes 
+         with higher ksmps */
+      if(current->updateMemBlockSize != NULL) {
+        current->updateMemBlockSize(csound, current);
+      }
 
-        current->memBlockIndex = pool->poolSize / sizeof(MYFLT);
-        pool->poolSize += current->memBlockSize;
-        
-        current = current->next;
+      current->memBlockIndex = pool->poolSize / sizeof(MYFLT);
+      pool->poolSize += current->memBlockSize;
+      
+      current = current->next;
     }
 }
+
+void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
+    CS_VARIABLE* current = pool->head;
+    pool->poolSize = 0;
+    
+    while (current != NULL) {
+      if(current->updateMemBlockSize != NULL) {
+        current->updateMemBlockSize(csound, current);
+      }
+      current->memBlock = 
+        (MYFLT *)((CSOUND *)csound)->ReAlloc(csound,current->memBlock, 
+                                             current->memBlockSize);
+      pool->poolSize += current->memBlockSize;
+      current = current->next;
+    }
+}
+
 
 void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;

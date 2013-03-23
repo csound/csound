@@ -47,9 +47,9 @@
 
 /* Each task has a status */
 //enum state { WAITING = 3,          /* Dependencies have not been finished */
-//	     AVAILABLE = 2,        /* Dependencies met, ready to be run */
-//	     INPROGRESS = 1,       /* Has been started */
-//	     DONE = 0 };           /* Has been completed */
+//           AVAILABLE = 2,        /* Dependencies met, ready to be run */
+//           INPROGRESS = 1,       /* Has been started */
+//           DONE = 0 };           /* Has been completed */
 
 /* Sets of prerequiste tasks for each task */
 //typedef struct _watchList {
@@ -111,7 +111,7 @@ static void dag_print_state(CSOUND *csound)
       }
     }
 }
-	     
+             
 /* For now allocate a fixed maximum number of tasks; FIXME */
 void create_dag(CSOUND *csound)
 {
@@ -337,7 +337,7 @@ void dag_end_task(CSOUND *csound, taskID i)
     ATOMIC_WRITE(csound->dag_task_status[i], DONE); /* as DONE is zero */
     {                                      /* ATOMIC_SWAP */
       do {
-	to_notify = ATOMIC_READ(task_watch[i]);
+        to_notify = ATOMIC_READ(task_watch[i]);
       } while (!ATOMIC_CAS(&task_watch[i],to_notify,&DoNotRead));
     } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
@@ -607,21 +607,21 @@ void workerThread (State *s) {
       
       canQueue = TRUE;
       foreach (dep in dep[tasksToNotify->id]) {  /* OPT : Watch ordering */ 
-	if (atomicRead(status[dep]) != DONE) {
-	  /* NOTE : Race condition */
-	  if (moveWatch(watch[dep],tasksToNotify)) {
-	    canQueue = FALSE;
-	    break;
-	  } else {
-	    /* Have hit the race condition, try the next option */
-	    assert(atomicRead(status[dep]) == DONE);
-	  }
-	}
+        if (atomicRead(status[dep]) != DONE) {
+          /* NOTE : Race condition */
+          if (moveWatch(watch[dep],tasksToNotify)) {
+            canQueue = FALSE;
+            break;
+          } else {
+            /* Have hit the race condition, try the next option */
+            assert(atomicRead(status[dep]) == DONE);
+          }
+        }
       }
       
       if (canQueue) {                    /* OPT : Save one work item */
-	addWork(*dispatch,tasksToNotify->id);
-	deleteWatch(tasksToNotify);
+        addWork(*dispatch,tasksToNotify->id);
+        deleteWatch(tasksToNotify);
       }
       
       tasksToNotify = next;

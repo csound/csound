@@ -49,6 +49,7 @@ void send_midi_message(CSOUND *, int status, int data1, int data2);
 
 int release_set(CSOUND *csound, REL *p)
 {
+    IGN(csound);
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;
@@ -57,6 +58,7 @@ int release_set(CSOUND *csound, REL *p)
 
 int release(CSOUND *csound, REL *p)
 {
+    IGN(csound);
     if (p->h.insdshead->relesing)
       *p->r = FL(1.0); /* TRUE */
     else
@@ -250,6 +252,7 @@ int moscil(CSOUND *csound, MOSCIL *p)
 
 int kvar_out_on_set(CSOUND *csound, KOUT_ON *p)
 {
+    IGN(csound);
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;
@@ -429,6 +432,7 @@ int out_pitch_bend(CSOUND *csound, OUT_PB *p)
 
 int kon2_set(CSOUND *csound, KON2 *p)
 {
+   IGN(csound);
     /* if not initialised by another opcode */
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       p->h.insdshead->xtratim = EXTRA_TIME;
@@ -525,6 +529,7 @@ int nrpn(CSOUND *csound, NRPN *p)
 
 int mdelay_set(CSOUND *csound, MDELAY *p)
 {
+   IGN(csound);
     p->read_index = 0;
     p->write_index = 0;
     memset(p->status, 0, DELTAB_LENGTH);

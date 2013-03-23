@@ -125,7 +125,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       if ((isOutput && dev_info->maxOutputChannels > 0) ||
           (!isOutput && dev_info->maxInputChannels > 0)) {
         strncpy(list[j].device_name, dev_info->name, 63);
-	sprintf(tmp, "dac%d", j);
+        sprintf(tmp, "dac%d", j);
         strncpy(list[j].device_id, tmp, 63);
         strncpy(list[j].rt_module, s, 63);
         list[j].max_nchnls = isOutput ?  dev_info->maxOutputChannels : dev_info->maxInputChannels;
@@ -279,8 +279,8 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
         pa_PrintErrMsg(csound, Str("Inconsistent full-duplex sample rates"));
         goto err_return;
       }
-      if (((pabs->inParm.bufSamp_SW / csound->GetKsmps(csound)) * csound->GetKsmps(csound))
-          != pabs->inParm.bufSamp_SW)
+      if (UNLIKELY(((pabs->inParm.bufSamp_SW / csound->GetKsmps(csound)) * 
+                    csound->GetKsmps(csound)) != pabs->inParm.bufSamp_SW))
         csound->MessageS(csound,
                          CSOUNDMSG_WARNING,
                          Str("WARNING: buffer size should be an integer "
@@ -323,7 +323,7 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
                         (unsigned long) (pabs->mode & 2 ?
                                          pabs->outParm.bufSamp_SW
                                          : pabs->inParm.bufSamp_SW),
-                        (csound->dither_output ?
+                        (csound->GetDitherMode(csound) ?
                          (PaStreamFlags) paNoFlag : (PaStreamFlags) paDitherOff),
                         paBlockingReadWriteStreamCallback,
                         (void*) pabs);
@@ -561,9 +561,9 @@ static void rtclose_(CSOUND *csound)
 
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
-      int       i;
+      unsigned int i;
       
-      for (i = 0; i < 4; i++) {
+      for (i = 0; i < 4u; i++) {
 #if NO_FULLDUPLEX_PA_LOCK
         if (!pabs->noPaLock)
 #endif
@@ -647,7 +647,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
       err = (int) Pa_OpenStream(&(dev->handle), NULL, &streamParams,
                                 (double) parm->sampleRate,
                                 (unsigned long) parm->bufSamp_SW,
-                                (csound->dither_output?
+                                (csound->GetDitherMode(csound) ?
                                  paNoFlag:paDitherOff),
                                 NULL, NULL);
     }

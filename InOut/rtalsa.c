@@ -366,7 +366,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     dev->sampleSize = (int) sizeof(MYFLT) * dev->nchns;
     {
       void  (*fp)(void) = NULL;
-      alsaFmt = set_format(&fp, dev->format, play, csound->dither_output);
+      alsaFmt = set_format(&fp, dev->format, play, csound->GetDitherMode(csound));
       if (play) dev->playconv = (void (*)(int, MYFLT*, void*, int*)) fp;
       else      dev->rec_conv = (void (*)(int, void*, MYFLT*)) fp;
     }
@@ -534,13 +534,13 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         temp = strchr (line_, ':');
         if (temp)
           temp = temp + 2;
-	if(list != NULL) {
+        if (list != NULL) {
          strncpy(list[n].device_name, temp, 63);
          sprintf(tmp, "hw:%i,%i", card, num);
          strncpy(list[n].device_id, tmp, 63);
          list[n].max_nchnls = -1;
          list[n].isOutput = isOutput;
-	}
+        }
         n++;
       }
     }
@@ -557,8 +557,8 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
     void      **userDataPtr;
     int       retval;
 
-    userDataPtr = (play ? (void**) &(csound->rtPlay_userdata)
-                          : (void**) &(csound->rtRecord_userdata));
+    userDataPtr = (play ? (void**) csound->GetRtPlayUserData(csound)
+                   : (void**) csound->GetRtRecordUserData(csound));
     /* check if the device is already opened */
     if (*userDataPtr != NULL)
       return 0;
@@ -629,7 +629,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
     int       n, m, err;
 
 
-    dev = (DEVPARAMS*) csound->rtRecord_userdata;
+    dev = (DEVPARAMS*) *(csound->GetRtRecordUserData(csound));
     if (dev->handle == NULL) {
       /* no device, return zero samples */
       memset(inbuf, 0, (size_t) nbytes);
@@ -675,7 +675,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     DEVPARAMS *dev;
     int     n, err;
 
-    dev = (DEVPARAMS*) csound->rtPlay_userdata;
+    dev = (DEVPARAMS*) *(csound->GetRtPlayUserData(csound));
     if (dev->handle == NULL)
       return;
     /* calculate the number of samples to play */
@@ -1525,10 +1525,13 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                         Str("ALSASEQ client name (default: Csound)"),
                                         NULL);
     /* nothing to do, report success */
-    if (csound->oparms->msglevel & 0x400)
+    {
+     OPARMS oparms;
+     csound->GetOParms(csound, &oparms);
+     if (oparms.msglevel & 0x400)
       csound->Message(csound, Str("ALSA real-time audio and MIDI module "
                                   "for Csound by Istvan Varga\n"));
-
+    }
     return 0;
 }
 
@@ -1538,6 +1541,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     char    *s;
     int     i;
     char    buf[9];
+    OPARMS oparms;
+   csound->GetOParms(csound, &oparms);
 
    csound->module_list_add(csound, "devfile", "midi");
    csound->module_list_add(csound, "alsaseq", "midi");
@@ -1589,7 +1594,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
-      if (csound->oparms->msglevel & 0x400)
+      if (oparms.msglevel & 0x400)
         csound->Message(csound, Str("rtmidi: ALSASEQ module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, alsaseq_in_open);
       csound->SetExternalMidiReadCallback(csound, alsaseq_in_read);

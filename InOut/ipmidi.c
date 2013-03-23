@@ -153,8 +153,10 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
+     OPARMS oparms;
+     csound->GetOParms(csound, &oparms);
     /* nothing to do, report success */
-    if (csound->oparms->msglevel & 0x400)
+    if (oparms.msglevel & 0x400)
       csound->Message(csound, Str("ipMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
@@ -162,13 +164,15 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
+    OPARMS oparms;
+    csound->GetOParms(csound, &oparms);
 
     drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
     if (drv == NULL)
       return 0;
     if (strcmp(drv, "ipmidi") != 0)
       return 0;
-    if (csound->oparms->msglevel & 0x400)
+    if (oparms.msglevel & 0x400)
       csound->Message(csound, Str("ipmidi: ipMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);

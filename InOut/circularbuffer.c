@@ -56,7 +56,7 @@ static int checkspace(circular_buffer *p, int writeCheck){
     if (wp > rp) return wp - rp;
     else if (wp < rp) return wp - rp + size;
     else return 0;
-  }	
+  }     
 }
 
 int csoundReadCircularBuffer(CSOUND *csound, void *p, MYFLT *out, int items){

@@ -35,6 +35,7 @@
 
 static t_class *csoundapi_class = 0;
 
+#define IGN(x) (void) x
 
 typedef struct _midi_queue {
   int writep;
@@ -68,8 +69,8 @@ typedef struct t_csoundapi_ {
   midi_queue *mq;
 } t_csoundapi;
 
-static int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
-static MYFLT get_channel_value(t_csoundapi *x, char *channel);
+//static int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
+//static MYFLT get_channel_value(t_csoundapi *x, char *channel);
 
 static void csoundapi_event(t_csoundapi *x, t_symbol *s,
                             int argc, t_atom *argv);
@@ -84,9 +85,9 @@ static void csoundapi_dsp(t_csoundapi *x, t_signal **sp);
 static t_int *csoundapi_perform(t_int *w);
 static void csoundapi_get_channel(t_csoundapi *x, t_symbol *s,
                               int argc, t_atom *argv);
-static void csoundapi_control(t_csoundapi *x, t_symbol *s, float f);
+// static void csoundapi_control(t_csoundapi *x, t_symbol *s, float f);
 static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s, int argc,
-                                  t_atom *argv);
+t_atom *argv);
 static void message_callback(CSOUND *,int attr, const char *format,va_list valist);
 static void csoundapi_mess(t_csoundapi *x, t_floatarg f);
 
@@ -186,8 +187,7 @@ int isCsoundFile(char *in)
     }
     if (*in == '.') {
       for(i=0; i<6;i++)
-        if (strcmp(in,extensions[i])==0);
-      return 1;
+        if (strcmp(in,extensions[i])==0) return 1;
     }
     return 0;
 }
@@ -196,6 +196,7 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
 {
     char  **cmdl;
     int     i;
+    IGN(s);
 
     t_csoundapi *x = (t_csoundapi *) pd_new(csoundapi_class);
 
@@ -356,6 +357,7 @@ static void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
     char    type[10];
     MYFLT   pFields[64];
     int     num = argc - 1, i;
+    IGN(s);
 
     if (!x->result) {
       atom_string(&argv[0], type, 10);
@@ -417,6 +419,7 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
 {
     char  **cmdl;
     int     i;
+    IGN(s);
 
     if (x->end && x->cleanup) {
       csoundCleanup(x->csound);
@@ -547,13 +550,14 @@ static void csoundapi_get_channel(t_csoundapi *x, t_symbol *s,
     CSOUND *p = x->csound;
     char    chs[64];
     MYFLT val;
+    IGN(s);
 
     for (i = 0; i < argc; i++) {
       t_atom  at[2];
       val = 0.0;
       atom_string(&argv[i], chs, 64);
       if(csoundGetChannelPtr(p,&pval,chs,
-			     CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
+                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
           val = *pval;
       SETFLOAT(&at[1], (t_float) val); 
       SETSYMBOL(&at[0], gensym((char *) chs)); 
@@ -569,6 +573,7 @@ static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s,
     int i;
     char chn[64];
     int len = csoundGetStrVarMaxLen(p);
+    IGN(s);
 
     for(i=0; i < argc; i+=2){
       atom_string(&argv[i],chn,64);
@@ -598,7 +603,7 @@ static void message_callback(CSOUND *csound,
 {
     int i;
     t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
-
+    IGN(attr);
     if(x->csmess != NULL)
       vsnprintf(x->csmess, MAXMESSTRING, format, valist);
     for(i=0;i<MAXMESSTRING;i++)
@@ -618,6 +623,8 @@ static int open_midi_callback(CSOUND *cs, void **userData, const char *dev)
 {
     t_csoundapi *x = (t_csoundapi *) csoundGetHostData(cs);
     midi_queue *mq = (midi_queue *) malloc(sizeof(midi_queue));
+    IGN(userData);
+    IGN(dev);
     if (mq == NULL) {
       error("unable to allocate memory for midi queue");
       return -1;
@@ -634,7 +641,7 @@ static int close_midi_callback(CSOUND *cs, void *userData)
     t_csoundapi *x = (t_csoundapi *) csoundGetHostData(cs);
     free(x->mq);
     x->mq=NULL;
-
+    IGN(userData);
     post("midi in closed");
     return 0;
 }
@@ -647,7 +654,7 @@ static int read_midi_callback(CSOUND *cs, void *userData,
     if (mq == NULL) {
       return -1;
     }
-
+    IGN(userData);
     int wp = mq->writep;
     int rp = mq->readp;
     int nread = 0;
@@ -699,7 +706,7 @@ static int read_midi_callback(CSOUND *cs, void *userData,
 static void csoundapi_midi(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
 {
     MIDI_COMMON;
-
+    IGN(s);
     int i;
     for(i = 0; i<argc; i++) {
       if (argv[i].a_type != A_FLOAT) {

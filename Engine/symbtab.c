@@ -44,6 +44,8 @@ ORCTOKEN** symbtab;
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
 static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
 extern int csound_orcget_lineno(void*);
+extern int find_opcode_num(CSOUND* csound, char* opname,
+                           char* outArgsFound, char* inArgsFound);
 
 int get_opcode_type(OENTRY *ep)
 {
