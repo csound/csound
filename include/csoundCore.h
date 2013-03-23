@@ -901,6 +901,7 @@ typedef struct NAME__ {
                                               va_list valist));
     void (*DeleteCfgVarList)(csCfgVariable_t **lst);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
+    long (*RunCommand)(const char * const *argv, int noWait);
 #ifdef SOME_FIND_DAY
     void (*InputMessage)(CSOUND *, const char *message__);
     void (*KeyPressed)(CSOUND *, char c__);
@@ -924,7 +925,6 @@ typedef struct NAME__ {
     int (*ChanIASetSample)(CSOUND *, int channel, int frame, MYFLT sample);
     MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
     void (*Stop)(CSOUND *);
-    long (*RunCommand)(const char * const *argv, int noWait);
     int (*PerformKsmpsAbsolute)(CSOUND *);
 #endif
     int (*OpenLibrary)(void **library, const char *libraryPath);  //
