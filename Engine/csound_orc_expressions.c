@@ -63,33 +63,13 @@ char *create_out_arg(CSOUND *csound, char outype)
 char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2)
 {
     char outype, *s;
+    OENTRIES* oentries;
 
-    if (arg1 == 'a') {
-      if (arg2 == 'a') {
-        strncat(op,".aa",80);
-      }
-      else {
-        strncat(op,".ak",80);
-      }
-      outype = 'a';
-    }
-    else if (arg2 == 'a') {
-      strncat(op,".ka",80);
-      outype = 'a';
-    }
-    else if (arg1 == 'k' || arg2 == 'k') {
-      strncat(op,".kk",80);
-      outype = 'k';
-    }
-    else if (arg1 == 't' || arg2 == 't') {
-      //strncat(op,".kk",80);
-      outype = 't';
-    }
-    else {
-      strncat(op,".ii",80);
-      outype = 'i';
-    }
-
+    oentries = find_opcode2(csound, op);
+    char args[3] = { arg1, arg2, '\0' };
+    
+    outype = resolve_opcode_get_outarg(csound, oentries, args);
+    
     s = create_out_arg(csound, outype);
 
     if (UNLIKELY(PARSER_DEBUG))
