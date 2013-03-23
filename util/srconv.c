@@ -65,7 +65,7 @@ static  void    kaiser(int, float *, int, int, double);
 static  void    usage(CSOUND *);
 
 static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
-		       SNDFILE *outfd, int length, OPARMS *oparms)
+                       SNDFILE *outfd, int length, OPARMS *oparms)
 {
     sf_write_MYFLT(outfd, out_buf, length);
     (*block)++;

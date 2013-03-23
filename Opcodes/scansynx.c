@@ -299,7 +299,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
       MEMFIL *mfp;
       /* if (!p->XSTRCODE)
         unquote(filnam, csound->currevent->strarg);
-	else */
+        else */
       strcpy(filnam, (char*) p->i_f);
       /* readfile if reqd */
       if (UNLIKELY((mfp =

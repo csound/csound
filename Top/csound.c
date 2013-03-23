@@ -505,39 +505,41 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  orchstr, *scorestr  */
     (OPDS*) NULL,   /*  ids                 */
     (OPDS*) NULL,   /*  pds                 */
-    {(CS_VAR_POOL*)NULL,
-     (MYFLT_POOL *) NULL,
-     (STRING_POOL *) NULL,
-     -1,
-     (INSTRTXT**)NULL,
-     { NULL, 
-      {
-	0,0,
-	NULL, NULL, NULL, NULL,
+    { (CS_VAR_POOL*)NULL,
+      (MYFLT_POOL *) NULL,
+      (STRING_POOL *) NULL,
+      -1,
+      (INSTRTXT**)NULL,
+      { NULL, 
+        {
+          0,0,
+          NULL, NULL, NULL, NULL,
+          0,
+          NULL,
+          0,0,0,0,0,0,0},
+        0,0,0,
         0,
         NULL,
-        0,0,0,0,0,0,0},
-      0,0,0,
-      0,
+        0,
+        0,
+        0,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        0,
+        0,
+        0,
+        FL(0.0),
+        NULL,
+        NULL,
+        0,
+        0 
+      },
       NULL,
-      0,
-      0,
-      0,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      0,
-      0,
-      0,
-      FL(0.0),
-      NULL,
-      NULL,
-      0,
-      0 },
-     NULL,
-     MAXINSNO},     /* engineState          */
+      MAXINSNO,     /* engineState          */
+    },
     (INSTRTXT *) NULL, /* instr0  */
     (INSTRTXT**)NULL,  /* dead_instr_pool */
     0, /* dead_instr_no */
@@ -2604,7 +2606,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 /*           dest->useropinfo = NULL; */
 /*           /\* dest->prvnum = ?; *\/ */
 /*           csound->opcodelist[n].count++; */
-/* 	  }  */
+/*        }  */
 /*           return CSOUND_SUCCESS; */
 /*         } */
 /*         n = csound->opcodelist[n].prvnum; */
