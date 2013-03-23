@@ -793,6 +793,9 @@ extern "C" {
         struct TREE   *left;
         struct TREE   *right;
         struct TREE   *next;
+        void          *markup;  // TEMPORARY - used by semantic checker to markup node
+                                // adds OENTRY or synthetic var names to expression nodes
+                                // should be moved to TYPE_TABLE
     } TREE;
 
     typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
