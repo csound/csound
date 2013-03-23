@@ -2761,6 +2761,12 @@ PUBLIC void csoundReset_(CSOUND *csound)
 #endif
     if (csound->opcodlst != NULL)
       free(csound->opcodlst);
+#ifdef HAVE_PTHREAD_SPIN_LOCK 
+     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE); 
+     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE); 
+     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE); 
+     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE); 
+#endif 
 
     csound->oparms_.odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
@@ -2796,6 +2802,12 @@ PUBLIC void csoundReset_(CSOUND *csound)
     memcpy(p1, (void*) &(saved_env->first_callback_), (size_t) length);
     csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
     csound->API_lock = saved_env->API_lock;
+#ifdef HAVE_PTHREAD_SPIN_LOCK 
+    csound->memlock = saved_env->memlock;
+    csound->spinlock = saved_env->spinlock;
+    csound->spoutlock = saved_env->spoutlock;
+    csound->spinlock1= saved_env->spinlock1;
+#endif 
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
     free(saved_env);
