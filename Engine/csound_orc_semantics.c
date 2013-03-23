@@ -422,6 +422,19 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
     }
 }
 
+char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
+    
+    int i, len = arrayVar->dimensions + 3;
+    char* retVal = mmalloc(csound, len);
+    retVal[len - 1] = '\0';
+    retVal[len - 2] = ';';
+    retVal[len - 3] = *arrayVar->subType->varTypeName;
+    for (i = len - 4; i >= 0; i--) {
+        retVal[i] = '[';
+    }
+    return retVal;
+}
+
 PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
     char* s;
@@ -576,6 +589,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         case LABEL_TOKEN:
             //FIXME: Need to review why label token is used so much in parser,
             //for now treat as T_IDENT
+        case T_ARRAY_IDENT:            
         case T_IDENT:
             s = tree->value->lexeme;
             
@@ -605,21 +619,13 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             }
             
             if (var->varType == &CS_VAR_TYPE_ARRAY) {
-                int i, len = var->dimensions + 3;
-                char* retVal = mmalloc(csound, len);
-                retVal[len] = '\0';
-                retVal[len - 1] = *var->subType->varTypeName;
-                for (i = len - 2; i >= 0; i--) {
-                    retVal[i] = '[';
-                }
-                return retVal;
+                return create_array_arg_type(csound, var);
             } else {
                 return cs_strdup(csound, var->varType->varTypeName);
             }
 
             
         case T_ARRAY:
-        case T_ARRAY_IDENT:
             
             s = tree->value->lexeme;
             
@@ -1297,6 +1303,43 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
     
 }
 
+void add_array_arg(CSOUND* csound, char* varName, int dimensions, TYPE_TABLE* typeTable) {
+
+    CS_VARIABLE* var;
+    char *t;
+    CS_VAR_POOL* pool;
+    char argLetter[2];
+    ARRAY_VAR_INIT varInit;
+    void* typeArg = NULL;
+    
+    pool = (*varName == 'g') ? typeTable->globalPool : typeTable->localPool;
+    
+    var = csoundFindVariableWithName(pool, varName);
+    if (var == NULL) {
+        CS_TYPE* varType;
+        
+        t = varName;
+        argLetter[1] = 0;
+        
+        if (*t == '#') t++;
+        if (*t == 'g') t++;
+        
+        argLetter[0] = *t;
+            
+        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        
+        varInit.dimensions = dimensions;
+        varInit.type = varType;
+        typeArg = &varInit;
+        
+        var = csoundCreateVariable(csound, csound->typePool, (CS_TYPE*) &CS_VAR_TYPE_ARRAY,
+                                   varName, typeArg);
+        csoundAddVariable(pool, var);
+    } else {
+        //TODO - implement reference count increment
+    }
+}
+
 /* return 1 on succcess, 0 on failure */
 int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
     TREE* current;
@@ -1312,6 +1355,11 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         
       switch (current->type) {
       case T_ARRAY_IDENT:
+        varName = current->value->lexeme;
+        add_array_arg(csound, varName, tree_arg_list_count(current->right), typeTable);
+      
+        break;
+
       case LABEL_TOKEN:
       case T_IDENT:
         varName = current->value->lexeme;
@@ -1320,7 +1368,7 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         break;
       case T_ARRAY:
         varName = current->left->value->lexeme;
-        add_arg(csound, varName, typeTable);
+        add_arg(csound, varName, typeTable);  // FIXME - this needs to work for array and a-names
         
         break;
       default:
@@ -1374,32 +1422,10 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                     leftArgString, root->value->lexeme, rightArgString);
       csoundMessage(csound, "Line: %d Loc: %d\n",
                     root->line, root->locn);
-
-//        csoundMessage(csound, "Candidate opcode entries:\n");
-//        for (i = 0; i < entries->count; i++) {
-//            oentry = entries->entries[i];
-//            csoundMessage(csound, "\t%s\t%s\t%s\n", 
-//                          oentry->outypes, oentry->opname, oentry->intypes);
-//        }
+    } else {
+        root->markup = oentry;
     }
-//    
-//    if(entry == NULL) {
-//        synterr(csound, "Unknown opcode: %s\n", root->value->lexeme);
-//        return CSOUND_ERROR;
-//    }
-    
-    //csound->Message(csound, "    Arg Types Required: %s | %s\n", 
-    //                entry->outypes, entry->intypes);
-    
-//    print_tree(csound, "OP LEFT: ", left);
-//    print_tree(csound, "OP RIGHT: ", right);
-    
-    //        synterr(csound,
-    //                Str("input arg '%s' used before defined (in opcode %s),"
-    //                    " line %d\n"),
-    //                s, ep->opname, line);
-    
-//    return add_args(csound, root->left, typeTable);
+
     return 1;
 }
 
