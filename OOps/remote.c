@@ -34,7 +34,7 @@
       #include <linux/if.h>
     #endif
     #ifdef __HAIKU__
-	    #include <sys/sockio.h>
+      #include <sys/sockio.h>
     #endif
     #include <sys/socket.h>
     #include <netinet/in.h>
@@ -306,7 +306,7 @@ int CLsend(CSOUND *csound, int conn, void *data, int length)
     return OK;
 }
 
-static int SVopen(CSOUND *csound, char *ipadrs_local)
+static int SVopen(CSOUND *csound)
            /* Server -- open to receive */
 {
     int conn, socklisten,opt;
@@ -376,6 +376,7 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
 int SVrecv(CSOUND *csound, int conn, void *data, int length)
 {
     struct sockaddr from;
+    IGN(csound);
 #ifdef WIN32 /* VL, 12/10/06: I'm guessing here. If someone knows better, fix it */
 #define MSG_DONTWAIT  0
    int clilen = sizeof(from);
@@ -445,7 +446,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
 /*       csound->Message(csound, Str("*** str2: %s own:%s\n"), */
 /*                       (char *)p->str2 , ST(ipadrs)); */
       /* open port to listen */
-      if (UNLIKELY(SVopen(csound, (char *)p->str2) == NOTOK)){ 
+      if (UNLIKELY(SVopen(csound) == NOTOK)){ 
         return csound->InitError(csound, Str("Failed to open port to listen"));
       }
     }
@@ -518,7 +519,7 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
     }
     else if (!strcmp(ST(ipadrs), (char *)p->str2)) { /* if server is this adrs */
       /* open port to listen */
-      if (UNLIKELY(SVopen(csound, (char *)p->str2) == NOTOK)){
+      if (UNLIKELY(SVopen(csound) == NOTOK)){
         return csound->InitError(csound, Str("Failed to open port to listen"));
       }
       csound->oparms->RMidiin = 1;            /* & enable rtevents in */

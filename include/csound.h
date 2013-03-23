@@ -175,7 +175,7 @@
     MYFLT (*GetKr)(CSOUND *);
     uint32_t (*GetKsmps)(CSOUND *);
     uint32_t (*GetNchnls)(CSOUND *);
-    void (*SetDebug)(CSOUND *, int d); 
+    void (*SetDebug)(CSOUND *, int d);
     int (*GetDebug)(CSOUND *);
     int (*GetSizeOfMYFLT)(void);
     const char *(*GetEnv)(CSOUND *, const char *name);
@@ -210,7 +210,7 @@
                         int (*kopadr)(CSOUND *, void *),
                         int (*aopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
-    char *(*GetOpcodeName)(void *p);  
+    char *(*GetOpcodeName)(void *p);
 
     Opcode arguments:
     int (*GetInputArgCnt)(void *p);
@@ -271,15 +271,15 @@
     FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
     FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
     int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
-    int (*TableLength)(CSOUND *, int table); 
-    MYFLT (*TableGet)(CSOUND *, int table, int index); 
+    int (*TableLength)(CSOUND *, int table);
+    MYFLT (*TableGet)(CSOUND *, int table, int index);
     void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
     void *(*GetNamedGens)(CSOUND *);
 
     Events:
     int (*insert_score_event)(CSOUND *, EVTBLK *, double);
     int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t);
-    int (*CheckEvents)(CSOUND *); 
+    int (*CheckEvents)(CSOUND *);
 
     MIDI message handling:
     int (*SetReleaseLength)(void *p, int n);
@@ -331,7 +331,7 @@
     csCfgVariable_t **(*ListConfigurationVariables)(CSOUND *);
     int (*DeleteConfigurationVariable)(CSOUND *, const char *name);
     const char *(*CfgErrorCodeToString)(int errcode);
- 
+
     FFT:
     MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
     MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
@@ -452,7 +452,6 @@
     int (*SetUtilityDescription)(CSOUND *, const char *utilName,
                                            const char *utilDesc);
     const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
- 
 */
 
 /*
@@ -730,7 +729,7 @@ extern "C" {
         /** device number (0-1023), 1024: default */
         int     devNum;
         /** buffer fragment size (-b) in sample frames */
-        int     bufSamp_SW;
+        unsigned int     bufSamp_SW;
         /** total buffer size (-B) in sample frames */
         int     bufSamp_HW;
         /** number of channels */
@@ -860,7 +859,7 @@ extern "C" {
     PUBLIC int csoundCompileOrc(CSOUND *csound, char *str);
 
     /**
-     * csoundInitializeCscore() prepares an instance of Csound for Cscore
+     * Prepares an instance of Csound for Cscore
      * processing outside of running an orchestra (i.e. "standalone Cscore").
      * It is an alternative to csoundPreCompile(), csoundCompile(), and
      * csoundPerform*() and should not be used with these functions.
@@ -980,19 +979,27 @@ extern "C" {
     PUBLIC uint32_t csoundGetKsmps(CSOUND *);
 
     /**
-     * Returns the number of audio output channels.
+     * Returns the number of audio output channels. Set through the nchnls
+     * header variable in the csd file.
      */
     PUBLIC uint32_t csoundGetNchnls(CSOUND *);
 
     /**
-     * Returns the number of audio input channels.
+     * Returns the number of audio input channels. Set through the nchnls_i
+     * header variable in the csd file. If this variable is not set, the value is taken from
+     * nchnls.
      */
-    PUBLIC uint32_t csoundGetNchnls_i(CSOUND *csound);
+    PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound);
 
     /**
      * Returns the 0dBFS level of the spin/spout buffers.
      */
     PUBLIC MYFLT csoundGet0dBFS(CSOUND *);
+
+    /**
+     * Return the current performance time in samples
+     */
+  PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
 
     /**
      * Returns the sample format.
@@ -1289,7 +1296,7 @@ extern "C" {
      * (See csoundAudioDevList())
      */
     PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-						 int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+           int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
 
     /** @}*/
     /** @defgroup RTMIDI Realtime Midi I/O
@@ -1364,7 +1371,7 @@ extern "C" {
      * (See csoundMIDIDevList())
      */
     PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
-						int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
+                                                int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
 
     /** @}*/
     /** @defgroup SCOREHANDLING Score Handling
@@ -2208,7 +2215,7 @@ extern "C" {
 # define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-# if defined(SWIG)
+  //# if defined(SWIG)
 #  define csoundSpinLock(spinlock)                               \
    {                                                             \
      pthread_spin_lock((pthread_spinlock_t *)spinlock);          \
@@ -2219,12 +2226,12 @@ extern "C" {
    }
 #  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 #  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-# else
-#  define csoundSpinLock(spinlock)
-#  define csoundSpinUnLock(spinlock)
-#  define CSOUND_SPIN_LOCK
-#  define CSOUND_SPIN_UNLOCK
-#endif
+    //# else
+    //#  define csoundSpinLock(spinlock) pthread_spin_lock((pthread_spinlock_t *)spinlock);
+    //#  define csoundSpinUnLock(spinlock) pthread_spin_unlock((pthread_spinlock_t *)spinlock);
+    //#  define CSOUND_SPIN_LOCK
+    //#  define CSOUND_SPIN_UNLOCK
+    //#endif
 
 #elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
 
@@ -2481,6 +2488,22 @@ extern "C" {
   */
   PUBLIC void csoundFreeCircularBuffer(CSOUND *csound, void *circularbuffer);
 
+  /**
+   * Platform-independent function to load a shared library.
+   */
+  PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
+
+  /**
+   * Platform-independent function to unload a shared library.
+   */
+  PUBLIC int csoundCloseLibrary(void *library);
+
+  /**
+   * Platform-independent function to get a symbol address in a shared library.
+   */
+  PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
+
+
   /** @}*/
 
 
@@ -2566,12 +2589,6 @@ extern "C" {
      */
     PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *);
 #endif
-
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
-
-PUBLIC int csoundCloseLibrary(void *library);
-
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName);
 
 
 #ifdef __cplusplus

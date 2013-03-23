@@ -61,17 +61,17 @@
 #define PHASE_INTERP 3
 #define XALL
 
-static void unquote(char *dst, char *src)
-{
-    if (src[0] == '"') {
-      int len = (int) strlen(src) - 2;
-      strcpy(dst, src + 1);
-      if (len >= 0 && dst[len] == '"')
-        dst[len] = '\0';
-    }
-    else
-      strcpy(dst, src);
-}
+/* static void unquote(char *dst, char *src) */
+/* { */
+/*     if (src[0] == '"') { */
+/*       int len = (int) strlen(src) - 2; */
+/*       strcpy(dst, src + 1); */
+/*       if (len >= 0 && dst[len] == '"') */
+/*         dst[len] = '\0'; */
+/*     } */
+/*     else */
+/*       strcpy(dst, src); */
+/* } */
 
 /***************************************************************************
  *      Helper functions and macros for updater                            *
@@ -221,7 +221,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
     SCANSYN_GLOBALS *pp;
     FUNC    *f;
     uint32_t len;
-    int     i;
+    uint32_t i;
 
     /* Mass */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_m)) == NULL)) {
@@ -253,7 +253,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 
     /* Spring stiffness */
     if (!p->XSTRCODE) {
-      int j, ilen;
+      uint32_t j, ilen;
 
       /* Get the table */
       if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
@@ -297,9 +297,10 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
     else {                      /* New format matrix */
       char filnam[256];
       MEMFIL *mfp;
-      if (!p->XSTRCODE)
+      /* if (!p->XSTRCODE)
         unquote(filnam, csound->currevent->strarg);
-      else strcpy(filnam, (char*) p->i_f);
+        else */
+      strcpy(filnam, (char*) p->i_f);
       /* readfile if reqd */
       if (UNLIKELY((mfp =
                     csound->ldmemfile2withCB(csound, filnam,
@@ -315,7 +316,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 #define NMATLENLF (sizeof(NMATRIXLF)-1)
 #define NMATRIXCRLF "</MATRIX>\r\n"
 #define NMATLENCRLF (sizeof(NMATRIXCRLF)-1)
-        int j;
+        unsigned int j;
         char *pp = mfp->beginp;
         if ((i=strncmp(pp, MATRIXLF, MATLENLF))==0) {
           pp += MATLENLF;
@@ -439,7 +440,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
     /* Throw data into list or use table */
     p->id = (int) *p->i_id;
     if (p->id < 0) {
-      if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < len)) {
+      if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < (int)len)) {
         return csound->InitError(csound, Str("xscanu: invalid id table"));
       }
     }
@@ -528,7 +529,7 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
           csound->display(csound, p->win);
       }
       if (p->id<0) { /* Write to ftable */
-        int i;
+        unsigned int i;
         MYFLT t  = (MYFLT)idx / rate;
         for (i = 0 ; i != p->len ; i++) {
 #if PHASE_INTERP == 3
@@ -608,7 +609,7 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*csound->onedsr;
+    p->fix = (MYFLT)p->tlen*(1.0/csound->GetSr(csound));
     return OK;
 }
 

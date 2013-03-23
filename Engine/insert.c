@@ -1162,6 +1162,9 @@ int useropcd(CSOUND *csound, UOPCODE *p)
     //return csoundPerfError(csound, Str("%s: not initialised"),
     //                p->h.optext->t.opcod);
     //else 
+
+  IGN(csound);
+  IGN(p);
     /* VL - not marking this as a perf error allows recursive UDOs to work 
        This is a (harmless) hack, but it would be nice to know why there is
        one extra call to a UDO which is not initialised in a recursive run
@@ -1746,7 +1749,7 @@ static void instance(CSOUND *csound, int insno)
     const OENTRY  *ep;    
     int       n, /*cnt, */pextent, opnum, pextra;
     char      *nxtopds, *opdslim;
-    MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
+    MYFLT     **argpp, *lclbas, /* *gbloffbas,*/ *lcloffbas;
     char*     opMemStart;
     //    int       *ndxp;
     OPARMS    *O = csound->oparms;
@@ -1767,7 +1770,7 @@ static void instance(CSOUND *csound, int insno)
     if (O->midiVelocity>n) n = O->midiVelocity;
     if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
     pextra = n-3;
-      /* alloc new space,  */
+    /* alloc new space,  */
     pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *); 
     ip = (INSDS*) mcalloc(csound, 
                           (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
@@ -1792,7 +1795,7 @@ static void instance(CSOUND *csound, int insno)
       ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
     }
     
-    gbloffbas = csound->globalVarPool;
+    /* gbloffbas = csound->globalVarPool; */
     lcloffbas = &ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
     initializeVarPool(lclbas, tp->varPool);
@@ -1862,46 +1865,57 @@ static void instance(CSOUND *csound, int insno)
         argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
 
       arg = ttp->outArgs;
-      for(n = 0; arg != NULL; n++) {
-          MYFLT *fltp;
-          CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
-          if(arg->type == ARG_GLOBAL) {
-                  fltp = gbloffbas + var->memBlockIndex;
-          } else if(arg->type == ARG_LOCAL) {
-                  fltp = lclbas + var->memBlockIndex;
-          } else if(arg->type == ARG_PFIELD) {
-            /* VL 1.1.13 - changed lclbas to
-               lcloffbas so p-fields can be assigned to */
-            fltp = lcloffbas + arg->index;  
-        } else {
+      for (n = 0; arg != NULL; n++) {
+        MYFLT *fltp;
+        CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
+        if(arg->type == ARG_GLOBAL) {
+          fltp = (MYFLT *) var->memBlock; /* gbloffbas + var->memBlockIndex; */
+        }
+        else if(arg->type == ARG_LOCAL) {
+          fltp = lclbas + var->memBlockIndex;
+        }
+        else if(arg->type == ARG_PFIELD) {
+          /* VL 1.1.13 - changed lclbas to
+             lcloffbas so p-fields can be assigned to */
+          fltp = lcloffbas + arg->index;  
+        }
+        else {
           csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n",
                           arg->type);
           fltp = NULL;
         }
-          argpp[n] = fltp;
-          arg = arg->next;
+        argpp[n] = fltp;
+        arg = arg->next;
       }
 
-      for (argStringCount = argsRequired(ep->outypes); n < argStringCount; n++)  /* if more outypes, pad */
+      for (argStringCount = argsRequired(ep->outypes);
+           n < argStringCount;
+           n++)  /* if more outypes, pad */
         argpp[n] = NULL;
 
       arg = ttp->inArgs;
-      for(; arg != NULL; n++, arg = arg->next) {
+      for (; arg != NULL; n++, arg = arg->next) {
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         if(arg->type == ARG_CONSTANT) {
           argpp[n] = csound->engineState.constantsPool->values + arg->index;
-        } else if(arg->type == ARG_STRING) {
+        }
+        else if(arg->type == ARG_STRING) {
           argpp[n] = (MYFLT*)((STRING_VAL*) var)->value;
-        } else if(arg->type == ARG_PFIELD) {
+        }
+        else if(arg->type == ARG_PFIELD) {
           argpp[n] = lcloffbas + arg->index;
-        } else if(arg->type == ARG_GLOBAL) {
-          argpp[n] = gbloffbas + var->memBlockIndex;
-        } else if(arg->type == ARG_LOCAL){
+        }
+        else if(arg->type == ARG_GLOBAL) {
+          argpp[n] =  (MYFLT *) var->memBlock; /*gbloffbas + var->memBlockIndex; */
+        }
+        else if(arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
-        } else if(arg->type == ARG_LABEL) {
+        }
+        else if(arg->type == ARG_LABEL) {
           argpp[n] = (MYFLT*)(opMemStart +
                               findLabelMemOffset(csound, tp, (char*)arg->argPtr));
-        } else {
+        }
+        else {
           csound->Message(csound, "FIXME: instance unexpected arg: %d\n",
                           arg->type);
         }
@@ -2040,16 +2054,16 @@ void *init_pass_thread(void *p){
     while(ip != NULL){
       INSDS *nxt = ip->nxtact;
       if(ip->init_done == 0){
-	OPDS *ids = (OPDS *) (ip->nxti);
-	while (ids != NULL) {
-	  (*ids->iopadr)(csound, ids);
+        OPDS *ids = (OPDS *) (ip->nxti);
+        while (ids != NULL) {
+          (*ids->iopadr)(csound, ids);
           ((INSDS*)ids)->init_done=1;
-	  ids = ids->nxti;
-	}
-	ip->init_done = 1;
-	if(csound->reinitflag==1) {
-	  csound->reinitflag = 0;
-	}
+          ids = ids->nxti;
+        }
+        ip->init_done = 1;
+        if(csound->reinitflag==1) {
+          csound->reinitflag = 0;
+        }
       }
       ip = nxt; 
     }

@@ -326,7 +326,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     char *s;
     char **types = splitArgs(csound, ep->outypes);
     //int nreqd = argsRequired(ep->outypes);
-    char      tfound = '\0', treqd;
+    char      tfound = '\0';//, treqd;
 
 //    if (nreqd < 0)    /* for other opcodes */
 //      nreqd = argsRequired(types = ep->outypes);
@@ -344,7 +344,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     while (n--) {                                     /* outargs:  */
       //long    tfound_m;       /* IV - Oct 31 2002 */
       s = tp->outlist->arg[n];
-      treqd = *types[n];
+      //treqd = *types[n];
       tfound = argtyp2(s);                     /*  found    */
       /* IV - Oct 31 2002 */
 //      tfound_m = STA(typemask_tabl)[(unsigned char) tfound];
@@ -465,6 +465,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     }
       /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
     {
+       
       OENTRY *ep = csound->opcodlst + tp->opnum;
       int argcount = 0;
       for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
@@ -530,6 +531,26 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 }
 
 /**
+ * Add a global variable and allocate memory
+ * Globals, unlike locals, keep their memory space
+ * in separate blocks, pointed by var->memBlock
+ */
+void addGlobalVariable(CSOUND *csound, 
+                       ENGINE_STATE *engineState, 
+                       CS_TYPE* type,
+                       char *name,
+                       void *typeArg) {
+  CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+                                         type, name, typeArg);
+  csoundAddVariable(engineState->varPool, var);
+  var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
+  if (var->initializeVariableMemory != NULL) {
+    var->initializeVariableMemory(var, var->memBlock);
+  }
+}
+
+
+/**
  * NB - instr0 to be created only once, in the first compilation
  *  and stored in csound->instr0
  * Create an Instrument (INSTRTXT) from the AST node given for use as
@@ -544,6 +565,16 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     MYFLT sr= FL(-1.0), kr= FL(-1.0), ksmps= FL(-1.0),
           nchnls= DFLT_NCHNLS, inchnls = FL(0.0), _0dbfs= FL(-1.0);
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
+    addGlobalVariable(csound, engineState, rType, "sr", NULL);
+    addGlobalVariable(csound, engineState, rType, "kr", NULL);
+    addGlobalVariable(csound, engineState, rType, "ksmps", NULL);
+    addGlobalVariable(csound, engineState, rType, "nchnls", NULL);
+    addGlobalVariable(csound, engineState, rType, "nchnls_i", NULL);
+    addGlobalVariable(csound, engineState, rType, "0dbfs", NULL);
+    addGlobalVariable(csound, engineState, rType, "$sr", NULL);
+    addGlobalVariable(csound, engineState, rType, "$kr", NULL);
+    addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
+    /* 
     csoundAddVariable(engineState->varPool,
                       csoundCreateVariable(csound, csound->typePool,
                                            rType, "sr", NULL));
@@ -570,7 +601,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                                            rType, "$kr", NULL));
     csoundAddVariable(engineState->varPool,
                       csoundCreateVariable(csound, csound->typePool,
-                                           rType, "$ksmps", NULL));
+                      rType, "$ksmps", NULL)); 
+    */
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
@@ -745,6 +777,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->onedkr = FL(1.0) / csound->ekr;    
     csound->global_kcounter  = csound->kcounter;
 
+    if(csound->ksmps != DFLT_KSMPS){
+      reallocateVarPoolMemory(csound, engineState->varPool);
+    }
     close_instrument(csound, ip);
 
     return ip;
@@ -1088,8 +1123,12 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       var = csoundFindVariableWithName(current_state->varPool, gVar->varName);
       if(var == NULL){
       var = csoundCreateVariable(csound, csound->typePool,
-				 gVar->varType, gVar->varName, NULL);
+                                 gVar->varType, gVar->varName, NULL);
       csoundAddVariable(current_state->varPool, var);
+      /* memory has already been allocated, so we just point to it */
+      /* when disposing of the engineState global vars, we do not 
+         delete the memBlock */
+      var->memBlock = gVar->memBlock;
       }
       gVar = gVar->next;
     }
@@ -1160,6 +1199,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 {
     /* FIXME: we need functions to deallocate stringPool, constantPool */
     mfree(csound, engineState->instrumentNames);
+    myflt_pool_free(csound, engineState->constantsPool);
+    string_pool_free(csound, engineState->stringPool);
     mfree(csound, engineState->varPool);
     mfree(csound, engineState);
     return 0;
@@ -1382,20 +1423,36 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       }
 
       /* create memblock for global variables */
-      recalculateVarPoolMemory(csound, engineState->varPool);
+      ///recalculateVarPoolMemory(csound, engineState->varPool);
       /* VL: 15.3.2013 allocating 10 times for space than requested,
          for use with variables allocated later */
-      csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize*10);
-      initializeVarPool(csound->globalVarPool, engineState->varPool);
+      /* csound->globalVarPool = mcalloc(csound, engineState->varPool->poolSize*10);
+         initializeVarPool(csound->globalVarPool, engineState->varPool);*/
 
-      MYFLT* globals = csound->globalVarPool;
-      globals[0] = csound->esr;           /*   & enter        */
-      globals[1] = csound->ekr;           /*   rsvd word      */
-      globals[2] = (MYFLT) csound->ksmps; /*   curr vals      */
+      /*MYFLT* globals = csound->globalVarPool;
+      globals[0] = csound->esr;           
+      globals[1] = csound->ekr;           
+      globals[2] = (MYFLT) csound->ksmps; 
       globals[3] = (MYFLT) csound->nchnls;
       if (csound->inchnls<0) csound->inchnls = csound->nchnls;
       globals[4] = (MYFLT) csound->inchnls;
-      globals[5] = csound->e0dbfs;
+      globals[5] = csound->e0dbfs;*/
+
+      CS_VARIABLE *var;
+      var = csoundFindVariableWithName(engineState->varPool, "sr");
+      *((MYFLT *)(var->memBlock)) = csound->esr;  
+      var = csoundFindVariableWithName(engineState->varPool, "kr");
+      *((MYFLT *)(var->memBlock)) = csound->ekr;
+      var = csoundFindVariableWithName(engineState->varPool, "ksmps");
+      *((MYFLT *)(var->memBlock)) = csound->ksmps;
+      var = csoundFindVariableWithName(engineState->varPool, "nchnls");
+      *((MYFLT *)(var->memBlock)) = csound->nchnls;
+      if (csound->inchnls<0) csound->inchnls = csound->nchnls;
+      var = csoundFindVariableWithName(engineState->varPool, "nchnls_i");
+      *((MYFLT *)(var->memBlock)) = csound->inchnls;
+      var = csoundFindVariableWithName(engineState->varPool, "0dbfs");
+      *((MYFLT *)(var->memBlock)) = csound->inchnls;      
+
     }
 
     ip = &(csound->engineState.instxtanchor);
@@ -1658,8 +1715,11 @@ static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
     argLetter[0] = *t;
 
     type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+    /*
     var = csoundCreateVariable(csound, csound->typePool, type, s, typeArg);
     csoundAddVariable(engineState->varPool, var);
+    */
+    addGlobalVariable(csound, engineState, type, s, typeArg);
 }
 
 static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)

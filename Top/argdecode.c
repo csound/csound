@@ -778,7 +778,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       /* VL: moved to csoundReset() in csound.c
               csoundLoadExternals(csound);
               if (csoundInitModules(csound) != 0)
-	      csound->LongJmp(csound, 1); */
+              csound->LongJmp(csound, 1); */
       list_opcodes(csound, full);
       csound->LongJmp(csound, 0);
     }
@@ -1121,10 +1121,10 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               if (*s != '\0') {
                 if (isdigit(*s)) full = *s++ - '0';
               }
-	      /* VL: moved to csoundReset() in csound.c
+              /* VL: moved to csoundReset() in csound.c
               csoundLoadExternals(csound);
               if (csoundInitModules(csound) != 0)
-	      csound->LongJmp(csound, 1); */
+              csound->LongJmp(csound, 1); */
               list_opcodes(csound, full);
             }
             csound->LongJmp(csound, 0);
@@ -1211,12 +1211,17 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
 }
 
 PUBLIC int csoundSetOption(CSOUND *csound, char *option){
+  /* if already compiled and running, return */ 
+  if(csound->engineStatus & CS_STATE_COMP) return 1;
   char *args[2] = {"csound", option}; 
   return (argdecode(csound, 2, args) ? 0 : 1);
 }
 
 PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
    
+  /* if already compiled and running, return */ 
+  if(csound->engineStatus & CS_STATE_COMP) return;
+
   OPARMS *oparms = csound->oparms;
   /* simple ON/OFF switches */
   oparms->odebug = p->debug_mode;  
@@ -1310,6 +1315,10 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
 
   OPARMS *oparms = csound->oparms;
   char *typename;
+
+  /* if already compiled and running, return */ 
+  if(csound->engineStatus & CS_STATE_COMP) return;
+
   oparms->outfilename = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
   strcpy(oparms->outfilename, name);
   if (strcmp(oparms->outfilename, "stdout") == 0) {
@@ -1345,6 +1354,10 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
 
 PUBLIC void csoundSetInput(CSOUND *csound, char *name) {
   OPARMS *oparms = csound->oparms;
+  
+  /* if already compiled and running, return */ 
+  if(csound->engineStatus & CS_STATE_COMP) return;
+
   oparms->infilename = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
   strcpy(oparms->infilename, name);
   if (strcmp(oparms->infilename, "stdin") == 0) {
@@ -1360,6 +1373,10 @@ PUBLIC void csoundSetInput(CSOUND *csound, char *name) {
 
 PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name) {
    OPARMS *oparms = csound->oparms;
+
+   /* if already compiled and running, return */ 
+  if(csound->engineStatus & CS_STATE_COMP) return;
+
    oparms->Midiname = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
    strcpy(oparms->Midiname, name);
    if (!strcmp(oparms->Midiname, "stdin")) {
@@ -1375,6 +1392,10 @@ PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name) {
 
 PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name) {
    OPARMS *oparms = csound->oparms;
+
+   /* if already compiled and running, return */ 
+  if(csound->engineStatus & CS_STATE_COMP) return;
+
    oparms->FMidiname = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
    strcpy(oparms->FMidiname, name);
    if (!strcmp(oparms->FMidiname, "stdin")) {
@@ -1390,12 +1411,20 @@ PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name) {
 
 PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name) {
    OPARMS *oparms = csound->oparms;
+
+   /* if already compiled and running, return */ 
+  if(csound->engineStatus & CS_STATE_COMP) return;
+
    oparms->FMidioutname = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
    strcpy(oparms->FMidioutname, name);
 }
 
 PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name) {
    OPARMS *oparms = csound->oparms;
+
+    /* if already compiled and running, return */ 
+  if(csound->engineStatus & CS_STATE_COMP) return;
+
    oparms->Midioutname = csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
    strcpy(oparms->Midioutname, name);
 }

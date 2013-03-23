@@ -91,7 +91,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
       if (isntAfunc) {
         fltout(csound, bp->p3val, sco);                      /* put p3val,   */
         corfile_putc(SP, sco);
-	if(first) fltout(csound, bp->newp3, sco);                      /*   newp3,     */
+        if (first) fltout(csound, bp->newp3, sco);           /*   newp3,     */
         while ((c = *p++) != SP && c != LF)
           ;
       }
