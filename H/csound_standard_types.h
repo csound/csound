@@ -6,12 +6,12 @@
  */
 
 #ifndef CSOUND_STANDARD_TYPES_H
-#define	CSOUND_STANDARD_TYPES_H
+#define CSOUND_STANDARD_TYPES_H
 
 #include "csound_type_system.h"
 #include "csound.h"
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
@@ -47,9 +47,9 @@ extern "C" {
 
     
     
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif	/* CSOUND_STANDARD_TYPES_H */
+#endif  /* CSOUND_STANDARD_TYPES_H */
 

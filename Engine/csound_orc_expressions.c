@@ -31,8 +31,6 @@ extern void handle_polymorphic_opcode(CSOUND*, TREE *);
 extern void handle_optional_args(CSOUND *, TREE *);
 extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
-extern int find_opcode_num(CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound);
-extern int find_opcode_num_by_tree(CSOUND* csound, char* opname, TREE* left, TREE* right);
 extern OENTRIES* find_opcode2(CSOUND *, char*);
 extern char resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 
@@ -52,6 +50,7 @@ char *create_out_arg(CSOUND *csound, char outype)
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
     case 't': sprintf(s, "#t%d", csound->tcount++); break;
+    case 'S': sprintf(s, "#S%d", csound->tcount++); break;            
     default:  sprintf(s, "#i%d", csound->icount++); break;
     }
     return s;
@@ -376,7 +375,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
     char *op, arg1, arg2, c, *outarg = NULL;
     TREE *anchor = NULL, *last;
     TREE * opTree;
-    int opnum;
+    //int opnum;
     OENTRIES* opentries;
     /* HANDLE SUB EXPRESSIONS */
 
@@ -498,8 +497,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       opentries = find_opcode2(csound, root->value->lexeme);
 
       if (opentries->count == 0) {
-                                /* This is a little like overkill */
-        opnum = find_opcode_num(csound, "##error", "i", "i");
+                                /* This is a little like overkill 
+                                 * and also this opnum variable is not used  */
+        //opnum = find_opcode_num(csound, "##error", "i", "i");
         csound->Warning(csound,
                     Str("error: function %s with arg type %c not found, "
                         "line %d \n"),
@@ -598,7 +598,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
        outarg = create_out_arg(csound, 'k');
        break;
      case T_ARRAY:
-        strncpy(op, "array_get", 80);
+        strncpy(op, "##array_get", 80);
         outarg = create_out_arg(csound, argtyp2(root->left->value->lexeme));
         break;
     
@@ -1131,7 +1131,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                                           create_out_arg(csound, anstype));
             current->left = temp;
             
-            TREE* arraySet = create_opcode_token(csound, "array_set");
+            TREE* arraySet = create_opcode_token(csound, "##array_set");
             arraySet->right = currentAns->left;
             arraySet->right->next = make_leaf(csound, temp->line, temp->locn,
                                                 T_IDENT, make_token(csound, temp->value->lexeme));

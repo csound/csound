@@ -804,7 +804,7 @@ endif()
 
 if(APPLE)
     message(STATUS "Building on OSX")
-    add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS)
+    add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS m dl) 
 endif()
 
@@ -893,13 +893,12 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
-check_deps(BUILD_CATALOG)
-if(BUILD_CATALOG)
-
-make_executable(mkdb "mkdb" "dl")
-set_target_properties(mkdb PROPERTIES LINKER_LANGUAGE C)
-endif()
+## option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
+## check_deps(BUILD_CATALOG)
+## if(BUILD_CATALOG)
+## make_executable(mkdb "mkdb" "dl")
+## set_target_properties(mkdb PROPERTIES LINKER_LANGUAGE C)
+## endif()
 
 
 add_subdirectory(Opcodes)

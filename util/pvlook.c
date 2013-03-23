@@ -210,7 +210,7 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
             pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]);
           else
             pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]
-                                  * (float) csound->e0dbfs);
+                              * (float) csound->Get0dBFS(csound));
         }
         if (p.linePos != 0)
           pvlook_print(&p, "\n");

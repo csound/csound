@@ -201,6 +201,7 @@ static void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int     c, n, pcnt;
+    IGN(userData);
    
     while (1) {
       Linend = STA(Linep);
@@ -415,9 +416,9 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
            evt.p[i] = *p->args[i];
       }
       else {
-	evt.strarg = NULL;
-      for (i = 1; i <= evt.pcnt; i++)
-        evt.p[i] = *p->args[i];
+        evt.strarg = NULL;
+        for (i = 1; i <= evt.pcnt; i++)
+          evt.p[i] = *p->args[i];
       }
     }
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {

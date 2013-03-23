@@ -122,13 +122,7 @@ static CS_NOINLINE int errMsg(void *p, const char *msg)
 {
     CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
     const char  *opname = csound->GetOpcodeName(p);
-
-    if (csound->ids != NULL && csound->pds == NULL)
-      csound->InitError(csound, "%s: %s", opname, msg);
-    else if (csound->ids == NULL && csound->pds != NULL)
-      csound->PerfError(csound, "%s: %s", opname, msg);
-    else
-      csound->ErrorMsg(csound, "%s: %s", opname, msg);
+    csound->ErrorMsg(csound, "%s: %s", opname, msg);
 
     return NOTOK;
 }
@@ -137,13 +131,7 @@ static CS_NOINLINE int pyErrMsg(void *p, const char *msg)
 {
     CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
     const char  *opname = csound->GetOpcodeName(p);
-
-    if (csound->ids != NULL && csound->pds == NULL)
-      csound->InitError(csound, "%s: %s", opname, msg);
-    else if (csound->ids == NULL && csound->pds != NULL)
-      csound->PerfError(csound, "%s: %s", opname, msg);
-    else
-      csound->ErrorMsg(csound, "%s: %s", opname, msg);
+    csound->ErrorMsg(csound, "%s: %s", opname, msg);
     PyErr_Print();
 
     return NOTOK;

@@ -15,6 +15,7 @@ void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
 CS_VARIABLE* createAsig(void* cs, void* p) {
     int ksmps;
     CSOUND* csound = (CSOUND*)cs;
+    IGN(p);
     
     //FIXME - this needs to take into account local ksmps, once
     //context work is complete
@@ -35,13 +36,15 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 CS_VARIABLE* createMyflt(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;    
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+    IGN(p);
     var->memBlockSize = sizeof (MYFLT);
     return var;
 }
 
 CS_VARIABLE* createBool(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;    
+    CSOUND* cs = (CSOUND*)csound;   
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+    IGN(p);
     var->memBlockSize = sizeof (MYFLT);
     return var;
 }
@@ -49,6 +52,7 @@ CS_VARIABLE* createBool(void* csound, void* p) {
 CS_VARIABLE* createWsig(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;    
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+    IGN(p);
     var->memBlockSize = sizeof(SPECDAT);
     return var;
 }
@@ -56,6 +60,7 @@ CS_VARIABLE* createWsig(void* csound, void* p) {
 CS_VARIABLE* createFsig(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;    
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+    IGN(p);
     var->memBlockSize = sizeof(PVSDAT);
     return var;
 }
@@ -68,6 +73,7 @@ void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
 CS_VARIABLE* createString(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+    IGN(p);
     var->memBlockSize = cs->strVarMaxLen;
     return var;
 }

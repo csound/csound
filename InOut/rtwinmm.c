@@ -319,7 +319,7 @@ static int open_device(CSOUND *csound,
                 0 : (parm->sampleFormat == AE_LONG ? 1 : 2));
     if (is_playback) {
       p->outDev = dev;
-      csound->rtPlay_userdata = (void*) dev;
+     *(csound->GetRtPlayUserData(csound)) = (void*) dev;
       dev->enable_buf_timer = p->enable_buf_timer;
       if (UNLIKELY(waveOutOpen((LPHWAVEOUT) &(dev->outDev), (unsigned int) devNum,
                                (LPWAVEFORMATEX) &wfx, 0, 0,
@@ -329,10 +329,10 @@ static int open_device(CSOUND *csound,
       }
       switch (conv_idx) {
         case 0:
-          if (csound->dither_output==1)
+          if (csound->GetDitherMode(csound)==1)
             dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short;
-          else if (csound->dither_output==2)
+          else if (csound->GetDitherMode(csound)==2)
             dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short_u;
           else
@@ -347,7 +347,7 @@ static int open_device(CSOUND *csound,
     }
     else {
       p->inDev = dev;
-      csound->rtRecord_userdata = (void*) dev;
+      *(csound->GetRtRecordUserData(csound)) = (void*) dev;
       /* disable playback timer in full-duplex mode */
       dev->enable_buf_timer = p->enable_buf_timer = 0;
       if (UNLIKELY(waveInOpen((LPHWAVEIN) &(dev->inDev), (unsigned int) devNum,
@@ -395,7 +395,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 
 static int rtrecord_(CSOUND *csound, MYFLT *inBuf, int nbytes)
 {
-    rtWinMMDevice   *dev = (rtWinMMDevice*) csound->rtRecord_userdata;
+    rtWinMMDevice   *dev = (rtWinMMDevice*) *(csound->GetRtRecordUserData(csound)) ;
     WAVEHDR         *buf = &(dev->buffers[dev->cur_buf]);
     volatile DWORD  *dwFlags = &(buf->dwFlags);
 
@@ -424,7 +424,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inBuf, int nbytes)
 
 static void rtplay_(CSOUND *csound, const MYFLT *outBuf, int nbytes)
 {
-    rtWinMMDevice   *dev = (rtWinMMDevice*) csound->rtPlay_userdata;
+    rtWinMMDevice   *dev = (rtWinMMDevice*) *(csound->GetRtPlayUserData(csound));
     WAVEHDR         *buf = &(dev->buffers[dev->cur_buf]);
     volatile DWORD  *dwFlags = &(buf->dwFlags);
     LARGE_INTEGER   pp;
@@ -467,8 +467,8 @@ static void rtclose_(CSOUND *csound)
     rtWinMMDevice   *inDev, *outDev;
     int             i;
 
-    csound->rtPlay_userdata = NULL;
-    csound->rtRecord_userdata = NULL;
+    *(csound->GetRtPlayUserData(csound))  = NULL;
+    *(csound->GetRtRecordUserData(csound))  = NULL;
     pp = (rtWinMMGlobals*) csound->QueryGlobalVariable(csound,
                                                        "_rtwinmm_globals");
     if (pp == NULL)
@@ -721,8 +721,10 @@ static int midi_out_close(CSOUND *csound, void *userData)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     rtWinMMGlobals  *pp;
+    OPARMS oparms;
+     csound->GetOParms(csound, &oparms);
 
-    if (UNLIKELY(csound->oparms->msglevel & 0x400))
+    if (UNLIKELY(oparms.msglevel & 0x400))
       csound->Message(csound, Str("Windows MME real time audio and MIDI module "
                                   "for Csound by Istvan Varga\n"));
 
