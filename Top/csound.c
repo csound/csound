@@ -217,6 +217,7 @@ static const CSOUND cenviron_ = {
     csoundSetMessageCallback,
     csoundDeleteCfgVarList,
     csoundSetMessageLevel,
+    csoundRunCommand,
 #ifdef SOME_FINE_DAY /* these functions are now deprecated */
      csoundInputMessage,
     csoundKeyPress,
@@ -233,7 +234,6 @@ static const CSOUND cenviron_ = {
     csoundChanIASetSample,
     csoundChanOAGetSample,
     csoundStop,
-    csoundRunCommand,
     csoundPerformKsmpsAbsolute,
 #endif
     csoundOpenLibrary,
