@@ -47,7 +47,7 @@ int kline(CSOUND *csound, LINE *p)
 
 int aline(CSOUND *csound, LINE *p)
 {
-    double val, inc; 
+    double val, inc;
     MYFLT *ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -61,9 +61,9 @@ int aline(CSOUND *csound, LINE *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    
+
     p->val += inc;/* nxtval = val + inc */
-    inc /= (nsmps - offset);           
+    inc /= (nsmps - offset);
     for (n=offset; n<nsmps; n++) {
       ar[n] = (MYFLT)val;
       val += inc;       /* interp val for ksmps */
@@ -100,7 +100,7 @@ int kexpon(CSOUND *csound, EXPON *p)
 
 int expon(CSOUND *csound, EXPON *p)
 {
-    double val, mlt, inc, nxtval; 
+    double val, mlt, inc, nxtval;
     MYFLT *ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -332,7 +332,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     if (midip) {
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
       p->xtra = relestim;
-          /*  VL 4-1-2011 was (int32)(*argp[5] * csound->ekr + FL(0.5)); 
+          /*  VL 4-1-2011 was (int32)(*argp[5] * csound->ekr + FL(0.5));
               this seems to fix it */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int)relestim;
@@ -1533,7 +1533,7 @@ int csgset(CSOUND *csound, COSSEG *p)
       segp->nxtpt = (double)**argp++;
       if (UNLIKELY((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) < 0))
         segp->cnt = 0;
-      //printf("%d(%p): cnt=%d nxtpt=%f\n", 
+      //printf("%d(%p): cnt=%d nxtpt=%f\n",
       //       p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
       segp++;
     } while (--nsegs);

@@ -152,7 +152,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
       for (n=0; n<nsmps; n++)
         for (i = 0; i < N + 2; i += 2) {
           bframe[i+n*NB] = FL(0.0);
-          bframe[i+n*NB + 1] = 
+          bframe[i+n*NB + 1] =
             (n<offset || n>nsmps-early ? FL(0.0) :(i >>1) * N * csound->onedsr);
         }
     }
@@ -221,19 +221,19 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
       return csound->InitError(csound,
                                Str("pvsfwrite: could not open file %s\n"),
                                fname);
-    
+
     if(csound->realtime_audio_flag) {
       int bufframes = 16;
       p->csound = csound;
       if (p->frame.auxp == NULL || p->frame.size < sizeof(MYFLT) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->frame);
       if (p->buf.auxp == NULL || p->buf.size < sizeof(MYFLT) * (N + 2))
-               csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->buf);  
+               csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->buf);
       if (p->dframe.auxp == NULL || p->dframe.size < sizeof(float) * (N + 2))
-               csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->dframe);   
+               csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->dframe);
       p->cb = csound->CreateCircularBuffer(csound, (N+2)*sizeof(float)*bufframes);
-      pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p); 
-      p->async = 1;    
+      pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
+      p->async = 1;
     } else{
       p->async = 0;
     }
@@ -247,8 +247,8 @@ void *pvs_io_thread(void *pp){
   CSOUND *csound = p->csound;
   MYFLT  *buf = (MYFLT *) p->buf.auxp;
   float  *frame = (float *) p->dframe.auxp;
-  int  *on = &p->async; 
-  int lc,n, N2=p->N+2; 
+  int  *on = &p->async;
+  int lc,n, N2=p->N+2;
   while (*on) {
       lc = csound->ReadCircularBuffer(csound, p->cb, buf, N2);
       if(lc)  {
@@ -261,15 +261,15 @@ void *pvs_io_thread(void *pp){
 
 
 static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
-{  
+{
     float *fin = p->fin->frame.auxp;
-  
+
     if (p->lastframe < p->fin->framecount) {
       int32 framesize = p->fin->N+2,i;
       if(p->async == 0) {
       if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fin, 1)))
         return csound->PerfError(csound, Str("pvsfwrite: could not write data\n"));
-      } 
+      }
       else {
       MYFLT *fout = p->frame.auxp;
       for (i=0;i < framesize; i++) fout[i] = (MYFLT) fin[i];
@@ -924,7 +924,7 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 {
     int32    framesize, pos;
-    if (p->fin->sliding) { 
+    if (p->fin->sliding) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t k, nsmps = CS_KSMPS;
       CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
@@ -1025,7 +1025,7 @@ static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
       coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
       coef2 = sqrt(costh2 * costh2 - 1.0) - costh2;
 
-      for (n=0; n<offset; n++) 
+      for (n=0; n<offset; n++)
         for (i=0; i<NB; i++) {
         fout = (CMPLX*) p->fout->frame.auxp +NB*n;
         del = (CMPLX*) p->del.auxp +NB*n;

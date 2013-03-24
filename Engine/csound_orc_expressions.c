@@ -50,7 +50,7 @@ char *create_out_arg(CSOUND *csound, char outype)
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
     case 't': sprintf(s, "#t%d", csound->tcount++); break;
-    case 'S': sprintf(s, "#S%d", csound->tcount++); break;            
+    case 'S': sprintf(s, "#S%d", csound->tcount++); break;
     default:  sprintf(s, "#i%d", csound->icount++); break;
     }
     return s;
@@ -82,7 +82,7 @@ char * get_boolean_arg(CSOUND *csound, int type)
 {
     char* s = (char *)csound->Malloc(csound, 8);
     sprintf(s, "#%c%d", type?'B':'b',csound->Bcount++);
-    
+
     return s;
 }
 
@@ -285,7 +285,8 @@ int is_boolean_expression_node(TREE *node)
     return 0;
 }
 
-static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line, int locn)
+static TREE *create_cond_expression(CSOUND *csound, 
+                                    TREE *root, int line, int locn)
 {
     char arg1, arg2, ans, *outarg = NULL;
     char outype;
@@ -296,7 +297,7 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line, int lo
     TREE *c = root->right->left, *d = root->right->right;
     last = anchor;
     char condInTypes[4];
-    
+
     while (last->next != NULL) {
       last = last->next;
     }
@@ -325,15 +326,15 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root, int line, int lo
     arg1 = argtyp2( c->value->lexeme);
     arg2 = argtyp2( d->value->lexeme);
     ans  = argtyp2( b->value->lexeme);
-    
+
     condInTypes[0] = ans;
     condInTypes[1] = arg1;
     condInTypes[2] = arg2;
     condInTypes[3] = 0;
-    
+
     OENTRIES* entries = find_opcode2(csound, ":cond");
     outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
-    
+
     outarg = create_out_arg(csound, outype);
     opTree = create_opcode_token(csound, cs_strdup(csound, ":cond"));
     opTree->left = create_ans_token(csound, outarg);
@@ -477,7 +478,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
       opentries = find_opcode2(csound, root->value->lexeme);
 
       if (opentries->count == 0) {
-                                /* This is a little like overkill 
+                                /* This is a little like overkill
                                  * and also this opnum variable is not used  */
         //opnum = find_opcode_num(csound, "##error", "i", "i");
         csound->Warning(csound,
@@ -581,7 +582,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
         strncpy(op, "##array_get", 80);
         outarg = create_out_arg(csound, argtyp2(root->left->value->lexeme));
         break;
-    
+
      }
      opTree = create_opcode_token(csound, op);
      if (root->left != NULL) {
@@ -623,7 +624,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn)
     TREE *anchor = NULL, *last;
     TREE * opTree;
 
-    if (UNLIKELY(PARSER_DEBUG)) 
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
@@ -649,7 +650,8 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn)
 
 
     if (is_boolean_expression_node(root->right)) {
-      TREE * newRight = create_boolean_expression(csound, root->right, line, locn);
+      TREE * newRight = create_boolean_expression(csound, 
+                                                  root->right, line, locn);
       if (anchor == NULL) {
         anchor = newRight;
       }
@@ -1181,7 +1183,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               
       case LABEL_TOKEN:
         break;
-                            
+              
       default:
         //maincase:
         

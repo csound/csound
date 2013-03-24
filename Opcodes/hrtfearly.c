@@ -1009,7 +1009,7 @@ static int early_process(CSOUND *csound, early *p)
 
             /* in seconds... */
             dtime[M] = dist[M] / c;
-            
+
             /* furthest allowable distance....max amp = 1. */
             tempdist = (dist[M] < FL(0.45) ? FL(0.45) : dist[M]);
 
@@ -1022,7 +1022,7 @@ static int early_process(CSOUND *csound, early *p)
             vdt[M] = dtime[M] * sr;
             if (vdt[M] > maxdelsamps)
               vdt[M] = (MYFLT)maxdelsamps;
-            
+
             M++;
             M = M % impulses;
           }
@@ -1538,19 +1538,19 @@ static int early_process(CSOUND *csound, early *p)
                     filter(hrtfrinterp, p->wallcoefhigh,
                            p->wallcoeflow, &delsingler,
                            irlength, sr);
-                    deldoublel[0] = deldoublel[1] = 
+                    deldoublel[0] = deldoublel[1] =
                       deldoubler[0] = deldoubler[1] = 0.0;
                     band(hrtflinterp, FL(250.0), FL(250.0) / p->q,
                          p->wallg1, deldoublel, irlength, sr);
                     band(hrtfrinterp, FL(250.0), FL(250.0) / p->q,
                          p->wallg1, deldoubler, irlength, sr);
-                    deldoublel[0] = deldoublel[1] = 
+                    deldoublel[0] = deldoublel[1] =
                       deldoubler[0] = deldoubler[1] = 0.0;
-                    band(hrtflinterp, FL(1000.0), 
-                         FL(1000.0) / p->q, p->wallg2, 
+                    band(hrtflinterp, FL(1000.0),
+                         FL(1000.0) / p->q, p->wallg2,
                          deldoublel, irlength, sr);
-                    band(hrtfrinterp, FL(1000.0), 
-                         FL(1000.0) / p->q, p->wallg2, 
+                    band(hrtfrinterp, FL(1000.0),
+                         FL(1000.0) / p->q, p->wallg2,
                          deldoubler, irlength, sr);
                     deldoublel[0] = deldoublel[1] =
                       deldoubler[0] = deldoubler[1] = 0.0;

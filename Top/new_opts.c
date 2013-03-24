@@ -178,7 +178,7 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
       val = (char*) s+2;
       tmp = buf;
       while (*val!='\0') {
-        /* 
+        /*
          * CAN char used during the parsing in CsOptions to mark
          * the removable characters '\'. ETX char used to mark
          * the limits of a string.
@@ -209,4 +209,3 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
     }
     return 0;
 }
-

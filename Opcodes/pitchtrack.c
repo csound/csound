@@ -551,27 +551,27 @@ typedef struct plltrack_
   BIQUAD   fils[6];
   double  ace, xce;
   double cos_x, sin_x, x1, x2;
-  MYFLT klpf_o, klpfQ_o, klf_o,khf_o;  
+  MYFLT klpf_o, klpfQ_o, klf_o,khf_o;
 
 } PLLTRACK;
 
 void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int TYPE)
 {
-    double k, ksq, div, ksqQ; 
+    double k, ksq, div, ksqQ;
 
     switch(TYPE){
     case LP2:
       k = tan(fr*csound->pidsr);
       ksq = k*k;
-      ksqQ = ksq*Q; 
+      ksqQ = ksq*Q;
       div = ksqQ+k+Q;
       biquad->b1 = (2*Q*(ksq-1.))/div;
       biquad->b2 = (ksqQ-k+Q)/div;
       biquad->a0 = ksqQ/div;
       biquad->a1 = 2*biquad->a0;
-      biquad->a2 = biquad->a0; 
+      biquad->a2 = biquad->a0;
       break;
-  
+
     case LP1:
       k = 1.0/tan(csound->pidsr*fr);
       ksq = k*k;
@@ -590,7 +590,7 @@ void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int TYPE)
       biquad->a2 = biquad->a0;
       biquad->b1 = 2.0 * (ksq - 1.0) * biquad->a0;
       biquad->b2 = ( 1.0 - ROOT2 * k + ksq) * biquad->a0;
-      break; 
+      break;
     }
 
 }
@@ -601,12 +601,12 @@ int plltrack_set(CSOUND *csound, PLLTRACK *p)
     int i;
     p->x1 = p->cos_x = p->sin_x = 0.0;
     p->x2 = 1.0;
-    p->klpf_o = p->klpfQ_o = p->klf_o = p->khf_o = 0.0; 
+    p->klpf_o = p->klpfQ_o = p->klf_o = p->khf_o = 0.0;
     update_coefs(csound,10.0, 0.0, &p->fils[4], LP1);
     p->ace = p->xce = 0.0;
-    for (i=0; i < 6; i++) 
+    for (i=0; i < 6; i++)
       p->fils[i].del1 = p->fils[i].del2 = 0.0;
-  
+
     return OK;
 }
 
@@ -660,10 +660,10 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
       p->klpf_o = klpf; p->klpfQ_o = klpfQ;
     }
 
-  
+
 
     for(k=0; k < 6; k++) {
-      a0[k] = biquad[k].a0; 
+      a0[k] = biquad[k].a0;
       a1[k] = biquad[k].a1;
       a2[k] = biquad[k].a2;
       b1[k] = biquad[k].b1;
@@ -678,30 +678,30 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     x2 = &p->x2;
     xce = &p->xce;
     ace = &p->ace;
- 
+
     for (i=0; i < ksmps; i++){
-      double input = (double) (asig[i]/_0dbfs), env; 
+      double input = (double) (asig[i]/_0dbfs), env;
       double w, y, icef = 0.99, fosc, xd, c, s, oc;
 
       /* input stage filters */
       for (k=0; k < 4 ; k++){
         w =  input - *(mem1[k])*b1[k] - *(mem2[k])*b2[k];
         y  = w*a0[k] + *(mem1[k])*a1[k] + *(mem2[k])*a2[k];
-        *(mem2[k]) = *(mem1[k]); 
+        *(mem2[k]) = *(mem1[k]);
         *(mem1[k]) = w;
         input = y;
       }
-    
+
       /* envelope extraction */
       w =  FABS(input) - *(mem1[k])*b1[k] - *(mem2[k])*b2[k];
       y  = w*a0[k] + *(mem1[k])*a1[k] + *(mem2[k])*a2[k];
-      *(mem2[k]) = *(mem1[k]);  
+      *(mem2[k]) = *(mem1[k]);
       *(mem1[k]) = w;
       env = y;
       k++;
-   
+
       /* constant envelope */
-      if (env > kthresh) 
+      if (env > kthresh)
         input /= env;
       else input = 0.0;
 
@@ -713,7 +713,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
       xd =  *cos_x * (*ace) * kd * esr;
       w =  xd - *(mem1[k])*b1[k] - *(mem2[k])*b2[k];
       y  = w*a0[k] + *(mem1[k])*a1[k] + *(mem2[k])*a2[k];
-      *(mem2[k]) = *(mem1[k]);   
+      *(mem2[k]) = *(mem1[k]);
       *(mem1[k]) = w;
       freq[i] = FABS(2*y);
       lock[i] = *ace * (*sin_x);
@@ -726,7 +726,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
       c = COS(oc);  s = SIN(oc);
       *x1 = *sin_x*c + *cos_x*s;
       *x2 = -*sin_x*s + *cos_x*c;
-    
+
     }
     return OK;
 }
@@ -739,10 +739,9 @@ static OENTRY pitchtrack_localops[] = {
    (SUBR)pitchtrackinit, NULL, (SUBR)pitchtrackprocess},
   {"pitchac", S(PITCHTRACK), 0, 5, "k", "akki",
    (SUBR)pitchafset, NULL, (SUBR)pitchafproc},
-  {"plltrack", S(PLLTRACK), 0, 5, "aa", "akOOOOO",   
+  {"plltrack", S(PLLTRACK), 0, 5, "aa", "akOOOOO",
    (SUBR)plltrack_set, NULL, (SUBR)plltrack_perf}
 
 };
 
 LINKAGE_BUILTIN(pitchtrack_localops)
-

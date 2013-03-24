@@ -664,7 +664,7 @@ extern "C" {
     typedef struct xyindat_ XYINDAT;
 
 
-  /** 
+  /**
    *  csound configuration structure, mirrors part of
    *  OPARMS, uses more meaningful names
    */
@@ -680,20 +680,22 @@ extern "C" {
     int     tempo;             /* tempo (sets Beatmode)  */
     int     ring_bell;         /* bell, 0 or 1 */
     int     use_cscore;        /* use cscore for processing */
-    int     terminate_on_midi; /* terminate performance at the end of midifile, 0 or 1 */
+    int     terminate_on_midi; /* terminate performance at the end
+                                  of midifile, 0 or 1 */
     int     heartbeat;         /* print heart beat, 0 or 1 */
     int     defer_gen01_load ;  /* defer GEN01 load, 0 or 1 */
-    int     midi_key;           /* pfield to map midi key no */    
+    int     midi_key;           /* pfield to map midi key no */
     int     midi_key_cps;       /* pfield to map midi key no as cps */
     int     midi_key_oct;       /* pfield to map midi key no as oct */
     int     midi_key_pch;       /* pfield to map midi key no as pch */
     int     midi_velocity;      /* pfield to map midi velocity */
     int     midi_velocity_amp;   /* pfield to map midi velocity as amplitude */
-    int     no_default_paths;     /* disable relative paths from files, 0 or 1 */    
+    int     no_default_paths;     /* disable relative paths from files, 0 or 1 */
     int     number_of_threads;   /* number of threads for multicore performance */
     int     syntax_check_only;   /* do not compile, only check syntax */
     int     csd_line_counts;     /* csd line error reporting */
-    int     compute_weights;     /* use calculated opcode weights for multicore, 0 or 1  */
+    int     compute_weights;     /* use calculated opcode weights for
+                                    multicore, 0 or 1  */
     int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
     int     sample_accurate;     /* use sample-level score event accuracy */
     int     sample_rate_override; /* overriding sample rate */
@@ -718,7 +720,7 @@ extern "C" {
       char midi_module[64];
       int isOutput;
     } CS_MIDIDEVICE;
-    
+
 
     /**
      * Real-time audio parameters structure
@@ -818,11 +820,11 @@ extern "C" {
     PUBLIC int csoundInitialize(int *argc, char ***argv, int flags);
 
     /**
-     * Creates an instance of Csound.
-     * Returns an opaque pointer that must be passed to most Csound API functions.
-     * The hostData parameter can be NULL, or it can be a pointer to any sort of
-     * data; this pointer can be accessed from the Csound instance that is passed
-     * to callback routines.
+     * Creates an instance of Csound.  Returns an opaque pointer that
+     * must be passed to most Csound API functions.  The hostData
+     * parameter can be NULL, or it can be a pointer to any sort of
+     * data; this pointer can be accessed from the Csound instance
+     * that is passed to callback routines.
      */
     PUBLIC CSOUND *csoundCreate(void *hostData);
 
@@ -882,7 +884,7 @@ extern "C" {
     PUBLIC int csoundCompileArgs(CSOUND *, int argc, char **argv);
 
     /**
-     * Prepares Csound for performance after compilation 
+     * Prepares Csound for performance after compilation
      * using one or more of the above functions.
      */
     PUBLIC int csoundStart(CSOUND *csound);
@@ -907,8 +909,8 @@ extern "C" {
      * is reached (positive return value), an error occurs (negative return
      * value), or performance is stopped by calling csoundStop() from another
      * thread (zero return value).
-     * Note that csoundCompile() or csoundCompileOrc(), csoundReadScore(), csoundStart() 
-     * must be called first.
+     * Note that csoundCompile() or csoundCompileOrc(), csoundReadScore(),
+     * csoundStart() must be called first.
      * In the case of zero return value, csoundPerform() can be called again
      * to continue the stopped performance. Otherwise, csoundReset() should be
      * called to clean up after the finished or failed performance.
@@ -918,8 +920,8 @@ extern "C" {
     /**
      * Senses input events, and performs one control sample worth (ksmps) of
      * audio output.
-     * Note that csoundCompile() or csoundCompileOrc(), csoundReadScore(), csoundStart() 
-     * must be called first.
+     * Note that csoundCompile() or csoundCompileOrc(), csoundReadScore(),
+     * csoundStart() must be called first.
      * Returns false during performance, and true when performance is finished.
      * If called until it returns true, will perform an entire score.
      * Enables external software to control the execution of Csound,
@@ -988,9 +990,9 @@ extern "C" {
     PUBLIC uint32_t csoundGetNchnls(CSOUND *);
 
     /**
-     * Returns the number of audio input channels. Set through the nchnls_i
-     * header variable in the csd file. If this variable is not set, the value is taken from
-     * nchnls.
+     * Returns the number of audio input channels. Set through the
+     * nchnls_i header variable in the csd file. If this variable is
+     * not set, the value is taken from nchnls.
      */
     PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound);
 
@@ -1071,7 +1073,7 @@ extern "C" {
      *  @{
      */
 
- 
+
    /**
     * Returns the output audio output name (-o).
     */
@@ -1081,13 +1083,15 @@ extern "C" {
     *  Set output destination, type and format
     *  type can be one of  "wav","aiff", "au","raw", "paf", "svx", "nist", "voc",
     *  "ircam","w64","mat4", "mat5", "pvf","xi", "htk","sds","avr","wavex","sd2",
-    *  "flac", "caf","wve","ogg","mpc2k","rf64", or NULL (use default or realtime IO).
+    *  "flac", "caf","wve","ogg","mpc2k","rf64", or NULL (use default or
+    *  realtime IO).
     *  format can be one of "alaw", "schar", "uchar", "float", "double", "long",
     *  "short", "ulaw", "24bit", "vorbis", or NULL (use default or realtime IO).
     *   For RT audio, use device_id from CS_AUDIODEVICE for a given audio device.
     *
     */
-  PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format);
+  PUBLIC void csoundSetOutput(CSOUND *csound, char *name,
+                              char *type, char *format);
 
     /**
      *  Set input source
@@ -1138,24 +1142,25 @@ extern "C" {
      */
 
      /**
-     *  Sets the current RT audio module 
+     *  Sets the current RT audio module
      */
     PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module);
 
      /**
-      * retrieves a module name and type ("audio" or "midi")
-      * given a number
-      * Modules are added to list as csound loads them
-      * returns CSOUND_SUCCESS on success and CSOUND_ERROR if module <number> was not found
-      * 
+      * retrieves a module name and type ("audio" or "midi") given a
+      * number Modules are added to list as csound loads them returns
+      * CSOUND_SUCCESS on success and CSOUND_ERROR if module <number>
+      * was not found
+      *
        * \code
       *  char *name, *type;
       *  int n = 0;
-      *  while(!csoundGetModule(csound, n++, &name, &type)) 
+      *  while(!csoundGetModule(csound, n++, &name, &type))
       *       printf("Module %d:  %s (%s) \n", n, name, type);
-      * \endcode       
+      * \endcode
       */
-   PUBLIC int csoundGetModule(CSOUND *csound, int number, char **name, char **type);
+   PUBLIC int csoundGetModule(CSOUND *csound, int number,
+                              char **name, char **type);
 
     /**
      * Returns the number of samples in Csound's input buffer.
@@ -1230,31 +1235,35 @@ extern "C" {
      * set to the integer multiple of ksmps that is nearest to the value
      * specified.
      */
-    PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state, int bufSize);
+    PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *,
+                                                int state, int bufSize);
 
 
      /**
-      * This function can be called to obtain a list of available input or output
-      * audio devices. If list is NULL, the function will only return the number
-      * of devices (isOutput=1 for out devices, 0 for in devices).
-      * If list is non-NULL, then it should contain enough memory for one CS_AUDIODEVICE
-      * structure per device.
-      * Hosts will typically call this function twice: first to obtain a number of devices,
-      * then, after allocating space for each device information structure, pass
-      * an array of CS_AUDIODEVICE structs to be filled:
+      * This function can be called to obtain a list of available
+      * input or output audio devices. If list is NULL, the function
+      * will only return the number of devices (isOutput=1 for out
+      * devices, 0 for in devices).
+      * If list is non-NULL, then it should contain enough memory for
+      * one CS_AUDIODEVICE structure per device.
+      * Hosts will typically call this function twice: first to obtain
+      * a number of devices, then, after allocating space for each
+      * device information structure, pass an array of CS_AUDIODEVICE
+      * structs to be filled:
       *
       * \code
       *   int i,n = csoundAudioDevList(csound,NULL,1);
-      *   CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *) 
+      *   CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
       *       malloc(n*sizeof(CS_AUDIODEVICE));
       *   csoundAudioDevList(csound,devs,1);
-      *   for(i=0; i < n; i++) 
-      *       csound->Message(csound, " %d: %s (%s)\n", 
+      *   for(i=0; i < n; i++)
+      *       csound->Message(csound, " %d: %s (%s)\n",
       *             i, devs[i].device_id, devs[i].device_name);
-      *   free(devs);        
+      *   free(devs);
       * \endcode
       */
-    PUBLIC int csoundAudioDevList(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput);
+    PUBLIC int csoundAudioDevList(CSOUND *csound,
+                                  CS_AUDIODEVICE *list, int isOutput);
 
     /**
      * Sets a function to be called by Csound for opening real-time
@@ -1308,21 +1317,24 @@ extern "C" {
      */
 
     /**
-     *  Sets the current MIDI IO module 
+     *  Sets the current MIDI IO module
      */
     PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module);
 
     /**
-      * This function can be called to obtain a list of available input or output
-      * midi devices. If list is NULL, the function will only return the number
-      * of devices (isOutput=1 for out devices, 0 for in devices).
-      * If list is non-NULL, then it should contain enough memory for one CS_MIDIDEVICE
-      * structure per device.
-      * Hosts will typically call this function twice: first to obtain a number of devices,
-      * then, after allocating space for each device information structure, pass
-      * an array of CS_MIDIDEVICE structs to be filled. (see also csoundAudioDevList())
+      * This function can be called to obtain a list of available
+      * input or output midi devices. If list is NULL, the function
+      * will only return the number of devices (isOutput=1 for out
+      * devices, 0 for in devices).
+      * If list is non-NULL, then it should contain enough memory for
+      * one CS_MIDIDEVICE structure per device.
+      * Hosts will typically call this function twice: first to obtain
+      * a number of devices, then, after allocating space for each
+      * device information structure, pass an array of CS_MIDIDEVICE
+      * structs to be filled. (see also csoundAudioDevList())
       */
-    PUBLIC int csoundMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput);
+    PUBLIC int csoundMIDIDevList(CSOUND *csound,
+                                 CS_MIDIDEVICE *list, int isOutput);
 
     /**
      * Sets callback for opening real time MIDI input.
@@ -1367,14 +1379,15 @@ extern "C" {
      */
     PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
             const char *(*func)(int));
-   
-    
+
+
     /**
      * Sets a function that is called to obtain a list of MIDI devices
      * (See csoundMIDIDevList())
      */
     PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
-                                                int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
+                int (*mididevlist__)(CSOUND *,
+                                     CS_MIDIDEVICE *list, int isOutput));
 
     /** @}*/
     /** @defgroup SCOREHANDLING Score Handling
@@ -1435,7 +1448,8 @@ extern "C" {
 
     /**
      * Sets an external callback for Cscore processing.
-     * Pass NULL to reset to the internal cscore() function (which does nothing).
+     * Pass NULL to reset to the internal cscore() function
+     * (which does nothing).
      * This callback is retained after a csoundReset() call.
      */
     PUBLIC void csoundSetCscoreCallback(CSOUND *,
@@ -1568,31 +1582,35 @@ extern "C" {
      * and at least one of these:
      *   CSOUND_INPUT_CHANNEL
      *   CSOUND_OUTPUT_CHANNEL
-     * If the channel already exists, it must match the data type (control,
-     * audio, or string), however, the input/output bits are OR'd with the
-     * new value. Note that audio and string channels can only be created
-     * after calling csoundCompile(), because the storage size is not known
-     * until then.
+     * If the channel already exists, it must match the data type
+     * (control, audio, or string), however, the input/output bits are
+     * OR'd with the new value. Note that audio and string channels
+     * can only be created after calling csoundCompile(), because the
+     * storage size is not known until then.
+
      * Return value is zero on success, or a negative error code,
      *   CSOUND_MEMORY  there is not enough memory for allocating the channel
      *   CSOUND_ERROR   the specified name or type is invalid
-     * or, if a channel with the same name but incompatible type already exists,
-     * the type of the existing channel. In the case of any non-zero return
-     * value, *p is set to NULL.
-     * Note: to find out the type of a channel without actually creating or
-     * changing it, set 'type' to zero, so that the return value will be either
-     * the type of the channel, or CSOUND_ERROR if it does not exist.
+     * or, if a channel with the same name but incompatible type
+     * already exists, the type of the existing channel. In the case
+     * of any non-zero return value, *p is set to NULL.
+     * Note: to find out the type of a channel without actually
+     * creating or changing it, set 'type' to zero, so that the return
+     * value will be either the type of the channel, or CSOUND_ERROR
+     * if it does not exist.
      *
      * Operations on **p are not thread-safe by default. The host is required
      * to take care of threadsafety by
-     * 1) with control channels use __sync_fetch_and_add() / __sync_fetch_and_or()
-     *    gcc atomic builtins to get or set a channel, if available.
-     * 2) For string and audio channels (and controls if option 1 is not available),
-     *    retrieve the channel lock with csoundGetChannelLock() and use csoundSpinLock()
-     *    and csoundSpinUnLock() to protect access to **p.
-     * See Top/threadsafe.c in the Csound library sources for examples.
-     * Optionally, use the channel get/set functions provided below, which are threadsafe
-     * by default.
+     * 1) with control channels use __sync_fetch_and_add() or
+     *    __sync_fetch_and_or() gcc atomic builtins to get or set a channel,
+     *    if available.
+     * 2) For string and audio channels (and controls if option 1 is not
+     *    available), retrieve the channel lock with csoundGetChannelLock()
+     *    and use csoundSpinLock() and csoundSpinUnLock() to protect access
+     *    to **p.
+     * See Top/threadsafe.c in the Csound library sources for
+     * examples.  Optionally, use the channel get/set functions
+     * provided below, which are threadsafe by default.
      */
     PUBLIC int csoundGetChannelPtr(CSOUND *,
             MYFLT **p, const char *name, int type);
@@ -1640,14 +1658,16 @@ extern "C" {
     /**
      * Returns special parameters (assuming there are any) of a control channel,
      * previously set with csoundSetControlChannelParams().
-     * If the channel exists, is a control channel, and has the special parameters
-     * assigned, then the default, minimum, and maximum value is stored in *dflt,
-     * *min, and *max, respectively, and a positive value that is one of
-     * CSOUND_CONTROL_CHANNEL_INT, CSOUND_CONTROL_CHANNEL_LIN, and
-     * CSOUND_CONTROL_CHANNEL_EXP is returned.
-     * In any other case, *dflt, *min, and *max are not changed, and the return
-     * value is zero if the channel exists, is a control channel, but has no
-     * special parameters set; otherwise, a negative error code is returned.
+     * If the channel exists, is a control channel, and has the
+     * special parameters assigned, then the default, minimum, and
+     * maximum value is stored in *dflt, *min, and *max, respectively,
+     * and a positive value that is one of CSOUND_CONTROL_CHANNEL_INT,
+     * CSOUND_CONTROL_CHANNEL_LIN, and CSOUND_CONTROL_CHANNEL_EXP is
+     * returned.
+     * In any other case, *dflt, *min, and *max are not changed, and
+     * the return value is zero if the channel exists, is a control
+     * channel, but has no special parameters set; otherwise, a
+     * negative error code is returned.
      */
     PUBLIC int csoundGetControlChannelParams(CSOUND *, const char *name,
             MYFLT *dflt, MYFLT *min, MYFLT *max);
@@ -1680,31 +1700,38 @@ extern "C" {
     /**
      * sets the value of control channel identified by *name
      */
-    PUBLIC void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val);
+    PUBLIC void csoundSetControlChannel(CSOUND *csound,
+                                        const char *name, MYFLT val);
 
     /**
-     * copies the audio channel identified by *name into array *samples which should
-     * contain enough memory for ksmps MYFLTs 
+     * copies the audio channel identified by *name into array
+     * *samples which should contain enough memory for ksmps MYFLTs
      */
-    PUBLIC void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples);
-    
-    /**
-     * sets the audio channel identified by *name with data from array *samples which should
-     * contain at least ksmps MYFLTs 
-     */
-    PUBLIC void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples);
- 
-    /**
-     * copies the string channel identified by *name into *string which should
-     * contain enough memory a string of length csoundGetStrVarMaxLen(csound) (incl. NULL char)
-     */
-    PUBLIC void csoundSetStringChannel(CSOUND *csound, const char *name, char *string);
+    PUBLIC void csoundGetAudioChannel(CSOUND *csound,
+                                      const char *name, MYFLT *samples);
 
     /**
-     * sets the string channel identified by *name with *string
-     * which should not be longer than csoundGetStrVarMaxLen(csound) (incl. NULL char)
+     * sets the audio channel identified by *name with data from array
+     * *samples which should contain at least ksmps MYFLTs
      */
-    PUBLIC  void csoundGetStringChannel(CSOUND *csound, const char *name, char *string);
+    PUBLIC void csoundSetAudioChannel(CSOUND *csound,
+                                      const char *name, MYFLT *samples);
+
+    /**
+     * copies the string channel identified by *name into *string
+     * which should contain enough memory a string of length
+     * csoundGetStrVarMaxLen(csound) (incl. NULL char)
+     */
+    PUBLIC void csoundSetStringChannel(CSOUND *csound,
+                                       const char *name, char *string);
+
+    /**
+     * sets the string channel identified by *name with *string which
+     * should not be longer than csoundGetStrVarMaxLen(csound)
+     * (incl. NULL char)
+     */
+    PUBLIC  void csoundGetStringChannel(CSOUND *csound,
+                                        const char *name, char *string);
 
 
       /**
@@ -1756,8 +1783,9 @@ extern "C" {
      * Returns the chani opcode MYFLT k-rate value for the indicated channel.
      * The bus is automatically extended if the channel is greater than
      * previously used, clearing new locations to zero.
-     * Returns the sample value on success, CSOUND_ERROR if the index is invalid,
-     * and CSOUND_MEMORY if there is not enough memory to estend the bus
+     * Returns the sample value on success, CSOUND_ERROR if the index is
+     * invalid, and CSOUND_MEMORY if there is not enough memory to estend
+     * the bus
      */
     PUBLIC MYFLT csoundChanOKGetValue(CSOUND *, int channel);
 
@@ -1777,8 +1805,9 @@ extern "C" {
      * for the indicated channel.
      * The bus is automatically extended if the channel is greater than
      * previously used, clearing new locations to zero.
-     * Returns the sample value on success, CSOUND_ERROR if the index is invalid,
-     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+     * Returns the sample value on success, CSOUND_ERROR if the index
+     * is invalid, and CSOUND_MEMORY if there is not enough memory to
+     * estend the bus.
      */
     PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
 
@@ -1798,8 +1827,9 @@ extern "C" {
      * for the indicated channel.
      * The bus is automatically extended if the channel is greater than
      * previously used, clearing new locations to zero.
-     * Returns the sample value on success, CSOUND_ERROR if the index is invalid,
-     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+     * Returns the sample value on success, CSOUND_ERROR if the index
+     * is invalid, and CSOUND_MEMORY if there is not enough memory to
+     * estend the bus.
      */
     PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
 
@@ -1929,19 +1959,19 @@ extern "C" {
      * The table number and index are assumed to be valid.
      */
     PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
-    
+
 
     /**
      * Copy the contents of a function table into a supplied array *dest
      * The table number is assumed to be valid, and the destination needs to
-     * have sufficient space to receive all the function table contents. 
+     * have sufficient space to receive all the function table contents.
      */
     PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *dest);
 
     /**
      * Copy the contents of an array *src into a given function table
      * The table number is assumed to be valid, and the table needs to
-     * have sufficient space to receive all the array contents. 
+     * have sufficient space to receive all the array contents.
      */
     PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
 
@@ -2229,12 +2259,14 @@ extern "C" {
    }
 #  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 #  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-    //# else
-    //#  define csoundSpinLock(spinlock) pthread_spin_lock((pthread_spinlock_t *)spinlock);
-    //#  define csoundSpinUnLock(spinlock) pthread_spin_unlock((pthread_spinlock_t *)spinlock);
-    //#  define CSOUND_SPIN_LOCK
-    //#  define CSOUND_SPIN_UNLOCK
-    //#endif
+  //# else
+  //#  define csoundSpinLock(spinlock)
+  //     pthread_spin_lock((pthread_spinlock_t *)spinlock);
+  //#  define csoundSpinUnLock(spinlock)
+  //     pthread_spin_unlock((pthread_spinlock_t *)spinlock);
+  //#  define CSOUND_SPIN_LOCK
+  //#  define CSOUND_SPIN_UNLOCK
+  //#endif
 
 #elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
 
@@ -2463,7 +2495,7 @@ extern "C" {
  /**
   * Read from circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *out - buffer with at least items samples where buffer contents 
+  * MYFLT *out - buffer with at least items samples where buffer contents
   *              will be read into
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
@@ -2518,7 +2550,8 @@ extern "C" {
      * Returns 0 for success.
      */
 
-    PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version);
+    PUBLIC int csoundQueryInterface(const char *name,
+                                    void **iface, int *version);
 
 
     /**
@@ -2584,8 +2617,8 @@ extern "C" {
        /**
      * Senses input events, and performs one control sample worth (ksmps) of
      * audio output.
-     * Note that csoundCompile() or csoundCompileOrc(), csoundReadScore(), csoundStart() 
-     * must be called first.
+     * Note that csoundCompile() or csoundCompileOrc(),
+     * csoundReadScore(), csoundStart() must be called first.
      * Performs audio whether or not the Csound score has finished.
      * Enables external software to control the execution of Csound,
      * and to synchronize performance with audio input and output.

@@ -79,9 +79,9 @@ static int locsig(CSOUND *csound, LOCSIG *p)
     }
 
     if (*p->degree != p->prev_degree) {
-      
+
       degree = *p->degree/FL(360.00);
-      
+
       p->ch1 = COS(TWOPI_F * degree);
       if (p->ch1 < FL(0.0)) p->ch1 = FL(0.0);
 
@@ -95,7 +95,7 @@ static int locsig(CSOUND *csound, LOCSIG *p)
         p->ch4 = SIN(TWOPI_F * (degree + FL(0.5)));
         if (p->ch4 < FL(0.0)) p->ch4 = FL(0.0);
       }
-      
+
       p->prev_degree = *p->degree;
     }
 
@@ -237,4 +237,3 @@ int locsig_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

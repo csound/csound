@@ -418,13 +418,13 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         tvnxt = 1;
       }
       /* This is not right *********  */
-      if (P != FL(0.0)) {        
-        csound->SetUtilSr(csound,Rin); 
+      if (P != FL(0.0)) {
+        csound->SetUtilSr(csound,Rin);
       }
       if (P == FL(0.0)) {
-        csound->SetUtilSr(csound,Rout); 
+        csound->SetUtilSr(csound,Rout);
       }
-      
+
       if (O.outformat == 0)
         O.outformat = p->format;
       O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
@@ -479,15 +479,15 @@ static int srconv(CSOUND *csound, int argc, char **argv)
                                         O.outfilename);
         sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
       }
-      csound->SetUtilSr(csound, (MYFLT)p->sr); 
+      csound->SetUtilSr(csound, (MYFLT)p->sr);
     csound->SetUtilNchnls(csound, Chans = p->nchanls);
-    
+
     outbufsiz = OBUF * O.sfsampsize;                   /* calc outbuf size */
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     outbufsiz, csound->getstrformat(O.outformat),
                     O.outfilename);
     csound->Message(csound, " (%s)\n", csound->type2string(O.filetyp));
-    
+
  /* this program performs arbitrary sample-rate conversion
     with high fidelity.  the method is to step through the
     input at the desired sampling increment, and to compute
@@ -512,7 +512,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       M = Q * N * 10 + 1;
     if (tvflg)
       fdel = tvy0 * L;
-    
+
     invRin  =  FL(1.0) / Rin;
 
     /* make window: the window is the product of a kaiser and a sin(x)/x */
@@ -829,4 +829,3 @@ int srconv_init_(CSOUND *csound)
     }
     return retval;
 }
-

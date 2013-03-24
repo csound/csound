@@ -43,20 +43,19 @@ namespace csound
   {
   public:
     /**
-     * The size of the hocket; 1 is every note, 2 is every other note, 
+     * The size of the hocket; 1 is every note, 2 is every other note,
      * 3 is every third note, and so on.
      */
     int modulus;
-    /** 
-     * The index from which to begin hocketting; 0 to begin with the 
+    /**
+     * The index from which to begin hocketting; 0 to begin with the
      * first note, 1 to begin with the second note, and so on.
      */
     int startingIndex;
     Hocket();
     virtual ~Hocket();
-    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates, 
+    virtual Eigen::MatrixXd traverse(const Eigen::MatrixXd &globalCoordinates,
         Score &collectingScore);
   };
 }
 #endif
-
