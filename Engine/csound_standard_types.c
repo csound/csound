@@ -1,5 +1,5 @@
 #include "csoundCore.h"
-#include "csound_standard_types.h" 
+#include "csound_standard_types.h"
 #include "pstream.h"
 #include <stdlib.h>
 
@@ -8,7 +8,7 @@
 
 void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
     CSOUND* cs = (CSOUND*)csound;
-    int ksmps = cs->ksmps;    
+    int ksmps = cs->ksmps;
     var->memBlockSize = ksmps * sizeof (MYFLT);
 }
 
@@ -16,7 +16,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
     int ksmps;
     CSOUND* csound = (CSOUND*)cs;
     IGN(p);
-    
+
     //FIXME - this needs to take into account local ksmps, once
     //context work is complete
 //    if(instr != NULL) {
@@ -25,7 +25,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 //    } else {
       ksmps = csound->ksmps;
 //    }
-    
+
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = ksmps * sizeof (MYFLT);
     var->updateMemBlockSize = &updateAsigMemBlock;
@@ -34,7 +34,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 }
 
 CS_VARIABLE* createMyflt(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;    
+    CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof (MYFLT);
@@ -42,7 +42,7 @@ CS_VARIABLE* createMyflt(void* csound, void* p) {
 }
 
 CS_VARIABLE* createBool(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;   
+    CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof (MYFLT);
@@ -50,7 +50,7 @@ CS_VARIABLE* createBool(void* csound, void* p) {
 }
 
 CS_VARIABLE* createWsig(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;    
+    CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof(SPECDAT);
@@ -58,7 +58,7 @@ CS_VARIABLE* createWsig(void* csound, void* p) {
 }
 
 CS_VARIABLE* createFsig(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;    
+    CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof(PVSDAT);
@@ -81,14 +81,14 @@ CS_VARIABLE* createString(void* csound, void* p) {
 CS_VARIABLE* createArray(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
-    
+
     CS_TYPE* type = state->type;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = sizeof(ARRAYDAT);
     var->subType = type;
     var->initializeVariableMemory = &arrayInitMemory;
     var->dimensions = state->dimensions;
-    return var; 
+    return var;
 }
 
 
@@ -208,4 +208,3 @@ const char* VAR_ARG_OUT_TYPES[] = {
     "N", "akipS",
     "F", "f", NULL
 };
-

@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-namespace csound 
+namespace csound
 {
   MusicModel::MusicModel() :
     cppSound(&cppSound_)

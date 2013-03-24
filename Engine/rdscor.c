@@ -62,7 +62,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       int n = csound->scnt;
       if ((sstrp = csound->sstrbuf) == NULL)
         sstrp = csound->sstrbuf = mmalloc(csound, csound->strsiz=SSTRSIZ);
-      while (n--!=0) sstrp += strlen(sstrp)+1; 
+      while (n--!=0) sstrp += strlen(sstrp)+1;
       n = sstrp-csound->sstrbuf;
       while ((c = corfile_getc(csound->scstr)) != '"') {
         if (c=='\\') c = corfile_getc(csound->scstr);
@@ -72,7 +72,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
           csound->sstrbuf = mrealloc(csound, csound->sstrbuf,
                                      csound->strsiz+=SSTRSIZ);
           sstrp = csound->sstrbuf+n;
-        }          
+        }
       }
       *sstrp++ = '\0';
       {
@@ -251,5 +251,3 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
     corfile_rm(&(csound->scstr));
     return 0;
 }
-
-

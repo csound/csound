@@ -229,8 +229,8 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       if (UNLIKELY(ltest != MAXLEN)) {  /*  flen is not power-of-2 */
         // return fterror(&ff, Str("illegal table length"));
         //csound->Warning(csound, Str("table %d size not power of two"), ff.fno);
-        lobits = 0;                     
-        nonpowof2_flag = 1; 
+        lobits = 0;
+        nonpowof2_flag = 1;
         ff.guardreq = 1;
       }
     }
@@ -2238,7 +2238,7 @@ static void generate_sine_tab(CSOUND *csound)
     ftp->fno = -1;
     ftp->lenmask = flen - 1;
     ftp->nchanls = 1;
-    for (i = 1; i<ftp->flen; i++) 
+    for (i = 1; i<ftp->flen; i++)
       ftable[i] = (MYFLT) sin(i*tpdlen);
     ftable[0] = ftable[ftp->flen] = FL(0.0);
     csound->sinetable = ftp;

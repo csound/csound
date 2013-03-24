@@ -134,7 +134,7 @@ static void usage(CSOUND *csound, const char *mesg, ...)
 
 static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *O)
 {
-  
+
     switch (c) {
       case 'a': O->outformat = AE_ALAW;   /* a-law soundfile */
                 break;
@@ -384,7 +384,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       else O.outfilename = "test";
     }
 #endif
-    csound->SetUtilSr(csound, (MYFLT)mixin[0].p->sr); 
+    csound->SetUtilSr(csound, (MYFLT)mixin[0].p->sr);
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.frames = -1;
     sfinfo.samplerate = (int) MYFLT2LRND((MYFLT) mixin[0].p->sr);
@@ -670,4 +670,3 @@ int mixer_init_(CSOUND *csound)
     }
     return retval;
 }
-

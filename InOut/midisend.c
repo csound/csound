@@ -68,7 +68,7 @@ static CS_NOINLINE void
     s = csound->icurTime/csound->esr;
     if (csound->ids == NULL && csound->pds != NULL)
       s -= csound->ksmps/csound->esr;
-    s *=  13040.;  /* VL NOV 11: this was 3000.0, which was wrong; 
+    s *=  13040.;  /* VL NOV 11: this was 3000.0, which was wrong;
                       13040.0 was arrived at by experimentation */
 #ifdef HAVE_C99
     t = (unsigned int) lrint(s);
@@ -216,4 +216,3 @@ void csoundCloseMidiOutFile(CSOUND *csound)
     csound->FileClose(csound, p->fd);
     csound->Free(csound, p);
 }
-

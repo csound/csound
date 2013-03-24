@@ -1,6 +1,6 @@
 /*
 **  cs_new_dispatch.c
-** 
+**
 **    Copyright (C)  Martin Brain (mjb@cs.bath.ac.uk) 04/08/12
 **    Realisation in code for Csound John ffitch Feb 2013
 **
@@ -23,7 +23,7 @@
 
 
 ** Fast system for managing task dependencies and dispatching to threads.
-** 
+**
 ** Has a DAG of tasks and has to assign them to worker threads while respecting
 ** dependency order.
 **
@@ -59,8 +59,8 @@
 
 /* Array of states of each task -- need to move to CSOUND structure */
 //static enum state *task_status = NULL;          /* OPT : Structure lay out */
-//static watchList **task_watch = NULL; 
-//static INSDS **task_map = NULL; 
+//static watchList **task_watch = NULL;
+//static INSDS **task_map = NULL;
 
 /* INV : Read by multiple threads, updated by only one */
 /* Thus use atomic read and write */
@@ -80,7 +80,7 @@ static void dag_print_state(CSOUND *csound)
       printf("%d(%d): ", i, csound->dag_task_map[i]->insno);
       switch (csound->dag_task_status[i]) {
       case DONE:
-        printf("status=DONE (watchList "); 
+        printf("status=DONE (watchList ");
         w = csound->dag_task_watch[i];
         while (w) { printf("%d ", w->id); w=w->next; }
         printf(")\n");
@@ -92,17 +92,17 @@ static void dag_print_state(CSOUND *csound)
         printf(")\n");
         break;
       case AVAILABLE:
-        printf("status=AVAILABLE (watchList "); 
+        printf("status=AVAILABLE (watchList ");
         w = csound->dag_task_watch[i];
         while (w) { printf("%d ", w->id); w=w->next; }
         printf(")\n");
         break;
-      case WAITING: 
+      case WAITING:
         {
           char *tt = csound->dag_task_dep[i];
           int j;
           printf("status=WAITING for tasks [");
-          for (j=0; j<i; j++) if (tt[j]) printf("%d ", j); 
+          for (j=0; j<i; j++) if (tt[j]) printf("%d ", j);
           printf("]\n");
         }
         break;
@@ -111,7 +111,7 @@ static void dag_print_state(CSOUND *csound)
       }
     }
 }
-             
+
 /* For now allocate a fixed maximum number of tasks; FIXME */
 void create_dag(CSOUND *csound)
 {
@@ -141,7 +141,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
     return current_instr;
 }
 
-static int dag_intersect(CSOUND *csound, struct set_t *current, 
+static int dag_intersect(CSOUND *csound, struct set_t *current,
                          struct set_t *later, int cnt)
 {
     struct set_t *ans;
@@ -165,10 +165,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
     INSDS **task_map;
     int i;
     //printf("DAG BUILD***************************************\n");
-    if (csound->dag_task_status == NULL) 
+    if (csound->dag_task_status == NULL)
       create_dag(csound); /* Should move elsewhere */
-    else { 
-      memset((void*)csound->dag_task_watch, '\0', 
+    else {
+      memset((void*)csound->dag_task_watch, '\0',
              sizeof(watchList*)*csound->dag_task_max_size);
       for (i=0; i<csound->dag_task_max_size; i++) {
         if (csound->dag_task_dep[i]) {
@@ -200,7 +200,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       if (UNLIKELY(csound->oparms->odebug))
         printf("\nWho depends on %d (instr %d)?\n", i, chain->insno);
       INSDS *next = chain->nxtact;
-      INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno); 
+      INSTR_SEMANTICS *current_instr = dag_get_info(csound, chain->insno);
       //csp_set_print(csound, current_instr->read);
       //csp_set_print(csound, current_instr->write);
       while (next) {
@@ -227,12 +227,12 @@ void dag_build(CSOUND *csound, INSDS *chain)
           char *tt = csound->dag_task_dep[j];
           if (tt==NULL) {
             /* get dep vector if missing and set watch first time */
-            tt = csound->dag_task_dep[j] = 
+            tt = csound->dag_task_dep[j] =
               (char*)mcalloc(csound, sizeof(char)*(j+1));
             csound->dag_task_status[j] = WAITING;
             csound->dag_wlmm[j].next = csound->dag_task_watch[i];
             csound->dag_wlmm[j].id = j;
-            csound->dag_task_watch[i] = &(csound->dag_wlmm[j]); 
+            csound->dag_task_watch[i] = &(csound->dag_wlmm[j]);
             //printf("set watch %d to %d\n", j, i);
           }
           tt[i] = 1;
@@ -257,11 +257,11 @@ void dag_reinit(CSOUND *csound)
       printf("DAG REINIT************************\n");
     for (i=csound->dag_num_active; i<max; i++)
       task_status[i] = DONE;
-    task_status[0] = AVAILABLE; 
+    task_status[0] = AVAILABLE;
     task_watch[0] = NULL;
     for (i=1; i<csound->dag_num_active; i++) {
       int j;
-      task_status[i] = AVAILABLE; 
+      task_status[i] = AVAILABLE;
       task_watch[i] = NULL;
       if (csound->dag_task_dep[i]==NULL) continue;
       for (j=0; j<i; j++)
@@ -296,7 +296,7 @@ taskID dag_get_task(CSOUND *csound)
       //else if (ATOMIC_RE\AD(task_status[i])==INPROGRESS)
       //  print(f"**%d active\n", i);
       else if (ATOMIC_READ(task_status[i])==DONE) {
-        //printf("**%d done\n", i); 
+        //printf("**%d done\n", i);
         morework++;
       }
     }
@@ -351,16 +351,16 @@ void dag_end_task(CSOUND *csound, taskID i)
         if (csound->dag_task_dep[j][k]==0) continue;
         //printf("investigating task %d (%d)\n", k, csound->dag_task_status[k]);
         if (ATOMIC_READ(csound->dag_task_status[k]) != DONE) {
-          //printf("found task %d to watch %d status %d\n", 
+          //printf("found task %d to watch %d status %d\n",
           //       k, j, csound->dag_task_status[k]);
           if (moveWatch(csound, &task_watch[k], to_notify)) {
             //printf("task %d now watches %d\n", j, k);
             canQueue = 0;
             break;
-          } 
+          }
           else {
             /* assert csound->dag_task_status[j] == DONE and we are in race */
-            //printf("Racing status %d %d %d %d\n", 
+            //printf("Racing status %d %d %d %d\n",
             //       csound->dag_task_status[j], i, j, k);
           }
         }
@@ -372,7 +372,7 @@ void dag_end_task(CSOUND *csound, taskID i)
       to_notify = next;
     }
     //dag_print_state(csound);
-    return;    
+    return;
 }
 
 
@@ -453,7 +453,7 @@ void deleteWatch (watchList *t) {
 
 typedef struct monitor {
   pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
-  unsigned int threadsWaiting = 0;    /* Shadows the length of 
+  unsigned int threadsWaiting = 0;    /* Shadows the length of
                                          workAvailable wait queue */
   queue<taskID> q;                    /* OPT : Dispatch order */
   pthread_cond_t workAvailable = PTHREAD_COND_INITIALIZER;
@@ -495,7 +495,7 @@ taskID getWork(monitor *dispatch) {
 
     pthread_cond_wait(&dispatch->l,&dispatch->workAvailable);
     --dispatch->threadsWaiting;
-    
+
     /* NOTE : A while loop is needed as waking from this requires
      * reacquiring the mutex and in the mean time someone
      * might have got it first and removed the work. */
@@ -544,7 +544,7 @@ void mainThread (State *s) {
   /* Set up the DAG */
   if (s->firstRun || s->updateNeeded) {
     dep = buildDAG(s);        /* OPT : Dispatch order */
-    /* Other : Update anything that is indexed by task 
+    /* Other : Update anything that is indexed by task
      * (i.e. all arrays given length ID) */
   }
 
@@ -598,15 +598,15 @@ void workerThread (State *s) {
     atomicWrite(status[work] = INPROGRESS);
     doStuff(work);
     atomicWrite(status[work] = DONE);    /* NOTE : Race condition */
-    
-    
+
+
     tasksToNotify = getWatches(work);
-    
+
     while (tasksToNotify != NULL) {
       next = tasksToNotify->tail;
-      
+
       canQueue = TRUE;
-      foreach (dep in dep[tasksToNotify->id]) {  /* OPT : Watch ordering */ 
+      foreach (dep in dep[tasksToNotify->id]) {  /* OPT : Watch ordering */
         if (atomicRead(status[dep]) != DONE) {
           /* NOTE : Race condition */
           if (moveWatch(watch[dep],tasksToNotify)) {
@@ -618,15 +618,15 @@ void workerThread (State *s) {
           }
         }
       }
-      
+
       if (canQueue) {                    /* OPT : Save one work item */
         addWork(*dispatch,tasksToNotify->id);
         deleteWatch(tasksToNotify);
       }
-      
+
       tasksToNotify = next;
     }
-    
+
   } while (1);  /* NOTE : some kind of control for thread exit needed */
 
   return;
@@ -648,15 +648,15 @@ void workerThread (State *s) {
 
 /* OPT : Watch ordering
  *
- * Moving a watch is relatively cheap (in the uncontended case) but 
+ * Moving a watch is relatively cheap (in the uncontended case) but
  * it would be best to avoid moving watches where possible.  The ideal
  * situation would be for every task to watch the last pre-requisite.
  * There are two places in the code that affect the watch ordering;
  * the initial assignment and the movement when a watch is triggered.
- * Prefering WAITING tasks (in the later) and lower priority tasks 
+ * Prefering WAITING tasks (in the later) and lower priority tasks
  * (if combined with the dispatch order optimisation below) are probably
  * good choices.  One mechanism would be to reorder the set (or array) of
- * dependencies to store this information.  When looking for a (new) watch, 
+ * dependencies to store this information.  When looking for a (new) watch,
  * tasks are sorted with increasing status first and then the first one picked.
  * Keeping the list sorted (or at least split between WAITING and others) with
  * each update should (if the dispatch order is fixed / slowly adapting) result
@@ -678,7 +678,7 @@ void workerThread (State *s) {
  */
 
 /* OPT : Delay loop
- * 
+ *
  * In theory it is probably polite to put a slowly increasing delay in
  * after a failed compare and swap to reduce pressure on the memory
  * subsystem in the highly contended case.  As multiple threads adding
@@ -688,17 +688,17 @@ void workerThread (State *s) {
 
 /* OPT : Dispatch order
  *
- * The order in which tasks are dispatched affects the amount of 
+ * The order in which tasks are dispatched affects the amount of
  * parallelisation possible.  Picking the exact scheduling order, even
- * if the duration of the tasks is known is probably NP-Hard (see 
+ * if the duration of the tasks is known is probably NP-Hard (see
  * bin-packing*) so heuristics are probably the way to go.  The proporition
  * of tasks which depend on a given task is probably a reasonable primary
- * score, with tie-breaks going to longer tasks.  This can either be 
+ * score, with tie-breaks going to longer tasks.  This can either be
  * applied to just the initial tasks (either in ordering the nodes in the DAG)
  * or in the order in which they are traversed.  Alternatively by
  * sorting the queue / using a heap / other priority queuing structure
  * it might be possible to do this dynamically.  The best solution would
- * probably be adaptive with a task having its priority incremented 
+ * probably be adaptive with a task having its priority incremented
  * each time another worker thread blocks on a shortage of work, with these
  * increments also propagated 'upwards' in the DAG.
  *
@@ -709,7 +709,7 @@ void workerThread (State *s) {
 
 /* OPT : Lock-free
  *
- * A lock free dispatch mechanism is probably possible as threads can 
+ * A lock free dispatch mechanism is probably possible as threads can
  * scan the status array for things listed as AVAILABLE and then atomicCAS
  * to INPROGRESS to claim them.  But this starts to involve busy-waits or
  * direct access to futexes and is probably not worth it.
@@ -734,7 +734,7 @@ void workerThread (State *s) {
  *   atomicWrite(status[work] = DONE);
  *   tasksToNotify = getWatches(work);
  *                                        moveWatch(watch[dep],tasksToNotify);
- * 
+ *
  * The key cause is that the status and the watch list cannot be updated
  * simultaneously.  However as getWatches removes all watches and moves or
  * removes them, it is sufficient to have a doNotAdd watchList node to detect
@@ -742,7 +742,7 @@ void workerThread (State *s) {
  */
 
 void newdag_alloc(CSOUND *csound, int numtasks)
-{  
+{
     doNotAdd = &endwatch;
 ??
     watch = (watchList **)mcalloc(csound, sizeof(watchList *)*numtasks);
@@ -752,4 +752,3 @@ void newdag_alloc(CSOUND *csound, int numtasks)
 }
 
 #endif
-

@@ -375,7 +375,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 /* UDO code below was from otran, broken out and modified for new parser by
  * SYY
  */
-/* VL -- I have made the modifications below to allow for f-sigs & 
+/* VL -- I have made the modifications below to allow for f-sigs &
          t-sigs and on line 224 and 238*/
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
@@ -561,7 +561,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* IV - Oct 31 2002: check if opcode is already defined */
     newopnum = find_opcode_num(csound, opname, outtypes, intypes);
-    
+
     if (newopnum) {
         /* IV - Oct 31 2002: redefine old opcode if possible */
       if (UNLIKELY(newopnum < SETEND || !strcmp(opname, "subinstr"))) {
@@ -633,4 +633,3 @@ void synterr(CSOUND *csound, const char *s, ...)
    */
   csound->synterrcnt++;
 }
-

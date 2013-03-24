@@ -54,7 +54,7 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 int fassign_set(CSOUND *csound, FASSIGN *p)
 {
      int32 N = p->fsrc->N;
-    
+
     p->fout->N =  N;
     p->fout->overlap = p->fsrc->overlap;
     p->fout->winsize = p->fsrc->winsize;
@@ -79,7 +79,7 @@ int fassign(CSOUND *csound, FASSIGN *p)
 {
     int32 framesize;
     float *fout,*fsrc;
-    
+
     // if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
     //csound->Die(csound, Str("fsig = : formats are different.\n"));
     if (p->fsrc->sliding) {
@@ -91,12 +91,12 @@ int fassign(CSOUND *csound, FASSIGN *p)
     fsrc = (float *) p->fsrc->frame.auxp;
 
     framesize = p->fsrc->N + 2;
-  
+
     if (p->fout->framecount == p->fsrc->framecount) {/* avoid duplicate copying*/
     memcpy(fout, fsrc, framesize*sizeof(float));
     p->fout->framecount++;
     }
-   
+
      return OK;
 }
 
@@ -807,4 +807,3 @@ int pvsinfo(CSOUND *csound, PVSINFO *p)
     *p->iformat  = (MYFLT) p->fsrc->format;
     return OK;
 }
-

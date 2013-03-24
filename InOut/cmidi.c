@@ -79,7 +79,7 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
   CFStringRef name = NULL;
   CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
   char tmp[64];
-  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));  
+  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
   if(isOutput) return 0;
   endpoints = MIDIGetNumberOfSources();
   if(list == NULL) return endpoints;

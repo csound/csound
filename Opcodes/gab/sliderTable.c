@@ -599,7 +599,7 @@ static int ctrl7a(CSOUND *csound, CTRL7a *p)
       value = *(p->ftp->ftable + (long)(value*(p->ftp->flen-1)));
     }
     /* scales the output */
-    value = value * (*p->imax - *p->imin) + *p->imin + TOOSMALL; 
+    value = value * (*p->imax - *p->imin) + *p->imin + TOOSMALL;
     value = p->yt1 = p->c1 * value + p->c2 * p->yt1;
     ar = p->r;
     val = p->prev;
@@ -671,7 +671,7 @@ OENTRY sliderTable_localops[] = {
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
-{ "ctrl7.a", S(CTRL7a),  0, 5, "a",    "iikkoo", 
+{ "ctrl7.a", S(CTRL7a),  0, 5, "a",    "iikkoo",
   (SUBR) ctrl7a_set,   NULL,    (SUBR) ctrl7a },
 };
 
@@ -680,4 +680,3 @@ int slidertable_init_(CSOUND *csound) {
       csound->AppendOpcodes(csound, &(sliderTable_localops[0]),
                             (int) (sizeof(sliderTable_localops) / sizeof(OENTRY)));
 }
-

@@ -492,7 +492,7 @@ int loscil(CSOUND *csound, LOSC *p)
 
  phsout:
     p->lphs = phs;
- put0:    
+ put0:
     memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 
@@ -936,4 +936,3 @@ int adsyn(CSOUND *csound, ADSYN *p)
     p->mksecs += timkincr;                  /* advance the time */
     return OK;
 }
-
