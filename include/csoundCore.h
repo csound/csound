@@ -895,13 +895,7 @@ typedef struct NAME__ {
     void (*DeleteUtilityList)(CSOUND *, char **lst);
     void (*DeleteChannelList)(CSOUND *, CsoundChannelListEntry *lst);
 #endif 
-    void (*SetMessageCallback)(CSOUND *,
-                void (*csoundMessageCallback)(CSOUND *,
-                                              int attr, const char *format,
-                                              va_list valist));
-    void (*DeleteCfgVarList)(csCfgVariable_t **lst);
-    void (*SetMessageLevel)(CSOUND *, int messageLevel);
-    long (*RunCommand)(const char * const *argv, int noWait);
+
 #ifdef SOME_FIND_DAY
     void (*InputMessage)(CSOUND *, const char *message__);
     void (*KeyPressed)(CSOUND *, char c__);
@@ -927,6 +921,13 @@ typedef struct NAME__ {
     void (*Stop)(CSOUND *);
     int (*PerformKsmpsAbsolute)(CSOUND *);
 #endif
+   void (*SetMessageCallback)(CSOUND *,
+                void (*csoundMessageCallback)(CSOUND *,
+                                              int attr, const char *format,
+                                              va_list valist));
+    void (*DeleteCfgVarList)(csCfgVariable_t **lst);
+    void (*SetMessageLevel)(CSOUND *, int messageLevel);
+    long (*RunCommand)(const char * const *argv, int noWait);
     int (*OpenLibrary)(void **library, const char *libraryPath);  //
     int (*CloseLibrary)(void *library);//
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);//
