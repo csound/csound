@@ -33,7 +33,7 @@ extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
 extern OENTRIES* find_opcode2(CSOUND *, char*);
 extern char resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
-
+extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
 
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int);
 TREE * create_expression(CSOUND *, TREE *, int, int);
@@ -766,6 +766,17 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
     return make_leaf(csound, -1, 0, T_IDENT, token);
 }
 
+TREE* tree_tail(TREE* node) {
+    TREE* t = node;
+    if (t == NULL) {
+        return NULL;
+    }
+    while(t->next != NULL) {
+        t = t->next;
+    }
+    return t;
+}
+
 TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
@@ -774,6 +785,81 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));
+}
+
+/* returns the head of a list of TREE* nodes, expanding all RHS expressions into statements
+ prior to the original statement line, and LHS expressions (array sets) after the
+ original statement line */
+TREE* expand_statement(CSOUND* csound, TREE* current) {
+     /* This is WRONG in optional argsq */
+    TREE* anchor = NULL;
+    
+    TREE* previousArg = NULL;
+    TREE* currentArg = current->right;
+    if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "Found Statement.\n");
+    while (currentArg != NULL) {
+        TREE* last;
+        TREE *nextArg;
+        TREE *newArgTree;
+        TREE *expressionNodes;
+        int is_bool = 0;
+        if (is_expression_node(currentArg) ||
+            (is_bool = is_boolean_expression_node(currentArg))) {
+            char * newArg;
+            if (UNLIKELY(PARSER_DEBUG))
+                csound->Message(csound, "Found Expression.\n");
+            if (is_bool == 0) {
+                expressionNodes =
+                create_expression(csound, currentArg,
+                                  currentArg->line, currentArg->locn);
+            }
+            else {
+                expressionNodes =
+                create_boolean_expression(csound, currentArg,
+                                          currentArg->line, currentArg->locn);
+            }
+            
+            /* Set as anchor if necessary */
+            
+            anchor = appendToTree(csound, anchor, expressionNodes);
+            
+            /* reconnect into chain */
+            last = tree_tail(expressionNodes);
+            
+            newArg = last->left->value->lexeme;
+            
+            if (UNLIKELY(PARSER_DEBUG))
+                csound->Message(csound, "New Arg: %s\n", newArg);
+            
+            /* handle arg replacement of currentArg here */
+            nextArg = currentArg->next;
+            newArgTree = create_ans_token(csound, newArg);
+            
+            if (previousArg == NULL) {
+                current->right = newArgTree;
+            }
+            else {
+                previousArg->next = newArgTree;
+            }
+            
+            newArgTree->next = nextArg;
+            currentArg = newArgTree;
+            /* TODO - Delete the expression nodes here */
+        }
+        
+        previousArg = currentArg;
+        currentArg = currentArg->next;
+    }
+    
+    anchor = appendToTree(csound, anchor, current);
+    
+    // TODO - implement LHS (array set) expansion here
+    
+    handle_polymorphic_opcode(csound, current);
+    handle_optional_args(csound, current);
+    
+    return anchor;
 }
 
 /* Expands expression nodes into opcode calls
@@ -1191,77 +1277,14 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         }
       default:
         //maincase:
-        { /* This is WRONG in optional argsq */
-          TREE* previousArg = NULL;
-          TREE* currentArg = current->right;
-          if (UNLIKELY(PARSER_DEBUG))
-            csound->Message(csound, "Found Statement.\n");
-          while (currentArg != NULL) {
-            TREE* last;
-            TREE *nextArg;
-            TREE *newArgTree;
-            int is_bool = 0;
-            if (is_expression_node(currentArg) ||
-                (is_bool = is_boolean_expression_node(currentArg))) {
-              char * newArg;
-              if (UNLIKELY(PARSER_DEBUG))
-                csound->Message(csound, "Found Expression.\n");
-              if (is_bool == 0) {
-                expressionNodes =
-                  create_expression(csound, currentArg,
-                                    currentArg->line, currentArg->locn);
-              }
-              else {
-                expressionNodes =
-                  create_boolean_expression(csound, currentArg,
-                                            currentArg->line, currentArg->locn);
-              }
-
-              /* Set as anchor if necessary */
-              if (anchor == NULL) {
-                anchor = expressionNodes;
-              }
-
-              /* reconnect into chain */
-              last = expressionNodes;
-              while (last->next != NULL) {
-                last = last->next;
-              }
-              last->next = current;
-              if (previous == NULL) {
-                previous = last;
-              }
-              else {
-                previous->next = expressionNodes;
-                previous = last;
-              }
-
-              newArg = last->left->value->lexeme;
-
-              if (UNLIKELY(PARSER_DEBUG))
-                csound->Message(csound, "New Arg: %s\n", newArg);
-
-              /* handle arg replacement of currentArg here */
-              nextArg = currentArg->next;
-              newArgTree = create_ans_token(csound, newArg);
-
-              if (previousArg == NULL) {
-                current->right = newArgTree;
-              }
-              else {
-                previousArg->next = newArgTree;
-              }
-
-              newArgTree->next = nextArg;
-              currentArg = newArgTree;
-              /* TODO - Delete the expression nodes here */
+        {
+            // returns new head of expanded statements
+            // links into previous chain if exists
+            current = expand_statement(csound, current);
+            
+            if (previous != NULL) {
+                previous->next = current;
             }
-
-            previousArg = currentArg;
-            currentArg = currentArg->next;
-          }
-          handle_polymorphic_opcode(csound, current);
-          handle_optional_args(csound, current);
         }
       }
 
