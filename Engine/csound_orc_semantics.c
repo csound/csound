@@ -31,7 +31,7 @@
 #include "parse_param.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
-
+#include "csound_orc_expressions.h"
 
 
 char *csound_orcget_text ( void *scanner );
@@ -45,10 +45,6 @@ void print_tree(CSOUND *, char *, TREE *);
 extern int argsRequired(char* arrayName);
 extern char** splitArgs(CSOUND* csound, char* argString);
 extern int pnum(char*);
-
-/* from csound_orc_expressions.c */
-extern int is_expression_node(TREE *node);
-extern int is_boolean_expression_node(TREE *node);
 
 OENTRIES* find_opcode2(CSOUND*, char*);
 char resolve_opcode_get_outarg(CSOUND* csound,

@@ -24,6 +24,7 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
+#include "csound_orc_expressions.h"
 
 extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);
@@ -1109,6 +1110,25 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current) {
     return anchor;
 }
 
+int is_statement_expansion_required(TREE* root) {
+    TREE* current = root->right;
+    while (current != NULL) {
+        if (is_boolean_expression_node(current) || is_expression_node(current)) {
+            return 1;
+        }
+        current = current->next;
+    }
+    
+    current = root->left;
+    while (current != NULL) {
+        if (current->type == T_ARRAY) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
 /* Expands expression nodes into opcode calls
  *
  *
@@ -1186,13 +1206,14 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               
       default:
         //maincase:
-        
-        current = expand_statement(csound, current);
+        if (is_statement_expansion_required(current)) {
+            current = expand_statement(csound, current);
             
-        if (previous != NULL) {
-            previous->next = current;
+            if (previous != NULL) {
+                previous->next = current;
+            }
+            continue;
         }
-        
       }
 
       if (anchor == NULL) {
