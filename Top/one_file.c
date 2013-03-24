@@ -112,7 +112,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
           snprintf(buf, nBytes, "%s/csound-XXXXXX", tmpdir);
         else
           strcpy(buf, "/tmp/csound-XXXXXX");
-        umask(0077); 
+        umask(0077);
         /* ensure exclusive access on buggy implementations of mkstemp */
         if (UNLIKELY((fd = mkstemp(buf)) < 0))
           csound->Die(csound, Str(" *** cannot create temporary file"));
@@ -547,7 +547,7 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
 
     /* Generate MIDI file name */
     csoundTmpFileName(csound, STA(midname), ".mid");
-    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, STA(midname), 
+    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, STA(midname),
                                 "wb", NULL, CSFTYPE_STD_MIDI, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
@@ -627,7 +627,7 @@ static int createFile(CSOUND *csound, char *buffer, FILE *unf)
     strcpy(filename, p);
 //sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
 //    if (filename[0] != '\0' &&
-//       filename[strlen(filename) - 1] == '>' && 
+//       filename[strlen(filename) - 1] == '>' &&
 //       filename[strlen(filename) - 2] == '"')
 //    filename[strlen(filename) - 2] = '\0';
     if (UNLIKELY((smpf = fopen(filename, "rb")) != NULL)) {

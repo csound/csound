@@ -365,7 +365,7 @@ PUBLIC void csoundNotifyThreadLock(void *threadLock)
 PUBLIC void csoundDestroyThreadLock(void *threadLock)
 {
      CsoundThreadLock_t  *p;
-   
+
     if (threadLock == NULL)
       return;
     csoundNotifyThreadLock(threadLock);
@@ -373,7 +373,7 @@ PUBLIC void csoundDestroyThreadLock(void *threadLock)
     pthread_cond_destroy(&(p->c));
     pthread_mutex_destroy(&(p->m));
     free(threadLock);
-    
+
 }
 
 #endif  /* !LINUX */

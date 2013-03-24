@@ -14,17 +14,17 @@
 /* #define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) */
 
 #if !defined(HAVE_PTHREAD_SPIN_LOCK) /* VL: 18.05.2011 enabled this to allow OSX build */
- # define TAKE_LOCK(x) pthread_mutex_lock(x) 
- # define RELS_LOCK(x) pthread_mutex_unlock(x) 
- # define LOCK_TYPE  pthread_mutex_t 
- # define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) 
+ # define TAKE_LOCK(x) pthread_mutex_lock(x)
+ # define RELS_LOCK(x) pthread_mutex_unlock(x)
+ # define LOCK_TYPE  pthread_mutex_t
+ # define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL)
 
- #else 
- # define TAKE_LOCK(x) pthread_spin_lock(x) 
- # define RELS_LOCK(x) pthread_spin_unlock(x) 
- # define LOCK_TYPE  pthread_spinlock_t 
- # define INIT_LOCK(x)  pthread_spin_init(&(x), PTHREAD_PROCESS_PRIVATE) 
-#endif 
+ #else
+ # define TAKE_LOCK(x) pthread_spin_lock(x)
+ # define RELS_LOCK(x) pthread_spin_unlock(x)
+ # define LOCK_TYPE  pthread_spinlock_t
+ # define INIT_LOCK(x)  pthread_spin_init(&(x), PTHREAD_PROCESS_PRIVATE)
+#endif
 
 #define DYNAMIC_2_SERIALIZE_PAR
 
@@ -119,7 +119,7 @@ int csp_thread_index_get(CSOUND *csound);
 
 /*
  * set structures
- * 
+ *
  * set maintains insertion order of elements
  * implemented as a singly linked list
  */
@@ -171,7 +171,7 @@ int csp_set_print(CSOUND *csound, struct set_t *set);
 int csp_set_count(struct set_t *set);
 int csp_set_get_num(struct set_t *set, int num, void **data);
 
-/* 
+/*
  * set union and intersection
  * allocates a new set in result
  * union/intersect first and second putting into result
@@ -203,7 +203,7 @@ int csp_set_intersection(CSOUND *csound, struct set_t *first,
 void csp_semaphore_alloc(CSOUND *csound, sem_t **sem,
                          int max_threads);
 void csp_semaphore_dealloc(CSOUND *csound, sem_t **sem);
-/* wait at the semaphore. if the number allowed in is greater than the 
+/* wait at the semaphore. if the number allowed in is greater than the
  * number arrived calling thread continues
  * otherwise thread blocks until semaphore is grown
  */

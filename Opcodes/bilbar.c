@@ -78,7 +78,7 @@ static int bar_init(CSOUND *csound, BAR *p)
       p->step = p->first = 0;
       p->N = N;
     }
-    /* 
+    /*
     else {
       if (UNLIKELY(p->w_aux.auxp == NULL))
         return csound->InitError(csound, Str("No data to continue"));
@@ -578,4 +578,3 @@ static OENTRY bilbar_localops[] = {
 };
 
 LINKAGE_BUILTIN(bilbar_localops)
-

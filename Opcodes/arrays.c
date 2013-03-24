@@ -68,31 +68,31 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
 {
     ARRAYDAT* arrayDat = p->arrayDat;
     int i;
-    
+
     int inArgCount = p->INOCOUNT;
-    
+
     if(inArgCount == 0) {
         csoundErrorMsg(csound, "Error: no sizes set for array initialization\n");
         return CSOUND_ERROR;
     }
-    
+
     arrayDat->dimensions = inArgCount;
     arrayDat->sizes = mcalloc(csound, sizeof(int) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
         arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[0]);
     }
-    
+
     int size = arrayDat->sizes[0];
-    
+
     if(inArgCount > 1) {
         for (i = 1; i < inArgCount; i++) {
             size *= arrayDat->sizes[i];
         }
         size = MYFLT2LRND(size);
     }
-        
+
     CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, NULL);
-    
+
 //    if(arrayDat->data != NULL) {
 //        mfree(csound, arrayDat->data);
 //    }
@@ -113,22 +113,22 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
     ARRAYDAT* dat = p->arrayDat;
     MYFLT* mem = dat->data;
     int i;
-    
+
     int indefArgCount = p->INOCOUNT - 2;
-    
+
     if(indefArgCount == 0) {
         csoundErrorMsg(csound, "Error: no indexes set for array set\n");
         return CSOUND_ERROR;
     }
     int end = indefArgCount - 1;
     int index = MYFLT2LRND(*p->indexes[end]);
-    
+
     if(indefArgCount > 1) {
         for (i = end - 1; i >= 0; i--) {
             index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
         }
     }
-    
+
     int incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     memcpy(mem, p->value, dat->arrayMemberSize);
@@ -143,20 +143,20 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
     int end;
     int index;
     int indefArgCount = p->INOCOUNT - 1;
-    
+
     if (indefArgCount == 0) {
         csoundErrorMsg(csound, "Error: no indexes set for array get\n");
         return CSOUND_ERROR;
     }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    
+
     if (indefArgCount > 1) {
         for (i = end - 1; i >= 0; i--) {
             index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
         }
     }
-    
+
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     memcpy(p->out, mem, dat->arrayMemberSize);
@@ -333,7 +333,7 @@ typedef struct {
 //    if (l->size<size) size = l->size;
 //    if (r->size<size) size = r->size;
 //    if (ans->size<size) size = ans->size;
-//    if (ans->data==NULL) 
+//    if (ans->data==NULL)
 //    for (i=0; i<size; i++)
 //      ans->data[i] = l->data[i] * r->data[i];
 //    return OK;
@@ -740,7 +740,7 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
 //    /*   if(!strcmp(func, opc->opname)) break; */
 //
 //    /* if (UNLIKELY(opc == csound->oplstend)) */
-//    /*   return csound->PerfError(csound, Str("%s not found, %d opcodes"), 
+//    /*   return csound->PerfError(csound, Str("%s not found, %d opcodes"),
 //                                  func, n); */
 //
 //    for (n=0; n < size; n++) {

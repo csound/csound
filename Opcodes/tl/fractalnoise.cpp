@@ -350,25 +350,25 @@ class mydsp : public dsp {
             }
             for (int i=offset; i<nn; i++) {
               iRec8[0] = (csound->GetRandSeed(csound, 1) + (1103515245 * iRec8[1]));
-              fRec7[0] = -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + 
+              fRec7[0] = -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) +
                           (iRec8[0] * dv2_31);
               fRec6[0] = (0 - (((fConst14 * fRec6[2]) + (fConst13 * fRec6[1]))
-                               - ((fSlow4 * fRec7[1]) + 
+                               - ((fSlow4 * fRec7[1]) +
                                   (fRec7[0] + (fSlow3 * fRec7[2])))));
               fRec5[0] = (0 - (((fConst20 * fRec5[2]) + (fConst19 * fRec5[1]))
-                               - ((fSlow8 * fRec6[1]) + (fRec6[0] + 
+                               - ((fSlow8 * fRec6[1]) + (fRec6[0] +
                                                          (fSlow7 * fRec6[2])))));
               fRec4[0] = (0 - (((fConst26 * fRec4[2]) + (fConst25 * fRec4[1]))
-                               - ((fSlow12 * fRec5[1]) + 
+                               - ((fSlow12 * fRec5[1]) +
                                   (fRec5[0] + (fSlow11 * fRec5[2])))));
               fRec3[0] = (0 - (((fConst32 * fRec3[2]) + (fConst31 * fRec3[1]))
                                - ((fSlow16 * fRec4[1]) +
                                   (fRec4[0] + (fSlow15 * fRec4[2])))));
               fRec2[0] = (0 - (((fConst38 * fRec2[2]) + (fConst37 * fRec2[1]))
-                               - ((fSlow20 * fRec3[1]) + 
+                               - ((fSlow20 * fRec3[1]) +
                                   (fRec3[0] + (fSlow19 * fRec3[2])))));
               fRec1[0] = (0 - (((fConst44 * fRec1[2]) + (fConst43 * fRec1[1]))
-                               - ((fSlow24 * fRec2[1]) + 
+                               - ((fSlow24 * fRec2[1]) +
                                   (fRec2[0] + (fSlow23 * fRec2[2])))));
               fRec0[0] = (((fSlow28 * fRec1[1]) + (fRec1[0] + (fSlow27 * fRec1[2])))
                           - (fConst2 * fRec0[1]));

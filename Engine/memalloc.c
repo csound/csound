@@ -125,7 +125,7 @@ void *mcalloc(CSOUND *csound, size_t size)
 void mfree(CSOUND *csound, void *p)
 {
     memAllocBlock_t *pp;
-    
+
     if (UNLIKELY(p == NULL))
       return;
     pp = HDR_PTR(p);
@@ -230,4 +230,3 @@ void memRESET(CSOUND *csound)
       pp = nxtp;
     }
 }
-

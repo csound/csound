@@ -131,10 +131,10 @@ int main(int argc, char **argv)
 
     /*  Create Csound. */
     csound = csoundCreate(NULL);
-  
+
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
-    
+
 
 while (!result)
       result = csoundPerformKsmps(csound);
@@ -149,4 +149,3 @@ while (!result)
 #endif
     return (result >= 0 ? 0 : result);
 }
-

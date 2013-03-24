@@ -1,17 +1,17 @@
 #ifndef __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 #define __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 
-/* 
+/*
  * This module maintains a list of instruments that have been parsed
  * When parsing an instrument:
- *  csp_orc_sa_instr_add 
+ *  csp_orc_sa_instr_add
  *          called first to setup instrument (when parsed the instrument
                                               name/number)
- *  csp_orc_sa_global_read_write_add_list 
+ *  csp_orc_sa_global_read_write_add_list
  *          called to add globals to that instruments dependency lists
  *  csp_orc_sa_instr_finalize
  *          called when finished parsing that instrument
- * 
+ *
  *  csp_orc_sa_instr_get_by_name or by_num
  *          called to fetch an instrument later
  */
@@ -36,7 +36,8 @@ void csp_orc_sa_print_list(CSOUND *csound);
 void csp_orc_sa_instr_add(CSOUND *csound, char *name);
 void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x);
 /* finish the current instrument */
-void csp_orc_sa_instr_finalize(CSOUND *csound);
+#define csp_orc_sa_instr_finalize(csound) \
+  { csound->instCurr = NULL; csound->inInstr = 0; }
 
 /* add the globals read and written to the current instrument; second case
  * if write and read contain the same global and size of both is 1 then
@@ -54,9 +55,9 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *list);
 struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node);
 
 /* find an instrument from the instruments parsed */
-struct instr_semantics_t 
+struct instr_semantics_t
     *csp_orc_sa_instr_get_by_name(CSOUND *csound, char *instr_name);
-struct instr_semantics_t 
+struct instr_semantics_t
     *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno);
 
 /* interlocks */
