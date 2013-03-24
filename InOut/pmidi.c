@@ -181,12 +181,12 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
       sprintf(tmp, "%d", i);
       strncpy(list[i].device_id, tmp, 63);
       list[i].isOutput = isOutput;
-      if (info->interf != NULL) 
+      if (info->interf != NULL)
          strncpy(list[i].interface_name, info->interf, 63);
       else strcpy(list[i].interface_name, "");
      strncpy(list[i].midi_module, drv, 63);
-  } 
-  return cnt;    
+  }
+  return cnt;
 }
 
 static void portMidi_listDevices(CSOUND *csound, int output)
@@ -501,7 +501,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetExternalMidiWriteCallback(csound, WriteMidiData_);
     csound->SetExternalMidiOutCloseCallback(csound, CloseMidiOutDevice_);
     csound->SetMIDIDeviceListCallback(csound,listDevices);
-   
+
     return 0;
 }
 

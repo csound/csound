@@ -588,7 +588,7 @@ static void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
           a[i].mag *= nudgefact;
     }
     else {
-      /* Factor is out of range, do nothing */ 
+      /* Factor is out of range, do nothing */
     }
 }
 
@@ -875,4 +875,3 @@ int filter_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

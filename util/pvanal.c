@@ -278,7 +278,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     else frameIncr = frameSize/ovlp;
 
     if (ovlp < 2 || ovlp > 64) {
-      csound->Message(csound, 
+      csound->Message(csound,
                       Str("WARNING: pvanal: %d might be a bad window "
                           "overlap index\n"),
                       (int) ovlp);
@@ -926,4 +926,3 @@ static void vonhann(MYFLT *win, int winLen, int even)
         win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
     }
 }
-

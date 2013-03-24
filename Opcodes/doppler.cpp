@@ -216,7 +216,7 @@ public:
                 audioBufferQueue->pop_front();
             }
             delete audioBufferQueue;
-            audioBufferQueue = 0;            
+            audioBufferQueue = 0;
         }
         if (sourcePositionQueue) {
             delete sourcePositionQueue;
@@ -274,7 +274,7 @@ extern "C"
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
       {
         status |= csound->AppendOpcode(csound, oentry->opname,
-                                       oentry->dsblksiz, oentry->flags, 
+                                       oentry->dsblksiz, oentry->flags,
                                        oentry->thread,
                                        oentry->outypes, oentry->intypes,
                                        (int (*)(CSOUND*,void*)) oentry->iopadr,
@@ -302,4 +302,3 @@ extern "C"
     return 0;
   }
 }
-

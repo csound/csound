@@ -117,19 +117,9 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
     }
     else if (UNLIKELY(write == NULL  || read == NULL)) {
       csound->Die(csound,
-                  "Invalid NULL parameter set to add to global read, "
-                  "write lists\n");
+                  Str("Invalid NULL parameter set to add to global read, "
+                      "write lists\n"));
     }
-    /* else { */
-    /*   struct set_t *new = NULL; */
-    /*   csp_set_union(csound, write, read, &new); */
-    /*   if (write->count == 1 && read->count == 1 && new->count == 1) { */
-    /*     /\* this is a read_write list thing *\/ */
-    /*     struct set_t *new_read_write = NULL; */
-    /*     csp_set_union(csound, csound->instCurr->read_write, new, &new_read_write); */
-    /*     csp_set_dealloc(csound, &csound->instCurr->read_write); */
-    /*     csound->instCurr->read_write = new_read_write; */
-    /*   } */
     else {
       csp_orc_sa_global_write_add_list(csound, write);
       csp_orc_sa_global_read_add_list(csound, read);
@@ -147,8 +137,8 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
     }
     else if (UNLIKELY(write == NULL  || read == NULL)) {
       csound->Die(csound,
-                  "Invalid NULL parameter set to add to global read, "
-                  "write lists\n");
+                  Str("Invalid NULL parameter set to add to global read, "
+                      "write lists\n"));
     }
     else {
       struct set_t *new = NULL;
@@ -156,7 +146,8 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
       if (write->count == 1 && read->count == 1 && new->count == 1) {
         /* this is a read_write list thing */
         struct set_t *new_read_write = NULL;
-        csp_set_union(csound, csound->instCurr->read_write, new, &new_read_write);
+        csp_set_union(csound, csound->instCurr->read_write,
+                      new, &new_read_write);
         csp_set_dealloc(csound, &csound->instCurr->read_write);
         csound->instCurr->read_write = new_read_write;
       }
@@ -173,11 +164,12 @@ void csp_orc_sa_global_write_add_list(CSOUND *csound, struct set_t *set)
 {
     if (csound->instCurr == NULL) {
       csound->Message(csound,
-                      "Add a global write_list without any instruments\n");
+                      Str("Add a global write_list without any instruments\n"));
     }
     else if (UNLIKELY(set == NULL)) {
       csound->Die(csound,
-                  "Invalid NULL parameter set to add to a global write_list\n");
+                  Str("Invalid NULL parameter set to add to a "
+                      "global write_list\n"));
     }
     else {
       struct set_t *new = NULL;
@@ -194,11 +186,13 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
 {
     if (csound->instCurr == NULL) {
       if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "add a global read_list without any instruments\n");
+        csound->Message(csound,
+                        "add a global read_list without any instruments\n");
     }
     else if (UNLIKELY(set == NULL)) {
       csound->Die(csound,
-                  Str("Invalid NULL parameter set to add to a global read_list\n"));
+                  Str("Invalid NULL parameter set to add to a "
+                      "global read_list\n"));
     }
     else {
       struct set_t *new = NULL;
@@ -227,7 +221,7 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       if (code&CW) csp_set_add(csound, ww, strdup("##chn"));
       if (code&WR) csp_set_add(csound, ww, strdup("##wri"));
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
-      if (code&_QQ) csound->Message(csound, "opcode deprecated");
+      if (code&_QQ) csound->Message(csound, Str("opcode deprecated"));
     }
 }
 
@@ -280,18 +274,11 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
       }
       if (UNLIKELY(x->type != T_INSTLIST)) {
         csound->DebugMsg(csound,"type %d not T_INSTLIST\n", x->type);
-        csound->Die(csound, "Not a proper list of ints");
+        csound->Die(csound, Str("Not a proper list of ints"));
       }
       csp_orc_sa_instr_add(csound, strdup(x->left->value->lexeme));
       x = x->right;
     }
-}
-
-void csp_orc_sa_instr_finalize(CSOUND *csound)
-{
-    //csp_orc_sa_print_list(csound);
-    csound->instCurr = NULL;
-    csound->inInstr = 0;
 }
 
 struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
@@ -362,60 +349,64 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
 
 /* ANALYZE TREE */
 
-void csp_orc_analyze_tree(CSOUND* csound, TREE* root) {
+void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
+{
     if (PARSER_DEBUG) csound->Message(csound, "Performing csp analysis\n");
-    
+
     TREE *current = root;
     TREE *temp;
-    
+
     while(current != NULL) {
-        switch(current->type) {
-            case INSTR_TOKEN:
-                if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
-                
-                temp = current->left;
-                
-                // FIXME - need to figure out why csp_orc_sa_instr_add is called by itself in csound_orc.y
-                csp_orc_sa_instr_add_tree(csound, temp);
-                
-                csp_orc_analyze_tree(csound, current->right);
-                
-                csp_orc_sa_instr_finalize(csound);
-                
-                break;
-            case UDO_TOKEN:
-                if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
-              
-                csp_orc_analyze_tree(csound, current->right);
-                
-                break;
-                
-            case IF_TOKEN:
-            case UNTIL_TOKEN:
-                break;
-            case LABEL_TOKEN:
-                break;
-            default:
-                if (PARSER_DEBUG) csound->Message(csound, "Statement: %s\n", current->value->lexeme);
-                
-                if(current->left != NULL) {
-                    csp_orc_sa_global_read_write_add_list(csound,
-                            csp_orc_sa_globals_find(csound, current->left),
-                            csp_orc_sa_globals_find(csound, current->right));
-                
-                } else {
-                    csp_orc_sa_global_read_add_list(csound,
-                                                    csp_orc_sa_globals_find(csound,
-                                                                            current->right));
-                }
-                
-                break;
+      switch(current->type) {
+      case INSTR_TOKEN:
+        if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
+
+        temp = current->left;
+
+        // FIXME - need to figure out why csp_orc_sa_instr_add is
+        // called by itself in csound_orc.y
+        csp_orc_sa_instr_add_tree(csound, temp);
+
+        csp_orc_analyze_tree(csound, current->right);
+
+        csp_orc_sa_instr_finalize(csound);
+
+        break;
+      case UDO_TOKEN:
+        if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
+
+        csp_orc_analyze_tree(csound, current->right);
+
+        break;
+
+      case IF_TOKEN:
+      case UNTIL_TOKEN:
+        break;
+      case LABEL_TOKEN:
+        break;
+      default:
+        if (PARSER_DEBUG)
+          csound->Message(csound,
+                          "Statement: %s\n", current->value->lexeme);
+
+        if(current->left != NULL) {
+          csp_orc_sa_global_read_write_add_list(csound,
+              csp_orc_sa_globals_find(csound, current->left),
+              csp_orc_sa_globals_find(csound, current->right));
+
+        } else {
+          csp_orc_sa_global_read_add_list(csound,
+                                          csp_orc_sa_globals_find(csound,
+                                                                  current->right));
         }
-        
-        current = current->next;
-        
+
+        break;
+        }
+
+      current = current->next;
+
     }
-    
+
     if (PARSER_DEBUG) csound->Message(csound, "[End csp analysis]\n");
-    
+
 }

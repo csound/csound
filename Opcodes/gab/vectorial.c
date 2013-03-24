@@ -146,12 +146,12 @@ static int mtable_a(CSOUND *csound,MTABLE *p)
     table = p->ftable;
     len = p->len;
     xbmul = p->xbmul;
-    if (UNLIKELY(offset)) 
-      for (j=0; j < nargs; j++) 
+    if (UNLIKELY(offset))
+      for (j=0; j < nargs; j++)
         memset(out[j], '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      for (j=0; j < nargs; j++) 
+      for (j=0; j < nargs; j++)
         memset(&out[j][nsmps], '\0', early*sizeof(MYFLT));
     }
     if (*p->kinterp) {
@@ -246,12 +246,12 @@ static int mtab_a(CSOUND *csound,MTAB *p)
     long len;
     table = p->ftable;
     len = p->len;
-    if (UNLIKELY(offset)) 
-      for (j=0; j < nargs; j++) 
+    if (UNLIKELY(offset))
+      for (j=0; j < nargs; j++)
         memset(out[j], '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      for (j=0; j < nargs; j++) 
+      for (j=0; j < nargs; j++)
         memset(&out[j][nsmps], '\0', early*sizeof(MYFLT));
     }
     for (k=offset;k<nsmps;k++) {
@@ -1801,7 +1801,7 @@ static int vport(CSOUND *csound,VPORT *p)
 /*-------------------------------*/
 static int vwrap(CSOUND *csound,VLIMIT *p)
 {
-    int elements = p->elements; 
+    int elements = p->elements;
     MYFLT *vector = p->vector;
     MYFLT min = *p->kmin, max = *p->kmax;
 
@@ -2595,5 +2595,3 @@ int gab_vectorial_init_(CSOUND *csound)
       csound->AppendOpcodes(csound, &(vectorial_localops[0]),
                             (int) (sizeof(vectorial_localops) / sizeof(OENTRY)));
 }
-
-
