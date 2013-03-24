@@ -266,9 +266,9 @@ static int scale(CSOUND *csound, int argc, char **argv)
         O.rewrt_hdr = 0;
       if (O.outfilename == NULL)
         O.outfilename = "test";
-      csound->SetUtilSr(csound, (MYFLT)sc.p->sr); 
+      csound->SetUtilSr(csound, (MYFLT)sc.p->sr);
       csound->SetUtilNchnls(csound, sc.p->nchanls);
-     
+
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.frames = -1;
       sfinfo.samplerate = (int) MYFLT2LRND( sc.p->sr);
@@ -512,4 +512,3 @@ int scale_init_(CSOUND *csound)
       csound->SetUtilityDescription(csound, "scale",
                                     Str("Reports and/or adjusts maximum gain"));
 }
-

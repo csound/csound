@@ -333,8 +333,8 @@ static int iambideco(CSOUND *csound, AMBID *p)
                     Str("bformdec is deprecated; use bformdec1 instead\n"));
     if (setup<0) setup = -setup;
     /* check correct number of input arguments */
-    if (UNLIKELY((p->INOCOUNT != 5)  && 
-                 (p->INOCOUNT != 10) && 
+    if (UNLIKELY((p->INOCOUNT != 5)  &&
+                 (p->INOCOUNT != 10) &&
                  (p->INOCOUNT != 17))) {
       return csound->InitError(csound, Str("Wrong number of input arguments!"));
     }
@@ -708,7 +708,7 @@ static int aambideco(CSOUND *csound, AMBID *p)
                         inptp_r[n] * p->r[i] + inptp_s[n] * p->s[i] +
                         inptp_t[n] * p->t[i] + inptp_u[n] * p->u[i] +
                         inptp_v[n] * p->v[i];
-        }        
+        }
       }
     }
     else if (p->INOCOUNT == 17) {
@@ -744,4 +744,3 @@ int ambicode_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

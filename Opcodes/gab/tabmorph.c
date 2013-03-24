@@ -21,7 +21,7 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2, 
+        MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2,
                 *argums[VARGMAX];
         MYFLT   *table[VARGMAX];
         int     length;
@@ -294,4 +294,3 @@ int tabmorph_init_(CSOUND *csound) {
       csound->AppendOpcodes(csound, &(tabmoroph_localops[0]),
                             (int) (sizeof(tabmoroph_localops) / sizeof(OENTRY)));
 }
-

@@ -80,7 +80,7 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (*p->kfc <= FL(0.0))     { 
+    if (*p->kfc <= FL(0.0))     {
       memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
       return OK;
     }
@@ -249,4 +249,3 @@ int butter_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

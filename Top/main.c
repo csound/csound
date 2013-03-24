@@ -60,15 +60,15 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     int     csdFound = 0;
     char    *fileDir;
 
-  
+
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
 
-    if(csound->engineStatus & CS_STATE_COMP){ 
+    if(csound->engineStatus & CS_STATE_COMP){
        csound->Message(csound, "Csound is already started, call csoundReset()\n"
                                 "before starting again \n");
-       return CSOUND_ERROR; 
+       return CSOUND_ERROR;
     }
 
     if (--argc <= 0) {
@@ -214,10 +214,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     }
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
-    
-     /* VL: added this also to csoundReset() in csound.c   */ 
+
+     /* VL: added this also to csoundReset() in csound.c   */
       if (csoundInitModules(csound) != 0)
-      csound->LongJmp(csound, 1); 
+      csound->LongJmp(csound, 1);
      if(csoundCompileOrc(csound, NULL) != 0){
         csoundDie(csound, Str("cannot compile orchestra \n"));
      }
@@ -286,11 +286,11 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 {
     OPARMS  *O = csound->oparms;
     int     n;
-   
-   if(csound->engineStatus & CS_STATE_COMP){ 
+
+   if(csound->engineStatus & CS_STATE_COMP){
        csound->Message(csound, "Csound is already started, call csoundReset()\n"
                                 "before starting again \n");
-       return CSOUND_ERROR; 
+       return CSOUND_ERROR;
     }
 
    /* VL 30-12-12 csoundInitModules is always called here now to enable
@@ -298,16 +298,16 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
        and csoundReadOrc()
     */
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to start with no orchestra */
-      /* VL: added this also to csoundReset() in csound.c   */ 
+      /* VL: added this also to csoundReset() in csound.c   */
       if (csoundInitModules(csound) != 0)
-           csound->LongJmp(csound, 1); 
+           csound->LongJmp(csound, 1);
         csoundCompileOrc(csound, "instr 1 \n endin \n");
      }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    
+
     /* if sound file type is still not known, check SFOUTYP */
     if (O->filetyp <= 0) {
       const char  *envoutyp;
@@ -373,7 +373,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
         t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
         t->next = NULL;
-          
+
         if (current == NULL) {
           csound->multiThreadedThreadInfo = t;
         }
@@ -392,7 +392,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
 
   int result = csoundCompileArgs(csound,argc,argv);
- 
+
   if(result == CSOUND_SUCCESS) return csoundStart(csound);
   else return result;
 }

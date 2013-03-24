@@ -327,7 +327,7 @@ int modka(CSOUND *csound, AOP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    
+
     r = p->r;
     a = *p->a;
     b = p->b;
@@ -1897,7 +1897,7 @@ int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
       int   k = 0;
       for (i = 0; i<nsmps; i++) {
         for (j = 0; j<csound->GetNchnls(csound); j++) {
-          if (i<offset||i>nsmps-early) 
+          if (i<offset||i>nsmps-early)
             p->ar[j][i] = FL(0.0);
           else
             p->ar[j][i] = csound->spout[k];

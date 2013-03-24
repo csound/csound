@@ -125,7 +125,7 @@ int set_scheduler_priority(CSOUND *csound, int priority)
       csound->Message(csound,Str("          0: normal scheduling, "
                                  "but lock memory"));
       csound->Message(csound,Str("    1 to %d: SCHED_RR with the specified "
-                                 "priority (DANGEROUS)"), 
+                                 "priority (DANGEROUS)"),
                       sched_get_priority_max(SCHED_RR));
             return -1;
        }
@@ -1574,7 +1574,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtplayCallback(csound, rtplay_);
       csound->SetRtrecordCallback(csound, rtrecord_);
       csound->SetRtcloseCallback(csound, rtclose_);
-      
+
     }
     s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
     i = 0;
@@ -1591,7 +1591,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
       csound->SetExternalMidiWriteCallback(csound, midi_out_write);
       csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
-      
+
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
       if (oparms.msglevel & 0x400)
@@ -1630,4 +1630,3 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
-
