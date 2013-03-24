@@ -260,7 +260,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
         strcpy(csound->delayederrormessages, ERRSTR);
       }
       else {
-        char *new = 
+        char *new =
           realloc(csound->delayederrormessages,
                   strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
         if (new==NULL) {
@@ -986,7 +986,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
-                                 vaops_localops_init, pvsgendy_localops_init, 
+                                 vaops_localops_init, pvsgendy_localops_init,
                                  socksend_localops_init, sockrecv_localops_init,
 #ifndef WIN32
                                  cpumeter_localops_init,

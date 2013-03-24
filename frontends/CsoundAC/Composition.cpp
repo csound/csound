@@ -113,7 +113,7 @@ namespace csound
   {
     outputDirectory = directory;
   }
-  
+
   std::string Composition::getFilename() const
   {
     return filename;

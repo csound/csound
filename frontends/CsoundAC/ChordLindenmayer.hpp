@@ -178,18 +178,18 @@ namespace csound
   };
 
   /**
-   * This class implements a Lindenmayer system that generates a score 
+   * This class implements a Lindenmayer system that generates a score
    * by moving a turtle around in various implicit music spaces.
-   * 
+   *
    * The turtle consists of:
    * <ul>
    * <li> N, a note, i.e. a vector of real numbers in score space.</li>
-   * <li> S, a step, i.e. an increment by which to move N 
+   * <li> S, a step, i.e. an increment by which to move N
    *      (also a vector in score space).</li>
-   * <li> O, an orientation, i.e. a direction to move N 
+   * <li> O, an orientation, i.e. a direction to move N
    *      (also a  vector).</li>
    * <li> C, a chord, i.e. a vector of voices in chord space.</li>
-   * <li> M, a modality used as a reference for neo-Riemannian 
+   * <li> M, a modality used as a reference for neo-Riemannian
    *      operations upon chords (also a vector).</li>
    * <li> V, a chord voicing, i.e. the index of the octavewise
    *      permutation of C within a range.</li>
@@ -197,37 +197,37 @@ namespace csound
    * <li> R, the size of the range.</li>
    * </ul>
    *
-   * In accordance with both mathematical music theory and the practice 
+   * In accordance with both mathematical music theory and the practice
    * of composers, operations on elements of music take place in spaces
    * whose geometry changes fluidly depending upon the musical context.
    * A paradigmatic example is transposition, which may apply
-   * to individual notes, or to chords, or to larger parts of scores; 
-   * as an even more indicative example, transposition may apply 
-   * to pitch under octave equivalence (pitch-classes), to pitch under 
-   * range equivalence (transposition on a staff), or simply to pitch 
+   * to individual notes, or to chords, or to larger parts of scores;
+   * as an even more indicative example, transposition may apply
+   * to pitch under octave equivalence (pitch-classes), to pitch under
+   * range equivalence (transposition on a staff), or simply to pitch
    * as a real number.
    *
-   * Consequently, the independent parts of an operation in this 
-   * Lindenmayer system are specified by commands in the format 
+   * Consequently, the independent parts of an operation in this
+   * Lindenmayer system are specified by commands in the format
    * OTEDX, where:
    * <ul>
-   * <li>O = the operation proper (e.g. sum or product).</li> 
+   * <li>O = the operation proper (e.g. sum or product).</li>
    * <li>T = the target, or part of the turtle to which the
-   *         operation applies, and which has an implicit rank 
+   *         operation applies, and which has an implicit rank
    *         (e.g. scalar, vector, tensor).</li>
-   * <li>E = its equivalence class (e.g. octave or range).</li> 
-   * <li>D = the individual dimension of the operation 
+   * <li>E = its equivalence class (e.g. octave or range).</li>
+   * <li>D = the individual dimension of the operation
    *         (e.g. pitch or time).</li>
    * <li>X = the operand.</li>
    * </ul>
    *
-   * Of course, some operations apply in all ranks, dimensions, and 
-   * equivalence classes; other operations, only to one dimension 
+   * Of course, some operations apply in all ranks, dimensions, and
+   * equivalence classes; other operations, only to one dimension
    * or one class.
    *
-   * Commands are as follows (x is a real scalar; 
+   * Commands are as follows (x is a real scalar;
    * for chords, v is a real vector "(x1,..,xn)" or a jazz-style chord name ("F#7b9")):
-   * <ul> 
+   * <ul>
    * <li> [     = Push the active turtle onto a stack (start a branch).</li>
    * <li> ]     = Pop the active turtle from the stack (return to the branching point).</li>
    * <li> Fx    = Move the turtle "forward" x steps along its current orientation:
@@ -248,25 +248,25 @@ namespace csound
    *              V := V o x. Of necessity the equivalence class is the range of the score.</li>
    * <li> ICOx  = Invert the turtle chord by reflecting it around pitch-class x.</li>
    * <li> KCO   = Apply Neo-Riemannian inversion by exchange to the turtle chord.</li>
-   * <li> QCOx  = Apply Neo-Riemannian contextual transposition by x pitch-classes 
+   * <li> QCOx  = Apply Neo-Riemannian contextual transposition by x pitch-classes
    *              (with reference to the turtle's modality) to the turtle chord.</li>
    * <li> VC+   = Add a voice (doubling the root) to the turtle chord.</li>
    * <li> VC-   = Remove a voice from the turtle chord.</li>
    * <li> WN    = Write the current turtle note to the score.</li>
    * <li> WCV   = Write the current turtle chord and voicing to the score.</li>
-   * <li> WCNV  = Write the current turtle chord and voicing to the score, 
+   * <li> WCNV  = Write the current turtle chord and voicing to the score,
    *              after first applying the turtle note to each voice in the chord.</li>
-   * <li> AC    = Apply the current turtle chord to the score, starting 
+   * <li> AC    = Apply the current turtle chord to the score, starting
    *              at the current time and continuing to the next A command.</li>
-   * <li> ACN   = Apply the current turtle chord to the score, 
-   *              after first applying the turtle note to each voice in the chord, starting 
+   * <li> ACN   = Apply the current turtle chord to the score,
+   *              after first applying the turtle note to each voice in the chord, starting
    *              at the current time and continuing to the next A command.</li>
    * <li> ACL   = Apply the current turtle chord to the score, using the closest voice-leading
-   *              from the previous chord (if any), starting 
+   *              from the previous chord (if any), starting
    *              at the current time and continuing to the next A command.</li>
    * <li> ACNL  = Apply the current turtle chord to the score, after first applying the turtle
    *              note to each voice in the chord, using the closest voice-leading from the
-   *              previous chord (if any), starting 
+   *              previous chord (if any), starting
    *              at the current time and continuing to the next A command.</li>
    * <li> A0    = End application of the previous A command.</li>
    * </ul>
@@ -320,11 +320,11 @@ namespace csound
      * <li> The Lindenmayer system is rewritten by taking the axiom, parsing it into words,
      *      and replacing each word with the product of a rewriting rule, if one exists, or itself,
      *      if there is no rule. This procedure is iterated for a specified number of times.</li>
-     * <li> The finished, rewritten Lindenmayer system is interpreted as a series of commands for 
+     * <li> The finished, rewritten Lindenmayer system is interpreted as a series of commands for
      *      moving a turtle around in various music spaces to write a score.</li><ol>
      * <li> Notes (N operations) are written directly into the score.</li>
      * <li> Chords (C operations) are written into the score as notes.</li>
-     * <li> L and A operations are written into the score as voice-leading operations, 
+     * <li> L and A operations are written into the score as voice-leading operations,
      *      to be applied after all notes have been generated.</li></ol>
      * <li> Overlapping and directly abutting notes in the score are joined.</li>
      * <li> The L and A operations are actually applied to the score.
@@ -352,10 +352,10 @@ namespace csound
     virtual void applyVoiceleadingOperations();
     virtual void interpret(std::string command);
     virtual int getDimension (char dimension) const;
-    virtual char parseCommand(const std::string &command, 
-                              std::string &operation, 
-                              char &target, 
-                              char &equivalenceClass, 
+    virtual char parseCommand(const std::string &command,
+                              std::string &operation,
+                              char &target,
+                              char &equivalenceClass,
                               size_t &dimension,
                               size_t &dimension1,
                               double &scalar,
@@ -370,7 +370,7 @@ namespace csound
                                     size_t beginAt,
                                     size_t endAt,
                                     const Eigen::MatrixXd &compositeCordinates);
-    
+
   };
 }
 #endif

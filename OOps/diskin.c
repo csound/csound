@@ -35,7 +35,7 @@
 #include "diskin.h"
 #include <math.h>
 
-#ifdef SOME_FINE_DAY  
+#ifdef SOME_FINE_DAY
 /* this code is deprecated, diskin now uses diskin2 code, see diskin2.c */
 
 static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
@@ -190,7 +190,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     //fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
     //                      "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                               "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 
+                               "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO,
                                p->bufSize*p->nChannels*8, 0);
     if (UNLIKELY(fd == NULL)) {
       return
@@ -450,7 +450,7 @@ int soundout(CSOUND *csound, SNDOUT *p)
     if (UNLIKELY(early)) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
-        
+
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
       }
@@ -480,4 +480,3 @@ int soundouts(CSOUND *csound, SNDOUTS *p)
 
     return OK;
 }
-

@@ -75,7 +75,7 @@ int tonset(CSOUND *csound, TONE *p)
     return OK;
 }
 
-int ktonset(CSOUND *csound, TONE *p) { 
+int ktonset(CSOUND *csound, TONE *p) {
    double b;
     p->prvhp = (double)*p->khp;
     b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
@@ -173,13 +173,13 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
-   
+
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    } 
+    }
     for (j=0; j< lp; j++) {
       /* Should *yt1 be reset to something?? */
       for (n=0; n<nsmps; n++) {
@@ -207,7 +207,7 @@ int katone(CSOUND *csound, TONE *p)
       x = yt1 = c2 * (yt1 + sig);
       *p->ar = (MYFLT)x;
       yt1 -= sig;               /* yt1 contains yt1-xt1 */
-    
+
     p->yt1 = yt1;
     return OK;
 }
@@ -323,7 +323,7 @@ int kreson(CSOUND *csound, RESON *p)
         c1 = p->c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
       else c1 = p->c1 = 1.0;
     }
-    
+
     yt1 = p->yt1; yt2 = p->yt2;
     yt0 = c1 * ((double)*p->asig) + c2 * yt1 - c3 * yt2;
     *p->ar = (MYFLT)yt0;
@@ -492,7 +492,7 @@ int kareson(CSOUND *csound, RESON *p)
         p->c1 = D - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
       else p->c1 = 0.0;                        /* cannot tell        */
     }
-    
+
     c1 = p->c1; c2 = p->c2; c3 = p->c3; yt1 = p->yt1; yt2 = p->yt2;
     if (p->scale == 1 || p->scale == 0) {
         double sig = (double) *p->asig;
@@ -1405,7 +1405,7 @@ int klimit(CSOUND *csound, LIMIT *p)
     if (LIKELY((sig <= max) && (sig >= min))) {
       *p->ans = sig;
     }
-    else {  
+    else {
      if ( min >= max) {
         *p->ans = FL(0.5) * (min + max);
       }

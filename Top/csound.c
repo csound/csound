@@ -214,10 +214,7 @@ static const CSOUND cenviron_ = {
     csoundDeleteUtilityList,
     csoundDeleteChannelList,
 #endif
-    csoundSetMessageCallback,
-    csoundDeleteCfgVarList,
-    csoundSetMessageLevel,
-    csoundRunCommand,
+
 #ifdef SOME_FINE_DAY /* these functions are now deprecated */
      csoundInputMessage,
     csoundKeyPress,
@@ -236,6 +233,10 @@ static const CSOUND cenviron_ = {
     csoundStop,
     csoundPerformKsmpsAbsolute,
 #endif
+    csoundSetMessageCallback,
+    csoundDeleteCfgVarList,
+    csoundSetMessageLevel,
+    csoundRunCommand,
     csoundOpenLibrary,
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
@@ -510,7 +511,7 @@ static const CSOUND cenviron_ = {
       (STRING_POOL *) NULL,
       -1,
       (INSTRTXT**)NULL,
-      { NULL, 
+      { NULL,
         {
           0,0,
           NULL, NULL, NULL, NULL,
@@ -535,7 +536,7 @@ static const CSOUND cenviron_ = {
         NULL,
         NULL,
         0,
-        0 
+        0
       },
       NULL,
       MAXINSNO,     /* engineState          */
@@ -622,7 +623,7 @@ static const CSOUND cenviron_ = {
     0,              /*  reinitflag          */
     0,              /*  tieflag             */
     DFLT_DBFS,      /*  e0dbfs              */
-    FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */ 
+    FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || (defined(_WIN32) && defined(__GNUC__))
@@ -864,7 +865,7 @@ static const CSOUND cenviron_ = {
     //0L, 0L,         /*  poolcount, gblfixed     */
     //0L, 0L,         /*  gblacount, gblscount    */
     //(CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
- 
+
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -2582,7 +2583,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 /*     char* dot = strchr(ep->opname, '.'); */
 /*     if(dot != NULL) strncpy((char *) &opname, ep->opname, dot - ep->opname); */
 /*     else strcpy((char *) &opname, ep->opname); */
-   
+
 /*     if (opname == NULL) */
 /*       return CSOUND_ERROR; */
 
@@ -2685,7 +2686,7 @@ int csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList, int n)
                        ep->opname);
         retval = err;
       }
-      
+
       n--, ep++;
     }
     return retval;
@@ -2763,12 +2764,12 @@ PUBLIC void csoundReset_(CSOUND *csound)
 #endif
     if (csound->opcodlst != NULL)
       free(csound->opcodlst);
-#ifdef HAVE_PTHREAD_SPIN_LOCK 
-     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE); 
-     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE); 
-     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE); 
-     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE); 
-#endif 
+#ifdef HAVE_PTHREAD_SPIN_LOCK
+     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
+#endif
 
     csound->oparms_.odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
@@ -2804,12 +2805,12 @@ PUBLIC void csoundReset_(CSOUND *csound)
     memcpy(p1, (void*) &(saved_env->first_callback_), (size_t) length);
     csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
     csound->API_lock = saved_env->API_lock;
-#ifdef HAVE_PTHREAD_SPIN_LOCK 
+#ifdef HAVE_PTHREAD_SPIN_LOCK
     csound->memlock = saved_env->memlock;
     csound->spinlock = saved_env->spinlock;
     csound->spoutlock = saved_env->spoutlock;
     csound->spinlock1= saved_env->spinlock1;
-#endif 
+#endif
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
     free(saved_env);

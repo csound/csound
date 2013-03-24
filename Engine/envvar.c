@@ -67,7 +67,7 @@ typedef struct CSFILE_ {
     int    pos;
     MYFLT *buf;
     int    bufsize;
-    char            fullName[1]; 
+    char            fullName[1];
 } CSFILE;
 
 #define ENV_DB          (((CSOUND*) csound)->envVarDB)
@@ -1037,8 +1037,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     FILE    *tmp_f = NULL;
     SF_INFO sfinfo;
     int     tmp_fd = -1, nbytes = (int) sizeof(CSFILE);
- 
-    
+
+
     /* check file type */
     if (UNLIKELY((unsigned int) (type - 1) >= (unsigned int) CSFILE_SND_W)) {
       csoundErrorMsg(csound, Str("internal error: csoundFileOpen(): "
@@ -1093,7 +1093,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       mfree(csound, fullName);
       env = NULL;
     }
-    
+
     /* if sound file, re-open file descriptor with libsndfile */
     switch (type) {
       case CSFILE_STD:                          /* stdio */
@@ -1279,7 +1279,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
           retval |= close(p->fd);
         break;
     }
-   
+
    if(p->async_flag == ASYNC_GLOBAL) {
      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
         /* unlink from chain of open files */
@@ -1304,7 +1304,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
    }
     /* free allocated memory */
     mfree(csound, fd);
-    
+
     /* return with error value */
     return retval;
 }
@@ -1369,11 +1369,11 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
       csound->file_io_start = 1;
       csound->file_io_threadlock = csound->CreateThreadLock();
       csound->NotifyThreadLock(csound->file_io_threadlock);
-      pthread_create(&csound->file_io_thread,NULL, file_iothread, (void *) csound); 
+      pthread_create(&csound->file_io_thread,NULL, file_iothread, (void *) csound);
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     p->async_flag = ASYNC_GLOBAL;
-    
+
     p->cb = csound->CreateCircularBuffer(csound, buffsize*4);
     p->items = 0;
     p->pos = 0;
@@ -1394,16 +1394,16 @@ unsigned int csoundReadAsync(CSOUND *csound, void *handle,
 {
     CSFILE *p = handle;
     if(p != NULL &&  p->cb != NULL)
-    return csound->ReadCircularBuffer(csound, p->cb, buf, items); 
+    return csound->ReadCircularBuffer(csound, p->cb, buf, items);
     else return 0;
 }
 
-unsigned int csoundWriteAsync(CSOUND *csound, void *handle, 
+unsigned int csoundWriteAsync(CSOUND *csound, void *handle,
                               MYFLT *buf, int items)
 {
     CSFILE *p = handle;
     if(p != NULL &&  p->cb != NULL)
-    return csound->WriteCircularBuffer(csound, p->cb, buf, items); 
+    return csound->WriteCircularBuffer(csound, p->cb, buf, items);
     else return 0;
 }
 
@@ -1423,7 +1423,7 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
        ret = sf_seek(p->sf,pos,whence);
        //csoundMessage(csound, "seek set %d \n", pos);
        csound->FlushCircularBuffer(csound, p->cb);
-       p->items = 0;        
+       p->items = 0;
       break;
     }
     csound->NotifyThreadLock(csound->file_io_threadlock);
@@ -1451,24 +1451,24 @@ static int read_files(CSOUND *csound){
            n = sf_read_MYFLT(current->sf, buf, items);
            m = 0;
         }
-        l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n); 
+        l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n);
         m += l;
-        n -= l; 
+        n -= l;
         current->items = n;
         current->pos = m;
         break;
       case CSFILE_SND_W:
-        items = csound->ReadCircularBuffer(csound, current->cb, buf, items); 
+        items = csound->ReadCircularBuffer(csound, current->cb, buf, items);
         sf_write_MYFLT(current->sf, buf, items);
         break;
     }
     }
     current = current->nxt;
-  } 
+  }
   return 1;
 }
 
- 
+
 
 
 void *file_iothread(void *p){

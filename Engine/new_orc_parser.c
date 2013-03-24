@@ -126,7 +126,7 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);
-      csound->DebugMsg(csound, "yielding >>%s<<\n", 
+      csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_orc));
       corfile_rm(&csound->orchstr);
     }
@@ -135,7 +135,7 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       PARSE_PARM  pp;
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
-      
+
       init_symbtab(csound);
 
       csound_orcdebug = O->odebug;
@@ -175,14 +175,14 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
-        
+
       /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
       err = verify_tree(csound, astTree, typeTable);
       mfree(csound, typeTable->instr0LocalPool);
       mfree(csound, typeTable->globalPool);
       mfree(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
-        
+
       //FIXME - synterrcnt should not be global
       if (!err || csound->synterrcnt){
           err = 3;
@@ -191,9 +191,9 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
           goto ending;
       }
       err = 0;
-        
+
       //csp_orc_analyze_tree(csound, astTree);
-        
+
       astTree = csound_orc_expand_expressions(csound, astTree);
 
       if (UNLIKELY(PARSER_DEBUG)) {

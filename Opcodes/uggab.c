@@ -344,7 +344,7 @@ static int poscka(CSOUND *csound, POSC *p)
 
 static int poscak(CSOUND *csound, POSC *p)
 {
-   
+
     FUNC        *ftp = p->ftp;
     MYFLT       *out = p->out, *ft;
     MYFLT       *curr_samp, fract;
@@ -815,7 +815,7 @@ static int product(CSOUND *csound, SUM *p)
 static int rsnsety(CSOUND *csound, RESONY *p)
 {
     int scale;
-    uint32_t nsmps = CS_KSMPS; 
+    uint32_t nsmps = CS_KSMPS;
     p->scale = scale = (int) *p->iscl;
     if ((p->loop = (int) MYFLT2LONG(*p->ord)) < 1)
       p->loop = 4;  /* default value */
@@ -946,7 +946,7 @@ static int loopseg_set(CSOUND *csound, LOOPSEG *p)
 {
     p->nsegs   = p->INOCOUNT-3;
     // Should check this is even
-    if (UNLIKELY((p->nsegs&1)!=0)) 
+    if (UNLIKELY((p->nsegs&1)!=0))
       csound->Warning(csound, Str("loop opcode: wrong argument count"));
     p->args[0] = FL(0.0);
     p->phs     = *p->iphase;
@@ -1761,7 +1761,7 @@ static int randomi_set(CSOUND *csound, RANDOMI *p)
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
     case 2: /* immediate interpolation between ifirstval and 1st random number */
-        p->num1 = (*p->max - *p->min) ? 
+        p->num1 = (*p->max - *p->min) ?
           (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
         p->num2 = randGab;
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
@@ -1835,7 +1835,7 @@ static int randomh_set(CSOUND *csound, RANDOMH *p)
     int mode = (int)(*p->mode);
     switch (mode) {
     case 2: /* the first output value is ifirstval */
-        p->num1 = (*p->max - *p->min) ? 
+        p->num1 = (*p->max - *p->min) ?
           (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
         break;
     case 3: /* the first output value is a random number within the defined range */

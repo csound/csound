@@ -65,7 +65,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       memset(&al[nsmps], '\0', early*sizeof(MYFLT));
     }
     switch (type) {
-    case 0: 
+    case 0:
       {
         MYFLT kangl = PI_F*FL(0.5) * *p->pan;
         for (n=offset; n<nsmps; n++) {
