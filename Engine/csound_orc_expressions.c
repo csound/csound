@@ -793,9 +793,13 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
 TREE* expand_statement(CSOUND* csound, TREE* current) {
      /* This is WRONG in optional argsq */
     TREE* anchor = NULL;
+    TREE* originalNext = current->next;
     
     TREE* previousArg = NULL;
     TREE* currentArg = current->right;
+    
+    current->next = NULL;
+    
     if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found Statement.\n");
     while (currentArg != NULL) {
@@ -854,10 +858,48 @@ TREE* expand_statement(CSOUND* csound, TREE* current) {
     
     anchor = appendToTree(csound, anchor, current);
     
-    // TODO - implement LHS (array set) expansion here
+    
+    // handle LHS expressions (i.e. array-set's)
+    previousArg = NULL;
+    currentArg = current->left;
+    
+    while (currentArg != NULL) {
+        char anstype, argtype;
+        TREE* temp;
+
+        if (currentArg->type == T_ARRAY) {
+            anstype = argtyp2(currentArg->left->value->lexeme);
+            temp = create_ans_token(csound,
+                                          create_out_arg(csound, anstype));
+
+            if (previousArg == NULL) {
+                current->left = temp;
+            }
+            else {
+                previousArg->next = temp;
+            }
+            temp->next = currentArg->next;
+            
+            TREE* arraySet = create_opcode_token(csound, "##array_set");
+            arraySet->right = currentArg->left;
+            arraySet->right->next = make_leaf(csound, temp->line, temp->locn,
+                                              T_IDENT, make_token(csound, temp->value->lexeme));
+            arraySet->right->next->next = currentArg->right; // FIXME - this needs to handles expressions
+            
+            anchor = appendToTree(csound, anchor, arraySet);
+            
+            currentArg = temp;
+            
+        }
+        previousArg = currentArg;
+        currentArg = currentArg->next;
+    }
+    
     
     handle_polymorphic_opcode(csound, current);
     handle_optional_args(csound, current);
+    
+    appendToTree(csound, anchor, originalNext);
     
     return anchor;
 }
@@ -1003,6 +1045,68 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current) {
     return anchor;
 }
 
+/* 1. create top label to loop back to
+   2. do boolean expression
+   3. do goto token that checks boolean and goes to end label
+   4. insert statements
+   5. add goto token that goes to top label
+   6. end label */
+TREE* expand_until_statement(CSOUND* csound, TREE* current) {
+
+    TREE* anchor = NULL;
+    TREE* expressionNodes = NULL;
+
+    TREE* gotoToken;
+    
+    int32 topLabelCounter = genlabs++;
+    int32 endLabelCounter = genlabs++;
+    TREE* tempRight = current->right;
+    TREE* last = NULL;
+    TREE* labelEnd;
+    int gotoType;
+    
+    anchor = create_synthetic_label(csound, topLabelCounter);
+    
+    expressionNodes = create_boolean_expression(csound,
+                                                current->left,
+                                                current->line,
+                                                current->locn);
+    anchor = appendToTree(csound, anchor, expressionNodes);
+    last = tree_tail(anchor);
+    
+    labelEnd = create_synthetic_label(csound, endLabelCounter);
+    
+    gotoType = (argtyp2( last->left->value->lexeme) == 'B') ||
+        (argtyp2( tempRight->value->lexeme) == 'k');
+    
+    gotoToken =
+        create_goto_token(csound,
+                      last->left->value->lexeme,
+                      labelEnd,
+                      gotoType);
+    gotoToken->next = tempRight;
+    gotoToken->right->next = labelEnd;
+    
+    last = appendToTree(csound, last, gotoToken);
+    last = tree_tail(last);
+    
+    
+    labelEnd = create_synthetic_label(csound, endLabelCounter);
+    TREE *topLabel = create_synthetic_ident(csound,
+                                            topLabelCounter);
+    TREE *gotoTopLabelToken = create_simple_goto_token(csound,
+                                                       topLabel,
+                                                       (gotoType==1 ? 0 : 1));
+
+    appendToTree(csound, last, gotoTopLabelToken);
+    gotoTopLabelToken->next = labelEnd;
+    
+
+    labelEnd->next = current->next;
+
+    return anchor;
+}
+
 /* Expands expression nodes into opcode calls
  *
  *
@@ -1046,206 +1150,47 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         current->right = csound_orc_expand_expressions(csound, current->right);
         //print_tree(csound, "AFTER", current);
         break;
+              
       case UDO_TOKEN:
         if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
         current->right = csound_orc_expand_expressions(csound, current->right);
         break;
+              
       case IF_TOKEN:
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found IF statement\n");
-        {
-            current = expand_if_statement(csound, current);
-            
-            if (previous != NULL) {
-                previous->next = current;
-            }
+        
+        current = expand_if_statement(csound, current);
+        
+        if (previous != NULL) {
+            previous->next = current;
         }
-        break;
+        
+        continue; 
       case UNTIL_TOKEN:
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found UNTIL statement\n");
-        {
-          //TREE * left = current->left;
-          //TREE * right = current->right;
-          //TREE* last;
-          TREE * gotoToken;
-
-          int32 topLabelCounter = genlabs++;
-          int32 endLabelCounter = genlabs++;
-          TREE *tempLeft = current->left;
-          TREE *tempRight = current->right;
-          //TREE *ifBlockStart = current;
-          TREE *ifBlockCurrent = current;
-          TREE *ifBlockLast = current;
-          //TREE *next = current->next;
-          TREE *statements, *labelEnd;
-          int type;
-          /* *** Stage 1: Create a top label (overwriting *** */
-          {                           /* Change UNTIL to label and add IF */
-            TREE* t=create_synthetic_label(csound, topLabelCounter);
-            current->type = t->type; current->left = current->right = NULL;
-            current->value = t->value;
-            ifBlockCurrent = t;
-            ifBlockCurrent->left = tempLeft;
-            ifBlockCurrent->right = tempRight;
-            ifBlockCurrent->next = current->next;
-            ifBlockCurrent->type = IF_TOKEN;
-            current->next = t;
-          }
-          /* *** Stage 2: Boolean expression *** */
-          /* Deal with the boolean expression to variable */
-          tempRight = ifBlockCurrent->right;
-          expressionNodes =
-            ifBlockLast->next = create_boolean_expression(csound,
-                                                          ifBlockCurrent->left,
-                                                          ifBlockCurrent->line,
-                                                          ifBlockCurrent->locn);
-          while (ifBlockLast->next != NULL) {
-            ifBlockLast = ifBlockLast->next;
-          }
-          /* *** Stage 3: Create the goto *** */
-          statements = tempRight;     /* the body of the loop */
-          labelEnd = create_synthetic_label(csound, endLabelCounter);
-          gotoToken =
-            create_goto_token(csound,
-                              ifBlockLast->left->value->lexeme,
-                              labelEnd,
-                              type =
-                              ((argtyp2(
-                                  ifBlockLast->left->value->lexeme)=='B')
-                               ||
-                               (argtyp2(
-                                   tempRight->value->lexeme) == 'k')));
-          /* relinking */
-          /* tempRight = ifBlockLast->next; */
-          ifBlockLast->next = gotoToken;
-          /* ifBlockLast->next->next = tempRight; */
-          gotoToken->right->next = labelEnd;
-          gotoToken->next = statements;
-          labelEnd = create_synthetic_label(csound, endLabelCounter);
-          while (statements->next != NULL) { /* To end of body */
-            statements = statements->next;
-          }
-          {
-            TREE *topLabel = create_synthetic_ident(csound,
-                                                    topLabelCounter);
-            TREE *gotoTopLabelToken =
-              create_simple_goto_token(csound, topLabel, (type==1 ? 0 : 1));
-            if (UNLIKELY(PARSER_DEBUG))
-              csound->Message(csound, "Creating simple goto token\n");
-            statements->next = gotoTopLabelToken;
-            gotoTopLabelToken->next = labelEnd;
-          }
-          labelEnd->next = ifBlockCurrent->next;
-          ifBlockLast = labelEnd;
-          ifBlockCurrent = tempRight->next;
+              
+        current = expand_until_statement(csound, current);
+      
+        if (previous != NULL) {
+          previous->next = current;
         }
-        break;
+              
+        continue;
+              
       case LABEL_TOKEN:
         break;
-      case '=':
-        {
-          TREE* currentArg = current->right;
-          TREE* currentAns = current->left;
-          char anstype, argtype;
-
-          //csound->Message(csound, "Assignment Statement.\n");
-            
-          if (currentAns->type == T_ARRAY) {
-            anstype = argtyp2(currentAns->left->value->lexeme);
-            TREE* temp = create_ans_token(csound,
-                                          create_out_arg(csound, anstype));
-            current->left = temp;
-            
-            TREE* arraySet = create_opcode_token(csound, "##array_set");
-            arraySet->right = currentAns->left;
-            arraySet->right->next = make_leaf(csound, temp->line, temp->locn,
-                                                T_IDENT, make_token(csound, temp->value->lexeme));
-            arraySet->right->next->next = currentAns->right;
-            
-            arraySet->next = current->next;
-            current->next = arraySet;
-              
-            currentAns = temp;
-            
-          }
-            
-          if (currentArg->left || currentArg->right) {
-            //csound->Message(csound, "expansion case\n");
-            anstype = argtyp2( currentAns->value->lexeme);
-              
-            //print_tree(csound, "Assignment\n", current);
-            expressionNodes =
-              create_expression(csound, currentArg,
-                                currentArg->line, currentArg->locn);
-            //print_tree(csound, "expressionNodes\n", currentArg);
-            currentArg = expressionNodes;
-            while (currentArg->next) currentArg = currentArg->next;
-            //print_tree(csound, "currentArg\n", currentArg);
-            argtype = argtyp2( currentArg->left->value->lexeme);
-            //printf("anstype = %c argtype = %c\n", anstype, argtype);
-            if (anstype=='a' && argtype!='a') {
-              //upsample
-              //goto maincase;                     /* Wastes time and space */
-              TREE* opTree = create_opcode_token(csound, "upsamp");
-              ORCTOKEN* lex = make_token(csound, currentArg->left->value->lexeme);
-              //printf("lex %p->%p\n", currentArg->left->value, lex);
-              opTree->right = make_leaf(csound, current->line, current->locn,
-                                        T_IDENT, lex);
-              opTree->left = current->left;
-              opTree->line = current->line;
-              opTree->locn = current->locn;
-              opTree->next = current->next;
-              //print_tree(csound, "opTree\n", opTree);
-              currentArg->next = opTree;
-              //print_tree(csound, "currentArg\n", currentArg);
-              //print_tree(csound, "making expression", opTree);
-
-              /* current->right = currentArg->left; /\* Should this copy? *\/ */
-              /* current->next = NULL; */
-              /* currentArg->next = current; */
-              print_tree(csound, "becomes\n", expressionNodes);
-              memmove(current, expressionNodes, sizeof(TREE));
-              print_tree(csound, "current\n", current);
-              break;
-            }
-            else if (anstype=='k' && argtype=='i') {
-              TREE* opTree = create_opcode_token(csound, "=.k");
-              ORCTOKEN* lex = make_token(csound, currentArg->left->value->lexeme);
-              //printf("value=%p lexeme=%s\n",
-              //       currentArg->left->value, currentArg->left->value->lexeme);
-              opTree->right = make_leaf(csound, current->line, current->locn,
-                                        T_IDENT, lex);
-              opTree->left = current->left;
-              opTree->line = current->line;
-              opTree->locn = current->locn;
-              opTree->next = current->next;
-              currentArg->next = opTree;
-              memmove(current, expressionNodes, sizeof(TREE));
-              print_tree(csound, "current\n", current);
-              break;
-            }
-            else {
-              mfree(csound, currentArg->left);
-              currentArg->left = currentAns;
-              currentArg->next = current->next;
-              //print_tree(csound, "becomes\n", expressionNodes);
-              memmove(current, expressionNodes, sizeof(TREE));
-            }
-            break;
-          }
-        }
+                            
       default:
         //maincase:
-        {
-            // returns new head of expanded statements
-            // links into previous chain if exists
-            current = expand_statement(csound, current);
+        
+        current = expand_statement(csound, current);
             
-            if (previous != NULL) {
-                previous->next = current;
-            }
+        if (previous != NULL) {
+            previous->next = current;
         }
+        
       }
 
       if (anchor == NULL) {
