@@ -862,6 +862,147 @@ TREE* expand_statement(CSOUND* csound, TREE* current) {
     return anchor;
 }
 
+/* Flattens one level of if-blocks, sub-if-blocks should get flattened
+ when the expander goes through statements */
+TREE* expand_if_statement(CSOUND* csound, TREE* current) {
+    
+    TREE* anchor = NULL;
+    TREE* expressionNodes = NULL;
+
+    TREE* left = current->left;
+    TREE* right = current->right;
+    TREE* last;
+    TREE* gotoToken;
+    
+    if (right->type == IGOTO_TOKEN ||
+        right->type == KGOTO_TOKEN ||
+        right->type == GOTO_TOKEN) {
+        if (UNLIKELY(PARSER_DEBUG))
+            csound->Message(csound, "Found if-goto\n");
+        expressionNodes =
+        create_boolean_expression(csound, left, right->line, right->locn);
+        
+        
+        anchor = appendToTree(csound, anchor, expressionNodes);
+        
+        /* reconnect into chain */
+        last = tree_tail(expressionNodes);
+        
+        gotoToken = create_goto_token(csound,
+                                      last->left->value->lexeme,
+                                      right,
+                                      last->left->type == 'k' ||
+                                      right->type =='k');
+        last->next = gotoToken;
+    }
+    else if (right->type == THEN_TOKEN ||
+             right->type == ITHEN_TOKEN ||
+             right->type == KTHEN_TOKEN) {
+        int endLabelCounter = -1;
+        TREE *tempLeft;
+        TREE *tempRight;
+        TREE* last;
+
+        TREE *ifBlockCurrent = current;
+        
+        if (UNLIKELY(PARSER_DEBUG))
+            csound->Message(csound, "Found if-then\n");
+        if (right->next != NULL) {
+            endLabelCounter = genlabs++;
+        }
+        
+        while (ifBlockCurrent != NULL) {
+            tempLeft = ifBlockCurrent->left;
+            tempRight = ifBlockCurrent->right;
+         
+            if (ifBlockCurrent->type == ELSE_TOKEN) {
+                appendToTree(csound, anchor, tempRight);
+                break;
+            }
+            else if (ifBlockCurrent->type == ELSEIF_TOKEN) { /* JPff code */
+                // print_tree(csound, "ELSEIF case\n", ifBlockCurrent);
+                ifBlockCurrent->type = IF_TOKEN;
+                ifBlockCurrent = make_node(csound, ifBlockCurrent->line,
+                                           ifBlockCurrent->locn, ELSE_TOKEN,
+                                           NULL, ifBlockCurrent);
+            }
+            
+            expressionNodes = create_boolean_expression(csound, tempLeft,
+                                      tempLeft->line, tempLeft->locn);
+            
+            anchor = appendToTree(csound, anchor, expressionNodes);
+            
+            last = tree_tail(expressionNodes);
+            
+            /* reconnect into chain */
+            {
+                TREE *statements, *label, *labelEnd, *gotoToken;
+                int gotoType;
+                
+                statements = tempRight->right;
+                label = create_synthetic_ident(csound, genlabs);
+                labelEnd = create_synthetic_label(csound, genlabs++);
+                tempRight->right = label;
+
+                gotoType = (argtyp2( last->left->value->lexeme) == 'B') ||
+                (argtyp2( tempRight->value->lexeme) == 'k');
+                gotoToken =
+                create_goto_token(csound,
+                                  last->left->value->lexeme,
+                                  tempRight,
+                                  gotoType);
+                gotoToken->next = statements;
+                anchor = appendToTree(csound, anchor, gotoToken);
+                
+                /* relinking */
+                last = tree_tail(last);
+                
+                if (endLabelCounter > 0) {
+                    TREE *endLabel = create_synthetic_ident(csound,
+                                                            endLabelCounter);
+                    int type = (gotoType == 1) ? 0 : 2;
+                    /* csound->DebugMsg(csound, "%s(%d): type = %d %d\n", */
+                    /*        __FILE__, __LINE__, type, gotoType); */
+                    TREE *gotoEndLabelToken =
+                        create_simple_goto_token(csound, endLabel, type);
+                    if (UNLIKELY(PARSER_DEBUG))
+                        csound->Message(csound, "Creating simple goto token\n");
+                    
+                    appendToTree(csound, last, gotoEndLabelToken);
+                    
+                    gotoEndLabelToken->next = labelEnd;
+                }
+                else {
+                    appendToTree(csound, last, labelEnd);
+
+                    if(statements == NULL) {
+                        gotoToken->next = labelEnd;
+                    } else {
+                        statements->next = labelEnd;
+                    }
+                }
+                
+                ifBlockCurrent = tempRight->next;
+            }
+        }
+        
+        if (endLabelCounter > 0) {
+            TREE *endLabel = create_synthetic_label(csound,
+                                                    endLabelCounter);
+            anchor = appendToTree(csound, anchor, endLabel);
+        }
+        
+    }
+    else {
+        csound->Message(csound,
+                        "ERROR: Neither if-goto or if-then found on line %d!!!",
+                        right->line);
+    }
+    anchor = appendToTree(csound, anchor, current->next);
+    
+    return anchor;
+}
+
 /* Expands expression nodes into opcode calls
  *
  *
@@ -913,192 +1054,11 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found IF statement\n");
         {
-          TREE * left = current->left;
-          TREE * right = current->right;
-          TREE* last;
-          TREE * gotoToken;
-
-          if (right->type == IGOTO_TOKEN ||
-              right->type == KGOTO_TOKEN ||
-              right->type == GOTO_TOKEN) {
-            if (UNLIKELY(PARSER_DEBUG))
-              csound->Message(csound, "Found if-goto\n");
-            expressionNodes =
-              create_boolean_expression(csound, left, right->line, right->locn);
-            /* Set as anchor if necessary */
-            if (anchor == NULL) {
-              anchor = expressionNodes;
-            }
-            /* reconnect into chain */
-            last = expressionNodes;
-            while (last->next != NULL) {
-              last = last->next;
-            }
+            current = expand_if_statement(csound, current);
+            
             if (previous != NULL) {
-              previous->next = expressionNodes;
+                previous->next = current;
             }
-            gotoToken = create_goto_token(csound,
-                                          last->left->value->lexeme,
-                                          right,
-                                          last->left->type == 'k' ||
-                                          right->type =='k');
-            last->next = gotoToken;
-            gotoToken->next = current->next;
-
-            current = gotoToken;
-            previous = last;
-          }
-          else if (right->type == THEN_TOKEN ||
-                   right->type == ITHEN_TOKEN ||
-                   right->type == KTHEN_TOKEN) {
-            int endLabelCounter = -1;
-            TREE *tempLeft;
-            TREE *tempRight;
-            TREE *ifBlockStart = NULL;
-            TREE *ifBlockCurrent = current;
-            TREE *ifBlockLast = NULL;
-
-            if (UNLIKELY(PARSER_DEBUG))
-              csound->Message(csound, "Found if-then\n");
-            if (right->next != NULL) {
-              endLabelCounter = genlabs++;
-            }
-
-            while (ifBlockCurrent != NULL) {
-              tempLeft = ifBlockCurrent->left;
-              tempRight = ifBlockCurrent->right;
-              if (ifBlockCurrent->type == ELSE_TOKEN) {
-                //  print_tree(csound, "ELSE case\n", ifBlockCurrent);
-                ifBlockLast->next =
-                  csound_orc_expand_expressions(csound, tempRight);
-                while (ifBlockLast->next != NULL) {
-                  ifBlockLast = ifBlockLast->next;
-                }
-                // print_tree(csound, "ELSE transformed\n", ifBlockCurrent);
-                break;
-              }
-              else if (ifBlockCurrent->type == ELSEIF_TOKEN) { /* JPff code */
-                // print_tree(csound, "ELSEIF case\n", ifBlockCurrent);
-                ifBlockCurrent->type = IF_TOKEN;
-                ifBlockCurrent = make_node(csound, ifBlockCurrent->line,
-                                           ifBlockCurrent->locn, ELSE_TOKEN,
-                                           NULL, ifBlockCurrent);
-                //tempLeft = NULL;
-                /*   ifBlockLast->next = */
-                /*     csound_orc_expand_expressions(csound, ifBlockCurrent); */
-                /* while (ifBlockLast->next != NULL) { */
-                /*   ifBlockLast = ifBlockLast->next; */
-                /* } */
-                // print_tree(csound, "ELSEIF transformed\n", ifBlockCurrent);
-                //break;
-              }
-
-              expressionNodes =
-                create_boolean_expression(csound, tempLeft,
-                                          tempLeft->line, tempLeft->locn);
-                            /* Set as anchor if necessary */
-              if (ifBlockStart == NULL) {
-                ifBlockStart = expressionNodes;
-              }
-              /* reconnect into chain */
-              {
-                TREE* last = expressionNodes;
-                TREE *statements, *label, *labelEnd, *gotoToken;
-                int gotoType;
-
-                while (last->next != NULL) {
-                  last = last->next;
-                }
-                if (ifBlockLast != NULL) {
-                  ifBlockLast->next = expressionNodes;
-                }
-
-                statements = tempRight->right;
-                label = create_synthetic_ident(csound, genlabs);
-                labelEnd = create_synthetic_label(csound, genlabs++);
-                tempRight->right = label;
-//              printf("goto types %c %c %c %c %d\n",
-//                     expressionNodes->left->type, tempRight->type,
-//                     argtyp2( last->left->value->lexeme),
-//                     argtyp2( tempRight->value->lexeme),
-//                     (argtyp2( last->left->value->lexeme) == 'k') ||
-//                     (argtyp2( tempRight->value->lexeme) == 'k'));
-//              print_tree(csound, "expression nodes", expressionNodes);
-                gotoType = (argtyp2( last->left->value->lexeme) == 'B') ||
-                           (argtyp2( tempRight->value->lexeme) == 'k');
-                gotoToken =
-                  create_goto_token(csound,
-                   last->left->value->lexeme,
-                   tempRight,
-                   gotoType);
-                /* relinking */
-                last->next = gotoToken;
-                gotoToken->next = statements;
-                
-                if (statements != NULL) {
-                  while (statements->next != NULL) {
-                    statements = statements->next;
-                  }
-                }
-                if (endLabelCounter > 0) {
-                  TREE *endLabel = create_synthetic_ident(csound,
-                                                          endLabelCounter);
-                  int type = (gotoType == 1) ? 0 : 2;
-                  /* csound->DebugMsg(csound, "%s(%d): type = %d %d\n", */
-                  /*        __FILE__, __LINE__, type, gotoType); */
-                  TREE *gotoEndLabelToken =
-                    create_simple_goto_token(csound, endLabel, type);
-                  if (UNLIKELY(PARSER_DEBUG))
-                    csound->Message(csound, "Creating simple goto token\n");
-
-                  if(statements == NULL) {
-                    gotoToken->next = gotoEndLabelToken;
-                  } else {
-                    statements->next = gotoEndLabelToken;
-                  }
-                  gotoEndLabelToken->next = labelEnd;
-                }
-                else {
-                  if(statements == NULL) {
-                    gotoToken->next = labelEnd;
-                  } else {
-                    statements->next = labelEnd;
-                  }
-                }
-
-                ifBlockLast = labelEnd;
-                ifBlockCurrent = tempRight->next;
-              }
-            }
-
-            if (endLabelCounter > 0) {
-              TREE *endLabel = create_synthetic_label(csound,
-                                                      endLabelCounter);
-              endLabel->next = ifBlockLast->next;
-              ifBlockLast->next = endLabel;
-              ifBlockLast = endLabel;
-            }
-            ifBlockLast->next = current->next;
-
-            /* Connect in all of the TREE nodes that were flattened from
-             * the if-else-else block
-             */
-            /* Set as anchor if necessary */
-            if (anchor == NULL) {
-              anchor = ifBlockStart;
-            }
-
-            /* reconnect into chain */
-            if (previous != NULL) {
-              previous->next = ifBlockStart;
-            }
-            current = ifBlockStart;
-          }
-          else {
-            csound->Message(csound,
-                            "ERROR: Neither if-goto or if-then found on line %d!!!",
-                            right->line);
-          }
         }
         break;
       case UNTIL_TOKEN:
