@@ -192,11 +192,11 @@
 (defcfun ("csoundGetStrVarMaxLen" csoundGetStrVarMaxLen) :int
   (arg0 :pointer))
 
-(defcfun ("csoundGetSampleFormat" csoundGetSampleFormat) :int
-  (arg0 :pointer))
+;;(defcfun ("csoundGetSampleFormat" csoundGetSampleFormat) :int
+;;  (arg0 :pointer))
 
-(defcfun ("csoundGetSampleSize" csoundGetSampleSize) :int
-  (arg0 :pointer))
+;;(defcfun ("csoundGetSampleSize" csoundGetSampleSize) :int
+;;  (arg0 :pointer))
 
 (defcfun ("csoundGetInputBufferSize" csoundGetInputBufferSize) :long
   (arg0 :pointer))

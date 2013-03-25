@@ -387,14 +387,14 @@ public:
   {
     return csoundGetStrVarMaxLen(csound);
   }
-  virtual int GetSampleFormat()
-  {
-    return csoundGetSampleFormat(csound);
-  }
-  virtual int GetSampleSize()
-  {
-    return csoundGetSampleSize(csound);
-  }
+//  virtual int GetSampleFormat()
+//  {
+//    return csoundGetSampleFormat(csound);
+//  }
+//  virtual int GetSampleSize()
+//  {
+//    return csoundGetSampleSize(csound);
+//  }
   virtual long GetInputBufferSize()
   {
     return csoundGetInputBufferSize(csound);
