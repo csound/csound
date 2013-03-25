@@ -64,7 +64,7 @@ static PyObject *
 run_statement_in_given_context(char *string, PyObject *private)
 {
     PyObject  *module, *public;
-    
+
     module = PyImport_AddModule("__main__");
     if (module == NULL) {
       PyErr_SetString(PyExc_RuntimeError, "couldn't find module __main__");
@@ -384,4 +384,3 @@ OENTRY python_localops[] = {
 };
 
 LINKAGE_BUILTIN(python_localops)
-

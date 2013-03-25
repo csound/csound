@@ -201,7 +201,8 @@ static void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int     c, n, pcnt;
-   
+    IGN(userData);
+
     while (1) {
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
@@ -212,7 +213,7 @@ static void sensLine(CSOUND *csound, void *userData)
         break;
       Linestart = STA(Linebuf);
       cp = Linestart;
-      
+
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
         char    *sstrp = NULL;
@@ -394,7 +395,7 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
     EVTBLK  evt;
     int     i, err = 0;
     char    opcod;
-    
+
     opcod = ((char*) p->args[0])[0];
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') || ((char*) p->args[0])[1] != '\0'))
@@ -431,4 +432,3 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
                                 opcod);
     return (err == 0 ? OK : NOTOK);
 }
-

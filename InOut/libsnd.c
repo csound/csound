@@ -478,7 +478,8 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       parm.devNum = check_rtaudio_name(sfname, &(parm.devName), 0);
       if (parm.devNum >= 0) {
         /* set device parameters */
-        parm.bufSamp_SW   = (int) O->inbufsamps / (int) csound->inchnls;
+        parm.bufSamp_SW   =
+          (unsigned int) O->inbufsamps / (unsigned int) csound->inchnls;
         parm.bufSamp_HW   = O->oMaxLag;
         parm.nChannels    = csound->nchnls;
         parm.sampleFormat = O->informat;
@@ -576,13 +577,13 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       case TYP_W64:
       case TYP_WAVEX:
         O->outfilename = "test.wav";
-        break;  
+        break;
       case TYP_AIFF:
         O->outfilename = "test.aif";
-        break;  
+        break;
       case TYP_AU:
         O->outfilename = "test.au";
-        break;   
+        break;
       /* case TYP_PAF: */
       /*   O->outfilename = ""; */
       /*   break;   */
@@ -623,13 +624,13 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         break;
       case TYP_FLAC:
         O->outfilename = "test.flac";
-        break; 
+        break;
       case TYP_CAF:
         O->outfilename = "test.caf";
         break;
       case TYP_OGG:
         O->outfilename = "test.ogg";
-        break;  
+        break;
       /* case TYP_MPC2K: */
       /*   O->outfilename = ""; */
       /*   break; */
@@ -672,7 +673,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       parm.devNum = check_rtaudio_name(fName, &(parm.devName), 1);
       if (parm.devNum >= 0) {
         /* set device parameters */
-        parm.bufSamp_SW   = (int) O->outbufsamps / (int) csound->nchnls;
+        parm.bufSamp_SW   = (unsigned int) O->outbufsamps / csound->nchnls;
         parm.bufSamp_HW   = O->oMaxLag;
         parm.nChannels    = csound->nchnls;
         parm.sampleFormat = O->outformat;
@@ -1016,4 +1017,3 @@ PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *csound)
 {
     return STA(outbuf);
 }
-

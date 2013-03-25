@@ -134,7 +134,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       }
     }
     }
-    return j;     
+    return j;
 }
 
 
@@ -279,7 +279,7 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
         pa_PrintErrMsg(csound, Str("Inconsistent full-duplex sample rates"));
         goto err_return;
       }
-      if (UNLIKELY(((pabs->inParm.bufSamp_SW / csound->GetKsmps(csound)) * 
+      if (UNLIKELY(((pabs->inParm.bufSamp_SW / csound->GetKsmps(csound)) *
                     csound->GetKsmps(csound)) != pabs->inParm.bufSamp_SW))
         csound->MessageS(csound,
                          CSOUNDMSG_WARNING,
@@ -556,13 +556,13 @@ static void rtclose_(CSOUND *csound)
     csound->Message(csound, "closing device\n");
     if (pabs == NULL)
       return;
-    
+
     pabs->complete = 1;
 
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
       unsigned int i;
-      
+
       for (i = 0; i < 4u; i++) {
 #if NO_FULLDUPLEX_PA_LOCK
         if (!pabs->noPaLock)
@@ -571,7 +571,7 @@ static void rtclose_(CSOUND *csound)
         csound->NotifyThreadLock(pabs->clientLock);
         //Pa_Sleep(80);
       }
-      
+
       Pa_StopStream(stream);
       Pa_CloseStream(stream);
       //Pa_Sleep(80);

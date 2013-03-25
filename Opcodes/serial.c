@@ -1,5 +1,5 @@
 /*****************************************************
- 
+
                         CSOUND SERIAL PORT OPCODES
                           ma++ ingalls, 2011/9/4
                      modified for WIndows John ffitch
@@ -7,7 +7,7 @@
  * Copyright (c) 2006, Tod E. Kurt, tod@todbot.com
  * http://todbot.com/blog/
 
-    Copyright (C) 2011 matt ingalls 
+    Copyright (C) 2011 matt ingalls
     based on "Arduino-serial", Copyright (c) 2006, Tod E. Kurt, tod@todbot.com
     http://todbot.com/blog/ and licenced LGPL to csound
 
@@ -28,8 +28,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
- 
-#include <stdlib.h> 
+
+#include <stdlib.h>
 #include <stdint.h>   /* Standard types */
 #include <string.h>   /* String function definitions */
 
@@ -54,7 +54,7 @@
 
 open a port.  baudRate defaults to 9600
         iPort  serialBegin         SPortName [, baudRate ]
- 
+
 close a port
                         serialEnd           iPort
 
@@ -69,28 +69,28 @@ write byte(s) to the port, at i or k rate
 read the next byte from the input buffer
 returned value will be in the range of 0-255
         kByte   serialRead          iPort
-    
+
 print to screen any bytes (up to 32k) in input buffer
 note that these bytes will be cleared from the buffer.
 use this opcode mainly for debugging messages.
-if you want to mix debugging and other communication 
+if you want to mix debugging and other communication
 messages over the same port, you will need to manually
 parse the data with the serialRead opcode.
                         serialPrint                     iPort
- 
+
 clear the input buffer
                         serialFlush         iPort
 
- 
+
 TODO: (might need some kind of threaded buffer-read?)
- 
+
  kNum   serialAvailable    iPort
  returns number of bytes available to read
- 
+
  kByte   serialPeekByte      iPort
  returns the next byte in the input buffer
  does not remove the byte from the buffer
- 
+
 *****************************************************/
 
 #ifdef WIN32
@@ -110,7 +110,7 @@ static HANDLE get_port(CSOUND *csound, int port)
       csound->PerfError(csound, Str("No ports available"));
       return NULL;
     }
-    hport = (HANDLE)q->handles[port];  
+    hport = (HANDLE)q->handles[port];
     return hport;
 }
 #endif
@@ -180,13 +180,13 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     //csound = NULL;              /* Not used */
     fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
             serialport,baud);
-        
+
     fd = open(serialport, O_RDWR | O_NOCTTY | O_NDELAY);
     if (fd == -1)  {
       perror("init_serialport: Unable to open port ");
       return -1;
     }
-    
+
     if (tcgetattr(fd, &toptions) < 0) {
       perror("init_serialport: Couldn't get term attributes");
       return -1;
@@ -208,7 +208,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     }
     cfsetispeed(&toptions, brate);
     cfsetospeed(&toptions, brate);
-        
+
     // 8N1
     toptions.c_cflag &= ~PARENB;
     toptions.c_cflag &= ~CSTOPB;
@@ -216,22 +216,22 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     toptions.c_cflag |= CS8;
     // no flow control
     toptions.c_cflag &= ~CRTSCTS;
-        
+
     toptions.c_cflag |= CREAD | CLOCAL;  // turn on READ & ignore ctrl lines
     toptions.c_iflag &= ~(IXON | IXOFF | IXANY); // turn off s/w flow ctrl
-        
+
     toptions.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // make raw
     toptions.c_oflag &= ~OPOST; // make raw
-        
+
     // see: http://unixwiz.net/techtips/termios-vmin-vtime.html
     toptions.c_cc[VMIN]  = 0;
     toptions.c_cc[VTIME] = 20;
-    
+
     if ( tcsetattr(fd, TCSANOW, &toptions) < 0) {
       perror("init_serialport: Couldn't set term attributes");
       return -1;
     }
-        
+
     return fd;
 }
 #else
@@ -260,7 +260,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
     /*                     (LPCSTR)wport, 256); */
     /* hSerial = CreateFile(serialport, GENERIC_READ | GENERIC_WRITE, 0,  */
     /*                      0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); */
-    hSerial = CreateFileA(serialport, GENERIC_READ | GENERIC_WRITE, 0, 
+    hSerial = CreateFileA(serialport, GENERIC_READ | GENERIC_WRITE, 0,
                          NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
  //Check if the connection was successfull
     if (hSerial==INVALID_HANDLE_VALUE) {
@@ -336,7 +336,7 @@ int serialEnd(CSOUND *csound, SERIALEND *p)
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
-    if (q = NULL) 
+    if (q = NULL)
       return csound->PerfError(csound, Str("Nothing to close"));
     CloseHandle((HANDLE)q->handles[(int)p->port]);
     q->handles[(int)*p->port] = NULL;
@@ -350,8 +350,8 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
 #ifdef WIN32
     HANDLE port = get_port(csound, (int)*p->port);
-    if (port==NULL) return NOTOK;  
-#endif  
+    if (port==NULL) return NOTOK;
+#endif
     if (p->XSTRCODE & 2) {
 #ifndef WIN32
       if (UNLIKELY(write((int)*p->port, p->toWrite, strlen((char *)p->toWrite))<0))
@@ -381,16 +381,16 @@ int serialRead(CSOUND *csound, SERIALREAD *p)
     ssize_t bytes;
 #ifdef WIN32
     HANDLE port = get_port(csound, (int)*p->port);
-    if (port==NULL) return NOTOK;  
+    if (port==NULL) return NOTOK;
     ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
 #else
     bytes = read((int)*p->port, &b, 1);
 #endif
     if (bytes > 0)
       *p->rChar = b;
-    else 
+    else
       *p->rChar = -1;
-    
+
     return OK;
 }
 
@@ -400,7 +400,7 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
     ssize_t bytes;
 #ifdef WIN32
     HANDLE port = get_port(csound, (int)*p->port);
-    if (port==NULL) return NOTOK;  
+    if (port==NULL) return NOTOK;
     ReadFile(port, str, 32768, (PDWORD)&bytes, NULL);
 #else
     bytes  = read((int)*p->port, str, 32768);

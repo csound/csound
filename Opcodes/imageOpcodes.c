@@ -506,7 +506,7 @@ static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
       memset(r, '\0', offset*sizeof(MYFLT));
       memset(g, '\0', offset*sizeof(MYFLT));
       memset(b, '\0', offset*sizeof(MYFLT));
-    } 
+    }
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));
@@ -646,4 +646,3 @@ static OENTRY image_localops[] = {
 
 
 LINKAGE_BUILTIN(image_localops)
-

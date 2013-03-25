@@ -48,7 +48,7 @@
 /**
  * This may help avoid problems with the order of static initializations.
  */
-static std::map<CSOUND *, std::vector<fluid_synth_t *> > 
+static std::map<CSOUND *, std::vector<fluid_synth_t *> >
                 &getFluidSynthsForCsoundInstances()
 {
     static std::map<CSOUND *, std::vector<fluid_synth_t *> >
@@ -208,7 +208,7 @@ public:
             }
             *iInstrumentNumber = (MYFLT) soundFontId;
             if (soundFontId < 0) {
-                csound->InitError(csound, 
+                csound->InitError(csound,
                                   Str("fluid: unable to load %s"), filename);
             }
             csound->NotifyFileOpened(csound, filepath, CSFTYPE_SOUNDFONT, 0, 0);
@@ -448,7 +448,7 @@ public:
             memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
             memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
           }
-          std::vector<fluid_synth_t *> &fluidSynths = 
+          std::vector<fluid_synth_t *> &fluidSynths =
             getFluidSynthsForCsoundInstances()[csound];
           for (frame = offset; frame < ksmps; frame++) {
             aLeftOut[frame] = FL(0.0);
@@ -456,7 +456,7 @@ public:
             for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
               fluid_synth_t *fluidSynth = fluidSynths[i];
               leftSample = FL(0.0);
-              rightSample = FL(0.0);  
+              rightSample = FL(0.0);
               fluid_synth_write_float(fluidSynth, 1, &leftSample, 0, 1,
                                       &rightSample, 0, 1);
               aLeftOut[frame] += (MYFLT) leftSample /* * csound->e0dbfs */;
@@ -510,7 +510,7 @@ public:
             midiData1 = (int) *kMidiData1;
             midiData2 = (int) *kMidiData2;
             int result =  -1;
-  
+
             if (midiData2 != priorMidiData2 ||
                     midiData1 != priorMidiData1 ||
                     midiChannel != priorMidiChannel ||
@@ -587,7 +587,7 @@ noteOff:
                 priorMidiData2 = midiData2;
             }
         }
-        
+
         return OK;
     }
 };
@@ -806,4 +806,3 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
-

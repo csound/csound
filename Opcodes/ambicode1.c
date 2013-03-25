@@ -369,7 +369,7 @@ abformdec(CSOUND * csound, AMBID * p) {
       assert(p->OUTOCOUNT == 8);
       if (p->INOCOUNT == 1 + 4) {
         /* First order 'in-phase' decode: */
-        if (UNLIKELY(offset)) 
+        if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
         if (UNLIKELY(early)) {
@@ -401,7 +401,7 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else if (p->INOCOUNT == 1 + 9) {
         /* Second order 'in-phase' / 'controlled opposites' decode: */
-        if (UNLIKELY(offset)) 
+        if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
         if (UNLIKELY(early)) {
@@ -443,7 +443,7 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else {
         assert(p->INOCOUNT == 1 + 16);
-        if (UNLIKELY(offset)) 
+        if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
         if (UNLIKELY(early)) {
@@ -514,7 +514,7 @@ abformdec(CSOUND * csound, AMBID * p) {
     case 5: /* Cube: */
       assert(p->OUTOCOUNT == 8);
       /* First order 'in-phase' decode: */
-      if (UNLIKELY(offset)) 
+      if (UNLIKELY(offset))
         for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
           memset(p->aouts[sampleIndex], '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {

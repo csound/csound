@@ -426,7 +426,7 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
 
-    ls_table = 
+    ls_table =
       (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
     /* reading in loudspeaker info */
     p->dim       = (int)ls_table[0];
@@ -490,4 +490,3 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     vbap1_moving_control(csound,p);
     return OK;
 }
-
