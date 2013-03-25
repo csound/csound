@@ -35,7 +35,7 @@
 
 
 char *csound_orcget_text ( void *scanner );
-int is_label(char* ident, char** labelList);
+int is_label(char* ident, CONS_CELL* labelList);
 
 extern  char argtyp2(char*);
 extern  int tree_arg_list_count(TREE *);
@@ -49,23 +49,6 @@ extern int pnum(char*);
 OENTRIES* find_opcode2(CSOUND*, char*);
 char resolve_opcode_get_outarg(CSOUND* csound,
                                OENTRIES* entries, char* inArgTypes);
-
-
-typedef struct _cons {
-    void* value; // should be car, but using val
-    struct _cons* next; // should be cdr, but to follow csound
-                        // linked list conventions
-} CONS_CELL;
-
-CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
-    CONS_CELL* cell = mmalloc(csound, sizeof(CONS_CELL));
-
-    cell->value = val;
-    cell->next = cons;
-
-    return cell;
-}
-
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len = strlen(str);
@@ -1458,7 +1441,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 }
 
 /* Walks tree and finds all label: definitions */
-char** get_label_list(CSOUND* csound, TREE* root) {
+CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
     CONS_CELL* head = NULL;
     CONS_CELL* temp;
     int len = 0;
@@ -1479,31 +1462,21 @@ char** get_label_list(CSOUND* csound, TREE* root) {
       return NULL;
     }
 
-    retVal = mmalloc(csound, (len + 1) * sizeof(char*));
-    retVal[len] = NULL; // null terminate list
-
-    for (i = len - 1; i >= 0; i--) {
-      retVal[i] = head->value;
-      temp = head;
-      head = head->next;
-      mfree(csound, temp);
-    }
-
-    return retVal;
+    return head;
 }
 
-int is_label(char* ident, char** labelList) {
-    char** t;
+int is_label(char* ident, CONS_CELL* labelList) {
+    CONS_CELL* current;
 
     if (labelList == NULL) return 0;
 
-    t = labelList;
+    current = labelList;
 
-    while (*t != NULL) {
-      if (strcmp(*t, ident) == 0) {
+    while (current != NULL) {
+      if (strcmp((char*)current->value, ident) == 0) {
         return 1;
       }
-      t++;
+      current = current->next;
     }
     return 0;
 }
@@ -1582,12 +1555,13 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 1;
 }
 
-int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
+TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 {
     TREE *anchor = NULL;
     TREE *current = root;
-    //TREE *previous = NULL;
-    int retCode;
+    TREE *previous = NULL;
+    TREE* newRight;
+    
     char* outArg;
 
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
@@ -1600,16 +1574,19 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         typeTable->labelList = get_label_list(csound, current->right);
         current->markup = typeTable->localPool;
               
-        retCode = verify_tree(csound, current->right, typeTable);
+        newRight = verify_tree(csound, current->right, typeTable);
 
         mfree(csound, typeTable->labelList);
 
         typeTable->localPool = typeTable->instr0LocalPool;
         typeTable->labelList = NULL;
 
-        if (!retCode) {
-          return 0;
+        if (newRight == NULL) {
+          return NULL;
         }
+              
+        current->right = newRight;
+        newRight = NULL;
 
         break;
       case UDO_TOKEN:
@@ -1619,16 +1596,19 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         typeTable->labelList = get_label_list(csound, current->right);
         current->markup = typeTable->localPool;
 
-        retCode = verify_tree(csound, current->right, typeTable);
+        newRight = verify_tree(csound, current->right, typeTable);
 
         mfree(csound, typeTable->labelList);
 
         typeTable->localPool = typeTable->instr0LocalPool;
 
-        if (!retCode) {
-          return 0;
+        if (newRight == NULL) {
+          return NULL;
         }
 
+        current->right = newRight;
+        newRight = NULL;
+              
         break;
 
       case IF_TOKEN:
@@ -1636,15 +1616,26 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           return 0;
         }
         
-        
+        current = expand_if_statement(csound, current, typeTable);
               
-        break;
+        if (previous != NULL) {
+          previous->next = current;
+        }
+              
+        continue;
 
       case UNTIL_TOKEN:
         if (!verify_until_statement(csound, current, typeTable)) {
           return 0;
         }
-        break;
+              
+        current = expand_until_statement(csound, current, typeTable);
+      
+        if (previous != NULL) {
+          previous->next = current;
+        }
+              
+        continue;
 
       case LABEL_TOKEN:
         break;
@@ -1653,21 +1644,31 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if(!verify_opcode(csound, current, typeTable)) {
           return 0;
         }
-
+      
+        if (is_statement_expansion_required(current)) {
+          current = expand_statement(csound, current);
+          
+          if (previous != NULL) {
+              previous->next = current;
+          }
+          continue;
+        } else {
+          handle_optional_args(csound, current);
+        }
       }
 
       if (anchor == NULL) {
         anchor = current;
       }
 
-      //previous = current;
+      previous = current;
       current = current->next;
 
     }
 
     if (PARSER_DEBUG) csound->Message(csound, "[End Verifying AST]\n");
 
-    return 1;
+    return anchor;
 }
 
 
@@ -2345,18 +2346,3 @@ char tree_argtyp(CSOUND *csound, TREE *tree) {
     return argtyp2( tree->value->lexeme);
 }
 
-void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
-    if (tree->type == '=') {
-      /* BUG: tree->right->value may be NULL */
-      /* if (tree->right->value) */
-      tree->value->lexeme =
-        get_assignment_type(csound,
-                            tree->left->value->lexeme,
-                            tree->right/*->value->lexeme*/);
-      return;
-    }
-    else if (tree->type==0) {
-      csound->Message(csound, Str("Null type in tree -- aborting\n"));
-      exit(2);
-    }
-}

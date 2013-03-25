@@ -28,7 +28,6 @@
 
 extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);
-extern void handle_polymorphic_opcode(CSOUND*, TREE *);
 extern void handle_optional_args(CSOUND *, TREE *);
 extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
@@ -40,6 +39,16 @@ TREE* create_boolean_expression(CSOUND*, TREE*, int, int);
 TREE * create_expression(CSOUND *, TREE *, int, int);
 
 static int genlabs = 300;
+
+CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
+    CONS_CELL* cell = mmalloc(csound, sizeof(CONS_CELL));
+    
+    cell->value = val;
+    cell->next = cons;
+    
+    return cell;
+}
+
 
 char *create_out_arg(CSOUND *csound, char outype)
 {
@@ -898,8 +907,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current) {
         currentArg = currentArg->next;
     }
     
-    
-    handle_polymorphic_opcode(csound, current);
     handle_optional_args(csound, current);
     
     appendToTree(csound, anchor, originalNext);
@@ -909,7 +916,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current) {
 
 /* Flattens one level of if-blocks, sub-if-blocks should get flattened
  when the expander goes through statements */
-TREE* expand_if_statement(CSOUND* csound, TREE* current) {
+TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
     
     TREE* anchor = NULL;
     TREE* expressionNodes = NULL;
@@ -988,6 +995,10 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current) {
                 label = create_synthetic_ident(csound, genlabs);
                 labelEnd = create_synthetic_label(csound, genlabs++);
                 tempRight->right = label;
+                
+                typeTable->labelList = cs_cons(csound,
+                                               cs_strdup(csound, labelEnd->value->lexeme),
+                                               typeTable->labelList);
 
                 gotoType = (argtyp2( last->left->value->lexeme) == 'B') ||
                 (argtyp2( tempRight->value->lexeme) == 'k');
@@ -1035,6 +1046,10 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current) {
             TREE *endLabel = create_synthetic_label(csound,
                                                     endLabelCounter);
             anchor = appendToTree(csound, anchor, endLabel);
+            
+            typeTable->labelList = cs_cons(csound,
+                                           cs_strdup(csound, endLabel->value->lexeme),
+                                           typeTable->labelList);
         }
         
     }
@@ -1054,7 +1069,7 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current) {
    4. insert statements
    5. add goto token that goes to top label
    6. end label */
-TREE* expand_until_statement(CSOUND* csound, TREE* current) {
+TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
 
     TREE* anchor = NULL;
     TREE* expressionNodes = NULL;
@@ -1069,6 +1084,9 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current) {
     int gotoType;
     
     anchor = create_synthetic_label(csound, topLabelCounter);
+    typeTable->labelList = cs_cons(csound,
+                                   cs_strdup(csound, anchor->value->lexeme),
+                                   typeTable->labelList);
     
     expressionNodes = create_boolean_expression(csound,
                                                 current->left,
@@ -1078,6 +1096,9 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current) {
     last = tree_tail(anchor);
     
     labelEnd = create_synthetic_label(csound, endLabelCounter);
+    typeTable->labelList = cs_cons(csound,
+                                   cs_strdup(csound, labelEnd->value->lexeme),
+                                   typeTable->labelList);
     
     gotoType = (argtyp2( last->left->value->lexeme) == 'B') ||
         (argtyp2( tempRight->value->lexeme) == 'k');
@@ -1151,83 +1172,82 @@ int is_statement_expansion_required(TREE* root) {
  *
  * */
 
-TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
-{
-    //    int32 labelCounter = 300L;
-
-    TREE *anchor = NULL;
-    TREE * expressionNodes = NULL;
-
-    TREE *current = root;
-    TREE *previous = NULL;
-
-    if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "[Begin Expanding Expressions in AST]\n");
-
-    while (current != NULL) {
-      switch(current->type) {
-      case INSTR_TOKEN:
-        if (UNLIKELY(PARSER_DEBUG))
-          csound->Message(csound, "Instrument found\n");
-        current->right = csound_orc_expand_expressions(csound, current->right);
-        //print_tree(csound, "AFTER", current);
-        break;
-              
-      case UDO_TOKEN:
-        if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
-        current->right = csound_orc_expand_expressions(csound, current->right);
-        break;
-              
-      case IF_TOKEN:
-        if (UNLIKELY(PARSER_DEBUG))
-          csound->Message(csound, "Found IF statement\n");
-        
-        current = expand_if_statement(csound, current);
-        
-        if (previous != NULL) {
-            previous->next = current;
-        }
-        
-        continue; 
-      case UNTIL_TOKEN:
-        if (UNLIKELY(PARSER_DEBUG))
-          csound->Message(csound, "Found UNTIL statement\n");
-              
-        current = expand_until_statement(csound, current);
-      
-        if (previous != NULL) {
-          previous->next = current;
-        }
-              
-        continue;
-              
-      case LABEL_TOKEN:
-        break;
-              
-      default:
-        //maincase:
-        if (is_statement_expansion_required(current)) {
-            current = expand_statement(csound, current);
-            
-            if (previous != NULL) {
-                previous->next = current;
-            }
-            continue;
-        } else {
-            handle_optional_args(csound, current);
-            handle_polymorphic_opcode(csound, current);
-        }
-      }
-
-      if (anchor == NULL) {
-        anchor = current;
-      }
-      previous = current;
-      current = current->next;
-    }
-
-    if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "[End Expanding Expressions in AST]\n");
-
-    return anchor;
-}
+//TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
+//{
+//    //    int32 labelCounter = 300L;
+//
+//    TREE *anchor = NULL;
+//    TREE * expressionNodes = NULL;
+//
+//    TREE *current = root;
+//    TREE *previous = NULL;
+//
+//    if (UNLIKELY(PARSER_DEBUG))
+//      csound->Message(csound, "[Begin Expanding Expressions in AST]\n");
+//
+//    while (current != NULL) {
+//      switch(current->type) {
+//      case INSTR_TOKEN:
+//        if (UNLIKELY(PARSER_DEBUG))
+//          csound->Message(csound, "Instrument found\n");
+//        current->right = csound_orc_expand_expressions(csound, current->right);
+//        //print_tree(csound, "AFTER", current);
+//        break;
+//              
+//      case UDO_TOKEN:
+//        if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
+//        current->right = csound_orc_expand_expressions(csound, current->right);
+//        break;
+//              
+//      case IF_TOKEN:
+//        if (UNLIKELY(PARSER_DEBUG))
+//          csound->Message(csound, "Found IF statement\n");
+//        
+//        current = expand_if_statement(csound, current);
+//        
+//        if (previous != NULL) {
+//            previous->next = current;
+//        }
+//        
+//        continue; 
+//      case UNTIL_TOKEN:
+//        if (UNLIKELY(PARSER_DEBUG))
+//          csound->Message(csound, "Found UNTIL statement\n");
+//              
+//        current = expand_until_statement(csound, current);
+//      
+//        if (previous != NULL) {
+//          previous->next = current;
+//        }
+//              
+//        continue;
+//              
+//      case LABEL_TOKEN:
+//        break;
+//              
+//      default:
+//        //maincase:
+//        if (is_statement_expansion_required(current)) {
+//            current = expand_statement(csound, current);
+//            
+//            if (previous != NULL) {
+//                previous->next = current;
+//            }
+//            continue;
+//        } else {
+//            handle_optional_args(csound, current);
+//        }
+//      }
+//
+//      if (anchor == NULL) {
+//        anchor = current;
+//      }
+//      previous = current;
+//      current = current->next;
+//    }
+//
+//    if (UNLIKELY(PARSER_DEBUG))
+//      csound->Message(csound, "[End Expanding Expressions in AST]\n");
+//
+//    return anchor;
+//}
