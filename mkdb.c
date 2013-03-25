@@ -5,7 +5,7 @@
 #include <string.h>
 #include <dlfcn.h>
 #include <stdarg.h>
-#include "H/sysdep.h"
+#include "include/sysdep.h"
 
 typedef struct CSOUND_  CSOUND;
 #ifndef MYFLT
