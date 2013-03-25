@@ -117,54 +117,49 @@ arglist           : arg arglist {}
                   |             {}
                   ;
 
-arg       : NUMBER {}
+arg       : NUMBER {$$ = $1;}
           | STRING {}
           | '[' exp ']' {}
           | NP
           | PP
 
-exp       : exp '+' exp   {  }
+exp       : exp '+' exp             { $$ = $1 + $3; }
           | exp '+' error
-          | exp '-' exp  {  }
+          | exp '-' exp             { $$ = $1 - $3; }
           | exp '-' error
-          | '-' exp %prec S_UMINUS
-            {
-            }
+          | '-' exp %prec S_UMINUS  { $$ = - $2; }
           | '-' error           {  }
-          | '+' exp %prec S_UMINUS
-            {
-                $$ = $2;
-            }
+          | '+' exp %prec S_UMINUS  { $$ = $2; }
           | '+' error           {  }
-          | term                {  }
+| term                { $$ = $1; }
           ;
 
-term      : exp '*' exp    {  }
+term      : exp '*' exp    { $$ = $1 * $3; }
           | exp '*' error
-          | exp '/' exp    {  }
+          | exp '/' exp    { $$ = $1 / $3; }
           | exp '/' error
-          | exp '^' exp    {  }
+          | exp '^' exp    { $$ = POWER($1, $3); }
           | exp '^' error
-          | exp '%' exp    {  }
+          | exp '%' exp    { $$ = $1 % $3; }
           | exp '%' error
-          | fac            {  }
+          | fac            { $$ = $1; }
           ;
 
 fac       : constant           { $$ = $1; }
-          | exp '|' exp        {  }
+          | exp '|' exp        { $$ = (int)$1 | (int)$3; }
           | exp '|' error
-          | exp '&' exp        {  }
+          | exp '&' exp        { $$ = (int)$1 & (int)$3; }
           | exp '&' error
-          | exp '#' exp        {  }
+          | exp '#' exp        { $$ = (int)$1 # (int)$3; }
           | exp '#' error
           | exp S_BITSHIFT_LEFT exp   
-                 {  }
+                               { $$ = (int)$1 << (int)$3; }
           | exp S_BITSHIFT_LEFT error
           | exp S_BITSHIFT_RIGHT exp
-                 {  }
+                               { $$ = (int)$1 >> (int)$3; }
           | exp S_BITSHIFT_RIGHT error
           | '~' exp %prec S_UMINUS
-            { }
+            { $$ = ~(int)$2; }
           | '~' error         { $$ = 0; }
           | '(' exp ')'      { $$ = $2; }
           | '(' exp error    { $$ = 0; }
