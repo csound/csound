@@ -66,6 +66,8 @@
     //#include "csoundCore.h"
 #include <ctype.h>
 #include <string.h>
+#include <stdio.h>
+#include <math.h>
 
 #include "csound_sco.tab.h"
     void yyerror(const char *s);
@@ -138,7 +140,7 @@ term      : exp '*' exp    { $$ = $1 * $3; }
           | exp '*' error
           | exp '/' exp    { $$ = $1 / $3; }
           | exp '/' error
-          | exp '^' exp    { $$ = POWER($1, $3); }
+          | exp '^' exp    { $$ = pow($1, $3); }
           | exp '^' error
           | exp '%' exp    { $$ = $1 % $3; }
           | exp '%' error
@@ -150,7 +152,7 @@ fac       : constant           { $$ = $1; }
           | exp '|' error
           | exp '&' exp        { $$ = (int)$1 & (int)$3; }
           | exp '&' error
-          | exp '#' exp        { $$ = (int)$1 # (int)$3; }
+          | exp '#' exp        { $$ = (int)$1 ^ (int)$3; }
           | exp '#' error
           | exp S_BITSHIFT_LEFT exp   
                                { $$ = (int)$1 << (int)$3; }
