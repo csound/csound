@@ -32,7 +32,7 @@
 %token T_ERROR
 
 %token STRING_TOKEN
-%token T_IDENT
+%token INTEGER_TOKEN
 %token NUMBER_TOKEN
 
 %start scolines
@@ -81,8 +81,6 @@ extern int csound_orcget_lineno(void *);
 %token AT
 %token NP
 %token PP
-%token NUMBER
-%token STRING
 %%
 
 scoline           : statement 
@@ -103,7 +101,7 @@ scolines          : scoline scolines
 
 statement         : op arglist NEWLINE
                   {
-
+                      printf("op=%c\n");
                   }
                   ;
 
@@ -119,9 +117,9 @@ arglist           : arg arglist {}
                   |             {}
                   ;
 
-arg       : NUMBER {$$ = $1;}
-          | STRING {}
-          | '[' exp ']' {}
+arg       : NUMBER_TOKEN {$$ = $1;}
+          | STRING_TOKEN {}
+          | '[' exp ']' { $$ = $2; }
           | NP
           | PP
 
@@ -222,7 +220,7 @@ int yylex(void)
         n = 10*n+c-'0';
       }
       ungetc(c, stdin);
-      return NUMBER;
+      return NUMBER_TOKEN;
     }
     return c=='\n' ? NEWLINE : c;
 }

@@ -29,42 +29,27 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
-#define YYSTYPE TREE*
-#define YYLTYPE SCOTOKEN*
+
+#define SCOTOKEN void*
+#define YYSTYPE MYFLT
+#define YYLTYPE int
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_sco.h"
 #include "corfile.h"
-YYSTYPE *yylval_param;
+YYLTYPE yylval_param;
 YYLTYPE *yylloc_param;
-SCOTOKEN *make_string(CSOUND *, char *);
-extern SCOTOKEN *lookup_token(CSOUND *, char *, void *);
+static SCOTOKEN *make_string(CSOUND *, char *);
 extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-SCOTOKEN *new_token(CSOUND *csound, int type);
-SCOTOKEN *make_int(CSOUND *, char *);
-SCOTOKEN *make_num(CSOUND *, char *);
-SCOTOKEN *make_token(CSOUND *, char *s);
-SCOTOKEN *make_label(CSOUND *, char *s);
-#define udoflag csound->parserUdoflag
-#define namedInstrFlag csound->parserNamedInstrFlag
-//extern int udoflag;
-//extern int namedInstrFlag;
-//YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
-#include "parse_param.h"
 
-#define YY_EXTRA_TYPE  PARSE_PARM *
+#include "score_param.h"
+
+#define YY_EXTRA_TYPE  SCORE_PARM *
 #define PARM    yyget_extra(yyscanner)
-
-/* #define YY_INPUT(buf,result,max_size)  {\ */
-/*     result = get_next_char(buf, max_size, yyg); \ */
-/*     if ( UNLIKELY( result <= 0  )) \ */
-/*       result = YY_NULL; \ */
-/*     } */
 
 #define YY_USER_INIT 
 
 struct yyguts_t;
-SCOTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
-int get_next_char(char *, int, struct yyguts_t*);
+static SCOTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
 %}
 %option reentrant
 %option bison-bridge
@@ -145,20 +130,9 @@ PPX             "pp^"${INTGR}
                   return (STRING_TOKEN); }
 
 {INTGR}         {
-                    if (udoflag == 0) {
-                        *lvalp = make_string(csound, yytext);
-                        (*lvalp)->type = UDO_ANS_TOKEN;
-                    } else if (udoflag == 1) {
-                        *lvalp = make_string(csound, yytext);
-                        (*lvalp)->type = UDO_ARGS_TOKEN;
-                    } else {
-                        *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
-                    }
-
-                    csound->Message(csound,"%d\n", (*lvalp)->type);
-                    return ((*lvalp)->type);
+                    lvalp = atoi(yytext); return (INTEGER_TOKEN);
                 }
-{NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
+{NUMBER}        { lvalp = atof(yytext); return (NUMBER_TOKEN); }
 {WHITE}         { }
 
 {LINE}          { BEGIN(line); }
@@ -180,64 +154,21 @@ PPX             "pp^"${INTGR}
 
 %%
 
-static inline int isNameChar(int c, int pos)
+static SCOTOKEN *make_string(CSOUND *csound, char *s)
 {
-    c = (int) ((unsigned char) c);
-    return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
+    return 0;
 }
 
-SCOTOKEN *make_string(CSOUND *csound, char *s)
-{
-    SCOTOKEN *ans = new_token(csound, STRING_TOKEN);
-    int len = strlen(s);
-/* Keep the quote marks */
-    /* ans->lexeme = (char*)mcalloc(csound, len-1); */
-    /* strncpy(ans->lexeme, s+1, len-2); */
-    /* ans->lexeme[len-2] = '\0';  */
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
-    strcpy(ans->lexeme, s);
-    return ans;
-}
-
-SCOTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
+static int *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
 {
     int n, i = 1;
-    SCOTOKEN *ans;
     char buf[16];
     char *s = yytext;
     int len;
     while (*s=='@') s++;
     n = atoi(s);
     while (i<=n-k && i< 0x4000000) i <<= 1;
-    ans = new_token(csound, INTEGER_TOKEN);
-    sprintf(buf, "%d", i+k);
-    len = strlen(buf);
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
-    strncpy(ans->lexeme, buf, len);
-    ans->value = i;
-    return ans;
-}
-
-SCOTOKEN *make_int(CSOUND *csound, char *s)
-{
-    int n = atoi(s);
-    SCOTOKEN *ans = new_token(csound, INTEGER_TOKEN);
-    int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
-    strncpy(ans->lexeme, s, len);
-    ans->value = n;
-    return ans;
-}
-
-SCOTOKEN *make_num(CSOUND *csound, char *s)
-{
-    double n = atof(s);
-    SCOTOKEN *ans = new_token(csound, NUMBER_TOKEN);
-    int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
-    strncpy(ans->lexeme, s, len);
-    ans->fvalue = n;
-    return ans;
+    return i;
 }
 
 char *csound_scoget_current_pointer(void *yyscanner)
