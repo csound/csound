@@ -305,7 +305,7 @@ int is_boolean_expression_node(TREE *node)
     return 0;
 }
 
-static TREE *create_cond_expression(CSOUND *csound, 
+static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int line, int locn)
 {
     char arg1, arg2, ans, *outarg = NULL;
@@ -670,7 +670,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn)
 
 
     if (is_boolean_expression_node(root->right)) {
-      TREE * newRight = create_boolean_expression(csound, 
+      TREE * newRight = create_boolean_expression(csound,
                                                   root->right, line, locn);
       if (anchor == NULL) {
         anchor = newRight;
@@ -1137,8 +1137,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             TREE* arraySet = create_opcode_token(csound, "##array_set");
             arraySet->right = currentAns->left;
             arraySet->right->next = make_leaf(csound, temp->line, temp->locn,
-                                                T_IDENT, 
-                                              make_token(csound, 
+                                                T_IDENT,
+                                              make_token(csound,
                                                          temp->value->lexeme));
             arraySet->right->next->next = currentAns->right;
 

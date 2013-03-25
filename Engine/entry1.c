@@ -1002,7 +1002,7 @@ OENTRY opcodlst_1[] = {
   /* ----------------------------------------------------------------------- */
   { "monitor",  sizeof(MONITOR_OPCODE), 0, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
       (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  (SUBR) NULL },
-  { "outrg", S(OUTRANGE), 0,5, "", "ky", 
+  { "outrg", S(OUTRANGE), 0,5, "", "ky",
                                (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange},
 /* terminate list */
 {  NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
