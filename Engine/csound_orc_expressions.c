@@ -96,26 +96,6 @@ char * get_boolean_arg(CSOUND *csound, int type)
     return s;
 }
 
-int get_expression_ans_type(char * ans)
-{
-//    char * t = ans;
-//    t++;
-//
-//    switch(*t) {
-//    case 'a':
-//      return T_IDENT_A;
-//    case 'k':
-//      return T_IDENT_K;
-//    case 'B':
-//      return T_IDENT_B;
-//    case 'b':
-//      return T_IDENT_b;
-//    default:
-//      return T_IDENT_I;
-//    }
-    return T_IDENT;
-}
-
 TREE *create_empty_token(CSOUND *csound)
 {
     TREE *ans;
@@ -169,7 +149,7 @@ TREE * create_ans_token(CSOUND *csound, char* var)
 {
     TREE *ans = create_empty_token(csound);
 
-    ans->type = get_expression_ans_type(var);
+    ans->type = T_IDENT;
     ans->value = make_token(csound, var);
     ans->value->type = ans->type;
 
