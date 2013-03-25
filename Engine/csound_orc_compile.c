@@ -1240,10 +1240,14 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     int32        count, sumcount; //, instxtcount, optxtcount;
     TREE * current = root;
     ENGINE_STATE *engineState;
+    TYPE_TABLE* typeTable = (TYPE_TABLE*)current->markup;
+    
+    current = current->next;
+
 
     if(csound->instr0 == NULL) {
       engineState = &csound->engineState;
-      csound->instr0 = create_instrument0(csound, root, engineState);
+      csound->instr0 = create_instrument0(csound, current, engineState);
       string_pool_find_or_add(csound, engineState->stringPool, "\"\"");
       prvinstxt = &(engineState->instxtanchor);
        engineState->instrtxtp =
