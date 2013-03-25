@@ -1213,6 +1213,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 previous->next = current;
             }
             continue;
+        } else {
+            handle_optional_args(csound, current);
+            handle_polymorphic_opcode(csound, current);
         }
       }
 
