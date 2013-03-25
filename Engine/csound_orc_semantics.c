@@ -1243,10 +1243,10 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
             typeTable->globalPool : typeTable->localPool;
 
           if (csoundFindVariableWithName(pool, varName) == NULL) {
-            //synterr(csound, Str("Variable '%s' used before defined\n"), varName);
-            //return 0;
-            csound->Warning(csound,
-                            Str("Variable '%s' used before defined\n"), varName);
+            synterr(csound, Str("Variable '%s' used before defined\n"), varName);
+            return 0;
+//            csound->Warning(csound,
+//                            Str("Variable '%s' used before defined\n"), varName);
           }
           break;
         case T_ARRAY:
@@ -1256,9 +1256,9 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                  typeTable->globalPool : typeTable->localPool;
 
           if (csoundFindVariableWithName(pool, varName) == NULL) {
-            //synterr(csound, Str("Variable '%s' used before defined\n"), varName);
-            csound->Warning(csound,
-                            Str("Variable '%s' used before defined\n"), varName);
+            synterr(csound, Str("Variable '%s' used before defined\n"), varName);
+//            csound->Warning(csound,
+//                            Str("Variable '%s' used before defined\n"), varName);
             return 0;
           }
           break;
@@ -1508,6 +1508,80 @@ int is_label(char* ident, char** labelList) {
     return 0;
 }
 
+int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+
+    char* outArg;
+    
+    TREE* right = root->right;
+    
+    if (right->type == IGOTO_TOKEN ||
+        right->type == KGOTO_TOKEN ||
+        right->type == GOTO_TOKEN) {
+
+        if(!check_args_exist(csound, root->left, typeTable)) {
+            return 0;
+        }
+        
+        outArg = get_arg_type(csound, root->left);
+        
+        return (outArg != NULL && (*outArg == 'b' || *outArg == 'B'));
+ 
+    }
+    else if (right->type == THEN_TOKEN ||
+             right->type == ITHEN_TOKEN ||
+             right->type == KTHEN_TOKEN) {
+
+        TREE *tempLeft;
+        TREE *tempRight;
+        TREE* current = root;
+        
+        while(current != NULL) {
+            tempLeft = current->left;
+            tempRight = current->right;
+            
+            if (current->type == ELSE_TOKEN) {
+                break;
+            }
+            
+            if(!check_args_exist(csound, current->left, typeTable)) {
+                return 0;
+            }
+            
+            outArg = get_arg_type(csound, current->left);
+            
+            if (outArg == NULL || (*outArg != 'b' && *outArg != 'B')) {
+                return 0;
+            }
+            
+            current = (current->right == NULL) ? NULL : current->right->next;
+        }
+        
+    }
+  
+    return 1;
+
+}
+
+int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+    char* outArg;
+    
+    if (!check_args_exist(csound, root->left, typeTable)) {
+        return 0;
+    };
+    
+    outArg = get_arg_type(csound, root->left);
+    
+    
+    if(outArg == NULL || (*outArg != 'b' && *outArg != 'B')) {
+        synterr(csound,
+                Str("expression for until statement not a boolean "
+                    "expression, line %d\n"),
+                root->line);
+        return 0;
+    }
+    return 1;
+}
+
 int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 {
     TREE *anchor = NULL;
@@ -1524,11 +1598,11 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
         typeTable->labelList = get_label_list(csound, current->right);
-
+        current->markup = typeTable->localPool;
+              
         retCode = verify_tree(csound, current->right, typeTable);
 
         mfree(csound, typeTable->labelList);
-        mfree(csound, typeTable->localPool);
 
         typeTable->localPool = typeTable->instr0LocalPool;
         typeTable->labelList = NULL;
@@ -1543,11 +1617,12 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
         typeTable->labelList = get_label_list(csound, current->right);
+        current->markup = typeTable->localPool;
 
         retCode = verify_tree(csound, current->right, typeTable);
 
         mfree(csound, typeTable->labelList);
-        mfree(csound, typeTable->localPool);
+
         typeTable->localPool = typeTable->instr0LocalPool;
 
         if (!retCode) {
@@ -1557,44 +1632,24 @@ int verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
 
       case IF_TOKEN:
-      case ELSEIF_TOKEN:
-        check_args_exist(csound, current->left, typeTable);
-        outArg = get_arg_type(csound, current->left);
-
-        if (outArg == NULL || (*outArg != 'b' && *outArg != 'B')) {
+        if (!verify_if_statement(csound, current, typeTable)) {
           return 0;
         }
-
-        verify_tree(csound, current->right->right, typeTable);
-        break;
-
-      case ELSE_TOKEN:
-        verify_tree(csound, current->right, typeTable);
+        
+        
+              
         break;
 
       case UNTIL_TOKEN:
-        check_args_exist(csound, current->left, typeTable);
-        outArg = get_arg_type(csound, current->left);
-
-
-        if(outArg == NULL || (*outArg != 'b' && *outArg != 'B')) {
-          synterr(csound,
-                  Str("expression for until statement not a boolean "
-                      "expression, line %d\n"),
-                  current->line);
+        if (!verify_until_statement(csound, current, typeTable)) {
           return 0;
         }
-
-        verify_tree(csound, current->right, typeTable);
         break;
 
       case LABEL_TOKEN:
-        // TODO: Check that label needs verifying...
         break;
+              
       default:
-
-//        csound->Message(csound, "Statement: %s\n", current->value->lexeme);
-
         if(!verify_opcode(csound, current, typeTable)) {
           return 0;
         }
