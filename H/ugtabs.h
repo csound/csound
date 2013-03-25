@@ -25,7 +25,7 @@
 typedef struct _tabl {
   OPDS h;
   MYFLT *sig;
-  MYFLT *ndx, *ftable, *mode, *offset, *wrap; 
+  MYFLT *ndx, *ftable, *mode, *offset, *wrap;
   MYFLT mul;
   int32 np2;
   int32 len;
@@ -50,11 +50,11 @@ typedef struct _tablmix {
 
 typedef struct _tablra {
   OPDS h;
-  MYFLT *sig,*ftable,*strt,*off; 
+  MYFLT *sig,*ftable,*strt,*off;
 } TABLRA;
 
 typedef struct _tablwa {
   OPDS h;
-  MYFLT *strt,*ftable,*sig,*off; 
+  MYFLT *strt,*ftable,*sig,*off;
   MYFLT pos;
 } TABLWA;

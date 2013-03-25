@@ -178,8 +178,8 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
     int outsamps = p->outsamps, rcvsamps = p->rcvsamps;
     memset(asig, 0, sizeof(MYFLT)*nsmps);
    if (UNLIKELY(early)) nsmps -= early;
-       
-    for(i=offset; i < nsmps ; i++){ 
+
+    for(i=offset; i < nsmps ; i++){
       if(outsamps >= rcvsamps){
        outsamps =  0;
        rcvsamps = csound->ReadCircularBuffer(csound, p->cb, buf, p->buffsize);
@@ -262,7 +262,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
       memset(asigr, 0, sizeof(MYFLT)*nsmps);
 
     if (UNLIKELY(early)) nsmps -= early;
-    for(i=offset; i < nsmps ; i++){ 
+    for(i=offset; i < nsmps ; i++){
       if(outsamps >= rcvsamps){
        outsamps =  0;
        rcvsamps = csound->ReadCircularBuffer(csound, p->cb, buf, p->buffsize);
@@ -352,4 +352,3 @@ static OENTRY sockrecv_localops[] = {
 };
 
 LINKAGE_BUILTIN(sockrecv_localops)
-

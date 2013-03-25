@@ -4,7 +4,7 @@ static int pyexec_krate(CSOUND *csound, PYEXEC *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
 
   strcpy(source, (char*) p->string);
@@ -23,7 +23,7 @@ static int pyexeci_irate(CSOUND *csound, PYEXEC *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
 
   strcpy(source, (char*) p->string);
@@ -40,7 +40,7 @@ static int pyexeci_irate(CSOUND *csound, PYEXEC *p)
 static int pylexec_irate(CSOUND *csound, PYEXEC *p)
 {
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -51,7 +51,7 @@ static int pylexec_krate(CSOUND *csound, PYEXEC *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
 
   strcpy(source, (char*) p->string);
@@ -69,7 +69,7 @@ static int pylexeci_irate(CSOUND *csound, PYEXEC *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
 
   create_private_namespace_if_needed(&p->h);
@@ -89,7 +89,7 @@ static int pyexect_krate(CSOUND *csound, PYEXECT *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
 
   if (!*p->trigger)
@@ -108,8 +108,8 @@ static int pyexect_krate(CSOUND *csound, PYEXECT *p)
 static int pylexect_irate(CSOUND *csound, PYEXECT *p)
 {
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
-    return NOTOK; 
+     *py_initialize_done == 0)
+    return NOTOK;
   create_private_namespace_if_needed(&p->h);
   return OK;
 }
@@ -119,7 +119,7 @@ static int pylexect_krate(CSOUND *csound, PYEXECT *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
 
   if (!*p->trigger)
@@ -140,7 +140,7 @@ static int pyrun_krate(CSOUND *csound, PYRUN *p)
   char      source[40960];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
 
   strcpy(source, (char*) p->string);
@@ -158,9 +158,9 @@ static int pyruni_irate(CSOUND *csound, PYRUN *p)
   char      source[40960];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
-    
+
   strcpy(source, (char*) p->string);
 
   result = run_statement_in_given_context(source, 0);
@@ -174,7 +174,7 @@ static int pyruni_irate(CSOUND *csound, PYRUN *p)
 static int pylrun_irate(CSOUND *csound, PYRUN *p)
 {
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -185,7 +185,7 @@ static int pylrun_krate(CSOUND *csound, PYRUN *p)
   char      source[40960];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
 
   strcpy(source, (char*) p->string);
@@ -203,7 +203,7 @@ static int pylruni_irate(CSOUND *csound, PYRUN *p)
   char      source[40960];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
 
@@ -222,7 +222,7 @@ static int pyrunt_krate(CSOUND *csound, PYRUNT *p)
   char      source[40960];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   if (!*p->trigger)
     return OK;
@@ -240,8 +240,8 @@ static int pyrunt_krate(CSOUND *csound, PYRUNT *p)
 static int pylrunt_irate(CSOUND *csound, PYRUNT *p)
 {
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
-    return NOTOK; 
+     *py_initialize_done == 0)
+    return NOTOK;
   create_private_namespace_if_needed(&p->h);
   return OK;
 }
@@ -251,7 +251,7 @@ static int pylrunt_krate(CSOUND *csound, PYRUNT *p)
   char      source[40960];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   if (!*p->trigger)
     return OK;
@@ -271,7 +271,7 @@ static int pyeval_krate(CSOUND *csound, PYEVAL *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   strcpy(source, (char*) p->string);
 
@@ -295,7 +295,7 @@ static int pyevali_irate(CSOUND *csound, PYEVAL *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   strcpy(source, (char*) p->string);
 
@@ -317,7 +317,7 @@ static int pyevali_irate(CSOUND *csound, PYEVAL *p)
 static int pyleval_irate(CSOUND *csound, PYEVAL *p)
 {
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -328,7 +328,7 @@ static int pyleval_krate(CSOUND *csound, PYEVAL *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   strcpy(source, (char*) p->string);
 
@@ -351,7 +351,7 @@ static int pylevali_irate(CSOUND *csound, PYEVAL *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
 
@@ -376,7 +376,7 @@ static int pyevalt_krate(CSOUND *csound, PYEVALT *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   if (!*p->trigger) {
     *p->result = p->oresult;
@@ -403,7 +403,7 @@ static int pyevalt_krate(CSOUND *csound, PYEVALT *p)
 static int pylevalt_irate(CSOUND *csound, PYEVALT *p)
 {
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -414,7 +414,7 @@ static int pylevalt_krate(CSOUND *csound, PYEVALT *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   if (!*p->trigger) {
     *p->result = p->oresult;
@@ -443,7 +443,7 @@ static int pyassign_krate(CSOUND *csound, PYASSIGN *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   sprintf(source, "%s = %f", (char*) p->string, *p->value);
 
@@ -461,7 +461,7 @@ static int pyassigni_irate(CSOUND *csound, PYASSIGN *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   sprintf(source, "%s = %f", (char*) p->string, *p->value);
 
@@ -477,7 +477,7 @@ static int pyassigni_irate(CSOUND *csound, PYASSIGN *p)
 static int pylassign_irate(CSOUND *csound, PYASSIGN *p)
 {
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -488,7 +488,7 @@ static int pylassign_krate(CSOUND *csound, PYASSIGN *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   sprintf(source, "%s = %f", (char*) p->string, *p->value);
 
@@ -505,7 +505,7 @@ static int pylassigni_irate(CSOUND *csound, PYASSIGN *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
 
@@ -524,7 +524,7 @@ static int pyassignt_krate(CSOUND *csound, PYASSIGNT *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   if (!*p->trigger)
     return OK;
@@ -542,7 +542,7 @@ static int pyassignt_krate(CSOUND *csound, PYASSIGNT *p)
 static int pylassignt_irate(CSOUND *csound, PYASSIGNT *p)
 {
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   create_private_namespace_if_needed(&p->h);
   return OK;
@@ -553,7 +553,7 @@ static int pylassignt_krate(CSOUND *csound, PYASSIGNT *p)
   char      source[1024];
   PyObject  *result;
   int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-     *py_initialize_done == 0) 
+     *py_initialize_done == 0)
     return NOTOK;
   if (!*p->trigger)
     return OK;
@@ -567,4 +567,3 @@ static int pylassignt_krate(CSOUND *csound, PYASSIGNT *p)
   Py_DECREF(result);
   return OK;
 }
-

@@ -30,7 +30,6 @@ extern "C" {
 
     typedef struct csvariable {
         char* varName;
-        char* varSimpleName; // reduced from array name
         CS_TYPE* varType;
         int memBlockSize;
         int memBlockIndex;

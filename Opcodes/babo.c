@@ -782,7 +782,7 @@ babo(CSOUND *csound, void *entry)
 
     BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
                           right = { {FL(0.0)}, {{FL(0.0)}} };
-                          
+
     BaboTapline_precalculate_parameters(csound, &left,
                                         p->receiver_x - p->inter_receiver_distance,
                                         p->receiver_y, p->receiver_z,

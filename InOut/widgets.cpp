@@ -618,7 +618,7 @@ Fl_Spin::~Fl_Spin(void)
 Fl_Spin::Fl_Spin(CSOUND *cs, int x, int y, int w, int h, const char* l)
   : Fl_Valuator(x,y,w,h,l)
 {
-    
+
     csound = cs;
     WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     soft_ = 0;
@@ -897,11 +897,11 @@ void Fl_Value_Slider_Input::draw(void)
     int sxx = x(), syy = y(), sww = w(), shh = h();
     //int bww = w();
     int X = x(), Y = y(), W = w(), H = h();
-    
+
     int border_size=Fl::box_dx(box());
 
     if (horizontal()) {
-      //bww = textboxsize();  
+      //bww = textboxsize();
       sxx += textboxsize(); sww -= textboxsize();
       input.resize(X,Y,W-sww,shh);
     }
@@ -1394,7 +1394,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
           if(fld->value >= *p->ioff - 0.0001 &&
              fld->value <= *p->ioff + 0.0001)  // to avoid eventual  math rounding
             ((Fl_Button*) o)->value(0);
-          else 
+          else
             if (fld->value >= *p->ion - 0.0001 &&
                 fld->value <= *p->ion + 0.0001) // to avoid eventual math rounding
               ((Fl_Button*) o)->value(1);
@@ -1522,7 +1522,7 @@ extern "C" {
       int group = (int) *p->group;
       SNAPVEC snapvec_init;
       SNAPSHOT snap_init;
-      
+
       snap_init.fields.resize(1,VALUATOR_FIELD());
       snapvec_init.resize(1,snap_init);
       if (group+1 > (int) ST(snapshots).size())
@@ -3011,7 +3011,7 @@ extern "C" {
           break;
         case EXP_:        // exponential
           #if defined(sun)
-            log_base = (MYFLT) log(::pow(v.max / (double)v.min, 
+            log_base = (MYFLT) log(::pow(v.max / (double)v.min,
                                    1.0 / (v.max - v.min)));
           #else
             log_base = (MYFLT) log(::pow(v.max / v.min, 1.0 / (v.max - v.min)));
@@ -3115,7 +3115,7 @@ extern "C" {
   }
 
   static int fl_setTextType(CSOUND *csound, FL_SET_FONT *p)
-  {   
+  {
       WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -3391,7 +3391,7 @@ extern "C" {
       Fl_Slider *o;
       if (itype <= 10) o = new Fl_Slider(ix, iy, iwidth, iheight, controlName);
       else {
-        o = new Fl_Value_Slider_Input(csound, ix, iy, 
+        o = new Fl_Value_Slider_Input(csound, ix, iy,
                                       iwidth, iheight, controlName);
         itype -=10;
         //o->labelsize(20);
@@ -3463,8 +3463,8 @@ extern "C" {
         strcpy(s, (char*) p->names);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
-	} 
+        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+      }
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4560,8 +4560,8 @@ extern "C" {
         strcpy(s, (char*) p->names);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
-	}
+        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+      }
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4775,8 +4775,8 @@ extern "C" {
         strcpy(s, (char*) p->names);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
-	}
+        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+      }
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -4949,7 +4949,7 @@ extern "C" {
 
 
   static int fl_vertical_slider_bank2(CSOUND *csound, FLSLIDERBANK2 *p)
-  { 
+  {
       WIDGET_GLOBALS *widgetGlobals = (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
@@ -4957,8 +4957,8 @@ extern "C" {
         strcpy(s, (char*) p->names);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-		 strcpy(s, csound->GetStrsets(csound,(long) *p->names));
-	} 
+        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+      }
       string tempname(s);
       stringstream sbuf;
       sbuf << tempname;
@@ -5467,7 +5467,7 @@ extern "C" {
 
   static int FLxyin_set(CSOUND *csound, FLXYIN *p)
   {
-     
+
       *p->koutx = *p->ioutx; //initial values
       *p->kouty = *p->iouty;
       p->rangex = *p->ioutx_max - *p->ioutx_min;

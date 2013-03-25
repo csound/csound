@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   csound_standard_types.h
  * Author: stevenyi
  *
@@ -29,14 +29,14 @@ extern "C" {
     PUBLIC extern const CS_TYPE CS_VAR_TYPE_B;
     PUBLIC extern const CS_TYPE CS_VAR_TYPE_b;
     PUBLIC extern const CS_TYPE CS_VAR_TYPE_ARRAY;
-    
+
     typedef struct arrayVarInit {
         int dimensions;
         CS_TYPE* type;
     } ARRAY_VAR_INIT;
 
-    
-    /* Type maps for poly, optional, and var arg types 
+
+    /* Type maps for poly, optional, and var arg types
      * format is in pairs of specified type and types it can resolve into,
      * termintated by a NULL */
     extern const char* POLY_IN_TYPES[];
@@ -45,11 +45,10 @@ extern "C" {
     extern const char* POLY_OUT_TYPES[];
     extern const char* VAR_ARG_OUT_TYPES[];
 
-    
-    
+
+
 #ifdef  __cplusplus
 }
 #endif
 
 #endif  /* CSOUND_STANDARD_TYPES_H */
-

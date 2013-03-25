@@ -1172,7 +1172,7 @@ int osckk(CSOUND *csound, OSC *p)
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     lobits = ftp->lobits;
     amp = *p->xamp;
-    ar = p->sr; 
+    ar = p->sr;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;

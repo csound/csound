@@ -63,7 +63,7 @@ static int DummyFn3(CSOUND *csound)
 
 void dispinit(CSOUND *csound)
 {
-      OPARMS  O; 
+      OPARMS  O;
       csound->GetOParms(csound, &O);
 
     if (O.displays && !(O.graphsoff || O.postscript)) {
@@ -98,7 +98,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
              int    waitflg,
              char   *label)
 {
-    OPARMS  O; 
+    OPARMS  O;
     csound->GetOParms(csound, &O);
     char *s = caption;
     char *t = wdptr->caption;
@@ -126,7 +126,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
 
 int dispexit(CSOUND *csound)
 {
-    OPARMS  O; 
+    OPARMS  O;
     csound->GetOParms(csound, &O);
     if (O.postscript)
       PS_ExitGraph(csound);     /* Write trailer to PostScript file  */
@@ -144,7 +144,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     MYFLT   *fp, *fplim;
     MYFLT   max, min, absmax, fval;
     int     pol;
-    OPARMS  O; 
+    OPARMS  O;
     csound->GetOParms(csound, &O);
 
     if (!O.displays)  return;   /* displays disabled? return */

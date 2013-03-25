@@ -543,7 +543,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
    if (pp == NULL) return (CHNENTRY*) NULL;
     memset(pp, 0, (size_t) nbytes);
 #ifndef MACOSX
-#if defined(HAVE_PTHREAD_SPIN_LOCK) 
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
     pthread_spin_init((pthread_spinlock_t*)((char*) pp + (int)lockOffs),
                       PTHREAD_PROCESS_PRIVATE);
 #endif
@@ -886,14 +886,14 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
 #ifdef HAVE_ATOMIC_BUILTIN
     union {
-    MYFLT d; 
+    MYFLT d;
     int64_t i;
     } x;
     x.i = __sync_fetch_and_add((int64_t *) p->fp, 0);
     *(p->arg) = x.d;
 #else
     *(p->arg) = *(p->fp);
-#endif    
+#endif
     return OK;
 }
 
@@ -924,14 +924,14 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 #ifdef HAVE_ATOMIC_BUILTIN
     {
     union {
-    MYFLT d; 
+    MYFLT d;
     int64_t i;
     } x;
     x.i = __sync_fetch_and_add((int64_t *) p->fp, 0);
     *(p->arg) =  x.d;
     }
 #else
-    *(p->arg) = *(p->fp); 
+    *(p->arg) = *(p->fp);
 #endif
     return OK;
 }
@@ -988,7 +988,7 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
 #ifdef HAVE_ATOMIC_BUILTIN
     union {
-    MYFLT d; 
+    MYFLT d;
     int64_t i;
     } x;
     x.d = *(p->arg);
@@ -1058,7 +1058,7 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
       return print_chn_err(p, err);
 #ifdef HAVE_ATOMIC_BUILTIN
     union {
-    MYFLT d; 
+    MYFLT d;
     int64_t i;
     } x;
     x.d = *(p->arg);
@@ -1066,14 +1066,14 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
 #else
     {
       int *lock;       /* Need lock for the channel */
-      p->lock = lock = 
+      p->lock = lock =
         csoundGetChannelLock(csound, (char*) p->iname,
                              CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
       csoundSpinLock(lock);
       *(p->fp) = *(p->arg);
       csoundSpinUnLock(lock);
     }
-#endif    
+#endif
     return OK;
 }
 
@@ -1512,14 +1512,14 @@ static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
    else {
 #ifdef HAVE_ATOMIC_BUILTIN
     union {
-    MYFLT d; 
+    MYFLT d;
     int64_t i;
     } x;
     x.d = *(p->iname);
     __sync_lock_test_and_set((int64_t *)(p->fp),x.i);
 #else
      csoundSpinLock(p->lock);
-     *(p->fp) = *(p->iname); 
+     *(p->fp) = *(p->iname);
      csoundSpinUnLock(p->lock);
 #endif
     return OK;
@@ -1527,18 +1527,18 @@ static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
 }
 
 
-/* outvalue now uses chn mehanism 
+/* outvalue now uses chn mehanism
 */
 int outvalset(CSOUND *csound, CHNGET *p) {
 
   MYFLT *tmp;
   int   err=0, ret;
-  tmp = p->iname;   
+  tmp = p->iname;
   p->iname = p->arg;
   p->arg = tmp;
-  if (p->XSTRCODE & 2){ 
+  if (p->XSTRCODE & 2){
     ret =  chnset_opcode_init_S(csound, p);
-    if(ret == OK) 
+    if(ret == OK)
     p->h.opadr = (SUBR) chnset_opcode_perf_k_alt;
   }
   else {
@@ -1599,10 +1599,10 @@ int invalset(CSOUND *csound, INVAL *p)
           csound->AuxAlloc(csound, 64, &p->channelName);
           sprintf((char*) p->channelName.auxp, "%d", (int)MYFLT2LRND(*p->valID));
         }
-        
+
         /* grab input now for use during i-pass */
         kinval(csound, p);
-        
+
         return OK;
 }
 
@@ -1631,17 +1631,17 @@ int invalset_S(CSOUND *csound, INVAL *p)
       csound->AuxAlloc(csound, 64, &p->channelName);
       sprintf(p->channelName.auxp, "$%d", (int)MYFLT2LRND(*p->valID));
     }
-    
+
     /* grab input now for use during i-pass */
     kinval_S(csound, p);
-    
+
     return OK;
 }
 
 int koutval(CSOUND *csound, OUTVAL *p)
 {
     char    *chan = (char*)p->channelName.auxp;
-    
+
     if (csound->OutputValueCallback_) {
       if (p->XSTRCODE & 2) {
         /* a hack to support strings */
