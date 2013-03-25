@@ -429,18 +429,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 
       nreqd = tree_arg_list_count(root->left);   /* outcount */
       /* replace opcode if needed */
-      if (!strcmp(root->value->lexeme, "xin") &&
-          nreqd > OPCODENUMOUTS_LOW) {
-        if (nreqd > OPCODENUMOUTS_HIGH) {
-          opnum = find_opcode_num(csound, "##xin256", "i", NULL);
-        } else {
-          opnum = find_opcode_num(csound, "##xin64", "i", NULL);
-        }
-      }
-      else {
-        opnum = find_opcode_num_by_tree(csound, root->value->lexeme,
+
+      opnum = find_opcode_num_by_tree(csound, root->value->lexeme,
                                         root->left, root->right);
-      }
 
       /* INITIAL SETUP */
       tp->opnum = opnum;
