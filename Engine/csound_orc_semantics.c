@@ -1404,6 +1404,10 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     TREE* left = root->left;
     TREE* right = root->right;
+    char* leftArgString;
+    char* rightArgString;
+    char* opcodeName;
+    int incount;
     //int i;
 
     if (!check_args_exist(csound, root->right, typeTable)) {
@@ -1412,10 +1416,19 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     add_args(csound, root->left, typeTable);
 
-    char* leftArgString = get_arg_string_from_tree2(csound, left, typeTable);
-    char* rightArgString = get_arg_string_from_tree2(csound, right, typeTable);
-
-    OENTRIES* entries = find_opcode2(csound, root->value->lexeme);
+    leftArgString = get_arg_string_from_tree2(csound, left, typeTable);
+    rightArgString = get_arg_string_from_tree2(csound, right, typeTable);
+    opcodeName = root->value->lexeme;
+    
+    if (!strcmp(opcodeName, "xin")) {
+        int nreqd = tree_arg_list_count(root->right);
+        
+        if(nreqd > OPCODENUMOUTS_LOW) {
+            opcodeName = (nreqd > OPCODENUMOUTS_HIGH) ? "##xin256" : "##xin64";
+        }
+    }
+    
+    OENTRIES* entries = find_opcode2(csound, opcodeName);
     if (entries == NULL || entries->count == 0) {
       synterr(csound, Str("Unable to find opcode with name: %s\n"),
               root->value->lexeme);
@@ -1428,7 +1441,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     if (oentry == NULL) {
       synterr(csound, Str("Unable to find opcode entry for \'%s\' "
                           "with matching argument types:\n"),
-              root->value->lexeme);
+              opcodeName);
       csoundMessage(csound, Str("Found: %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
       csoundMessage(csound, "Line: %d Loc: %d\n",
