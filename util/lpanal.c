@@ -346,7 +346,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     double  errn, rms1, rms2, filterCoef[MAXPOLES+1];
     MYFLT   *sigbuf, *sigbuf2;      /* changed from short */
     long    n;
-    int     nb, osiz, hsize;
+    unsigned int     osiz, nb;
+    int     hsize;
     LPHEADER    *lph;
     char    *lpbuf, *tp;
     MYFLT   pchlow, pchhigh;
@@ -713,11 +714,11 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
       /* Write frame to disk */
       if (new_format) {
-        int i, j;
+        unsigned int i, j;
         for (i=0, j=0; i<osiz; i+=sizeof(MYFLT), j++)
           fprintf(oFd, "%a\n", coef[j]);
       }
-      else 
+      else
         if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
           quit(csound, Str("write error"));
       memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
@@ -866,7 +867,7 @@ static void gauss(LPC* thislp,
                       i, thislp->poleCount, amax);
       csound->Die(csound, Str("gauss: ill-conditioned"));
    */
-        for (ii=i; ii < thislp->poleCount;++ii) 
+        for (ii=i; ii < thislp->poleCount;++ii)
           a[ii][i] = 1.0e-20; /* VL: fix for very low values */
       }
       if (i != istar) {

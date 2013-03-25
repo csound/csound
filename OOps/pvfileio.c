@@ -685,7 +685,7 @@ static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
           return -1;
         }
         p->customWindow = mmalloc(csound, p->pvdata.dwWinlen * sizeof(float));
-        if (UNLIKELY(pvoc_readWindow(p, 
+        if (UNLIKELY(pvoc_readWindow(p,
                                      p->customWindow, p->pvdata.dwWinlen) != 0)) {
           csound->pvErrorCode = -24;
           return -1;
@@ -822,7 +822,7 @@ static int pvoc_updateheader(CSOUND *csound, int ofd)
       csound->pvErrorCode = -38;
       return 0;
     }
-    if (UNLIKELY(fseek(p->fp, 
+    if (UNLIKELY(fseek(p->fp,
                        (int32) (p->datachunkoffset - sizeof(uint32_t)), SEEK_SET)
                  != 0)) {
       csound->pvErrorCode = -33;
@@ -1019,4 +1019,3 @@ int pvoc_framecount(CSOUND *csound, int ifd)
     }
     return p->nFrames;
 }
-

@@ -93,7 +93,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       int NB  = p->fout->NB;
-      
+
       if (UNLIKELY(early)) nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         int change = 0;
@@ -283,9 +283,9 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
 }
 
 static OENTRY localops[] = {
-  {"pvsbandp", sizeof(PVSBAND), 0, 3, "f", "fxxxxO", 
+  {"pvsbandp", sizeof(PVSBAND), 0, 3, "f", "fxxxxO",
                     (SUBR) pvsbandinit, (SUBR) pvsband, (SUBR) NULL },
-  {"pvsbandr", sizeof(PVSBAND), 0, 3, "f", "fxxxxO", 
+  {"pvsbandr", sizeof(PVSBAND), 0, 3, "f", "fxxxxO",
                     (SUBR) pvsbandinit, (SUBR) pvsbrej, (SUBR) NULL }
 };
 
@@ -294,5 +294,3 @@ int pvsband_init_(CSOUND *csound)
   return csound->AppendOpcodes(csound, &(localops[0]),
                                (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-
-

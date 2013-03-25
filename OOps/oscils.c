@@ -125,6 +125,7 @@ int oscils(CSOUND *csound, OSCILS *p)
 
 int lphasor_set(CSOUND *csound, LPHASOR *p)
 {
+    IGN(csound);
     if (UNLIKELY(*(p->istor) != FL(0.0))) return OK;       /* nothing to do */
 
     p->phs = (double)*(p->istrt);                          /* start phase */
@@ -190,6 +191,7 @@ int lphasor(CSOUND *csound, LPHASOR *p)
 
 int tablexkt_set(CSOUND *csound, TABLEXKT *p)
 {
+   IGN(csound);
     p->wsize = (int)(*(p->iwsize) + 0.5);                  /* window size */
     if (UNLIKELY(p->wsize < 3)) {
       p->wsize = 2;
@@ -257,7 +259,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     onedpi_d = 1.0 / PI;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT)); 
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -406,4 +408,3 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     return OK;
 }
-

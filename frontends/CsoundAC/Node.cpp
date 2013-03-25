@@ -99,9 +99,9 @@ void Node::addChild(Node *node)
     children.push_back(node);
 }
 
-void RemoveDuplicates::produceOrTransform(Score &collectingScore, 
-    size_t beginAt, 
-    size_t endAt, 
+void RemoveDuplicates::produceOrTransform(Score &collectingScore,
+    size_t beginAt,
+    size_t endAt,
     const Eigen::MatrixXd &globalCoordinates)
 {
     std::set<std::string> uniqueEvents;

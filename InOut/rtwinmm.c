@@ -192,7 +192,7 @@ static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed
     }
 }
 
-static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf, 
+static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf,
                                      int16_t *outBuf, int *seed)
 {
     MYFLT   tmp_f;
@@ -785,4 +785,3 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
-

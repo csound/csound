@@ -201,13 +201,13 @@ int vbap_init(CSOUND *csound, VBAP *p)
     LS_SET  *ls_set_ptr;
     int cnt = p->number = (int)(p->OUTOCOUNT);
     char name[24];
-    
+
      if((!strcmp(p->h.optext->t.opcod, "vbap")) == 0) {
-    p->audio = p->out_array[cnt]; 
+    p->audio = p->out_array[cnt];
     p->azi = p->out_array[cnt+1];
     p->ele = p->out_array[cnt+2];
     p->spread = p->out_array[cnt+3];
-    p->layout = p->out_array[cnt+4]; 
+    p->layout = p->out_array[cnt+4];
      }
     sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
@@ -507,7 +507,7 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     LS_SET  *ls_set_ptr;
     int cnt = (int)p->h.optext->t.outArgCount;
     if((!strcmp(p->h.optext->t.opcod, "vbapmove")) == 0) {
-    p->audio = p->out_array[cnt]; 
+    p->audio = p->out_array[cnt];
     p->dur = p->out_array[cnt+1];
     p->spread = p->out_array[cnt+2];
     p->field_am = p->out_array[cnt+3];

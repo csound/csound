@@ -201,7 +201,7 @@ int musmon(CSOUND *csound)
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
     csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
     csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
-    
+
     /* initialise sensevents state */
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
     csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
@@ -342,7 +342,7 @@ int musmon(CSOUND *csound)
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
-    
+
     if(csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *init_pass_thread(void *);
       csound->init_pass_loop = 1;
@@ -395,7 +395,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     MYFLT   *maxp;
     int32    *rngp;
     uint32_t n;
- 
+
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
       csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
@@ -472,7 +472,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
-    
+
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
@@ -963,7 +963,7 @@ int sensevents(CSOUND *csound)
             RNDINT64((csound->nxtim*csound->esr - csound->icurTime)/csound->ksmps);
           csound->nxtim =
             (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
-        } 
+        }
       }
       else {
       /* VL 30-11-2012
@@ -974,11 +974,11 @@ int sensevents(CSOUND *csound)
             ((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
         else {
           csound->cyclesRemaining = (int64_t)
-            FLOOR((csound->nxtim*csound->esr - 
+            FLOOR((csound->nxtim*csound->esr -
                    csound->icurTime+csound->onedsr*0.5) / csound->ksmps);
-          csound->nxtim = 
+          csound->nxtim =
             (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
-        } 
+        }
       }
     }
 

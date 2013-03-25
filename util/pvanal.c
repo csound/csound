@@ -117,7 +117,7 @@ static  int     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
                                         long srate, long chans, long fftsize,
                                         long overlap, long winsize,
                                         pv_wtype wintype, /*int verbose,*/
-			                double beta, int displays);
+                                        double beta, int displays);
 static  long    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
                                         long samps, int frametype);
 static  void    chan_split(CSOUND*, const MYFLT *inbuf, MYFLT **chbuf,
@@ -223,7 +223,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
           case 'h':  FIND(Str("no hopsize"));
             sscanf(s, "%ld", &frameIncr);
             break;
-	  case 'g':  displays = 1;
+          case 'g':  displays = 1;
             break;
           case 'G':  FIND(Str("no latch"));
             sscanf(s, "%d", &latch);
@@ -278,7 +278,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     else frameIncr = frameSize/ovlp;
 
     if (ovlp < 2 || ovlp > 64) {
-      csound->Message(csound, 
+      csound->Message(csound,
                       Str("WARNING: pvanal: %d might be a bad window "
                           "overlap index\n"),
                       (int) ovlp);
@@ -508,7 +508,7 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
           if ((blocks_written/chans) % 20 == 0) {
             csound->Message(csound, "%ld\n", blocks_written/chans);
         }
-	  if(displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
+          if(displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
       }
       }
       if (total_sampsread >= p->getframes*chans)
@@ -926,4 +926,3 @@ static void vonhann(MYFLT *win, int winLen, int even)
         win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
     }
 }
-

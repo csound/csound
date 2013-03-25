@@ -5419,7 +5419,7 @@ extern "C"
     status |=
       csound->AppendOpcode(csound,
                            "la_i_lu_det_mr",
-                           sizeof(la_i_lu_det_mr_t), 
+                           sizeof(la_i_lu_det_mr_t),
                            0,
                            1,
                            "i",
@@ -6010,7 +6010,7 @@ extern "C"
                            "i",
                            "iO",
                            (int (*)(CSOUND*,void*)) &la_k_upper_solve_mr_t::init_,
-                           (int (*)(CSOUND*,void*)) 
+                           (int (*)(CSOUND*,void*))
                                    &la_k_upper_solve_mr_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     status |=
@@ -6056,7 +6056,7 @@ extern "C"
                            "i",
                            "iO",
                            (int (*)(CSOUND*,void*)) &la_k_lower_solve_mr_t::init_,
-                           (int (*)(CSOUND*,void*)) 
+                           (int (*)(CSOUND*,void*))
                                     &la_k_lower_solve_mr_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     status |=
@@ -6312,4 +6312,3 @@ extern "C"
     return 0;
   }
 }
-

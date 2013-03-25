@@ -55,7 +55,6 @@ typedef struct {
 #endif /* PTHREAD_BARRIER_SERIAL_THREAd */
 #endif /* __MACH__ */
 
-
 #define OK        (0)
 #define NOTOK     (-1)
 
@@ -309,7 +308,7 @@ typedef struct CORFIL {
     MYFLT* data;
 //    AUXCH   aux;
   } ARRAYDAT;
-    
+
    typedef struct {
       int     size;             /* 0...size-1 */
       MYFLT   *data;
@@ -431,7 +430,7 @@ typedef struct CORFIL {
 #endif
     struct opds  *pds;          /* Used for jumping */
     MYFLT   scratchpad[4];      /* Persistent data */
-    
+
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
     void    *opcod_deact, *subins_deact;
@@ -498,9 +497,9 @@ typedef struct CORFIL {
     int     (*kopadr)(CSOUND *, void *p);
     int     (*aopadr)(CSOUND *, void *p);
     void    *useropinfo;    /* user opcode parameters */
-    int     prvnum;         
+    int     prvnum;
   } OENTRY;
-    
+
   // holds matching oentries from opcodeList
   // has space for 16 matches and next pointer in case more are found (unlikely though)
   typedef struct oentries {
@@ -847,7 +846,7 @@ typedef struct NAME__ {
     STRING_POOL*  stringPool;
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
-    INSTRTXT      instxtanchor; 
+    INSTRTXT      instxtanchor;
     void          *instrumentNames; /* instrument names */
     int           maxinsno;
   } ENGINE_STATE;
@@ -855,7 +854,7 @@ typedef struct NAME__ {
 
   /**
    * plugin module info
-   */ 
+   */
   typedef struct {
     char module[12];
     char type[12];
@@ -895,13 +894,7 @@ typedef struct NAME__ {
     void (*RewindScore)(CSOUND *);
     void (*DeleteUtilityList)(CSOUND *, char **lst);
     void (*DeleteChannelList)(CSOUND *, CsoundChannelListEntry *lst);
-#endif 
-    void (*SetMessageCallback)(CSOUND *,
-                void (*csoundMessageCallback)(CSOUND *,
-                                              int attr, const char *format,
-                                              va_list valist));
-    void (*DeleteCfgVarList)(csCfgVariable_t **lst);
-    void (*SetMessageLevel)(CSOUND *, int messageLevel);
+#endif
 #ifdef SOME_FIND_DAY
     void (*InputMessage)(CSOUND *, const char *message__);
     void (*KeyPressed)(CSOUND *, char c__);
@@ -911,7 +904,7 @@ typedef struct NAME__ {
                                                     MYFLT *value));
     void (*SetOutputValueCallback)(CSOUND *,
                 void (*outputValueCalback)(CSOUND *, const char *channelName,
-                                                     MYFLT value));                                                  
+                                                     MYFLT value));
     int (*ScoreEvent)(CSOUND *,
                       char type, const MYFLT *pFields, long numFields);
     int (*ScoreEventAbsolute)(CSOUND *,
@@ -925,13 +918,19 @@ typedef struct NAME__ {
     int (*ChanIASetSample)(CSOUND *, int channel, int frame, MYFLT sample);
     MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
     void (*Stop)(CSOUND *);
-    long (*RunCommand)(const char * const *argv, int noWait);
     int (*PerformKsmpsAbsolute)(CSOUND *);
 #endif
+   void (*SetMessageCallback)(CSOUND *,
+                void (*csoundMessageCallback)(CSOUND *,
+                                              int attr, const char *format,
+                                              va_list valist));
+    void (*DeleteCfgVarList)(csCfgVariable_t **lst);
+    void (*SetMessageLevel)(CSOUND *, int messageLevel);
+    long (*RunCommand)(const char * const *argv, int noWait);
     int (*OpenLibrary)(void **library, const char *libraryPath);  //
     int (*CloseLibrary)(void *library);//
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);//
-    
+
     void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));//
         int (*GetChannelPtr)(CSOUND *, MYFLT **p, const char *name, int type); //
     int (*ListChannels)(CSOUND *, CsoundChannelListEntry **lst);  //
@@ -993,7 +992,7 @@ typedef struct NAME__ {
                         int (*kopadr)(CSOUND *, void *),
                         int (*aopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
-    int (*CheckEvents)(CSOUND *); 
+    int (*CheckEvents)(CSOUND *);
     const char *(*GetEnv)(CSOUND *, const char *name);
     char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
     char *(*FindOutputFile)(CSOUND *,
@@ -1029,7 +1028,7 @@ typedef struct NAME__ {
     FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
     FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
     FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
-    int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum); 
+    int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
     SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
     char *(*getstrformat)(int format);
     int (*sfsampsize)(int format);
@@ -1042,10 +1041,10 @@ typedef struct NAME__ {
     int (*Rand31)(int *seedVal);
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
-    void (*SetDebug)(CSOUND *, int d); 
+    void (*SetDebug)(CSOUND *, int d);
     int (*GetDebug)(CSOUND *);
-    int (*TableLength)(CSOUND *, int table); 
-    MYFLT (*TableGet)(CSOUND *, int table, int index); 
+    int (*TableLength)(CSOUND *, int table);
+    MYFLT (*TableGet)(CSOUND *, int table, int index);
     void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
     void *(*CreateThread)(uintptr_t (*threadRoutine)(void *), void *userdata);
     uintptr_t (*JoinThread)(void *thread);
@@ -1121,7 +1120,7 @@ typedef struct NAME__ {
     int (*PVOC_fseek)(CSOUND *, int, int);
     const char *(*PVOC_ErrorString)(CSOUND *);
     int (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
-    char *(*GetOpcodeName)(void *p);   
+    char *(*GetOpcodeName)(void *p);
     int (*GetInputArgCnt)(void *p);
     unsigned long (*GetInputArgAMask)(void *p);
     unsigned long (*GetInputArgSMask)(void *p);
@@ -1167,7 +1166,7 @@ typedef struct NAME__ {
     //    MEMFIL *(*ldmemfile2)(CSOUND *, const char *, int);
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
-    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t); 
+    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t);
     //int *(*GetChannelLock)(CSOUND *, const char *name, int type);
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
                                 int (*callback)(CSOUND *, MEMFIL *));
@@ -1185,7 +1184,7 @@ typedef struct NAME__ {
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
     char *(*GetString)(CSOUND *, MYFLT);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
-    void (*SetUtilSr)(CSOUND *, MYFLT); 
+    void (*SetUtilSr)(CSOUND *, MYFLT);
     void (*SetUtilNchnls)(CSOUND *, int);
     void (*module_list_add)(CSOUND *, char *, char *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
@@ -1204,10 +1203,10 @@ typedef struct NAME__ {
      *
       NO MORE PUBLIC VARIABLES IN CSOUND struct
 
-      NB: if a new variable member is needed, please add it below, as a 
+      NB: if a new variable member is needed, please add it below, as a
       private data member.
 
-      If access is required by hosts or plugins, please use the 
+      If access is required by hosts or plugins, please use the
       CreateGlobalVariable() etc. interface, instead of adding to
       CSOUND.
 
@@ -1217,13 +1216,13 @@ typedef struct NAME__ {
       change the values of private members, by using one of the two methods
       below:
 
-      1) To get the data member value: 
+      1) To get the data member value:
          returnType (*GetVar)(CSOUND *)
 
       2) in case of pointers, data should be copied out to a supplied memory
          slot, rather than the pointer being obtained:
          void (*GetData)(CSOUND *, dataType *)
-         
+
          dataType var;
          csound->GetData(csound, &var);
     *
@@ -1270,17 +1269,17 @@ typedef struct NAME__ {
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
     OPDS          *ids, *pds;       /* used by init and perf loops */
-    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */      
+    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */
     INSTRTXT      *instr0;          /* instr0     */
     INSTRTXT      **dead_instr_pool;
     int           dead_instr_no;
     TYPE_POOL*    typePool;
-    unsigned int  ksmps; 
+    unsigned int  ksmps;
     uint32_t      nchnls;
     int           inchnls;
     int           spoutactive;
-    long          kcounter, global_kcounter;   
-    MYFLT         esr;  
+    long          kcounter, global_kcounter;
+    MYFLT         esr;
     MYFLT         ekr;
     /** current time in seconds, inc. per kprd */
     int64_t       icurTime;   /* Current time in samples */
@@ -1305,7 +1304,7 @@ typedef struct NAME__ {
     int           keep_tmp;
     OENTRY        *opcodlst;
     int           *opcode_list;
-    OENTRY        *oplstend; 
+    OENTRY        *oplstend;
     OENTRIES      *opcodelist;
     OENTRIES      *opcodelist_end;
     /* int           maxopcno; */
@@ -1373,8 +1372,8 @@ typedef struct NAME__ {
     int           evt_poll_cnt;
     int           evt_poll_maxcnt;
     int           Mforcdecs, Mxtroffs, MTrkend;
-    OPCODINFO     *opcodeInfo; 
-    STRING_POOL*  stringSavePool;      
+    OPCODINFO     *opcodeInfo;
+    STRING_POOL*  stringSavePool;
 //    void          *strsav_str;
 //    void          *strsav_space;
     FUNC**        flist;
@@ -1623,7 +1622,7 @@ typedef struct NAME__ {
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */
-    char*         csdname;     
+    char*         csdname;
   /* original CSD name; do not free() */
     int           parserUdoflag;
     int           parserNamedInstrFlag;
@@ -1636,7 +1635,7 @@ typedef struct NAME__ {
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
     char          *filedir[64]; /* for location directory */
-    void * message_buffer;
+    void          *message_buffer;
     int           jumpset;
 #endif  /* __BUILDING_LIBCSOUND */
   };
