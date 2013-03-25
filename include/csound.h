@@ -1001,15 +1001,15 @@ extern "C" {
      */
   PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
 
-    /**
-     * Returns the sample format.
-     */
-    PUBLIC int csoundGetSampleFormat(CSOUND *);
+//    /**
+//     * Returns the sample format.
+//     */
+//    PUBLIC int csoundGetSampleFormat(CSOUND *);
 
-    /**
-     * Returns the size in bytes of a single sample.
-     */
-    PUBLIC int csoundGetSampleSize(CSOUND *);
+//    /**
+//     * Returns the size in bytes of a single sample.
+//     */
+//    PUBLIC int csoundGetSampleSize(CSOUND *);
 
     /**
      * Return the size of MYFLT in bytes.

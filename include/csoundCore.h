@@ -883,8 +883,8 @@ typedef struct NAME__ {
     int (*Cleanup)(CSOUND *);
     void (*Reset)(CSOUND *);
     void (*Destroy)(CSOUND *);
-    int (*GetSampleFormat)(CSOUND *);
-    int (*GetSampleSize)(CSOUND *);
+/*    int (*GetSampleFormat)(CSOUND *);
+    int (*GetSampleSize)(CSOUND *);*/
     MYFLT *(*GetSpin)(CSOUND *);
     MYFLT *(*GetSpout)(CSOUND *);
     double (*GetScoreTime)(CSOUND *);
