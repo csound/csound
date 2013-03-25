@@ -22,10 +22,21 @@
  02111-1307 USA
  */
 
+#ifndef CSOUND_ORC_EXPRESSION_H
+#define CSOUND_ORC_EXPRESSION_H 1
+
+#include "csound_orc.h"
+
+CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
+
 int is_expression_node(TREE *node);
 int is_boolean_expression_node(TREE *node);
 int is_statement_expansion_required(TREE* root);
 
-TREE* expand_if_statement(CSOUND* csound, TREE* current);
-TREE* expand_until_statement(CSOUND* csound, TREE* current);
+void handle_optional_args(CSOUND *csound, TREE *l);
+
+TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
+TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_statement(CSOUND* csound, TREE* current);
+
+#endif
