@@ -705,6 +705,47 @@ list(APPEND libcsound_SRCS
 set_source_files_properties(${YACC_OUT} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
 
+# Handling New Score Parser
+
+### add_custom_target(NewScoParser echo "Creating sco_parser.c")
+### set(NewScoParser OFF)
+
+### set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
+### set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
+
+### set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
+### set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
+
+### set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
+### set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
+
+### add_custom_command(
+###     SOURCE ${LEX_SCOSRC}
+###     COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT} 
+###     TARGET NewScoParser
+###     OUTPUTS ${LEX_SCOOUT})
+
+### add_custom_command(
+###     SOURCE ${PRELEX_SCOSRC}
+###     COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT} 
+###     TARGET NewScoParser
+###     OUTPUTS ${PRELEXSCO_OUT})
+
+### add_custom_command(
+###     SOURCE ${YACC_SCOSRC}
+###     COMMAND ${BISON_EXECUTABLE}
+###     ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC} 
+###     TARGET NewParser
+###     DEPENDS ${LEX_SCOOUT}
+###     OUTPUTS ${YACC_SCOOUT})
+
+### list(APPEND libcsound_SRCS 
+###     ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
+
+### set_source_files_properties(${YACC_SCOOUT} GENERATED)
+### set_source_files_properties(${LEX_SCOOUT} GENERATED)
+
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
     
 if(NEW_PARSER_DEBUG)
