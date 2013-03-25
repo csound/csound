@@ -82,6 +82,17 @@ int check_instr_name(char *s);
 
 /* ------------------------------------------------------------------------ */
 
+int pnum(char *s)        /* check a char string for pnum format  */
+/*   and return the pnum ( >= 0 )       */
+{                               /* else return -1                       */
+    int n;
+    
+    if (*s == 'p' || *s == 'P')
+        if (sscanf(++s, "%d", &n))
+            return(n);
+    return(-1);
+}
+
 static int argCount(ARG* arg)
 {
     int retVal = -1;
@@ -906,18 +917,6 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
     ip->pextrab = ((int) ip->pextrab + 7) & (~7);
     ip->muted = 1;
 
-}
-
-
-int pnum(char *s)        /* check a char string for pnum format  */
-/*   and return the pnum ( >= 0 )       */
-{                               /* else return -1                       */
-    int n;
-
-    if (*s == 'p' || *s == 'P')
-      if (sscanf(++s, "%d", &n))
-        return(n);
-    return(-1);
 }
 
 /**
