@@ -48,7 +48,7 @@ extern void csound_orcset_lineno(int, void*);
 extern void csound_orclex_destroy(void *);
 extern void init_symbtab(CSOUND*);
 extern void print_tree(CSOUND *, char *, TREE *);
-extern int verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
+extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern void delete_tree(CSOUND *csound, TREE *l);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
@@ -177,14 +177,14 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       typeTable->labelList = NULL;
 
       /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
-      err = verify_tree(csound, astTree, typeTable);
+      astTree = verify_tree(csound, astTree, typeTable);
       mfree(csound, typeTable->instr0LocalPool);
       mfree(csound, typeTable->globalPool);
       mfree(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
 
       //FIXME - synterrcnt should not be global
-      if (!err || csound->synterrcnt){
+      if (astTree == NULL || csound->synterrcnt){
           err = 3;
           csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
                           csound->synterrcnt, csound->synterrcnt==1?"":"s");
@@ -194,10 +194,10 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
 
       //csp_orc_analyze_tree(csound, astTree);
 
-      astTree = csound_orc_expand_expressions(csound, astTree);
-
+//      astTree = csound_orc_expand_expressions(csound, astTree);
+//
       if (UNLIKELY(PARSER_DEBUG)) {
-        print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
+        print_tree(csound, "AST - AFTER VERIFICATION/EXPANSION\n", astTree);
       }
 
     ending:
