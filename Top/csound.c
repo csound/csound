@@ -201,8 +201,8 @@ static const CSOUND cenviron_ = {
     csoundCleanup,
     csoundReset,
     csoundDestroy,
-    csoundGetSampleFormat,
-    csoundGetSampleSize,
+/*    csoundGetSampleFormat,
+    csoundGetSampleSize,*/
     csoundGetSpin,
     csoundGetSpout,
     csoundGetScoreTime,
@@ -1780,17 +1780,15 @@ PUBLIC int csoundGetStrVarMaxLen(CSOUND *csound)
     return csound->strVarMaxLen;
 }
 
-PUBLIC int csoundGetSampleFormat(CSOUND *csound)
+/*PUBLIC int csoundGetSampleFormat(CSOUND *csound)
 {
-    /* should we assume input is same as output ? */
     return csound->oparms_.outformat;
 }
 
 PUBLIC int csoundGetSampleSize(CSOUND *csound)
 {
-    /* should we assume input is same as output ? */
     return csound->oparms_.sfsampsize;
-}
+}*/
 
 PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
 {

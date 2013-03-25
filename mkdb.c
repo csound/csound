@@ -72,8 +72,8 @@ struct CSOUND_ {
     MYFLT (*GetKr)(CSOUND *);
     int (*GetKsmps)(CSOUND *);
     int (*GetNchnls)(CSOUND *);
-    int (*GetSampleFormat)(CSOUND *);
-    int (*GetSampleSize)(CSOUND *);
+//    int (*GetSampleFormat)(CSOUND *);
+//    int (*GetSampleSize)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
