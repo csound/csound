@@ -586,7 +586,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* IV - Oct 31 2002: */
     /* create a fake opcode so we can call it as such */
-    opc = csound->opcodlst + find_opcode_num(csound, "##userOpcode", NULL, NULL);
+    opc = &csound->opcodlst[USEROPCODE];
     memcpy(&tmpEntry, opc, sizeof(OENTRY));
     tmpEntry.opname = (char*)mmalloc(csound, 1+strlen(opname));
     strcpy(tmpEntry.opname, opname);

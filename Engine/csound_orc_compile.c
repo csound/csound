@@ -52,10 +52,6 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip);
 char argtyp2(char *s);
 void debugPrintCsound(CSOUND* csound);
 
-extern int find_opcode_num(CSOUND* csound, char* opname,
-                           char* outArgsFound, char* inArgsFound);
-extern int find_opcode_num_by_tree(CSOUND* csound, char* opname,
-                                   TREE* left, TREE* right);
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState);
