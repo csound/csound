@@ -41,10 +41,7 @@ static  ARG* createArg(CSOUND *csound, INSTRTXT* ip,
 static  void    insprep(CSOUND *, INSTRTXT *, ENGINE_STATE *engineState);
 static  void    lgbuild(CSOUND *, INSTRTXT *, char *,
                         int inarg, ENGINE_STATE *engineState);
-static  void    gblnamset(CSOUND *, char *, ENGINE_STATE *engineState);
-static  void    lclnamset(CSOUND *, INSTRTXT* ip, char *);
 int     pnum(char *s) ;
-static  int     lgexist2(INSTRTXT*, const char *s, ENGINE_STATE *engineState);
 static void     unquote_string(char *, const char *);
 extern void     print_tree(CSOUND *, char *, TREE *);
 extern void delete_tree(CSOUND *csound, TREE *l);
@@ -480,12 +477,12 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
             if (n > ip->pmax)  ip->pmax = n;
           }
           else {
-            if (arg[0] == 'w' &&
-                lgexist2(ip, arg, engineState) != 0) {
-              synterr(csound, Str("output name previously used, "
-                                  "type 'w' must be uniquely defined, line %d"),
-                      root->line);
-            }
+//            if (arg[0] == 'w' &&
+//                lgexist2(ip, arg, engineState) != 0) {
+//              synterr(csound, Str("output name previously used, "
+//                                  "type 'w' must be uniquely defined, line %d"),
+//                      root->line);
+//            }
             csound->DebugMsg(csound, "Arg: %s\n", arg);
             lgbuild(csound, ip, arg, 0, engineState);
           }
@@ -555,7 +552,8 @@ void addGlobalVariable(CSOUND *csound,
  * Instrument0. Called from csound_orc_compile.
  */
 INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
-                             ENGINE_STATE *engineState)
+                             ENGINE_STATE *engineState,
+                             CS_VAR_POOL* varPool)
 {
     INSTRTXT *ip;
     OPTXT *op;
@@ -604,7 +602,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
-    ip->varPool = (CS_VAR_POOL*)mcalloc(csound, sizeof(CS_VAR_POOL));
+    ip->varPool = varPool;
     op = (OPTXT *)ip;
 
     current = root;
@@ -797,7 +795,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
     TREE *statements, *current;
 
     ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
-    ip->varPool = (CS_VAR_POOL*)mcalloc(csound, sizeof(CS_VAR_POOL));
+    ip->varPool = (CS_VAR_POOL*)root->markup;
     op = (OPTXT *)ip;
     statements = root->right;
     ip->mdepends = 0;
@@ -1222,6 +1220,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     int32        count, sumcount; //, instxtcount, optxtcount;
     TREE * current = root;
     ENGINE_STATE *engineState;
+    CS_VARIABLE* var;
     TYPE_TABLE* typeTable = (TYPE_TABLE*)current->markup;
     
     current = current->next;
@@ -1229,7 +1228,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     if(csound->instr0 == NULL) {
       engineState = &csound->engineState;
-      csound->instr0 = create_instrument0(csound, current, engineState);
+      engineState->varPool = typeTable->globalPool;
+      csound->instr0 = create_instrument0(csound, current, engineState, typeTable->instr0LocalPool);
       string_pool_find_or_add(csound, engineState->stringPool, "\"\"");
       prvinstxt = &(engineState->instxtanchor);
        engineState->instrtxtp =
@@ -1242,12 +1242,21 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       engineState = (ENGINE_STATE *) mcalloc(csound, sizeof(ENGINE_STATE));
       engineState->stringPool = string_pool_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
-      engineState->varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+      engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
        engineState->instrtxtp =
       (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno)
                             * sizeof(INSTRTXT*));
       prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
+    }
+    
+    var = typeTable->globalPool->head;
+    while(var != NULL) {
+      var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
+      if (var->initializeVariableMemory != NULL) {
+        var->initializeVariableMemory(var, var->memBlock);
+      }
+      var = var->next;
     }
 
 
@@ -1572,19 +1581,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     }
 }
 
-/* returns non-zero if 's' is defined in the global or local pool of names */
-static int lgexist2(INSTRTXT* ip, const char* s, ENGINE_STATE *engineState)
-{
-    int retVal = 0;
-    if(csoundFindVariableWithName(engineState->varPool, s) != NULL) {
-      retVal = 1;
-    } else if(csoundFindVariableWithName(ip->varPool, s) != NULL) {
-      retVal = 1;
-    }
-
-    return retVal;
-}
-
 /* build pool of floating const values  */
 /* build lcl/gbl list of ds names, offsets */
 /* (no need to save the returned values) */
@@ -1605,11 +1601,11 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s,
       temp = mcalloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
       string_pool_find_or_add(csound, engineState->stringPool, temp);
-    } else if (!lgexist2(ip, s, engineState) && !inarg) {
-      if (c == 'g' || (c == '#' && s[1] == 'g'))
-        gblnamset(csound, s, engineState);
-      else
-        lclnamset(csound, ip, s);
+//    } else if (!lgexist2(ip, s, engineState) && !inarg) {
+//      if (c == 'g' || (c == '#' && s[1] == 'g'))
+//        gblnamset(csound, s, engineState);
+//      else
+//        lclnamset(csound, ip, s);
     }
 }
 
@@ -1659,103 +1655,6 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     }
     /*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
     return arg;
-}
-
-/* builds namelist & type counts for gbl names */
-
-static void gblnamset(CSOUND *csound, char *s, ENGINE_STATE *engineState)
-{
-    CS_TYPE* type;
-    char* argLetter;
-    CS_VARIABLE* var;
-    char* t = s;
-    ARRAY_VAR_INIT varInit;
-
-    var = csoundFindVariableWithName(engineState->varPool, s);
-
-    if (var != NULL) {
-      return;
-    }
-
-    argLetter = csound->Malloc(csound, 2 * sizeof(char));
-    argLetter[1] = 0;
-
-    if (*t == '#')  t++;
-    if (*t == 'g')  t++;
-
-    void* typeArg = NULL;
-
-    if(*t == '[') {
-        int dimensions = 1;
-        CS_TYPE* varType;
-        char* b = t + 1;
-
-        while(*b == '[' && b != NULL) {
-            b++;
-            dimensions++;
-        }
-        argLetter[0] = *b;
-
-        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-
-        varInit.dimensions = dimensions;
-        varInit.type = varType;
-        typeArg = &varInit;
-    }
-
-    argLetter[0] = *t;
-
-    type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-    /*
-    var = csoundCreateVariable(csound, csound->typePool, type, s, typeArg);
-    csoundAddVariable(engineState->varPool, var);
-    */
-    addGlobalVariable(csound, engineState, type, s, typeArg);
-}
-
-static void lclnamset(CSOUND *csound, INSTRTXT* ip, char *s)
-{
-    CS_TYPE* type;
-    char argLetter[2];
-    CS_VARIABLE* var;
-    char* t = s;
-    ARRAY_VAR_INIT varInit;
-
-    var = csoundFindVariableWithName(ip->varPool, s);
-
-    if (var != NULL) {
-      return;
-    }
-
-    argLetter[1] = 0;
-
-    if (*t == '#')  t++;
-
-    void* typeArg = NULL;
-
-    if(*t == '[') {
-        int dimensions = 1;
-        CS_TYPE* varType;
-        char* b = t + 1;
-
-        while(*b == '[') {
-            b++;
-            dimensions++;
-        }
-        argLetter[0] = *b;
-
-        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-
-        varInit.dimensions = dimensions;
-        varInit.type = varType;
-        typeArg = &varInit;
-    }
-
-    argLetter[0] = *t;
-
-    type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-    var = csoundCreateVariable(csound, csound->typePool, type, s, typeArg);
-    csoundAddVariable(ip->varPool, var);
 }
 
 char argtyp2(char *s)
