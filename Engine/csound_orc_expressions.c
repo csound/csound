@@ -34,7 +34,7 @@ extern ORCTOKEN *make_label(CSOUND *, char *);
 extern OENTRIES* find_opcode2(CSOUND *, char*);
 extern char resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern  char* get_arg_string_from_tree2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
+extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 extern void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable);
 
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
@@ -509,7 +509,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
         c = 'i';
 
       } else {
-          char* inArgTypes = get_arg_string_from_tree2(csound, root->right, typeTable);
+          char* inArgTypes = get_arg_string_from_tree(csound, root->right, typeTable);
         c = resolve_opcode_get_outarg(csound, opentries, inArgTypes);
       }
       outarg = create_out_arg(csound, c, typeTable);
