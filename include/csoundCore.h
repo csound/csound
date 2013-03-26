@@ -693,7 +693,8 @@ typedef struct CORFIL {
 #define LABEL   5
 #define SETBEG  6
 #define PSET    6
-#define SETEND  7
+#define USEROPCODE    7
+#define SETEND  8
 
 #define TOKMAX  50L     /* Should be 50 but bust */
 
