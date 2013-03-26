@@ -635,12 +635,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     while (current != NULL) {
       unsigned int uval;
       if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
-
+        OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
         if (current->type == '='
-            && strcmp(current->value->lexeme, "=.r") == 0) {
+            && strcmp(oentry->opname, "=.r") == 0) {
 
           //FIXME - perhaps should add check as it was in
           //constndx?  Not sure if necessary due to assumption
