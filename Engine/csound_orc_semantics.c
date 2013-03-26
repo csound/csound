@@ -49,7 +49,7 @@ extern int pnum(char*);
 OENTRIES* find_opcode2(CSOUND*, char*);
 char resolve_opcode_get_outarg(CSOUND* csound,
                                OENTRIES* entries, char* inArgTypes);
-char* get_arg_string_from_tree2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
+char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len = strlen(str);
@@ -475,7 +475,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       }
         
       if (tree->type == T_FUNCTION) {
-          char* argTypeRight = get_arg_string_from_tree2(csound, tree->right, typeTable);
+          char* argTypeRight = get_arg_string_from_tree(csound, tree->right, typeTable);
           
           
           char* opname = tree->value->lexeme;
@@ -1061,59 +1061,7 @@ PUBLIC int resolve_opcode_num(CSOUND* csound, OENTRIES* entries,
     return 0;
 }
 
-
-
-PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree) {
-
-    int len = tree_arg_list_count(tree);
-    int i;
-
-    if (len == 0) {
-        return NULL;
-    }
-
-    char** argTypes = mmalloc(csound, len * sizeof(char*));
-    char* argString = NULL;
-    TREE* current = tree;
-    int index = 0;
-    int argsLen = 0;
-
-    while (current != NULL) {
-        char* argType = get_arg_type(csound, current);
-
-        //FIXME - fix if argType is NULL and remove the below hack
-        if(argType == NULL) {
-            argsLen += 1;
-            argTypes[index++] = "@";
-        } else {
-            argsLen += strlen(argType);
-            argTypes[index++] = argType;
-        }
-
-
-        current = current->next;
-    }
-
-    argString = mmalloc(csound, (argsLen + 1) * sizeof(char));
-    char* temp = argString;
-
-    for (i = 0; i < len; i++) {
-        int size = strlen(argTypes[i]);
-        memcpy(temp, argTypes[i], size);
-        temp += size;
-    }
-
-    argString[argsLen] = '\0';
-
-//    for (i = 0; i < len; i++) {
-//         csoundMessage(csound, "%d) Found arg type: %s\n", i, argTypes[i]);
-//    }
-
-    return argString;
-
-}
-
-PUBLIC char* get_arg_string_from_tree2(CSOUND* csound, TREE* tree,
+PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                        TYPE_TABLE* typeTable) {
 
     int len = tree_arg_list_count(tree);
@@ -1430,8 +1378,8 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     add_args(csound, root->left, typeTable);
 
-    leftArgString = get_arg_string_from_tree2(csound, left, typeTable);
-    rightArgString = get_arg_string_from_tree2(csound, right, typeTable);
+    leftArgString = get_arg_string_from_tree(csound, left, typeTable);
+    rightArgString = get_arg_string_from_tree(csound, right, typeTable);
     opcodeName = root->value->lexeme;
 
     if (!strcmp(opcodeName, "xin")) {
