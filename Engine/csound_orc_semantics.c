@@ -49,6 +49,7 @@ extern int pnum(char*);
 OENTRIES* find_opcode2(CSOUND*, char*);
 char resolve_opcode_get_outarg(CSOUND* csound,
                                OENTRIES* entries, char* inArgTypes);
+char* get_arg_string_from_tree2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len = strlen(str);
@@ -470,6 +471,31 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         retVal[1] = 0;
 
         return retVal;
+          
+      }
+        
+      if (tree->type == T_FUNCTION) {
+          char* argTypeRight = get_arg_string_from_tree2(csound, tree->right, typeTable);
+          
+          
+          char* opname = tree->value->lexeme;
+          OENTRIES* entries = find_opcode2(csound, opname);
+          
+          char out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
+              
+          if (out == 0) {
+              synterr(csound, Str("error: opcode '%s' for expression with arg "
+                                  "types %s not found, line %d \n"),
+                      opname, argTypeRight, tree->line);
+              return NULL;
+          }
+          
+          char c[2];
+          c[0] = out;
+          c[1] = '\0';
+          
+          return cs_strdup(csound, c);
+
       }
 
       char* argTypeRight = get_arg_type2(csound, nodeToCheck->right, typeTable);
@@ -515,6 +541,8 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return cs_strdup(csound, c);
 
       } else {
+          
+          
         return argTypeRight;
       }
 
@@ -1647,7 +1675,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
 
         if (is_statement_expansion_required(current)) {
-          current = expand_statement(csound, current);
+          current = expand_statement(csound, current, typeTable);
 
           if (previous != NULL) {
               previous->next = current;

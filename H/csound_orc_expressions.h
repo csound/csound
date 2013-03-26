@@ -37,6 +37,6 @@ void handle_optional_args(CSOUND *csound, TREE *l);
 
 TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
-TREE* expand_statement(CSOUND* csound, TREE* current);
+TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 
 #endif
