@@ -188,69 +188,69 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     return OK;
 }
 
-typedef struct {
-    OPDS    h;
-    TABDAT  *tab;
-} TABDEL;
+/* typedef struct { */
+/*     OPDS    h; */
+/*     TABDAT  *tab; */
+/* } TABDEL; */
 
-static int tabdel(CSOUND *csound, void *p)
-{
-    TABDAT *t = ((TABDEL*)p)->tab;
-    mfree(csound, t->data);
-    mfree(csound, p);
-    return OK;
-}
+/* static int tabdel(CSOUND *csound, void *p) */
+/* { */
+/*     TABDAT *t = ((TABDEL*)p)->tab; */
+/*     mfree(csound, t->data); */
+/*     mfree(csound, p); */
+/*     return OK; */
+/* } */
 
-int tinit(CSOUND *csound, INITT *p)
-{
-    int size = MYFLT2LRND(*p->size);
-    MYFLT val = *p->value;
-    TABDAT *t = p->a;
-    int i;
+/* int tinit(CSOUND *csound, INITT *p) */
+/* { */
+/*     int size = MYFLT2LRND(*p->size); */
+/*     MYFLT val = *p->value; */
+/*     TABDAT *t = p->a; */
+/*     int i; */
 
-    t->size = size;
-    mfree(csound, t->data);
-    t->data = mmalloc(csound, sizeof(MYFLT)*(size+1));
-    for (i=0; i<=size; i++) t->data[i] = val;
-    { // Need to recover space eventually
-      TABDEL *op = (TABDEL*) mmalloc(csound, sizeof(TABDEL));
-      op->h.insdshead = ((OPDS*) p)->insdshead;
-      op->tab = t;
-      csound->RegisterDeinitCallback(csound, op, tabdel);
-    }
-    return OK;
-}
+/*     t->size = size; */
+/*     mfree(csound, t->data); */
+/*     t->data = mmalloc(csound, sizeof(MYFLT)*(size+1)); */
+/*     for (i=0; i<=size; i++) t->data[i] = val; */
+/*     { // Need to recover space eventually */
+/*       TABDEL *op = (TABDEL*) mmalloc(csound, sizeof(TABDEL)); */
+/*       op->h.insdshead = ((OPDS*) p)->insdshead; */
+/*       op->tab = t; */
+/*       csound->RegisterDeinitCallback(csound, op, tabdel); */
+/*     } */
+/*     return OK; */
+/* } */
 
-int tassign(CSOUND *csound, ASSIGNT *p)
-{
-    TABDAT *t = p->tab;
-    int ind = MYFLT2LRND(*p->ind);
-    if (ind<0 || ind>t->size)
-      return csound->PerfError(csound,
-                               Str("Index %d out of range [0,%d] in t[]\n"),
-                               ind, t->size);
-    t->data[ind] = *p->val;
-    return OK;
-}
+/* int tassign(CSOUND *csound, ASSIGNT *p) */
+/* { */
+/*     TABDAT *t = p->tab; */
+/*     int ind = MYFLT2LRND(*p->ind); */
+/*     if (ind<0 || ind>t->size) */
+/*       return csound->PerfError(csound, */
+/*                                Str("Index %d out of range [0,%d] in t[]\n"), */
+/*                                ind, t->size); */
+/*     t->data[ind] = *p->val; */
+/*     return OK; */
+/* } */
 
-int tabref_check(CSOUND *csound, TABREF *p)
-{
-    if (UNLIKELY(p->tab->data==NULL))
-      return csound->InitError(csound, Str("Vector not initialised\n"));
-    return OK;
-}
+/* int tabref_check(CSOUND *csound, TABREF *p) */
+/* { */
+/*     if (UNLIKELY(p->tab->data==NULL)) */
+/*       return csound->InitError(csound, Str("Vector not initialised\n")); */
+/*     return OK; */
+/* } */
 
-int tabref(CSOUND *csound, TABREF *p)
-{
-    int ind = MYFLT2LRND(*p->ind);
-    TABDAT *t = p->tab;
-     if (ind<0 || ind>t->size)
-      return csound->PerfError(csound,
-                               Str("Index %d out of range [0,%d] in t[]\n"),
-                               ind, t->size);
-     *p->ans = t->data[ind];
-     return OK;
-}
+/* int tabref(CSOUND *csound, TABREF *p) */
+/* { */
+/*     int ind = MYFLT2LRND(*p->ind); */
+/*     TABDAT *t = p->tab; */
+/*      if (ind<0 || ind>t->size) */
+/*       return csound->PerfError(csound, */
+/*                                Str("Index %d out of range [0,%d] in t[]\n"), */
+/*                                ind, t->size); */
+/*      *p->ans = t->data[ind]; */
+/*      return OK; */
+/* } */
 
 #define RELATN(OPNAME,OP)                               \
   int OPNAME(CSOUND *csound, RELAT *p)                  \
