@@ -117,6 +117,8 @@ def runTest():
 	["test_semantics_undefined_var.csd", "test undefined var", 1],
 	["test_invalid_expression.csd", "test expression", 1],
 	["test_invalid_ternary.csd", "test expression", 1],
+
+	["test_opcode_as_function.csd", "test expression"],
    ]
 
 
