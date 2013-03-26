@@ -1810,8 +1810,8 @@ static void instance(CSOUND *csound, int insno)
     prvids = prvpds = (OPDS*) ip;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
-      ep = ttp->oentry;          
-        
+      ep = ttp->oentry;
+
       if (ep == &csound->opcodlst[ENDIN]         /*  (until ENDIN)  */
           || ep == &csound->opcodlst[ENDOP])                    /*  (or ENDOP)     */
         break;
