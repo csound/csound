@@ -1170,18 +1170,6 @@ PUBLIC int find_opcode_num(CSOUND* csound, char* opname,
     return retVal;
 }
 
-PUBLIC int find_opcode_num_by_tree(CSOUND* csound, char* opname,
-                                   TREE* left, TREE* right) {
-    char* leftArgString = get_arg_string_from_tree(csound, left);
-    char* rightArgString = get_arg_string_from_tree(csound, right);
-    int retVal = find_opcode_num(csound, opname, leftArgString, rightArgString);
-
-    mfree(csound, leftArgString);
-    mfree(csound, rightArgString);
-
-    return retVal;
-}
-
 
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]
@@ -1407,8 +1395,6 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     char* leftArgString;
     char* rightArgString;
     char* opcodeName;
-    int incount;
-    //int i;
 
     if (!check_args_exist(csound, root->right, typeTable)) {
       return 0;
@@ -1456,11 +1442,8 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 /* Walks tree and finds all label: definitions */
 CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
     CONS_CELL* head = NULL;
-    CONS_CELL* temp;
     int len = 0;
     TREE* current = root;
-    int i = 0;
-    char** retVal;
 
     while(current != NULL) {
       if(current->type == LABEL_TOKEN) {
@@ -1575,8 +1558,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     TREE *previous = NULL;
     TREE* newRight;
     
-    char* outArg;
-
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
 
     while (current != NULL) {
