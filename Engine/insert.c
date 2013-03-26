@@ -252,7 +252,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       while ((csound->ids = csound->ids->nxti) != NULL) {
         if (O->odebug)
           csound->Message(csound, "init %s:\n",
-                          csound->opcodlst[csound->ids->optext->t.opnum].opname);
+                          csound->ids->optext->t.oentry->opname);
         (*csound->ids->iopadr)(csound, csound->ids);
       }
       ip->init_done = 1;
@@ -546,7 +546,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     while ((csound->ids = csound->ids->nxti) != NULL) {
       if (O->odebug)
         csound->Message(csound, "init %s:\n",
-                        csound->opcodlst[csound->ids->optext->t.opnum].opname);
+                        csound->ids->optext->t.oentry->opname);
       (*csound->ids->iopadr)(csound, csound->ids);
     }
     ip->init_done = 1;
@@ -1021,7 +1021,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
     /* look up the 'fake' instr number, and opcode name */
-    inm = (OPCODINFO*) csound->opcodlst[p->h.optext->t.opnum].useropinfo;
+    inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
     instno = inm->instno;
     tp = csound->engineState.instrtxtp[instno];
     /* set local ksmps if defined by user */
@@ -1729,10 +1729,10 @@ int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
 
     while ((optxt = optxt->nxtop) != NULL) {
         TEXT* t = &optxt->t;
-        if(t->opnum == LABEL && strcmp(t->opcod, labelName) == 0) {
+        if(t->oentry == &csound->opcodlst[LABEL] && strcmp(t->opcod, labelName) == 0) {
             break;
         }
-        offset += csound->opcodlst[t->opnum].dsblksiz;
+        offset += t->oentry->dsblksiz;
     }
 
     return offset;
@@ -1748,7 +1748,7 @@ static void instance(CSOUND *csound, int insno)
     OPTXT     *optxt;
     OPDS      *opds, *prvids, *prvpds;
     const OENTRY  *ep;
-    int       n, /*cnt, */pextent, opnum, pextra;
+    int       n, /*cnt, */pextent, pextra;
     char      *nxtopds, *opdslim;
     MYFLT     **argpp, *lclbas, /* *gbloffbas,*/ *lcloffbas;
     char*     opMemStart;
@@ -1810,22 +1810,24 @@ static void instance(CSOUND *csound, int insno)
     prvids = prvpds = (OPDS*) ip;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
-      if ((opnum = ttp->opnum) == ENDIN         /*  (until ENDIN)  */
-          || opnum == ENDOP)                    /*  (or ENDOP)     */
+      ep = ttp->oentry;          
+        
+      if (ep == &csound->opcodlst[ENDIN]         /*  (until ENDIN)  */
+          || ep == &csound->opcodlst[ENDOP])                    /*  (or ENDOP)     */
         break;
-      if (opnum == PSET) {
+      if (ep == &csound->opcodlst[PSET]) {
         ip->p1 = (MYFLT) insno;
         continue;
       }
-      ep = &(csound->opcodlst[opnum]);          /* for all ops:     */
+
       opds = (OPDS*) nxtopds;                   /*   take reqd opds */
       nxtopds += ep->dsblksiz;
       if (UNLIKELY(odebug))
-        csound->Message(csound, Str("op %d (%s) allocated at %p\n"),
-                                opnum, ep->opname, opds);
+        csound->Message(csound, Str("op (%s) allocated at %p\n"),
+                                ep->opname, opds);
       opds->optext = optxt;                     /* set common headata */
       opds->insdshead = ip;
-      if (opnum == LABEL) {                     /* LABEL:       */
+      if (ep == &csound->opcodlst[LABEL]) {                     /* LABEL:       */
         LBLBLK  *lblbp = (LBLBLK *) opds;
         lblbp->prvi = prvids;                   /*    save i/p links */
         lblbp->prvp = prvpds;
