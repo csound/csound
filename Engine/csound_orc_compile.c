@@ -395,7 +395,6 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     TREE *inargs, *outargs;
     OPTXT *optxt, *retOptxt = NULL;
     char *arg;
-    int opnum;
     int n, nreqd;;
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
@@ -404,7 +403,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     case LABEL_TOKEN:
       /* TODO - Need to verify here or elsewhere that this label is not
          already defined */
-      tp->opnum = LABEL;
+      tp->oentry = &csound->opcodlst[LABEL];
       tp->opcod = strsav_string(root->value->lexeme);
 
       tp->outlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
@@ -430,14 +429,11 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       nreqd = tree_arg_list_count(root->left);   /* outcount */
       /* replace opcode if needed */
 
-      opnum = find_opcode_num_by_tree(csound, root->value->lexeme,
-                                        root->left, root->right);
-
       /* INITIAL SETUP */
-      tp->opnum = opnum;
-      tp->opcod = strsav_string(csound->opcodlst[opnum].opname);
-      ip->mdepends |= csound->opcodlst[opnum].flags;
-      ip->opdstot += csound->opcodlst[opnum].dsblksiz;
+      tp->oentry = (OENTRY*)root->markup;
+      tp->opcod = strsav_string(tp->oentry->opname);
+      ip->mdepends |= tp->oentry->flags;
+      ip->opdstot += tp->oentry->dsblksiz;
 
       /* BUILD ARG LISTS */
       {
@@ -471,7 +467,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
       {
 
-        OENTRY *ep = csound->opcodlst + tp->opnum;
+        OENTRY *ep = tp->oentry;
         int argcount = 0;
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
           arg = outargs->value->lexeme;
@@ -626,7 +622,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     ip->pmax = 3L;
 
     /* start chain */
-    ip->t.opnum = INSTR;
+    ip->t.oentry = &csound->opcodlst[INSTR];
     ip->t.opcod = strsav_string("instr"); /*  to hold global assigns */
 
     /* The following differs from otran and needs review.  otran keeps a
@@ -814,7 +810,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
     ip->pmax = 3L;
 
     /* Initialize */
-    ip->t.opnum = INSTR;
+    ip->t.oentry = &csound->opcodlst[INSTR];
     ip->t.opcod = strsav_string("instr"); /*  to hold global assigns */
 
     /* The following differs from otran and needs review.  otran keeps a
@@ -890,7 +886,7 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
 
     bp = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
 
-    bp->t.opnum = ENDIN;                          /*  send an endin to */
+    bp->t.oentry = &csound->opcodlst[ENDIN];                          /*  send an endin to */
     bp->t.opcod = strsav_string("endin"); /*  term instr 0 blk */
     bp->t.outlist = bp->t.inlist = NULL;
 
@@ -1401,12 +1397,13 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       bp = (OPTXT *) ip;
       while (bp != (OPTXT *) NULL && (bp = bp->nxtop) != NULL) {
         /* chk instr 0 for illegal perfs */
-        int thread, opnum = bp->t.opnum;
-        if (opnum == ENDIN) break;
-        if (opnum == LABEL) continue;
+        int thread;
+        OENTRY* oentry = bp->t.oentry;
+        if (oentry == &csound->opcodlst[ENDIN]) break;
+        if (oentry == &csound->opcodlst[LABEL]) continue;
         if (PARSER_DEBUG)
           csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
-        if (UNLIKELY((thread = csound->opcodlst[opnum].thread) & 06 ||
+        if (UNLIKELY((thread = oentry->thread) & 06 ||
                      (!thread && bp->t.pftype != 'b'))) {
           csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                            bp->t.opcod, thread, bp->t.pftype);
@@ -1461,8 +1458,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       while ((optxt = optxt->nxtop) != NULL) {      /* for each op in instr  */
         TEXT *ttp = &optxt->t;
         optxtcount += 1;
-        if (ttp->opnum == ENDIN                     /*    (until ENDIN)      */
-            || ttp->opnum == ENDOP) break;
+        if (ttp->oentry == &csound->opcodlst[ENDIN]                    /*    (until ENDIN)      */
+            || ttp->oentry == &csound->opcodlst[ENDOP]) break;
         if ((count = ttp->inlist->count)!=0)
           sumcount += count +1;                     /* count the non-nullist */
         if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
@@ -1502,7 +1499,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     OPARMS      *O = csound->oparms;
     OPTXT       *optxt;
     OENTRY      *ep;
-    int         opnum;
     char        **argp;
 
     int n, inreqd;
@@ -1511,13 +1507,14 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     optxt = (OPTXT *)tp;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
-      if ((opnum = ttp->opnum) == ENDIN         /*  (until ENDIN)  */
-          || opnum == ENDOP)
-        break;
-      if (opnum == LABEL) {
+      ep = ttp->oentry;
+     
+      if (ep == &csound->opcodlst[ENDIN]                    /*    (until ENDIN)      */
+            || ep == &csound->opcodlst[ENDOP]) break;
+      if (ep == &csound->opcodlst[LABEL]) {
         continue;
       }
-      ep = &(csound->opcodlst[opnum]);
+      
       if (O->odebug)
         csound->Message(csound, "%s args:\n", ep->opname);
       if ((outlist = ttp->outlist) == NULL || !outlist->count)
@@ -1935,34 +1932,34 @@ void initialize_instrument0(CSOUND *csound)
     globals[4] = (MYFLT) csound->inchnls;
     globals[5] = csound->e0dbfs;
 
-#ifdef SOME_FINE_DAY
-    /* the code below does not appear to have any current use */
-    ip = &(engineState->instxtanchor);
-    while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
-      optxt = (OPTXT *) ip;                     /*   (and set localen)        */
-      /* recalculateVarPoolMemory(csound, ip->varPool);
-         moved to csoundCompileTree_async */
-      //FIXME - note alignment
-      /* align to 64 bits */
-      // ip->localen = (ip->localen + 7L) & (~7L);
-      for (insno = 0, n = 0; insno <= engineState->maxinsno; insno++)
-        if (engineState->instrtxtp[insno] == ip)  n++;   /* count insnos  */
-
-      lp = ip->inslist = (int32 *) mmalloc(csound, (int32)(n+1) * sizeof(int32));
-      for (insno=0; insno <= engineState->maxinsno; insno++)
-        if (engineState->instrtxtp[insno] == ip)
-          *lp++ = insno;                                /* creat inslist */
-      *lp = -1;                                         /*   & terminate */
-      insno = *ip->inslist;                             /* get the first */
-      while ((optxt = optxt->nxtop) !=  NULL) {
-        TEXT    *ttp = &optxt->t;
-        int     opnum = ttp->opnum;
-        if (opnum == ENDIN || opnum == ENDOP) break;
-        if (opnum == LABEL) continue;
-        n = argCount(ttp->outArgs);
-      }
-    }
-#endif
+//#ifdef SOME_FINE_DAY
+//    /* the code below does not appear to have any current use */
+//    ip = &(engineState->instxtanchor);
+//    while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
+//      optxt = (OPTXT *) ip;                     /*   (and set localen)        */
+//      /* recalculateVarPoolMemory(csound, ip->varPool);
+//         moved to csoundCompileTree_async */
+//      //FIXME - note alignment
+//      /* align to 64 bits */
+//      // ip->localen = (ip->localen + 7L) & (~7L);
+//      for (insno = 0, n = 0; insno <= engineState->maxinsno; insno++)
+//        if (engineState->instrtxtp[insno] == ip)  n++;   /* count insnos  */
+//
+//      lp = ip->inslist = (int32 *) mmalloc(csound, (int32)(n+1) * sizeof(int32));
+//      for (insno=0; insno <= engineState->maxinsno; insno++)
+//        if (engineState->instrtxtp[insno] == ip)
+//          *lp++ = insno;                                /* creat inslist */
+//      *lp = -1;                                         /*   & terminate */
+//      insno = *ip->inslist;                             /* get the first */
+//      while ((optxt = optxt->nxtop) !=  NULL) {
+//        TEXT    *ttp = &optxt->t;
+//        int     opnum = ttp->opnum;
+//        if (opnum == ENDIN || opnum == ENDOP) break;
+//        if (opnum == LABEL) continue;
+//        n = argCount(ttp->outArgs);
+//      }
+//    }
+//#endif
 /* this code has been moved to create_instrument0 */
 
     csound->tpidsr = TWOPI_F / csound->esr;

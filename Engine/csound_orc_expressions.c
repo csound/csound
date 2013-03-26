@@ -346,7 +346,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn)
     char *op, arg1, arg2, c, *outarg = NULL;
     TREE *anchor = NULL, *last;
     TREE * opTree;
-    //int opnum;
     OENTRIES* opentries;
     /* HANDLE SUB EXPRESSIONS */
 

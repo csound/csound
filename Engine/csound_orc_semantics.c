@@ -2271,10 +2271,8 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 {
     if (l == NULL || l->type == LABEL_TOKEN) return;
     {
-      int opnum = find_opcode_num_by_tree(csound, l->value->lexeme,
-                                          l->left, l->right);
-
-      OENTRY *ep = csound->opcodlst + opnum;
+      
+      OENTRY *ep = (OENTRY*)l->markup;
       int nreqd = 0;
       int incnt = tree_arg_list_count(l->right);
       TREE * temp;

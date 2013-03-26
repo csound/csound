@@ -3492,8 +3492,7 @@ int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
  */
 char *csoundGetOpcodeName(void *p)
 {
-    CSOUND *csound = (CSOUND*) ((OPDS*) p)->insdshead->csound;
-    return (char*) csound->opcodlst[((OPDS*) p)->optext->t.opnum].opname;
+    return ((OPDS*) p)->optext->t.oentry->opname;
 }
 
 /**
