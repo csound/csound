@@ -135,7 +135,7 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable;
-        
+
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
 
@@ -208,23 +208,23 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       if(err) {
         csound->Warning(csound, Str("Stopping on parser failure\n"));
         delete_tree(csound, astTree);
-          
+
         if (typeTable != NULL) {
           mfree(csound, typeTable);
         }
-          
+
         return NULL;
       }
 
       astTree = csound_orc_optimize(csound, astTree);
-        
+
       // small hack: use an extra node as head of tree list to hold the
       // typeTable, to be used during compilation
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
-      
-        
+
+
       return newRoot;
     }
 }
