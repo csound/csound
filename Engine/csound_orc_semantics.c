@@ -1565,44 +1565,51 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
-        typeTable->labelList = get_label_list(csound, current->right);
         current->markup = typeTable->localPool;
-
-        newRight = verify_tree(csound, current->right, typeTable);
-
-        mfree(csound, typeTable->labelList);
-
-        typeTable->localPool = typeTable->instr0LocalPool;
-        typeTable->labelList = NULL;
-
-        if (newRight == NULL) {
-          return NULL;
+        
+        if (current->right) {
+          typeTable->labelList = get_label_list(csound, current->right);
+          
+          newRight = verify_tree(csound, current->right, typeTable);
+          
+          mfree(csound, typeTable->labelList);
+          
+          typeTable->labelList = NULL;
+          
+          if (newRight == NULL) {
+            return NULL;
+          }
+          
+          current->right = newRight;
+          newRight = NULL;
         }
 
-        current->right = newRight;
-        newRight = NULL;
+        typeTable->localPool = typeTable->instr0LocalPool;
 
         break;
       case UDO_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
-
+              
         typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
-        typeTable->labelList = get_label_list(csound, current->right);
         current->markup = typeTable->localPool;
 
-        newRight = verify_tree(csound, current->right, typeTable);
-
-        mfree(csound, typeTable->labelList);
-
-        typeTable->localPool = typeTable->instr0LocalPool;
-
-        if (newRight == NULL) {
-          return NULL;
+        if (current->right != NULL) {
+            typeTable->labelList = get_label_list(csound, current->right);
+            
+            newRight = verify_tree(csound, current->right, typeTable);
+            
+            mfree(csound, typeTable->labelList);
+                        
+            if (newRight == NULL) {
+                return NULL;
+            }
+            
+            current->right = newRight;
+            newRight = NULL;
         }
 
-        current->right = newRight;
-        newRight = NULL;
-
+        typeTable->localPool = typeTable->instr0LocalPool;
+      
         break;
 
       case IF_TOKEN:
