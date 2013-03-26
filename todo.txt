@@ -19,7 +19,7 @@ Csound 6 TODO list
 
 3) test sample-accurate opcodes, or document those not working
   - check that kperf code can be used in multicore mode in csound.c
-  (possibly changes need to be propagated?) 
+  (possibly changes need to be propagated?) **mainly done**
 
 4) Use instrument-local structure rather than global (ksmps mainly)
 
@@ -35,7 +35,7 @@ reader opcodes need to accept them.
    *** lpanal analysis fixed *** 
   7a: fix _export programs
 
-8) syntax error checks (undef variables etc) need to be put back.
+8) syntax error checks (undef variables etc) need to be put back. *** DONE ***
 
 9) csoundInputMessage() is broken. *** FIXED ***
 
@@ -54,6 +54,7 @@ pvsfread.
   - other features?
 
 12) More user control over size of graphs (request from Menno)
+    Actually needs make graph drawing external via API/plugin
 
 13) Functions of more than 1 argument
   ** DONE ** actually works, and taninv2 and divz are also available
@@ -63,6 +64,7 @@ pvsfread.
 configure csound with typed system (that in turn can be inspected)
 **** DONE  new configuration functions  and struct ****
 
+15) Rewrl tvars
 
 rc1 aimed for 28 Feb
 
