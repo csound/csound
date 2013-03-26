@@ -111,10 +111,14 @@ def runTest():
 	["test_arrays_string2.csd", "test simple string-array assignment"],
 	
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
+	["test_empty_instr.csd", "tests that empty instruments do not cause compiler issues"],
+	["test_empty_udo.csd", "tests that empty UDOs do not cause compiler issues"],
 
 	["test_semantics_undefined_var.csd", "test undefined var", 1],
 	["test_invalid_expression.csd", "test expression", 1],
 	["test_invalid_ternary.csd", "test expression", 1],
+
+	["test_opcode_as_function.csd", "test expression"],
    ]
 
 

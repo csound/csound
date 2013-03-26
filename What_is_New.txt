@@ -215,6 +215,6 @@ set it to -1 and disallow all parallelism, but at least it is safe.
 
 All opcodes that touch audio should take note of sample-accurate code
 
-A nunver of previous API functions are removed; OpenFile and OpenFile2
+A number of previous API functions are removed; OpenFile and OpenFile2
 both replaced by new OpenFile2 with additional argument.
 

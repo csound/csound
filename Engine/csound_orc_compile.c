@@ -79,7 +79,7 @@ int pnum(char *s)        /* check a char string for pnum format  */
 /*   and return the pnum ( >= 0 )       */
 {                               /* else return -1                       */
     int n;
-    
+
     if (*s == 'p' || *s == 'P')
         if (sscanf(++s, "%d", &n))
             return(n);
@@ -388,7 +388,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     TREE *inargs, *outargs;
     OPTXT *optxt, *retOptxt = NULL;
     char *arg;
-    int n, nreqd;;
+    int n, nreqd;
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
 
@@ -419,6 +419,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
                         "create_opcode: Found node for opcode %s\n",
                         root->value->lexeme);
 
+      // FIXME THIS RESULT IS NOT USED
       nreqd = tree_arg_list_count(root->left);   /* outcount */
       /* replace opcode if needed */
 
@@ -1210,7 +1211,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     ENGINE_STATE *engineState;
     CS_VARIABLE* var;
     TYPE_TABLE* typeTable = (TYPE_TABLE*)current->markup;
-    
+
     current = current->next;
 
 
@@ -1237,7 +1238,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                             * sizeof(INSTRTXT*));
       prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
     }
-    
+
     var = typeTable->globalPool->head;
     while(var != NULL) {
       var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
@@ -1501,13 +1502,13 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
       ep = ttp->oentry;
-     
+
       if (ep == &csound->opcodlst[ENDIN]                    /*    (until ENDIN)      */
             || ep == &csound->opcodlst[ENDOP]) break;
       if (ep == &csound->opcodlst[LABEL]) {
         continue;
       }
-      
+
       if (O->odebug)
         csound->Message(csound, "%s args:\n", ep->opname);
       if ((outlist = ttp->outlist) == NULL || !outlist->count)
