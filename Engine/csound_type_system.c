@@ -136,17 +136,8 @@ CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name)
     CS_VARIABLE* current = pool->head;
     CS_VARIABLE* returnValue = NULL;
 
-//    char* simpleName = getVarSimpleName(csound, name);
-
     if(current != NULL && name != NULL) {
         while(current != NULL) {
-//          if (current->varSimpleName != NULL) {
-//              if(strcmp(current->varSimpleName, simpleName) == 0) {
-//                  returnValue = current;
-//                  break;
-//              }
-//          } else
-//              if (strcmp(current->varName, simpleName) == 0) {
           if (strcmp(current->varName, name) == 0) {
             returnValue = current;
             break;
@@ -155,7 +146,9 @@ CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name)
         }
     }
 
-//    mfree(csound, simpleName);
+    if (returnValue == NULL && pool->parent != NULL) {
+        returnValue = csoundFindVariableWithName(pool->parent, name);
+    }
 
     return returnValue;
 }
