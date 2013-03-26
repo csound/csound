@@ -640,7 +640,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
         if (current->type == '='
-            && strcmp(current->value->lexeme, "=.r") == 0) {
+            && strcmp(current->value->lexeme, "=") == 0) {
 
           //FIXME - perhaps should add check as it was in
           //constndx?  Not sure if necessary due to assumption
@@ -1100,7 +1100,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     }
     CS_VARIABLE* gVar = engineState->varPool->head;
     while(gVar != NULL) {
-      iCS_VARIABLE* var;
+      CS_VARIABLE* var;
       csound->Message(csound, " merging  %d) %s:%s\n", count,
                       gVar->varName, gVar->varType->varTypeName);
       var = csoundFindVariableWithName(current_state->varPool, gVar->varName);
