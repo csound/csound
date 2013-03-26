@@ -131,18 +131,19 @@ if(BUILD_PYTHON_OPCODES)
     make_plugin(py py/pythonopcodes.c ${PYTHON_LIBRARIES})
 endif()
 
+# this is broken at the moment
 #check_deps(BUILD_LUA_OPCODES LUA51_FOUND OPENMP_FOUND)
-if(BUILD_LUA_OPCODES)
-    if(LUA_LIBRARIES)
-        find_path(LUA_INCLUDE_DIR  lua.h
-            /usr/include/luajit-2.0
-            /usr/local/include/luajit-2.0)
-        include_directories(${LUA_INCLUDE_DIR})
-        make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
-        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
-        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
-        endif()
-endif()
+#if(BUILD_LUA_OPCODES)
+#    if(LUA_LIBRARIES)
+#        find_path(LUA_INCLUDE_DIR  lua.h
+#            /usr/include/luajit-2.0
+#            /usr/local/include/luajit-2.0)
+#        include_directories(${LUA_INCLUDE_DIR})
+#        make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
+#        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
+#        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
+#        endif()
+#endif()
 
 check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
 if(BUILD_WIIMOTE_OPCODES)
