@@ -80,7 +80,6 @@ void init_symbtab(CSOUND *csound)
      */
 
     for (ep = (OENTRY*) csound->opcodlst; ep < (OENTRY*) csound->oplstend; ep++) {
-      printf("opcode: %s \n",  ep->opname);
         if (ep->dsblksiz >= 0xfffb) {
           char * polyName;
           len = strlen(ep->opname) + 1;
