@@ -82,7 +82,7 @@ static int compress(CSOUND *csound, CMPRS *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
-    MYFLT scal = FL(32768.0)/csound->e0dbfs; 
+    MYFLT scal = FL(32768.0)/csound->e0dbfs;
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
@@ -278,4 +278,3 @@ static OENTRY compress_localops[] = {
 };
 
 LINKAGE_BUILTIN(compress_localops)
-

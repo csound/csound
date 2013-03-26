@@ -488,7 +488,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
 
-    csound->SetUtilSr(csound, (MYFLT)p->sr); 
+    csound->SetUtilSr(csound, (MYFLT)p->sr);
     csound->SetUtilNchnls(csound, Chans = p->nchanls);
 
     /* read header info */
@@ -1255,4 +1255,3 @@ int dnoise_init_(CSOUND *csound)
     }
     return retval;
 }
-

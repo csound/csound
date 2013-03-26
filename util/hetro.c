@@ -615,7 +615,7 @@ static int filedump(HET *thishet, CSOUND *csound)
       if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W, thishet->outfilnam,
                             NULL, "", CSFTYPE_HETRO, 0) == NULL)
         return quit(csound, Str("cannot create output file\n"));
-    
+
     if (thishet->newformat)
       fprintf(ff,"HETRO %d\n", thishet->hmax);        /* Header */
     else {
@@ -707,7 +707,7 @@ static int filedump(HET *thishet, CSOUND *csound)
         for (i=0; i<(mp - magout); i++)
           fprintf(ff,"%hd%c", magout[i], i==(mp-magout-1)?'\n':',');
       }
-      else { 
+      else {
         if (UNLIKELY(write(ofd, (char *)magout, nbytes)<0))
           csound->Message(csound, Str("Write failure\n"));
       }
@@ -728,7 +728,7 @@ static int filedump(HET *thishet, CSOUND *csound)
           fprintf(ff,"%hd%c", frqout[i], i==(fp-frqout-1)?'\n':',');
         fprintf(ff,"\n");
       }
-      else { 
+      else {
         if (UNLIKELY(write(ofd, (char *)frqout, nbytes)<0))
           csound->Message(csound, Str("Write failure\n"));
       }
@@ -893,4 +893,3 @@ int hetro_init_(CSOUND *csound)
     }
     return retval;
 }
-

@@ -559,9 +559,9 @@ static void csoundapi_get_channel(t_csoundapi *x, t_symbol *s,
       if(csoundGetChannelPtr(p,&pval,chs,
                              CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
           val = *pval;
-      SETFLOAT(&at[1], (t_float) val); 
-      SETSYMBOL(&at[0], gensym((char *) chs)); 
-      outlet_list(x->ctlout, gensym("list"), 2, at); 
+      SETFLOAT(&at[1], (t_float) val);
+      SETSYMBOL(&at[0], gensym((char *) chs));
+      outlet_list(x->ctlout, gensym("list"), 2, at);
     }
 }
 

@@ -347,7 +347,7 @@ namespace csound
      */
     virtual void tieOverlappingNotes(bool considerInstrumentNumber = false);
     /**
-     * Confirm pitches in this score to the closest pitch in the indicated 
+     * Confirm pitches in this score to the closest pitch in the indicated
      * system of equal temperament.
      */
     virtual void temper(double tonesPerOctave = 12.0);

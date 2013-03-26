@@ -153,14 +153,14 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
 static int send_send_k(CSOUND *csound, SOCKSEND *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-    
+
     int     buffersize = p->bsize;
     MYFLT   *ksig = p->asig;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
     int     ff = p->ff;
-      
-       
+
+
       if (p->wp == buffersize) {
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
@@ -180,7 +180,7 @@ static int send_send_k(CSOUND *csound, SOCKSEND *p)
         outs[p->wp] = ch.bensht;
       }
       else out[p->wp++] = *ksig;
-   
+
     return OK;
 }
 

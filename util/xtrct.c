@@ -97,7 +97,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     char        c, *s;
     SF_INFO     sfinfo;
     int         debug   = 0;
-    int         Omsg; 
+    int         Omsg;
     XTRC        xtrc;
 
     csound->GetOParms(csound, &O);
@@ -278,7 +278,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     if (O.outfilename == NULL)
       O.outfilename = "test";
 
-    csound->SetUtilSr(csound, (MYFLT)xtrc.p->sr); 
+    csound->SetUtilSr(csound, (MYFLT)xtrc.p->sr);
     csound->SetUtilNchnls(csound, xtrc.outputs);
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.frames = -1;
@@ -373,4 +373,3 @@ int xtrct_init_(CSOUND *csound)
     }
     return retval;
 }
-
