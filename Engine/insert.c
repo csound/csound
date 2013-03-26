@@ -966,7 +966,7 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
     /* by default all inputs are i-rate mapped to p-fields */
-    if (UNLIKELY(p->INOCOUNT > 
+    if (UNLIKELY(p->INOCOUNT >
                  (unsigned int)(csound->engineState.instrtxtp[instno]->pmax + 1)))
       return csoundInitError(csound, Str("subinstr: too many p-fields"));
     for (n = 1; (unsigned int) n < p->INOCOUNT; n++)
@@ -2059,4 +2059,3 @@ void *init_pass_thread(void *p){
   }
   return NULL;
 }
-
