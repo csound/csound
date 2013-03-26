@@ -46,7 +46,7 @@ extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 #define YY_EXTRA_TYPE  SCORE_PARM *
 #define PARM    yyget_extra(yyscanner)
 
-#define YY_USER_INIT 
+#define YY_USER_INIT
 
 struct yyguts_t;
 static SCOTOKEN *do_at(CSOUND *, int, struct yyguts_t*);

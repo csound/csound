@@ -787,23 +787,33 @@ ifac      : ident               { $$ = $1; }
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error    { $$ = NULL; }
           | '(' error         { $$ = NULL; }
-          | function '(' exprlist ')'
+          | ident '(' exprlist ')'
             {
                 $1->left = NULL;
                 $1->right = $3;
+		$1->type = T_FUNCTION;
 
                 $$ = $1;
             }
-          | function '(' error
+          | opcode '(' exprlist ')'
+            {
+                $1->left = NULL;
+                $1->right = $3;
+		$1->type = T_FUNCTION;
+
+                $$ = $1;
+            }
+          | ident '(' error
+          | opcode '(' error
           ;
 
-function  : T_FUNCTION  { 
-             csound->DebugMsg(csound,"FUNCTION ans=%p, token=%p %p\n",
-                    $1, ((ORCTOKEN *)$1)->value);
+//function  : T_FUNCTION  { 
+//            csound->DebugMsg(csound,"FUNCTION ans=%p, token=%p %p\n",
+//                    $1, ((ORCTOKEN *)$1)->value);
     //                if ((ORCTOKEN *)$1->value != 0)
-             csp_orc_sa_interlocksf(csound, ((ORCTOKEN *)$1)->value);
-             $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, (ORCTOKEN *)$1); 
-                }
+//             csp_orc_sa_interlocksf(csound, ((ORCTOKEN *)$1)->value);
+//             $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, (ORCTOKEN *)$1); 
+//                }
 
 /*texp      : texp '+' texp  { $$ = make_node(csound, LINE,LOCN, T_TADD, $1, $3); }
           | texp '+' error
