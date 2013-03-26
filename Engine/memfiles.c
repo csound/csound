@@ -44,7 +44,7 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
     char buffer[10];
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_HETRO, 0, 0);
-    all = (char *)mmalloc(csound, (size_t) length); 
+    all = (char *)mmalloc(csound, (size_t) length);
     for (i=0; i<6; i++) fgetc(f); /* Skip HETRO */
     fgets(buffer, 10, f);         /* number of partials */
     x = atoi(buffer);
@@ -78,7 +78,7 @@ static MYFLT read_ieee(FILE* f, int *end)
     double x;
     char *p = fgets(buff, 120, f);
     if (p==NULL || feof(f)) {
-      *end = 1; 
+      *end = 1;
       return FL(0.0);
     }
     x = strtod(buff, NULL);
@@ -129,7 +129,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
 
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_CVANAL, 0, 0);
-    all = (char *)mmalloc(csound, (size_t) length); 
+    all = (char *)mmalloc(csound, (size_t) length);
     p = fgets(buff, 120, f); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
     p = fgets(buff, 120, f);
@@ -182,7 +182,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
 
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_LPC, 0, 0);
-    all = (char *)mmalloc(csound, (size_t) length); 
+    all = (char *)mmalloc(csound, (size_t) length);
     for (i=0; i<6; i++) fgetc(f); /* Skip LPANAL */
     fscanf(f, "%d %d %d %d\n",
            &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals);

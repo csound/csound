@@ -53,9 +53,9 @@ namespace csound
       }
   }
 
-  void Rescale::produceOrTransform(Score &score_, 
-				   size_t beginAt, 
-				   size_t endAt, 
+  void Rescale::produceOrTransform(Score &score_,
+				   size_t beginAt,
+				   size_t endAt,
 				   const Eigen::MatrixXd &compositeCoordinates)
   {
     for(int i = 0; i < Event::ELEMENT_COUNT; i++)

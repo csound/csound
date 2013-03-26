@@ -47,7 +47,7 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
     switch(root->right->type) {
         case INTEGER_TOKEN:
         case NUMBER_TOKEN:       /* i(num)    -> num      */
-            //        FIXME - reinstate optimization after implementing get_type(varname)
+            // FIXME - reinstate optimization after implementing get_type(varname)
             //    case T_IDENT_I:          /* i(ivar)   -> ivar     */
             //    case T_IDENT_GI:         /* i(givar)  -> givar    */
             //    case T_IDENT_P:          /* i(pN)     -> pN       */
@@ -65,9 +65,11 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
             break;
         default:                 /* i(A op B) -> i(A) op i(B) */
             if(root->right->left != NULL)
-                root->right->left = create_fun_token(csound, root->right->left, "i");
+                root->right->left = create_fun_token(csound,
+                                                     root->right->left, "i");
             if(root->right->right != NULL)
-                root->right->right = create_fun_token(csound, root->right->right, "i");
+                root->right->right = create_fun_token(csound,
+                                                      root->right->right, "i");
             root->right->next = root->next;
             root = root->right;
             break;
@@ -119,11 +121,14 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
                  root->right->type == NUMBER_TOKEN)) {
                     //print_tree(csound, "numerical case\n", root);
                     lval = (root->left->type == INTEGER_TOKEN ?
-                            (double)root->left->value->value :root->left->value->fvalue);
+                            (double)root->left->value->value :
+                            root->left->value->fvalue);
                     rval = (root->right->type == INTEGER_TOKEN ?
-                            (double)root->right->value->value :root->right->value->fvalue);
+                            (double)root->right->value->value :
+                            root->right->value->fvalue);
                     ans = root->left;
-                    /* **** Something wrong here -- subtraction confuses memory **** */
+                    /* **** Something wrong here --
+                       subtraction confuses memory **** */
                     switch (root->type) {
                         case '+':
                             ans->type = ans->value->type = NUMBER_TOKEN;
@@ -191,7 +196,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
                 case S_UMINUS:
                     /*print_tree(csound, "root", root);*/
                     ans = root->right;
-                    ans->value->fvalue = 
+                    ans->value->fvalue =
                     -(ans->type==INTEGER_TOKEN ? (double)ans->value->value
                       : ans->value->fvalue);
                     ans->value->lexeme =
@@ -225,6 +230,3 @@ TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
     }
     return original;
 }
-
-
-

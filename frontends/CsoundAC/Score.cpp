@@ -594,7 +594,7 @@ double Score::getDuration()
         const Event &event = at(i);
         if (i == 0) {
             start = event.getTime();
-            end = event.getOffTime();            
+            end = event.getOffTime();
         } else {
             if (event.getTime() < start) {
                 start = event.getTime();
@@ -1281,4 +1281,3 @@ void Score::temper(double tonesPerOctave)
     }
 }
 }
-

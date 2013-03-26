@@ -2934,7 +2934,7 @@ int printksset(CSOUND *csound, PRINTKS *p)
                                Str("printks param 1 was not a \"quoted string\""));
     }
     else {
-      sarg = (p->XSTRCODE ? (char*) p->ifilcod : 
+      sarg = (p->XSTRCODE ? (char*) p->ifilcod :
                             get_arg_string(csound, *p->ifilcod));
       memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
       sdest = p->txtstring;
@@ -3333,4 +3333,3 @@ int outz(CSOUND *csound, IOZ *p)
  err2:
     return csound->PerfError(csound, Str("outz index < 0. No output."));
 }
-

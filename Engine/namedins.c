@@ -156,7 +156,7 @@ int32 named_instr_find(CSOUND *csound, char *s)
     inm = ((INSTRNAME**) csound->engineState.instrumentNames)[h];
     while (inm) {
       if (!sCmp(inm->name, s)) {
-        
+
         return (int32) inm->instno;
       }
       inm = inm->prv;
@@ -173,7 +173,7 @@ int32 named_instr_find(CSOUND *csound, char *s)
 
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno, ENGINE_STATE *engineState)
 {
-    INSTRNAME   **inm_base = 
+    INSTRNAME   **inm_base =
       (INSTRNAME**) engineState->instrumentNames, *inm, *inm2;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
     printf("hash of %s is %d\n", s, h);
@@ -457,7 +457,7 @@ int find_opcode(CSOUND *csound, char *opname)
     /* now find entry in opcode chain */
     n = ((int*) csound->opcode_list)[h];
     while (n) {
-     
+
       if (!sCmp(opname, csound->opcodlst[n].opname))
         return n;
       n = csound->opcodlst[n].prvnum;
@@ -1051,7 +1051,7 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 /* returns non-zero if 'fname' (not full path) */
 /* is marked for deferred loading */
 
-#if 0 
+#if 0
 int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
 {
 #if !(defined(LINUX) || defined(__unix__) || defined(__MACH__))

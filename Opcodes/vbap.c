@@ -24,7 +24,7 @@
 /* vbap.c
 
 assisting functions for VBAP
-functions for loudspeaker table initialization 
+functions for loudspeaker table initialization
 Re-written to take flexible number of outputs by JPff 2012 */
 
 
@@ -555,7 +555,7 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
     }
 }
 
-static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count, 
+static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
                             MYFLT **f, int layout)
      /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
         according to current dimension. The inversion matrices are
@@ -686,7 +686,7 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     /*     printf("%f ", ls_table[k]);  */
     /*     k++; */
     /*   } */
-    /* printf("\n\n"); */ 
+    /* printf("\n\n"); */
     }
 }
 
@@ -744,7 +744,7 @@ static void choose_ls_tuplets(CSOUND *csound,
                           lss[sorted_lss[ls_amount-1]].angles.azi*FL(180.0)/PI_F,
                           lss[sorted_lss[0]].angles.azi*FL(180.0)/PI_F);
 
-    if (UNLIKELY(amount==0)) 
+    if (UNLIKELY(amount==0))
       csound->InitError(csound, Str("insufficient valid speakers"));
 
 #if 0
@@ -790,9 +790,9 @@ static void choose_ls_tuplets(CSOUND *csound,
       }
       csound->Warning(csound, "\n");
 
-    csound->Message(csound, "\nMatrix "); 
-      for (j=0; j < 4; j++) { 
-      csound->Message(csound, "%f ", ls_table[k]); 
+    csound->Message(csound, "\nMatrix ");
+      for (j=0; j < 4; j++) {
+      csound->Message(csound, "%f ", ls_table[k]);
         k++;
       }
    csound->Message(csound, "\n\n");
@@ -917,16 +917,16 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 
 /* static */
 static OENTRY vbap_localops[] = {
-  { "vbap",      S(VBAP),           
+  { "vbap",      S(VBAP),
     TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOOo",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap        },
-  { "vbap4",      S(VBAP),           
+  { "vbap4",      S(VBAP),
     TR|_QQ, 5,  "aaaa",  "akOOo", (SUBR) vbap_init, (SUBR) NULL, (SUBR) vbap },
-  { "vbap8",      S(VBAP),           
+  { "vbap8",      S(VBAP),
     TR|_QQ, 5,  "aaaaaaaa", "akOOo",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap        },
-  { "vbap16",      S(VBAP),           
+  { "vbap16",      S(VBAP),
     TR|_QQ, 5,  "aaaaaaaaaaaaaaaa", "akOOo",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap        },
   { "vbapg",      S(VBAP1),             TR, 3,
@@ -936,7 +936,7 @@ static OENTRY vbap_localops[] = {
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
   { "vbaplsinit", S(VBAP_LS_INIT), TR, 1, "", "iioooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },
-  { "vbapmove", S(VBAP_MOVING),   
+  { "vbapmove", S(VBAP_MOVING),
     TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "aiiim",
     (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
@@ -947,13 +947,12 @@ static OENTRY vbap_localops[] = {
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  },
   { "vbap4move", S(VBAP_MOVING),   TR, 5,  "aaaa",
    "aiiim",
-    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving }, 
-  { "vbap8move", S(VBAP_MOVING),   
+    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
+  { "vbap8move", S(VBAP_MOVING),
     TR, 5,  "aaaaaaaa",
     "aiiim",
-    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving } 
- 
+    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving }
+
 };
 
 LINKAGE_BUILTIN(vbap_localops)
-

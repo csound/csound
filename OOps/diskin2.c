@@ -30,7 +30,7 @@ typedef struct DISKIN_INST_ {
   CSOUND *csound;
   DISKIN2 *diskin;
   struct DISKIN_INST_ *nxt;
-} DISKIN_INST; 
+} DISKIN_INST;
 
 
 static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound, DISKIN2 *p, int bufReadPos)
@@ -67,7 +67,7 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound, DISKIN2 *p, int bufR
           nsmps = (int32) p->bufSize;
         nsmps *= (int32) p->nChannels;
         sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
-        /* convert sample count to mono samples and read file */  
+        /* convert sample count to mono samples and read file */
         i = (int)sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
@@ -86,7 +86,7 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound, DISKIN2 *p, int bufR
 static inline void diskin2_get_sample(CSOUND *csound, DISKIN2 *p, int32 fPos, int n, MYFLT scl)
 {
     int  bufPos, i;
- 
+
     if (p->wrapMode) {
       if (UNLIKELY(fPos >= p->fileLength)){
         fPos -= p->fileLength;
@@ -102,8 +102,8 @@ static inline void diskin2_get_sample(CSOUND *csound, DISKIN2 *p, int32 fPos, in
       /* recalculate buffer position */
       bufPos = (int)(fPos - p->bufStartPos);
     }
-   
-   if(UNLIKELY(p->aOut_buf == NULL)){ 
+
+   if(UNLIKELY(p->aOut_buf == NULL)){
     MYFLT **aOut = p->aOut;
     /* copy all channels from buffer */
     if (p->nChannels == 1) {
@@ -125,7 +125,7 @@ static inline void diskin2_get_sample(CSOUND *csound, DISKIN2 *p, int32 fPos, in
     }
    } else{
     MYFLT *aOut = p->aOut_buf;
-    int chans = p->nChannels; 
+    int chans = p->nChannels;
     /* copy all channels from buffer */
     if (chans == 1) {
       aOut[n] += scl * p->buf[bufPos];
@@ -239,7 +239,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     void    *fd;
     SF_INFO sfinfo;
     int     n;
-   
+
     /* check number of channels */
     p->nChannels = (int)(p->OUTOCOUNT);
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN)) {
@@ -274,7 +274,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     memset(&(p->fdch), 0, sizeof(FDCH));
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
-    
+
     /* check number of channels in file (must equal the number of outargs) */
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return csound->InitError(csound,
@@ -285,7 +285,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     if (p->initDone && *(p->iSkipInit) != FL(0.0))
       return OK;
 
-     
+
     /* interpolation window size: valid settings are 1 (no interpolation), */
     /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
     /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
@@ -341,10 +341,10 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     p->prvBuf = (MYFLT*) p->buf + (int)n;
 
     memset(p->buf, 0, n*sizeof(MYFLT));
-    
+
     // create circular buffer, on fail set mode to synchronous
     if(csound->realtime_audio_flag==1 && *p->forceSync==0 &&
-       (p->cb = csound->CreateCircularBuffer(csound, 
+       (p->cb = csound->CreateCircularBuffer(csound,
                                              p->bufSize*p->nChannels*2)) != NULL){
       DISKIN_INST **top, *current;
       int *start;
@@ -360,11 +360,11 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
                                                            "DISKIN_INST")) == NULL){
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
-        *top = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));   
+        *top = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
         csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(pthread_t));
         csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int));
         current = *top;
-      } 
+      }
       else {
         current = *top;
         while(current->nxt != NULL) { /* find next empty slot in chain */
@@ -375,12 +375,12 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
       }
       current->csound = csound;
       current->diskin = p;
-      current->nxt = NULL;  
-      
+      current->nxt = NULL;
+
       if( *(start = csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START")) == 0) {
         void *diskin_io_thread(void *p);
         *start = 1;
-        pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD"), NULL, diskin_io_thread, *top);      
+        pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD"), NULL, diskin_io_thread, *top);
       }
       csound->RegisterDeinitCallback(csound, p, diskin2_async_deinit);
       p->async = 1;
@@ -394,7 +394,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
                         (int)sfinfo.samplerate, (int)sfinfo.channels,
                         (int32) sfinfo.frames);
       }
-    } 
+    }
     else {
       p->aOut_buf = NULL;
       p->aOut_bufsize = 0;
@@ -409,7 +409,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
                         (int32) sfinfo.frames);
       }
     }
-    
+
     /* done initialisation */
     p->initDone = 1;
     return OK;
@@ -425,13 +425,13 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
    while(current->diskin != (DISKIN2 *)p) {
         prv = current;
         current = current->nxt;
-   }  
+   }
    if(prv == NULL) *top = current->nxt;
    else prv->nxt = current->nxt;
-      
-   if(*top == NULL) { 
+
+   if(*top == NULL) {
      int *start; pthread_t *pt;
-     
+
      start = (int *) csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START");
      *start = 0;
      pt = (pthread_t *) csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD");
@@ -441,8 +441,8 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START");
      csound->DestroyGlobalVariable(csound, "DISKIN_INST");
    }
-   mfree(csound, current); 
-   csound->FreeCircularBuffer(csound, ((DISKIN2 *)p)->cb);   
+   mfree(csound, current);
+   csound->FreeCircularBuffer(csound, ((DISKIN2 *)p)->cb);
 
    return OK;
 }
@@ -651,7 +651,7 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 
 int diskin_file_read(CSOUND *csound, DISKIN2 *p)
 {
-     /* nsmps is bufsize in frames */ 
+     /* nsmps is bufsize in frames */
     int nsmps = p->aOut_bufsize - p->h.insdshead->ksmps_offset;
     int i, nn;
     int chn, chans = p->nChannels;
@@ -660,7 +660,7 @@ int diskin_file_read(CSOUND *csound, DISKIN2 *p)
     int32   ndx;
     int     wsized2, warp;
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
-    
+
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if(!p->initDone && !p->iSkipInit){
       return csound->PerfError(csound, Str("diskin2: not initialised"));
@@ -859,13 +859,13 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
     if(!p->initDone && !p->iSkipInit){
       return csound->PerfError(csound, Str("diskin2: not initialised"));
-    } 
+    }
     for (nn = offset; nn < nsmps; nn++){
-      
+
     for (chn = 0; chn < chans; chn++) {
       //int i =0;
       //do {
-      // i = 
+      // i =
        csound->ReadCircularBuffer(csound, cb, &samp, 1);
         //} while(i==0);
         p->aOut[chn][nn] = csound->e0dbfs*samp;
@@ -916,7 +916,7 @@ static void soundin_read_buffer(CSOUND *csound, SOUNDIN_ *p, int bufReadPos)
          sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
          i = (int) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
         }
-        else 
+        else
          i = (int) csound->ReadAsync(csound, p->fdch.fd, p->buf, (sf_count_t) nsmps);
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
@@ -1061,7 +1061,7 @@ int soundin(CSOUND *csound, SOUNDIN_ *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps=CS_KSMPS, bufPos;
     int i;
-     
+
     if (UNLIKELY(p->fdch.fd == NULL)) {
       return csound->PerfError(csound, Str("soundin: not initialised"));
     }
@@ -1102,4 +1102,3 @@ int soundin(CSOUND *csound, SOUNDIN_ *p)
     }
     return OK;
 }
-

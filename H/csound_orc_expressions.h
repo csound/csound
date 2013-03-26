@@ -1,55 +1,42 @@
 /*
- csanalye.c:
-
- Copyright (C) 2013 Steven Yi
-
+ csound_orc_expressions.h:
+ 
+ Copyright (C) 2013
+ Steven Yi
+ 
  This file is part of Csound.
-
+ 
  The Csound Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
-
+ 
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
-
+ 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  02111-1307 USA
  */
 
-#include "csound.h"
+#ifndef CSOUND_ORC_EXPRESSION_H
+#define CSOUND_ORC_EXPRESSION_H 1
 
-extern void     print_tree(CSOUND *, char *, TREE *);
+#include "csound_orc.h"
 
-void header() {
-    printf("csanalyze - developer utility program to analyze Csound's compiler phases\n\n");
-}
+CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 
-void usage() {
+int is_expression_node(TREE *node);
+int is_boolean_expression_node(TREE *node);
+int is_statement_expansion_required(TREE* root);
 
-}
+void handle_optional_args(CSOUND *csound, TREE *l);
 
+TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
+TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
+TREE* expand_statement(CSOUND* csound, TREE* current);
 
-
-int main(int argc, char** argv) {
-
-    header();
-
-    if(argc != 2) {
-        usage();
-        return 1;
-    }
-
-    printf("Input File: %s", argv[1]);
-
-//    csoundInitialize(&argc, &argv, 0);
-    CSOUND* csound = csoundCreate(NULL);
-
-
-
-    return 0;
-}
+#endif
