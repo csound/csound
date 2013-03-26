@@ -91,7 +91,7 @@ OENTRY opcodlst_1[] = {
   { "endop",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
   { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
   { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL, 0 },
-    
+
     /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
     /* and setksmps */
     { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
@@ -110,7 +110,7 @@ OENTRY opcodlst_1[] = {
     { "##xout64",  S(XOUT_HIGH),0, 1,  "",                 "N", xoutset, NULL, NULL },
     { "##xout256", S(XOUT_MAX),0,  1,  "",                 "N", xoutset, NULL, NULL },
     { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
-    
+
   { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL, 0 },
   { "massign",S(MASSIGN), 0,1,      "",     "iTp",massign, NULL, NULL, NULL, 0 },
   { "turnon", S(TURNON),  0,1,      "",     "To", turnon, NULL, NULL, NULL, 0 },
