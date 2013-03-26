@@ -74,6 +74,7 @@ extern "C" {
     typedef struct csvarpool {
         CS_VARIABLE* head;
         int poolSize;
+        struct csvarpool* parent;
     } CS_VAR_POOL;
 
     PUBLIC char* getVarSimpleName(CSOUND* csound, const char* name);
