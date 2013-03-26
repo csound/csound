@@ -164,7 +164,7 @@ static int tabmult(CSOUND *csound, TABARITH *p)
     if (l->size<size) size = l->size;
     if (r->size<size) size = r->size;
     if (ans->size<size) size = ans->size;
-    if (ans->data==NULL) 
+    if (ans->data==NULL)
     for (i=0; i<size; i++)
       ans->data[i] = l->data[i] * r->data[i];
     return OK;
@@ -565,7 +565,7 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
     /*   if(!strcmp(func, opc->opname)) break; */
 
     /* if (UNLIKELY(opc == csound->oplstend)) */
-    /*   return csound->PerfError(csound, Str("%s not found, %d opcodes"), 
+    /*   return csound->PerfError(csound, Str("%s not found, %d opcodes"),
                                   func, n); */
 
     for (n=0; n < size; n++) {

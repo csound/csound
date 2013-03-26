@@ -287,23 +287,23 @@ static int outfile(CSOUND *csound, OUTFILE *p)
       }
     }
     else {
-      for (j = offset, k = p->buf_pos; j < nsmps; j++) 
+      for (j = offset, k = p->buf_pos; j < nsmps; j++)
         for (i = 0; i < nargs; i++)
           buf[k++] = p->argums[i][j] * p->scaleFac;
       p->buf_pos = k;
       if (p->buf_pos >= p->guard_pos) {
-        
+
         //#ifndef USE_DOUBLE
         //sf_write_float(p->f.sf, buf, p->buf_pos);
         //#else
         //sf_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
         if(p->f.async==1)
-        csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos); 
+        csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
         else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
         p->buf_pos = 0;
        }
-      
+
     }
     return OK;
 }
@@ -342,7 +342,7 @@ static const int fout_format_table[50] = {
 static int fout_flush_callback(CSOUND *csound, void *p_)
 {
     OUTFILE            *p = (OUTFILE*) p_;
- 
+
     if (p->f.sf != NULL && p->buf_pos > 0) {
       //#ifndef USE_DOUBLE
       //sf_write_float(p->f.sf, (float*) p->buf.auxp, p->buf_pos);
@@ -350,7 +350,7 @@ static int fout_flush_callback(CSOUND *csound, void *p_)
       //sf_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
       //#endif
     if(p->f.async == 1)
-      csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos); 
+      csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
     else sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
     }
     return OK;
@@ -394,8 +394,8 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-     
-      
+
+
     if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
       p->scaleFac = csound->dbfs_to_float;
     else
@@ -420,7 +420,7 @@ static int koutfile(CSOUND *csound, KOUTFILE *p)
         //#else
         //sf_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
-        csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos); 
+        csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
       p->buf_pos = 0;
     }
     return OK;
@@ -462,7 +462,7 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    
+
 
     if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
       p->scaleFac = csound->dbfs_to_float;
@@ -725,9 +725,9 @@ static int infile_set(CSOUND *csound, INFILE *p)
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);
-   
 
-   
+
+
     p->guard_pos = p->frames * p->nargs;
     p->buf_pos = p->guard_pos;
 
@@ -738,7 +738,7 @@ static int infile_set(CSOUND *csound, INFILE *p)
 }
 
 static int infile_act(CSOUND *csound, INFILE *p)
-{    
+{
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, k, j = offset;
@@ -803,7 +803,7 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
     else
       sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
     sfinfo.channels = p->INOCOUNT - 3;
-    
+
     p->nargs = p->INOCOUNT - 3;
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
@@ -1219,10 +1219,10 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
 }
 
 #define S(x)    sizeof(x)
-static OENTRY localops[] = { 
-    {"fprints",    S(FPRINTF),      0, 1,  "",     "TSM", 
+static OENTRY localops[] = {
+    {"fprints",    S(FPRINTF),      0, 1,  "",     "TSM",
         (SUBR) fprintf_i, (SUBR) NULL,(SUBR) NULL, NULL, 0 },
-    { "fprintks",   S(FPRINTF),    WR, 3,  "",     "TSM", 
+    { "fprintks",   S(FPRINTF),    WR, 3,  "",     "TSM",
         (SUBR) fprintf_set,     (SUBR) fprintf_k,   (SUBR) NULL, NULL, 0         },
     { "vincr",      S(INCR),        0, 4,  "",     "aa",
         (SUBR) NULL,            (SUBR) NULL,        (SUBR) incr, NULL, 0         },
@@ -1253,4 +1253,3 @@ int fout_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

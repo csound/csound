@@ -56,7 +56,7 @@ int ifschedule(CSOUND *csound, WSCHED *p)
     return OK;
 }
 
-int kschedule(CSOUND *csound, WSCHED *p) 
+int kschedule(CSOUND *csound, WSCHED *p)
 {
     if (p->todo && *p->trigger != FL(0.0)) {
       LINEVENT pp;

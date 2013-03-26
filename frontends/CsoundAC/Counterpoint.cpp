@@ -87,7 +87,7 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
   std::fstream stream(filename.c_str(), std::ios::in | std::ios::out | std::ios::trunc);
   int totalnotes = 0;
   fprintf(stderr, "\n; %s\n", filename.c_str());
-  for(voice = 0; voice < Ctrpt.cols(); voice++) 
+  for(voice = 0; voice < Ctrpt.cols(); voice++)
     {
       time = 0;
       for(size_t note = 1; note <= size_t(TotalNotes[voice]); note++)
@@ -1397,5 +1397,3 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
     data[2]=Fits[2];
     for (v=1;v<=v1;v++) data[2+v]=TotalNotes[v];
   }
-
-

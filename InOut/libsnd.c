@@ -577,13 +577,13 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       case TYP_W64:
       case TYP_WAVEX:
         O->outfilename = "test.wav";
-        break;  
+        break;
       case TYP_AIFF:
         O->outfilename = "test.aif";
-        break;  
+        break;
       case TYP_AU:
         O->outfilename = "test.au";
-        break;   
+        break;
       /* case TYP_PAF: */
       /*   O->outfilename = ""; */
       /*   break;   */
@@ -624,13 +624,13 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         break;
       case TYP_FLAC:
         O->outfilename = "test.flac";
-        break; 
+        break;
       case TYP_CAF:
         O->outfilename = "test.caf";
         break;
       case TYP_OGG:
         O->outfilename = "test.ogg";
-        break;  
+        break;
       /* case TYP_MPC2K: */
       /*   O->outfilename = ""; */
       /*   break; */
@@ -1017,4 +1017,3 @@ PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *csound)
 {
     return STA(outbuf);
 }
-

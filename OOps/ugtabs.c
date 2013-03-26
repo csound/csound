@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csoundCore.h" 
+#include "csoundCore.h"
 #include "ugtabs.h"
 #include <math.h>
 
@@ -42,7 +42,7 @@ int tabler_init(CSOUND *csound, TABL *p){
       p->mul = len;
     else
       p->mul = 1;
-  
+
   ndx = FLOOR((*p->ndx + *p->offset)*p->mul);
   if(*p->wrap) {
     if(p->np2){
@@ -54,12 +54,12 @@ int tabler_init(CSOUND *csound, TABL *p){
     if(UNLIKELY(ndx >= len)) ndx = len - 1;
     else if (UNLIKELY(ndx < 0)) ndx = 0;
   }
-  *p->sig = p->ftp->ftable[ndx]; 
+  *p->sig = p->ftp->ftable[ndx];
   return OK;
 }
 
 int tabl_setup(CSOUND *csound, TABL *p){
-   
+
    if (UNLIKELY(p->XOUTCODE  && p->XINCODE != p->XOUTCODE)) {
       if (csound->GetKsmps(csound) != 1)
         return csound->InitError(csound, Str("table: index type inconsistent with output"));
@@ -72,7 +72,7 @@ int tabl_setup(CSOUND *csound, TABL *p){
   if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
   p->iwrap = (int32) *p->wrap;
   return OK;
@@ -94,7 +94,7 @@ int tabler_kontrol(CSOUND *csound, TABL *p){
     if(UNLIKELY(ndx >= len)) ndx = len - 1;
     else if (UNLIKELY(ndx < 0)) ndx = 0;
   }
-  *p->sig = p->ftp->ftable[ndx]; 
+  *p->sig = p->ftp->ftable[ndx];
   return OK;
 }
 
@@ -118,7 +118,7 @@ int tabler_audio(CSOUND *csound, TABL *p)
       nsmps -= early;
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
-  
+
     for(n=koffset; n < nsmps; n++){
       ndx = MYFLOOR((ndx_f[n] + offset)*mul);
       if(iwrap) {
@@ -131,7 +131,7 @@ int tabler_audio(CSOUND *csound, TABL *p)
     if(UNLIKELY(ndx >= len)) ndx = len - 1;
     else if (UNLIKELY(ndx < 0)) ndx = 0;
       }
-      p->sig[n] = func[ndx]; 
+      p->sig[n] = func[ndx];
     }
     return OK;
 }
@@ -153,7 +153,7 @@ int tableir_init(CSOUND *csound, TABL *p){
       p->mul = len;
     else
       p->mul = 1;
- 
+
   tmp = (*p->ndx + *p->offset)*p->mul;
   ndx = MYFLOOR(tmp);
   frac = tmp - ndx;
@@ -186,7 +186,7 @@ int tableir_kontrol(CSOUND *csound, TABL *p){
   tmp = (*p->ndx + *p->offset)*p->mul;
   ndx = MYFLOOR(tmp);
   frac = tmp - ndx;
-  
+
   if(p->iwrap) {
     if(p->np2){
       while(ndx >= len) ndx -= len;
@@ -215,13 +215,13 @@ int tableir_audio(CSOUND *csound, TABL *p)
     int32 iwrap = p->iwrap;
     uint32_t    koffset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
-  
+
     if (UNLIKELY(koffset)) memset(sig, '\0', koffset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
-  
+
     for (n=koffset; n < nsmps; n++){
       MYFLT x1, x2;
       tmp = (ndx_f[n] + offset)*mul;
@@ -239,7 +239,7 @@ int tableir_audio(CSOUND *csound, TABL *p)
       }
       x1 = func[ndx];
       x2 = func[ndx+1];
-      p->sig[n] = x1 + (x2 - x1)*frac; 
+      p->sig[n] = x1 + (x2 - x1)*frac;
     }
     return OK;
 }
@@ -251,20 +251,20 @@ int table3r_init(CSOUND *csound, TABL *p){
   MYFLT tmp, frac;
   MYFLT x0, x1, x2, x3;
   MYFLT fracub, fracsq, temp1;
-  MYFLT *func; 
+  MYFLT *func;
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->InitError(csound, Str("table: could not find ftable %d"), (int) *p->ftable);
   mask = p->ftp->lenmask;
   p->np2 = mask ? 0 : 1;
   len = p->ftp->flen;
-  func  =p->ftp->ftable; 
+  func  =p->ftp->ftable;
 
   if (*p->mode)
       p->mul = len;
     else
       p->mul = 1;
- 
+
   tmp = (*p->ndx + *p->offset)*p->mul;
   ndx = MYFLOOR(tmp);
   frac = tmp - ndx;
@@ -287,12 +287,12 @@ int table3r_init(CSOUND *csound, TABL *p){
     x0 = func[ndx-1];
     x1 = func[ndx];
     x2 = func[ndx+1];
-    x3 = func[ndx+2]; 
+    x3 = func[ndx+2];
     fracsq = frac*frac;
     fracub = fracsq*x0;
     temp1 = x3+FL(3.0)*x1;
-    *p->sig =  x1 + FL(0.5)*fracub + 
-      frac*(x2 - fracub/FL(6.0) - temp1/FL(6.0) - x0/FL(3.0)) +   
+    *p->sig =  x1 + FL(0.5)*fracub +
+      frac*(x2 - fracub/FL(6.0) - temp1/FL(6.0) - x0/FL(3.0)) +
       frac*fracsq*(temp1/FL(6.0) - FL(0.5)*x2) + fracsq*(FL(0.5)*x2 - x1);
   }
   return OK;
@@ -305,15 +305,15 @@ int table3r_kontrol(CSOUND *csound, TABL *p){
   int mask = p->ftp->lenmask;
   MYFLT tmp, frac;
   MYFLT x0, x1, x2, x3;
-  MYFLT *func  =p->ftp->ftable; 
+  MYFLT *func  =p->ftp->ftable;
   MYFLT fracub, fracsq, temp1;
 
   IGN(csound);
-  
+
   tmp = (*p->ndx + *p->offset)*p->mul;
   ndx = MYFLOOR(tmp);
   frac = tmp - ndx;
-  
+
   if(p->iwrap) {
     if(p->np2){
       while(ndx >= len) ndx -= len;
@@ -332,12 +332,12 @@ int table3r_kontrol(CSOUND *csound, TABL *p){
     x0 = func[ndx-1];
     x1 = func[ndx];
     x2 = func[ndx+1];
-    x3 = func[ndx+2]; 
+    x3 = func[ndx+2];
     fracsq = frac*frac;
     fracub = fracsq*x0;
     temp1 = x3+FL(3.0)*x1;
-    *p->sig =  x1 + FL(0.5)*fracub + 
-      frac*(x2 - fracub/FL(6.0) - temp1/FL(6.0) - x0/FL(3.0)) +   
+    *p->sig =  x1 + FL(0.5)*fracub +
+      frac*(x2 - fracub/FL(6.0) - temp1/FL(6.0) - x0/FL(3.0)) +
       frac*fracsq*(temp1/FL(6.0) - FL(0.5)*x2) + fracsq*(FL(0.5)*x2 - x1);
   }
   return OK;
@@ -355,13 +355,13 @@ int table3r_audio(CSOUND *csound, TABL *p)
     int32 iwrap = p->iwrap;
     uint32_t    koffset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
-  
+
     if (UNLIKELY(koffset)) memset(sig, '\0', koffset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
-  
+
     for (n=koffset; n < nsmps; n++){
       MYFLT x0,x1,x2,x3,temp1,fracub,fracsq;
       tmp = (ndx_f[n] + offset)*mul;
@@ -377,7 +377,7 @@ int table3r_audio(CSOUND *csound, TABL *p)
         if(UNLIKELY(ndx >= len)) ndx = len - 1;
         else if (UNLIKELY(ndx < 0)) ndx = 0;
       }
-  
+
       if (UNLIKELY(ndx<1 || ndx==len-1 || len <4)) {
         x1 = func[ndx];
         x2 = func[ndx+1];
@@ -386,12 +386,12 @@ int table3r_audio(CSOUND *csound, TABL *p)
         x0 = func[ndx-1];
         x1 = func[ndx];
         x2 = func[ndx+1];
-        x3 = func[ndx+2]; 
+        x3 = func[ndx+2];
         fracsq = frac*frac;
         fracub = fracsq*x0;
         temp1 = x3+x1+x1+x1;
-        p->sig[n] =  x1 + FL(0.5)*fracub + 
-          frac*(x2 - fracub/FL(6.0) - temp1/FL(6.0) - x0/FL(3.0)) +   
+        p->sig[n] =  x1 + FL(0.5)*fracub +
+          frac*(x2 - fracub/FL(6.0) - temp1/FL(6.0) - x0/FL(3.0)) +
           fracsq*frac*(temp1/FL(6.0) - FL(0.5)*x2) + fracsq*(FL(0.5)*x2 - x1);
       }
     }
@@ -399,12 +399,12 @@ int table3r_audio(CSOUND *csound, TABL *p)
 }
 
 int tablkt_setup(CSOUND *csound, TABL *p){
-   
+
    if (UNLIKELY(p->XOUTCODE && p->XINCODE != p->XOUTCODE)) {
       if (csound->GetKsmps(csound) != 1)
         return csound->InitError(csound, Str("tablekt: index type inconsistent with output"));
     }
-  
+
   p->iwrap = (int32) *p->wrap;
   return OK;
 }
@@ -417,9 +417,9 @@ int tablerkt_kontrol(CSOUND *csound, TABL *p){
    if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
-   
+
   return tabler_kontrol(csound,p);
 }
 
@@ -432,9 +432,9 @@ int tablerkt_audio(CSOUND *csound, TABL *p){
    if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
-   
+
   return tabler_audio(csound,p);;
 }
 
@@ -446,9 +446,9 @@ int tableirkt_kontrol(CSOUND *csound, TABL *p){
    if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
-   
+
   return tableir_kontrol(csound,p);;
 }
 
@@ -456,13 +456,13 @@ int tableirkt_audio(CSOUND *csound, TABL *p){
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->PerfError(csound, Str("table: could not find ftable %d"), (int) *p->ftable);
-   p->np2 = p->ftp->lenmask ? 0 : 1; 
+   p->np2 = p->ftp->lenmask ? 0 : 1;
    if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
-   
+
   return tableir_audio(csound,p);;
 }
 
@@ -470,11 +470,11 @@ int table3rkt_kontrol(CSOUND *csound, TABL *p){
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->PerfError(csound, Str("table: could not find ftable %d"), (int) *p->ftable);
-   p->np2 = p->ftp->lenmask ? 0 : 1; 
+   p->np2 = p->ftp->lenmask ? 0 : 1;
    if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
   return table3r_kontrol(csound,p);;
 }
@@ -487,7 +487,7 @@ int table3rkt_audio(CSOUND *csound, TABL *p){
    if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
   return table3r_audio(csound,p);
 }
@@ -509,7 +509,7 @@ int tablew_init(CSOUND *csound, TABL *p){
       p->mul = len;
     else
       p->mul = 1;
- 
+
   ndx = MYFLOOR((*p->ndx + *p->offset)*p->mul  + (iwrap==2 ? 0.5:0));
   if(iwrap) {
     ndx = iwrap == 2 ? MYFLOOR(ndx+0.5) : ndx;
@@ -523,7 +523,7 @@ int tablew_init(CSOUND *csound, TABL *p){
     else if (UNLIKELY(ndx < 0)) ndx = 0;
   }
   p->ftp->ftable[ndx] = *p->sig;
-  if(ndx == 0 && iwrap==2) func[len] = func[ndx]; 
+  if(ndx == 0 && iwrap==2) func[len] = func[ndx];
   return OK;
 }
 
@@ -545,7 +545,7 @@ int tablew_kontrol(CSOUND *csound, TABL *p){
     if(UNLIKELY(ndx >= len)) ndx = len - 1;
     else if (UNLIKELY(ndx < 0)) ndx = 0;
   }
-  func[ndx] = *p->sig; 
+  func[ndx] = *p->sig;
   if(ndx == 0 && iwrap==2) func[len] = func[ndx];
   return OK;
 }
@@ -577,7 +577,7 @@ int tablew_audio(CSOUND *csound, TABL *p){
     else if (UNLIKELY(ndx < 0)) ndx = 0;
   }
    func[ndx] = sig[n];
-   if(iwrap==2 && ndx == 0) func[len] = func[ndx];  
+   if(iwrap==2 && ndx == 0) func[len] = func[ndx];
 }
   return OK;
 }
@@ -590,9 +590,9 @@ int tablewkt_kontrol(CSOUND *csound, TABL *p){
    if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
-   
+
   return tablew_kontrol(csound,p);
 }
 
@@ -605,7 +605,7 @@ int tablewkt_audio(CSOUND *csound, TABL *p){
    if (*p->mode)
       p->mul = p->ftp->flen;
     else
-      p->mul = 1; 
+      p->mul = 1;
   p->len = p->ftp->flen;
   return tablew_audio(csound,p);;
 }
@@ -643,7 +643,7 @@ int table_copy(CSOUND *csound, TGP *p){
   len2 = src->flen;
   for(i=rp=0; i<len1;i++){
     dest->ftable[i] = src->ftable[rp];
-    rp = rp == len2 ? 0 : rp+1; 
+    rp = rp == len2 ? 0 : rp+1;
   }
   return OK;
 }
@@ -653,7 +653,7 @@ int table_mix(CSOUND *csound, TABLMIX *p){
   FUNC *ftp, *ftp1, *ftp2;
   int32 len, len1, len2, flen;
   MYFLT g1, g2, *func, *func1, *func2;
-  int32 off, off1, off2;  
+  int32 off, off1, off2;
 
   if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->tab)) == NULL)){
     csound->Warning(csound,  Str("table: could not find ftable %d"), (int) *p->tab);
@@ -690,7 +690,7 @@ int table_mix(CSOUND *csound, TABLMIX *p){
     int i, p0, p1, p2;
     for(i=0; i < len; i++) {
       p0 = i+off;
-      p1 = i+off1;                 
+      p1 = i+off1;
       p2 = i+off2;
       if(np2) {
         while(p0 < 0) p0 += flen;
@@ -713,7 +713,7 @@ int table_mix(CSOUND *csound, TABLMIX *p){
     int i, p0, p1, p2;
     for(i=0; i > len; i--) {
       p0 = i+off;
-      p1 = i+off1;                 
+      p1 = i+off1;
       p2 = i+off2;
       if(np2) {
         while(p0 < 0) p0 += flen;
@@ -765,7 +765,7 @@ int table_ra(CSOUND *csound, TABLRA *p){
       memset(&sig[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-  func = ftp->ftable; 
+  func = ftp->ftable;
   len = ftp->flen;
   for(i=koffset; i < nsmps; i++){
     if(np2) pos %= len;
@@ -802,13 +802,13 @@ int table_wa(CSOUND *csound, TABLWA *p){
   if(pos < 0) return csound->PerfError(csound, Str("table: could not read negative pos %d"), pos);
 
   if (UNLIKELY(early)) nsmps -= early;
-     
-  func = ftp->ftable; 
+
+  func = ftp->ftable;
   len = ftp->flen;
   for(i=koffset; i < nsmps; i++){
     if(np2) pos %= len;
     else pos &= mask;
-    func[pos] = sig[i]; 
+    func[pos] = sig[i];
     pos++;
   }
   p->pos = pos;

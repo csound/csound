@@ -60,7 +60,7 @@ kpitch - pitch control (transposition ratio)
 
 FLOOPER2
 
-asig flooper2 kamp, kpitch, kloopstart, kloopend, kcrossfade, 
+asig flooper2 kamp, kpitch, kloopstart, kloopend, kcrossfade,
               ifn [, istart, imode, ifenv]
 
 Function-table crossfading looper with variable loop parameters and
@@ -468,7 +468,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (*firsttime) { 
+    if (*firsttime) {
       int loopsize;
       /* offset non zero only if firsttime */
       if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -953,7 +953,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
               (loop_end < loop_start ? loop_start : loop_end));
             loopsize = (loop_end - loop_start);
             crossfade =  MYFLT2LRND(*p->crossfade*sr);
-            p->cfade = crossfade = 
+            p->cfade = crossfade =
               crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
             cvt = (MYFLT)elen/p->cfade;
           }

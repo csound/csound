@@ -128,7 +128,7 @@ static int hm234set(CSOUND *csound, HARM234 *q, HARMON2 *p)
 
 static int harmon234(CSOUND *csound, HARM234 *q, HARMON2 *p)
 {
-    MYFLT       *outp, *dirp; // *srcp, 
+    MYFLT       *outp, *dirp; // *srcp,
     MYFLT       *inp1, *inp2;
     MYFLT       koct, vocamp, diramp;
     PULDAT      *endp;
@@ -455,4 +455,3 @@ static OENTRY harmon_localops[] = {
 };
 
 LINKAGE_BUILTIN(harmon_localops)
-

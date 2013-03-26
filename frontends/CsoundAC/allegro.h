@@ -7,20 +7,20 @@
 //      compatible with Aura
 //
 // SERIALBUFFER CLASS
-// 
+//
 // The Serial_buffer class is defined to support serialization and
 // unserialization. A Serial_buffer is just a block of memory with
-// a length and a read/write pointer. When writing, it can expand. 
+// a length and a read/write pointer. When writing, it can expand.
 //
 // SERIALIZATION
 //
 // The Alg_track class has static members:
 //    ser_buf -- a Serial_buffer
-// When objects are serialized, they are first written to 
+// When objects are serialized, they are first written to
 // ser_buf, which is expanded whenever necessary. Then, when
 // the length is known, new memory is allocated and the data
 // is copied to a correctly-sized buffer and returned to caller.
-// The "external" (callable from outside the library) 
+// The "external" (callable from outside the library)
 // serialization functions are:
 //    Alg_track::serialize()
 //    Alg_seq::serialize()
@@ -30,12 +30,12 @@
 //    Alg_seq::serialize_seq(bool text)
 //    Alg_track::serialize_parameter(
 //            Alg_parameter *parm, bool text)
-// These internal serialize functions append data to ser_buf The text 
+// These internal serialize functions append data to ser_buf The text
 // flag says to write an ascii representation as opposed to binary.
-//  
+//
 // UNSERIALIZATION:
 //
-// The Alg_track class has a static member: 
+// The Alg_track class has a static member:
 //     unserialize(char *buffer, long len)
 // that will unserialize anything -- an Alg_track or an Alg_seq.
 // No other function should be called from outside the library.
@@ -79,8 +79,8 @@ public:
         maxlen = len = 0;
         atoms = NULL;
     }
-    // Note: the code is possibly more correct and faster without the 
-    // following destructor, which will only run after the program takes 
+    // Note: the code is possibly more correct and faster without the
+    // following destructor, which will only run after the program takes
     // a normal exit. Cleaning up after the program exit slows down the exit,
     // and will cause problems if any other destructor tries to reference an
     // Alg_atom (which will now be freed). The advantage of this code is
@@ -152,7 +152,7 @@ public:
     // each of these routines takes address of pointer to the list
     // insertion is performed without checking whether or not a
     // parameter already exists with this attribute. See find() and
-    // remove_key() to assist in checking for and removing existing 
+    // remove_key() to assist in checking for and removing existing
     // parameters.
     // Note also that these insert_* methods convert name to an
     // attribute. If you have already done the symbol table lookup/insert
@@ -160,11 +160,11 @@ public:
     // another set of functions that take attributes as arguments.)
     static void insert_real(Alg_parameters **list, const char *name, double r);
     // insert string will copy string to heap
-    static void insert_string(Alg_parameters **list, const char *name, 
+    static void insert_string(Alg_parameters **list, const char *name,
                               const char *s);
     static void insert_integer(Alg_parameters **list, const char *name, long i);
     static void insert_logical(Alg_parameters **list, const char *name, bool l);
-    static void insert_atom(Alg_parameters **list, const char *name, 
+    static void insert_atom(Alg_parameters **list, const char *name,
                             const char *s);
     static Alg_parameters *remove_key(Alg_parameters **list, const char *name);
     // find an attribute/value pair
@@ -204,9 +204,9 @@ public:
                           // 3 = control change,     4 = program change,
                           // 5 = pressure change,    6 = key signature,
                           // 7 = time sig numerator, 8 = time sig denominator
-    bool get_selected() { return selected; }         
-    void set_selected(bool b) { selected = b; }     
-    // Note: notes are identified by a (channel, identifier) pair. 
+    bool get_selected() { return selected; }
+    void set_selected(bool b) { selected = b; }
+    // Note: notes are identified by a (channel, identifier) pair.
     // For midi, the identifier is the key number (pitch). The identifier
     // does not have to represent pitch; it's main purpose is to identify
     // notes so that they can be named by subsequent update events.
@@ -229,7 +229,7 @@ public:
     //
     float get_pitch();// get pitch in steps -- use this even for MIDI
     float get_loud(); // get loudness (MIDI velocity)
-    // times are in seconds or beats, depending upon the units_are_seconds 
+    // times are in seconds or beats, depending upon the units_are_seconds
     // flag in the containing sequence
     double get_start_time(); // get start time in seconds or beats
     double get_end_time();   // get end time in seconds or beats
@@ -244,8 +244,8 @@ public:
     // 'i', or 'a'.
     //
     bool has_attribute(const char *attr);      // test if note has attribute/value pair
-    char get_attribute_type(const char *attr); // get the associated type: 
-        // 's' = string, 
+    char get_attribute_type(const char *attr); // get the associated type:
+        // 's' = string,
         // 'r' = real (double), 'l' = logical (bool), 'i' = integer (long),
         // 'a' = atom (char *), a unique string stored in Alg_seq
     // get the string value
@@ -264,9 +264,9 @@ public:
     // Some attribute/value methods. These fail if this is not an update.
     // Attributes are converted to/from strings to avoid explicit use
     // of Alg_attribute types.
-    // 
+    //
     const char *get_attribute();    // get the update's attribute (string)
-    char get_update_type();   // get the update's type: 's' = string, 
+    char get_update_type();   // get the update's type: 's' = string,
         // 'r' = real (double), 'l' = logical (bool), 'i' = integer (long),
         // 'a' = atom (char *), a unique string stored in Alg_seq
     const char *get_string_value(); // get the update's string value
@@ -326,8 +326,8 @@ protected:
 public:
     // sometimes, it is nice to have the time of the last note-off.
     // In the current implementation,
-    // this field is set by append to indicate the time of the 
-    // last note-off in the current unit, so it should be correct after 
+    // this field is set by append to indicate the time of the
+    // last note-off in the current unit, so it should be correct after
     // creating a new track and adding notes to it. It is *not*
     // updated after uninsert(), so use it with care.
     double last_note_off;
@@ -369,8 +369,8 @@ protected:
     int sequence_number;   // this sequence number is incremented
         // whenever an edit is performed on an Alg_track or Alg_seq.
         // When an Alg_event_list is created to contain pointers to
-        // a subset of an Alg_track or Alg_seq (the events_owner), 
-        // the Alg_event_list gets a copy of the events_owner's 
+        // a subset of an Alg_track or Alg_seq (the events_owner),
+        // the Alg_event_list gets a copy of the events_owner's
         // sequence_number. If the events_owner is edited, the pointers
         // in this Alg_event_list will become invalid. This is detected
         // (for debugging) as differing sequence_numbers.
@@ -380,7 +380,7 @@ protected:
     // when you extract from 10 to 15 seconds, the duration is 5 secs.
     // The duration does not tell you when is the last note-off.
     // duration is recorded in both beats and seconds:
-    double beat_dur; 
+    double beat_dur;
     double real_dur;
 public:
     // the client should not create one of these, but these are
@@ -392,7 +392,7 @@ public:
     // by track with increasing indices. This operation is not
     // particularly fast on an Alg_seq.
     virtual Alg_event_ptr &operator[](int i);
-    Alg_event_list() { sequence_number = 0; 
+    Alg_event_list() { sequence_number = 0;
         beat_dur = 0.0; real_dur = 0.0; events_owner = NULL; type = 'e'; }
     Alg_event_list(Alg_track *owner);
 
@@ -412,7 +412,7 @@ public:
     // Events are stored in time order, so when you change the time of
     // an event, you must adjust the position. When you call set_start_time
     // on an Alg_event_list, the Alg_event_list is not modified, but the
-    // Alg_track that "owns" the event is modified. If the owner is an 
+    // Alg_track that "owns" the event is modified. If the owner is an
     // Alg_seq, this may require searching the seq for the track containing
     // the event. This will mean a logN search of every track in the seq
     // (but if this turns out to be a problem, we can store each event's
@@ -420,10 +420,10 @@ public:
     virtual void set_start_time(Alg_event *event, double);
     // get text description of run-time errors detected, clear error
     const char *get_last_error_message() { return last_error_message; }
-    // Implementation hint: keep a sequence number on each Alg_track that is 
+    // Implementation hint: keep a sequence number on each Alg_track that is
     // incremented anytime there is a structural change. (This behavior is
     // inherited by Alg_seq as well.) Copy the sequence number to any
-    // Alg_event_list object when it is created. Whenever you access an 
+    // Alg_event_list object when it is created. Whenever you access an
     // Alg_event_list, using operator[], assert that the Alg_event_list sequence
     // number matches the Alg_seq sequence number. This will guarantee that you
     // do not try to retain pointers to events beyond the point where the events
@@ -568,7 +568,7 @@ public:
     void unget_chars(int n) { ptr -= n; } // undo n get_char() calls
     long get_int32() { long i = *((long *) ptr); ptr += 4; return i; }
     float get_float() { float f = *((float *) ptr); ptr += 4; return f; }
-    double get_double() { double d = *((double *) ptr); ptr += sizeof(double); 
+    double get_double() { double d = *((double *) ptr); ptr += sizeof(double);
                           return d; }
     const char *get_string() { char *s = ptr; char *fence = buffer + len;
                          assert(ptr < fence);
@@ -582,7 +582,7 @@ public:
 
 typedef class Serial_write_buffer: public Serial_buffer {
   public:
-    // Note: allegro.cpp declares one static instance of Serial_buffer to 
+    // Note: allegro.cpp declares one static instance of Serial_buffer to
     // reduce large memory (re)allocations when serializing tracks for UNDO.
     // This destructor will only run when the program exits, which will only
     // add overhead to the exit process, but it will eliminate an incorrect
@@ -598,7 +598,7 @@ typedef class Serial_write_buffer: public Serial_buffer {
         *loc = value;
     }
     void check_buffer(long needed);
-    void set_string(const char *s) { 
+    void set_string(const char *s) {
         char *fence = buffer + len;
         assert(ptr < fence);
         // two brackets surpress a g++ warning, because this is an
@@ -657,16 +657,16 @@ public:
         assert(i >= 0 && i < len);
         return events[i];
     }
-    Alg_track() { units_are_seconds = false; time_map = NULL; 
+    Alg_track() { units_are_seconds = false; time_map = NULL;
                   set_time_map(NULL); type = 't'; }
     // initialize empty track with a time map
-    Alg_track(Alg_time_map *map, bool seconds); 
+    Alg_track(Alg_time_map *map, bool seconds);
 
     Alg_event_ptr copy_event(Alg_event_ptr event); // make a complete copy
-    
+
     Alg_track(Alg_track &track);  // copy constructor, does not copy time_map
     // copy constructor: event_list is copied, map is installed and referenced
-    Alg_track(Alg_event_list_ref event_list, Alg_time_map_ptr map, 
+    Alg_track(Alg_event_list_ref event_list, Alg_time_map_ptr map,
               bool units_are_seconds);
     virtual ~Alg_track() { // note: do not call set_time_map(NULL)!
         if (time_map) time_map->dereference(); time_map = NULL; }
@@ -688,14 +688,14 @@ public:
 
     // Are we using beats or seconds?
     bool get_units_are_seconds() { return units_are_seconds; }
-    // Change units 
+    // Change units
     virtual void convert_to_beats();
     virtual void convert_to_seconds();
     void set_dur(double dur);
     double get_dur() { return (units_are_seconds ? real_dur : beat_dur); }
 
     // Every Alg_track may have an associated time_map. If no map is
-    // specified, or if you set_time_map(NULL), then the behavior 
+    // specified, or if you set_time_map(NULL), then the behavior
     // should be as if there is a constant tempo of 100 beats/minute
     // (this constant is determined by ALG_DEFAULT_BPM).
     // Recommendation: create a static global tempo map object. When
@@ -709,7 +709,7 @@ public:
     // Methods to create events. The returned event is owned by the caller.
     // Use delete to get rid of it unless you call add() -- see below.
     //
-    Alg_note *create_note(double time, int channel, int identifier, 
+    Alg_note *create_note(double time, int channel, int identifier,
                            float pitch, float loudness, double duration);
     // Note: after create_update(), caller should use set_*_value() to
     // initialize the attribute/value pair:
@@ -736,7 +736,7 @@ public:
     // the region are copied. CUT NOTES
     // MAY EXTEND BEYOND THE DURATION OF THE RESULTING SEQ.
     // The return type is the same as this (may be Alg_seq).
-    // All times including len are interpreted according to 
+    // All times including len are interpreted according to
     // units_are_seconds in the track.
     virtual Alg_track *cut(double t, double len, bool all);
 
@@ -762,10 +762,10 @@ public:
     virtual void paste(double t, Alg_event_list *seq); // Shifts notes
 
     // Merges two sequences with a certain offset. The offset is
-    // interpreted as either beats or seconds according to the 
+    // interpreted as either beats or seconds according to the
     // current units of this, and seq is converted to the same
     // units as this. Except for a possible conversion to beats
-    // or seconds, the tempo track of seq (if any) is ignored. 
+    // or seconds, the tempo track of seq (if any) is ignored.
     // (There is no way to merge tempo tracks.)
     // THE SEQ PARAMETER IS NOT MODIFIED, AND Alg_event's ARE
     // COPIED, NOT SHARED.
@@ -784,7 +784,7 @@ public:
 
     // Deletes notes but doesn't shift.  If the "all" argument
     // is true, deletes all notes that intersect the range at all,
-    // not just those that start within it. The tempo track is 
+    // not just those that start within it. The tempo track is
     // not affected.
     virtual void silence(double t, double len, bool all);
 
@@ -801,7 +801,7 @@ public:
 
     // A useful generic function to retrieve only certain
     // types of events.  The masks should be bit-masks defined
-    // somewhere else. Part of the mask allows us to search for 
+    // somewhere else. Part of the mask allows us to search for
     // selected events. If this is an Alg_seq, search all tracks
     // (otherwise, call track[i].find())
     // If channel_mask == 0, accept ALL channels
@@ -841,7 +841,7 @@ public:
 // The default (empty) time_sigs has 4/4 time at beat 0.
 // Each time_sig object in time_sigs represents the beginning
 // of a measure. If there is a beat missing, e.g. in the first
-// measure, you can represent this by inserting another 
+// measure, you can represent this by inserting another
 // time_sig at the next measure beginning. Each time_sig implies
 // an infinite sequence of full measures until the next time_sig.
 // If you insert a time_sig and one already exist near the same
@@ -911,7 +911,7 @@ typedef enum {
     alg_no_error = 0,      // no error reading Allegro or MIDI file
     alg_error_open = -800, // could not open Allegro or MIDI file
     alg_error_syntax   // something found in the file that could not be parsed;
-    // generally you should ignore syntax errors or look at the printed error 
+    // generally you should ignore syntax errors or look at the printed error
     // messages because there are some things in standard midi files that we do
     // not handle; (maybe we should only set alg_error_syntax when there is a
     // real problem with the file as opposed to when there is some warning
@@ -944,7 +944,7 @@ private:
     double offset;
     void show();
     bool earlier(int i, int j);
-    void insert(Alg_events_ptr events, long index, bool note_on, 
+    void insert(Alg_events_ptr events, long index, bool note_on,
                 void *cookie, double offset);
     // returns the info on the next pending event in the priority queue
     bool remove_next(Alg_events_ptr &events, long &index, bool &note_on,
@@ -983,18 +983,18 @@ public:
     // If end_time is 0, iterate through the entire sequence, but if
     // end_time is non_zero, stop iterating at the last event before end_time
     Alg_event_ptr next(bool *note_on = NULL, void **cookie_ptr = NULL,
-                       double *offset_ptr = NULL, double end_time = 0); 
+                       double *offset_ptr = NULL, double end_time = 0);
     // Sometimes, the caller wants to receive note-off events for a subset
     // of the notes, typically the notes that are played and need to be
     // turned off. In this case, when a note is turned on, the client
     // should call request_note_off(). This will insert a note-off into
-    // the queue for the most recent note returned by next(). 
+    // the queue for the most recent note returned by next().
     void request_note_off();
     void end();   // clean up after enumerating events
 } *Alg_iterator_ptr;
 
 
-// An Alg_seq is an array of Alg_events, each a sequence of Alg_event, 
+// An Alg_seq is an array of Alg_events, each a sequence of Alg_event,
 // with a tempo map and a sequence of time signatures
 //
 typedef class Alg_seq : public Alg_track {
@@ -1003,7 +1003,7 @@ protected:
     void serialize_seq();
     Alg_error error; // error code set by file readers
     // an internal function used for writing Allegro track names
-    Alg_event_ptr write_track_name(std::ostream &file, int n, 
+    Alg_event_ptr write_track_name(std::ostream &file, int n,
                                    Alg_events &events);
 public:
     int channel_offset_per_track; // used to encode track_num into channel
@@ -1015,7 +1015,7 @@ public:
         units_are_seconds = true; type = 's';
         channel_offset_per_track = 0;
         add_track(0); // default is one empty track
-    }        
+    }
     Alg_seq() {
         basic_initialization();
     }
@@ -1050,8 +1050,8 @@ public:
     int tracks();
 
     // create a track
-    void add_track(int track_num) { 
-        track_list.add_track(track_num, get_time_map(), units_are_seconds); 
+    void add_track(int track_num) {
+        track_list.add_track(track_num, get_time_map(), units_are_seconds);
     }
 
     // Return a particular track. This Alg_seq owns the track, so the
@@ -1063,7 +1063,7 @@ public:
     virtual void convert_to_seconds();
     virtual void convert_to_beats();
 
-    Alg_track_ptr cut_from_track(int track_num, double start, double dur, 
+    Alg_track_ptr cut_from_track(int track_num, double start, double dur,
                                  bool all);
     Alg_seq *cut(double t, double len, bool all);
     void insert_silence_in_track(int track_num, double t, double len);
@@ -1077,7 +1077,7 @@ public:
     void clear_track(int track_num, double start, double len, bool all);
     void silence_track(int track_num, double start, double len, bool all);
     Alg_event_list_ptr find_in_track(int track_num, double t, double len,
-                                     bool all, long channel_mask, 
+                                     bool all, long channel_mask,
                                      long event_type_mask);
 
     // find index of first score event after time

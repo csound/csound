@@ -140,7 +140,7 @@ public:
   virtual int SetGlobalEnv(const char *name,const char *value)
   {
     return csoundSetGlobalEnv(name, value);
-  
+
   }
   virtual int SetOption(char *option)
   {
@@ -1073,4 +1073,3 @@ public:
 #endif  // __cplusplus
 
 #endif  // __CSOUND_HPP__
-

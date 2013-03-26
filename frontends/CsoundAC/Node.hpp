@@ -69,12 +69,12 @@ namespace csound
     /**
      * This function is called by the traverse() function.
      * The default implementation does nothing.
-     * If a derived node produces new Events, then it must transform them by 
+     * If a derived node produces new Events, then it must transform them by
      * the composite coordinates, then append them to the collecting score.
-     * If a derived node transforms Events produced by child Nodes, then it 
-     * must transform only Events in the collecting score starting at the 
+     * If a derived node transforms Events produced by child Nodes, then it
+     * must transform only Events in the collecting score starting at the
      * startAt index and continuing up to, but not including, the endAt index.
-     * These bookmarks, in turn, must be set in the Traverse function by 
+     * These bookmarks, in turn, must be set in the Traverse function by
      * all Nodes that produce events.
      */
     virtual void produceOrTransform(Score &collectingScore,

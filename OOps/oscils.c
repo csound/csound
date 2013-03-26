@@ -259,7 +259,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     onedpi_d = 1.0 / PI;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT)); 
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -408,4 +408,3 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     return OK;
 }
-
