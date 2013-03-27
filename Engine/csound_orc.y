@@ -529,14 +529,15 @@ ans       : ident               { $$ = $1; }
 arrayexpr :  arrayexpr '[' iexp ']'
           {
             appendToTree(csound, $1->right, $3);
-            char* oldName = $1->left->value->lexeme;
-            $1->left->value = make_token(csound, addDimensionToArrayName(csound, oldName));
-            mfree(csound, oldName);
+//            char* oldName = $1->left->value->lexeme;
+//            $1->left->value = make_token(csound, addDimensionToArrayName(csound, oldName));
+//            mfree(csound, oldName);
             $$ = $1;
           }
           | ident '[' iexp ']' 
           { 
-            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+//            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+           char* arrayName = $1->value->lexeme;
             $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
 	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
 
@@ -786,23 +787,33 @@ ifac      : ident               { $$ = $1; }
           | '(' expr ')'      { $$ = $2; }
           | '(' expr error    { $$ = NULL; }
           | '(' error         { $$ = NULL; }
-          | function '(' exprlist ')'
+          | ident '(' exprlist ')'
             {
                 $1->left = NULL;
                 $1->right = $3;
+		$1->type = T_FUNCTION;
 
                 $$ = $1;
             }
-          | function '(' error
+          | opcode '(' exprlist ')'
+            {
+                $1->left = NULL;
+                $1->right = $3;
+		$1->type = T_FUNCTION;
+
+                $$ = $1;
+            }
+          | ident '(' error
+          | opcode '(' error
           ;
 
-function  : T_FUNCTION  { 
-             csound->DebugMsg(csound,"FUNCTION ans=%p, token=%p %p\n",
-                    $1, ((ORCTOKEN *)$1)->value);
+//function  : T_FUNCTION  { 
+//            csound->DebugMsg(csound,"FUNCTION ans=%p, token=%p %p\n",
+//                    $1, ((ORCTOKEN *)$1)->value);
     //                if ((ORCTOKEN *)$1->value != 0)
-             csp_orc_sa_interlocksf(csound, ((ORCTOKEN *)$1)->value);
-             $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, (ORCTOKEN *)$1); 
-                }
+//             csp_orc_sa_interlocksf(csound, ((ORCTOKEN *)$1)->value);
+//             $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, (ORCTOKEN *)$1); 
+//                }
 
 /*texp      : texp '+' texp  { $$ = make_node(csound, LINE,LOCN, T_TADD, $1, $3); }
           | texp '+' error
@@ -892,14 +903,18 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
 
 
 arrayident: arrayident '[' ']' {          
-            char* arrayName = $1->value->lexeme;
-            $1->value = make_token(csound, addDimensionToArrayName(csound, arrayName));
-            mfree(csound, arrayName);
+//            char* arrayName = $1->value->lexeme;
+//            $1->value = make_token(csound, addDimensionToArrayName(csound, arrayName));
+//            mfree(csound, arrayName);
+            appendToTree(csound, $1->right, 
+	         make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[")));
             $$ = $1;
           }
           | ident '[' ']' {
-            char* arrayName = convertArrayName(csound, $1->value->lexeme);
-            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, arrayName)); 
+//            char* arrayName = convertArrayName(csound, $1->value->lexeme);
+//            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, arrayName)); 
+            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, $1->value->lexeme)); 
+	    $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
           };
 
 

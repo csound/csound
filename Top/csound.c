@@ -1834,8 +1834,7 @@ PUBLIC const char *csoundGetOutputName(CSOUND *csound)
 }
 
 /**
- * Calling this function with a non-zero 'state' value between
- * csoundPreCompile() and csoundCompile() will disable all default
+ * Calling this function with a non-zero will disable all default
  * handling of sound I/O by the Csound library, allowing the host
  * application to use the spin/spout/input/output buffers directly.
  * If 'bufSize' is greater than zero, the buffer size (-b) will be
@@ -3490,8 +3489,7 @@ int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
  */
 char *csoundGetOpcodeName(void *p)
 {
-    CSOUND *csound = (CSOUND*) ((OPDS*) p)->insdshead->csound;
-    return (char*) csound->opcodlst[((OPDS*) p)->optext->t.opnum].opname;
+    return ((OPDS*) p)->optext->t.oentry->opname;
 }
 
 /**
