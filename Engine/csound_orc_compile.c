@@ -635,12 +635,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     while (current != NULL) {
       unsigned int uval;
       if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
-
+        OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
         if (current->type == '='
-            && strcmp(current->value->lexeme, "=.r") == 0) {
+            && strcmp(oentry->opname, "=.r") == 0) {
 
           //FIXME - perhaps should add check as it was in
           //constndx?  Not sure if necessary due to assumption
@@ -1099,10 +1099,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
                              engineState->constantsPool->values[count]);
     }
     CS_VARIABLE* gVar = engineState->varPool->head;
-    count = 0;
     while(gVar != NULL) {
       CS_VARIABLE* var;
-      count++;
       csound->Message(csound, " merging  %d) %s:%s\n", count,
                       gVar->varName, gVar->varType->varTypeName);
       var = csoundFindVariableWithName(current_state->varPool, gVar->varName);
@@ -1117,17 +1115,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       }
       gVar = gVar->next;
     }
-    /* do we need to recalculate global pool and allocate memory ? */
-    //FIXME - need to reinitialize variables here using intializeVariableMemory...
-    if(count) {
-      recalculateVarPoolMemory(csound, current_state->varPool);
-      /* VL 15.3.2013 realloc will not work because it messes with the
-         memory that has been set in a running instance
-         The best we can do at the moment is to alloc plenty of
-         memory to start with so that new vars can be accommodated there */
-      //csound->globalVarPool = krealloc(csound, csound->globalVarPool,
-      //                             current_state->varPool->poolSize);
-    }
+    
     /* merge opcodinfo */
     insert_opcodes(csound, csound->opcodeInfo, current_state);
     for(i=1; i < end; i++){
