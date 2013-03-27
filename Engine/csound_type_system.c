@@ -47,11 +47,12 @@ CS_TYPE* csoundGetTypeForVarName(TYPE_POOL* pool, char* varName) {
 
 int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance)
 {
+    CS_TYPE_ITEM* item;
     if (csTypeExistsWithSameName(pool, typeInstance)) {
         return 0;
     }
 
-    CS_TYPE_ITEM* item = mcalloc(csound, sizeof(CS_TYPE_ITEM));
+    item = (CS_TYPE_ITEM*)mcalloc(csound, sizeof(CS_TYPE_ITEM));
     item->cstype = typeInstance;
 
     if (pool->head == NULL) {
@@ -67,7 +68,6 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
 
     /* printf("Adding type with type name: %s\n", typeInstance->varTypeName); */
 
-
     return 1;
 }
 
@@ -77,36 +77,36 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     char* retVal;
 
     if (varName[0] != '[') {
-        retVal = mcalloc(csound, sizeof(char) * (strlen(varName) + 1));
+      retVal = (char*)mcalloc(csound, sizeof(char) * (strlen(varName) + 1));
         strcpy(retVal, varName);
     } else {
-        int start = 0;
-        int typeEnd = 0;
-        int len = strlen(varName);
-        int newFirstLen, newSecondLen, newTotalLen;
-        char* t = (char*) varName;
-        char* t2;
+      int start = 0;
+      int typeEnd = 0;
+      int len = strlen(varName);
+      int newFirstLen, newSecondLen, newTotalLen;
+      char* t = (char*) varName;
+      char* t2;
 
-        while(*t == '[') {
-            t++;
-            start++;
-        }
-        typeEnd = start;
-        t2 = t;
-        while(*t2 != ';' && *t2 != (char)0) {
-            t2++;
-            typeEnd++;
-        }
+      while(*t == '[') {
+        t++;
+        start++;
+      }
+      typeEnd = start;
+      t2 = t;
+      while(*t2 != ';' && *t2 != (char)0) {
         t2++;
         typeEnd++;
+      }
+      t2++;
+      typeEnd++;
 
-        newFirstLen = (typeEnd - start - 1);
-        newSecondLen = (len - typeEnd);
-        newTotalLen = newFirstLen + newSecondLen;
+      newFirstLen = (typeEnd - start - 1);
+      newSecondLen = (len - typeEnd);
+      newTotalLen = newFirstLen + newSecondLen;
 
-        retVal = mcalloc(csound, sizeof(char) * (newTotalLen + 1));
-        strncpy(retVal, t, newFirstLen);
-        strncpy(retVal + newFirstLen, t2, newSecondLen);
+      retVal = (char*)mcalloc(csound, sizeof(char) * (newTotalLen + 1));
+      strncpy(retVal, t, newFirstLen);
+      strncpy(retVal + newFirstLen, t2, newSecondLen);
     }
 
     return retVal;
@@ -136,17 +136,8 @@ CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name)
     CS_VARIABLE* current = pool->head;
     CS_VARIABLE* returnValue = NULL;
 
-//    char* simpleName = getVarSimpleName(csound, name);
-
     if(current != NULL && name != NULL) {
         while(current != NULL) {
-//          if (current->varSimpleName != NULL) {
-//              if(strcmp(current->varSimpleName, simpleName) == 0) {
-//                  returnValue = current;
-//                  break;
-//              }
-//          } else
-//              if (strcmp(current->varName, simpleName) == 0) {
           if (strcmp(current->varName, name) == 0) {
             returnValue = current;
             break;
@@ -155,7 +146,9 @@ CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name)
         }
     }
 
-//    mfree(csound, simpleName);
+    if (returnValue == NULL && pool->parent != NULL) {
+        returnValue = csoundFindVariableWithName(pool->parent, name);
+    }
 
     return returnValue;
 }
@@ -203,8 +196,8 @@ int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var) {
         }
         varCurrent->next = var;
     }
-    // may need to revise this; var pools are accessed as MYFLT*, 
-    // so need to ensure all memory is aligned to sizeof(MYFLT) 
+    // may need to revise this; var pools are accessed as MYFLT*,
+    // so need to ensure all memory is aligned to sizeof(MYFLT)
     // boundaries maybe should align block size here to +7 before dividing?
     var->memBlockIndex = pool->poolSize / sizeof(MYFLT);
     pool->poolSize += var->memBlockSize;

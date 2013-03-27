@@ -65,10 +65,10 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
             break;
         default:                 /* i(A op B) -> i(A) op i(B) */
             if(root->right->left != NULL)
-                root->right->left = create_fun_token(csound, 
+                root->right->left = create_fun_token(csound,
                                                      root->right->left, "i");
             if(root->right->right != NULL)
-                root->right->right = create_fun_token(csound, 
+                root->right->right = create_fun_token(csound,
                                                       root->right->right, "i");
             root->right->next = root->next;
             root = root->right;
@@ -127,7 +127,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
                             (double)root->right->value->value :
                             root->right->value->fvalue);
                     ans = root->left;
-                    /* **** Something wrong here -- 
+                    /* **** Something wrong here --
                        subtraction confuses memory **** */
                     switch (root->type) {
                         case '+':

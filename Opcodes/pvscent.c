@@ -193,8 +193,7 @@ static int cent_k(CSOUND *csound, CENT *p)
       MYFLT d = FL(0.0);
       MYFLT *windowed = (MYFLT *) p->windowed.auxp;
       MYFLT *win = (MYFLT *) p->win.auxp;
-      MYFLT mag, cf, binsize = csound->GetSr(csound)
-/(MYFLT)fsize;
+      MYFLT mag, cf, binsize = csound->GetSr(csound)/(MYFLT)fsize;
       for (i=0,k=n; i < fsize; i++){
         windowed[i] = frame[k]*win[i];
         if (k == fsize-1) k=0;
@@ -270,7 +269,7 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
       csound->AuxAlloc(csound, size, &p->inharmonic);
     if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
       return csound->InitError(csound,
-                               "PV Frames must be in AMP_FREQ format!\n");
+                               Str("PV Frames must be in AMP_FREQ format!\n"));
     }
 
     return OK;
