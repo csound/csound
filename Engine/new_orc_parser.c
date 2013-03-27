@@ -134,7 +134,7 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
       TREE* newRoot;
       PARSE_PARM  pp;
-      TYPE_TABLE* typeTable;
+      TYPE_TABLE* typeTable = NULL;
 
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
@@ -208,11 +208,9 @@ TREE *csoundParseOrc(CSOUND *csound, char *str)
       if(err) {
         csound->Warning(csound, Str("Stopping on parser failure\n"));
         delete_tree(csound, astTree);
-
         if (typeTable != NULL) {
           mfree(csound, typeTable);
         }
-
         return NULL;
       }
 
