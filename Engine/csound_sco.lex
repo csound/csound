@@ -4,7 +4,7 @@
     csound_sco.l:
 
     Copyright (C) 2013
-    John ffitch, Steven Yi
+    John ffitch
 
     This file is part of Csound.
 
@@ -136,6 +136,7 @@ PPX             "pp^"${INTGR}
                   lvalp = make_int(csound, atoi(yytext)); return (INTEGER_TOKEN);
                 }
 {NUMBER}        { lvalp = make_num(csound, atof(yytext)); return (NUMBER_TOKEN); }
+
 {WHITE}         { }
 
 {LINE}          { BEGIN(line); }
