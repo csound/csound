@@ -67,8 +67,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "score_param.h"
-#include "csound_sco.tab.h"
-extern void csound_scoerror(SCORE_PARM *, void *, CSOUND *, MYFLT, const char*);
+extern void csound_scoerror(SCORE_PARM *, void *, const char*);
     //extern int csound_scolex(TREE**, CSOUND *, void *);
 #define LINE csound_scoget_lineno()
 #define LOCN csound_scoget_locn()
