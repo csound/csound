@@ -718,15 +718,15 @@ public:
     p = tmp;
     return retval;
   }
-  virtual int ListChannels(CsoundChannelListEntry* &lst)
+  virtual int ListChannels(controlChannelInfo_t* &lst)
   {
-    CsoundChannelListEntry  *tmp;
+    controlChannelInfo_t  *tmp;
     int                     retval;
     retval = csoundListChannels(csound, &tmp);
     lst = tmp;
     return retval;
   }
-  virtual void DeleteChannelList(CsoundChannelListEntry *lst)
+  virtual void DeleteChannelList(controlChannelInfo_t *lst)
   {
     csoundDeleteChannelList(csound, lst);
   }

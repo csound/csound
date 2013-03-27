@@ -90,7 +90,7 @@ struct CSOUND_ {
     void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
     void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
     void (*DeleteUtilityList)(CSOUND *, char **lst);
-  void (*DeleteChannelList)(CSOUND * /* , CsoundChannelListEntry *lst*/);
+    void (*DeleteChannelList)(CSOUND * /* , controlChannelInfo_t *lst*/);
     void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,

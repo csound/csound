@@ -26,6 +26,7 @@ bus.c:
 #include "csoundCore.h"
 #include <setjmp.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "bus.h"
 #include "namedins.h"
@@ -496,17 +497,9 @@ static inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
           CHNENTRY  *pp;
           pp = ((CHNENTRY**) csound->chn_db)[name_hash_2(csound, name)];
       for ( ; pp != NULL; pp = pp->nxt) {
-        /* Why is strcmp not used here? */
-        const char  *p1 = &(name[0]);
-        const char  *p2 = &(pp->name[0]);
-        while (1) {
-          if (*p1 != *p2)
-            break;
-          if (*p1 == '\0') {    /* do we need to init lock? */
-            return pp;
+          if (strcmp(name, pp->name) == 0) {
+              return pp;
           }
-          p1++, p2++;
-        }
       }
     }
     return NULL;
@@ -556,12 +549,12 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
 static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
                                           const char *name, int type)
 {
-        CHNENTRY  *pp;
+    CHNENTRY  *pp;
     const char      *s;
     unsigned char   h;
 
     /* check for valid parameters and calculate hash value */
-    if (UNLIKELY((type & (~51)) || !(type & 3) || !(type & 48)))
+    if (UNLIKELY(!(type & 3) || !(type & 48)))
       return CSOUND_ERROR;
     s = name;
     if (UNLIKELY(!isalpha((unsigned char) *s)))
@@ -630,7 +623,7 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
 PUBLIC int csoundGetChannelPtr(CSOUND *csound,
                                MYFLT **p, const char *name, int type)
 {
-        CHNENTRY  *pp;
+    CHNENTRY  *pp;
 
     *p = (MYFLT*) NULL;
     if (UNLIKELY(name == NULL))
@@ -659,12 +652,12 @@ PUBLIC int *csoundGetChannelLock(CSOUND *csound,
 
 static int cmp_func(const void *p1, const void *p2)
 {
-    return strcmp(((CsoundChannelListEntry*) p1)->name,
-                  ((CsoundChannelListEntry*) p2)->name);
+    return strcmp(((controlChannelInfo_t*) p1)->name,
+                  ((controlChannelInfo_t*) p2)->name);
 }
 
 /**
-* Returns a list of allocated channels in *lst. A CsoundChannelListEntry
+* Returns a list of allocated channels in *lst. A controlChannelInfo_t
 * structure contains the name and type of a channel, with the type having
 * the same format as in the case of csoundGetChannelPtr().
 * The return value is the number of channels, which may be zero if there
@@ -675,12 +668,12 @@ static int cmp_func(const void *p1, const void *p2)
 * after calling csoundReset().
 */
 
-PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
+PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
 {
         CHNENTRY  *pp;
     size_t          i, n;
 
-    *lst = (CsoundChannelListEntry*) NULL;
+    *lst = (controlChannelInfo_t*) NULL;
     if (csound->chn_db == NULL)
       return 0;
     /* count the number of channels */
@@ -693,7 +686,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
     if (!n)
       return 0;
     /* create list, initially in unsorted order */
-    *lst = (CsoundChannelListEntry*) malloc(n * sizeof(CsoundChannelListEntry));
+    *lst = (controlChannelInfo_t*) malloc(n * sizeof(controlChannelInfo_t));
     if (UNLIKELY(*lst == NULL))
       return CSOUND_MEMORY;
     for (n = (size_t) 0, i = (size_t) 0; i < (size_t) 256; i++) {
@@ -705,7 +698,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
       }
     }
     /* sort list */
-    qsort((void*) (*lst), n, sizeof(CsoundChannelListEntry), cmp_func);
+    qsort((void*) (*lst), n, sizeof(controlChannelInfo_t), cmp_func);
     /* return the number of channels */
     return (int)n;
 }
@@ -714,7 +707,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
 * Releases a channel list previously returned by csoundListChannels().
 */
 
-PUBLIC void csoundDeleteChannelList(CSOUND *csound, CsoundChannelListEntry *lst)
+PUBLIC void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
 {
     (void) csound;
     if (lst != NULL) free(lst);
@@ -759,17 +752,10 @@ PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
       }
       return CSOUND_SUCCESS;
     }
-    switch (type) {
-    case CSOUND_CONTROL_CHANNEL_INT:
-      dflt = (MYFLT) ((int32) MYFLT2LRND(dflt));
-      min  = (MYFLT) ((int32) MYFLT2LRND(min));
-      max  = (MYFLT) ((int32) MYFLT2LRND(max));
-      break;
-    case CSOUND_CONTROL_CHANNEL_LIN:
-    case CSOUND_CONTROL_CHANNEL_EXP:
-      break;
-    default:
-      return CSOUND_ERROR;
+    if  (type == CSOUND_CONTROL_CHANNEL_INT) {
+        dflt = (MYFLT) ((int32) MYFLT2LRND(dflt));
+        min  = (MYFLT) ((int32) MYFLT2LRND(min));
+        max  = (MYFLT) ((int32) MYFLT2LRND(max));
     }
     if (UNLIKELY(min >= max || dflt < min || dflt > max ||
                  (type == CSOUND_CONTROL_CHANNEL_EXP &&
@@ -780,7 +766,7 @@ PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
       if (UNLIKELY(pp->info == NULL))
         return CSOUND_MEMORY;
     }
-    pp->info->type = type;
+    pp->type = type;
     pp->info->dflt = dflt;
     pp->info->min  = min;
     pp->info->max  = max;
@@ -817,7 +803,7 @@ PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
     (*dflt) = pp->info->dflt;
     (*min) = pp->info->min;
     (*max) = pp->info->max;
-    return pp->info->type;
+    return pp->type;
 }
 
 /**

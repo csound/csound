@@ -136,7 +136,7 @@ CsoundOpcodeList::~CsoundOpcodeList()
 
 void CsoundChannelList::ResetVariables()
 {
-    lst = (CsoundChannelListEntry*) 0;
+    lst = (controlChannelInfo_t*) 0;
     cnt = -1;
     csound = (CSOUND*) 0;
 }
@@ -319,7 +319,7 @@ void CsoundChannelList::Clear()
 
 CsoundChannelList::CsoundChannelList(CSOUND *csound)
 {
-    lst = (CsoundChannelListEntry*) 0;
+    lst = (controlChannelInfo_t*) 0;
     cnt = csoundListChannels(csound, &lst);
     this->csound = csound;
     if (cnt < 0 || !lst)
@@ -328,7 +328,7 @@ CsoundChannelList::CsoundChannelList(CSOUND *csound)
 
 CsoundChannelList::CsoundChannelList(Csound *csound)
 {
-    lst = (CsoundChannelListEntry*) 0;
+    lst = (controlChannelInfo_t*) 0;
     cnt = csound->ListChannels(lst);
     this->csound = csound->GetCsound();
     if (cnt < 0 || !lst)
