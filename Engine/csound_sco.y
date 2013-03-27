@@ -210,6 +210,15 @@ yyerror(const char *s)
     fprintf(stderr, s);
 }
 
+int csound_scowrap()
+{
+#ifdef DEBUG
+    printf("\n === END OF INPUT ===\n");
+#endif
+    return (1);
+}
+
+#if 0
 int yylex(void)
 {
     int c;
@@ -225,10 +234,12 @@ int yylex(void)
     return c=='\n' ? NEWLINE : c;
 }
 
+extern int csound_scodebug;
 int main(void)
 {
-    yydebug = 1;
+    csound_scodebug = 1;
     yyparse();
     return 0;
 }
 
+#endif
