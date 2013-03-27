@@ -223,12 +223,37 @@ typedef struct CORFIL {
 //    int     indx[1];
 //  } ARGOFFS;
 
+    typedef struct oentry {
+        char    *opname;
+        uint16  dsblksiz;
+        uint16  flags;
+        uint8_t thread;
+        char    *outypes;
+        char    *intypes;
+        int     (*iopadr)(CSOUND *, void *p);
+        int     (*kopadr)(CSOUND *, void *p);
+        int     (*aopadr)(CSOUND *, void *p);
+        void    *useropinfo;    /* user opcode parameters */
+        int     prvnum;
+    } OENTRY;
+
+    // holds matching oentries from opcodeList
+    // has space for 16 matches and next pointer in case more are found (unlikely though)
+    typedef struct oentries {
+        OENTRY* entries[16];
+        int opnum[16];
+        int count;
+        char *opname;
+        int prvnum;
+        struct oentries* next;
+    } OENTRIES;
+
   /**
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
   typedef struct text {
     int     linenum;        /* Line num in orch file (currently buggy!)  */
-    int     opnum;          /* Opcode index in opcodlst[] */
+    OENTRY* oentry;
     char    *opcod;         /* Pointer to opcode name in global pool */
     ARGLST  *inlist;        /* Input args (pointer to item in name list) */
     ARGLST  *outlist;
@@ -486,31 +511,6 @@ typedef struct CORFIL {
     INSDS   *insdshead;
   } OPDS;
 
-  typedef struct oentry {
-    char    *opname;
-    uint16  dsblksiz;
-    uint16  flags;
-    uint8_t thread;
-    char    *outypes;
-    char    *intypes;
-    int     (*iopadr)(CSOUND *, void *p);
-    int     (*kopadr)(CSOUND *, void *p);
-    int     (*aopadr)(CSOUND *, void *p);
-    void    *useropinfo;    /* user opcode parameters */
-    int     prvnum;
-  } OENTRY;
-
-  // holds matching oentries from opcodeList
-  // has space for 16 matches and next pointer in case more are found (unlikely though)
-  typedef struct oentries {
-    OENTRY* entries[16];
-    int opnum[16];
-    int count;
-    char *opname;
-    int prvnum;
-    struct oentries* next;
-  } OENTRIES;
-
   typedef struct lblblk {
     OPDS    h;
     OPDS    *prvi;
@@ -693,7 +693,8 @@ typedef struct CORFIL {
 #define LABEL   5
 #define SETBEG  6
 #define PSET    6
-#define SETEND  7
+#define USEROPCODE    7
+#define SETEND  8
 
 #define TOKMAX  50L     /* Should be 50 but bust */
 

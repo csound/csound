@@ -91,6 +91,26 @@ OENTRY opcodlst_1[] = {
   { "endop",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
   { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
   { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL, 0 },
+
+    /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
+    /* and setksmps */
+    { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
+    /* IV - Sep 10 2002: removed perf time routines of xin and xout */
+    { "xin",      S(XIN_LOW),0,   1,  "NNNNNNNNNNNNNNNN", "",  xinset,  NULL, NULL },
+    { "##xin64",   S(XIN_HIGH),0,  1,
+        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+        xinset,  NULL, NULL },
+    { "##xin256",  S(XIN_MAX),0,   1,
+        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+        xinset,  NULL, NULL },
+    { "xout",     S(XOUT_LOW),0,  1,  "",                 "N", xoutset, NULL, NULL },
+    { "##xout64",  S(XOUT_HIGH),0, 1,  "",                 "N", xoutset, NULL, NULL },
+    { "##xout256", S(XOUT_MAX),0,  1,  "",                 "N", xoutset, NULL, NULL },
+    { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
+
   { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL, 0 },
   { "massign",S(MASSIGN), 0,1,      "",     "iTp",massign, NULL, NULL, NULL, 0 },
   { "turnon", S(TURNON),  0,1,      "",     "To", turnon, NULL, NULL, NULL, 0 },
@@ -142,7 +162,8 @@ OENTRY opcodlst_1[] = {
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign                 },
   { "=.i",    S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z", NULL, minit },
-  { "=.a",    S(ASSIGN),0,  4,      "a",    "x",    NULL,   NULL,   aassign },
+  { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   aassign },
+  { "=.up",   S(UPSAMP),0,  4,      "a",    "k",    NULL,   NULL, (SUBR)upsamp },
   { "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },
   { "init.i", S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0, 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
@@ -776,24 +797,6 @@ OENTRY opcodlst_1[] = {
 #ifdef VARGA
   { "cogoto", S(CGOTO),0,   3,      "",     "bl",   iingoto, kingoto, NULL   },
 #endif
-/* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
-/* and setksmps */
-  { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
-/* IV - Sep 10 2002: removed perf time routines of xin and xout */
-  { "xin",      S(XIN_LOW),0,   1,  "NNNNNNNNNNNNNNNN", "",  xinset,  NULL, NULL },
-  { "##xin64",   S(XIN_HIGH),0,  1,
-    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
-    xinset,  NULL, NULL },
-  { "##xin256",  S(XIN_MAX),0,   1,
-    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
-    xinset,  NULL, NULL },
-  { "xout",     S(XOUT_LOW),0,  1,  "",                 "N", xoutset, NULL, NULL },
-  { "##xout64",  S(XOUT_HIGH),0, 1,  "",                 "N", xoutset, NULL, NULL },
-  { "##xout256", S(XOUT_MAX),0,  1,  "",                 "N", xoutset, NULL, NULL },
-  { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
   { "tempoval", S(GTEMPO),0, 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
   { "downsamp",S(DOWNSAMP),0,3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
   { "upsamp", S(UPSAMP),0,  4,  "a", "k",    NULL,   NULL,   (SUBR)upsamp        },
@@ -1002,7 +1005,7 @@ OENTRY opcodlst_1[] = {
   /* ----------------------------------------------------------------------- */
   { "monitor",  sizeof(MONITOR_OPCODE), 0, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
       (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  (SUBR) NULL },
-  { "outrg", S(OUTRANGE), 0,5, "", "ky", 
+  { "outrg", S(OUTRANGE), 0,5, "", "ky",
                                (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange},
 /* terminate list */
 {  NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
