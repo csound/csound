@@ -735,12 +735,12 @@ add_custom_command(
     SOURCE ${YACC_SCOSRC}
     COMMAND ${BISON_EXECUTABLE}
     ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC} 
-    TARGET NewParser
+    TARGET NewScoParser
     DEPENDS ${LEX_SCOOUT}
     OUTPUTS ${YACC_SCOOUT})
 
 list(APPEND libcsound_SRCS 
-    ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
+    ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEXSCO_OUT})
 
 set_source_files_properties(${YACC_SCOOUT} GENERATED)
 set_source_files_properties(${LEX_SCOOUT} GENERATED)
