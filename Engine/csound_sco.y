@@ -22,10 +22,10 @@
     02111-1307 USA
 */
 %pure_parser
- //%parse-param {PARSE_PARM *parm}
- //%parse-param {void *scanner}
- //%lex-param { CSOUND * csound }
- //%lex-param {yyscan_t *scanner}
+%parse-param {SCORE_PARM *parm}
+%parse-param {void *scanner}
+%lex-param { CSOUND * csound }
+%lex-param {yyscan_t *scanner}
 
 %token NEWLINE
 
@@ -58,19 +58,17 @@
 /* NOTE: Perhaps should use %union feature of bison */
 
 %{
-    //#define YYSTYPE SCORE*
-
 #ifndef NULL
 #define NULL 0L
 #endif
-    //#include "csoundCore.h"
+#include "csoundCore.h"
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-
+#include "score_param.h"
 #include "csound_sco.tab.h"
-    void yyerror(const char *s);
+extern void csound_scoerror(SCORE_PARM *, void *, CSOUND *, MYFLT, const char*);
     //extern int csound_scolex(TREE**, CSOUND *, void *);
 #define LINE csound_scoget_lineno()
 #define LOCN csound_scoget_locn()
@@ -166,9 +164,11 @@ fac       : constant           { $$ = $1; }
           | '(' error         { $$ = 0; }
           ;
 
-constant  : NUMBER_TOKEN  {  }
-          | AT NUMBER_TOKEN  {  }
-          | AT AT NUMBER_TOKEN  {  }
+constant  : NUMBER_TOKEN        { $$ = parm->fval;  }
+          | AT NUMBER_TOKEN     { $$ = (MYFLT)parm->ival; }
+          | AT AT NUMBER_TOKEN  { $$ = (MYFLT)parm->ival; }
+          | AT AT NUMBER_TOKEN  { $$ = (MYFLT)parm->ival; }
+          | INTEGER_TOKEN       { $$ = (MYFLT)parm->ival; }
           ;
 
 %%
@@ -205,7 +205,8 @@ lyyerror(YYLTYPE t, char *s, ...)
 #endif
 
 void
-yyerror(const char *s)
+csound_scoerror(SCORE_PARM *parm, void *yyg, CSOUND *csound,
+                MYFLT x, const char* s)
 {
     fprintf(stderr, s);
 }
