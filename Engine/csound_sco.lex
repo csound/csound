@@ -35,7 +35,6 @@
 #define YYSTYPE MYFLT
 #define YYLTYPE SCOTOKEN
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
-#include "csound_sco.h"
 #include "corfile.h"
 YYLTYPE *yylval_param;
 YYLTYPE *yylloc_param;
