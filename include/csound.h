@@ -520,8 +520,7 @@ extern "C" {
         CSOUND_MEMORY = -4,
         /* Termination requested by SIGINT or SIGTERM. */
         CSOUND_SIGNAL = -5
-            }
-            CSOUND_STATUS;
+    } CSOUND_STATUS;
 
     /* Compilation or performance aborted, but not as a result of an error
        (e.g. --help, or running an utility with -U). */
@@ -532,22 +531,6 @@ extern "C" {
      */
 #define CSOUNDINIT_NO_SIGNAL_HANDLER  1
 #define CSOUNDINIT_NO_ATEXIT          2
-
-    /**
-     * Constants used by the bus interface (csoundGetChannelPtr() etc.).
-     */
-#define CSOUND_CONTROL_CHANNEL      1
-#define CSOUND_AUDIO_CHANNEL        2
-#define CSOUND_STRING_CHANNEL       3
-
-#define CSOUND_CHANNEL_TYPE_MASK    15
-
-#define CSOUND_INPUT_CHANNEL        16
-#define CSOUND_OUTPUT_CHANNEL       32
-
-#define CSOUND_CONTROL_CHANNEL_INT  1
-#define CSOUND_CONTROL_CHANNEL_LIN  2
-#define CSOUND_CONTROL_CHANNEL_EXP  3
 
 #define CSOUND_CALLBACK_KBD_EVENT   (0x00000001U)
 #define CSOUND_CALLBACK_KBD_TEXT    (0x00000002U)
@@ -758,11 +741,6 @@ extern "C" {
         uint32_t    mt[624];
     } CsoundRandMTState;
 
-    typedef struct CsoundChannelListEntry_ {
-        const char  *name;
-        int         type;
-    } CsoundChannelListEntry;
-
     /* PVSDATEXT is a variation on PVSDAT used in
        the pvs bus interface */
     typedef struct pvsdat_ext {
@@ -797,9 +775,38 @@ extern "C" {
         struct TREE   *next;
     } TREE;
 
+
+/**
+ * Constants used by the bus interface (csoundGetChannelPtr() etc.).
+ */
+    typedef enum {
+        CSOUND_CONTROL_CHANNEL =     1,
+        CSOUND_AUDIO_CHANNEL  =      2,
+        CSOUND_STRING_CHANNEL =      3,
+        CSOUND_PVS_CHANNEL =      4,
+        CSOUND_VAR_CHANNEL =      5,
+
+        CSOUND_CHANNEL_TYPE_MASK =    15,
+
+        CSOUND_INPUT_CHANNEL =       16,
+        CSOUND_OUTPUT_CHANNEL =       32,
+
+        CSOUND_CONTROL_CHANNEL_INT  = 64,
+        CSOUND_CONTROL_CHANNEL_EXP  = 128 /* if not exponential, channel is linear */
+    } CsoundChannelType_t;
+
+    typedef struct controlChannelInfo_s {
+        const char  *name;
+        CsoundChannelType_t     type;
+
+        MYFLT   dflt;
+        MYFLT   min;
+        MYFLT   max;
+    } controlChannelInfo_t;
+
     typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
             const char *channelName,
-            MYFLT *channelValuePtr,
+            void *channelValuePtr,
             int channelType);
 
 #ifndef CSOUND_CSDL_H
@@ -1628,12 +1635,12 @@ extern "C" {
      * with csoundDeleteChannelList(). The name pointers may become invalid
      * after calling csoundReset().
      */
-    PUBLIC int csoundListChannels(CSOUND *, CsoundChannelListEntry **lst);
+    PUBLIC int csoundListChannels(CSOUND *, controlChannelInfo_t **lst);
 
     /**
      * Releases a channel list previously returned by csoundListChannels().
      */
-    PUBLIC void csoundDeleteChannelList(CSOUND *, CsoundChannelListEntry *lst);
+    PUBLIC void csoundDeleteChannelList(CSOUND *, controlChannelInfo_t *lst);
 
     /**
      * Sets special parameters for a control channel. The parameters are:

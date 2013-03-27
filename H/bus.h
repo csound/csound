@@ -53,16 +53,15 @@ typedef struct {
     int     evtbuf;
 } KSENSE;
 
-typedef struct controlChannelInfo_s {
-        int     type;
-        MYFLT   dflt;
-        MYFLT   min;
-        MYFLT   max;
-} controlChannelInfo_t;
+typedef struct {
+    MYFLT   dflt;
+    MYFLT   min;
+    MYFLT   max;
+} CHNINFO;
 
 typedef struct channelEntry_s {
         struct channelEntry_s *nxt;
-        controlChannelInfo_t  *info;
+        CHNINFO  *info;
         MYFLT   *data;
         int     lock;               /* Multi-thread protection */
         int     type;
