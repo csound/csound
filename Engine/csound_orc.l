@@ -97,7 +97,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 
 {CONT}          { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
- }
+                }
 "\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                   return NEWLINE; }
@@ -105,17 +105,57 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
-                     return '('; }
+                     return '('; 
+                }
 ")"             { return ')'; }
-"["             { return '['; }
+"["{OPTWHITE}"\n"? { if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '[';
+                }
 "]"             { return ']'; }
-"+"             { return '+'; }
-"-"             { return '-'; }
-"*"             { return '*'; }
-"/"             { return '/'; }
-"%"             { return '%'; }
-"\^"            { return '^'; }
-"?"             { return '?'; }
+"+"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '+';
+                   }
+"-"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '-';
+                   }
+"*"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '*';
+                   }
+"/"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '/';
+                   }
+"%"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '%';
+                   }
+"\^"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '^';
+                   }
+"?"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '?';
+                   }
 ":"             { return ':'; }
 ","{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
