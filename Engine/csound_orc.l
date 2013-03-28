@@ -229,9 +229,13 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_DIVIN; }
-"="             { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = '=';
-                  return '='; }
+"="{OPTWHITE}"\n"? {   
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     *lvalp = make_token(csound, "=");
+                     (*lvalp)->type = '=';
+                     return '='; }
 ">"{OPTWHITE}"\n"? { 
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
