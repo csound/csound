@@ -3,7 +3,7 @@
  /*
     csound_sco.l:
 
-    Copyright (C) 2013
+    Copyright (C) 2013 March
     John ffitch
 
     This file is part of Csound.
@@ -154,6 +154,10 @@ PPX             "pp^"${INTGR}
 
 <<EOF>>         {
                   yyterminate();
+                }
+
+.               { fprintf(stderr, "unknown character %c(%.2x)\n", 
+                          yytext[0], yytext[0]);
                 }
 
 %%

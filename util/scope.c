@@ -1,5 +1,5 @@
-#ifdef JPFF
-
+#define __BUILDING_LIBCSOUND
+#include "csoundCore.h"
 #include "std_util.h"                                   /*  HETRO.C   */
 #include "corfile.h"
 #include "score_param.h"
@@ -13,32 +13,39 @@ extern void csound_prslex_destroy(void *);
 
 static int scope(CSOUND *csound, int argc, char **argv)
 {
-    CORFIL *expanded_sco;
-    PRS_PARM    qq;
-    //if (argc!=1) fin = fopen(argv[1], "r");
+    PRS_PARM  qq;
+    int len=100, p=0, n;
+    char buff[1024];
+    FILE *ff;
       /* Pre-process */
-    memset(&qq, 0, sizeof(PRS_PARM));
+    memset(&qq, '\0', sizeof(PRS_PARM));
+    csound->scorestr = corfile_create_w();
     csound_prslex_init(&qq.yyscanner);
     csound_prsset_extra(&qq, qq.yyscanner);
-    qq.line = 1;
-    //expanded_sco = corfile_create_w();
-    //file_to_int(csound, "**unknown**");
-    //sprintf(bb, "#source %d\n", 
-    //        qq.lstack[0] = file_to_int(csound, csound->orchname));
-    //corfile_puts(bb, expanded_sco);
-    //sprintf(bb, "#line %d\n", 0);
-    //corfile_puts(NULL, ndednner);
-    csound_prslex(NULL, qq.yyscanner);
-    if (UNLIKELY(qq.ifdefStack != NULL)) {
-      csound->Message(csound, Str("Unmatched #ifdef\n"));
-      csound->LongJmp(csound, 1);
+    csound->scorename = argv[1];
+    ff = fopen(csound->scorename, "r");
+    memset(buff, '\0', 1024);
+    while ((n = fread(buff, 1, 1023, ff))) {
+      corfile_puts(buff, csound->scorestr);
+      memset(buff, '\0', 1024);
     }
-    csound_prslex_destroy(qq.yyscanner);
+    corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+    corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+
+    csound->expanded_sco = corfile_create_w();
+    sprintf(buff, "#source %d\n",
+            qq.lstack[0] = file_to_int(csound, csound->scorename));
+    corfile_puts(buff, csound->expanded_sco);
+    sprintf(buff, "#line %d\n", csound->orcLineOffset);
+    corfile_puts(buff, csound->expanded_sco);
+    qq.line = 1;
+    csound_prslex(csound, qq.yyscanner);
     csound->DebugMsg(csound, "yielding >>%s<<\n",
-                       corfile_body(expanded_sco));
-    //corfile_rm(scostr);
+                     corfile_body(csound->expanded_sco));
+    csound_prslex_destroy(&qq.yyscanner);
     return 0;
 }
+
 
 /* module interface */
 
@@ -51,6 +58,3 @@ int scope_init_(CSOUND *csound)
     }
     return retval;
 }
-
-#endif
-
