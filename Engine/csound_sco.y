@@ -22,10 +22,10 @@
     02111-1307 USA
 */
 %pure_parser
- //%parse-param {PARSE_PARM *parm}
- //%parse-param {void *scanner}
- //%lex-param { CSOUND * csound }
- //%lex-param {yyscan_t *scanner}
+%parse-param {SCORE_PARM *parm}
+%parse-param {void *scanner}
+%lex-param { CSOUND * csound }
+%lex-param {yyscan_t *scanner}
 
 %token NEWLINE
 
@@ -58,19 +58,16 @@
 /* NOTE: Perhaps should use %union feature of bison */
 
 %{
-    //#define YYSTYPE SCORE*
-
 #ifndef NULL
 #define NULL 0L
 #endif
-    //#include "csoundCore.h"
+#include "csoundCore.h"
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-
-#include "csound_sco.tab.h"
-    void yyerror(const char *s);
+#include "score_param.h"
+extern void csound_scoerror(SCORE_PARM *, void *, const char*);
     //extern int csound_scolex(TREE**, CSOUND *, void *);
 #define LINE csound_scoget_lineno()
 #define LOCN csound_scoget_locn()
@@ -166,9 +163,11 @@ fac       : constant           { $$ = $1; }
           | '(' error         { $$ = 0; }
           ;
 
-constant  : NUMBER_TOKEN  {  }
-          | AT NUMBER_TOKEN  {  }
-          | AT AT NUMBER_TOKEN  {  }
+constant  : NUMBER_TOKEN        { $$ = parm->fval;  }
+          | AT NUMBER_TOKEN     { $$ = (MYFLT)parm->ival; }
+          | AT AT NUMBER_TOKEN  { $$ = (MYFLT)parm->ival; }
+          | AT AT NUMBER_TOKEN  { $$ = (MYFLT)parm->ival; }
+          | INTEGER_TOKEN       { $$ = (MYFLT)parm->ival; }
           ;
 
 %%
@@ -205,11 +204,21 @@ lyyerror(YYLTYPE t, char *s, ...)
 #endif
 
 void
-yyerror(const char *s)
+csound_scoerror(SCORE_PARM *parm, void *yyg, CSOUND *csound,
+                MYFLT x, const char* s)
 {
     fprintf(stderr, s);
 }
 
+int csound_scowrap()
+{
+#ifdef DEBUG
+    printf("\n === END OF INPUT ===\n");
+#endif
+    return (1);
+}
+
+#if 0
 int yylex(void)
 {
     int c;
@@ -225,10 +234,12 @@ int yylex(void)
     return c=='\n' ? NEWLINE : c;
 }
 
+extern int csound_scodebug;
 int main(void)
 {
-    yydebug = 1;
+    csound_scodebug = 1;
     yyparse();
     return 0;
 }
 
+#endif
