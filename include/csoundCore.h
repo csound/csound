@@ -914,10 +914,10 @@ typedef struct NAME__ {
     int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
     void (*AddSpinSample)(CSOUND *, int, int, MYFLT);
     MYFLT (*GetSpoutSample)(CSOUND *, int, int);
-    int (*ChanIKSetValue)(CSOUND *, int channel, MYFLT value);
-    MYFLT (*ChanOKGetValue)(CSOUND *, int channel);
-    int (*ChanIASetSample)(CSOUND *, int channel, int frame, MYFLT sample);
-    MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
+//    int (*ChanIKSetValue)(CSOUND *, int channel, MYFLT value);
+//    MYFLT (*ChanOKGetValue)(CSOUND *, int channel);
+//    int (*ChanIASetSample)(CSOUND *, int channel, int frame, MYFLT sample);
+//    MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
     void (*Stop)(CSOUND *);
     int (*PerformKsmpsAbsolute)(CSOUND *);
 #endif
@@ -939,10 +939,10 @@ typedef struct NAME__ {
                                    int type, MYFLT dflt, MYFLT min, MYFLT max); //
     int (*GetControlChannelParams)(CSOUND *, const char *name,
                                    MYFLT *dflt, MYFLT *min, MYFLT *max); //
-    int (*ChanIKSet)(CSOUND *, MYFLT value, int n); //
-    int (*ChanOKGet)(CSOUND *, MYFLT *value, int n); //
-    int (*ChanIASet)(CSOUND *, const MYFLT *value, int n); //
-    int (*ChanOAGet)(CSOUND *, MYFLT *value, int n); //
+//    int (*ChanIKSet)(CSOUND *, MYFLT value, int n); //
+//    int (*ChanOKGet)(CSOUND *, MYFLT *value, int n); //
+//    int (*ChanIASet)(CSOUND *, const MYFLT *value, int n); //
+//    int (*ChanOAGet)(CSOUND *, MYFLT *value, int n); //
     int (*NewOpcodeList)(CSOUND *, opcodeListEntry **);//
     void (*DisposeOpcodeList)(CSOUND *, opcodeListEntry *);//
     int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
