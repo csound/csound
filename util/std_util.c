@@ -46,9 +46,9 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     err |= scale_init_(csound);
     err |= sndinfo_init_(csound);
     err |= srconv_init_(csound);
-#if JPFF
+    //#ifdef JPFF
     err |= scope_init_(csound);
-#endif
+    //#endif
     return err;
 }
 
