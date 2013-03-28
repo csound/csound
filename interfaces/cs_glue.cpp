@@ -148,7 +148,12 @@ int CsoundChannelList::GetChannelMetaData(int ndx,
     if (!lst || (unsigned int) ndx >= (unsigned int) cnt)
       return -1;
     name = lst[ndx].name;
-    return csoundGetControlChannelParams(csound, name, &dflt, &min, &max);
+    controlChannelHints_t hints;
+    int ret = csoundGetControlChannelHints(csound, name, &hints);
+    dflt = hints.dflt;
+    min = hints.min;
+    max = hints.max;
+    return ret;
 }
 
 /**
