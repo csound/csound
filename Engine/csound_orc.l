@@ -163,30 +163,110 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                                             yyscanner);
                      return ','; 
                    }
-"!"             { return '!'; }
-"->"            { return S_ELIPSIS; }
-"!="            { return S_NEQ; }
-"&&"            { return S_AND; }
-"||"            { return S_OR; }
-"<<"            { return S_BITSHIFT_LEFT; }
-">>"            { return S_BITSHIFT_RIGHT; }
-"<"             { return S_LT; }
-"<="            { return S_LE; }
-"=="            { return S_EQ; }
-"+="            { return S_ADDIN; }
-"-="            { return S_SUBIN; }
-"*="            { return S_MULIN; }
-"/="            { return S_DIVIN; }
+"!"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '!'; }
+"->"               { return S_ELIPSIS; }
+"!="{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_NEQ; }
+"&&"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_AND; }
+"||"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_OR; }
+"<<"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_BITSHIFT_LEFT; }
+">>"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_BITSHIFT_RIGHT; }
+"<"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_LT; }
+"<="{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_LE; }
+"=="{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_EQ; }
+"+="{OPTWHITE}"\n"? {  
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_ADDIN; }
+"-="{OPTWHITE}"\n"? {  
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_SUBIN; }
+"*="{OPTWHITE}"\n"? {  
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_MULIN; }
+"/="{OPTWHITE}"\n"? {  
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_DIVIN; }
 "="             { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = '=';
                   return '='; }
-">"             { return S_GT; }
-">="            { return S_GE; }
-"|"             { return '|'; }
-"&"             { return '&'; }
-"#"             { return '#'; }
-"¬"             { return '~'; }
-"~"             { return '~'; }
+">"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_GT; }
+">="{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return S_GE; }
+"|"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '|'; }
+"&"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '&'; }
+"#"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '#'; }
+"¬"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '~'; }
+"~"{OPTWHITE}"\n"? { 
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return '~'; }
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
 "@i"            { return T_MAPI; }
