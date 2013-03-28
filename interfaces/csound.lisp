@@ -192,11 +192,11 @@
 (defcfun ("csoundGetStrVarMaxLen" csoundGetStrVarMaxLen) :int
   (arg0 :pointer))
 
-(defcfun ("csoundGetSampleFormat" csoundGetSampleFormat) :int
-  (arg0 :pointer))
+;;(defcfun ("csoundGetSampleFormat" csoundGetSampleFormat) :int
+;;  (arg0 :pointer))
 
-(defcfun ("csoundGetSampleSize" csoundGetSampleSize) :int
-  (arg0 :pointer))
+;;(defcfun ("csoundGetSampleSize" csoundGetSampleSize) :int
+;;  (arg0 :pointer))
 
 (defcfun ("csoundGetInputBufferSize" csoundGetInputBufferSize) :long
   (arg0 :pointer))
@@ -562,7 +562,7 @@
   (arg0 :pointer)
   (lst :pointer))
 
-(defcfun ("csoundSetControlChannelParams" csoundSetControlChannelParams) :int
+(defcfun ("csoundSetControlChannelHints" csoundSetControlChannelHints) :int
   (arg0 :pointer)
   (name :string)
   (type :int)
@@ -570,7 +570,7 @@
   (min :float)
   (max :float))
 
-(defcfun ("csoundGetControlChannelParams" csoundGetControlChannelParams) :int
+(defcfun ("csoundGetControlChannelHints" csoundGetControlChannelHints) :int
   (arg0 :pointer)
   (name :string)
   (dflt :pointer)
@@ -592,25 +592,25 @@
 (defcfun ("csoundRandMT" csoundRandMT) :pointer
   (p :pointer))
 
-(defcfun ("csoundChanIKSet" csoundChanIKSet) :int
-  (arg0 :pointer)
-  (value :float)
-  (n :int))
+;;(defcfun ("csoundChanIKSet" csoundChanIKSet) :int
+;;  (arg0 :pointer)
+;;  (value :float)
+;;  (n :int))
 
-(defcfun ("csoundChanOKGet" csoundChanOKGet) :int
-  (arg0 :pointer)
-  (value :pointer)
-  (n :int))
+;;(defcfun ("csoundChanOKGet" csoundChanOKGet) :int
+;;  (arg0 :pointer)
+;;  (value :pointer)
+;;  (n :int))
 
-(defcfun ("csoundChanIASet" csoundChanIASet) :int
-  (arg0 :pointer)
-  (value :pointer)
-  (n :int))
+;;(defcfun ("csoundChanIASet" csoundChanIASet) :int
+;;  (arg0 :pointer)
+;;  (value :pointer)
+;;  (n :int))
 
-(defcfun ("csoundChanOAGet" csoundChanOAGet) :int
-  (arg0 :pointer)
-  (value :pointer)
-  (n :int))
+;;(defcfun ("csoundChanOAGet" csoundChanOAGet) :int
+;;  (arg0 :pointer)
+;;  (value :pointer)
+;;  (n :int))
 
 (defcfun ("csoundPvsinSet" csoundPvsinSet) :int
   (arg0 :pointer)

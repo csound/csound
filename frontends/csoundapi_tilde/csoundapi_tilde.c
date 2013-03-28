@@ -557,7 +557,8 @@ static void csoundapi_get_channel(t_csoundapi *x, t_symbol *s,
       val = 0.0;
       atom_string(&argv[i], chs, 64);
       if(csoundGetChannelPtr(p,&pval,chs,
-                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
+                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+              == CSOUND_SUCCESS)
           val = *pval;
       SETFLOAT(&at[1], (t_float) val);
       SETSYMBOL(&at[0], gensym((char *) chs));
