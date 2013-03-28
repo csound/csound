@@ -53,15 +53,9 @@ typedef struct {
     int     evtbuf;
 } KSENSE;
 
-typedef struct {
-    MYFLT   dflt;
-    MYFLT   min;
-    MYFLT   max;
-} CHNINFO;
-
 typedef struct channelEntry_s {
         struct channelEntry_s *nxt;
-        CHNINFO  *info;
+        controlChannelHints_t hints;
         MYFLT   *data;
         int     lock;               /* Multi-thread protection */
         int     type;
@@ -83,15 +77,15 @@ typedef struct {
     int     *lock;
 } CHNCLEAR;
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *iname;
-    MYFLT   *imode;
-    const char  *name;
-    MYFLT   *fp;
-    int     *lock;
-    int     type;
-} CHNSEND;
+//typedef struct {
+//    OPDS    h;
+//    MYFLT   *iname;
+//    MYFLT   *imode;
+//    const char  *name;
+//    MYFLT   *fp;
+//    int     *lock;
+//    int     type;
+//} CHNSEND;
 
 typedef struct {
     OPDS    h;
@@ -225,8 +219,8 @@ int     chn_a_opcode_init(CSOUND *, CHN_OPCODE *);
 int     chn_S_opcode_init(CSOUND *, CHN_OPCODE *);
 int     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);
 int     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
-int     chnrecv_opcode_init(CSOUND *, CHNSEND *);
-int     chnsend_opcode_init(CSOUND *, CHNSEND *);
+//int     chnrecv_opcode_init(CSOUND *, CHNSEND *);
+//int     chnsend_opcode_init(CSOUND *, CHNSEND *);
 
 
 #ifdef __cplusplus

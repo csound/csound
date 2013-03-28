@@ -15,13 +15,40 @@ int clean_suite1(void)
 
 const char orc1[] = "chn_k \"testing\", 3\n  instr 1\n  endin\n";
 
+void test_control_channel_params(void)
+{
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
+    int argc = 2;
+    csoundCompileOrc(csound, orc1);
+    int err = csoundStart(csound);
+    CU_ASSERT(err == 0);
+    controlChannelHints_t hints;
+    hints.behav = CSOUND_CONTROL_CHANNEL_INT;
+    hints.dflt = 5;
+    hints.min = 1;
+    hints.max = 10;
+    csoundSetControlChannelHints(csound, "testing", hints);
+
+    controlChannelHints_t hints2;
+    csoundGetControlChannelHints(csound, "testing", &hints2);
+    CU_ASSERT(hints2.behav == CSOUND_CONTROL_CHANNEL_INT);
+    CU_ASSERT(hints2.dflt == 5);
+    CU_ASSERT(hints2.min == 1);
+    CU_ASSERT(hints2.max == 10);
+
+    csoundDestroy(csound);
+    csoundDestroyMessageBuffer(csound);
+}
+
 void test_control_channel(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
     int argc = 2;
     csoundCompileOrc(csound, orc1);
-    csoundStart(csound);
+    int err = csoundStart(csound);
+    CU_ASSERT(err == 0);
     csoundSetControlChannel(csound, "testing", 5.0);
     CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "testing"));
 
@@ -29,7 +56,7 @@ void test_control_channel(void)
     csoundDestroyMessageBuffer(csound);
 }
 
-const char orc2[] = "chn_k \"testing\", 3, 1, 0, 10\n  chn_a \"testing2\", 3\n  instr 1\n  endin\n";
+const char orc2[] = "chn_k \"testing\", 3, 1, 1, 0, 10\n  chn_a \"testing2\", 3\n  instr 1\n  endin\n";
 
 void test_channel_list(void)
 {
@@ -37,7 +64,8 @@ void test_channel_list(void)
     CSOUND *csound = csoundCreate(0);
     int argc = 2;
     csoundCompileOrc(csound, orc2);
-    csoundStart(csound);
+    int err = csoundStart(csound);
+    CU_ASSERT(err == 0);
     controlChannelInfo_t *lst;
     int numchnls = csoundListChannels(csound, &lst);
     CU_ASSERT(numchnls == 2);
@@ -68,6 +96,7 @@ int main()
    /* add the tests to the suite */
    if ((NULL == CU_add_test(pSuite, "Channel Lists", test_channel_list))
            || (NULL == CU_add_test(pSuite, "Control channel", test_control_channel))
+           || (NULL == CU_add_test(pSuite, "Control channel parameters", test_control_channel_params))
            )
    {
       CU_cleanup_registry();
