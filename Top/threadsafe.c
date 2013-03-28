@@ -62,7 +62,8 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name){
     } x;
     x.d = FL(0.0);
     if (csoundGetChannelPtr(csound, &pval, name,
-                            CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
+                            CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+            == CSOUND_SUCCESS)
 #ifdef HAVE_ATOMIC_BUILTIN
       x.i = __sync_fetch_and_add((int64_t *)pval, 0);
 #else
@@ -79,7 +80,8 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
     } x;
     x.d = val;
     if(csoundGetChannelPtr(csound, &pval, name,
-                           CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL))
+                           CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL)
+            == CSOUND_SUCCESS)
 #ifdef HAVE_ATOMIC_BUILTIN
       __sync_lock_test_and_set((int64_t *)pval,x.i);
 #else
@@ -102,7 +104,8 @@ void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
       csoundGetChannelLock(csound, (char*) name,
                            CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (csoundGetChannelPtr(csound, &psamples, name,
-                           CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL)) {
+                           CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+            == CSOUND_SUCCESS) {
       csoundSpinLock(lock);
       memcpy(samples, psamples, csoundGetKsmps(csound)*sizeof(MYFLT));
       csoundSpinUnLock(lock);
@@ -116,7 +119,8 @@ void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
       csoundGetChannelLock(csound, (char*) name,
                            CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (csoundGetChannelPtr(csound, &psamples, name,
-                           CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL)){
+                           CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL)
+            == CSOUND_SUCCESS){
       csoundSpinLock(lock);
       memcpy(psamples, samples, csoundGetKsmps(csound)*sizeof(MYFLT));
       csoundSpinUnLock(lock);
@@ -130,7 +134,8 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
       csoundGetChannelLock(csound, (char*) name,
                            CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (csoundGetChannelPtr(csound, &pstring, name,
-                           CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)){
+                           CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
+            == CSOUND_SUCCESS){
       csoundSpinLock(lock);
       strcpy((char *) pstring, string);
       csoundSpinUnLock(lock);
@@ -144,7 +149,8 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
       csoundGetChannelLock(csound, (char*) name,
                            CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (csoundGetChannelPtr(csound, &pstring, name,
-                           CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)){
+                           CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+            == CSOUND_SUCCESS){
       csoundSpinLock(lock);
       strcpy(string, (char *) pstring);
       csoundSpinUnLock(lock);

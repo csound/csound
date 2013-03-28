@@ -5,7 +5,7 @@
 #include <string.h>
 #include <dlfcn.h>
 #include <stdarg.h>
-#include "H/sysdep.h"
+#include "include/sysdep.h"
 
 typedef struct CSOUND_  CSOUND;
 #ifndef MYFLT
@@ -72,8 +72,8 @@ struct CSOUND_ {
     MYFLT (*GetKr)(CSOUND *);
     int (*GetKsmps)(CSOUND *);
     int (*GetNchnls)(CSOUND *);
-    int (*GetSampleFormat)(CSOUND *);
-    int (*GetSampleSize)(CSOUND *);
+//    int (*GetSampleFormat)(CSOUND *);
+//    int (*GetSampleSize)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
@@ -90,7 +90,7 @@ struct CSOUND_ {
     void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
     void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
     void (*DeleteUtilityList)(CSOUND *, char **lst);
-  void (*DeleteChannelList)(CSOUND * /* , CsoundChannelListEntry *lst*/);
+    void (*DeleteChannelList)(CSOUND * /* , controlChannelInfo_t *lst*/);
     void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,

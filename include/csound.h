@@ -520,8 +520,7 @@ extern "C" {
         CSOUND_MEMORY = -4,
         /* Termination requested by SIGINT or SIGTERM. */
         CSOUND_SIGNAL = -5
-            }
-            CSOUND_STATUS;
+    } CSOUND_STATUS;
 
     /* Compilation or performance aborted, but not as a result of an error
        (e.g. --help, or running an utility with -U). */
@@ -532,22 +531,6 @@ extern "C" {
      */
 #define CSOUNDINIT_NO_SIGNAL_HANDLER  1
 #define CSOUNDINIT_NO_ATEXIT          2
-
-    /**
-     * Constants used by the bus interface (csoundGetChannelPtr() etc.).
-     */
-#define CSOUND_CONTROL_CHANNEL      1
-#define CSOUND_AUDIO_CHANNEL        2
-#define CSOUND_STRING_CHANNEL       3
-
-#define CSOUND_CHANNEL_TYPE_MASK    15
-
-#define CSOUND_INPUT_CHANNEL        16
-#define CSOUND_OUTPUT_CHANNEL       32
-
-#define CSOUND_CONTROL_CHANNEL_INT  1
-#define CSOUND_CONTROL_CHANNEL_LIN  2
-#define CSOUND_CONTROL_CHANNEL_EXP  3
 
 #define CSOUND_CALLBACK_KBD_EVENT   (0x00000001U)
 #define CSOUND_CALLBACK_KBD_TEXT    (0x00000002U)
@@ -648,8 +631,7 @@ extern "C" {
         /* This should only be used internally by the original FileOpen()
            API call or for temp files written with <CsFileB> */
         CSFTYPE_UNKNOWN = 0
-    }
-    CSOUND_FILETYPES;
+    } CSOUND_FILETYPES;
 
     /*
      * TYPE DEFINITIONS
@@ -758,11 +740,6 @@ extern "C" {
         uint32_t    mt[624];
     } CsoundRandMTState;
 
-    typedef struct CsoundChannelListEntry_ {
-        const char  *name;
-        int         type;
-    } CsoundChannelListEntry;
-
     /* PVSDATEXT is a variation on PVSDAT used in
        the pvs bus interface */
     typedef struct pvsdat_ext {
@@ -800,9 +777,47 @@ extern "C" {
                                 // should be moved to TYPE_TABLE
     } TREE;
 
+
+/**
+ * Constants used by the bus interface (csoundGetChannelPtr() etc.).
+ */
+    typedef enum {
+        CSOUND_CONTROL_CHANNEL =     1,
+        CSOUND_AUDIO_CHANNEL  =      2,
+        CSOUND_STRING_CHANNEL =      3,
+        CSOUND_PVS_CHANNEL =      4,
+        CSOUND_VAR_CHANNEL =      5,
+
+        CSOUND_CHANNEL_TYPE_MASK =    15,
+
+        CSOUND_INPUT_CHANNEL =       16,
+        CSOUND_OUTPUT_CHANNEL =       32
+    } controlChannelType;
+
+    typedef enum {
+        CSOUND_CONTROL_CHANNEL_NO_HINTS  = 0,
+        CSOUND_CONTROL_CHANNEL_INT  = 1,
+        CSOUND_CONTROL_CHANNEL_LIN  = 2,
+        CSOUND_CONTROL_CHANNEL_EXP  = 3
+    } controlChannelBehavior;
+
+    typedef struct controlChannelHints_s {
+        controlChannelBehavior    behav;
+
+        MYFLT   dflt;
+        MYFLT   min;
+        MYFLT   max;
+    } controlChannelHints_t;
+
+    typedef struct controlChannelInfo_s {
+        const char  *name;
+        int     type;
+        controlChannelHints_t    hints;
+    } controlChannelInfo_t;
+
     typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
             const char *channelName,
-            MYFLT *channelValuePtr,
+            void *channelValuePtr,
             int channelType);
 
 #ifndef CSOUND_CSDL_H
@@ -1006,15 +1021,15 @@ extern "C" {
      */
   PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
 
-    /**
-     * Returns the sample format.
-     */
-    PUBLIC int csoundGetSampleFormat(CSOUND *);
+//    /**
+//     * Returns the sample format.
+//     */
+//    PUBLIC int csoundGetSampleFormat(CSOUND *);
 
-    /**
-     * Returns the size in bytes of a single sample.
-     */
-    PUBLIC int csoundGetSampleSize(CSOUND *);
+//    /**
+//     * Returns the size in bytes of a single sample.
+//     */
+//    PUBLIC int csoundGetSampleSize(CSOUND *);
 
     /**
      * Return the size of MYFLT in bytes.
@@ -1046,23 +1061,28 @@ extern "C" {
 
     /**
      *  Configure Csound with a given set of parameters defined in
-     *  the CSOUND_PARAMS structure
+     *  the CSOUND_PARAMS structure. These parameters are the part of the
+     *  OPARMS struct that are configurable through command line flags.
+     *  The CSOUND_PARAMS structure can be obtained using csoundGetParams().
+     *  These options should only be changed before performance has started.
      */
    PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
 
      /**
      *  Get the current set of parameters from a CSOUND instance in
-     *  a CSOUND_PARAMS structure
+     *  a CSOUND_PARAMS structure. See csoundSetParams().
      */
    PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
 
    /**
-    * Returns whether Csound is in debug mode.
+    * Returns whether Csound is set to print debug messages sent through the
+    * DebugMsg() internal API function. Anything different to 0 means true.
     */
    PUBLIC int csoundGetDebug(CSOUND *);
 
    /**
-    * Sets whether Csound is in debug mode.
+    * Sets whether Csound prints debug messages from the DebugMsg() internal
+    * API function. Anything different to 0 means true.
     */
    PUBLIC void csoundSetDebug(CSOUND *, int debug);
 
@@ -1626,12 +1646,12 @@ extern "C" {
      * with csoundDeleteChannelList(). The name pointers may become invalid
      * after calling csoundReset().
      */
-    PUBLIC int csoundListChannels(CSOUND *, CsoundChannelListEntry **lst);
+    PUBLIC int csoundListChannels(CSOUND *, controlChannelInfo_t **lst);
 
     /**
      * Releases a channel list previously returned by csoundListChannels().
      */
-    PUBLIC void csoundDeleteChannelList(CSOUND *, CsoundChannelListEntry *lst);
+    PUBLIC void csoundDeleteChannelList(CSOUND *, controlChannelInfo_t *lst);
 
     /**
      * Sets special parameters for a control channel. The parameters are:
@@ -1651,13 +1671,12 @@ extern "C" {
      *                  or the specified parameters are invalid
      *   CSOUND_MEMORY: could not allocate memory
      */
-    PUBLIC int csoundSetControlChannelParams(CSOUND *, const char *name,
-            int type, MYFLT dflt,
-            MYFLT min, MYFLT max);
+    PUBLIC int csoundSetControlChannelHints(CSOUND *, const char *name,
+                                            controlChannelHints_t hints);
 
     /**
      * Returns special parameters (assuming there are any) of a control channel,
-     * previously set with csoundSetControlChannelParams().
+     * previously set with csoundSetControlChannelHints().
      * If the channel exists, is a control channel, and has the
      * special parameters assigned, then the default, minimum, and
      * maximum value is stored in *dflt, *min, and *max, respectively,
@@ -1669,8 +1688,8 @@ extern "C" {
      * channel, but has no special parameters set; otherwise, a
      * negative error code is returned.
      */
-    PUBLIC int csoundGetControlChannelParams(CSOUND *, const char *name,
-            MYFLT *dflt, MYFLT *min, MYFLT *max);
+    PUBLIC int csoundGetControlChannelHints(CSOUND *, const char *name,
+            controlChannelHints_t *hints);
 
     /**
      * Recovers a pointer to a lock for the specified channel of the bus in *p
@@ -1734,104 +1753,104 @@ extern "C" {
                                         const char *name, char *string);
 
 
-      /**
-     * Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
-     * The bus is automatically extended if 'n' exceeds any previously used
-     * index value, clearing new locations to zero.
-     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-     */
-    PUBLIC int csoundChanIKSet(CSOUND *, MYFLT value, int n);
+//      /**
+//     * Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
+//     * The bus is automatically extended if 'n' exceeds any previously used
+//     * index value, clearing new locations to zero.
+//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
+//     */
+//    PUBLIC int csoundChanIKSet(CSOUND *, MYFLT value, int n);
 
-    /**
-     * Receives a MYFLT value from the chano opcode (k-rate) at index 'n'.
-     * The bus is automatically extended if 'n' exceeds any previously used
-     * index value, clearing new locations to zero.
-     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-     */
-    PUBLIC int csoundChanOKGet(CSOUND *, MYFLT *value, int n);
+//    /**
+//     * Receives a MYFLT value from the chano opcode (k-rate) at index 'n'.
+//     * The bus is automatically extended if 'n' exceeds any previously used
+//     * index value, clearing new locations to zero.
+//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
+//     */
+//    PUBLIC int csoundChanOKGet(CSOUND *, MYFLT *value, int n);
 
-    /**
-     * Sends ksmps MYFLT values to the chani opcode (a-rate) at index 'n'.
-     * The bus is automatically extended if 'n' exceeds any previously used
-     * index value, clearing new locations to zero.
-     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-     */
-    PUBLIC int csoundChanIASet(CSOUND *, const MYFLT *value, int n);
+//    /**
+//     * Sends ksmps MYFLT values to the chani opcode (a-rate) at index 'n'.
+//     * The bus is automatically extended if 'n' exceeds any previously used
+//     * index value, clearing new locations to zero.
+//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
+//     */
+//    PUBLIC int csoundChanIASet(CSOUND *, const MYFLT *value, int n);
 
-    /**
-     * Receives ksmps MYFLT values from the chano opcode (a-rate) at index 'n'.
-     * The bus is automatically extended if 'n' exceeds any previously used
-     * index value, clearing new locations to zero.
-     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-     */
-    PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
+//    /**
+//     * Receives ksmps MYFLT values from the chano opcode (a-rate) at index 'n'.
+//     * The bus is automatically extended if 'n' exceeds any previously used
+//     * index value, clearing new locations to zero.
+//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
+//     */
+//    PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
 
-    /**
-     * Sets the chani opcode MYFLT k-rate value for the indicated channel.
-     * The bus is automatically extended if the channel is greater than
-     * previously used, clearing new locations to zero.
-     * Returns zero on success, CSOUND_ERROR if the index is invalid,
-     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
-     */
-    PUBLIC int csoundChanIKSetValue(CSOUND *, int channel, MYFLT value);
+//    /**
+//     * Sets the chani opcode MYFLT k-rate value for the indicated channel.
+//     * The bus is automatically extended if the channel is greater than
+//     * previously used, clearing new locations to zero.
+//     * Returns zero on success, CSOUND_ERROR if the index is invalid,
+//     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+//     */
+//    PUBLIC int csoundChanIKSetValue(CSOUND *, int channel, MYFLT value);
 
-    /**
-     * Returns the chani opcode MYFLT k-rate value for the indicated channel.
-     * The bus is automatically extended if the channel is greater than
-     * previously used, clearing new locations to zero.
-     * Returns the sample value on success, CSOUND_ERROR if the index is
-     * invalid, and CSOUND_MEMORY if there is not enough memory to estend
-     * the bus
-     */
-    PUBLIC MYFLT csoundChanOKGetValue(CSOUND *, int channel);
+//    /**
+//     * Returns the chani opcode MYFLT k-rate value for the indicated channel.
+//     * The bus is automatically extended if the channel is greater than
+//     * previously used, clearing new locations to zero.
+//     * Returns the sample value on success, CSOUND_ERROR if the index is
+//     * invalid, and CSOUND_MEMORY if there is not enough memory to estend
+//     * the bus
+//     */
+//    PUBLIC MYFLT csoundChanOKGetValue(CSOUND *, int channel);
 
-    /**
-     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-     * of the indicated channel.
-     * The bus is automatically extended if the channel is greater than
-     * previously used, clearing new locations to zero.
-     * Returns zero on success, CSOUND_ERROR if the index is invalid,
-     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
-     */
-    PUBLIC int csoundChanIASetSample(CSOUND *,
-                                     int channel, int frame, MYFLT sample);
+//    /**
+//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
+//     * of the indicated channel.
+//     * The bus is automatically extended if the channel is greater than
+//     * previously used, clearing new locations to zero.
+//     * Returns zero on success, CSOUND_ERROR if the index is invalid,
+//     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+//     */
+//    PUBLIC int csoundChanIASetSample(CSOUND *,
+//                                     int channel, int frame, MYFLT sample);
 
-    /**
-     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-     * for the indicated channel.
-     * The bus is automatically extended if the channel is greater than
-     * previously used, clearing new locations to zero.
-     * Returns the sample value on success, CSOUND_ERROR if the index
-     * is invalid, and CSOUND_MEMORY if there is not enough memory to
-     * estend the bus.
-     */
-    PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
+//    /**
+//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
+//     * for the indicated channel.
+//     * The bus is automatically extended if the channel is greater than
+//     * previously used, clearing new locations to zero.
+//     * Returns the sample value on success, CSOUND_ERROR if the index
+//     * is invalid, and CSOUND_MEMORY if there is not enough memory to
+//     * estend the bus.
+//     */
+//    PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
 
-    /**
-     * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
-     * The bus is automatically extended if 'n' exceeds any previously used
-     * index value, clearing new locations to zero.
-     * Returns zero on success, CSOUND_ERROR if the index is invalid or
-     * fsig framesizes are incompatible
-     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-     */
-    PUBLIC int csoundChanIASetSample(CSOUND *,
-                                     int channel, int frame, MYFLT sample);
+//    /**
+//     * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
+//     * The bus is automatically extended if 'n' exceeds any previously used
+//     * index value, clearing new locations to zero.
+//     * Returns zero on success, CSOUND_ERROR if the index is invalid or
+//     * fsig framesizes are incompatible
+//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
+//     */
+//    PUBLIC int csoundChanIASetSample(CSOUND *,
+//                                     int channel, int frame, MYFLT sample);
 
-    /**
-     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-     * for the indicated channel.
-     * The bus is automatically extended if the channel is greater than
-     * previously used, clearing new locations to zero.
-     * Returns the sample value on success, CSOUND_ERROR if the index
-     * is invalid, and CSOUND_MEMORY if there is not enough memory to
-     * estend the bus.
-     */
-    PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
+//    /**
+//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
+//     * for the indicated channel.
+//     * The bus is automatically extended if the channel is greater than
+//     * previously used, clearing new locations to zero.
+//     * Returns the sample value on success, CSOUND_ERROR if the index
+//     * is invalid, and CSOUND_MEMORY if there is not enough memory to
+//     * estend the bus.
+//     */
+//    PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
 
     /**
      * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
