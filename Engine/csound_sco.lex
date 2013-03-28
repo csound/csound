@@ -4,7 +4,7 @@
     csound_sco.l:
 
     Copyright (C) 2013
-    John ffitch, Steven Yi
+    John ffitch
 
     This file is part of Csound.
 
@@ -29,19 +29,19 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
-
-#define SCOTOKEN void*
-#define YYSTYPE MYFLT
-#define YYLTYPE int
-#define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
-#include "csound_sco.h"
-#include "corfile.h"
-YYLTYPE yylval_param;
-YYLTYPE *yylloc_param;
-static SCOTOKEN *make_string(CSOUND *, char *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-
 #include "score_param.h"
+#include "csound_scoparse.h"
+
+#define YYSTYPE MYFLT
+#define YYLTYPE SCOTOKEN
+#define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
+#include "corfile.h"
+YYLTYPE *yylval_param;
+YYLTYPE *yylloc_param;
+static  SCOTOKEN *make_string(CSOUND *, char *);
+static  SCOTOKEN *make_int(CSOUND *, int);
+static  SCOTOKEN *make_num(CSOUND *, double);
+extern  void *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 
 #define YY_EXTRA_TYPE  SCORE_PARM *
 #define PARM    yyget_extra(yyscanner)
@@ -83,7 +83,7 @@ PPX             "pp^"${INTGR}
  }
 "\n"            { csound_scoset_lineno(1+csound_scoget_lineno(yyscanner),
                                        yyscanner);
-                  return NEWLINE; }
+                  return '\n'; }
 "a"             { return yytext[0];}
 "b"             { return yytext[0];}
 "e"             { return yytext[0];}
@@ -93,7 +93,7 @@ PPX             "pp^"${INTGR}
 "n"             { return yytext[0];}
 "q"             { return yytext[0];}
 "r"             { return yytext[0];}
-"r"             { return yytext[0];}
+"s"             { return yytext[0];}
 "t"             { return yytext[0];}
 "v"             { return yytext[0];}
 "x"             { return yytext[0];}
@@ -117,12 +117,15 @@ PPX             "pp^"${INTGR}
 "#"             { return '#'; }
 "~"             { return '~'; }
 "."             { return '.'; }
-"@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
-"@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
+"@@"{OPTWHITE}{INTGR}     { lvalp = do_at(csound, 1, yyg);
+                            return INTEGER_TOKEN; }
+"@"{OPTWHITE}{INTGR}      { lvalp = do_at(csound, 0, yyg);
+                            return INTEGER_TOKEN; }
 
-{STRCONST}      { *lvalp = make_string(csound, yytext); return (STRING_TOKEN); }
+{STRCONST}      { lvalp = make_string(csound, yytext);
+                  return (STRING_TOKEN); }
 
-{STRCONSTe}     { *lvalp = make_string(csound, yytext);
+{STRCONSTe}     { lvalp = make_string(csound, yytext);
                   csound->Message(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
                           csound_scoget_lineno(yyscanner),
@@ -130,9 +133,10 @@ PPX             "pp^"${INTGR}
                   return (STRING_TOKEN); }
 
 {INTGR}         {
-                    lvalp = atoi(yytext); return (INTEGER_TOKEN);
+                  lvalp = make_int(csound, atoi(yytext)); return (INTEGER_TOKEN);
                 }
-{NUMBER}        { lvalp = atof(yytext); return (NUMBER_TOKEN); }
+{NUMBER}        { lvalp = make_num(csound, atof(yytext)); return (NUMBER_TOKEN); }
+
 {WHITE}         { }
 
 {LINE}          { BEGIN(line); }
@@ -156,19 +160,39 @@ PPX             "pp^"${INTGR}
 
 static SCOTOKEN *make_string(CSOUND *csound, char *s)
 {
-    return 0;
+    SCOTOKEN *ans = (SCOTOKEN*)mcalloc(csound, sizeof(SCOTOKEN));
+    ans->type = STRING_TOKEN;
+    ans->strbuff = strdup(s);
+    return ans;
 }
 
-static int *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
+static SCOTOKEN *make_int(CSOUND *csound, int i)
 {
+    SCOTOKEN *ans = (SCOTOKEN*)mcalloc(csound, sizeof(SCOTOKEN));
+    ans->type = INTEGER_TOKEN;
+    ans->ival = i;
+    return ans;
+}
+
+static SCOTOKEN *make_num(CSOUND *csound, double f)
+{
+    SCOTOKEN *ans = (SCOTOKEN*)mcalloc(csound, sizeof(SCOTOKEN));
+    ans->type = NUMBER_TOKEN;
+    ans->fval = (MYFLT)f;
+    return ans;
+}
+
+static SCOTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
+{
+    SCOTOKEN *ans = (SCOTOKEN*)mcalloc(csound, sizeof(SCOTOKEN));
     int n, i = 1;
-    char buf[16];
     char *s = yytext;
-    int len;
     while (*s=='@') s++;
     n = atoi(s);
     while (i<=n-k && i< 0x4000000) i <<= 1;
-    return i;
+    ans->type = INTEGER_TOKEN;
+    ans->ival = i;
+    return ans;
 }
 
 char *csound_scoget_current_pointer(void *yyscanner)

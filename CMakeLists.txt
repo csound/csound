@@ -253,6 +253,8 @@ option(BUILD_UTILITIES "Build stand-alone executables for utilities that can als
 
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 
+option(SCORE_PARSER "Enable building of alternative score parser" OFF)
+
 option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
 
 option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
@@ -707,43 +709,47 @@ set_source_files_properties(${LEX_OUT} GENERATED)
 
 # Handling New Score Parser
 
-### add_custom_target(NewScoParser echo "Creating sco_parser.c")
-### set(NewScoParser OFF)
+if(SCORE_PARSER)
+    add_custom_target(NewScoParser echo "Creating sco_parser.c")
+    set(NewScoParser OFF)
 
-### set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
-### set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
+    set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
+    set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
 
-### set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
-### set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
+    set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
+    set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
 
-### set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
-### set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
+    set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
+    set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
 
-### add_custom_command(
-###     SOURCE ${LEX_SCOSRC}
-###     COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT} 
-###     TARGET NewScoParser
-###     OUTPUTS ${LEX_SCOOUT})
+    add_custom_command(
+        SOURCE ${LEX_SCOSRC}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT} 
+        TARGET NewScoParser
+        OUTPUTS ${LEX_SCOOUT})
 
-### add_custom_command(
-###     SOURCE ${PRELEX_SCOSRC}
-###     COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT} 
-###     TARGET NewScoParser
-###     OUTPUTS ${PRELEXSCO_OUT})
+    add_custom_command(
+        SOURCE ${PRELEX_SCOSRC}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT} 
+        TARGET NewScoParser
+        OUTPUTS ${PRELEXSCO_OUT})
 
-### add_custom_command(
-###     SOURCE ${YACC_SCOSRC}
-###     COMMAND ${BISON_EXECUTABLE}
-###     ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC} 
-###     TARGET NewParser
-###     DEPENDS ${LEX_SCOOUT}
-###     OUTPUTS ${YACC_SCOOUT})
+    add_custom_command(
+        SOURCE ${YACC_SCOSRC}
+        COMMAND ${BISON_EXECUTABLE}
+        ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC} 
+        TARGET NewScoParser
+        DEPENDS ${LEX_SCOOUT}
+        OUTPUTS ${YACC_SCOOUT})
 
-### list(APPEND libcsound_SRCS 
-###     ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
+    list(APPEND libcsound_SRCS 
+        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEXSCO_OUT})
 
-### set_source_files_properties(${YACC_SCOOUT} GENERATED)
-### set_source_files_properties(${LEX_SCOOUT} GENERATED)
+    set_source_files_properties(${YACC_SCOOUT} GENERATED)
+    set_source_files_properties(${LEX_SCOOUT} GENERATED)
+else()
+    message(STATUS "Not building with score parser")
+endif()
 
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
