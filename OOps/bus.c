@@ -26,6 +26,7 @@ bus.c:
 #include "csoundCore.h"
 #include <setjmp.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "bus.h"
 #include "namedins.h"
@@ -103,148 +104,148 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
-/**
-* Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
-* The bus is automatically extended if 'n' exceeds any previously used
-* index value, clearing new locations to zero.
-* Returns zero on success, CSOUND_ERROR if the index is invalid, and
-* CSOUND_MEMORY if there is not enough memory to extend the bus.
-*/
-PUBLIC int csoundChanIKSet(CSOUND *csound, MYFLT value, int n)
-{
-    if (n < 0)
-      return CSOUND_ERROR;
-    if ((unsigned int)n >= (unsigned int)csound->nchanik) {
-      int   err = chan_realloc(csound,
-                               &(csound->chanik), &(csound->nchanik), n + 1);
-      if (UNLIKELY(err))
-        return err;
-    }
-    csound->chanik[n] = value;
-    return CSOUND_SUCCESS;
-}
+///**
+//* Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
+//* The bus is automatically extended if 'n' exceeds any previously used
+//* index value, clearing new locations to zero.
+//* Returns zero on success, CSOUND_ERROR if the index is invalid, and
+//* CSOUND_MEMORY if there is not enough memory to extend the bus.
+//*/
+//PUBLIC int csoundChanIKSet(CSOUND *csound, MYFLT value, int n)
+//{
+//    if (n < 0)
+//      return CSOUND_ERROR;
+//    if ((unsigned int)n >= (unsigned int)csound->nchanik) {
+//      int   err = chan_realloc(csound,
+//                               &(csound->chanik), &(csound->nchanik), n + 1);
+//      if (UNLIKELY(err))
+//        return err;
+//    }
+//    csound->chanik[n] = value;
+//    return CSOUND_SUCCESS;
+//}
 
-/**
-* Receives a MYFLT value from the chano opcode (k-rate) at index 'n'.
-* The bus is automatically extended if 'n' exceeds any previously used
-* index value, clearing new locations to zero.
-* Returns zero on success, CSOUND_ERROR if the index is invalid, and
-* CSOUND_MEMORY if there is not enough memory to extend the bus.
-*/
-PUBLIC int csoundChanOKGet(CSOUND *csound, MYFLT *value, int n)
-{
-    if (UNLIKELY(n < 0))
-      return CSOUND_ERROR;
-    if ((unsigned int)n >= (unsigned int)csound->nchanok) {
-      int   err = chan_realloc(csound,
-                               &(csound->chanok), &(csound->nchanok), n + 1);
-      if (UNLIKELY(err))
-        return err;
-    }
-    (*value) = csound->chanok[n];
-    return CSOUND_SUCCESS;
-}
+///**
+//* Receives a MYFLT value from the chano opcode (k-rate) at index 'n'.
+//* The bus is automatically extended if 'n' exceeds any previously used
+//* index value, clearing new locations to zero.
+//* Returns zero on success, CSOUND_ERROR if the index is invalid, and
+//* CSOUND_MEMORY if there is not enough memory to extend the bus.
+//*/
+//PUBLIC int csoundChanOKGet(CSOUND *csound, MYFLT *value, int n)
+//{
+//    if (UNLIKELY(n < 0))
+//      return CSOUND_ERROR;
+//    if ((unsigned int)n >= (unsigned int)csound->nchanok) {
+//      int   err = chan_realloc(csound,
+//                               &(csound->chanok), &(csound->nchanok), n + 1);
+//      if (UNLIKELY(err))
+//        return err;
+//    }
+//    (*value) = csound->chanok[n];
+//    return CSOUND_SUCCESS;
+//}
 
-/**
-* Sends ksmps MYFLT values to the chani opcode (a-rate) at index 'n'.
-* The bus is automatically extended if 'n' exceeds any previously used
-* index value, clearing new locations to zero.
-* Returns zero on success, CSOUND_ERROR if the index is invalid, and
-* CSOUND_MEMORY if there is not enough memory to extend the bus.
-*/
-PUBLIC int csoundChanIASet(CSOUND *csound, const MYFLT *value, int n)
-{
-    if (UNLIKELY(n < 0))
-      return CSOUND_ERROR;
-    n *= csound->ksmps;
-    if ((unsigned int)n >= (unsigned int)csound->nchania) {
-      int   err = chan_realloc(csound, &(csound->chania),
-                               &(csound->nchania), n + csound->ksmps);
-      if (UNLIKELY(err))
-        return err;
-    }
-    memcpy(&(csound->chania[n]), value, sizeof(MYFLT) * csound->ksmps);
-    return CSOUND_SUCCESS;
-}
+///**
+//* Sends ksmps MYFLT values to the chani opcode (a-rate) at index 'n'.
+//* The bus is automatically extended if 'n' exceeds any previously used
+//* index value, clearing new locations to zero.
+//* Returns zero on success, CSOUND_ERROR if the index is invalid, and
+//* CSOUND_MEMORY if there is not enough memory to extend the bus.
+//*/
+//PUBLIC int csoundChanIASet(CSOUND *csound, const MYFLT *value, int n)
+//{
+//    if (UNLIKELY(n < 0))
+//      return CSOUND_ERROR;
+//    n *= csound->ksmps;
+//    if ((unsigned int)n >= (unsigned int)csound->nchania) {
+//      int   err = chan_realloc(csound, &(csound->chania),
+//                               &(csound->nchania), n + csound->ksmps);
+//      if (UNLIKELY(err))
+//        return err;
+//    }
+//    memcpy(&(csound->chania[n]), value, sizeof(MYFLT) * csound->ksmps);
+//    return CSOUND_SUCCESS;
+//}
 
-/**
-* Receives ksmps MYFLT values from the chano opcode (a-rate) at index 'n'.
-* The bus is automatically extended if 'n' exceeds any previously used
-* index value, clearing new locations to zero.
-* Returns zero on success, CSOUND_ERROR if the index is invalid, and
-* CSOUND_MEMORY if there is not enough memory to extend the bus.
-*/
-PUBLIC int csoundChanOAGet(CSOUND *csound, MYFLT *value, int n)
-{
-    if (UNLIKELY(n < 0))
-      return CSOUND_ERROR;
-    n *= csound->ksmps;
-    if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
-      int   err = chan_realloc(csound, &(csound->chanoa),
-                               &(csound->nchanoa), n + csound->ksmps);
-      if (UNLIKELY(err))
-        return err;
-    }
-    memcpy(value, &(csound->chanoa[n]), sizeof(MYFLT) * csound->ksmps);
-    return CSOUND_SUCCESS;
-}
+///**
+//* Receives ksmps MYFLT values from the chano opcode (a-rate) at index 'n'.
+//* The bus is automatically extended if 'n' exceeds any previously used
+//* index value, clearing new locations to zero.
+//* Returns zero on success, CSOUND_ERROR if the index is invalid, and
+//* CSOUND_MEMORY if there is not enough memory to extend the bus.
+//*/
+//PUBLIC int csoundChanOAGet(CSOUND *csound, MYFLT *value, int n)
+//{
+//    if (UNLIKELY(n < 0))
+//      return CSOUND_ERROR;
+//    n *= csound->ksmps;
+//    if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
+//      int   err = chan_realloc(csound, &(csound->chanoa),
+//                               &(csound->nchanoa), n + csound->ksmps);
+//      if (UNLIKELY(err))
+//        return err;
+//    }
+//    memcpy(value, &(csound->chanoa[n]), sizeof(MYFLT) * csound->ksmps);
+//    return CSOUND_SUCCESS;
+//}
 
-PUBLIC int csoundChanIKSetValue(CSOUND *csound, int n, MYFLT value)
-{
-    if (UNLIKELY(n < 0))
-      return CSOUND_ERROR;
-    if ((unsigned int)n >= (unsigned int)csound->nchanik) {
-      int   err = chan_realloc(csound,
-                               &(csound->chanik), &(csound->nchanik), n + 1);
-      if (UNLIKELY(err))
-        return err;
-    }
-    csound->chanik[n] = value;
-    return CSOUND_SUCCESS;
-}
+//PUBLIC int csoundChanIKSetValue(CSOUND *csound, int n, MYFLT value)
+//{
+//    if (UNLIKELY(n < 0))
+//      return CSOUND_ERROR;
+//    if ((unsigned int)n >= (unsigned int)csound->nchanik) {
+//      int   err = chan_realloc(csound,
+//                               &(csound->chanik), &(csound->nchanik), n + 1);
+//      if (UNLIKELY(err))
+//        return err;
+//    }
+//    csound->chanik[n] = value;
+//    return CSOUND_SUCCESS;
+//}
 
-PUBLIC MYFLT csoundChanOKGetValue(CSOUND *csound, int n)
-{
-    if (UNLIKELY(n < 0))
-      return CSOUND_ERROR;
-    if ((unsigned int)n >= (unsigned int)csound->nchanok) {
-      int   err = chan_realloc(csound,
-                               &(csound->chanok), &(csound->nchanok), n + 1);
-      if (UNLIKELY(err))
-        return err;
-    }
-    return csound->chanok[n];
-}
+//PUBLIC MYFLT csoundChanOKGetValue(CSOUND *csound, int n)
+//{
+//    if (UNLIKELY(n < 0))
+//      return CSOUND_ERROR;
+//    if ((unsigned int)n >= (unsigned int)csound->nchanok) {
+//      int   err = chan_realloc(csound,
+//                               &(csound->chanok), &(csound->nchanok), n + 1);
+//      if (UNLIKELY(err))
+//        return err;
+//    }
+//    return csound->chanok[n];
+//}
 
-PUBLIC int csoundChanIASetSample(CSOUND *csound, int n, int i, MYFLT sample)
-{
-    if (UNLIKELY(n < 0))
-      return CSOUND_ERROR;
-    n *= csound->ksmps;
-    if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
-      int   err = chan_realloc(csound, &(csound->chanoa),
-                               &(csound->nchanoa), n + csound->ksmps);
-      if (UNLIKELY(err))
-        return err;
-    }
-    csound->chanoa[n + i] = sample;
-    return CSOUND_SUCCESS;
-}
+//PUBLIC int csoundChanIASetSample(CSOUND *csound, int n, int i, MYFLT sample)
+//{
+//    if (UNLIKELY(n < 0))
+//      return CSOUND_ERROR;
+//    n *= csound->ksmps;
+//    if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
+//      int   err = chan_realloc(csound, &(csound->chanoa),
+//                               &(csound->nchanoa), n + csound->ksmps);
+//      if (UNLIKELY(err))
+//        return err;
+//    }
+//    csound->chanoa[n + i] = sample;
+//    return CSOUND_SUCCESS;
+//}
 
 
-PUBLIC MYFLT csoundChanOAGetSample(CSOUND *csound, int n, int i)
-{
-    if (UNLIKELY(n < 0))
-      return CSOUND_ERROR;
-    n *= csound->ksmps;
-    if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
-      int   err = chan_realloc(csound, &(csound->chanoa),
-                               &(csound->nchanoa), n + csound->ksmps);
-      if (UNLIKELY(err))
-        return err;
-    }
-    return csound->chanoa[n + i];
-}
+//PUBLIC MYFLT csoundChanOAGetSample(CSOUND *csound, int n, int i)
+//{
+//    if (UNLIKELY(n < 0))
+//      return CSOUND_ERROR;
+//    n *= csound->ksmps;
+//    if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
+//      int   err = chan_realloc(csound, &(csound->chanoa),
+//                               &(csound->nchanoa), n + csound->ksmps);
+//      if (UNLIKELY(err))
+//        return err;
+//    }
+//    return csound->chanoa[n + i];
+//}
 
 
 /**
@@ -480,8 +481,6 @@ static int delete_channel_db(CSOUND *csound, void *p)
       while (db[i] != NULL) {
         pp = db[i];
         db[i] = pp->nxt;
-        if (pp->info != NULL)
-          free((void*) pp->info);
         free((void*) pp);
       }
     }
@@ -496,17 +495,9 @@ static inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
           CHNENTRY  *pp;
           pp = ((CHNENTRY**) csound->chn_db)[name_hash_2(csound, name)];
       for ( ; pp != NULL; pp = pp->nxt) {
-        /* Why is strcmp not used here? */
-        const char  *p1 = &(name[0]);
-        const char  *p2 = &(pp->name[0]);
-        while (1) {
-          if (*p1 != *p2)
-            break;
-          if (*p1 == '\0') {    /* do we need to init lock? */
-            return pp;
+          if (strcmp(name, pp->name) == 0) {
+              return pp;
           }
-          p1++, p2++;
-        }
       }
     }
     return NULL;
@@ -556,12 +547,12 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
 static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
                                           const char *name, int type)
 {
-        CHNENTRY  *pp;
+    CHNENTRY  *pp;
     const char      *s;
     unsigned char   h;
 
     /* check for valid parameters and calculate hash value */
-    if (UNLIKELY((type & (~51)) || !(type & 3) || !(type & 48)))
+    if (UNLIKELY(!(type & 3) || !(type & 48)))
       return CSOUND_ERROR;
     s = name;
     if (UNLIKELY(!isalpha((unsigned char) *s)))
@@ -586,8 +577,8 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
     pp = alloc_channel(csound, p, name, type);
     if (UNLIKELY(pp == NULL))
       return CSOUND_MEMORY;
-        pp->nxt = ((CHNENTRY**) csound->chn_db)[h];
-    pp->info = NULL;
+    pp->nxt = ((CHNENTRY**) csound->chn_db)[h];
+    pp->hints.behav = 0;
     pp->data = (*p);
     pp->type = type;
     strcpy(&(pp->name[0]), name);
@@ -630,7 +621,7 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
 PUBLIC int csoundGetChannelPtr(CSOUND *csound,
                                MYFLT **p, const char *name, int type)
 {
-        CHNENTRY  *pp;
+    CHNENTRY  *pp;
 
     *p = (MYFLT*) NULL;
     if (UNLIKELY(name == NULL))
@@ -659,12 +650,12 @@ PUBLIC int *csoundGetChannelLock(CSOUND *csound,
 
 static int cmp_func(const void *p1, const void *p2)
 {
-    return strcmp(((CsoundChannelListEntry*) p1)->name,
-                  ((CsoundChannelListEntry*) p2)->name);
+    return strcmp(((controlChannelInfo_t*) p1)->name,
+                  ((controlChannelInfo_t*) p2)->name);
 }
 
 /**
-* Returns a list of allocated channels in *lst. A CsoundChannelListEntry
+* Returns a list of allocated channels in *lst. A controlChannelInfo_t
 * structure contains the name and type of a channel, with the type having
 * the same format as in the case of csoundGetChannelPtr().
 * The return value is the number of channels, which may be zero if there
@@ -675,12 +666,12 @@ static int cmp_func(const void *p1, const void *p2)
 * after calling csoundReset().
 */
 
-PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
+PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
 {
         CHNENTRY  *pp;
     size_t          i, n;
 
-    *lst = (CsoundChannelListEntry*) NULL;
+    *lst = (controlChannelInfo_t*) NULL;
     if (csound->chn_db == NULL)
       return 0;
     /* count the number of channels */
@@ -693,7 +684,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
     if (!n)
       return 0;
     /* create list, initially in unsorted order */
-    *lst = (CsoundChannelListEntry*) malloc(n * sizeof(CsoundChannelListEntry));
+    *lst = (controlChannelInfo_t*) malloc(n * sizeof(controlChannelInfo_t));
     if (UNLIKELY(*lst == NULL))
       return CSOUND_MEMORY;
     for (n = (size_t) 0, i = (size_t) 0; i < (size_t) 256; i++) {
@@ -705,7 +696,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
       }
     }
     /* sort list */
-    qsort((void*) (*lst), n, sizeof(CsoundChannelListEntry), cmp_func);
+    qsort((void*) (*lst), n, sizeof(controlChannelInfo_t), cmp_func);
     /* return the number of channels */
     return (int)n;
 }
@@ -714,7 +705,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
 * Releases a channel list previously returned by csoundListChannels().
 */
 
-PUBLIC void csoundDeleteChannelList(CSOUND *csound, CsoundChannelListEntry *lst)
+PUBLIC void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
 {
     (void) csound;
     if (lst != NULL) free(lst);
@@ -739,11 +730,10 @@ PUBLIC void csoundDeleteChannelList(CSOUND *csound, CsoundChannelListEntry *lst)
 *   CSOUND_MEMORY: could not allocate memory
 */
 
-PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
-                                         int type, MYFLT dflt,
-                                         MYFLT min, MYFLT max)
+PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
+                                        controlChannelHints_t hints)
 {
-        CHNENTRY  *pp;
+    CHNENTRY  *pp;
 
     if (UNLIKELY(name == NULL))
       return CSOUND_ERROR;
@@ -752,44 +742,29 @@ PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
       return CSOUND_ERROR;
     if (UNLIKELY((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL))
       return CSOUND_ERROR;
-    if (!type) {
-      if (pp->info != NULL) {
-        free((void*) pp->info);
-        pp->info = NULL;
-      }
-      return CSOUND_SUCCESS;
+    if  (hints.behav == CSOUND_CONTROL_CHANNEL_NO_HINTS) {
+        pp->hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
+        return 0;
     }
-    switch (type) {
-    case CSOUND_CONTROL_CHANNEL_INT:
-      dflt = (MYFLT) ((int32) MYFLT2LRND(dflt));
-      min  = (MYFLT) ((int32) MYFLT2LRND(min));
-      max  = (MYFLT) ((int32) MYFLT2LRND(max));
-      break;
-    case CSOUND_CONTROL_CHANNEL_LIN:
-    case CSOUND_CONTROL_CHANNEL_EXP:
-      break;
-    default:
+    if  (hints.behav & CSOUND_CONTROL_CHANNEL_INT) {
+        hints.dflt = (MYFLT) ((int32) MYFLT2LRND(hints.dflt));
+        hints.min  = (MYFLT) ((int32) MYFLT2LRND(hints.min));
+        hints.max  = (MYFLT) ((int32) MYFLT2LRND(hints.max));
+    }
+    if (UNLIKELY(hints.min >= hints.max || hints.dflt < hints.min ||
+                 hints.dflt > hints.max ||
+                 (hints.behav == CSOUND_CONTROL_CHANNEL_EXP &&
+                  ((hints.min * hints.max) <= FL(0.0))))) {
       return CSOUND_ERROR;
     }
-    if (UNLIKELY(min >= max || dflt < min || dflt > max ||
-                 (type == CSOUND_CONTROL_CHANNEL_EXP &&
-                  ((min * max) <= FL(0.0)))))
-      return CSOUND_ERROR;
-    if (pp->info == NULL) {
-      pp->info = (controlChannelInfo_t*) malloc(sizeof(controlChannelInfo_t));
-      if (UNLIKELY(pp->info == NULL))
-        return CSOUND_MEMORY;
-    }
-    pp->info->type = type;
-    pp->info->dflt = dflt;
-    pp->info->min  = min;
-    pp->info->max  = max;
+
+    pp->hints = hints;
     return CSOUND_SUCCESS;
 }
 
 /**
 * Returns special parameters (assuming there are any) of a control channel,
-* previously set with csoundSetControlChannelParams().
+* previously set with csoundSetControlChannelHints().
 * If the channel exists, is a control channel, and has the special parameters
 * assigned, then the default, minimum, and maximum value is stored in *dflt,
 * *min, and *max, respectively, and a positive value that is one of
@@ -800,10 +775,10 @@ PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
 * special parameters set; otherwise, a negative error code is returned.
 */
 
-PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
-                                         MYFLT *dflt, MYFLT *min, MYFLT *max)
+PUBLIC int csoundGetControlChannelHints(CSOUND *csound, const char *name,
+                                        controlChannelHints_t *hints)
 {
-        CHNENTRY  *pp;
+    CHNENTRY  *pp;
 
     if (UNLIKELY(name == NULL))
       return CSOUND_ERROR;
@@ -812,12 +787,10 @@ PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
       return CSOUND_ERROR;
     if ((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
       return CSOUND_ERROR;
-    if (pp->info == NULL)
-      return 0;
-    (*dflt) = pp->info->dflt;
-    (*min) = pp->info->min;
-    (*max) = pp->info->max;
-    return pp->info->type;
+    if (pp->hints.behav == 0)
+      return CSOUND_ERROR;
+    *hints = pp->hints;
+    return 0;
 }
 
 /**
@@ -1176,6 +1149,7 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
 {
     MYFLT *dummy;
     int   type, mode, err;
+    controlChannelHints_t hints;
 
     mode = (int)MYFLT2LRND(*(p->imode));
     if (UNLIKELY(mode < 1 || mode > 3))
@@ -1185,12 +1159,23 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
       type |= CSOUND_INPUT_CHANNEL;
     if (mode & 2)
       type |= CSOUND_OUTPUT_CHANNEL;
+
     err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname, type);
     if (err)
       return print_chn_err(p, err);
-    type = (int)MYFLT2LRND(*(p->itype));
-    err = csoundSetControlChannelParams(csound, (char*) p->iname, type,
-                                        *(p->idflt), *(p->imin), *(p->imax));
+    hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
+    if ((int)MYFLT2LRND(*(p->itype)) == 1)
+        hints.behav = CSOUND_CONTROL_CHANNEL_INT;
+    if ((int)MYFLT2LRND(*(p->itype)) == 2)
+        hints.behav |= CSOUND_CONTROL_CHANNEL_LIN;
+    if ((int)MYFLT2LRND(*(p->itype)) == 3)
+        hints.behav |= CSOUND_CONTROL_CHANNEL_EXP;
+    if ((int)MYFLT2LRND(*(p->itype)) != 0) {
+        hints.dflt = *(p->idflt);
+        hints.min = *(p->imin);
+        hints.max = *(p->imax);
+    }
+    err = csoundSetControlChannelHints(csound, (char*) p->iname, hints);
     if (LIKELY(!err)) {
       p->lock = csoundGetChannelLock(csound, (char*) p->iname, type);
       return OK;
@@ -1250,6 +1235,7 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     MYFLT       *dummy;
     const char  *argName;
     int         type = CSOUND_CONTROL_CHANNEL, mode, err;
+    controlChannelHints_t hints;
 
     /* must have an output argument of type 'gi', 'gk', 'ga', or 'gS' */
     if (UNLIKELY(csound->GetOutputArgCnt(p) != 1))
@@ -1297,8 +1283,11 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
       return OK;
     type = (int)MYFLT2LRND(*(p->itype));
-    err = csoundSetControlChannelParams(csound, (char*) p->iname, type,
-                                        *(p->idflt), *(p->imin), *(p->imax));
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.dflt = *(p->idflt);
+    hints.min = *(p->imin);
+    hints.max = *(p->imax);
+    err = csoundSetControlChannelHints(csound, (char*) p->iname, hints);
     if (LIKELY(!err))
       return OK;
     if (err == CSOUND_MEMORY)
@@ -1333,10 +1322,14 @@ int chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
     *(p->imode) = (MYFLT) ((err & 48) >> 4);
     /* check for control channel parameters */
     if ((err & 15) == CSOUND_CONTROL_CHANNEL) {
-      err = csoundGetControlChannelParams(csound, (char*) p->iname,
-                                          p->idflt, p->imin, p->imax);
-      if (UNLIKELY(err > 0))
-        *(p->ictltype) = (MYFLT) err;
+        controlChannelHints_t hints;
+        err = csoundGetControlChannelHints(csound, (char*) p->iname, &hints);
+        if (UNLIKELY(err > 0))
+            *(p->ictltype) = (MYFLT) err;
+        *(p->ictltype) = hints.behav;
+        *(p->idflt) = hints.dflt;
+        *(p->imin) = hints.min;
+        *(p->imax) = hints.max;
     }
     return OK;
 }
