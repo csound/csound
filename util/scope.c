@@ -13,6 +13,7 @@ extern void csound_prslex_destroy(void *);
 
 static int scope(CSOUND *csound, int argc, char **argv)
 {
+#if 0
     PRS_PARM  qq;
     int len=100, p=0, n;
     char buff[1024];
@@ -43,6 +44,7 @@ static int scope(CSOUND *csound, int argc, char **argv)
     csound->DebugMsg(csound, "yielding >>%s<<\n",
                      corfile_body(csound->expanded_sco));
     csound_prslex_destroy(&qq.yyscanner);
+#endif
     return 0;
 }
 
