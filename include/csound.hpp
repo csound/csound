@@ -387,14 +387,14 @@ public:
   {
     return csoundGetStrVarMaxLen(csound);
   }
-  virtual int GetSampleFormat()
-  {
-    return csoundGetSampleFormat(csound);
-  }
-  virtual int GetSampleSize()
-  {
-    return csoundGetSampleSize(csound);
-  }
+//  virtual int GetSampleFormat()
+//  {
+//    return csoundGetSampleFormat(csound);
+//  }
+//  virtual int GetSampleSize()
+//  {
+//    return csoundGetSampleSize(csound);
+//  }
   virtual long GetInputBufferSize()
   {
     return csoundGetInputBufferSize(csound);
@@ -718,34 +718,26 @@ public:
     p = tmp;
     return retval;
   }
-  virtual int ListChannels(CsoundChannelListEntry* &lst)
+  virtual int ListChannels(controlChannelInfo_t* &lst)
   {
-    CsoundChannelListEntry  *tmp;
+    controlChannelInfo_t  *tmp;
     int                     retval;
     retval = csoundListChannels(csound, &tmp);
     lst = tmp;
     return retval;
   }
-  virtual void DeleteChannelList(CsoundChannelListEntry *lst)
+  virtual void DeleteChannelList(controlChannelInfo_t *lst)
   {
     csoundDeleteChannelList(csound, lst);
   }
-  virtual int SetControlChannelParams(const char *name, int type,
-                                      double dflt, double min, double max)
+  virtual int SetControlChannelHints(const char *name,
+                                      controlChannelHints_t hints)
   {
-    return csoundSetControlChannelParams(csound, name, type, (MYFLT) dflt,
-                                         (MYFLT) min, (MYFLT) max);
+    return csoundSetControlChannelHints(csound, name, hints);
   }
-  virtual int GetControlChannelParams(const char *name,
-                                      MYFLT &dflt, MYFLT &min, MYFLT &max)
+  virtual int GetControlChannelHints(const char *name, controlChannelHints_t *hints)
   {
-    MYFLT tmp1 = (MYFLT) 0, tmp2 = (MYFLT) 0, tmp3 = (MYFLT) 0;
-    int   retval;
-    retval = csoundGetControlChannelParams(csound, name, &tmp1, &tmp2, &tmp3);
-    dflt = tmp1;
-    min = tmp2;
-    max = tmp3;
-    return retval;
+    return csoundGetControlChannelHints(csound, name, hints);
   }
   virtual void SetChannel(const char *name, double value)
   {
@@ -771,26 +763,26 @@ public:
   {
     csoundGetAudioChannel(csound,name,samples);
   }
-  virtual int ChanIKSet(double value, int n)
-  {
-    return csoundChanIKSet(csound, (MYFLT) value, n);
-  }
-  virtual int ChanOKGet(MYFLT &value, int n)
-  {
-    MYFLT tmp = (MYFLT) 0;
-    int   retval;
-    retval = csoundChanOKGet(csound, &tmp, n);
-    value = tmp;
-    return retval;
-  }
-  virtual int ChanIASet(const MYFLT *value, int n)
-  {
-    return csoundChanIASet(csound, value, n);
-  }
-  virtual int ChanOAGet(MYFLT *value, int n)
-  {
-    return csoundChanOAGet(csound, value, n);
-  }
+//  virtual int ChanIKSet(double value, int n)
+//  {
+//    return csoundChanIKSet(csound, (MYFLT) value, n);
+//  }
+//  virtual int ChanOKGet(MYFLT &value, int n)
+//  {
+//    MYFLT tmp = (MYFLT) 0;
+//    int   retval;
+//    retval = csoundChanOKGet(csound, &tmp, n);
+//    value = tmp;
+//    return retval;
+//  }
+//  virtual int ChanIASet(const MYFLT *value, int n)
+//  {
+//    return csoundChanIASet(csound, value, n);
+//  }
+//  virtual int ChanOAGet(MYFLT *value, int n)
+//  {
+//    return csoundChanOAGet(csound, value, n);
+//  }
   virtual int PvsinSet(const PVSDATEXT* value, int n)
   {
     return csoundPvsinSet(csound, value, n);
@@ -913,22 +905,22 @@ public:
   {
     return csoundGetSpoutSample(csound, frame, channel);
   }
-  virtual int ChanIKSetValue(int channel, MYFLT value)
-  {
-    return csoundChanIKSetValue(csound, channel, value);
-  }
-  virtual MYFLT ChanOKGetValue(int channel)
-  {
-    return  csoundChanOKGetValue(csound, channel);
-  }
-  virtual int ChanIASetSample(int channel, int frame, MYFLT sample)
-  {
-    return csoundChanIASetSample(csound, channel, frame, sample);
-  }
-  virtual MYFLT ChanOAGetSample(int channel, int frame)
-  {
-    return csoundChanOAGetSample(csound, channel, frame);
-  }
+//  virtual int ChanIKSetValue(int channel, MYFLT value)
+//  {
+//    return csoundChanIKSetValue(csound, channel, value);
+//  }
+//  virtual MYFLT ChanOKGetValue(int channel)
+//  {
+//    return  csoundChanOKGetValue(csound, channel);
+//  }
+//  virtual int ChanIASetSample(int channel, int frame, MYFLT sample)
+//  {
+//    return csoundChanIASetSample(csound, channel, frame, sample);
+//  }
+//  virtual MYFLT ChanOAGetSample(int channel, int frame)
+//  {
+//    return csoundChanOAGetSample(csound, channel, frame);
+//  }
 };
 
 // thread locks
