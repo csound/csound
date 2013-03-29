@@ -787,7 +787,6 @@ endif()
 
 # This copies libsndfile into the framework and sets the install names
 # of CsoundLib to refer to it.
-# similar thing should be done 
 if(APPLE)
 set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
 if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/libsndfile.1.dylib)
@@ -860,9 +859,36 @@ add_custom_command(
        POST_BUILD
        COMMAND cp
        ARGS ${BUILD_DIR}/lib${libname}.dylib   ${CSOUNDLIB_DIR}/Resources/Opcodes
+       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+       ARGS -id lib${libname}.dylib ${CSOUNDLIB_DIR}/Resources/Opcodes/lib${libname}.dylib
 )
 endif()
 endfunction(make_plugin)
+
+# this copies the dependencies of plugins into framework
+# and fixes the lib name references
+function(add_dependency_to_framework pluginlib dependency source)
+
+if(APPLE)
+set(RESOURCE_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources)
+if(NOT EXISTS ${RESOURCE_DIR}/libs/${dependency})
+   add_custom_command(
+       TARGET ${pluginlib} 
+       COMMAND cp
+       ARGS ${source} ${RESOURCE_DIR}/libs
+       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+       ARGS -id ${dependency} ${RESOURCE_DIR}/libs/${dependency}
+)
+endif()
+
+add_custom_command(
+       TARGET ${pluginlib} 
+       POST_BUILD
+       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+       ARGS -change ${source} @loader_path/../libs/${dependency} ${RESOURCE_DIR}/Opcodes/lib${pluginlib}.dylib
+)
+endif()
+endfunction(add_dependency_to_framework)
 
 # Add the install target
 install(TARGETS ${CSOUNDLIB}
