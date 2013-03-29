@@ -133,7 +133,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
            time[n] is current read position in secs
            esr is sampling rate
         */
-        spos  = hsize*(int)((time[n])*csound->GetSr(csound)/hsize);
+        spos  = hsize*(int)((time[n])*CS_ESR/hsize);
         sizefrs = size/nchans;
         while(spos > sizefrs - N) spos -= sizefrs;
         while(spos <= hsize)  spos += sizefrs;
@@ -281,7 +281,7 @@ static int sinit2(CSOUND *csound, DATASPACE *p)
     for (i=0; i < p->nchans; i++)
     if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
       csound->AuxAlloc(csound, size, &p->nwin[i]);
-    p->pos = *p->offset*csound->GetSr(csound) + p->hsize;
+    p->pos = *p->offset*CS_ESR + p->hsize;
     p->tscale  = 0;
     p->accum = 0;
     return OK;
