@@ -30,6 +30,8 @@
 #include <ctype.h>
 #include "csoundCore.h"
 #include "corfile.h"
+#include "score_param.h"
+
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
@@ -42,12 +44,10 @@ static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 // static void print_csound_prsdata(CSOUND *,char *,yyscan_t);
 static void csound_prs_line(CORFIL*, yyscan_t);
 
-#include "parse_param.h"
-
 #define YY_EXTRA_TYPE  PRS_PARM *
 #define PARM    yyget_extra(yyscanner)
 
-#define YY_USER_INIT {csound_prs_scan_string(csound->orchstr->body, yyscanner); \
+#define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
     csound_prsset_lineno(csound->orcLineOffset, yyscanner); yyg->yy_flex_debug_r=1;}
 %}
 %option reentrant
@@ -408,7 +408,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   }
                   /* csound->DebugMsg(csound,"End of input segment: macro pop %p -> %p\n", */
                   /*            y, PARM->macros); */
-                  csound_prs_line(csound->scohstr, yyscanner);
+                  csound_prs_line(csound->scorestr, yyscanner);
                 }
 {DEFINE}        {
                   if (PARM->isString != 1)
@@ -813,22 +813,7 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     while (c != '\n' && c != EOF) c = input(yyscanner);
 }
 
-static void add_math_const_macro(CSOUND *csound, PRS_PARM* qq,
-                                 char * name, char *body)
-{
-    MACRO *mm;
-
-    mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
-    mm->name = (char*) mcalloc(csound, strlen(name) + 3);
-    sprintf(mm->name, "M_%s", name);
-    mm->next = qq->macros;
-    qq->macros = mm;
-    mm->margs = MARGS;    /* Initial size */
-    mm->acnt = 0;
-    mm->body = (char*) mcalloc(csound, strlen(body) + 1);
-    mm->body = strcpy(mm->body, body);
-}
-void cs_init_omacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
+void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
 {
     while (nn) {
       char  *s = nn->mac;
@@ -842,7 +827,7 @@ void cs_init_omacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
         csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {
-        csound->Die(csound, Str("Invalid macro name for --omacro"));
+        csound->Die(csound, Str("Invalid macro name for --smacro"));
       }
       mname = (char*) mmalloc(csound, (p - s) + 1);
       strncpy(mname, s, p - s);
@@ -898,20 +883,20 @@ int main(void)
     PRS_PARM  qq;
     int len=100, p=0, n;
     char buff[1024];
-    FILE *fd = fopen("III", "r");
+    /* FILE *fd = fopen("III", "r"); */
 
-    inp = (char*)calloc(100,1);
-    memset(buff, '\0', 1024);
-    while ((n = fread(buff, 1, 1023, fd))) {
-      while (p+n+1>=len)
-        inp = (char*) realloc(inp, len+=100);
-      strcat(inp, buff);
-      p += n;
-      memset(buff, '\0', 1024);
-    }
-    if (n+8>= len) inp = (char*) realloc(inp, len = n+9);
-    strcat(inp, "\n#exit\0\0");
-    rewind(fd);
+    /* inp = (char*)calloc(100,1); */
+    /* memset(buff, '\0', 1024); */
+    /* while ((n = fread(buff, 1, 1023, fd))) { */
+    /*   while (p+n+1>=len) */
+    /*     inp = (char*) realloc(inp, len+=100); */
+    /*   strcat(inp, buff); */
+    /*   p += n; */
+    /*   memset(buff, '\0', 1024); */
+    /* } */
+    /* if (n+8>= len) inp = (char*) realloc(inp, len = n+9); */
+    /* strcat(inp, "\n#exit\0\0"); */
+    /* rewind(fd); */
 
     memset(&qq, '\0', sizeof(PRS_PARM));
     csound_prslex_init(&qq.yyscanner);

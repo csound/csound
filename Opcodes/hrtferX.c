@@ -76,7 +76,7 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
 
         /* first check if orchestra's sampling rate is compatible with HRTF
            measurement's */
-    if (UNLIKELY(csound->GetSr(csound) != SAMP_RATE)) {
+    if (UNLIKELY(CS_ESR != SAMP_RATE)) {
       csound->Die(csound,
                   Str("Orchestra sampling rate is not compatible with HRTF.\n"
                       "Should be %d...exiting."), SAMP_RATE);

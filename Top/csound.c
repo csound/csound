@@ -54,14 +54,9 @@
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
-  //#include "csound_orc.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
-
-/*
- **** MAJOR PROBLEM: PTHREAD_SPINLOCK_INITIALIZER is not defined in
-      Linux or Haiku */
 
 #if defined(linux) || defined(__HAIKU__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -69,12 +64,9 @@
 
 #if defined(USE_OPENMP)
 #include <omp.h>
-#endif /* USE_OPENMP */
+#endif /* USE_OPENMP */ 
 
 #include "csound_standard_types.h"
-
-MYFLT csoundPow2(CSOUND *csound, MYFLT a);
-extern int csoundInitStaticModules(CSOUND *);
 
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -87,15 +79,20 @@ static int  midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
-static void csoundReset_(CSOUND *);
-int csoundPerformKsmpsInternal(CSOUND *csound);
-void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
-INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
-long csoundGetKcounter(CSOUND *csound);
-void set_util_sr(CSOUND *csound, MYFLT sr);
-void set_util_nchnls(CSOUND *csound, int nchnls);
+static void reset(CSOUND *);
+static int  csoundPerformKsmpsInternal(CSOUND *csound);
+static void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
+static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
+static long csoundGetKcounter(CSOUND *csound);
+static void set_util_sr(CSOUND *csound, MYFLT sr);
+static void set_util_nchnls(CSOUND *csound, int nchnls);
 
+extern void cscoreRESET(CSOUND *);
+extern void memRESET(CSOUND *);
+extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
+extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
+extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
@@ -123,19 +120,10 @@ static void create_opcodlst(CSOUND *csound)
       csoundDie(csound, Str("Error allocating opcode list"));
 }
 
-/* static void create_opcodelist(CSOUND *csound) */
-/* { */
-/*     int     err; */
-/*     /\* Basic Entry1 stuff *\/ */
-/*     err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1); */
-/*     if(err) */
-/*     csoundDie(csound, Str("Error allocating opcode list")); */
-/* } */
-
 
 #define MAX_MODULES 64
 
-void module_list_add(CSOUND *csound, char *drv, char *type){
+static void module_list_add(CSOUND *csound, char *drv, char *type){
     MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
     if(modules != NULL){
      int i = 0;
@@ -149,90 +137,44 @@ void module_list_add(CSOUND *csound, char *drv, char *type){
     }
 }
 
-int csoundGetRandSeed(CSOUND *csound, int which){
+static int csoundGetRandSeed(CSOUND *csound, int which){
   if(which > 1) return csound->randSeed1;
   else return csound->randSeed2;
 }
 
-char *csoundGetStrsets(CSOUND *csound, long p){
+static char *csoundGetStrsets(CSOUND *csound, long p){
   if(csound->strsets == NULL) return NULL;
   else return csound->strsets[p];
 }
-int csoundGetStrsmax(CSOUND *csound){
+
+static int csoundGetStrsmax(CSOUND *csound){
   return csound->strsmax;
 }
 
-void csoundGetOParms(CSOUND *csound, OPARMS *p){
+static void csoundGetOParms(CSOUND *csound, OPARMS *p){
   memcpy(p, csound->oparms, sizeof(OPARMS));
 }
 
-int csoundGetDitherMode(CSOUND *csound){
+static int csoundGetDitherMode(CSOUND *csound){
   return  csound->dither_output;
 }
 
-int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
+static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
   *zkstart = csound->zkstart;
   return csound->zklast;
 }
 
-int csoundGetReinitFlag(CSOUND *csound){
+static int csoundGetReinitFlag(CSOUND *csound){
   return csound->reinitflag;
 }
 
-int csoundGetTieFlag(CSOUND *csound){
+static int csoundGetTieFlag(CSOUND *csound){
   return csound->tieflag;
 }
 
 static const CSOUND cenviron_ = {
-#ifdef SOME_FIND_DAY
-    csoundGetVersion,
-    csoundGetAPIVersion,
-    csoundGetHostData,
-    csoundSetHostData,
-    csoundCreate,
-    csoundParseOrc,
-    csoundCompileTree,
-    csoundCompileOrc,
-    csoundReadScore,
-    csoundCompile,
-    csoundStart,
-    csoundPerform,
-    csoundPerformBuffer,
-    csoundCleanup,
-    csoundReset,
-    csoundDestroy,
-/*    csoundGetSampleFormat,
-    csoundGetSampleSize,*/
-    csoundGetSpin,
-    csoundGetSpout,
-    csoundGetScoreTime,
-    csoundIsScorePending,
-    csoundSetScorePending,
-    csoundGetScoreOffsetSeconds,
-    csoundSetScoreOffsetSeconds,
-    csoundRewindScore,
-    csoundDeleteUtilityList,
-    csoundDeleteChannelList,
-#endif
-
-#ifdef SOME_FINE_DAY /* these functions are now deprecated */
-     csoundInputMessage,
-    csoundKeyPress,
-    csoundSetInputValueCallback,
-    csoundSetOutputValueCallback,
-    csoundScoreEvent,
-    csoundScoreEventAbsolute,
-    csoundPvsinSet,
-    csoundPvsoutGet,
-    csoundAddSpinSample,
-    csoundGetSpoutSample,
-//    csoundChanIKSetValue,
-//    csoundChanOKGetValue,
-//    csoundChanIASetSample,
-//    csoundChanOAGetSample,
-    csoundStop,
-    csoundPerformKsmpsAbsolute,
-#endif
+    csoundSetInputChannelCallback,
+    csoundSetOutputChannelCallback,
     csoundSetMessageCallback,
     csoundDeleteCfgVarList,
     csoundSetMessageLevel,
@@ -241,14 +183,8 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundSetYieldCallback,
-    csoundGetChannelPtr,
-    csoundListChannels,
     csoundSetControlChannelHints,
     csoundGetControlChannelHints,
-//    csoundChanIKSet,
-//    csoundChanOKGet,
-//    csoundChanIASet,
-//    csoundChanOAGet,
     csoundNewOpcodeList,
     csoundDisposeOpcodeList,
     csoundSetCallback,
@@ -302,7 +238,6 @@ static const CSOUND cenviron_ = {
     display,
     dispexit,
     intpow,
-    //ldmemfile,
     strarg2insno,
     strarg2name,
     hfgens,
@@ -421,18 +356,15 @@ static const CSOUND cenviron_ = {
     csoundUnlockMutex,
     csoundDestroyMutex,
     csoundGetCurrentThreadId,
-//   csoundSetChannelIOCallback,
     SetInternalYieldCallback,
     csoundCreateBarrier,
     csoundDestroyBarrier,
     csoundWaitBarrier,
     csoundFileOpenWithType,
     type2csfiletype,
-    //    ldmemfile2,
     csoundNotifyFileOpened,
     sftype2csfiletype,
     insert_score_event_at_sample,
-    //csoundGetChannelLock,
     ldmemfile2withCB,
     csoundGetNamedGens,
     csoundPow2,
@@ -542,7 +474,7 @@ static const CSOUND cenviron_ = {
     },
     (INSTRTXT *) NULL, /* instr0  */
     (INSTRTXT**)NULL,  /* dead_instr_pool */
-    0, /* dead_instr_no */
+    0,                /* dead_instr_no */
     (TYPE_POOL*)NULL,
     DFLT_KSMPS,     /*  ksmps               */
     DFLT_NCHNLS,    /*  nchnls              */
@@ -567,8 +499,6 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  chanok, chanoa      */
     FL(0.0),        /*  cpu_power_busy      */
     (char*) NULL,   /*  xfilename           */
-//    NLABELS,        /*  nlabels             */
-//    NGOTOS,         /*  ngotos              */
     1,              /*  peakchunks          */
     0,              /*  keep_tmp            */
     (OENTRY*) NULL, /*  opcodlst     */
@@ -647,10 +577,7 @@ static const CSOUND cenviron_ = {
     0,              /*  evt_poll_maxcnt     */
     0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
     NULL,           /*  opcodeInfo  */
-    /*NULL,   */        /*  instrumentNames     */
    (STRING_POOL*)NULL, /* string save pool */
-//    NULL,           /*  strsav_str          */
-//    NULL,           /*  strsav_space        */
     NULL,           /*  flist               */
     0,              /*  maxfnum             */
     NULL,           /*  gensub              */
@@ -672,7 +599,6 @@ static const CSOUND cenviron_ = {
     NULL,           /*  FFT_table_1         */
     NULL,           /*  FFT_table_2         */
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
-    /* express.c */
     0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     0,              /*  strVpooarSamples       */
     (MYFLT*) NULL,  /*  gbloffbas           */
@@ -827,8 +753,6 @@ static const CSOUND cenviron_ = {
     1000,           /*  ugens4_rand_16      */
     1000,           /*  ugens4_rand_15      */
     NULL,           /*  schedule_kicked     */
-//    (LBLBLK**) NULL, /* lopds               */
-//    NULL,           /*  larg                */
     (MYFLT*) NULL,  /*  disprep_fftcoefs    */
     NULL,           /*  winEPS_globals      */
     {               /*  oparms_             */
@@ -860,10 +784,6 @@ static const CSOUND cenviron_ = {
       1,            /*    useCsdLineCounts  */
       0,            /*    calculateWeights   */
     },
-//    0L, 0L,         /*  instxtcount, optxtsize  */
-    //0L, 0L,         /*  poolcount, gblfixed     */
-    //0L, 0L,         /*  gblacount, gblscount    */
-    //(CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
 
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
 
@@ -875,8 +795,6 @@ static const CSOUND cenviron_ = {
     NULL,           /* multiThreadedBarrier2 */
     0,              /* multiThreadedComplete */
     NULL,           /* multiThreadedThreadInfo */
-    //NULL,           /* multiThreadedStart */
-    //NULL,           /* multiThreadedEnd */
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
@@ -910,16 +828,14 @@ static const CSOUND cenviron_ = {
     NULL,           /* pow2 table */
     NULL,           /* cps conv table */
     NULL,           /* output of preprocessor */
-    {NULL},           /* filedir */
-    NULL,           /* message buffer struct */
+    NULL,           /* filedir */
+    {NULL},           /* message buffer struct */
     0               /* jumpset */
 };
 
 /* from threads.c */
 void csoundLock(void);
 void csoundUnLock(void);
-/* aops.c */
-/*void aops_init_tables(void);*/
 void csound_aops_init_tables(CSOUND *cs);
 
 typedef struct csInstance_s {
@@ -1171,7 +1087,6 @@ PUBLIC int csoundInitialize(int *argc, char ***argv, int flags)
     if (!(flags & CSOUNDINIT_NO_ATEXIT))
       atexit(destroy_all_instances);
 #endif
-    /*aops_init_tables();*/
     csoundLock();
     init_done = 1;
     csoundUnLock();
@@ -1202,7 +1117,6 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     instance_list = p;
     csoundUnLock();
     csoundReset(csound);
-    //csound_aops_init_tables(csound);
     csound->API_lock = csoundCreateMutex(1);
     return csound;
 }
@@ -1259,7 +1173,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
       prv->nxt = p->nxt;
     csoundUnLock();
     free(p);
-    csoundReset_(csound);
+    reset(csound);
     if (csound->csoundCallbacks_ != NULL) {
       CsoundCallbackEntry_t *pp, *nxt;
       pp = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
@@ -1351,9 +1265,6 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
     }
     **start = s;
 }
-
-
-
 
 int dag_get_task(CSOUND *csound);
 int dag_end_task(CSOUND *csound, int task);
@@ -1592,7 +1503,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       return 0;
 }
 
-int csoundPerformKsmpsInternal(CSOUND *csound)
+static int csoundPerformKsmpsInternal(CSOUND *csound)
 {
     int done;
     int returnValue;
@@ -1619,7 +1530,6 @@ int csoundPerformKsmpsInternal(CSOUND *csound)
     } while (kperf(csound));
     return 0;
 }
-
 
 
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
@@ -1746,7 +1656,7 @@ PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound){
   return csound->icurTime;
 }
 
-PUBLIC MYFLT csoundGetSr(CSOUND *csound)
+PUBLIC MYFLT csoundGetSr(CSOUND *csound) 
 {
     return csound->esr;
 }
@@ -1782,16 +1692,6 @@ PUBLIC int csoundGetStrVarMaxLen(CSOUND *csound)
 {
     return csound->strVarMaxLen;
 }
-
-/*PUBLIC int csoundGetSampleFormat(CSOUND *csound)
-{
-    return csound->oparms_.outformat;
-}
-
-PUBLIC int csoundGetSampleSize(CSOUND *csound)
-{
-    return csound->oparms_.sfsampsize;
-}*/
 
 PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
 {
@@ -2491,11 +2391,7 @@ PUBLIC void csoundSetKillGraphCallback(CSOUND *csound,
 }
 
 #ifdef never
-static int defaultCsoundExitGraph(CSOUND *csound)
-{
-    (void) csound;
-    return CSOUND_SUCCESS;
-}
+
 #endif
 
 PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
@@ -2557,76 +2453,6 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     csound->oplstend = (OENTRY*) csound->oplstend + (int) 1;
     return 0;
 }
-
-
-/* static CS_NOINLINE int opcode_list_new_oentries(CSOUND *csound, */
-/*                                                const OENTRY *ep) */
-/* { */
-/*     int     oldCnt = 0; */
-/*     int     h = 0; */
-/*     OENTRY  *dest;  */
-/*     char opname[64]; */
-
-/*     // trim opcode name if name has . in it */
-/*     // this can be removed once OENTRY table is modified */
-/*     char* dot = strchr(ep->opname, '.'); */
-/*     if(dot != NULL) strncpy((char *) &opname, ep->opname, dot - ep->opname); */
-/*     else strcpy((char *) &opname, ep->opname); */
-
-/*     if (opname == NULL) */
-/*       return CSOUND_ERROR; */
-
-/*     if (opname[0] != (char) 0) */
-/*       h = (int) name_hash_2(csound, opname); */
-/*       else if (csound->opcodelist != NULL) */
-/*       return CSOUND_ERROR; */
-/*     if (csound->opcodelist != NULL) { */
-/*       int   n; */
-/*       oldCnt = (int) ((OENTRIES*) csound->opcodelist_end - (OENTRIES*) csound->opcodelist); */
-/*       /\* check if this opcode is already defined *\/ */
-/*       n = csound->opcode_list[h]; */
-/*       while (n) { */
-/*         if (!sCmp(csound->opcodelist[n].opname, opname)) { */
-/*           int count = csound->opcodelist[n].count; */
-/*           /\* add as an overloaded opcode *\/ */
-/*           if(count < 16) { */
-/*           dest = csound->opcodelist[n].entries[count] =  (OENTRY *) csound->Calloc(csound, sizeof(OENTRY)); */
-/*           /\* csound->opcodelist[n].opnum[count] = ? *\/ */
-/*           memcpy(dest, ep, sizeof(OENTRY)); */
-/*           dest->useropinfo = NULL; */
-/*           /\* dest->prvnum = ?; *\/ */
-/*           csound->opcodelist[n].count++; */
-/*        }  */
-/*           return CSOUND_SUCCESS; */
-/*         } */
-/*         n = csound->opcodelist[n].prvnum; */
-/*       } */
-/*     } */
-/*     if (!(oldCnt & 0x7F)) { */
-/*       OENTRIES  *newList; */
-/*       size_t  nBytes = (size_t) (oldCnt + 0x80) * sizeof(OENTRIES); */
-/*       if (!oldCnt) */
-/*         newList = (OENTRIES*) csound->Calloc(csound, nBytes); */
-/*       else */
-/*         newList = (OENTRIES*) csound->ReAlloc(csound, csound->opcodelist, nBytes); */
-/*       if (newList == NULL) */
-/*         return CSOUND_MEMORY; */
-/*       csound->opcodelist = newList; */
-/*       csound->opcodelist_end = ((OENTRIES *) newList + (int) oldCnt); */
-/*       memset(&(csound->opcodelist[oldCnt]), 0, sizeof(OENTRIES) * 0x80); */
-/*     } */
-/*     dest = csound->opcodelist[oldCnt].entries[0] = (OENTRY *)csound->Calloc(csound, sizeof(OENTRY)); */
-/*     dest->useropinfo = NULL; */
-/*     memcpy(dest, ep, sizeof(OENTRY)); */
-/*     csound->opcodelist[oldCnt].opname = dest->opname; */
-/*     dest->prvnum = csound->opcode_list[h]; */
-/*     /\* csound->opcodelist[oldCnt].prvnum = csound->opcode_list[h]; *\/ */
-/*     csound->opcodelist[oldCnt].count = 1;   */
-/*     csound->opcode_list[h] = oldCnt; */
-/*     csound->opcodelist_end = (OENTRIES*) csound->opcodelist_end + (int) 1; */
-/*     return 0; */
-/* } */
-
 
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
@@ -2719,10 +2545,8 @@ typedef struct resetCallback_s {
   struct resetCallback_s  *nxt;
 } resetCallback_t;
 
-extern void cscoreRESET(CSOUND *);
-extern void memRESET(CSOUND *);
 
-PUBLIC void csoundReset_(CSOUND *csound)
+static void reset(CSOUND *csound)
 {
     CSOUND    *saved_env;
     void      *p1, *p2;
@@ -2759,7 +2583,6 @@ PUBLIC void csoundReset_(CSOUND *csound)
      pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
 #endif
-
     csound->oparms_.odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release(csound);
@@ -2773,12 +2596,11 @@ PUBLIC void csoundReset_(CSOUND *csound)
     /**
      * Copy everything EXCEPT the function pointers.
      * We do it by saving them and copying them back again...
+     * hope that this does not fail... 
      */
     /* VL 15.03.2013 - I am not sure why this is needed, but
        it probably needs to be reviewed with the changes in
        the CSOUND struct */
-    /* hope that this does not fail... */
-
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
@@ -2841,7 +2663,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->engineStatus |= ~(CS_STATE_COMP);
     }
 
-    csoundReset_(csound);
+    reset(csound);
     if (msgcallback_ != NULL) {
       csoundSetMessageCallback(csound, msgcallback_);
     }
@@ -3042,12 +2864,6 @@ PUBLIC void csoundReset(CSOUND *csound)
       create_opcodlst(csound);
       csoundLoadExternals(csound);
     }
-/* #ifdef HAVE_PTHREAD_SPIN_LOCK */
-/*     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE); */
-/*     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE); */
-/*     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE); */
-/*     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE); */
-/* #endif */
 }
 
 PUBLIC int csoundGetDebug(CSOUND *csound)
@@ -3071,7 +2887,7 @@ PUBLIC MYFLT csoundTableGet(CSOUND *csound, int table, int index)
     return csound->flist[table]->ftable[index];
 }
 
-void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value)
+static void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value)
 {
     csound->flist[table]->ftable[index] = value;
 }
@@ -3905,16 +3721,16 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     csoundUnlockMutex(pp->mutex_);
 }
 
-INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
+static INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
   return csound->engineState.instrtxtp;
 }
-long csoundGetKcounter(CSOUND *csound){
+
+static long csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
 
-
-void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
-void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
+static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
+static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
 
 #ifdef never
 
@@ -3976,6 +3792,11 @@ inline void multiThreadedLayer(CSOUND *csound, INSDS *layerBegin, INSDS *layerEn
         }
       }
     }
+}
+static int defaultCsoundExitGraph(CSOUND *csound)
+{
+    (void) csound;
+    return CSOUND_SUCCESS;
 }
 #endif
 

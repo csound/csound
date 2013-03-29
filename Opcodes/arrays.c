@@ -213,11 +213,11 @@ typedef struct {
     ARRAYDAT *tab;
 } TABQUERY;
 
-//typedef struct {
-//    OPDS h;
-//    TABDAT *tab;
-//    MYFLT  *kfn;
-//} TABCOPY;
+typedef struct {
+    OPDS h;
+    ARRAYDAT *tab;
+    MYFLT  *kfn;
+} TABCOPY;
 
 typedef struct {
    OPDS h;
@@ -226,16 +226,18 @@ typedef struct {
    MYFLT  *kstart, *kend;
 } TABSCALE;
 
-//static inline void tabensure(CSOUND *csound, TABDAT *p, int size)
-//{
-//    uint32_t ss = sizeof(MYFLT)*size;
-//    if (p->aux.auxp==NULL || p->aux.size<ss) {
-//      csound->AuxAlloc(csound, ss, &p->aux);
-//      p->data = (MYFLT*)(p->aux.auxp);
-//      p->size = size;
-//    }
-//}
-//
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
+{
+    if (p->data && p->dimensions==1 && p->sizes[0]>= size) {
+      uint32_t ss = sizeof(MYFLT)*size;
+      p->data = (MYFLT*)mmalloc(csound, ss);
+      p->dimensions = 1;
+      p->arrayMemberSize = sizeof(MYFLT);
+      p->sizes = (int*)mmalloc(csound, sizeof(int));
+      p->sizes[0] = size;
+    }
+}
+
 //static int tabarithset(CSOUND *csound, TABARITH *p)
 //{
 //    if (LIKELY(p->left->data && p->right->data)) {
@@ -541,47 +543,47 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
 }
 
 //typedef struct {
-//    OPDS h;
-//    TABDAT *dst;
-//    TABDAT *src;
-//    int    len;
+//    OPDS     h;
+//    ARRAYDAT *dst;
+//    ARRAYDAT *src;
+//    int      len;
 //} TABCPY;
-//
+
 //static int tabcopy_set(CSOUND *csound, TABCPY *p)
 //{
 //    //int sizes,sized;
-//    if (UNLIKELY(p->src->data==NULL))
+//    if (UNLIKELY(p->src->data==NULL) || p->src->dimensions!=1)
 //      return csound->InitError(csound, Str("t-variable not initialised"));
-//    tabensure(csound, p->dst, p->src->size);
-//    memmove(p->dst->data, p->src->data, p->len);
+//    tabensure(csound, p->dst, p->src->sizes[0]);
+//    memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
 //    return OK;
 //}
-//
+
 //static int tabcopy(CSOUND *csound, TABCPY *p)
 //{
 //   if (UNLIKELY(p->dst->data==NULL || p->src->data==NULL))
 //       return csound->InitError(csound, Str("t-variable not initialised"));
-//    memmove(p->dst->data, p->src->data, p->len);
+//    memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
 //    return OK;
 //}
-//
-//static int tab2ftab(CSOUND *csound, TABCOPY *p)
-//{
-//    FUNC        *ftp;
-//    int fsize;
-//    MYFLT *fdata;
-//    int tlen = p->tab->size;
-//    if (UNLIKELY(p->tab->data==NULL))
-//      return csound->PerfError(csound, Str("t-var not initialised"));
-//    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-//        return csound->PerfError(csound, Str("No table for copy2ftab"));
-//    fsize = ftp->flen;
-//    fdata = ftp->ftable;
-//    if (fsize<tlen) tlen = fsize;
-//    memcpy(fdata, p->tab->data, sizeof(MYFLT)*tlen);
-//    return OK;
-//}
-//
+
+static int tab2ftab(CSOUND *csound, TABCOPY *p)
+{
+    FUNC        *ftp;
+    int fsize;
+    MYFLT *fdata;
+    int tlen = p->tab->sizes[0];
+    if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions!=1)
+      return csound->PerfError(csound, Str("t-var not initialised"));
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+        return csound->PerfError(csound, Str("No table for copy2ftab"));
+    fsize = ftp->flen;
+    fdata = ftp->ftable;
+    if (fsize<tlen) tlen = fsize;
+    memcpy(fdata, p->tab->data, sizeof(MYFLT)*tlen);
+    return OK;
+}
+
 //typedef struct {
 //    OPDS h;
 //    TABDAT *tab;
@@ -621,27 +623,28 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
 //    return OK;
 //}
 //
-//static int ftab2tab(CSOUND *csound, TABCOPY *p)
-//{
-//    FUNC        *ftp;
-//    int         fsize;
-//    MYFLT       *fdata;
-//    int tlen;
-//
-//    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-//        return csound->PerfError(csound, Str("No table for copy2ftab"));
-//    fsize = ftp->flen;
-//    if (UNLIKELY(p->tab->data==NULL)) {
-//      tabensure(csound, p->tab, fsize);
-//      p->tab->size = fsize;
-//    }
-//    tlen = p->tab->size;
-//    fdata = ftp->ftable;
-//    if (fsize<tlen) tlen = fsize;
-//    memcpy(p->tab->data, fdata, sizeof(MYFLT)*tlen);
-//    return OK;
-//}
-//
+
+static int ftab2tab(CSOUND *csound, TABCOPY *p)
+{
+    FUNC        *ftp;
+    int         fsize;
+    MYFLT       *fdata;
+    int tlen;
+
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+        return csound->PerfError(csound, Str("No table for copy2ftab"));
+    fsize = ftp->flen;
+    if (UNLIKELY(p->tab->data==NULL)) {
+      tabensure(csound, p->tab, fsize);
+      p->tab->sizes[0] = fsize;
+    }
+    tlen = p->tab->sizes[0];
+    fdata = ftp->ftable;
+    if (fsize<tlen) tlen = fsize;
+    memcpy(p->tab->data, fdata, sizeof(MYFLT)*tlen);
+    return OK;
+}
+
 //typedef struct {
 //    OPDS h;
 //    TABDAT *tab, *tabin;
@@ -792,8 +795,8 @@ static OENTRY arrayvars_localops[] =
 //  { "#tabmap_i", sizeof(TABMAP), 0, 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
 //  { "#tabmap", sizeof(TABMAP), 0, 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf},
 //  { "#tabslice", sizeof(TABSLICE), 0, 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
-//  { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "tk", NULL, (SUBR) tab2ftab },
-//  { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "tk", NULL, (SUBR) ftab2tab },
+    { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "tk", NULL, (SUBR) tab2ftab },
+    { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "tk", NULL, (SUBR) ftab2tab },
 //  { "lentab.i", sizeof(TABQUERY), 0, 1, "i", "t", (SUBR) tablength },
 //  { "lentab.k", sizeof(TABQUERY), 0, 1, "k", "t", NULL, (SUBR) tablength }
 

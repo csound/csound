@@ -54,9 +54,9 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     DelayLine   *lower_rail;
     MYFLT   plk = *p->plk;
                                 /* Initialize variables....*/
-    npts = (int)(csound->GetSr(csound) / *p->icps);/* Length of full delay */
+    npts = (int)(CS_ESR / *p->icps);/* Length of full delay */
     while (npts < 512) {        /* Minimum rail length is 256 */
-      npts += (int)(csound->GetSr(csound) / *p->icps);
+      npts += (int)(CS_ESR / *p->icps);
       scale++;
     }
     rail_len = npts/2/* + 1*/;      /* but only need half length */
@@ -245,7 +245,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 static int stresonset(CSOUND *csound, STRES *p)
 {
     int n;
-    p->size = (int) (csound->GetSr(csound)/20);   /* size of delay line */
+    p->size = (int) (CS_ESR/20);   /* size of delay line */
     csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->aux);
     p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
@@ -274,7 +274,7 @@ static int streson(CSOUND *csound, STRES *p)
 
     freq = *p->afr;
     if (freq < FL(20.0)) freq = FL(20.0);   /* lowest freq is 20 Hz */
-    tdelay = csound->GetSr(csound)/freq;
+    tdelay = CS_ESR/freq;
     delay = (int) (tdelay - 0.5); /* comb delay */
     fracdelay = tdelay - (delay + 0.5); /* fractional delay */
     vdt = size - delay;       /* set the var delay */
