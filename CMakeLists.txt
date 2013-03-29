@@ -30,37 +30,7 @@ include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
 include(CMakeParseArguments)
 
-# Utility function to make plugins. All plugin targets should use this as it
-# sets up output directory set in top-level CmakeLists.txt
-# and adds the appropriate install target
-#
-# libname - name of library to produce
-# srcs - list of src files (must be quoted if a list)
-# extralibs (OPTIONAL) - extra libraries to link the plugin to
-#  
-function(make_plugin libname srcs)
-    if(APPLE)
-        add_library(${libname} SHARED ${srcs})
-    else()
-        add_library(${libname} MODULE ${srcs})
-    endif()
 
-    set(i 2)
-    while( ${i} LESS ${ARGC} )
-        if(NOT MSVC OR NOT("${ARGV${i}}" MATCHES "m"))
-            target_link_libraries(${libname} ${ARGV${i}})
-        endif()
-        math(EXPR i "${i}+1")
-    endwhile()
-    
-    set_target_properties(${libname} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
-        LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
-        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
-
-    install(TARGETS ${libname}
-	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
-endfunction(make_plugin)
 # Utility function to make executables. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
 # and adds an appropriate install target
@@ -814,6 +784,85 @@ if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
     set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders}")
 endif()
+
+# This copies libsndfile into the framework and sets the install names
+# of CsoundLib to refer to it.
+# similar thing should be done 
+if(APPLE)
+set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
+if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/libsndfile.1.dylib)
+   add_custom_command(
+       TARGET ${CSOUNDLIB} 
+       POST_BUILD
+       COMMAND mkdir
+       ARGS  ${CSOUNDLIB_DIR}/Resources/libs
+       COMMAND cp
+       ARGS /usr/local/lib/libsndfile.1.dylib ${CSOUNDLIB_DIR}/Resources/libs
+       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+       ARGS -id libsndfile.1.dylib ${CSOUNDLIB_DIR}/Resources/libs/libsndfile.1.dylib
+)
+endif()
+
+add_custom_command(
+       TARGET ${CSOUNDLIB} 
+       POST_BUILD
+       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+       ARGS -change /usr/local/lib/libsndfile.1.dylib @loader_path/Resources/libs/libsndfile.1.dylib ${CSOUNDLIB_DIR}/${CSOUNDLIB}
+)
+endif()
+
+# Utility function to make plugins. All plugin targets should use this as it
+# sets up output directory set in top-level CmakeLists.txt
+# and adds the appropriate install target
+#
+# libname - name of library to produce
+# srcs - list of src files (must be quoted if a list)
+# extralibs (OPTIONAL) - extra libraries to link the plugin to
+#  
+# NB - this was moved here as it needs some VARS defined above
+# for setting up the framework
+function(make_plugin libname srcs)
+    if(APPLE)
+        add_library(${libname} SHARED ${srcs})
+    else()
+        add_library(${libname} MODULE ${srcs})
+    endif()
+
+    set(i 2)
+    while( ${i} LESS ${ARGC} )
+        if(NOT MSVC OR NOT("${ARGV${i}}" MATCHES "m"))
+            target_link_libraries(${libname} ${ARGV${i}})
+        endif()
+        math(EXPR i "${i}+1")
+    endwhile()
+    
+    set_target_properties(${libname} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
+
+    install(TARGETS ${libname}
+	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
+
+# copy plugins into framework
+if(APPLE)
+set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
+if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/Opcodes)
+   add_custom_command(
+       TARGET ${libname} 
+       POST_BUILD
+       COMMAND mkdir
+       ARGS ${CSOUNDLIB_DIR}/Resources/Opcodes
+)
+endif()
+add_custom_command(
+       TARGET ${libname} 
+       POST_BUILD
+       COMMAND cp
+       ARGS ${BUILD_DIR}/lib${libname}.dylib   ${CSOUNDLIB_DIR}/Resources/Opcodes
+)
+endif()
+endfunction(make_plugin)
 
 # Add the install target
 install(TARGETS ${CSOUNDLIB}
