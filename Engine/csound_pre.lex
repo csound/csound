@@ -920,42 +920,6 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
     PARM->line = n;
 }
 
-#ifdef MAIN_NEEDED
-int main(void)
-{
-    PRE_PARM  qq;
-    int len=100, p=0, n;
-    char buff[1024];
-    FILE *fd = fopen("III", "r");
-
-    inp = (char*)calloc(100,1);
-    memset(buff, '\0', 1024);
-    while ((n = fread(buff, 1, 1023, fd))) {
-      while (p+n+1>=len)
-        inp = (char*) realloc(inp, len+=100);
-      strcat(inp, buff);
-      p += n;
-      memset(buff, '\0', 1024);
-    }
-    if (n+8>= len) inp = (char*) realloc(inp, len = n+9);
-    strcat(inp, "\n#exit\0\0");
-    rewind(fd);
-
-    memset(&qq, '\0', sizeof(PRE_PARM));
-    csound_prelex_init(&qq.yyscanner);
-    csound_preset_extra(&qq, qq.yyscanner);
-    //csound_preset_debug(1, &qq.yyscanner);
-    //csound_prepush_buffer_state(NULL, &qq.yyscanner);
-    //csound_pre_scan_string(inp, qq.yyscanner);
-    //csound_preset_in(NULL, qq.yyscanner);
-    qq.line = 1;
-    csound_prelex(NULL, qq.yyscanner);
-    //csound->DebugMsg(csound,corfile_body(expanded_pre));
-    //csound_prelex_destroy(&qq.yyscanner);
-    return 0;
-}
-#endif
-
 #if 0
 static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
 {

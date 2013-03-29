@@ -204,8 +204,7 @@ lyyerror(YYLTYPE t, char *s, ...)
 #endif
 
 void
-csound_scoerror(SCORE_PARM *parm, void *yyg, CSOUND *csound,
-                MYFLT x, const char* s)
+csound_scoerror(SCORE_PARM *parm, void *yyg, const char* s)
 {
     fprintf(stderr, s);
 }
