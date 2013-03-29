@@ -35,6 +35,11 @@ target_link_libraries(csoundOrcCompileTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
 add_test(NAME csoundOrcCompileTest
 	COMMAND $<TARGET_FILE:csoundOrcCompileTest> ${TEST_ARGS})
 
+add_executable(channelTest channel_tests.c)
+target_link_libraries(channelTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME channelTest
+	COMMAND $<TARGET_FILE:channelTest> ${TEST_ARGS})
+
 endif()
 
 
