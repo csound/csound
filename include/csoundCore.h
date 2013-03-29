@@ -328,9 +328,9 @@ typedef struct CORFIL {
   typedef struct {
     int      dimensions;
     int*     sizes;             /* size of each dimensions */
-    int     arrayMemberSize;
+    int      arrayMemberSize;
     CS_TYPE* arrayType;
-    MYFLT* data;
+    MYFLT*   data;
 //    AUXCH   aux;
   } ARRAYDAT;
 

@@ -1,7 +1,7 @@
 %{
 
  /*
-    csound_sco.l:
+    csound_sco.lex:
 
     Copyright (C) 2013 March
     John ffitch
