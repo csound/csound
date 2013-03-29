@@ -2279,7 +2279,7 @@ static int sflooper_init(CSOUND *csound, sflooper *p)
 
     for(j=0; j < spltNum; j++){
       if (p->mode == 0 || p->mode == 2){
-        if ((p->ndx[j][0] = *p->start*csound->GetSr(csound)+p->sstart[j]) < 0)
+        if ((p->ndx[j][0] = *p->start*CS_ESR+p->sstart[j]) < 0)
           p->ndx[j][0] = 0;
         if (p->ndx[j][0] >= p->end[j])
           p->ndx[j][0] = (double) p->end[j] - 1.0;
@@ -2298,7 +2298,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    MYFLT    *outL = p->outL, *outR = p->outR, out, sr = csound->GetSr(csound);
+    MYFLT    *outL = p->outL, *outR = p->outR, out, sr = CS_ESR;
     MYFLT    amp = *(p->amp), pit = *(p->pitch);
     SHORT    **base = p->sBase, *tab;
     double *ndx;

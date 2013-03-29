@@ -213,8 +213,8 @@ typedef struct _pvsmorph {
 
 static int sndloop_init(CSOUND *csound, sndloop *p)
 {
-    p->durs = (int32) (*(p->dur)*csound->GetSr(csound)); /* dur in samps */
-    p->cfds = (int32) (*(p->cfd)*csound->GetSr(csound)); /* fade in samps */
+    p->durs = (int32) (*(p->dur)*CS_ESR); /* dur in samps */
+    p->cfds = (int32) (*(p->cfd)*CS_ESR); /* fade in samps */
     if (UNLIKELY(p->durs < p->cfds))
       return
         csound->InitError(csound, Str("crossfade cannot be longer than loop\n"));
@@ -297,9 +297,9 @@ static int sndloop_process(CSOUND *csound, sndloop *p)
 static int flooper_init(CSOUND *csound, flooper *p)
 {
     MYFLT *tab, *buffer, a = FL(0.0), inc;
-    int32 cfds = (int32) (*(p->cfd)*csound->GetSr(csound));     /* fade in samps  */
-    int32 starts = (int32) (*(p->start)*csound->GetSr(csound)); /* start in samps */
-    int32 durs = (int32)  (*(p->dur)*csound->GetSr(csound));    /* dur in samps   */
+    int32 cfds = (int32) (*(p->cfd)*CS_ESR);     /* fade in samps  */
+    int32 starts = (int32) (*(p->start)*CS_ESR); /* start in samps */
+    int32 durs = (int32)  (*(p->dur)*CS_ESR);    /* dur in samps   */
     int32 len, i;
 
     if (UNLIKELY(cfds > durs))
@@ -411,7 +411,7 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
     if (*p->iskip == 0){
       p->mode = (int) *p->imode;
       if (p->mode == 0 || p->mode == 2){
-        if ((p->ndx[0] = *p->start*csound->GetSr(csound)) < 0)
+        if ((p->ndx[0] = *p->start*CS_ESR) < 0)
           p->ndx[0] = 0;
         if (p->ndx[0] >= p->sfunc->flen)
           p->ndx[0] = (double) p->sfunc->flen - 1.0;
@@ -429,7 +429,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    MYFLT *out = p->out, sr = csound->GetSr(csound);
+    MYFLT *out = p->out, sr = CS_ESR;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab;
     double *ndx = p->ndx;
@@ -711,7 +711,7 @@ static int flooper3_init(CSOUND *csound, flooper3 *p)
     if (*p->iskip == 0){
       p->mode = (int) *p->imode;
       if (p->mode == 0 || p->mode == 2){
-        if ((p->ndx[0] = *p->start*csound->GetSr(csound)) < 0)
+        if ((p->ndx[0] = *p->start*CS_ESR) < 0)
           p->ndx[0] = 0;
         if (p->ndx[0] >= p->sfunc->flen)
           p->ndx[0] = p->sfunc->flen - 1.0;
@@ -731,7 +731,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int lobits = p->lobits,si,ei;
-    MYFLT *out = p->out, sr = csound->GetSr(csound);
+    MYFLT *out = p->out, sr = CS_ESR;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab = p->sfunc->ftable, cvt;
     int32 *ndx = p->ndx, lomask = p->lomask, pos;

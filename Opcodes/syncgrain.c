@@ -94,10 +94,10 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     int     datasize = p->datasize, envtablesize = p->envtablesize;
 
     pitch  = *p->pitch;
-    fperiod = FABS(csound->GetSr(csound)/(*p->fr));
+    fperiod = FABS(CS_ESR/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = csound->GetSr(csound) * *p->grsize;
+    grsize = CS_ESR * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     envincr = envtablesize/grsize;
     prate = *p->prate;
@@ -213,7 +213,7 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
     p->count = 0;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
-    p->start = *p->startpos*(csound->GetSr(csound));
+    p->start = *p->startpos*(CS_ESR);
     p->frac = 0.0f;
     p->firsttime = 1;
     }
@@ -241,7 +241,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     int     loop_end;
     int     loopsize;
     int     firsttime = p->firsttime;
-    MYFLT   sr = csound->GetSr(csound);
+    MYFLT   sr = CS_ESR;
 
     /* loop points & checks */
     loop_start = (int) (*p->loop_start*sr);
@@ -254,10 +254,10 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
                               loop_start, loop_end, loopsize);     */
 
     pitch  = *p->pitch;
-    fperiod = FABS(csound->GetSr(csound)/(*p->fr));
+    fperiod = FABS(CS_ESR/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = csound->GetSr(csound) * *p->grsize;
+    grsize = CS_ESR * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
@@ -407,7 +407,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
       return NOTOK;
 
     p->olaps = (int) *p->ols + 1;
-    p->dataframes = (int)(*p->max*csound->GetSr(csound)*4);
+    p->dataframes = (int)(*p->max*CS_ESR*4);
     if (p->dataframes < MINFBUFSIZE)
       p->dataframes =  MINFBUFSIZE;
     if (UNLIKELY(p->olaps < 2))
@@ -441,7 +441,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     }
 
     if (*p->ioff >= 0)
-      sf_seek(p->sf,*p->ioff * csound->GetSr(csound), SEEK_SET);
+      sf_seek(p->sf,*p->ioff * CS_ESR, SEEK_SET);
 
     if (LIKELY(sf_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0)) {
       p->read1 = 1;
@@ -459,7 +459,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
 
     p->start = 0.0f;
     p->frac = 0.0f;
-    p->pos = *p->ioff*csound->GetSr(csound);
+    p->pos = *p->ioff*CS_ESR;
     p->trigger = 0.0f;
     p->flen = sfinfo.frames;
 
@@ -497,10 +497,10 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     hdatasize = hdataframes*chans;
 
     pitch  = *p->pitch;
-    fperiod = FABS(csound->GetSr(csound)/(*p->fr));
+    fperiod = FABS(CS_ESR/(*p->fr));
     //if (UNLIKELY(fperiod  < FL(0.0))) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = csound->GetSr(csound) * *p->grsize;
+    grsize = CS_ESR * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     if (grsize > hdataframes) grsize = hdataframes;
     envincr = envtablesize/grsize;

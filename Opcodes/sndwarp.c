@@ -65,7 +65,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 
     p->maxFr   = -1 + ftpSamp->flen;
     p->prFlg   = 1;    /* true */
-    p->begin   = (int)(*p->ibegin * csound->GetSr(csound));
+    p->begin   = (int)(*p->ibegin * CS_ESR);
 
     exp        = p->exp;
     iwsize = *p->iwsize;
@@ -142,7 +142,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
         if (exp[i].cnt < exp[i].wsize) goto skipover;
 
         if (*p->itimemode!=0)
-          exp[i].offset=(csound->GetSr(csound) * *timewarpby)+p->begin;
+          exp[i].offset=(CS_ESR * *timewarpby)+p->begin;
         else
           exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
 
@@ -235,7 +235,7 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
 
     p->maxFr  = -1L + (int32)(ftpSamp->flen*FL(0.5));
     p->prFlg = 1;    /* true */
-    p->begin = (int)(*p->ibegin * csound->GetSr(csound));
+    p->begin = (int)(*p->ibegin * CS_ESR);
     iwsize = *p->iwsize;
     exp = p->exp;
     for (i=0; i< nsections; i++) {
@@ -305,7 +305,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
         if (exp[i].cnt < exp[i].wsize) goto skipover;
 
         if (*p->itimemode!=0)
-          exp[i].offset=(csound->GetSr(csound) * *timewarpby)+p->begin;
+          exp[i].offset=(CS_ESR * *timewarpby)+p->begin;
         else
           exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
 

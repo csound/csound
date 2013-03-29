@@ -59,7 +59,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     if (res < 0) res = 0;
 
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq/csound->GetSr(csound));
+    fc =  (double)(freq/CS_ESR);
     f  =  fc/2;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -197,8 +197,8 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
 
     ang = (double)csound->tpidsr*freq;         /* pole angle */
     fsc = sin(ang) - 3.0;                      /* freq scl   */
-    rrad1 =  pow(10.0, fsc/(dec*csound->GetSr(csound)));  /* filter radii */
-    rrad2 =  pow(10.0, fsc/(ris*csound->GetSr(csound)));
+    rrad1 =  pow(10.0, fsc/(dec*CS_ESR));  /* filter radii */
+    rrad2 =  pow(10.0, fsc/(ris*CS_ESR));
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {

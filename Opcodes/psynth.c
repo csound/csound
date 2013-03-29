@@ -611,7 +611,7 @@ static int trscale_process(CSOUND *csound, _PTRANS *p)
 {
     MYFLT   scale = *p->kpar;
     MYFLT   gain = (p->kgain != NULL ? *p->kgain : FL(1.0));
-    MYFLT   nyq = csound->GetSr(csound) * FL(0.5);
+    MYFLT   nyq = CS_ESR * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
     int     i = 0, id = (int) framein[3], end = p->numbins * 4;
@@ -640,7 +640,7 @@ static int trshift_process(CSOUND *csound, _PTRANS *p)
 {
     MYFLT   shift = *p->kpar;
     MYFLT   gain = (p->kgain != NULL ? *p->kgain : FL(1.0));
-    MYFLT   nyq = csound->GetSr(csound) * FL(0.5);
+    MYFLT   nyq = CS_ESR * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
     int     i = 0, id = (int) framein[3], end = p->numbins * 4;
@@ -703,7 +703,7 @@ static int trlowest_init(CSOUND *csound, _PLOW *p)
 static int trlowest_process(CSOUND *csound, _PLOW *p)
 {
     MYFLT   scale = *p->kpar;
-    MYFLT   nyq = csound->GetSr(csound) * FL(0.5);
+    MYFLT   nyq = CS_ESR * FL(0.5);
     float   lowest = (float) nyq, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
@@ -987,7 +987,7 @@ static int trfil_init(CSOUND *csound, _PSFIL *p)
 static int trfil_process(CSOUND *csound, _PSFIL *p)
 {
     MYFLT   amnt = *p->kpar, gain = FL(1.0);
-    MYFLT   nyq = csound->GetSr(csound) * FL(0.5);
+    MYFLT   nyq = CS_ESR * FL(0.5);
     MYFLT   *fil = p->tab->ftable;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
@@ -1179,8 +1179,8 @@ static int binit_process(CSOUND *csound, _PSBIN *p)
     float   *framein = (float *) p->fsig2->frame.auxp;
     int     i = 0, n = 0, id = (int) framein[3], end = p->numbins * 4;
     int     maxi = -1;
-    MYFLT   bw = csound->GetSr(csound) / (MYFLT)N, boundup, boundown;
-    MYFLT   nyq = csound->GetSr(csound) * FL(0.5), centre;
+    MYFLT   bw = CS_ESR / (MYFLT)N, boundup, boundown;
+    MYFLT   nyq = CS_ESR * FL(0.5), centre;
 
     if (p->lastframe < p->fsig2->framecount) {
 
