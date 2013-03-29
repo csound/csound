@@ -986,7 +986,7 @@ extern "C" {
     /**
      * Returns the number of audio sample frames per second.
      */
-    PUBLIC MYFLT csoundGetSr(CSOUND *);
+    PUBLIC MYFLT csoundGetSr(CSOUND *) ;
 
     /**
      * Returns the number of control samples per second.

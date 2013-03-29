@@ -393,7 +393,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
        csound->Message(csound,
                        Str("lposc: no sample rate stored in function;"
                            " assuming=sr\n"));
-       p->fsr=csound->GetSr(csound);
+       p->fsr=CS_ESR;
     }
     p->ftp    = ftp;
     p->tablen = ftp->flen;
@@ -414,7 +414,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
 static int lposca(CSOUND *csound, LPOSC *p)
 {
     double  *phs= &p->phs;
-    double  si= *p->freq * (p->fsr/csound->GetSr(csound));
+    double  si= *p->freq * (p->fsr/CS_ESR);
     MYFLT   *out = p->out,  *amp=p->amp;
     MYFLT   *ft =  p->ftp->ftable, *curr_samp;
     MYFLT   fract;
@@ -466,9 +466,9 @@ static int lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
     if (!(fsr = ftp->gen01args.sample_rate)) {
       csound->Message(csound, Str("lposcil: no sample rate stored in function;"
                                   " assuming=sr\n"));
-      p->fsr=csound->GetSr(csound);
+      p->fsr=CS_ESR;
     }
-    p->fsrUPsr = fsr/csound->GetSr(csound);
+    p->fsrUPsr = fsr/CS_ESR;
     p->ft     = ftp->ftable;
     p->tablen = ftp->flen/2;
     /* changed from

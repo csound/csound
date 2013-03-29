@@ -24,6 +24,9 @@
 #include <dlfcn.h>
 #include <dirent.h>
 
+#undef CS_KSMPS
+#define CS_KSMPS     (csound->GetKsmps(csound))
+
 #ifdef BETA
 #define DEBUG 1
 #endif

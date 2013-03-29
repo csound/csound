@@ -79,7 +79,7 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 
     /* allocate space- need no more than a half bar at current
        tempo and barlength */
-    M = ((size_t)(csound->GetSr(csound)*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    M = ((size_t)(CS_ESR*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       csound->AuxAlloc(csound, M, &p->repeatbuffer);
     }
@@ -95,7 +95,7 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
     /* samp per unit= samp per bar/ subdiv */
     /* = samp per beat * beats per bar /subdiv */
     /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
-    p->samplesperunit = roundoffint(((MYFLT)csound->GetSr(csound)*(FL(1.0)/(*p->bps)))*
+    p->samplesperunit = roundoffint(((MYFLT)CS_ESR*(FL(1.0)/(*p->bps)))*
                                     (*p->barlength/(MYFLT)p->Subdiv));
 
     /* enveloping */
@@ -315,7 +315,7 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 
     /* allocate space- need no more than a half bar at current tempo
        and barlength */
-    M = 2*((size_t)(csound->GetSr(csound)*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    M = 2*((size_t)(CS_ESR*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       /* multiply by 2 for stereo buffer */
       csound->AuxAlloc(csound, M, &p->repeatbuffer);
@@ -331,7 +331,7 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
     /* samp per unit= samp per bar/ subdiv */
     /* = samp per beat * beats per bar /subdiv */
     /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
-    p->samplesperunit = roundoffint(((MYFLT)csound->GetSr(csound)/
+    p->samplesperunit = roundoffint(((MYFLT)CS_ESR/
                                      (*p->bps))*(*p->barlength/
                                                  (MYFLT)p->Subdiv));
 
