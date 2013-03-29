@@ -1519,52 +1519,14 @@ static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
     }
 }
 
-
-/* outvalue now uses chn mehanism
-*/
-int outvalset(CSOUND *csound, CHNGET *p) {
-
-  MYFLT *tmp;
-  int   err=0, ret;
-  tmp = p->iname;
-  p->iname = p->arg;
-  p->arg = tmp;
-  if (p->XSTRCODE & 2){
-    ret =  chnset_opcode_init_S(csound, p);
-    if(ret == OK)
-    p->h.opadr = (SUBR) chnset_opcode_perf_k_alt;
-  }
-  else {
-  err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
-                              CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    if (LIKELY(!err)) {
-      p->lock = csoundGetChannelLock(csound, (char*) p->iname,
-                                CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-      p->h.opadr = (SUBR) chnset_opcode_perf_k_alt;
-    }
-    ret = OK;
-  }
-  tmp = p->iname;
-  p->iname = p->arg;
-  p->arg = tmp;
-  if (LIKELY(!err))   return ret;
-  else return print_chn_err(p, err);
-}
-
-
-
-
-
-
-#ifdef SOME_FINE_DAY
 /* k-rate and string i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
 /*     ma++ ingalls      matt@sonomatics.com */
 
 int kinval(CSOUND *csound, INVAL *p)
 {
-        if (csound->InputValueCallback_)
-          csound->InputValueCallback_(csound,
+        if (csound->InputChannelCallback_)
+          csound->InputChannelCallback_(csound,
                                       (char*) p->channelName.auxp, p->value);
         else
           *(p->value) = FL(0.0);
@@ -1606,8 +1568,8 @@ int kinval_S(CSOUND *csound, INVAL *p)
     /* are not aware of string channels */
     ((char*) p->value)[sizeof(MYFLT)] = (char) 0;
 
-    if (csound->InputValueCallback_)
-      csound->InputValueCallback_(csound,
+    if (csound->InputChannelCallback_)
+      csound->InputChannelCallback_(csound,
                                   (char*) p->channelName.auxp, p->value);
 
     return OK;
@@ -1635,16 +1597,16 @@ int koutval(CSOUND *csound, OUTVAL *p)
 {
     char    *chan = (char*)p->channelName.auxp;
 
-    if (csound->OutputValueCallback_) {
+    if (csound->OutputChannelCallback_) {
       if (p->XSTRCODE & 2) {
         /* a hack to support strings */
         int32  len = strlen(chan);
         strcat(chan, (char*)p->value);
-        csound->OutputValueCallback_(csound, chan, (MYFLT)len);
+        csound->OutputChannelCallback_(csound, chan, (MYFLT *) &len);
         chan[len] = '\0';   /* clear for next time */
       }
       else
-        csound->OutputValueCallback_(csound, chan, *(p->value));
+        csound->OutputChannelCallback_(csound, chan, p->value);
     }
 
     return OK;
@@ -1678,4 +1640,4 @@ int outvalset(CSOUND *csound, OUTVAL *p)
 
     return OK;
 }
-#endif
+

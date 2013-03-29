@@ -935,10 +935,10 @@ typedef struct NAME__ {
     void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));//
     int (*GetChannelPtr)(CSOUND *, MYFLT **p, const char *name, int type); //
     int (*ListChannels)(CSOUND *, controlChannelInfo_t **lst);  //
-    int (*SetControlChannelParams)(CSOUND *, const char *name,
-                                   int type, MYFLT dflt, MYFLT min, MYFLT max); //
-    int (*GetControlChannelParams)(CSOUND *, const char *name,
-                                   MYFLT *dflt, MYFLT *min, MYFLT *max); //
+    int (*SetControlChannelHints)(CSOUND *, const char *name,
+                                  const controlChannelHints_t hints); //
+    int (*GetControlChannelHints)(CSOUND *, const char *name,
+                                   controlChannelHints_t *hints); //
 //    int (*ChanIKSet)(CSOUND *, MYFLT value, int n); //
 //    int (*ChanOKGet)(CSOUND *, MYFLT *value, int n); //
 //    int (*ChanIASet)(CSOUND *, const MYFLT *value, int n); //
@@ -1233,11 +1233,8 @@ typedef struct NAME__ {
 #ifdef __BUILDING_LIBCSOUND
     /* callback function pointers */
     SUBR          first_callback_;
-    /*  deprecated */
-    /*    void          (*InputValueCallback_)(CSOUND *,
-                                         const char *channelName, MYFLT *value);
-    void          (*OutputValueCallback_)(CSOUND *,
-    const char *channelName, MYFLT value);*/
+    channelCallback_t InputChannelCallback_;
+    channelCallback_t OutputChannelCallback_;
     void          (*csoundMessageCallback_)(CSOUND *, int attr,
                                             const char *format, va_list args);
     int           (*csoundConfigureCallback_)(CSOUND *);

@@ -815,10 +815,9 @@ extern "C" {
         controlChannelHints_t    hints;
     } controlChannelInfo_t;
 
-    typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
+    typedef void (*channelCallback_t)(CSOUND *csound,
             const char *channelName,
-            void *channelValuePtr,
-            int channelType);
+            void *channelValuePtr);
 
 #ifndef CSOUND_CSDL_H
 
@@ -1752,6 +1751,11 @@ extern "C" {
     PUBLIC  void csoundGetStringChannel(CSOUND *csound,
                                         const char *name, char *string);
 
+    PUBLIC void csoundSetInputChannelCallback(CSOUND *csound,
+                                              channelCallback_t inputChannelCalback);
+
+    PUBLIC void csoundSetOutputChannelCallback(CSOUND *csound,
+                                               channelCallback_t outputChannelCalback);
 
 //      /**
 //     * Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
