@@ -201,8 +201,8 @@ static const CSOUND cenviron_ = {
     csoundCleanup,
     csoundReset,
     csoundDestroy,
-    csoundGetSampleFormat,
-    csoundGetSampleSize,
+/*    csoundGetSampleFormat,
+    csoundGetSampleSize,*/
     csoundGetSpin,
     csoundGetSpout,
     csoundGetScoreTime,
@@ -226,10 +226,10 @@ static const CSOUND cenviron_ = {
     csoundPvsoutGet,
     csoundAddSpinSample,
     csoundGetSpoutSample,
-    csoundChanIKSetValue,
-    csoundChanOKGetValue,
-    csoundChanIASetSample,
-    csoundChanOAGetSample,
+//    csoundChanIKSetValue,
+//    csoundChanOKGetValue,
+//    csoundChanIASetSample,
+//    csoundChanOAGetSample,
     csoundStop,
     csoundPerformKsmpsAbsolute,
 #endif
@@ -243,12 +243,12 @@ static const CSOUND cenviron_ = {
     csoundSetYieldCallback,
     csoundGetChannelPtr,
     csoundListChannels,
-    csoundSetControlChannelParams,
-    csoundGetControlChannelParams,
-    csoundChanIKSet,
-    csoundChanOKGet,
-    csoundChanIASet,
-    csoundChanOAGet,
+    csoundSetControlChannelHints,
+    csoundGetControlChannelHints,
+//    csoundChanIKSet,
+//    csoundChanOKGet,
+//    csoundChanIASet,
+//    csoundChanOAGet,
     csoundNewOpcodeList,
     csoundDisposeOpcodeList,
     csoundSetCallback,
@@ -1784,17 +1784,15 @@ PUBLIC int csoundGetStrVarMaxLen(CSOUND *csound)
     return csound->strVarMaxLen;
 }
 
-PUBLIC int csoundGetSampleFormat(CSOUND *csound)
+/*PUBLIC int csoundGetSampleFormat(CSOUND *csound)
 {
-    /* should we assume input is same as output ? */
     return csound->oparms_.outformat;
 }
 
 PUBLIC int csoundGetSampleSize(CSOUND *csound)
 {
-    /* should we assume input is same as output ? */
     return csound->oparms_.sfsampsize;
-}
+}*/
 
 PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
 {

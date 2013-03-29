@@ -136,7 +136,7 @@ CsoundOpcodeList::~CsoundOpcodeList()
 
 void CsoundChannelList::ResetVariables()
 {
-    lst = (CsoundChannelListEntry*) 0;
+    lst = (controlChannelInfo_t*) 0;
     cnt = -1;
     csound = (CSOUND*) 0;
 }
@@ -148,7 +148,12 @@ int CsoundChannelList::GetChannelMetaData(int ndx,
     if (!lst || (unsigned int) ndx >= (unsigned int) cnt)
       return -1;
     name = lst[ndx].name;
-    return csoundGetControlChannelParams(csound, name, &dflt, &min, &max);
+    controlChannelHints_t hints;
+    int ret = csoundGetControlChannelHints(csound, name, &hints);
+    dflt = hints.dflt;
+    min = hints.min;
+    max = hints.max;
+    return ret;
 }
 
 /**
@@ -319,7 +324,7 @@ void CsoundChannelList::Clear()
 
 CsoundChannelList::CsoundChannelList(CSOUND *csound)
 {
-    lst = (CsoundChannelListEntry*) 0;
+    lst = (controlChannelInfo_t*) 0;
     cnt = csoundListChannels(csound, &lst);
     this->csound = csound;
     if (cnt < 0 || !lst)
@@ -328,7 +333,7 @@ CsoundChannelList::CsoundChannelList(CSOUND *csound)
 
 CsoundChannelList::CsoundChannelList(Csound *csound)
 {
-    lst = (CsoundChannelListEntry*) 0;
+    lst = (controlChannelInfo_t*) 0;
     cnt = csound->ListChannels(lst);
     this->csound = csound->GetCsound();
     if (cnt < 0 || !lst)

@@ -77,7 +77,7 @@ class PUBLIC CsoundOpcodeList {
 
 class PUBLIC CsoundChannelList {
  private:
-    CsoundChannelListEntry  *lst;
+    controlChannelInfo_t  *lst;
     int                     cnt;
     CSOUND                  *csound;
     void ResetVariables();
