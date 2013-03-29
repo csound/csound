@@ -194,7 +194,7 @@ static void
 _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
 {
     size_t num_floats =
-      (size_t)MYFLT2LRND((MYFLT)ceil((double)(max_time*csound->GetSr(csound))));
+      (size_t)MYFLT2LRND((MYFLT)ceil((double)(max_time*CS_ESR)));
 
     BaboMemory_create(csound, &this->core, num_floats);
 }
@@ -329,7 +329,7 @@ static inline void BaboTapline_preload_parameter(CSOUND *csound,
      *          direct_att=(1/2) when distance is 1 m
      *          direct_att=1     when distance is 0 m.
      */
-    this->delay_size    = (distance / sound_speed) * csound->GetSr(csound);
+    this->delay_size    = (distance / sound_speed) * CS_ESR;
     this->attenuation   = FL(1.0) / (FL(1.0) + distance);
 }
 

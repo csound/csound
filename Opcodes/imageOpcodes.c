@@ -75,6 +75,9 @@
   row (l->r t->b) so a pixel value in imageData is located at: (w*y+x)*3.
 */
 
+#undef CS_KSMPS
+#define CS_KSMPS     (csound->GetKsmps(csound))
+
 static Image * __doOpenImage(char * filename, CSOUND *csound)
 {
 #ifdef USE_LIBPNG

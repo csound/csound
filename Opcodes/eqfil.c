@@ -38,7 +38,7 @@ typedef struct _equ {
 static int equ_init(CSOUND *csound, equ *p)
 {
     if (*p->ini==0) {
-      double sr = (double)csound->GetSr(csound);
+      double sr = (double)CS_ESR;
       p->z1 = p->z2 = 0.0;
       p->frv = *p->fr; p->bwv = *p->bw;
       p->d = cos(2*PI*p->frv/sr);
@@ -57,7 +57,7 @@ static int equ_process(CSOUND *csound, equ *p)
     int i, ksmps = csound->GetKsmps(csound);
 
     if (*p->bw != p->bwv || *p->fr != p->frv){
-      double sr = (double)csound->GetSr(csound);
+      double sr = (double)CS_ESR;
       p->frv = *p->fr; p->bwv = *p->bw;
       p->d = cos(2*PI*p->frv/sr);
       p->c = tan(PI*p->bwv/sr);

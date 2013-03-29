@@ -198,9 +198,9 @@ int vpvset(CSOUND *csound, VPVOC *p)
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
-    if (UNLIKELY(p->asr != csound->GetSr(csound))) {                /* & chk the data */
+    if (UNLIKELY(p->asr != CS_ESR)) {                /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
-                              pvfilnam, p->asr, csound->GetSr(csound));
+                              pvfilnam, p->asr, CS_ESR);
     }
     if (UNLIKELY(p->frSiz > PVFRAMSIZE)) {
       return csound->InitError(csound,
@@ -223,7 +223,7 @@ int vpvset(CSOUND *csound, VPVOC *p)
     /* highest possible frame index */
     p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->GetSr(csound) / (MYFLT) frInc;
+    p->frPrtim = CS_ESR / (MYFLT) frInc;
     /* factor by which to mulitply 'real' time index to get frame index */
     /* amplitude scale for PVOC */
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);

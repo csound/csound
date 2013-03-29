@@ -1873,11 +1873,11 @@ static int vco2ftset(CSOUND *csound, VCO2FT *p)
 #endif
     p->base_ftnum = (*(p->vco2_tables))[w]->base_ftnum;
     if (*(p->inyx) > FL(0.5))
-      p->p_scl = FL(0.5) * csound->GetSr(csound);
+      p->p_scl = FL(0.5) * CS_ESR;
     else if (*(p->inyx) < FL(0.001))
-      p->p_scl = FL(0.001) * csound->GetSr(csound);
+      p->p_scl = FL(0.001) * CS_ESR;
     else
-      p->p_scl = *(p->inyx) * csound->GetSr(csound);
+      p->p_scl = *(p->inyx) * CS_ESR;
     p->p_min = p->p_scl / (MYFLT) VCO2_MAX_NPART;
     /* in case of vco2ift opcode, find table number now */
     if (!strcmp(p->h.optext->t.opcod, "vco2ift"))
@@ -2328,7 +2328,7 @@ static int rbjeq(CSOUND *csound, RBJEQ *p)
       new_frq = 1;
       p->old_kcps = *(p->kcps);
       /* calculate variables that depend on freq., and are used by all modes */
-      p->omega = (double) p->old_kcps * TWOPI / (double) csound->GetSr(csound);
+      p->omega = (double) p->old_kcps * TWOPI / (double) CS_ESR;
       p->cs = cos(p->omega);
       p->sn = sqrt(1.0 - p->cs * p->cs);
     }
