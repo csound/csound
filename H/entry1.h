@@ -376,7 +376,7 @@ int     midiprogramchange(CSOUND *, void *);
 int     midichannelaftertouch(CSOUND *, void *);
 int     midipitchbend(CSOUND *, void *);
 int     mididefault(CSOUND *, void *);
-int     outvalset(CSOUND *, void *);
+//int     outvalset(CSOUND *, void *);
 int     subinstrset(CSOUND *, void *), subinstr(CSOUND *, void *);
 int     useropcdset(CSOUND *, void *), useropcd(CSOUND *, void *);
 int     setksmpsset(CSOUND *, void *);
