@@ -122,7 +122,7 @@ static int pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
     p->asr      = pp.srate;
     /* highest possible frame index */
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->GetSr(csound) / ((MYFLT) pp.overlap);
+    p->frPrtim = CS_ESR / ((MYFLT) pp.overlap);
     return OK;
 }
 

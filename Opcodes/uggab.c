@@ -663,7 +663,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
     if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
       csound->Warning(csound, Str("losc: no sample rate stored in function "
                                   "assuming=sr\n"));
-      p->fsr=csound->GetSr(csound);
+      p->fsr=CS_ESR;
     }
     p->ftp    = ftp;
     p->tablen = ftp->flen;

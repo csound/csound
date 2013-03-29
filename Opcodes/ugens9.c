@@ -93,10 +93,10 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     if ((p->nchanls == 1) && (*p->channel > 0))
       p->H += (Hlenpadded + 2) * (int)(*p->channel - 1);
 
-    if (UNLIKELY(cvh->samplingRate != csound->GetSr(csound))) {
+    if (UNLIKELY(cvh->samplingRate != CS_ESR)) {
       /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
-                              cvfilnam, cvh->samplingRate, csound->GetSr(csound));
+                              cvfilnam, cvh->samplingRate, CS_ESR);
     }
     if (UNLIKELY(cvh->dataFormat != CVMYFLT)) {
       return csound->InitError(csound,
@@ -404,7 +404,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
                                            "not equal to input channels"));
     }
 
-    if (UNLIKELY(IRfile.sr != csound->GetSr(csound))) {
+    if (UNLIKELY(IRfile.sr != CS_ESR)) {
       /* ## RWD suggests performing sr conversion here! */
       csound->Warning(csound, "IR srate != orch's srate");
     }
