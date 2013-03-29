@@ -78,7 +78,7 @@ int pvset(CSOUND *csound, PVOC *p)
     p->mems = memsize;
     p->frPktim = ((MYFLT)CS_KSMPS)/((MYFLT) p->frInc);
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->GetSr(csound)/((MYFLT) p->frInc);
+    p->frPrtim = CS_ESR/((MYFLT) p->frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
