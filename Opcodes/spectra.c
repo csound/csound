@@ -111,7 +111,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         p->nsmps = 1;
       }
       else {
-        dwnp->srate = csound->GetSr(csound);
+        dwnp->srate = CS_ESR;
         p->nsmps = CS_KSMPS;
       }
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */

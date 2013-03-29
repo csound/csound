@@ -54,7 +54,7 @@ static int bar_init(CSOUND *csound, BAR *p)
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
       double  dt = (double)csound->onedsr;
-      double  sig = (2.0*(double)csound->GetSr(csound))*(pow(10.0,3.0*dt/T30)-1.0);
+      double  sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
       double  dxmin = sqrt(dt*(b+hypot(b, K+K)));
       int     N = (int) (1.0/dxmin);
       double  dx = 1.0/N;
@@ -91,7 +91,7 @@ static int bar_init(CSOUND *csound, BAR *p)
 
 static int bar_run(CSOUND *csound, BAR *p)
 {
-    double xofreq = TWOPI* (*p->kscan)/csound->GetSr(csound); /* kspan ~=0.23; */
+    double xofreq = TWOPI* (*p->kscan)/CS_ESR; /* kspan ~=0.23; */
     double xo, xofrac;
     int xoint;
     int step = p->step;
@@ -158,7 +158,7 @@ static int bar_run(CSOUND *csound, BAR *p)
         p->first = first = 1;
         for (rr = 0; rr < N; rr++) {
           if (fabs(rr/(double)N - *p->ipos) <= *p->iwid) {
-            w[rr+2] += (1.0/csound->GetSr(csound))*(*p->ivel)*0.5*
+            w[rr+2] += (1.0/CS_ESR)*(*p->ivel)*0.5*
                 (1.0+cos(PI*fabs(rr/(double)N-(*p->ipos))/(*p->iwid)));
           }
         }
@@ -166,12 +166,12 @@ static int bar_run(CSOUND *csound, BAR *p)
 
       /*  readouts */
 
-      /*       xo = (1.0/3.0) + 0.5*sin(TWOPI*xofreq*(step+1)/csound->GetSr(csound)); */
+      /*       xo = (1.0/3.0) + 0.5*sin(TWOPI*xofreq*(step+1)/CS_ESR); */
       /* sin((N+1)w) = sin(Nw)cos(w) + cos(Nw)sin(w) */
       /* cos((N+1)w) = cos(Nw)cos(w) - sin(Nw)sin(w) */
       /* so can calculate sin on next line by iteration at less cost */
       /* But is xofreq were to change could be difficult! */
-      /*      xo = 0.5 + 0.5*sin(TWOPI*xofreq*(step+1)/csound->GetSr(csound)); */
+      /*      xo = 0.5 + 0.5*sin(TWOPI*xofreq*(step+1)/CS_ESR); */
       {
         double  xx = SINNW*COS1W + COSNW*SIN1W;
         double  yy = COSNW*COS1W - SINNW*SIN1W;
@@ -267,7 +267,7 @@ int init_pp(CSOUND *csound, CSPP *p)
                           /* initialize prepared objects and hammer */
                           /* derived parameters */
       double dt = (double)csound->onedsr;
-      double sig = (2.0*(double)csound->GetSr(csound))*(pow(10.0,3.0*dt/T30)-1.0);
+      double sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
 
       uint32_t N, n;
       double *c, /*dx,*/ dxmin = 0.0; /* for stability */
@@ -372,8 +372,8 @@ int play_pp(CSOUND *csound, CSPP *p)
     double COS1W2 = 0;
 
     if (p->stereo) {
-      double f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/csound->GetSr(csound);
-      double f2 = (*p->scanfreq + FL(0.5)* *p->scanspread)/csound->GetSr(csound);
+      double f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/CS_ESR;
+      double f2 = (*p->scanfreq + FL(0.5)* *p->scanspread)/CS_ESR;
       SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
       COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
       SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
@@ -384,7 +384,7 @@ int play_pp(CSOUND *csound, CSPP *p)
       COS1W2 = cos(f2*TWOPI);
     }
     else {
-      double f1 = *p->scanfreq/csound->GetSr(csound);
+      double f1 = *p->scanfreq/CS_ESR;
       SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
       COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
       SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */

@@ -371,7 +371,7 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
       sfinfo.format |= FORMAT2SF(csound->oparms->outformat);
     if (!SF2TYPE(sfinfo.format))
       sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->GetSr(csound));
+    sfinfo.samplerate = (int) MYFLT2LRND(CS_ESR);
     p->nargs = p->INOCOUNT - 2;
     p->buf_pos = 0;
 
@@ -696,7 +696,7 @@ static int infile_set(CSOUND *csound, INFILE *p)
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->GetSr(csound));
+    sfinfo.samplerate = (int) MYFLT2LRND(CS_ESR);
     if ((int) MYFLT2LRND(*p->iflag) == 0)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
     else
