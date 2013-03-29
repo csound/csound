@@ -65,7 +65,7 @@ function(make_plugin_frontend libname srcs)
 
     install(TARGETS ${libname}
 	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
-endfunction(make_plugin_frontends)
+endfunction(make_plugin_frontend)
 
 
 # We need a different name to avoid clashes with float libcsound
