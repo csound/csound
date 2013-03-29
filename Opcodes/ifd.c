@@ -151,8 +151,8 @@ static int ifd_init(CSOUND * csound, IFD * p)
       p->norm += winf[i];
     }
 
-    p->factor = csound->GetSr(csound) / TWOPI_F;
-    p->fund = csound->GetSr(csound) / fftsize;
+    p->factor = CS_ESR / TWOPI_F;
+    p->fund = CS_ESR / fftsize;
 
     return OK;
 }
@@ -216,7 +216,7 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
     output[0] = outphases[0] = signal[0] * scl;
     output[1] = outphases[1] = outphases[fftsize + 1] = 0.0f;
     output[fftsize] = outphases[fftsize] = signal[1] * scl;
-    output[fftsize + 1] = csound->GetSr(csound) * FL(0.5);
+    output[fftsize + 1] = CS_ESR * FL(0.5);
     p->fout1->framecount++;
     p->fout2->framecount++;
 }

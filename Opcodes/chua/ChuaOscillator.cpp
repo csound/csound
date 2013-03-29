@@ -122,6 +122,9 @@
 using namespace boost::numeric;
 #include <cmath>
 
+#undef CS_KSMPS
+#define CS_KSMPS     (csound->GetKsmps(csound))
+
 class ChuasOscillatorCubic : public OpcodeBase<ChuasOscillatorCubic>
 {
 public:

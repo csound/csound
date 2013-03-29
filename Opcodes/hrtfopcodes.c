@@ -255,7 +255,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       sr = 44100;
     p->sr = sr;
 
-    if (UNLIKELY(csound->GetSr(csound) != sr))
+    if (UNLIKELY(CS_ESR != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible"
                           " with HRTF processing SR of: %.0f\n\n"), sr);
@@ -1438,7 +1438,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       sr = FL(44100.0);
     p->sr = sr;
 
-    if (UNLIKELY(csound->GetSr(csound) != sr))
+    if (UNLIKELY(CS_ESR != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible with "
                           "HRTF processing SR of: %.0f\n\n"), sr);
@@ -2066,7 +2066,7 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       sr = 44100;
     p->sr = sr;
 
-    if (UNLIKELY(csound->GetSr(csound) != sr))
+    if (UNLIKELY(CS_ESR != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible"
                           "with HRTF processing SR of: %.0f\n\n"), sr);

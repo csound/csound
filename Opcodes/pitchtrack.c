@@ -422,7 +422,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
 
   p->cnt = 0;
   p->histcnt = 0;
-  p->sr = csound->GetSr(csound);
+  p->sr = CS_ESR;
   for (i = 0; i < NPREV; i++) p->dbs[i] = FL(-144.0);
   p->amplo = MINAMPS;
   p->amphi = MAXAMPS;
@@ -468,7 +468,7 @@ typedef struct _pitchaf{
 } PITCHAF;
 
 int pitchafset(CSOUND *csound, PITCHAF *p){
-  int siz = (int)(csound->GetSr(csound)/ (*p->iflow));
+  int siz = (int)(CS_ESR/ (*p->iflow));
   if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
     csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
   else
@@ -516,7 +516,7 @@ int pitchafproc(CSOUND *csound, PITCHAF *p)
         buff1[i] = buff2[i];
         cor[i] = FL(0.0);
       }
-      len = csound->GetSr(csound)/(*p->kfmin);
+      len = CS_ESR/(*p->kfmin);
       if (len > p->size) len = p->size;
       lag  =  0;
     }
@@ -524,7 +524,7 @@ int pitchafproc(CSOUND *csound, PITCHAF *p)
   p->lag = lag;
   p->len = len;
   if (imax) {
-    pitch = csound->GetSr(csound)/imax;
+    pitch = CS_ESR/imax;
     if (pitch <= *p->kfmax) p->pitch = pitch;
   }
   *p->kpitch = p->pitch;
@@ -640,7 +640,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
 
     _0dbfs = csound->e0dbfs;
     ksmps = csound->GetKsmps(csound);
-    esr = csound->GetSr(csound);
+    esr = CS_ESR;
     scal = 2.0*csound->pidsr;
 
     if (p->khf_o != khf) {
