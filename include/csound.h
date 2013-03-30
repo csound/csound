@@ -817,7 +817,8 @@ extern "C" {
 
     typedef void (*channelCallback_t)(CSOUND *csound,
             const char *channelName,
-            void *channelValuePtr);
+            void *channelValuePtr,
+            const void *channelType);
 
 #ifndef CSOUND_CSDL_H
 

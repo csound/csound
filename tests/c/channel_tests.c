@@ -19,6 +19,7 @@ void test_control_channel_params(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
+    csoundSetOption(csound, "--logfile=NULL");
     int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
@@ -45,6 +46,7 @@ void test_control_channel(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
+    csoundSetOption(csound, "--logfile=NULL");
     int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
@@ -62,6 +64,7 @@ void test_channel_list(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
+    csoundSetOption(csound, "--logfile=NULL");
     int argc = 2;
     csoundCompileOrc(csound, orc2);
     int err = csoundStart(csound);
@@ -76,6 +79,75 @@ void test_channel_list(void)
 
     csoundDestroy(csound);
     csoundDestroyMessageBuffer(csound);
+}
+
+const char orc3[] = "instr 1\n kval invalue \"intest\"\n"
+        "outvalue \"intest\",kval\n"
+        "Sval invalue \"instrtest\"\n"
+        "outvalue \"instrtest\",Sval\n"
+        "endin\n"
+        "instr 2\n outvalue \"outtest\", 10\n endin\n";
+
+MYFLT val1, val2;
+char strval[32];
+
+void inputCallback(CSOUND *csound,
+                   const char *channelName,
+                   void *channelValuePtr,
+                   void *channelType)
+{
+    if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
+        MYFLT *v = (MYFLT *) channelValuePtr;
+        *v = 5.0;
+    }
+    if (strcmp(channelName, "instrtest") == 0 /*&& channelType == &CS_VAR_TYPE_S*/) {
+        char *v = (char *) channelValuePtr;
+        strcpy(v, "hello channels");
+    }
+}
+
+void outputCallback(CSOUND *csound,
+                   const char *channelName,
+                   void *channelValuePtr,
+                   void *channelType)
+{
+    if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
+        MYFLT *v = (MYFLT *) channelValuePtr;
+        val1 = *v;
+    }
+    if (strcmp(channelName, "instrtest") == 0 /*&& channelType == &CS_VAR_TYPE_S*/) {
+        char *v = (char *) channelValuePtr;
+        strcpy(strval,v);
+    }
+    if (strcmp(channelName, "outtest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
+        MYFLT *v = (MYFLT *) channelValuePtr;
+        val2 = *v;
+    }
+
+}
+
+void test_channel_callbacks(void)
+{
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
+    int argc = 2;
+    val1 = 0;
+    csoundCompileOrc(csound, orc3);
+    csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback);
+    csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback);
+    int err = csoundStart(csound);
+    CU_ASSERT(err == 0);
+    MYFLT pFields[] = {1.0, 0.0, 1.0};
+    err = csoundScoreEvent(csound, 'i', pFields, 3);
+    MYFLT pFields2[] = {2.0, 0.0, 1.0};
+    err = csoundScoreEvent(csound, 'i', pFields2, 3);
+    CU_ASSERT(err == 0);
+    err = csoundPerformKsmps(csound);
+    CU_ASSERT(err == 0);
+    CU_ASSERT_DOUBLE_EQUAL(val1, 5.0, 0.0000001);
+    CU_ASSERT_DOUBLE_EQUAL(val2, 10.0, 0.0000001);
+    CU_ASSERT_STRING_EQUAL(strval, "hello channels");
+    csoundDestroy(csound);
 }
 
 int main()
@@ -97,6 +169,7 @@ int main()
    if ((NULL == CU_add_test(pSuite, "Channel Lists", test_channel_list))
            || (NULL == CU_add_test(pSuite, "Control channel", test_control_channel))
            || (NULL == CU_add_test(pSuite, "Control channel parameters", test_control_channel_params))
+           || (NULL == CU_add_test(pSuite, "Callbacks", test_channel_callbacks))
            )
    {
       CU_cleanup_registry();
