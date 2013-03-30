@@ -172,7 +172,7 @@ public:
     csoundSetMIDIFileOutput(csound,name);
   }
   // performance
-  virtual TREE *ParseOrc(char *str)
+  virtual TREE *ParseOrc(const char *str)
   {
     return csoundParseOrc(csound, str);
   }
@@ -180,7 +180,7 @@ public:
   {
     return csoundCompileTree(csound, root);
   }
-  virtual int CompileOrc(char *str)
+  virtual int CompileOrc(const char *str)
   {
     return csoundCompileOrc(csound, str);
   }
