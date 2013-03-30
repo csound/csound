@@ -256,7 +256,7 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
 * fsig framesizes are incompatible, and
 * CSOUND_MEMORY if there is not enough memory to extend the bus.
 */
-PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
+PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin, int n)
 {
     PVSDATEXT *fout = (PVSDATEXT *)csound->chanif;
     int size;
@@ -290,7 +290,7 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
 * Returns zero on success, CSOUND_ERROR if the index is invalid or
 * if fsigs framesizes are incompatible
 */
-PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n)
+PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout, int n)
 {
     PVSDATEXT *fin = (PVSDATEXT *)csound->chanof;
     int size;
