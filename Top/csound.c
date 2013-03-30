@@ -1081,7 +1081,7 @@ PUBLIC int csoundInitialize(int *argc, char ***argv, int flags)
 #if !defined(WIN32)
     if (!(flags & CSOUNDINIT_NO_ATEXIT))
       atexit(destroy_all_instances);
-#endif/
+#endif
     csoundLock();
     init_done = 1;
     csoundUnLock();
