@@ -771,12 +771,12 @@ int PvsChannelCallback(CSOUND *csound)
   csdata *p = (csdata *) csoundGetHostData(csound);
   pvsctlchn *chan = p->pvsinchan;
     while (chan != NULL) {
-      csoundPvsinSet(csound, &chan->data, chan->n);
+      csoundSetPvsChannel(csound, &chan->data, chan->n);
       chan = chan->next;
     }
   chan = p->pvsoutchan;
     while (chan != NULL) {
-      csoundPvsoutGet(csound, &chan->data, chan->n);
+      csoundGetPvsChannel(csound, &chan->data, chan->n);
       chan = chan->next;
     }
     return 1;
