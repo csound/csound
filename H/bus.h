@@ -29,6 +29,7 @@
 #define CSOUND_BUS_H
 
 #include "pstream.h"
+#include "csound_standard_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -131,12 +132,14 @@ typedef struct {
         OPDS    h;
         MYFLT   *value, *valID;
         AUXCH   channelName;
+        const CS_TYPE *channelType;
 } INVAL;
 
 typedef struct {
         OPDS    h;
         MYFLT   *valID, *value;
         AUXCH   channelName;
+        const CS_TYPE *channelType;
 } OUTVAL;
 
 
