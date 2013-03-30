@@ -166,7 +166,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 //
 //int tassign(CSOUND *csound, ASSIGNT *p)
 //{
-//    TABDAT *t = p->tab;
+//    ARRAYDAT *t = p->tab;
 //    int ind = MYFLT2LRND(*p->ind);
 //    if (ind<0 || ind>t->size)
 //        return csound->PerfError(csound,
@@ -542,12 +542,12 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
    return OK;
 }
 
-//typedef struct {
-//    OPDS     h;
-//    ARRAYDAT *dst;
-//    ARRAYDAT *src;
-//    int      len;
-//} TABCPY;
+typedef struct {
+    OPDS     h;
+    ARRAYDAT *dst;
+    ARRAYDAT *src;
+    int      len;
+} TABCPY;
 
 //static int tabcopy_set(CSOUND *csound, TABCPY *p)
 //{
@@ -559,13 +559,14 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
 //    return OK;
 //}
 
-//static int tabcopy(CSOUND *csound, TABCPY *p)
-//{
-//   if (UNLIKELY(p->dst->data==NULL || p->src->data==NULL))
-//       return csound->InitError(csound, Str("t-variable not initialised"));
-//    memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
-//    return OK;
-//}
+static int tabcopy(CSOUND *csound, TABCPY *p)
+{
+    if (UNLIKELY(p->src->data==NULL) || p->src->dimensions!=1)
+      return csound->InitError(csound, Str("t-variable not initialised"));
+    tabensure(csound, p->dst, p->src->sizes[0]);
+    memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
+    return OK;
+}
 
 static int tab2ftab(CSOUND *csound, TABCOPY *p)
 {
@@ -790,7 +791,7 @@ static OENTRY arrayvars_localops[] =
     { "sumtab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabsum },
     { "scalet", sizeof(TABSCALE), 0, 3, "",  "[k;kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
-//  { "#copytab", sizeof(TABCPY), 0, 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
+    { "=.t", sizeof(TABCPY), 0, 2, "[k;", "[k;", NULL, (SUBR)tabcopy },
 //  { "#tabgen", sizeof(TABGEN), 0, 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
 //  { "#tabmap_i", sizeof(TABMAP), 0, 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
 //  { "#tabmap", sizeof(TABMAP), 0, 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf},
