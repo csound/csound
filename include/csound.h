@@ -1742,110 +1742,15 @@ extern "C" {
     PUBLIC  void csoundGetStringChannel(CSOUND *csound,
                                         const char *name, char *string);
 
+    /** Sets the function which will be called whenever the invalue opcode
+     * is used. */
     PUBLIC void csoundSetInputChannelCallback(CSOUND *csound,
                                               channelCallback_t inputChannelCalback);
 
+    /** Sets the function which will be called whenever the outvalue opcode
+     * is used. */
     PUBLIC void csoundSetOutputChannelCallback(CSOUND *csound,
                                                channelCallback_t outputChannelCalback);
-
-//      /**
-//     * Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanIKSet(CSOUND *, MYFLT value, int n);
-
-//    /**
-//     * Receives a MYFLT value from the chano opcode (k-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanOKGet(CSOUND *, MYFLT *value, int n);
-
-//    /**
-//     * Sends ksmps MYFLT values to the chani opcode (a-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanIASet(CSOUND *, const MYFLT *value, int n);
-
-//    /**
-//     * Receives ksmps MYFLT values from the chano opcode (a-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
-
-//    /**
-//     * Sets the chani opcode MYFLT k-rate value for the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid,
-//     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
-//     */
-//    PUBLIC int csoundChanIKSetValue(CSOUND *, int channel, MYFLT value);
-
-//    /**
-//     * Returns the chani opcode MYFLT k-rate value for the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns the sample value on success, CSOUND_ERROR if the index is
-//     * invalid, and CSOUND_MEMORY if there is not enough memory to estend
-//     * the bus
-//     */
-//    PUBLIC MYFLT csoundChanOKGetValue(CSOUND *, int channel);
-
-//    /**
-//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-//     * of the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid,
-//     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
-//     */
-//    PUBLIC int csoundChanIASetSample(CSOUND *,
-//                                     int channel, int frame, MYFLT sample);
-
-//    /**
-//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-//     * for the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns the sample value on success, CSOUND_ERROR if the index
-//     * is invalid, and CSOUND_MEMORY if there is not enough memory to
-//     * estend the bus.
-//     */
-//    PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
-
-//    /**
-//     * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid or
-//     * fsig framesizes are incompatible
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanIASetSample(CSOUND *,
-//                                     int channel, int frame, MYFLT sample);
-
-//    /**
-//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-//     * for the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns the sample value on success, CSOUND_ERROR if the index
-//     * is invalid, and CSOUND_MEMORY if there is not enough memory to
-//     * estend the bus.
-//     */
-//    PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
 
     /**
      * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
@@ -1876,6 +1781,10 @@ extern "C" {
     PUBLIC int csoundScoreEvent(CSOUND *,
             char type, const MYFLT *pFields, long numFields);
 
+    /** Like csoundScoreEvent(), this function inserts a score event, but
+     * at absolute time with respect to the start of performance, or from an
+     * offset set with time_ofs
+     */
     PUBLIC int csoundScoreEventAbsolute(CSOUND *,
             char type, const MYFLT *pfields, long numFields, double time_ofs);
 
