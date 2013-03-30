@@ -773,7 +773,7 @@ OENTRY opcodlst_1[] = {
   { "mididefault", S(MIDIDEFAULT),0, 3, "", "xx",   mididefault, mididefault },
   { "invalue",   0xFFFF,   CR,    0,   NULL,   NULL, (SUBR) NULL, (SUBR) NULL },
   { "invalue.k", S(INVAL),0, 3,     "k",    "T",   (SUBR) invalset,(SUBR)  kinval, NULL },
-  { "invalue.S", S(INVAL),0, 3, "S",    "T",   (SUBR) invalset_S, (SUBR) kinval_S, NULL },
+  { "invalue.S", S(INVAL),0, 3, "S",    "T",   (SUBR) invalset, (SUBR) kinval, NULL },
   { "outvalue", S(OUTVAL), CW, 3,     "",   "TU",(SUBR) outvalset, (SUBR) koutval, NULL  },
 /* IV - Oct 20 2002 */
   { "subinstr", S(SUBINST),0, 5, "mmmmmmmm", "Tm",  subinstrset, NULL, subinstr },
