@@ -866,7 +866,7 @@ extern "C" {
     /**
      * Parse the given orchestra from an ASCII string into a TREE
     */
-    PUBLIC TREE *csoundParseOrc(CSOUND *csound, char *str);
+    PUBLIC TREE *csoundParseOrc(CSOUND *csound, const char *str);
 
     /**
      * Compile the given TREE node into structs for Csound to use
@@ -876,7 +876,7 @@ extern "C" {
     /**
      * Parse, and compile the given orchestra from an ASCII string.
     */
-    PUBLIC int csoundCompileOrc(CSOUND *csound, char *str);
+    PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
 
     /**
      * Prepares an instance of Csound for Cscore
