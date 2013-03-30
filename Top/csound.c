@@ -173,7 +173,8 @@ static int csoundGetTieFlag(CSOUND *csound){
 }
 
 static const CSOUND cenviron_ = {
-
+    csoundSetInputChannelCallback,
+    csoundSetOutputChannelCallback,
     csoundSetMessageCallback,
     csoundDeleteCfgVarList,
     csoundSetMessageLevel,
@@ -182,6 +183,8 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundSetYieldCallback,
+    csoundSetControlChannelHints,
+    csoundGetControlChannelHints,
     csoundNewOpcodeList,
     csoundDisposeOpcodeList,
     csoundSetCallback,
@@ -401,6 +404,8 @@ static const CSOUND cenviron_ = {
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
+    (channelCallback_t) NULL,
+    (channelCallback_t) NULL,
     csoundDefaultMessageCallback,
     (int (*)(CSOUND *)) NULL,
     (void (*)(CSOUND *, WINDAT *windat, const char *name)) NULL, /* was: MakeAscii,*/
@@ -1982,25 +1987,18 @@ PUBLIC void csoundKeyPress(CSOUND *csound, char c)
 /*
  * CONTROL AND EVENTS
  */
-#ifdef SOME_FINE_DAY /* deprecated */
+
 PUBLIC void
-csoundSetInputValueCallback(CSOUND *csound,
-                            void (*inputValueCalback)(CSOUND *csound,
-                                                      const char *channelName,
-                                                      MYFLT *value))
+csoundSetInputChannelCallback(CSOUND *csound,channelCallback_t inputChannelCalback)
 {
-    csound->InputValueCallback_ = inputValueCalback;
+    csound->InputChannelCallback_ = inputChannelCalback;
 }
 
 PUBLIC void
-csoundSetOutputValueCallback(CSOUND *csound,
-                             void (*outputValueCalback)(CSOUND *csound,
-                                                        const char *channelName,
-                                                        MYFLT value))
+csoundSetOutputChannelCallback(CSOUND *csound,channelCallback_t outputChannelCalback)
 {
-    csound->OutputValueCallback_ = outputValueCalback;
+    csound->OutputChannelCallback_ = outputChannelCalback;
 }
-#endif
 
 PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
                             const MYFLT *pfields, long numFields)
