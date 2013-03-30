@@ -75,7 +75,7 @@ uint32_t make_location(PRE_PARM *qq)
     return loc;
 }
 
-TREE *csoundParseOrc(CSOUND *csound, char *str)
+TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     int err;
     OPARMS *O = csound->oparms;
