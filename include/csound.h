@@ -1021,16 +1021,6 @@ extern "C" {
      */
   PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
 
-//    /**
-//     * Returns the sample format.
-//     */
-//    PUBLIC int csoundGetSampleFormat(CSOUND *);
-
-//    /**
-//     * Returns the size in bytes of a single sample.
-//     */
-//    PUBLIC int csoundGetSampleSize(CSOUND *);
-
     /**
      * Return the size of MYFLT in bytes.
      */
@@ -1865,7 +1855,7 @@ extern "C" {
      * fsig framesizes are incompatible
      * CSOUND_MEMORY if there is not enough memory to extend the bus.
      */
-    PUBLIC int csoundPvsinSet(CSOUND *, const PVSDATEXT *fin, int n);
+    PUBLIC int csoundSetPvsChannel(CSOUND *, const PVSDATEXT *fin, int n);
 
     /**
      * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
@@ -1874,7 +1864,7 @@ extern "C" {
      * if fsig framesizes are incompatible
      * CSOUND_MEMORY if there is not enough memory to extend the bus
      */
-    PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n);
+    PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout, int n);
 
     /**
      * Send a new score event. 'type' is the score event type ('a', 'i', 'q',
