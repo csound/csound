@@ -867,6 +867,8 @@ typedef struct NAME__ {
    */
   struct CSOUND_ {
 
+    void (*SetInputValueCallback)(CSOUND *, channelCallback_t);
+    void (*SetOutputValueCallback)(CSOUND *,channelCallback_t);
    void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,
@@ -879,6 +881,10 @@ typedef struct NAME__ {
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);//
 
     void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));//
+    int (*SetControlChannelHints)(CSOUND *, const char *name,
+                                  const controlChannelHints_t hints); //
+    int (*GetControlChannelHints)(CSOUND *, const char *name,
+                                   controlChannelHints_t *hints); //
     int (*NewOpcodeList)(CSOUND *, opcodeListEntry **);//
     void (*DisposeOpcodeList)(CSOUND *, opcodeListEntry *);//
     int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
@@ -1165,6 +1171,8 @@ typedef struct NAME__ {
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     SUBR          first_callback_;
+    channelCallback_t InputChannelCallback_;
+    channelCallback_t OutputChannelCallback_;
     void          (*csoundMessageCallback_)(CSOUND *, int attr,
                                             const char *format, va_list args);
     int           (*csoundConfigureCallback_)(CSOUND *);
