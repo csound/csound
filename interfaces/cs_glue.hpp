@@ -81,7 +81,7 @@ class PUBLIC CsoundChannelList {
     int                     cnt;
     CSOUND                  *csound;
     void ResetVariables();
-    int GetChannelMetaData(int ndx, MYFLT &dflt, MYFLT &min, MYFLT &max);
+    int GetChannelMetaData(int ndx, controlChannelHints_t *hints);
  public:
     /**
      * Returns the number of channels (-1 if there is no list).
