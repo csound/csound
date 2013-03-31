@@ -867,6 +867,13 @@ typedef struct NAME__ {
    */
   struct CSOUND_ {
 
+    /**
+     * PUBLIC functions in CSOUND 
+     * These are used by plugins to access the
+     * csound library functionality without the requirement
+     * of compile-time linkage to the csound library
+     */
+
    void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,
