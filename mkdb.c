@@ -302,10 +302,10 @@ struct CSOUND_ {
     void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
     int (*GetChannelPtr)(CSOUND *, MYFLT **p, const char *name, int type);
     int (*ListChannels)(CSOUND *, void **lst);
-    int (*SetControlChannelParams)(CSOUND *, const char *name,
-                                   int type, MYFLT dflt, MYFLT min, MYFLT max);
-    int (*GetControlChannelParams)(CSOUND *, const char *name,
-                                   MYFLT *dflt, MYFLT *min, MYFLT *max);
+    int (*SetControlChannelHints)(CSOUND *, const char *name,
+                                  const controlChannelHints_t hints);
+    int (*GetControlChannelHints)(CSOUND *, const char *name,
+                                   controlChannelHints_t *hints);
     int (*ChanIKSet)(CSOUND *, MYFLT value, int n);
     int (*ChanOKGet)(CSOUND *, MYFLT *value, int n);
     int (*ChanIASet)(CSOUND *, const MYFLT *value, int n);

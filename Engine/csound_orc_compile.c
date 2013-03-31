@@ -1331,7 +1331,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     if str is NULL the string is taken from the internal corfile
     containing the initial orchestra file passed to Csound.
 */
-PUBLIC int csoundCompileOrc(CSOUND *csound, char *str)
+PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
     int retVal;
     TREE *root = csoundParseOrc(csound, str);

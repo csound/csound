@@ -142,17 +142,13 @@ void CsoundChannelList::ResetVariables()
 }
 
 int CsoundChannelList::GetChannelMetaData(int ndx,
-                                          MYFLT &dflt, MYFLT &min, MYFLT &max)
+                                          controlChannelHints_t *hints)
 {
     const char  *name;
     if (!lst || (unsigned int) ndx >= (unsigned int) cnt)
       return -1;
     name = lst[ndx].name;
-    controlChannelHints_t hints;
-    int ret = csoundGetControlChannelHints(csound, name, &hints);
-    dflt = hints.dflt;
-    min = hints.min;
-    max = hints.max;
+    int ret = csoundGetControlChannelHints(csound, name, hints);
     return ret;
 }
 
@@ -262,8 +258,12 @@ int CsoundChannelList::SubType(int ndx)
 {
     MYFLT dflt, min, max;
     int   tmp;
-    tmp = this->GetChannelMetaData(ndx, dflt, min, max);
-    return (tmp >= 0 ? tmp : -1);
+    controlChannelHints_t hints;
+    tmp = this->GetChannelMetaData(ndx, &hints);
+    if (tmp >= 0) {
+        tmp = hints.behav;
+    }
+    return tmp;
 }
 
 /**
@@ -275,8 +275,9 @@ int CsoundChannelList::SubType(int ndx)
 double CsoundChannelList::DefaultValue(int ndx)
 {
     MYFLT dflt, min, max;
-    if (this->GetChannelMetaData(ndx, dflt, min, max) > 0)
-      return dflt;
+    controlChannelHints_t hints;
+    if (this->GetChannelMetaData(ndx, &hints) > 0)
+      return hints.dflt;
     return 0.0;
 }
 
@@ -289,8 +290,9 @@ double CsoundChannelList::DefaultValue(int ndx)
 double CsoundChannelList::MinValue(int ndx)
 {
     MYFLT dflt, min, max;
-    if (this->GetChannelMetaData(ndx, dflt, min, max) > 0)
-      return min;
+    controlChannelHints_t hints;
+    if (this->GetChannelMetaData(ndx, &hints) > 0)
+      return hints.min;
     return 0.0;
 }
 
@@ -303,8 +305,9 @@ double CsoundChannelList::MinValue(int ndx)
 double CsoundChannelList::MaxValue(int ndx)
 {
     MYFLT dflt, min, max;
-    if (this->GetChannelMetaData(ndx, dflt, min, max) > 0)
-      return max;
+    controlChannelHints_t hints;
+    if (this->GetChannelMetaData(ndx, &hints) > 0)
+      return hints.max;
     return 0.0;
 }
 

@@ -815,10 +815,10 @@ extern "C" {
         controlChannelHints_t    hints;
     } controlChannelInfo_t;
 
-    typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
+    typedef void (*channelCallback_t)(CSOUND *csound,
             const char *channelName,
             void *channelValuePtr,
-            int channelType);
+            const void *channelType);
 
 #ifndef CSOUND_CSDL_H
 
@@ -866,7 +866,7 @@ extern "C" {
     /**
      * Parse the given orchestra from an ASCII string into a TREE
     */
-    PUBLIC TREE *csoundParseOrc(CSOUND *csound, char *str);
+    PUBLIC TREE *csoundParseOrc(CSOUND *csound, const char *str);
 
     /**
      * Compile the given TREE node into structs for Csound to use
@@ -876,7 +876,7 @@ extern "C" {
     /**
      * Parse, and compile the given orchestra from an ASCII string.
     */
-    PUBLIC int csoundCompileOrc(CSOUND *csound, char *str);
+    PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
 
     /**
      * Prepares an instance of Csound for Cscore
@@ -1020,16 +1020,6 @@ extern "C" {
      * Return the current performance time in samples
      */
   PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
-
-//    /**
-//     * Returns the sample format.
-//     */
-//    PUBLIC int csoundGetSampleFormat(CSOUND *);
-
-//    /**
-//     * Returns the size in bytes of a single sample.
-//     */
-//    PUBLIC int csoundGetSampleSize(CSOUND *);
 
     /**
      * Return the size of MYFLT in bytes.
@@ -1752,105 +1742,15 @@ extern "C" {
     PUBLIC  void csoundGetStringChannel(CSOUND *csound,
                                         const char *name, char *string);
 
+    /** Sets the function which will be called whenever the invalue opcode
+     * is used. */
+    PUBLIC void csoundSetInputChannelCallback(CSOUND *csound,
+                                              channelCallback_t inputChannelCalback);
 
-//      /**
-//     * Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanIKSet(CSOUND *, MYFLT value, int n);
-
-//    /**
-//     * Receives a MYFLT value from the chano opcode (k-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanOKGet(CSOUND *, MYFLT *value, int n);
-
-//    /**
-//     * Sends ksmps MYFLT values to the chani opcode (a-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanIASet(CSOUND *, const MYFLT *value, int n);
-
-//    /**
-//     * Receives ksmps MYFLT values from the chano opcode (a-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid, and
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
-
-//    /**
-//     * Sets the chani opcode MYFLT k-rate value for the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid,
-//     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
-//     */
-//    PUBLIC int csoundChanIKSetValue(CSOUND *, int channel, MYFLT value);
-
-//    /**
-//     * Returns the chani opcode MYFLT k-rate value for the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns the sample value on success, CSOUND_ERROR if the index is
-//     * invalid, and CSOUND_MEMORY if there is not enough memory to estend
-//     * the bus
-//     */
-//    PUBLIC MYFLT csoundChanOKGetValue(CSOUND *, int channel);
-
-//    /**
-//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-//     * of the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid,
-//     * and CSOUND_MEMORY if there is not enough memory to estend the bus.
-//     */
-//    PUBLIC int csoundChanIASetSample(CSOUND *,
-//                                     int channel, int frame, MYFLT sample);
-
-//    /**
-//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-//     * for the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns the sample value on success, CSOUND_ERROR if the index
-//     * is invalid, and CSOUND_MEMORY if there is not enough memory to
-//     * estend the bus.
-//     */
-//    PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
-
-//    /**
-//     * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
-//     * The bus is automatically extended if 'n' exceeds any previously used
-//     * index value, clearing new locations to zero.
-//     * Returns zero on success, CSOUND_ERROR if the index is invalid or
-//     * fsig framesizes are incompatible
-//     * CSOUND_MEMORY if there is not enough memory to extend the bus.
-//     */
-//    PUBLIC int csoundChanIASetSample(CSOUND *,
-//                                     int channel, int frame, MYFLT sample);
-
-//    /**
-//     * Sets the chani opcode MYFLT a-rate value for the indicated frame
-//     * for the indicated channel.
-//     * The bus is automatically extended if the channel is greater than
-//     * previously used, clearing new locations to zero.
-//     * Returns the sample value on success, CSOUND_ERROR if the index
-//     * is invalid, and CSOUND_MEMORY if there is not enough memory to
-//     * estend the bus.
-//     */
-//    PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
+    /** Sets the function which will be called whenever the outvalue opcode
+     * is used. */
+    PUBLIC void csoundSetOutputChannelCallback(CSOUND *csound,
+                                               channelCallback_t outputChannelCalback);
 
     /**
      * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
@@ -1860,7 +1760,7 @@ extern "C" {
      * fsig framesizes are incompatible
      * CSOUND_MEMORY if there is not enough memory to extend the bus.
      */
-    PUBLIC int csoundPvsinSet(CSOUND *, const PVSDATEXT *fin, int n);
+    PUBLIC int csoundSetPvsChannel(CSOUND *, const PVSDATEXT *fin, int n);
 
     /**
      * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
@@ -1869,7 +1769,7 @@ extern "C" {
      * if fsig framesizes are incompatible
      * CSOUND_MEMORY if there is not enough memory to extend the bus
      */
-    PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n);
+    PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout, int n);
 
     /**
      * Send a new score event. 'type' is the score event type ('a', 'i', 'q',
@@ -1881,6 +1781,10 @@ extern "C" {
     PUBLIC int csoundScoreEvent(CSOUND *,
             char type, const MYFLT *pFields, long numFields);
 
+    /** Like csoundScoreEvent(), this function inserts a score event, but
+     * at absolute time with respect to the start of performance, or from an
+     * offset set with time_ofs
+     */
     PUBLIC int csoundScoreEventAbsolute(CSOUND *,
             char type, const MYFLT *pfields, long numFields, double time_ofs);
 
