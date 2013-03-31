@@ -24,7 +24,7 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
-//#include "arrays.h"
+#include "aops.h"
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
@@ -646,115 +646,106 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
     return OK;
 }
 
-//typedef struct {
-//    OPDS h;
-//    TABDAT *tab, *tabin;
-//    MYFLT *start, *end;
-//    int    len;
-//} TABSLICE;
-//
-//
-//static int tabslice_set(CSOUND *csound, TABSLICE *p){
-//
-//    MYFLT *tabin = p->tabin->data;
-//    int start = (int) *p->start;
-//    int end   = (int) *p->end;
-//    int size = end - start;
-//    if (UNLIKELY(size < 0))
-//      csound->InitError(csound, Str("inconsistent start, end parameters"));
-//    if (UNLIKELY(size > p->tabin->size)) {
-//      printf("size=%d old tab size = %d\n", size, p->tabin->size);
-//      csound->InitError(csound, Str("slice larger than original size"));
-//    }
-//    if (UNLIKELY(p->tab->data==NULL)) {
-//      tabensure(csound, p->tab, size);
-//      p->tab->size = size;
-//    }
-//    else size = p->tab->size;
-//    memcpy(p->tab->data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size);
-//    return OK;
-//}
-//
-//typedef struct {
-//    OPDS h;
-//    TABDAT *tab, *tabin;
-//    MYFLT *str;
-//    int    len;
-//    OENTRY *opc;
-//} TABMAP;
-//
-//static int tabmap_set(CSOUND *csound, TABMAP *p)
-//{
-//    MYFLT *data, *tabin = p->tabin->data;
-//    char func[64];
-//    int n, size;
-//    OENTRY *opc  = NULL;
-//    EVAL  eval;
-//
-//    strncpy(func,  (char *)p->str, 64);
-//    strncat(func, ".i", 64);
-//
-//    if (UNLIKELY(p->tabin->data == NULL))
-//       return csound->InitError(csound, Str("tvar not initialised"));
-//
-//    size = p->tabin->size;
-//    if (UNLIKELY(p->tab->data==NULL)) {
-//      tabensure(csound, p->tab, size);
-//      p->tab->size = size;
-//    }
-//    else size = size < p->tab->size ? size : p->tab->size;
-//    data =  p->tab->data;
-//
-//    opc = csound->opcodlst;
-//    for (n=0; opc < csound->oplstend; opc++, n++)
-//      if(!strcmp(func, opc->opname)) break;
-//
-//    if (UNLIKELY(opc == csound->oplstend))
-//      return csound->InitError(csound, Str("%s not found, %d opcodes"), func, n);
-//    p->opc = opc;
-//    /* int     (*iopadr)(CSOUND *, void *p); */
-//    for (n=0; n < size; n++) {
-//      eval.a = &tabin[n];
-//      eval.r = &data[n];
-//      opc->iopadr(csound, (void *) &eval);
-//    }
-//
-//    return OK;
-//}
-//
-//static int tabmap_perf(CSOUND *csound, TABMAP *p)
-//{
-//    MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
-//    char func[64];
-//    int n, size;
-//    OENTRY *opc  = p->opc;
-//    EVAL  eval;
-//
-//    strncpy(func,  (char *)p->str, 64);
-//    strncat(func, ".k", 64);
-//
-//    if (UNLIKELY(p->tabin->data == NULL))
-//      return csound->PerfError(csound, Str("tvar not initialised"));
-//    if (UNLIKELY(p->tab->data==NULL))
-//      return csound->PerfError(csound, Str("tvar not initialised"));
-//    size = p->tab->size;
-//
-//    /* opc = csound->opcodlst; */
-//    /* for(n=0; opc < csound->oplstend; opc++, n++) */
-//    /*   if(!strcmp(func, opc->opname)) break; */
-//
-//    /* if (UNLIKELY(opc == csound->oplstend)) */
-//    /*   return csound->PerfError(csound, Str("%s not found, %d opcodes"),
-//                                  func, n); */
-//
-//    for (n=0; n < size; n++) {
-//      eval.a = &tabin[n];
-//      eval.r = &data[n];
-//      opc->kopadr(csound, (void *) &eval);
-//    }
-//
-//    return OK;
-//}
+typedef struct {
+    OPDS h;
+    ARRAYDAT *tab, *tabin;
+    MYFLT *start, *end;
+    int    len;
+} TABSLICE;
+
+
+static int tabslice(CSOUND *csound, TABSLICE *p){
+
+    MYFLT *tabin = p->tabin->data;
+    int start = (int) *p->start;
+    int end   = (int) *p->end;
+    int size = end - start;
+    if (UNLIKELY(size < 0))
+      csound->InitError(csound, Str("inconsistent start, end parameters"));
+    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
+      printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
+      csound->InitError(csound, Str("slice larger than original size"));
+    }
+    if (UNLIKELY(p->tab->data==NULL)) {
+      tabensure(csound, p->tab, size);
+      p->tab->sizes[0] = size;
+    }
+    else size = p->tab->sizes[0];
+    memcpy(p->tab->data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size);
+    return OK;
+}
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *tab, *tabin;
+    MYFLT *str;
+    int    len;
+    OENTRY *opc;
+} TABMAP;
+
+static int tabmap_set(CSOUND *csound, TABMAP *p)
+{
+    MYFLT *data, *tabin = p->tabin->data;
+    char func[64];
+    int n, size;
+    OENTRY *opc  = NULL;
+    EVAL  eval;
+
+    strncpy(func,  (char *)p->str, 64);
+    strncat(func, ".i", 64);
+
+    if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
+       return csound->InitError(csound, Str("tvar not initialised"));
+
+    size = p->tabin->sizes[0];
+    if (UNLIKELY(p->tab->data==NULL)) {
+      tabensure(csound, p->tab, size);
+      p->tab->sizes[0] = size;
+    }
+    else size = size < p->tab->sizes[0] ? size : p->tab->sizes[0];
+    data =  p->tab->data;
+
+    opc = csound->opcodlst;
+    for (n=0; opc < csound->oplstend; opc++, n++)
+      if(!strcmp(func, opc->opname)) break;
+
+    if (UNLIKELY(opc == csound->oplstend))
+      return csound->InitError(csound, Str("%s not found, %d opcodes"), func, n);
+    p->opc = opc;
+    for (n=0; n < size; n++) {
+      eval.a = &tabin[n];
+      eval.r = &data[n];
+      opc->iopadr(csound, (void *) &eval);
+    }
+
+    return OK;
+}
+
+static int tabmap_perf(CSOUND *csound, TABMAP *p)
+{
+    MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
+    char func[64];
+    int n, size;
+    OENTRY *opc  = p->opc;
+    EVAL  eval;
+
+    strncpy(func,  (char *)p->str, 64);
+    strncat(func, ".k", 64);
+
+    if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
+      return csound->PerfError(csound, Str("tvar not initialised"));
+    if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions !=1)
+      return csound->PerfError(csound, Str("tvar not initialised"));
+    size = p->tab->sizes[0];
+
+    for (n=0; n < size; n++) {
+      eval.a = &tabin[n];
+      eval.r = &data[n];
+      opc->kopadr(csound, (void *) &eval);
+    }
+
+    return OK;
+}
 
 int tablength(CSOUND *csound, TABQUERY *p)
 {
@@ -772,20 +763,22 @@ int tablength(CSOUND *csound, TABQUERY *p)
 static OENTRY arrayvars_localops[] =
 {
     { "init.0", sizeof(ARRAYINIT), 0, 1, "[?;", "m", (SUBR)array_init },
-    { "##array_set", sizeof(ARRAY_SET), 0, 3, "", "[?;?M", (SUBR)array_set, (SUBR)array_set },
-    { "##array_get", sizeof(ARRAY_GET), 0, 3, "?", "[?;M", (SUBR)array_get, (SUBR)array_get },
-//  { "##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd },
-//  { "##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub },
-//  { "##negtab",  sizeof(TABARITH), 0, 3, "t", "t",  (SUBR)tabarithset1, (SUBR)tabneg },
-//  { "##multtab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabmult },
-//  { "##divtab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabdiv },
-//  { "##remtab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem },
-//  { "##multitab", sizeof(TABARITH1), 0, 3, "t", "ti",
-//                                              (SUBR)tabarithset1, (SUBR)tabimult },
-//  { "##divitab",  sizeof(TABARITH1), 0, 3, "t", "ti",
-//                                               (SUBR)tabarithset1, (SUBR)tabidiv },
-//  { "##remitab",  sizeof(TABARITH1),0,  3, "t", "ti",
-//                                               (SUBR)tabarithset1, (SUBR)tabirem },
+    { "##array_set", sizeof(ARRAY_SET), 0, 3, "", "[?;?M", 
+                                              (SUBR)array_set, (SUBR)array_set },
+    { "##array_get", sizeof(ARRAY_GET), 0, 3, "?", "[?;M", 
+                                              (SUBR)array_get, (SUBR)array_get },
+//{"##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd},
+//{"##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub},
+//{"##negtab",  sizeof(TABARITH), 0, 3, "t", "t", (SUBR)tabarithset1, (SUBR)tabneg},
+//{"##multtab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset,(SUBR)tabmult},
+//{"##divtab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset,(SUBR)tabdiv },
+//{"##remtab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabrem},
+//{"##multitab", sizeof(TABARITH1), 0, 3, "t", "ti",
+//                                         (SUBR)tabarithset1, (SUBR)tabimult },
+//{"##divitab",  sizeof(TABARITH1), 0, 3, "t", "ti",
+//                                         (SUBR)tabarithset1, (SUBR)tabidiv },
+//{"##remitab",  sizeof(TABARITH1),0,  3, "t", "ti",
+//                                         (SUBR)tabarithset1, (SUBR)tabirem },
     { "maxtab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabmax },
     { "mintab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabmin },
     { "sumtab", sizeof(TABQUERY), 0, 3, "k", "[k;", (SUBR) tabqset, (SUBR) tabsum },
@@ -793,9 +786,11 @@ static OENTRY arrayvars_localops[] =
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "=.t", sizeof(TABCPY), 0, 2, "[k;", "[k;", NULL, (SUBR)tabcopy },
 //  { "#tabgen", sizeof(TABGEN), 0, 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
-//  { "#tabmap_i", sizeof(TABMAP), 0, 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
-//  { "#tabmap", sizeof(TABMAP), 0, 3, "t", "tS", (SUBR) tabmap_set, (SUBR) tabmap_perf},
-//  { "#tabslice", sizeof(TABSLICE), 0, 1, "t", "tii", (SUBR) tabslice_set, NULL, NULL},
+    { "tabmap_i", sizeof(TABMAP), 0, 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
+    { "tabmap", sizeof(TABMAP), 0, 3, "t", "tS", (SUBR) tabmap_set, 
+                                                 (SUBR) tabmap_perf},
+    { "tabslice", sizeof(TABSLICE), 0, 1, "[k;", "[k;ii", 
+                                                 NULL, (SUBR) tabslice, NULL },
     { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "tk", NULL, (SUBR) tab2ftab },
     { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "tk", NULL, (SUBR) ftab2tab },
 //  { "lentab.i", sizeof(TABQUERY), 0, 1, "i", "t", (SUBR) tablength },
