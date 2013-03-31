@@ -300,11 +300,11 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     }
 
     while (a!=NULL) {
-      if (strcmp(s, "reverb") == 0) {
-        if (PARSER_DEBUG)
-          csound->Message(csound, "Looking up token for: %d: %d: %s : %s\n",
-                          hash("reverb"), hash("a4"), s, a->lexeme);
-      }
+      /* if (strcmp(s, "reverb") == 0) { */
+      /*   if (PARSER_DEBUG) */
+          /* csound->Message(csound, "Looking up token for: %d: %d: %s : %s\n", */
+          /*                 hash("reverb"), hash("a4"), s, a->lexeme); */
+      /* } */
       if (strcmp(a->lexeme, s)==0) {
         ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));
         memcpy(ans, a, sizeof(ORCTOKEN));
@@ -315,7 +315,17 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       }
       a = a->next;
     }
-
+    if (s[0]=='t') {
+      /* Special case to map t-vars to new k-arrays */
+      char *ss = (char*)malloc(strlen(s)+2);
+      ss[0] = 'k'; 
+      ss[1] = '#';
+      strcpy(&ss[2], s);
+      //printf("t-var: %s -> %s\n", s, ss);
+      ans = lookup_token(csound, ss, yyscanner);
+      free(ss);
+      return ans;
+    }
 
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
