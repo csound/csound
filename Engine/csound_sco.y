@@ -48,8 +48,6 @@
 %right '~'
 %right S_UNOT
 %right S_UMINUS
-%right S_ATAT
-%right S_AT
 %token T_HIGHEST
 %pure_parser
 %error-verbose
@@ -75,7 +73,6 @@ extern int csound_orcget_locn(void *);
 extern int csound_orcget_lineno(void *);
 #define csound 0
 %}
-%token AT
 %token NP
 %token PP
 %%
@@ -111,10 +108,11 @@ op                : 'i'    { $$ = $1; }
                   ;
 
 arglist           : arg arglist {}
-                  |             {}
+                  |             { parm->arglist = NULL; }
                   ;
 
-arg       : NUMBER_TOKEN {$$ = $1;}
+arg       : NUMBER_TOKEN { $$ = parm->fval;}
+          | INTEGER_TOKEN { $$ = (MYFLT)parm->ival;}
           | STRING_TOKEN {}
           | '[' exp ']' { $$ = $2; }
           | NP
@@ -158,15 +156,12 @@ fac       : constant           { $$ = $1; }
           | '~' exp %prec S_UMINUS
             { $$ = ~(int)$2; }
           | '~' error         { $$ = 0; }
-          | '(' exp ')'      { $$ = $2; }
-          | '(' exp error    { $$ = 0; }
+          | '(' exp ')'       { $$ = $2; }
+          | '(' exp error     { $$ = 0; }
           | '(' error         { $$ = 0; }
           ;
 
 constant  : NUMBER_TOKEN        { $$ = parm->fval;  }
-          | AT NUMBER_TOKEN     { $$ = (MYFLT)parm->ival; }
-          | AT AT NUMBER_TOKEN  { $$ = (MYFLT)parm->ival; }
-          | AT AT NUMBER_TOKEN  { $$ = (MYFLT)parm->ival; }
           | INTEGER_TOKEN       { $$ = (MYFLT)parm->ival; }
           ;
 
