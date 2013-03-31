@@ -76,8 +76,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
-IDENT           [a-su-zA-Z_][a-zA-Z0-9_]*
-AIDENT          t[a-zA-Z0-9_]+
+IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
 WHITE           [ \t]+
@@ -412,13 +411,6 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
-{AIDENT}         { { char buff[256];
-                     strcpy(buff, "k#");
-                     strncpy(&buff[2], &yytext[1], 250);                     
-                     *lvalp = lookup_token(csound, buff, yyscanner);
-                     csound->Message(csound,"%s -> %d\n",
-                                     yytext, (*lvalp)->type);
-                     return (*lvalp)->type; } }
 {INTGR}         {
                     if (udoflag == 0) {
                         *lvalp = make_string(csound, yytext);
