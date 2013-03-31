@@ -256,7 +256,7 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
 * fsig framesizes are incompatible, and
 * CSOUND_MEMORY if there is not enough memory to extend the bus.
 */
-PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
+PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin, int n)
 {
     PVSDATEXT *fout = (PVSDATEXT *)csound->chanif;
     int size;
@@ -290,7 +290,7 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
 * Returns zero on success, CSOUND_ERROR if the index is invalid or
 * if fsigs framesizes are incompatible
 */
-PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n)
+PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout, int n)
 {
     PVSDATEXT *fin = (PVSDATEXT *)csound->chanof;
     int size;
@@ -1519,53 +1519,15 @@ static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
     }
 }
 
-
-/* outvalue now uses chn mehanism
-*/
-int outvalset(CSOUND *csound, CHNGET *p) {
-
-  MYFLT *tmp;
-  int   err=0, ret;
-  tmp = p->iname;
-  p->iname = p->arg;
-  p->arg = tmp;
-  if (p->XSTRCODE & 2){
-    ret =  chnset_opcode_init_S(csound, p);
-    if(ret == OK)
-    p->h.opadr = (SUBR) chnset_opcode_perf_k_alt;
-  }
-  else {
-  err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
-                              CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    if (LIKELY(!err)) {
-      p->lock = csoundGetChannelLock(csound, (char*) p->iname,
-                                CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-      p->h.opadr = (SUBR) chnset_opcode_perf_k_alt;
-    }
-    ret = OK;
-  }
-  tmp = p->iname;
-  p->iname = p->arg;
-  p->arg = tmp;
-  if (LIKELY(!err))   return ret;
-  else return print_chn_err(p, err);
-}
-
-
-
-
-
-
-#ifdef SOME_FINE_DAY
 /* k-rate and string i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
 /*     ma++ ingalls      matt@sonomatics.com */
 
 int kinval(CSOUND *csound, INVAL *p)
 {
-        if (csound->InputValueCallback_)
-          csound->InputValueCallback_(csound,
-                                      (char*) p->channelName.auxp, p->value);
+        if (csound->InputChannelCallback_)
+          csound->InputChannelCallback_(csound,
+                                      (char*) p->channelName.auxp, p->value, p->channelType);
         else
           *(p->value) = FL(0.0);
 
@@ -1574,77 +1536,78 @@ int kinval(CSOUND *csound, INVAL *p)
 
 int invalset(CSOUND *csound, INVAL *p)
 {
-        if (p->XSTRCODE) {
-          const char  *s = (char*) p->valID;
-
-          /* check for starting with a $, which will confuse hosts
-             -- pretty unlikely given that the parser thinks
-             "$string" is a macro -- but just in case: */
-          if (UNLIKELY(*s == '$'))
-            return csound->InitError(csound, Str("k-rate invalue ChannelName "
-                                                 "cannot start with $"));
-          /* allocate the space used to pass a string during the k-pass */
-          csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
-          sprintf((char*) p->channelName.auxp, "%s", s);
-        }
-        else {
-          /* convert numerical channel to string name */
-          csound->AuxAlloc(csound, 64, &p->channelName);
-          sprintf((char*) p->channelName.auxp, "%d", (int)MYFLT2LRND(*p->valID));
-        }
-
-        /* grab input now for use during i-pass */
-        kinval(csound, p);
-
-        return OK;
-}
-
-int kinval_S(CSOUND *csound, INVAL *p)
-{
-    ((char*) p->value)[0] = (char) 0;
-    /* make sure the output is null-terminated with old hosts that */
-    /* are not aware of string channels */
-    ((char*) p->value)[sizeof(MYFLT)] = (char) 0;
-
-    if (csound->InputValueCallback_)
-      csound->InputValueCallback_(csound,
-                                  (char*) p->channelName.auxp, p->value);
-
-    return OK;
-}
-
-int invalset_S(CSOUND *csound, INVAL *p)
-{
+    int   err;
+    int type;
     if (p->XSTRCODE) {
-      const char  *s = (char*) p->valID;
-      csound->AuxAlloc(csound, strlen(s) + 2, &p->channelName);
-      sprintf((char*) p->channelName.auxp, "$%s", s);
+        const char  *s = (char*) p->valID;
+        csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
+        sprintf((char*) p->channelName.auxp, "%s", s);
     }
     else {
-      csound->AuxAlloc(csound, 64, &p->channelName);
-      sprintf(p->channelName.auxp, "$%d", (int)MYFLT2LRND(*p->valID));
+        /* convert numerical channel to string name */
+        csound->AuxAlloc(csound, 64, &p->channelName);
+        sprintf((char*) p->channelName.auxp, "%d", (int)MYFLT2LRND(*p->valID));
     }
+    if (p->XOUTSTRCODE) {
+        p->channelType = &CS_VAR_TYPE_S;
+        type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
+    } else {
+        p->channelType = &CS_VAR_TYPE_K;
+        type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
+    }
+    double *dummy;
+    err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
+                              type);
+    if (UNLIKELY(err))
+        return print_chn_err(p, err);
 
     /* grab input now for use during i-pass */
-    kinval_S(csound, p);
-
+    kinval(csound, p);
+    if (!csound->InputChannelCallback_) {
+        csound->Warning(csound,Str("InputChannelCallback not set."));
+    }
     return OK;
 }
+
+//int kinval_S(CSOUND *csound, INVAL *p)
+//{
+//    ((char*) p->value)[0] = (char) 0;
+//    /* make sure the output is null-terminated with old hosts that */
+//    /* are not aware of string channels */
+//    ((char*) p->value)[sizeof(MYFLT)] = (char) 0;
+
+//    if (csound->InputChannelCallback_)
+//      csound->InputChannelCallback_(csound,
+//                                  (char*) p->channelName.auxp, p->value, p->channelType);
+
+//    return OK;
+//}
+
+//int invalset_S(CSOUND *csound, INVAL *p)
+//{
+//    if (p->XSTRCODE) {
+//      const char  *s = (char*) p->valID;
+//      csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
+//      sprintf((char*) p->channelName.auxp, "%s", s);
+//    }
+//    else {
+//      csound->AuxAlloc(csound, 64, &p->channelName);
+//      sprintf(p->channelName.auxp, "%d", (int)MYFLT2LRND(*p->valID));
+//    }
+
+//    p->channelType = &CS_VAR_TYPE_S;
+//    /* grab input now for use during i-pass */
+//    kinval_S(csound, p);
+
+//    return OK;
+//}
 
 int koutval(CSOUND *csound, OUTVAL *p)
 {
     char    *chan = (char*)p->channelName.auxp;
 
-    if (csound->OutputValueCallback_) {
-      if (p->XSTRCODE & 2) {
-        /* a hack to support strings */
-        int32  len = strlen(chan);
-        strcat(chan, (char*)p->value);
-        csound->OutputValueCallback_(csound, chan, (MYFLT)len);
-        chan[len] = '\0';   /* clear for next time */
-      }
-      else
-        csound->OutputValueCallback_(csound, chan, *(p->value));
+    if (csound->OutputChannelCallback_) {
+        csound->OutputChannelCallback_(csound, chan, p->value, p->channelType);
     }
 
     return OK;
@@ -1652,19 +1615,11 @@ int koutval(CSOUND *csound, OUTVAL *p)
 
 int outvalset(CSOUND *csound, OUTVAL *p)
 {
+    int type, err;
     if (p->XSTRCODE & 1) {
       const char  *s = (char*) p->valID;
-      if (p->XSTRCODE & 2) {
-        /* allocate the space used to pass a string during the k-pass */
-        /* FIXME: string constants may use more space than strVarMaxLen */
-        csound->AuxAlloc(csound, strlen(s) + csound->strVarMaxLen + 2,
-                         &p->channelName);
-        sprintf((char*) p->channelName.auxp, "$%s$", s);
-      }
-      else {
-        csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
-        strcpy((char*) p->channelName.auxp, s);
-      }
+      csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
+      strcpy((char*) p->channelName.auxp, s);
     }
     else {
       /* convert numerical channel to string name */
@@ -1672,10 +1627,25 @@ int outvalset(CSOUND *csound, OUTVAL *p)
       sprintf((char*)p->channelName.auxp, (p->XSTRCODE & 2 ? "$%d" : "%d"),
               (int)MYFLT2LRND(*p->valID));
     }
+    if (p->XSTRCODE & 2) {
+        p->channelType = &CS_VAR_TYPE_S;
+        type = CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL;
+    } else {
+        p->channelType = &CS_VAR_TYPE_K;
+        type = CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL;
+    }
+    double *dummy;
+    err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
+                              type);
+    if (UNLIKELY(err))
+        return print_chn_err(p, err);
 
     /* send output now for use during i-pass */
     koutval(csound, p);
+    if (!csound->OutputChannelCallback_) {
+        csound->Warning(csound,Str("OutputChannelCallback not set."));
+    }
 
     return OK;
 }
-#endif
+
