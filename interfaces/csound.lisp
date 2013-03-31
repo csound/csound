@@ -612,12 +612,12 @@
 ;;  (value :pointer)
 ;;  (n :int))
 
-(defcfun ("csoundPvsinSet" csoundPvsinSet) :int
+(defcfun ("csoundSetPvsChannel" csoundSetPvsChannel) :int
   (arg0 :pointer)
   (fin :pointer)
   (n :int))
 
-(defcfun ("csoundPvsoutGet" csoundPvsoutGet) :int
+(defcfun ("csoundGetPvsChannel" csoundGetPvsChannel) :int
   (csound :pointer)
   (fout :pointer)
   (n :int))
