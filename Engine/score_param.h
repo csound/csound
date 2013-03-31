@@ -45,6 +45,13 @@ typedef struct prs_parm_s {
     uint8_t         lstack[1024];
 } PRS_PARM;
 
+typedef struct scotoken_s {
+    int             type;
+    int             ival;
+    MYFLT           fval;
+    char            *strbuff;
+} SCOTOKEN;
+
 typedef struct score_parm_s {
     void            *yyscanner;
     int             locn;
@@ -53,15 +60,10 @@ typedef struct score_parm_s {
     int             xstrptr,xstrmax;
     int             ival;
     MYFLT           fval;
+    SCOTOKEN        *arglist;
 } SCORE_PARM;
 
 uint32_t make_location(PRS_PARM *);
 extern uint8_t file_to_int(CSOUND*, const char*);
 
-typedef struct scotoken_s {
-    int             type;
-    int             ival;
-    MYFLT           fval;
-    char            *strbuff;
-} SCOTOKEN;
 #endif
