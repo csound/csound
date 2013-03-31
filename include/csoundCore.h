@@ -870,8 +870,10 @@ typedef struct NAME__ {
     /**
      * PUBLIC functions in CSOUND 
      * These are used by plugins to access the
-     * csound library functionality without the requirement
+     * Csound library functionality without the requirement
      * of compile-time linkage to the csound library
+     * New functions only need to be added here if
+     * they are required by plugins.
      */
 
     /* attributes  */
@@ -1192,11 +1194,11 @@ typedef struct NAME__ {
      *
       NO MORE PUBLIC VARIABLES IN CSOUND struct
 
-      NB: if a new variable member is needed, please add it below, as a
+      NB: if a new variable member is needed by the library, add it below, as a
       private data member.
 
-      If access is required by hosts or plugins, please use the
-      CreateGlobalVariable() etc. interface, instead of adding to
+      If access is required solely by plugins (and not by internally by the library), 
+      use the CreateGlobalVariable() etc. interface, instead of adding to
       CSOUND.
 
       If you find that a plugin needs to access existing private data,
