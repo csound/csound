@@ -318,7 +318,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     if (s[0]=='t') {
       /* Special case to map t-vars to new k-arrays */
       char *ss = (char*)malloc(strlen(s)+2);
-      ss[0] = 'k'; 
+      ss[0] = 'k';
       ss[1] = '#';
       strcpy(&ss[2], s);
       //printf("t-var: %s -> %s\n", s, ss);

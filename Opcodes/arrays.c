@@ -791,10 +791,10 @@ static OENTRY arrayvars_localops[] =
                                                  (SUBR) tabmap_perf},
     { "tabslice", sizeof(TABSLICE), 0, 1, "[k;", "[k;ii", 
                                                  NULL, (SUBR) tabslice, NULL },
-    { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "tk", NULL, (SUBR) tab2ftab },
-    { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "tk", NULL, (SUBR) ftab2tab },
-//  { "lentab.i", sizeof(TABQUERY), 0, 1, "i", "t", (SUBR) tablength },
-//  { "lentab.k", sizeof(TABQUERY), 0, 1, "k", "t", NULL, (SUBR) tablength }
+    { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "[k;k", NULL, (SUBR) tab2ftab },
+    { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "[k;k", NULL, (SUBR) ftab2tab },
+    { "lentab.i", sizeof(TABQUERY), 0, 1, "i", "[k;", (SUBR) tablength },
+    { "lentab.k", sizeof(TABQUERY), 0, 1, "k", "[k;", NULL, (SUBR) tablength }
 
 };
 
