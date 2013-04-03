@@ -239,7 +239,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     //int lgprevdef = 0;
     char      tfound = '\0', treqd;
 
-    if (n > nreqd) {                 
+    if (n > nreqd) {
       if ((treqd = *types[nreqd-1]) == 'n') {  /* indef args: */
         int incnt = -1;                       /* Should count args */
         if (!(incnt & 01))                    /* require odd */
@@ -487,7 +487,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     addGlobalVariable(csound, engineState, rType, "$sr", NULL);
     addGlobalVariable(csound, engineState, rType, "$kr", NULL);
     addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
-   
+
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
@@ -990,7 +990,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       }
       gVar = gVar->next;
     }
-    
+
     /* merge opcodinfo */
     insert_opcodes(csound, csound->opcodeInfo, current_state);
     for(i=1; i < end; i++){
