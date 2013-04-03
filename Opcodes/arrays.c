@@ -585,45 +585,45 @@ static int tab2ftab(CSOUND *csound, TABCOPY *p)
     return OK;
 }
 
-//typedef struct {
-//    OPDS h;
-//    TABDAT *tab;
-//    MYFLT *start, *end, *incr;
-//    int    len;
-//} TABGEN;
-//
-//
-//static int tabgen_set(CSOUND *csound, TABGEN *p)
-//{
-//    MYFLT *data =  p->tab->data;
-//    MYFLT start = *p->start;
-//    MYFLT end   = *p->end;
-//    MYFLT incr  = *p->incr;
-//    int i,size =  (end - start)/incr + 1;
-//
-//    printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
-//    if (UNLIKELY(size < 0))
-//      csound->InitError(csound,
-//                        Str("inconsistent start, end and increment parameters"));
-//    tabensure(csound, p->tab, size);
-//    if (UNLIKELY(p->tab->data==NULL)) {
-//      tabensure(csound, p->tab, size);
-//      p->tab->size = size;
-//    }
-//    else
-//      size = p->tab->size;
-//    data =  p->tab->data;
-//    printf("size=%d\n[", size);
-//    for (i=0; i < size; i++) {
-//      data[i] = start;
-//      printf("%f ", start);
-//      start += incr;
-//    }
-//    printf("]\n");
-//
-//    return OK;
-//}
-//
+typedef struct {
+    OPDS h;
+    ARRAYDAT *tab;
+    MYFLT *start, *end, *incr;
+    int    len;
+} TABGEN;
+
+
+static int tabgen_set(CSOUND *csound, TABGEN *p)
+{
+    MYFLT *data =  p->tab->data;
+    MYFLT start = *p->start;
+    MYFLT end   = *p->end;
+    MYFLT incr  = *p->incr;
+    int i,size =  (end - start)/incr + 1;
+
+    printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
+    if (UNLIKELY(size < 0))
+      csound->InitError(csound,
+                        Str("inconsistent start, end and increment parameters"));
+    tabensure(csound, p->tab, size);
+    if (UNLIKELY(p->tab->data==NULL)) {
+      tabensure(csound, p->tab, size);
+      p->tab->sizes[0] = size;
+    }
+    else
+      size = p->tab->sizes[0];
+    data =  p->tab->data;
+    printf("size=%d\n[", size);
+    for (i=0; i < size; i++) {
+      data[i] = start;
+      printf("%f ", start);
+      start += incr;
+    }
+    printf("]\n");
+
+    return OK;
+}
+
 
 static int ftab2tab(CSOUND *csound, TABCOPY *p)
 {
@@ -785,7 +785,7 @@ static OENTRY arrayvars_localops[] =
     { "scalet", sizeof(TABSCALE), 0, 3, "",  "[k;kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "=.t", sizeof(TABCPY), 0, 2, "[k;", "[k;", NULL, (SUBR)tabcopy },
-//  { "#tabgen", sizeof(TABGEN), 0, 1, "t", "iip", (SUBR) tabgen_set, NULL, NULL},
+    { "tabgen", sizeof(TABGEN), 0, 1, "[k;", "iip", (SUBR) tabgen_set, NULL, NULL},
     { "tabmap_i", sizeof(TABMAP), 0, 1, "t", "tS", (SUBR) tabmap_set, NULL, NULL},
     { "tabmap", sizeof(TABMAP), 0, 3, "t", "tS", (SUBR) tabmap_set, 
                                                  (SUBR) tabmap_perf},
