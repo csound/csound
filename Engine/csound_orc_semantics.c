@@ -471,29 +471,28 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         retVal[1] = 0;
 
         return retVal;
-          
+
       }
-        
+
       if (tree->type == T_FUNCTION) {
-          char* argTypeRight = get_arg_string_from_tree(csound, tree->right, typeTable);
-          
-          
+          char* argTypeRight = get_arg_string_from_tree(csound, 
+                                                        tree->right, typeTable);
           char* opname = tree->value->lexeme;
           OENTRIES* entries = find_opcode2(csound, opname);
-          
+
           char out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
-              
+
           if (out == 0) {
               synterr(csound, Str("error: opcode '%s' for expression with arg "
                                   "types %s not found, line %d \n"),
                       opname, argTypeRight, tree->line);
               return NULL;
           }
-          
+
           char c[2];
           c[0] = out;
           c[1] = '\0';
-          
+
           return cs_strdup(csound, c);
 
       }
@@ -541,9 +540,9 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return cs_strdup(csound, c);
 
       } else {
-          
-          
-        return argTypeRight;
+
+
+
       }
 
     }
@@ -1542,20 +1541,20 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
         current->markup = typeTable->localPool;
-        
+
         if (current->right) {
           typeTable->labelList = get_label_list(csound, current->right);
-          
+
           newRight = verify_tree(csound, current->right, typeTable);
-          
+
           mfree(csound, typeTable->labelList);
-          
+
           typeTable->labelList = NULL;
-          
+
           if (newRight == NULL) {
             return NULL;
           }
-          
+
           current->right = newRight;
           newRight = NULL;
         }
@@ -1565,27 +1564,27 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
       case UDO_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
-              
+
         typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
         current->markup = typeTable->localPool;
 
         if (current->right != NULL) {
             typeTable->labelList = get_label_list(csound, current->right);
-            
+
             newRight = verify_tree(csound, current->right, typeTable);
-            
+
             mfree(csound, typeTable->labelList);
-                        
+
             if (newRight == NULL) {
                 return NULL;
             }
-            
+
             current->right = newRight;
             newRight = NULL;
         }
 
         typeTable->localPool = typeTable->instr0LocalPool;
-      
+
         break;
 
       case IF_TOKEN:
