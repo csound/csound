@@ -480,14 +480,14 @@ typedef struct CORFIL {
 #define CS_ONEDKR    (p->h.insdshead->onedkr)
 #define CS_KICVT     (p->h.insdshead->kicvt)
 #else
-#define CS_KSMPS     (csound->ksmps)  
+#define CS_KSMPS     (csound->ksmps)
 #define CS_KCNT      (csound->GetKcounter(csound))
-#define CS_EKR       (csound->ekr) 
+#define CS_EKR       (csound->ekr)
 #define CS_ONEDKSMPS (csound->onedksmps)
 #define CS_ONEDKR    (csound->onedkr)
 #define CS_KICVT     (csound->kicvt)
 #endif
-#define CS_ESR       (csound->esr) 
+#define CS_ESR       (csound->esr)
 #define CS_PDS       (p->h.insdshead->pds)
 
   typedef int (*SUBR)(CSOUND *, void *);
@@ -868,7 +868,7 @@ typedef struct NAME__ {
   struct CSOUND_ {
 
     /**
-     * PUBLIC functions in CSOUND 
+     * PUBLIC functions in CSOUND
      * These are used by plugins to access the
      * Csound library functionality without the requirement
      * of compile-time linkage to the csound library
@@ -960,7 +960,7 @@ typedef struct NAME__ {
     void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
     void *(*GetNamedGens)(CSOUND *);
 
-    /* global and config variable manipulation */ 
+    /* global and config variable manipulation */
     int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
     void *(*QueryGlobalVariable)(CSOUND *, const char *name);
     void *(*QueryGlobalVariableNoCheck)(CSOUND *, const char *name);
@@ -977,7 +977,7 @@ typedef struct NAME__ {
     csCfgVariable_t **(*ListConfigurationVariables)(CSOUND *);
     int (*DeleteConfigurationVariable)(CSOUND *, const char *name);
     const char *(*CfgErrorCodeToString)(int errcode);
-    
+
     /* FFT support */
     MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
     MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
@@ -989,7 +989,7 @@ typedef struct NAME__ {
                                   int FFTsize, MYFLT scaleFac);
     void (*RealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
     void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
- 
+
     /* PVOC-EX system */
     int (*PVOC_CreateFile)(CSOUND *, const char *,
                            uint32, uint32, uint32,
@@ -1050,7 +1050,7 @@ typedef struct NAME__ {
     int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
     void (*FlushCircularBuffer)(CSOUND *, void *);
     void (*FreeCircularBuffer)(CSOUND *, void *);
-    
+
     /* File access */
     char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
     char *(*FindOutputFile)(CSOUND *,
@@ -1172,14 +1172,13 @@ typedef struct NAME__ {
     const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
     void (*SetUtilSr)(CSOUND *, MYFLT);
     void (*SetUtilNchnls)(CSOUND *, int);
-    
+
     /* miscellaneous */
     long (*RunCommand)(const char * const *argv, int noWait);
-    int (*OpenLibrary)(void **library, const char *libraryPath); 
+    int (*OpenLibrary)(void **library, const char *libraryPath);
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
-    char *(*LocalizeString)(const char *);
-        
+    char *(*LocalizeString)(const char *);        
     /* placeholders */
     SUBR dummyfn_2[50];
     /**
@@ -1189,7 +1188,7 @@ typedef struct NAME__ {
       NB: if a new variable member is needed by the library, add it below, as a
       private data member.
 
-      If access is required solely by plugins (and not by internally by the library), 
+      If access is required solely by plugins (and not by internally by the library),
       use the CreateGlobalVariable() etc. interface, instead of adding to
       CSOUND.
 

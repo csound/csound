@@ -75,7 +75,7 @@ char *create_out_arg(CSOUND *csound, char outype, TYPE_TABLE* typeTable)
     case 'S': sprintf(s, "#S%d", csound->tcount++); break;
     default:  sprintf(s, "#i%d", csound->icount++); break;
     }
-    
+
     add_arg(csound, s, typeTable);
     return s;
 }
@@ -367,10 +367,10 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
 
     current = root->left;
     newArgList = NULL;
-    while(current != NULL) {    
+    while(current != NULL) {
       if (is_expression_node(current)) {
         TREE* newArg;
-          
+
         anchor = appendToTree(csound, anchor,
                               create_expression(csound, current, line, locn, typeTable));
         last = tree_tail(anchor);
@@ -384,23 +384,23 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
         current->next = NULL;
         current = temp;
       }
-      
+
     }
     root->left = newArgList;
 
     current = root->right;
     newArgList = NULL;
-    while(current != NULL) {        
+    while(current != NULL) {
       if (is_expression_node(current)) {
         TREE* newArg;
 
         anchor = appendToTree(csound, anchor,
                                   create_expression(csound, current, line, locn, typeTable));
         last = tree_tail(anchor);
-            
+
         newArg = create_ans_token(csound, last->left->value->lexeme);
         newArgList = appendToTree(csound, newArgList, newArg);
-        current = current->next;  
+        current = current->next;
       } else {
           TREE* temp;
           newArgList = appendToTree(csound, newArgList, current);
@@ -411,8 +411,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
     }
     root->right = newArgList;
 
-    
-        
+
+
     arg1 = '\0';
     if (root->left != NULL) {
       arg1 = argtyp2( root->left->value->lexeme);
@@ -493,9 +493,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
         csound->Message(csound, "Found OP: %s\n", op);
       /* VL: some non-existing functions were appearing here
          looking for opcodes that did not exist */
-            
-        
-            
+
+
+
       opentries = find_opcode2(csound, root->value->lexeme);
 
       if (opentries->count == 0) {
