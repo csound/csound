@@ -64,7 +64,7 @@
 
 #if defined(USE_OPENMP)
 #include <omp.h>
-#endif /* USE_OPENMP */ 
+#endif /* USE_OPENMP */
 
 #include "csound_standard_types.h"
 
@@ -375,7 +375,7 @@ static const CSOUND cenviron_ = {
     csoundSetMakeGraphCallback,
     csoundSetDrawGraphCallback,
     csoundSetKillGraphCallback,
-    csoundSetExitGraphCallback, 
+    csoundSetExitGraphCallback,
     /* generic callbacks */
     csoundSetYieldCallback,
     csoundSetCallback,
@@ -388,12 +388,12 @@ static const CSOUND cenviron_ = {
     csoundAppendOpcode,
     csoundAppendOpcodes,
     csoundGetOpcodeName,
-    csoundGetInstrumentList, 
+    csoundGetInstrumentList,
     /* events and performance */
     csoundYield,
     insert_score_event,
     insert_score_event_at_sample,
-    csoundPerformKsmpsInternal,  
+    csoundPerformKsmpsInternal,
     /* utilities */
     csoundAddUtility,
     csoundRunUtility,
@@ -408,7 +408,6 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
-   
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -1671,7 +1670,7 @@ PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound){
   return csound->icurTime;
 }
 
-PUBLIC MYFLT csoundGetSr(CSOUND *csound) 
+PUBLIC MYFLT csoundGetSr(CSOUND *csound)
 {
     return csound->esr;
 }
@@ -2611,7 +2610,7 @@ static void reset(CSOUND *csound)
     /**
      * Copy everything EXCEPT the function pointers.
      * We do it by saving them and copying them back again...
-     * hope that this does not fail... 
+     * hope that this does not fail...
      */
     /* VL 15.03.2013 - I am not sure why this is needed, but
        it probably needs to be reviewed with the changes in
