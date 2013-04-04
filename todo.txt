@@ -15,7 +15,7 @@ Csound 6 TODO list
 
 2) allow any number of strings in score events (except p2,p3). 
      *** FIXED ***
-  - do we need a new parser for score? (started one but a pain)
+  - do we need a new parser for score? (**in progress**)
 
 3) test sample-accurate opcodes, or document those not working
   - check that kperf code can be used in multicore mode in csound.c
@@ -65,6 +65,7 @@ configure csound with typed system (that in turn can be inspected)
 **** DONE  new configuration functions  and struct ****
 
 15) Rewrl tvars
+    **** DONE to CS5 level ****
 
 rc1 aimed for 28 Feb
 
