@@ -766,9 +766,6 @@ if(BUILD_MULTI_CORE)
 else()
     message(STATUS "Not building with multicore")
 endif()
-    
-
-
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
@@ -796,17 +793,21 @@ endif()
 # This copies libsndfile into the framework and sets the install names
 # of CsoundLib to refer to it.
 if(APPLE)
+
+get_filename_component(source ${LIBSNDFILE_LIBRARY} REALPATH)
+get_filename_component(depname ${source} NAME)
+
 set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
-if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/libsndfile.1.dylib)
+if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/${depname})
    add_custom_command(
        TARGET ${CSOUNDLIB} 
        POST_BUILD
        COMMAND mkdir
-       ARGS  ${CSOUNDLIB_DIR}/Resources/libs
+       ARGS -p ${CSOUNDLIB_DIR}/Resources/libs 
        COMMAND cp
-       ARGS /usr/local/lib/libsndfile.1.dylib ${CSOUNDLIB_DIR}/Resources/libs
+       ARGS ${source} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
        COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -id libsndfile.1.dylib ${CSOUNDLIB_DIR}/Resources/libs/libsndfile.1.dylib
+       ARGS -id ${depname} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
 )
 endif()
 
@@ -814,7 +815,7 @@ add_custom_command(
        TARGET ${CSOUNDLIB} 
        POST_BUILD
        COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -change /usr/local/lib/libsndfile.1.dylib @loader_path/Resources/libs/libsndfile.1.dylib ${CSOUNDLIB_DIR}/${CSOUNDLIB}
+       ARGS -change ${source} @loader_path/Resources/libs/${depname} ${CSOUNDLIB_DIR}/${CSOUNDLIB}
 )
 endif()
 
@@ -855,42 +856,20 @@ endfunction(make_plugin)
 
 # this copies the dependencies of plugins into framework
 # and fixes the lib name references
-function(add_dependency_to_framework pluginlib dependency source)
-
-if(APPLE)
-set(RESOURCE_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources)
-if(NOT EXISTS ${RESOURCE_DIR}/libs/${dependency})
-   add_custom_command(
-       TARGET ${pluginlib} 
-       COMMAND cp
-       ARGS ${source} ${RESOURCE_DIR}/libs
-       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -id ${dependency} ${RESOURCE_DIR}/libs/${dependency}
-)
-endif()
-add_custom_command(
-       TARGET ${pluginlib} 
-       POST_BUILD
-       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -change ${source} @loader_path/../libs/${dependency} ${RESOURCE_DIR}/Opcodes/lib${pluginlib}.dylib
-)
-endif()
-endfunction(add_dependency_to_framework)
-
-
-function(add_dependency_to_framework2 pluginlib dependency)
+function(add_dependency_to_framework pluginlib dependency)
 
 get_filename_component(source ${dependency} REALPATH)
 get_filename_component(depname ${source} NAME)
-message("REAL PATH: ${source} ${depname}")
 
 if(APPLE)
 set(RESOURCE_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources)
-if(NOT EXISTS ${RESOURCE_DIR}/libs/${dependency})
+if(NOT EXISTS ${RESOURCE_DIR}/libs/${depname})
    add_custom_command(
        TARGET ${pluginlib} 
+       COMMAND mkdir 
+       ARGS -p ${RESOURCE_DIR}/libs
        COMMAND cp
-       ARGS ${source} ${RESOURCE_DIR}/libs
+       ARGS -f ${source} ${RESOURCE_DIR}/libs/${depname}
        COMMAND ${CMAKE_INSTALL_NAME_TOOL}
        ARGS -id ${depname} ${RESOURCE_DIR}/libs/${depname}
 )
