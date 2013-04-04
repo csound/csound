@@ -23,6 +23,7 @@
 
 //#include "csdl.h"
 #include "csoundCore.h"
+extern void csoundInputMessageInternal(CSOUND *, const char *);
 
 typedef struct _inmess {
   OPDS h;
