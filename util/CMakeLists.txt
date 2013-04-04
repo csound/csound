@@ -10,7 +10,7 @@ set(stdutil_SRCS
     ../SDIF/sdif.c)
 
 make_plugin(stdutil "${stdutil_SRCS}" m ${LIBSNDFILE_LIBRARY})
-add_dependency_to_framework(stdutil libsndfile.1.dylib /usr/local/lib/libsndfile.1.dylib)
+add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
 
 if(BUILD_UTILITIES) 
     make_utility(atsa        atsa_main.c)
