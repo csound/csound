@@ -273,6 +273,21 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     add_compiler_flags("-g")
 endif()
 
+
+if(USE_DOUBLE)
+    if(APPLE)
+        set(CSOUNDLIB "CsoundLib64")
+    else()
+        set(CSOUNDLIB "csound64")
+    endif()
+else()
+    if(APPLE)
+        set(CSOUNDLIB "CsoundLib")
+    else()
+        set(CSOUNDLIB "csound")
+    endif()
+endif()
+
 #if(USE_DOUBLE)
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins64)
 #else()
@@ -282,6 +297,12 @@ endif()
 set(BUILD_PLUGINS_DIR ${BUILD_DIR})
 set(BUILD_BIN_DIR ${BUILD_DIR})
 set(BUILD_LIB_DIR ${BUILD_DIR})
+
+if(APPLE) 
+
+	set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
+
+endif()
 
 message(STATUS "BUILD_BIN_DIR set to ${BUILD_BIN_DIR}")
 message(STATUS "BUILD_LIB_DIR set to ${BUILD_LIB_DIR}")
@@ -748,19 +769,6 @@ endif()
     
 
 
-if(USE_DOUBLE)
-    if(APPLE)
-        set(CSOUNDLIB "CsoundLib64")
-    else()
-        set(CSOUNDLIB "csound64")
-    endif()
-else()
-    if(APPLE)
-        set(CSOUNDLIB "CsoundLib")
-    else()
-        set(CSOUNDLIB "csound")
-    endif()
-endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
@@ -843,26 +851,6 @@ function(make_plugin libname srcs)
     install(TARGETS ${libname}
 	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
-# copy plugins into framework
-if(APPLE)
-set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
-if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/Opcodes)
-   add_custom_command(
-       TARGET ${libname} 
-       POST_BUILD
-       COMMAND mkdir
-       ARGS ${CSOUNDLIB_DIR}/Resources/Opcodes
-)
-endif()
-add_custom_command(
-       TARGET ${libname} 
-       POST_BUILD
-       COMMAND cp
-       ARGS ${BUILD_DIR}/lib${libname}.dylib   ${CSOUNDLIB_DIR}/Resources/Opcodes
-       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -id lib${libname}.dylib ${CSOUNDLIB_DIR}/Resources/Opcodes/lib${libname}.dylib
-)
-endif()
 endfunction(make_plugin)
 
 # this copies the dependencies of plugins into framework
@@ -880,12 +868,38 @@ if(NOT EXISTS ${RESOURCE_DIR}/libs/${dependency})
        ARGS -id ${dependency} ${RESOURCE_DIR}/libs/${dependency}
 )
 endif()
-
 add_custom_command(
        TARGET ${pluginlib} 
        POST_BUILD
        COMMAND ${CMAKE_INSTALL_NAME_TOOL}
        ARGS -change ${source} @loader_path/../libs/${dependency} ${RESOURCE_DIR}/Opcodes/lib${pluginlib}.dylib
+)
+endif()
+endfunction(add_dependency_to_framework)
+
+
+function(add_dependency_to_framework2 pluginlib dependency)
+
+get_filename_component(source ${dependency} REALPATH)
+get_filename_component(depname ${source} NAME)
+message("REAL PATH: ${source} ${depname}")
+
+if(APPLE)
+set(RESOURCE_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources)
+if(NOT EXISTS ${RESOURCE_DIR}/libs/${dependency})
+   add_custom_command(
+       TARGET ${pluginlib} 
+       COMMAND cp
+       ARGS ${source} ${RESOURCE_DIR}/libs
+       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+       ARGS -id ${depname} ${RESOURCE_DIR}/libs/${depname}
+)
+endif()
+add_custom_command(
+       TARGET ${pluginlib} 
+       POST_BUILD
+       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+       ARGS -change ${source} @loader_path/../libs/${depname} ${RESOURCE_DIR}/Opcodes/lib${pluginlib}.dylib
 )
 endif()
 endfunction(add_dependency_to_framework)

@@ -92,7 +92,7 @@ endif()
 check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_H)
 if(BUILD_FLUID_OPCODES)
     make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FLUIDSYNTH_LIBRARY})
-    add_dependency_to_framework(fluidOpcodes libfluidsynth.1.dylib /usr/local/lib/libfluidsynth.1.dylib)
+    add_dependency_to_framework2(fluidOpcodes ${FLUIDSYNTH_LIBRARY})
 endif()
 
 set(JACK_LIB (JACK_LIBRARY OR JACKDMP_LIBRARY))
