@@ -1178,17 +1178,8 @@ typedef struct NAME__ {
     int (*OpenLibrary)(void **library, const char *libraryPath);
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
-    char *(*LocalizeString)(const char *);
-
-/*    // latest candidates for removal
-      void (*SetInputValueCallback)(CSOUND *, channelCallback_t);
-      void (*SetOutputValueCallback)(CSOUND *,channelCallback_t);
-      int (*SetControlChannelHints)(CSOUND *, const char *name,
-                                  const controlChannelHints_t hints);
-      int (*GetControlChannelHints)(CSOUND *, const char *name,
-               controlChannelHints_t *hints);
-*/
-
+    char *(*LocalizeString)(const char *);        
+    /* placeholders */
     SUBR dummyfn_2[50];
     /**
      *
