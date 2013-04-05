@@ -31,9 +31,9 @@ void test_args_required(void) {
     CU_ASSERT_EQUAL(2, argsRequired("ka"));
     CU_ASSERT_EQUAL(3, argsRequired("kak"));
     CU_ASSERT_EQUAL(2, argsRequired("ak"));
-    CU_ASSERT_EQUAL(3, argsRequired("[a;ka"));
-    CU_ASSERT_EQUAL(4, argsRequired("[a;[k;ka"));
-    CU_ASSERT_EQUAL(4, argsRequired("[[a;[[k;ka"));
+    CU_ASSERT_EQUAL(3, argsRequired("[a]ka"));
+    CU_ASSERT_EQUAL(4, argsRequired("[a][k]ka"));
+    CU_ASSERT_EQUAL(4, argsRequired("[[a][[k]ka"));
     CU_ASSERT_EQUAL(0, argsRequired(NULL));
 }
 
@@ -47,18 +47,18 @@ void test_split_args(void) {
     CU_ASSERT_STRING_EQUAL("k", results[2]);
     csound->Free(csound, results);
     
-    results = splitArgs(csound, "[a;[k;ka");
+    results = splitArgs(csound, "[a][k]ka");
     
-    CU_ASSERT_STRING_EQUAL("[a", results[0]);
-    CU_ASSERT_STRING_EQUAL("[k", results[1]);
+    CU_ASSERT_STRING_EQUAL("[a]", results[0]);
+    CU_ASSERT_STRING_EQUAL("[k]", results[1]);
     CU_ASSERT_STRING_EQUAL("k", results[2]);
     CU_ASSERT_STRING_EQUAL("a", results[3]);
     csound->Free(csound, results);
     
-    results = splitArgs(csound, "[[a;[[k;ka");
+    results = splitArgs(csound, "[[a][[k]ka");
     
-    CU_ASSERT_STRING_EQUAL("[[a", results[0]);
-    CU_ASSERT_STRING_EQUAL("[[k", results[1]);
+    CU_ASSERT_STRING_EQUAL("[[a]", results[0]);
+    CU_ASSERT_STRING_EQUAL("[[k]", results[1]);
     CU_ASSERT_STRING_EQUAL("k", results[2]);
     CU_ASSERT_STRING_EQUAL("a", results[3]);
     csound->Free(csound, results);
