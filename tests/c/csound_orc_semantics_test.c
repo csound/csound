@@ -14,8 +14,6 @@
 #include "csoundCore.h"
 #include "CUnit/Basic.h"
 
-extern char* convertArrayName(CSOUND* csound, char* arrayName);
-extern char* addDimensionToArrayName(CSOUND* csound, char* arrayName);
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern OENTRY* resolve_opcode(CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
 extern int resolve_opcode_num(CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
