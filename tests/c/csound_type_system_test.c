@@ -53,9 +53,9 @@ void test_get_var_simple_name(void) {
     CSOUND* csound = csoundCreate(NULL);
 
     CU_ASSERT_STRING_EQUAL("a1", getVarSimpleName(csound, "a1"));
-    CU_ASSERT_STRING_EQUAL("a1", getVarSimpleName(csound, "[a;1"));
+    CU_ASSERT_STRING_EQUAL("a1", getVarSimpleName(csound, "[a]1"));
     CU_ASSERT_STRING_EQUAL("StestString", getVarSimpleName(csound, "StestString"));
-    CU_ASSERT_STRING_EQUAL("StestString", getVarSimpleName(csound, "[S;testString"));
+    CU_ASSERT_STRING_EQUAL("StestString", getVarSimpleName(csound, "[S]testString"));
 }
 
 
