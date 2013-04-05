@@ -362,7 +362,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 
         char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
         memcpy(retVal, s, len);
-        retVal[len] = ';';
+        retVal[len] = ']';
         retVal[len + 1] = '\0';
 
         return retVal;
@@ -395,7 +395,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 
       char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
       memcpy(retVal, s, len);
-      retVal[len] = ';';
+      retVal[len] = ']';
       retVal[len + 1] = '\0';
 
       return retVal;
@@ -412,7 +412,7 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
     int i, len = arrayVar->dimensions + 3;
     char* retVal = mmalloc(csound, len);
     retVal[len - 1] = '\0';
-    retVal[len - 2] = ';';
+    retVal[len - 2] = ']';
     retVal[len - 3] = *arrayVar->subType->varTypeName;
     for (i = len - 4; i >= 0; i--) {
         retVal[i] = '[';
@@ -659,7 +659,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
             char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
             memcpy(retVal, s, len);
-            retVal[len] = ';';
+            retVal[len] = ']';
             retVal[len + 1] = '\0';
 
             return retVal;
@@ -1774,63 +1774,6 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     return ans;
 }
 
-/** Utility function to rewrite array names from xxx to [xxx, as csound
- *  uses first letter to denote type.  Also handles if name starts with g;
- *  used by parser (csound_orc.y)
- */
-PUBLIC char* convertArrayName(CSOUND* csound, char* arrayName) {
-    if (arrayName == NULL) {
-      return NULL;
-    }
-    {
-      int len = strlen(arrayName);
-      char* newArrayName;
-      if (len == 0) {
-        return NULL;
-      }
-
-      newArrayName = mmalloc(csound, (len + 3)* sizeof(char));
-      if (arrayName[0] == 'g') {
-        newArrayName[0] = 'g';
-        newArrayName[1] = '[';
-        newArrayName[2] = arrayName[1];
-        newArrayName[3] = ';';
-        memcpy(newArrayName + 4, arrayName + 2, len - 2);
-      } else {
-        newArrayName[0] = '[';
-        newArrayName[1] = arrayName[0];
-        newArrayName[2] = ';';
-        memcpy(newArrayName + 3, arrayName + 1, len - 1);
-      }
-      newArrayName[len + 2] = 0;
-
-      return newArrayName;
-    }
-}
-
-PUBLIC char* addDimensionToArrayName(CSOUND* csound, char* arrayName) {
-    if(arrayName == NULL) {
-        return NULL;
-    }
-    int len = strlen(arrayName);
-
-    if(len == 0) {
-        return NULL;
-    }
-
-    char* newArrayName = mmalloc(csound, (len + 2)* sizeof(char));
-    if(arrayName[0] == 'g') {
-        newArrayName[0] = 'g';
-        newArrayName[1] = '[';
-        memcpy(newArrayName + 2, arrayName + 1, len - 1);
-    } else {
-        newArrayName[0] = '[';
-        memcpy(newArrayName + 1, arrayName , len);
-    }
-    newArrayName[len + 1] = 0;
-
-    return newArrayName;
-}
 
 /** Utility function to create assignment statements
  *  Replaces = with correct version for args

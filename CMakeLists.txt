@@ -298,10 +298,8 @@ set(BUILD_PLUGINS_DIR ${BUILD_DIR})
 set(BUILD_BIN_DIR ${BUILD_DIR})
 set(BUILD_LIB_DIR ${BUILD_DIR})
 
-if(APPLE) 
-
-	set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
-
+if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode") 
+    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
 endif()
 
 message(STATUS "BUILD_BIN_DIR set to ${BUILD_BIN_DIR}")
@@ -784,6 +782,8 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     LINK_INTERFACE_LIBRARIES ""
     SOVERSION ${APIVERSION})
 
+
+
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
@@ -792,12 +792,13 @@ endif()
 
 # This copies libsndfile into the framework and sets the install names
 # of CsoundLib to refer to it.
-if(APPLE)
+if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
 
 get_filename_component(source ${LIBSNDFILE_LIBRARY} REALPATH)
 get_filename_component(depname ${source} NAME)
 
 set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
+
 if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/${depname})
    add_custom_command(
        TARGET ${CSOUNDLIB} 
@@ -858,11 +859,14 @@ endfunction(make_plugin)
 # and fixes the lib name references
 function(add_dependency_to_framework pluginlib dependency)
 
+
+if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
+
 get_filename_component(source ${dependency} REALPATH)
 get_filename_component(depname ${source} NAME)
 
-if(APPLE)
 set(RESOURCE_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources)
+
 if(NOT EXISTS ${RESOURCE_DIR}/libs/${depname})
    add_custom_command(
        TARGET ${pluginlib} 
@@ -878,7 +882,7 @@ add_custom_command(
        TARGET ${pluginlib} 
        POST_BUILD
        COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -change ${source} @loader_path/../libs/${depname} ${RESOURCE_DIR}/Opcodes/lib${pluginlib}.dylib
+       ARGS -change ${source} @loader_path/../libs/${depname} ${BUILD_PLUGINS_DIR}/lib${pluginlib}.dylib
 )
 endif()
 endfunction(add_dependency_to_framework)

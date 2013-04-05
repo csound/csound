@@ -93,7 +93,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
       }
       typeEnd = start;
       t2 = t;
-      while(*t2 != ';' && *t2 != (char)0) {
+      while(*t2 != ']' && *t2 != (char)0) {
         t2++;
         typeEnd++;
       }
