@@ -1234,7 +1234,7 @@ int xinset(CSOUND *csound, XIN *p)
        *(tmp++) = (MYFLT *) in;
        out = (void *) *(p->args + *ndx_list);
        *(tmp++) = (MYFLT *) out;
-       memcpy(out, in, sizeof(TABDAT));
+       memcpy(out, in, sizeof(ARRAYDAT));
     }
      *(tmp++) = NULL;
 
@@ -1309,7 +1309,7 @@ int xoutset(CSOUND *csound, XOUT *p)
       *(tmp++) = (MYFLT *) in;
       out = (void *) *(bufs + *ndx_list);
       *(tmp++) = (MYFLT *) out;
-      memcpy(out, in, sizeof(TABDAT));
+      memcpy(out, in, sizeof(ARRAYDAT));
     }
     *tmp = NULL;
 
