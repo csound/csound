@@ -180,7 +180,7 @@ PUBLIC int argsRequired(char* argString)
       while (*t != '\0') {
         retVal++;
         if (*t == '[') {
-          while (*t != ';' && *t != '\0') {
+          while (*t != ']' && *t != '\0') {
             t++;
           }
         }
@@ -205,13 +205,13 @@ PUBLIC char** splitArgs(CSOUND* csound, char* argString)
         if (*t == '[') {
           int len = 0;
           char* start = t;
-          while (*t != ';') {
+          while (*t != ']') {
             t++;
             len++;
           }
           part = mmalloc(csound, sizeof(char) * (len + 2));
           strncpy(part, start, len);
-          part[len] = ';';
+          part[len] = ']';
           part[len + 1] = '\0';
 
         } else {

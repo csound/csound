@@ -37,45 +37,6 @@ int clean_suite1(void)
     return 0;
 }
 
-void test_convertArrayName(void)
-{
-    CSOUND* csound = csoundCreate(NULL);
-    
-    char* result = convertArrayName(csound, NULL);
-    CU_ASSERT_PTR_NULL(result);
-
-    result = convertArrayName(csound, "");
-    CU_ASSERT_PTR_NULL(result);
-    
-    result = convertArrayName(csound, "aSignals");
-    CU_ASSERT_STRING_EQUAL(result, "[a;Signals");
-
-    result = convertArrayName(csound, "gkSignals");
-    CU_ASSERT_STRING_EQUAL(result, "g[k;Signals");
-    
-}
-
-void test_addDimensionToArrayName(void)
-{
-    CSOUND* csound = csoundCreate(NULL);
-    
-    char* result = addDimensionToArrayName(csound, NULL);
-    CU_ASSERT_PTR_NULL(result);
-    
-    result = addDimensionToArrayName(csound, "");
-    CU_ASSERT_PTR_NULL(result);
-    
-    result = addDimensionToArrayName(csound, "[a;Signals");
-    CU_ASSERT_STRING_EQUAL(result, "[[a;Signals");
-        
-    result = addDimensionToArrayName(csound, "g[k;Signals");
-    CU_ASSERT_STRING_EQUAL(result, "g[[k;Signals");
-    
-    result = convertArrayName(csound, "kArr");
-    result = addDimensionToArrayName(csound, result);
-    CU_ASSERT_STRING_EQUAL(result, "[[k;Arr");
-}
-
 void test_find_opcode2(void) {
     int i;
     CSOUND* csound = csoundCreate(NULL);
@@ -149,15 +110,15 @@ void test_resolve_opcode(void) {
     csound->Free(csound, entries);
     
     
-    entries = find_opcode2(csound, "array_get");
+    entries = find_opcode2(csound, "##array_get");
     
-    int opnum = resolve_opcode_num(csound, entries, "k", "[k;c");
+    int opnum = resolve_opcode_num(csound, entries, "k", "[k]c");
     CU_ASSERT_TRUE(opnum > 0);
     
     
     entries = find_opcode2(csound, ">");
     
-    opnum = resolve_opcode_num(csound, entries, "b", "kk");
+    opnum = resolve_opcode_num(csound, entries, "B", "kk");
     CU_ASSERT_TRUE(opnum > 0);
 }
 
@@ -168,7 +129,7 @@ void test_find_opcode_new(void) {
     CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##xin64", "i", NULL));
     CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##xin256", "i", NULL));
     CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##userOpcode", NULL, NULL));
-    CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "array_set", NULL, "[k;k"));
+    CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##array_set", NULL, "[k]k"));
     CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, ">=", "B", "kc"));
     
 
@@ -224,12 +185,12 @@ void test_check_in_arg(void) {
     CU_ASSERT_TRUE(check_in_arg("i", "?"));
     
     //array
-    CU_ASSERT_FALSE(check_in_arg("a", "[a;"));
-    CU_ASSERT_FALSE(check_in_arg("[a;", "a"));
-    CU_ASSERT_TRUE(check_in_arg("[a;", "[a;"));
-    CU_ASSERT_FALSE(check_in_arg("[k;", "[a;"));
-    CU_ASSERT_TRUE(check_in_arg("[a;", "[?;"));
-    CU_ASSERT_TRUE(check_in_arg("[k;", "[?;"));
+    CU_ASSERT_FALSE(check_in_arg("a", "[a]"));
+    CU_ASSERT_FALSE(check_in_arg("[a]", "a"));
+    CU_ASSERT_TRUE(check_in_arg("[a]", "[a]"));
+    CU_ASSERT_FALSE(check_in_arg("[k]", "[a]"));
+    CU_ASSERT_TRUE(check_in_arg("[a]", "[?]"));
+    CU_ASSERT_TRUE(check_in_arg("[k]", "[?]"));
 }
 
 void test_check_in_args(void) {
@@ -245,7 +206,7 @@ void test_check_in_args(void) {
     CU_ASSERT_FALSE(check_in_args(csound, "akiSakiS", "akiSakiSa"));
     
     CU_ASSERT_TRUE(check_in_args(csound, "cc", "kkoM"));
-    CU_ASSERT_TRUE(check_in_args(csound, "[k;kk", "[?;?M"));
+    CU_ASSERT_TRUE(check_in_args(csound, "[k]kk", "[?]?M"));
     CU_ASSERT_TRUE(check_in_args(csound, "a", "az"));
     
 }
@@ -281,11 +242,11 @@ void test_check_out_arg(void) {
     CU_ASSERT_TRUE(check_out_arg("f", "F"));
 
     //array
-    CU_ASSERT_FALSE(check_out_arg("a", "[a;"));
-    CU_ASSERT_FALSE(check_out_arg("[a;", "a"));
-    CU_ASSERT_TRUE(check_out_arg("[a;", "[a;"));
-    CU_ASSERT_FALSE(check_out_arg("[k;", "[a;"));
-    CU_ASSERT_TRUE(check_out_arg("[a;", "[?;"));
+    CU_ASSERT_FALSE(check_out_arg("a", "[a]"));
+    CU_ASSERT_FALSE(check_out_arg("[a]", "a"));
+    CU_ASSERT_TRUE(check_out_arg("[a]", "[a]"));
+    CU_ASSERT_FALSE(check_out_arg("[k]", "[a]"));
+    CU_ASSERT_TRUE(check_out_arg("[a]", "[?]"));
 
 }
 
@@ -320,9 +281,7 @@ int main()
     }
     
     /* add the tests to the suite */
-    if ((NULL == CU_add_test(pSuite, "Test convertArrayName()", test_convertArrayName))
-        || (NULL == CU_add_test(pSuite, "Test addDimensionToArrayName()", test_addDimensionToArrayName))
-        || (NULL == CU_add_test(pSuite, "Test find_opcode2()", test_find_opcode2))
+    if ((NULL == CU_add_test(pSuite, "Test find_opcode2()", test_find_opcode2))
         || (NULL == CU_add_test(pSuite, "Test resolve_opcode()", test_resolve_opcode))
         || (NULL == CU_add_test(pSuite, "Test find_opcode_new()", test_find_opcode_new))
         || (NULL == CU_add_test(pSuite, "Test check_out_arg()", test_check_out_arg))
