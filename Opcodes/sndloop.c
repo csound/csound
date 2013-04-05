@@ -379,8 +379,8 @@ static int flooper_process(CSOUND *csound, flooper *p)
       /* this is the loop section */
       else {
         if (loop_off) {
-          ndx -= end;
-          tndx -= end;
+          while(ndx >= end) ndx -= end;
+          tndx = (int) ndx;
           /* wrap-around, if reading backwards */
           while (tndx < 0) tndx += durs;
         }

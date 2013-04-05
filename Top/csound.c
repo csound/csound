@@ -408,15 +408,6 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
-
-    /*
-    csoundSetInputChannelCallback,
-    csoundSetOutputChannelCallback,
-    csoundSetControlChannelHints,
-    csoundGetControlChannelHints,
-    */
-
-    /* NULL, */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
