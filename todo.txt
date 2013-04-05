@@ -40,6 +40,7 @@ reader opcodes need to accept them.
 9) csoundInputMessage() is broken. *** FIXED ***
 
 10) check changing p3 works with early ending code, and event/scedule
+    ***done***
 
 11) realtime priority mode
   -  asynchronous disk access IO mechanism. *** DONE *** soundin, fout, foutk, fin,

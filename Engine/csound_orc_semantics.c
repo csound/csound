@@ -402,7 +402,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 
     default:
       csoundWarning(csound, Str("Unknown arg type: %d\n"), tree->type);
-//            print_tree(csound, "Arg Tree\n", tree);
+            print_tree(csound, "Arg Tree\n", tree);
       return NULL;
     }
 }
@@ -540,9 +540,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return cs_strdup(csound, c);
 
       } else {
-
-
-
+        return argTypeRight;
       }
 
     }
@@ -668,7 +666,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         default:
             csoundWarning(csound, Str("Unknown arg type: %d\n"), tree->type);
-            //            print_tree(csound, "Arg Tree\n", tree);
+                        print_tree(csound, "Arg Tree\n", tree);
             return NULL;
     }
 }
@@ -2241,6 +2239,9 @@ void handle_optional_args(CSOUND *csound, TREE *l)
       TREE * temp;
       char** inArgParts = NULL;
 
+      if (ep==NULL) { /* **** FIXME **** */
+        printf("THIS SHOULD NOT HAPPEN -- ep NULL %s(%d)\n", __FILE__, __LINE__);
+      }
       if (ep->intypes != NULL) {
         nreqd = argsRequired(ep->intypes);
         inArgParts = splitArgs(csound, ep->intypes);
