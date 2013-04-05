@@ -2241,6 +2241,9 @@ void handle_optional_args(CSOUND *csound, TREE *l)
       TREE * temp;
       char** inArgParts = NULL;
 
+      if (ep==NULL) { /* **** FIXME **** */
+        printf("THIS SHOULD NOT HAPPEN -- ep NULL %s(%d)\n", __FILE__, __LINE__);
+      }
       if (ep->intypes != NULL) {
         nreqd = argsRequired(ep->intypes);
         inArgParts = splitArgs(csound, ep->intypes);
