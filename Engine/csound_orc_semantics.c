@@ -1774,63 +1774,6 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     return ans;
 }
 
-/** Utility function to rewrite array names from xxx to [xxx, as csound
- *  uses first letter to denote type.  Also handles if name starts with g;
- *  used by parser (csound_orc.y)
- */
-PUBLIC char* convertArrayName(CSOUND* csound, char* arrayName) {
-    if (arrayName == NULL) {
-      return NULL;
-    }
-    {
-      int len = strlen(arrayName);
-      char* newArrayName;
-      if (len == 0) {
-        return NULL;
-      }
-
-      newArrayName = mmalloc(csound, (len + 3)* sizeof(char));
-      if (arrayName[0] == 'g') {
-        newArrayName[0] = 'g';
-        newArrayName[1] = '[';
-        newArrayName[2] = arrayName[1];
-        newArrayName[3] = ']';
-        memcpy(newArrayName + 4, arrayName + 2, len - 2);
-      } else {
-        newArrayName[0] = '[';
-        newArrayName[1] = arrayName[0];
-        newArrayName[2] = ']';
-        memcpy(newArrayName + 3, arrayName + 1, len - 1);
-      }
-      newArrayName[len + 2] = 0;
-
-      return newArrayName;
-    }
-}
-
-PUBLIC char* addDimensionToArrayName(CSOUND* csound, char* arrayName) {
-    if(arrayName == NULL) {
-        return NULL;
-    }
-    int len = strlen(arrayName);
-
-    if(len == 0) {
-        return NULL;
-    }
-
-    char* newArrayName = mmalloc(csound, (len + 2)* sizeof(char));
-    if(arrayName[0] == 'g') {
-        newArrayName[0] = 'g';
-        newArrayName[1] = '[';
-        memcpy(newArrayName + 2, arrayName + 1, len - 1);
-    } else {
-        newArrayName[0] = '[';
-        memcpy(newArrayName + 1, arrayName , len);
-    }
-    newArrayName[len + 1] = 0;
-
-    return newArrayName;
-}
 
 /** Utility function to create assignment statements
  *  Replaces = with correct version for args
