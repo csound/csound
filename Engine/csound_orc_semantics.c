@@ -1775,35 +1775,6 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     return ans;
 }
 
-
-/** Utility function to create assignment statements
- *  Replaces = with correct version for args
- */
-char* get_assignment_type(CSOUND *csound, char * ans, TREE* arg1) {
-    char c = argtyp2( ans);
-    char* str = (char*)mcalloc(csound, 65);
-
-    switch (c) {
-    case 'S':
-      strcpy(str, "strcpy");
-      break;
-    case 'a':
-      c = argtyp2( arg1->value->lexeme);
-      strcpy(str, (c == 'a' ? "=.a" : "upsamp"));
-      /* strcpy(str, "=.a"); */
-      break;
-    case 'p':
-      c = 'i'; /* purposefully fall through */
-    default:
-      sprintf(str, "=.%c", c);
-    }
-
-    if (PARSER_DEBUG)
-      csound->Message(csound, "Found Assignment type: %s\n", str);
-
-    return str;
-}
-
 void delete_tree(CSOUND *csound, TREE *l)
 {
     while (1) {

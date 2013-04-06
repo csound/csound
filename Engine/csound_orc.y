@@ -325,9 +325,6 @@ topstatement : rident '=' expr NEWLINE
                   TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
                   ans->left = (TREE *)$1;
                   ans->right = (TREE *)$3;
-                  /* ans->value->lexeme = get_assignment_type(csound,
-                      ans->left->value->lexeme, ans->right->value->lexeme); */
-
                   $$ = ans;
                 }
                 | statement { $$ = $1; }
@@ -339,8 +336,6 @@ statement : ident '=' expr NEWLINE
                   TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
                   ans->left = (TREE *)$1;
                   ans->right = (TREE *)$3;
-                  /* ans->value->lexeme = get_assignment_type(csound,
-                     ans->left->value->lexeme, ans->right->value->lexeme); */
                   //print_tree(csound, "=", ans);
                   $$ = ans;
                   csp_orc_sa_global_read_write_add_list(csound,
