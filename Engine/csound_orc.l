@@ -77,6 +77,7 @@ STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
+XIDENT          0|[aijkftKOVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
 WHITE           [ \t]+
@@ -90,6 +91,8 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 %x line
 %x src
 %x xstr
+%x udodef
+%x udoarg
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
@@ -343,7 +346,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "endin"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ENDIN_TOKEN;
                   return ENDIN_TOKEN; }
-"opcode"        {
+"opcode"        { BEGIN(udodef);
                   return UDOSTART_DEFINITION;
                 }
 "endop"         {
@@ -393,6 +396,29 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
+
+<udodef>{WHITE} { } 
+<udodef>{IDENT} { BEGIN(udoarg);
+                  *lvalp = lookup_token(csound, yytext, yyscanner);
+                  /* csound->Message(csound,"%s -> %d\n",
+                                     yytext, (*lvalp)->type); */
+                  return (*lvalp)->type; }
+<udoarg>","{OPTWHITE}"\n"? {
+                     if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                     return ','; 
+                   }
+<udoarg>{XIDENT} { BEGIN(udoarg);
+                  *lvalp = lookup_token(csound, yytext, yyscanner);
+                  /* csound->Message(csound,"%s -> %d\n",
+                                     yytext, (*lvalp)->type); */
+                  return (*lvalp)->type; }
+<udoarg>"\n"     { BEGIN(INITIAL);
+                   csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                        yyscanner);
+                  return NEWLINE; }
+
 
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (STRING_TOKEN); }
 
