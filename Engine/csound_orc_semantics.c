@@ -1405,6 +1405,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                     leftArgString, root->value->lexeme, rightArgString);
       csoundMessage(csound, "Line: %d Loc: %d\n",
                     root->line, root->locn);
+      return 0;
     } else {
         root->markup = oentry;
     }
