@@ -67,13 +67,26 @@ Opcodes like add, sub, mul and div are no longer available in opcode
 format, only via + - * /
 
 
-Functions of two arguments taninv2 and divz now exist as well as opcodes
+Any opcode that returns one answer and whose type is the same as the
+first arument can be used as a function.  This incorporates all
+functions in CS5, but also functions of two arguments such as taninv2
+and divz, and opcodes like oscil.
 
 
-Arrays....
+A statement can be broken accros lines after a , = or arithmetic
+operation.
 
 
-Real-time mode....
+Arrays exist in numtidimentional format.  They are created (usually)
+with init opcode.
+  k1[]  init 4
+generates a k-rate 1-D array of length 4.  Similarly
+  a2[][] init 4,4
+create a square 4x4 a-rate array.
+Elements are used via indexing in [] such as k1[2] or a2[2][3]
+One dimensional arrays replace tvars, and can be used in opcodes like
+maxta, mintab and sumtab.
+
 
 The new realtime priority mode can be switched on with by passing the
 --realtime or setting the CSOUND_PARAMS field realtime_mode to 1.
@@ -82,8 +95,6 @@ This has the following effects:
 1) all opcode audio file reading/writing is handled asynchronously by
 a separate thread
 2) all init-pass operations are also performed asynchronously.
-
-Asynchronous file access....
 
 Functions for asynchronous audio file access have been added (see
 below)
