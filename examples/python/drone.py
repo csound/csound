@@ -564,9 +564,9 @@ class Application(Frame):
 				f = self.configuration.gkDistortTableFactor
 				message = 'f  2  0  65536  13  1  %f  0  %f  0  %f\n' % (f * 1.0, f * 2.0, f * 3.0)
 				self.csound.inputMessage(message)
-				#self.csound.SetChannel("gkDistortFactor",           float(self.gkDistortFactor.get()))
-				#self.csound.SetChannel("gkReverbscFeedback",        float(self.gkReverbscFeedback.get()))        
-				#self.csound.SetChannel("gkMasterLevel",             float(self.gkMasterLevel.get()))
+				self.csound.SetChannel("gkDistortFactor",           float(self.gkDistortFactor.get()))
+				self.csound.SetChannel("gkReverbscFeedback",        float(self.gkReverbscFeedback.get()))        
+				self.csound.SetChannel("gkMasterLevel",             float(self.gkMasterLevel.get()))
 				# Tkinter only likes 1 thread per application.
 				# So, we hack the rules and switch back and forth between 
 				# computing sound and handling GUI events.
