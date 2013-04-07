@@ -1528,6 +1528,9 @@ char argtyp2(char *s)
         c = *(++s);
       }
     }
+    if (c == 't') { /* Support legacy t-vars by mapping to k subtypes */
+        return 'k';
+    }
     if (strchr("akiBbfSt", c) != NULL)
       return(c);
     else return('?');

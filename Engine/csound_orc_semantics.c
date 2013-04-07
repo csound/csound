@@ -124,7 +124,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
     case S_A2K:
       return "vaget";
     case T_ARRAY:
-      return "array_get";
+      return "##array_get";
     }
     csound->Warning(csound, Str("Unknown function type found: %d [%c]\n"),
                     tree->type, tree->type);
@@ -165,6 +165,9 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
     if (*t == '#') t++;
     if (*t == 'g') t++;
 
+    if (*t == 't') { /* Support legacy t-vars by mapping to k subtypes */
+        return cs_strdup(csound, "k");
+    }
 
     while (*t == '[') {
       t++;
@@ -368,6 +371,10 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
         return retVal;
       }
 
+      if (*s == 't') { /* Support legacy t-vars by mapping to k subtypes */
+        return cs_strdup(csound, "[k]");
+      }
+            
       if (*s != 'c') { // <- FIXME: this is here because labels are not
                        //           checked correctly at the moment
         type = csoundGetTypeForVarName(csound->typePool, s);
@@ -614,6 +621,10 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                 return cs_strdup(csound, "l");
             }
 
+            if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
+                return cs_strdup(csound, "[k]");
+            }
+            
             if ((*s >= '1' && *s <= '9') || *s == '.' || *s == '-' || *s == '+' ||
                 (*s == '0' && strcmp(s, "0dbfs") != 0))
                 return cs_strdup(csound, "c");                              /* const */
@@ -649,6 +660,10 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             if (*s == '#') s++;
             if (*s == 'g') s++;
 
+            if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
+                return cs_strdup(csound, "[k]");
+            }
+            
             t = s;
 
             int len = 1;
@@ -1241,7 +1256,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
       if (*t == '#') t++;
       if (*t == 'g') t++;
 
-      if(*t == '[') {
+      if(*t == '[' || *t == 't') { /* Support legacy t-vars */
         int dimensions = 1;
         CS_TYPE* varType;
         char* b = t + 1;
@@ -1250,7 +1265,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
           b++;
           dimensions++;
         }
-        argLetter[0] = *b;
+        argLetter[0] = (*b == 't') ? 'k' : *b; /* Support legacy t-vars */
 
         varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
 
@@ -1259,7 +1274,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
         typeArg = &varInit;
       }
 
-      argLetter[0] = *t;
+      argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
 
       type = csoundGetTypeForVarName(csound->typePool, argLetter);
 
@@ -1293,7 +1308,7 @@ void add_array_arg(CSOUND* csound, char* varName, int dimensions, TYPE_TABLE* ty
         if (*t == '#') t++;
         if (*t == 'g') t++;
 
-        argLetter[0] = *t;
+        argLetter[0] = (*t == 't') ? 'k' : *t; /* Support legacy t-vars */
 
         varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
 
@@ -1333,7 +1348,13 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       case LABEL_TOKEN:
       case T_IDENT:
         varName = current->value->lexeme;
-        add_arg(csound, varName, typeTable);
+              
+        if(*varName == 't') { /* Support legacy t-vars */
+          add_array_arg(csound, varName, 1, typeTable);
+        } else {
+          add_arg(csound, varName, typeTable);
+        }
+            
         break;
 
       case T_ARRAY:

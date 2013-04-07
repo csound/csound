@@ -71,7 +71,7 @@ char *create_out_arg(CSOUND *csound, char outype, TYPE_TABLE* typeTable)
     case 'k': sprintf(s, "#k%d", csound->kcount++); break;
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
-    case 't': sprintf(s, "#t%d", csound->tcount++); break;
+    case 't': sprintf(s, "#k%d", csound->tcount++); break;
     case 'S': sprintf(s, "#S%d", csound->tcount++); break;
     default:  sprintf(s, "#i%d", csound->icount++); break;
     }
@@ -464,7 +464,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
       break;
     case S_TABRANGE:
       strncpy(op, "#tabgen", 80);
-      outarg = create_out_arg(csound, 't', typeTable);
+      outarg = create_out_arg(csound, 'k', typeTable);
       break;
     case S_TABSLICE:
       strncpy(op, "#tabslice", 80);
@@ -476,13 +476,13 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
       strncpy(op, "#tabmap", 80);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found TABMAP: %s\n", op);
-      outarg = create_out_arg(csound, 't', typeTable);
+      outarg = create_out_arg(csound, 'k', typeTable);
       break;
     case T_MAPI:
       strncpy(op, "#tabmapo_i", 80);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found TABMAP: %s\n", op);
-      outarg = create_out_arg(csound, 't', typeTable);
+      outarg = create_out_arg(csound, 'k', typeTable);
       break;
     case T_FUNCTION: /* assumes only single arg input */
       c = arg2;
