@@ -75,7 +75,7 @@ namespace csound
     cppSound->addScoreLine(buffer);
     //std::sprintf(buffer, "\ne %9.3f", extendSeconds);
     //cppSound->addScoreLine(buffer);
-    cppSound->exportForPerformance();
+    //cppSound->exportForPerformance();
   }
 
   int MusicModel::perform()

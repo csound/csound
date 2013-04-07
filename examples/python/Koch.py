@@ -148,7 +148,7 @@ csound.addScoreLine("i 100 0 -1")
 
 # Export the orchestra and generated score for performance.
 
-csound.exportForPerformance()
+#csound.exportForPerformance()
 
 # Perform the generated score with the embedded orchestra.
 
