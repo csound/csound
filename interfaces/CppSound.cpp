@@ -19,6 +19,11 @@
  */
 #include "CppSound.hpp"
 
+#if !defined(__BUILDING_LIBCSOUND)
+#define __BUILDING_LIBCSOUND
+#endif
+#include <csoundCore.h>
+
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -43,8 +48,15 @@ CppSound::~CppSound()
 int CppSound::compile(int argc, char **argv_)
 {
   Message("BEGAN CppSound::compile(%d, %p)...\n", argc, argv_);
+  int returnValue = 0;
+  argv.push_back("");
+  //int returnValue = Compile(argc, argv_);
   go = false;
-  int returnValue = Compile(argc, argv_);
+  csound->orcname_mode = 0;
+  returnValue = csoundCompileOrc(csound, getOrchestra().c_str());
+  returnValue = csoundReadScore(csound, const_cast<char *>(getScore().c_str()));
+  returnValue = argdecode(csound, args.size(), &argv.front());
+  returnValue = csoundStart(csound);
   spoutSize = GetKsmps() * GetNchnls() * sizeof(MYFLT);
   if(returnValue)
     {
@@ -71,14 +83,9 @@ int CppSound::compile()
       Message("No Csound command.\n");
       return 0;
     }
-  int returnValue = 0;
   scatterArgs(getCommand(), const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
   // Changed to use internal orc and sco.
-  //int returnValue = compile(args.size(), &argv.front());
-  returnValue = argdecode(csound, args.size(), &argv.front());
-  returnValue = csoundCompileOrc(csound, getOrchestra().c_str());
-  returnValue = csoundReadScore(csound, const_cast<char *>(getScore().c_str()));
-  returnValue = csoundStart(csound);
+  int returnValue = compile(args.size(), &argv.front());
   Message("ENDED CppSound::compile.\n");
   return returnValue;
 }
