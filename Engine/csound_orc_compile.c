@@ -1528,6 +1528,9 @@ char argtyp2(char *s)
         c = *(++s);
       }
     }
+    if (c == 't') { /* Support legacy t-vars by mapping to k subtypes */
+        return 'k';
+    }
     if (strchr("akiBbfSt", c) != NULL)
       return(c);
     else return('?');
@@ -1596,8 +1599,14 @@ void debugPrintCsound(CSOUND* csound)
         CS_VARIABLE* var = current->varPool->head;
         int index = 0;
         while(var != NULL) {
-          csound->Message(csound, "  %d) %s:%s\n", index++,
-                          var->varName, var->varType->varTypeName);
+          if (var->varType == &CS_VAR_TYPE_ARRAY) {
+            csound->Message(csound, "  %d) %s:[%s]\n", index++,
+                            var->varName, var->subType->varTypeName);
+          } else {
+            csound->Message(csound, "  %d) %s:%s\n", index++,
+                            var->varName, var->varType->varTypeName);
+          }
+
           var = var->next;
         }
       }
