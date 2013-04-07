@@ -888,7 +888,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     return 0;
 }
 
-int argdecode(CSOUND *csound, int argc, char **argv_)
+PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
 {
     OPARMS  *O = csound->oparms;
     char    *s, **argv;

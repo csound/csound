@@ -1,3 +1,5 @@
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 #include "assert.h"
 #include "stdlib.h"
 #include "string.h"
