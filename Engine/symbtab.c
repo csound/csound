@@ -51,11 +51,6 @@ int get_opcode_type(OENTRY *ep)
 {
     int retVal = 0;
 
-//    if ((ep->outypes == NULL || strlen(ep->outypes) == 0) &&
-//       (ep->intypes == NULL || strlen(ep->intypes) == 0)) {
-//        retVal = T_OPCODE00;
-//    } else
-
     if (ep->outypes == NULL || strlen(ep->outypes) == 0) {
       retVal = T_OPCODE0;
     }
@@ -95,11 +90,6 @@ void init_symbtab(CSOUND *csound)
 
           mfree(csound, polyName);
 
-//        if (strchr(ep->opname, '.') != NULL) {
-//           csound->Message(csound,
-//                   "Found PolyMorphic Opcode Definition %s\n",ep->opname);
-//        }
-
         }
         else {
 //            csound->Message(csound, "Found Regular Opcode %s\n",ep->opname);
@@ -109,87 +99,6 @@ void init_symbtab(CSOUND *csound)
 
     }
 
-
-    /* This adds all the T_FUNCTION tokens.  These should only be
-     * looked up in context when parsing a expression list (not yet done)
-     * and perhaps a more intelligent way needs to be done eventually to
-     * look up opcodes which can serve as functions, as well as for allowing
-     * multiple arguments to functions
-     */
-//    add_token(csound, "int", T_FUNCTION);
-//    add_token(csound, "frac", T_FUNCTION);
-//    add_token(csound, "round", T_FUNCTION);
-//    add_token(csound, "floor", T_FUNCTION);
-//    add_token(csound, "ceil", T_FUNCTION);
-//    add_token(csound, "rnd", T_FUNCTION);
-//    add_token(csound, "birnd", T_FUNCTION);
-//    add_token(csound, "abs", T_FUNCTION);
-//    add_token(csound, "exp", T_FUNCTION);
-//    add_token(csound, "log", T_FUNCTION);
-//    add_token(csound, "sqrt", T_FUNCTION);
-//    add_token(csound, "sin", T_FUNCTION);
-//    add_token(csound, "cos", T_FUNCTION);
-//    add_token(csound, "tan", T_FUNCTION);
-//    add_token(csound, "sininv", T_FUNCTION);
-//    add_token(csound, "cosinv", T_FUNCTION);
-//    add_token(csound, "taninv", T_FUNCTION);
-//    add_token(csound, "log10", T_FUNCTION);
-//    add_token(csound, "log2", T_FUNCTION);
-//    add_token(csound, "sinh", T_FUNCTION);
-//    add_token(csound, "cosh", T_FUNCTION);
-//    add_token(csound, "tanh", T_FUNCTION);
-//    add_token(csound, "ampdb", T_FUNCTION);
-//    add_token(csound, "ampdbfs", T_FUNCTION);
-//    add_token(csound, "dbamp", T_FUNCTION);
-//    add_token(csound, "dbfsamp", T_FUNCTION);
-//    add_token_p(csound, "ftcps", T_FUNCTION, TR);
-//    add_token_p(csound, "ftlen", T_FUNCTION, TR);
-//    add_token_p(csound, "ftsr", T_FUNCTION, TR);
-//    add_token_p(csound, "ftlptim", T_FUNCTION, TR);
-//    add_token_p(csound, "ftchnls", T_FUNCTION, TR);
-//    add_token(csound, "i", T_FUNCTION);
-//    add_token(csound, "k", T_FUNCTION);
-//    add_token(csound, "cpsoct", T_FUNCTION);
-//    add_token(csound, "octpch", T_FUNCTION);
-//    add_token(csound, "cpspch", T_FUNCTION);
-//    add_token(csound, "pchoct", T_FUNCTION);
-//    add_token(csound, "octcps", T_FUNCTION);
-//    add_token_p(csound, "nsamp", T_FUNCTION, TR);
-//    add_token(csound, "powoftwo", T_FUNCTION);
-//    add_token(csound, "logbtwo", T_FUNCTION);
-//    add_token(csound, "a", T_FUNCTION);
-//    add_token_p(csound, "tb0", T_FUNCTION, TR);
-//    add_token_p(csound, "tb1", T_FUNCTION, TR);
-//    add_token_p(csound, "tb2", T_FUNCTION, TR);
-//    add_token_p(csound, "tb3", T_FUNCTION, TR);
-//    add_token_p(csound, "tb4", T_FUNCTION, TR);
-//    add_token_p(csound, "tb5", T_FUNCTION, TR);
-//    add_token_p(csound, "tb6", T_FUNCTION, TR);
-//    add_token_p(csound, "tb7", T_FUNCTION, TR);
-//    add_token_p(csound, "tb8", T_FUNCTION, TR);
-//    add_token_p(csound, "tb9", T_FUNCTION, TR);
-//    add_token_p(csound, "tb10", T_FUNCTION, TR);
-//    add_token_p(csound, "tb11", T_FUNCTION, TR);
-//    add_token_p(csound, "tb12", T_FUNCTION, TR);
-//    add_token_p(csound, "tb13", T_FUNCTION, TR);
-//    add_token_p(csound, "tb14", T_FUNCTION, TR);
-//    add_token_p(csound, "tb15", T_FUNCTION, TR);
-//    add_token_p(csound, "urd", T_FUNCTION, TR);
-//    add_token(csound, "not", T_FUNCTION);
-//    add_token(csound, "cent", T_FUNCTION);
-//    add_token(csound, "octave", T_FUNCTION);
-//    add_token(csound, "semitone", T_FUNCTION);
-//    add_token(csound, "cpsmidinn", T_FUNCTION);
-//    add_token(csound, "octmidinn", T_FUNCTION);
-//    add_token(csound, "pchmidinn", T_FUNCTION);
-//    add_token(csound, "db", T_FUNCTION);
-//    add_token(csound, "p", T_FUNCTION);
-//    add_token(csound, "qinf", T_FUNCTION);
-//    add_token(csound, "qnan", T_FUNCTION);
-//    add_token(csound, "##error", T_FUNCTION);
-//    add_token(csound, "lentab", T_FUNCTION);
-//    add_token(csound, "taninv2", T_FUNCTION);
-//    add_token(csound, "divz", T_FUNCTION);
 }
 
 static unsigned int hash(char *s)
@@ -316,17 +225,6 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       }
       a = a->next;
     }
-    if (s[0]=='t') {
-      /* Special case to map t-vars to new k-arrays */
-      char *ss = (char*)malloc(strlen(s)+2);
-      ss[0] = 'k';
-      ss[1] = '#';
-      strcpy(&ss[2], s);
-      //printf("t-var: %s -> %s\n", s, ss);
-      ans = lookup_token(csound, ss, yyscanner);
-      free(ss);
-      return ans;
-    }
 
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
@@ -340,39 +238,6 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         return ans;
     }
 
-//    // NEED TO FIX: In case of looking for label for kgoto or other opcodes, need
-//    // to return T_IDENT instead of any sub-type
-//    // Currently fixed by definition of label non-terminal
-//    switch (s[0]) {
-//    case 'S': type = T_IDENT_S; break;
-//    case 'a': type = T_IDENT_A; break;
-//    case 'f': type = T_IDENT_F; break;
-//    case 'i': type = T_IDENT_I; break;
-//    case 'k': type = T_IDENT_K; break;
-//    case 'p': type = T_IDENT_P; break;
-//    case 't': type = T_IDENT_T; break;
-//    case 'w': type = T_IDENT_W; break;
-//    case'g':
-//      switch (s[1]) {
-//      case 'i': type = T_IDENT_GI; break;
-//      case 'k': type = T_IDENT_GK; break;
-//      case 'a': type = T_IDENT_GA; break;
-//      case 'f': type = T_IDENT_GF; break;
-//      case 'w': type = T_IDENT_GW; break;
-//      case 't': type = T_IDENT_GT; break;
-//      case 'S': type = T_IDENT_GS; break;
-//      /* default:  */
-//      /*   csound->Message(csound, Str("Unknown word type for %s on line %d\n"), */
-//      /*                   s, csound_orcget_lineno(yyscanner)); */
-//      /*   exit(1); */
-//      }
-//    default: /*
-//      csound->DebugMsg(csound,"IDENT Token: %i : %i", ans->type, T_IDENT);
-//      csound->DebugMsg(csound,"Unknown word type for %s on line %d\n", s, yyline);
-//      exit(1);
-//             */
-//      break;
-//    }
     ans->type = type;
     //symbtab[h] = ans;
 
