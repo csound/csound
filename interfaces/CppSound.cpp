@@ -23,6 +23,8 @@
 #include <cstring>
 #include <ctime>
 
+extern "C" int argdecode(CSOUND *csound, int argc, char **argv_);
+
 /*CppSound::CppSound() : Csound(),
                        go(false),
                        isCompiled(false),
@@ -69,8 +71,14 @@ int CppSound::compile()
       Message("No Csound command.\n");
       return 0;
     }
+  int returnValue = 0;
   scatterArgs(getCommand(), const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
-  int returnValue = compile(args.size(), &argv.front());
+  // Changed to use internal orc and sco.
+  //int returnValue = compile(args.size(), &argv.front());
+  returnValue = argdecode(csound, args.size(), &argv.front());
+  returnValue = csoundCompileOrc(csound, getOrchestra().c_str());
+  returnValue = csoundReadScore(csound, const_cast<char *>(getScore().c_str()));
+  returnValue = csoundStart(csound);
   Message("ENDED CppSound::compile.\n");
   return returnValue;
 }
