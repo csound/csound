@@ -50,9 +50,9 @@ int CppSound::compile(int argc, char **argv_)
   Message("BEGAN CppSound::compile(%d, %p)...\n", argc, argv_);
   int returnValue = 0;
   argv.push_back("");
-  //int returnValue = Compile(argc, argv_);
   go = false;
   csound->orcname_mode = 0;
+  // Changed to use only internally stored Csound orchestra and score.
   returnValue = csoundCompileOrc(csound, getOrchestra().c_str());
   returnValue = csoundReadScore(csound, const_cast<char *>(getScore().c_str()));
   returnValue = argdecode(csound, args.size(), &argv.front());
@@ -84,7 +84,6 @@ int CppSound::compile()
       return 0;
     }
   scatterArgs(getCommand(), const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
-  // Changed to use internal orc and sco.
   int returnValue = compile(args.size(), &argv.front());
   Message("ENDED CppSound::compile.\n");
   return returnValue;
