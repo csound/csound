@@ -119,8 +119,19 @@ def runTest():
 	["test_invalid_ternary.csd", "test expression", 1],
 
 	["test_opcode_as_function.csd", "test expression"],
-   ]
+    ]
 
+    arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
+        ["arrays/arrays_i_global.csd", "global i[]"],
+        ["arrays/arrays_k_local.csd", "local k[]"],
+        ["arrays/arrays_k_global.csd", "global k[]"],
+        ["arrays/arrays_a_local.csd", "local a[]"],
+        ["arrays/arrays_a_global.csd", "global a[]"],
+        ["arrays/arrays_S_local.csd", "local S[]"],
+        ["arrays/arrays_S_global.csd", "global S[]"],
+    ]
+
+    tests += arrayTests
 
     output = ""
     tempfile = "/tmp/csound_test_output.txt"
