@@ -291,12 +291,9 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         break;
       case '[':
         types++;
-        
-        if (*types == 'k'){
           kv_incnt++;
           *otypes++ = *(types-1);
           *otypes++ = *(types);*otypes++ = *(types+1);
-	}
         types++;
         break;
       case 'i':
@@ -346,8 +343,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         break;
       case '[':
         types++;
-        if (*types == 'k')
-          kv_outcnt++; *otypes++ = *(types-1);
+        kv_outcnt++; *otypes++ = *(types-1);
           *otypes++ = *(types); *otypes++ = *(types+1);
         types++;
         break;
