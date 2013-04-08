@@ -9,16 +9,16 @@ opcode Test,k,[k]
 
 kS[] xin
 k1 = kS[0]
-   xout ks1
+   xout k1
 
 endop
 
 instr 1
 
-;kS[] init 2
-; ks[0] = 1
-;k2 Test kS[]
-   ;printk2 k2
+kS[] init 2
+ks[0] = 1
+k2 Test kS
+   printk2 k2
 
 endin
 
