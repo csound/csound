@@ -46,7 +46,9 @@
                 U       String or i/k-rate
                 B       Boolean
                 l       Label
+                .       required arg of any-type
      and codes
+                ?       optional arg of any-type
                 m       begins an indef list of iargs (any count)
                 M       begins an indef list of args (any count/rate i,k,a)
                 N       begins an indef list of args (any count/rate i,k,a,S)
@@ -66,6 +68,7 @@
                 Z       begins alternating kakaka...list (any count)    */
 
 /* outarg types include:
+                *       multiple out args of any-type
                 m       multiple out aargs
                 z       multiple out kargs
                 I       multiple out irate (not implemented yet)
@@ -96,19 +99,19 @@ OENTRY opcodlst_1[] = {
     /* and setksmps */
     { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
     /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-    { "xin",      S(XIN_LOW),0,   1,  "?", "",  xinset,  NULL, NULL },   
+    { "xin",      S(XIN_LOW),0,   1,  "****************", "",  xinset,  NULL, NULL },   
     { "##xin64",   S(XIN_HIGH),0,  1,
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+        "****************************************************************", "",
         xinset,  NULL, NULL },
     { "##xin256",  S(XIN_MAX),0,   1,
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+        "****************************************************************"
+        "****************************************************************"
+        "****************************************************************"
+        "****************************************************************", "",
         xinset,  NULL, NULL },
-    { "xout",     S(XOUT_LOW),0,  1,  "",                 "?", xoutset, NULL, NULL },
-    { "##xout64",  S(XOUT_HIGH),0, 1,  "",                 "N", xoutset, NULL, NULL },
-    { "##xout256", S(XOUT_MAX),0,  1,  "",                 "N", xoutset, NULL, NULL },
+    { "xout",     S(XOUT_LOW),0,  1,  "",                 "*", xoutset, NULL, NULL },
+    { "##xout64",  S(XOUT_HIGH),0, 1,  "",                 "*", xoutset, NULL, NULL },
+    { "##xout256", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL, NULL },
     { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
 
   { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL, 0 },

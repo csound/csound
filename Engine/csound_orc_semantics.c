@@ -727,11 +727,11 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
 }
 
 inline static int is_in_optional_arg(char arg) {
-    return (strchr("opqvjhOJVP", arg) != NULL);
+    return (strchr("opqvjhOJVP?", arg) != NULL);
 }
 
 inline static int is_in_var_arg(char arg) {
-    return (strchr("mMNnyzZ", arg) != NULL);
+    return (strchr("mMNnyzZ*", arg) != NULL);
 }
 
 int check_array_arg(char* found, char* required) {
@@ -740,7 +740,7 @@ int check_array_arg(char* found, char* required) {
 
     while(*r == '[') r++;
 
-    if (*r == '?') {
+    if (*r == '.' || *r == '?' || r == '*') {
       return 1;
     }
 
@@ -767,8 +767,8 @@ PUBLIC int check_in_arg(char* found, char* required) {
       return check_array_arg(found, required);
     }
 
-    if (*required == '?') {
-      return 1;
+    if (*required == '.' || *required == '?' || *required == '*') {
+        return 1;
     }
 
     t = (char*)POLY_IN_TYPES[0];
@@ -878,7 +878,7 @@ PUBLIC int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 }
 
 inline static int is_out_var_arg(char arg) {
-    return (strchr("mzIXNF", arg) != NULL);
+    return (strchr("mzIXNF*", arg) != NULL);
 }
 
 PUBLIC int check_out_arg(char* found, char* required) {
@@ -901,7 +901,7 @@ PUBLIC int check_out_arg(char* found, char* required) {
       return check_array_arg(found, required);
     }
 
-    if (*required == '?') {
+    if (*required == '.' || *required == '?' || *required == '*') {
       return 1;
     }
 
