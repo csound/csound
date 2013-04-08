@@ -411,7 +411,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'a': *a_outlist++ = i; break;
         case 'k': *k_outlist++ = i; break;
         case 'f': *f_outlist++ = i; break;
-        case '[': 
+        case '[':
           types++;
         if (*types == 'k')
             *kv_outlist++ = i; types++; break;

@@ -374,7 +374,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
       if (*s == 't') { /* Support legacy t-vars by mapping to k subtypes */
         return cs_strdup(csound, "[k]");
       }
-            
+
       if (*s != 'c') { // <- FIXME: this is here because labels are not
                        //           checked correctly at the moment
         type = csoundGetTypeForVarName(csound->typePool, s);
@@ -482,7 +482,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       }
 
       if (tree->type == T_FUNCTION) {
-          char* argTypeRight = get_arg_string_from_tree(csound, 
+          char* argTypeRight = get_arg_string_from_tree(csound,
                                                         tree->right, typeTable);
           char* opname = tree->value->lexeme;
           OENTRIES* entries = find_opcode2(csound, opname);
@@ -624,7 +624,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
                 return cs_strdup(csound, "[k]");
             }
-            
+
             if ((*s >= '1' && *s <= '9') || *s == '.' || *s == '-' || *s == '+' ||
                 (*s == '0' && strcmp(s, "0dbfs") != 0))
                 return cs_strdup(csound, "c");                              /* const */
@@ -663,7 +663,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
                 return cs_strdup(csound, "[k]");
             }
-            
+
             t = s;
 
             int len = 1;
@@ -1348,13 +1348,13 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       case LABEL_TOKEN:
       case T_IDENT:
         varName = current->value->lexeme;
-              
+
         if(*varName == 't') { /* Support legacy t-vars */
           add_array_arg(csound, varName, 1, typeTable);
         } else {
           add_arg(csound, varName, typeTable);
         }
-            
+
         break;
 
       case T_ARRAY:
