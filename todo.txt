@@ -70,6 +70,14 @@ configure csound with typed system (that in turn can be inspected)
 
 rc1 aimed for 28 Feb
 
+Post RC1
+
+1) Implement csp_orc_analyze_tree() and remove csp code from csound_orc.y
+2) Complete removal of old type code and use only new type system 
+   * remove argtyp2
+   * modify add_udo_definition to use var pool, new utility functions to 
+     calculate mem pool size
+
 =====
 Speculation List
 
