@@ -113,23 +113,40 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
     ARRAYDAT* dat = p->arrayDat;
     MYFLT* mem = dat->data;
     int i;
+    int end, index, incr;
 
     int indefArgCount = p->INOCOUNT - 2;
 
-    if(indefArgCount == 0) {
-        csoundErrorMsg(csound, "Error: no indexes set for array set\n");
-        return CSOUND_ERROR;
+    if (indefArgCount == 0) {
+      csoundErrorMsg(csound, "Error: no indexes set for array set\n");
+      return CSOUND_ERROR;
     }
-    int end = indefArgCount - 1;
-    int index = MYFLT2LRND(*p->indexes[end]);
+    if (indefArgCount>dat->dimensions) 
+      return csound->PerfError(csound, 
+                               Str("Array dimension %d out of range "
+                                   "for dimensions %d\n"),
+                               indefArgCount, dat->dimensions);
+    end = indefArgCount - 1;
+    index = MYFLT2LRND(*p->indexes[end]);
+    if (index >= dat->sizes[indefArgCount] || index<0)
+      return csound->PerfError(csound, 
+                               Str("Array index %d out of range (0,%d) "
+                                   "for dimension %d\n"),
+                               index, dat->sizes[end]-1, end+1);
 
-    if(indefArgCount > 1) {
-        for (i = end - 1; i >= 0; i--) {
-            index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
-        }
+    if (indefArgCount > 1) {
+      for (i = end - 1; i >= 0; i--) {
+        int ind = MYFLT2LRND(*p->indexes[i]);
+        if (ind >= dat->sizes[i] || ind<0)
+          return csound->PerfError(csound, 
+                                   Str("Array index %d out of range (0,%d) "
+                                       "for dimension %d\n"), ind, 
+                                   dat->sizes[i]-1, i+1);
+        index += ind * dat->sizes[i + 1];
+      }
     }
 
-    int incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
+    incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     memcpy(mem, p->value, dat->arrayMemberSize);
     return OK;
@@ -148,12 +165,27 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
         csoundErrorMsg(csound, "Error: no indexes set for array get\n");
         return CSOUND_ERROR;
     }
+    if (indefArgCount>dat->dimensions) 
+      return csound->PerfError(csound, 
+                               Str("Array dimension %d out of range "
+                                   "for dimensions %d\n"),
+                               indefArgCount, dat->dimensions);
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-
+    if (index >= dat->sizes[indefArgCount] || index<0)
+      return csound->PerfError(csound, 
+                               Str("Array index %d out of range (0,%d) "
+                                   "for dimension %d\n"),
+                               index, dat->sizes[end]-1, end+1);
     if (indefArgCount > 1) {
         for (i = end - 1; i >= 0; i--) {
-            index += MYFLT2LRND(*p->indexes[i]) * dat->sizes[i + 1];
+          int ind = MYFLT2LRND(*p->indexes[i]);
+          if (ind >= dat->sizes[i] || ind<0)
+            return csound->PerfError(csound, 
+                                     Str("Array index %d out of range (0,%d) "
+                                         "for dimension %d\n"), ind,
+                                     dat->sizes[i]-1, i+1);
+          index += ind * dat->sizes[i + 1];
         }
     }
 
@@ -763,10 +795,12 @@ int tablength(CSOUND *csound, TABQUERY *p)
 static OENTRY arrayvars_localops[] =
 {
     { "init.0", sizeof(ARRAYINIT), 0, 1, "[.]", "m", (SUBR)array_init },
-    { "##array_set", sizeof(ARRAY_SET), 0, 3, "", "[.].M",
-                                              (SUBR)array_set, (SUBR)array_set },
-    { "##array_get", sizeof(ARRAY_GET), 0, 3, ".", "[.]M",
-                                              (SUBR)array_get, (SUBR)array_get },
+    { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", "[.].m", (SUBR)array_set },
+    { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", "[.].z",
+                                              NULL, (SUBR)array_set },
+    { "##array_get.i", sizeof(ARRAY_GET), 0, 1, ".", "[.].m", (SUBR)array_get },
+    { "##array_get.k", sizeof(ARRAY_GET), 0, 2, ".", "[.].z",
+      NULL, (SUBR)array_get },
 //{"##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd},
 //{"##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub},
 //{"##negtab",  sizeof(TABARITH), 0, 3, "t", "t", (SUBR)tabarithset1, (SUBR)tabneg},
