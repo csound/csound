@@ -760,15 +760,15 @@ PUBLIC int check_in_arg(char* found, char* required) {
       return 1;
     }
 
+    if (*required == '.' || *required == '?' || *required == '*') {
+        return 1;
+    }
+    
     if (*found == '[' || *required == '[') {
       if(*found != *required) {
         return 0;
       }
       return check_array_arg(found, required);
-    }
-
-    if (*required == '.' || *required == '?' || *required == '*') {
-        return 1;
     }
 
     t = (char*)POLY_IN_TYPES[0];
@@ -894,15 +894,15 @@ PUBLIC int check_out_arg(char* found, char* required) {
       return 0;
     }
 
+    if (*required == '.' || *required == '?' || *required == '*') {
+        return 1;
+    }    
+    
     if (*found == '[' || *required == '[') {
       if(*found != *required) {
         return 0;
       }
       return check_array_arg(found, required);
-    }
-
-    if (*required == '.' || *required == '?' || *required == '*') {
-      return 1;
     }
 
     if(strcmp(found, required) == 0) {
