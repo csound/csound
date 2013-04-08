@@ -178,9 +178,17 @@ void test_check_in_arg(void) {
     CU_ASSERT_TRUE(check_in_arg("k", "Z"));
     CU_ASSERT_TRUE(check_in_arg("a", "Z"));
     
+    CU_ASSERT_TRUE(check_in_arg("a", "."));
+    CU_ASSERT_TRUE(check_in_arg("k", "."));
+    CU_ASSERT_TRUE(check_in_arg("i", "."));
+
     CU_ASSERT_TRUE(check_in_arg("a", "?"));
     CU_ASSERT_TRUE(check_in_arg("k", "?"));
     CU_ASSERT_TRUE(check_in_arg("i", "?"));
+    
+    CU_ASSERT_TRUE(check_in_arg("a", "*"));
+    CU_ASSERT_TRUE(check_in_arg("k", "*"));
+    CU_ASSERT_TRUE(check_in_arg("i", "*"));
     
     //array
     CU_ASSERT_FALSE(check_in_arg("a", "[a]"));
@@ -204,7 +212,7 @@ void test_check_in_args(void) {
     CU_ASSERT_FALSE(check_in_args(csound, "akiSakiS", "akiSakiSa"));
     
     CU_ASSERT_TRUE(check_in_args(csound, "cc", "kkoM"));
-    CU_ASSERT_TRUE(check_in_args(csound, "[k]kk", "[?]?M"));
+    CU_ASSERT_TRUE(check_in_args(csound, "[k]kk", "[.].M"));
     CU_ASSERT_TRUE(check_in_args(csound, "a", "az"));
     
 }
@@ -244,7 +252,7 @@ void test_check_out_arg(void) {
     CU_ASSERT_FALSE(check_out_arg("[a]", "a"));
     CU_ASSERT_TRUE(check_out_arg("[a]", "[a]"));
     CU_ASSERT_FALSE(check_out_arg("[k]", "[a]"));
-    CU_ASSERT_TRUE(check_out_arg("[a]", "[?]"));
+    CU_ASSERT_TRUE(check_out_arg("[a]", "[.]"));
 
 }
 
