@@ -12,6 +12,7 @@ ELSE(APPLE)
 find_package(FLTK)
 ENDIF(APPLE)
 find_package(SWIG)
+
 find_package(PythonLibs)
 find_package(Lua51)
 
