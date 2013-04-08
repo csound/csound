@@ -110,7 +110,7 @@ void test_resolve_opcode(void) {
     
     entries = find_opcode2(csound, "##array_get");
     
-    int opnum = resolve_opcode_num(csound, entries, "k", "[k]c");
+    int opnum = resolve_opcode_num(csound, entries, "k", "[k]k");
     CU_ASSERT_TRUE(opnum > 0);
     
     
