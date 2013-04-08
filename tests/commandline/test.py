@@ -119,6 +119,7 @@ def runTest():
 	["test_invalid_ternary.csd", "test expression", 1],
 
 	["test_opcode_as_function.csd", "test expression"],
+	["test_fsig_udo.csd", "UDO with f-sig arg"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
