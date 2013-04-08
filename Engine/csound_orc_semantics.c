@@ -740,7 +740,7 @@ int check_array_arg(char* found, char* required) {
 
     while(*r == '[') r++;
 
-    if (*r == '.' || *r == '?' || r == '*') {
+    if (*r == '.' || *r == '?' || *r == '*') {
       return 1;
     }
 
