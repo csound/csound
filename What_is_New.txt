@@ -85,7 +85,10 @@ generates a k-rate 1-D array of length 4.  Similarly
 create a square 4x4 a-rate array.
 Elements are used via indexing in [] such as k1[2] or a2[2][3]
 One dimensional arrays replace tvars, and can be used in opcodes like
-maxta, mintab and sumtab.
+maxta, mintab and sumtab. Array setting can be done in left-hand side
+of opcodes, i.e.:
+  aSigs[0] vco2 .1, 440
+  aSigs[1] vco2 .1, 880
 
 
 The new realtime priority mode can be switched on with by passing the
@@ -125,6 +128,39 @@ give unpredictable results, but is not policed.  The 8192 can be
 change by command line option --sine-size=# where the # is rounded up
 to a power of two.
 
+
+New Type System ... 
+
+A new type system has been added to Csound6, and significant changes
+have been made to the compiler. The previous system for handling types 
+involved depending on the first-letter of a variable's name every time
+it was used to determine type. This meant there was a lot of re-checking
+of types. Also, adding new types was difficult, as there was a lot of
+custom code that had to be updated to check for new type letters. 
+
+In Csound6, a separate system of types was added.  Types are defined as
+CS_TYPE's.  The creation of variables from types and the initialization
+of memory has been encapsulated within the CS_TYPE's. This change 
+allows easier addition of new types, as well as generic calculations of
+memory pools, amongst other things.  
+
+The compiler has been modified since Csound5 to now use the type system
+as an integral part of its semantic checking phase.  Variables are now
+registered into a CS_VAR_POOL when they are first defined, with the
+CS_VARIABLE having a reference to its CS_TYPE.  After first time
+definition within the pool, the type information is then looked up in
+consequent variable lookups, rather than re-calculated from the variable
+name.  This opens up possibilities for new variable naming and typing 
+strategies, i.e. using "myVar:K" to denote a k-rate arg.  This also 
+opens up possibilities for user-defined types, such as 
+"data myType kval, aval", then using "myVar:myType" to define a var
+of that type.  (The previous is speculative, and is not an active 
+proposal at this time.)
+
+The addition of the type system has formalized the static type system 
+that has existed in Csound prior to Csound6. It has, arguably, simplified
+the codebase in terms of type handling, as well as laid the ground work
+for future type-related research to be integrated into Csound. 
 
 
 New API functions.....
@@ -228,4 +264,13 @@ All opcodes that touch audio should take note of sample-accurate code
 
 A number of previous API functions are removed; OpenFile and OpenFile2
 both replaced by new OpenFile2 with additional argument.
+
+Additions have been made for arg type specifications for opcodes.
+  * Any-types have been added, as follows:
+    * '.' signifies a required arg of any-type
+    * '?' signifies an optional arg of any-type
+    * '*' signifies a var-arg list of any-type
+  * Arrays are now specified using "[x]" where x is a type-specifier.
+    The type-specifier can be any of the of the current specifiers, 
+    including any-types.  See Opcodes/arrays.c for example usage.
 
