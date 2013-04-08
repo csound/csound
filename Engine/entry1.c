@@ -96,7 +96,7 @@ OENTRY opcodlst_1[] = {
     /* and setksmps */
     { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
     /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-    { "xin",      S(XIN_LOW),0,   1,  "?", "",  xinset,  NULL, NULL },   
+    { "xin",      S(XIN_LOW),0,   1,  "NNNNNNNNNNNNNNNN", "",  xinset,  NULL, NULL },   
     { "##xin64",   S(XIN_HIGH),0,  1,
         "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
         xinset,  NULL, NULL },
@@ -106,7 +106,7 @@ OENTRY opcodlst_1[] = {
         "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
         "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
         xinset,  NULL, NULL },
-    { "xout",     S(XOUT_LOW),0,  1,  "",                 "?", xoutset, NULL, NULL },
+    { "xout",     S(XOUT_LOW),0,  1,  "",                 "N", xoutset, NULL, NULL },
     { "##xout64",  S(XOUT_HIGH),0, 1,  "",                 "N", xoutset, NULL, NULL },
     { "##xout256", S(XOUT_MAX),0,  1,  "",                 "N", xoutset, NULL, NULL },
     { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
