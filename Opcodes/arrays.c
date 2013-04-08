@@ -67,28 +67,27 @@ static int array_del(CSOUND *csound, void *p)
 static int array_init(CSOUND *csound, ARRAYINIT *p)
 {
     ARRAYDAT* arrayDat = p->arrayDat;
-    int i;
+    int i, size;
 
     int inArgCount = p->INOCOUNT;
 
-    if(inArgCount == 0) {
-        csoundErrorMsg(csound, "Error: no sizes set for array initialization\n");
-        return CSOUND_ERROR;
-    }
+    if (UNLIKELY(inArgCount == 0))
+      return csound->InitError(csound,
+                               Str("Error: no sizes set for array initialization"));
 
     arrayDat->dimensions = inArgCount;
     arrayDat->sizes = mcalloc(csound, sizeof(int) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
-        arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[0]);
+      arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[0]);
     }
 
-    int size = arrayDat->sizes[0];
+    size = arrayDat->sizes[0];
 
-    if(inArgCount > 1) {
-        for (i = 1; i < inArgCount; i++) {
-            size *= arrayDat->sizes[i];
-        }
-        size = MYFLT2LRND(size);
+    if (inArgCount > 1) {
+      for (i = 1; i < inArgCount; i++) {
+        size *= arrayDat->sizes[i];
+      }
+      size = MYFLT2LRND(size);
     }
 
     CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, NULL);
@@ -117,18 +116,18 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
 
     int indefArgCount = p->INOCOUNT - 2;
 
-    if (indefArgCount == 0) {
+    if (UNLIKELY(indefArgCount == 0)) {
       csoundErrorMsg(csound, "Error: no indexes set for array set\n");
       return CSOUND_ERROR;
     }
-    if (indefArgCount>dat->dimensions) 
+    if (UNLIKELY(indefArgCount>dat->dimensions))
       return csound->PerfError(csound, 
                                Str("Array dimension %d out of range "
                                    "for dimensions %d\n"),
                                indefArgCount, dat->dimensions);
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (index >= dat->sizes[indefArgCount] || index<0)
+    if (UNLIKELY(index >= dat->sizes[indefArgCount] || index<0))
       return csound->PerfError(csound, 
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
@@ -137,7 +136,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
     if (indefArgCount > 1) {
       for (i = end - 1; i >= 0; i--) {
         int ind = MYFLT2LRND(*p->indexes[i]);
-        if (ind >= dat->sizes[i] || ind<0)
+        if (UNLIKELY(ind >= dat->sizes[i] || ind<0))
           return csound->PerfError(csound, 
                                    Str("Array index %d out of range (0,%d) "
                                        "for dimension %d\n"), ind, 
@@ -161,18 +160,16 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
     int index;
     int indefArgCount = p->INOCOUNT - 1;
 
-    if (indefArgCount == 0) {
-        csoundErrorMsg(csound, "Error: no indexes set for array get\n");
-        return CSOUND_ERROR;
-    }
-    if (indefArgCount>dat->dimensions) 
+    if (UNLIKELY(indefArgCount == 0))
+      csound->PerfError(csound, Str("Error: no indexes set for array get"));
+    if (UNLIKELY(indefArgCount>dat->dimensions))
       return csound->PerfError(csound, 
                                Str("Array dimension %d out of range "
                                    "for dimensions %d\n"),
                                indefArgCount, dat->dimensions);
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (index >= dat->sizes[indefArgCount] || index<0)
+    if (UNLIKELY(index >= dat->sizes[indefArgCount] || index<0))
       return csound->PerfError(csound, 
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
@@ -180,7 +177,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
     if (indefArgCount > 1) {
         for (i = end - 1; i >= 0; i--) {
           int ind = MYFLT2LRND(*p->indexes[i]);
-          if (ind >= dat->sizes[i] || ind<0)
+          if (UNLIKELY(ind >= dat->sizes[i] || ind<0))
             return csound->PerfError(csound, 
                                      Str("Array index %d out of range (0,%d) "
                                          "for dimension %d\n"), ind,
