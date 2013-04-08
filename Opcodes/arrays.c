@@ -127,11 +127,11 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
                                indefArgCount, dat->dimensions);
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[indefArgCount] || index<0))
+    if (UNLIKELY(index >= dat->sizes[end] || index<0))
       return csound->PerfError(csound, 
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
-                               index, dat->sizes[end]-1, end+1);
+                               index, dat->sizes[end]-1, indefArgCount);
 
     if (indefArgCount > 1) {
       for (i = end - 1; i >= 0; i--) {
@@ -169,7 +169,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
                                indefArgCount, dat->dimensions);
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[indefArgCount] || index<0))
+    if (UNLIKELY(index >= dat->sizes[end] || index<0))
       return csound->PerfError(csound, 
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
