@@ -1200,6 +1200,13 @@ int xinset(CSOUND *csound, XIN *p)
         *(dst++) = *(src++);
       *dst = '\0';
     }
+    /* and i-time arrays */
+    while (*++ndx_list >= 0) {
+       void *in, *out;
+       in = (void *)*(bufs + *ndx_list);
+       out = (void *) *(p->args + *ndx_list);
+       memcpy(out, in, sizeof(ARRAYDAT));
+    }
 
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     tmp = buf->iobufp_ptrs;
@@ -1207,6 +1214,7 @@ int xinset(CSOUND *csound, XIN *p)
       return OK;
 
     while (*++ndx_list >= 0) {
+      
       *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
       *(tmp++) = *(p->args + *ndx_list);/* "to" address */
     }
@@ -1269,6 +1277,15 @@ int xoutset(CSOUND *csound, XOUT *p)
         *(dst++) = *(src++);
       *dst = '\0';
     }
+    /* i-time arrays */
+    while (*++ndx_list >= 0) {
+      void *in, *out;
+      in =  (void *) *(p->args + *ndx_list);
+      out = (void *) *(bufs + *ndx_list);
+      memcpy(out, in, sizeof(ARRAYDAT));
+    }
+
+
     /* skip input pointers, including the three delimiter NULLs */
     tmp = buf->iobufp_ptrs;
     /* VL: needs to check if there are not 4 nulls in a sequence, which
@@ -1527,7 +1544,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         /* and tsigs */
         while (*(++tmp)) {
          ptr1 = *tmp;
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
 
         /*  run each opcode  */
@@ -1564,7 +1581,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         /* and tsigs */
         while (*(++tmp)) {
          ptr1 = *tmp;
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
         /*  run each opcode  */
         CS_PDS = (OPDS *) (p->ip);
@@ -1596,7 +1613,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
      /* tsigs  */
     while (*(++tmp)) {
        ptr1 = *tmp;
-       memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(TABDAT));
+       memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
     }
 
     /* restore globals */
@@ -1654,7 +1671,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        /* VL: tsigs */
         while (*(++tmp)) {
          ptr1 = *tmp;
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
 
 
@@ -1688,7 +1705,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        /* VL: tsigs */
        while (*(++tmp)) {
          ptr1 = *tmp;
-         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT));
+         memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
       /*  run each opcode  */
       do {
@@ -1710,7 +1727,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
      /* tsigs */
     while (*(++tmp)) {
        ptr1 = *tmp;
-       memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(TABDAT));
+       memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
        }
  endop:
     /* restore globals */
