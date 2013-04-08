@@ -148,6 +148,8 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     memcpy(mem, p->value, dat->arrayMemberSize);
+    /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
+    /*        mem, incr, *((MYFLT*)p->value)); */
     return OK;
 }
 
