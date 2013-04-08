@@ -254,7 +254,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
          kvar-arrays and on line 224 and 238*/
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
-static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
+ int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
@@ -291,8 +291,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         break;
       case '[':
         types++;
-        if (*types == 'k')
-          kv_incnt++; *otypes++ = *types;
+        
+        if (*types == 'k'){
+          kv_incnt++;
+          *otypes++ = *(types-1);
+          *otypes++ = *(types);*otypes++ = *(types+1);
+	}
         types++;
         break;
       case 'i':
@@ -343,7 +347,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       case '[':
         types++;
         if (*types == 'k')
-          kv_outcnt++; *otypes++ = *types;
+          kv_outcnt++; *otypes++ = *(types-1);
+          *otypes++ = *(types); *otypes++ = *(types+1);
         types++;
         break;
       case 'i':
@@ -361,6 +366,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *otypes = '\0';
     inm->outchns = i;                   /* total number of output chnls */
     inm->perf_outcnt = a_outcnt + k_outcnt + f_outcnt + kv_outcnt;
+   
     opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
@@ -384,9 +390,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'k': *k_inlist++ = i; break;
         case 'f': *f_inlist++ = i; break;
         case '[':
-         types++;
-        if (*types == 'k')
-           *kv_inlist++ = i; types++; break;
+	  *kv_inlist++ = i;
+          types+=2; break;
         case 'K': *k_inlist++ = i;      /* also updated at i-time */
         case 'i':
         case 'o':
@@ -396,9 +401,10 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       }
       i++;
     }
-
+     
     /* put delimiters */
     *i_inlist = *S_inlist = *a_inlist = *k_inlist = *f_inlist = *kv_inlist = -1;
+    
     i_outlist = inm->out_ndx_list = kv_inlist + 1;
     S_outlist = i_outlist + i_outcnt + 1;
     a_outlist = S_outlist + S_outcnt + 1;
@@ -411,9 +417,9 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'a': *a_outlist++ = i; break;
         case 'k': *k_outlist++ = i; break;
         case 'f': *f_outlist++ = i; break;
-        case '[':
+	case '[':
           types++;
-        if (*types == 'k')
+	  //if (*types == 'k')
             *kv_outlist++ = i; types++; break;
         case 'K': *k_outlist++ = i;     /* also updated at i-time */
         case 'i': *i_outlist++ = i; break;
@@ -494,7 +500,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
 
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
-        return -3;
+      return -3;
 
     if (strcmp(outtypes, "0")==0) {
         add_token(csound, opname, T_OPCODE0);
