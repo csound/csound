@@ -814,7 +814,7 @@ static OENTRY arrayvars_localops[] =
     { "##array_get.k", sizeof(ARRAY_GET), 0, 2, ".", "[.]z",
       NULL, (SUBR)array_get },
     /* ******************************************** */
-    {"##add", sizeof(TABARITH), 0, 3, "[k]", "[k][k]", (SUBR)tabarithset, (SUBR)tabadd},
+    {"##add.[]", sizeof(TABARITH), 0, 3, "[k]", "[k][k]", (SUBR)tabarithset, (SUBR)tabadd},
     /* ******************************************** */
 //{"##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub},
 //{"##negtab",  sizeof(TABARITH), 0, 3, "t", "t", (SUBR)tabarithset1, (SUBR)tabneg},
