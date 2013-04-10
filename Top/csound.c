@@ -2790,7 +2790,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundCreateConfigurationVariable(csound, "skip_seconds",
                                         &(csound->csoundScoreOffsetSeconds_),
                                         CSOUNDCFG_MYFLT, 0, &minValF, NULL,
-                                        sTR("Start score playback at the specified"
+                                        Str("Start score playback at the specified"
                                             " time, skipping earlier events"),
                                         NULL);
     }
