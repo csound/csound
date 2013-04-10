@@ -64,7 +64,7 @@ static void usage(CSOUND *csound, char *mesg, ...)
     va_list args;
 
     csound->Message(csound,Str("Usage:\textractor [-flags] soundfile\n"));
-    csound->Message(csound, "Legal flags are:\n");
+    csound->Message(csound,Str("Legal flags are:\n"));
     csound->Message(csound,Str("-o fname\tsound output filename\n"));
     csound->Message(csound,Str("-N\t\tnotify (ring the bell) when done\n"));
     csound->Message(csound,Str("-S integer\tsample number at which"

@@ -540,7 +540,7 @@ int kreads(CSOUND *csound, KREADS *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       if (UNLIKELY(fgets(p->lasts, csound->strVarMaxLen,  p->f)==NULL)) {
-        csound->PerfError(csound, "Read failure in readks");
+        csound->PerfError(csound, Str("Read failure in readks"));
       }
     }
     strncpy((char*) p->str, p->lasts, csound->strVarMaxLen);
