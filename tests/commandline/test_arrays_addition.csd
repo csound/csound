@@ -3,7 +3,7 @@
 instr 1
 kS[] init 2
  kS[0] = 1
- kS[2] = 2
+ kS[1] = 2
 printk2 kS[0]
 kT[] init 2
 kT[0] = 3

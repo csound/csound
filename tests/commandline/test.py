@@ -121,7 +121,7 @@ def runTest():
 	["test_opcode_as_function.csd", "test expression"],
 	["test_fsig_udo.csd", "UDO with f-sig arg"],
 	["test_karrays_udo.csd", "UDO with k[] arg"],
-	["test_arays_addition.csd", "test array addition (i.e. k[] + k[]"],
+	["test_arrays_addition.csd", "test array addition (i.e. k[] + k[]"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
