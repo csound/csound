@@ -644,7 +644,7 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         p->aOut[chn][nn] *= csound->e0dbfs;
     return OK;
  file_error:
-    csound->ErrorMsg(csound, "diskin2: file descriptor closed or invalid\n");
+    csound->ErrorMsg(csound, Str("diskin2: file descriptor closed or invalid\n"));
    return NOTOK;
 }
 
@@ -834,7 +834,7 @@ int diskin_file_read(CSOUND *csound, DISKIN2 *p)
     }
     return OK;
  file_error:
-    csound->ErrorMsg(csound, "diskin2: file descriptor closed or invalid\n");
+    csound->ErrorMsg(csound, Str("diskin2: file descriptor closed or invalid\n"));
    return NOTOK;
 }
 
