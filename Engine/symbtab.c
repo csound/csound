@@ -245,16 +245,33 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 }
 
 
+/** 
+ *
+  This function takes in the arguments from useropinfo in OENTRY and parses
+  them, filling the OENTRY input and output types and creating
+  the argument lists for xinset/xouset in insert.c
+  argument pointerlists, stored in useropinfo->in_ndx_list and 
+  useropinfo->out_ndx_list.
 
+  The argument lists are terminated by a -1 and are set in the
+  following order:
+  i-var args (i-time vars)
+  S-var args (strings)
+  i-arrays 
+  a-vars 
+  k-vars
+  f-sigs
+  arrays (a,k,f)
 
-/* UDO code below was from otran, broken out and modified for new parser by
- * SYY
- */
-/* VL -- I have made the modifications below to allow for f-sigs &
-         kvar-arrays and on line 224 and 238*/
+  This order is fixed and followed up in xinset/xoutset and
+  useropcd1, useropcd2.
+ 
+ Original code - IV Oct 12 2002
+ modified by VL for Csound 6
 
-/* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
- int parse_opcode_args(CSOUND *csound, OENTRY *opc)
+*/
+
+static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
@@ -302,7 +319,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       case 'p':
       case 'j':
         i_incnt++; *otypes++ = *types;
-        break;
+       break;
       case 'S':
         S_incnt++; *otypes++ = *types;
         break;

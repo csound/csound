@@ -1235,7 +1235,7 @@ int xinset(CSOUND *csound, XIN *p)
        memcpy(out, in, sizeof(PVSDAT));
     }
      *(tmp++) = NULL;
-    /* tsigs: similar to avove */
+    /* arrays: similar to avove */
      while (*++ndx_list >= 0) {
        void *in, *out;
        in = (void *)*(bufs + *ndx_list);
@@ -1319,7 +1319,7 @@ int xoutset(CSOUND *csound, XOUT *p)
       memcpy(out, in, sizeof(PVSDAT));
     }
     *(tmp++) = NULL;
-   /* tsigs: as above */
+   /* arrays: as above */
     while (*++ndx_list >= 0) {
       void *in, *out;
       in =  (void *) *(p->args + *ndx_list);
@@ -1541,7 +1541,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
          }
-        /* and tsigs */
+        /* and arrayss */
         while (*(++tmp)) {
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
@@ -1578,7 +1578,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
          }
-        /* and tsigs */
+        /* and arrays */
         while (*(++tmp)) {
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
@@ -1610,7 +1610,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(PVSDAT));
     }
-     /* tsigs  */
+     /* arrayss  */
     while (*(++tmp)) {
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
@@ -1668,7 +1668,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
          }
-       /* VL: tsigs */
+       /* VL: arrays */
         while (*(++tmp)) {
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
@@ -1702,7 +1702,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
          }
-       /* VL: tsigs */
+       /* VL: arrays */
        while (*(++tmp)) {
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
@@ -1724,7 +1724,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(PVSDAT));
        }
-     /* tsigs */
+     /* arrays */
     while (*(++tmp)) {
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
