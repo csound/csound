@@ -273,8 +273,9 @@ static int tabarithset(CSOUND *csound, TABARITH *p)
 {
     if (LIKELY(p->left->data && p->right->data)) {
       if (p->left->dimensions!=1 || p->right->dimensions!=1)
-        return csound->InitError(csound,
-                                 Str("Dimensions do not match in array arithmetic"));
+        return 
+          csound->InitError(csound,
+                            Str("Dimensions do not match in array arithmetic"));
       /* size is the smallest of the two */
       int size = p->left->sizes[0] < p->right->sizes[0] ? 
                      p->left->sizes[0] : p->right->sizes[0];
@@ -485,14 +486,15 @@ static int tabqset(CSOUND *csound, TABQUERY *p)
 static int tabmax(CSOUND *csound, TABQUERY *p)
 {
    ARRAYDAT *t = p->tab;
-   int i, size = t->sizes[0];
+   int i, size = 0;
    MYFLT ans;
 
    if (UNLIKELY(t->data == NULL))
         return csound->PerfError(csound, Str("t-variable not initialised"));
-   if (UNLIKELY(t->dimensions!=1))
-        return csound->PerfError(csound, Str("t-variable not vector"));
+   /* if (UNLIKELY(t->dimensions!=1)) */
+   /*      return csound->PerfError(csound, Str("t-variable not vector")); */
 
+   for (i=0; i<t->dimensions; i++) size += t->sizes[i];
    ans = t->data[0];
    for (i=1; i<size; i++)
      if (t->data[i]>ans) ans = t->data[i];
@@ -503,13 +505,15 @@ static int tabmax(CSOUND *csound, TABQUERY *p)
 static int tabmin(CSOUND *csound, TABQUERY *p)
 {
    ARRAYDAT *t = p->tab;
-   int i, size = t->sizes[0];
+   int i, size = 0;
    MYFLT ans;
 
    if (UNLIKELY(t->data == NULL))
      return csound->PerfError(csound, Str("t-variable not initialised"));
-   if (UNLIKELY(t->dimensions!=1))
-     return csound->PerfError(csound, Str("t-variable not a vector"));
+   /* if (UNLIKELY(t->dimensions!=1)) */
+   /*   return csound->PerfError(csound, Str("t-variable not a vector")); */
+
+   for (i=0; i<t->dimensions; i++) size += t->sizes[i];
    ans = t->data[0];
    for (i=1; i<size; i++)
      if (t->data[i]<ans) ans = t->data[i];
@@ -608,11 +612,14 @@ static int tab2ftab(CSOUND *csound, TABCOPY *p)
     FUNC        *ftp;
     int fsize;
     MYFLT *fdata;
-    int tlen = p->tab->sizes[0];
-    if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions!=1)
+    ARRAYDAT *t = p->tab;
+    int i, tlen = 0;
+
+    if (UNLIKELY(p->tab->data==NULL))
       return csound->PerfError(csound, Str("t-var not initialised"));
     if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
         return csound->PerfError(csound, Str("No table for copy2ftab"));
+    for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
     fsize = ftp->flen;
     fdata = ftp->ftable;
     if (fsize<tlen) tlen = fsize;
@@ -807,8 +814,7 @@ static OENTRY arrayvars_localops[] =
     { "##array_get.k", sizeof(ARRAY_GET), 0, 2, ".", "[.]z",
       NULL, (SUBR)array_get },
     /* ******************************************** */
-        {"##add", sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
-                                       (SUBR)tabarithset, (SUBR)tabadd},
+    {"##add", sizeof(TABARITH), 0, 3, "[k]", "[k][k]", (SUBR)tabarithset, (SUBR)tabadd},
     /* ******************************************** */
 //{"##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub},
 //{"##negtab",  sizeof(TABARITH), 0, 3, "t", "t", (SUBR)tabarithset1, (SUBR)tabneg},
