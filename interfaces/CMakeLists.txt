@@ -74,29 +74,29 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
             PROPERTIES CPLUSPLUS ON
-            SWIG_MODULE_NAME csnd)
+            SWIG_MODULE_NAME csnd6)
 
-        set(SWIG_MODULE_csnd_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
+        set(SWIG_MODULE_csnd6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        SWIG_ADD_MODULE(csnd python python_interface.i)
-        SWIG_LINK_LIBRARIES(csnd ${swigpython_LIBS})
+        SWIG_ADD_MODULE(csnd6 python python_interface.i)
+        SWIG_LINK_LIBRARIES(csnd6 ${swigpython_LIBS})
     
-        set_target_properties(${SWIG_MODULE_csnd_REAL_NAME} PROPERTIES
+        set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
  
 	if(APPLE)
-	    set_target_properties(${SWIG_MODULE_csnd_REAL_NAME} PROPERTIES
+	    set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
 	endif()
 
-        install(TARGETS ${SWIG_MODULE_csnd_REAL_NAME}
+        install(TARGETS ${SWIG_MODULE_csnd6_REAL_NAME}
             LIBRARY DESTINATION "${PYTHON_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${PYTHON_MODULE_INSTALL_DIR}")
-        install(FILES ${BUILD_LIB_DIR}/csnd.py
+        install(FILES ${BUILD_LIB_DIR}/csnd6.py
             DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
 
     endif()
@@ -107,33 +107,33 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         INCLUDE_DIRECTORIES(${JNI_INCLUDE_DIRS})
         set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd)
 
-        list(APPEND javaSwigOptions -package csnd)
+        list(APPEND javaSwigOptions -package csnd6)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES CPLUSPLUS ON)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES SWIG_FLAGS "${javaSwigOptions}")
 
-        set(SWIG_MODULE__jcsound_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
+        set(SWIG_MODULE__jcsound6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        SWIG_ADD_MODULE(_jcsound java java_interface.i)
-        SWIG_LINK_LIBRARIES(_jcsound ${swigjava_LIBS})
+        SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
+        SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
 
-        ADD_CUSTOM_COMMAND(TARGET _jcsound
+        ADD_CUSTOM_COMMAND(TARGET _jcsound6
             POST_BUILD
-            COMMAND cmake -E make_directory ./csnd
+            COMMAND cmake -E make_directory ./csnd6
             COMMAND ${JAVA_COMPILE} *.java -d . 
-            COMMAND ${JAVA_ARCHIVE} cf ../csnd.jar csnd
-            COMMENT "Building JAVA package csnd.jar")
+            COMMAND ${JAVA_ARCHIVE} cf ../csnd6.jar csnd6
+            COMMENT "Building JAVA package csnd6.jar")
 
-        set_target_properties(_jcsound PROPERTIES
+        set_target_properties(_jcsound6 PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
-        install(TARGETS _jcsound
+        install(TARGETS _jcsound6
             LIBRARY DESTINATION "${JAVA_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${JAVA_MODULE_INSTALL_DIR}")
-        install(FILES ${BUILD_LIB_DIR}/csnd.jar
+        install(FILES ${BUILD_LIB_DIR}/csnd6.jar
             DESTINATION ${JAVA_MODULE_INSTALL_DIR})
     
     endif()
@@ -145,23 +145,23 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     
         SET_SOURCE_FILES_PROPERTIES(lua_interface.i
             PROPERTIES CPLUSPLUS ON
-            SWIG_MODULE_NAME luaCsnd)
+            SWIG_MODULE_NAME luaCsnd6)
 
 
-        set(SWIG_MODULE_luaCsnd_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
+        set(SWIG_MODULE_luaCsnd6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        SWIG_ADD_MODULE(luaCsnd lua lua_interface.i)
-        SWIG_LINK_LIBRARIES(luaCsnd ${swiglua_LIBS})
+        SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
+        SWIG_LINK_LIBRARIES(luaCsnd6 ${swiglua_LIBS})
     
-        set_target_properties(${SWIG_MODULE_luaCsnd_REAL_NAME} PROPERTIES
+        set_target_properties(${SWIG_MODULE_luaCsnd6_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             PREFIX "")
 
-        install(TARGETS luaCsnd
+        install(TARGETS luaCsnd6
             LIBRARY DESTINATION "${LUA_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${LUA_MODULE_INSTALL_DIR}")
 
