@@ -1139,11 +1139,38 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
          * numbered) and using new insert_instrtxt?
          */
         /* Temporarily using the following code */
-        if (current->left->type == INTEGER_TOKEN) { /* numbered instrument */
+        if (current->left->type == INTEGER_TOKEN) { /* numbered instrument, eg.: 
+						       instr 1   
+                                                    */
           int32 instrNum = (int32)current->left->value->value;
           insert_instrtxt(csound, instrtxt, instrNum, engineState);
+    
         }
+        else if (current->left->type == T_IDENT){ /* named instrument, eg.: 
+						       instr Hello  
+                                                    */
+               int32  insno_priority = -1L;
+                char *c;
+                c = current->left->value->lexeme;
+                
+                if (UNLIKELY(current->left->rate == (int) '+')) {
+                  insno_priority--;
+                }
+                if (UNLIKELY(!check_instr_name(c))) {
+                  synterr(csound, Str("invalid name for instrument"));
+                }
+                if (UNLIKELY(!named_instr_alloc(csound, c,
+                                                instrtxt, insno_priority,
+                                                engineState))) {
+                  synterr(csound, Str("instr %s redefined"), c);
+                }
+                instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
+                strcpy(instrtxt->insname, c);
+	}
         else if (current->left->type == T_INSTLIST) {
+	                                            /* list of instr names, eg: 
+						       instr Hello, 1, 2  
+                                                    */
           TREE *p =  current->left;
           while (p) {
             if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);
@@ -1157,7 +1184,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 int32  insno_priority = -1L;
                 char *c;
                 c = p->left->value->lexeme;
-
                 if (UNLIKELY(p->left->rate == (int) '+')) {
                   insno_priority--;
                 }
@@ -1181,7 +1207,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 int32  insno_priority = -1L;
                 char *c;
                 c = p->value->lexeme;
-
                 if (UNLIKELY(p->rate == (int) '+')) {
                   insno_priority--;
                 }
