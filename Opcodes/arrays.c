@@ -274,7 +274,7 @@ static int tabarithset(CSOUND *csound, TABARITH *p)
     if (LIKELY(p->left->data && p->right->data)) {
       if (p->left->dimensions!=1 || p->right->dimensions!=1)
         return csound->InitError(csound,
-                                 Str("Dimensions do not match in array arithmetic");
+                                 Str("Dimensions do not match in array arithmetic"));
       /* size is the smallest of the two */
       int size = p->left->sizes[0] < p->right->sizes[0] ? 
                      p->left->sizes[0] : p->right->sizes[0];
@@ -807,7 +807,7 @@ static OENTRY arrayvars_localops[] =
     { "##array_get.k", sizeof(ARRAY_GET), 0, 2, ".", "[.]z",
       NULL, (SUBR)array_get },
     /* ******************************************** */
-    //    {"##add", sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
+        {"##add", sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                        (SUBR)tabarithset, (SUBR)tabadd},
     /* ******************************************** */
 //{"##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub},

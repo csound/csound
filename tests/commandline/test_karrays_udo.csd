@@ -16,7 +16,7 @@ endop
 instr 1
 
 kS[] init 2
-ks[0] = 1
+kS[0] = 1
 k2 Test kS
    printk2 k2
 
