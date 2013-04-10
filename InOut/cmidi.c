@@ -124,15 +124,15 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
       if(!ret){
         /* sources, we connect to all available input sources */
         endpoints = MIDIGetNumberOfSources();
-        csound->Message(csound, "%d MIDI sources in system \n", endpoints);
+        csound->Message(csound, Str("%d MIDI sources in system \n"), endpoints);
         if(!strcmp(dev,"all")) {
-          csound->Message(csound, "receiving from all sources \n");
+          csound->Message(csound, Str("receiving from all sources \n"));
           for(k=0; k < endpoints; k++){
             endpoint = MIDIGetSource(k);
             long srcRefCon = (long) endpoint;
             MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
             MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-            csound->Message(csound, "connecting midi device %d: %s \n", k,
+            csound->Message(csound, Str("connecting midi device %d: %s \n"), k,
                             CFStringGetCStringPtr(name, defaultEncoding));
           }
         }
@@ -143,13 +143,13 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
             long srcRefCon = (long) endpoint;
             MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
             MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-            csound->Message(csound, "connecting midi device %d: %s \n", k,
+            csound->Message(csound, Str("connecting midi device %d: %s \n"), k,
                             CFStringGetCStringPtr(name, defaultEncoding));
           }
           else
             csound->Message(csound,
-                            "MIDI device number %d is out-of-range, "
-                            "not connected \n", k);
+                            Str("MIDI device number %d is out-of-range, "
+                                "not connected \n"), k);
         }
 
       }
@@ -166,7 +166,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 static int MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
     /*stub for the moment */
-    csound->Message(csound, "output not implemented yet in CoreMIDI \n");
+    csound->Message(csound, Str("output not implemented yet in CoreMIDI \n"));
     return 0;
 }
 

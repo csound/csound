@@ -77,6 +77,15 @@ Post RC1
    * remove argtyp2
    * modify add_udo_definition to use var pool, new utility functions to 
      calculate mem pool size
+3) Sort out installer for Mac
+4) Test builds with iOS and Android  (need to update CS6 repo with latest from CS5 for both of those to start)
+5) Add API tests in Python in tests/python 
+   * build out test suite runner
+   * organize what API functions to test
+6) Modify API Wrappers to use csnd6 instead of csnd, so that csound5 and csound6 can co-exist on the same system.  (Requires users to update code to use new package name)
+7) Remove tabvars.c and remove concrete t-type code (handled by k[] now)
+8) Tidy up compiler files: move functions around into new compiler_utils.c file, use .h to replace all the uses of externs 
+9) Review error messages to see if they can be made better
 
 =====
 Speculation List
