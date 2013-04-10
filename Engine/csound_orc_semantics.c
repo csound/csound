@@ -409,7 +409,7 @@ PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 
     default:
       csoundWarning(csound, Str("Unknown arg type: %d\n"), tree->type);
-            print_tree(csound, "Arg Tree\n", tree);
+      print_tree(csound, "Arg Tree\n", tree);
       return NULL;
     }
 }
@@ -681,7 +681,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         default:
             csoundWarning(csound, Str("Unknown arg type: %d\n"), tree->type);
-                        print_tree(csound, "Arg Tree\n", tree);
+            print_tree(csound, "Arg Tree\n", tree);
             return NULL;
     }
 }
@@ -1424,7 +1424,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
               opcodeName);
       csoundMessage(csound, Str("Found: %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
-      csoundMessage(csound, "Line: %d Loc: %d\n",
+      csoundMessage(csound, Str("Line: %d Loc: %d\n"),
                     root->line, root->locn);
       return 0;
     } else {
