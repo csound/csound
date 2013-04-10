@@ -896,7 +896,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
         arraySet->right->next = make_leaf(csound, temp->line, temp->locn,
                                           T_IDENT, make_token(csound,
                                                               temp->value->lexeme));
-        arraySet->right->next->next = currentArg->right; // FIXME - this needs to handles expressions
+        arraySet->right->next->next = 
+          currentArg->right; // FIXME - this needs to handles expressions
 
         anchor = appendToTree(csound, anchor, arraySet);
 
@@ -932,7 +933,8 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
         if (UNLIKELY(PARSER_DEBUG))
             csound->Message(csound, "Found if-goto\n");
         expressionNodes =
-        create_boolean_expression(csound, left, right->line, right->locn, typeTable);
+        create_boolean_expression(csound, left, right->line,
+                                  right->locn, typeTable);
 
 
         anchor = appendToTree(csound, anchor, expressionNodes);
