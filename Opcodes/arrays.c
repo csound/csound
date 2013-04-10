@@ -117,7 +117,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
     int indefArgCount = p->INOCOUNT - 2;
 
     if (UNLIKELY(indefArgCount == 0)) {
-      csoundErrorMsg(csound, "Error: no indexes set for array set\n");
+      csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
     if (UNLIKELY(indefArgCount>dat->dimensions))
@@ -632,7 +632,7 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
     MYFLT incr  = *p->incr;
     int i,size =  (end - start)/incr + 1;
 
-    printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
+    //printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
     if (UNLIKELY(size < 0))
       csound->InitError(csound,
                         Str("inconsistent start, end and increment parameters"));
@@ -644,13 +644,13 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
     else
       size = p->tab->sizes[0];
     data =  p->tab->data;
-    printf("size=%d\n[", size);
+    //printf("size=%d\n[", size);
     for (i=0; i < size; i++) {
       data[i] = start;
-      printf("%f ", start);
+      //printf("%f ", start);
       start += incr;
     }
-    printf("]\n");
+    //printf("]\n");
 
     return OK;
 }
@@ -694,7 +694,7 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     if (UNLIKELY(size < 0))
       csound->InitError(csound, Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
-      printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
+      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
       csound->InitError(csound, Str("slice larger than original size"));
     }
     if (UNLIKELY(p->tab->data==NULL)) {
