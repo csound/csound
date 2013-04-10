@@ -381,6 +381,11 @@ msgstr ""
 msgid "Found: %s %s %s\n"
 msgstr ""
 
+#: Engine/csound_orc_semantics.c:1427
+#, c-format
+msgid "Line: %d Loc: %d\n"
+msgstr ""
+
 #: Engine/csound_orc_semantics.c:1541
 #, c-format
 msgid "expression for until statement not a boolean expression, line %d\n"
@@ -1168,22 +1173,22 @@ msgstr "valeur ill??gale du tempo de d??part"
 msgid "Beat mode not in force"
 msgstr "Le mode beat n'est pas en vigueur"
 
-#: Engine/musmon.c:173 Top/csound.c:2858
+#: Engine/musmon.c:173 Top/csound.c:2860
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
 msgstr "Csound version %s beta (??chantillons en format double) %s\n"
 
-#: Engine/musmon.c:176 Top/csound.c:2861
+#: Engine/musmon.c:176 Top/csound.c:2863
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr "Csound version %s (??chantillons en format double) %s\n"
 
-#: Engine/musmon.c:181 Top/csound.c:2850
+#: Engine/musmon.c:181 Top/csound.c:2852
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
 msgstr "Csound version %s beta (??chantillons en format float) %s\n"
 
-#: Engine/musmon.c:184 Top/csound.c:2853
+#: Engine/musmon.c:184 Top/csound.c:2855
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
 msgstr "Csound version %s (??chantillons en format float) %s\n"
@@ -1851,6 +1856,30 @@ msgstr "twarp : t a un tempo non positif\n"
 msgid "twarp: t segments exceed twarp array\n"
 msgstr "twarp : les segments t d??passent la capacit?? du tableau twarp\n"
 
+#: InOut/cmidi.c:127
+#, c-format
+msgid "%d MIDI sources in system \n"
+msgstr ""
+
+#: InOut/cmidi.c:129
+msgid "receiving from all sources \n"
+msgstr ""
+
+#: InOut/cmidi.c:135 InOut/cmidi.c:146
+#, fuzzy, c-format
+msgid "connecting midi device %d: %s \n"
+msgstr "erreur en ouvrant le p??riph??rique %d : %s"
+
+#: InOut/cmidi.c:151
+#, fuzzy, c-format
+msgid "MIDI device number %d is out-of-range, not connected \n"
+msgstr "Le num??ro %2$d du p??riph??rique %1$s est hors limites"
+
+#: InOut/cmidi.c:169
+#, fuzzy
+msgid "output not implemented yet in CoreMIDI \n"
+msgstr "Passe-bas elliptique pas encore impl??ment??. D??sol?? !"
+
 #: InOut/cmidi.c:257
 msgid "CoreMIDI real time MIDI plugin for Csound\n"
 msgstr "Module audio en temps r??el CoreMIDI pour Csound\n"
@@ -2420,6 +2449,10 @@ msgstr " *** erreur en ouvrant le p??riph??rique de sortie MIDI : %d (%s)"
 #, c-format
 msgid " *** error opening MIDI out file '%s'"
 msgstr " *** erreur en ouvrant le fichier de sortie MIDI '%s'"
+
+#: InOut/midisend.c:198
+msgid "Short write in MIDI\n"
+msgstr ""
 
 #: InOut/pmidi.c:151
 msgid " *** error initialising PortMIDI"
@@ -3677,6 +3710,11 @@ msgstr "le canal existe d??j??"
 msgid "invalid export variable"
 msgstr "variable d'export non valide"
 
+#: OOps/bus.c:1460
+#, fuzzy
+msgid "read failure in sensekey\n"
+msgstr "oggread : le fichier n'est pas en acc??s al??atoire\n"
+
 #: OOps/bus.c:1567
 msgid "InputChannelCallback not set."
 msgstr ""
@@ -3832,6 +3870,10 @@ msgstr ""
 #: OOps/diskin2.c:481 OOps/diskin2.c:666 OOps/diskin2.c:861
 msgid "diskin2: not initialised"
 msgstr "diskin2 : non initialis??"
+
+#: OOps/diskin2.c:647 OOps/diskin2.c:837
+msgid "diskin2: file descriptor closed or invalid\n"
+msgstr ""
 
 #: OOps/diskin2.c:964
 msgid "soundin: invalid number of channels"
@@ -3992,6 +4034,11 @@ msgstr "format kdump inconnu"
 #: OOps/dumpf.c:196
 msgid "write failure in dumpk"
 msgstr "erreur d'??criture dans dumpk"
+
+#: OOps/dumpf.c:543
+#, fuzzy
+msgid "Read failure in readks"
+msgstr "La lecture a ??chou??\n"
 
 #: OOps/fftlib.c:3190
 #, c-format
@@ -5751,6 +5798,10 @@ msgstr ""
 msgid "Error: no sizes set for array initialization"
 msgstr ""
 
+#: Opcodes/arrays.c:120
+msgid "Error: no indexes set for array set\n"
+msgstr ""
+
 #: Opcodes/arrays.c:125 Opcodes/arrays.c:169
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d\n"
@@ -7066,6 +7117,12 @@ msgstr ""
 "AVERTISSEMENT !! :\n"
 "SR de l'orchestre incompatible avec le SR du traitement HRTF de : %.0f\n"
 "\n"
+
+#: Opcodes/hrtfreverb.c:508
+msgid ""
+"\n"
+"fdn delay > earlies del..., fixed!"
+msgstr ""
 
 #: Opcodes/hrtfreverb.c:857
 msgid ""
@@ -10017,7 +10074,7 @@ msgstr "options par d??faut : csound -s -otest -b%d -B%d -m%d\n"
 msgid "Usage:\tcsound [-flags] orchfile scorefile\n"
 msgstr "Utilisation : \tcsound [-options] fichierorch fichierpartition\n"
 
-#: Top/argdecode.c:245 Top/argdecode.c:261 util/envext.c:53
+#: Top/argdecode.c:245 Top/argdecode.c:261 util/envext.c:53 util/xtrct.c:67
 msgid "Legal flags are:\n"
 msgstr "Les options l??gales sont :\n"
 
@@ -10337,8 +10394,17 @@ msgstr "Erreur de d??-initialisation du module '%s'"
 msgid "Error allocating opcode list"
 msgstr "Erreur lors de l'allocation de la liste d'opcodes"
 
+#: Top/csound.c:1343
+#, c-format
+msgid "Multithread performance: insno: %3d  thread %d of %d starting.\n"
+msgstr ""
+
+#: Top/csound.c:1349
+msgid "Bad ThreadId"
+msgstr ""
+
 #: Top/csound.c:1496 Top/csound.c:1528 Top/csound.c:1557 Top/csound.c:1584
-#: Top/csound.c:1620
+#: Top/csound.c:1620 Top/csound.c:3761
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
@@ -10346,7 +10412,7 @@ msgstr ""
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr "La partition est finie dans csoundPerformKsmps().\n"
 
-#: Top/csound.c:1535 Top/csound.c:1564 Top/csound.c:3764
+#: Top/csound.c:1535 Top/csound.c:1564 Top/csound.c:3768
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr "Retour pr??matur?? de csoundPerformKsmps().\n"
 
@@ -10421,14 +10487,91 @@ msgstr "Echec de l'allocation d'une nouvelle entr??e d'opcode."
 msgid "Failed to allocate opcode entry for %s."
 msgstr "Echec de l'allocation d'une entr??e d'opcode pour %s."
 
-#: Top/csound.c:3085
+#: Top/csound.c:2689
+msgid "Failed during csoundInitEnv"
+msgstr ""
+
+#: Top/csound.c:2699
+#, fuzzy
+msgid "Real time audio module name"
+msgstr "Module audio en temps r??el PortAudio pour Csound\n"
+
+#: Top/csound.c:2722
+#, fuzzy
+msgid "Real time MIDI module name"
+msgstr "ipmidi : module ipMIDI activ??\n"
+
+#: Top/csound.c:2727
+msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
+msgstr ""
+
+#: Top/csound.c:2733
+msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
+msgstr ""
+
+#: Top/csound.c:2741
+#, fuzzy
+msgid "Title tag in output soundfile (no spaces)"
+msgstr "L'ouverture du fichier de sortie %s a ??chou??"
+
+#: Top/csound.c:2747
+msgid "Copyright tag in output soundfile (no spaces)"
+msgstr ""
+
+#: Top/csound.c:2753
+msgid "Software tag in output soundfile (no spaces)"
+msgstr ""
+
+#: Top/csound.c:2758
+msgid "Artist tag in output soundfile (no spaces)"
+msgstr ""
+
+#: Top/csound.c:2765
+msgid "Comment tag in output soundfile (no spaces)"
+msgstr ""
+
+#: Top/csound.c:2770
+msgid "Date tag in output soundfile (no spaces)"
+msgstr ""
+
+#: Top/csound.c:2781
+msgid "Maximum length of string variables + 1"
+msgstr ""
+
+#: Top/csound.c:2787
+msgid "Enable message attributes (colors etc.)"
+msgstr ""
+
+#: Top/csound.c:2800
+msgid "Ignore <CsOptions> in CSD files (default: no)"
+msgstr ""
+
+#: Top/csound.c:2820
+msgid "Failed during csoundInitStaticModules"
+msgstr ""
+
+#: Top/csound.c:2836
+msgid "Failed during csoundLoadModules"
+msgstr ""
+
+#: Top/csound.c:3087
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr "Impossible d'ouvrir /proc/cpuinfo. RDTSC n'est pas support??.\n"
 
-#: Top/csound.c:3115
+#: Top/csound.c:3117
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 "Aucune entr??e de fr??q CPU valide n'a ??t?? trouv??e dans /proc/cpuinfo.\n"
+
+#: Top/csound.c:3690
+msgid "csound: internal error: message buffer overflow\n"
+msgstr ""
+
+#: Top/main.c:69
+msgid ""
+"Csound is already started, call csoundReset()\n"
+"before starting again \n"
+msgstr ""
 
 #: Top/main.c:94
 #, c-format
@@ -13228,9 +13371,6 @@ msgstr "scot : %d erreurs.\n"
 
 #~ msgid "oggread: seek_point=%f > file_length=%f\n"
 #~ msgstr "oggread : seek_point=%f > file_lenth=%f\n"
-
-#~ msgid "oggread: file is not seekable\n"
-#~ msgstr "oggread : le fichier n'est pas en acc??s al??atoire\n"
 
 #~ msgid "oggread: Only one logical bitstream currently supported\n"
 #~ msgstr ""
