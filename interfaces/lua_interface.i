@@ -19,7 +19,8 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-%module luaCsnd
+/* module is now luaCsnd6 */
+%module luaCsnd6
 %include "std_string.i"
 %include "std_vector.i"
 %feature("autodoc", "1");

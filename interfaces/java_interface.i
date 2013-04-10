@@ -20,7 +20,8 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-%module(directors="1") csnd
+/* module is now csnd6 */
+%module(directors="1") csnd6
 
 %feature("director") CsoundCallbackWrapper;
 %feature("nodirector") Csound;
@@ -50,9 +51,9 @@ typedef unsigned int uint32_t;
 %pragma(java) jniclasscode=%{
   static {
     try {
-        java.lang.System.loadLibrary("_jcsound");
+        java.lang.System.loadLibrary("_jcsound6");
     } catch (UnsatisfiedLinkError e) {
-        java.lang.System.err.println("_jcsound native code library failed to load.\n" + e);
+        java.lang.System.err.println("_jcsound6 native code library failed to load.\n" + e);
         java.lang.System.exit(1);
     }
   }
