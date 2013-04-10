@@ -5,9 +5,9 @@
 <CsInstruments>
 
 
-opcode Test,k,k[k]
+opcode Test,k,[k]
 
-k0,kS[] xin
+kS[] xin
 k1 = kS[0]
    xout k1
 
@@ -16,8 +16,8 @@ endop
 instr 1
 
 kS[] init 2
-kS[0] = 1
-k2 Test 9, kS
+ks[0] = 1
+k2 Test kS
    printk2 k2
 
 endin
