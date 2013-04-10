@@ -227,11 +227,11 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 //}
 
 
-//typedef struct {
-//    OPDS h;
-//    TABDAT *ans, *left, *right;
-//} TABARITH;
-//
+typedef struct {
+    OPDS h;
+    ARRAYDAT *ans, *left, *right;
+} TABARITH;
+
 //typedef struct {
 //    OPDS h;
 //    TABDAT *ans, *left;
@@ -269,18 +269,22 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
     }
 }
 
-//static int tabarithset(CSOUND *csound, TABARITH *p)
-//{
-//    if (LIKELY(p->left->data && p->right->data)) {
-//      /* size is the smallest of the two */
-//      int size = p->left->size < p->right->size ? p->left->size : p->right->size;
-//      tabensure(csound, p->ans, size);
-//      p->ans->size = size;
-//      return OK;
-//    }
-//    else return csound->InitError(csound, Str("t-variable not initialised"));
-//}
-//
+static int tabarithset(CSOUND *csound, TABARITH *p)
+{
+    if (LIKELY(p->left->data && p->right->data)) {
+      if (p->left->dimensions!=1 || p->right->dimensions!=1)
+        return csound->InitError(csound,
+                                 Str("Dimensions do not match in array arithmetic");
+      /* size is the smallest of the two */
+      int size = p->left->sizes[0] < p->right->sizes[0] ? 
+                     p->left->sizes[0] : p->right->sizes[0];
+      tabensure(csound, p->ans, size);
+      p->ans->sizes[0] = size;
+      return OK;
+    }
+    else return csound->InitError(csound, Str("t-variable not initialised"));
+}
+
 //static int tabarithset1(CSOUND *csound, TABARITH *p)
 //{
 //    if (LIKELY(p->left->data)) {
@@ -292,27 +296,27 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 //    }
 //    else return csound->InitError(csound, Str("t-variable not initialised"));
 //}
-//
-//static int tabadd(CSOUND *csound, TABARITH *p)
-//{
-//    TABDAT *ans = p->ans;
-//    TABDAT *l   = p->left;
-//    TABDAT *r   = p->right;
-//    int size    = ans->size;
-//    int i;
-//
-//    if (UNLIKELY(p->ans->data == NULL ||
-//          p->left->data==NULL || p->right->data==NULL))
-//         return csound->PerfError(csound, Str("t-variable not initialised"));
-//
-//    if (l->size<size) size = l->size;
-//    if (r->size<size) size = r->size;
-//    if (ans->size<size) size = ans->size;
-//    for (i=0; i<size; i++)
-//      ans->data[i] = l->data[i] + r->data[i];
-//    return OK;
-//}
-//
+
+static int tabadd(CSOUND *csound, TABARITH *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->left;
+    ARRAYDAT *r   = p->right;
+    int size    = ans->sizes[0];
+    int i;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+          p->left->data==NULL || p->right->data==NULL))
+         return csound->PerfError(csound, Str("t-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (r->sizes[0]<size) size = r->sizes[0];
+    if (ans->sizes[0]<size) size = ans->sizes[0];
+    for (i=0; i<size; i++)
+      ans->data[i] = l->data[i] + r->data[i];
+    return OK;
+}
+
 //static int tabsub(CSOUND *csound, TABARITH *p)
 //{
 //    TABDAT *ans = p->ans;
@@ -802,7 +806,10 @@ static OENTRY arrayvars_localops[] =
     { "##array_get.i2", sizeof(ARRAY_GET), 0, 3, ".", "[.]m", (SUBR)array_get, (SUBR)array_get },    
     { "##array_get.k", sizeof(ARRAY_GET), 0, 2, ".", "[.]z",
       NULL, (SUBR)array_get },
-//{"##plustab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabadd},
+    /* ******************************************** */
+    //    {"##add", sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
+                                       (SUBR)tabarithset, (SUBR)tabadd},
+    /* ******************************************** */
 //{"##suntab",  sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset, (SUBR)tabsub},
 //{"##negtab",  sizeof(TABARITH), 0, 3, "t", "t", (SUBR)tabarithset1, (SUBR)tabneg},
 //{"##multtab", sizeof(TABARITH), 0, 3, "t", "tt", (SUBR)tabarithset,(SUBR)tabmult},
