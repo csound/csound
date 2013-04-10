@@ -23,11 +23,12 @@
 
 
 #ifndef MACOSX
-%module(directors="1") csnd
+%module(directors="1") csnd6
 %feature("director") CsoundCallbackWrapper;
 %feature("nodirector") Csound;
 #else /* fix for OSX */
-%module csnd
+/* MODULE name is now csnd6 */
+%module csnd6
 #endif
 %include "typemaps.i"
 
