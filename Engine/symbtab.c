@@ -390,7 +390,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
     /* now build index lists for the various types of arguments */
-    i = i_incnt + S_incnt + inm->perf_incnt + iv_incnt;
+    i = i_incnt + S_incnt + inm->perf_incnt + iv_incnt +
         i_outcnt + S_outcnt + inm->perf_outcnt + iv_outcnt;
     i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
                                                    sizeof(int16) * (i + 16));
