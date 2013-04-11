@@ -371,13 +371,15 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
             if (*p->ienv > 1) {
               p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
               p->decr[spltNum] = pow((split->sustain+0.0001),
-                                     1.0/(csound->GetKr(csound)*split->decay+0.0001));
+                                     1.0/(csound->GetKr(csound)*
+                                          split->decay+0.0001));
               if (split->attack != 0.0) p->env[spltNum] = 0.0;
               else p->env[spltNum] = 1.0;
             }
             else if (*p->ienv > 0) {
               p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
-              p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*split->decay);
+              p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*
+                                                       split->decay);
               if (split->attack != 0.0) p->env[spltNum] = 0.0;
               else p->env[spltNum] = 1.0;
             }
@@ -697,13 +699,15 @@ static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
             if (*p->ienv > 1) {
              p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
              p->decr[spltNum] = pow((split->sustain+0.0001),
-                                    1.0/(csound->GetKr(csound)*split->decay+0.0001));
+                                    1.0/(csound->GetKr(csound)*
+                                         split->decay+0.0001));
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
             }
             else if (*p->ienv > 0) {
             p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*split->decay);
+            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*
+                                                     split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
             }
@@ -966,7 +970,8 @@ static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
           }
           else if (*p->ienv > 0) {
             p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*split->decay);
+            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*
+                                                     split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
@@ -1224,13 +1229,15 @@ static int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
           if (*p->ienv > 1) {
             p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
             p->decr[spltNum] = pow((split->sustain+0.0001),
-                                   1.0/(csound->GetKr(csound)*split->decay+0.0001));
+                                   1.0/(csound->GetKr(csound)*
+                                        split->decay+0.0001));
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
           else if (*p->ienv > 0) {
             p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*split->decay);
+            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*
+                                                     split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
@@ -2537,29 +2544,29 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
 
 static OENTRY localops[] = {
   { "sfload",S(SFLOAD),     0, 1,    "i",    "T",      (SUBR)SfLoad, NULL, NULL },
-{ "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
-{ "sfplay", S(SFPLAY), 0, 5, "aa", "iixxiooo",        (SUBR)SfPlay_set,
-                                                  NULL, (SUBR)SfPlay     },
-{ "sfplaym", S(SFPLAYMONO), 0, 5, "a", "iixxiooo",    (SUBR)SfPlayMono_set,
-                                                  NULL, (SUBR)SfPlayMono },
-{ "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
-{ "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
-{ "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
-{ "sfinstrm", S(SFIPLAYMONO),0, 5, "a", "iixxiiooo",  (SUBR)SfInstrPlayMono_set,
-                                                  NULL, (SUBR)SfInstrPlayMono },
-{ "sfinstr", S(SFIPLAY),  0, 5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
-                                                  NULL,(SUBR)SfInstrPlay },
-{ "sfplay3", S(SFPLAY),   0, 5,    "aa", "iixxiooo",  (SUBR)SfPlay_set,
-                                                  NULL, (SUBR)SfPlay3  },
-{ "sfplay3m", S(SFPLAYMONO), 0, 5, "a", "iixxiooo",   (SUBR)SfPlayMono_set,
-                                                  NULL,(SUBR)SfPlayMono3 },
-{ "sfinstr3", S(SFIPLAY), 0, 5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
-                                                  NULL, (SUBR)SfInstrPlay3 },
-{ "sfinstr3m", S(SFIPLAYMONO), 0, 5, "a", "iixxiiooo",(SUBR)SfInstrPlayMono_set,
-                                                  NULL, (SUBR)SfInstrPlayMono3 },
-{ "sflooper", S(sflooper), 0, 5, "aa", "iikkikkkoooo",        (SUBR)sflooper_init,
-                                                  NULL, (SUBR)sflooper_process },
-{ NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
+  { "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
+  { "sfplay", S(SFPLAY), 0, 5, "aa", "iixxiooo",       (SUBR)SfPlay_set,
+                                                       NULL, (SUBR)SfPlay     },
+  { "sfplaym", S(SFPLAYMONO), 0, 5, "a", "iixxiooo",    (SUBR)SfPlayMono_set,
+                                                       NULL, (SUBR)SfPlayMono },
+  { "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
+  { "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
+  { "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
+  { "sfinstrm", S(SFIPLAYMONO),0, 5, "a", "iixxiiooo",  (SUBR)SfInstrPlayMono_set,
+                                                    NULL, (SUBR)SfInstrPlayMono },
+  { "sfinstr", S(SFIPLAY),  0, 5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
+                                                    NULL,(SUBR)SfInstrPlay },
+  { "sfplay3", S(SFPLAY),   0, 5,    "aa", "iixxiooo",  (SUBR)SfPlay_set,
+                                                    NULL, (SUBR)SfPlay3  },
+  { "sfplay3m", S(SFPLAYMONO), 0, 5, "a", "iixxiooo",   (SUBR)SfPlayMono_set,
+                                                    NULL,(SUBR)SfPlayMono3 },
+  { "sfinstr3", S(SFIPLAY), 0, 5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
+                                                    NULL, (SUBR)SfInstrPlay3 },
+  { "sfinstr3m", S(SFIPLAYMONO), 0, 5, "a", "iixxiiooo",(SUBR)SfInstrPlayMono_set,
+                                                    NULL, (SUBR)SfInstrPlayMono3 },
+  { "sflooper", S(sflooper), 0, 5, "aa", "iikkikkkoooo",  (SUBR)sflooper_init,
+                                                    NULL, (SUBR)sflooper_process },
+  { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
 int sfont_ModuleCreate(CSOUND *csound)

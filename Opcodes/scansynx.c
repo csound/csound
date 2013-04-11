@@ -347,13 +347,14 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 #ifdef USING_CHAR
           p->f[i*len+j] = 1;
 #else
-          if (i<len && j<len) { /* Only if in range! */
+          if (LIKELY(i<len && j<len)) { /* Only if in range! */
             int wd = (i*len+j)>>LOG_BITS_PER_UNIT;
             int bt = (i*len+j)&(BITS_PER_UNIT-1);
             p->f[wd] |= (1<<bt);
           }
           else {
-            csound->Message(csound, Str("(%d,%d) is out of range\n"), i, j);          }
+            csound->Message(csound, Str("(%d,%d) is out of range\n"), i, j);
+          }
 #endif
           while (*pp++ != '\n') ;
         }
