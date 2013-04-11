@@ -544,9 +544,6 @@ int csp_set_print(CSOUND *csound, struct set_t *set)
     csound->Message(csound, "{ ");
     while (ele != NULL) {
       set->ele_print_func(csound, ele);
-
-      TRACE_3(" [%p]", ele);
-
       if (ele->next != NULL) csound->Message(csound, ", ");
       ele = ele->next;
     }

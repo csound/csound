@@ -1726,9 +1726,9 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        }
      /* arrays */
     while (*(++tmp)) {
-       ptr1 = *tmp;
-       memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
-       }
+      ptr1 = *tmp;
+      memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
+    }
  endop:
     /* restore globals */
     CS_PDS = saved_pds;
@@ -1745,11 +1745,12 @@ int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
     int offset = 0;
 
     while ((optxt = optxt->nxtop) != NULL) {
-        TEXT* t = &optxt->t;
-        if(t->oentry == &csound->opcodlst[LABEL] && strcmp(t->opcod, labelName) == 0) {
-            break;
-        }
-        offset += t->oentry->dsblksiz;
+      TEXT* t = &optxt->t;
+      if (t->oentry == &csound->opcodlst[LABEL] &&
+          strcmp(t->opcod, labelName) == 0) {
+        break;
+      }
+      offset += t->oentry->dsblksiz;
     }
 
     return offset;
