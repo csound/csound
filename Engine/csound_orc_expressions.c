@@ -35,9 +35,11 @@ extern ORCTOKEN *make_label(CSOUND *, char *);
 extern OENTRIES* find_opcode2(CSOUND *, char*);
 extern char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
+extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, 
+                                       TYPE_TABLE* typeTable);
 extern void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable);
-extern void add_array_arg(CSOUND* csound, char* varName, int dimensions, TYPE_TABLE* typeTable);
+extern void add_array_arg(CSOUND* csound, char* varName, int dimensions, 
+                          TYPE_TABLE* typeTable);
 
 extern char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 extern char* get_array_sub_type(CSOUND* csound, char*);
@@ -78,7 +80,8 @@ char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
     case 't': sprintf(s, "#k%d", csound->tcount++); break;
     case 'S': sprintf(s, "#S%d", csound->tcount++); break;
-    case '[': sprintf(s, "#%c%d[]", outype[1], csound->tcount++); break; // piggyback on tcount
+    case '[': sprintf(s, "#%c%d[]", outype[1], csound->tcount++);
+              break; // piggyback on tcount
     default:  sprintf(s, "#i%d", csound->icount++); break;
     }
 
@@ -96,8 +99,10 @@ char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
  * returns outarg type
  */
 
-//FIXME - need to remove using this function, should not be necessary with using new type system code
-char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2, TYPE_TABLE* typeTable)
+//FIXME - need to remove using this function, should not be necessary with
+// using new type system code
+char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2,
+                          TYPE_TABLE* typeTable)
 {
     char *outype, *s;
     OENTRIES* oentries;
@@ -302,11 +307,13 @@ int is_boolean_expression_node(TREE *node)
 }
 
 static TREE *create_cond_expression(CSOUND *csound,
-                                    TREE *root, int line, int locn, TYPE_TABLE* typeTable)
+                                    TREE *root, int line, int locn, 
+                                    TYPE_TABLE* typeTable)
 {
     char arg1, arg2, ans, *outarg = NULL;
     char* outype;
-    TREE *anchor = create_boolean_expression(csound, root->left, line, locn, typeTable);
+    TREE *anchor = create_boolean_expression(csound, root->left, line, locn,
+                                             typeTable);
     TREE *last;
     TREE * opTree;
     TREE *b;
@@ -385,7 +392,8 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
  */
-TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TABLE* typeTable)
+TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, 
+                         TYPE_TABLE* typeTable)
 {
     char *op, arg1, arg2, *outarg = NULL;
     TREE *anchor = NULL, *last;
@@ -393,7 +401,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
     OENTRIES* opentries;
     /* HANDLE SUB EXPRESSIONS */
 
-    if (root->type=='?') return create_cond_expression(csound, root, line, locn, typeTable);
+    if (root->type=='?') return create_cond_expression(csound, root, line, 
+                                                       locn, typeTable);
 
     current = root->left;
     newArgList = NULL;
@@ -402,7 +411,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
         TREE* newArg;
 
         anchor = appendToTree(csound, anchor,
-                              create_expression(csound, current, line, locn, typeTable));
+                              create_expression(csound, current, line, locn, 
+                                                typeTable));
         last = tree_tail(anchor);
         newArg = create_ans_token(csound, last->left->value->lexeme);
         newArgList = appendToTree(csound, newArgList, newArg);
@@ -425,7 +435,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
         TREE* newArg;
 
         anchor = appendToTree(csound, anchor,
-                                  create_expression(csound, current, line, locn, typeTable));
+                                  create_expression(csound, current, line, 
+                                                    locn, typeTable));
         last = tree_tail(anchor);
 
         newArg = create_ans_token(csound, last->left->value->lexeme);
@@ -454,27 +465,33 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
     switch(root->type) {
     case '+':
       strncpy(op, "##add", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case '-':
       strncpy(op, "##sub", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case '*':
       strncpy(op, "##mul", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case '%':
       strncpy(op, "##mod", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case '/':
       strncpy(op, "##div", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case '^':
       strncpy(op, "pow", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case S_TABREF:
       strncpy(op, "##tabref", 80);
@@ -525,7 +542,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
                     root->value->lexeme, line);
         outtype = "i";
 
-      } else {
+      } 
+      else {
         char* inArgTypes = get_arg_string_from_tree(csound, root->right, typeTable);
         outtype = resolve_opcode_get_outarg(csound, opentries, inArgTypes);
       }
@@ -543,76 +561,86 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
       break;
     case '|':
       strncpy(op, "##or", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left, 
+                                             root->right, typeTable);
       break;
     case '&':
       strncpy(op, "##and", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left, 
+                                             root->right, typeTable);
       break;
     case S_BITSHIFT_RIGHT:
       strncpy(op, "##shr", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case S_BITSHIFT_LEFT:
       strncpy(op, "##shl", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case '#':
       strncpy(op, "##xor", 80);
-      outarg = create_out_arg_for_expression(csound, op, root->left, root->right, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
       break;
     case '~':
-        {
-            strncpy(op, "##not", 80);
+      {
+        strncpy(op, "##not", 80);
             
-            opentries = find_opcode2(csound, op);
+        opentries = find_opcode2(csound, op);
             
-            char* rightArgType = get_arg_string_from_tree(csound, root->right, typeTable);
+        char* rightArgType = get_arg_string_from_tree(csound, root->right,
+                                                      typeTable);
             
-            char* outype = resolve_opcode_get_outarg(csound, opentries, rightArgType);
-            outarg = create_out_arg(csound, outype, typeTable);
-            
-        }
+        char* outype = resolve_opcode_get_outarg(csound, opentries,
+                                                     rightArgType);
+        outarg = create_out_arg(csound, outype, typeTable);
+        
+      }
       break;
-     case T_TADD:
+    case T_TADD:
       strncpy(op, "##plustab", 80);
       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
       break;
-     case T_SUB:
+    case T_SUB:
       strncpy(op, "##subtab", 80);
       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
       break;
-     case S_TUMINUS:
+    case S_TUMINUS:
       strncpy(op, "##negtab", 80);
       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
       break;
-     case T_TMUL:
+    case T_TMUL:
       strncpy(op, "##multtab", 80);
       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
       break;
-     case T_TDIV:
+    case T_TDIV:
       strncpy(op, "##divtab", 80);
       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
       break;
-     case T_TREM:
+    case T_TREM:
       strncpy(op, "##remtab", 80);
       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
       break;
-     case T_TIMUL:
+    case T_TIMUL:
       strncpy(op, "##mulitab", 80);
       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
       break;
-     case T_TIDIV:
+    case T_TIDIV:
       strncpy(op, "##divitabtab", 80);
       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
       break;
-     case T_TIREM:
+    case T_TIREM:
        strncpy(op, "##remitab", 80);
        outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
        break;
-     case T_ARRAY:
+    case T_ARRAY:
         strncpy(op, "##array_get", 80);
-        outarg = create_out_arg(csound, get_array_sub_type(csound, root->left->value->lexeme), typeTable);
+        outarg = create_out_arg(csound,
+                                get_array_sub_type(csound,
+                                                   root->left->value->lexeme), 
+                                typeTable);
         break;
 
      }
@@ -650,7 +678,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TA
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
  */
-TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn, TYPE_TABLE* typeTable)
+TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
+                                 TYPE_TABLE* typeTable)
 {
     char *op, *outarg;
     TREE *anchor = NULL, *last;
@@ -683,7 +712,8 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
 
     if (is_boolean_expression_node(root->right)) {
       TREE * newRight = create_boolean_expression(csound,
-                                                  root->right, line, locn, typeTable);
+                                                  root->right, line, locn,
+                                                  typeTable);
       if (anchor == NULL) {
         anchor = newRight;
       }
@@ -704,7 +734,8 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
       root->right = create_ans_token(csound, last->left->value->lexeme);
     }
     else if (is_expression_node(root->right)) {
-      TREE * newRight = create_expression(csound, root->right, line, locn, typeTable);
+      TREE * newRight = create_expression(csound, root->right, line,
+                                          locn, typeTable);
       if (anchor == NULL) {
         anchor = newRight;
       }
@@ -810,9 +841,10 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
     return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));
 }
 
-/* returns the head of a list of TREE* nodes, expanding all RHS expressions into statements
- prior to the original statement line, and LHS expressions (array sets) after the
- original statement line */
+/* returns the head of a list of TREE* nodes, expanding all RHS
+   expressions into statements prior to the original statement line,
+   and LHS expressions (array sets) after the original statement
+   line */
 TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
      /* This is WRONG in optional argsq */
     TREE* anchor = NULL;
@@ -844,7 +876,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
             else {
                 expressionNodes =
                 create_boolean_expression(csound, currentArg,
-                                          currentArg->line, currentArg->locn, typeTable);
+                                          currentArg->line, currentArg->locn,
+                                          typeTable);
             }
 
             /* Set as anchor if necessary */
@@ -890,7 +923,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
       TREE* temp;
 
       if (currentArg->type == T_ARRAY) {
-        char* outType = get_array_sub_type(csound, currentArg->left->value->lexeme);;
+        char* outType = get_array_sub_type(csound, 
+                                           currentArg->left->value->lexeme);
         temp = create_ans_token(csound,
                                 create_out_arg(csound, outType, typeTable));
 
@@ -1010,7 +1044,8 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
                 tempRight->right = label;
 
                 typeTable->labelList = cs_cons(csound,
-                                               cs_strdup(csound, labelEnd->value->lexeme),
+                                               cs_strdup(csound, 
+                                                         labelEnd->value->lexeme),
                                                typeTable->labelList);
 
                 gotoType = (argtyp2( last->left->value->lexeme) == 'B') ||
@@ -1061,7 +1096,8 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
             anchor = appendToTree(csound, anchor, endLabel);
 
             typeTable->labelList = cs_cons(csound,
-                                           cs_strdup(csound, endLabel->value->lexeme),
+                                           cs_strdup(csound, 
+                                                     endLabel->value->lexeme),
                                            typeTable->labelList);
         }
 
@@ -1082,8 +1118,8 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
    4. insert statements
    5. add goto token that goes to top label
    6. end label */
-TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
-
+TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
+{
     TREE* anchor = NULL;
     TREE* expressionNodes = NULL;
 

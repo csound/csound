@@ -756,8 +756,8 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
 
     bp = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
 
-    bp->t.oentry = &csound->opcodlst[ENDIN];                          /*  send an endin to */
-    bp->t.opcod = strsav_string("endin"); /*  term instr 0 blk */
+    bp->t.oentry = &csound->opcodlst[ENDIN];  /*  send an endin to */
+    bp->t.opcod = strsav_string("endin");     /*  term instr 0 blk */
     bp->t.outlist = bp->t.inlist = NULL;
 
     bp->nxtop = NULL;   /* terminate the optxt chain */
@@ -1142,14 +1142,14 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
          */
         /* Temporarily using the following code */
         if (current->left->type == INTEGER_TOKEN) { /* numbered instrument, eg.: 
-						       instr 1   
+                                                       instr 1   
                                                     */
           int32 instrNum = (int32)current->left->value->value;
           insert_instrtxt(csound, instrtxt, instrNum, engineState);
     
         }
         else if (current->left->type == T_IDENT){ /* named instrument, eg.: 
-						       instr Hello  
+                                                       instr Hello  
                                                     */
                int32  insno_priority = -1L;
                 char *c;
@@ -1168,10 +1168,10 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 }
                 instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
                 strcpy(instrtxt->insname, c);
-	}
+        }
         else if (current->left->type == T_INSTLIST) {
-	                                            /* list of instr names, eg: 
-						       instr Hello, 1, 2  
+                                                    /* list of instr names, eg: 
+                                                       instr Hello, 1, 2  
                                                     */
           TREE *p =  current->left;
           while (p) {
@@ -1338,7 +1338,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       while ((optxt = optxt->nxtop) != NULL) {      /* for each op in instr  */
         TEXT *ttp = &optxt->t;
         optxtcount += 1;
-        if (ttp->oentry == &csound->opcodlst[ENDIN]                    /*    (until ENDIN)      */
+        if (ttp->oentry == &csound->opcodlst[ENDIN] /*    (until ENDIN)      */
             || ttp->oentry == &csound->opcodlst[ENDOP]) break;
         if ((count = ttp->inlist->count)!=0)
           sumcount += count +1;                     /* count the non-nullist */
@@ -1391,7 +1391,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       TEXT *ttp = &optxt->t;
       ep = ttp->oentry;
 
-      if (ep == &csound->opcodlst[ENDIN]                    /*    (until ENDIN)      */
+      if (ep == &csound->opcodlst[ENDIN]        /*    (until ENDIN)     */
             || ep == &csound->opcodlst[ENDOP]) break;
       if (ep == &csound->opcodlst[LABEL]) {
         continue;
