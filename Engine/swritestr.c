@@ -82,7 +82,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
         break;
       fltout(csound, bp->p2val, sco);                        /* put p2val,   */
       corfile_putc(SP, sco);
-      if(first) fltout(csound, bp->newp2, sco);                        /*   newp2,     */
+      if (first) fltout(csound, bp->newp2, sco);             /*   newp2,     */
       while ((c = *p++) != SP && c != LF)
         ;
       corfile_putc(c, sco);                /*   and delim  */
@@ -143,7 +143,8 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
       goto nxtlin;
 }
 
-static char *pfout(CSOUND *csound, SRTBLK *bp, char *p,int lincnt, int pcnt, CORFIL *sco)
+static char *pfout(CSOUND *csound, SRTBLK *bp, char *p,
+                   int lincnt, int pcnt, CORFIL *sco)
 {
     switch (*p) {
     case 'n':
@@ -195,7 +196,8 @@ static SRTBLK *prvins(SRTBLK *bp) /* find prv note with same p1 */
     return(bp);
 }
 
-static char *nextp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CORFIL *sco)
+static char *nextp(CSOUND *csound, SRTBLK *bp, char *p, 
+                   int lincnt, int pcnt, CORFIL *sco)
 {
     char *q;
     int n;
@@ -207,7 +209,7 @@ static char *nextp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CO
     n = 999;
     if (isdigit(*p))
       n = *p++ - '0';
-    if (isdigit(*p))                /* n is np subscript no */
+    if (isdigit(*p))                       /* n is np subscript no */
       n = 10*n + (*p++ - '0');
     if (UNLIKELY(*p != SP && *p != LF))
       goto error;
@@ -215,9 +217,9 @@ static char *nextp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CO
                && n <= bp->pcnt)) {
       q = bp->text;
       while (n--)
-        while (*q++ != SP)          /*   go find the pfield */
+        while (*q++ != SP)                 /*   go find the pfield */
           ;
-      pfout(csound,bp,q,lincnt,pcnt,sco);      /*   and put it out     */
+      pfout(csound,bp,q,lincnt,pcnt,sco);  /*   and put it out     */
     }
     else {
     error:
@@ -234,7 +236,8 @@ static char *nextp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CO
     return(p);
 }
 
-static char *prevp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CORFIL *sco)
+static char *prevp(CSOUND *csound, SRTBLK *bp, char *p,
+                   int lincnt, int pcnt, CORFIL *sco)
 {
     char *q;
     int n;
@@ -256,7 +259,7 @@ static char *prevp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CO
       while (n--)
         while (*q++ != SP)          /*   go find the pfield */
           ;
-      pfout(csound,bp,q,lincnt,pcnt, sco);      /*   and put it out     */
+      pfout(csound,bp,q,lincnt,pcnt, sco); /*   and put it out */
     }
     else {
     error:
@@ -273,7 +276,8 @@ static char *prevp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CO
     return(p);
 }
 
-static char *ramp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CORFIL *sco)
+static char *ramp(CSOUND *csound, SRTBLK *bp, char *p,
+                  int lincnt, int pcnt, CORFIL *sco)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char    *q;
@@ -337,7 +341,8 @@ static char *ramp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, COR
     return(psav);
 }
 
-static char *expramp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, CORFIL *sco)
+static char *expramp(CSOUND *csound, SRTBLK *bp, char *p,
+                     int lincnt, int pcnt, CORFIL *sco)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char    *q;
@@ -405,8 +410,8 @@ static char *expramp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt, 
     return(psav);
 }
 
-static char *randramp(CSOUND *csound,
-                      SRTBLK *bp, char *p, int lincnt, int pcnt, CORFIL *sco)
+static char *randramp(CSOUND *csound, SRTBLK *bp, char *p,
+                      int lincnt, int pcnt, CORFIL *sco)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char    *q;
@@ -490,8 +495,8 @@ static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt, CORFIL *sco)
     return(p);
 }
 
-static char *fpnum(CSOUND *csound,
-                   char *p, int lincnt, int pcnt, CORFIL *sco) /* moves ascii string */
+static char *fpnum(CSOUND *csound, char *p,
+                   int lincnt, int pcnt, CORFIL *sco) /* moves ascii string */
   /* to SCOREOUT file with fpnum format chk */
 {
     char *q;
