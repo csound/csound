@@ -42,7 +42,7 @@ ORCTOKEN** symbtab;
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
-static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
+//static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
 extern int csound_orcget_lineno(void*);
 extern int find_opcode_num(CSOUND* csound, char* opname,
                            char* outArgsFound, char* inArgsFound);
@@ -140,12 +140,12 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     return ans;
 }
 
-static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val)
-{
-    ORCTOKEN *ans = add_token(csound, s, type);
-    ans->value = val;
-    return ans;
-}
+/* static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val) */
+/* { */
+/*     ORCTOKEN *ans = add_token(csound, s, type); */
+/*     ans->value = val; */
+/*     return ans; */
+/* } */
 
 int isUDOArgList(char *s)
 {
@@ -275,14 +275,17 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
-    int     i, i_incnt, iv_incnt, iv_outcnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
+    int     i, i_incnt, iv_incnt, iv_outcnt, a_incnt, k_incnt, 
+            i_outcnt, a_outcnt, k_outcnt, err;
     int     S_incnt, S_outcnt, f_outcnt, f_incnt, kv_incnt, kv_outcnt;
     int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-    int16   *S_inlist, *S_outlist, *f_inlist, *f_outlist, *kv_inlist, *kv_outlist, *iv_inlist, *iv_outlist;
+    int16   *S_inlist, *S_outlist, *f_inlist, *f_outlist, *kv_inlist, 
+            *kv_outlist, *iv_inlist, *iv_outlist;
 
     /* count the number of arguments, and check types */
     i = i_incnt = S_incnt = a_incnt = k_incnt = f_incnt = f_outcnt =
-        i_outcnt = S_outcnt = a_outcnt = k_outcnt = kv_incnt = kv_outcnt = iv_outcnt = iv_incnt = err = 0;
+        i_outcnt = S_outcnt = a_outcnt = k_outcnt = kv_incnt = 
+        kv_outcnt = iv_outcnt = iv_incnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
     opc->dsblksiz = (uint16) sizeof(UOPCODE);
     if (!strcmp(types, "0"))
@@ -426,7 +429,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
      
     /* put delimiters */
-    *i_inlist = *S_inlist = *iv_inlist = *a_inlist = *k_inlist = *f_inlist = *kv_inlist = -1;
+    *i_inlist = *S_inlist = *iv_inlist = *a_inlist = *k_inlist = 
+      *f_inlist = *kv_inlist = -1;
     
     i_outlist = inm->out_ndx_list = kv_inlist + 1;
     S_outlist = i_outlist + i_outcnt + 1;
