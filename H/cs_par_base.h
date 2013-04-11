@@ -13,7 +13,8 @@
 /* #define LOCK_TYPE  pthread_mutex_t */
 /* #define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) */
 
-#if !defined(HAVE_PTHREAD_SPIN_LOCK) /* VL: 18.05.2011 enabled this to allow OSX build */
+#if !defined(HAVE_PTHREAD_SPIN_LOCK) 
+          /* VL: 18.05.2011 enabled this to allow OSX build */
  # define TAKE_LOCK(x) pthread_mutex_lock(x)
  # define RELS_LOCK(x) pthread_mutex_unlock(x)
  # define LOCK_TYPE  pthread_mutex_t
@@ -28,7 +29,6 @@
 
 #define DYNAMIC_2_SERIALIZE_PAR
 
-#define TRACE 0
 /* #define TIMING */
 
 /* #define SPINLOCK_BARRIER */
@@ -64,37 +64,6 @@
   #define TIMER_END(val, name)
   #define TIMER_T_START(val, index, name)
   #define TIMER_T_END(val, index, name)
-#endif
-
-#if (TRACE&1) == 1
-#define TRACE_0(...) { csound->Message(csound,"0:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_0(...)
-#endif
-#if (TRACE&2) == 2
-#define TRACE_1(...) { csound->Message(csound,"1:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_1(...)
-#endif
-#if (TRACE&4) == 4
-    #define TRACE_2(...) { csound->Message(csound,"2:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_2(...)
-#endif
-#if (TRACE&8) == 8
-    #define TRACE_3(...) { csound->Message(csound,"3:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_3(...)
-#endif
-#if (TRACE&16) == 16
-    #define TRACE_4(...) { csound->Message(csound,"4:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_4(...)
-#endif
-#if (TRACE&32) == 32
-    #define TRACE_5(...) { csound->Message(csound,"5:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_5(...)
 #endif
 
 #define KPERF_SYM 0x31
