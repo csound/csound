@@ -386,7 +386,6 @@
 ./Opcodes/syncgrain.h
 ./Opcodes/system_call.c
 ./Opcodes/tabsum.c
-./Opcodes/tabvars.c
 ./Opcodes/tl/fractalnoise.cpp
 ./Opcodes/tl/sc_noise.c
 ./Opcodes/ugakbari.c
