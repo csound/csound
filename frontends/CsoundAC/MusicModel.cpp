@@ -197,8 +197,8 @@ namespace csound
       std::string sconame = std::tmpnam(0);
       char buffer[0x200];
       std::sprintf(buffer,
-		   "csound --midi-key=4 --midi-velocity=5 -m195 -RWdfo %s %s%s.orc %s%s.sco",
-		   getOutputSoundfileName().c_str(), temp_path, orcname.c_str(), temp_path, sconame.c_str());
+		   "csound --midi-key=4 --midi-velocity=5 -m195 -RWdfo %s",
+		   getOutputSoundfileName().c_str());
       command_ = buffer;
     }
     return command_;
