@@ -191,7 +191,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         strcpy(ans->lexeme, s);
 //        ans->next = symbtab[h];
 //        symbtab[h] = ans;
-	// printf("Found UDO Answer List %s\n", s);
+        // printf("Found UDO Answer List %s\n", s);
         return ans;
       }
     }
@@ -204,7 +204,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         strcpy(ans->lexeme, s);
 //        ans->next = symbtab[h];
 //        symbtab[h] = ans;
-	// printf("Found UDO Arg List\n");
+        // printf("Found UDO Arg List\n");
         return ans;
       }
     }
@@ -308,7 +308,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         break;
       case '[':
         types++;
-	if(*types=='i') iv_incnt++;
+        if(*types=='i') iv_incnt++;
          else kv_incnt++;
           *otypes++ = *(types-1);
           *otypes++ = *(types);*otypes++ = *(types+1);
@@ -412,7 +412,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'f': *f_inlist++ = i; break;
         case '[':
           if(*types=='i') *iv_inlist++ = i;
-	  else *kv_inlist++ = i;
+          else *kv_inlist++ = i;
           types+=2;
           break;
         case 'K': *k_inlist++ = i;      /* also updated at i-time */
@@ -441,9 +441,9 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'a': *a_outlist++ = i; break;
         case 'k': *k_outlist++ = i; break;
         case 'f': *f_outlist++ = i; break;
-	case '[':
+        case '[':
           if(*types=='i') *iv_outlist++ = i;
-	  else *kv_outlist++ = i;
+          else *kv_outlist++ = i;
           types+=2; break;
         case 'K': *k_outlist++ = i;     /* also updated at i-time */
         case 'i': *i_outlist++ = i; break;

@@ -72,7 +72,8 @@ int spectset(CSOUND *csound, SPECTRUM *p)
     Q = *p->iq;
     hanning = (*p->ihann) ? 1 : 0;
     p->dbout = (int)*p->idbout;
-    if ((p->disprd = (int)(csound->GetKr(csound) * *p->idisprd)) < 0)  p->disprd = 0;
+    if ((p->disprd = (int)(csound->GetKr(csound) * *p->idisprd)) < 0)
+      p->disprd = 0;
 
     if (UNLIKELY(p->timcount <= 0))
       return csound->InitError(csound, Str("illegal iprd"));
@@ -107,7 +108,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
                       (hanning) ? "hanning":"hamming", outstring[p->dbout]);
 
       if (p->h.optext->t.intype == 'k') {
-        dwnp->srate = csound->GetKr(csound);            /* define the srate           */
+        dwnp->srate = csound->GetKr(csound);            /* define the srate */
         p->nsmps = 1;
       }
       else {
@@ -284,10 +285,10 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
       } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
     } while (--nsmps);
 
-    if (p->disprd)                         /* if displays requested,   */
-      if (!(--p->dcountdown)) {            /*   on countdown           */
+    if (p->disprd)                               /* if displays requested,   */
+      if (!(--p->dcountdown)) {                  /*   on countdown           */
         linocts(downp, (MYFLT *)p->auxch2.auxp); /*   linearize the oct bufs */
-        csound->display(csound, &p->octwindow);    /*      & display           */
+        csound->display(csound, &p->octwindow);  /*      & display           */
         p->dcountdown = p->disprd;
       }
 
@@ -304,7 +305,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
       int    len, *lenp, *offp, nfreqs;
       MYFLT    *begp, *curp, *endp, *linbufp;
       int      len2;
-      octp--;                                /* for each oct (low to high)   */
+      octp--;                                /* for each oct (low to high) */
       begp = octp->begp;
       curp = octp->curp;
       endp = octp->endp;
@@ -579,7 +580,8 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
         }
-    if ((p->ftimcnt = (int)(csound->GetKr(csound)**p->ifprd)) > 0) {/* if displaying wfund */
+    if ((p->ftimcnt = (int)(csound->GetKr(csound)**p->ifprd)) > 0) {
+      /* if displaying wfund */
       SPECDISP *fdp = &p->fdisplay;
       fdp->h = p->h;
       fdp->wsig = &p->wfund;                    /*  pass the param pntrs */
@@ -606,7 +608,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
     nfreqs = (MYFLT)inspecp->nfreqs;
     for (nn = 1; nn <= ptlmax; nn += inc)
       *dstp++ = (int) ((log((double) nn) / LOGTWO) * nfreqs + 0.5);
-    if ((rolloff = *p->irolloff) == 0. || rolloff == 1. || nptls == 1) {
+    if ((rolloff = *p->irolloff) == 0.0 || rolloff == 1.0 || nptls == 1) {
       p->rolloff = 0;
       weightsum = (MYFLT)nptls;
     } else {
@@ -632,7 +634,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
     fendp = fundp + inspecp->npts;
     if (flop < fundp) flop = fundp;
     if (fhip > fendp) fhip = fendp;
-    if (flop >= fhip) {         /* chk hi-lo range valid */
+    if (UNLIKELY(flop >= fhip)) {         /* chk hi-lo range valid */
       return csound->InitError(csound, Str("illegal lo-hi values"));
     }
     for (fp = fundp; fp < flop; )
@@ -1074,9 +1076,9 @@ int sphstset(CSOUND *csound, SPECHIST *p)
 
     if ((npts = inspecp->npts) != p->accumer.npts) { /* if inspec not matched   */
       SPECset(csound,
-              &p->accumer, (int32)npts);              /*   reinit the accum spec */
+              &p->accumer, (int32)npts);             /*   reinit the accum spec */
       SPECset(csound,
-              p->wacout, (int32)npts);                /*    & the output spec    */
+              p->wacout, (int32)npts);               /*    & the output spec    */
       p->wacout->downsrcp = inspecp->downsrcp;
     }
     p->wacout->ktimprd = inspecp->ktimprd;           /* pass the other specinfo */
@@ -1130,7 +1132,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
 
     if ((npts = inspecp->npts) != outspecp->npts) {  /* if inspec not matched */
       SPECset(csound,
-              outspecp, (int32)npts);                 /*   reinit the out spec */
+              outspecp, (int32)npts);                /*   reinit the out spec */
       csound->AuxAlloc(csound,
                        (size_t)npts*2* sizeof(MYFLT),
                        &p->auxch);                   /*   & local auxspace  */
@@ -1234,16 +1236,20 @@ static OENTRY spectra_localops[] = {
 { "writescratch", S(SCRATCHPAD),0, 1, "", "io", (SUBR)scratchwrite, NULL, NULL   },
 { "pitchamdf",S(PITCHAMDF),0,5,"kk","aiioppoo",
                                      (SUBR)pitchamdfset, NULL, (SUBR)pitchamdf },
-{ "hsboscil",S(HSBOSC), TR, 5, "a", "kkkiiioo",(SUBR)hsboscset,NULL,(SUBR)hsboscil },
+{ "hsboscil",S(HSBOSC), TR, 5, "a", "kkkiiioo",
+                                           
+                                    (SUBR)hsboscset,NULL,(SUBR)hsboscil },
 { "phasorbnk", S(PHSORBNK),0,7,"s", "xkio",
                                 (SUBR)phsbnkset, (SUBR)kphsorbnk, (SUBR)phsorbnk },
 { "adsynt",S(HSBOSC), TR, 5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
-{ "mpulse", S(IMPULSE), 0, 5,  "a", "kko",  (SUBR)impulse_set, NULL, (SUBR)impulse },
-{ "lpf18", S(LPF18),    0, 5,  "a", "akkko",  (SUBR)lpf18set, NULL, (SUBR)lpf18db   },
-{ "waveset", S(BARRI),  0, 5,  "a", "ako",   (SUBR)wavesetset,  NULL, (SUBR)waveset},
+{ "mpulse", S(IMPULSE), 0, 5,  "a", "kko",  
+                                    (SUBR)impulse_set, NULL, (SUBR)impulse },
+{ "lpf18", S(LPF18),    0, 5,  "a", "akkko",  (SUBR)lpf18set, NULL, (SUBR)lpf18db },
+{ "waveset", S(BARRI),  0, 5,  "a", "ako",   (SUBR)wavesetset, NULL, (SUBR)waveset},
 { "pinkish", S(PINKISH), 0, 5, "a", "xoooo", (SUBR)pinkset, NULL, (SUBR)pinkish },
 { "noise",  S(VARI),  0, 5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
-{ "transeg", S(TRANSEG),0, 7,  "s", "iiim", (SUBR)trnset,(SUBR)ktrnseg,(SUBR)trnseg},
+{ "transeg", S(TRANSEG),0, 7,  "s", "iiim", 
+                                           (SUBR)trnset,(SUBR)ktrnseg,(SUBR)trnseg},
 { "transegb", S(TRANSEG),0, 7,  "s", "iiim",
                               (SUBR)trnset_bkpt,(SUBR)ktrnseg,(SUBR)trnseg    },
 { "transegr", S(TRANSEG),0, 7, "s", "iiim",
@@ -1255,9 +1261,11 @@ static OENTRY spectra_localops[] = {
 { "active.i", S(INSTCNT),0,1,     "i",    "Too",   (SUBR)instcount, NULL, NULL },
 { "active.k", S(INSTCNT),0,2,     "k",    "Uoo",   NULL, (SUBR)instcount, NULL },
 { "p.i", S(PFUN),        0,1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
-{ "p.k", S(PFUNK),       0,3,     "k",    "k", (SUBR)pfunk_init, (SUBR)pfunk, NULL },
+{ "p.k", S(PFUNK),       0,3,     "k",    "k", 
+                                          (SUBR)pfunk_init, (SUBR)pfunk, NULL },
 { "mute", S(MUTE), 0,1,          "",      "To",   (SUBR)mute_inst             },
-{ "median", S(MEDFILT), 0, 5,     "a", "akio", (SUBR)medfiltset, NULL, (SUBR)medfilt},
+{ "median", S(MEDFILT), 0, 5,     "a", "akio",
+                                        (SUBR)medfiltset, NULL, (SUBR)medfilt },
 { "mediank", S(MEDFILT), 0,5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
 
