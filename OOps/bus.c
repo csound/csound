@@ -929,9 +929,12 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
+    
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+				   CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
+
     if (LIKELY(!err)) {
       p->h.opadr = (SUBR) chnget_opcode_perf_a;
       return OK;
