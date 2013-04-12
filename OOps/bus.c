@@ -892,6 +892,7 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -917,6 +918,8 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (LIKELY(!err)) {
       p->h.opadr = (SUBR) chnget_opcode_perf_k;
       return OK;
@@ -950,6 +953,8 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
+     p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+				    CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
     csoundSpinLock(p->lock);

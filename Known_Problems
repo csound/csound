@@ -4,4 +4,7 @@ Problems of which we are aware
 Named instruments do not work unless in a list 
     ie instr foo fails but "instr foo, 1" works
        -- fixed in git sources 2013 Apr 10 08:30 UT
+chnset locks were NULL
+       -- fixed in git sources 2013 Apr 12 06:30 UT
+
 
