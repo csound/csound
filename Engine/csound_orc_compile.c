@@ -246,7 +246,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
           synterr(csound, Str("missing or extra arg"));
       }       /* IV - Sep 1 2002: added 'M' */
       else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
-               treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
+               treqd != 'Z' && treqd != 'M' && treqd != 'N' && treqd != '*') /* else any no */
         synterr(csound, Str("too many input args\n"));
     }
 
@@ -1398,7 +1398,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       }
 
       if (O->odebug)
-        csound->Message(csound, "%s args:\n", ep->opname);
+        csound->Message(csound, "%s args: %s", ep->opname);
       if ((outlist = ttp->outlist) == NULL || !outlist->count)
         ttp->outArgs = NULL;
       else {
@@ -1455,6 +1455,10 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
         ttp->inArgCount = argCount(ttp->inArgs);
         mfree(csound, argStringParts);
       }
+      
+      if (O->odebug)
+        csound->Message(csound, "\n");
+
     }
 }
 

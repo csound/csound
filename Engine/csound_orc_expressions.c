@@ -1048,8 +1048,7 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
                                                          labelEnd->value->lexeme),
                                                typeTable->labelList);
 
-                gotoType = (argtyp2( last->left->value->lexeme) == 'B') ||
-                (argtyp2( tempRight->value->lexeme) == 'k');
+                gotoType = (argtyp2( last->left->value->lexeme) == 'B');
                 gotoToken =
                 create_goto_token(csound,
                                   last->left->value->lexeme,
