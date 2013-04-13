@@ -1506,26 +1506,26 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
     return OK;
 }
 
-
-static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
-{
-  if (p->XSTRCODE & 2) return OK;
-   else {
-#ifdef HAVE_ATOMIC_BUILTIN
-    union {
-    MYFLT d;
-    int64_t i;
-    } x;
-    x.d = *(p->iname);
-    __sync_lock_test_and_set((int64_t *)(p->fp),x.i);
-#else
-     csoundSpinLock(p->lock);
-     *(p->fp) = *(p->iname);
-     csoundSpinUnLock(p->lock);
-#endif
-    return OK;
-    }
-}
+// FIXME -- This static function is not used
+/* static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p) */
+/* { */
+/*   if (p->XSTRCODE & 2) return OK; */
+/*    else { */
+/* #ifdef HAVE_ATOMIC_BUILTIN */
+/*     union { */
+/*     MYFLT d; */
+/*     int64_t i; */
+/*     } x; */
+/*     x.d = *(p->iname); */
+/*     __sync_lock_test_and_set((int64_t *)(p->fp),x.i); */
+/* #else */
+/*      csoundSpinLock(p->lock); */
+/*      *(p->fp) = *(p->iname); */
+/*      csoundSpinUnLock(p->lock); */
+/* #endif */
+/*     return OK; */
+/*     } */
+/* } */
 
 /* k-rate and string i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
