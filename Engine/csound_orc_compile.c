@@ -1398,7 +1398,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       }
 
       if (O->odebug)
-        csound->Message(csound, "%s args: %s", ep->opname);
+        csound->Message(csound, "%s args:", ep->opname);
       if ((outlist = ttp->outlist) == NULL || !outlist->count)
         ttp->outArgs = NULL;
       else {
@@ -1406,7 +1406,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
         argp = outlist->arg;                    /* get outarg indices */
         while (n--) {
           ARG* arg = createArg(csound, tp, *argp++, engineState);
-
           if(ttp->outArgs == NULL) {
             ttp->outArgs = arg;
           } else {
@@ -1434,7 +1433,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             arg->argPtr = mmalloc(csound, strlen(*argp) + 1);
             strcpy(arg->argPtr, *argp);
             if (UNLIKELY(O->odebug))
-              csound->Message(csound, "\t***lbl");  /* if arg is label,  */
+              csound->Message(csound, "\t%s:", *argp);  /* if arg is label,  */
           } else {
             char *s = *argp;
             arg = createArg(csound, tp, s, engineState);
@@ -1498,6 +1497,9 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
 
     ARG* arg = csound->Calloc(csound, sizeof(ARG));
 
+    if (UNLIKELY(csound->oparms->odebug))
+        csound->Message(csound, "\t%s", s);  /* if arg is label,  */
+    
     /* must trap 0dbfs as name starts with a digit! */
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
