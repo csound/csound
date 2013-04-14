@@ -6,5 +6,10 @@ Named instruments do not work unless in a list
        -- fixed in git sources 2013 Apr 10 08:30 UT
 chnset locks were NULL
        -- fixed in git sources 2013 Apr 12 06:30 UT
-
+wrong goto token synthesized for if-then
+       -- fixed in git sources Apr 13 23:07:03 2013 +0100
+if-then in UDO would not properly set label jumps when called
+    in recursive UDO's, also cause of issue with recursive
+    UDO's recursing one extra time
+       -- fixed in git sources Sun Apr 14 14:41:30 2013 +0100 
 
