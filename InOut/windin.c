@@ -28,6 +28,8 @@
 
 int xyinset(CSOUND *csound, XYIN *p)
 {
-    return csound->InitError(csound, Str("xyin opcode has been deprecated in Csound6."));
+    // This is not the way to do it; set _QQ in interlocks
+    return csound->InitError(csound, 
+                             Str("xyin opcode has been deprecated in Csound6."));
 }
 

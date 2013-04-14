@@ -936,7 +936,7 @@ int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = csoundGetChannelLock(csound, (char*) p->iname,
-				   CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
+                                   CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
 
     if (LIKELY(!err)) {
       p->h.opadr = (SUBR) chnget_opcode_perf_a;
@@ -954,7 +954,7 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
      p->lock = csoundGetChannelLock(csound, (char*) p->iname,
-				    CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
+                                    CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
     csoundSpinLock(p->lock);
@@ -1535,7 +1535,8 @@ int kinval(CSOUND *csound, INVAL *p)
 {
         if (csound->InputChannelCallback_)
           csound->InputChannelCallback_(csound,
-                                      (char*) p->channelName.auxp, p->value, p->channelType);
+                                        (char*) p->channelName.auxp,
+                                        p->value, p->channelType);
         else
           *(p->value) = FL(0.0);
 
@@ -1586,7 +1587,8 @@ int invalset(CSOUND *csound, INVAL *p)
 
 //    if (csound->InputChannelCallback_)
 //      csound->InputChannelCallback_(csound,
-//                                  (char*) p->channelName.auxp, p->value, p->channelType);
+//                                    (char*) p->channelName.auxp, p->value,
+//                                    p->channelType);
 
 //    return OK;
 //}
