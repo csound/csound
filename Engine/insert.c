@@ -1055,10 +1055,11 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
       csound->kcounter *= p->ksmps_scale;
     }
-
+    
     if (!p->ip) {
       /* search for already allocated, but not active instance */
       /* if none was found, allocate a new instance */
+     
       if (!tp->act_instance)
         instance(csound, instno);
       lcurip = tp->act_instance;            /* use free intance, and  */
@@ -1159,13 +1160,13 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 int useropcd(CSOUND *csound, UOPCODE *p)
 {
-    //if(p->h.nxtp)
-    //return csoundPerfError(csound, Str("%s: not initialised"),
-    //                p->h.optext->t.opcod);
-    //else
+    if(p->h.nxtp)
+    return csoundPerfError(csound, Str("%s: not initialised"),
+                    p->h.optext->t.opcod);
+    else
 
-  IGN(csound);
-  IGN(p);
+      //IGN(csound);
+      //IGN(p);
     /* VL - not marking this as a perf error allows recursive UDOs to work
        This is a (harmless) hack, but it would be nice to know why there is
        one extra call to a UDO which is not initialised in a recursive run

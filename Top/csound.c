@@ -1436,12 +1436,19 @@ int kperf(CSOUND *csound)
           }
 
           if (ip->init_done == 1) {/* if init-pass has been done */
-            csound->pds = (OPDS*) ip;
+            OPDS  *opstart = (OPDS*) ip;
+            while ((opstart = opstart->nxtp) != NULL) {
+          opstart->insdshead->pds = opstart;
+          (*opstart->opadr)(csound, opstart); /* run each opcode */
+          opstart = opstart->insdshead->pds;
+        }
+            
+	    /* //csound->pds = (OPDS*) ip;
             while ((csound->pds = csound->pds->nxtp) != NULL) {
              csound->pds->insdshead->pds = csound->pds;
-             (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+             (*csound->pds->opadr)(csound, csound->pds); 
              csound->pds = csound->pds->insdshead->pds;
-             }
+             }*/
           }
 
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
