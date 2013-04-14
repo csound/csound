@@ -13,7 +13,7 @@
 /* #define LOCK_TYPE  pthread_mutex_t */
 /* #define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) */
 
-#if !defined(HAVE_PTHREAD_SPIN_LOCK) 
+#if !defined(HAVE_PTHREAD_SPIN_LOCK)
           /* VL: 18.05.2011 enabled this to allow OSX build */
  # define TAKE_LOCK(x) pthread_mutex_lock(x)
  # define RELS_LOCK(x) pthread_mutex_unlock(x)

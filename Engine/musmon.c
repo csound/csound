@@ -224,7 +224,7 @@ int musmon(CSOUND *csound)
 
     /* kperf() will not call csoundYield() more than 250 times per second */
     csound->evt_poll_cnt    = 0;
-    csound->evt_poll_maxcnt = 
+    csound->evt_poll_maxcnt =
       (int)(250.0 /(double) csound->ekr); /* VL this was wrong: kr/250 originally */
     /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O->Midiin || O->FMidiin || O->RMidiin) {

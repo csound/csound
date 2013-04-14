@@ -1141,20 +1141,20 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
          * numbered) and using new insert_instrtxt?
          */
         /* Temporarily using the following code */
-        if (current->left->type == INTEGER_TOKEN) { /* numbered instrument, eg.: 
-                                                       instr 1   
+        if (current->left->type == INTEGER_TOKEN) { /* numbered instrument, eg.:
+                                                       instr 1
                                                     */
           int32 instrNum = (int32)current->left->value->value;
           insert_instrtxt(csound, instrtxt, instrNum, engineState);
-    
+
         }
-        else if (current->left->type == T_IDENT){ /* named instrument, eg.: 
-                                                       instr Hello  
+        else if (current->left->type == T_IDENT){ /* named instrument, eg.:
+                                                       instr Hello
                                                     */
                int32  insno_priority = -1L;
                 char *c;
                 c = current->left->value->lexeme;
-                
+
                 if (UNLIKELY(current->left->rate == (int) '+')) {
                   insno_priority--;
                 }
@@ -1170,8 +1170,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 strcpy(instrtxt->insname, c);
         }
         else if (current->left->type == T_INSTLIST) {
-                                                    /* list of instr names, eg: 
-                                                       instr Hello, 1, 2  
+                                                    /* list of instr names, eg:
+                                                       instr Hello, 1, 2
                                                     */
           TREE *p =  current->left;
           while (p) {
@@ -1454,7 +1454,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
         ttp->inArgCount = argCount(ttp->inArgs);
         mfree(csound, argStringParts);
       }
-      
+
       if (O->odebug)
         csound->Message(csound, "\n");
 
@@ -1499,7 +1499,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
 
     if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound, "\t%s", s);  /* if arg is label,  */
-    
+
     /* must trap 0dbfs as name starts with a digit! */
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {

@@ -1353,7 +1353,6 @@ unsigned long kperfThread(void * cs)
 
     while (1) {
 
-      SHARK_SIGNPOST(BARRIER_1_WAIT_SYM);
       csound->WaitBarrier(csound->barrier1);
 
       csound_global_mutex_lock();
@@ -1364,12 +1363,8 @@ unsigned long kperfThread(void * cs)
       }
       csound_global_mutex_unlock();
 
-      TIMER_INIT(thread, "");
-      TIMER_T_START(thread, index, "");
-
       nodePerf(csound, index);
 
-      SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
       csound->WaitBarrier(csound->barrier2);
     }
 }

@@ -1055,11 +1055,11 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
       csound->kcounter *= p->ksmps_scale;
     }
-    
+
     if (!p->ip) {
       /* search for already allocated, but not active instance */
       /* if none was found, allocate a new instance */
-     
+
       if (!tp->act_instance)
         instance(csound, instno);
       lcurip = tp->act_instance;            /* use free intance, and  */
@@ -1215,7 +1215,7 @@ int xinset(CSOUND *csound, XIN *p)
       return OK;
 
     while (*++ndx_list >= 0) {
-      
+
       *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
       *(tmp++) = *(p->args + *ndx_list);/* "to" address */
     }

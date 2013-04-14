@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-/*                                                                      UGENS1.H        */
+/*                                                         UGENS1.H        */
 
 typedef struct {
         OPDS    h;

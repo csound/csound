@@ -192,9 +192,12 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
 static void portMidi_listDevices(CSOUND *csound, int output)
 {
     int i,n = listDevices(csound, NULL, output);
-    CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
+    CS_MIDIDEVICE *devs =
+      (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
     listDevices(csound, devs, output);
-    for(i=0; i < n; i++) csound->Message(csound, "%s: %s (%s)\n", devs[i].device_id, devs[i].device_name, devs[i].midi_module);
+    for(i=0; i < n; i++)
+      csound->Message(csound, "%s: %s (%s)\n",
+                      devs[i].device_id, devs[i].device_name, devs[i].midi_module);
     csound->Free(csound, devs);
 }
 
