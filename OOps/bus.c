@@ -751,7 +751,7 @@ PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
         hints.min  = (MYFLT) ((int32) MYFLT2LRND(hints.min));
         hints.max  = (MYFLT) ((int32) MYFLT2LRND(hints.max));
     }
-    if (UNLIKELY(hints.min >= hints.max || hints.dflt < hints.min ||
+    if (UNLIKELY(hints.min > hints.max || hints.dflt < hints.min ||
                  hints.dflt > hints.max ||
                  (hints.behav == CSOUND_CONTROL_CHANNEL_EXP &&
                   ((hints.min * hints.max) <= FL(0.0))))) {
