@@ -1084,6 +1084,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       /* store parameters of input and output channels, and parent ip */
       buf->uopcode_struct = (void*) p;
       buf->parent_ip = p->parent_ip = parent_ip;
+      
     }
 
     /* copy parameters from the caller instrument into our subinstrument */
@@ -1152,7 +1153,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       saved_curip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
     }
-
+    
     return OK;
 }
 
@@ -1160,6 +1161,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 int useropcd(CSOUND *csound, UOPCODE *p)
 {
+    
     if(p->h.nxtp)
     return csoundPerfError(csound, Str("%s: not initialised"),
                     p->h.optext->t.opcod);
@@ -1549,7 +1551,15 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          }
 
         /*  run each opcode  */
-        CS_PDS = (OPDS *) (p->ip);
+       CS_PDS = (OPDS *) (p->ip);
+       /* CS_PDS->insdshead->pds = NULL; */
+       /* do { */
+       /* (*CS_PDS->opadr)(csound, CS_PDS); */
+       /*     if (CS_PDS->insdshead->pds != NULL) { */
+       /*         CS_PDS = CS_PDS->insdshead->pds; */
+       /*        CS_PDS->insdshead->pds = NULL; */
+       /*     } */
+       /* } while ((CS_PDS = CS_PDS->nxtp)); */
         while ((CS_PDS = CS_PDS->nxtp)) {
           (*CS_PDS->opadr)(csound, CS_PDS);
         }
@@ -1585,7 +1595,16 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
         /*  run each opcode  */
-        CS_PDS = (OPDS *) (p->ip);
+       CS_PDS = (OPDS *) (p->ip);
+       /* CS_PDS->insdshead->pds = NULL; */
+       /* do { */
+       /* (*CS_PDS->opadr)(csound, CS_PDS); */
+       /*     if (CS_PDS->insdshead->pds != NULL) { */
+       /*         CS_PDS = CS_PDS->insdshead->pds; */
+       /*        CS_PDS->insdshead->pds = NULL; */
+       /*     } */
+       /* } while ((CS_PDS = CS_PDS->nxtp)); */
+        /*  */
         while ((CS_PDS = CS_PDS->nxtp)) {
           (*CS_PDS->opadr)(csound, CS_PDS);
         }
@@ -1675,11 +1694,19 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
 
-
+       CS_PDS->insdshead->pds = NULL;
+       do {
+       (*CS_PDS->opadr)(csound, CS_PDS);
+           if (CS_PDS->insdshead->pds != NULL) {
+               CS_PDS = CS_PDS->insdshead->pds;
+              CS_PDS->insdshead->pds = NULL;
+           }
+       } while ((CS_PDS = CS_PDS->nxtp));
       /*  run each opcode  */
-      do {
-        (CS_PDS->opadr)(csound, CS_PDS);
-      } while ((CS_PDS = CS_PDS->nxtp));
+      /* do { */
+      /*   (CS_PDS->opadr)(csound, CS_PDS); */
+      /* } while ((CS_PDS = CS_PDS->nxtp)); */
+
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; ptr2 = *(++tmp);
@@ -1709,9 +1736,17 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
       /*  run each opcode  */
-      do {
-        (*CS_PDS->opadr)(csound, CS_PDS);
-      } while ((CS_PDS = CS_PDS->nxtp));
+      CS_PDS->insdshead->pds = NULL;
+       do {
+       (*CS_PDS->opadr)(csound, CS_PDS);
+           if (CS_PDS->insdshead->pds != NULL) {
+               CS_PDS = CS_PDS->insdshead->pds;
+              CS_PDS->insdshead->pds = NULL;
+           }
+       } while ((CS_PDS = CS_PDS->nxtp));
+      /* do { */
+      /*   (*CS_PDS->opadr)(csound, CS_PDS); */
+      /* } while ((CS_PDS = CS_PDS->nxtp)); */
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
