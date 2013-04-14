@@ -121,14 +121,14 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
       return CSOUND_ERROR;
     }
     if (UNLIKELY(indefArgCount>dat->dimensions))
-      return csound->PerfError(csound, 
+      return csound->PerfError(csound,
                                Str("Array dimension %d out of range "
                                    "for dimensions %d\n"),
                                indefArgCount, dat->dimensions);
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
     if (UNLIKELY(index >= dat->sizes[end] || index<0))
-      return csound->PerfError(csound, 
+      return csound->PerfError(csound,
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
                                index, dat->sizes[end]-1, indefArgCount);
@@ -137,9 +137,9 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
       for (i = end - 1; i >= 0; i--) {
         int ind = MYFLT2LRND(*p->indexes[i]);
         if (UNLIKELY(ind >= dat->sizes[i] || ind<0))
-          return csound->PerfError(csound, 
+          return csound->PerfError(csound,
                                    Str("Array index %d out of range (0,%d) "
-                                       "for dimension %d\n"), ind, 
+                                       "for dimension %d\n"), ind,
                                    dat->sizes[i]-1, i+1);
         index += ind * dat->sizes[i + 1];
       }
@@ -165,14 +165,14 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
     if (UNLIKELY(indefArgCount == 0))
       csound->PerfError(csound, Str("Error: no indexes set for array get"));
     if (UNLIKELY(indefArgCount>dat->dimensions))
-      return csound->PerfError(csound, 
+      return csound->PerfError(csound,
                                Str("Array dimension %d out of range "
                                    "for dimensions %d\n"),
                                indefArgCount, dat->dimensions);
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
     if (UNLIKELY(index >= dat->sizes[end] || index<0))
-      return csound->PerfError(csound, 
+      return csound->PerfError(csound,
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
                                index, dat->sizes[end]-1, end+1);
@@ -180,7 +180,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
         for (i = end - 1; i >= 0; i--) {
           int ind = MYFLT2LRND(*p->indexes[i]);
           if (UNLIKELY(ind >= dat->sizes[i] || ind<0))
-            return csound->PerfError(csound, 
+            return csound->PerfError(csound,
                                      Str("Array index %d out of range (0,%d) "
                                          "for dimension %d\n"), ind,
                                      dat->sizes[i]-1, i+1);
@@ -275,11 +275,11 @@ static int tabarithset(CSOUND *csound, TABARITH *p)
     if (LIKELY(p->left->data && p->right->data)) {
       int size;
       if (p->left->dimensions!=1 || p->right->dimensions!=1)
-        return 
+        return
           csound->InitError(csound,
                             Str("Dimensions do not match in array arithmetic"));
       /* size is the smallest of the two */
-      size = p->left->sizes[0] < p->right->sizes[0] ? 
+      size = p->left->sizes[0] < p->right->sizes[0] ?
                      p->left->sizes[0] : p->right->sizes[0];
       tabensure(csound, p->ans, size);
       p->ans->sizes[0] = size;
@@ -811,22 +811,22 @@ static OENTRY arrayvars_localops[] =
     { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", "[.].z",
                                               NULL, (SUBR)array_set },
     { "##array_get.i", sizeof(ARRAY_GET), 0, 1, "i", "[i]m", (SUBR)array_get },
-    { "##array_get.i2", sizeof(ARRAY_GET), 0, 3, ".", "[.]m", (SUBR)array_get, (SUBR)array_get },    
+    { "##array_get.i2", sizeof(ARRAY_GET), 0, 3, ".", "[.]m", (SUBR)array_get, (SUBR)array_get },
     { "##array_get.k", sizeof(ARRAY_GET), 0, 2, ".", "[.]z",
       NULL, (SUBR)array_get },
     /* ******************************************** */
-    {"##add.[]", sizeof(TABARITH), 0, 3, "[k]", "[k][k]", 
+    {"##add.[]", sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                          (SUBR)tabarithset, (SUBR)tabadd},
     /* ******************************************** */
-    {"##sub.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]", 
+    {"##sub.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                          (SUBR)tabarithset, (SUBR)tabsub},
-    //    {"##neg.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k]", 
+    //    {"##neg.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k]",
     //                                         (SUBR)tabarithset1, (SUBR)tabneg},
     {"##mul.[]", sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                          (SUBR)tabarithset,(SUBR)tabmult},
-    {"##div.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]", 
+    {"##div.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                           (SUBR)tabarithset,(SUBR)tabdiv },
-    {"##rem.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]", 
+    {"##rem.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                           (SUBR)tabarithset, (SUBR)tabrem},
 //{"##multitab.[]", sizeof(TABARITH1), 0, 3, "[k]", "ti",
 //                                         (SUBR)tabarithset1, (SUBR)tabimult },

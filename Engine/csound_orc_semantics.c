@@ -734,7 +734,7 @@ PUBLIC int check_in_arg(char* found, char* required) {
     if (*required == '.' || *required == '?' || *required == '*') {
         return 1;
     }
-    
+
     if (*found == '[' || *required == '[') {
       if (*found != *required) {
         return 0;
@@ -838,7 +838,7 @@ PUBLIC int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
             break;
           }
         }
-        
+
       }
 
       mfree(csound, argsFound);
@@ -867,8 +867,8 @@ PUBLIC int check_out_arg(char* found, char* required) {
 
     if (*required == '.' || *required == '?' || *required == '*') {
         return 1;
-    }    
-    
+    }
+
     if (*found == '[' || *required == '[') {
       if(*found != *required) {
         return 0;
@@ -1263,7 +1263,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
 
 }
 
-void add_array_arg(CSOUND* csound, char* varName, int dimensions, 
+void add_array_arg(CSOUND* csound, char* varName, int dimensions,
                    TYPE_TABLE* typeTable) {
 
     CS_VARIABLE* var;
@@ -1319,7 +1319,7 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       switch (current->type) {
       case T_ARRAY_IDENT:
         varName = current->value->lexeme;
-        add_array_arg(csound, varName, 
+        add_array_arg(csound, varName,
                       tree_arg_list_count(current->right), typeTable);
 
         break;
@@ -1378,7 +1378,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     opcodeName = root->value->lexeme;
     leftArgString = get_arg_string_from_tree(csound, left, typeTable);
     rightArgString = get_arg_string_from_tree(csound, right, typeTable);
-    
+
     if (!strcmp(opcodeName, "xin")) {
         int nreqd = tree_arg_list_count(root->right);
 

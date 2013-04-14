@@ -84,11 +84,14 @@ void flgraph_init(CSOUND *csound)
 {
 
     FLGRAPH_GLOBALS *flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
     if (flgraphGlobals==NULL) {
-     csound->CreateGlobalVariable(csound, "FLGRAPH_GLOBALS", sizeof(FLGRAPH_GLOBALS));
+     csound->CreateGlobalVariable(csound, "FLGRAPH_GLOBALS",
+                                  sizeof(FLGRAPH_GLOBALS));
      flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
       //csound->flgraphGlobals =
       //(FLGRAPH_GLOBALS*) csound->Malloc(csound,sizeof(FLGRAPH_GLOBALS));
     }
@@ -111,7 +114,8 @@ void flgraph_init(CSOUND *csound)
 void graph_box::draw()
 {
     FLGRAPH_GLOBALS *flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
     Fl_Window::draw();
     fl_color(0, 0, 0);
     fl_line_style(FL_SOLID);
@@ -207,7 +211,8 @@ void graph_box::draw()
 void add_graph(CSOUND *csound, WINDAT *wdptr)
 {
     FLGRAPH_GLOBALS *flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
     WINDAT *n = (WINDAT*) malloc(sizeof(WINDAT));
     int    m;
     WINDAT *old;
@@ -260,7 +265,8 @@ void do_redraw(Fl_Widget *, void *cs)
 {
     CSOUND *csound = (CSOUND*)cs;
     FLGRAPH_GLOBALS *flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
     ST(graph)->curr = ST(choice)->value();
     ST(graph)->redraw();
 }
@@ -268,7 +274,8 @@ void do_redraw(Fl_Widget *, void *cs)
 void makeWindow(CSOUND *csound, char *name)
 {
     FLGRAPH_GLOBALS *flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
     if (ST(form))
       return;
 
@@ -306,7 +313,8 @@ extern "C" {
   uintptr_t MakeWindow_FLTK(CSOUND *csound, char *name)
   {
       FLGRAPH_GLOBALS *flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
       if (ST(form) == NULL) {
         makeWindow(csound, name);
         ST(form)->show();
@@ -330,7 +338,8 @@ extern "C" {
   void kill_graph(CSOUND *csound, uintptr_t m)
   {
       FLGRAPH_GLOBALS *flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
       for (int i = 0; i < NUMOFWINDOWS; i++) {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
         if (n != NULL && ((uintptr_t) n == m ||n->windid == m)) {
@@ -347,7 +356,8 @@ extern "C" {
   int ExitGraph_FLTK(CSOUND *csound)
   {
       FLGRAPH_GLOBALS *flgraphGlobals =
-         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound, "FLGRAPH_GLOBALS");
+         (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
+                                                         "FLGRAPH_GLOBALS");
       if (ST(form) && ST(graph_created) == 1) {
 
         if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {

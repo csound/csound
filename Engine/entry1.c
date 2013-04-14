@@ -99,7 +99,7 @@ OENTRY opcodlst_1[] = {
     /* and setksmps */
     { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
     /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-    { "xin",  S(XIN_LOW),0,   1,  "****************", "",  xinset,  NULL, NULL },   
+    { "xin",  S(XIN_LOW),0,   1,  "****************", "",  xinset,  NULL, NULL },
     { "##xin64",   S(XIN_HIGH),0,  1,
         "****************************************************************", "",
         xinset,  NULL, NULL },
@@ -506,7 +506,7 @@ OENTRY opcodlst_1[] = {
   { "readk3", S(KREAD3),0,  3,      "kkk",  "Tii",   krd3set, kread3        },
   { "readk4", S(KREAD4),0,  3,      "kkkk", "Tii",   krd4set, kread4        },
   { "readks", S(KREADS),0,  3,      "S",    "Ti",    krdsset, kreads        },
-  { "xyin",     S(XYIN),0,    1,    "kk",   "iiiiioo",xyinset,NULL          },
+  { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",xyinset,NULL          },
   { "tempest",  S(TEMPEST),0, 5,    "k","kiiiiiiiiiop",tempeset,NULL,tempest},
   { "tempo",    S(TEMPO),0,   3,    "",     "ki",   tempset,tempo           },
   { "pow.i",    S(POW),0,   1,      "i",    "iip",  ipow,    NULL,  NULL    },

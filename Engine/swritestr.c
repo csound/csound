@@ -196,7 +196,7 @@ static SRTBLK *prvins(SRTBLK *bp) /* find prv note with same p1 */
     return(bp);
 }
 
-static char *nextp(CSOUND *csound, SRTBLK *bp, char *p, 
+static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,
                    int lincnt, int pcnt, CORFIL *sco)
 {
     char *q;

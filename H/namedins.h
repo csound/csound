@@ -49,7 +49,8 @@ int32 named_instr_find(CSOUND *, char *);
 /* is set to insno; for a given in a given engineState */
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
-int named_instr_alloc(CSOUND *, char *, INSTRTXT *, int32, ENGINE_STATE *engineState);
+int named_instr_alloc(CSOUND *, char *, INSTRTXT *, int32,
+                      ENGINE_STATE *engineState);
 
 /* assign instrument numbers to all named instruments in a given engineState */
   void named_instr_assign_numbers(CSOUND *, ENGINE_STATE *engineState);
