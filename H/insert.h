@@ -74,6 +74,7 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     unsigned int  l_ksmps;
     int           ksmps_scale;
     MYFLT         l_ekr, l_onedkr, l_onedksmps, l_kicvt;
+    int           mode;
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     MYFLT         *ar[1];
