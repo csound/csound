@@ -202,7 +202,8 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
 
          } else {
         p->fd = fd = csound->FileOpenAsync(csound, &sf, fileType, name, fileParams,
-                                   "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufsize,  0);
+                                           "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO,
+                                           p->bufsize,  0);
         p->async = 1;
          }
         p->nchnls = ((SF_INFO*) fileParams)->channels;
@@ -529,7 +530,8 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
     }
     else {
       idx = (int) MYFLT2LRND(*(p->iFile));
-      if (UNLIKELY(idx < 0 || idx > pp->file_num || pp->file_opened[idx].fd == NULL)) {
+      if (UNLIKELY(idx < 0 || idx > pp->file_num ||
+                   pp->file_opened[idx].fd == NULL)) {
         csound->Warning(csound,
                         Str("cannot close file #%d: not a valid handle"), idx);
         return OK;
@@ -545,7 +547,8 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
     }
     else {
       FOUT_FILE tmp;
-      pp->file_opened[idx].refCount = 1; /*ref count was set to 0x80000001U, but it needs to be 1 */
+      pp->file_opened[idx].refCount = 1;
+          /*ref count was set to 0x80000001U, but it needs to be 1 */
       memset(&tmp, 0, sizeof(FOUT_FILE));
       tmp.h.insdshead = p->h.insdshead;
       tmp.idx = idx + 1;
@@ -758,10 +761,12 @@ static int infile_act(CSOUND *csound, INFILE *p)
       if (p->buf_pos >= p->guard_pos) {
         if(UNLIKELY(p->f.async == 0)){
             sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-            p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf, p->frames*p->f.nchnls);
+            p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
+                                                 p->frames*p->f.nchnls);
             p->remain /= p->f.nchnls;
           } else {
-            p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf, p->frames*p->f.nchnls);
+            p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
+                                        p->frames*p->f.nchnls);
             p->remain /= p->f.nchnls;
           }
         p->currpos += p->frames;
@@ -851,10 +856,12 @@ static int kinfile(CSOUND *csound, KINFILE *p)
       if (p->buf_pos >= p->guard_pos) {
         if(UNLIKELY(p->f.async == 0)){
             sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-            p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf, p->frames*p->f.nchnls);
+            p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
+                                                 p->frames*p->f.nchnls);
             p->remain /= p->f.nchnls;
           } else {
-            p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf, p->frames*p->f.nchnls);
+            p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
+                                        p->frames*p->f.nchnls);
             p->remain /= p->f.nchnls;
           }
         p->currpos += p->frames;
@@ -1231,7 +1238,7 @@ static OENTRY localops[] = {
     { "fout",       S(OUTFILE),     0, 5,  "",     "Tiy",
         (SUBR) outfile_set,     (SUBR) NULL,        (SUBR) outfile, NULL, 0      },
     { "foutk",      S(KOUTFILE),    0, 3,  "",     "Tiz",
-        (SUBR) koutfile_set,    (SUBR) koutfile,    (SUBR) NULL, NULL, 0L         },
+        (SUBR) koutfile_set,    (SUBR) koutfile,    (SUBR) NULL, NULL, 0         },
     { "fouti",      S(IOUTFILE),    0, 1,  "",     "iiim",
         (SUBR) ioutfile_set,    (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
     { "foutir",     S(IOUTFILE_R),  0, 3,  "",     "iiim",

@@ -2246,7 +2246,8 @@ static int vdelayk(CSOUND *csound, VDELAYK *p)
     if (UNLIKELY(!buf))
       return csound->PerfError(csound, Str("vdel_k: not initialised"));
     buf[p->wrtp] = *(p->ksig);              /* write input signal to buffer */
-    n = (int) MYFLT2LONG(*(p->kdel) * csound->GetKr(csound)); /* calculate delay time */
+                                            /* calculate delay time */
+    n = (int) MYFLT2LONG(*(p->kdel) * csound->GetKr(csound));
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("vdel_k: invalid delay time "
                                            "(must be >= 0)"));

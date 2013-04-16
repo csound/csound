@@ -109,7 +109,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
           if (strcmp(named->name, (char *) p->p4) == 0) {    /* Look up by name */
            break;
           }
-          named = named->next;                            /*  and round again         */
+          named = named->next;                            /*  and round again   */
         }
         if (UNLIKELY(named == NULL)) {
           return csound->InitError(csound,
