@@ -126,7 +126,7 @@ int chani_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0 || n > 999999999999999))
+    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -147,7 +147,7 @@ int chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0 || n > 999999999999999))
+    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -171,7 +171,7 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0 || n > 999999999999999))
+    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -198,7 +198,7 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0 || n > 999999999999999))
+    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -241,7 +241,7 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
     int   err, size;
     PVSDATEXT *fin;
 
-    if (UNLIKELY(n < 0 || n > 999999999999999))
+    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -267,7 +267,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     int   err, size;
     PVSDATEXT *fout;
 
-    if (UNLIKELY(n < 0 || n > 999999999999999))
+    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
