@@ -195,7 +195,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     if(cdata->disp)
       csound->Message(csound,
-                      "==========================================================\n");
+         "==========================================================\n");
 
     if (isInput)
       csound->Message(csound,
@@ -393,12 +393,12 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       AudioUnitInitialize(*aunit);
       AudioOutputUnitStart(*aunit);
       csound->Message(csound,
-                      "***** AuHAL module: input device open with %d buffer frames\n",
+              "***** AuHAL module: input device open with %d buffer frames\n",
                       bufframes);
     }
     if(!cdata->disp)
       csound->Message(csound,
-                      "==========================================================\n");
+              "==========================================================\n");
 
     cdata->disp = 0;
     return 0;

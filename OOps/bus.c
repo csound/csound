@@ -550,7 +550,7 @@ PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
         hints.min  = (MYFLT) ((int32) MYFLT2LRND(hints.min));
         hints.max  = (MYFLT) ((int32) MYFLT2LRND(hints.max));
     }
-    if (UNLIKELY(hints.min >= hints.max || hints.dflt < hints.min ||
+    if (UNLIKELY(hints.min > hints.max || hints.dflt < hints.min ||
                  hints.dflt > hints.max ||
                  (hints.behav == CSOUND_CONTROL_CHANNEL_EXP &&
                   ((hints.min * hints.max) <= FL(0.0))))) {
@@ -691,6 +691,7 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -716,6 +717,8 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (LIKELY(!err)) {
       p->h.opadr = (SUBR) chnget_opcode_perf_k;
       return OK;
@@ -728,9 +731,12 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
+    
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+                                   CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
+
     if (LIKELY(!err)) {
       p->h.opadr = (SUBR) chnget_opcode_perf_a;
       return OK;
@@ -746,6 +752,8 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
+     p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+                                    CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
     csoundSpinLock(p->lock);
@@ -1178,7 +1186,7 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
         if (retval) {
           char    ch = '\0';
           if (UNLIKELY(read(0, &ch, 1)!=1))
-            csound->Die(csound, "read failure in sensekey\n");
+            csound->Die(csound, Str("read failure in sensekey\n"));
           keyCode = (int)((unsigned char) ch);
           /* FD_ISSET(0, &rfds) will be true. */
         }
@@ -1219,26 +1227,26 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
     return OK;
 }
 
-
-static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p)
-{
-  if (p->XSTRCODE & 2) return OK;
-   else {
-#ifdef HAVE_ATOMIC_BUILTIN
-    union {
-    MYFLT d;
-    int64_t i;
-    } x;
-    x.d = *(p->iname);
-    __sync_lock_test_and_set((int64_t *)(p->fp),x.i);
-#else
-     csoundSpinLock(p->lock);
-     *(p->fp) = *(p->iname);
-     csoundSpinUnLock(p->lock);
-#endif
-    return OK;
-    }
-}
+// FIXME -- This static function is not used
+/* static int chnset_opcode_perf_k_alt(CSOUND *csound, CHNGET *p) */
+/* { */
+/*   if (p->XSTRCODE & 2) return OK; */
+/*    else { */
+/* #ifdef HAVE_ATOMIC_BUILTIN */
+/*     union { */
+/*     MYFLT d; */
+/*     int64_t i; */
+/*     } x; */
+/*     x.d = *(p->iname); */
+/*     __sync_lock_test_and_set((int64_t *)(p->fp),x.i); */
+/* #else */
+/*      csoundSpinLock(p->lock); */
+/*      *(p->fp) = *(p->iname); */
+/*      csoundSpinUnLock(p->lock); */
+/* #endif */
+/*     return OK; */
+/*     } */
+/* } */
 
 /* k-rate and string i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
@@ -1248,7 +1256,8 @@ int kinval(CSOUND *csound, INVAL *p)
 {
         if (csound->InputChannelCallback_)
           csound->InputChannelCallback_(csound,
-                                      (char*) p->channelName.auxp, p->value, p->channelType);
+                                        (char*) p->channelName.auxp,
+                                        p->value, p->channelType);
         else
           *(p->value) = FL(0.0);
 
@@ -1299,7 +1308,8 @@ int invalset(CSOUND *csound, INVAL *p)
 
 //    if (csound->InputChannelCallback_)
 //      csound->InputChannelCallback_(csound,
-//                                  (char*) p->channelName.auxp, p->value, p->channelType);
+//                                    (char*) p->channelName.auxp, p->value,
+//                                    p->channelType);
 
 //    return OK;
 //}

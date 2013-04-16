@@ -46,7 +46,9 @@
                 U       String or i/k-rate
                 B       Boolean
                 l       Label
+                .       required arg of any-type
      and codes
+                ?       optional arg of any-type
                 m       begins an indef list of iargs (any count)
                 M       begins an indef list of args (any count/rate i,k,a)
                 N       begins an indef list of args (any count/rate i,k,a,S)
@@ -66,6 +68,7 @@
                 Z       begins alternating kakaka...list (any count)    */
 
 /* outarg types include:
+                *       multiple out args of any-type
                 m       multiple out aargs
                 z       multiple out kargs
                 I       multiple out irate (not implemented yet)
@@ -96,19 +99,19 @@ OENTRY opcodlst_1[] = {
     /* and setksmps */
     { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
     /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-    { "xin",      S(XIN_LOW),0,   1,  "NNNNNNNNNNNNNNNN", "",  xinset,  NULL, NULL },
+    { "xin",  S(XIN_LOW),0,   1,  "****************", "",  xinset,  NULL, NULL },
     { "##xin64",   S(XIN_HIGH),0,  1,
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+        "****************************************************************", "",
         xinset,  NULL, NULL },
     { "##xin256",  S(XIN_MAX),0,   1,
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-        "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+        "****************************************************************"
+        "****************************************************************"
+        "****************************************************************"
+        "****************************************************************", "",
         xinset,  NULL, NULL },
-    { "xout",     S(XOUT_LOW),0,  1,  "",                 "N", xoutset, NULL, NULL },
-    { "##xout64",  S(XOUT_HIGH),0, 1,  "",                 "N", xoutset, NULL, NULL },
-    { "##xout256", S(XOUT_MAX),0,  1,  "",                 "N", xoutset, NULL, NULL },
+    { "xout", S(XOUT_LOW),0,  1,  "",                 "*", xoutset, NULL, NULL },
+    { "##xout64", S(XOUT_HIGH),0, 1,  "",                 "*", xoutset, NULL },
+    { "##xout256", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL },
     { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
 
   { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL, 0 },
@@ -168,8 +171,6 @@ OENTRY opcodlst_1[] = {
   { "init.i", S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0, 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
   { "init.a", S(ASSIGNM),0, 1,      "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
-  //  { "init.t", S(ASSIGNM),0, 1,      "t",    "io",                    tinit  },
-  //  { "##tabref", S(TABREF),0,3,      "k",    "tk",   tabref_check, tabref, NULL },
   { ">",      S(RELAT),0,   0,      "b",    "ii",   gt,     gt              },
   { ">.0",      S(RELAT),0,   0,      "B",    "kk",   gt,     gt              },
   { ">=",     S(RELAT),0,   0,      "b",    "ii",   ge,     ge              },
@@ -360,9 +361,9 @@ OENTRY opcodlst_1[] = {
   { "linsegb", S(LINSEG),0,  7,     "s",    "iin", lsgset_bkpt, klnseg, linseg  },
   { "linsegr",S(LINSEG),0,  7,      "s",    "iin",  lsgrset,klnsegr,linsegr },
   { "expseg", S(EXXPSEG),0,  7,     "s",    "iin",  xsgset, kxpseg, expseg  },
-  { "expsegb", S(EXXPSEG),0,  7,     "s",    "iin",  xsgset_bkpt, kxpseg, expseg  },
+  { "expsegb", S(EXXPSEG),0,  7,     "s",    "iin",  xsgset_bkpt, kxpseg, expseg },
   { "expsega",S(EXPSEG2),0,  7,     "a",    "iin",  xsgset2, NULL, expseg2  },
-  { "expsegba",S(EXPSEG2),0,  7,     "a",    "iin",  xsgset2b, NULL, expseg2  },
+  { "expsegba",S(EXPSEG2),0,  7,     "a",    "iin",  xsgset2b, NULL, expseg2 },
   { "expsegr",S(EXPSEG),0,  7,      "s",    "iin",  xsgrset,kxpsegr,expsegr },
   { "linen",  S(LINEN),0,   7,      "s",    "xiii", lnnset, klinen, linen   },
   { "linenr", S(LINENR),0,  7,      "s",    "xiii", lnrset, klinenr,linenr  },
@@ -505,7 +506,7 @@ OENTRY opcodlst_1[] = {
   { "readk3", S(KREAD3),0,  3,      "kkk",  "Tii",   krd3set, kread3        },
   { "readk4", S(KREAD4),0,  3,      "kkkk", "Tii",   krd4set, kread4        },
   { "readks", S(KREADS),0,  3,      "S",    "Ti",    krdsset, kreads        },
-  { "xyin",     S(XYIN),0,    1,    "kk",   "iiiiioo",xyinset,NULL          },
+  { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",xyinset,NULL          },
   { "tempest",  S(TEMPEST),0, 5,    "k","kiiiiiiiiiop",tempeset,NULL,tempest},
   { "tempo",    S(TEMPO),0,   3,    "",     "ki",   tempset,tempo           },
   { "pow.i",    S(POW),0,   1,      "i",    "iip",  ipow,    NULL,  NULL    },
@@ -772,9 +773,9 @@ OENTRY opcodlst_1[] = {
                                                    midipitchbend, midipitchbend },
   { "mididefault", S(MIDIDEFAULT),0, 3, "", "xx",   mididefault, mididefault },
   { "invalue",   0xFFFF,   CR,    0,   NULL,   NULL, (SUBR) NULL, (SUBR) NULL },
-  { "invalue.k", S(INVAL),0, 3,     "k",    "T",   (SUBR) invalset,(SUBR)  kinval, NULL },
-  { "invalue.S", S(INVAL),0, 3, "S",    "T",   (SUBR) invalset, (SUBR) kinval, NULL },
-  { "outvalue", S(OUTVAL), CW, 3,     "",   "TU",(SUBR) outvalset, (SUBR) koutval, NULL  },
+  { "invalue.k", S(INVAL),0, 3, "k", "T",   (SUBR) invalset,(SUBR)  kinval, NULL },
+  { "invalue.S", S(INVAL),0, 3, "S", "T",   (SUBR) invalset, (SUBR) kinval, NULL },
+  { "outvalue", S(OUTVAL), CW, 3, "", "TU",(SUBR) outvalset, (SUBR) koutval, NULL},
 /* IV - Oct 20 2002 */
   { "subinstr", S(SUBINST),0, 5, "mmmmmmmm", "Tm",  subinstrset, NULL, subinstr },
   { "subinstrinit", S(SUBINST),0, 1, "",    "Tm",   subinstrset, NULL, NULL     },

@@ -19,9 +19,16 @@
  */
 #include "CppSound.hpp"
 
+#if !defined(__BUILDING_LIBCSOUND)
+#define __BUILDING_LIBCSOUND
+#endif
+#include <csoundCore.h>
+
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+
+extern "C" int argdecode(CSOUND *csound, int argc, char **argv_);
 
 /*CppSound::CppSound() : Csound(),
                        go(false),
@@ -41,8 +48,15 @@ CppSound::~CppSound()
 int CppSound::compile(int argc, char **argv_)
 {
   Message("BEGAN CppSound::compile(%d, %p)...\n", argc, argv_);
+  int returnValue = 0;
+  argv.push_back("");
   go = false;
-  int returnValue = Compile(argc, argv_);
+  csound->orcname_mode = 0;
+  // Changed to use only internally stored Csound orchestra and score.
+  returnValue = csoundCompileOrc(csound, getOrchestra().c_str());
+  returnValue = csoundReadScore(csound, const_cast<char *>(getScore().c_str()));
+  returnValue = argdecode(csound, args.size(), &argv.front());
+  returnValue = csoundStart(csound);
   spoutSize = GetKsmps() * GetNchnls() * sizeof(MYFLT);
   if(returnValue)
     {

@@ -32,7 +32,8 @@ typedef struct _circular_buffer {
 
 void *csoundCreateCircularBuffer(CSOUND *csound, int size){
   circular_buffer *p;
-  if ((p = (circular_buffer *) csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
+  if ((p = (circular_buffer *)
+       csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
     return NULL;
   }
   p->size = size;

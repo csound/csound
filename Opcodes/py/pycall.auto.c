@@ -3,8 +3,10 @@ static int pycall0_krate(CSOUND *csound, PYCALL0 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done = 
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
 
     format_call_statement(command, (char*) p->function,
@@ -24,8 +26,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall0_irate(CSOUND *csound, PYCALL0 *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -35,18 +39,20 @@ static int pylcall0_krate(CSOUND *csound, PYCALL0 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (result != Py_None)
+    if (UNLIKELY(result != Py_None))
       return errMsg(p, "callable must return None");
 
     Py_DECREF(result);
@@ -57,8 +63,10 @@ static int pylcall0i_irate(CSOUND *csound, PYCALL0 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -67,10 +75,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (result != Py_None)
+    if (UNLIKELY(result != Py_None))
       return errMsg(p, "callable must return None");
 
     Py_DECREF(result);
@@ -81,8 +89,10 @@ static int pycall0t_krate(CSOUND *csound, PYCALL0T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done; 
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       return OK;
@@ -93,10 +103,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (result != Py_None)
+    if (UNLIKELY(result != Py_None))
       return errMsg(p, "callable must return None");
 
     Py_DECREF(result);
@@ -105,8 +115,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall0t_irate(CSOUND *csound, PYCALL0T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -116,8 +128,10 @@ static int pylcall0t_krate(CSOUND *csound, PYCALL0T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       return OK;
@@ -128,10 +142,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (result != Py_None)
+    if (UNLIKELY(result != Py_None))
       return errMsg(p, "callable must return None");
 
     Py_DECREF(result);
@@ -142,18 +156,20 @@ static int pycall1_krate(CSOUND *csound, PYCALL1 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyFloat_Check(result)) {
+    if (UNLIKELY(!PyFloat_Check(result))) {
       return errMsg(p, "callable must return a float");
     }
     else {
@@ -175,18 +191,20 @@ static int pylcall1_krate(CSOUND *csound, PYCALL1 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyFloat_Check(result)) {
+    if (UNLIKELY(!PyFloat_Check(result))) {
       return errMsg(p, "callable must return a float");
     }
     else {
@@ -202,8 +220,10 @@ static int pylcall1i_irate(CSOUND *csound, PYCALL1 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -212,10 +232,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyFloat_Check(result)) {
+    if (UNLIKELY(!PyFloat_Check(result))) {
       return errMsg(p, "callable must return a float");
     }
     else {
@@ -231,8 +251,10 @@ static int pycall1t_krate(CSOUND *csound, PYCALL1T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result = p->oresult;
@@ -244,10 +266,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyFloat_Check(result)) {
+    if (UNLIKELY(!PyFloat_Check(result))) {
       return errMsg(p, "callable must return a float");
     }
     else {
@@ -262,8 +284,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall1t_irate(CSOUND *csound, PYCALL1T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -273,8 +297,10 @@ static int pylcall1t_krate(CSOUND *csound, PYCALL1T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result = p->oresult;
@@ -286,10 +312,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyFloat_Check(result)) {
+    if (UNLIKELY(!PyFloat_Check(result))) {
       return errMsg(p, "callable must return a float");
     }
     else {
@@ -306,18 +332,20 @@ static int pycall2_krate(CSOUND *csound, PYCALL2 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 2) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 2)) {
       return errMsg(p, "callable must return 2 values");
     }
     else {
@@ -331,10 +359,12 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall2_irate(CSOUND *csound, PYCALL2 *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
-  create_private_namespace_if_needed(&p->h);
+    create_private_namespace_if_needed(&p->h);
     return OK;
 }
 
@@ -342,18 +372,20 @@ static int pylcall2_krate(CSOUND *csound, PYCALL2 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 2) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 2)) {
       return errMsg(p, "callable must return 2 values");
     }
     else {
@@ -369,8 +401,10 @@ static int pylcall2i_irate(CSOUND *csound, PYCALL2 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -379,10 +413,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 2) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 2)) {
       return errMsg(p, "callable must return 2 values");
     }
     else {
@@ -398,8 +432,10 @@ static int pycall2t_krate(CSOUND *csound, PYCALL2T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -412,10 +448,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 2) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 2)) {
       return errMsg(p, "callable must return 2 values");
     }
     else {
@@ -431,8 +467,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall2t_irate(CSOUND *csound, PYCALL2T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
    create_private_namespace_if_needed(&p->h);
     return OK;
@@ -442,8 +480,10 @@ static int pylcall2t_krate(CSOUND *csound, PYCALL2T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -456,10 +496,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 2) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 2)) {
       return errMsg(p, "callable must return 2 values");
     }
     else {
@@ -477,18 +517,20 @@ static int pycall3_krate(CSOUND *csound, PYCALL3 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 3) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 3)) {
       return errMsg(p, "callable must return 3 values");
     }
     else {
@@ -503,8 +545,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall3_irate(CSOUND *csound, PYCALL3 *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -514,18 +558,20 @@ static int pylcall3_krate(CSOUND *csound, PYCALL3 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 3) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 3)) {
       return errMsg(p, "callable must return 3 values");
     }
     else {
@@ -542,8 +588,10 @@ static int pylcall3i_irate(CSOUND *csound, PYCALL3 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -552,10 +600,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 3) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 3)) {
       return errMsg(p, "callable must return 3 values");
     }
     else {
@@ -572,8 +620,10 @@ static int pycall3t_krate(CSOUND *csound, PYCALL3T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -587,10 +637,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 3) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 3)) {
       return errMsg(p, "callable must return 3 values");
     }
     else {
@@ -608,8 +658,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall3t_irate(CSOUND *csound, PYCALL3T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -619,8 +671,10 @@ static int pylcall3t_krate(CSOUND *csound, PYCALL3T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -634,10 +688,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 3) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 3)) {
       return errMsg(p, "callable must return 3 values");
     }
     else {
@@ -657,18 +711,20 @@ static int pycall4_krate(CSOUND *csound, PYCALL4 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 4) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 4)) {
       return errMsg(p, "callable must return 4 values");
     }
     else {
@@ -684,8 +740,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall4_irate(CSOUND *csound, PYCALL4 *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -695,18 +753,20 @@ static int pylcall4_krate(CSOUND *csound, PYCALL4 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 4) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 4)) {
       return errMsg(p, "callable must return 4 values");
     }
     else {
@@ -724,8 +784,10 @@ static int pylcall4i_irate(CSOUND *csound, PYCALL4 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -734,10 +796,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 4) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 4)) {
       return errMsg(p, "callable must return 4 values");
     }
     else {
@@ -755,8 +817,10 @@ static int pycall4t_krate(CSOUND *csound, PYCALL4T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -771,10 +835,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 4) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 4)) {
       return errMsg(p, "callable must return 4 values");
     }
     else {
@@ -794,10 +858,12 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall4t_irate(CSOUND *csound, PYCALL4T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
-   create_private_namespace_if_needed(&p->h);
+    create_private_namespace_if_needed(&p->h);
     return OK;
 }
 
@@ -805,8 +871,10 @@ static int pylcall4t_krate(CSOUND *csound, PYCALL4T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -821,10 +889,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 4) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 4)) {
       return errMsg(p, "callable must return 4 values");
     }
     else {
@@ -846,18 +914,20 @@ static int pycall5_krate(CSOUND *csound, PYCALL5 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 5) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 5)) {
       return errMsg(p, "callable must return 5 values");
     }
     else {
@@ -874,8 +944,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall5_irate(CSOUND *csound, PYCALL5 *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -885,18 +957,20 @@ static int pylcall5_krate(CSOUND *csound, PYCALL5 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 5) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 5)) {
       return errMsg(p, "callable must return 5 values");
     }
     else {
@@ -915,8 +989,10 @@ static int pylcall5i_irate(CSOUND *csound, PYCALL5 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -925,10 +1001,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 5) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 5)) {
       return errMsg(p, "callable must return 5 values");
     }
     else {
@@ -947,8 +1023,10 @@ static int pycall5t_krate(CSOUND *csound, PYCALL5T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -964,10 +1042,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 5) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 5)) {
       return errMsg(p, "callable must return 5 values");
     }
     else {
@@ -989,8 +1067,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall5t_irate(CSOUND *csound, PYCALL5T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -1000,8 +1080,10 @@ static int pylcall5t_krate(CSOUND *csound, PYCALL5T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -1017,10 +1099,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 5) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 5)) {
       return errMsg(p, "callable must return 5 values");
     }
     else {
@@ -1044,18 +1126,20 @@ static int pycall6_krate(CSOUND *csound, PYCALL6 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 6) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 6)) {
       return errMsg(p, "callable must return 6 values");
     }
     else {
@@ -1073,8 +1157,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall6_irate(CSOUND *csound, PYCALL6 *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -1084,18 +1170,20 @@ static int pylcall6_krate(CSOUND *csound, PYCALL6 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 6) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 6)) {
       return errMsg(p, "callable must return 6 values");
     }
     else {
@@ -1115,8 +1203,10 @@ static int pylcall6i_irate(CSOUND *csound, PYCALL6 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -1125,10 +1215,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 6) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 6)) {
       return errMsg(p, "callable must return 6 values");
     }
     else {
@@ -1148,8 +1238,10 @@ static int pycall6t_krate(CSOUND *csound, PYCALL6T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -1166,10 +1258,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 6) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 6)) {
       return errMsg(p, "callable must return 6 values");
     }
     else {
@@ -1193,8 +1285,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall6t_irate(CSOUND *csound, PYCALL6T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -1204,8 +1298,10 @@ static int pylcall6t_krate(CSOUND *csound, PYCALL6T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -1222,10 +1318,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 6) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 6)) {
       return errMsg(p, "callable must return 6 values");
     }
     else {
@@ -1251,18 +1347,20 @@ static int pycall7_krate(CSOUND *csound, PYCALL7 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 7) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 7)) {
       return errMsg(p, "callable must return 7 values");
     }
     else {
@@ -1281,8 +1379,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall7_irate(CSOUND *csound, PYCALL7 *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -1292,18 +1392,20 @@ static int pylcall7_krate(CSOUND *csound, PYCALL7 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 7) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 7)) {
       return errMsg(p, "callable must return 7 values");
     }
     else {
@@ -1324,8 +1426,10 @@ static int pylcall7i_irate(CSOUND *csound, PYCALL7 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -1334,10 +1438,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 7) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 7)) {
       return errMsg(p, "callable must return 7 values");
     }
     else {
@@ -1358,8 +1462,10 @@ static int pycall7t_krate(CSOUND *csound, PYCALL7T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -1377,10 +1483,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 7) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 7)) {
       return errMsg(p, "callable must return 7 values");
     }
     else {
@@ -1406,8 +1512,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall7t_irate(CSOUND *csound, PYCALL7T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -1417,8 +1525,10 @@ static int pylcall7t_krate(CSOUND *csound, PYCALL7T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -1436,10 +1546,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 7) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 7)) {
       return errMsg(p, "callable must return 7 values");
     }
     else {
@@ -1467,18 +1577,20 @@ static int pycall8_krate(CSOUND *csound, PYCALL8 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 8) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 8)) {
       return errMsg(p, "callable must return 8 values");
     }
     else {
@@ -1498,8 +1610,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall8_irate(CSOUND *csound, PYCALL8 *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -1509,18 +1623,20 @@ static int pylcall8_krate(CSOUND *csound, PYCALL8 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 8) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 8)) {
       return errMsg(p, "callable must return 8 values");
     }
     else {
@@ -1542,8 +1658,10 @@ static int pylcall8i_irate(CSOUND *csound, PYCALL8 *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     format_call_statement(command, (char*) p->function,
                           p->INOCOUNT, p->args, 1);
@@ -1552,10 +1670,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 8) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 8)) {
       return errMsg(p, "callable must return 8 values");
     }
     else {
@@ -1577,8 +1695,10 @@ static int pycall8t_krate(CSOUND *csound, PYCALL8T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -1597,10 +1717,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, 0);
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 8) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 8)) {
       return errMsg(p, "callable must return 8 values");
     }
     else {
@@ -1628,8 +1748,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
 static int pylcall8t_irate(CSOUND *csound, PYCALL8T *p)
 {
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
     return OK;
@@ -1639,8 +1761,10 @@ static int pylcall8t_krate(CSOUND *csound, PYCALL8T *p)
 {
     char      command[1024];
     PyObject  *result;
-int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
-       *py_initialize_done == 0)
+    int *py_initialize_done;
+    if (UNLIKELY((py_initialize_done =
+                  csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
+                 *py_initialize_done == 0))
       return NOTOK;
     if (!*p->trigger) {
       *p->result1 = p->oresult1;
@@ -1659,10 +1783,10 @@ int *py_initialize_done; if((py_initialize_done = csound->QueryGlobalVariable(cs
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
 
-    if (result == NULL)
+    if (UNLIKELY(result == NULL))
       return pyErrMsg(p, "python exception");
 
-    if (!PyTuple_Check(result) || PyTuple_Size(result) != 8) {
+    if (UNLIKELY(!PyTuple_Check(result) || PyTuple_Size(result) != 8)) {
       return errMsg(p, "callable must return 8 values");
     }
     else {

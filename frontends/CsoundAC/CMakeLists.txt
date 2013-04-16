@@ -9,9 +9,10 @@ find_library(MUSICXML_LIBRARY musicxml2)
 IF(APPLE)
 find_library(FLTK libfltk)
 ELSE(APPLE)
-find_package(FLTK)
+# find_package(FLTK)
 ENDIF(APPLE)
 find_package(SWIG)
+
 find_package(PythonLibs)
 find_package(Lua51)
 
@@ -23,7 +24,7 @@ if(BUILD_CSOUND_AC)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
     include_directories(${Boost_INCLUDE_DIRS})
     include_directories(${FLTK_INCLUDE_DIR})
-    set(libcsoundac_SRCS 
+    set(libcsoundac_SRCS
 	allegro.cpp
 	allegrord.cpp
 	allegroserial.cpp
@@ -61,7 +62,7 @@ if(BUILD_CSOUND_AC)
 	trace.cpp
 	Voicelead.cpp
 	VoiceleadingNode.cpp)
-    
+
     add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
     set_target_properties(libCsoundAC PROPERTIES
         LINK_INTERFACE_LIBRARIES ""
@@ -72,8 +73,8 @@ if(BUILD_CSOUND_AC)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
     target_link_libraries(libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
-    
-    if(MUSICXML_LIBRARY) 
+
+    if(MUSICXML_LIBRARY)
         target_link_libraries(libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
     endif()
 
@@ -97,11 +98,11 @@ if(BUILD_CSOUND_AC)
             SWIG_MODULE_NAME CsoundAC)
         swig_add_module(CsoundAC python CsoundAC.i)
         swig_link_libraries(CsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARIES})
-    
-        if(MUSICXML_LIBRARY) 
+
+        if(MUSICXML_LIBRARY)
             swig_link_libraries(CsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${PYTHON_LIBRARIES})
         endif()
-        
+
         set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
@@ -124,8 +125,8 @@ if(BUILD_CSOUND_AC)
             SWIG_MODULE_NAME luaCsoundAC)
         SWIG_ADD_MODULE(luaCsoundAC lua luaCsoundAC.i)
         SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${LUA_LIBRARIES})
-    
-        if(MUSICXML_LIBRARY) 
+
+        if(MUSICXML_LIBRARY)
             SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${LUA_LIBRARIES})
         endif()
 

@@ -27,7 +27,8 @@
 #include <FL/fl_draw.H>
 #include "FLTKKeyboard.hpp"
 
-FLTKKeyboard::FLTKKeyboard(CSOUND *csound, SliderBank *sliderBank, int X, int Y, int W, int H, const char *L)
+FLTKKeyboard::FLTKKeyboard(CSOUND *csound, SliderBank *sliderBank,
+                           int X, int Y, int W, int H, const char *L)
   : Fl_Widget(X, Y, W, H, L) {
 
     this->csound = csound;
@@ -531,11 +532,14 @@ void FLTKKeyboard::draw() {
             runningX += whiteKeyWidth;
         } else {
             if(keyStates[i] == 1) {
-                fl_draw_box(box(), (int)(runningX - blackKeyOffset), yval, blackKeyWidth, blackKeyHeight, FL_BLUE);
+                fl_draw_box(box(), (int)(runningX - blackKeyOffset), yval,
+                            blackKeyWidth, blackKeyHeight, FL_BLUE);
             } else {
-                fl_draw_box(box(), (int)(runningX - blackKeyOffset), yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
+                fl_draw_box(box(), (int)(runningX - blackKeyOffset), yval,
+                            blackKeyWidth, blackKeyHeight, FL_BLACK);
             }
-            fl_rect((int)(runningX - blackKeyOffset), yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
+            fl_rect((int)(runningX - blackKeyOffset), yval,
+                    blackKeyWidth, blackKeyHeight, FL_BLACK);
         }
     }
 }

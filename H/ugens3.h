@@ -33,7 +33,8 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,*imod2,*ibeg2,*iend2;
+        MYFLT   *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
+                *imod2,*ibeg2,*iend2;
         MYFLT   cpscvt;
         int32   lphs;
         int16   mod1, mod2;

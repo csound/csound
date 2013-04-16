@@ -515,7 +515,6 @@ set(libcsound_SRCS
     Opcodes/minmax.c 
     Opcodes/pan2.c 
     Opcodes/arrays.c
-    Opcodes/tabvars.c 
     Opcodes/phisem.c
     Opcodes/hrtfopcodes.c 
     Opcodes/stackops.c 

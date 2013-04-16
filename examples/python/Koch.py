@@ -143,12 +143,12 @@ endin
 
 #csound.setCommand("csound -b100 -B100 -odac2 /tempk.orc /tempk.sco")
 #csound.setCommand("csound -RWdfo koch.wav c:/tempk.orc c:/tempkk.sco")
-csound.setCommand("csound -RWdfo koch.wav ./tempk.orc ./tempkk.sco")
+csound.setCommand("csound -RWdfo koch.wav")
 csound.addScoreLine("i 100 0 -1")
 
 # Export the orchestra and generated score for performance.
 
-csound.exportForPerformance()
+#csound.exportForPerformance()
 
 # Perform the generated score with the embedded orchestra.
 

@@ -142,7 +142,8 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
     int         err;
 
     if(reallocsize > 0) {
-      STA(Linebuf) = (char *) csound->ReAlloc(csound, (void *) STA(Linebuf), reallocsize);
+      STA(Linebuf) = (char *) csound->ReAlloc(csound,
+                                              (void *) STA(Linebuf), reallocsize);
       STA(linebufsiz) = reallocsize;
       STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     } else if(STA(Linebuf)==NULL) {

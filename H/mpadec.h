@@ -118,7 +118,9 @@ int mpadec_uninit(mpadec_t mpadec);
 int mpadec_reset(mpadec_t mpadec);
 int mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg);
 int mpadec_get_info(mpadec_t mpadec, void *info, int info_type);
-int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t *dstbuf, uint32_t dstsize, uint32_t *srcused, uint32_t *dstused);
+int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
+                  uint8_t *dstbuf, uint32_t dstsize, uint32_t *srcused,
+                  uint32_t *dstused);
 char *mpadec_error(int code);
 
 mpadec2_t mpadec2_init(void);
@@ -126,7 +128,8 @@ int mpadec2_uninit(mpadec2_t mpadec);
 int mpadec2_reset(mpadec2_t mpadec);
 int mpadec2_configure(mpadec2_t mpadec, mpadec_config_t *cfg);
 int mpadec2_get_info(mpadec2_t mpadec, void *info, int info_type);
-int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t *dstbuf, uint32_t dstsize, uint32_t *dstused);
+int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
+                   uint8_t *dstbuf, uint32_t dstsize, uint32_t *dstused);
 #define mpadec2_error(x) mpadec_error(x)
 
 #ifdef __cplusplus
@@ -134,4 +137,3 @@ int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t 
 #endif
 
 #endif
-

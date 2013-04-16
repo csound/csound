@@ -31,7 +31,8 @@
 
 class FLTKKeyboard : public Fl_Widget {
 public:
-  FLTKKeyboard(CSOUND *csound, SliderBank *sliderBank, int X, int Y, int W, int H, const char *L);
+  FLTKKeyboard(CSOUND *csound, SliderBank *sliderBank,
+               int X, int Y, int W, int H, const char *L);
   ~FLTKKeyboard();
   int handle(int event);
   void draw();

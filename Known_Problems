@@ -1,0 +1,19 @@
+Problems of which we are aware
+==============================
+
+Named instruments do not work unless in a list 
+    ie instr foo fails but "instr foo, 1" works
+       -- fixed in git sources 2013 Apr 10 08:30 UT
+chnset locks were NULL
+       -- fixed in git sources 2013 Apr 12 06:30 UT
+wrong goto token synthesized for if-then
+       -- fixed in git sources Apr 13 23:07:03 2013 +0100
+if-then in UDO would not properly set label jumps when called
+    in recursive UDO's, also cause of issue with recursive
+    UDO's recursing one extra time
+       -- fixed in git sources Sun Apr 14 14:41:30 2013 +0100 
+kr,ksmps vars not set in local-ksmps UDOs
+       -- fixed in git sources Sun Apr 14 18:50 UT
+wrong perf function selected in recursive UDOs with local ksmps
+      -- fixed in git sources  Sun Apr 14 19:52 UT
+
