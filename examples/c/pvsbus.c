@@ -70,11 +70,11 @@ int main(int argc, char **argv)
           datain.frame[k] = dataout.frame[k];
       datain.framecount = dataout.framecount;
       /* send in the pvs in bus data */
-      csoundSetPvsChannel(csound, &datain, 0);
+      csoundSetPvsChannel(csound, &datain, "0");
       /* one ksmps pass */
       result = csoundPerformKsmps(csound);
       /* receive the pvs out bus data */
-      csoundGetPvsChannel(csound, &dataout, 0);
+      csoundGetPvsChannel(csound, &dataout, "0");
     }
     /* delete Csound instance */
     csoundDestroy(csound);
