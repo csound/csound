@@ -768,16 +768,19 @@ void out_channel_value_callback(CSOUND * csound, const char *name, MYFLT val)
 /* channel interface */
 int PvsChannelCallback(CSOUND *csound)
 {
-  csdata *p = (csdata *) csoundGetHostData(csound);
-  pvsctlchn *chan = p->pvsinchan;
+    csdata *p = (csdata *) csoundGetHostData(csound);
+    pvsctlchn *chan = p->pvsinchan;
+    char chanName[16];
     while (chan != NULL) {
-      csoundSetPvsChannel(csound, &chan->data, chan->n);
-      chan = chan->next;
+        sprintf(chanName, "%i", chan->n);
+        csoundSetPvsChannel(csound, &chan->data, chanName);
+        chan = chan->next;
     }
-  chan = p->pvsoutchan;
+    chan = p->pvsoutchan;
     while (chan != NULL) {
-      csoundGetPvsChannel(csound, &chan->data, chan->n);
-      chan = chan->next;
+        sprintf(chanName, "%i", chan->n);
+        csoundGetPvsChannel(csound, &chan->data, chanName);
+        chan = chan->next;
     }
     return 1;
 }
