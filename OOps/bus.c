@@ -132,6 +132,10 @@ int chani_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+#ifdef JPFF
+    if (UNLIKELY(err))
+      return csound->PerfError(csound, Str("chani: error %d"), err);
+#endif
     *(p->r) = *val;
     return OK;
 }
@@ -149,6 +153,10 @@ int chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+#ifdef JPFF
+    if (UNLIKELY(err))
+      return csound->PerfError(csound, Str("chani: error %d"), err);
+#endif
     *val = *(p->r);
     return OK;
 }
@@ -169,7 +177,10 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
-
+#ifdef JPFF
+    if (UNLIKELY(err))
+      return csound->PerfError(csound, Str("chani: error %d"), err);
+#endif
     if (UNLIKELY(offset)) memset(p->r, '\0', offset * sizeof(MYFLT));
     memcpy(&p->r[offset], &val[offset],
            sizeof(MYFLT) * (CS_KSMPS-offset-early));
@@ -193,6 +204,10 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+#ifdef JPFF
+    if (UNLIKELY(err))
+      return csound->PerfError(csound, Str("chani: error %d"), err);
+#endif
 
     if (UNLIKELY(offset)) memset(&val, '\0', offset * sizeof(MYFLT));
     memcpy(&val[offset], &p->r[offset],
@@ -232,6 +247,10 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, (MYFLT **) &fin, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL);
+#ifdef JPFF
+    if (UNLIKELY(err))
+      return csound->PerfError(csound, Str("chani: error %d"), err);
+#endif
 
     size = fin->N < fout->N ? fin->N : fout->N;
     memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
@@ -254,6 +273,10 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, (MYFLT **) &fout, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+#ifdef JPFF
+    if (UNLIKELY(err))
+      return csound->PerfError(csound, Str("chani: error %d"), err);
+#endif
 
     size = fin->N < fout->N ? fin->N : fout->N;
     memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
