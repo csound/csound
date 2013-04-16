@@ -126,16 +126,17 @@ int chani_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
+    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
-#ifdef JPFF
+
     if (UNLIKELY(err))
-      return csound->PerfError(csound, Str("chani: error %d"), err);
-#endif
+      return csound->PerfError(csound,
+                               Str("chani error %d:"
+                                   "channel not found or not right type"), err);
     *(p->r) = *val;
     return OK;
 }
@@ -147,16 +148,17 @@ int chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
+    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
-#ifdef JPFF
+
     if (UNLIKELY(err))
-      return csound->PerfError(csound, Str("chani: error %d"), err);
-#endif
+      return csound->PerfError(csound,
+                               Str("chano error %d:"
+                                   "channel not found or not right type"), err);
     *val = *(p->r);
     return OK;
 }
@@ -171,16 +173,16 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
+    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
-#ifdef JPFF
     if (UNLIKELY(err))
-      return csound->PerfError(csound, Str("chani: error %d"), err);
-#endif
+      return csound->PerfError(csound,
+                               Str("chani error %d:"
+                                   "channel not found or not right type"), err);
     if (UNLIKELY(offset)) memset(p->r, '\0', offset * sizeof(MYFLT));
     memcpy(&p->r[offset], &val[offset],
            sizeof(MYFLT) * (CS_KSMPS-offset-early));
@@ -198,16 +200,16 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
+    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-#ifdef JPFF
     if (UNLIKELY(err))
-      return csound->PerfError(csound, Str("chani: error %d"), err);
-#endif
+      return csound->PerfError(csound,
+                               Str("chano error %d:"
+                                   "channel not found or not right type"), err);
 
     if (UNLIKELY(offset)) memset(&val, '\0', offset * sizeof(MYFLT));
     memcpy(&val[offset], &p->r[offset],
@@ -241,16 +243,16 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
     int   err, size;
     PVSDATEXT *fin;
 
-    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
+    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, (MYFLT **) &fin, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL);
-#ifdef JPFF
     if (UNLIKELY(err))
-      return csound->PerfError(csound, Str("chani: error %d"), err);
-#endif
+      return csound->PerfError(csound,
+                               Str("pvsin error %d:"
+                                   "channel not found or not right type"), err);
 
     size = fin->N < fout->N ? fin->N : fout->N;
     memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
@@ -267,16 +269,16 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     int   err, size;
     PVSDATEXT *fout;
 
-    if (UNLIKELY(n < 0/*  || n > 999999999999999 */))
+    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
     err = csoundGetChannelPtr(csound, (MYFLT **) &fout, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-#ifdef JPFF
     if (UNLIKELY(err))
-      return csound->PerfError(csound, Str("chani: error %d"), err);
-#endif
+      return csound->PerfError(csound,
+                               Str("pvsout error %d:"
+                                   "channel not found or not right type"), err);
 
     size = fin->N < fout->N ? fin->N : fout->N;
     memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
