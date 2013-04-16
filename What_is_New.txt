@@ -165,7 +165,7 @@ New API functions.....
     new parsing/compilation functions 
     PUBLIC TREE *csoundParseOrc(CSOUND *csound, char *str);
     PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
-    PUBLIC int csoundCompileOrc(CSOUND *csound, char *str);
+	PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
     PUBLIC int csoundReadScore(CSOUND *csound, char *str);
     PUBLIC int csoundCompileArgs(CSOUND *, int argc, char **argv);
 
