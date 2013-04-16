@@ -414,7 +414,7 @@ extern "C"
         p->faust->init((int)csound->GetSr(csound));
         p->faust->buildUserInterface(p->cs_interface);
         csound->RegisterDeinitCallback(csound, p,
-                                       (int (*)(CSOUND*, void*)) fractalnoise_cleanup);
+                         (int (*)(CSOUND*, void*)) fractalnoise_cleanup);
         return OK;
     }
 
