@@ -198,7 +198,7 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "lowres",   S(LOWPR),   0, 5, "a", "akko", 
+{ "lowres",   S(LOWPR),   0, 5, "a", "akko",
                           (SUBR)lowpr_set, NULL,   (SUBR)lowpr   },
 { "lowresx",  S(LOWPRX),  0, 5, "a", "akkoo",
                           (SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
@@ -211,4 +211,3 @@ int lowpassr_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-
