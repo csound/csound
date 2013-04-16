@@ -46,7 +46,7 @@
 
 #define     pvfrsiz(p)      (p->frSiz)
 #define     pvffsiz(p)      (2* p->frSiz)
-#define     pvdasiz(p)      ((uint32_t)(1 + (p->frSiz)/2))  /* as above, based on   */
+#define     pvdasiz(p)      ((uint32_t)(1 + (p->frSiz)/2)) /* as above, based on */
 #define     pvfdsiz(p)      (2 + p->frSiz)      /*  ACTUAL frameSize in use */
 
 typedef struct {

@@ -108,7 +108,7 @@ void KeyboardMapping::initializeMap(CSOUND * csound, FILE *file) {
         continue;
       } if(*p == '[') {
         p++;
-        
+
         // cleanup current bank
         if(bank != NULL) {
           if(bank->programs.size() == 0) {
@@ -131,12 +131,12 @@ void KeyboardMapping::initializeMap(CSOUND * csound, FILE *file) {
 
         char *name = (char *)csound->Calloc(csound, strlen(q +1) + 1);
         memcpy(name, q + 1, strlen(q + 1) + 1);
-        
+
         if(bankNum >= 0 && bankNum < 16384) {
           bank = new Bank(csound, name);
           bank->bankNum = bankNum;
           banks.push_back(bank);
-          
+
           //bank->initializeGM();
           state = 0;
         } else {

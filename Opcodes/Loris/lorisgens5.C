@@ -156,10 +156,11 @@ static void apply_fadetime( PARTIALS & part, double fadetime )
                   }
                 else
                   {
-                    // if the Partial begins at time zero, insert the zero-amplitude
-                    // Breakpoint at time zero, and make sure that the next Breakpoint
-                    // in the Partial is no more than fadetime away from the beginning
-                    // of the Partial:
+                    // if the Partial begins at time zero, insert the
+                    // zero-amplitude Breakpoint at time zero, and
+                    // make sure that the next Breakpoint in the
+                    // Partial is no more than fadetime away from the
+                    // beginning of the Partial:
 
                     // find the first Breakpoint later than time 0:
                     Partial::iterator pit = partial.begin();
@@ -1149,9 +1150,11 @@ extern "C"
 /*
   This works:
 
-  ../libtool --mode=compile g++ -DHAVE_CONFIG_H -I.. -I../src -I/usr/local/src/Csound-4.23 -g -O2 -c -o lorisgens.lo lorisgens.C
+  ../libtool --mode=compile g++ -DHAVE_CONFIG_H -I.. -I../src \
+             -I/usr/local/src/Csound-4.23 -g -O2 -c -o lorisgens.lo lorisgens.C
 
-  ../libtool --mode=link g++ -o lorisgens.la -rpath /usr/local/lib -module -avoid-version lorisgens.lo ../src/libloris.la -lstdc++
+  ../libtool --mode=link g++ -o lorisgens.la -rpath /usr/local/lib -module \
+             -avoid-version lorisgens.lo ../src/libloris.la -lstdc++
 
   csound --opcode-lib=.libs/lorisgens.so tryit.csd
 */
