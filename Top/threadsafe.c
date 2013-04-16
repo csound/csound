@@ -20,6 +20,7 @@
  */
 
 #include "csoundCore.h"
+#include <stdlib.h>
 
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);
@@ -156,3 +157,42 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
       csoundSpinUnLock(lock);
     }
 }
+
+PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
+                               const char *name)
+{
+    MYFLT *f;
+    if (csoundGetChannelPtr(csound, &f, name,
+                           CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+            == CSOUND_SUCCESS){
+        int    *lock =
+                csoundGetChannelLock(csound, name,
+                                     CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+        csoundSpinLock(lock);
+        memcpy(f, fin, sizeof(PVSDATEXT));
+        csoundSpinUnLock(lock);
+    } else {
+        return CSOUND_ERROR;
+    }
+    return CSOUND_SUCCESS;
+}
+
+PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
+                               const char *name)
+{
+    MYFLT *f;
+    int    *lock =
+      csoundGetChannelLock(csound, name,
+                           CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if (csoundGetChannelPtr(csound, &f, name,
+                           CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
+            == CSOUND_SUCCESS){
+      csoundSpinLock(lock);
+      memcpy(fout, f, sizeof(PVSDATEXT));
+      csoundSpinUnLock(lock);
+    } else {
+        return CSOUND_ERROR;
+    }
+    return CSOUND_SUCCESS;
+}
+

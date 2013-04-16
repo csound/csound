@@ -1270,8 +1270,6 @@ typedef struct NAME__ {
     int64_t       ibeatTime;   /* Beat time in samples */
     EVTBLK        *currevent;
     INSDS         *curip;
-    int           nchanik, nchania, nchanok, nchanoa;
-    MYFLT         *chanik, *chania, *chanok, *chanoa;
     MYFLT         cpu_power_busy;
     char          *xfilename;
     int           peakchunks;

@@ -323,8 +323,8 @@ struct CSOUND_ {
                                   void *userData, unsigned int typeMask);
     void (*Remove_Callback)(CSOUND *,
                             int (*func)(void *, void *, unsigned int));
-    int (*PvsinSet)(CSOUND *, void *value, int n);
-    int (*PvsoutGet)(CSOUND *, void *value, int n);
+    int (*PvsinSet)(CSOUND *, void *value, const char *name);
+    int (*PvsoutGet)(CSOUND *, void *value, const char *name);
     void (*SetInternalYieldCallback)(CSOUND *,
                        int (*yieldCallback)(CSOUND *));
     void *(*CreateBarrier)(unsigned int max);

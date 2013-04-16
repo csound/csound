@@ -783,14 +783,14 @@ public:
 //  {
 //    return csoundChanOAGet(csound, value, n);
 //  }
-  virtual int PvsinSet(const PVSDATEXT* value, int n)
+  virtual int PvsinSet(const PVSDATEXT* value, const char *name)
   {
-    return csoundSetPvsChannel(csound, value, n);
+    return csoundSetPvsChannel(csound, value, name);
   }
 
-  virtual int PvsoutGet(PVSDATEXT* value, int n)
+  virtual int PvsoutGet(PVSDATEXT* value, const char *name)
   {
-    return csoundGetPvsChannel(csound, value, n);
+    return csoundGetPvsChannel(csound, value, name);
   }
 
   // cfgvar.h interface

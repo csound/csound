@@ -510,10 +510,6 @@ static const CSOUND cenviron_ = {
     0.0,            /*  beatTime            */
     (EVTBLK*) NULL, /*  currevent           */
     (INSDS*) NULL,  /*  curip               */
-    0, 0,           /*  nchanik, nchania    */
-    0, 0,           /*  nchanok, nchanoa    */
-    NULL, NULL,     /*  chanik, chania      */
-    NULL, NULL,     /*  chanok, chanoa      */
     FL(0.0),        /*  cpu_power_busy      */
     (char*) NULL,   /*  xfilename           */
     1,              /*  peakchunks          */
