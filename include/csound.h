@@ -97,7 +97,7 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * \file
+ * \file csound.h
  *
  * \brief Declares the public Csound application programming interface (API).
  * \author John P. ffitch, Michael Gogins, Matt Ingalls, John D. Ramsdell,
@@ -1753,23 +1753,22 @@ extern "C" {
                                                channelCallback_t outputChannelCalback);
 
     /**
-     * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
-     * The bus is automatically extended if 'n' exceeds any previously used
-     * index value, clearing new locations to zero.
+     * Sends a PVSDATEX fin to the pvsin opcode (f-rate) for channel 'name'.
      * Returns zero on success, CSOUND_ERROR if the index is invalid or
-     * fsig framesizes are incompatible
+     * fsig framesizes are incompatible.
      * CSOUND_MEMORY if there is not enough memory to extend the bus.
      */
-    PUBLIC int csoundSetPvsChannel(CSOUND *, const PVSDATEXT *fin, int n);
+    PUBLIC int csoundSetPvsChannel(CSOUND *, const PVSDATEXT *fin,
+                                   const char *name);
 
     /**
-     * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
-     * The bus is extended if 'n' exceeds any previous value.
+     * Receives a PVSDAT fout from the pvsout opcode (f-rate) at channel 'name'
      * Returns zero on success, CSOUND_ERROR if the index is invalid or
-     * if fsig framesizes are incompatible
+     * if fsig framesizes are incompatible.
      * CSOUND_MEMORY if there is not enough memory to extend the bus
      */
-    PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout, int n);
+    PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
+                                   const char *name);
 
     /**
      * Send a new score event. 'type' is the score event type ('a', 'i', 'q',
