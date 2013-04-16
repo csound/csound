@@ -807,6 +807,11 @@ extern "C" {
         MYFLT   dflt;
         MYFLT   min;
         MYFLT   max;
+        int x;
+        int y;
+        int width;
+        int height;
+        char *attributes;
     } controlChannelHints_t;
 
     typedef struct controlChannelInfo_s {

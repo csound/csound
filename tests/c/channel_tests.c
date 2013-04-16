@@ -29,6 +29,7 @@ void test_control_channel_params(void)
     hints.dflt = 5;
     hints.min = 1;
     hints.max = 10;
+    hints.attributes = NULL;
     csoundSetControlChannelHints(csound, "testing", hints);
 
     controlChannelHints_t hints2;

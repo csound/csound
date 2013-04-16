@@ -158,8 +158,6 @@ int     chn_a_opcode_init(CSOUND *, CHN_OPCODE *);
 int     chn_S_opcode_init(CSOUND *, CHN_OPCODE *);
 int     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);
 int     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
-//int     chnrecv_opcode_init(CSOUND *, CHNSEND *);
-//int     chnsend_opcode_init(CSOUND *, CHNSEND *);
 
 int kinval(CSOUND *csound, INVAL *p);
 int invalset(CSOUND *csound, INVAL *p);
