@@ -56,7 +56,7 @@ typedef struct {
     OPCODINFO *opcode_info;
     void    *uopcode_struct;
     INSDS   *parent_ip;
-    MYFLT   *iobufp_ptrs[12];            /* expandable IV - Oct 26 2002 */ /* was 8 */
+    MYFLT   *iobufp_ptrs[12];  /* expandable IV - Oct 26 2002 */ /* was 8 */
 } OPCOD_IOBUFS;
 
 typedef struct {                        /* IV - Oct 16 2002 */
@@ -74,6 +74,7 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     unsigned int  l_ksmps;
     int           ksmps_scale;
     MYFLT         l_ekr, l_onedkr, l_onedksmps, l_kicvt;
+    int           mode;
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     MYFLT         *ar[1];

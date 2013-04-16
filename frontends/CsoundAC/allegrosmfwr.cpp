@@ -1,5 +1,7 @@
 // allegrosmfwr.cpp -- Allegro Standard Midi File Write
 
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

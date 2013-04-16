@@ -10,6 +10,8 @@
 *  2-Mar-92 | GWL : created changelog; MIDIFILE_ERROR to satisfy compiler
 *****************************************************************************/
 
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 #include "stdio.h"
 #include "mfmidi.h"
 #include "string.h"

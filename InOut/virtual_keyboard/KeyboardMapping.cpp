@@ -90,83 +90,83 @@ KeyboardMapping::~KeyboardMapping()
 }
 
 void KeyboardMapping::initializeMap(CSOUND * csound, FILE *file) {
-        char buff[LINELENGTH];
-        char *p;
+    char buff[LINELENGTH];
+    char *p;
 
-        /* 0 = general search
-         * 1 = bank found but error in bank def, ignore all until next bank
-         */
-        int state = 0;
+    /* 0 = general search
+     * 1 = bank found but error in bank def, ignore all until next bank
+     */
+    int state = 0;
 
-        Bank *bank = NULL;
+    Bank *bank = NULL;
 
-        while (my_fgets(buff, LINELENGTH, file)!=NULL) {
-                p = buff;
-                while (*p == ' ' || *p == '\t') p++;
+    while (my_fgets(buff, LINELENGTH, file)!=NULL) {
+      p = buff;
+      while (*p == ' ' || *p == '\t') p++;
 
-                if(*p == '#') { // line comment
-                        continue;
-                } if(*p == '[') {
-                        p++;
-
-                        // cleanup current bank
-                        if(bank != NULL) {
-                                if(bank->programs.size() == 0) {
-                                        bank->initializeGM();
-                                }
-                        }
-
-                        char *q = strstr(p, "=");
-                        char *z = strstr(p, "]");
-
-                        if(q == NULL || z == NULL) {
-                                state = 1;
-                                continue;
-                        }
-
-                        *q = '\0';
-                        *z = '\0';
-
-                        int bankNum = atoi(p) - 1;
-
-                        char *name = (char *)csound->Calloc(csound, strlen(q +1) + 1);
-                        memcpy(name, q + 1, strlen(q + 1) + 1);
-
-                        if(bankNum >= 0 && bankNum < 16384) {
-                                bank = new Bank(csound, name);
-                                bank->bankNum = bankNum;
-                                banks.push_back(bank);
-
-                                //bank->initializeGM();
-                                state = 0;
-                        } else {
-                                state = 1;
-                        }
-
-                } else {
-                        if(state == 1 || bank == NULL) {
-                                continue;
-                        }
-
-                        char *q = strstr(p, "=");
-
-                        if(q == NULL) {
-                                continue;
-                        }
-
-                        *q = '\0';
-
-                        int programNum = atoi(p) - 1;
-
-                        char *name = (char *)csound->Calloc(csound, strlen(q +1) + 1);
-                        memcpy(name, q + 1, strlen(q + 1) + 1);
-
-                        if(programNum >= 0 && programNum < 128) {
-                                Program program(programNum, name);
-                                bank->programs.push_back(program);
-                        }
-                }
+      if(*p == '#') { // line comment
+        continue;
+      } if(*p == '[') {
+        p++;
+        
+        // cleanup current bank
+        if(bank != NULL) {
+          if(bank->programs.size() == 0) {
+            bank->initializeGM();
+          }
         }
+
+        char *q = strstr(p, "=");
+        char *z = strstr(p, "]");
+
+        if(q == NULL || z == NULL) {
+          state = 1;
+          continue;
+        }
+
+        *q = '\0';
+        *z = '\0';
+
+        int bankNum = atoi(p) - 1;
+
+        char *name = (char *)csound->Calloc(csound, strlen(q +1) + 1);
+        memcpy(name, q + 1, strlen(q + 1) + 1);
+        
+        if(bankNum >= 0 && bankNum < 16384) {
+          bank = new Bank(csound, name);
+          bank->bankNum = bankNum;
+          banks.push_back(bank);
+          
+          //bank->initializeGM();
+          state = 0;
+        } else {
+          state = 1;
+        }
+
+      } else {
+        if(state == 1 || bank == NULL) {
+          continue;
+        }
+
+        char *q = strstr(p, "=");
+
+        if(q == NULL) {
+          continue;
+        }
+
+        *q = '\0';
+
+        int programNum = atoi(p) - 1;
+
+        char *name = (char *)csound->Calloc(csound, strlen(q +1) + 1);
+        memcpy(name, q + 1, strlen(q + 1) + 1);
+
+        if(programNum >= 0 && programNum < 128) {
+          Program program(programNum, name);
+          bank->programs.push_back(program);
+        }
+      }
+    }
 
 }
 

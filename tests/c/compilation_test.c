@@ -14,7 +14,9 @@ int main(int argc, char **argv)
        "endin \n";
     csoundInitialize(&argc, &argv, 0);
     csound = csoundCreate(NULL);
-    result = csoundCompile(csound, argc, argv);
+    //result = csoundCompileOrc(csound, instrument);
+    result = csoundReadScore(csound, "f0 10\n");
+    result = csoundStart(csound);
     while(!result){
     result = csoundPerformKsmps(csound);
     if(!compile_again){ 

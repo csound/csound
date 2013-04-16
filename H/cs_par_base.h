@@ -13,7 +13,8 @@
 /* #define LOCK_TYPE  pthread_mutex_t */
 /* #define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) */
 
-#if !defined(HAVE_PTHREAD_SPIN_LOCK) /* VL: 18.05.2011 enabled this to allow OSX build */
+#if !defined(HAVE_PTHREAD_SPIN_LOCK)
+          /* VL: 18.05.2011 enabled this to allow OSX build */
  # define TAKE_LOCK(x) pthread_mutex_lock(x)
  # define RELS_LOCK(x) pthread_mutex_unlock(x)
  # define LOCK_TYPE  pthread_mutex_t
@@ -28,7 +29,6 @@
 
 #define DYNAMIC_2_SERIALIZE_PAR
 
-#define TRACE 0
 /* #define TIMING */
 
 /* #define SPINLOCK_BARRIER */
@@ -41,81 +41,24 @@
 /* #define CACLULATE_WEIGHTS_BUILD */
 #define LOOKUP_WEIGHTS
 
-#ifdef TIMING
-  #define TIMER_INIT(val, name) RTCLOCK val ## _timer;
-  #define TIMER_START(val, name) \
-              csound->InitTimerStruct(& val ## _timer); \
-              csound->Message(csound, name "Start: %f\n", \
-                              csound->GetRealTime(& val ## _timer))
-  #define TIMER_END(val, name) \
-              csound->Message(csound, name "End: %f\n", \
-                              csound->GetRealTime(& val ## _timer))
-
-  #define TIMER_T_START(val, index, name) \
-              csound->InitTimerStruct(& val ## _timer); \
-              csound->Message(csound, "[%i] " name "Start: %f\n", \
-                              index, csound->GetRealTime(& val ## _timer))
-  #define TIMER_T_END(val, index, name) \
-              csound->Message(csound, "[%i] " name "End: %f\n", \
-                              index, csound->GetRealTime(& val ## _timer))
-#else
-  #define TIMER_INIT(val, name)
-  #define TIMER_START(val, name)
-  #define TIMER_END(val, name)
-  #define TIMER_T_START(val, index, name)
-  #define TIMER_T_END(val, index, name)
-#endif
-
-#if (TRACE&1) == 1
-#define TRACE_0(...) { csound->Message(csound,"0:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_0(...)
-#endif
-#if (TRACE&2) == 2
-#define TRACE_1(...) { csound->Message(csound,"1:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_1(...)
-#endif
-#if (TRACE&4) == 4
-    #define TRACE_2(...) { csound->Message(csound,"2:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_2(...)
-#endif
-#if (TRACE&8) == 8
-    #define TRACE_3(...) { csound->Message(csound,"3:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_3(...)
-#endif
-#if (TRACE&16) == 16
-    #define TRACE_4(...) { csound->Message(csound,"4:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_4(...)
-#endif
-#if (TRACE&32) == 32
-    #define TRACE_5(...) { csound->Message(csound,"5:"); csound->Message(csound, __VA_ARGS__);}
-#else
-    #define TRACE_5(...)
-#endif
-
 #define KPERF_SYM 0x31
 #define BARRIER_1_WAIT_SYM 0x32
 #define BARRIER_2_WAIT_SYM 0x33
-#define SHARK_SIGNPOST(sym)
 
 /* return thread index of caller */
 int csp_thread_index_get(CSOUND *csound);
 
 /* structure headers */
 #define HDR_LEN                 4
-#define INSTR_WEIGHT_INFO_HDR   "IWI"
+//#define INSTR_WEIGHT_INFO_HDR   "IWI"
 #define INSTR_SEMANTICS_HDR     "SEM"
 #define SET_ELEMENT_HDR         "STE"
 #define SET_HDR                 "SET"
-#define DAG_2_HDR               "DG2"
-#define DAG_NODE_2_HDR          "DN2"
-#define SEMAPHORE_HDR           "SPS"
+//#define DAG_2_HDR               "DG2"
+//#define DAG_NODE_2_HDR          "DN2"
+//#define SEMAPHORE_HDR           "SPS"
 #define GLOBAL_VAR_LOCK_HDR     "GVL"
-#define SERIALIZED_DAG_HDR      "SDG"
+//#define SERIALIZED_DAG_HDR      "SDG"
 
 /*
  * set structures

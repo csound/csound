@@ -516,6 +516,7 @@ ans       : ident               { $$ = $1; }
                                ((ORCTOKEN*)$3)->lexeme);
                 $$ = appendToTree(csound, $1, NULL);
               }
+          | ans ',' arrayident     { $$ = appendToTree(csound, $1, $3); }
           | ans ',' arrayexpr     { $$ = appendToTree(csound, $1, $3); }
           ;
 

@@ -445,7 +445,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
 
     if(p->sfunc != func) {
     p->sfunc = func;
-    if(func == NULL) return csound->PerfError(csound, "table %d invalid\n", (int) *p->ifn);
+    if (UNLIKELY(func == NULL))
+      return csound->PerfError(csound, "table %d invalid\n", (int) *p->ifn);
     if (p->ndx[0] >= p->sfunc->flen)
        p->ndx[0] = (double) p->sfunc->flen - 1.0;
     }
