@@ -222,8 +222,8 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         sf_command(sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
       }
-      /* if (csound->GetKsmps(csound) >= 512)
-        buf_reqd = csound->GetKsmps(csound) * ((SF_INFO*) fileParams)->channels;
+      /* if (CS_KSMPS >= 512)
+        buf_reqd = CS_KSMPS * ((SF_INFO*) fileParams)->channels;
       else
         buf_reqd = (1 + (int)(512 / CS_KSMPS)) * CS_KSMPS
                    * ((SF_INFO*) fileParams)->channels;
@@ -442,7 +442,7 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
       p->guard_pos = 512 * p->nargs;
 
     sfinfo.channels = p->nargs;
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->GetKr(csound));
+    sfinfo.samplerate = (int) MYFLT2LRND(CS_EKR);
     format_ = (int) MYFLT2LRND(*p->iflag);
     if ((unsigned int) format_ >= (unsigned int) 10)
       sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
@@ -802,7 +802,7 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
     int     n, buf_reqd;
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->GetKr(csound));
+    sfinfo.samplerate = (int) MYFLT2LRND(CS_EKR);
     if ((int) MYFLT2LRND(*p->iflag) == 0)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
     else
