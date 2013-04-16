@@ -76,32 +76,11 @@
  * Everything that can be done using C as in the above examples can also be done
  * in a similar manner in Python or any of the other Csound API languages.
  *
- * \section section_licenses License
- *
- * \subsection section_csound_license Csound
- *
- * Copyright (C) 2001-2005 Michael Gogins, Matt Ingalls, John D. Ramsdell,
- *                         John P. ffitch, Istvan Varga, Victor Lazzarini
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * \file
+ * \file csound.h
  *
  * \brief Declares the public Csound application programming interface (API).
  * \author John P. ffitch, Michael Gogins, Matt Ingalls, John D. Ramsdell,
- *         Istvan Varga and Victor Lazzarini
+ *         Istvan Varga, Victor Lazzarini, Andres Cabrera and Steven Yi.
  *
  * \b Purposes
  *
@@ -167,291 +146,29 @@
  * \endcode
  *
  * In general, plugins should ONLY access Csound functionality through the
- * API function pointers and public members of the CSOUND structure.
-   Here is a list of the public funtions in CSOUND:
-
-    Attributes:
-    MYFLT (*GetSr)(CSOUND *);
-    MYFLT (*GetKr)(CSOUND *);
-    uint32_t (*GetKsmps)(CSOUND *);
-    uint32_t (*GetNchnls)(CSOUND *);
-    void (*SetDebug)(CSOUND *, int d);
-    int (*GetDebug)(CSOUND *);
-    int (*GetSizeOfMYFLT)(void);
-    const char *(*GetEnv)(CSOUND *, const char *name);
-
-    Messages:
-    CS_PRINTF2 void (*Message)(CSOUND *, const char *fmt, ...);
-    CS_PRINTF3 void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
-    void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
-    int (*GetMessageLevel)(CSOUND *);
-
-    Error handling:
-    CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
-    CS_PRINTF2 int (*InitError)(CSOUND *, const char *msg, ...);
-    CS_PRINTF2 int (*PerfError)(CSOUND *, const char *msg, ...);
-    CS_PRINTF2 void (*Warning)(CSOUND *, const char *msg, ...);
-    CS_PRINTF2 void (*DebugMsg)(CSOUND *, const char *msg, ...);
-    CS_NORETURN void (*LongJmp)(CSOUND *, int);
-    CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
-    void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
-
-    Performance:
-    int (*PerformKsmps)(CSOUND *);
-    int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
-                                  void *userData, unsigned int typeMask);
-    void (*Remove_Callback)(CSOUND *,
-                            int (*func)(void *, void *, unsigned int));
-
-    Opcodes:
-    int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
-                        int thread, const char *outypes, const char *intypes,
-                        int (*iopadr)(CSOUND *, void *),
-                        int (*kopadr)(CSOUND *, void *),
-                        int (*aopadr)(CSOUND *, void *));
-    int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
-    char *(*GetOpcodeName)(void *p);
-
-    Opcode arguments:
-    int (*GetInputArgCnt)(void *p);
-    unsigned long (*GetInputArgAMask)(void *p);
-    unsigned long (*GetInputArgSMask)(void *p);
-    char *(*GetInputArgName)(void *p, int n);
-    int (*GetOutputArgCnt)(void *p);
-    unsigned long (*GetOutputArgAMask)(void *p);
-    unsigned long (*GetOutputArgSMask)(void *p);
-    char *(*GetOutputArgName)(void *p, int n);
-
-    P-fields:
-    MYFLT *(*GetPFields)(void *p);
-    int (*GetInstrumentNumber)(void *p);
-
-    Files:
-    char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
-    char *(*FindOutputFile)(CSOUND *,
-                            const char *filename, const char *envList);
-    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
-    int (*sfsampsize)(int format);
-    void *(*SAsndgetset)(CSOUND *,
-                         char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
-    void *(*sndgetset)(CSOUND *, void *);
-    int (*getsndin)(CSOUND *, void *, MYFLT *, int, void *);
-    void (*rewriteheader)(void *ofd);
-    void (*FDRecord)(CSOUND *, FDCH *fdchp);
-    void (*FDClose)(CSOUND *, FDCH *fdchp);
-    void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
-    char *(*GetFileName)(void *);
-    int (*FileClose)(CSOUND *, void *);
-    void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *,
-                      const char *, int, int);
-    int (*type2csfiletype)(int type, int encoding);
-    void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
-    int (*sftype2csfiletype)(int type);
-    MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
-                                int (*callback)(CSOUND *, MEMFIL *));
-    void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
-                           const char *, int, int, int);
-    unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
-    unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
-    int  (*FSeekAsync)(CSOUND *, void *, int, int);
-
-    String conversion, format and localization:
-    int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
-    char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
-    char *(*getstrformat)(int format);
-    char *(*type2string)(int type);
-    char *(*LocalizeString)(const char *);
-    char *(*GetString)(CSOUND *, MYFLT);
-
-    Function tables:
-    int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
-    int (*FTAlloc)(CSOUND *, int tableNum, int len);
-    int (*FTDelete)(CSOUND *, int tableNum);
-    FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
-    FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
-    FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
-    int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
-    int (*TableLength)(CSOUND *, int table);
-    MYFLT (*TableGet)(CSOUND *, int table, int index);
-    void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
-    void *(*GetNamedGens)(CSOUND *);
-
-    Events:
-    int (*insert_score_event)(CSOUND *, EVTBLK *, double);
-    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t);
-    int (*CheckEvents)(CSOUND *);
-
-    MIDI message handling:
-    int (*SetReleaseLength)(void *p, int n);
-    MYFLT (*SetReleaseLengthSeconds)(void *p, MYFLT n);
-    int (*GetMidiChannelNumber)(void *p);
-    MCHNBLK *(*GetMidiChannel)(void *p);
-    int (*GetMidiNoteNumber)(void *p);
-    int (*GetMidiVelocity)(void *p);
-    int (*GetReleaseFlag)(void *p);
-    double (*GetOffTime)(void *p);
-
-    Memory allocation:
-    void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
-    void *(*Malloc)(CSOUND *, size_t nbytes);
-    void *(*Calloc)(CSOUND *, size_t nbytes);
-    void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
-    void (*Free)(CSOUND *, void *ptr);
-
-    Time:
-    void (*InitTimerStruct)(RTCLOCK *);
-    double (*GetRealTime)(RTCLOCK *);
-    double (*GetCPUTime)(RTCLOCK *);
-
-    Power functions:
-    MYFLT (*Pow2)(CSOUND *, MYFLT a);
-    MYFLT (*intpow)(MYFLT, int32);
-
-    Random numbers:
-    uint32_t (*GetRandomSeedFromTime)(void);
-    void (*SeedRandMT)(CsoundRandMTState *p,
-                       const uint32_t *initKey, uint32_t keyLength);
-    uint32_t (*RandMT)(CsoundRandMTState *p);
-    int (*Rand31)(int *seedVal);
-
-    Global and config variables:
-    int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
-    void *(*QueryGlobalVariable)(CSOUND *, const char *name);
-    void *(*QueryGlobalVariableNoCheck)(CSOUND *, const char *name);
-    int (*DestroyGlobalVariable)(CSOUND *, const char *name);
-    int (*CreateConfigurationVariable)(CSOUND *, const char *name,
-                                       void *p, int type, int flags,
-                                       void *min, void *max,
-                                       const char *shortDesc,
-                                       const char *longDesc);
-    int (*SetConfigurationVariable)(CSOUND *, const char *name, void *value);
-    int (*ParseConfigurationVariable)(CSOUND *,
-                                      const char *name, const char *value);
-    csCfgVariable_t *(*QueryConfigurationVariable)(CSOUND *, const char *name);
-    csCfgVariable_t **(*ListConfigurationVariables)(CSOUND *);
-    int (*DeleteConfigurationVariable)(CSOUND *, const char *name);
-    const char *(*CfgErrorCodeToString)(int errcode);
-
-    FFT:
-    MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
-    MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
-    void (*ComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*RealFFT)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*InverseRealFFT)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*RealFFTMult)(CSOUND *, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                                  int FFTsize, MYFLT scaleFac);
-    void (*RealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
-
-    PVOC:
-    int (*PVOC_CreateFile)(CSOUND *, const char *,
-                           uint32, uint32, uint32,
-                           uint32, int32, int, int,
-                           float, float *, uint32);
-    int (*PVOC_OpenFile)(CSOUND *, const char *, void *, void *);
-    int (*PVOC_CloseFile)(CSOUND *, int);
-    int (*PVOC_PutFrames)(CSOUND *, int, const float *, int32);
-    int (*PVOC_GetFrames)(CSOUND *, int, float *, uint32);
-    int (*PVOC_FrameCount)(CSOUND *, int);
-    int (*PVOC_fseek)(CSOUND *, int, int);
-    const char *(*PVOC_ErrorString)(CSOUND *);
-    int (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
-
-    Misc. callbacks:
-    int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
-                                                void *userData);
-    int (*RegisterDeinitCallback)(CSOUND *, void *p,
-                                            int (*func)(CSOUND *, void *));
-    int (*RegisterResetCallback)(CSOUND *, void *userData,
-                                           int (*func)(CSOUND *, void *));
-
-    Threads and locks:
-    void *(*CreateThread)(uintptr_t (*threadRoutine)(void *), void *userdata);
-    uintptr_t (*JoinThread)(void *thread);
-    void *(*CreateThreadLock)(void);
-    void (*DestroyThreadLock)(void *lock);
-    int (*WaitThreadLock)(void *lock, size_t milliseconds);
-    void (*NotifyThreadLock)(void *lock);
-    void (*WaitThreadLockNoTimeout)(void *lock);
-    void (*Sleep)(size_t milliseconds);
-    void *(*Create_Mutex)(int isRecursive);
-    int (*LockMutexNoWait)(void *mutex_);
-    void (*LockMutex)(void *mutex_);
-    void (*UnlockMutex)(void *mutex_);
-    void (*DestroyMutex)(void *mutex_);
-    void *(*GetCurrentThreadID)(void);
-    void (*SetInternalYieldCallback)(CSOUND *,
-                       int (*yieldCallback)(CSOUND *));
-    void *(*CreateBarrier)(unsigned int max);
-    int (*DestroyBarrier)(void *);
-    int (*WaitBarrier)(void *);
-
-    Circular buffers:
-    void *(*CreateCircularBuffer)(CSOUND *, int);
-    int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
-    int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
-    void (*FlushCircularBuffer)(CSOUND *, void *);
-    void (*FreeCircularBuffer)(CSOUND *, void *);
-
-    Audio IO buffers:
-    long (*GetInputBufferSize)(CSOUND *);
-    long (*GetOutputBufferSize)(CSOUND *);
-    MYFLT *(*GetInputBuffer)(CSOUND *);
-    MYFLT *(*GetOutputBuffer)(CSOUND *);
-
-    RT audio IO:
-    void (*SetPlayopenCallback)(CSOUND *,
-                int (*playopen__)(CSOUND *, const csRtAudioParams *parm));
-    void (*SetRtplayCallback)(CSOUND *,
-                void (*rtplay__)(CSOUND *, const MYFLT *outBuf, int nbytes));
-    void (*SetRecopenCallback)(CSOUND *,
-                int (*recopen__)(CSOUND *, const csRtAudioParams *parm));
-    void (*SetRtrecordCallback)(CSOUND *,
-                int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
-    void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
-    void **(*GetRtRecordUserData)(CSOUND *);
-    void **(*GetRtPlayUserData)(CSOUND *);
-
-    MIDI device IO:
-    void (*SetExternalMidiInOpenCallback)(CSOUND *,
-                int (*func)(CSOUND *, void **, const char *));
-    void (*SetExternalMidiReadCallback)(CSOUND *,
-                int (*func)(CSOUND *, void *, unsigned char *, int));
-    void (*SetExternalMidiInCloseCallback)(CSOUND *,
-                int (*func)(CSOUND *, void *));
-    void (*SetExternalMidiOutOpenCallback)(CSOUND *,
-                int (*func)(CSOUND *, void **, const char *));
-    void (*SetExternalMidiWriteCallback)(CSOUND *,
-                int (*func)(CSOUND *, void *, const unsigned char *, int));
-    void (*SetExternalMidiOutCloseCallback)(CSOUND *,
-                int (*func)(CSOUND *, void *));
-    void (*SetExternalMidiErrorStringCallback)(CSOUND *,
-                const char *(*func)(int));
-
-    Graphs and display:
-    int (*SetIsGraphable)(CSOUND *, int isGraphable);
-    void (*SetMakeGraphCallback)(CSOUND *,
-                void (*makeGraphCallback)(CSOUND *, WINDAT *p,
-                                                    const char *name));
-    void (*SetDrawGraphCallback)(CSOUND *,
-                void (*drawGraphCallback)(CSOUND *, WINDAT *p));
-    void (*SetKillGraphCallback)(CSOUND *,
-                void (*killGraphCallback)(CSOUND *, WINDAT *p));
-    void (*SetExitGraphCallback)(CSOUND *, int (*exitGraphCallback)(CSOUND *));
-    void (*dispset)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
-    void (*display)(CSOUND *, WINDAT *);
-    void (*dispinit)(CSOUND *);
-    int (*dispexit)(CSOUND *);
-
-    Utilities:
-    int (*AddUtility)(CSOUND *, const char *name,
-                      int (*UtilFunc)(CSOUND *, int, char **));
-    int (*RunUtility)(CSOUND *, const char *name, int argc, char **argv);
-    char **(*ListUtilities)(CSOUND *);
-    int (*SetUtilityDescription)(CSOUND *, const char *utilName,
-                                           const char *utilDesc);
-    const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
+ * API function pointers and public members of the #CSOUND_ structure.
+ *
+ * \section section_licenses License
+ *
+ * \subsection section_csound_license Csound
+ *
+ * Copyright (C) 2001-2013 Michael Gogins, Matt Ingalls, John D. Ramsdell,
+ *                         John P. ffitch, Istvan Varga, Victor Lazzarini,
+ *                         Andres Cabrera and Steven Yi
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 /*
@@ -801,12 +518,22 @@ extern "C" {
         CSOUND_CONTROL_CHANNEL_EXP  = 3
     } controlChannelBehavior;
 
+/**
+ * This structure holds the parameter hints for control channels
+ *
+ */
     typedef struct controlChannelHints_s {
         controlChannelBehavior    behav;
 
         MYFLT   dflt;
         MYFLT   min;
         MYFLT   max;
+        int x;
+        int y;
+        int width;
+        int height;
+        /** This member must be set manually to 0 if not used */
+        char *attributes;
     } controlChannelHints_t;
 
     typedef struct controlChannelInfo_s {
@@ -1644,18 +1371,9 @@ extern "C" {
     PUBLIC void csoundDeleteChannelList(CSOUND *, controlChannelInfo_t *lst);
 
     /**
-     * Sets special parameters for a control channel. The parameters are:
-     *   type:  must be one of CSOUND_CONTROL_CHANNEL_INT,
-     *          CSOUND_CONTROL_CHANNEL_LIN, or CSOUND_CONTROL_CHANNEL_EXP for
-     *          integer, linear, or exponential channel data, respectively,
-     *          or zero to delete any previously assigned parameter information
-     *   dflt:  the control value that is assumed to be the default, should be
-     *          greater than or equal to 'min', and less than or equal to 'max'
-     *   min:   the minimum value expected; if the control type is exponential,
-     *          it must be non-zero
-     *   max:   the maximum value expected, should be greater than 'min';
-     *          if the control type is exponential, it must be non-zero and
-     *          match the sign of 'min'
+     * Set parameters hints for a control channel. These hints have no internal
+     * function but can be used by front ends to construct GUIs or to constrain
+     * values. See the controlChannelHints_t structure for details.
      * Returns zero on success, or a non-zero error code on failure:
      *   CSOUND_ERROR:  the channel does not exist, is not a control channel,
      *                  or the specified parameters are invalid
@@ -1753,23 +1471,22 @@ extern "C" {
                                                channelCallback_t outputChannelCalback);
 
     /**
-     * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
-     * The bus is automatically extended if 'n' exceeds any previously used
-     * index value, clearing new locations to zero.
+     * Sends a PVSDATEX fin to the pvsin opcode (f-rate) for channel 'name'.
      * Returns zero on success, CSOUND_ERROR if the index is invalid or
-     * fsig framesizes are incompatible
+     * fsig framesizes are incompatible.
      * CSOUND_MEMORY if there is not enough memory to extend the bus.
      */
-    PUBLIC int csoundSetPvsChannel(CSOUND *, const PVSDATEXT *fin, int n);
+    PUBLIC int csoundSetPvsChannel(CSOUND *, const PVSDATEXT *fin,
+                                   const char *name);
 
     /**
-     * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
-     * The bus is extended if 'n' exceeds any previous value.
+     * Receives a PVSDAT fout from the pvsout opcode (f-rate) at channel 'name'
      * Returns zero on success, CSOUND_ERROR if the index is invalid or
-     * if fsig framesizes are incompatible
+     * if fsig framesizes are incompatible.
      * CSOUND_MEMORY if there is not enough memory to extend the bus
      */
-    PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout, int n);
+    PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
+                                   const char *name);
 
     /**
      * Send a new score event. 'type' is the score event type ('a', 'i', 'q',
