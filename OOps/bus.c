@@ -372,7 +372,8 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
       if (UNLIKELY(csound->RegisterResetCallback(csound, NULL,
                                                  delete_channel_db) != 0))
           return CSOUND_MEMORY;
-      csound->chn_db = (void*) csound->Calloc(csound, CS_MAX_CHANNELS *  sizeof(CHNENTRY*));
+      csound->chn_db =
+        (void*) csound->Calloc(csound, CS_MAX_CHANNELS *  sizeof(CHNENTRY*));
       if (UNLIKELY(csound->chn_db == NULL))
         return CSOUND_MEMORY;
     }
@@ -498,7 +499,8 @@ PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
     pp->hints = hints;
     if (hints.attributes) {
         pp->hints.attributes
-                = (char *) csound->Malloc(csound, strlen(hints.attributes) * sizeof(char));
+          = (char *) csound->Malloc(csound,
+                                    strlen(hints.attributes) * sizeof(char));
         strcpy(pp->hints.attributes, hints.attributes);
     }
     return CSOUND_SUCCESS;
@@ -589,7 +591,8 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
     csoundSpinLock(p->lock);
     if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
     memcpy(&p->arg[offset], p->fp, sizeof(MYFLT)*(CS_KSMPS-offset-early));
-    if (UNLIKELY(early)) memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
+    if (UNLIKELY(early))
+      memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     csoundSpinUnLock(p->lock);
     return OK;
 }
@@ -703,7 +706,8 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
     if (UNLIKELY(offset)) memset(p->fp, '\0', sizeof(MYFLT)*offset);
     memcpy(&p->fp[offset], &p->arg[offset],
            sizeof(MYFLT)*(CS_KSMPS-offset-early));
-    if (UNLIKELY(early)) memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
+    if (UNLIKELY(early))
+      memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
     csoundSpinUnLock(p->lock);
     return OK;
 }
