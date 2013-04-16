@@ -153,7 +153,8 @@ static OENTRY date_localops[] =
     { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
     { "readfi", sizeof(READF),      0, 1, "Si",   "T", (SUBR)readfi,       },
-    { "readf",  sizeof(READF),      0, 3, "Sk",   "T", (SUBR)readf_init, (SUBR)readf }
+    { "readf",  sizeof(READF),      0, 3, "Sk",   "T", (SUBR)readf_init,
+                                                       (SUBR)readf         }
 
 };
 

@@ -820,7 +820,8 @@ int adset(CSOUND *csound, ADSYN *p)
     csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       /* readfile if reqd */
-      if (UNLIKELY((mfp = ldmemfile2withCB(csound, filnam, CSFTYPE_HETRO, NULL)) == NULL)) {
+      if (UNLIKELY((mfp = ldmemfile2withCB(csound, filnam,
+                                           CSFTYPE_HETRO, NULL)) == NULL)) {
         csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
         return NOTOK;
       }

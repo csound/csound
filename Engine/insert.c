@@ -603,7 +603,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
       ip->nxtoff = nxtp;
       /* IV - Feb 24 2006: check if this note already needs to be turned off */
       /* the following comparisons must match those in sensevents() */
-  #ifdef BETA
+#ifdef BETA
       if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound,"schedofftim: %lf %lf %f\n",
                         ip->offtim, csound->icurTime/csound->esr,
@@ -1089,7 +1089,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       /* store parameters of input and output channels, and parent ip */
       buf->uopcode_struct = (void*) p;
       buf->parent_ip = p->parent_ip = parent_ip;
-      
+
     }
 
     /* copy parameters from the caller instrument into our subinstrument */
@@ -1122,7 +1122,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     else
       memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
 
-    
+
     /* do init pass for this instr */
     p->ip->init_done  = 0;
     csound->curip = lcurip;
@@ -1141,7 +1141,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     csound->ids = saved_ids;
     csound->curip = saved_curip;
-    
+
     if (p->mode == 1) {
       csound->ksmps = g_ksmps;
       csound->ekr = g_ekr;
@@ -1161,7 +1161,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       saved_curip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
     }
-    
+
     return OK;
 }
 
@@ -1169,7 +1169,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 int useropcd(CSOUND *csound, UOPCODE *p)
 {
-    
+
     if(p->h.nxtp)
     return csoundPerfError(csound, Str("%s: not initialised"),
                     p->h.optext->t.opcod);
@@ -1362,7 +1362,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     p->h.insdshead->xtratim *= n;
     pp->l_ksmps = csound->ksmps = l_ksmps;
     pp->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
-    pp->l_ekr = csound->ekr = 
+    pp->l_ekr = csound->ekr =
         csound->esr / (MYFLT) csound->ksmps;
     pp->l_onedkr = csound->onedkr = FL(1.0) / csound->ekr;
     pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
@@ -1560,14 +1560,14 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          }
         if((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) {
           CS_PDS->insdshead->pds = NULL;
-	  do {
+          do {
            (*CS_PDS->opadr)(csound, CS_PDS);
            if (CS_PDS->insdshead->pds != NULL) {
                CS_PDS = CS_PDS->insdshead->pds;
               CS_PDS->insdshead->pds = NULL;
            }
-	  }while ((CS_PDS = CS_PDS->nxtp));
-	}
+          }while ((CS_PDS = CS_PDS->nxtp));
+        }
         /*  run each opcode  */
         /* CS_PDS = (OPDS *) (p->ip); */
         /* while ((CS_PDS = CS_PDS->nxtp)) { */
@@ -1605,17 +1605,17 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
         /*  run each opcode  */
-	if((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) {
+        if((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) {
           CS_PDS->insdshead->pds = NULL;
-	  do {
+          do {
            (*CS_PDS->opadr)(csound, CS_PDS);
            if (CS_PDS->insdshead->pds != NULL) {
                CS_PDS = CS_PDS->insdshead->pds;
               CS_PDS->insdshead->pds = NULL;
            }
-	  }while ((CS_PDS = CS_PDS->nxtp));
-	}
-         /* CS_PDS = (OPDS *)p->ip; */	
+          }while ((CS_PDS = CS_PDS->nxtp));
+        }
+         /* CS_PDS = (OPDS *)p->ip; */
         /* while ((CS_PDS = CS_PDS->nxtp)) { */
         /*   (*CS_PDS->opadr)(csound, CS_PDS); */
         /* } */
@@ -1672,7 +1672,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
    int     n;
    OPDS    *saved_pds = CS_PDS;
     MYFLT   **tmp, *ptr1, *ptr2;
-    
+
     if (!(CS_PDS = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
 
     /* FOR SOME REASON the opcode has no perf code */
@@ -1878,7 +1878,7 @@ static void instance(CSOUND *csound, int insno)
       ep = ttp->oentry;
 
       if (ep == &csound->opcodlst[ENDIN]         /*  (until ENDIN)  */
-          || ep == &csound->opcodlst[ENDOP])                    /*  (or ENDOP)     */
+          || ep == &csound->opcodlst[ENDOP])     /*  (or ENDOP)     */
         break;
       if (ep == &csound->opcodlst[PSET]) {
         ip->p1 = (MYFLT) insno;
@@ -1892,7 +1892,7 @@ static void instance(CSOUND *csound, int insno)
                                 ep->opname, opds);
       opds->optext = optxt;                     /* set common headata */
       opds->insdshead = ip;
-      if (ep == &csound->opcodlst[LABEL]) {                     /* LABEL:       */
+      if (ep == &csound->opcodlst[LABEL]) {     /* LABEL:       */
         LBLBLK  *lblbp = (LBLBLK *) opds;
         lblbp->prvi = prvids;                   /*    save i/p links */
         lblbp->prvp = prvpds;
