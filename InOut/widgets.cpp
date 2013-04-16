@@ -4367,7 +4367,8 @@ extern "C" {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
-      timel = ((MYFLT) csound->GetKcounter(csound) * (1.0/csound->GetKr(csound))) - p->initime;
+      timel = ((MYFLT) csound->GetKcounter(csound) *
+               (1.0/csound->GetKr(csound))) - p->initime;
       cycles = (long)(timel / p->ctime);
       if (p->cysofar < cycles) {
         p->cysofar = cycles;

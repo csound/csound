@@ -1065,8 +1065,9 @@ static OENTRY dssi_localops[] = {
     {"dssiactivate", sizeof(DSSIACTIVATE), 0, 3, "", "ik",
      (SUBR) dssiactivate_init, (SUBR) dssiactivate, NULL }
     ,
-    {"dssiaudio", sizeof(DSSIAUDIO), 0, 5, "mmmmmmmmm", "iMMMMMMMMM", (SUBR) dssiaudio_init,
-     NULL, (SUBR) dssiaudio }
+    {"dssiaudio", sizeof(DSSIAUDIO), 0, 5, "mmmmmmmmm", "iMMMMMMMMM",
+                                            (SUBR) dssiaudio_init,
+                                            NULL, (SUBR) dssiaudio }
     ,
     {"dssictls", sizeof(DSSICTLS), 0, 3, "", "iikk", (SUBR) dssictls_init,
      (SUBR) dssictls_kk, NULL }
