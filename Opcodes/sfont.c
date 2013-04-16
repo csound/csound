@@ -363,22 +363,22 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
             p->leftlevel[spltNum] = (MYFLT) sqrt(1.0-pan) * attenuation;
             p->rightlevel[spltNum] = (MYFLT) sqrt(pan) * attenuation;
             p->mode[spltNum]= split->sampleModes;
-            p->attack[spltNum] = split->attack*csound->GetKr(csound);
-            p->decay[spltNum] = split->decay*csound->GetKr(csound);
+            p->attack[spltNum] = split->attack*CS_EKR;
+            p->decay[spltNum] = split->decay*CS_EKR;
             p->sustain[spltNum] = split->sustain;
-            p->release[spltNum] = split->release*csound->GetKr(csound);
+            p->release[spltNum] = split->release*CS_EKR;
 
             if (*p->ienv > 1) {
-              p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
+              p->attr[spltNum] = 1.0/(CS_EKR*split->attack);
               p->decr[spltNum] = pow((split->sustain+0.0001),
-                                     1.0/(csound->GetKr(csound)*
+                                     1.0/(CS_EKR*
                                           split->decay+0.0001));
               if (split->attack != 0.0) p->env[spltNum] = 0.0;
               else p->env[spltNum] = 1.0;
             }
             else if (*p->ienv > 0) {
-              p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
-              p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*
+              p->attr[spltNum] = 1.0/(CS_EKR*split->attack);
+              p->decr[spltNum] = (split->sustain-1.0)/(CS_EKR*
                                                        split->decay);
               if (split->attack != 0.0) p->env[spltNum] = 0.0;
               else p->env[spltNum] = 1.0;
@@ -691,22 +691,22 @@ static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
               split->startLoopOffset - start;
             p->endloop[spltNum] = sample->dwEndloop + split->endLoopOffset - start;
             p->mode[spltNum]= split->sampleModes;
-            p->attack[spltNum] = split->attack*csound->GetKr(csound);
-            p->decay[spltNum] = split->decay*csound->GetKr(csound);
+            p->attack[spltNum] = split->attack*CS_EKR;
+            p->decay[spltNum] = split->decay*CS_EKR;
             p->sustain[spltNum] = split->sustain;
-            p->release[spltNum] = split->release*csound->GetKr(csound);
+            p->release[spltNum] = split->release*CS_EKR;
 
             if (*p->ienv > 1) {
-             p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
+             p->attr[spltNum] = 1.0/(CS_EKR*split->attack);
              p->decr[spltNum] = pow((split->sustain+0.0001),
-                                    1.0/(csound->GetKr(csound)*
+                                    1.0/(CS_EKR*
                                          split->decay+0.0001));
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
             }
             else if (*p->ienv > 0) {
-            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*
+            p->attr[spltNum] = 1.0/(CS_EKR*split->attack);
+            p->decr[spltNum] = (split->sustain-1.0)/(CS_EKR*
                                                      split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
@@ -956,21 +956,21 @@ static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
           p->rightlevel[spltNum] = pan * attenuation;
           p->mode[spltNum]= split->sampleModes;
 
-          p->attack[spltNum] = split->attack*csound->GetKr(csound);
-          p->decay[spltNum] = split->decay*csound->GetKr(csound);
+          p->attack[spltNum] = split->attack*CS_EKR;
+          p->decay[spltNum] = split->decay*CS_EKR;
           p->sustain[spltNum] = split->sustain;
-          p->release[spltNum] = split->release*csound->GetKr(csound);
+          p->release[spltNum] = split->release*CS_EKR;
 
           if (*p->ienv > 1) {
-            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
+            p->attr[spltNum] = 1.0/(CS_EKR*split->attack);
             p->decr[spltNum] = pow((split->sustain+0.0001),
-                                   1.0/(csound->GetKr(csound)*split->decay+0.0001));
+                                   1.0/(CS_EKR*split->decay+0.0001));
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
           else if (*p->ienv > 0) {
-            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*
+            p->attr[spltNum] = 1.0/(CS_EKR*split->attack);
+            p->decr[spltNum] = (split->sustain-1.0)/(CS_EKR*
                                                      split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
@@ -1221,22 +1221,22 @@ static int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
             split->startLoopOffset - start;
           p->endloop[spltNum] = sample->dwEndloop + split->endLoopOffset - start;
           p->mode[spltNum]= split->sampleModes;
-          p->attack[spltNum] = split->attack*csound->GetKr(csound);
-          p->decay[spltNum] = split->decay*csound->GetKr(csound);
+          p->attack[spltNum] = split->attack*CS_EKR;
+          p->decay[spltNum] = split->decay*CS_EKR;
           p->sustain[spltNum] = split->sustain;
-          p->release[spltNum] = split->release*csound->GetKr(csound);
+          p->release[spltNum] = split->release*CS_EKR;
 
           if (*p->ienv > 1) {
-            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
+            p->attr[spltNum] = 1.0/(CS_EKR*split->attack);
             p->decr[spltNum] = pow((split->sustain+0.0001),
-                                   1.0/(csound->GetKr(csound)*
+                                   1.0/(CS_EKR*
                                         split->decay+0.0001));
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;
           }
           else if (*p->ienv > 0) {
-            p->attr[spltNum] = 1.0/(csound->GetKr(csound)*split->attack);
-            p->decr[spltNum] = (split->sustain-1.0)/(csound->GetKr(csound)*
+            p->attr[spltNum] = 1.0/(CS_EKR*split->attack);
+            p->decr[spltNum] = (split->sustain-1.0)/(CS_EKR*
                                                      split->decay);
             if (split->attack != 0.0) p->env[spltNum] = 0.0;
             else p->env[spltNum] = 1.0;

@@ -65,14 +65,14 @@ int spectset(CSOUND *csound, SPECTRUM *p)
     SPECDAT *specp = p->wsig;
 
     /* for mac roundoff */
-    p->timcount = (int)(csound->GetKr(csound) * *p->iprd + FL(0.001));
+    p->timcount = (int)(CS_EKR * *p->iprd + FL(0.001));
     nocts = (int)*p->iocts;
     nfreqs = (int)*p->ifrqs;
     ncoefs = nocts * nfreqs;
     Q = *p->iq;
     hanning = (*p->ihann) ? 1 : 0;
     p->dbout = (int)*p->idbout;
-    if ((p->disprd = (int)(csound->GetKr(csound) * *p->idisprd)) < 0)
+    if ((p->disprd = (int)(CS_EKR * *p->idisprd)) < 0)
       p->disprd = 0;
 
     if (UNLIKELY(p->timcount <= 0))
@@ -108,7 +108,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
                       (hanning) ? "hanning":"hamming", outstring[p->dbout]);
 
       if (p->h.optext->t.intype == 'k') {
-        dwnp->srate = csound->GetKr(csound);            /* define the srate */
+        dwnp->srate = CS_EKR;            /* define the srate */
         p->nsmps = 1;
       }
       else {
@@ -361,7 +361,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 /*     DOWNDAT *downp = p->dsig; */
 /*     SPECDAT *specp = p->wsig; */
 
-/*     p->timcount = csound->GetKr(csound) * *p->iprd; */
+/*     p->timcount = CS_EKR * *p->iprd; */
 /*     nfreqs = *p->ifrqs; */
 /*     Q = *p->iq; */
 /*     hanning = (*p->ihann) ? 1 : 0; */
@@ -524,7 +524,7 @@ int spdspset(CSOUND *csound, SPECDISP *p)
     if (UNLIKELY(p->wsig->auxch.auxp==NULL)) {
       return csound->InitError(csound, Str("specdisp: not initialised"));
     }
-    if (UNLIKELY((p->timcount = (int)(csound->GetKr(csound) * *p->iprd)) <= 0)) {
+    if (UNLIKELY((p->timcount = (int)(CS_EKR * *p->iprd)) <= 0)) {
       return csound->InitError(csound, Str("illegal iperiod"));
     }
     if (!(p->dwindow.windid)) {
@@ -580,7 +580,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
         }
-    if ((p->ftimcnt = (int)(csound->GetKr(csound)**p->ifprd)) > 0) {
+    if ((p->ftimcnt = (int)(CS_EKR**p->ifprd)) > 0) {
       /* if displaying wfund */
       SPECDISP *fdp = &p->fdisplay;
       fdp->h = p->h;

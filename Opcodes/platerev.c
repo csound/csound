@@ -25,8 +25,8 @@
 #include "csdl.h"
 #include <math.h>
 
-#undef CS_KSMPS
-#define CS_KSMPS     (csound->GetKsmps(csound))
+/* #undef CS_KSMPS */
+/* #define CS_KSMPS     (csound->GetKsmps(csound)) */
 
 typedef struct {
     OPDS        h;
