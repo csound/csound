@@ -5,7 +5,8 @@
  * by means of software alone.
  *
  * Copyright (C) 2001-2006 Michael Gogins, Matt Ingalls, John D. Ramsdell,
- *                         John P. ffitch, Istvan Varga, Victor Lazzarini, Steven Yi
+ *                         John P. ffitch, Istvan Varga, Victor Lazzarini,
+ *                         Steven Yi
  *
  * L I C E N S E
  *
@@ -81,7 +82,8 @@ static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void reset(CSOUND *);
 static int  csoundPerformKsmpsInternal(CSOUND *csound);
-static void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
+static void csoundTableSetInternal(CSOUND *csound, int table, int index,
+                                   MYFLT value);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 static long csoundGetKcounter(CSOUND *csound);
 static void set_util_sr(CSOUND *csound, MYFLT sr);
@@ -124,7 +126,8 @@ static void create_opcodlst(CSOUND *csound)
 #define MAX_MODULES 64
 
 static void module_list_add(CSOUND *csound, char *drv, char *type){
-    MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
+    MODULE_INFO **modules =
+      (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
     if(modules != NULL){
      int i = 0;
      while(modules[i] != NULL && i < MAX_MODULES){
@@ -422,7 +425,7 @@ static const CSOUND cenviron_ = {
     (channelCallback_t) NULL,
     csoundDefaultMessageCallback,
     (int (*)(CSOUND *)) NULL,
-    (void (*)(CSOUND *, WINDAT *windat, const char *name)) NULL, /* was: MakeAscii,*/
+    (void (*)(CSOUND *, WINDAT *, const char *)) NULL, /* was: MakeAscii,*/
     (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: DrawAscii,*/
     (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
     (int (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
@@ -507,10 +510,6 @@ static const CSOUND cenviron_ = {
     0.0,            /*  beatTime            */
     (EVTBLK*) NULL, /*  currevent           */
     (INSDS*) NULL,  /*  curip               */
-    0, 0,           /*  nchanik, nchania    */
-    0, 0,           /*  nchanok, nchanoa    */
-    NULL, NULL,     /*  chanik, chania      */
-    NULL, NULL,     /*  chanok, chanoa      */
     FL(0.0),        /*  cpu_power_busy      */
     (char*) NULL,   /*  xfilename           */
     1,              /*  peakchunks          */
@@ -569,7 +568,8 @@ static const CSOUND cenviron_ = {
     FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
-#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || (defined(_WIN32) && defined(__GNUC__))
+#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || \
+    (defined(_WIN32) && defined(__GNUC__))
     {0},
 #else
    {{{0}}},        /*  exitjmp of type jmp_buf */
@@ -1424,24 +1424,24 @@ int kperf(CSOUND *csound)
                        ip->offtim > 0                 &&
                        time_end > ip->offtim)) {
             /* this is the last cycle of performance */
-             //   csound->Message(csound, "last cycle %d: %f %f %d\n",
-             //       ip->insno, csound->icurTime/csound->esr,
-             //          ip->offtim, ip->no_end);
-              ip->ksmps_no_end = ip->no_end;
+            //   csound->Message(csound, "last cycle %d: %f %f %d\n",
+            //       ip->insno, csound->icurTime/csound->esr,
+            //          ip->offtim, ip->no_end);
+            ip->ksmps_no_end = ip->no_end;
           }
 
           if (ip->init_done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
             while ((opstart = opstart->nxtp) != NULL) {
-          opstart->insdshead->pds = opstart;
-          (*opstart->opadr)(csound, opstart); /* run each opcode */
-          opstart = opstart->insdshead->pds;
-        }
-            
+              opstart->insdshead->pds = opstart;
+              (*opstart->opadr)(csound, opstart); /* run each opcode */
+              opstart = opstart->insdshead->pds;
+            }
+
 	    /* //csound->pds = (OPDS*) ip;
             while ((csound->pds = csound->pds->nxtp) != NULL) {
              csound->pds->insdshead->pds = csound->pds;
-             (*csound->pds->opadr)(csound, csound->pds); 
+             (*csound->pds->opadr)(csound, csound->pds);
              csound->pds = csound->pds->insdshead->pds;
              }*/
           }
@@ -2011,7 +2011,8 @@ csoundSetInputChannelCallback(CSOUND *csound,channelCallback_t inputChannelCalba
 }
 
 PUBLIC void
-csoundSetOutputChannelCallback(CSOUND *csound,channelCallback_t outputChannelCalback)
+csoundSetOutputChannelCallback(CSOUND *csound,
+                               channelCallback_t outputChannelCalback)
 {
     csound->OutputChannelCallback_ = outputChannelCalback;
 }
@@ -2102,7 +2103,8 @@ static int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
       else {
         // print_opcodedir_warning(csound);
         csoundErrorMsg(csound,
-                       Str(" unknown rtaudio module: '%s', using dummy module"), s);
+                       Str(" unknown rtaudio module: '%s', using dummy module"),
+                       s);
       }
       // return CSOUND_ERROR;
     }
@@ -2138,7 +2140,8 @@ static int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
       else {
         // print_opcodedir_warning(csound);
         csoundErrorMsg(csound,
-                       Str(" unknown rtaudio module: '%s', using dummy module"), s);
+                       Str(" unknown rtaudio module: '%s', using dummy module"),
+                       s);
       }
       // return CSOUND_ERROR;
     }
@@ -2170,7 +2173,9 @@ static void rtclose_dummy(CSOUND *csound)
     csound->rtRecord_userdata = NULL;
 }
 
-static int  audio_dev_list_dummy(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+static int  audio_dev_list_dummy(CSOUND *csound,
+                                 CS_AUDIODEVICE *list, int isOutput)
+{
   IGN(csound); IGN(list); IGN(isOutput);
   return 0;
 }
@@ -2218,13 +2223,13 @@ PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
 }
 
 PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-                                             int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput))
+            int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput))
 {
     csound->audio_dev_list_callback = audiodevlist__;
 }
 
 PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
-                                             int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput))
+            int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput))
 {
     csound->midi_dev_list_callback = mididevlist__;
 }
@@ -2661,7 +2666,8 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
 
 
 PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
-   MODULE_INFO **modules = (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
+   MODULE_INFO **modules =
+     (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
    if(modules[no] == NULL || no >= MAX_MODULES) return CSOUND_ERROR;
    *module = modules[no]->module;
    *type = modules[no]->type;
@@ -2905,7 +2911,8 @@ PUBLIC MYFLT csoundTableGet(CSOUND *csound, int table, int index)
     return csound->flist[table]->ftable[index];
 }
 
-static void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value)
+static void csoundTableSetInternal(CSOUND *csound,
+                                   int table, int index, MYFLT value)
 {
     csound->flist[table]->ftable[index] = value;
 }
