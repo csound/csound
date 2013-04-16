@@ -1338,7 +1338,8 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       case T_ARRAY:
         varName = current->left->value->lexeme;
-        add_arg(csound, varName, typeTable);  // FIXME - this needs to work for array and a-names
+  // FIXME - this needs to work for array and a-names
+        add_arg(csound, varName, typeTable);
         break;
 
       default:

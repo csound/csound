@@ -261,7 +261,8 @@ int tubebellset(CSOUND *csound, FM4OP *p)
     MYFLT       opt = *p->opt;
 
     if (UNLIKELY(make_FM4Op(csound,p))) return NOTOK;
-    if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK; /* 4 x "rawwaves/sinewave.raw" */
+    if (UNLIKELY(FM4Op_loadWaves(csound,p)))
+      return NOTOK; /* 4 x "rawwaves/sinewave.raw" */
 
     FM4Op_setRatio(p, 0, FL(1.0)   * FL(0.995));
     FM4Op_setRatio(p, 1, FL(1.414) * FL(0.995));
@@ -971,13 +972,6 @@ int FMVoiceset(CSOUND *csound, FM4OPV *q)
                      FM4Op_susLevels[15], FL(0.050));
     ADSR_setAllTimes(csound, &p->adsr[3], FL(0.001), FL(0.010),
                      FM4Op_susLevels[15], FL(0.500));
-    /*      ADSR_setAll(&p->adsr[0], FL(0.001), FL(0.001),
-            FM4Op_susLevels[15], FL(0.001)); */
-    /*      ADSR_setAll(&p->adsr[1], FL(0.001), FL(0.001),
-            FM4Op_susLevels[15], FL(0.001)); */
-    /*      ADSR_setAll(&p->adsr[2], FL(0.001), FL(0.001),
-            FM4Op_susLevels[15], FL(0.001)); */
-    /*      ADSR_setAll(&p->adsr[3], 0.05f,  0.05f,  FM4Op_susLevels[15], 0.0001f); */
     p->twozero.gain = FL(0.0);
     /*     modDepth = 0.005; */
     q->tilt[0] = FL(1.0);
@@ -1088,7 +1082,8 @@ int percfluteset(CSOUND *csound, FM4OP *p)
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
     if (UNLIKELY(make_FM4Op(csound,p))) return NOTOK;
-    if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK;  /* 3 x sines; 1 x fwavblnk */
+    if (UNLIKELY(FM4Op_loadWaves(csound,p)))
+      return NOTOK;  /* 3 x sines; 1 x fwavblnk */
 
     FM4Op_setRatio(p, 0, FL(1.50)            );
     FM4Op_setRatio(p, 1, FL(3.00) * FL(0.995));
@@ -1107,10 +1102,6 @@ int percfluteset(CSOUND *csound, FM4OP *p)
                      FM4Op_susLevels[11], FL(0.05));
     ADSR_setAllTimes(csound, &p->adsr[3], FL(0.02), FL(0.05),
                      FM4Op_susLevels[13], FL(0.01));
-    /*  ADSR_setAll(&p->adsr[0],FL(0.001),FL(0.001),FM4Op_susLevels[14], FL(0.001));*/
-    /*  ADSR_setAll(&p->adsr[1], 0.05f,  0.0001f, FM4Op_susLevels[13], 0.0001f); */
-    /*  ADSR_setAll(&p->adsr[2], 0.05f,  0.0020f, FM4Op_susLevels[11], FL(0.001)); */
-    /*  ADSR_setAll(&p->adsr[3], 0.05f,  0.0010f, FM4Op_susLevels[13], FL(0.005)); */
     p->twozero.gain = FL(0.0);
     /*     modDepth = FL(0.005); */
     ADSR_keyOn(&p->adsr[0]);

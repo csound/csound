@@ -139,7 +139,7 @@ typedef struct {
     MYFLT  baton, whack, x, y, p0, p2, p3, p3neg;
     MYFLT  fs1dn, fs1up, fs2dn, fs2up;
     MYFLT  frac1, frac2;
-    MYFLT  pot1, pot2, pot3; /* pontentiometer 4 is reserved to stick sensitivity */
+    MYFLT  pot1, pot2, pot3; /*pontentiometer 4 is reserved to stick sensitivity*/
     int    local_buf_index;
 } RB_PERCPAD;
 
@@ -189,7 +189,7 @@ static int rbatonPercPad(CSOUND *csound, RB_PERCPAD *p)
       case 16: /* Y coordinate at trigger */
       case 18:
         p->y = data2/FL(127.0);
-        args[0] = &(p->p0);                     /* this is the third baton trigger message */
+        args[0] = &(p->p0);          /* this is the third baton trigger message */
         args[1] = &(p->baton);          /* so activate corresponding instrument */
         args[2] = &(p->p2);
         args[3] = &(*p->kDur);

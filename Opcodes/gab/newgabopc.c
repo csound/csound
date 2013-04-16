@@ -106,7 +106,8 @@ PUBLIC int Sched(CSOUND *csound, MYFLT  *args[], int numargs) {
     if(starttime < FL(0.0)) {
       starttime = FL(0.0);
     }
-    starttime += (double) csound->GetKcounter(csound) / (double) csound->GetKr(csound);
+    starttime += (double) csound->GetKcounter(csound) / 
+                 (double) csound->GetKr(csound);
     /*starttime += (double) csound->global_kcounter / (double)csound->global_ekr;*/
    /* Copy all arguments to the new event */
     for (i = 0; i < numargs; i++)
@@ -239,7 +240,8 @@ static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
     int nelems = (int) *p->inumElems;
     if ((ftp = csound->FTnp2Find(csound, p->idestTab)) == NULL)
       return csound->InitError(csound,
-                               Str("copyTabElems: incorrect destination table number"));
+                               Str("copyTabElems: incorrect destination "
+                                   "table number"));
 
     p->dLen = ftp->flen;
     if (nelems > p->dLen)
@@ -271,7 +273,8 @@ static int copyTabElems(CSOUND *csound, COPYTABELEMS *p)
       int j, sNdx = (int) *p->ksourceIndex * nelems,
              dNdx = (int) *p->kdestIndex * nelems;
       if (sNdx + nelems > p->sLen)
-        return csound->PerfError(csound, Str("copyTabElems: source table too short"));
+        return
+          csound->PerfError(csound, Str("copyTabElems: source table too short"));
       if (dNdx + nelems > p->dLen)
         return csound->PerfError(csound,
                                  Str("copyTabElems: destination table too short"));
@@ -316,7 +319,8 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
       int j, sNdx = (int) *p->isourceIndex * nelems,
         dNdx = (int) *p->idestIndex * nelems;
       if (sNdx + nelems > sLen)
-        return csound->PerfError(csound, Str("copyTabElems: source table too short"));
+        return
+          csound->PerfError(csound, Str("copyTabElems: source table too short"));
       if (dNdx + nelems > dLen)
         return csound->PerfError(csound,
                                  Str("copyTabElems: destination table too short"));
@@ -517,8 +521,8 @@ static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
       MYFLT *curr_samp1 = ft + (long) *phs * 2;
       MYFLT *curr_samp2 = curr_samp1 +1;
       fract= *phs - (long) *phs;
-      out1[n] = amp[n] * (MYFLT) (*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
-      out2[n] = amp[n] * (MYFLT) (*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
+      out1[n] = amp[n] * (MYFLT)(*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
+      out2[n] = amp[n] * (MYFLT)(*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
       *phs += si;
       while (*phs  >= end) *phs -= looplength;
       while (*phs  < loop) *phs += looplength;
@@ -618,47 +622,38 @@ static int dashow (CSOUND *csound, DSH *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "vtable1k",       S(MTABLE1),         TR, 3,  "",  "kz",          (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
-  /*      { "schedk",         S(SCHEDK),     0,     3,  "",  "kkz",         (SUBR)schedk_i,         (SUBR) schedk,          (SUBR) NULL }, */
-  /*      { "schedInTime",    S(SCHEDINTIME), 0,    3,  "",  "kz",          (SUBR)schedInTime_set,  (SUBR)schedInTime ,     (SUBR) NULL }, */
-  /*      { "copyTabElems",   S(COPYTABELEMS),0,    3,  "",  "kikiki",      (SUBR)copyTabElems_set, (SUBR)copyTabElems,     (SUBR)NULL  }, */
-  /*      { "copyTabElemsi",  S(COPYTABELEMS_I), 0, 1,  "",  "iiiii",       (SUBR)copyTabElemsi,    (SUBR)NULL,             (SUBR)NULL  }, */
-  /*      { "Trandom",        S(TRANGERAND),        0,      2,  "k", "kkk",                 NULL,                                   (SUBR)trRangeRand }, */
-  { "trandom",        S(TRANGERAND),          0,    2,  "k", "kkk",                 NULL,                                   (SUBR)trRangeRand },
-  /*      { "lposcinta",      S(LPOSC),        0,   5,      "a", "akkkio",      (SUBR)lposc_set,            NULL,                                   (SUBR)lposcinta}, */
-  /*      { "lposcintsa",     S(LPOSCINT_ST),  0,   5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo}, */
-  /*      { "lposcintsa2",    S(LPOSCINT_ST),   0,  5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo_no_trasp}, */
-  { "lposcila", S(LPOSC),      TR, 5, "a", "akkkio", (SUBR)lposc_set, NULL, (SUBR)lposca},
-  { "lposcilsa", S(LPOSC_ST),  TR, 5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo},
-  { "lposcilsa2", S(LPOSC_ST), TR, 5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo_no_trasp},
+  { "vtable1k",       S(MTABLE1),         TR, 3,  "",  "kz",
+                  (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
+  /*      { "schedk",         S(SCHEDK),     0,     3,  "",  "kkz",
+                  (SUBR)schedk_i,         (SUBR) schedk,          (SUBR) NULL }, */
+  /*      { "schedInTime",    S(SCHEDINTIME), 0,    3,  "",  "kz",
+                  (SUBR)schedInTime_set,  (SUBR)schedInTime ,     (SUBR) NULL }, */
+  /*      { "copyTabElems",   S(COPYTABELEMS),0,    3,  "",  "kikiki",
+                  (SUBR)copyTabElems_set, (SUBR)copyTabElems,     (SUBR)NULL  }, */
+  /*      { "copyTabElemsi",  S(COPYTABELEMS_I), 0, 1,  "",  "iiiii",
+                  (SUBR)copyTabElemsi,    (SUBR)NULL,             (SUBR)NULL  }, */
+  /*      { "Trandom",        S(TRANGERAND),        0,      2,  "k", "kkk",
+                    NULL,                                   (SUBR)trRangeRand }, */
+  { "trandom",        S(TRANGERAND),          0,    2,  "k", "kkk",
+                    NULL,                                   (SUBR)trRangeRand },
+  /*      { "lposcinta",      S(LPOSC),        0,   5,      "a", "akkkio",
+                                      (SUBR)lposc_set,  NULL,  (SUBR)lposcinta}, */
+  /*      { "lposcintsa",     S(LPOSCINT_ST),  0,   5,  "aa","akkkio",
+                        (SUBR)lposcint_stereo_set,NULL, (SUBR)lposcinta_stereo}, */
+  /*      { "lposcintsa2",    S(LPOSCINT_ST),   0,  5,  "aa","akkkio",
+              (SUBR)lposcint_stereo_set,NULL,  (SUBR)lposcinta_stereo_no_trasp}, */
+  { "lposcila", S(LPOSC),      TR, 5, "a", "akkkio",
+                                           (SUBR)lposc_set, NULL, (SUBR)lposca},
+  { "lposcilsa", S(LPOSC_ST),  TR, 5, "aa","akkkio",
+                             (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo},
+  { "lposcilsa2", S(LPOSC_ST), TR, 5, "aa","akkkio",
+                    (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo_no_trasp},
   /* { "dashow.i", S(DSH), 0,1,  "ii","iiii", (SUBR)dashow     }, */
   /* { "dashow.k", S(DSH), 0,2,  "kk","kkkk", NULL, (SUBR)dashow   }, */
   { "inrg", S(INRANGE), 0,5, "", "ky", (SUBR)inRange_i, (SUBR)NULL, (SUBR)inRange }
 
 
 };
-
-
-
-/* typedef struct NEWGABOPC_GLOBALS_ { */
-/*         int butta; */
-
-/* } NEWGABOPC_GLOBALS; */
-
-/*
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
-}
-
-
-PUBLIC int csoundModuleCreate(CSOUND *csound)
-{
-    (void)csound;
-    return 0;
-}
-*/
-
 
 int newgabopc_init_(CSOUND *csound) {
    return csound->AppendOpcodes(csound, &(localops[0]),
