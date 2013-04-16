@@ -303,7 +303,8 @@ int kreson(CSOUND *csound, RESON *p)
     IGN(csound);
 
     if (*p->kcf != (MYFLT)p->prvcf) {
-      p->prvcf = (double)*p->kcf;      p->cosf = cos(p->prvcf * (double)(CS_ONEDKR *TWOPI));
+      p->prvcf = (double)*p->kcf;
+      p->cosf = cos(p->prvcf * (double)(CS_ONEDKR *TWOPI));
       flag = 1;                 /* Mark as changed */
     }
     if (*p->kbw != (MYFLT)p->prvbw) {
