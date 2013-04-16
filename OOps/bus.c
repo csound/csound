@@ -32,6 +32,7 @@ bus.c:
 #include "bus.h"
 #include "namedins.h"
 
+#define CS_MAX_CHANNELS 256
 
 /* For sensing opcodes */
 #if defined(__unix) || defined(__unix__) || defined(__MACH__)
@@ -273,10 +274,13 @@ static int delete_channel_db(CSOUND *csound, void *p)
     if (db == NULL) {
       return 0;
     }
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < CS_MAX_CHANNELS; i++) {
       while (db[i] != NULL) {
         pp = db[i];
         db[i] = pp->nxt;
+        if ((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
+            csound->Free(csound, pp->hints.attributes);
+        }
         csound->Free(csound, (void*) pp);
       }
     }
@@ -368,7 +372,7 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
       if (UNLIKELY(csound->RegisterResetCallback(csound, NULL,
                                                  delete_channel_db) != 0))
           return CSOUND_MEMORY;
-      csound->chn_db = (void*) csound->Calloc(csound, 256 *  sizeof(CHNENTRY*));
+      csound->chn_db = (void*) csound->Calloc(csound, CS_MAX_CHANNELS *  sizeof(CHNENTRY*));
       if (UNLIKELY(csound->chn_db == NULL))
         return CSOUND_MEMORY;
     }
@@ -385,37 +389,6 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
 
     return CSOUND_SUCCESS;
 }
-
-/**
-* Stores a pointer to the specified channel of the bus in *p,
-* creating the channel first if it does not exist yet.
-* 'type' must be the bitwise OR of exactly one of the following values,
-*   CSOUND_CONTROL_CHANNEL
-*     control data (one MYFLT value)
-*   CSOUND_AUDIO_CHANNEL
-*     audio data (csoundGetKsmps(csound) MYFLT values)
-*   CSOUND_STRING_CHANNEL
-*     string data (MYFLT values with enough space to store
-*     csoundGetStrVarMaxLen(csound) characters, including the
-*     NULL character at the end of the string)
-* and at least one of these:
-*   CSOUND_INPUT_CHANNEL
-*   CSOUND_OUTPUT_CHANNEL
-* If the channel already exists, it must match the data type (control,
-* audio, or string), however, the input/output bits are OR'd with the
-* new value. Note that audio and string channels can only be created
-* after calling csoundCompile(), because the storage size is not known
-* until then.
-* Return value is zero on success, or a negative error code,
-*   CSOUND_MEMORY  there is not enough memory for allocating the channel
-*   CSOUND_ERROR   the specified name or type is invalid
-* or, if a channel with the same name but incompatible type already exists,
-* the type of the existing channel. In the case of any non-zero return
-* value, *p is set to NULL.
-* Note: to find out the type of a channel without actually creating or
-* changing it, set 'type' to zero, so that the return value will be either
-* the type of the channel, or CSOUND_ERROR if it does not exist.
-*/
 
 PUBLIC int csoundGetChannelPtr(CSOUND *csound,
                                MYFLT **p, const char *name, int type)
@@ -453,18 +426,6 @@ static int cmp_func(const void *p1, const void *p2)
                   ((controlChannelInfo_t*) p2)->name);
 }
 
-/**
-* Returns a list of allocated channels in *lst. A controlChannelInfo_t
-* structure contains the name and type of a channel, with the type having
-* the same format as in the case of csoundGetChannelPtr().
-* The return value is the number of channels, which may be zero if there
-* are none, or CSOUND_MEMORY if there is not enough memory for allocating
-* the list. In the case of no channels or an error, *lst is set to NULL.
-* Notes: the caller is responsible for freeing the list returned in *lst
-* with csoundDeleteChannelList(). The name pointers may become invalid
-* after calling csoundReset().
-*/
-
 PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
 {
         CHNENTRY  *pp;
@@ -474,7 +435,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
     if (csound->chn_db == NULL)
       return 0;
     /* count the number of channels */
-    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) 256; i++) {
+    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) CS_MAX_CHANNELS; i++) {
           for (pp = ((CHNENTRY**) csound->chn_db)[i];
            pp != NULL;
            pp = pp->nxt, n++)
@@ -486,7 +447,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
     *lst = (controlChannelInfo_t*) malloc(n * sizeof(controlChannelInfo_t));
     if (UNLIKELY(*lst == NULL))
       return CSOUND_MEMORY;
-    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) 256; i++) {
+    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) CS_MAX_CHANNELS; i++) {
           for (pp = ((CHNENTRY**) csound->chn_db)[i];
            pp != NULL;
            pp = pp->nxt, n++) {
@@ -500,34 +461,11 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
     return (int)n;
 }
 
-/**
-* Releases a channel list previously returned by csoundListChannels().
-*/
-
 PUBLIC void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
 {
     (void) csound;
     if (lst != NULL) free(lst);
 }
-
-/**
-* Sets special parameters for a control channel. The parameters are:
-*   type:  must be one of CSOUND_CONTROL_CHANNEL_INT,
-*          CSOUND_CONTROL_CHANNEL_LIN, or CSOUND_CONTROL_CHANNEL_EXP for
-*          integer, linear, or exponential channel data, respectively,
-*          or zero to delete any previously assigned parameter information
-*   dflt:  the control value that is assumed to be the default, should be
-*          greater than or equal to 'min', and less than or equal to 'max'
-*   min:   the minimum value expected; if the control type is exponential,
-*          it must be non-zero
-*   max:   the maximum value expected, should be greater than 'min';
-*          if the control type is exponential, it must be non-zero and
-*          match the sign of 'min'
-* Returns zero on success, or a non-zero error code on failure:
-*   CSOUND_ERROR:  the channel does not exist, is not a control channel,
-*                  or the specified parameters are invalid
-*   CSOUND_MEMORY: could not allocate memory
-*/
 
 PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
                                         controlChannelHints_t hints)
@@ -558,6 +496,11 @@ PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
     }
 
     pp->hints = hints;
+    if (hints.attributes) {
+        pp->hints.attributes
+                = (char *) csound->Malloc(csound, strlen(hints.attributes) * sizeof(char));
+        strcpy(pp->hints.attributes, hints.attributes);
+    }
     return CSOUND_SUCCESS;
 }
 
@@ -591,38 +534,6 @@ PUBLIC int csoundGetControlChannelHints(CSOUND *csound, const char *name,
     *hints = pp->hints;
     return 0;
 }
-
-/**
-* Sets callback function to be called by the opcodes 'chnsend' and
-* 'chnrecv'. Should be called between csoundPreCompile() and
-* csoundCompile().
-* The callback function takes the following arguments:
-*   CSOUND *csound
-*     Csound instance pointer
-*   const char *channelName
-*     the channel name
-*   MYFLT *channelValuePtr
-*     pointer to the channel value. Control channels are a single MYFLT
-*     value, while audio channels are an array of csoundGetKsmps(csound)
-*     MYFLT values. In the case of string channels, the pointer should be
-*     cast to char *, and points to a buffer of
-*     csoundGetStrVarMaxLen(csound) bytes
-*   int channelType
-*     bitwise OR of the channel type (CSOUND_CONTROL_CHANNEL,
-*     CSOUND_AUDIO_CHANNEL, or CSOUND_STRING_CHANNEL; use
-*     channelType & CSOUND_CHANNEL_TYPE_MASK to extract the channel
-*     type), and either CSOUND_INPUT_CHANNEL or CSOUND_OUTPUT_CHANNEL
-*     to indicate the direction of the data transfer
-* The callback is not preserved on csoundReset().
-*/
-/*
-PUBLIC void csoundSetChannelIOCallback(CSOUND *csound,
-                                       CsoundChannelIOCallback_t func)
-{
-    csound->channelIOCallback_ = func;
-}
-
-*/
 
 /* ------------------------------------------------------------------------ */
 
