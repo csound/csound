@@ -29,6 +29,7 @@ void test_control_channel_params(void)
     hints.dflt = 5;
     hints.min = 1;
     hints.max = 10;
+    hints.attributes = NULL;
     csoundSetControlChannelHints(csound, "testing", hints);
 
     controlChannelHints_t hints2;
@@ -130,7 +131,7 @@ void test_channel_callbacks(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    int argc = 2;
+    csoundSetOption(csound, "--logfile=NULL");
     val1 = 0;
     csoundCompileOrc(csound, orc3);
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback);
@@ -148,6 +149,108 @@ void test_channel_callbacks(void)
     CU_ASSERT_DOUBLE_EQUAL(val2, 10.0, 0.0000001);
     CU_ASSERT_STRING_EQUAL(strval, "hello channels");
     csoundDestroy(csound);
+}
+
+
+const char orc4[] = "chn_k \"1\", 3\n"
+        "chn_k \"2\", 3\n"
+        "chn_k \"3\", 3\n"
+        "chn_k \"4\", 3\n"
+        "instr 1\n kval invalue \"1\"\n"
+        "outvalue \"2\",kval\n"
+        "endin\n"
+
+        "instr 2\n"
+        "kval chani 2\n"
+        "chano kval + 1, 3\n"
+        "endin\n"
+
+        "instr 3\n"
+        "kval chnget \"3\"\n"
+        "chnset kval + 1, \"4\"\n"
+        "endin\n";
+
+void inputCallback2(CSOUND *csound,
+                   const char *channelName,
+                   void *channelValuePtr,
+                   void *channelType)
+{
+    MYFLT val = csoundGetControlChannel(csound, channelName);
+    MYFLT *valPtr = (MYFLT *) channelValuePtr;
+    *valPtr = val;
+}
+
+void outputCallback2(CSOUND *csound,
+                   const char *channelName,
+                   void *channelValuePtr,
+                   void *channelType)
+{
+    MYFLT *valPtr = (MYFLT *) channelValuePtr;
+    csoundSetControlChannel(csound, channelName, *valPtr);
+}
+
+void test_channel_opcodes(void)
+{
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
+    csoundSetOption(csound, "--logfile=NULL");
+    csoundCompileOrc(csound, orc4);
+    csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback2);
+    csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback2);
+    int err = csoundStart(csound);
+    CU_ASSERT(err == 0);
+    csoundSetControlChannel(csound, "1", 5.0);
+    MYFLT pFields[] = {1.0, 0.0, 1.0};
+    err = csoundScoreEvent(csound, 'i', pFields, 3);
+    err = csoundPerformKsmps(csound);
+    CU_ASSERT(err == 0);
+    CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "2"));
+    MYFLT pFields2[] = {2.0, 0.0, 1.0};
+    err = csoundScoreEvent(csound, 'i', pFields2, 3);
+    CU_ASSERT(err == 0);
+    err = csoundPerformKsmps(csound);
+    CU_ASSERT(err == 0);
+    CU_ASSERT_EQUAL(6.0, csoundGetControlChannel(csound, "3"));
+    MYFLT pFields3[] = {3.0, 0.0, 1.0};
+    err = csoundScoreEvent(csound, 'i', pFields3, 3);
+    CU_ASSERT(err == 0);
+    err = csoundPerformKsmps(csound);
+    CU_ASSERT(err == 0);
+    CU_ASSERT_EQUAL(7.0, csoundGetControlChannel(csound, "4"));
+
+    csoundDestroy(csound);
+}
+
+const char orc5[] = "instr 1\n kval invalue \"1\"\n"
+        "outvalue \"2\",kval\n"
+        "endin\n"
+
+        "instr 2\n"
+        "kval chani 2\n"
+        "chano kval + 1, 3\n"
+        "endin\n"
+
+        "instr 3\n"
+        "kval chnget \"3\"\n"
+        "chnset kval + 1, \"4\"\n"
+        "endin\n";
+
+void test_pvs_opcodes(void)
+{
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
+    csoundSetOption(csound, "--logfile=NULL");
+    csoundCompileOrc(csound, orc5);
+    csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback2);
+    csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback2);
+    int err = csoundStart(csound);
+    CU_ASSERT(err == 0);
+    PVSDATEXT pvs_data, pvs_data2;
+    pvs_data.N = 16;
+    csoundSetPvsChannel(csound, &pvs_data, "1");
+    csoundGetPvsChannel(csound, &pvs_data2, "1");
+    CU_ASSERT_EQUAL(pvs_data.N, pvs_data2.N);
+
 }
 
 int main()
@@ -170,6 +273,8 @@ int main()
            || (NULL == CU_add_test(pSuite, "Control channel", test_control_channel))
            || (NULL == CU_add_test(pSuite, "Control channel parameters", test_control_channel_params))
            || (NULL == CU_add_test(pSuite, "Callbacks", test_channel_callbacks))
+           || (NULL == CU_add_test(pSuite, "Opcodes", test_channel_opcodes))
+           || (NULL == CU_add_test(pSuite, "PVS Opcodes", test_pvs_opcodes))
            )
    {
       CU_cleanup_registry();
