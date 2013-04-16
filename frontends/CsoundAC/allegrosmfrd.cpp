@@ -1,5 +1,7 @@
 // midifile reader
 
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"

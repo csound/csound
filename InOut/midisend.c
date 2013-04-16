@@ -195,7 +195,7 @@ void openMIDIout(CSOUND *csound)
     /* write header */
     if (UNLIKELY(fwrite(&(midiOutFile_header[0]),
                         (size_t)1, (size_t)22, fp->f) != 22)) {
-      csound->Die(csound, "SHort write in MIDI\n");
+      csound->Die(csound, Str("Short write in MIDI\n"));
     }
 }
 

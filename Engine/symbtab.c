@@ -42,7 +42,7 @@ ORCTOKEN** symbtab;
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
-static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
+//static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
 extern int csound_orcget_lineno(void*);
 extern int find_opcode_num(CSOUND* csound, char* opname,
                            char* outArgsFound, char* inArgsFound);
@@ -50,11 +50,6 @@ extern int find_opcode_num(CSOUND* csound, char* opname,
 int get_opcode_type(OENTRY *ep)
 {
     int retVal = 0;
-
-//    if ((ep->outypes == NULL || strlen(ep->outypes) == 0) &&
-//       (ep->intypes == NULL || strlen(ep->intypes) == 0)) {
-//        retVal = T_OPCODE00;
-//    } else
 
     if (ep->outypes == NULL || strlen(ep->outypes) == 0) {
       retVal = T_OPCODE0;
@@ -95,11 +90,6 @@ void init_symbtab(CSOUND *csound)
 
           mfree(csound, polyName);
 
-//        if (strchr(ep->opname, '.') != NULL) {
-//           csound->Message(csound,
-//                   "Found PolyMorphic Opcode Definition %s\n",ep->opname);
-//        }
-
         }
         else {
 //            csound->Message(csound, "Found Regular Opcode %s\n",ep->opname);
@@ -109,87 +99,6 @@ void init_symbtab(CSOUND *csound)
 
     }
 
-
-    /* This adds all the T_FUNCTION tokens.  These should only be
-     * looked up in context when parsing a expression list (not yet done)
-     * and perhaps a more intelligent way needs to be done eventually to
-     * look up opcodes which can serve as functions, as well as for allowing
-     * multiple arguments to functions
-     */
-//    add_token(csound, "int", T_FUNCTION);
-//    add_token(csound, "frac", T_FUNCTION);
-//    add_token(csound, "round", T_FUNCTION);
-//    add_token(csound, "floor", T_FUNCTION);
-//    add_token(csound, "ceil", T_FUNCTION);
-//    add_token(csound, "rnd", T_FUNCTION);
-//    add_token(csound, "birnd", T_FUNCTION);
-//    add_token(csound, "abs", T_FUNCTION);
-//    add_token(csound, "exp", T_FUNCTION);
-//    add_token(csound, "log", T_FUNCTION);
-//    add_token(csound, "sqrt", T_FUNCTION);
-//    add_token(csound, "sin", T_FUNCTION);
-//    add_token(csound, "cos", T_FUNCTION);
-//    add_token(csound, "tan", T_FUNCTION);
-//    add_token(csound, "sininv", T_FUNCTION);
-//    add_token(csound, "cosinv", T_FUNCTION);
-//    add_token(csound, "taninv", T_FUNCTION);
-//    add_token(csound, "log10", T_FUNCTION);
-//    add_token(csound, "log2", T_FUNCTION);
-//    add_token(csound, "sinh", T_FUNCTION);
-//    add_token(csound, "cosh", T_FUNCTION);
-//    add_token(csound, "tanh", T_FUNCTION);
-//    add_token(csound, "ampdb", T_FUNCTION);
-//    add_token(csound, "ampdbfs", T_FUNCTION);
-//    add_token(csound, "dbamp", T_FUNCTION);
-//    add_token(csound, "dbfsamp", T_FUNCTION);
-//    add_token_p(csound, "ftcps", T_FUNCTION, TR);
-//    add_token_p(csound, "ftlen", T_FUNCTION, TR);
-//    add_token_p(csound, "ftsr", T_FUNCTION, TR);
-//    add_token_p(csound, "ftlptim", T_FUNCTION, TR);
-//    add_token_p(csound, "ftchnls", T_FUNCTION, TR);
-//    add_token(csound, "i", T_FUNCTION);
-//    add_token(csound, "k", T_FUNCTION);
-//    add_token(csound, "cpsoct", T_FUNCTION);
-//    add_token(csound, "octpch", T_FUNCTION);
-//    add_token(csound, "cpspch", T_FUNCTION);
-//    add_token(csound, "pchoct", T_FUNCTION);
-//    add_token(csound, "octcps", T_FUNCTION);
-//    add_token_p(csound, "nsamp", T_FUNCTION, TR);
-//    add_token(csound, "powoftwo", T_FUNCTION);
-//    add_token(csound, "logbtwo", T_FUNCTION);
-//    add_token(csound, "a", T_FUNCTION);
-//    add_token_p(csound, "tb0", T_FUNCTION, TR);
-//    add_token_p(csound, "tb1", T_FUNCTION, TR);
-//    add_token_p(csound, "tb2", T_FUNCTION, TR);
-//    add_token_p(csound, "tb3", T_FUNCTION, TR);
-//    add_token_p(csound, "tb4", T_FUNCTION, TR);
-//    add_token_p(csound, "tb5", T_FUNCTION, TR);
-//    add_token_p(csound, "tb6", T_FUNCTION, TR);
-//    add_token_p(csound, "tb7", T_FUNCTION, TR);
-//    add_token_p(csound, "tb8", T_FUNCTION, TR);
-//    add_token_p(csound, "tb9", T_FUNCTION, TR);
-//    add_token_p(csound, "tb10", T_FUNCTION, TR);
-//    add_token_p(csound, "tb11", T_FUNCTION, TR);
-//    add_token_p(csound, "tb12", T_FUNCTION, TR);
-//    add_token_p(csound, "tb13", T_FUNCTION, TR);
-//    add_token_p(csound, "tb14", T_FUNCTION, TR);
-//    add_token_p(csound, "tb15", T_FUNCTION, TR);
-//    add_token_p(csound, "urd", T_FUNCTION, TR);
-//    add_token(csound, "not", T_FUNCTION);
-//    add_token(csound, "cent", T_FUNCTION);
-//    add_token(csound, "octave", T_FUNCTION);
-//    add_token(csound, "semitone", T_FUNCTION);
-//    add_token(csound, "cpsmidinn", T_FUNCTION);
-//    add_token(csound, "octmidinn", T_FUNCTION);
-//    add_token(csound, "pchmidinn", T_FUNCTION);
-//    add_token(csound, "db", T_FUNCTION);
-//    add_token(csound, "p", T_FUNCTION);
-//    add_token(csound, "qinf", T_FUNCTION);
-//    add_token(csound, "qnan", T_FUNCTION);
-//    add_token(csound, "##error", T_FUNCTION);
-//    add_token(csound, "lentab", T_FUNCTION);
-//    add_token(csound, "taninv2", T_FUNCTION);
-//    add_token(csound, "divz", T_FUNCTION);
 }
 
 static unsigned int hash(char *s)
@@ -231,12 +140,12 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     return ans;
 }
 
-static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val)
-{
-    ORCTOKEN *ans = add_token(csound, s, type);
-    ans->value = val;
-    return ans;
-}
+/* static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val) */
+/* { */
+/*     ORCTOKEN *ans = add_token(csound, s, type); */
+/*     ans->value = val; */
+/*     return ans; */
+/* } */
 
 int isUDOArgList(char *s)
 {
@@ -282,7 +191,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         strcpy(ans->lexeme, s);
 //        ans->next = symbtab[h];
 //        symbtab[h] = ans;
-	// printf("Found UDO Answer List %s\n", s);
+        // printf("Found UDO Answer List %s\n", s);
         return ans;
       }
     }
@@ -295,7 +204,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         strcpy(ans->lexeme, s);
 //        ans->next = symbtab[h];
 //        symbtab[h] = ans;
-	// printf("Found UDO Arg List\n");
+        // printf("Found UDO Arg List\n");
         return ans;
       }
     }
@@ -316,17 +225,6 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       }
       a = a->next;
     }
-    if (s[0]=='t') {
-      /* Special case to map t-vars to new k-arrays */
-      char *ss = (char*)malloc(strlen(s)+2);
-      ss[0] = 'k';
-      ss[1] = '#';
-      strcpy(&ss[2], s);
-      //printf("t-var: %s -> %s\n", s, ss);
-      ans = lookup_token(csound, ss, yyscanner);
-      free(ss);
-      return ans;
-    }
 
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
@@ -340,39 +238,6 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         return ans;
     }
 
-//    // NEED TO FIX: In case of looking for label for kgoto or other opcodes, need
-//    // to return T_IDENT instead of any sub-type
-//    // Currently fixed by definition of label non-terminal
-//    switch (s[0]) {
-//    case 'S': type = T_IDENT_S; break;
-//    case 'a': type = T_IDENT_A; break;
-//    case 'f': type = T_IDENT_F; break;
-//    case 'i': type = T_IDENT_I; break;
-//    case 'k': type = T_IDENT_K; break;
-//    case 'p': type = T_IDENT_P; break;
-//    case 't': type = T_IDENT_T; break;
-//    case 'w': type = T_IDENT_W; break;
-//    case'g':
-//      switch (s[1]) {
-//      case 'i': type = T_IDENT_GI; break;
-//      case 'k': type = T_IDENT_GK; break;
-//      case 'a': type = T_IDENT_GA; break;
-//      case 'f': type = T_IDENT_GF; break;
-//      case 'w': type = T_IDENT_GW; break;
-//      case 't': type = T_IDENT_GT; break;
-//      case 'S': type = T_IDENT_GS; break;
-//      /* default:  */
-//      /*   csound->Message(csound, Str("Unknown word type for %s on line %d\n"), */
-//      /*                   s, csound_orcget_lineno(yyscanner)); */
-//      /*   exit(1); */
-//      }
-//    default: /*
-//      csound->DebugMsg(csound,"IDENT Token: %i : %i", ans->type, T_IDENT);
-//      csound->DebugMsg(csound,"Unknown word type for %s on line %d\n", s, yyline);
-//      exit(1);
-//             */
-//      break;
-//    }
     ans->type = type;
     //symbtab[h] = ans;
 
@@ -380,27 +245,47 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 }
 
 
+/**
+ *
+  This function takes in the arguments from useropinfo in OENTRY and parses
+  them, filling the OENTRY input and output types and creating
+  the argument lists for xinset/xouset in insert.c
+  argument pointerlists, stored in useropinfo->in_ndx_list and
+  useropinfo->out_ndx_list.
 
+  The argument lists are terminated by a -1 and are set in the
+  following order:
+  i-var args (i-time vars)
+  S-var args (strings)
+  i-arrays
+  a-vars
+  k-vars
+  f-sigs
+  arrays (a,k,f)
 
-/* UDO code below was from otran, broken out and modified for new parser by
- * SYY
- */
-/* VL -- I have made the modifications below to allow for f-sigs &
-         kvar-arrays and on line 224 and 238*/
+  This order is fixed and followed up in xinset/xoutset and
+  useropcd1, useropcd2.
 
-/* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
+ Original code - IV Oct 12 2002
+ modified by VL for Csound 6
+
+*/
+
 static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
-    int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
+    int     i, i_incnt, iv_incnt, iv_outcnt, a_incnt, k_incnt,
+            i_outcnt, a_outcnt, k_outcnt, err;
     int     S_incnt, S_outcnt, f_outcnt, f_incnt, kv_incnt, kv_outcnt;
     int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-    int16   *S_inlist, *S_outlist, *f_inlist, *f_outlist, *kv_inlist, *kv_outlist;
+    int16   *S_inlist, *S_outlist, *f_inlist, *f_outlist, *kv_inlist,
+            *kv_outlist, *iv_inlist, *iv_outlist;
 
     /* count the number of arguments, and check types */
     i = i_incnt = S_incnt = a_incnt = k_incnt = f_incnt = f_outcnt =
-        i_outcnt = S_outcnt = a_outcnt = k_outcnt = kv_incnt = kv_outcnt = err = 0;
+        i_outcnt = S_outcnt = a_outcnt = k_outcnt = kv_incnt =
+        kv_outcnt = iv_outcnt = iv_incnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
     opc->dsblksiz = (uint16) sizeof(UOPCODE);
     if (!strcmp(types, "0"))
@@ -426,8 +311,10 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         break;
       case '[':
         types++;
-        if (*types == 'k')
-          kv_incnt++; *otypes++ = *types;
+        if(*types=='i') iv_incnt++;
+         else kv_incnt++;
+          *otypes++ = *(types-1);
+          *otypes++ = *(types);*otypes++ = *(types+1);
         types++;
         break;
       case 'i':
@@ -435,7 +322,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       case 'p':
       case 'j':
         i_incnt++; *otypes++ = *types;
-        break;
+       break;
       case 'S':
         S_incnt++; *otypes++ = *types;
         break;
@@ -477,8 +364,10 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         break;
       case '[':
         types++;
-        if (*types == 'k')
-          kv_outcnt++; *otypes++ = *types;
+        if(*types == 'i') iv_outcnt++;
+        else kv_outcnt++;
+        *otypes++ = *(types-1);
+          *otypes++ = *(types); *otypes++ = *(types+1);
         types++;
         break;
       case 'i':
@@ -496,32 +385,39 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *otypes = '\0';
     inm->outchns = i;                   /* total number of output chnls */
     inm->perf_outcnt = a_outcnt + k_outcnt + f_outcnt + kv_outcnt;
+
     opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
     /* now build index lists for the various types of arguments */
-    i = i_incnt + S_incnt + inm->perf_incnt +
-        i_outcnt + S_outcnt + inm->perf_outcnt;
+    i = i_incnt + S_incnt + inm->perf_incnt + iv_incnt +
+        i_outcnt + S_outcnt + inm->perf_outcnt + iv_outcnt;
     i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
-                                                   sizeof(int16) * (i + 14));
+                                                   sizeof(int16) * (i + 16));
     S_inlist = i_inlist + i_incnt + 1;
-    a_inlist = S_inlist + S_incnt + 1;
+    iv_inlist =  S_inlist + S_incnt + 1;
+    a_inlist = iv_inlist + iv_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
     f_inlist = k_inlist + k_incnt + 1;
     kv_inlist = f_inlist + f_incnt + 1;
     i = 0; types = inm->intypes;
     while (*types) {
+
       switch (*types++) {
+
         case 'a': *a_inlist++ = i; break;
         case 'O':
         case 'P':
         case 'V':
-        case 'k': *k_inlist++ = i; break;
+        case 'k': *k_inlist++ = i;
+
+        break;
         case 'f': *f_inlist++ = i; break;
         case '[':
-         types++;
-        if (*types == 'k')
-           *kv_inlist++ = i; types++; break;
+          if(*types=='i') *iv_inlist++ = i;
+          else *kv_inlist++ = i;
+          types+=2;
+          break;
         case 'K': *k_inlist++ = i;      /* also updated at i-time */
         case 'i':
         case 'o':
@@ -533,10 +429,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
 
     /* put delimiters */
-    *i_inlist = *S_inlist = *a_inlist = *k_inlist = *f_inlist = *kv_inlist = -1;
+    *i_inlist = *S_inlist = *iv_inlist = *a_inlist = *k_inlist =
+      *f_inlist = *kv_inlist = -1;
+
     i_outlist = inm->out_ndx_list = kv_inlist + 1;
     S_outlist = i_outlist + i_outcnt + 1;
-    a_outlist = S_outlist + S_outcnt + 1;
+    iv_outlist =  S_outlist + S_outcnt + 1;
+    a_outlist = iv_outlist + iv_outcnt + 1;
     k_outlist = a_outlist + a_outcnt + 1;
     f_outlist = k_outlist + k_outcnt + 1;
     kv_outlist = f_outlist + f_outcnt + 1;
@@ -546,10 +445,10 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'a': *a_outlist++ = i; break;
         case 'k': *k_outlist++ = i; break;
         case 'f': *f_outlist++ = i; break;
-        case '[': 
-          types++;
-        if (*types == 'k')
-            *kv_outlist++ = i; types++; break;
+        case '[':
+          if(*types=='i') *iv_outlist++ = i;
+          else *kv_outlist++ = i;
+          types+=2; break;
         case 'K': *k_outlist++ = i;     /* also updated at i-time */
         case 'i': *i_outlist++ = i; break;
         case 'S': *S_outlist++ = i; break;
@@ -557,7 +456,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       i++;
     }
 
-    *i_outlist = *S_outlist = *a_outlist = *k_outlist =
+    *i_outlist = *S_outlist = *iv_outlist = *a_outlist = *k_outlist =
       *f_outlist = *kv_outlist = -1;  /* put delimiters */
     return err;
 }
@@ -629,7 +528,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
 
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
-        return -3;
+      return -3;
 
     if (strcmp(outtypes, "0")==0) {
         add_token(csound, opname, T_OPCODE0);

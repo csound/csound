@@ -128,7 +128,8 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         sprintf(tmp, "dac%d", j);
         strncpy(list[j].device_id, tmp, 63);
         strncpy(list[j].rt_module, s, 63);
-        list[j].max_nchnls = isOutput ?  dev_info->maxOutputChannels : dev_info->maxInputChannels;
+        list[j].max_nchnls =
+          isOutput ?  dev_info->maxOutputChannels : dev_info->maxInputChannels;
         list[j].isOutput = isOutput;
         j++;
       }
@@ -142,9 +143,12 @@ static int listPortAudioDevices_blocking(CSOUND *csound,
                                          int print_list, int play)
 {
     int i,n = listDevices(csound, NULL, play);
-    CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *) csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
+    CS_AUDIODEVICE *devs =
+      (CS_AUDIODEVICE *) csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
     listDevices(csound, devs, play);
-    for(i=0; i < n; i++) csound->Message(csound, " %3d: %s (%s)\n", i, devs[i].device_id, devs[i].device_name);
+    for(i=0; i < n; i++)
+      csound->Message(csound, " %3d: %s (%s)\n",
+                      i, devs[i].device_id, devs[i].device_name);
     csound->Free(csound, devs);
     return n;
 }

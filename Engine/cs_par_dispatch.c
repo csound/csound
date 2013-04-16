@@ -64,9 +64,9 @@ inline void csp_locks_lock(CSOUND * csound, int global_index)
                   Str("Poorly specified global lock index: %i [max: %i]\n"),
                   global_index, csound->global_var_lock_count);
     }
-    TRACE_2("Locking:   %i [%p %s]\n", global_index,
-            csound->global_var_lock_cache[global_index],
-            csound->global_var_lock_cache[global_index]->name);
+    /* TRACE_2("Locking:   %i [%p %s]\n", global_index, */
+    /*         csound->global_var_lock_cache[global_index], */
+    /*         csound->global_var_lock_cache[global_index]->name); */
     TAKE_LOCK(&(csound->global_var_lock_cache[global_index]->lock));
 }
 
@@ -78,9 +78,9 @@ inline void csp_locks_unlock(CSOUND * csound, int global_index)
                   global_index, csound->global_var_lock_count);
     }
     RELS_LOCK(&(csound->global_var_lock_cache[global_index]->lock));
-    TRACE_2("UnLocking: %i [%p %s]\n",
-            global_index, csound->global_var_lock_cache[global_index],
-            csound->global_var_lock_cache[global_index]->name);
+    /* TRACE_2("UnLocking: %i [%p %s]\n", */
+    /*         global_index, csound->global_var_lock_cache[global_index], */
+    /*         csound->global_var_lock_cache[global_index]->name); */
 }
 
 static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,

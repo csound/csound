@@ -270,8 +270,9 @@ RELATN(ne,!=)
 LOGCLX(and,&&)
 LOGCLX(or,||)
 
-#define KK(OPNAME,OP)                                                   \
-  int OPNAME(CSOUND *csound, AOP *p) { IGN(csound); *p->r = *p->a OP *p->b; return OK; }
+#define KK(OPNAME,OP)                                           \
+  int OPNAME(CSOUND *csound, AOP *p)                            \
+  { IGN(csound); *p->r = *p->a OP *p->b; return OK; }
 
 KK(addkk,+)
 KK(subkk,-)

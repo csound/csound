@@ -295,10 +295,10 @@ e   10.0
 '''
 
 csoundCommands = {
-	'Audio':    'csound --messagelevel=1 --noheader                         --nodisplays --sample-rate=44100 --control-rate=100   --midi-key=4 --midi-velocity=5                                                                  --output=%s %s %s' % (			   dacName,       orcFilename, scoFilename),
-	'Preview':  'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=44100 --control-rate=441   --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s %s %s' % (author, author, title, soundfileName, orcFilename, scoFilename),
-	'CD':       'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=44100 --control-rate=44100 --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s %s %s' % (author, author, title, soundfileName, orcFilename, scoFilename),
-	'Master':   'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=88200 --control-rate=88200 --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s %s %s' % (author, author, title, soundfileName, orcFilename, scoFilename)
+	'Audio':    'csound --messagelevel=1 --noheader                         --nodisplays --sample-rate=44100 --control-rate=100   --midi-key=4 --midi-velocity=5                                                                  --output=%s' % (			   dacName),
+	'Preview':  'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=44100 --control-rate=441   --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName),
+	'CD':       'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=44100 --control-rate=44100 --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName),
+	'Master':   'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=88200 --control-rate=88200 --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName)
 }
 
 '''
@@ -556,7 +556,6 @@ class Application(Frame):
 				csoundCommand = csoundCommands[output]
 				print csoundCommand
 				self.csound.setCommand(csoundCommand)
-				self.csound.exportForPerformance()
 				self.csound.compile()
 				# Apply initial control channel values before actually starting synthesis.
 				f = self.configuration.gkHarmonicTableFactor
@@ -574,7 +573,7 @@ class Application(Frame):
 				# When the user closes the application, self.update will raise
 				# an exception because the application has been destroyed.
 				kperiod = 1
-				while self.playing and not self.csound.performKsmps(0):
+				while self.playing and not self.csound.performKsmps():
 					kperiod = kperiod + 1
 					if kperiod % 10000 == 0:
 						scoreTime = self.csound.GetScoreTime()

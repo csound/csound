@@ -505,7 +505,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
           {
             basedelay = i - 1;
             if(primes[test] > meanfpordersamps)
-              csound->Message(csound, "\nfdn delay > earlies del..., fixed!");
+              csound->Message(csound, Str("\nfdn delay > earlies del..., fixed!"));
             *p->idel = (meanfpordersamps - primes[test - 1]) / sr;
             break;
           }

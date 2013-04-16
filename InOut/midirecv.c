@@ -217,8 +217,9 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       if (chn->insno <= 0)              /* ignore if channel is muted */
         break;
       n = (int16) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
-      if (n > 0 && n <= csound->engineState.maxinsno &&     /* if corresp instr exists  */
-          csound->engineState.instrtxtp[n] != NULL) {       /*     assign as insno      */
+      if (n > 0 &&
+          n <= csound->engineState.maxinsno &&  /* if corresp instr exists  */
+          csound->engineState.instrtxtp[n] != NULL) {   /* assign as insno  */
         chn->insno = n;                         /* else ignore prog. change */
         csound->Message(csound, Str("midi channel %d now using instr %d\n"),
                                 mep->chan + 1, chn->insno);
@@ -382,7 +383,8 @@ void m_chn_init_all(CSOUND *csound)
       csound->m_chnbp[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
-      if (n <= (int) csound->engineState.maxinsno && csound->engineState.instrtxtp[n] != NULL)
+      if (n <= (int) csound->engineState.maxinsno &&
+          csound->engineState.instrtxtp[n] != NULL)
         chn->insno = (int16) n;
       else if (defaultinsno > 0)
         chn->insno = (int16) defaultinsno;
@@ -419,7 +421,8 @@ int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls)
       csound->Message(csound, Str("MIDI channel %d muted\n"), chan + 1);
     }
     else {
-      if (insno > csound->engineState.maxinsno || csound->engineState.instrtxtp[insno] == NULL) {
+      if (insno > csound->engineState.maxinsno ||
+          csound->engineState.instrtxtp[insno] == NULL) {
         csound->Message(csound, Str("Insno = %d\n"), insno);
         return csound->InitError(csound, Str("unknown instr"));
       }
@@ -614,4 +617,3 @@ void MidiClose(CSOUND *csound)
       p->midiOutFileData = NULL;
     }
 }
-

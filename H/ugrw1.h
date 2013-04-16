@@ -241,7 +241,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *sig;
-        MYFLT   *ndx, *mix;     /* Locations to read; 0 for write directly, or addd in */
+        MYFLT   *ndx, *mix;     /* Locations to read;
+                                   0 for write directly, or addd in */
 } ZAWM;
 
 /* ZAWOD data structure for zamod(). */

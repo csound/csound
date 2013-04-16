@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "lpc.h"        /*                                              UGENS5.H        */
+#include "lpc.h"        /*                               UGENS5.H        */
 
 typedef struct {
         OPDS    h;

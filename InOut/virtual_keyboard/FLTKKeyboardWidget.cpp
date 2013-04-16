@@ -150,7 +150,8 @@ FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
     this->allNotesOffButton = new Fl_Button(baseX, row2, w, 20, "All Notes Off");
     this->allNotesOffButton->callback((Fl_Callback*) allNotesOff, this);
 
-    this->keyboard = new FLTKKeyboard(csound, NULL, baseX, row3, w, h - 40, "Keyboard");
+    this->keyboard = new FLTKKeyboard(csound, NULL, baseX, row3, w, h - 40,
+                                      "Keyboard");
 
     this->end();
 

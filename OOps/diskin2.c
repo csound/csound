@@ -33,7 +33,8 @@ typedef struct DISKIN_INST_ {
 } DISKIN_INST;
 
 
-static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound, DISKIN2 *p, int bufReadPos)
+static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
+                                            DISKIN2 *p, int bufReadPos)
 {
     MYFLT *tmp;
     int32 nsmps;
@@ -83,7 +84,8 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound, DISKIN2 *p, int bufR
 /* of opcode 'p', at sample index 'n' (0 <= n < ksmps), with amplitude  */
 /* scale 'scl'.                                                         */
 
-static inline void diskin2_get_sample(CSOUND *csound, DISKIN2 *p, int32 fPos, int n, MYFLT scl)
+static inline void diskin2_get_sample(CSOUND *csound,
+                                      DISKIN2 *p, int32 fPos, int n, MYFLT scl)
 {
     int  bufPos, i;
 
@@ -243,7 +245,8 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     /* check number of channels */
     p->nChannels = (int)(p->OUTOCOUNT);
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN)) {
-      return csound->InitError(csound, Str("diskin2: invalid number of channels"));
+      return csound->InitError(csound,
+                               Str("diskin2: invalid number of channels"));
     }
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
@@ -357,7 +360,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
       p->aOut_bufsize = CS_KSMPS;
 
       if ((top=(DISKIN_INST **)csound->QueryGlobalVariable(csound,
-                                                           "DISKIN_INST")) == NULL){
+                                                       "DISKIN_INST")) == NULL){
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
         *top = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
@@ -377,10 +380,13 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
       current->diskin = p;
       current->nxt = NULL;
 
-      if( *(start = csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START")) == 0) {
+      if( *(start = csound->QueryGlobalVariable(csound,
+                                                "DISKIN_THREAD_START")) == 0) {
         void *diskin_io_thread(void *p);
         *start = 1;
-        pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD"), NULL, diskin_io_thread, *top);
+        pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,
+                                                                "DISKIN_PTHREAD"),
+                       NULL, diskin_io_thread, *top);
       }
       csound->RegisterDeinitCallback(csound, p, diskin2_async_deinit);
       p->async = 1;
@@ -419,7 +425,8 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
 
   DISKIN_INST **top, *current, *prv;
 
-  if ((top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST")) == NULL) return NOTOK;
+  if ((top = (DISKIN_INST **)
+       csound->QueryGlobalVariable(csound, "DISKIN_INST")) == NULL) return NOTOK;
    current = *top;
    prv = NULL;
    while(current->diskin != (DISKIN2 *)p) {
@@ -644,7 +651,7 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         p->aOut[chn][nn] *= csound->e0dbfs;
     return OK;
  file_error:
-    csound->ErrorMsg(csound, "diskin2: file descriptor closed or invalid\n");
+    csound->ErrorMsg(csound, Str("diskin2: file descriptor closed or invalid\n"));
    return NOTOK;
 }
 
@@ -834,7 +841,7 @@ int diskin_file_read(CSOUND *csound, DISKIN2 *p)
     }
     return OK;
  file_error:
-    csound->ErrorMsg(csound, "diskin2: file descriptor closed or invalid\n");
+    csound->ErrorMsg(csound, Str("diskin2: file descriptor closed or invalid\n"));
    return NOTOK;
 }
 
@@ -877,7 +884,8 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
 
 void *diskin_io_thread(void *p){
   DISKIN_INST *current = (DISKIN_INST *) p;
-  int *start = current->csound->QueryGlobalVariable(current->csound,"DISKIN_THREAD_START");
+  int *start =
+    current->csound->QueryGlobalVariable(current->csound,"DISKIN_THREAD_START");
   while(*start){
     current = (DISKIN_INST *) p;
     while(current != NULL){
@@ -913,11 +921,12 @@ static void soundin_read_buffer(CSOUND *csound, SOUNDIN_ *p, int bufReadPos)
         /* convert sample count to mono samples and read file */
         nsmps *= (int) p->nChannels;
         if(csound->realtime_audio_flag==0){
-         sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
-         i = (int) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
+          sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+          i = (int) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
         }
         else
-         i = (int) csound->ReadAsync(csound, p->fdch.fd, p->buf, (sf_count_t) nsmps);
+          i = (int) csound->ReadAsync(csound, p->fdch.fd, p->buf,
+                                      (sf_count_t) nsmps);
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
@@ -961,7 +970,8 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN)) {
-      return csound->InitError(csound, Str("soundin: invalid number of channels"));
+      return csound->InitError(csound,
+                               Str("soundin: invalid number of channels"));
     }
     p->bufSize = soundin_calc_buffer_size(p, (int) (*(p->iBufSize) + FL(0.5)));
     /* if already open, close old file first */
@@ -994,7 +1004,8 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
                          "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     else
     fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, p->bufSize*p->nChannels, 0);
+                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO,
+                               p->bufSize*p->nChannels, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("soundin: %s: failed to open file"), name);
