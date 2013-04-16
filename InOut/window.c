@@ -68,7 +68,7 @@ void dispinit(CSOUND *csound)
 
     if (O.displays && !(O.graphsoff || O.postscript)) {
       if (!csound->isGraphable_)
-      find_opcode_new(csound, "FLrun", NULL, NULL);       /* load FLTK for displays */
+      find_opcode_new(csound, "FLrun", NULL, NULL); /* load FLTK for displays */
       if (csound->isGraphable_)
         return;         /* provided by window driver: is this session able? */
     }

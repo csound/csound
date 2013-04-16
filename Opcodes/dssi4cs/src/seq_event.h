@@ -53,7 +53,8 @@ enum snd_seq_event_type {
         SND_SEQ_EVENT_NOTEON,
         /** note off; event data type = #snd_seq_ev_note_t */
         SND_SEQ_EVENT_NOTEOFF,
-        /** key pressure change (aftertouch); event data type = #snd_seq_ev_note_t */
+        /** key pressure change (aftertouch);
+            event data type = #snd_seq_ev_note_t */
         SND_SEQ_EVENT_KEYPRESS,
 
         /** controller; event data type = #snd_seq_ev_ctrl_t */
@@ -62,7 +63,8 @@ enum snd_seq_event_type {
         SND_SEQ_EVENT_PGMCHANGE,
         /** channel pressure; event data type = #snd_seq_ev_ctrl_t */
         SND_SEQ_EVENT_CHANPRESS,
-        /** pitchwheel; event data type = #snd_seq_ev_ctrl_t; data is from -8192 to 8191) */
+        /** pitchwheel; event data type = #snd_seq_ev_ctrl_t;
+            data is from -8192 to 8191) */
         SND_SEQ_EVENT_PITCHBEND,
         /** 14 bit controller value; event data type = #snd_seq_ev_ctrl_t */
         SND_SEQ_EVENT_CONTROL14,
@@ -82,21 +84,28 @@ enum snd_seq_event_type {
         /** SMF Key Signature event; event data type = #snd_seq_ev_ctrl_t */
         SND_SEQ_EVENT_KEYSIGN,
 
-        /** MIDI Real Time Start message; event data type = #snd_seq_ev_queue_control_t */
+        /** MIDI Real Time Start message;
+            event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_START = 30,
-        /** MIDI Real Time Continue message; event data type = #snd_seq_ev_queue_control_t */
+        /** MIDI Real Time Continue message;
+            event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_CONTINUE,
-        /** MIDI Real Time Stop message; event data type = #snd_seq_ev_queue_control_t */
+        /** MIDI Real Time Stop message;
+            event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_STOP,
-        /** Set tick queue position; event data type = #snd_seq_ev_queue_control_t */
+        /** Set tick queue position;
+            event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_SETPOS_TICK,
-        /** Set real-time queue position; event data type = #snd_seq_ev_queue_control_t */
+        /** Set real-time queue position;
+            event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_SETPOS_TIME,
         /** (SMF) Tempo event; event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_TEMPO,
-        /** MIDI Real Time Clock message; event data type = #snd_seq_ev_queue_control_t */
+        /** MIDI Real Time Clock message;
+            event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_CLOCK,
-        /** MIDI Real Time Tick message; event data type = #snd_seq_ev_queue_control_t */
+        /** MIDI Real Time Tick message;
+            event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_TICK,
         /** Queue timer skew; event data type = #snd_seq_ev_queue_control_t */
         SND_SEQ_EVENT_QUEUE_SKEW,
@@ -212,7 +221,8 @@ enum snd_seq_event_type {
         /** instrument change */
         SND_SEQ_EVENT_INSTR_CHANGE,
 
-        /** system exclusive data (variable length);  event data type = #snd_seq_ev_ext_t */
+        /** system exclusive data (variable length);
+            event data type = #snd_seq_ev_ext_t */
         SND_SEQ_EVENT_SYSEX = 130,
         /** error event;  event data type = #snd_seq_ev_ext_t */
         SND_SEQ_EVENT_BOUNCE,
@@ -273,11 +283,13 @@ typedef union snd_seq_timestamp {
 
 #define SND_SEQ_EVENT_LENGTH_FIXED      (0<<2)  /**< fixed event size */
 #define SND_SEQ_EVENT_LENGTH_VARIABLE   (1<<2)  /**< variable event size */
-#define SND_SEQ_EVENT_LENGTH_VARUSR     (2<<2)  /**< variable event size - user memory space */
+#define SND_SEQ_EVENT_LENGTH_VARUSR     (2<<2)  /**< variable event size -
+                                                   user memory space */
 #define SND_SEQ_EVENT_LENGTH_MASK       (3<<2)  /**< mask for event length bits */
 
 #define SND_SEQ_PRIORITY_NORMAL         (0<<4)  /**< normal priority */
-#define SND_SEQ_PRIORITY_HIGH           (1<<4)  /**< event should be processed before others */
+#define SND_SEQ_PRIORITY_HIGH           (1<<4)  /**< event should be processed
+                                                   before others */
 #define SND_SEQ_PRIORITY_MASK           (1<<4)  /**< mask for priority bits */
 
 /** Note event */
@@ -285,8 +297,10 @@ typedef struct snd_seq_ev_note {
         unsigned char channel;          /**< channel number */
         unsigned char note;             /**< note */
         unsigned char velocity;         /**< velocity */
-        unsigned char off_velocity;     /**< note-off velocity; only for #SND_SEQ_EVENT_NOTE */
-        unsigned int duration;          /**< duration until note-off; only for #SND_SEQ_EVENT_NOTE */
+        unsigned char off_velocity;     /**< note-off velocity;
+                                           only for #SND_SEQ_EVENT_NOTE */
+        unsigned int duration;          /**< duration until note-off;
+                                           only for #SND_SEQ_EVENT_NOTE */
 } snd_seq_ev_note_t;
 
 /** Controller event */
@@ -309,8 +323,8 @@ typedef struct snd_seq_ev_raw32 {
 
 /** external stored data */
 typedef struct snd_seq_ev_ext {
-        unsigned int len;               /**< length of data */
-        void *ptr;                      /**< pointer to data (note: can be 64-bit) */
+        unsigned int len;       /**< length of data */
+        void *ptr;              /**< pointer to data (note: can be 64-bit) */
 } __attribute__((packed)) snd_seq_ev_ext_t;
 
 /** Instrument cluster type */
@@ -319,7 +333,9 @@ typedef unsigned int snd_seq_instr_cluster_t;
 /** Instrument type */
 typedef struct snd_seq_instr {
         snd_seq_instr_cluster_t cluster;        /**< cluster id */
-        unsigned int std;       /**< instrument standard id; the upper byte means a private instrument (owner - client id) */
+        unsigned int std;       /**< instrument standard id; the upper
+                                   byte means a private instrument
+                                   (owner - client id) */
         unsigned short bank;    /**< instrument bank id */
         unsigned short prg;     /**< instrument program id */
 } snd_seq_instr_t;
@@ -341,9 +357,9 @@ typedef unsigned int snd_seq_position_t; /**< playback position (in samples) * 1
 
 /** sample stop mode */
 typedef enum snd_seq_stop_mode {
-        SND_SEQ_SAMPLE_STOP_IMMEDIATELY = 0,    /**< terminate playing immediately */
-        SND_SEQ_SAMPLE_STOP_VENVELOPE = 1,      /**< finish volume envelope */
-        SND_SEQ_SAMPLE_STOP_LOOP = 2            /**< terminate loop and finish wave */
+  SND_SEQ_SAMPLE_STOP_IMMEDIATELY = 0,    /**< terminate playing immediately */
+  SND_SEQ_SAMPLE_STOP_VENVELOPE = 1,      /**< finish volume envelope */
+  SND_SEQ_SAMPLE_STOP_LOOP = 2            /**< terminate loop and finish wave */
 } snd_seq_stop_mode_t;
 
 /** sample frequency */
