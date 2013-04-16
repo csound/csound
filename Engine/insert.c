@@ -1020,7 +1020,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     CS_VARIABLE *var;
     ENGINE_STATE *engineState = &csound->engineState;
 
-    g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
+    g_ksmps = p->l_ksmps = CS_KSMPS;       /* default ksmps */
     p->ksmps_scale = 1;
     p->mode = 0;
     /* look up the 'fake' instr number, and opcode name */
@@ -1032,32 +1032,33 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     if (*(p->ar[n]) != FL(0.0)) {
       i = (unsigned int) *(p->ar[n]);
       if (UNLIKELY(i < 1 || i > csound->ksmps ||
-                   ((csound->ksmps / i) * i) != csound->ksmps)) {
+                   ((CS_KSMPS / i) * i) != CS_KSMPS)) {
         return csoundInitError(csound, Str("%s: invalid local ksmps value: %d"),
                                        inm->name, i);
       }
       p->l_ksmps = i;
     }
+    
     /* save old globals */
-    g_kcounter = csound->kcounter;
-    g_ekr = csound->ekr;
-    g_onedkr = csound->onedkr;
-    g_onedksmps = csound->onedksmps;
-    g_kicvt = csound->kicvt;
+    g_kcounter = CS_KCNT;
+    g_ekr = CS_EKR;
+    g_onedkr = CS_ONEDKR;
+    g_onedksmps = CS_ONEDKSMPS;
+    g_kicvt = CS_KICVT;
     /* set up local variables depending on ksmps, also change globals */
     if (p->l_ksmps != g_ksmps) {
-      csound->ksmps = p->l_ksmps; /* Oh dear!  breaks many assumptions -- JPff */
-      p->ksmps_scale = g_ksmps / (int) csound->ksmps;
-      p->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) p->l_ksmps;
-      p->l_ekr = csound->ekr =
+      CS_KSMPS= p->l_ksmps; /* Oh dear!  breaks many assumptions -- JPff */
+      p->ksmps_scale = g_ksmps / (int) CS_KSMPS;
+      p->l_onedksmps = CS_ONEDKSMPS = FL(1.0) / (MYFLT) p->l_ksmps;
+      p->l_ekr = CS_EKR =
          csound->esr / (MYFLT) p->l_ksmps;
-      p->l_onedkr = csound->onedkr = FL(1.0) / p->l_ekr;
-      p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
-      csound->kcounter *= p->ksmps_scale;
-     var = csoundFindVariableWithName(engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = csound->ksmps;
+      p->l_onedkr = CS_ONEDKR = FL(1.0) / p->l_ekr;
+      p->l_kicvt = CS_KICVT = (MYFLT) FMAXLEN / p->l_ekr;
+      CS_KCNT *= p->ksmps_scale;
+      var = csoundFindVariableWithName(engineState->varPool, "ksmps");
+      *((MYFLT *)(var->memBlock)) = CS_KSMPS;
       var = csoundFindVariableWithName(engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = csound->ekr;
+      *((MYFLT *)(var->memBlock)) = CS_EKR;
       p->mode = 1;
     }
 
@@ -1143,17 +1144,17 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->curip = saved_curip;
 
     if (p->mode == 1) {
-      csound->ksmps = g_ksmps;
-      csound->ekr = g_ekr;
+      CS_KSMPS = g_ksmps;
+      CS_EKR = g_ekr;
       saved_curip->xtratim = lcurip->xtratim / p->ksmps_scale;
-      csound->kcounter = g_kcounter;
-      csound->onedkr = g_onedkr;
-      csound->onedksmps = g_onedksmps;
-      csound->kicvt = g_kicvt;
+      CS_KCNT = g_kcounter;
+      CS_ONEDKR = g_onedkr;
+      CS_ONEDKSMPS = g_onedksmps;
+      CS_KICVT = g_kicvt;
       var = csoundFindVariableWithName(engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = csound->ksmps;
+      *((MYFLT *)(var->memBlock)) = CS_KSMPS;
       var = csoundFindVariableWithName(engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = csound->ekr;
+      *((MYFLT *)(var->memBlock)) = CS_EKR;
       /* IV - Sep 17 2002: also select perf routine */
       p->h.opadr = (SUBR) useropcd1;
     }
@@ -1346,31 +1347,36 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     unsigned int  l_ksmps, n;
     CS_VARIABLE *var;
     ENGINE_STATE *engineState = &csound->engineState;
-
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
+    /* VL: for some reason, these are not set before,
+       I am setting them here, but this needs to be
+       investigated */
+    CS_KSMPS = csound->ksmps;
+    CS_KCNT = csound->kcounter;
+
     l_ksmps = (unsigned int) *(p->i_ksmps);
     if (!l_ksmps) return OK;       /* zero: do not change */
-    if (UNLIKELY(l_ksmps < 1 || l_ksmps > csound->ksmps
-                 || ((csound->ksmps / l_ksmps) * l_ksmps != csound->ksmps))) {
-      return csoundInitError(csound, Str("setksmps: invalid ksmps value: %d"),
-                                     l_ksmps);
+    if (UNLIKELY(l_ksmps < 1 || l_ksmps > CS_KSMPS
+                 || ((CS_KSMPS / l_ksmps) * l_ksmps != CS_KSMPS))) {
+      return csoundInitError(csound, Str("setksmps: invalid ksmps value: %d %d"),
+			     l_ksmps, CS_KSMPS);
     }
     /* set up global variables according to the new ksmps value */
     pp = (UOPCODE*) buf->uopcode_struct;
-    n = csound->ksmps / l_ksmps;
+    n = CS_KSMPS / l_ksmps;
     pp->ksmps_scale *= n;
     p->h.insdshead->xtratim *= n;
-    pp->l_ksmps = csound->ksmps = l_ksmps;
-    pp->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
-    pp->l_ekr = csound->ekr =
-        csound->esr / (MYFLT) csound->ksmps;
-    pp->l_onedkr = csound->onedkr = FL(1.0) / csound->ekr;
+    pp->l_ksmps = CS_KSMPS = l_ksmps;
+    pp->l_onedksmps = CS_ONEDKSMPS = FL(1.0) / (MYFLT) CS_KSMPS;
+    pp->l_ekr = CS_EKR =
+        csound->esr / (MYFLT) CS_KSMPS;
+    pp->l_onedkr = CS_ONEDKR = FL(1.0) / CS_EKR;
     pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
-    csound->kcounter *= pp->ksmps_scale;
+    CS_KCNT *= pp->ksmps_scale;
    var = csoundFindVariableWithName(engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = csound->ksmps;
+      *((MYFLT *)(var->memBlock)) = CS_KSMPS;
    var = csoundFindVariableWithName(engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = csound->ekr;
+      *((MYFLT *)(var->memBlock)) = CS_EKR;
       pp->mode = 1;
     return OK;
 }
@@ -1475,10 +1481,21 @@ int subinstr(CSOUND *csound, SUBINST *p)
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
 
     /*  run each opcode  */
-    CS_PDS = (OPDS *)p->ip;
-    while ((CS_PDS = CS_PDS->nxtp) != NULL) {
-      (*CS_PDS->opadr)(csound, CS_PDS);
+    if((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) {
+          CS_PDS->insdshead->pds = NULL;
+          do {
+           (*CS_PDS->opadr)(csound, CS_PDS);
+           if (CS_PDS->insdshead->pds != NULL) {
+               CS_PDS = CS_PDS->insdshead->pds;
+              CS_PDS->insdshead->pds = NULL;
+           }
+          }while ((CS_PDS = CS_PDS->nxtp));
     }
+ 
+    /* CS_PDS = (OPDS *)p->ip; */
+    /* while ((CS_PDS = CS_PDS->nxtp) != NULL) { */
+    /*   (*CS_PDS->opadr)(csound, CS_PDS); */
+    /* } */
 
     /* copy outputs */
     if (csound->spoutactive) {
@@ -1519,24 +1536,26 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
     /* save old globals */
-    g_ksmps = csound->ksmps;
-    g_ekr = csound->ekr;
-    g_onedkr = csound->onedkr;
-    g_onedksmps = csound->onedksmps;
-    g_kicvt = csound->kicvt;
-    g_kcounter = csound->kcounter;
+    g_ksmps = CS_KSMPS;
+    g_ekr = CS_EKR;
+    g_onedkr = CS_ONEDKR;
+    g_onedksmps = CS_ONEDKSMPS;
+    g_kicvt = CS_KICVT;
+    g_kcounter = CS_KCNT;
     /* set local ksmps and related values */
-    csound->ksmps = p->l_ksmps;
-    //FIXME
-    csound->ekr = p->l_ekr;
-    csound->onedkr = p->l_onedkr;
-    csound->onedksmps = p->l_onedksmps;
-    csound->kicvt = p->l_kicvt;
-    csound->kcounter = csound->kcounter * p->ksmps_scale;
+    CS_KSMPS = p->l_ksmps;
+    CS_EKR = p->l_ekr;
+    CS_ONEDKR = p->l_onedkr;
+    CS_ONEDKSMPS = p->l_onedksmps;
+    CS_KICVT = p->l_kicvt;
+    CS_KCNT = CS_KCNT * p->ksmps_scale;
+
+    /*
     var = csoundFindVariableWithName(engineState->varPool, "ksmps");
       *((MYFLT *)(var->memBlock)) = csound->ksmps;
     var = csoundFindVariableWithName(engineState->varPool, "kr");
       *((MYFLT *)(var->memBlock)) = csound->ekr;
+    */
 
     if (csound->ksmps == 1) {           /* special case for local kr == sr */
       do {
@@ -1648,16 +1667,16 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     }
 
     /* restore globals */
-    csound->ksmps = g_ksmps;
-    csound->ekr  = g_ekr;
-    csound->onedkr = g_onedkr;
-    csound->onedksmps = g_onedksmps;
-    csound->kicvt = g_kicvt;
-    csound->kcounter = g_kcounter;
-    var = csoundFindVariableWithName(engineState->varPool, "ksmps");
+    CS_KSMPS = g_ksmps;
+    CS_EKR  = g_ekr;
+    CS_ONEDKR = g_onedkr;
+    CS_ONEDKSMPS = g_onedksmps;
+    CS_KICVT = g_kicvt;
+    CS_KCNT  = g_kcounter;
+    /*var = csoundFindVariableWithName(engineState->varPool, "ksmps");
       *((MYFLT *)(var->memBlock)) = csound->ksmps;
     var = csoundFindVariableWithName(engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = csound->ekr;
+    *((MYFLT *)(var->memBlock)) = csound->ekr; */
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
