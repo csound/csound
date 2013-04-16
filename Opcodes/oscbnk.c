@@ -2184,7 +2184,7 @@ static int delaykset(CSOUND *csound, DELAYK *p)
     if (mode & 1) return OK;            /* skip initialisation */
     p->mode = mode;
     /* calculate delay time */
-    npts = (int) (*p->idel * csound->GetKr(csound) + FL(1.5));
+    npts = (int) (*p->idel * CS_EKR + FL(1.5));
     if (UNLIKELY(npts < 1))
       return csound->InitError(csound, Str("delayk: invalid delay time "
                                            "(must be >= 0)"));
@@ -2224,7 +2224,7 @@ static int vdelaykset(CSOUND *csound, VDELAYK *p)
       return OK;                /* skip initialisation */
     p->mode = mode;
     /* calculate max. delay time */
-    npts = (int) (*p->imdel * csound->GetKr(csound) + FL(1.5));
+    npts = (int) (*p->imdel * CS_EKR + FL(1.5));
     if (UNLIKELY(npts < 1))
       return csound->InitError(csound, Str("vdel_k: invalid max delay time "
                                            "(must be >= 0)"));
@@ -2247,7 +2247,7 @@ static int vdelayk(CSOUND *csound, VDELAYK *p)
       return csound->PerfError(csound, Str("vdel_k: not initialised"));
     buf[p->wrtp] = *(p->ksig);              /* write input signal to buffer */
                                             /* calculate delay time */
-    n = (int) MYFLT2LONG(*(p->kdel) * csound->GetKr(csound));
+    n = (int) MYFLT2LONG(*(p->kdel) * CS_EKR);
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("vdel_k: invalid delay time "
                                            "(must be >= 0)"));

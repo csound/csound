@@ -72,7 +72,7 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
         if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL))
           return OK;
         if (dur > FL(0.0)) {
-                segp->d = dur * csound->GetKr(csound);
+                segp->d = dur * CS_EKR;
                 segp->function =  curfunc;
                 segp->nxtfunction = nxtfunc;
                 segp->cnt = (int32) (segp->d + FL(0.5));

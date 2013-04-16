@@ -1229,13 +1229,13 @@ static int lineto(CSOUND *csound, LINETO *p)
       p->val_incremented = p->current_val;
       p->current_time = FL(0.0);
       p->incr = (*p->ksig - p->current_val)
-                / ((int32) (csound->GetKr(csound) * p->old_time) -1); /* by experiment */
+                / ((int32) (CS_EKR * p->old_time) -1); /* by experiment */
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
       p->val_incremented += p->incr;
     }
-    p->current_time += 1/csound->GetKr(csound);
+    p->current_time += 1/CS_EKR;
     *p->kr = p->val_incremented;
     return OK;
 }
@@ -1260,7 +1260,7 @@ static int tlineto(CSOUND *csound, LINETO2 *p)
       /* p->val_incremented = p->current_val; */
       p->current_time = FL(0.0);
       p->incr = (*p->ksig - p->current_val)
-                / ((int32) (csound->GetKr(csound) * p->old_time) + 1);
+                / ((int32) (CS_EKR * p->old_time) + 1);
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
