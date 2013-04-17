@@ -1,22 +1,5 @@
 
-set(csheaders
-    cfgvar.h
-    cscore.h
-    csdl.h
-    csound.h
-    csound.hpp
-    csoundCore.h
-    cwindow.h
-    msg_attr.h
-    OpcodeBase.hpp
-    pstream.h
-    pvfileio.h
-    soundio.h
-    sysdep.h
-    text.h
-    version.h
-    float-version.h
-    csound_type_system.h)
+file(GLOB csheaders "*.h*")
 
 # These don't live here... but we list them here to have all headers
 # in one place
