@@ -294,10 +294,11 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     }
 
    /* VL 30-12-12 csoundInitModules is always called here now to enable
-       Csound to start without calling csoundCompile, but directly from csoundCompileOrc()
-       and csoundReadOrc()
+       Csound to start without calling csoundCompile, but directly from
+       csoundCompileOrc() and csoundReadOrc()
     */
-    if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to start with no orchestra */
+    if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
+                                     start with no orchestra */
       /* VL: added this also to csoundReset() in csound.c   */
       if (csoundInitModules(csound) != 0)
            csound->LongJmp(csound, 1);

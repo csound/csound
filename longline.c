@@ -9,7 +9,10 @@ void process(char *name, int width)
     FILE *ff = fopen(name, "r");
     char buffer[256];
     int count = 0;
-
+    if (ff==NULL) {
+      printf("File=%s does not exist\n", name);
+      return;
+    }
     while (1) {
       char *p;
       if (fgets(buffer, 255, ff)==NULL) break;

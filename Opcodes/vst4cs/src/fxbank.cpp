@@ -204,7 +204,7 @@ bool CFxBank::LoadBank(char *pszFile)
       nBank = new unsigned char[tLen];      /* allocate storage                  */
       //if (!nBank)
       //  throw (int)1;
-                                                /* read chunk set to determine cnt.  */
+                                            /* read chunk set to determine cnt.  */
       if (fread(nBank, 1, tLen, fp) != tLen)
         return false;
       //  throw (int)1;
@@ -233,12 +233,12 @@ bool CFxBank::LoadBank(char *pszFile)
       if (pSet->fxMagic == bankMagic)
         {
           //printf("bankMagic\n");
-          fxProgram * pProg = pSet->programs; /* position on 1st program           */
+          fxProgram * pProg = pSet->programs; /* position on 1st program   */
           //printf ("Number of programs = %i",numPrograms);
           int nProg = 0;
-          while (nProg < pSet->numPrograms)   /* walk program list                 */
+          while (nProg < pSet->numPrograms)   /* walk program list         */
             {
-              if (NeedsBSwap)                   /* eventually swap necessary bytes   */
+              if (NeedsBSwap)                 /* eventually swap necessary bytes */
                 {
                   SwapBytes(pProg->chunkMagic);
                   SwapBytes(pProg->byteSize);
@@ -251,12 +251,12 @@ bool CFxBank::LoadBank(char *pszFile)
               //printf("bankMagic-Swapped\n");
               if ((pProg->chunkMagic != cMagic)||
                   (pProg->fxMagic != fMagic))
-                {                              /* if erroneous data                 */
+                {                              /* if erroneous data             */
                   printf("Erroneous data.\n");
-                  return 0;                   /* get out                           */
+                  return 0;                    /* get out                       */
                 };
-              if (NeedsBSwap)                   /* if necessary                      */
-                {                               /* swap all parameter bytes          */
+              if (NeedsBSwap)                  /* if necessary                  */
+                {                              /* swap all parameter bytes      */
                   int j;
                   for (j = 0; j < pProg->numParams; j++)
                     SwapBytes(pProg->params[j]);
@@ -264,7 +264,7 @@ bool CFxBank::LoadBank(char *pszFile)
               //printf("bankMagic-swap parameter\n");
               unsigned char *pNext = (unsigned char *)(pProg + 1);
               pNext += (sizeof(float) * (pProg->numParams - 1));
-              //if (pNext > nBank + tLen)         /* VERY simple fuse                  */
+              //if (pNext > nBank + tLen)      /* VERY simple fuse              */
               //  throw (int)1;
 
               pProg = (fxProgram *)pNext;
@@ -277,7 +277,7 @@ bool CFxBank::LoadBank(char *pszFile)
         {
           //printf("chunkBankMagic\n");
           fxChunkSet * pCSet = (fxChunkSet *)nBank;
-          if (NeedsBSwap)                     /* eventually swap necessary bytes   */
+          if (NeedsBSwap)                     /* eventually swap necessary bytes */
             {
               SwapBytes(pCSet->chunkSize);
               /* size check - must not be too large*/
@@ -295,8 +295,8 @@ bool CFxBank::LoadBank(char *pszFile)
     }
     //catch(...)
     //  {
-    //  brc = false;                          /* if any error occured, say NOPE    */
-    //  if (nBank)                            /* and remove loaded data            */
+    //  brc = false;                          /* if any error occured, say NOPE */
+    //  if (nBank)                            /* and remove loaded data         */
     //    delete[] nBank;
     //  }
 
@@ -425,7 +425,7 @@ fxProgram * CFxBank::GetProgram(int nProgNum)
       {
         unsigned char *pNext = (unsigned char *)(pProg + 1);
         pNext += (sizeof(float) * (pProg->numParams - 1));
-        if (pNext > bBank + nBankLen)         /* VERY simple fuse                  */
+        if (pNext > bBank + nBankLen)         /* VERY simple fuse              */
           return NULL;
 
         pProg = (fxProgram *)pNext;

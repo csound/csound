@@ -438,7 +438,7 @@ int pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
   MYFLT *buf = (MYFLT *)p->signal.auxp;
   int pos = p->cnt, h = p->hopsize;
   MYFLT scale = p->dbfs;
-  int ksmps = csound->GetKsmps(csound);
+  int ksmps = CS_KSMPS;
 
   for (i=0; i<ksmps; i++,pos++) {
     if (pos == h) {
@@ -492,7 +492,7 @@ int pitchafproc(CSOUND *csound, PITCHAF *p)
 {
 
   int lag = p->lag,n, i, j, imax = 0, len = p->len,
-    ksmps = csound->GetKsmps(csound);
+    ksmps = CS_KSMPS;
   MYFLT *buff1 = (MYFLT *)p->buff1.auxp;
   MYFLT *buff2 = (MYFLT *)p->buff2.auxp;
   MYFLT *cor = (MYFLT *)p->cor.auxp;
@@ -639,7 +639,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     else kthresh = *p->kthresh;
 
     _0dbfs = csound->e0dbfs;
-    ksmps = csound->GetKsmps(csound);
+    ksmps = CS_KSMPS;
     esr = CS_ESR;
     scal = 2.0*csound->pidsr;
 

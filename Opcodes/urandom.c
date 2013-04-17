@@ -80,7 +80,7 @@ static int urand_arun(CSOUND *csound, URANDOM *p)
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = csound->GetKsmps(csound);
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {

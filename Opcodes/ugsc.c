@@ -347,8 +347,9 @@ static int phaser1set(CSOUND *csound, PHASER1 *p)
     int   loop = (int) MYFLT2LONG(*p->iorder);
     int32  nBytes = (int32) loop * (int32) sizeof(MYFLT);
 
-    if (*p->istor == FL(0.0) || p->auxx.auxp == NULL || (int)p->auxx.size<nBytes ||
-                                p->auxy.auxp == NULL || (int)p->auxy.size<nBytes) {
+    if (*p->istor == FL(0.0) || p->auxx.auxp == NULL ||
+        (int)p->auxx.size<nBytes || p->auxy.auxp == NULL ||
+        (int)p->auxy.size<nBytes) {
       csound->AuxAlloc(csound, nBytes, &p->auxx);
       csound->AuxAlloc(csound, nBytes, &p->auxy);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
@@ -391,7 +392,7 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     out = p->out;
     in = p->in;
 
-    //if (coef <= FL(0.0)) coef = -coef; /* frequency will "fold over" if <= 0 Hz */
+    //if (coef<=FL(0.0)) coef = -coef; /* frequency will "fold over" if <= 0 Hz */
     /* next two lines implement bilinear z-transform, to convert
      * frequency value into a useable coefficient for the
      * allpass filters.
@@ -574,12 +575,12 @@ static int lp2(CSOUND *csound, LP2 *p)
 
 static OENTRY localops[] = {
 { "svfilter", S(SVF),    0, 5, "aaa", "akko", (SUBR)svfset, NULL, (SUBR)svf     },
-{ "hilbert", S(HILBERT), 0, 5, "aa",  "a",    (SUBR)hilbertset, NULL, (SUBR)hilbert },
-{ "resonr", S(RESONZ),   0, 5, "a",   "akkoo", (SUBR)resonzset, NULL, (SUBR)resonr  },
-{ "resonz", S(RESONZ),   0, 5, "a",   "akkoo", (SUBR)resonzset, NULL, (SUBR)resonz  },
-{ "lowpass2", S(LP2),    0, 5, "a",   "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2       },
-{ "phaser2", S(PHASER2), 0, 5, "a", "akkkkkk",(SUBR)phaser2set, NULL, (SUBR)phaser2 },
-{ "phaser1", S(PHASER1), 0, 5, "a",   "akkko", (SUBR)phaser1set, NULL, (SUBR)phaser1 }
+{ "hilbert", S(HILBERT), 0, 5, "aa", "a", (SUBR)hilbertset, NULL, (SUBR)hilbert },
+{ "resonr", S(RESONZ),   0, 5, "a",  "akkoo", (SUBR)resonzset, NULL, (SUBR)resonr},
+{ "resonz", S(RESONZ),   0, 5, "a",  "akkoo", (SUBR)resonzset, NULL, (SUBR)resonz},
+{ "lowpass2", S(LP2),    0, 5, "a",  "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2     },
+{ "phaser2", S(PHASER2), 0, 5, "a", "akkkkkk",(SUBR)phaser2set,NULL,(SUBR)phaser2},
+{ "phaser1", S(PHASER1), 0, 5, "a", "akkko", (SUBR)phaser1set, NULL,(SUBR)phaser1}
 };
 
 int ugsc_init_(CSOUND *csound)

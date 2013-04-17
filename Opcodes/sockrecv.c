@@ -172,7 +172,7 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *asig = p->ptr1;
     MYFLT   *buf = p->buf;
-    int     i, nsmps = csound->GetKsmps(csound);
+    int     i, nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int outsamps = p->outsamps, rcvsamps = p->rcvsamps;
@@ -253,7 +253,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
     MYFLT   *asigl = p->ptr1;
     MYFLT   *asigr = p->ptr2;
     MYFLT   *buf = p->buf;
-    int     i, nsmps = csound->GetKsmps(csound);
+    int     i, nsmps = CS_KSMPS;
     int outsamps = p->outsamps, rcvsamps = p->rcvsamps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
