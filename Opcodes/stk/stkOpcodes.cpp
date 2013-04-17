@@ -152,7 +152,7 @@ public:
           instrument = new T();
           getStkInstances()[csound].push_back(instrument);
         }
-      ksmps = csound->GetKsmps(csound);
+      ksmps = head.insdshead->ksmps;
       instrument->noteOn(*ifrequency, *igain);
       released = false;
       oldkcontroller0 = -1.0;
@@ -298,7 +298,7 @@ public:
         instrument = new T((StkFloat) 10.0);
         getStkInstances()[csound].push_back(instrument);
       }
-      ksmps = csound->GetKsmps(csound);
+      ksmps = head.insdshead->ksmps;
       instrument->noteOn(*ifrequency, *igain);
       released = false;
       oldkcontroller0 = -1.0;

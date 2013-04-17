@@ -278,7 +278,7 @@ struct Inleta : public OpcodeBase<Inleta> {
 #pragma omp critical (cs_sfg_ports)
     {
       warn(csound, "BEGAN Inleta::init()...\n");
-      sampleN = csound->GetKsmps(csound);
+      sampleN = head.insdshead->ksmps;
       warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
       if (std::find(aoutletVectorsForCsounds[csound].begin(),
                     aoutletVectorsForCsounds[csound].end(),
@@ -405,7 +405,7 @@ struct Inletk : public OpcodeBase<Inletk> {
 #pragma omp critical (cs_sfg_ports)
     {
 
-      ksmps = csound->GetKsmps(csound);
+      ksmps = head.insdshead->ksmps;
       if (std::find(koutletVectorsForCsounds[csound].begin(),
                     koutletVectorsForCsounds[csound].end(),
                     sourceOutlets) == koutletVectorsForCsounds[csound].end()) {
@@ -516,7 +516,7 @@ struct Inletf : public OpcodeBase<Inletf> {
   int init(CSOUND *csound) {
 #pragma omp critical (cs_sfg_ports)
     {
-      ksmps = csound->GetKsmps(csound);
+      ksmps = head.insdshead->ksmps;
       lastframe = 0;
       fsignalInitialized = false;
       if (std::find(foutletVectorsForCsounds[csound].begin(),
@@ -582,8 +582,8 @@ struct Inletf : public OpcodeBase<Inletf> {
               fsignal->sliding = 0;
               if (sourceOutlet->fsignal->sliding) {
                 if (fsignal->frame.auxp == NULL ||
-                    fsignal->frame.size < sizeof(MYFLT) * csound->GetKsmps(csound) * (N + 2))
-                  csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->GetKsmps(csound),
+                    fsignal->frame.size < sizeof(MYFLT) * head.insdshead->ksmps * (N + 2))
+                  csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * head.insdshead->ksmps,
                                    &fsignal->frame);
                 fsignal->NB = sourceOutlet->fsignal->NB;
                 fsignal->sliding = 1;
@@ -700,7 +700,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
 #pragma omp critical (cs_sfg_ports)
     {
 
-      ksmps = csound->GetKsmps(csound);
+      ksmps = head.insdshead->ksmps;
       if (std::find(kidoutletVectorsForCsounds[csound].begin(),
                     kidoutletVectorsForCsounds[csound].end(),
                     sourceOutlets) == kidoutletVectorsForCsounds[csound].end()) {

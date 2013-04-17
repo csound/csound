@@ -171,7 +171,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
     buss = static_cast<size_t>(*ibuss);
     createBuss(csound, buss);
     channel = static_cast<size_t>(*ichannel);
-    frames = csound->GetKsmps(csound);
+    frames = head.insdshead->ksmps;
     busspointer = &busses[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerSend::init: instance %p send %d buss "
@@ -225,7 +225,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
   {
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
-    frames = csound->GetKsmps(csound);
+    frames = head.insdshead->ksmps;
     createBuss(csound, buss);
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerReceive::init...\n");

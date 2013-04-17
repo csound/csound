@@ -385,7 +385,7 @@ public:
 #pragma omp critical (critical_section_fluid_out)
         {
             toa(iFluidSynth, fluidSynth);
-            ksmps = csound->GetKsmps(csound);
+            ksmps = head.insdshead->ksmps;
         }
         return OK;
     }
@@ -430,7 +430,7 @@ public:
     int init(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_all_out)
         {
-            ksmps = csound->GetKsmps(csound);
+            ksmps = head.insdshead->ksmps;
         }
         return OK;
     }
