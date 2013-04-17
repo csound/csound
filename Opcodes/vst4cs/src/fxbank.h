@@ -132,19 +132,19 @@ public:
 public:
     long GetVersion() { if (!bBank) return 0; return ((fxSet*)bBank)->version; }
     long GetFxID() { if (!bBank) return 0; return ((fxSet*)bBank)->fxID; }
-    void SetFxID(long id) 
-    { if (bBank) ((fxSet*)bBank)->fxID = id; 
-        if (!bChunk) 
+    void SetFxID(long id)
+    { if (bBank) ((fxSet*)bBank)->fxID = id;
+        if (!bChunk)
           for (int i = GetNumPrograms() -1; i >= 0; i--) GetProgram(i)->fxID = id; }
     long GetFxVersion() { if (!bBank) return 0; return ((fxSet*)bBank)->fxVersion; }
-    void SetFxVersion(long v) { 
+    void SetFxVersion(long v) {
         if (bBank) ((fxSet*)bBank)->fxVersion = v;
         if (!bChunk) for (int i = GetNumPrograms() -1; i >= 0; i--)
                        GetProgram(i)->fxVersion = v; }
-    long GetNumPrograms() { 
+    long GetNumPrograms() {
         if (!bBank) return 0; return ((fxSet*)bBank)->numPrograms; }
     long GetNumParams() { if (bChunk) return 0; return GetProgram(0)->numParams; }
-    long GetChunkSize() { 
+    long GetChunkSize() {
         if (!bChunk) return 0; return ((fxChunkSet *)bBank)->chunkSize; }
     void *GetChunk() { if (!bChunk) return 0; return ((fxChunkSet *)bBank)->chunk; }
     bool SetChunk(void *chunk) {
@@ -255,7 +255,7 @@ public:
     long EffGetProgram() { return EffDispatch(effGetProgram); }
     void EffSetProgramName(char *ptr) { EffDispatch(effSetProgramName, 0, 0, ptr); }
     void EffGetProgramName(char *ptr) { EffDispatch(effGetProgramName, 0, 0, ptr); }
-    void EffGetParamLabel(long index, char *ptr) { 
+    void EffGetParamLabel(long index, char *ptr) {
          EffDispatch(effGetParamLabel, index, 0, ptr); }
     void EffGetParamDisplay(long index, char *ptr) {
          EffDispatch(effGetParamDisplay, index, 0, ptr); }
@@ -495,7 +495,7 @@ public:
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetChunk(ptr, isPreset);
         else return 0; }
     long EffSetChunk(int nEffect, void *data, long byteSize, bool isPreset = false)
-      { if (GetAt(nEffect)) 
+      { if (GetAt(nEffect))
           return GetAt(nEffect)->EffSetChunk(data, byteSize, isPreset);
         else return 0; }
                                         // VST 2.0
@@ -550,7 +550,7 @@ public:
       { if (GetAt(nEffect))
           return GetAt(nEffect)->EffOfflinePrepare(ptr, count); else return 0; }
     long EffOfflineRun(int nEffect, VstOfflineTask *ptr, long count)
-      { if (GetAt(nEffect)) 
+      { if (GetAt(nEffect))
           return GetAt(nEffect)->EffOfflineRun(ptr, count); else return 0; }
     long EffProcessVarIo(int nEffect, VstVariableIo* varIo)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffProcessVarIo(varIo);
@@ -745,4 +745,3 @@ public:
 };
 */
 #endif
-

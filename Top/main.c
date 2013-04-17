@@ -294,7 +294,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     }
 
    /* VL 30-12-12 csoundInitModules is always called here now to enable
-       Csound to start without calling csoundCompile, but directly from 
+       Csound to start without calling csoundCompile, but directly from
        csoundCompileOrc() and csoundReadOrc()
     */
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
