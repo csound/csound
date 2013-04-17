@@ -85,7 +85,8 @@ static int hm234set(CSOUND *csound, HARM234 *q, HARMON2 *p)
     q->hmrngflg = 0;
     if (q->auxch.auxp == NULL || minoct < q->minoct) {
       MYFLT minfrq = POWER(FL(2.0), minoct) * ONEPT;
-      int16 nbufs = (int16)(csound->GetKr(csound) * 3 / minfrq) + 1;/* recalc max pulse prd */
+      int16 nbufs =
+        (int16)(CS_EKR * 3 / minfrq) + 1;/* recalc max pulse prd */
       int16 nbufsmps = nbufs * CS_KSMPS;
       int16 maxprd = (int16)(CS_ESR * 2 / minfrq);   /* incl sigmoid ends */
       int16 cnt;
@@ -449,9 +450,12 @@ int harmon4(CSOUND *csound, HARMON4 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY harmon_localops[] = {
-  { "harmon2",S(HARMON2),0, 5, "a",  "akkkiip",  (SUBR)harm2set,NULL, (SUBR)harmon2 },
-  { "harmon3",S(HARMON3),0, 5, "a",  "akkkkiip", (SUBR)harm3set,NULL, (SUBR)harmon3 },
-  { "harmon4",S(HARMON4),0, 5, "a",  "akkkkkiip",(SUBR)harm4set,NULL, (SUBR)harmon4 },
+  { "harmon2",S(HARMON2),0, 5, "a",  "akkkiip",
+                                     (SUBR)harm2set,NULL, (SUBR)harmon2 },
+  { "harmon3",S(HARMON3),0, 5, "a",  "akkkkiip",
+                                     (SUBR)harm3set,NULL, (SUBR)harmon3 },
+  { "harmon4",S(HARMON4),0, 5, "a",
+                                   "akkkkkiip",(SUBR)harm4set,NULL, (SUBR)harmon4 },
 };
 
 LINKAGE_BUILTIN(harmon_localops)

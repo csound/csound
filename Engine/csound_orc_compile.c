@@ -246,7 +246,8 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
           synterr(csound, Str("missing or extra arg"));
       }       /* IV - Sep 1 2002: added 'M' */
       else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
-               treqd != 'Z' && treqd != 'M' && treqd != 'N' && treqd != '*') /* else any no */
+               treqd != 'Z' && treqd != 'M' && treqd != 'N' &&
+               treqd != '*') /* else any no */
         synterr(csound, Str("too many input args\n"));
     }
 

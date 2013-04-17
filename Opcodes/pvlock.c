@@ -104,7 +104,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
     MYFLT *tab, frac;
     FUNC *ft;
     int N = p->N, hsize = p->hsize, cnt = p->cnt, nchans = p->nchans;
-    int ksmps = csound->GetKsmps(csound), n;
+    int ksmps = CS_KSMPS, n;
     int sizefrs, size, post, i, j, spos = p->pos;
     double pos;
     MYFLT *fwin, *bwin, in,
@@ -294,7 +294,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
     MYFLT *tab,frac,  dbtresh = *p->dbthresh;
     FUNC *ft;
     int N = p->N, hsize = p->hsize, cnt = p->cnt, sizefrs, nchans = p->nchans;
-    int  ksmps = csound->GetKsmps(csound), n;
+    int  ksmps = CS_KSMPS, n;
     int size, post, i, j;
     double pos, spos = p->pos;
     MYFLT *fwin, *bwin;

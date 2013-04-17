@@ -2118,7 +2118,7 @@ static int vecdly_set(CSOUND *csound, VECDEL *p)
     }
     else return csound->InitError(csound, Str("vecdly: invalid delay table"));
 
-    n = (p->maxd = (int32) (*p->imaxd * csound->GetKr(csound)));
+    n = (p->maxd = (int32) (*p->imaxd * CS_EKR));
     if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
@@ -2165,7 +2165,7 @@ static int vecdly(CSOUND *csound,VECDEL *p)
     }
     do {
       (*buf)[*indx] = *inVec++;
-      fv1 = *indx - *dlyVec++ * csound->GetKr(csound);
+      fv1 = *indx - *dlyVec++ * CS_EKR;
       while (fv1 < FL(0.0))     fv1 += (MYFLT)maxd;
       while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
       if (fv1 < maxd - 1) fv2 = fv1 + 1;
@@ -2225,7 +2225,7 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL))
         return NOTOK;
       if (dur > FL(0.0)) {
-        segp->d = dur * csound->GetKr(csound);
+        segp->d = dur * CS_EKR;
         segp->function =  curfunc;
         segp->nxtfunction = nxtfunc;
         segp->cnt = (int32) MYFLT2LRND(segp->d);
@@ -2343,7 +2343,7 @@ static int vphaseseg_set(CSOUND *csound,VPSEG *p)
       if ((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL) return NOTOK;
       if (dur > FL(0.0)) {
         durtot+=dur;
-        segp->d = dur; /* * csound->GetKr(csound); */
+        segp->d = dur; /* * CS_EKR; */
         segp->function = curfunc;
         segp->nxtfunction = nxtfunc;
         /* segp->cnt = (int32) (segp->d + .5);  */
@@ -2409,7 +2409,7 @@ static int vphaseseg(CSOUND *csound,VPSEG *p)
 static int kdel_set(CSOUND *csound,KDEL *p)
 {
     uint32 n;
-    n = (p->maxd = (int32) (*p->imaxd * csound->GetKr(csound)));
+    n = (p->maxd = (int32) (*p->imaxd * CS_EKR));
     if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
@@ -2434,7 +2434,7 @@ static int kdelay(CSOUND *csound,KDEL *p)
 
     indx = p->left;
     buf[indx] = *p->kin;
-    fv1 = indx - *p->kdel * csound->GetKr(csound);
+    fv1 = indx - *p->kdel * CS_EKR;
     while (fv1 < FL(0.0))       fv1 += (MYFLT)maxd;
     while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
     if (*p->interp) { /*  no interpolation */
@@ -2541,52 +2541,72 @@ static int ca(CSOUND *csound,CELLA *p)
 
 OENTRY vectorial_localops[] = {
   { "vtablei", S(MTABLEI),   TR, 1, "",   "iiiim", (SUBR)mtable_i,  NULL },
-  { "vtablek", S(MTABLE),    TR, 3, "",   "kkkiz", (SUBR)mtable_set, (SUBR)mtable_k, NULL },
-  { "vtablea", S(MTABLE),    TR, 5, "",   "akkiy", (SUBR)mtable_set, NULL, (SUBR)mtable_a },
+  { "vtablek", S(MTABLE),    TR, 3, "",   "kkkiz",
+                                  (SUBR)mtable_set, (SUBR)mtable_k, NULL },
+  { "vtablea", S(MTABLE),    TR, 5, "",   "akkiy",
+                                  (SUBR)mtable_set, NULL, (SUBR)mtable_a },
   { "vtablewi", S(MTABLEIW), TB, 1, "",   "iiim", (SUBR)mtablew_i,  NULL },
-  { "vtablewk", S(MTABLEW),  TB, 3, "",   "kkiz", (SUBR)mtablew_set, (SUBR)mtablew_k, NULL },
-  { "vtablewa", S(MTABLEW),  TB, 5, "",   "akiy", (SUBR)mtablew_set, NULL, (SUBR)mtablew_a },
+  { "vtablewk", S(MTABLEW),  TB, 3, "",   "kkiz",
+                                (SUBR)mtablew_set, (SUBR)mtablew_k, NULL },
+  { "vtablewa", S(MTABLEW),  TB, 5, "",   "akiy",
+                                (SUBR)mtablew_set, NULL, (SUBR)mtablew_a },
   { "vtabi", S(MTABI),       TR, 1, "",   "iim", (SUBR)mtab_i,  NULL },
-  { "vtabk", S(MTAB),        TR, 3, "",   "kiz", (SUBR)mtab_set, (SUBR)mtab_k, NULL },
-  { "vtaba", S(MTAB),        TR, 5, "",  "aiy", (SUBR)mtab_set, NULL, (SUBR)mtab_a },
+  { "vtabk", S(MTAB),        TR, 3, "",   "kiz",
+                                      (SUBR)mtab_set, (SUBR)mtab_k, NULL },
+  { "vtaba", S(MTAB),        TR, 5, "",  "aiy",
+                                      (SUBR)mtab_set, NULL, (SUBR)mtab_a },
   { "vtabwi", S(MTABIW),     TB, 1, "",  "iim", (SUBR)mtabw_i,  NULL },
-  { "vtabwk", S(MTABW),      TB, 3, "",  "kiz", (SUBR)mtabw_set, (SUBR)mtabw_k, NULL },
-  { "vtabwa", S(MTABW),      TB, 5, "",  "aiy", (SUBR)mtabw_set, NULL, (SUBR)mtabw_a },
+  { "vtabwk", S(MTABW),      TB, 3, "",  "kiz",
+                                       (SUBR)mtabw_set, (SUBR)mtabw_k, NULL },
+  { "vtabwa", S(MTABW),      TB, 5, "",  "aiy",
+                                       (SUBR)mtabw_set, NULL, (SUBR)mtabw_a },
 
-  { "vadd",   S(VECTOROP),   TB, 3, "",  "ikkOO", (SUBR)vectorOp_set, (SUBR) vaddk },
-  { "vadd_i", S(VECTOROPI),  TB, 1, "",  "iiio", (SUBR) vadd_i, NULL, NULL        },
-  { "vmult",  S(VECTOROP),   TB, 3, "",  "ikkOO", (SUBR)vectorOp_set, (SUBR) vmultk},
-  { "vmult_i", S(VECTOROPI), TB, 1, "",  "iiio", (SUBR) vmult_i, NULL, NULL       },
-  { "vpow",   S(VECTOROP),   TB, 3, "",  "ikkOO", (SUBR)vectorOp_set, (SUBR) vpowk },
-  { "vpow_i", S(VECTOROPI),  TB, 1, "",  "iiio", (SUBR) vpow_i, NULL, NULL        },
-  { "vexp",   S(VECTOROP),   TB, 3, "",  "ikkOO", (SUBR)vectorOp_set, (SUBR) vexpk },
-  { "vexp_i", S(VECTOROPI),  TB, 1, "",  "iiio", (SUBR) vexp_i, NULL, NULL        },
-  { "vaddv",  S(VECTORSOP),  TB, 3, "",  "iikOOO", (SUBR)vectorsOp_set, (SUBR) vaddvk },
-  { "vaddv_i",  S(VECTORSOPI), TB, 1, "",  "iiioo", (SUBR)vaddv_i, NULL, NULL        },
-  { "vsubv",  S(VECTORSOP),  TB, 3, "",  "iikOOO", (SUBR)vectorsOp_set, (SUBR) vsubvk },
-  { "vsubv_i",  S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vsubv_i, NULL, NULL        },
-  { "vmultv", S(VECTORSOP),  TB, 3, "",  "iikOOO", (SUBR)vectorsOp_set, (SUBR) vmultvk},
-  { "vmultv_i", S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vmultv_i, NULL, NULL       },
-  { "vdivv",  S(VECTORSOP), TB,  3, "",  "iikOOO", (SUBR)vectorsOp_set, (SUBR) vdivvk },
-  { "vdivv_i",  S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vdivv_i, NULL, NULL        },
-  { "vpowv",  S(VECTORSOP),  TB, 3, "",  "iikOOO", (SUBR)vectorsOp_set, (SUBR) vpowvk },
-  { "vpowv_i",  S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vpowv_i, NULL, NULL      },
-  { "vexpv",  S(VECTORSOP),  TB, 3, "",  "iikOOO", (SUBR)vectorsOp_set, (SUBR) vexpvk },
-  { "vexpv_i",  S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vexpv_i, NULL, NULL      },
-  { "vcopy",  S(VECTORSOP),  TB, 3, "",  "iikOOO", (SUBR)vectorsOp_set, (SUBR) vcopy },
-  { "vcopy_i", S(VECTORSOP), TB, 1, "",  "iiioo", (SUBR) vcopy_i, NULL, NULL   },
-  { "vmap",   S(VECTORSOPI), TB, 1, "",  "iiioo", (SUBR)vmap_i, NULL, NULL     },
-  { "vlimit", S(VLIMIT),  TR, 3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vlimit    },
-  { "vwrap",  S(VLIMIT),  TB, 3, "",  "ikki",(SUBR)vlimit_set, (SUBR) vwrap    },
-  { "vmirror", S(VLIMIT),  0,   3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror   },
-  { "vlinseg", S(VSEG),   TB, 3, "",  "iin", (SUBR)vseg_set,   (SUBR)vlinseg   },
-  { "vexpseg", S(VSEG),    0,   3, "",  "iin", (SUBR)vseg_set,   (SUBR)vexpseg   },
-  { "vrandh", S(VRANDH),  TB, 3, "",  "ikkiovoo",(SUBR)vrandh_set, (SUBR) vrandh},
+  { "vadd",   S(VECTOROP),   TB, 3, "",  "ikkOO",
+                                           (SUBR)vectorOp_set, (SUBR) vaddk },
+  { "vadd_i", S(VECTOROPI),  TB, 1, "",  "iiio",  (SUBR) vadd_i, NULL, NULL },
+  { "vmult",  S(VECTOROP),   TB, 3, "",  "ikkOO",
+                                    (SUBR)vectorOp_set, (SUBR) vmultk},
+  { "vmult_i", S(VECTOROPI), TB, 1, "",  "iiio", (SUBR) vmult_i, NULL, NULL },
+  { "vpow",   S(VECTOROP),   TB, 3, "",  "ikkOO",
+                                           (SUBR)vectorOp_set, (SUBR) vpowk },
+  { "vpow_i", S(VECTOROPI),  TB, 1, "",  "iiio", (SUBR) vpow_i, NULL, NULL  },
+  { "vexp",   S(VECTOROP),   TB, 3, "",  "ikkOO",
+                                           (SUBR)vectorOp_set, (SUBR) vexpk },
+  { "vexp_i", S(VECTOROPI),  TB, 1, "",  "iiio", (SUBR) vexp_i, NULL, NULL  },
+  { "vaddv",  S(VECTORSOP),  TB, 3, "",  "iikOOO",
+                                         (SUBR)vectorsOp_set, (SUBR) vaddvk },
+  { "vaddv_i",  S(VECTORSOPI), TB, 1, "",  "iiioo", (SUBR)vaddv_i, NULL, NULL },
+  { "vsubv",  S(VECTORSOP),  TB, 3, "",  "iikOOO",
+                                         (SUBR)vectorsOp_set, (SUBR) vsubvk },
+  { "vsubv_i",  S(VECTORSOPI),  TB, 1, "",  "iiioo",
+                                           (SUBR)vsubv_i, NULL, NULL        },
+  { "vmultv", S(VECTORSOP),  TB, 3, "",  "iikOOO",
+                                         (SUBR)vectorsOp_set, (SUBR) vmultvk},
+  { "vmultv_i", S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vmultv_i, NULL, NULL },
+  { "vdivv",  S(VECTORSOP), TB,  3, "",  "iikOOO",
+                                         (SUBR)vectorsOp_set, (SUBR) vdivvk },
+  { "vdivv_i",  S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vdivv_i, NULL, NULL },
+  { "vpowv",  S(VECTORSOP),  TB, 3, "",  "iikOOO",
+                                         (SUBR)vectorsOp_set, (SUBR) vpowvk },
+  { "vpowv_i",  S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vpowv_i, NULL, NULL },
+  { "vexpv",  S(VECTORSOP),  TB, 3, "",  "iikOOO",
+                                         (SUBR)vectorsOp_set, (SUBR) vexpvk },
+  { "vexpv_i",  S(VECTORSOPI),  TB, 1, "",  "iiioo", (SUBR)vexpv_i, NULL, NULL },
+  { "vcopy",  S(VECTORSOP),  TB, 3, "",  "iikOOO",
+                                          (SUBR)vectorsOp_set, (SUBR) vcopy },
+  { "vcopy_i", S(VECTORSOP), TB, 1, "",  "iiioo", (SUBR) vcopy_i, NULL, NULL},
+  { "vmap",   S(VECTORSOPI), TB, 1, "",  "iiioo", (SUBR)vmap_i, NULL, NULL  },
+  { "vlimit", S(VLIMIT),  TR, 3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vlimit },
+  { "vwrap",  S(VLIMIT),  TB, 3, "",  "ikki",(SUBR)vlimit_set, (SUBR) vwrap },
+  { "vmirror", S(VLIMIT),  0,   3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror },
+  { "vlinseg", S(VSEG),   TB, 3, "",  "iin", (SUBR)vseg_set,   (SUBR)vlinseg },
+  { "vexpseg", S(VSEG),    0,   3, "",  "iin", (SUBR)vseg_set, (SUBR)vexpseg },
+  { "vrandh", S(VRANDH),  TB, 3, "",  "ikkiovoo",(SUBR)vrandh_set, (SUBR)vrandh},
   { "vrandi", S(VRANDI),  TB, 3, "",  "ikkiovoo",(SUBR)vrandi_set, (SUBR)vrandi },
-  { "vport",  S(VPORT),   TB, 3, "",  "ikio",(SUBR)vport_set,  (SUBR)vport     },
-  { "vecdelay", S(VECDEL),0,    3, "",  "iiiiio",(SUBR)vecdly_set, (SUBR)vecdly  },
-  { "vdelayk", S(KDEL),    0,   3, "k", "kkioo",(SUBR)kdel_set,  (SUBR)kdelay    },
-  { "vcella", S(CELLA),      TR, 3, "",  "kkiiiiip",(SUBR)ca_set, (SUBR)ca     }
+  { "vport",  S(VPORT),   TB, 3, "",  "ikio",(SUBR)vport_set,  (SUBR)vport   },
+  { "vecdelay", S(VECDEL),0,    3, "",  "iiiiio",(SUBR)vecdly_set, (SUBR)vecdly },
+  { "vdelayk", S(KDEL),    0,   3, "k", "kkioo",(SUBR)kdel_set,  (SUBR)kdelay },
+  { "vcella", S(CELLA),      TR, 3, "",  "kkiiiiip",(SUBR)ca_set, (SUBR)ca    }
 };
 
 int gab_vectorial_init_(CSOUND *csound)

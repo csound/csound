@@ -64,7 +64,7 @@ int tabler_init(CSOUND *csound, TABL *p) {
 int tabl_setup(CSOUND *csound, TABL *p) {
 
    if (UNLIKELY(p->XOUTCODE  && p->XINCODE != p->XOUTCODE)) {
-      if (csound->GetKsmps(csound) != 1)
+      if (CS_KSMPS != 1)
         return csound->InitError(csound,
                                  Str("table: index type inconsistent with output"));
     }
@@ -108,7 +108,7 @@ int tabler_kontrol(CSOUND *csound, TABL *p) {
 
 int tabler_audio(CSOUND *csound, TABL *p)
 {
-    int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
+    int ndx, len = p->len, n, nsmps = CS_KSMPS;
     int mask = p->ftp->lenmask;
     MYFLT *sig = p->sig;
     MYFLT *ndx_f = p->ndx;
@@ -213,7 +213,7 @@ int tableir_kontrol(CSOUND *csound, TABL *p) {
 
 int tableir_audio(CSOUND *csound, TABL *p)
 {
-    int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
+    int ndx, len = p->len, n, nsmps = CS_KSMPS;
     int mask = p->ftp->lenmask;
     MYFLT *sig = p->sig;
     MYFLT *ndx_f = p->ndx;
@@ -355,7 +355,7 @@ int table3r_kontrol(CSOUND *csound, TABL *p) {
 
 int table3r_audio(CSOUND *csound, TABL *p)
 {
-    int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
+    int ndx, len = p->len, n, nsmps = CS_KSMPS;
     int mask = p->ftp->lenmask;
     MYFLT *sig = p->sig;
     MYFLT *ndx_f = p->ndx;
@@ -411,7 +411,7 @@ int table3r_audio(CSOUND *csound, TABL *p)
 int tablkt_setup(CSOUND *csound, TABL *p) {
 
    if (UNLIKELY(p->XOUTCODE && p->XINCODE != p->XOUTCODE)) {
-      if (csound->GetKsmps(csound) != 1)
+      if (CS_KSMPS != 1)
         return
           csound->InitError(csound,
                             Str("tablekt: index type inconsistent with output"));
@@ -577,7 +577,7 @@ int tablew_kontrol(CSOUND *csound, TABL *p) {
 }
 
 int tablew_audio(CSOUND *csound, TABL *p) {
-  int ndx, len = p->len, n, nsmps = csound->GetKsmps(csound);
+  int ndx, len = p->len, n, nsmps = CS_KSMPS;
   int mask = p->ftp->lenmask;
   MYFLT *sig = p->sig;
   MYFLT *ndx_f = p->ndx;
@@ -786,7 +786,7 @@ int table_ra(CSOUND *csound, TABLRA *p) {
   FUNC *ftp;
   uint32_t    koffset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
-  nsmps = csound->GetKsmps(csound);
+  nsmps = CS_KSMPS;
 
   if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->PerfError(csound,
@@ -832,7 +832,7 @@ int table_wa(CSOUND *csound, TABLWA *p) {
   FUNC *ftp;
   uint32_t    koffset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
-  nsmps = csound->GetKsmps(csound);
+  nsmps = CS_KSMPS;
 
   if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->PerfError(csound,

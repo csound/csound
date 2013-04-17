@@ -54,7 +54,7 @@ static int equ_process(CSOUND *csound, equ *p)
     MYFLT  *in= p->sig,*out=p->out,g;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int i, ksmps = csound->GetKsmps(csound);
+    int i, ksmps = CS_KSMPS;
 
     if (*p->bw != p->bwv || *p->fr != p->frv){
       double sr = (double)CS_ESR;

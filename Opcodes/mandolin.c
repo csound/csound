@@ -76,7 +76,8 @@ int mandolinset(CSOUND *csound, MANDOL *p)
 {
     FUNC *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->soundfile = ftp;
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+      p->soundfile = ftp;
     else {                                      /* Expect pluck wave */
       return csound->InitError(csound, Str("No table for Mandolin"));
     }
@@ -116,12 +117,12 @@ int mandolinset(CSOUND *csound, MANDOL *p)
       p->dampTime = (int32) p->lastLength; /* See tick method below */
       p->waveDone = 0;
       {
-        int relestim = (int)(csound->GetKr(csound) * FL(0.1));
+        int relestim = (int)(CS_EKR * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int)(p->h.insdshead->offtim * csound->GetKr(csound));   /* ??? */
+      p->kloop = (int)(p->h.insdshead->offtim * CS_EKR);  /* ??? */
     }
     return OK;
 }
