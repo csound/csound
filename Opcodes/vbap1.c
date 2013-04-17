@@ -169,7 +169,9 @@ int vbap1_init(CSOUND *csound, VBAP1 *p)
     sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
     if (ls_table==NULL)
-      return csound->InitError(csound, Str("could not find layout table no.%d"), (int)*p->layout );
+      return csound->InitError(csound, 
+                               Str("could not find layout table no.%d"),
+                               (int)*p->layout );
     p->number = p->OUTOCOUNT;
     p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
     p->ls_am     = (int)ls_table[1];
