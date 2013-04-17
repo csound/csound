@@ -143,7 +143,8 @@ static int pyinit(CSOUND *csound, PYINIT *p)
     (void) p;
     int *py_initialize_done;
 
-    if((py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL){
+    if((py_initialize_done = csound->QueryGlobalVariable(csound,
+                                                         "PY_INITIALIZE")) == NULL){
     csound->CreateGlobalVariable(csound, "PY_INITIALIZE", sizeof(int));
     py_initialize_done = csound->QueryGlobalVariable(csound,"PY_INITIALIZE");
     *py_initialize_done = 0;
@@ -237,7 +238,8 @@ OENTRY python_localops[] = {
 
 { "pyinit",   sizeof(PYINIT),   0, 1,  "",     "",     (SUBR)pyinit, NULL      },
 
-  /* RUN GROUP */{ "pyrun",    sizeof(PYRUN),    0, 2,  "",     "S",    NULL, (SUBR)pyrun_krate },
+  /* RUN GROUP */
+{ "pyrun",    sizeof(PYRUN),    0, 2,  "",     "S",    NULL, (SUBR)pyrun_krate },
 { "pyruni",   sizeof(PYRUN),    0, 1,  "",     "S",    (SUBR)pyruni_irate      },
 { "pylrun",   sizeof(PYRUN),    0, 3,  "",     "S",
               (SUBR)pylrun_irate, (SUBR)pylrun_krate },
@@ -269,7 +271,7 @@ OENTRY python_localops[] = {
 { "pycall5",  sizeof(PYCALL5),  0, 2,  "kkkkk", "Sz",  NULL, (SUBR)pycall5_krate },
 { "pycall6",  sizeof(PYCALL6),  0, 2,  "kkkkkk", "Sz", NULL, (SUBR)pycall6_krate },
 { "pycall7",  sizeof(PYCALL7),  0, 2,  "kkkkkkk", "Sz", NULL, (SUBR)pycall7_krate },
-{ "pycall8",  sizeof(PYCALL8), 0,  2,  "kkkkkkkk", "Sz", NULL, (SUBR)pycall8_krate },
+{ "pycall8",  sizeof(PYCALL8), 0,  2,  "kkkkkkkk", "Sz", NULL,(SUBR)pycall8_krate },
 
 { "pycalln",  sizeof(PYCALLN),  0, 2,  "",     "Siz",  NULL, (SUBR)pycalln_krate },
 
@@ -279,12 +281,12 @@ OENTRY python_localops[] = {
 { "pycall3t", sizeof(PYCALL3T),0,  2,  "kkk",  "kSz",  NULL, (SUBR)pycall3t_krate },
 { "pycall4t", sizeof(PYCALL4T), 0, 2,  "kkkk", "kSz",  NULL, (SUBR)pycall4t_krate },
 { "pycall5t", sizeof(PYCALL5T), 0, 2,  "kkkkk", "kSz", NULL, (SUBR)pycall5t_krate },
-{ "pycall6t", sizeof(PYCALL6T), 0, 2,  "kkkkkk", "kSz", NULL, (SUBR)pycall6t_krate },
-{ "pycall7t", sizeof(PYCALL7T), 0, 2,  "kkkkkkk", "kSz", NULL, (SUBR)pycall7t_krate },
-{ "pycall8t", sizeof(PYCALL8T), 0, 2,  "kkkkkkkk", "kSz", NULL, (SUBR)pycall8t_krate },
+{ "pycall6t", sizeof(PYCALL6T), 0, 2,  "kkkkkk", "kSz", NULL,(SUBR)pycall6t_krate },
+{ "pycall7t", sizeof(PYCALL7T), 0, 2,  "kkkkkkk","kSz", NULL,(SUBR)pycall7t_krate },
+{ "pycall8t", sizeof(PYCALL8T), 0, 2,  "kkkkkkkk","kSz",NULL,(SUBR)pycall8t_krate },
 
 #if 0
-{ "pycallnt", sizeof(PYCALLNT), 0, 2,  "",         "Siz",  NULL, (SUBR)pycallnt_krate },
+{ "pycallnt", sizeof(PYCALLNT), 0, 2,  "",  "Siz",  NULL, (SUBR)pycallnt_krate },
 #endif
 
 { "pycalli",  sizeof(PYCALL0),  0, 1,  "",         "Sm",   (SUBR)pycall0_krate },
@@ -377,7 +379,7 @@ OENTRY python_localops[] = {
                (SUBR)pylassign_irate, (SUBR)pylassign_krate },
 { "pylassigni", sizeof(PYASSIGN), 0, 1, "",    "Sz",   (SUBR)pylassigni_irate },
 
-{ "pyassignt", sizeof(PYASSIGNT), 0, 2, "",    "Sz",   NULL, (SUBR)pyassignt_krate },
+{ "pyassignt", sizeof(PYASSIGNT), 0, 2, "",    "Sz", NULL, (SUBR)pyassignt_krate },
 { "pylassignt", sizeof(PYASSIGNT), 0, 3, "",   "Sz",
                 (SUBR)pylassignt_irate, (SUBR)pylassignt_krate },
 

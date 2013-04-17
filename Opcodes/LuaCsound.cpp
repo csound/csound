@@ -62,9 +62,11 @@ struct keys_t
 /**
  * Thread-safe storage for Lua references to opcode subroutines.
  */
-keys_t &manageLuaReferenceKeys(const lua_State *L, const std::string &opcode, char operation = 'O')
+keys_t &manageLuaReferenceKeys(const lua_State *L,
+                               const std::string &opcode, char operation = 'O')
 {
-    static std::map<const lua_State *, std::map<std::string, keys_t> > luaReferenceKeys;
+    static std::map<const lua_State *,
+                    std::map<std::string, keys_t> > luaReferenceKeys;
     keys_t *keys = 0;
     #pragma omp critical(lc_getrefkey)
     {
@@ -179,22 +181,27 @@ public:
  *                         output and/or input arguments may be passed.
  *                         All arguments must be passed on the right-hand
  *                         side and outputs are returned in the argument.
- *                         Requires opname_init and opname_kontrol to be defined in Lua.
+ *                         Requires opname_init and opname_kontrol to be
+ *                         defined in Lua.
  *
  * lua_iaopcall Sname, ... Calls a Lua opcode at i-rate and a-rate. Any number of
  *                         output and/or input arguments may be passed.
  *                         All arguments must be passed on the right-hand
  *                         side and outputs are returned in the argument.
- *                         Requires opname_init and opname_audio to be defined in Lua.
+ *                         Requires opname_init and opname_audio to be defined
+ *                         in Lua.
  *
  * Opcode that actually implements arbitrary Lua opcodes
  * by calling from Csound into Lua functions.
  *
  * Lua functions access elements of arguments as follows
- * (pointers to both scalars and arrays are dereferenced by the array access operator):
- * ffi.cdef(' struct arguments_t { double *a_out, double *i_in, double *i_txt, double *f_sig };');
+ * (pointers to both scalars and arrays are dereferenced by the array
+ * access operator):
+ * ffi.cdef(' struct arguments_t { double *a_out, double *i_in,
+ *                                 double *i_txt, double *f_sig };');
  * local arguments = ffi.cast("struct arguments_t *", carguments_lightuserdata)
- * for i = 0, ksmps -1 do begin carguments.a_out[i] = carguments.i_in[0] * 3 end end
+ * for i = 0, ksmps -1 do begin carguments.a_out[i] = carguments.i_in[0] * 3
+ * end end
  */
 class cslua_opcall: public OpcodeBase<cslua_opcall>
 {
@@ -238,7 +245,8 @@ public:
         lua_pushlightuserdata(L, &arguments);
         if (lua_pcall(L, 3, 1, 0) != 0)
         {
-            log(csound, "Lua error in \"%s_init\": %s.\n", opcodename, lua_tostring(L, -1));
+            log(csound, "Lua error in \"%s_init\": %s.\n",
+                opcodename, lua_tostring(L, -1));
         }
         result = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -256,7 +264,8 @@ public:
         lua_pushlightuserdata(L, &arguments);
         if (lua_pcall(L, 3, 1, 0) != 0)
         {
-            log(csound, "Lua error in \"%s_kontrol\": %s.\n", opcodename, lua_tostring(L, -1));
+            log(csound, "Lua error in \"%s_kontrol\": %s.\n",
+                opcodename, lua_tostring(L, -1));
         }
         result = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -274,7 +283,8 @@ public:
         lua_pushlightuserdata(L, arguments);
         if (lua_pcall(L, 3, 1, 0) != 0)
         {
-            log(csound, "Lua error in \"%s_audio\": %s.\n", opcodename, lua_tostring(L, -1));
+            log(csound, "Lua error in \"%s_audio\": %s.\n",
+                opcodename, lua_tostring(L, -1));
         }
         result = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -289,17 +299,21 @@ public:
  *                             side and outputs are returned in the argument.
  *                             Requires opname_init to be defined in Lua.
  *
- * lua_ikopcall_off Sname, ... Calls a Lua opcode at i-rate and k-rate. Any number of
- *                             output and/or input arguments may be passed.
+ * lua_ikopcall_off Sname, ... Calls a Lua opcode at i-rate and k-rate. Any
+ *                             number of output and/or input arguments may be
+ *                             passed.
  *                             All arguments must be passed on the right-hand
  *                             side and outputs are returned in the argument.
- *                             Requires opname_init and opname_kontrol to be defined in Lua.
+ *                             Requires opname_init and opname_kontrol to be
+ *                             defined in Lua.
  *
- * lua_iaopcall_off Sname, ... Calls a Lua opcode at i-rate and a-rate. Any number of
- *                             output and/or input arguments may be passed.
+ * lua_iaopcall_off Sname, ... Calls a Lua opcode at i-rate and a-rate. Any
+ *                             number of output and/or input arguments may be
+ *                             passed.
  *                             All arguments must be passed on the right-hand
  *                             side and outputs are returned in the argument.
- *                             Requires opname_init and opname_audio to be defined in Lua.
+ *                             Requires opname_init and opname_audio to be
+ *                             defined in Lua.
  *
  * Opcode that actually implements arbitrary Lua opcodes
  * by calling from Csound into Lua functions; this variant
@@ -309,10 +323,13 @@ public:
  * instrument with a reverb tail, and so on.
  *
  * Lua functions access elements of arguments as follows
- * (pointers to both scalars and arrays are dereferenced by the array access operator):
- * ffi.cdef(' struct arguments_t { double *a_out, double *i_in, double *i_txt, double *f_sig };');
+ * (pointers to both scalars and arrays are dereferenced by the array
+ *  access operator):
+ * ffi.cdef(' struct arguments_t { double *a_out, double *i_in,
+ *                                 double *i_txt, double *f_sig };');
  * local arguments = ffi.cast("struct arguments_t *", carguments_lightuserdata)
- * for i = 0, ksmps -1 do begin carguments.a_out[i] = carguments.i_in[0] * 3 end end
+ * for i = 0, ksmps -1 do begin carguments.a_out[i] = carguments.i_in[0] * 3
+ * end end
  */
 class cslua_opcall_off: public OpcodeNoteoffBase<cslua_opcall_off>
 {
@@ -356,7 +373,8 @@ public:
         lua_pushlightuserdata(L, &arguments);
         if (lua_pcall(L, 3, 1, 0) != 0)
         {
-            log(csound, "Lua error in \"%s_init\": %s.\n", opcodename, lua_tostring(L, -1));
+            log(csound, "Lua error in \"%s_init\": %s.\n",
+                opcodename, lua_tostring(L, -1));
         }
         result = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -374,7 +392,8 @@ public:
         lua_pushlightuserdata(L, &arguments);
         if (lua_pcall(L, 3, 1, 0) != 0)
         {
-            log(csound, "Lua error in \"%s_kontrol\": %s.\n", opcodename, lua_tostring(L, -1));
+            log(csound, "Lua error in \"%s_kontrol\": %s.\n",
+                opcodename, lua_tostring(L, -1));
         }
         result = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -392,7 +411,8 @@ public:
         lua_pushlightuserdata(L, arguments);
         if (lua_pcall(L, 3, 1, 0) != 0)
         {
-            log(csound, "Lua error in \"%s_audio\": %s.\n", opcodename, lua_tostring(L, -1));
+            log(csound, "Lua error in \"%s_audio\": %s.\n",
+                opcodename, lua_tostring(L, -1));
         }
         result = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -410,11 +430,13 @@ public:
         lua_pushlightuserdata(L, arguments);
         if (lua_pcall(L, 3, 1, 0) != 0)
         {
-            log(csound, "Lua error in \"%s_noteoff\": %s.\n", opcodename, lua_tostring(L, -1));
+            log(csound, "Lua error in \"%s_noteoff\": %s.\n",
+                opcodename, lua_tostring(L, -1));
         }
         else
         {
-            log(csound, "Lua called \"%s_noteoff\": %s.\n", opcodename, lua_tostring(L, -1));
+            log(csound, "Lua called \"%s_noteoff\": %s.\n",
+                opcodename, lua_tostring(L, -1));
         }
         result = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -486,7 +508,8 @@ public:
             log(csound, "Opcode: %s\n", opcodename);
             log(csound, "Result: %d\n", result);
             char init_function[0x100];
-            std::snprintf(init_function, 0x100, "%s_init", opcodename); //h.optext->t.opcod);
+            std::snprintf(init_function, 0x100,
+                          "%s_init", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, init_function);
             if (!lua_isnil(L, 1))
             {
@@ -494,7 +517,8 @@ public:
                 lua_pop(L, 1);
             }
             char kontrol_function[0x100];
-            std::snprintf(kontrol_function, 0x100, "%s_kontrol", opcodename); //h.optext->t.opcod);
+            std::snprintf(kontrol_function, 0x100,
+                          "%s_kontrol", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, kontrol_function);
             if (!lua_isnil(L, 1))
             {
@@ -502,7 +526,8 @@ public:
                 lua_pop(L, 1);
             }
             char audio_function[0x100];
-            std::snprintf(audio_function, 0x100, "%s_audio", opcodename); //h.optext->t.opcod);
+            std::snprintf(audio_function, 0x100,
+                          "%s_audio", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, audio_function);
             if (!lua_isnil(L, 1))
             {
@@ -510,7 +535,8 @@ public:
                 lua_pop(L, 1);
             }
             char noteoff_function[0x100];
-            std::snprintf(noteoff_function, 0x100, "%s_noteoff", opcodename); //h.optext->t.opcod);
+            std::snprintf(noteoff_function, 0x100,
+                          "%s_noteoff", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, noteoff_function);
             if (!lua_isnil(L, 1))
             {

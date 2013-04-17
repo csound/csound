@@ -65,14 +65,14 @@ int spectset(CSOUND *csound, SPECTRUM *p)
     SPECDAT *specp = p->wsig;
 
     /* for mac roundoff */
-    p->timcount = (int)(csound->GetKr(csound) * *p->iprd + FL(0.001));
+    p->timcount = (int)(CS_EKR * *p->iprd + FL(0.001));
     nocts = (int)*p->iocts;
     nfreqs = (int)*p->ifrqs;
     ncoefs = nocts * nfreqs;
     Q = *p->iq;
     hanning = (*p->ihann) ? 1 : 0;
     p->dbout = (int)*p->idbout;
-    if ((p->disprd = (int)(csound->GetKr(csound) * *p->idisprd)) < 0)
+    if ((p->disprd = (int)(CS_EKR * *p->idisprd)) < 0)
       p->disprd = 0;
 
     if (UNLIKELY(p->timcount <= 0))
@@ -108,7 +108,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
                       (hanning) ? "hanning":"hamming", outstring[p->dbout]);
 
       if (p->h.optext->t.intype == 'k') {
-        dwnp->srate = csound->GetKr(csound);            /* define the srate */
+        dwnp->srate = CS_EKR;            /* define the srate */
         p->nsmps = 1;
       }
       else {
@@ -361,7 +361,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 /*     DOWNDAT *downp = p->dsig; */
 /*     SPECDAT *specp = p->wsig; */
 
-/*     p->timcount = csound->GetKr(csound) * *p->iprd; */
+/*     p->timcount = CS_EKR * *p->iprd; */
 /*     nfreqs = *p->ifrqs; */
 /*     Q = *p->iq; */
 /*     hanning = (*p->ihann) ? 1 : 0; */
@@ -524,7 +524,7 @@ int spdspset(CSOUND *csound, SPECDISP *p)
     if (UNLIKELY(p->wsig->auxch.auxp==NULL)) {
       return csound->InitError(csound, Str("specdisp: not initialised"));
     }
-    if (UNLIKELY((p->timcount = (int)(csound->GetKr(csound) * *p->iprd)) <= 0)) {
+    if (UNLIKELY((p->timcount = (int)(CS_EKR * *p->iprd)) <= 0)) {
       return csound->InitError(csound, Str("illegal iperiod"));
     }
     if (!(p->dwindow.windid)) {
@@ -580,7 +580,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
         }
-    if ((p->ftimcnt = (int)(csound->GetKr(csound)**p->ifprd)) > 0) {
+    if ((p->ftimcnt = (int)(CS_EKR**p->ifprd)) > 0) {
       /* if displaying wfund */
       SPECDISP *fdp = &p->fdisplay;
       fdp->h = p->h;
@@ -1237,18 +1237,18 @@ static OENTRY spectra_localops[] = {
 { "pitchamdf",S(PITCHAMDF),0,5,"kk","aiioppoo",
                                      (SUBR)pitchamdfset, NULL, (SUBR)pitchamdf },
 { "hsboscil",S(HSBOSC), TR, 5, "a", "kkkiiioo",
-                                           
+
                                     (SUBR)hsboscset,NULL,(SUBR)hsboscil },
 { "phasorbnk", S(PHSORBNK),0,7,"s", "xkio",
                                 (SUBR)phsbnkset, (SUBR)kphsorbnk, (SUBR)phsorbnk },
 { "adsynt",S(HSBOSC), TR, 5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
-{ "mpulse", S(IMPULSE), 0, 5,  "a", "kko",  
+{ "mpulse", S(IMPULSE), 0, 5,  "a", "kko",
                                     (SUBR)impulse_set, NULL, (SUBR)impulse },
 { "lpf18", S(LPF18),    0, 5,  "a", "akkko",  (SUBR)lpf18set, NULL, (SUBR)lpf18db },
 { "waveset", S(BARRI),  0, 5,  "a", "ako",   (SUBR)wavesetset, NULL, (SUBR)waveset},
 { "pinkish", S(PINKISH), 0, 5, "a", "xoooo", (SUBR)pinkset, NULL, (SUBR)pinkish },
 { "noise",  S(VARI),  0, 5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
-{ "transeg", S(TRANSEG),0, 7,  "s", "iiim", 
+{ "transeg", S(TRANSEG),0, 7,  "s", "iiim",
                                            (SUBR)trnset,(SUBR)ktrnseg,(SUBR)trnseg},
 { "transegb", S(TRANSEG),0, 7,  "s", "iiim",
                               (SUBR)trnset_bkpt,(SUBR)ktrnseg,(SUBR)trnseg    },
@@ -1261,7 +1261,7 @@ static OENTRY spectra_localops[] = {
 { "active.i", S(INSTCNT),0,1,     "i",    "Too",   (SUBR)instcount, NULL, NULL },
 { "active.k", S(INSTCNT),0,2,     "k",    "Uoo",   NULL, (SUBR)instcount, NULL },
 { "p.i", S(PFUN),        0,1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
-{ "p.k", S(PFUNK),       0,3,     "k",    "k", 
+{ "p.k", S(PFUNK),       0,3,     "k",    "k",
                                           (SUBR)pfunk_init, (SUBR)pfunk, NULL },
 { "mute", S(MUTE), 0,1,          "",      "To",   (SUBR)mute_inst             },
 { "median", S(MEDFILT), 0, 5,     "a", "akio",

@@ -4351,11 +4351,11 @@ extern "C" {
   {
     WIDGET_GLOBALS *widgetGlobals =
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-    if (*p->ptime < MYFLT(1.0) / csound->GetKr(csound))
-      p->ctime = MYFLT(1.0) / csound->GetKr(csound);
+    if (*p->ptime < MYFLT(1.0) / CS_EKR)
+      p->ctime = MYFLT(1.0) / CS_EKR;
       else        p->ctime = *p->ptime;
 
-    p->initime = (MYFLT) csound->GetKcounter(csound) * (1.0/csound->GetKr(csound));
+    p->initime = (MYFLT) csound->GetKcounter(csound) * (1.0/CS_EKR);
       p->cysofar = -1;
       return OK;
   }
@@ -4368,7 +4368,7 @@ extern "C" {
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
       timel = ((MYFLT) csound->GetKcounter(csound) *
-               (1.0/csound->GetKr(csound))) - p->initime;
+               (1.0/CS_EKR)) - p->initime;
       cycles = (long)(timel / p->ctime);
       if (p->cysofar < cycles) {
         p->cysofar = cycles;
