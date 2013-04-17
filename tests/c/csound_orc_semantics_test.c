@@ -118,6 +118,11 @@ void test_resolve_opcode(void) {
     
     opnum = resolve_opcode_num(csound, entries, "B", "kk");
     CU_ASSERT_TRUE(opnum > 0);
+    
+    entries = find_opcode2(csound, "sprintf");
+    
+    opnum = resolve_opcode_num(csound, entries, "S", "Sr");
+    CU_ASSERT_TRUE(opnum > 0);
 }
 
 void test_find_opcode_new(void) {

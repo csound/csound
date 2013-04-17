@@ -16,4 +16,5 @@ kr,ksmps vars not set in local-ksmps UDOs
        -- fixed in git sources Sun Apr 14 18:50 UT
 wrong perf function selected in recursive UDOs with local ksmps
       -- fixed in git sources  Sun Apr 14 19:52 UT
-
+T opcode arg type did not match against reserved var types (r-)
+      -- fixed in git source Wed Apr 17 11:47 2013 +0100
