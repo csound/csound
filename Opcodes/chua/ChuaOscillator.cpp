@@ -123,7 +123,7 @@ using namespace boost::numeric;
 #include <cmath>
 
 #undef CS_KSMPS
-#define CS_KSMPS     (csound->GetKsmps(csound))
+#define CS_KSMPS     (head.insdshead->ksmps)
 
 class ChuasOscillatorCubic : public OpcodeBase<ChuasOscillatorCubic>
 {
@@ -209,7 +209,7 @@ public:
     b = 0.0;
     c = -0.00121;
     d = 0.0;
-    ksmps = csound->GetKsmps(csound);
+    ksmps = head.insdshead->ksmps;
     warn(csound, "ChuasOscillatorCubic::init: L: %f  R0: %f  C2: %f  G: %f"
          "  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n",
          *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
@@ -460,7 +460,7 @@ public:
     M(2) = *V2_ / *E_;
     // M(3) = TimeSeries(1)/(E*G);
     M(3) = *I3_ / (*E_ * *G_);
-    ksmps = csound->GetKsmps(csound);
+    ksmps = head.insdshead->ksmps;
     warn(csound, "ChuasOscillatorPiecewise::init: L: %f  R0: %f  C2: %f  G: "
          "%f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2):"
          " %f  M(3): %f step: %f\n",
