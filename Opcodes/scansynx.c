@@ -53,8 +53,8 @@
 #include <math.h>
 #include "cwindow.h"
 
-#undef CS_KSMPS
-#define CS_KSMPS (csound->GetKsmps(csound))
+/* #undef CS_KSMPS */
+/* #define CS_KSMPS (csound->GetKsmps(csound)) */
 
 /* Order of interpolation of scanning */
 /* Either 1, 2 (linear), 3 (cubic) or 4 (quadratic) */

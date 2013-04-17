@@ -102,6 +102,7 @@ def runTest():
 	["test47.csd", "until loop and t-variables"],
 	["test48.csd", "expected failure with variable used before defined", 1],
 	["test_string.csd", "test string assignment and printing"],
+	["test_sprintf.csd", "test string assignment and printing"],
 
 	["test_arrays.csd", "test k-array with single dimension, assignment to expression value"],
 	["test_arrays2.csd", "test gk-array with single dimension, assignment to expression value"],

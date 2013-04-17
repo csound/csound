@@ -86,7 +86,7 @@ static int hm234set(CSOUND *csound, HARM234 *q, HARMON2 *p)
     if (q->auxch.auxp == NULL || minoct < q->minoct) {
       MYFLT minfrq = POWER(FL(2.0), minoct) * ONEPT;
       int16 nbufs =
-        (int16)(csound->GetKr(csound) * 3 / minfrq) + 1;/* recalc max pulse prd */
+        (int16)(CS_EKR * 3 / minfrq) + 1;/* recalc max pulse prd */
       int16 nbufsmps = nbufs * CS_KSMPS;
       int16 maxprd = (int16)(CS_ESR * 2 / minfrq);   /* incl sigmoid ends */
       int16 cnt;
