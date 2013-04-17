@@ -168,7 +168,7 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
  * termintated by a NULL */
 const char* POLY_IN_TYPES[] = {
     "x", "kacpri",
-    "T", "Sicp",
+    "T", "Sicpr",
     "U", "Sikcpr",
     "i", "cpri",
     "k", "cprki",

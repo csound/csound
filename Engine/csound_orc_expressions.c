@@ -41,7 +41,6 @@ extern void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable);
 extern void add_array_arg(CSOUND* csound, char* varName, int dimensions,
                           TYPE_TABLE* typeTable);
 
-extern char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 extern char* get_array_sub_type(CSOUND* csound, char*);
 
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
