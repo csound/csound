@@ -296,13 +296,13 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 1;
     {
-      int relestim = (int) (csound->GetKr(csound) * *p->dettack);
+      int relestim = (int) (CS_EKR * *p->dettack);
       /* 0.1 second decay extention */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->GetKr(csound))
-                      - (int32) (csound->GetKr(csound) * *p->dettack));
+    p->kloop = (int) ((int32) (p->h.insdshead->offtim * CS_EKR)
+                      - (int32) (CS_EKR * *p->dettack));
     return OK;
 }
 

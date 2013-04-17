@@ -132,14 +132,26 @@ public:
 public:
     long GetVersion() { if (!bBank) return 0; return ((fxSet*)bBank)->version; }
     long GetFxID() { if (!bBank) return 0; return ((fxSet*)bBank)->fxID; }
-    void SetFxID(long id) { if (bBank) ((fxSet*)bBank)->fxID = id; if (!bChunk) for (int i = GetNumPrograms() -1; i >= 0; i--) GetProgram(i)->fxID = id; }
+    void SetFxID(long id) 
+    { if (bBank) ((fxSet*)bBank)->fxID = id; 
+        if (!bChunk) 
+          for (int i = GetNumPrograms() -1; i >= 0; i--) GetProgram(i)->fxID = id; }
     long GetFxVersion() { if (!bBank) return 0; return ((fxSet*)bBank)->fxVersion; }
-    void SetFxVersion(long v) { if (bBank) ((fxSet*)bBank)->fxVersion = v; if (!bChunk) for (int i = GetNumPrograms() -1; i >= 0; i--) GetProgram(i)->fxVersion = v; }
-    long GetNumPrograms() { if (!bBank) return 0; return ((fxSet*)bBank)->numPrograms; }
+    void SetFxVersion(long v) { 
+        if (bBank) ((fxSet*)bBank)->fxVersion = v;
+        if (!bChunk) for (int i = GetNumPrograms() -1; i >= 0; i--)
+                       GetProgram(i)->fxVersion = v; }
+    long GetNumPrograms() { 
+        if (!bBank) return 0; return ((fxSet*)bBank)->numPrograms; }
     long GetNumParams() { if (bChunk) return 0; return GetProgram(0)->numParams; }
-    long GetChunkSize() { if (!bChunk) return 0; return ((fxChunkSet *)bBank)->chunkSize; }
+    long GetChunkSize() { 
+        if (!bChunk) return 0; return ((fxChunkSet *)bBank)->chunkSize; }
     void *GetChunk() { if (!bChunk) return 0; return ((fxChunkSet *)bBank)->chunk; }
-    bool SetChunk(void *chunk) { if (!bChunk) return false; memcpy(((fxChunkSet *)bBank)->chunk, chunk, ((fxChunkSet *)bBank)->chunkSize); return true; }
+    bool SetChunk(void *chunk) {
+        if (!bChunk) return false;
+        memcpy(((fxChunkSet *)bBank)->chunk, chunk,
+               ((fxChunkSet *)bBank)->chunkSize);
+        return true; }
 
         fxProgram * GetProgram(int nProgNum);
 
@@ -229,9 +241,11 @@ public:
     virtual bool LoadBank(char *name);
     virtual bool SaveBank(char *name);
 
-    virtual long EffDispatch(long opCode, long index=0, long value=0, void *ptr=0, float opt=0.);
+    virtual long EffDispatch(long opCode, long index=0, long value=0,
+                             void *ptr=0, float opt=0.);
         virtual void EffProcess(float **inputs, float **outputs, long sampleframes);
-        virtual void EffProcessReplacing(float **inputs, float **outputs, long sampleframes);
+        virtual void EffProcessReplacing(float **inputs, float **outputs,
+                                         long sampleframes);
         virtual void EffSetParameter(long index, float parameter);
         virtual float EffGetParameter(long index);
 
@@ -241,82 +255,134 @@ public:
     long EffGetProgram() { return EffDispatch(effGetProgram); }
     void EffSetProgramName(char *ptr) { EffDispatch(effSetProgramName, 0, 0, ptr); }
     void EffGetProgramName(char *ptr) { EffDispatch(effGetProgramName, 0, 0, ptr); }
-    void EffGetParamLabel(long index, char *ptr) { EffDispatch(effGetParamLabel, index, 0, ptr); }
-    void EffGetParamDisplay(long index, char *ptr) { EffDispatch(effGetParamDisplay, index, 0, ptr); }
-    void EffGetParamName(long index, char *ptr) { EffDispatch(effGetParamName, index, 0, ptr); }
-    void EffSetSampleRate(float fSampleRate) { EffDispatch(effSetSampleRate, 0, 0, 0, fSampleRate); }
+    void EffGetParamLabel(long index, char *ptr) { 
+         EffDispatch(effGetParamLabel, index, 0, ptr); }
+    void EffGetParamDisplay(long index, char *ptr) {
+         EffDispatch(effGetParamDisplay, index, 0, ptr); }
+    void EffGetParamName(long index, char *ptr) {
+         EffDispatch(effGetParamName, index, 0, ptr); }
+    void EffSetSampleRate(float fSampleRate) {
+         EffDispatch(effSetSampleRate, 0, 0, 0, fSampleRate); }
     void EffSetBlockSize(long value) { EffDispatch(effSetBlockSize, 0, value); }
     void EffMainsChanged(bool bOn) { EffDispatch(effMainsChanged, 0, bOn); }
     float EffGetVu() { return (float)EffDispatch(effGetVu) / (float)32767.; }
-    long EffEditGetRect(ERect **ptr) { return EffDispatch(effEditGetRect, 0, 0, ptr); }
-    long EffEditOpen(void *ptr) { long l = EffDispatch(effEditOpen, 0, 0, ptr); if (l > 0) bEditOpen = true; return l; }
+    long EffEditGetRect(ERect **ptr) {
+         return EffDispatch(effEditGetRect, 0, 0, ptr); }
+    long EffEditOpen(void *ptr) { long l = EffDispatch(effEditOpen, 0, 0, ptr);
+                                  if (l > 0) bEditOpen = true; return l; }
     void EffEditClose() { EffDispatch(effEditClose); bEditOpen = false; }
     void EffEditIdle() { if (bEditOpen) EffDispatch(effEditIdle); }
 #if MAC
     void EffEditDraw(void *ptr) { EffDispatch(nEffect, effEditDraw, 0, 0, ptr); }
-    long EffEditMouse(long index, long value) { return EffDispatch(nEffect, effEditMouse, index, value); }
+    long EffEditMouse(long index, long value) {
+         return EffDispatch(nEffect, effEditMouse, index, value); }
     long EffEditKey(long value) { return EffDispatch(effEditKey, 0, value); }
     void EffEditTop() { EffDispatch(effEditTop); }
     void EffEditSleep() { EffDispatch(effEditSleep); }
 #endif
     long EffIdentify() { return EffDispatch(effIdentify); }
-    long EffGetChunk(void **ptr, bool isPreset = false) { return EffDispatch(effGetChunk, isPreset, 0, ptr); }
-    long EffSetChunk(void *data, long byteSize, bool isPreset = false) { return EffDispatch(effSetChunk, isPreset, byteSize, data); }
+    long EffGetChunk(void **ptr, bool isPreset = false) {
+         return EffDispatch(effGetChunk, isPreset, 0, ptr); }
+    long EffSetChunk(void *data, long byteSize, bool isPreset = false) {
+         return EffDispatch(effSetChunk, isPreset, byteSize, data); }
                                         //VST 2.0
-    long EffProcessEvents(VstEvents* ptr) { return EffDispatch(effProcessEvents, 0, 0, ptr); }
-    long EffCanBeAutomated(long index) { return EffDispatch(effCanBeAutomated, index); }
-    long EffString2Parameter(long index, char *ptr) { return EffDispatch(effString2Parameter, index, 0, ptr); }
-    long EffGetNumProgramCategories() { return EffDispatch(effGetNumProgramCategories); }
-    long EffGetProgramNameIndexed(long category, long index, char* text) { return EffDispatch(effGetProgramNameIndexed, index, category, text); }
+    long EffProcessEvents(VstEvents* ptr) {
+         return EffDispatch(effProcessEvents, 0, 0, ptr); }
+    long EffCanBeAutomated(long index) {
+         return EffDispatch(effCanBeAutomated, index); }
+    long EffString2Parameter(long index, char *ptr) {
+         return EffDispatch(effString2Parameter, index, 0, ptr); }
+    long EffGetNumProgramCategories() {
+         return EffDispatch(effGetNumProgramCategories); }
+    long EffGetProgramNameIndexed(long category, long index, char* text) {
+         return EffDispatch(effGetProgramNameIndexed, index, category, text); }
     long EffCopyProgram(long index) { return EffDispatch(effCopyProgram, index); }
-    long EffConnectInput(long index, bool state) { return EffDispatch(effConnectInput, index, state); }
-    long EffConnectOutput(long index, bool state) { return EffDispatch(effConnectOutput, index, state); }
-    long EffGetInputProperties(long index, VstPinProperties *ptr) { return EffDispatch(effGetInputProperties, index, 0, ptr); }
-    long EffGetOutputProperties(long index, VstPinProperties *ptr) { return EffDispatch(effGetOutputProperties, index, 0, ptr); }
+    long EffConnectInput(long index, bool state) {
+         return EffDispatch(effConnectInput, index, state); }
+    long EffConnectOutput(long index, bool state) {
+         return EffDispatch(effConnectOutput, index, state); }
+    long EffGetInputProperties(long index, VstPinProperties *ptr) {
+         return EffDispatch(effGetInputProperties, index, 0, ptr); }
+    long EffGetOutputProperties(long index, VstPinProperties *ptr) {
+         return EffDispatch(effGetOutputProperties, index, 0, ptr); }
     long EffGetPlugCategory() { return EffDispatch(effGetPlugCategory); }
     long EffGetCurrentPosition() { return EffDispatch(effGetCurrentPosition); }
     long EffGetDestinationBuffer() { return EffDispatch(effGetDestinationBuffer); }
-    long EffOfflineNotify(VstAudioFile* ptr, long numAudioFiles, bool start) { return EffDispatch(effOfflineNotify, start, numAudioFiles, ptr); }
-    long EffOfflinePrepare(VstOfflineTask *ptr, long count) { return EffDispatch(effOfflinePrepare, 0, count, ptr); }
-    long EffOfflineRun(VstOfflineTask *ptr, long count) { return EffDispatch(effOfflineRun, 0, count, ptr); }
-    long EffProcessVarIo(VstVariableIo* varIo) { return EffDispatch(effProcessVarIo, 0, 0, varIo); }
-    long EffSetSpeakerArrangement(VstSpeakerArrangement* pluginInput, VstSpeakerArrangement* pluginOutput) { return EffDispatch(effSetSpeakerArrangement, 0, (long)pluginInput, pluginOutput); }
-    long EffSetBlockSizeAndSampleRate(long blockSize, float sampleRate) { return EffDispatch(effSetBlockSizeAndSampleRate, 0, blockSize, 0, sampleRate); }
+    long EffOfflineNotify(VstAudioFile* ptr, long numAudioFiles, bool start) {
+         return EffDispatch(effOfflineNotify, start, numAudioFiles, ptr); }
+    long EffOfflinePrepare(VstOfflineTask *ptr, long count) {
+         return EffDispatch(effOfflinePrepare, 0, count, ptr); }
+    long EffOfflineRun(VstOfflineTask *ptr, long count) {
+         return EffDispatch(effOfflineRun, 0, count, ptr); }
+    long EffProcessVarIo(VstVariableIo* varIo) {
+         return EffDispatch(effProcessVarIo, 0, 0, varIo); }
+    long EffSetSpeakerArrangement(VstSpeakerArrangement* pluginInput,
+                                 VstSpeakerArrangement* pluginOutput) {
+         return EffDispatch(effSetSpeakerArrangement, 0, (long)pluginInput,
+                            pluginOutput); }
+    long EffSetBlockSizeAndSampleRate(long blockSize, float sampleRate) {
+         return EffDispatch(effSetBlockSizeAndSampleRate, 0, blockSize,
+                            0, sampleRate); }
     long EffSetBypass(bool onOff) { return EffDispatch(effSetBypass, 0, onOff); }
-    long EffGetEffectName(char *ptr) { return EffDispatch(effGetEffectName, 0, 0, ptr); }
-    long EffGetErrorText(char *ptr) { return EffDispatch(effGetErrorText, 0, 0, ptr); }
-    long EffGetVendorString(char *ptr) { return EffDispatch(effGetVendorString, 0, 0, ptr); }
-    long EffGetProductString(char *ptr) { return EffDispatch(effGetProductString, 0, 0, ptr); }
+    long EffGetEffectName(char *ptr) {
+         return EffDispatch(effGetEffectName, 0, 0, ptr); }
+    long EffGetErrorText(char *ptr) {
+         return EffDispatch(effGetErrorText, 0, 0, ptr); }
+    long EffGetVendorString(char *ptr) {
+         return EffDispatch(effGetVendorString, 0, 0, ptr); }
+    long EffGetProductString(char *ptr) {
+         return EffDispatch(effGetProductString, 0, 0, ptr); }
     long EffGetVendorVersion() { return EffDispatch(effGetVendorVersion); }
-    long EffVendorSpecific(long index, long value, void *ptr, float opt) { return EffDispatch(effVendorSpecific, index, value, ptr, opt); }
-    long EffCanDo(const char *ptr) { return EffDispatch(effCanDo, 0, 0, (void *)ptr); }
+    long EffVendorSpecific(long index, long value, void *ptr, float opt) {
+         return EffDispatch(effVendorSpecific, index, value, ptr, opt); }
+    long EffCanDo(const char *ptr) {
+         return EffDispatch(effCanDo, 0, 0, (void *)ptr); }
     long EffGetTailSize() { return EffDispatch(effGetTailSize); }
     long EffIdle() { if (bNeedIdle) return EffDispatch(effIdle); else return 0; }
     long EffGetIcon() { return EffDispatch(effGetIcon); }
-    long EffSetViewPosition(long x, long y) { return EffDispatch(effSetViewPosition, x, y); }
-    long EffGetParameterProperties(long index, VstParameterProperties* ptr) { return EffDispatch(effGetParameterProperties, index, 0, ptr); }
+    long EffSetViewPosition(long x, long y) {
+         return EffDispatch(effSetViewPosition, x, y); }
+    long EffGetParameterProperties(long index, VstParameterProperties* ptr) {
+         return EffDispatch(effGetParameterProperties, index, 0, ptr); }
     long EffKeysRequired() { return EffDispatch(effKeysRequired); }
     long EffGetVstVersion() { return EffDispatch(effGetVstVersion); }
                                         //VST 2.1 extensions
-    long EffKeyDown(VstKeyCode &keyCode) { return EffDispatch(effEditKeyDown, keyCode.character, keyCode.virt, 0, keyCode.modifier); }
-    long EffKeyUp(VstKeyCode &keyCode) { return EffDispatch(effEditKeyUp, keyCode.character, keyCode.virt, 0, keyCode.modifier); }
+    long EffKeyDown(VstKeyCode &keyCode) {
+         return EffDispatch(effEditKeyDown, keyCode.character, keyCode.virt,
+                            0, keyCode.modifier); }
+    long EffKeyUp(VstKeyCode &keyCode) {
+         return EffDispatch(effEditKeyUp, keyCode.character, keyCode.virt,
+                            0, keyCode.modifier); }
     void EffSetKnobMode(long value) { EffDispatch(effSetEditKnobMode, 0, value); }
-    long EffGetMidiProgramName(long channel, MidiProgramName* midiProgramName) { return EffDispatch(effGetMidiProgramName, channel, 0, midiProgramName); }
-    long EffGetCurrentMidiProgram (long channel, MidiProgramName* currentProgram) { return EffDispatch(effGetCurrentMidiProgram, channel, 0, currentProgram); }
-    long EffGetMidiProgramCategory (long channel, MidiProgramCategory* category) { return EffDispatch(effGetMidiProgramCategory, channel, 0, category); }
-    long EffHasMidiProgramsChanged (long channel) { return EffDispatch(effHasMidiProgramsChanged, channel); }
-    long EffGetMidiKeyName(long channel, MidiKeyName* keyName) { return EffDispatch(effGetMidiKeyName, channel, 0, keyName); }
+    long EffGetMidiProgramName(long channel, MidiProgramName* midiProgramName) {
+         return EffDispatch(effGetMidiProgramName, channel, 0, midiProgramName); }
+    long EffGetCurrentMidiProgram (long channel, MidiProgramName* currentProgram) {
+         return EffDispatch(effGetCurrentMidiProgram, channel, 0, currentProgram); }
+    long EffGetMidiProgramCategory (long channel, MidiProgramCategory* category) {
+         return EffDispatch(effGetMidiProgramCategory, channel, 0, category); }
+    long EffHasMidiProgramsChanged (long channel) {
+         return EffDispatch(effHasMidiProgramsChanged, channel); }
+    long EffGetMidiKeyName(long channel, MidiKeyName* keyName) {
+         return EffDispatch(effGetMidiKeyName, channel, 0, keyName); }
     long EffBeginSetProgram() { return EffDispatch(effBeginSetProgram); }
     long EffEndSetProgram() { return EffDispatch(effEndSetProgram); }
                                         // VST 2.3 Extensions
-    long EffGetSpeakerArrangement(VstSpeakerArrangement** pluginInput, VstSpeakerArrangement** pluginOutput) {EffDispatch(effGetSpeakerArrangement, 0, (long)pluginInput, pluginOutput); }
-    long EffSetTotalSampleToProcess (long value) { return EffDispatch(effSetTotalSampleToProcess, 0, value); }
-    long EffGetNextShellPlugin(char *name) { return EffDispatch(effShellGetNextPlugin, 0, 0, name); }
+    long EffGetSpeakerArrangement(VstSpeakerArrangement** pluginInput,
+                                  VstSpeakerArrangement** pluginOutput) {
+         EffDispatch(effGetSpeakerArrangement, 0, (long)pluginInput,
+                     pluginOutput); }
+    long EffSetTotalSampleToProcess (long value) {
+         return EffDispatch(effSetTotalSampleToProcess, 0, value); }
+    long EffGetNextShellPlugin(char *name) {
+         return EffDispatch(effShellGetNextPlugin, 0, 0, name); }
     long EffStartProcess() { return EffDispatch(effStartProcess); }
     long EffStopProcess() { return EffDispatch(effStopProcess); }
-    long EffSetPanLaw(long type, float val) { return EffDispatch(effSetPanLaw, 0, type, 0, val); }
-    long EffBeginLoadBank(VstPatchChunkInfo* ptr) { return EffDispatch(effBeginLoadBank, 0, 0, ptr); }
-    long EffBeginLoadProgram(VstPatchChunkInfo* ptr) { return EffDispatch(effBeginLoadProgram, 0, 0, ptr); }
+    long EffSetPanLaw(long type, float val) {
+         return EffDispatch(effSetPanLaw, 0, type, 0, val); }
+    long EffBeginLoadBank(VstPatchChunkInfo* ptr) {
+         return EffDispatch(effBeginLoadBank, 0, 0, ptr); }
+    long EffBeginLoadProgram(VstPatchChunkInfo* ptr) {
+         return EffDispatch(effBeginLoadProgram, 0, 0, ptr); }
 
 // overridables
 public:
@@ -347,21 +413,28 @@ protected:
         void **aEffects;
         static CVSTHost * pHost;
 
-        static long VSTCALLBACK AudioMasterCallback(AEffect *effect, long opcode, long index, long value, void *ptr, float opt);
+        static long VSTCALLBACK AudioMasterCallback(AEffect *effect, long opcode,
+                                                    long index, long value,
+                                                    void *ptr, float opt);
         int Search(AEffect *pEffect);
         int GetPreviousPlugIn(int nEffect);
         int GetNextPlugIn(int nEffect);
-    long EffDispatch(int nEffect, long opCode, long index=0, long value=0, void *ptr=0, float opt=0.);
+    long EffDispatch(int nEffect, long opCode, long index=0, long value=0,
+                     void *ptr=0, float opt=0.);
 
 public:
         int LoadPlugin(const char * lpszName);
     int GetSize() { return naEffects; }
-    CEffect *GetAt(int nIndex) { if ((nIndex >= 0) && (nIndex < naEffects)) return (CEffect *)aEffects[nIndex]; else return 0; }
+    CEffect *GetAt(int nIndex) {
+        if ((nIndex >= 0) && (nIndex < naEffects))
+           return (CEffect *)aEffects[nIndex]; else return 0; }
         void RemoveAt(int nIndex);
         void RemoveAll();
 
-        void EffProcess(int nEffect, float **inputs, float **outputs, long sampleframes);
-        void EffProcessReplacing(int nEffect, float **inputs, float **outputs, long sampleframes);
+        void EffProcess(int nEffect, float **inputs, float **outputs,
+                        long sampleframes);
+        void EffProcessReplacing(int nEffect, float **inputs, float **outputs,
+                                 long sampleframes);
         void EffSetParameter(int nEffect, long index, float parameter);
         float EffGetParameter(int nEffect, long index);
 
@@ -372,7 +445,8 @@ public:
     void EffSetProgram(int nEffect, long lValue)
       { if (GetAt(nEffect)) GetAt(nEffect)->EffSetProgram(lValue); }
     long EffGetProgram(int nEffect)
-      { if (GetAt(nEffect)) return (GetAt(nEffect))->EffGetProgram(); else return 0; }
+      { if (GetAt(nEffect)) return (GetAt(nEffect))->EffGetProgram();
+        else return 0; }
     void EffSetProgramName(int nEffect, char *ptr)
       { if (GetAt(nEffect)) GetAt(nEffect)->EffSetProgramName(ptr); }
     void EffGetProgramName(int nEffect, char *ptr)
@@ -392,9 +466,11 @@ public:
     float EffGetVu(int nEffect)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetVu(); else return 0.f; }
     long EffEditGetRect(int nEffect, ERect **ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffEditGetRect(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffEditGetRect(ptr);
+        else return 0; }
     long EffEditOpen(int nEffect, void *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffEditOpen(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffEditOpen(ptr);
+        else return 0; }
     void EffEditClose(int nEffect)
       { if (GetAt(nEffect)) GetAt(nEffect)->EffEditClose(); }
     void EffEditIdle(int nEffect)
@@ -403,9 +479,11 @@ public:
     void EffEditDraw(int nEffect, void *ptr)
       { if (GetAt(nEffect)) GetAt(nEffect)->EffEditDraw(ptr); }
     long EffEditMouse(int nEffect, long index, long value)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffEditMouse(index, value); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffEditMouse(index, value);
+        else return 0; }
     long EffEditKey(int nEffect, long value)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffEditKey(value); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffEditKey(value);
+        else return 0; }
     void EffEditTop(int nEffect)
       { if (GetAt(nEffect)) GetAt(nEffect)->EffEditTop(); }
     void EffEditSleep(int nEffect)
@@ -414,116 +492,197 @@ public:
     long EffIdentify(int nEffect)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffIdentify(); else return 0; }
     long EffGetChunk(int nEffect, void **ptr, bool isPreset = false)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetChunk(ptr, isPreset); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetChunk(ptr, isPreset);
+        else return 0; }
     long EffSetChunk(int nEffect, void *data, long byteSize, bool isPreset = false)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetChunk(data, byteSize, isPreset); else return 0; }
+      { if (GetAt(nEffect)) 
+          return GetAt(nEffect)->EffSetChunk(data, byteSize, isPreset);
+        else return 0; }
                                         // VST 2.0
     long EffProcessEvents(int nEffect, VstEvents* ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffProcessEvents(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffProcessEvents(ptr);
+        else return 0; }
     long EffCanBeAutomated(int nEffect, long index)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffCanBeAutomated(index); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffCanBeAutomated(index);
+        else return 0; }
     long EffString2Parameter(int nEffect, long index, char *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffString2Parameter(index, ptr); else return 0; }
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffString2Parameter(index, ptr); else return 0; }
     long EffGetNumProgramCategories(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetNumProgramCategories(); else return 0; }
-    long EffGetProgramNameIndexed(int nEffect, long category, long index, char* text)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetProgramNameIndexed(category, index, text); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetNumProgramCategories();
+        else return 0; }
+    long EffGetProgramNameIndexed(int nEffect, long category, long index,
+                                  char* text)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetProgramNameIndexed(category, index, text);
+        else return 0; }
     long EffCopyProgram(int nEffect, long index)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffCopyProgram(index); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffCopyProgram(index);
+        else return 0; }
     long EffConnectInput(int nEffect, long index, bool state)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffConnectInput(index, state); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffConnectInput(index, state);
+        else return 0; }
     long EffConnectOutput(int nEffect, long index, bool state)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffConnectOutput(index, state); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffConnectOutput(index, state);
+        else return 0; }
     long EffGetInputProperties(int nEffect, long index, VstPinProperties *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetInputProperties(index, ptr); else return 0; }
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetInputProperties(index, ptr); else return 0; }
     long EffGetOutputProperties(int nEffect, long index, VstPinProperties *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetOutputProperties(index, ptr); else return 0; }
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetOutputProperties(index, ptr);
+        else return 0; }
     long EffGetPlugCategory(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetPlugCategory(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetPlugCategory();
+        else return 0; }
     long EffGetCurrentPosition(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetCurrentPosition(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetCurrentPosition();
+        else return 0; }
     long EffGetDestinationBuffer(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetDestinationBuffer(); else return 0; }
-    long EffOfflineNotify(int nEffect, VstAudioFile* ptr, long numAudioFiles, bool start)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffOfflineNotify(ptr, numAudioFiles, start); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetDestinationBuffer();
+        else return 0; }
+    long EffOfflineNotify(int nEffect, VstAudioFile* ptr,
+                          long numAudioFiles, bool start)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffOfflineNotify(ptr, numAudioFiles, start);
+        else return 0; }
     long EffOfflinePrepare(int nEffect, VstOfflineTask *ptr, long count)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffOfflinePrepare(ptr, count); else return 0; }
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffOfflinePrepare(ptr, count); else return 0; }
     long EffOfflineRun(int nEffect, VstOfflineTask *ptr, long count)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffOfflineRun(ptr, count); else return 0; }
+      { if (GetAt(nEffect)) 
+          return GetAt(nEffect)->EffOfflineRun(ptr, count); else return 0; }
     long EffProcessVarIo(int nEffect, VstVariableIo* varIo)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffProcessVarIo(varIo); else return 0; }
-    long EffSetSpeakerArrangement(int nEffect, VstSpeakerArrangement* pluginInput, VstSpeakerArrangement* pluginOutput)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetSpeakerArrangement(pluginInput, pluginOutput); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffProcessVarIo(varIo);
+        else return 0; }
+    long EffSetSpeakerArrangement(int nEffect, VstSpeakerArrangement* pluginInput,
+                                  VstSpeakerArrangement* pluginOutput)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffSetSpeakerArrangement(pluginInput,
+                                                          pluginOutput);
+        else return 0; }
     long EffSetBlockSizeAndSampleRate(int nEffect, long blockSize, float sampleRate)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetBlockSizeAndSampleRate(blockSize, sampleRate); else return 0; }
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffSetBlockSizeAndSampleRate(blockSize,
+                                                              sampleRate);
+        else return 0; }
     long EffSetBypass(int nEffect, bool onOff)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetBypass(onOff); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetBypass(onOff);
+        else return 0; }
     long EffGetEffectName(int nEffect, char *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetEffectName(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetEffectName(ptr);
+        else return 0; }
     long EffGetErrorText(int nEffect, char *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetErrorText(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetErrorText(ptr);
+        else return 0; }
     long EffGetVendorString(int nEffect, char *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetVendorString(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetVendorString(ptr);
+        else return 0; }
     long EffGetProductString(int nEffect, char *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetProductString(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetProductString(ptr);
+        else return 0; }
     long EffGetVendorVersion(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetVendorVersion(); else return 0; }
-    long EffVendorSpecific(int nEffect, long index, long value, void *ptr, float opt)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffVendorSpecific(index, value, ptr, opt); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetVendorVersion();
+        else return 0; }
+    long EffVendorSpecific(int nEffect, long index, long value,
+                           void *ptr, float opt)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffVendorSpecific(index, value, ptr, opt);
+        else return 0; }
     long EffCanDo(int nEffect, const char *ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffCanDo(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffCanDo(ptr);
+        else return 0; }
     long EffGetTailSize(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetTailSize(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetTailSize();
+        else return 0; }
     long EffIdle(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffIdle(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffIdle();
+        else return 0; }
     long EffGetIcon(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetIcon(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetIcon();
+        else return 0; }
     long EffSetViewPosition(int nEffect, long x, long y)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetViewPosition(x, y); else return 0; }
-    long EffGetParameterProperties(int nEffect, long index, VstParameterProperties* ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetParameterProperties(index, ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetViewPosition(x, y);
+        else return 0; }
+    long EffGetParameterProperties(int nEffect, long index,
+                                   VstParameterProperties* ptr)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetParameterProperties(index, ptr);
+        else return 0; }
     long EffKeysRequired(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffKeysRequired(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffKeysRequired();
+        else return 0; }
     long EffGetVstVersion(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetVstVersion(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetVstVersion();
+        else return 0; }
                                         // VST 2.1 extensions
     long EffKeyDown(int nEffect, VstKeyCode &keyCode)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffKeyDown(keyCode); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffKeyDown(keyCode);
+        else return 0; }
     long EffKeyUp(int nEffect, VstKeyCode &keyCode)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffKeyUp(keyCode); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffKeyUp(keyCode);
+        else return 0; }
     void EffSetKnobMode(int nEffect, long value)
       { if (GetAt(nEffect)) GetAt(nEffect)->EffSetKnobMode(value); }
-    long EffGetMidiProgramName(int nEffect, long channel, MidiProgramName* midiProgramName)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetMidiProgramName(channel, midiProgramName); else return 0; }
-    long EffGetCurrentMidiProgram(int nEffect, long channel, MidiProgramName* currentProgram)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetCurrentMidiProgram(channel, currentProgram); else return 0; }
-    long EffGetMidiProgramCategory(int nEffect, long channel, MidiProgramCategory* category)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetMidiProgramCategory(channel, category); else return 0; }
+    long EffGetMidiProgramName(int nEffect, long channel,
+                               MidiProgramName* midiProgramName)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetMidiProgramName(channel, midiProgramName);
+        else return 0; }
+    long EffGetCurrentMidiProgram(int nEffect, long channel,
+                                  MidiProgramName* currentProgram)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetCurrentMidiProgram(channel, currentProgram);
+        else return 0; }
+    long EffGetMidiProgramCategory(int nEffect, long channel,
+                                   MidiProgramCategory* category)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetMidiProgramCategory(channel, category);
+        else return 0; }
     long EffHasMidiProgramsChanged(int nEffect, long channel)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffHasMidiProgramsChanged(channel); else return 0; }
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffHasMidiProgramsChanged(channel);
+        else return 0; }
     long EffGetMidiKeyName(int nEffect, long channel, MidiKeyName* keyName)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetMidiKeyName(channel, keyName); else return 0; }
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetMidiKeyName(channel, keyName);
+        else return 0; }
     long EffBeginSetProgram(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginSetProgram(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginSetProgram();
+        else return 0; }
     long EffEndSetProgram(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginSetProgram(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginSetProgram();
+        else return 0; }
                                         // VST 2.3 Extensions
-    long EffGetSpeakerArrangement(int nEffect, VstSpeakerArrangement** pluginInput, VstSpeakerArrangement** pluginOutput)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetSpeakerArrangement(pluginInput, pluginOutput); else return 0; }
+    long EffGetSpeakerArrangement(int nEffect,
+                                  VstSpeakerArrangement** pluginInput,
+                                  VstSpeakerArrangement** pluginOutput)
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffGetSpeakerArrangement(pluginInput,
+                                                          pluginOutput);
+        else return 0; }
     long EffSetTotalSampleToProcess(int nEffect, long value)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetTotalSampleToProcess(value); else return 0; }
+      { if (GetAt(nEffect))
+          return GetAt(nEffect)->EffSetTotalSampleToProcess(value);
+        else return 0; }
     long EffGetNextShellPlugin(int nEffect, char *name)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetNextShellPlugin(name); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetNextShellPlugin(name);
+        else return 0; }
     long EffStartProcess(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffStartProcess(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffStartProcess();
+        else return 0; }
     long EffStopProcess(int nEffect)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffStopProcess(); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffStopProcess();
+        else return 0; }
     long EffSetPanLaw(int nEffect, long type, float val)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetPanLaw(type, val); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetPanLaw(type, val);
+        else return 0; }
     long EffBeginLoadBank(int nEffect, VstPatchChunkInfo* ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginLoadBank(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginLoadBank(ptr);
+        else return 0; }
     long EffBeginLoadProgram(int nEffect, VstPatchChunkInfo* ptr)
-      { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginLoadProgram(ptr); else return 0; }
+      { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginLoadProgram(ptr);
+        else return 0; }
 
 // overridable functions
 public:

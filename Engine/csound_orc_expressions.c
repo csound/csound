@@ -1047,7 +1047,8 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
                                                          labelEnd->value->lexeme),
                                                typeTable->labelList);
 
-                gotoType = (last->left->value->lexeme[1] == 'B'); // checking for #B... var name
+                gotoType = // checking for #B... var name
+                  (last->left->value->lexeme[1] == 'B');
                 gotoToken =
                 create_goto_token(csound,
                                   last->left->value->lexeme,

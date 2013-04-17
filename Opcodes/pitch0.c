@@ -51,7 +51,8 @@ int instcount(CSOUND *csound, INSTCNT *p)
       n = (int) csound->strarg2insno(csound, p->ins, p->XSTRCODE);
     else
       n = *p->ins;
-    if (n<0 || n > csound->engineState.maxinsno || csound->engineState.instrtxtp[n] == NULL)
+    if (n<0 || n > csound->engineState.maxinsno ||
+        csound->engineState.instrtxtp[n] == NULL)
       *p->cnt = FL(0.0);
     else if (n==0) {  /* Count all instruments */
       int tot = 1;
@@ -77,7 +78,8 @@ int instcount(CSOUND *csound, INSTCNT *p)
 int cpuperc(CSOUND *csound, CPU_PERC *p)
 {
     int n = (int) csound->strarg2insno(csound, p->instrnum, p->XSTRCODE);
-    if (n > 0 && n <= csound->engineState.maxinsno && csound->engineState.instrtxtp[n] != NULL)
+    if (n > 0 && n <= csound->engineState.maxinsno &&
+        csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
       csound->engineState.instrtxtp[n]->cpuload = *p->ipercent;
     return OK;
@@ -86,7 +88,8 @@ int cpuperc(CSOUND *csound, CPU_PERC *p)
 int maxalloc(CSOUND *csound, CPU_PERC *p)
 {
     int n = (int) csound->strarg2insno(csound, p->instrnum, p->XSTRCODE);
-    if (n > 0 && n <= csound->engineState.maxinsno && csound->engineState.instrtxtp[n] != NULL)
+    if (n > 0 && n <= csound->engineState.maxinsno &&
+        csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
       csound->engineState.instrtxtp[n]->maxalloc = (int)*p->ipercent;
     return OK;

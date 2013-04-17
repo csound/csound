@@ -182,7 +182,8 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
       coef2 = FL(1.0)/(FL(1.0) + b + k);
 
       ar = p->ar;
-      for (n=offset;n<nsmps; n++) { /* This can be speeded up avoiding indirection */
+      for (n=offset;n<nsmps; n++) {
+        /* This can be speeded up avoiding indirection */
         ar[n] = yn = (coef1 * lynm1 - k * lynm2 + asig[n]) * coef2;
         lynm2 = lynm1;
         lynm1 =  yn;
@@ -197,10 +198,12 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "lowres",   S(LOWPR),   0, 5, "a", "akko", (SUBR)lowpr_set, NULL,   (SUBR)lowpr   },
-{ "lowresx",  S(LOWPRX),  0, 5, "a", "akkoo",(SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
+{ "lowres",   S(LOWPR),   0, 5, "a", "akko",
+                          (SUBR)lowpr_set, NULL,   (SUBR)lowpr   },
+{ "lowresx",  S(LOWPRX),  0, 5, "a", "akkoo",
+                          (SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
 { "vlowres", S(LOWPR_SEP),0, 5, "a", "akkik",
-                                  (SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
+                          (SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
 };
 
 int lowpassr_init_(CSOUND *csound)
@@ -208,4 +211,3 @@ int lowpassr_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

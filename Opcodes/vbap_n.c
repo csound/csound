@@ -554,10 +554,10 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     }
     if (p->dim == 2)
       p->point_change_interval =
-        (int)(csound->GetKr(csound) * *p->dur /(fabs(*p->field_am) - 1.0));
+        (int)(CS_EKR * *p->dur /(fabs(*p->field_am) - 1.0));
     else if (LIKELY(p->dim == 3))
       p->point_change_interval =
-        (int)(csound->GetKr(csound) * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
+        (int)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
       csound->Die(csound, Str("Wrong dimension"));
     p->point_change_counter = 0;
