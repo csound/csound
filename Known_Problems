@@ -18,3 +18,6 @@ wrong perf function selected in recursive UDOs with local ksmps
       -- fixed in git sources  Sun Apr 14 19:52 UT
 T opcode arg type did not match against reserved var types (r-)
       -- fixed in git source Wed Apr 17 11:47 2013 +0100
+local ksmps UDO breaking multicore performance assumptions
+      -- fixed by setting local ksmps for opcodes instead of the global ksmps, completed Wed Apr 17 12:49:05 2013 +0100
+
