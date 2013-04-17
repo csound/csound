@@ -51,12 +51,13 @@ extern "C" {
     *p->iVSThandle = (MYFLT) ST(vstPlugins).size();
     ST(vstPlugins).push_back(plugin);
     if ((int) ST(vstPlugins).size() == 1) {
-      plugin->Log("=============================================================\n");
-      plugin->Log("vst4cs version %s by Andres Cabrera and Michael Gogins\n", version.c_str());
+      plugin->Log("============================================================\n");
+      plugin->Log("vst4cs version %s by Andres Cabrera and Michael Gogins\n",
+                  version.c_str());
       plugin->Log("Using code from H. Seib's VstHost and T. Grill's vst~ object\n");
       plugin->Log("VST is a trademark of Steinberg Media Technologies GmbH\n");
       plugin->Log("VST Plug-In Technology by Steinberg\n");
-      plugin->Log("=============================================================\n");
+      plugin->Log("============================================================\n");
     }
     char    vstplugname[0x100];
     strcpy(vstplugname, (char *) p->iplugin);
@@ -275,7 +276,8 @@ extern "C" {
 
     p->prvMidiData = midiData;
     plugin = ST(vstPlugins)[p->vstHandle];
-    plugin->Debug("vstmidiout. kstatus = %i kdata1 = %i kdata2 = %i--- mididata = %i\n",
+    plugin->Debug("vstmidiout. kstatus = %i kdata1 = %i kdata2 = %i"
+                  "--- mididata = %i\n",
                   (int) *(p->kstatus),
                   (int) *(p->kdata1),
                   (int) *(p->kdata2),
@@ -466,7 +468,8 @@ extern "C" {
                 plugin->EffGetProgramName(szName);
                 b.SetProgramName(i, szName);
                 for (j = 0; j < nParms; j++)
-                  b.SetProgParm(i, j, plugin->aeffect->getParameter(plugin->aeffect,j));
+                  b.SetProgParm(i, j,
+                                plugin->aeffect->getParameter(plugin->aeffect,j));
               }
             plugin->EffSetProgram(cProg);
           }
@@ -525,7 +528,8 @@ extern "C" {
     size_t vstHandle = (size_t) *p->iVSThandle;
     p->vstPlugin = ST(vstPlugins)[vstHandle];
     p->startTime = CURTIME;
-    // The note may be scheduled to turn on some frames after the actual start of this kperiod.
+    // The note may be scheduled to turn on some frames after the actual
+    // start of this kperiod.
     // Use the warped p2 to compute this time.
     double onTime = double(csound->timeOffs + p->h.insdshead->p2);
     double deltaTime = onTime - CURTIME;
@@ -547,12 +551,16 @@ extern "C" {
     }
     p->channel = int(*p->iChannel) & 0xf;
     // Split the real-valued MIDI key number
-    // into an integer key number and an integer number of cents (plus or minus 50 cents).
+    // into an integer key number and an integer number of cents (plus or
+    // minus 50 cents).
     p->key = int(double(*p->iKey) + 0.5);
-    int cents = int( ( ( double(*p->iKey) - double(p->key) ) * double(100.0) ) + double(0.5) );
+    int cents = int( ( ( double(*p->iKey) - double(p->key) ) * double(100.0) ) +
+                     double(0.5) );
     p->velocity = int(*p->iVelocity) & 0x7f;
-    p->vstPlugin->AddMIDI(144 | p->channel | (p->key << 8) | (p->velocity << 16), deltaFrames, cents);
-    // Ensure that the opcode instance is still active when we are scheduled to turn the note off!
+    p->vstPlugin->AddMIDI(144 | p->channel | (p->key << 8) | (p->velocity << 16),
+                          deltaFrames, cents);
+    // Ensure that the opcode instance is still active when we are scheduled
+    // to turn the note off!
     p->h.insdshead->xtratim = p->h.insdshead->xtratim + 2;
     p->on = true;
     if (csound->GetDebug(csound)) {
@@ -581,15 +589,22 @@ extern "C" {
         if (deltaTime > 0) {
           deltaFrames = int(deltaTime / csound->GetSr(csound));
         }
-        p->vstPlugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16), deltaFrames, 0);
+        p->vstPlugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16),
+                              deltaFrames, 0);
         p->on = false;
         if (csound->GetDebug(csound)) {
-          csound->Message(csound, "vstnote_perf:      csound time:  %f\n", CURTIME);
-          csound->Message(csound, "                   off time:     %f\n", p->offTime);
-          csound->Message(csound, "                   delta time:   %f\n", deltaTime);
-          csound->Message(csound, "                   delta frames: %d\n", deltaFrames);
-          csound->Message(csound, "                   channel:      %d\n", p->channel);
-          csound->Message(csound, "                   key:          %d\n", p->key);
+          csound->Message(csound, "vstnote_perf:      csound time:  %f\n",
+                          CURTIME);
+          csound->Message(csound, "                   off time:     %f\n",
+                          p->offTime);
+          csound->Message(csound, "                   delta time:   %f\n",
+                          deltaTime);
+          csound->Message(csound, "                   delta frames: %d\n",
+                          deltaFrames);
+          csound->Message(csound, "                   channel:      %d\n",
+                          p->channel);
+          csound->Message(csound, "                   key:          %d\n",
+                          p->key);
         }
       }
     }
@@ -597,20 +612,29 @@ extern "C" {
   }
 
   static OENTRY localops[] = {
-    { "vstinit",      sizeof(VSTINIT),        1, "i", "So", &vstinit, 0, 0 },
-    { "vstinfo",      sizeof(VSTINFO),        1, "", "i", &vstinfo, 0, 0 },
-    { "vstaudio",     sizeof(VSTAUDIO),       5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "iy", &vstaudio_init, 0, &vstaudio },
-    { "vstaudiog",    sizeof(VSTAUDIO),       5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "iy", &vstaudio_init, 0, &vstaudiog },
-    { "vstmidiout",   sizeof(VSTMIDIOUT),     3, "", "ikkkk", &vstmidiout_init, &vstmidiout, 0 },
-    { "vstparamget",  sizeof(VSTPARAMGET),    3, "k", "ik", &vstparamget_init, &vstparamget, 0 },
-    { "vstparamset",  sizeof(VSTPARAMSET),    3, "", "ikk", &vstparamset_init, &vstparamset, 0 },
-    { "vstbankload",  sizeof(VSTBANKLOAD),    1, "", "iS", &vstbankload, 0, 0 },
-    { "vstprogset",   sizeof(VSTPROGSET),     1, "", "ii", &vstprogset, 0, 0 },
-    { "vstedit",      sizeof(VSTEDIT),        1, "", "i", &vstedit_init, 0, 0 },
-    { "vsttempo",     sizeof(VSTTEMPO),       2, "" ,"ki",  0,  &vstSetTempo,         0/*,          &vstedit_deinit*/},
-    { "vstnote",      sizeof(VSTNOTEOUT),     3, "" ,"iiiii",  &vstnote_init, &vstnote_perf, 0 },
-    { "vstbanksave",  sizeof(VSTBANKLOAD),    1, "" ,"iS",    &vstbanksave,      0,           0/*, 0        */},
-    //{ "vstnote",      sizeof(VSTNOTE),        3, "", "iiiii", &vstnote_init, &vstnote, 0 },
+    { "vstinit",      sizeof(VSTINIT),    1, "i", "So", &vstinit, 0, 0 },
+    { "vstinfo",      sizeof(VSTINFO),    1, "", "i", &vstinfo, 0, 0 },
+    { "vstaudio",     sizeof(VSTAUDIO),   5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+                                             "iy", &vstaudio_init, 0, &vstaudio },
+    { "vstaudiog",    sizeof(VSTAUDIO),   5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+                                             "iy", &vstaudio_init, 0, &vstaudiog },
+    { "vstmidiout",   sizeof(VSTMIDIOUT), 3, "", "ikkkk", &vstmidiout_init,
+                                                                  &vstmidiout, 0 },
+    { "vstparamget",  sizeof(VSTPARAMGET),3, "k", "ik", &vstparamget_init,
+                                                                 &vstparamget, 0 },
+    { "vstparamset",  sizeof(VSTPARAMSET),3, "", "ikk", &vstparamset_init,
+                                                                 &vstparamset, 0 },
+    { "vstbankload",  sizeof(VSTBANKLOAD),1, "", "iS", &vstbankload, 0, 0 },
+    { "vstprogset",   sizeof(VSTPROGSET), 1, "", "ii", &vstprogset, 0, 0 },
+    { "vstedit",      sizeof(VSTEDIT),    1, "", "i", &vstedit_init, 0, 0 },
+    { "vsttempo",     sizeof(VSTTEMPO),   2, "" ,"ki", 0,
+                                             &vstSetTempo, 0/*, &vstedit_deinit*/},
+    { "vstnote",      sizeof(VSTNOTEOUT), 3, "" ,"iiiii",  &vstnote_init,
+                                                                &vstnote_perf, 0 },
+    { "vstbanksave",  sizeof(VSTBANKLOAD),    1, "" ,"iS",    &vstbanksave,
+                                                    0,           0/*, 0        */},
+    //{ "vstnote",      sizeof(VSTNOTE),        3, "", "iiiii", &vstnote_init,
+                                                                     &vstnote, 0 },
     { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
   };
 

@@ -25,7 +25,8 @@
 #endif
 
 #ifndef HAVE_GETTIMEOFDAY
-#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__) || defined(__HAIKU__)
+#if defined(LINUX)    || defined(__unix)   || defined(__unix__) || \
+    defined(__MACH__) || defined(__HAIKU__)
 #define HAVE_GETTIMEOFDAY 1
 #endif
 #endif

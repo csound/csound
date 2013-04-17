@@ -1229,13 +1229,13 @@ static int lineto(CSOUND *csound, LINETO *p)
       p->val_incremented = p->current_val;
       p->current_time = FL(0.0);
       p->incr = (*p->ksig - p->current_val)
-                / ((int32) (csound->GetKr(csound) * p->old_time) -1); /* by experiment */
+                / ((int32) (CS_EKR * p->old_time) -1); /* by experiment */
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
       p->val_incremented += p->incr;
     }
-    p->current_time += 1/csound->GetKr(csound);
+    p->current_time += 1/CS_EKR;
     *p->kr = p->val_incremented;
     return OK;
 }
@@ -1260,7 +1260,7 @@ static int tlineto(CSOUND *csound, LINETO2 *p)
       /* p->val_incremented = p->current_val; */
       p->current_time = FL(0.0);
       p->incr = (*p->ksig - p->current_val)
-                / ((int32) (csound->GetKr(csound) * p->old_time) + 1);
+                / ((int32) (CS_EKR * p->old_time) + 1);
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
@@ -2003,26 +2003,26 @@ static OENTRY localops[] = {
 { "mirror.a", S(WRAP),   0,4,  "a", "akk",  NULL,  NULL,         (SUBR)mirror },
 { "ntrpol.i",S(INTERPOL), 0,1, "i", "iiiop",(SUBR)interpol                     },
 { "ntrpol.k",S(INTERPOL), 0,3, "k", "kkkop",(SUBR)nterpol_init, (SUBR)knterpol },
-{ "ntrpol.a",S(INTERPOL), 0,5, "a", "aakop",(SUBR)nterpol_init,NULL,(SUBR)anterpol },
-{ "fold",    S(FOLD),     0,5, "a", "ak",   (SUBR)fold_set, NULL, (SUBR)fold       },
-{ "lineto",   S(LINETO),  0,3, "k", "kk",   (SUBR)lineto_set,  (SUBR)lineto, NULL  },
-{ "tlineto",  S(LINETO2), 0,3, "k", "kkk",  (SUBR)tlineto_set, (SUBR)tlineto, NULL },
+{ "ntrpol.a",S(INTERPOL), 0,5, "a", "aakop",(SUBR)nterpol_init,NULL,(SUBR)anterpol},
+{ "fold",    S(FOLD),     0,5, "a", "ak",   (SUBR)fold_set, NULL, (SUBR)fold      },
+{ "lineto",   S(LINETO),  0,3, "k", "kk",   (SUBR)lineto_set,  (SUBR)lineto, NULL },
+{ "tlineto",  S(LINETO2), 0,3, "k", "kkk",  (SUBR)tlineto_set, (SUBR)tlineto, NULL},
 { "vibrato",  S(VIBRATO), TR, 3, "k", "kkkkkkkkio",
                                         (SUBR)vibrato_set, (SUBR)vibrato, NULL   },
 { "vibr",     S(VIBRATO), TR, 3, "k", "kki",  (SUBR)vibr_set, (SUBR)vibr, NULL    },
-{ "jitter2",  S(JITTER2), 0,3, "k", "kkkkkkk", (SUBR)jitter2_set, (SUBR)jitter2    },
+{ "jitter2",  S(JITTER2), 0,3, "k", "kkkkkkk", (SUBR)jitter2_set, (SUBR)jitter2   },
 { "jitter",   S(JITTER),  0,3, "k", "kkk",  (SUBR)jitter_set, (SUBR)jitter, NULL },
 { "jspline",  S(JITTERS), 0,7, "s", "xkk",
                                 (SUBR)jitters_set, (SUBR)jitters, (SUBR)jittersa },
-{ "loopseg",  S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL },
-{ "loopxseg", S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopxseg, NULL },
-{ "looptseg", S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)looptseg_set, (SUBR)looptseg, NULL},
-{ "lpshold",  S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)lpshold, NULL },
-{ "loopsegp", S(LOOPSEGP), 0,3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
-{ "lpsholdp", S(LOOPSEGP), 0,3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},
+{ "loopseg",  S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL},
+{ "loopxseg", S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set,(SUBR)loopxseg, NULL},
+{ "looptseg", S(LOOPSEG), 0,3, "k", "kkiz",(SUBR)looptseg_set,(SUBR)looptseg, NULL},
+{ "lpshold",  S(LOOPSEG), 0,3, "k", "kkiz",(SUBR)loopseg_set, (SUBR)lpshold, NULL },
+{ "loopsegp", S(LOOPSEGP), 0,3,"k", "kz",  (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
+{ "lpsholdp", S(LOOPSEGP), 0,3,"k", "kz",  (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},
 { "cuserrnd", 0xffff,  TR                                                        },
 { "duserrnd", 0xffff,  TR                                                        },
-{ "random",   0xffff                                                            },
+{ "random",   0xffff                                                             },
 { "cuserrnd.i", S(CURAND),0,1,"i",  "iii",  (SUBR)iContinuousUserRand, NULL, NULL },
 { "cuserrnd.k", S(CURAND),0,2,"k",  "kkk",
                             (SUBR)Cuserrnd_set, (SUBR)kContinuousUserRand, NULL },
@@ -2053,7 +2053,8 @@ static OENTRY localops[] = {
 { "poscil.aa", S(POSC), 0,5, "a", "aaio", (SUBR)posc_set, NULL,  (SUBR)poscaa },
 { "lposcil",  S(LPOSC), TR, 5, "a", "kkkkio", (SUBR)lposc_set, NULL, (SUBR)lposc},
 { "poscil3", 0xfffe, TR                                                          },
-{ "poscil3.kk",S(POSC), 0,7, "s", "kkio", (SUBR)posc_set,(SUBR)kposc3,(SUBR)posc3kk },
+{ "poscil3.kk",S(POSC), 0,7, "s", "kkio",
+                                     (SUBR)posc_set,(SUBR)kposc3,(SUBR)posc3kk },
 { "poscil3.ak", S(POSC), 0,5, "a", "akio", (SUBR)posc_set, NULL, (SUBR)posc3ak },
 { "poscil3.ka", S(POSC), 0,5, "a", "kaio", (SUBR)posc_set, NULL, (SUBR)posc3ka },
 { "poscil3.aa", S(POSC), 0,5, "a", "aaio", (SUBR)posc_set, NULL, (SUBR)posc3aa },

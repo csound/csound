@@ -4,7 +4,7 @@ static int pycall0_krate(CSOUND *csound, PYCALL0 *p)
     char      command[1024];
     PyObject  *result;
     int *py_initialize_done;
-    if (UNLIKELY((py_initialize_done = 
+    if (UNLIKELY((py_initialize_done =
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
@@ -89,7 +89,7 @@ static int pycall0t_krate(CSOUND *csound, PYCALL0T *p)
 {
     char      command[1024];
     PyObject  *result;
-    int *py_initialize_done; 
+    int *py_initialize_done;
     if (UNLIKELY((py_initialize_done =
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))

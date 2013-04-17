@@ -289,8 +289,9 @@ void VSTPlugin::initializeOpcodes()
                            std::string>((long) audioMasterTempoAt,
                                         "audioMasterTempoAt"));
     masterOpcodes().insert(std::pair<long,
-                           std::string>((long) audioMasterGetNumAutomatableParameters,
-                                        "audioMasterGetNumAutomatableParameters"));
+                           std::string>(
+                                (long)audioMasterGetNumAutomatableParameters,
+                                "audioMasterGetNumAutomatableParameters"));
     masterOpcodes().insert(std::pair<long,
                            std::string>((long) audioMasterGetParameterQuantization,
                                         "audioMasterGetParameterQuantization"));
@@ -354,8 +355,9 @@ void VSTPlugin::initializeOpcodes()
     //
     //             "audioMasterGetSpeakerArrangement"));
     masterOpcodes().insert(std::pair<long,
-                           std::string>((long) audioMasterGetOutputSpeakerArrangement,
-                                        "audioMasterGetOutputSpeakerArrangement"));
+                           std::string>(
+                                (long) audioMasterGetOutputSpeakerArrangement,
+                                "audioMasterGetOutputSpeakerArrangement"));
     masterOpcodes().insert(std::pair<long,
                            std::string>((long) audioMasterGetVendorString,
                                         "audioMasterGetVendorString"));
@@ -408,7 +410,7 @@ void VSTPlugin::initializeOpcodes()
                            std::string>((long) audioMasterGetChunkFile,
                                         "audioMasterGetChunkFile"));
     masterOpcodes().insert(std::pair<long,
-                           std::string>((long) audioMasterGetInputSpeakerArrangement,
+                           std::string>((long)audioMasterGetInputSpeakerArrangement,
                                         "audioMasterGetInputSpeakerArrangement"));
 
     opcodeRefCount()++;
