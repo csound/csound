@@ -58,7 +58,6 @@
 ./H/fftlib.h
 ./H/fgens.h
 ./H/insert.h
-./H/interlocks.h
 ./H/linevent.h
 ./H/lpc.h
 ./H/midifile.h
@@ -642,6 +641,7 @@
 ./include/cwindow.h
 ./include/float-version-double.h
 ./include/float-version.h
+./include/interlocks.h
 ./include/msg_attr.h
 ./include/OpcodeBase.hpp
 ./include/pstream.h
