@@ -1438,7 +1438,7 @@ int kperf(CSOUND *csound)
               opstart = opstart->insdshead->pds;
             }
 
-	    /* //csound->pds = (OPDS*) ip;
+            /* //csound->pds = (OPDS*) ip;
             while ((csound->pds = csound->pds->nxtp) != NULL) {
              csound->pds->insdshead->pds = csound->pds;
              (*csound->pds->opadr)(csound, csound->pds);

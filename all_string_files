@@ -173,8 +173,6 @@
 ./OOps/ugtabs.c
 ./OOps/vdelay.c
 ./Opcodes/3Dug.h
-./Opcodes/Loris/lorisgens5.C
-./Opcodes/Loris/lorisgens5.h
 ./Opcodes/LuaCsound.cpp
 ./Opcodes/OSC.c
 ./Opcodes/Vosim.c

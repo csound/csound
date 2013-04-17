@@ -1038,7 +1038,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       }
       p->l_ksmps = i;
     }
-    
+
     /* save old globals */
     g_kcounter = CS_KCNT;
     g_ekr = CS_EKR;
@@ -1358,8 +1358,9 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     if (!l_ksmps) return OK;       /* zero: do not change */
     if (UNLIKELY(l_ksmps < 1 || l_ksmps > CS_KSMPS
                  || ((CS_KSMPS / l_ksmps) * l_ksmps != CS_KSMPS))) {
-      return csoundInitError(csound, Str("setksmps: invalid ksmps value: %d, original: %d"),
-			     l_ksmps, CS_KSMPS);
+      return csoundInitError(csound,
+                             Str("setksmps: invalid ksmps value: %d, original: %d"),
+                             l_ksmps, CS_KSMPS);
     }
     /* set up global variables according to the new ksmps value */
     pp = (UOPCODE*) buf->uopcode_struct;
@@ -1491,7 +1492,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
            }
           }while ((CS_PDS = CS_PDS->nxtp));
     }
- 
+
     /* CS_PDS = (OPDS *)p->ip; */
     /* while ((CS_PDS = CS_PDS->nxtp) != NULL) { */
     /*   (*CS_PDS->opadr)(csound, CS_PDS); */
@@ -1531,8 +1532,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     int     g_ksmps, ofs = 0, n;
     MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
     int32    g_kcounter;
-    CS_VARIABLE *var;
-    ENGINE_STATE *engineState = &csound->engineState;
+    //CS_VARIABLE *var;
+    //ENGINE_STATE *engineState = &csound->engineState;
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
     /* save old globals */

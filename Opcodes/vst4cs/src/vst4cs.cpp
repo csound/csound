@@ -468,7 +468,7 @@ extern "C" {
                 plugin->EffGetProgramName(szName);
                 b.SetProgramName(i, szName);
                 for (j = 0; j < nParms; j++)
-                  b.SetProgParm(i, j, 
+                  b.SetProgParm(i, j,
                                 plugin->aeffect->getParameter(plugin->aeffect,j));
               }
             plugin->EffSetProgram(cProg);
@@ -559,7 +559,7 @@ extern "C" {
     p->velocity = int(*p->iVelocity) & 0x7f;
     p->vstPlugin->AddMIDI(144 | p->channel | (p->key << 8) | (p->velocity << 16),
                           deltaFrames, cents);
-    // Ensure that the opcode instance is still active when we are scheduled 
+    // Ensure that the opcode instance is still active when we are scheduled
     // to turn the note off!
     p->h.insdshead->xtratim = p->h.insdshead->xtratim + 2;
     p->on = true;
@@ -627,7 +627,7 @@ extern "C" {
     { "vstbankload",  sizeof(VSTBANKLOAD),1, "", "iS", &vstbankload, 0, 0 },
     { "vstprogset",   sizeof(VSTPROGSET), 1, "", "ii", &vstprogset, 0, 0 },
     { "vstedit",      sizeof(VSTEDIT),    1, "", "i", &vstedit_init, 0, 0 },
-    { "vsttempo",     sizeof(VSTTEMPO),   2, "" ,"ki", 0, 
+    { "vsttempo",     sizeof(VSTTEMPO),   2, "" ,"ki", 0,
                                              &vstSetTempo, 0/*, &vstedit_deinit*/},
     { "vstnote",      sizeof(VSTNOTEOUT), 3, "" ,"iiiii",  &vstnote_init,
                                                                 &vstnote_perf, 0 },
