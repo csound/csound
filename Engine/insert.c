@@ -1358,7 +1358,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     if (!l_ksmps) return OK;       /* zero: do not change */
     if (UNLIKELY(l_ksmps < 1 || l_ksmps > CS_KSMPS
                  || ((CS_KSMPS / l_ksmps) * l_ksmps != CS_KSMPS))) {
-      return csoundInitError(csound, Str("setksmps: invalid ksmps value: %d %d"),
+      return csoundInitError(csound, Str("setksmps: invalid ksmps value: %d, original: %d"),
 			     l_ksmps, CS_KSMPS);
     }
     /* set up global variables according to the new ksmps value */
