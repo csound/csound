@@ -751,9 +751,9 @@ public:
   {
    csoundSetAudioChannel(csound,name,samples);
   }
-  virtual MYFLT GetChannel(const char *name)
+  virtual MYFLT GetChannel(const char *name, int *err = NULL)
   {
-   return csoundGetControlChannel(csound,name);
+   return csoundGetControlChannel(csound,name, err);
   }
   virtual void GetStringChannel(const char *name, char *string)
   {
