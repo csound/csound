@@ -1,12 +1,13 @@
 #ifndef OPCODE_BASE_H
 #define OPCODE_BASE_H
-#ifndef MSVC
-#include "csdl.h"
-#include <cstdarg>
-#else
-#include <cmath>
-#include "csdl.h"
+
+#ifndef __BUILDING_LIBCSOUND
+#define __BUILDING_LIBCSOUND
 #endif
+#include <csoundCore.h>
+#include <interlocks.h>
+#include <csdl.h>
+#include <cstdarg>
 
 /**
  * Template base class, or pseudo-virtual base class,
@@ -71,7 +72,11 @@ public:
    */
   uint32_t kperiodOffset() const
   {
-      return head.insdshead->ksmps_offset;
+      return opds.insdshead->ksmps_offset;
+  }
+  uint32_t ksmps() const
+  {
+      return opds.insdshead->ksmps;
   }
   void log(CSOUND *csound, const char *format,...)
   {
@@ -102,7 +107,7 @@ public:
       va_end(args);
     }
   }
-  OPDS head;
+  OPDS opds;
 };
 
 template<typename T>
@@ -135,6 +140,21 @@ public:
   static int audio_(CSOUND *csound, void *opcode)
   {
     return reinterpret_cast<T *>(opcode)->audio(csound);
+  }
+  /**
+   * For sample accurate timing, kperf may be called at some
+   * offset after the first frame of the kperiod. Hence, opcodes
+   * must output zeros up until the offset, and then output
+   * their signal until the end of the kperiod. After the first
+   * kperiod of activation, the offset will always be 0.
+   */
+  uint32_t kperiodOffset() const
+  {
+      return opds.insdshead->ksmps_offset;
+  }
+  uint32_t ksmps() const
+  {
+      return opds.insdshead->ksmps;
   }
   void log(CSOUND *csound, const char *format,...)
   {
@@ -173,7 +193,7 @@ public:
   {
     return reinterpret_cast<T *>(opcode)->noteoff(csound);
   }
-  OPDS head;
+  OPDS opds;
 };
 
 #endif

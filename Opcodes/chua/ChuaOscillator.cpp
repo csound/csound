@@ -123,7 +123,7 @@ using namespace boost::numeric;
 #include <cmath>
 
 #undef CS_KSMPS
-#define CS_KSMPS     (head.insdshead->ksmps)
+#define CS_KSMPS     (opds.insdshead->ksmps)
 
 class ChuasOscillatorCubic : public OpcodeBase<ChuasOscillatorCubic>
 {
@@ -209,7 +209,7 @@ public:
     b = 0.0;
     c = -0.00121;
     d = 0.0;
-    ksmps = head.insdshead->ksmps;
+    ksmps = opds.insdshead->ksmps;
     warn(csound, "ChuasOscillatorCubic::init: L: %f  R0: %f  C2: %f  G: %f"
          "  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n",
          *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
@@ -237,8 +237,8 @@ public:
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
-    uint32_t offset = head.insdshead->ksmps_offset;
-    uint32_t early  = head.insdshead->ksmps_no_end;
+    uint32_t offset = opds.insdshead->ksmps_offset;
+    uint32_t early  = opds.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     if (UNLIKELY(offset)) {
       memset(I3, '\0', offset*sizeof(MYFLT));
@@ -460,7 +460,7 @@ public:
     M(2) = *V2_ / *E_;
     // M(3) = TimeSeries(1)/(E*G);
     M(3) = *I3_ / (*E_ * *G_);
-    ksmps = head.insdshead->ksmps;
+    ksmps = opds.insdshead->ksmps;
     warn(csound, "ChuasOscillatorPiecewise::init: L: %f  R0: %f  C2: %f  G: "
          "%f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2):"
          " %f  M(3): %f step: %f\n",
@@ -488,8 +488,8 @@ public:
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
-    uint32_t offset = head.insdshead->ksmps_offset;
-    uint32_t early  = head.insdshead->ksmps_no_end;
+    uint32_t offset = opds.insdshead->ksmps_offset;
+    uint32_t early  = opds.insdshead->ksmps_no_end;
     if (UNLIKELY(offset)) {
       memset(I3, '\0', offset*sizeof(MYFLT));
       memset(V1, '\0', offset*sizeof(MYFLT));
