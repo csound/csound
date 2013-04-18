@@ -175,8 +175,7 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
     return cs_strdup(csound, temp);
 }
 
-//FIXME - this needs to get a TYPE_TABLE here with a label list to
-//        check if it is a LABEL
+/* This function gets arg type without checking type table */
 PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char* s;
@@ -413,6 +412,7 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
     return retVal;
 }
 
+/* This function gets arg type with checking type table */
 PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
     char* s;
