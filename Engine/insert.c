@@ -1047,7 +1047,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     g_kicvt = CS_KICVT;
     /* set up local variables depending on ksmps, also change globals */
     if (p->l_ksmps != g_ksmps) {
-      CS_KSMPS= p->l_ksmps; /* Oh dear!  breaks many assumptions -- JPff */
+      CS_KSMPS= p->l_ksmps;
       p->ksmps_scale = g_ksmps / (int) CS_KSMPS;
       p->l_onedksmps = CS_ONEDKSMPS = FL(1.0) / (MYFLT) p->l_ksmps;
       p->l_ekr = CS_EKR =
@@ -1597,7 +1597,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         while (*(++tmp)) {              /* a-rate */
           ptr1 = *tmp; (*(++tmp))[ofs] = *ptr1;
         }
-        ++(csound->kcounter);
+        ++(CS_KCNT);
       } while (++ofs < g_ksmps);
     }
     else {                              /* generic case for local kr != sr */
@@ -1647,7 +1647,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             *(ptr2++) = *(ptr1++);
           } while (--n);
         }
-        ++(csound->kcounter);
+        ++(CS_KCNT);
       } while ((ofs += csound->ksmps) < g_ksmps);
     }
     /* k-rate outputs are copied only in the last sub-kperiod, */
