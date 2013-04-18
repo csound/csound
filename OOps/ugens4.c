@@ -520,6 +520,7 @@ int arand(CSOUND *csound, RAND *p)
     MYFLT       ampscl;
     MYFLT       base = *p->base;
 
+    printf("kcnt %d \n", CS_KCNT);
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
