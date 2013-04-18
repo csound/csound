@@ -24,6 +24,30 @@
  *   add functionality and support the wrapping of the Csound API by various
  *   languages (e.g. Python, Java, Lua).
  *
+ * \b Purposes
+ *
+ * The purposes of the Csound API are as follows:
+ *
+ * \li Declare a stable public application programming interface (API)
+ *     for Csound in csound.h. This is the only header file that needs
+ *     to be \#included by users of the Csound API.
+ *
+ * \li Hide the internal implementation details of Csound from users of
+ *     the API, so that development of Csound can proceed without affecting
+ *     code that uses the API.
+ *
+ * \b Users
+ *
+ * Users of the Csound API fall into two main categories: hosts, and plugins.
+ *
+ * \li Hosts are applications that use Csound as a software synthesis engine.
+ *     Hosts can link with the Csound API either statically or dynamically.
+ *
+ * \li Plugins are shared libraries loaded by Csound at run time to implement
+ *     external opcodes and/or drivers for audio or MIDI input and output.
+ *     Plugin opcodes need only include the csdl.h header which brings all
+ *     necessary functions and data structures.
+ *
  * \section section_api_c_example An Example Using the Csound API
  *
  * The Csound command--line program is itself built using the Csound API.
@@ -48,30 +72,6 @@
  * }
  * \endcode
  *
- * \section section_api_cscore Cscore
- *
- * Beginning with Csound 5, all of the Cscore functions described in the
- * manual are now part of the Csound API, and they can be called from a program
- * that calls the Csound library.
- *
- * All of the CScore functions are renamed in the Csound API. For
- * example, createv() is now cscoreCreateEvent(), and lcopy() is now
- * cscoreListCopy().  In addition, each function takes an additional
- * first parameter that is a pointer to a CSOUND instance.  You can
- * find the details in the header file, cscore.h, which may be
- * included with your Csound distribution, or if not, can be found in
- * Csound CVS `on SourceForge.
- *
- * Before you can use any of the Cscore API functions, you must create a CSOUND
- * instance and initialize Cscore by calling csoundInitializeCscore() -- see
- * csound.h for an explanation.  An example main program that does all of this
- * Top/cscormai.c.  You should add a function called cscore() with your own
- * score-processing code.  An example that does nothing except write the score
- * back out unchanged can be found in the file Top/cscore_internal.c.
- *
- * To create your own standalone Cscore program, you must compile cscormai.c
- * (or your own main program) and the file containing your
- * cscore() function, and link them with the Csound API library.
  *
  * Everything that can be done using C as in the above examples can also be done
  * in a similar manner in Python or any of the other Csound API languages.
@@ -81,28 +81,6 @@
  * \brief Declares the public Csound application programming interface (API).
  * \author John P. ffitch, Michael Gogins, Matt Ingalls, John D. Ramsdell,
  *         Istvan Varga, Victor Lazzarini, Andres Cabrera and Steven Yi.
- *
- * \b Purposes
- *
- * The purposes of the Csound API are as follows:
- *
- * \li Declare a stable public application programming interface (API)
- *     for Csound in csound.h. This is the only header file that needs
- *     to be \#included by users of the Csound API.
- *
- * \li Hide the internal implementation details of Csound from users of
- *     the API, so that development of Csound can proceed without affecting
- *     code that uses the API.
- *
- * \b Users
- *
- * Users of the Csound API fall into two main categories: hosts, and plugins.
- *
- * \li Hosts are applications that use Csound as a software synthesis engine.
- *     Hosts can link with the Csound API either statically or dynamically.
- *
- * \li Plugins are shared libraries loaded by Csound at run time to implement
- *     external opcodes and/or drivers for audio or MIDI input and output.
  *
  * Hosts using the Csound API must \#include <csound.h>, and link with the
  * Csound API library. Plugin libraries should \#include <csdl.h> to get
