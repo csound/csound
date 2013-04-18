@@ -1362,17 +1362,15 @@ extern "C" {
 
     /**
      * Returns special parameters (assuming there are any) of a control channel,
-     * previously set with csoundSetControlChannelHints().
-     * If the channel exists, is a control channel, and has the
-     * special parameters assigned, then the default, minimum, and
-     * maximum value is stored in *dflt, *min, and *max, respectively,
-     * and a positive value that is one of CSOUND_CONTROL_CHANNEL_INT,
-     * CSOUND_CONTROL_CHANNEL_LIN, and CSOUND_CONTROL_CHANNEL_EXP is
-     * returned.
-     * In any other case, *dflt, *min, and *max are not changed, and
-     * the return value is zero if the channel exists, is a control
-     * channel, but has no special parameters set; otherwise, a
-     * negative error code is returned.
+     * previously set with csoundSetControlChannelHints() or the chnparams
+     * opcode.
+     * If the channel exists, is a control channel, the channel hints
+     * are stored in the preallocated controlChannelHints_t structure. The
+     * attributes member of the structure will be allocated inside this function
+     * so it is necessary to free it explicitly in the host.
+     *
+     * The return value is zero if the channel exists and is a control
+     * channel, otherwise, an error code is returned.
      */
     PUBLIC int csoundGetControlChannelHints(CSOUND *, const char *name,
             controlChannelHints_t *hints);

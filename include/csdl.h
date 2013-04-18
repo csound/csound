@@ -35,7 +35,7 @@
 * Plugins need to include this header file only, as it will bring all necessary
 * data structures to interact with Csound. It is not necessary for plugins
 * to link to the libcsound library, as plugin opcodes will always receive a
-* CSOUND* pointer which contains all the API functions inside.
+* CSOUND* pointer (to the CSOUND_ struct) which contains all the API functions inside.
 *
 * This is the basic template for a plugin opcode. See the manual for further
 * details on accepted types and function call rates. The use of the LINKAGE
@@ -58,9 +58,12 @@ static int op_init(CSOUND *csound, OPCODE *p)
 
 static int op_k(CSOUND *csound, OPCODE *p)
 {
-// Intialization code goes here
+// code called at k-rate goes here
     return OK;
 }
+
+// You can use these functions if you need to prepare and cleanup things on
+// loading/unloading the library, but they can be absent if you don't need them
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
