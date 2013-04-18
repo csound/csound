@@ -1,5 +1,4 @@
-
-file(GLOB csheaders "*.h*")
+file(GLOB csheaders RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h*")
 
 # These don't live here... but we list them here to have all headers
 # in one place
