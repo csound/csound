@@ -1039,7 +1039,7 @@ struct JackoAudioOutConnect : public OpcodeBase<JackoAudioOutConnect>
   int init(CSOUND *csound)
   {
       int result = OK;
-      frames = head.insdshead->ksmps;
+      frames = opds.insdshead->ksmps;
       jackoState = getJackoState(csound);
       clientName = jack_get_client_name(jackoState->jackClient);
       csoundPortName = csound->strarg2name(csound,
@@ -1147,7 +1147,7 @@ struct JackoMidiInConnect : public OpcodeBase<JackoMidiInConnect>
   int init(CSOUND *csound)
   {
       int result = OK;
-      frames = head.insdshead->ksmps;
+      frames = opds.insdshead->ksmps;
       jackoState = getJackoState(csound);
       clientName = jack_get_client_name(jackoState->jackClient);
       csoundPortName = csound->strarg2name(csound,
@@ -1218,7 +1218,7 @@ struct JackoMidiOutConnect : public OpcodeBase<JackoMidiOutConnect>
   int init(CSOUND *csound)
   {
       int result = OK;
-      frames = head.insdshead->ksmps;
+      frames = opds.insdshead->ksmps;
       jackoState = getJackoState(csound);
       clientName = jack_get_client_name(jackoState->jackClient);
       csoundPortName = csound->strarg2name(csound,
