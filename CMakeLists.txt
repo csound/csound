@@ -769,6 +769,7 @@ set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 # ADDING HERE TO GRAB LIST OF HEADERS IN CASE OF BUILDING OSX FRAMEWORK
 add_subdirectory(include)
 
+
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
     set(libcsound_SRCS "${libcsound_SRCS};${csheaders}")
