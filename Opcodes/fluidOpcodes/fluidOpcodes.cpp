@@ -385,15 +385,15 @@ public:
 #pragma omp critical (critical_section_fluid_out)
         {
             toa(iFluidSynth, fluidSynth);
-            ksmps = head.insdshead->ksmps;
+            ksmps = opds.insdshead->ksmps;
         }
         return OK;
     }
     int audio(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_out)
         {
-          uint32_t offset = head.insdshead->ksmps_offset;
-          uint32_t early  = head.insdshead->ksmps_no_end;
+          uint32_t offset = opds.insdshead->ksmps_offset;
+          uint32_t early  = opds.insdshead->ksmps_no_end;
           if (UNLIKELY(offset)) {
             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
             memset(aRightOut, '\0', offset*sizeof(MYFLT));
@@ -430,15 +430,15 @@ public:
     int init(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_all_out)
         {
-            ksmps = head.insdshead->ksmps;
+            ksmps = opds.insdshead->ksmps;
         }
         return OK;
     }
     int audio(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_all_out)
         {
-          uint32_t offset = head.insdshead->ksmps_offset;
-          uint32_t early  = head.insdshead->ksmps_no_end;
+          uint32_t offset = opds.insdshead->ksmps_offset;
+          uint32_t early  = opds.insdshead->ksmps_no_end;
           if (UNLIKELY(offset)) {
             memset(aLeftOut, '\0', offset*sizeof(MYFLT));
             memset(aRightOut, '\0', offset*sizeof(MYFLT));

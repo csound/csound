@@ -124,8 +124,8 @@ public:
   int init(CSOUND *csound)
   {
     sampleRate = csound->GetSr(csound);
-    blockSize = head.insdshead->ksmps;
-    blockRate = sampleRate / blockSize;
+    blockRate = csound->GetKr(csound);
+    blockSize = ksmps();
     // Take care of default values.
     if (*jSpeedOfSound == MYFLT(-1.0)) {
       speedOfSound = MYFLT(340.29);
