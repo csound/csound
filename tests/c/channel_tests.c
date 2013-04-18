@@ -19,6 +19,7 @@ void test_control_channel_params(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
+    csoundEnableMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=NULL");
     int argc = 2;
     csoundCompileOrc(csound, orc1);
@@ -47,7 +48,8 @@ void test_control_channel(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundSetOption(csound, "--logfile=NULL");
+    csoundEnableMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=null");
     int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
@@ -65,7 +67,8 @@ void test_channel_list(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundSetOption(csound, "--logfile=NULL");
+    csoundEnableMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=null");
     int argc = 2;
     csoundCompileOrc(csound, orc2);
     int err = csoundStart(csound);
@@ -131,7 +134,8 @@ void test_channel_callbacks(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundSetOption(csound, "--logfile=NULL");
+    csoundEnableMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=null");
     val1 = 0;
     csoundCompileOrc(csound, orc3);
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback);
@@ -193,7 +197,8 @@ void test_channel_opcodes(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundSetOption(csound, "--logfile=NULL");
+    csoundEnableMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc4);
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback2);
     csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback2);
@@ -239,10 +244,9 @@ void test_pvs_opcodes(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundSetOption(csound, "--logfile=NULL");
+    csoundEnableMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc5);
-    csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback2);
-    csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback2);
     int err = csoundStart(csound);
     CU_ASSERT(err == 0);
     PVSDATEXT pvs_data, pvs_data2;
@@ -256,13 +260,37 @@ void test_invalid_channel(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundSetOption(csound, "--logfile=NULL");
+    csoundEnableMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc5);
 
     int err;
     CU_ASSERT_EQUAL(0.0, csoundGetControlChannel(csound, "nonexistent_channel", &err));
     CU_ASSERT_NOT_EQUAL(err, CSOUND_SUCCESS);
 
+}
+
+const char orc6[] = "chn_k \"chan\", 3, 2, 0.5, 0, 1, 10, 10, 50, 100\n"
+        "instr 1\n kval invalue \"1\"\n"
+        "outvalue \"2\",kval\n"
+        "endin\n";
+
+void test_chn_hints(void)
+{
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
+//    csoundEnableMessageBuffer(csound, 0);
+//    csoundSetOption(csound, "--logfile=null");
+    csoundCompileOrc(csound, orc6);
+    int err = csoundStart(csound);
+    err = csoundPerformKsmps(csound); //Need this to load instr 0
+    controlChannelHints_t hints;
+    hints.attributes = 0;
+    CU_ASSERT_EQUAL(0, csoundGetControlChannelHints(csound, "chan", &hints));
+    CU_ASSERT_EQUAL(hints.x, 10);
+    CU_ASSERT_EQUAL(hints.y, 10);
+    CU_ASSERT_EQUAL(hints.width, 50);
+    CU_ASSERT_EQUAL(hints.height, 100);
 }
 
 int main()
@@ -288,6 +316,7 @@ int main()
            || (NULL == CU_add_test(pSuite, "Opcodes", test_channel_opcodes))
            || (NULL == CU_add_test(pSuite, "PVS Opcodes", test_pvs_opcodes))
            || (NULL == CU_add_test(pSuite, "Invalid channels", test_invalid_channel))
+           || (NULL == CU_add_test(pSuite, "Channel hints", test_chn_hints))
            )
    {
       CU_cleanup_registry();

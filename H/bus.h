@@ -86,6 +86,10 @@ typedef struct {
     MYFLT   *idflt;
     MYFLT   *imin;
     MYFLT   *imax;
+    MYFLT   *ix;
+    MYFLT   *iy;
+    MYFLT   *iwidth;
+    MYFLT   *iheight;
     int     *lock;
 } CHN_OPCODE_K;
 
