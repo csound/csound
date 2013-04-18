@@ -430,7 +430,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (tree->type == '?') {
         char* arg1, *arg2, *ans, *out;
-        char condInTypes[4];
+        char condInTypes[64];
 
         ans = get_arg_type2(csound, tree->left, typeTable);
         if (UNLIKELY(ans == NULL || (*ans != 'b' && *ans != 'B'))) {
@@ -442,11 +442,8 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         arg1 = get_arg_type2(csound, tree->right->left, typeTable);
         arg2 = get_arg_type2(csound, tree->right->right, typeTable);
 
-        condInTypes[0] = *ans;
-        condInTypes[1] = *arg1;
-        condInTypes[2] = *arg2;
-        condInTypes[3] = 0;
-
+        sprintf(condInTypes, "%s%s%s", ans, arg1, arg2);
+          
         out = resolve_opcode_get_outarg(csound,
                                         find_opcode2(csound, ":cond"),
                                         condInTypes);
