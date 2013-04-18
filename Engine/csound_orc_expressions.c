@@ -42,6 +42,7 @@ extern void add_array_arg(CSOUND* csound, char* varName, int dimensions,
                           TYPE_TABLE* typeTable);
 
 extern char* get_array_sub_type(CSOUND* csound, char*);
+extern char* get_arg_type(CSOUND* csound, TREE* tree);
 
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
 TREE * create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
@@ -55,6 +56,19 @@ CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
     cell->next = cons;
 
     return cell;
+}
+
+CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
+    if(cons1 == NULL) return cons2;
+    if(cons2 == NULL) return cons1;
+
+    CONS_CELL* c = cons1;
+    
+    while (c->next != NULL) c = c->next;
+
+    c->next = cons2;
+    
+    return cons1;
 }
 
 TREE* tree_tail(TREE* node) {
@@ -309,7 +323,7 @@ static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int line, int locn,
                                     TYPE_TABLE* typeTable)
 {
-    char arg1, arg2, ans, *outarg = NULL;
+    char *arg1, *arg2, *ans, *outarg = NULL;
     char* outype;
     TREE *anchor = create_boolean_expression(csound, root->left, line, locn,
                                              typeTable);
@@ -318,7 +332,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     TREE *b;
     TREE *c = root->right->left, *d = root->right->right;
     last = anchor;
-    char condInTypes[4];
+    char condInTypes[64];
 
     while (last->next != NULL) {
       last = last->next;
@@ -345,14 +359,11 @@ static TREE *create_cond_expression(CSOUND *csound,
       d = create_ans_token(csound, last->left->value->lexeme);
     }
 
-    arg1 = argtyp2( c->value->lexeme);
-    arg2 = argtyp2( d->value->lexeme);
-    ans  = argtyp2( b->value->lexeme);
+    arg1 = get_arg_type(csound, c);
+    arg2 = get_arg_type(csound, d);
+    ans  = get_arg_type(csound, b);
 
-    condInTypes[0] = ans;
-    condInTypes[1] = arg1;
-    condInTypes[2] = arg2;
-    condInTypes[3] = 0;
+    sprintf(condInTypes, "%s%s%s", ans, arg1, arg2);
 
     OENTRIES* entries = find_opcode2(csound, ":cond");
     outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
