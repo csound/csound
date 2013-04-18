@@ -1142,6 +1142,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     csound->ids = saved_ids;
     csound->curip = saved_curip;
+    
 
     if (p->mode == 1) {
       CS_KSMPS = g_ksmps;
@@ -1348,11 +1349,10 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     CS_VARIABLE *var;
     ENGINE_STATE *engineState = &csound->engineState;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
-    /* VL: for some reason, these are not set before,
-       I am setting them here, but this needs to be
-       investigated */
-    CS_KSMPS = csound->ksmps;
-    CS_KCNT = csound->kcounter;
+
+    pp = (UOPCODE*) buf->uopcode_struct;
+    CS_KSMPS = pp->h.insdshead->ksmps;
+    CS_KCNT = pp->h.insdshead->kcounter;
 
     l_ksmps = (unsigned int) *(p->i_ksmps);
     if (!l_ksmps) return OK;       /* zero: do not change */
@@ -1362,8 +1362,8 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
                              Str("setksmps: invalid ksmps value: %d, original: %d"),
                              l_ksmps, CS_KSMPS);
     }
-    /* set up global variables according to the new ksmps value */
-    pp = (UOPCODE*) buf->uopcode_struct;
+   
+    /* set up global variables according to the new ksmps value */ 
     n = CS_KSMPS / l_ksmps;
     pp->ksmps_scale *= n;
     p->h.insdshead->xtratim *= n;
