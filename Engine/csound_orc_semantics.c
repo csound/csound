@@ -175,8 +175,7 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
     return cs_strdup(csound, temp);
 }
 
-//FIXME - this needs to get a TYPE_TABLE here with a label list to
-//        check if it is a LABEL
+/* This function gets arg type without checking type table */
 PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char* s;
@@ -413,6 +412,7 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
     return retVal;
 }
 
+/* This function gets arg type with checking type table */
 PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
     char* s;
@@ -430,7 +430,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (tree->type == '?') {
         char* arg1, *arg2, *ans, *out;
-        char condInTypes[4];
+        char condInTypes[64];
 
         ans = get_arg_type2(csound, tree->left, typeTable);
         if (UNLIKELY(ans == NULL || (*ans != 'b' && *ans != 'B'))) {
@@ -442,11 +442,8 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         arg1 = get_arg_type2(csound, tree->right->left, typeTable);
         arg2 = get_arg_type2(csound, tree->right->right, typeTable);
 
-        condInTypes[0] = *ans;
-        condInTypes[1] = *arg1;
-        condInTypes[2] = *arg2;
-        condInTypes[3] = 0;
-
+        sprintf(condInTypes, "%s%s%s", ans, arg1, arg2);
+          
         out = resolve_opcode_get_outarg(csound,
                                         find_opcode2(csound, ":cond"),
                                         condInTypes);
@@ -1416,21 +1413,41 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
 /* Walks tree and finds all label: definitions */
 CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
-    CONS_CELL* head = NULL;
-    int len = 0;
+    CONS_CELL* head = NULL, *ret = NULL;
     TREE* current = root;
-
+    char* labelText;
+    
     while (current != NULL) {
-      if (current->type == LABEL_TOKEN) {
-        char* labelText = current->value->lexeme;
-        head = cs_cons(csound, cs_strdup(csound, labelText), head);
-        len++;
-      }
-      current = current->next;
-    }
+        switch(current->type) {
+            case LABEL_TOKEN:
+                labelText = current->value->lexeme;
+                head = cs_cons(csound, cs_strdup(csound, labelText), head);
+                break;
+                
+            case IF_TOKEN:
+            case ELSEIF_TOKEN:                
+                if (current->right->type == THEN_TOKEN ||
+                    current->right->type == KTHEN_TOKEN ||
+                    current->right->type == ITHEN_TOKEN) {
+                    
+                    ret = get_label_list(csound, current->right->right);
+                    head = cs_cons_append(head, ret);
+                    ret = get_label_list(csound, current->right->next);
+                    head = cs_cons_append(head, ret);
+                }
+                break;
 
-    if (len == 0) {
-      return NULL;
+            case ELSE_TOKEN:
+            case UNTIL_TOKEN:                
+                ret = get_label_list(csound, current->right);
+                head = cs_cons_append(head, ret);
+                break;
+                
+            default:
+                break;
+        }
+
+        current = current->next;
     }
 
     return head;
