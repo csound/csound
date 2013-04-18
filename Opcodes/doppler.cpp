@@ -4,7 +4,7 @@
 #include <list>
 #include <vector>
 
-/* ***************  does not deal with unalignbed signals ************** */
+/* ***************  does not deal with unaligned signals ************** */
 // Why not use the constants already defined?
 static MYFLT pi = std::atan(1.0) * MYFLT(4.0);
 
@@ -80,7 +80,8 @@ public:
   }
   MYFLT delayFrames(int delayFrames_)
   {
-    //std::cout << "DelayLine::delayFrames: delayFrames: " << delayFrames_ << std::endl;
+    //std::cout << "DelayLine::delayFrames: delayFrames: "
+      //        << delayFrames_ << std::endl;
     int readingFrame = writingFrame - delayFrames_;
     while (readingFrame < 0) {
       readingFrame += size_;
@@ -88,7 +89,8 @@ public:
     while (readingFrame >= size_) {
       readingFrame -= size_;
     }
-    // std::cout << "DelayLine::delayFrames: readingFrame: " << readingFrame << std::endl;
+    // std::cout << "DelayLine::delayFrames: readingFrame: "
+    //           << readingFrame << std::endl;
     return (*this)[(size_t) readingFrame];
   }
 };
@@ -166,18 +168,24 @@ public:
     // because it must be initialized from a k-rate variable.
     if (!smoothingFilter) {
       smoothingFilter = new RCLowpassFilter();
-      smoothingFilter->initialize(sampleRate, smoothingFilterCutoff, targetPosition);
+      smoothingFilter->initialize(sampleRate,
+                                  smoothingFilterCutoff, targetPosition);
       log(csound, "Doppler::kontrol: sizeof(MYFLT):         %10d\n", sizeof(MYFLT));
       log(csound, "Doppler::kontrol: PI:                    %10.3f\n", pi);
       log(csound, "Doppler::kontrol: this:                  %10p\n", this);
       log(csound, "Doppler::kontrol: sampleRate:            %10.3f\n", sampleRate);
       log(csound, "Doppler::kontrol: blockSize:             %10.3f\n", blockSize);
       log(csound, "Doppler::kontrol: blockRate:             %10.3f\n", blockRate);
-      log(csound, "Doppler::kontrol: speedOfSound:          %10.3f\n", speedOfSound);
-      log(csound, "Doppler::kontrol: samplesPerDistance:    %10.3f\n", samplesPerDistance);
-      log(csound, "Doppler::kontrol: smoothingFilterCutoff: %10.3f\n", smoothingFilterCutoff);
-      log(csound, "Doppler::kontrol: kMicPosition:          %10.3f\n", *kMicPosition);
-      log(csound, "Doppler::kontrol: kSourcePosition:       %10.3f\n", *kSourcePosition);
+      log(csound, "Doppler::kontrol: speedOfSound:          %10.3f\n",
+          speedOfSound);
+      log(csound, "Doppler::kontrol: samplesPerDistance:    %10.3f\n",
+          samplesPerDistance);
+      log(csound, "Doppler::kontrol: smoothingFilterCutoff: %10.3f\n",
+          smoothingFilterCutoff);
+      log(csound, "Doppler::kontrol: kMicPosition:          %10.3f\n",
+          *kMicPosition);
+      log(csound, "Doppler::kontrol: kSourcePosition:       %10.3f\n",
+          *kSourcePosition);
     }
 
     for (size_t outputFrame = 0;
