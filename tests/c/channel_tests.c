@@ -53,7 +53,7 @@ void test_control_channel(void)
     int err = csoundStart(csound);
     CU_ASSERT(err == 0);
     csoundSetControlChannel(csound, "testing", 5.0);
-    CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "testing"));
+    CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "testing", NULL));
 
     csoundDestroy(csound);
     csoundDestroyMessageBuffer(csound);
@@ -175,7 +175,7 @@ void inputCallback2(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
-    MYFLT val = csoundGetControlChannel(csound, channelName);
+    MYFLT val = csoundGetControlChannel(csound, channelName, NULL);
     MYFLT *valPtr = (MYFLT *) channelValuePtr;
     *valPtr = val;
 }
@@ -204,19 +204,19 @@ void test_channel_opcodes(void)
     err = csoundScoreEvent(csound, 'i', pFields, 3);
     err = csoundPerformKsmps(csound);
     CU_ASSERT(err == 0);
-    CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "2"));
+    CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "2", NULL));
     MYFLT pFields2[] = {2.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields2, 3);
     CU_ASSERT(err == 0);
     err = csoundPerformKsmps(csound);
     CU_ASSERT(err == 0);
-    CU_ASSERT_EQUAL(6.0, csoundGetControlChannel(csound, "3"));
+    CU_ASSERT_EQUAL(6.0, csoundGetControlChannel(csound, "3", NULL));
     MYFLT pFields3[] = {3.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields3, 3);
     CU_ASSERT(err == 0);
     err = csoundPerformKsmps(csound);
     CU_ASSERT(err == 0);
-    CU_ASSERT_EQUAL(7.0, csoundGetControlChannel(csound, "4"));
+    CU_ASSERT_EQUAL(7.0, csoundGetControlChannel(csound, "4", NULL));
 
     csoundDestroy(csound);
 }
@@ -250,6 +250,18 @@ void test_pvs_opcodes(void)
     csoundSetPvsChannel(csound, &pvs_data, "1");
     csoundGetPvsChannel(csound, &pvs_data2, "1");
     CU_ASSERT_EQUAL(pvs_data.N, pvs_data2.N);
+}
+
+void test_invalid_channel(void)
+{
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
+    csoundSetOption(csound, "--logfile=NULL");
+    csoundCompileOrc(csound, orc5);
+
+    int err;
+    CU_ASSERT_EQUAL(0.0, csoundGetControlChannel(csound, "nonexistent_channel", &err));
+    CU_ASSERT_NOT_EQUAL(err, CSOUND_SUCCESS);
 
 }
 
@@ -275,6 +287,7 @@ int main()
            || (NULL == CU_add_test(pSuite, "Callbacks", test_channel_callbacks))
            || (NULL == CU_add_test(pSuite, "Opcodes", test_channel_opcodes))
            || (NULL == CU_add_test(pSuite, "PVS Opcodes", test_pvs_opcodes))
+           || (NULL == CU_add_test(pSuite, "Invalid channels", test_invalid_channel))
            )
    {
       CU_cleanup_registry();

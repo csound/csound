@@ -55,14 +55,16 @@ void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable){
   csoundUnlockMutex(csound->API_lock);
 }
 
-MYFLT csoundGetControlChannel(CSOUND *csound, const char *name){
+MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
+{
     MYFLT *pval;
+    int err_;
     union {
       MYFLT d;
       int64_t i;
     } x;
     x.d = FL(0.0);
-    if (csoundGetChannelPtr(csound, &pval, name,
+    if (err_ = csoundGetChannelPtr(csound, &pval, name,
                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS)
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -70,6 +72,9 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name){
 #else
     x.d = *pval;
 #endif
+    if (err) {
+        *err = err_;
+    }
     return x.d;
 }
 
