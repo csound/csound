@@ -921,6 +921,10 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
         hints.dflt = *(p->idflt);
         hints.min = *(p->imin);
         hints.max = *(p->imax);
+        hints.x = *(p->ix);
+        hints.y = *(p->iy);
+        hints.width = *(p->iwidth);
+        hints.height = *(p->iheight);
     }
     err = csoundSetControlChannelHints(csound, (char*) p->iname, hints);
     if (LIKELY(!err)) {
