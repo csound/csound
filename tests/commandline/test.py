@@ -103,6 +103,7 @@ def runTest():
 	["test48.csd", "expected failure with variable used before defined", 1],
 	["test_string.csd", "test string assignment and printing"],
 	["test_sprintf.csd", "test string assignment and printing"],
+	["test_label_within_if_block.csd", "test label within if block"],
 
 	["test_arrays.csd", "test k-array with single dimension, assignment to expression value"],
 	["test_arrays2.csd", "test gk-array with single dimension, assignment to expression value"],
