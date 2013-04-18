@@ -853,19 +853,18 @@ typedef struct NAME__ {
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
+   *
+   * \b PUBLIC functions in CSOUND_
+   * These are used by plugins to access the
+   * Csound library functionality without the requirement
+   * of compile-time linkage to the csound library
+   * New functions only need to be added here if
+   * they are required by plugins.
    */
   struct CSOUND_ {
 
-    /**
-     * PUBLIC functions in CSOUND
-     * These are used by plugins to access the
-     * Csound library functionality without the requirement
-     * of compile-time linkage to the csound library
-     * New functions only need to be added here if
-     * they are required by plugins.
-     */
-
-    /* attributes  */
+    /** @name Attributes */
+    /**@{ */
     MYFLT (*GetSr)(CSOUND *);
     MYFLT (*GetKr)(CSOUND *);
     uint32_t (*GetKsmps)(CSOUND *);
@@ -884,8 +883,9 @@ typedef struct NAME__ {
     int (*GetSizeOfMYFLT)(void);
     void (*GetOParms)(CSOUND *, OPARMS *);
     const char *(*GetEnv)(CSOUND *, const char *name);
-
-    /* message printout */
+    /**@}*/
+    /** @name Message printout */
+    /**@{ */
     CS_PRINTF2 void (*Message)(CSOUND *, const char *fmt, ...);
     CS_PRINTF3 void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
     void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
@@ -895,8 +895,9 @@ typedef struct NAME__ {
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,
                                               va_list valist));
-
-   /* Event and MIDI functionality for opcodes */
+    /**@}*/
+    /** @name Event and MIDI functionality for opcodes */
+    /**@{ */
     int (*SetReleaseLength)(void *p, int n);
     MYFLT (*SetReleaseLengthSeconds)(void *p, MYFLT n);
     int (*GetMidiChannelNumber)(void *p);
@@ -915,8 +916,9 @@ typedef struct NAME__ {
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
     MYFLT (*intpow)(MYFLT, int32);
     char *(*type2string)(int type);
-
-    /* arguments to opcodes */
+    /**@}*/
+    /** @name Arguments to opcodes */
+    /**@{ */
     int (*GetInputArgCnt)(void *p);
     unsigned long (*GetInputArgAMask)(void *p);
     unsigned long (*GetInputArgSMask)(void *p);
@@ -929,14 +931,18 @@ typedef struct NAME__ {
     int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
     char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
 
-    /* memory allocation */
+    /**@}*/
+    /** @name Memory allocation */
+    /**@{ */
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
     void (*Free)(CSOUND *, void *ptr);
 
-    /* function tables */
+    /**@}*/
+    /** @name Function tables */
+    /**@{ */
     int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
     int (*FTAlloc)(CSOUND *, int tableNum, int len);
     int (*FTDelete)(CSOUND *, int tableNum);
@@ -949,7 +955,9 @@ typedef struct NAME__ {
     void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
     void *(*GetNamedGens)(CSOUND *);
 
-    /* global and config variable manipulation */
+    /**@}*/
+    /** @name Global and config variable manipulation */
+    /**@{ */
     int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
     void *(*QueryGlobalVariable)(CSOUND *, const char *name);
     void *(*QueryGlobalVariableNoCheck)(CSOUND *, const char *name);
@@ -967,7 +975,9 @@ typedef struct NAME__ {
     int (*DeleteConfigurationVariable)(CSOUND *, const char *name);
     const char *(*CfgErrorCodeToString)(int errcode);
 
-    /* FFT support */
+    /**@}*/
+    /** @name FFT support */
+    /**@{ */
     MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
     MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
     void (*ComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
@@ -979,7 +989,9 @@ typedef struct NAME__ {
     void (*RealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
     void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
 
-    /* PVOC-EX system */
+    /**@}*/
+    /** @name PVOC-EX system */
+    /**@{ */
     int (*PVOC_CreateFile)(CSOUND *, const char *,
                            uint32, uint32, uint32,
                            uint32, int32, int, int,
@@ -993,7 +1005,9 @@ typedef struct NAME__ {
     const char *(*PVOC_ErrorString)(CSOUND *);
     int (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
 
-    /* error messages */
+    /**@}*/
+    /** @name Error messages */
+    /**@{ */
     CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 int (*InitError)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 int (*PerfError)(CSOUND *, const char *msg, ...);
@@ -1003,7 +1017,9 @@ typedef struct NAME__ {
     CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
     void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
 
-    /* random numbers */
+    /**@}*/
+    /** @name Random numbers */
+    /**@{ */
     uint32_t (*GetRandomSeedFromTime)(void);
     void (*SeedRandMT)(CsoundRandMTState *p,
                        const uint32_t *initKey, uint32_t keyLength);
@@ -1011,7 +1027,9 @@ typedef struct NAME__ {
     int (*Rand31)(int *seedVal);
     int (*GetRandSeed)(CSOUND *, int which);
 
-    /* threads and locks */
+    /**@}*/
+    /** @name Threads and locks */
+    /**@{ */
     void *(*CreateThread)(uintptr_t (*threadRoutine)(void *), void *userdata);
     uintptr_t (*JoinThread)(void *thread);
     void *(*CreateThreadLock)(void);
@@ -1033,14 +1051,18 @@ typedef struct NAME__ {
     double (*GetRealTime)(RTCLOCK *);
     double (*GetCPUTime)(RTCLOCK *);
 
-    /* circular buffer */
+    /**@}*/
+    /** @name Circular lock-free buffer */
+    /**@{ */
     void *(*CreateCircularBuffer)(CSOUND *, int);
     int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
     int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
     void (*FlushCircularBuffer)(CSOUND *, void *);
     void (*FreeCircularBuffer)(CSOUND *, void *);
 
-    /* File access */
+    /**@}*/
+    /** @name File access */
+    /**@{ */
     char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
     char *(*FindOutputFile)(CSOUND *,
                             const char *filename, const char *envList);
@@ -1070,7 +1092,9 @@ typedef struct NAME__ {
     char *(*getstrformat)(int format);
     int (*sfsampsize)(int format);
 
-    /* RT audio IO and callbacks */
+    /**@}*/
+    /** @name RT audio IO and callbacks */
+    /**@{ */
     void (*SetPlayopenCallback)(CSOUND *,
                 int (*playopen__)(CSOUND *, const csRtAudioParams *parm));
     void (*SetRtplayCallback)(CSOUND *,
@@ -1085,8 +1109,9 @@ typedef struct NAME__ {
     void **(*GetRtRecordUserData)(CSOUND *);
     void **(*GetRtPlayUserData)(CSOUND *);
     int (*GetDitherMode)(CSOUND *);
-
-   /* MIDI and callbacks */
+    /**@}*/
+    /** @name RT MIDI and callbacks */
+    /**@{ */
     void (*SetExternalMidiInOpenCallback)(CSOUND *,
                 int (*func)(CSOUND *, void **, const char *));
     void (*SetExternalMidiReadCallback)(CSOUND *,
@@ -1104,8 +1129,9 @@ typedef struct NAME__ {
     void (*SetMIDIDeviceListCallback)(CSOUND *csound,
           int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
     void (*module_list_add)(CSOUND *, char *, char *);
-
-    /* displays & graphs */
+    /**@}*/
+    /** @name Displays & graphs */
+    /**@{ */
     void (*dispset)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
     void (*display)(CSOUND *, WINDAT *);
     int (*dispexit)(CSOUND *);
@@ -1119,8 +1145,9 @@ typedef struct NAME__ {
     void (*SetKillGraphCallback)(CSOUND *,
                 void (*killGraphCallback)(CSOUND *, WINDAT *p));
     void (*SetExitGraphCallback)(CSOUND *, int (*exitGraphCallback)(CSOUND *));
-
-    /* generic callbacks */
+    /**@}*/
+    /** @name Generic callbacks */
+    /**@{ */
     void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));
     int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
                                   void *userData, unsigned int typeMask);
@@ -1134,8 +1161,9 @@ typedef struct NAME__ {
                                            int (*func)(CSOUND *, void *));
     void (*SetInternalYieldCallback)(CSOUND *,
                        int (*yieldCallback)(CSOUND *));
-
-    /* opcodes and instruments  */
+    /**@}*/
+    /** @name Opcodes and instruments */
+    /**@{ */
     int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
                         int thread, const char *outypes, const char *intypes,
                         int (*iopadr)(CSOUND *, void *),
@@ -1144,14 +1172,16 @@ typedef struct NAME__ {
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
     char *(*GetOpcodeName)(void *p);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
-
-    /* events and performance */
+    /**@}*/
+    /** @name Events and performance */
+    /**@{ */
     int (*CheckEvents)(CSOUND *);
     int (*insert_score_event)(CSOUND *, EVTBLK *, double);
     int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t);
     int (*PerformKsmps)(CSOUND *);
-
-    /* utilities */
+    /**@}*/
+    /** @name Utilities */
+    /**@{ */
     int (*AddUtility)(CSOUND *, const char *name,
                       int (*UtilFunc)(CSOUND *, int, char **));
     int (*RunUtility)(CSOUND *, const char *name, int argc, char **argv);
@@ -1161,18 +1191,20 @@ typedef struct NAME__ {
     const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
     void (*SetUtilSr)(CSOUND *, MYFLT);
     void (*SetUtilNchnls)(CSOUND *, int);
-
-    /* miscellaneous */
+    /**@}*/
+    /** @name Miscellaneous */
+    /**@{ */
     long (*RunCommand)(const char * const *argv, int noWait);
     int (*OpenLibrary)(void **library, const char *libraryPath);
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
-    char *(*LocalizeString)(const char *);        
-    /* placeholders */
+    char *(*LocalizeString)(const char *);
+    /**@}*/
+    /** @name Placeholders */
+    /**@{ */
     SUBR dummyfn_2[50];
-    /**
-     *
-      NO MORE PUBLIC VARIABLES IN CSOUND struct
+    /**@}*/
+    /*  NO MORE PUBLIC VARIABLES IN CSOUND struct
 
       NB: if a new variable member is needed by the library, add it below, as a
       private data member.
@@ -1196,11 +1228,9 @@ typedef struct NAME__ {
 
          dataType var;
          csound->GetData(csound, &var);
-    *
     */
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
-    /* callback function pointers */
     SUBR          first_callback_;
     channelCallback_t InputChannelCallback_;
     channelCallback_t OutputChannelCallback_;
