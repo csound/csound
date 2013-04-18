@@ -57,6 +57,19 @@ CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
     return cell;
 }
 
+CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
+    if(cons1 == NULL) return cons2;
+    if(cons2 == NULL) return cons1;
+
+    CONS_CELL* c = cons1;
+    
+    while (c->next != NULL) c = c->next;
+
+    c->next = cons2;
+    
+    return cons1;
+}
+
 TREE* tree_tail(TREE* node) {
     TREE* t = node;
     if (t == NULL) {

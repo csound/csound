@@ -1416,21 +1416,41 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
 /* Walks tree and finds all label: definitions */
 CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
-    CONS_CELL* head = NULL;
-    int len = 0;
+    CONS_CELL* head = NULL, *ret = NULL;
     TREE* current = root;
-
+    char* labelText;
+    
     while (current != NULL) {
-      if (current->type == LABEL_TOKEN) {
-        char* labelText = current->value->lexeme;
-        head = cs_cons(csound, cs_strdup(csound, labelText), head);
-        len++;
-      }
-      current = current->next;
-    }
+        switch(current->type) {
+            case LABEL_TOKEN:
+                labelText = current->value->lexeme;
+                head = cs_cons(csound, cs_strdup(csound, labelText), head);
+                break;
+                
+            case IF_TOKEN:
+            case ELSEIF_TOKEN:                
+                if (current->right->type == THEN_TOKEN ||
+                    current->right->type == KTHEN_TOKEN ||
+                    current->right->type == ITHEN_TOKEN) {
+                    
+                    ret = get_label_list(csound, current->right->right);
+                    head = cs_cons_append(head, ret);
+                    ret = get_label_list(csound, current->right->next);
+                    head = cs_cons_append(head, ret);
+                }
+                break;
 
-    if (len == 0) {
-      return NULL;
+            case ELSE_TOKEN:
+            case UNTIL_TOKEN:                
+                ret = get_label_list(csound, current->right);
+                head = cs_cons_append(head, ret);
+                break;
+                
+            default:
+                break;
+        }
+
+        current = current->next;
     }
 
     return head;
