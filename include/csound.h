@@ -510,7 +510,7 @@ extern "C" {
         int y;
         int width;
         int height;
-        /** This member must be set manually to 0 if not used */
+        /** This member must be set explicitly to NULL if not used */
         char *attributes;
     } controlChannelHints_t;
 
@@ -864,7 +864,7 @@ extern "C" {
      /**
       * retrieves a module name and type ("audio" or "midi") given a
       * number Modules are added to list as csound loads them returns
-      * CSOUND_SUCCESS on success and CSOUND_ERROR if module <number>
+      * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
       * was not found
       *
        * \code
@@ -1398,9 +1398,12 @@ extern "C" {
             const char *name, int type);
 
     /**
-     * retrieves the value of control channel identified by *name
+     * retrieves the value of control channel identified by *name.
+     * If the err argument is not NULL, the error (or success) code
+     * finding or accessing the channel is stored in it.
      */
-    PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name);
+    PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name,
+                                         int *err);
 
     /**
      * sets the value of control channel identified by *name
