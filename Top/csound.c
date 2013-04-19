@@ -550,6 +550,7 @@ static const CSOUND cenviron_ = {
     NULL,           /*  spout               */
     0,              /*  nspin               */
     0,              /*  nspout              */
+    NULL,           /*  auxspin  */ 
     (OPARMS*) NULL, /*  oparms              */
        { NULL },       /*  m_chnbp             */
         0,                      /*   dither_output  */
@@ -1310,6 +1311,7 @@ inline static int nodePerf(CSOUND *csound, int index)
             insds->ksmps_no_end = insds->no_end;
           }
         opstart = (OPDS*)task_map[which_task];
+        if(insds->ksmps == csound->ksmps) {
         insds->kcounter =  csound->kcounter;
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
@@ -1317,6 +1319,9 @@ inline static int nodePerf(CSOUND *csound, int index)
           (*opstart->opadr)(csound, opstart); /* run each opcode */
           opstart = opstart->insdshead->pds;
         }
+	} else {
+	  csoundWarning(csound, "local ksmps not yet implemented in parallel csound");
+	}
         insds->ksmps_offset = 0; /* reset sample-accuracy offset */
         insds->ksmps_no_end = 0;  /* reset end of loop samples */
         played_count++;
@@ -1434,18 +1439,49 @@ int kperf(CSOUND *csound)
           if (ip->init_done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
             ip->kcounter =  csound->kcounter;
+            if(ip->ksmps == csound->ksmps){
             while ((opstart = opstart->nxtp) != NULL) {
               opstart->insdshead->pds = opstart;
               (*opstart->opadr)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
-
-            /* //csound->pds = (OPDS*) ip;
-            while ((csound->pds = csound->pds->nxtp) != NULL) {
-             csound->pds->insdshead->pds = csound->pds;
-             (*csound->pds->opadr)(csound, csound->pds);
-             csound->pds = csound->pds->insdshead->pds;
-             }*/
+	    } else {
+              if(ip->ksmps == 1){
+                MYFLT tmp[MAXCHNLS];
+		int i, j, nchnls = csound->nchnls, n = csound->nspout; 
+                OPDS  *opstart;
+                MYFLT *spin = csound->spin;
+                MYFLT *spout = csound->spout;
+                MYFLT *auxspin = csound->auxspin;
+                ip->kcounter =  csound->kcounter*csound->ksmps;
+                memcpy(tmp,spout,nchnls*sizeof(MYFLT));
+                memcpy(auxspin,spin,n*sizeof(MYFLT));
+       
+		if (!csound->spoutactive) {            
+                      memset(spout,0,n*sizeof(MYFLT));
+                 }
+                for(i=0; i < n; i+=nchnls){
+		  memcpy(spin, &auxspin[i], sizeof(MYFLT)*nchnls);
+                   opstart = (OPDS*) ip;
+                   while ((opstart = opstart->nxtp) != NULL) {
+                          opstart->insdshead->pds = opstart;
+                           (*opstart->opadr)(csound, opstart); /* run each opcode */
+                            opstart = opstart->insdshead->pds;
+		   }
+		   if(i==0) memcpy(tmp,spout, sizeof(MYFLT)*nchnls);
+		   else for(j=0; j < nchnls; j++)
+		        spout[j+i] += spout[j]; 
+                   memset(spout, 0, sizeof(MYFLT)*nchnls);
+                   ip->kcounter++;
+	      }
+		  memcpy(csound->spin, spin, sizeof(MYFLT)*n);
+                  for(j=0; j < nchnls; j++)
+		         spout[j] = tmp[j];
+	      }
+              else {
+		csoundWarning(csound, "local ksmps != 1 not yet implemented");
+	      }
+	    }
           }
 
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
