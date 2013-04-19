@@ -1333,6 +1333,7 @@ typedef struct NAME__ {
     MYFLT         *spout;
     int           nspin;
     int           nspout;
+    MYFLT         *auxspin;
     OPARMS        *oparms;
     /** reserve space for up to 4 MIDI devices */
     MCHNBLK       *m_chnbp[64];
