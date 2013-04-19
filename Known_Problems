@@ -23,3 +23,6 @@ local ksmps UDO breaking multicore performance assumptions
 semantic phase: label list creation did not correctly walk TREE*
     to find all labels:
         -- fixed in git sources Apr 18 15:31 2013 +0100
+if-then blocks were not being expanded correctly, with bug 
+    presenting consistently in case of nested if-then's
+        -- fixed in git sources Apr 19 17:44 2013 +0100
