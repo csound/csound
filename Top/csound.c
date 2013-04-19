@@ -1310,6 +1310,7 @@ inline static int nodePerf(CSOUND *csound, int index)
             insds->ksmps_no_end = insds->no_end;
           }
         opstart = (OPDS*)task_map[which_task];
+        insds->kcounter =  csound->kcounter;
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
           opstart->insdshead->pds = opstart;
@@ -1432,6 +1433,7 @@ int kperf(CSOUND *csound)
 
           if (ip->init_done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
+            ip->kcounter =  csound->kcounter;
             while ((opstart = opstart->nxtp) != NULL) {
               opstart->insdshead->pds = opstart;
               (*opstart->opadr)(csound, opstart); /* run each opcode */

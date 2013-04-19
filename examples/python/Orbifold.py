@@ -828,12 +828,11 @@ endin
             f0 6000
             e
             ''')
-        model.csound.setCommand('csound -h -d -r 48000 -k 1000 -m128 -b1000 -B1000 -odac temp.orc temp.sco')
-        model.csound.exportForPerformance()
-        gc.disable()
-        model.csound.compile()
-        performanceThread = csnd.CsoundPerformanceThread(model.csound)
-        performanceThread.Play()
+        #model.csound.setCommand('csound -h -d -r 48000 -k 1000 -m128 -b1000 -B1000 -odac')
+        #gc.disable()
+        #model.csound.compile()
+        #performanceThread = csnd.CsoundPerformanceThread(model.csound)
+        #performanceThread.Play()
     fg = (1,1,1)
     arrowcolor = (0.7,0.7,0.7)
     size = model.getTessitura() * 1.125
@@ -858,9 +857,9 @@ print 'Program finished.'
     
 
 if __name__ == '__main__':
-    scene.fullscreen = False
-    scene.width = 300 * 7
-    scene.height = 300 * 5
+    #scene.fullscreen = False
+    #scene.width = 300 * 7
+    #scene.height = 300 * 5
     # Tonnetz for trichords
     model = TonnetzModel(octaveCount=1, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
     # Ranged chord space
