@@ -1104,6 +1104,15 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     lcurip->offbet = parent_ip->offbet;
     lcurip->offtim = parent_ip->offtim;
     lcurip->nxtolap = NULL;
+
+    /* set the local ksmps values */
+    lcurip->ksmps = CS_KSMPS;
+    lcurip->kcounter = CS_KCNT;
+    lcurip->ekr = CS_EKR;
+    lcurip->onedkr = CS_ONEDKR;
+    lcurip->onedksmps = CS_ONEDKSMPS;
+    lcurip->kicvt = CS_KICVT;
+
     /* copy all p-fields, including p1 (will this work ?) */
     if (tp->pmax > 3) {         /* requested number of p-fields */
       n = tp->pmax; pcnt = 0;
@@ -1145,6 +1154,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     
 
     if (p->mode == 1) {
+      /* restore parent parameters */
       CS_KSMPS = g_ksmps;
       CS_EKR = g_ekr;
       saved_curip->xtratim = lcurip->xtratim / p->ksmps_scale;
@@ -1351,9 +1361,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
 
     pp = (UOPCODE*) buf->uopcode_struct;
-    CS_KSMPS = pp->h.insdshead->ksmps;
-    CS_KCNT = pp->h.insdshead->kcounter;
-
+    
     l_ksmps = (unsigned int) *(p->i_ksmps);
     if (!l_ksmps) return OK;       /* zero: do not change */
     if (UNLIKELY(l_ksmps < 1 || l_ksmps > CS_KSMPS
