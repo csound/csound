@@ -271,6 +271,8 @@ void test_invalid_channel(void)
 }
 
 const char orc6[] = "chn_k \"chan\", 3, 2, 0.5, 0, 1, 10, 10, 50, 100\n"
+        "chn_k \"chan2\", 3, 2, 0.5, 0, 1, 10, 10, 50, 100, \"testattr\"\n"
+        "chn_k \"chan3\", 3, 2, 0.5, 0, 1\n"
         "instr 1\n kval invalue \"1\"\n"
         "outvalue \"2\",kval\n"
         "endin\n";
@@ -279,8 +281,8 @@ void test_chn_hints(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-//    csoundEnableMessageBuffer(csound, 0);
-//    csoundSetOption(csound, "--logfile=null");
+    csoundEnableMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc6);
     int err = csoundStart(csound);
     err = csoundPerformKsmps(csound); //Need this to load instr 0
@@ -291,6 +293,13 @@ void test_chn_hints(void)
     CU_ASSERT_EQUAL(hints.y, 10);
     CU_ASSERT_EQUAL(hints.width, 50);
     CU_ASSERT_EQUAL(hints.height, 100);
+    CU_ASSERT_EQUAL(hints.attributes, 0);
+    CU_ASSERT_EQUAL(0, csoundGetControlChannelHints(csound, "chan2", &hints));
+    CU_ASSERT_EQUAL(hints.x, 10);
+    CU_ASSERT_EQUAL(hints.y, 10);
+    CU_ASSERT_EQUAL(hints.width, 50);
+    CU_ASSERT_EQUAL(hints.height, 100);
+    CU_ASSERT_STRING_EQUAL(hints.attributes, "testattr");
 }
 
 int main()
