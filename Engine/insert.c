@@ -1120,7 +1120,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     lcurip->offbet = parent_ip->offbet;
     lcurip->offtim = parent_ip->offtim;
     lcurip->nxtolap = NULL;
-
+    lcurip->ksmps_offset = parent_ip->ksmps_offset;
+    lcurip->ksmps_no_end = parent_ip->ksmps_no_end;
 
     /* copy all p-fields, including p1 (will this work ?) */
     if (tp->pmax > 3) {         /* requested number of p-fields */
@@ -1530,14 +1531,20 @@ int subinstr(CSOUND *csound, SUBINST *p)
 int useropcd1(CSOUND *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = CS_PDS;
-    int    g_ksmps, ofs = 0, n;
-    MYFLT  **tmp, *ptr1, *ptr2;
+    int    g_ksmps, ofs, n, early;
+    MYFLT  **tmp, *ptr1, *ptr2, *out;
     INSDS    *this_instr = p->ip;
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
+    early = p->h.insdshead->ksmps_no_end;    
+
+    /* global ksmps is the caller instr ksmps minus sample-accurate end */
+    g_ksmps = CS_KSMPS - early;
     
-    /* global ksmps is the caller instr ksmps */
-    g_ksmps = CS_KSMPS;
-   
+    /* sample-accurate offset */
+    ofs = p->h.insdshead->ksmps_offset;
+    this_instr->ksmps_offset = 0;
+    this_instr->ksmps_no_end = 0;    
+
     if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
       do {
         /* copy inputs */
@@ -1569,8 +1576,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }while ((CS_PDS = CS_PDS->nxtp));
         }
         /* copy outputs */
+        out = *tmp;
         while (*(++tmp)) {              /* a-rate */
-          ptr1 = *tmp; (*(++tmp))[ofs] = *ptr1;
+           ptr1 = *tmp; (*(++tmp))[ofs] = *ptr1;
         }
         this_instr->kcounter++;
       } while (++ofs < g_ksmps);
@@ -1611,6 +1619,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }while ((CS_PDS = CS_PDS->nxtp));
         }
         /* copy outputs */
+        out = *tmp;
         while (*(++tmp)) {              /* a-rate */
           ptr1 = *tmp; ptr2 = *(++tmp) + ofs;
           n = csound->ksmps;
@@ -1637,7 +1646,13 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
     }
-
+   
+    /* clear the end portion of outputs for sample accurate end */
+    if(early){
+	*tmp = out;
+	while (*(++tmp))
+	  memset(*(++tmp), '\0', sizeof(MYFLT)*early);	    
+      }
     
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
