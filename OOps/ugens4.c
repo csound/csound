@@ -519,7 +519,7 @@ int arand(CSOUND *csound, RAND *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ampscl;
     MYFLT       base = *p->base;
-
+    //printf("******%d \n", CS_KSMPS);
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
