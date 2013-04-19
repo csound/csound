@@ -599,13 +599,13 @@ public:
   {
     rhs = 0;
     toa(rhs_ivr, rhs);
-    ksmps = head.insdshead->ksmps;
+    ksmps = opds.insdshead->ksmps;
     vector_size = gmm::vect_size(rhs->vr);
     return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    size_t frame_count = head.insdshead->kcounter * ksmps;
+    size_t frame_count = opds.insdshead->kcounter * ksmps;
     size_t index = frame_count % vector_size;
     if (index == 0) {
       *k_current = 1.0;
@@ -831,15 +831,15 @@ public:
   int init(CSOUND *csound)
   {
     toa(i_vr, lhs);
-    ksmps = head.insdshead->ksmps;
+    ksmps = opds.insdshead->ksmps;
     vector_size = gmm::vect_size(lhs->vr);
     return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    uint32_t offset = head.insdshead->ksmps_offset;
-    uint32_t early  = head.insdshead->ksmps_no_end;
-    size_t frame_count = head.insdshead->ksmps * ksmps;
+    uint32_t offset = opds.insdshead->ksmps_offset;
+    uint32_t early  = opds.insdshead->ksmps_no_end;
+    size_t frame_count = opds.insdshead->ksmps * ksmps;
     size_t array_i = frame_count % vector_size;
     if (UNLIKELY(early)) ksmps -= early;
     for (size_t i = offset; i < ksmps; ++i, ++array_i) {
@@ -931,15 +931,15 @@ public:
   int init(CSOUND *csound)
   {
     toa(i_vr, rhs);
-    ksmps = head.insdshead->ksmps;
+    ksmps = opds.insdshead->ksmps;
     return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    uint32_t offset = head.insdshead->ksmps_offset;
-    uint32_t early  = head.insdshead->ksmps_no_end;
+    uint32_t offset = opds.insdshead->ksmps_offset;
+    uint32_t early  = opds.insdshead->ksmps_no_end;
     memset(a_a, '\0', offset*sizeof(MYFLT));
-    size_t frameCount = head.insdshead->kcounter * head.insdshead->ksmps;
+    size_t frameCount = opds.insdshead->kcounter * opds.insdshead->ksmps;
     size_t vectorSize = gmm::vect_size(rhs->vr);
     size_t array_i = frameCount % vectorSize;
     if (UNLIKELY(early)) ksmps -= early;
