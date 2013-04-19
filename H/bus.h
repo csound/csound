@@ -86,6 +86,11 @@ typedef struct {
     MYFLT   *idflt;
     MYFLT   *imin;
     MYFLT   *imax;
+    MYFLT   *ix;
+    MYFLT   *iy;
+    MYFLT   *iwidth;
+    MYFLT   *iheight;
+    MYFLT   *Sattributes[64]; /* only the first argument is used the rest for safety */
     int     *lock;
 } CHN_OPCODE_K;
 

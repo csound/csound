@@ -599,7 +599,9 @@ INPUT_ENCODING         = UTF-8
 
 FILE_PATTERNS          = csound.h \
                          csound.hpp \
-                         csoundCore.h
+                         csoundCore.h \
+                         cscore.h \
+                         csdl.h
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 

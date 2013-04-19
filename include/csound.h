@@ -24,6 +24,30 @@
  *   add functionality and support the wrapping of the Csound API by various
  *   languages (e.g. Python, Java, Lua).
  *
+ * \b Purposes
+ *
+ * The purposes of the Csound API are as follows:
+ *
+ * \li Declare a stable public application programming interface (API)
+ *     for Csound in csound.h. This is the only header file that needs
+ *     to be \#included by users of the Csound API.
+ *
+ * \li Hide the internal implementation details of Csound from users of
+ *     the API, so that development of Csound can proceed without affecting
+ *     code that uses the API.
+ *
+ * \b Users
+ *
+ * Users of the Csound API fall into two main categories: hosts, and plugins.
+ *
+ * \li Hosts are applications that use Csound as a software synthesis engine.
+ *     Hosts can link with the Csound API either statically or dynamically.
+ *
+ * \li Plugins are shared libraries loaded by Csound at run time to implement
+ *     external opcodes and/or drivers for audio or MIDI input and output.
+ *     Plugin opcodes need only include the csdl.h header which brings all
+ *     necessary functions and data structures.
+ *
  * \section section_api_c_example An Example Using the Csound API
  *
  * The Csound command--line program is itself built using the Csound API.
@@ -48,30 +72,6 @@
  * }
  * \endcode
  *
- * \section section_api_cscore Cscore
- *
- * Beginning with Csound 5, all of the Cscore functions described in the
- * manual are now part of the Csound API, and they can be called from a program
- * that calls the Csound library.
- *
- * All of the CScore functions are renamed in the Csound API. For
- * example, createv() is now cscoreCreateEvent(), and lcopy() is now
- * cscoreListCopy().  In addition, each function takes an additional
- * first parameter that is a pointer to a CSOUND instance.  You can
- * find the details in the header file, cscore.h, which may be
- * included with your Csound distribution, or if not, can be found in
- * Csound CVS `on SourceForge.
- *
- * Before you can use any of the Cscore API functions, you must create a CSOUND
- * instance and initialize Cscore by calling csoundInitializeCscore() -- see
- * csound.h for an explanation.  An example main program that does all of this
- * Top/cscormai.c.  You should add a function called cscore() with your own
- * score-processing code.  An example that does nothing except write the score
- * back out unchanged can be found in the file Top/cscore_internal.c.
- *
- * To create your own standalone Cscore program, you must compile cscormai.c
- * (or your own main program) and the file containing your
- * cscore() function, and link them with the Csound API library.
  *
  * Everything that can be done using C as in the above examples can also be done
  * in a similar manner in Python or any of the other Csound API languages.
@@ -81,28 +81,6 @@
  * \brief Declares the public Csound application programming interface (API).
  * \author John P. ffitch, Michael Gogins, Matt Ingalls, John D. Ramsdell,
  *         Istvan Varga, Victor Lazzarini, Andres Cabrera and Steven Yi.
- *
- * \b Purposes
- *
- * The purposes of the Csound API are as follows:
- *
- * \li Declare a stable public application programming interface (API)
- *     for Csound in csound.h. This is the only header file that needs
- *     to be \#included by users of the Csound API.
- *
- * \li Hide the internal implementation details of Csound from users of
- *     the API, so that development of Csound can proceed without affecting
- *     code that uses the API.
- *
- * \b Users
- *
- * Users of the Csound API fall into two main categories: hosts, and plugins.
- *
- * \li Hosts are applications that use Csound as a software synthesis engine.
- *     Hosts can link with the Csound API either statically or dynamically.
- *
- * \li Plugins are shared libraries loaded by Csound at run time to implement
- *     external opcodes and/or drivers for audio or MIDI input and output.
  *
  * Hosts using the Csound API must \#include <csound.h>, and link with the
  * Csound API library. Plugin libraries should \#include <csdl.h> to get
@@ -532,7 +510,7 @@ extern "C" {
         int y;
         int width;
         int height;
-        /** This member must be set manually to 0 if not used */
+        /** This member must be set explicitly to NULL if not used */
         char *attributes;
     } controlChannelHints_t;
 
@@ -886,7 +864,7 @@ extern "C" {
      /**
       * retrieves a module name and type ("audio" or "midi") given a
       * number Modules are added to list as csound loads them returns
-      * CSOUND_SUCCESS on success and CSOUND_ERROR if module <number>
+      * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
       * was not found
       *
        * \code
@@ -1384,17 +1362,15 @@ extern "C" {
 
     /**
      * Returns special parameters (assuming there are any) of a control channel,
-     * previously set with csoundSetControlChannelHints().
-     * If the channel exists, is a control channel, and has the
-     * special parameters assigned, then the default, minimum, and
-     * maximum value is stored in *dflt, *min, and *max, respectively,
-     * and a positive value that is one of CSOUND_CONTROL_CHANNEL_INT,
-     * CSOUND_CONTROL_CHANNEL_LIN, and CSOUND_CONTROL_CHANNEL_EXP is
-     * returned.
-     * In any other case, *dflt, *min, and *max are not changed, and
-     * the return value is zero if the channel exists, is a control
-     * channel, but has no special parameters set; otherwise, a
-     * negative error code is returned.
+     * previously set with csoundSetControlChannelHints() or the chnparams
+     * opcode.
+     * If the channel exists, is a control channel, the channel hints
+     * are stored in the preallocated controlChannelHints_t structure. The
+     * attributes member of the structure will be allocated inside this function
+     * so it is necessary to free it explicitly in the host.
+     *
+     * The return value is zero if the channel exists and is a control
+     * channel, otherwise, an error code is returned.
      */
     PUBLIC int csoundGetControlChannelHints(CSOUND *, const char *name,
             controlChannelHints_t *hints);
@@ -1420,9 +1396,12 @@ extern "C" {
             const char *name, int type);
 
     /**
-     * retrieves the value of control channel identified by *name
+     * retrieves the value of control channel identified by *name.
+     * If the err argument is not NULL, the error (or success) code
+     * finding or accessing the channel is stored in it.
      */
-    PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name);
+    PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name,
+                                         int *err);
 
     /**
      * sets the value of control channel identified by *name
