@@ -559,6 +559,12 @@ PUBLIC int csoundGetControlChannelHints(CSOUND *csound, const char *name,
     if (pp->hints.behav == 0)
       return CSOUND_ERROR;
     *hints = pp->hints;
+    if (pp->hints.attributes) {
+        hints->attributes
+          = (char *) csound->Malloc(csound,
+                                    strlen(pp->hints.attributes) * sizeof(char));
+        strcpy(hints->attributes, pp->hints.attributes);
+    }
     return 0;
 }
 
@@ -918,6 +924,15 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     if ((int)MYFLT2LRND(*(p->itype)) == 3)
         hints.behav |= CSOUND_CONTROL_CHANNEL_EXP;
     if ((int)MYFLT2LRND(*(p->itype)) != 0) {
+        hints.attributes = 0;
+        if (p->INOCOUNT > 10) {
+            if ((int) p->XSTRCODE >> 10 && p->Sattributes[0]) {
+            hints.attributes = (char *) calloc(strlen((char *)p->Sattributes[0]), sizeof(char));
+            strcpy(hints.attributes, (char *)p->Sattributes[0]);
+            } else {
+                return csound->InitError(csound, Str("Sattributes argument not a string"));
+            }
+        }
         hints.dflt = *(p->idflt);
         hints.min = *(p->imin);
         hints.max = *(p->imax);
