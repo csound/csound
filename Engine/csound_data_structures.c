@@ -20,3 +20,25 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  02111-1307 USA
  */
+
+#include "csound_data_structures.h"
+
+CS_STR_SET* cs_create_str_set(CSOUND* csound) {
+    return mmalloc(csound, sizeof(CS_STR_SET));
+}
+
+int cs_str_set_contains(CS_STR_SET* set, char* value) {
+    
+}
+
+void cs_str_set_add(CSOUND* csound, CS_STR_SET* set, char* value) {
+    
+}
+
+void cs_str_set_remove(CSOUND* csound, CS_STR_SET* set, char* value) {
+    
+}
+
+void cs_str_set_delete(CSOUND* csound, CS_STR_SET* set) {
+    
+}
