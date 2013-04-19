@@ -963,6 +963,9 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     p->ip->m_pitch  = saved_curip->m_pitch;
     p->ip->m_veloc  = saved_curip->m_veloc;
 
+    p->ip->ksmps_offset =  saved_curip->ksmps_offset;
+    p->ip->ksmps_no_end =  saved_curip->ksmps_no_end;
+
     /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
     /* by default all inputs are i-rate mapped to p-fields */
