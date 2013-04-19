@@ -1448,19 +1448,27 @@ int kperf(CSOUND *csound)
 	    } else {
               if(ip->ksmps == 1){
                 MYFLT tmp[MAXCHNLS];
-		int i, j, nchnls = csound->nchnls, n = csound->nspout; 
-                OPDS  *opstart;
+		int i, j, nchnls = csound->nchnls, n = csound->nspout;
+                int offset =  ip->ksmps_offset*nchnls;
+                int early = ip->ksmps_no_end*nchnls;
+                OPDS  *opstart; 
                 MYFLT *spin = csound->spin;
                 MYFLT *spout = csound->spout;
                 MYFLT *auxspin = csound->auxspin;
                 ip->kcounter =  csound->kcounter*csound->ksmps;
                 memcpy(tmp,spout,nchnls*sizeof(MYFLT));
                 memcpy(auxspin,spin,n*sizeof(MYFLT));
-       
+
+                if(early) n -= early;
+
+                /* clear offsets */
+                ip->ksmps_offset = 0;
+                ip->ksmps_no_end = 0;
+
 		if (!csound->spoutactive) {            
                       memset(spout,0,n*sizeof(MYFLT));
                  }
-                for(i=0; i < n; i+=nchnls){
+                for(i=offset; i < n; i+=nchnls){
 		  memcpy(spin, &auxspin[i], sizeof(MYFLT)*nchnls);
                    opstart = (OPDS*) ip;
                    while ((opstart = opstart->nxtp) != NULL) {
