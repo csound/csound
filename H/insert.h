@@ -71,10 +71,10 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     OPDS          h;
     INSDS         *ip, *parent_ip;
     OPCOD_IOBUFS  *buf;
-    unsigned int  l_ksmps;
+    /*unsigned int  l_ksmps;
     int           ksmps_scale;
     MYFLT         l_ekr, l_onedkr, l_onedksmps, l_kicvt;
-    int           mode;
+    int           mode;*/
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     MYFLT         *ar[1];
