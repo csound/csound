@@ -252,3 +252,13 @@ void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool) {
       current = current->next;
     }
 }
+
+void debug_print_varpool(CSOUND* csound, CS_VAR_POOL* pool) {
+    CS_VARIABLE* gVar = pool->head;
+    int count = 0;
+    while(gVar != NULL) {
+        csound->Message(csound, "  %d) %s:%s\n", count++,
+                        gVar->varName, gVar->varType->varTypeName);
+        gVar = gVar->next;
+    }
+}
