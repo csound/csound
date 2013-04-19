@@ -1534,20 +1534,23 @@ int subinstr(CSOUND *csound, SUBINST *p)
 int useropcd1(CSOUND *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = CS_PDS;
-    int    g_ksmps, ofs, n, early;
+    int    g_ksmps, ofs, n, early, offset;
     MYFLT  **tmp, *ptr1, *ptr2, *out;
     INSDS    *this_instr = p->ip;
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
-    early = p->h.insdshead->ksmps_no_end;    
+    early = p->h.insdshead->ksmps_no_end;  
+    offset = p->h.insdshead->ksmps_offset;  
 
     /* global ksmps is the caller instr ksmps minus sample-accurate end */
     g_ksmps = CS_KSMPS - early;
     
     /* sample-accurate offset */
-    ofs = p->h.insdshead->ksmps_offset;
-    this_instr->ksmps_offset = 0;
-    this_instr->ksmps_no_end = 0;    
+    ofs = offset;
 
+    /* clear offsets */
+    this_instr->ksmps_offset = 0;
+    this_instr->ksmps_no_end = 0; 
+   
     if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
       do {
         /* copy inputs */
@@ -1650,12 +1653,20 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
     }
    
+    /* clear the beginning portion of outputs for sample accurate end */
+    if(offset){
+       *tmp = out;
+	while (*(++tmp))
+	  memset(*(++tmp), '\0', sizeof(MYFLT)*offset);
+    } 
+
     /* clear the end portion of outputs for sample accurate end */
     if(early){
 	*tmp = out;
 	while (*(++tmp))
-	  memset(*(++tmp), '\0', sizeof(MYFLT)*early);	    
+	  memset(&((*(++tmp))[g_ksmps]), '\0', sizeof(MYFLT)*early);	    
       }
+    
     
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
