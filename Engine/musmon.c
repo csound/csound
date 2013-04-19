@@ -201,6 +201,7 @@ int musmon(CSOUND *csound)
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
     csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
     csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
+    csound->auxspin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
 
     /* initialise sensevents state */
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
