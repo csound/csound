@@ -308,7 +308,7 @@ class mydsp : public dsp {
         }
   virtual void compute (CSOUND* csound, MYFLT* output, void *p)
         {
-	  int     nn = ((OPDATA*)p)->h.insdshead->ksmps;
+            int     nn = ((OPDATA*)p)->h.insdshead->ksmps;
             uint32_t offset = ((OPDATA *) p)->h.insdshead->ksmps_offset;
             uint32_t early  = ((OPDATA *) p)->h.insdshead->ksmps_no_end;
             MYFLT   fSlow0  = POWER(FL(10.0),(FL(0.08333333333333333) * fslider0));
