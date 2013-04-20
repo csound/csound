@@ -26,3 +26,5 @@ semantic phase: label list creation did not correctly walk TREE*
 if-then blocks were not being expanded correctly, with bug 
     presenting consistently in case of nested if-then's
         -- fixed in git sources Apr 19 17:44 2013 +0100
+subinstr broken in multicore
+
