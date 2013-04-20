@@ -69,6 +69,7 @@ typedef struct {
     MYFLT   *iname;
     MYFLT   *fp;
     int     *lock;
+    int      pos;
 } CHNGET;
 
 typedef struct {
