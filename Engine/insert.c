@@ -1547,7 +1547,10 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     /* sample-accurate offset */
     ofs = offset;
 
-    /* clear offsets */
+    /* clear offsets, since with CS_KSMPS=1
+       they don't apply to opcodes, but to the
+       calling code (ie. this code)
+    */
     this_instr->ksmps_offset = 0;
     this_instr->ksmps_no_end = 0; 
    
@@ -1589,7 +1592,22 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         this_instr->kcounter++;
       } while (++ofs < g_ksmps);
     }
-    else {                              /* generic case for local kr != sr */
+    else {   
+                                  /* generic case for local kr != sr */
+      /* we have to deal with sample-accurate code 
+         whole CS_KSMPS blocks are offset here, the
+         remainder is left to each opcode to deal with.
+      */
+      int start = 0;
+      int lksmps = this_instr->ksmps;
+      while(ofs >= lksmps) {
+	          ofs -= lksmps;
+		  start++;
+	  }
+      this_instr->ksmps_offset = ofs;
+      ofs = start;
+      if(early) this_instr->ksmps_no_end = early % lksmps;
+      
       do {
         /* copy inputs */
         tmp = p->buf->iobufp_ptrs;
