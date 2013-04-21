@@ -36,8 +36,8 @@
 #include "csound_type_system.h"
 #include "csound.h"
 #include "cscore.h"
-#include "pools.h"
 #include "csound_data_structures.h"
+#include "pools.h"
 
 #ifdef __cplusplus
 extern "C" {

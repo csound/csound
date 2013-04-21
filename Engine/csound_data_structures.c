@@ -97,16 +97,79 @@ static inline unsigned char cs_name_hash(CSOUND *csound, const char *s)
     return (unsigned char) h;
 }
 
-int cs_hash_table_contains(CS_HASH_TABLE* set, char* value) {
+void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* set, char* key) {
+    unsigned char index;
+    CS_HASH_TABLE_ITEM* item;
     
+    if (key == NULL || strcmp(key, "") == 0){
+        return NULL;
+    }
+    
+    index = cs_name_hash(csound, key);
+    item = set->buckets[index];
+    
+    if(item == NULL) return NULL;
+    
+    while (item != NULL) {
+        if (strcmp(key, item->key) == 0) {
+            return item->value;
+        }
+        item = item->next;
+    }
+    
+    return NULL;
 }
 
-void cs_hash_table_set(CSOUND* csound, CS_HASH_TABLE* set, char* value) {
+void cs_hash_table_set(CSOUND* csound, CS_HASH_TABLE* set, char* key, void* value) {
+    if (key == NULL || strcmp(key, "") == 0){
+        return;
+    }
     
+    unsigned char index = cs_name_hash(csound, key);
+    
+    CS_HASH_TABLE_ITEM* item = set->buckets[index];
+    
+    while (item != NULL) {
+        if (strcmp(key, item->key) == 0) {
+            item->value = value;
+            return;
+        } else if(item->next == NULL) {
+            CS_HASH_TABLE_ITEM* newItem = mmalloc(csound, sizeof(CS_HASH_TABLE_ITEM));
+            newItem->key = cs_strdup(csound, key);
+            newItem->value = value;
+            return;
+        }
+        item = item->next;
+    }
+
 }
 
-void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* value) {
+void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* key) {
+    CS_HASH_TABLE_ITEM *previous, *item;
+    unsigned char index;
     
+    if (key == NULL || strcmp(key, "") == 0){
+        return;
+    }
+    
+    index = cs_name_hash(csound, key);
+    
+    previous = NULL;
+    item = set->buckets[index];
+    
+    while (item != NULL) {
+        if (strcmp(key, item->key) == 0) {
+            if (previous == NULL) {
+                set->buckets[index] = NULL;
+                return;
+            } else {
+                previous->next = item->next;
+                mfree(csound, item);
+            }
+        }
+        previous = item;
+        item = item->next;
+    }
 }
 
 void cs_hash_table_delete(CSOUND* csound, CS_HASH_TABLE* set) {
