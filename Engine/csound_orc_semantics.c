@@ -443,7 +443,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         arg2 = get_arg_type2(csound, tree->right->right, typeTable);
 
         sprintf(condInTypes, "%s%s%s", ans, arg1, arg2);
-          
+
         out = resolve_opcode_get_outarg(csound,
                                         find_opcode2(csound, ":cond"),
                                         condInTypes);
@@ -1416,20 +1416,20 @@ CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
     CONS_CELL* head = NULL, *ret = NULL;
     TREE* current = root;
     char* labelText;
-    
+
     while (current != NULL) {
         switch(current->type) {
             case LABEL_TOKEN:
                 labelText = current->value->lexeme;
                 head = cs_cons(csound, cs_strdup(csound, labelText), head);
                 break;
-                
+
             case IF_TOKEN:
-            case ELSEIF_TOKEN:                
+            case ELSEIF_TOKEN:
                 if (current->right->type == THEN_TOKEN ||
                     current->right->type == KTHEN_TOKEN ||
                     current->right->type == ITHEN_TOKEN) {
-                    
+
                     ret = get_label_list(csound, current->right->right);
                     head = cs_cons_append(head, ret);
                     ret = get_label_list(csound, current->right->next);
@@ -1438,11 +1438,11 @@ CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
                 break;
 
             case ELSE_TOKEN:
-            case UNTIL_TOKEN:                
+            case UNTIL_TOKEN:
                 ret = get_label_list(csound, current->right);
                 head = cs_cons_append(head, ret);
                 break;
-                
+
             default:
                 break;
         }

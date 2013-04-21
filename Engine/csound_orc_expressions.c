@@ -1076,9 +1076,9 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
                                                      endLabel->value->lexeme),
                                            typeTable->labelList);
         }
-        
+
         anchor = appendToTree(csound, anchor, current->next);
-        
+
     }
     else {
         csound->Message(csound,
