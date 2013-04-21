@@ -32,14 +32,14 @@ typedef struct _cons {
     // linked list conventions
 } CONS_CELL;
 
-
-typedef struct _cs_hash_bucket {
-    CONS_CELL* head;
-    char* name;
-} CS_HASH_TABLE_BUCKET;
+typedef struct _cs_hash_bucket_item {
+    char* key;
+    void* value;
+    struct _cs_hash_bucket_item* next;
+} CS_HASH_TABLE_ITEM;
 
 typedef struct _cs_hash_table {
-    void* buckets[256];
+    CS_HASH_TABLE_ITEM* buckets[256];
 } CS_HASH_TABLE;
 
 /** used as the value in a CS_HASH_TABLE when only the key matters,
@@ -64,9 +64,9 @@ CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 /* FUNCTIONS FOR HASH SET */
 
 CS_HASH_TABLE* cs_create_hash_table(CSOUND* csound);
-int cs_hash_table_contains(CS_HASH_TABLE* set, char* value);
-void cs_hash_table_set(CSOUND* csound, CS_HASH_TABLE* set, char* value);
-void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* value);
+void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* set, char* key);
+void cs_hash_table_set(CSOUND* csound, CS_HASH_TABLE* set, char* key, void* value);
+void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* key);
 void cs_hash_table_delete(CSOUND* csound, CS_HASH_TABLE* set);
 
 #endif
