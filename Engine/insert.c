@@ -1004,19 +1004,19 @@ int subinstrset(CSOUND *csound, SUBINST *p)
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
 /* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
 
-/* 
+/*
   UDOs now use the local ksmps stored in lcurip->ksmps
   all the other dependent parameters are calculated in relation to
   this.
 
-  lcurip->ksmps is set to the caller ksmps (CS_KSMPS), unless a new 
-  local ksmps is used, in which case it is set to that value. 
+  lcurip->ksmps is set to the caller ksmps (CS_KSMPS), unless a new
+  local ksmps is used, in which case it is set to that value.
   If local ksmps differs from CS_KSMPS, we set useropcd1() to
   deal with the perf-time code. Otherwise useropcd2() is used.
 
   For recursive calls when the local ksmps is set to differ from
-  the calling instrument ksmps, the top-level call 
-  will use useropcd1(), whereas all the other recursive calls 
+  the calling instrument ksmps, the top-level call
+  will use useropcd1(), whereas all the other recursive calls
   will use useropdc2(), since their local ksmps will be the same
   as the caller.
 
@@ -1094,7 +1094,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
     /* copy parameters from the caller instrument into our subinstrument */
     lcurip = p->ip;
-    
+
     /* set the local ksmps values */
     if (local_ksmps != CS_KSMPS) {
       /* this is the case when p->ip->ksmps != p->h.insdshead->ksmps */
@@ -1352,7 +1352,7 @@ int xoutset(CSOUND *csound, XOUT *p)
 
 /* IV - Sep 8 2002: new opcode: setksmps */
 
-/* 
+/*
    This opcode sets the local ksmps for an instrument
    it can be used on any instrument with the implementation
    of a mechanism to perform at local ksmps (in kperf etc)
@@ -1361,9 +1361,9 @@ int xoutset(CSOUND *csound, XOUT *p)
 
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
-  
+
     unsigned int  l_ksmps, n;
-    
+
     l_ksmps = (unsigned int) *(p->i_ksmps);
     if (!l_ksmps) return OK;       /* zero: do not change */
     if (UNLIKELY(l_ksmps < 1 || l_ksmps > CS_KSMPS
@@ -1372,7 +1372,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
                              Str("setksmps: invalid ksmps value: %d, original: %d"),
                              l_ksmps, CS_KSMPS);
     }
-   
+
     n = CS_KSMPS / l_ksmps;
     p->h.insdshead->xtratim *= n;
     CS_KSMPS = l_ksmps;
@@ -1498,7 +1498,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     }
 
     /* VL --
-       this code probably breaks down assumptions used in    
+       this code probably breaks down assumptions used in
        PARCS -- needs to be reviewed
     */
 
@@ -1537,12 +1537,12 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     MYFLT  **tmp, *ptr1, *ptr2, *out;
     INSDS    *this_instr = p->ip;
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
-    early = p->h.insdshead->ksmps_no_end;  
-    offset = p->h.insdshead->ksmps_offset;  
+    early = p->h.insdshead->ksmps_no_end;
+    offset = p->h.insdshead->ksmps_offset;
 
     /* global ksmps is the caller instr ksmps minus sample-accurate end */
     g_ksmps = CS_KSMPS - early;
-    
+
     /* sample-accurate offset */
     ofs = offset;
 
@@ -1551,8 +1551,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
        calling code (ie. this code)
     */
     this_instr->ksmps_offset = 0;
-    this_instr->ksmps_no_end = 0; 
-   
+    this_instr->ksmps_no_end = 0;
+
     if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
       do {
         /* copy inputs */
@@ -1591,22 +1591,22 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         this_instr->kcounter++;
       } while (++ofs < g_ksmps);
     }
-    else {   
+    else {
                                   /* generic case for local kr != sr */
-      /* we have to deal with sample-accurate code 
+      /* we have to deal with sample-accurate code
          whole CS_KSMPS blocks are offset here, the
          remainder is left to each opcode to deal with.
       */
       int start = 0;
       int lksmps = this_instr->ksmps;
       while(ofs >= lksmps) {
-	          ofs -= lksmps;
-		  start++;
-	  }
+                  ofs -= lksmps;
+                  start++;
+          }
       this_instr->ksmps_offset = ofs;
       ofs = start;
       if(early) this_instr->ksmps_no_end = early % lksmps;
-      
+
       do {
         /* copy inputs */
         tmp = p->buf->iobufp_ptrs;
@@ -1669,22 +1669,22 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
     }
-   
+
     /* clear the beginning portion of outputs for sample accurate end */
     if(offset){
        *tmp = out;
-	while (*(++tmp))
-	  memset(*(++tmp), '\0', sizeof(MYFLT)*offset);
-    } 
+        while (*(++tmp))
+          memset(*(++tmp), '\0', sizeof(MYFLT)*offset);
+    }
 
     /* clear the end portion of outputs for sample accurate end */
     if(early){
-	*tmp = out;
-	while (*(++tmp))
-	  memset(&((*(++tmp))[g_ksmps]), '\0', sizeof(MYFLT)*early);	    
+        *tmp = out;
+        while (*(++tmp))
+          memset(&((*(++tmp))[g_ksmps]), '\0', sizeof(MYFLT)*early);
       }
-    
-    
+
+
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
