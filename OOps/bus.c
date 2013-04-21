@@ -186,7 +186,8 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     if (UNLIKELY(offset)) memset(p->r, '\0', offset * sizeof(MYFLT));
     memcpy(&p->r[offset], &val[offset],
            sizeof(MYFLT) * (CS_KSMPS-offset-early));
-    if (UNLIKELY(early)) memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
+    if (UNLIKELY(early))
+      memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
     return OK;
 }
 
@@ -215,7 +216,8 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     memcpy(&val[offset], &p->r[offset],
            sizeof(MYFLT) * (CS_KSMPS-offset-early));
 
-    if (UNLIKELY(early)) memset(&val[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
+    if (UNLIKELY(early))
+      memset(&val[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
     return OK;
 }
 
@@ -623,7 +625,7 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-   
+
     if(CS_KSMPS == (unsigned int) csound->ksmps) {
     csoundSpinLock(p->lock);
     if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
@@ -634,7 +636,8 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
     } else {
     csoundSpinLock(p->lock);
     if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
-    memcpy(&p->arg[offset], &(p->fp[offset+p->pos]), sizeof(MYFLT)*(CS_KSMPS-offset-early));
+    memcpy(&p->arg[offset], &(p->fp[offset+p->pos]),
+           sizeof(MYFLT)*(CS_KSMPS-offset-early));
     if (UNLIKELY(early))
       memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     p->pos+=CS_KSMPS;
@@ -957,10 +960,12 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
         hints.attributes = 0;
         if (p->INOCOUNT > 10) {
             if ((int) p->XSTRCODE >> 10 && p->Sattributes[0]) {
-            hints.attributes = (char *) calloc(strlen((char *)p->Sattributes[0]), sizeof(char));
+            hints.attributes = (char *) calloc(strlen((char *)p->Sattributes[0]),
+                                               sizeof(char));
             strcpy(hints.attributes, (char *)p->Sattributes[0]);
             } else {
-                return csound->InitError(csound, Str("Sattributes argument not a string"));
+                return csound->InitError(csound,
+                                         Str("Sattributes argument not a string"));
             }
         }
         hints.dflt = *(p->idflt);

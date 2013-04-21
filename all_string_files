@@ -48,7 +48,6 @@
 ./H/cs_par_structs.h
 ./H/csmodule.h
 ./H/csound_orc.h
-./H/csound_standard_types.h
 ./H/diskin.h
 ./H/diskin2.h
 ./H/disprep.h
@@ -635,6 +634,7 @@
 ./include/csoundCore.h
 ./include/csound.h
 ./include/csound.hpp
+./include/csound_standard_types.h
 ./include/csound_type_system.h
 ./include/cwindow.h
 ./include/float-version-double.h
