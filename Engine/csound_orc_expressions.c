@@ -63,11 +63,11 @@ CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
     if(cons2 == NULL) return cons1;
 
     CONS_CELL* c = cons1;
-    
+
     while (c->next != NULL) c = c->next;
 
     c->next = cons2;
-    
+
     return cons1;
 }
 
@@ -1098,9 +1098,9 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
                                                      endLabel->value->lexeme),
                                            typeTable->labelList);
         }
-        
+
         anchor = appendToTree(csound, anchor, current->next);
-        
+
     }
     else {
         csound->Message(csound,
