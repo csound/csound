@@ -21,14 +21,52 @@
  02111-1307 USA
  */
 
+#ifndef __CSOUND_DATA_STRUCTURES_H
+#define __CSOUND_DATA_STRUCTURES_H
+
 #include "csoundCore.h"
 
-typedef struct _cs_str_set {
-    
-} CS_STR_SET;
+typedef struct _cons {
+    void* value; // should be car, but using value
+    struct _cons* next; // should be cdr, but to follow csound
+    // linked list conventions
+} CONS_CELL;
 
-CS_STR_SET* cs_create_str_set(CSOUND* csound);
-int cs_str_set_contains(CS_STR_SET* set, char* value);
-void cs_str_set_add(CSOUND* csound, CS_STR_SET* set, char* value);
-void cs_str_set_remove(CSOUND* csound, CS_STR_SET* set, char* value);
-void cs_str_set_delete(CSOUND* csound, CS_STR_SET* set);
+
+typedef struct _cs_hash_bucket {
+    CONS_CELL* head;
+    char* name;
+} CS_HASH_TABLE_BUCKET;
+
+typedef struct _cs_hash_table {
+    void* buckets[256];
+} CS_HASH_TABLE;
+
+/** used as the value in a CS_HASH_TABLE when only the key matters,
+ such as the case of a hash set */
+extern const char* CS_HASH_SET;
+
+
+/* FUNCTIONS FOR CONS CELL */
+
+/** Given a value and CONS_CELL, create a new CONS_CELL that holds the
+ value, then set the ->next value to the passed-in cons cell.  This 
+ operation effectively appends a value to the head of cons list. The
+ function returns the head of the cons list.  It is safe to pass in 
+ a NULL for the cons argument; the returned value will be just the
+ newly generated cons cell. */
+CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
+
+/** Appends the cons2 CONS_CELL list to the tail of the cons1 */
+CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
+
+
+/* FUNCTIONS FOR HASH SET */
+
+CS_HASH_TABLE* cs_create_hash_table(CSOUND* csound);
+int cs_hash_table_contains(CS_HASH_TABLE* set, char* value);
+void cs_hash_table_set(CSOUND* csound, CS_HASH_TABLE* set, char* value);
+void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* value);
+void cs_hash_table_delete(CSOUND* csound, CS_HASH_TABLE* set);
+
+#endif
