@@ -1354,10 +1354,9 @@ int xoutset(CSOUND *csound, XOUT *p)
 
 /* 
    This opcode sets the local ksmps for an instrument
-   it could be used on any instrument once we implement
-   a mechanism to perform at local ksmps (in kperf etc)
-   (NOT IMPLEMENTED for ordinary instruments at the moment, so
-    it is only safe in UDOs)
+   it can be used on any instrument with the implementation
+   of a mechanism to perform at local ksmps (in kperf etc)
+   (NOT in PARCS yet)
 */
 
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
