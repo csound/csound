@@ -95,11 +95,34 @@ generates a k-rate 1-D array of length 4.  Similarly
 create a square 4x4 a-rate array.
 Elements are used via indexing in [] such as k1[2] or a2[2][3]
 One dimensional arrays replace tvars, and can be used in opcodes like
-maxtab, mintab and sumtab. Array setting can be done in left-hand side
-of opcodes, i.e.:
+maxtab, mintab and sumtab (see below). Array setting can be done in
+left-hand side of opcodes, i.e.:
   aSigs[0] vco2 .1, 440
   aSigs[1] vco2 .1, 880
 
+There are a range of new or recoded operations on k-valued arrays,
+  most restricted to 1 dimensional arrays (vectors):
+  kans mintab ktab       returns the smallest value in the
+                         (possibly) multidimensional array
+  kans maxtab ktab       is like mintab
+  kabs sumtab ktab       returns sum of all values in the array
+  ktab tabgen imin, imax[, inc]
+                         generates vector of values from imin to imax by
+                         increments of inc (default 1)
+  ktab2 tabmap ktab1, "sin" maps the k-rate 1-arg function in the string to 
+                         every element of the vector
+  ktab2 tabmap_i ktab1, "sin" maps the i-rate 1-arg function in the string 
+                         to every element of the vector
+  ktab2 tabslice ktab1, istart, iend
+                         returns a slice of ktab1 from ktab1[istart]
+                         to ktab1[iend]
+        copy2ttab ktab, kfn copies data from an ftable to a vector
+        copy2ftab ktab, kfn copies data from a vector to an ftable.
+
+In addition arithmetic on arrays is allowed.  In particular addition,
+subtraction, multiplication, division on a element-by-element version
+is provided in arithmetic format.  Similar operations between an array
+and a scalar are allowed (currently array first)
 
 
 The new realtime priority mode can be switched on with by passing the
