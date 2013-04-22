@@ -178,6 +178,39 @@ PUBLIC void cs_hash_table_put(CSOUND* csound,
     }
 }
 
+PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
+                                   CS_HASH_TABLE* hashTable, char* key) {
+    if (key == NULL || strcmp(key, "") == 0){
+        return NULL;
+    }
+    
+    unsigned char index = cs_name_hash(csound, key);
+    
+    CS_HASH_TABLE_ITEM* item = hashTable->buckets[index];
+    
+    if (item == NULL) {
+        CS_HASH_TABLE_ITEM* newItem = mmalloc(csound, sizeof(CS_HASH_TABLE_ITEM));
+        newItem->key = cs_strdup(csound, key);
+        newItem->value = NULL;
+        hashTable->buckets[index] = newItem;
+        return newItem->key;
+    } else {
+        while (item != NULL) {
+            if (strcmp(key, item->key) == 0) {
+                return item->key;
+            } else if(item->next == NULL) {
+                CS_HASH_TABLE_ITEM* newItem = mmalloc(csound, sizeof(CS_HASH_TABLE_ITEM));
+                newItem->key = cs_strdup(csound, key);
+                newItem->value = NULL;
+                item->next = newItem;
+                return item->key;
+            }
+            item = item->next;
+        }
+    }
+    return NULL;
+}
+
 PUBLIC void cs_hash_table_remove(CSOUND* csound,
                                  CS_HASH_TABLE* hashTable, char* key) {
     CS_HASH_TABLE_ITEM *previous, *item;

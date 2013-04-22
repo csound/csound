@@ -77,6 +77,11 @@ PUBLIC char* cs_hash_table_get_key(CSOUND* csound, CS_HASH_TABLE* hashTable, cha
  overwrites the value for that key with the new value passed in. */
 PUBLIC void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key, void* value);
 
+/** Adds an entry into the hashtable using the given key and NULL value.  Returns the internal
+ char* used for the hash item key. */
+PUBLIC char* cs_hash_table_put_key(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
+
+
 /** Removes an entry from the hashtable using the given key.  If no entry found for key,
  simply returns. Calls mfree on the table item. */
 PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
