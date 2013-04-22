@@ -5,6 +5,7 @@
 ./Engine/cs_par_base.c
 ./Engine/cs_par_dispatch.c
 ./Engine/cs_par_orc_semantic_analysis.c
+./Engine/csound_data_structures.c
 ./Engine/csound_orc_compile.c
 ./Engine/csound_orc_expressions.c
 ./Engine/csound_orc_optimize.c
