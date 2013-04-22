@@ -80,7 +80,11 @@ PUBLIC void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* hashTable, char* ke
 /** Removes an entry from the hashtable using the given key.  If no entry found for key,
  simply returns. Calls mfree on the table item. */
 PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
-    
+
+/** Merges in all items from the the source table into the target table.  Entries with 
+ identical keys from the source table will replace entries in the target table. */
+PUBLIC void cs_hash_table_merge(CSOUND* csound, CS_HASH_TABLE* target, CS_HASH_TABLE* source);
+
 /** Frees hash table and hash table items using mfree. Does not currently call free on ->value pointer. */
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
