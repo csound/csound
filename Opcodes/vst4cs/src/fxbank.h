@@ -690,16 +690,27 @@ public:
         virtual void SetSampleRate(float fSampleRate=44100.);
         virtual void SetBlockSize(long lSize=1024);
         virtual void Process(float **inputs, float **outputs, long sampleframes);
-        virtual void ProcessReplacing(float **inputs, float **outputs, long sampleframes);
+        virtual void ProcessReplacing(float **inputs, float **outputs,
+                                      long sampleframes);
 
-    virtual bool OnGetVendorString(char *text) { strcpy(text, "Seib"); return true; } // forgive this little vanity :-)
+    virtual bool OnGetVendorString(char *text) {
+        strcpy(text, "Seib"); return true; } // forgive this little vanity :-)
     virtual long OnGetHostVendorVersion() { return 1; }
-    virtual bool OnGetProductString(char *text) { strcpy(text, "Default CVSTHost"); return true; }
-    virtual bool OnGetSpeakerArrangement(int nEffect, VstSpeakerArrangement* pluginInput, VstSpeakerArrangement* pluginOutput) { return false; }
+    virtual bool OnGetProductString(char *text) {
+        strcpy(text, "Default CVSTHost"); return true; }
+    virtual bool OnGetSpeakerArrangement(int nEffect, 
+                                         VstSpeakerArrangement* pluginInput,
+                                         VstSpeakerArrangement* pluginOutput) { 
+        return false; }
     virtual void OnSetOutputSampleRate(int nEffect, float sampleRate) { }
-    virtual bool OnOfflineStart(int nEffect, VstAudioFile* audioFiles, long numAudioFiles, long numNewAudioFiles) { return false; }
-    virtual bool OnOfflineRead(int nEffect, VstOfflineTask* offline, VstOfflineOption option, bool readSource) { return false; }
-    virtual bool OnOfflineWrite(int nEffect, VstOfflineTask* offline, VstOfflineOption option) { return false; }
+    virtual bool OnOfflineStart(int nEffect, VstAudioFile* audioFiles,
+                                long numAudioFiles, long numNewAudioFiles) {
+        return false; }
+    virtual bool OnOfflineRead(int nEffect, VstOfflineTask* offline,
+                               VstOfflineOption option, bool readSource) {
+        return false; }
+    virtual bool OnOfflineWrite(int nEffect, VstOfflineTask* offline,
+                                VstOfflineOption option) { return false; }
     virtual long OnOfflineGetCurrentPass(int nEffect) { return 0; }
     virtual long OnOfflineGetCurrentMetaPass(int nEffect) { return 0; }
     virtual long OnGetAutomationState(int nEffect) { return 0; }
@@ -712,21 +723,25 @@ public:
         virtual void OnUpdateSampleRate(int nEffect);
         virtual bool OnSizeWindow(int nEffect, long width, long height);
         virtual bool OnNeedIdle(int nEffect);
-        virtual long OnAudioMasterCallback(int nEffect, long opcode, long index, long value, void *ptr, float opt);
+        virtual long OnAudioMasterCallback(int nEffect, long opcode, long index,
+                                           long value, void *ptr, float opt);
     virtual long OnGetVersion(int nEffect);
         virtual bool OnCanDo(const char *ptr);
         virtual bool OnWantEvents(int nEffect, long filter);
         virtual long OnIdle(int nEffect=-1);
     virtual bool OnInputConnected(int nEffect, long input) { return true; }
     virtual bool OnOutputConnected(int nEffect, long output) { return true; }
-    virtual bool OnSetParameterAutomated(int nEffect, long index, float value) { return false; }
+    virtual bool OnSetParameterAutomated(int nEffect, long index, float value) {
+        return false; }
     virtual bool OnProcessEvents(int nEffect, VstEvents* events) { return false; }
     virtual VstTimeInfo *OnGetTime(int nEffect) { return &vstTimeInfo; }
-    virtual bool OnSetTime(int nEffect, long filter, VstTimeInfo *timeInfo) { return false; }
+    virtual bool OnSetTime(int nEffect, long filter, VstTimeInfo *timeInfo) {
+        return false; }
     virtual long OnGetNumAutomatableParameters(int nEffect) { return 0; }
     virtual long OnGetParameterQuantization(int nEffect) { return 0x40000000; }
     virtual bool OnIoChanged(int nEffect) { return false; }
-    virtual long OnHostVendorSpecific(int nEffect, long lArg1, long lArg2, void* ptrArg, float floatArg) { return 0; }
+    virtual long OnHostVendorSpecific(int nEffect, long lArg1, long lArg2,
+                                      void* ptrArg, float floatArg) { return 0; }
     virtual long OnGetHostLanguage() { return 0; }
     virtual void * OnOpenWindow(int nEffect, VstWindow* window) { return 0; }
     virtual bool OnCloseWindow(int nEffect, VstWindow* window) { return false; }
@@ -735,13 +750,16 @@ public:
     // VST 2.1 Extensions
     virtual bool OnBeginEdit(int nEffect) { return false; }
     virtual bool OnEndEdit(int nEffect) { return false; }
-    virtual bool OnOpenFileSelector (int nEffect, VstFileSelect *ptr) { return false; }
+    virtual bool OnOpenFileSelector (int nEffect, VstFileSelect *ptr) {
+        return false; }
     // VST 2.2 Extensions
-    virtual bool OnCloseFileSelector (int nEffect, VstFileSelect *ptr) { return false; }
+    virtual bool OnCloseFileSelector (int nEffect, VstFileSelect *ptr) {
+        return false; }
     virtual bool OnEditFile(int nEffect, char *ptr) { return false; }
     virtual bool OnGetChunkFile(int nEffect, void * nativePath) { return false; }
     // VST 2.3 Extensions
-    virtual VstSpeakerArrangement *OnGetInputSpeakerArrangement(int nEffect) { return 0; }
+    virtual VstSpeakerArrangement *OnGetInputSpeakerArrangement(int nEffect) {
+        return 0; }
 };
 */
 #endif
