@@ -560,7 +560,7 @@ static int tabmin(CSOUND *csound, TABQUERY *p)
 static int tabsum(CSOUND *csound, TABQUERY *p)
 {
    ARRAYDAT *t = p->tab;
-   int i, size = t->sizes[0];
+   int i, size = 0;
    MYFLT ans;
 
    if (UNLIKELY(t->data == NULL))
@@ -568,7 +568,7 @@ static int tabsum(CSOUND *csound, TABQUERY *p)
    if (UNLIKELY(t->dimensions!=1))
         return csound->PerfError(csound, Str("t-variable not a vector"));
    ans = t->data[0];
-
+   for (i=0; i<t->dimensions; i++) size += t->sizes[i];
    for (i=1; i<size; i++)
      ans += t->data[i];
    *p->ans = ans;
@@ -577,7 +577,7 @@ static int tabsum(CSOUND *csound, TABQUERY *p)
 
 static int tabscaleset(CSOUND *csound, TABSCALE *p)
 {
-   if (LIKELY(p->tab->data)) return OK;
+   if (LIKELY(p->tab->data && p->tab->dimensions==1)) return OK;
    return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
@@ -591,17 +591,14 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
    int i;
    MYFLT range;
 
-   if (UNLIKELY(t->data == NULL || t->dimensions!=1))
-     return csound->PerfError(csound, Str("t-variable not initialised"));
    tmin = t->data[strt];
    tmax = tmin;
 
    // Correct start and ending points
-   if (end<0) end = t->sizes[0];
-   else if (end>t->sizes[0]) end = t->sizes[0];
-   else if (end<0) end = 0;
+   if (end<0) end = t->sizes[0]-1;
+   else if (end>t->sizes[0]) end = t->sizes[0]-1;
    if (strt<0) strt = 0;
-   else if (strt>t->sizes[0]) strt = t->sizes[0];
+   else if (strt>t->sizes[0]) strt = t->sizes[0]-1;
    if (end<strt) {
      int x = end; end = strt; strt = x;
    }
@@ -610,6 +607,8 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
      if (t->data[i]<tmin) tmin = t->data[i];
      if (t->data[i]>tmax) tmax = t->data[i];
    }
+   /* printf("start/end %d/%d max/min = %g/%g tmax/tmin = %g/%g range=%g\n",  */
+   /*        strt, end, max, min, tmax, tmin, range); */
    range = (max-min)/(tmax-tmin);
    for (i=strt; i<end; i++) {
      t->data[i] = (t->data[i]-tmin)*range + min;
