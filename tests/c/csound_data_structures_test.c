@@ -112,6 +112,36 @@ void test_cs_hash_table(void) {
     csoundDestroy(csound);
 }
 
+void test_cs_hash_table_merge(void) {
+    CSOUND* csound = csoundCreate(NULL);
+    char* testValue = "test";
+    
+    CS_HASH_TABLE* hashTable = cs_hash_table_create(csound);
+    CS_HASH_TABLE* hashTable2 = cs_hash_table_create(csound);
+    
+    cs_hash_table_put(csound, hashTable, "a", "1");
+    cs_hash_table_put(csound, hashTable, "b", "2");
+    cs_hash_table_put(csound, hashTable, "c", "3");
+    
+    cs_hash_table_put(csound, hashTable2, "b", "4");
+    cs_hash_table_put(csound, hashTable2, "c", "5");
+    cs_hash_table_put(csound, hashTable2, "d", "6");
+    
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "a"), "1");
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "b"), "2");
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "c"), "3");
+
+    cs_hash_table_merge(csound, hashTable, hashTable2);
+    
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "a"), "1");
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "b"), "4");
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "c"), "5");
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "d"), "6");    
+        
+    csoundDestroy(csound);
+}
+
+
 int main() {
     CU_pSuite pSuite = NULL;
     
@@ -129,7 +159,8 @@ int main() {
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "Test cs_cons()", test_cs_cons)) ||
         (NULL == CU_add_test(pSuite, "Test cs_cons_append()", test_cs_cons_append)) ||
-        (NULL == CU_add_test(pSuite, "Test cs_hash_table()", test_cs_hash_table))) {
+        (NULL == CU_add_test(pSuite, "Test cs_hash_table()", test_cs_hash_table)) ||
+        (NULL == CU_add_test(pSuite, "Test cs_hash_table_merge()", test_cs_hash_table_merge))) {
         
         CU_cleanup_registry();
         return CU_get_error();

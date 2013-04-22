@@ -203,6 +203,21 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* hashTable, char*
     }
 }
 
+PUBLIC void cs_hash_table_merge(CSOUND* csound, CS_HASH_TABLE* target, CS_HASH_TABLE* source) {
+    // TODO - check if this is the best strategy for merging
+    int i = 0;
+    
+    for (i = 0; i < 256; i++) {
+        CS_HASH_TABLE_ITEM* item = source->buckets[i];
+        
+        while (item != NULL) {
+            cs_hash_table_put(csound, target, item->key, item->value);
+            item = item->next;
+        }
+    }
+    
+}
+
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     int i;
     
