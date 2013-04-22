@@ -52,27 +52,28 @@ char* resolve_opcode_get_outarg(CSOUND* csound,
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 
 char* cs_strdup(CSOUND* csound, char* str) {
-    size_t len = strlen(str);
+    size_t len;
     char* retVal;
-
-    if (UNLIKELY(len == 0)) {
-      return NULL;
-    }
-
+    
+    if (str == NULL) return NULL;
+    
+    len = strlen(str);
     retVal = mmalloc(csound, (len + 1) * sizeof(char));
-    memcpy(retVal, str, len * sizeof(char));
+    
+    if(len > 0) memcpy(retVal, str, len * sizeof(char));
     retVal[len] = '\0';
 
     return retVal;
 }
 
 char* cs_strndup(CSOUND* csound, char* str, size_t size) {
-    size_t len = strlen(str);
+    size_t len;
     char* retVal;
-
-    if (UNLIKELY(len == 0)) {
-      return NULL;
-    } else if (size > len) {
+    
+    if (str == NULL || size == 0) return NULL;
+    len = strlen(str);
+    
+    if (size > len) { // catches if str is empty string
       return cs_strdup(csound, str);
     }
 
