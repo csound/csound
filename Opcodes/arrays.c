@@ -259,7 +259,7 @@ typedef struct {
 
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 {
-    if (p->data && p->dimensions==1 && p->sizes[0] < size) {
+    if (p->data==NULL || (p->dimensions==1 && p->sizes[0] < size)) {
       uint32_t ss = sizeof(MYFLT)*size;
       if (p->data==NULL) p->data = (MYFLT*)mmalloc(csound, ss);
       else p->data = (MYFLT*) mrealloc(csound, p->data, ss);
