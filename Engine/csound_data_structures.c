@@ -78,7 +78,7 @@ const unsigned char cs_strhash_tabl_8[256] = {
 
 
 
-PUBLIC CS_HASH_TABLE* cs_create_hash_table(CSOUND* csound) {
+PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
     return (CS_HASH_TABLE*) mcalloc(csound, sizeof(CS_HASH_TABLE));
 }
 
@@ -97,7 +97,7 @@ static inline unsigned char cs_name_hash(CSOUND *csound, const char *s)
     return (unsigned char) h;
 }
 
-PUBLIC void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* set, char* key) {
+PUBLIC void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key) {
     unsigned char index;
     CS_HASH_TABLE_ITEM* item;
     
@@ -106,7 +106,7 @@ PUBLIC void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* set, char* key) {
     }
     
     index = cs_name_hash(csound, key);
-    item = set->buckets[index];
+    item = hashTable->buckets[index];
     
     if(item == NULL) return NULL;
     
@@ -120,20 +120,43 @@ PUBLIC void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* set, char* key) {
     return NULL;
 }
 
-PUBLIC void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* set, char* key, void* value) {
+PUBLIC char* cs_hash_table_get_key(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key) {
+    unsigned char index;
+    CS_HASH_TABLE_ITEM* item;
+    
+    if (key == NULL || strcmp(key, "") == 0){
+        return NULL;
+    }
+    
+    index = cs_name_hash(csound, key);
+    item = hashTable->buckets[index];
+    
+    if(item == NULL) return NULL;
+    
+    while (item != NULL) {
+        if (strcmp(key, item->key) == 0) {
+            return item->key;
+        }
+        item = item->next;
+    }
+    
+    return NULL;
+}
+
+PUBLIC void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key, void* value) {
     if (key == NULL || strcmp(key, "") == 0){
         return;
     }
     
     unsigned char index = cs_name_hash(csound, key);
     
-    CS_HASH_TABLE_ITEM* item = set->buckets[index];
+    CS_HASH_TABLE_ITEM* item = hashTable->buckets[index];
     
     if (item == NULL) {
         CS_HASH_TABLE_ITEM* newItem = mmalloc(csound, sizeof(CS_HASH_TABLE_ITEM));
         newItem->key = cs_strdup(csound, key);
         newItem->value = value;
-        set->buckets[index] = newItem;
+        hashTable->buckets[index] = newItem;
     } else {
         while (item != NULL) {
             if (strcmp(key, item->key) == 0) {
@@ -149,12 +172,9 @@ PUBLIC void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* set, char* key, voi
             item = item->next;
         }
     }
-    
-    
-
 }
 
-PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* key) {
+PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key) {
     CS_HASH_TABLE_ITEM *previous, *item;
     unsigned char index;
     
@@ -165,12 +185,13 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* key) 
     index = cs_name_hash(csound, key);
     
     previous = NULL;
-    item = set->buckets[index];
+    item = hashTable->buckets[index];
     
     while (item != NULL) {
         if (strcmp(key, item->key) == 0) {
             if (previous == NULL) {
-                set->buckets[index] = NULL;
+                hashTable->buckets[index] = NULL;
+                mfree(csound, item);
                 return;
             } else {
                 previous->next = item->next;
@@ -182,11 +203,11 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* key) 
     }
 }
 
-PUBLIC void cs_hash_table_delete(CSOUND* csound, CS_HASH_TABLE* set) {
+PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     int i;
     
     for (i = 0; i < 256; i++) {
-        CS_HASH_TABLE_ITEM* item = set->buckets[i];
+        CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
         
         while(item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
@@ -194,5 +215,5 @@ PUBLIC void cs_hash_table_delete(CSOUND* csound, CS_HASH_TABLE* set) {
             item = next;
         }
     }
-    mfree(csound, set);
+    mfree(csound, hashTable);
 }

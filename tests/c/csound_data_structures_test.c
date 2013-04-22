@@ -86,8 +86,9 @@ void test_cs_cons_append(void) {
 
 void test_cs_hash_table(void) {
     CSOUND* csound = csoundCreate(NULL);
+    char* testValue = "test";
     
-    CS_HASH_TABLE* hashTable = cs_create_hash_table(csound);
+    CS_HASH_TABLE* hashTable = cs_hash_table_create(csound);
     
     cs_hash_table_put(csound, hashTable, "a", "1");
     cs_hash_table_put(csound, hashTable, "b", "2");
@@ -97,6 +98,16 @@ void test_cs_hash_table(void) {
     CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "b"), "2");
     CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "c"), "3");
     
+    cs_hash_table_remove(csound, hashTable, "c");
+    
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "a"), "1");
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get(csound, hashTable, "b"), "2");
+    CU_ASSERT_PTR_NULL((char*)cs_hash_table_get(csound, hashTable, "c"));
+    
+    cs_hash_table_put(csound, hashTable, testValue, NULL);
+    
+    CU_ASSERT_STRING_EQUAL((char*)cs_hash_table_get_key(csound, hashTable, "test"), "test");
+    CU_ASSERT_PTR_NOT_EQUAL(cs_hash_table_get_key(csound, hashTable, "test"), testValue);
     
     csoundDestroy(csound);
 }
