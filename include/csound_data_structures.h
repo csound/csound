@@ -55,18 +55,33 @@ extern const char* CS_HASH_SET;
  function returns the head of the cons list.  It is safe to pass in 
  a NULL for the cons argument; the returned value will be just the
  newly generated cons cell. */
-CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
+PUBLIC CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 
 /** Appends the cons2 CONS_CELL list to the tail of the cons1 */
-CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
+PUBLIC CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
 
 /* FUNCTIONS FOR HASH SET */
 
-CS_HASH_TABLE* cs_create_hash_table(CSOUND* csound);
-void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* set, char* key);
-void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* set, char* key, void* value);
-void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* key);
-void cs_hash_table_delete(CSOUND* csound, CS_HASH_TABLE* set);
+/** Create CS_HASH_TABLE */
+PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound);
+
+/** Retreive void* value for given char* key.  Returns NULL if no items founds for key. */
+PUBLIC void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
+
+/** Retreive char* key from internal hash item for given char* key.  Useful when using 
+ CS_HASH_TABLE as a Set<String> type. Returns NULL if there is no entry for given key. */
+PUBLIC char* cs_hash_table_get_key(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
+
+/** Adds an entry into the hashtable using the given key and value.  If an existing entry is found,
+ overwrites the value for that key with the new value passed in. */
+PUBLIC void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key, void* value);
+
+/** Removes an entry from the hashtable using the given key.  If no entry found for key,
+ simply returns. Calls mfree on the table item. */
+PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
+    
+/** Frees hash table and hash table items using mfree. Does not currently call free on ->value pointer. */
+PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
 #endif
