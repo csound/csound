@@ -865,16 +865,26 @@ static OENTRY arrayvars_localops[] =
                                           (SUBR)tabarithset,(SUBR)tabdiv },
     {"##rem.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                           (SUBR)tabarithset, (SUBR)tabrem},
-    /* {"##add.[]", sizeof(TABARITH1), 0, 3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabiadd }, */
-    /* {"##sub.[]", sizeof(TABARITH1), 0, 3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabisub }, */
-    /* {"##mul.[]", sizeof(TABARITH1), 0, 3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabimult }, */
-    /* {"##div.[]",  sizeof(TABARITH1), 0, 3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabidiv }, */
-    /* {"##rem.[]",  sizeof(TABARITH1),0,  3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabirem }, */
+    {"##add.[i", sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabiadd },
+    {"##sub.[i", sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabisub },
+    {"##mul.[i", sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabimult },
+    {"##div.[i",  sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabidiv },
+    {"##rem.[i",  sizeof(TABARITH1),0,  3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabirem },
+    {"##add.[k", sizeof(TABARITH1), 0, 3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabiadd },
+    {"##sub.[k", sizeof(TABARITH1), 0, 3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabisub },
+    {"##mul.[k", sizeof(TABARITH1), 0, 3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabimult },
+    {"##div.[k",  sizeof(TABARITH1), 0, 3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabidiv },
+    {"##rem.[k",  sizeof(TABARITH1),0,  3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabirem },
     { "maxtab", sizeof(TABQUERY), 0, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabmax },
     { "mintab", sizeof(TABQUERY), 0, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabmin },
     { "sumtab", sizeof(TABQUERY), 0, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabsum },
@@ -882,8 +892,8 @@ static OENTRY arrayvars_localops[] =
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "=.t", sizeof(TABCPY), 0, 2, "[k]", "[k]", NULL, (SUBR)tabcopy },
     { "tabgen", sizeof(TABGEN), 0, 1, "[k]", "iip", (SUBR) tabgen_set, NULL, NULL},
-    { "tabmap_i", sizeof(TABMAP), 0, 1, "[k]", "tS", (SUBR) tabmap_set, NULL, NULL},
-    { "tabmap", sizeof(TABMAP), 0, 3, "[k]", "tS", (SUBR) tabmap_set,
+    { "tabmap_i", sizeof(TABMAP), 0, 1, "[k]", "[k]S", (SUBR) tabmap_set         },
+    { "tabmap", sizeof(TABMAP), 0, 3, "[k]", "[k]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf},
     { "tabslice", sizeof(TABSLICE), 0, 1, "[k]", "[k]ii",
                                                  NULL, (SUBR) tabslice, NULL },
