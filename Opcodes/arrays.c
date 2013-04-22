@@ -737,19 +737,15 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     MYFLT *tabin = p->tabin->data;
     int start = (int) *p->start;
     int end   = (int) *p->end;
-    int size = end - start;
+    int size = end - start + 1;
     if (UNLIKELY(size < 0))
       csound->InitError(csound, Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
       //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
       csound->InitError(csound, Str("slice larger than original size"));
     }
-    if (UNLIKELY(p->tab->data==NULL)) {
-      tabensure(csound, p->tab, size);
-      p->tab->sizes[0] = size;
-    }
-    else size = p->tab->sizes[0];
-    memcpy(p->tab->data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size);
+    tabensure(csound, p->tab, size);
+    memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
     return OK;
 }
 
@@ -796,19 +792,22 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
       opc->iopadr(csound, (void *) &eval);
     }
 
+    strncpy(func,  (char *)p->str, 64);
+    strncat(func, ".k", 64);
+    opc = csound->opcodlst;
+    for (n=0; opc < csound->oplstend; opc++, n++)
+      if(!strcmp(func, opc->opname)) break;
+
+    p->opc = opc;
     return OK;
 }
 
 static int tabmap_perf(CSOUND *csound, TABMAP *p)
 {
     MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
-    char func[64];
     int n, size;
     OENTRY *opc  = p->opc;
     EVAL  eval;
-
-    strncpy(func,  (char *)p->str, 64);
-    strncat(func, ".k", 64);
 
     if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
       return csound->PerfError(csound, Str("tvar not initialised"));
@@ -816,6 +815,8 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
       return csound->PerfError(csound, Str("tvar not initialised"));
     size = p->tab->sizes[0];
 
+    if (UNLIKELY(opc == csound->oplstend))
+      return csound->PerfError(csound, Str("map fn not found at k rate"));
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
       eval.r = &data[n];
@@ -895,7 +896,7 @@ static OENTRY arrayvars_localops[] =
     { "tabmap_i", sizeof(TABMAP), 0, 1, "[k]", "[k]S", (SUBR) tabmap_set         },
     { "tabmap", sizeof(TABMAP), 0, 3, "[k]", "[k]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf},
-    { "tabslice", sizeof(TABSLICE), 0, 1, "[k]", "[k]ii",
+    { "tabslice", sizeof(TABSLICE), 0, 2, "[k]", "[k]ii",
                                                  NULL, (SUBR) tabslice, NULL },
     { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "[k]k", NULL, (SUBR) tab2ftab },
     { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "[k]k", NULL, (SUBR) ftab2tab },
