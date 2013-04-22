@@ -456,7 +456,7 @@ static const CSOUND cenviron_ = {
     (OPDS*) NULL,   /*  pds                 */
     { (CS_VAR_POOL*)NULL,
       (MYFLT_POOL *) NULL,
-      (STRING_POOL *) NULL,
+      (CS_HASH_TABLE *) NULL,
       -1,
       (INSTRTXT**)NULL,
       { NULL,
@@ -592,7 +592,6 @@ static const CSOUND cenviron_ = {
     0,              /*  evt_poll_maxcnt     */
     0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
     NULL,           /*  opcodeInfo  */
-   (STRING_POOL*)NULL, /* string save pool */
     NULL,           /*  flist               */
     0,              /*  maxfnum             */
     NULL,           /*  gensub              */
@@ -2907,8 +2906,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Ignore <CsOptions> in CSD files"
                                           " (default: no)"), NULL);
 
-    csound->stringSavePool = string_pool_create(csound);
-    csound->engineState.stringPool = string_pool_create(csound);
+    csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
     csound->opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
     csound->engineStatus |= CS_STATE_PRE;

@@ -24,8 +24,6 @@
 #ifndef __CSOUND_DATA_STRUCTURES_H
 #define __CSOUND_DATA_STRUCTURES_H
 
-#include "csoundCore.h"
-
 typedef struct _cons {
     void* value; // should be car, but using value
     struct _cons* next; // should be cdr, but to follow csound
@@ -41,11 +39,6 @@ typedef struct _cs_hash_bucket_item {
 typedef struct _cs_hash_table {
     CS_HASH_TABLE_ITEM* buckets[256];
 } CS_HASH_TABLE;
-
-/** used as the value in a CS_HASH_TABLE when only the key matters,
- such as the case of a hash set */
-extern const char* CS_HASH_SET;
-
 
 /* FUNCTIONS FOR CONS CELL */
 
@@ -89,6 +82,9 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* hashTable, char*
 /** Merges in all items from the the source table into the target table.  Entries with 
  identical keys from the source table will replace entries in the target table. */
 PUBLIC void cs_hash_table_merge(CSOUND* csound, CS_HASH_TABLE* target, CS_HASH_TABLE* source);
+
+/** Returns char* keys as a cons list */
+PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
 /** Frees hash table and hash table items using mfree. Does not currently call free on ->value pointer. */
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable);

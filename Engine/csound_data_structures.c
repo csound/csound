@@ -20,7 +20,7 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  02111-1307 USA
  */
-
+#include "csoundCore.h"
 #include "csound_data_structures.h"
 
 
@@ -102,14 +102,12 @@ PUBLIC void* cs_hash_table_get(CSOUND* csound,
     unsigned char index;
     CS_HASH_TABLE_ITEM* item;
 
-    if (key == NULL || strcmp(key, "") == 0){
+    if (key == NULL) {
         return NULL;
     }
 
     index = cs_name_hash(csound, key);
     item = hashTable->buckets[index];
-
-    if(item == NULL) return NULL;
 
     while (item != NULL) {
         if (strcmp(key, item->key) == 0) {
@@ -126,14 +124,12 @@ PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
     unsigned char index;
     CS_HASH_TABLE_ITEM* item;
 
-    if (key == NULL || strcmp(key, "") == 0){
+    if (key == NULL) {
         return NULL;
     }
 
     index = cs_name_hash(csound, key);
     item = hashTable->buckets[index];
-
-    if(item == NULL) return NULL;
 
     while (item != NULL) {
         if (strcmp(key, item->key) == 0) {
@@ -145,42 +141,9 @@ PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
     return NULL;
 }
 
-PUBLIC void cs_hash_table_put(CSOUND* csound,
-                              CS_HASH_TABLE* hashTable, char* key, void* value) {
-    if (key == NULL || strcmp(key, "") == 0){
-        return;
-    }
-
-    unsigned char index = cs_name_hash(csound, key);
-
-    CS_HASH_TABLE_ITEM* item = hashTable->buckets[index];
-
-    if (item == NULL) {
-        CS_HASH_TABLE_ITEM* newItem = mmalloc(csound, sizeof(CS_HASH_TABLE_ITEM));
-        newItem->key = cs_strdup(csound, key);
-        newItem->value = value;
-        hashTable->buckets[index] = newItem;
-    } else {
-        while (item != NULL) {
-            if (strcmp(key, item->key) == 0) {
-                item->value = value;
-                return;
-            } else if(item->next == NULL) {
-                CS_HASH_TABLE_ITEM* newItem = mmalloc(csound,
-                                                      sizeof(CS_HASH_TABLE_ITEM));
-                newItem->key = cs_strdup(csound, key);
-                newItem->value = value;
-                item->next = newItem;
-                return;
-            }
-            item = item->next;
-        }
-    }
-}
-
-PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
-                                   CS_HASH_TABLE* hashTable, char* key) {
-    if (key == NULL || strcmp(key, "") == 0){
+char* cs_hash_table_put_no_key_copy(CSOUND* csound,
+                                   CS_HASH_TABLE* hashTable, char* key, void* value) {
+    if (key == NULL) {
         return NULL;
     }
     
@@ -190,20 +153,24 @@ PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
     
     if (item == NULL) {
         CS_HASH_TABLE_ITEM* newItem = mmalloc(csound, sizeof(CS_HASH_TABLE_ITEM));
-        newItem->key = cs_strdup(csound, key);
-        newItem->value = NULL;
+        newItem->key = key;
+        newItem->value = value;
+        newItem->next = NULL;
         hashTable->buckets[index] = newItem;
         return newItem->key;
     } else {
         while (item != NULL) {
             if (strcmp(key, item->key) == 0) {
+                item->value = value;
                 return item->key;
             } else if(item->next == NULL) {
-                CS_HASH_TABLE_ITEM* newItem = mmalloc(csound, sizeof(CS_HASH_TABLE_ITEM));
-                newItem->key = cs_strdup(csound, key);
-                newItem->value = NULL;
+                CS_HASH_TABLE_ITEM* newItem = mmalloc(csound,
+                                                      sizeof(CS_HASH_TABLE_ITEM));
+                newItem->key = key;
+                newItem->value = value;
+                newItem->next = NULL;
                 item->next = newItem;
-                return item->key;
+                return newItem->key;
             }
             item = item->next;
         }
@@ -211,12 +178,22 @@ PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
     return NULL;
 }
 
+PUBLIC void cs_hash_table_put(CSOUND* csound,
+                              CS_HASH_TABLE* hashTable, char* key, void* value) {
+    cs_hash_table_put_no_key_copy(csound, hashTable, cs_strdup(csound, key), value);
+}
+
+PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
+                                   CS_HASH_TABLE* hashTable, char* key) {
+    return cs_hash_table_put_no_key_copy(csound, hashTable, cs_strdup(csound, key), NULL);
+}
+
 PUBLIC void cs_hash_table_remove(CSOUND* csound,
                                  CS_HASH_TABLE* hashTable, char* key) {
     CS_HASH_TABLE_ITEM *previous, *item;
     unsigned char index;
 
-    if (key == NULL || strcmp(key, "") == 0){
+    if (key == NULL) {
         return;
     }
 
@@ -241,6 +218,22 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound,
     }
 }
 
+PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+    CONS_CELL* head = NULL;
+ 
+    int i = 0;
+    
+    for (i = 0; i < 256; i++) {
+        CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
+        
+        while (item != NULL) {
+            head = cs_cons(csound, item->key, head);
+            item = item->next;
+        }
+    }
+    return head;
+}
+
 PUBLIC void cs_hash_table_merge(CSOUND* csound,
                                 CS_HASH_TABLE* target, CS_HASH_TABLE* source) {
     // TODO - check if this is the best strategy for merging
@@ -250,7 +243,7 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
         CS_HASH_TABLE_ITEM* item = source->buckets[i];
 
         while (item != NULL) {
-            cs_hash_table_put(csound, target, item->key, item->value);
+            cs_hash_table_put_no_key_copy(csound, target, item->key, item->value);
             item = item->next;
         }
     }

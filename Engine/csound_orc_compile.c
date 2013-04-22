@@ -45,7 +45,7 @@ int     pnum(char *s) ;
 static void     unquote_string(char *, const char *);
 extern void     print_tree(CSOUND *, char *, TREE *);
 extern void delete_tree(CSOUND *csound, TREE *l);
-void close_instrument(CSOUND *csound, INSTRTXT * ip);
+void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT * ip);
 char argtyp2(char *s);
 void debugPrintCsound(CSOUND* csound);
 
@@ -53,9 +53,6 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState);
 int check_instr_name(char *s);
-
-/*  removed ; from end of #define as it can mess things */
-#define strsav_string(a) string_pool_save_string(csound,csound->stringSavePool,a)
 
 /* NOTE: these assume that sizeof(MYFLT) is either 4 or 8 */
 #define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
@@ -70,6 +67,17 @@ int check_instr_name(char *s);
 #define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 5.0e-7)
 #endif
 /* ------------------------------------------------------------------------ */
+
+char* strsav_string(CSOUND* csound, ENGINE_STATE* engineState, char* key) {
+    char* retVal = cs_hash_table_get_key(csound, csound->engineState.stringPool, key);
+    
+    if (retVal == NULL) {
+        retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
+    }
+    
+    return retVal;
+}
+
 
 int pnum(char *s)        /* check a char string for pnum format  */
 /*   and return the pnum ( >= 0 )       */
@@ -320,7 +328,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       /* TODO - Need to verify here or elsewhere that this label is not
          already defined */
       tp->oentry = &csound->opcodlst[LABEL];
-      tp->opcod = strsav_string(root->value->lexeme);
+      tp->opcod = strsav_string(csound, engineState, root->value->lexeme);
 
       tp->outlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
       tp->outlist->count = 0;
@@ -348,7 +356,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 
       /* INITIAL SETUP */
       tp->oentry = (OENTRY*)root->markup;
-      tp->opcod = strsav_string(tp->oentry->opname);
+      tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
       ip->mdepends |= tp->oentry->flags;
       ip->opdstot += tp->oentry->dsblksiz;
 
@@ -369,7 +377,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         for (inargs = root->right; inargs != NULL; inargs = inargs->next) {
           /* INARGS */
           arg = inargs->value->lexeme;
-          tp->inlist->arg[argcount++] = strsav_string(arg);
+          tp->inlist->arg[argcount++] = strsav_string(csound, engineState, arg);
 
           if ((n = pnum(arg)) >= 0) {
             if (n > ip->pmax)  ip->pmax = n;
@@ -388,7 +396,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         int argcount = 0;
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
           arg = outargs->value->lexeme;
-          tp->outlist->arg[argcount++] = strsav_string(arg);
+          tp->outlist->arg[argcount++] = strsav_string(csound, engineState, arg);
         }
         set_xincod(csound, tp, ep);
 
@@ -507,7 +515,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     /* start chain */
     ip->t.oentry = &csound->opcodlst[INSTR];
-    ip->t.opcod = strsav_string("instr"); /*  to hold global assigns */
+    ip->t.opcod = strsav_string(csound, engineState, "instr"); /*  to hold global assigns */
 
     /* The following differs from otran and needs review.  otran keeps a
      * nulllist to point to for empty lists, while this is creating a new list
@@ -518,7 +526,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     ip->t.inlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
     ip->t.inlist->count = 1;
 
-    ip->t.inlist->arg[0] = strsav_string("0");
+    ip->t.inlist->arg[0] = strsav_string(csound, engineState, "0");
 
 
     while (current != NULL) {
@@ -662,7 +670,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     if(csound->ksmps != DFLT_KSMPS){
       reallocateVarPoolMemory(csound, engineState->varPool);
     }
-    close_instrument(csound, ip);
+    close_instrument(csound, engineState, ip);
 
     return ip;
 }
@@ -691,7 +699,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
 
     /* Initialize */
     ip->t.oentry = &csound->opcodlst[INSTR];
-    ip->t.opcod = strsav_string("instr"); /*  to hold global assigns */
+    ip->t.opcod = strsav_string(csound, engineState, "instr"); /*  to hold global assigns */
 
     /* The following differs from otran and needs review.  otran keeps a
      * nulllist to point to for empty lists, while this is creating a new list
@@ -719,7 +727,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
         csound->Message(csound,
                         Str("create_instrument: instr num %ld\n"), instrNum);
 
-      ip->t.inlist->arg[0] = strsav_string(c);
+      ip->t.inlist->arg[0] = strsav_string(csound, engineState, c);
 
 
       csound->Free(csound, c);
@@ -746,11 +754,11 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
       op = last_optxt(op);
       current = current->next;
     }
-    close_instrument(csound, ip);
+    close_instrument(csound, engineState, ip);
     return ip;
 }
 
-void close_instrument(CSOUND *csound, INSTRTXT * ip)
+void close_instrument(CSOUND *csound, ENGINE_STATE* engineState, INSTRTXT * ip)
 {
     OPTXT * bp, *current;
     int n;
@@ -758,7 +766,7 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip)
     bp = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
 
     bp->t.oentry = &csound->opcodlst[ENDIN];  /*  send an endin to */
-    bp->t.opcod = strsav_string("endin");     /*  term instr 0 blk */
+    bp->t.opcod = strsav_string(csound, engineState, "endin");     /*  term instr 0 blk */
     bp->t.outlist = bp->t.inlist = NULL;
 
     bp->nxtop = NULL;   /* terminate the optxt chain */
@@ -959,16 +967,10 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     int i, end = engineState->maxinsno;
     ENGINE_STATE *current_state = &csound->engineState;
     INSTRTXT *current;
-
-    STRING_VAL* val = engineState->stringPool->values;
-    int count = 0;
-    while (val != NULL) {
-      csound->Message(csound, Str(" merging strings %d) %s\n"),
-                      count++, val->value);
-      string_pool_find_or_add(csound, current_state->stringPool, val->value);
-      val = val->next;
-    }
-
+    int count;
+    
+    cs_hash_table_merge(csound, current_state->stringPool, engineState->stringPool);
+    
     for (count = 0; count < engineState->constantsPool->count; count++) {
       csound->Message(csound, Str(" merging constants %d) %f\n"),
                       count, engineState->constantsPool->values[count]);
@@ -1050,7 +1052,10 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     /* FIXME: we need functions to deallocate stringPool, constantPool */
     mfree(csound, engineState->instrumentNames);
     myflt_pool_free(csound, engineState->constantsPool);
-    string_pool_free(csound, engineState->stringPool);
+    
+    /* purposely using mfree and not cs_hash_table_free as keys will have
+     been merged into csound->engineState */
+    mfree(csound, engineState->stringPool);
     mfree(csound, engineState->varPool);
     mfree(csound, engineState);
     return 0;
@@ -1097,7 +1102,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       engineState->varPool = typeTable->globalPool;
       csound->instr0 = create_instrument0(csound, current, engineState,
                                           typeTable->instr0LocalPool);
-      string_pool_find_or_add(csound, engineState->stringPool, "\"\"");
+      cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
       prvinstxt = &(engineState->instxtanchor);
        engineState->instrtxtp =
       (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno)
@@ -1107,7 +1112,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     else {
       engineState = (ENGINE_STATE *) mcalloc(csound, sizeof(ENGINE_STATE));
-      engineState->stringPool = string_pool_create(csound);
+      engineState->stringPool = cs_hash_table_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
@@ -1479,7 +1484,7 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s,
     } else if (c == '"') {
       temp = mcalloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
-      string_pool_find_or_add(csound, engineState->stringPool, temp);
+      cs_hash_table_put_key(csound, engineState->stringPool, temp);
     }
 }
 
@@ -1510,7 +1515,12 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       arg->type = ARG_STRING;
       temp = mcalloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
-      arg->argPtr = string_pool_find_or_add(csound, engineState->stringPool, temp);
+    
+      arg->argPtr = cs_hash_table_get_key(csound, csound->engineState.stringPool, temp);
+        
+      if (arg->argPtr == NULL) {
+        arg->argPtr = cs_hash_table_put_key(csound, engineState->stringPool, temp);
+      }
     } else if ((n = pnum(s)) >= 0) {
       arg->type = ARG_PFIELD;
       arg->index = n;
@@ -1597,7 +1607,7 @@ uint8_t file_to_int(CSOUND *csound, const char *name)
 void debugPrintCsound(CSOUND* csound)
 {
     INSTRTXT    *current;
-    STRING_VAL* val = csound->engineState.stringPool->values;
+    CONS_CELL* val = cs_hash_table_keys(csound, csound->engineState.stringPool);
     int count = 0;
     csound->Message(csound, "Compile State:\n");
     csound->Message(csound, "String Pool:\n");
