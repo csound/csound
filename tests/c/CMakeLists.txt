@@ -41,6 +41,10 @@ target_link_libraries(channelTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
 add_test(NAME channelTest
 	COMMAND $<TARGET_FILE:channelTest> ${TEST_ARGS})
 
+add_executable(csoundDataStructuresTest csound_data_structures_test.c)
+target_link_libraries(csoundDataStructuresTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME csoundDataStructuresTest
+	COMMAND $<TARGET_FILE:csoundDataStructuresTest> ${TEST_ARGS})
 endif()
 
 

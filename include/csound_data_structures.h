@@ -65,7 +65,7 @@ CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
 CS_HASH_TABLE* cs_create_hash_table(CSOUND* csound);
 void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* set, char* key);
-void cs_hash_table_set(CSOUND* csound, CS_HASH_TABLE* set, char* key, void* value);
+void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* set, char* key, void* value);
 void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* set, char* key);
 void cs_hash_table_delete(CSOUND* csound, CS_HASH_TABLE* set);
 
