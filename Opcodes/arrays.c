@@ -560,7 +560,7 @@ static int tabmin(CSOUND *csound, TABQUERY *p)
 static int tabsum(CSOUND *csound, TABQUERY *p)
 {
    ARRAYDAT *t = p->tab;
-   int i, size = t->sizes[0];
+   int i, size = 0;
    MYFLT ans;
 
    if (UNLIKELY(t->data == NULL))
@@ -568,7 +568,7 @@ static int tabsum(CSOUND *csound, TABQUERY *p)
    if (UNLIKELY(t->dimensions!=1))
         return csound->PerfError(csound, Str("t-variable not a vector"));
    ans = t->data[0];
-
+   for (i=0; i<t->dimensions; i++) size += t->sizes[i];
    for (i=1; i<size; i++)
      ans += t->data[i];
    *p->ans = ans;
@@ -577,7 +577,7 @@ static int tabsum(CSOUND *csound, TABQUERY *p)
 
 static int tabscaleset(CSOUND *csound, TABSCALE *p)
 {
-   if (LIKELY(p->tab->data)) return OK;
+   if (LIKELY(p->tab->data && p->tab->dimensions==1)) return OK;
    return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
@@ -591,17 +591,14 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
    int i;
    MYFLT range;
 
-   if (UNLIKELY(t->data == NULL || t->dimensions!=1))
-     return csound->PerfError(csound, Str("t-variable not initialised"));
    tmin = t->data[strt];
    tmax = tmin;
 
    // Correct start and ending points
-   if (end<0) end = t->sizes[0];
-   else if (end>t->sizes[0]) end = t->sizes[0];
-   else if (end<0) end = 0;
+   if (end<0) end = t->sizes[0]-1;
+   else if (end>t->sizes[0]) end = t->sizes[0]-1;
    if (strt<0) strt = 0;
-   else if (strt>t->sizes[0]) strt = t->sizes[0];
+   else if (strt>t->sizes[0]) strt = t->sizes[0]-1;
    if (end<strt) {
      int x = end; end = strt; strt = x;
    }
@@ -610,6 +607,8 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
      if (t->data[i]<tmin) tmin = t->data[i];
      if (t->data[i]>tmax) tmax = t->data[i];
    }
+   /* printf("start/end %d/%d max/min = %g/%g tmax/tmin = %g/%g range=%g\n",  */
+   /*        strt, end, max, min, tmax, tmin, range); */
    range = (max-min)/(tmax-tmin);
    for (i=strt; i<end; i++) {
      t->data[i] = (t->data[i]-tmin)*range + min;
@@ -737,19 +736,15 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     MYFLT *tabin = p->tabin->data;
     int start = (int) *p->start;
     int end   = (int) *p->end;
-    int size = end - start;
+    int size = end - start + 1;
     if (UNLIKELY(size < 0))
       csound->InitError(csound, Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
       //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
       csound->InitError(csound, Str("slice larger than original size"));
     }
-    if (UNLIKELY(p->tab->data==NULL)) {
-      tabensure(csound, p->tab, size);
-      p->tab->sizes[0] = size;
-    }
-    else size = p->tab->sizes[0];
-    memcpy(p->tab->data, tabin+start*sizeof(MYFLT),sizeof(MYFLT)*size);
+    tabensure(csound, p->tab, size);
+    memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
     return OK;
 }
 
@@ -796,19 +791,22 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
       opc->iopadr(csound, (void *) &eval);
     }
 
+    strncpy(func,  (char *)p->str, 64);
+    strncat(func, ".k", 64);
+    opc = csound->opcodlst;
+    for (n=0; opc < csound->oplstend; opc++, n++)
+      if(!strcmp(func, opc->opname)) break;
+
+    p->opc = opc;
     return OK;
 }
 
 static int tabmap_perf(CSOUND *csound, TABMAP *p)
 {
     MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
-    char func[64];
     int n, size;
     OENTRY *opc  = p->opc;
     EVAL  eval;
-
-    strncpy(func,  (char *)p->str, 64);
-    strncat(func, ".k", 64);
 
     if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
       return csound->PerfError(csound, Str("tvar not initialised"));
@@ -816,6 +814,8 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
       return csound->PerfError(csound, Str("tvar not initialised"));
     size = p->tab->sizes[0];
 
+    if (UNLIKELY(opc == csound->oplstend))
+      return csound->PerfError(csound, Str("map fn not found at k rate"));
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
       eval.r = &data[n];
@@ -865,16 +865,26 @@ static OENTRY arrayvars_localops[] =
                                           (SUBR)tabarithset,(SUBR)tabdiv },
     {"##rem.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                           (SUBR)tabarithset, (SUBR)tabrem},
-    /* {"##add.[]", sizeof(TABARITH1), 0, 3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabiadd }, */
-    /* {"##sub.[]", sizeof(TABARITH1), 0, 3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabisub }, */
-    /* {"##mul.[]", sizeof(TABARITH1), 0, 3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabimult }, */
-    /* {"##div.[]",  sizeof(TABARITH1), 0, 3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabidiv }, */
-    /* {"##rem.[]",  sizeof(TABARITH1),0,  3, "[k]", "ti", */
-    /*                                       (SUBR)tabarithset1, (SUBR)tabirem }, */
+    {"##add.[i", sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabiadd },
+    {"##sub.[i", sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabisub },
+    {"##mul.[i", sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabimult },
+    {"##div.[i",  sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabidiv },
+    {"##rem.[i",  sizeof(TABARITH1),0,  3, "[k]", "[k]i",
+                                          (SUBR)tabarithset1, (SUBR)tabirem },
+    {"##add.[k", sizeof(TABARITH1), 0, 3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabiadd },
+    {"##sub.[k", sizeof(TABARITH1), 0, 3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabisub },
+    {"##mul.[k", sizeof(TABARITH1), 0, 3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabimult },
+    {"##div.[k",  sizeof(TABARITH1), 0, 3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabidiv },
+    {"##rem.[k",  sizeof(TABARITH1),0,  3, "[k]", "[k]k",
+                                          (SUBR)tabarithset1, (SUBR)tabirem },
     { "maxtab", sizeof(TABQUERY), 0, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabmax },
     { "mintab", sizeof(TABQUERY), 0, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabmin },
     { "sumtab", sizeof(TABQUERY), 0, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabsum },
@@ -882,10 +892,10 @@ static OENTRY arrayvars_localops[] =
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "=.t", sizeof(TABCPY), 0, 2, "[k]", "[k]", NULL, (SUBR)tabcopy },
     { "tabgen", sizeof(TABGEN), 0, 1, "[k]", "iip", (SUBR) tabgen_set, NULL, NULL},
-    { "tabmap_i", sizeof(TABMAP), 0, 1, "[k]", "tS", (SUBR) tabmap_set, NULL, NULL},
-    { "tabmap", sizeof(TABMAP), 0, 3, "[k]", "tS", (SUBR) tabmap_set,
+    { "tabmap_i", sizeof(TABMAP), 0, 1, "[k]", "[k]S", (SUBR) tabmap_set         },
+    { "tabmap", sizeof(TABMAP), 0, 3, "[k]", "[k]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf},
-    { "tabslice", sizeof(TABSLICE), 0, 1, "[k]", "[k]ii",
+    { "tabslice", sizeof(TABSLICE), 0, 2, "[k]", "[k]ii",
                                                  NULL, (SUBR) tabslice, NULL },
     { "copy2ftab", sizeof(TABCOPY), TW, 2, "", "[k]k", NULL, (SUBR) tab2ftab },
     { "copy2ttab", sizeof(TABCOPY), TR, 2, "", "[k]k", NULL, (SUBR) ftab2tab },
