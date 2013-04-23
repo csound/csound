@@ -8,6 +8,4 @@
 
 extern ORCTOKEN *new_token(CSOUND *, int);
 
-#define HASH_SIZE (4099)
-
 #endif
