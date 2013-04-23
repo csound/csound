@@ -529,8 +529,7 @@ extern "C" {
 
     /** @defgroup INSTANTIATION Instantiation
      *
-     *  @{
-     */
+     *  @{ */
     /**
      * Initialise Csound library; should be called once before creating
      * any Csound instances.
@@ -566,8 +565,7 @@ extern "C" {
 
     /** @defgroup PERFORMANCE Performance
      *
-     *  @{
-     */
+     *  @{ */
     /**
      * Parse the given orchestra from an ASCII string into a TREE.
      * This can be called during performance to parse new code.
@@ -694,8 +692,7 @@ extern "C" {
     /** @}*/
     /** @defgroup ATTRIBUTES Attributes
      *
-     *  @{
-     */
+     *  @{ */
 
     /**
      * Returns the number of audio sample frames per second.
@@ -792,11 +789,12 @@ extern "C" {
 
 
     /** @}*/
-    /** @defgroup FILEIO File Input/Output
-     *
-     *  @{
-     */
-
+    /** @defgroup FILEIO General Input/Output
+     * Setting the device or filename name for Csound input and output. These
+     * functions are used to set the input and output command line flags that
+     * apply to both input and output of audio and MIDI. See command line flags
+     * -o, -i, -M and -Q in the Csound Reference Manual.
+     *  @{ */
 
    /**
     * Returns the output audio output name (-o).
@@ -862,8 +860,7 @@ extern "C" {
     /** @}*/
     /** @defgroup RTAUDIOIO Realtime Audio I/O
      *
-     *  @{
-     */
+     *  @{ */
 
      /**
      *  Sets the current RT audio module
@@ -1037,8 +1034,7 @@ extern "C" {
     /** @}*/
     /** @defgroup RTMIDI Realtime Midi I/O
      *
-     *  @{
-     */
+     *  @{ */
 
     /**
      *  Sets the current MIDI IO module
@@ -1116,8 +1112,7 @@ extern "C" {
     /** @}*/
     /** @defgroup SCOREHANDLING Score Handling
      *
-     *  @{
-     */
+     *  @{ */
 
     /**
      *  Read, preprocess, and load a score from an ASCII string
@@ -1200,8 +1195,7 @@ extern "C" {
     /** @}*/
     /** @defgroup MESSAGES Messages and Text
      *
-     *  @{
-     */
+     *  @{ */
 
     /**
      * Displays an informational message.
@@ -1286,10 +1280,9 @@ extern "C" {
     void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound);
 
     /** @}*/
-    /** @defgroup CONTROLEVENTS Control and Events
+    /** @defgroup CONTROLEVENTS Channels, Control and Events
      *
-     *  @{
-     */
+     *  @{ */
 
  /**
      * Stores a pointer to the specified channel of the bus in *p,
@@ -1568,8 +1561,7 @@ extern "C" {
     /** @}*/
     /** @defgroup TABLE Tables
      *
-     *  @{
-     */
+     *  @{ */
     /**
      * Returns the length of a function table (not including the guard point),
      * or -1 if the table does not exist.
@@ -1614,8 +1606,7 @@ extern "C" {
     /** @}*/
     /** @defgroup TABLEDISPLAY Function table display
      *
-     *  @{
-     */
+     *  @{ */
     /**
      * Tells Csound whether external graphic table display is supported.
      * Returns the previously set value (initially zero).
@@ -1653,8 +1644,7 @@ extern "C" {
     /** @}*/
     /** @defgroup OPCODES Opcodes
      *
-     *  @{
-     */
+     *  @{ */
 
     /**
      * Finds the list of named gens
@@ -1691,8 +1681,7 @@ extern "C" {
     /** @}*/
     /** @defgroup THREADING Threading and concurrency
      *
-     *  @{
-     */
+     *  @{ */
 
     /**
      * Called by external software to set a function for checking system
@@ -1941,8 +1930,7 @@ extern "C" {
     /** @}*/
     /** @defgroup MISCELLANEOUS Miscellaneous functions
      *
-     *  @{
-     */
+     *  @{ */
 
     /**
      * Runs an external command with the arguments specified in 'argv'.

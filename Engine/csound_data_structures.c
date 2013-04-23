@@ -52,61 +52,29 @@ PUBLIC CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
 
 /* FUNCTION FOR HASH SET */
 
-const char* CS_HASH_SET = "hash_set_holder";
-
-const unsigned char cs_strhash_tabl_8[256] = {
-    230,  69,  87,  14,  21, 133, 233, 229,  54, 111, 196,  53, 128,  23,
-    66, 225,  67,  79, 173, 110, 116,  56,  48, 129,  89, 188,  29, 251,
-    186, 159, 102, 162, 227,  57, 220, 244, 165, 243, 215, 216, 214,  33,
-    172, 254, 247, 241, 121, 197,  83,  22, 142,  61, 199,  50, 140, 192,
-    6, 237, 183,  46, 206,  81,  18, 105, 147, 253,  15,  97, 179, 163,
-    108, 123,  59, 198,  19, 141,   9,  95,  25, 219, 222,   1,   5,  52,
-    90, 138,  11, 234,  55,  60, 209,  39,  80, 203, 120,   4,  64, 146,
-    153, 157, 194, 134, 174, 100, 107, 125, 236, 160, 150,  41,  12, 223,
-    135, 189, 122, 171,  10, 221,  71,  68, 106,  73, 218, 115,   2, 152,
-    132, 190, 185, 113, 139, 104, 151, 154, 248, 117, 193, 118, 136, 204,
-    17, 239, 158,  77, 103, 182, 250, 191, 170,  13,  75,  85,  62,   0,
-    164,   8, 178,  93,  47,  42, 177,   3, 212, 255,  35, 137,  31, 224,
-    242,  88, 161, 145,  49, 119, 143, 245, 201,  38, 211,  96, 169,  98,
-    78, 195,  58, 109,  40, 238, 114,  20,  99,  24, 175, 200, 148, 112,
-    45,   7,  28, 168,  27, 249,  94, 205, 156,  44,  37,  82, 217,  36,
-    30,  16, 101,  72,  43, 149, 144, 187,  65, 131, 184, 166,  51,  32,
-    226, 202, 231, 213, 126, 210, 235,  74, 208, 252, 181, 155, 246,  92,
-    63, 228, 180, 176,  76, 167, 232,  91, 130,  84, 124,  86,  34,  26,
-    207, 240, 127,  70
-};
-
-
-
 PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
     return (CS_HASH_TABLE*) mcalloc(csound, sizeof(CS_HASH_TABLE));
 }
 
-static inline unsigned char cs_name_hash(CSOUND *csound, const char *s)
+static unsigned int cs_name_hash(char *s)
 {
-    const unsigned char *c = (const unsigned char*) &(s[0]);
-    unsigned int  h = 0U;
-#ifdef LINUX
-    for ( ; *c != (unsigned char) 0; c++)
-        h = csound->strhash_tabl_8[h ^ *c];
-#else
-    (void) csound;
-    for ( ; *c != (unsigned char) 0; c++)
-        h = cs_strhash_tabl_8[h ^ *c];
-#endif
-    return (unsigned char) h;
+    unsigned int h = 0;
+    while (*s != '\0') {
+        h = (h<<4) ^ *s++;
+    }
+    return (h%HASH_SIZE);
 }
 
 PUBLIC void* cs_hash_table_get(CSOUND* csound, 
                                CS_HASH_TABLE* hashTable, char* key) {
-    unsigned char index;
+    unsigned int index;
     CS_HASH_TABLE_ITEM* item;
 
     if (key == NULL) {
         return NULL;
     }
 
-    index = cs_name_hash(csound, key);
+    index = cs_name_hash(key);
     item = hashTable->buckets[index];
 
     while (item != NULL) {
@@ -121,14 +89,14 @@ PUBLIC void* cs_hash_table_get(CSOUND* csound,
 
 PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key) {
-    unsigned char index;
+    unsigned int index;
     CS_HASH_TABLE_ITEM* item;
 
     if (key == NULL) {
         return NULL;
     }
 
-    index = cs_name_hash(csound, key);
+    index = cs_name_hash(key);
     item = hashTable->buckets[index];
 
     while (item != NULL) {
@@ -147,7 +115,7 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
         return NULL;
     }
     
-    unsigned char index = cs_name_hash(csound, key);
+    unsigned int index = cs_name_hash(key);
     
     CS_HASH_TABLE_ITEM* item = hashTable->buckets[index];
     
@@ -191,13 +159,13 @@ PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
 PUBLIC void cs_hash_table_remove(CSOUND* csound,
                                  CS_HASH_TABLE* hashTable, char* key) {
     CS_HASH_TABLE_ITEM *previous, *item;
-    unsigned char index;
+    unsigned int index;
 
     if (key == NULL) {
         return;
     }
 
-    index = cs_name_hash(csound, key);
+    index = cs_name_hash(key);
 
     previous = NULL;
     item = hashTable->buckets[index];
