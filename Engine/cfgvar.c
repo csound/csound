@@ -239,84 +239,6 @@ static int cfg_alloc_structure(csCfgVariable_t **ptr,
 }
 
 /**
- * Create global configuration variable with the specified parameters.
- * This function should be called by the host application only.
- *   name:    name of the variable (may contain letters, digits, and _)
- *   p:       pointer to variable
- *   type:    type of variable, determines how 'p' is interpreted
- *              CSOUNDCFG_INTEGER:      int*
- *              CSOUNDCFG_BOOLEAN:      int* (value may be 0 or 1)
- *              CSOUNDCFG_FLOAT:        float*
- *              CSOUNDCFG_DOUBLE:       double*
- *              CSOUNDCFG_MYFLT:        MYFLT*
- *              CSOUNDCFG_STRING:       char* (should have enough space)
- *   flags:   bitwise OR of flag values, currently only CSOUNDCFG_POWOFTWO
- *            is available, which requests CSOUNDCFG_INTEGER values to be
- *            power of two
- *   min:     for CSOUNDCFG_INTEGER, CSOUNDCFG_FLOAT, CSOUNDCFG_DOUBLE, and
- *            CSOUNDCFG_MYFLT, a pointer to a variable of the type selected
- *            by 'type' that specifies the minimum allowed value.
- *            If 'min' is NULL, there is no minimum value.
- *   max:     similar to 'min', except it sets the maximum allowed value.
- *            For CSOUNDCFG_STRING, it is a pointer to an int variable
- *            that defines the maximum length of the string (including the
- *            null character at the end) in bytes. This value is limited
- *            to the range 8 to 16384, and if max is NULL, it defaults to 256.
- *   shortDesc: a short description of the variable (may be NULL or an empty
- *            string if a description is not available)
- *   longDesc: a long description of the variable (may be NULL or an empty
- *            string if a description is not available)
- * Return value is CSOUNDCFG_SUCCESS, or one of the following error codes:
- *   CSOUNDCFG_INVALID_NAME
- *            the specified name is invalid or is already in use
- *   CSOUNDCFG_MEMORY
- *            a memory allocation failure occured
- *   CSOUNDCFG_NULL_POINTER
- *            the 'p' pointer was NULL
- *   CSOUNDCFG_INVALID_TYPE
- *   CSOUNDCFG_INVALID_FLAG
- *            an invalid variable type was specified, or the flags value
- *            had unknown bits set
- */
-
-#if 0
-PUBLIC
-int csoundCreateGlobalConfigurationVariable(const char *name,
-                                            void *p, int type, int flags,
-                                            void *min, void *max,
-                                            const char *shortDesc,
-                                            const char *longDesc)
-{
-    csCfgVariable_t *pp;
-    int             i, retval;
-    unsigned char   h;
-
-    /* check if name is already in use */
-    if (UNLIKELY(csoundQueryGlobalConfigurationVariable(name) != NULL))
-      return CSOUNDCFG_INVALID_NAME;
-    /* if database is not allocated yet, create an empty one */
-    if (global_cfg_db == NULL) {
-      global_cfg_db = (void**) malloc(sizeof(void*) * 256);
-      if (UNLIKELY(global_cfg_db == NULL))
-        return CSOUNDCFG_MEMORY;
-      for (i = 0; i < 256; i++)
-        global_cfg_db[i] = (void*) NULL;
-    }
-    /* allocate structure */
-    retval =  cfg_alloc_structure(&pp, name, p, type, flags, min, max,
-                                  shortDesc, longDesc);
-    if (retval != CSOUNDCFG_SUCCESS)
-      return retval;
-    /* link into database */
-    h = name_hash_(name);
-    pp->h.nxt = (csCfgVariable_t*) (global_cfg_db[(int) h]);
-    global_cfg_db[(int) h] = (void*) pp;
-    /* report success */
-    return CSOUNDCFG_SUCCESS;
-}
-#endif
-
-/**
  * This function is similar to csoundCreateGlobalConfigurationVariable(),
  * except it creates a configuration variable specific to Csound instance
  * 'csound', and is suitable for calling from the Csound library
@@ -359,254 +281,6 @@ PUBLIC int
     /* report success */
     return CSOUNDCFG_SUCCESS;
 }
-
-/* returns non-zero if x and y are equal within maxerr error */
-
-#if 0
-static int compare_floats(double x, double y, double maxerr)
-{
-    /* trivial case */
-    if (x == y)
-      return 1;
-    /* if only one of x and y is zero, then not equal */
-    if (x == 0.0 || y == 0.0) {
-      if (x == 0.0 && y == 0.0)
-        return 1;
-      else
-        return 0;
-    }
-    /* different sign: not equal */
-    if ((x < 0.0 && y > 0.0) || (x > 0.0 && y < 0.0))
-      return 0;
-    /* fuzzy compare */
-    if (fabs((x / y) - 1.0) < maxerr)
-      return 1;
-    return 0;
-}
-#endif
-
-/* Test if two existing configuration variables are compatible, that is, */
-/* they have the same type, flags, descriptions, and limit values. */
-/* Return value is non-zero if the two variables are compatible. */
-
-#if 0
-static int are_cfgvars_compatible(csCfgVariable_t *p1, csCfgVariable_t *p2)
-{
-    if (p1->h.type != p2->h.type || p1->h.flags != p2->h.flags)
-      return 0;
-    if (p1->h.shortDesc != NULL && p2->h.shortDesc != NULL) {
-      if (strcmp((char*) p1->h.shortDesc, (char*) p2->h.shortDesc) != 0)
-        return 0;
-    }
-    else if (!(p1->h.shortDesc == NULL && p2->h.shortDesc == NULL))
-      return 0;
-    if (p1->h.longDesc != NULL && p2->h.longDesc != NULL) {
-      if (strcmp((char*) p1->h.longDesc, (char*) p2->h.longDesc) != 0)
-        return 0;
-    }
-    else if (!(p1->h.longDesc == NULL && p2->h.longDesc == NULL))
-      return 0;
-    switch (p1->h.type) {
-      case CSOUNDCFG_INTEGER:
-        if (p1->i.min != p2->i.min || p1->i.max != p2->i.max)
-          return 0;
-        break;
-      case CSOUNDCFG_BOOLEAN:
-        break;
-      case CSOUNDCFG_FLOAT:
-        if (!compare_floats((double) p1->f.min, (double) p2->f.min, 1.0e-6) ||
-            !compare_floats((double) p1->f.max, (double) p2->f.max, 1.0e-6))
-          return 0;
-        break;
-      case CSOUNDCFG_DOUBLE:
-        if (!compare_floats((double) p1->d.min, (double) p2->d.min, 1.0e-12) ||
-            !compare_floats((double) p1->d.max, (double) p2->d.max, 1.0e-12))
-          return 0;
-        break;
-      case CSOUNDCFG_MYFLT:
-#ifdef USE_DOUBLE
-        if (!compare_floats((double) p1->m.min, (double) p2->m.min, 1.0e-12) ||
-            !compare_floats((double) p1->m.max, (double) p2->m.max, 1.0e-12))
-          return 0;
-#else
-        if (!compare_floats((double) p1->m.min, (double) p2->m.min, 1.0e-6) ||
-            !compare_floats((double) p1->m.max, (double) p2->m.max, 1.0e-6))
-          return 0;
-#endif
-        break;
-      case CSOUNDCFG_STRING:
-        if (p1->s.maxlen != p2->s.maxlen)
-          return 0;
-        break;
-      default:
-        return 0;
-    }
-    return 1;
-}
-#endif
-
-/**
- * Copy a global configuration variable to a Csound instance.
- * This function is experimental and may be subject to changes in
- * future releases of the Csound library.
- */
-
-#if 0
-PUBLIC int csoundCopyGlobalConfigurationVariable(CSOUND *csound,
-                                                 const char *name,
-                                                 void *p)
-{
-    csCfgVariable_t *pp, *lp;
-    char            *sdp, *ldp;
-    int             j, type, flags;
-
-    /* look up global configuration variable */
-    pp = csoundQueryGlobalConfigurationVariable(name);
-    if (UNLIKELY(pp == NULL))
-      return CSOUNDCFG_INVALID_NAME;
-
-    /* check if a local configuration variable with this name already exists */
-    lp = csoundQueryConfigurationVariable(csound, name);
-    if (lp != NULL) {
-      /* found one, find out if it is compatible */
-      if (UNLIKELY(!are_cfgvars_compatible(lp, pp)))
-        return CSOUNDCFG_INVALID_NAME;      /* no, report error */
-      /* if a new data pointer was specified, store it */
-      if (p != NULL)
-        lp->h.p = p;
-      else
-        p = lp->h.p;    /* otherwise, get it from the existing variable */
-    }
-    else {
-      /* create new local configuration variable */
-      if (UNLIKELY(p == NULL))
-        return CSOUNDCFG_NULL_POINTER;  /* must have a valid data pointer */
-      type = pp->h.type;
-      flags = pp->h.flags;
-      sdp = (char*) pp->h.shortDesc;
-      ldp = (char*) pp->h.longDesc;
-      switch (type) {
-        case CSOUNDCFG_INTEGER:
-          j = csoundCreateConfigurationVariable(csound, name, p, type, flags,
-                                                (void*) &(pp->i.min),
-                                                (void*) &(pp->i.max), sdp, ldp);
-          break;
-        case CSOUNDCFG_BOOLEAN:
-          j = csoundCreateConfigurationVariable(csound, name, p, type, flags,
-                                                NULL, NULL, sdp, ldp);
-          break;
-        case CSOUNDCFG_FLOAT:
-          j = csoundCreateConfigurationVariable(csound, name, p, type, flags,
-                                                (void*) &(pp->f.min),
-                                                (void*) &(pp->f.max), sdp, ldp);
-          break;
-        case CSOUNDCFG_DOUBLE:
-          j = csoundCreateConfigurationVariable(csound, name, p, type, flags,
-                                                (void*) &(pp->d.min),
-                                                (void*) &(pp->d.max), sdp, ldp);
-          break;
-        case CSOUNDCFG_MYFLT:
-          j = csoundCreateConfigurationVariable(csound, name, p, type, flags,
-                                                (void*) &(pp->m.min),
-                                                (void*) &(pp->m.max), sdp, ldp);
-          break;
-        case CSOUNDCFG_STRING:
-          j = csoundCreateConfigurationVariable(csound, name, p, type, flags,
-                                                NULL, (void*) &(pp->s.maxlen),
-                                                sdp, ldp);
-          break;
-        default:
-          return CSOUNDCFG_INVALID_TYPE;
-      }
-      if (j != CSOUNDCFG_SUCCESS)
-        return j;
-    }
-    /* copy value */
-    switch (pp->h.type) {
-      case CSOUNDCFG_INTEGER:   *((int*) p) = *(pp->i.p);               break;
-      case CSOUNDCFG_BOOLEAN:   *((int*) p) = *(pp->b.p);               break;
-      case CSOUNDCFG_FLOAT:     *((float*) p) = *(pp->f.p);             break;
-      case CSOUNDCFG_DOUBLE:    *((double*) p) = *(pp->d.p);            break;
-      case CSOUNDCFG_MYFLT:     *((MYFLT*) p) = *(pp->m.p);             break;
-      case CSOUNDCFG_STRING:    strcpy((char*) p, (char*) (pp->s.p));   break;
-      default: return CSOUNDCFG_INVALID_TYPE;
-    }
-    /* report success */
-    return CSOUNDCFG_SUCCESS;
-}
-#endif
-
-/**
- * Copy all global configuration variables to the specified Csound instance.
- * This function is experimental and may be subject to changes in
- * future releases of the Csound library.
- */
-
-#if 0
-PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound)
-{
-    csCfgVariable_t *pp, *lp;
-    int             i, j, k, retval;
-    char            *s;
-    void            *ptr = NULL;
-
-    if (UNLIKELY(global_cfg_db == NULL)) {
-      /* empty database: nothing to do */
-      return CSOUNDCFG_SUCCESS;
-    }
-
-    retval = CSOUNDCFG_SUCCESS;
-    for (i = 0; i < 256; i++) {
-      pp = (csCfgVariable_t*) (global_cfg_db[i]);
-      while (pp != NULL) {
-        /* does a local configuration variable with this name already exist ? */
-        lp = csoundQueryConfigurationVariable(csound, (char*) pp->h.name);
-        if (lp == NULL) {
-          /* no, create named global variable */
-          s = (char*) malloc((size_t) strlen((char*) pp->h.name) + (size_t) 2);
-          if (UNLIKELY(s == NULL))
-            return CSOUNDCFG_MEMORY;
-          strcpy(s, ".");
-          strcat(s, (char*) pp->h.name);
-          switch (pp->h.type) {
-            case CSOUNDCFG_INTEGER:   k = (int) sizeof(int);      break;
-            case CSOUNDCFG_BOOLEAN:   k = (int) sizeof(int);      break;
-            case CSOUNDCFG_FLOAT:     k = (int) sizeof(float);    break;
-            case CSOUNDCFG_DOUBLE:    k = (int) sizeof(double);   break;
-            case CSOUNDCFG_MYFLT:     k = (int) sizeof(MYFLT);    break;
-            case CSOUNDCFG_STRING:    k = (int) (pp->s.maxlen);   break;
-            default:  k = 1;  /* should not happen */
-          }
-          j = csoundCreateGlobalVariable(csound, s, (size_t) k);
-          if (UNLIKELY(j != CSOUND_SUCCESS)) {
-            if (j == CSOUND_MEMORY)
-              return CSOUNDCFG_MEMORY;
-            else {
-              retval = CSOUNDCFG_INVALID_NAME;
-              pp = (csCfgVariable_t*) (pp->h.nxt);
-              continue;
-            }
-          }
-          /* get pointer (should not be NULL) */
-          ptr = csoundQueryGlobalVariable(csound, s);
-          free((void*) s);
-        }
-        else
-          ptr = NULL;   /* use pointer of existing configuration variable */
-        /* copy variable */
-        j = csoundCopyGlobalConfigurationVariable(csound, (char*) pp->h.name,
-                                                  ptr);
-        if (UNLIKELY(j == CSOUNDCFG_MEMORY || j == CSOUNDCFG_NULL_POINTER))
-          return j;
-        else if (UNLIKELY(j != CSOUNDCFG_SUCCESS))
-          retval = CSOUNDCFG_INVALID_NAME;
-        /* continue with next link in chain */
-        pp = (csCfgVariable_t*) (pp->h.nxt);
-      }
-    }
-    return retval;
-}
-#endif
 
 /* set configuration variable to value (with error checking) */
 
@@ -662,39 +336,6 @@ static int set_cfgvariable_value(csCfgVariable_t *pp, void *value)
     }
     return CSOUNDCFG_SUCCESS;
 }
-
-/**
- * Set the value of a global configuration variable; should be called by the
- * host application only.
- * 'value' is a pointer of the same type as the 'p' pointer that was passed
- * to csoundCreateGlobalConfigurationVariable(), depending on the type of
- * the variable (integer, float, etc.).
- * Return value is CSOUNDCFG_SUCCESS in case of success, or one of the
- * following error codes:
- *   CSOUNDCFG_INVALID_NAME
- *            no configuration variable was found with the specified name
- *   CSOUNDCFG_NULL_POINTER
- *            the 'value' pointer was NULL
- *   CSOUNDCFG_TOO_LOW
- *   CSOUNDCFG_TOO_HIGH
- *   CSOUNDCFG_NOT_POWOFTWO
- *   CSOUNDCFG_INVALID_BOOLEAN
- *   CSOUNDCFG_STRING_LENGTH
- *            the specified value was invalid in some way
- */
-
-#if 0
-PUBLIC int csoundSetGlobalConfigurationVariable(const char *name, void *value)
-{
-    csCfgVariable_t *pp;
-
-    /* get pointer to variable */
-    pp = csoundQueryGlobalConfigurationVariable(name);
-    if (UNLIKELY(pp == NULL))
-      return CSOUNDCFG_INVALID_NAME;    /* not found */
-    return (set_cfgvariable_value(pp, value));
-}
-#endif
 
 /**
  * Set the value of a configuration variable of Csound instance 'csound'.
@@ -763,40 +404,6 @@ static int parse_cfg_variable(csCfgVariable_t *pp, const char *value)
 }
 
 /**
- * Set the value of a global configuration variable, by parsing a string;
- * should be called by the host application only.
- * For boolean variables, any of the strings "0", "no", "off", and "false"
- * will set the value to 0, and any of "1", "yes", "on", and "true" means a
- * value of 1.
- * Return value is CSOUNDCFG_SUCCESS in case of success, or one of the
- * following error codes:
- *   CSOUNDCFG_INVALID_NAME
- *            no configuration variable was found with the specified name
- *   CSOUNDCFG_NULL_POINTER
- *            the 'value' pointer was NULL
- *   CSOUNDCFG_TOO_LOW
- *   CSOUNDCFG_TOO_HIGH
- *   CSOUNDCFG_NOT_POWOFTWO
- *   CSOUNDCFG_INVALID_BOOLEAN
- *   CSOUNDCFG_STRING_LENGTH
- *            the specified value was invalid in some way
- */
-
-#if 0
-PUBLIC int
-  csoundParseGlobalConfigurationVariable(const char *name, const char *value)
-{
-    csCfgVariable_t *pp;
-
-    /* get pointer to variable */
-    pp = csoundQueryGlobalConfigurationVariable(name);
-    if (UNLIKELY(pp == NULL))
-      return CSOUNDCFG_INVALID_NAME;    /* not found */
-    return (parse_cfg_variable(pp, value));
-}
-#endif
-
-/**
  * Set the value of a configuration variable of Csound instance 'csound',
  * by parsing a string.
  * The 'name' and 'value' parameters, and return value are the same as
@@ -836,19 +443,6 @@ static csCfgVariable_t *find_cfg_variable(void **db, const char *name)
     }
     return (csCfgVariable_t*) NULL;
 }
-
-/**
- * Return pointer to the global configuration variable with the specified name.
- * The return value may be NULL if the variable is not found in the database.
- */
-
-#if 0
-PUBLIC csCfgVariable_t
-  *csoundQueryGlobalConfigurationVariable(const char *name)
-{
-    return find_cfg_variable(global_cfg_db, name);
-}
-#endif
 
 /**
  * Return pointer to the configuration variable of Csound instace 'csound'
@@ -912,22 +506,6 @@ static csCfgVariable_t **list_db_entries(void **db)
 }
 
 /**
- * Create an alphabetically sorted list of all global configuration variables.
- * Returns a pointer to a NULL terminated array of configuration variable
- * pointers, or NULL on error.
- * The caller is responsible for freeing the returned list with
- * csoundDeleteCfgVarList(), however, the variable pointers in the list
- * should not be freed.
- */
-
-#if 0
-PUBLIC csCfgVariable_t **csoundListGlobalConfigurationVariables(void)
-{
-    return (list_db_entries(global_cfg_db));
-}
-#endif
-
-/**
  * Create an alphabetically sorted list of all configuration variables
  * of Csound instance 'csound'.
  * Returns a pointer to a NULL terminated array of configuration variable
@@ -982,21 +560,6 @@ static int remove_entry_from_db(void **db, const char *name)
 }
 
 /**
- * Remove the global configuration variable with the specified name
- * from the database. Should be called by the host application only,
- * and never by the Csound library or plugins.
- * Return value is CSOUNDCFG_SUCCESS in case of success, or
- * CSOUNDCFG_INVALID_NAME if the variable was not found.
- */
-
-#if 0
-PUBLIC int csoundDeleteGlobalConfigurationVariable(const char *name)
-{
-    return (remove_entry_from_db(global_cfg_db, name));
-}
-#endif
-
-/**
  * Remove the configuration variable of Csound instance 'csound' with the
  * specified name from the database. Plugins need not call this, as all
  * configuration variables are automatically deleted by csoundReset().
@@ -1027,23 +590,6 @@ static int destroy_entire_db(void **db)
     free((void*) db);
     return CSOUNDCFG_SUCCESS;
 }
-
-/**
- * Remove all global configuration variables and free database.
- * Should be called by the host application only, and never by the
- * Csound library or plugins.
- * Return value is CSOUNDCFG_SUCCESS in case of success.
- */
-
-#if 0
-PUBLIC int csoundDeleteAllGlobalConfigurationVariables(void)
-{
-    int retval;
-    retval = destroy_entire_db(global_cfg_db);
-    global_cfg_db = NULL;
-    return retval;
-}
-#endif
 
 /**
  * Remove all configuration variables of Csound instance 'csound'
