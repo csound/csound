@@ -40,7 +40,8 @@ static int dconvset(CSOUND *csound, DCONV *p)
     FUNC *ftp;
 
     p->len = (int)*p->isize;
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {   /* find table */
+    if (LIKELY((ftp = csound->FTnp2Find(csound,
+                                        p->ifn)) != NULL)) {   /* find table */
       p->ftp = ftp;
       if ((unsigned)ftp->flen < p->len)
         p->len = ftp->flen; /* correct len if flen shorter */

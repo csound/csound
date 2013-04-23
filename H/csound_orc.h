@@ -14,12 +14,6 @@ enum {
   S_APPLY,
 };
 
-typedef struct _cons {
-    void* value; // should be car, but using val
-    struct _cons* next; // should be cdr, but to follow csound
-    // linked list conventions
-} CONS_CELL;
-
 typedef struct type_table {
     OENTRY* udos;
     CS_VAR_POOL* globalPool;

@@ -454,6 +454,7 @@ set(libcsound_SRCS
     Engine/twarp.c
     Engine/csound_type_system.c
     Engine/csound_standard_types.c
+    Engine/csound_data_structures.c
     Engine/pools.c
     InOut/libsnd.c
     InOut/libsnd_u.c

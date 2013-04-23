@@ -5,6 +5,7 @@
 ./Engine/cs_par_base.c
 ./Engine/cs_par_dispatch.c
 ./Engine/cs_par_orc_semantic_analysis.c
+./Engine/csound_data_structures.c
 ./Engine/csound_orc_compile.c
 ./Engine/csound_orc_expressions.c
 ./Engine/csound_orc_optimize.c
@@ -48,7 +49,6 @@
 ./H/cs_par_structs.h
 ./H/csmodule.h
 ./H/csound_orc.h
-./H/csound_standard_types.h
 ./H/diskin.h
 ./H/diskin2.h
 ./H/disprep.h
@@ -635,6 +635,7 @@
 ./include/csoundCore.h
 ./include/csound.h
 ./include/csound.hpp
+./include/csound_standard_types.h
 ./include/csound_type_system.h
 ./include/cwindow.h
 ./include/float-version-double.h

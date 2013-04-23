@@ -403,7 +403,7 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
       return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
-    if(p->flag==1) evt.pcnt = p->argno;
+    if(p->flag==1) evt.pcnt = p->argno-1;
     else
       evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */

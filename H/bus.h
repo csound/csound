@@ -69,6 +69,7 @@ typedef struct {
     MYFLT   *iname;
     MYFLT   *fp;
     int     *lock;
+    int      pos;
 } CHNGET;
 
 typedef struct {
@@ -90,7 +91,8 @@ typedef struct {
     MYFLT   *iy;
     MYFLT   *iwidth;
     MYFLT   *iheight;
-    MYFLT   *Sattributes[64]; /* only the first argument is used the rest for safety */
+    MYFLT   *Sattributes[64]; /* only the first argument is used the rest
+                                 for safety */
     int     *lock;
 } CHN_OPCODE_K;
 
