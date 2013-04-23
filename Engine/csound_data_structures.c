@@ -89,7 +89,7 @@ PUBLIC void* cs_hash_table_get(CSOUND* csound,
 
 PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key) {
-    unsigned char index;
+    unsigned int index;
     CS_HASH_TABLE_ITEM* item;
 
     if (key == NULL) {
@@ -115,7 +115,7 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
         return NULL;
     }
     
-    unsigned char index = cs_name_hash(key);
+    unsigned int index = cs_name_hash(key);
     
     CS_HASH_TABLE_ITEM* item = hashTable->buckets[index];
     
@@ -159,7 +159,7 @@ PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
 PUBLIC void cs_hash_table_remove(CSOUND* csound,
                                  CS_HASH_TABLE* hashTable, char* key) {
     CS_HASH_TABLE_ITEM *previous, *item;
-    unsigned char index;
+    unsigned int index;
 
     if (key == NULL) {
         return;
