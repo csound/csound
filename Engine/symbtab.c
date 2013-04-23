@@ -36,7 +36,8 @@
 #define PARSER_DEBUG (0)
 #endif
 
-ORCTOKEN** symbtab;
+// FIXME - this is global...
+CS_HASH_TABLE* symbtab;
 
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
@@ -66,7 +67,7 @@ void init_symbtab(CSOUND *csound)
     OENTRY *temp;
     int len = 0;
 
-    symbtab = (ORCTOKEN**)mcalloc(csound, HASH_SIZE * sizeof(ORCTOKEN*));
+    symbtab = cs_hash_table_create(csound);
     /* Now we need to populate with basic words */
     /* Add token types for opcodes to symbtab.  If a polymorphic opcode
      * definition is found (dsblksiz >= 0xfffb), look for implementations
@@ -101,42 +102,29 @@ void init_symbtab(CSOUND *csound)
 
 }
 
-static unsigned int hash(char *s)
-{
-    unsigned int h = 0;
-    while (*s != '\0') {
-      h = (h<<4) ^ *s++;
-    }
-    return (h%HASH_SIZE);
-}
-
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
 {
-    unsigned int h = hash(s);
-
     //printf("Hash value for %s: %i\n", s, h);
 
-    ORCTOKEN *a = symbtab[h];
+    ORCTOKEN *a = cs_hash_table_get(csound, symbtab, s);
+    
     ORCTOKEN *ans;
-    while (a!=NULL) {
-      if (strcmp(a->lexeme, s)==0) {
-        if (type == a->type) return a;
-        if (type!= T_FUNCTION || a->type!=T_OPCODE)
-          csound->Warning(csound,
-                          Str("Type confusion for %s (%d,%d), replacing\n"),
-                          s, type, a->type);
-        a->type = type;
-        return a;
-      }
-      a = a->next;
+    if (a!=NULL) {
+      if (type == a->type) return a;
+      if (type!= T_FUNCTION || a->type!=T_OPCODE)
+        csound->Warning(csound,
+                        Str("Type confusion for %s (%d,%d), replacing\n"),
+                        s, type, a->type);
+      a->type = type;
+      return a;
     }
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
     strcpy(ans->lexeme, s);
-    ans->next = symbtab[h];
     ans->type = type;
-
-    symbtab[h] = ans;
+    
+    cs_hash_table_put(csound, symbtab, s, ans);
+    
     return ans;
 }
 
@@ -176,22 +164,18 @@ int isUDOAnsList(char *s)
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
-    unsigned int h = hash(s);
     int type = T_IDENT;
-    ORCTOKEN *a = symbtab[h];
+    ORCTOKEN *a;
     ORCTOKEN *ans;
-
+    
     if (PARSER_DEBUG)
-      csound->Message(csound, "Looking up token for: %d : %s\n", h, s);
+      csound->Message(csound, "Looking up token for: %s\n", s);
 
     if (udoflag == 0) {
       if (isUDOAnsList(s)) {
         ans = new_token(csound, UDO_ANS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
-//        ans->next = symbtab[h];
-//        symbtab[h] = ans;
-        // printf("Found UDO Answer List %s\n", s);
         return ans;
       }
     }
@@ -202,44 +186,30 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         ans = new_token(csound, UDO_ARGS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
-//        ans->next = symbtab[h];
-//        symbtab[h] = ans;
-        // printf("Found UDO Arg List\n");
         return ans;
       }
     }
 
-    while (a!=NULL) {
-      /* if (strcmp(s, "reverb") == 0) { */
-      /*   if (PARSER_DEBUG) */
-          /* csound->Message(csound, "Looking up token for: %d: %d: %s : %s\n", */
-          /*                 hash("reverb"), hash("a4"), s, a->lexeme); */
-      /* } */
-      if (strcmp(a->lexeme, s)==0) {
-        ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));
-        memcpy(ans, a, sizeof(ORCTOKEN));
-        ans->next = NULL;
-        ans->lexeme = (char *)mmalloc(csound, strlen(a->lexeme) + 1);
-        strcpy(ans->lexeme, a->lexeme);
-        return ans;
-      }
-      a = a->next;
+    a = cs_hash_table_get(csound, symbtab, s);
+    
+    if (a != NULL) {
+      ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));
+      memcpy(ans, a, sizeof(ORCTOKEN));
+      ans->next = NULL;
+      ans->lexeme = (char *)mmalloc(csound, strlen(a->lexeme) + 1);
+      strcpy(ans->lexeme, a->lexeme);
+      return ans;
     }
-
+   
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
     strcpy(ans->lexeme, s);
-    //ans->next = symbtab[h];
-
-    /* if (PARSER_DEBUG) */
-    /*   csound->Message(csound, "NamedInstrFlag: %d\n", namedInstrFlag); */
 
     if (udoflag == -2 || namedInstrFlag == 1) {
         return ans;
     }
 
     ans->type = type;
-    //symbtab[h] = ans;
 
     return ans;
 }
