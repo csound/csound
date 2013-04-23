@@ -49,28 +49,6 @@ TREE * create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
 
 static int genlabs = 300;
 
-CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
-    CONS_CELL* cell = mmalloc(csound, sizeof(CONS_CELL));
-
-    cell->value = val;
-    cell->next = cons;
-
-    return cell;
-}
-
-CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
-    if(cons1 == NULL) return cons2;
-    if(cons2 == NULL) return cons1;
-
-    CONS_CELL* c = cons1;
-    
-    while (c->next != NULL) c = c->next;
-
-    c->next = cons2;
-    
-    return cons1;
-}
-
 TREE* tree_tail(TREE* node) {
     TREE* t = node;
     if (t == NULL) {
@@ -1003,6 +981,7 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
                                       last->left->type == 'k' ||
                                       right->type =='k');
         last->next = gotoToken;
+        gotoToken->next = current->next;
     }
     else if (right->type == THEN_TOKEN ||
              right->type == ITHEN_TOKEN ||
@@ -1027,13 +1006,6 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
             if (ifBlockCurrent->type == ELSE_TOKEN) {
                 appendToTree(csound, anchor, tempRight);
                 break;
-            }
-            else if (ifBlockCurrent->type == ELSEIF_TOKEN) { /* JPff code */
-                // print_tree(csound, "ELSEIF case\n", ifBlockCurrent);
-                ifBlockCurrent->type = IF_TOKEN;
-                ifBlockCurrent = make_node(csound, ifBlockCurrent->line,
-                                           ifBlockCurrent->locn, ELSE_TOKEN,
-                                           NULL, ifBlockCurrent);
             }
 
             expressionNodes = create_boolean_expression(csound, tempLeft,
@@ -1088,12 +1060,6 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
                 }
                 else {
                     appendToTree(csound, last, labelEnd);
-
-                    if(statements == NULL) {
-                        gotoToken->next = labelEnd;
-                    } else {
-                        statements->next = labelEnd;
-                    }
                 }
 
                 ifBlockCurrent = tempRight->next;
@@ -1111,13 +1077,14 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) 
                                            typeTable->labelList);
         }
 
+        anchor = appendToTree(csound, anchor, current->next);
+
     }
     else {
         csound->Message(csound,
                         "ERROR: Neither if-goto or if-then found on line %d!!!",
                         right->line);
     }
-    anchor = appendToTree(csound, anchor, current->next);
 
     return anchor;
 }

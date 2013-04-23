@@ -22,6 +22,7 @@ Csound 6 TODO list
   (possibly changes need to be propagated?) **mainly done**
 
 4) Use instrument-local structure rather than global (ksmps mainly)
+**** Done ****
 
 5) New DAG control without memory use   *** Done ***
 
