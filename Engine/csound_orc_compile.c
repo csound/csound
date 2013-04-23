@@ -487,6 +487,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     MYFLT sr= FL(-1.0), kr= FL(-1.0), ksmps= FL(-1.0),
           nchnls= DFLT_NCHNLS, inchnls = FL(0.0), _0dbfs= FL(-1.0);
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
+
     addGlobalVariable(csound, engineState, rType, "sr", NULL);
     addGlobalVariable(csound, engineState, rType, "kr", NULL);
     addGlobalVariable(csound, engineState, rType, "ksmps", NULL);
@@ -670,6 +671,63 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     if(csound->ksmps != DFLT_KSMPS){
       reallocateVarPoolMemory(csound, engineState->varPool);
     }
+    close_instrument(csound, engineState, ip);
+
+    return ip;
+}
+
+/**
+This global instrument replaces instr 0 in
+subsequent compilations. It does not allow the
+setting of system parameters such as ksmps etc,
+but it allows i-time code to be compiled and run.
+**/
+INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
+                             ENGINE_STATE *engineState,
+                             CS_VAR_POOL* varPool)
+{
+    INSTRTXT *ip;
+    OPTXT *op;
+    TREE *current;
+   
+    myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
+
+    ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
+    ip->varPool = varPool;
+    op = (OPTXT *)ip;
+
+    current = root;
+
+    /* initialize */
+    ip->mdepends = 0;
+    ip->opdstot = 0;
+    ip->pmax = 3L;
+
+    /* start chain */
+    ip->t.oentry = &csound->opcodlst[INSTR];
+    ip->t.opcod = strsav_string(csound, engineState, "instr"); /*  to hold global assigns */
+
+    /* The following differs from otran and needs review.  otran keeps a
+     * nulllist to point to for empty lists, while this is creating a new list
+     * regardless
+     */
+    ip->t.outlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
+    ip->t.outlist->count = 0;
+    ip->t.inlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
+    ip->t.inlist->count = 1;
+
+    ip->t.inlist->arg[0] = strsav_string(csound, engineState, "0");
+
+    while (current != NULL) {
+      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
+        if (UNLIKELY(PARSER_DEBUG))
+          csound->Message(csound, "In INSTR GLOBAL: %s\n", current->value->lexeme);
+        op->nxtop = create_opcode(csound, current, ip, engineState);
+        op = last_optxt(op);
+      }
+      current = current->next;
+    }
+
     close_instrument(csound, engineState, ip);
 
     return ip;
@@ -878,8 +936,8 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
 
     if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
       /* redefinition does not raise an error now, just a warning */
-      csound->Warning(csound,
-                      Str("instr %ld redefined, replacing previous definition\n"),
+      if(instrNum) csound->Warning(csound,
+                      Str("instr %ld redefined, replacing previous definition"),
                       instrNum);
       /* here we should move the old instrument definition into a deadpool
          which will be checked for active instances and freed when there are no
@@ -997,7 +1055,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 
     /* merge opcodinfo */
     insert_opcodes(csound, csound->opcodeInfo, current_state);
-    for(i=1; i < end; i++){
+    for(i=0; i < end; i++){
       current = engineState->instrtxtp[i];
       if(current != NULL){
         if(current->insname == NULL) {
@@ -1019,7 +1077,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     named_instr_assign_numbers(csound,current_state);
     /* this needs to be called in a separate loop
        in case of multiple instr numbers, so insprep() is called only once */
-    current = (&(engineState->instxtanchor))->nxtinstxt;
+    current = (&(engineState->instxtanchor));//->nxtinstxt;
     while ((current = current->nxtinstxt) != NULL) {
       csound->Message(csound, "insprep %p \n", current);
       insprep(csound, current, current_state);/* run insprep() to connect ARGS  */
@@ -1095,8 +1153,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     TYPE_TABLE* typeTable = (TYPE_TABLE*)current->markup;
 
     current = current->next;
-
-
     if (csound->instr0 == NULL) {
       engineState = &csound->engineState;
       engineState->varPool = typeTable->globalPool;
@@ -1119,6 +1175,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
        engineState->instrtxtp =
       (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno) *
                                     sizeof(INSTRTXT*));
+       /* VL: allowing global code to be evaluated in
+          subsequent compilations */
+      csound->instr0 = create_global_instrument(csound, current, engineState,
+                                          typeTable->instr0LocalPool);
+      insert_instrtxt(csound, csound->instr0, 0, engineState);
       prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
     }
 
@@ -1359,6 +1420,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     return CSOUND_SUCCESS;
 }
 
+extern int init0(CSOUND *csound);
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
@@ -1367,6 +1429,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
     int retVal;
+    int firstTime = csound->instr0 == NULL ? 1 : 0;
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
     retVal = csoundCompileTree(csound, root);
@@ -1376,6 +1439,9 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     delete_tree(csound, root);
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
+    
+    /* run global i-time instr here in subsequent compilations */
+    if(!firstTime) init0(csound);
     return retVal;
 }
 

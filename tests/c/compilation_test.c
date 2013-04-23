@@ -13,6 +13,7 @@ int main(int argc, char **argv)
        "endin \n";
 
     char  *instrument2 = 
+      "event_i \"i\",1, 0, 2, 10000, 800 \n"
       "instr 2 \n"
       "k1 expon p4, p3, p4*0.001 \n"
       "a1 vco2  k1, p5   \n"
