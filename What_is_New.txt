@@ -88,11 +88,15 @@ operation.
 
 
 Arrays exist in multidimensional format.  They are created (usually)
-with init opcode.
+with init opcode or fill
   k1[]  init 4
 generates a k-rate 1-D array of length 4.  Similarly
   a2[][] init 4,4
 create a square 4x4 a-rate array.
+  k2[]  fill 1,2,3,4
+creates a 4-element vector filled with 1,..4, which also defines the
+length.
+
 Elements are used via indexing in [] such as k1[2] or a2[2][3]
 One dimensional arrays replace tvars, and can be used in opcodes like
 maxtab, mintab and sumtab (see below). Array setting can be done in
@@ -122,7 +126,7 @@ There are a range of new or recoded operations on k-valued arrays,
 In addition arithmetic on arrays is allowed.  In particular addition,
 subtraction, multiplication, division on a element-by-element version
 is provided in arithmetic format.  Similar operations between an array
-and a scalar are allowed (currently array first)
+and a scalar are allowed.
 
 
 The new realtime priority mode can be switched on with by passing the
