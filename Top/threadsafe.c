@@ -64,14 +64,15 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
       int64_t i;
     } x;
     x.d = FL(0.0);
-    if (err_ = csoundGetChannelPtr(csound, &pval, name,
+    if ((err_ = csoundGetChannelPtr(csound, &pval, name,
                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)
-            == CSOUND_SUCCESS)
+         == CSOUND_SUCCESS)) {
 #ifdef HAVE_ATOMIC_BUILTIN
       x.i = __sync_fetch_and_add((int64_t *)pval, 0);
 #else
-    x.d = *pval;
+      x.d = *pval;
 #endif
+    }
     if (err) {
         *err = err_;
     }
