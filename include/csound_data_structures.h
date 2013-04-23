@@ -24,6 +24,8 @@
 #ifndef __CSOUND_DATA_STRUCTURES_H
 #define __CSOUND_DATA_STRUCTURES_H
 
+#define HASH_SIZE 4099
+
 typedef struct _cons {
     void* value; // should be car, but using value
     struct _cons* next; // should be cdr, but to follow csound
@@ -37,7 +39,7 @@ typedef struct _cs_hash_bucket_item {
 } CS_HASH_TABLE_ITEM;
 
 typedef struct _cs_hash_table {
-    CS_HASH_TABLE_ITEM* buckets[256];
+    CS_HASH_TABLE_ITEM* buckets[HASH_SIZE];
 } CS_HASH_TABLE;
 
 /* FUNCTIONS FOR CONS CELL */
