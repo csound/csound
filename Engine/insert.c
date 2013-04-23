@@ -45,7 +45,7 @@ int init0(CSOUND *csound)
 {
     INSTRTXT  *tp = csound->engineState.instrtxtp[0];
     INSDS     *ip;
-
+   
     instance(csound, 0);                            /* allocate instr 0     */
     csound->curip = ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
