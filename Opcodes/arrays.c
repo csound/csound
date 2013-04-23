@@ -41,6 +41,12 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    ARRAYDAT* ans;
+    MYFLT   *iargs[VARGMAX];
+} TABFILL;
+
+typedef struct {
+    OPDS    h;
     ARRAYDAT* arrayDat;
     void* value;
     MYFLT   *indexes[VARGMAX];
@@ -63,6 +69,19 @@ static int array_del(CSOUND *csound, void *p)
     return OK;
 }
 #endif
+
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
+{
+    if (p->data==NULL || (p->dimensions==1 && p->sizes[0] < size)) {
+      uint32_t ss = sizeof(MYFLT)*size;
+      if (p->data==NULL) p->data = (MYFLT*)mmalloc(csound, ss);
+      else p->data = (MYFLT*) mrealloc(csound, p->data, ss);
+      p->dimensions = 1;
+      p->arrayMemberSize = sizeof(MYFLT);
+      p->sizes = (int*)mmalloc(csound, sizeof(int));
+      p->sizes[0] = size;
+    }
+}
 
 static int array_init(CSOUND *csound, ARRAYINIT *p)
 {
@@ -105,6 +124,16 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
 //        op->tab = t;
 //        csound->RegisterDeinitCallback(csound, op, tabdel);
 //    }
+    return OK;
+}
+
+static int tabfill(CSOUND *csound, TABFILL *p)
+{
+    int    nargs = p->INOCOUNT;
+    int i;
+    MYFLT  **valp = p->iargs;
+    tabensure(csound, p->ans, nargs);
+    for (i=0; i<nargs; i++) p->ans->data[i] = *valp[i];
     return OK;
 }
 
@@ -264,18 +293,7 @@ typedef struct {
    MYFLT  *kstart, *kend;
 } TABSCALE;
 
-static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
-{
-    if (p->data==NULL || (p->dimensions==1 && p->sizes[0] < size)) {
-      uint32_t ss = sizeof(MYFLT)*size;
-      if (p->data==NULL) p->data = (MYFLT*)mmalloc(csound, ss);
-      else p->data = (MYFLT*) mrealloc(csound, p->data, ss);
-      p->dimensions = 1;
-      p->arrayMemberSize = sizeof(MYFLT);
-      p->sizes = (int*)mmalloc(csound, sizeof(int));
-      p->sizes[0] = size;
-    }
-}
+
 
 static int tabarithset(CSOUND *csound, TABARITH *p)
 {
@@ -963,6 +981,7 @@ int tablength(CSOUND *csound, TABQUERY *p)
 static OENTRY arrayvars_localops[] =
 {
     { "init.0", sizeof(ARRAYINIT), 0, 1, "[.]", "m", (SUBR)array_init },
+    { "fill", sizeof(TABFILL), 0, 1, "[.]", "m", (SUBR)tabfill },
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", "[i]im", (SUBR)array_set },
     { "##array_set.i2", sizeof(ARRAY_SET), 0, 3, "", "[.].m",
                                             (SUBR)array_set, (SUBR)array_set },
