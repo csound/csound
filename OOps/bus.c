@@ -186,7 +186,8 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     if (UNLIKELY(offset)) memset(p->r, '\0', offset * sizeof(MYFLT));
     memcpy(&p->r[offset], &val[offset],
            sizeof(MYFLT) * (CS_KSMPS-offset-early));
-    if (UNLIKELY(early)) memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
+    if (UNLIKELY(early))
+      memset(&p->r[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
     return OK;
 }
 
@@ -215,7 +216,8 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     memcpy(&val[offset], &p->r[offset],
            sizeof(MYFLT) * (CS_KSMPS-offset-early));
 
-    if (UNLIKELY(early)) memset(&val[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
+    if (UNLIKELY(early))
+      memset(&val[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
     return OK;
 }
 
@@ -242,13 +244,15 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
     char chan_name[16];
     int   err, size;
     PVSDATEXT *fin;
+    MYFLT      *pp;
 
     if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
-      return csound->PerfError(csound, Str("chani: invalid index"));
+      return csound->PerfError(csound, Str("pvsin: invalid index"));
 
     sprintf(chan_name, "%i", n);
-    err = csoundGetChannelPtr(csound, (MYFLT **) &fin, chan_name,
+    err = csoundGetChannelPtr(csound, &pp, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL);
+    fin = (PVSDATEXT *) pp;
     if (UNLIKELY(err))
       return csound->PerfError(csound,
                                Str("pvsin error %d:"
@@ -268,13 +272,15 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     char chan_name[16];
     int   err, size;
     PVSDATEXT *fout;
+    MYFLT *pp;
 
     if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
-      return csound->PerfError(csound, Str("chani: invalid index"));
+      return csound->PerfError(csound, Str("pvsout: invalid index"));
 
     sprintf(chan_name, "%i", n);
-    err = csoundGetChannelPtr(csound, (MYFLT **) &fout, chan_name,
+    err = csoundGetChannelPtr(csound, &pp, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    fout = (PVSDATEXT *) pp;
     if (UNLIKELY(err))
       return csound->PerfError(csound,
                                Str("pvsout error %d:"
@@ -619,12 +625,26 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
+
+    if(CS_KSMPS == (unsigned int) csound->ksmps) {
     csoundSpinLock(p->lock);
     if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
     memcpy(&p->arg[offset], p->fp, sizeof(MYFLT)*(CS_KSMPS-offset-early));
     if (UNLIKELY(early))
       memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     csoundSpinUnLock(p->lock);
+    } else {
+    csoundSpinLock(p->lock);
+    if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
+    memcpy(&p->arg[offset], &(p->fp[offset+p->pos]),
+           sizeof(MYFLT)*(CS_KSMPS-offset-early));
+    if (UNLIKELY(early))
+      memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
+    p->pos+=CS_KSMPS;
+    p->pos %= (csound->ksmps-offset);
+    csoundSpinUnLock(p->lock);
+    }
+
     return OK;
 }
 
@@ -676,7 +696,7 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
+    p->pos = 0;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = csoundGetChannelLock(csound, (char*) p->iname,
@@ -732,6 +752,7 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
+    if(CS_KSMPS == (unsigned int) csound->ksmps){
    /* Need lock for the channel */
     csoundSpinLock(p->lock);
     if (UNLIKELY(offset)) memset(p->fp, '\0', sizeof(MYFLT)*offset);
@@ -740,6 +761,18 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
     if (UNLIKELY(early))
       memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
     csoundSpinUnLock(p->lock);
+    } else {
+     /* Need lock for the channel */
+    csoundSpinLock(p->lock);
+    if (UNLIKELY(offset)) memset(p->fp, '\0', sizeof(MYFLT)*offset);
+    memcpy(&p->fp[offset+p->pos], &p->arg[offset],
+           sizeof(MYFLT)*(CS_KSMPS-offset-early));
+    if (UNLIKELY(early))
+      memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
+    p->pos += CS_KSMPS;
+    p->pos %= (csound->ksmps-offset);
+    csoundSpinUnLock(p->lock);
+    }
     return OK;
 }
 
@@ -825,7 +858,7 @@ int chnset_opcode_init_k(CSOUND *csound, CHNGET *p)
 int chnset_opcode_init_a(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
+    p->pos = 0;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (!err) {
@@ -927,10 +960,12 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
         hints.attributes = 0;
         if (p->INOCOUNT > 10) {
             if ((int) p->XSTRCODE >> 10 && p->Sattributes[0]) {
-            hints.attributes = (char *) calloc(strlen((char *)p->Sattributes[0]), sizeof(char));
+            hints.attributes = (char *) calloc(strlen((char *)p->Sattributes[0]),
+                                               sizeof(char));
             strcpy(hints.attributes, (char *)p->Sattributes[0]);
             } else {
-                return csound->InitError(csound, Str("Sattributes argument not a string"));
+                return csound->InitError(csound,
+                                         Str("Sattributes argument not a string"));
             }
         }
         hints.dflt = *(p->idflt);

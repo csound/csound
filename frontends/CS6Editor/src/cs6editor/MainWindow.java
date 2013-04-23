@@ -4,9 +4,9 @@
  */
 package cs6editor;
 
-import csnd.Csound;
-import csnd.CsoundArgVList;
-import csnd.csnd;
+import csnd6.Csound;
+import csnd6.CsoundArgVList;
+import csnd6.csnd6;
 
 /**
  *
@@ -22,8 +22,8 @@ public class MainWindow extends javax.swing.JFrame {
      * Creates new form MainWindow
      */
     public MainWindow() {
-        csnd.csoundInitialize(null, null,
-                csnd.CSOUNDINIT_NO_SIGNAL_HANDLER | csnd.CSOUNDINIT_NO_ATEXIT);
+        csnd6.csoundInitialize(null, null,
+                csnd6.CSOUNDINIT_NO_SIGNAL_HANDLER | csnd6.CSOUNDINIT_NO_ATEXIT);
         initComponents();
     }
 

@@ -36,6 +36,7 @@
 #include "csound_type_system.h"
 #include "csound.h"
 #include "cscore.h"
+#include "csound_data_structures.h"
 #include "pools.h"
 
 #ifdef __cplusplus
@@ -171,7 +172,8 @@ typedef struct {
 #define ASYNC_LOCAL  2
 
 
-typedef struct CORFIL {
+
+  typedef struct CORFIL {
     char    *body;
     unsigned int     len;
     unsigned int     p;
@@ -833,7 +835,7 @@ typedef struct NAME__ {
   typedef struct engine_state {
     CS_VAR_POOL    *varPool;  /* global variable pool */
     MYFLT_POOL*   constantsPool;
-    STRING_POOL*  stringPool;
+    CS_HASH_TABLE*  stringPool;
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor;
@@ -1333,6 +1335,7 @@ typedef struct NAME__ {
     MYFLT         *spout;
     int           nspin;
     int           nspout;
+    MYFLT         *auxspin;
     OPARMS        *oparms;
     /** reserve space for up to 4 MIDI devices */
     MCHNBLK       *m_chnbp[64];
@@ -1364,7 +1367,6 @@ typedef struct NAME__ {
     int           evt_poll_maxcnt;
     int           Mforcdecs, Mxtroffs, MTrkend;
     OPCODINFO     *opcodeInfo;
-    STRING_POOL*  stringSavePool;
     FUNC**        flist;
     int           maxfnum;
     GEN           *gensub;

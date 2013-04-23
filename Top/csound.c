@@ -141,38 +141,38 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
 }
 
 static int csoundGetRandSeed(CSOUND *csound, int which){
-  if(which > 1) return csound->randSeed1;
-  else return csound->randSeed2;
+    if(which > 1) return csound->randSeed1;
+    else return csound->randSeed2;
 }
 
 static char *csoundGetStrsets(CSOUND *csound, long p){
-  if(csound->strsets == NULL) return NULL;
-  else return csound->strsets[p];
+    if(csound->strsets == NULL) return NULL;
+    else return csound->strsets[p];
 }
 
 static int csoundGetStrsmax(CSOUND *csound){
-  return csound->strsmax;
+    return csound->strsmax;
 }
 
 static void csoundGetOParms(CSOUND *csound, OPARMS *p){
-  memcpy(p, csound->oparms, sizeof(OPARMS));
+    memcpy(p, csound->oparms, sizeof(OPARMS));
 }
 
 static int csoundGetDitherMode(CSOUND *csound){
-  return  csound->dither_output;
+    return  csound->dither_output;
 }
 
 static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
-  *zkstart = csound->zkstart;
-  return csound->zklast;
+    *zkstart = csound->zkstart;
+    return csound->zklast;
 }
 
 static int csoundGetReinitFlag(CSOUND *csound){
-  return csound->reinitflag;
+    return csound->reinitflag;
 }
 
 static int csoundGetTieFlag(CSOUND *csound){
-  return csound->tieflag;
+    return csound->tieflag;
 }
 
 static const CSOUND cenviron_ = {
@@ -456,7 +456,7 @@ static const CSOUND cenviron_ = {
     (OPDS*) NULL,   /*  pds                 */
     { (CS_VAR_POOL*)NULL,
       (MYFLT_POOL *) NULL,
-      (STRING_POOL *) NULL,
+      (CS_HASH_TABLE *) NULL,
       -1,
       (INSTRTXT**)NULL,
       { NULL,
@@ -550,6 +550,7 @@ static const CSOUND cenviron_ = {
     NULL,           /*  spout               */
     0,              /*  nspin               */
     0,              /*  nspout              */
+    NULL,           /*  auxspin  */ 
     (OPARMS*) NULL, /*  oparms              */
        { NULL },       /*  m_chnbp             */
         0,                      /*   dither_output  */
@@ -591,7 +592,6 @@ static const CSOUND cenviron_ = {
     0,              /*  evt_poll_maxcnt     */
     0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
     NULL,           /*  opcodeInfo  */
-   (STRING_POOL*)NULL, /* string save pool */
     NULL,           /*  flist               */
     0,              /*  maxfnum             */
     NULL,           /*  gensub              */
@@ -1310,12 +1310,17 @@ inline static int nodePerf(CSOUND *csound, int index)
             insds->ksmps_no_end = insds->no_end;
           }
         opstart = (OPDS*)task_map[which_task];
+        if(insds->ksmps == csound->ksmps) {
         insds->kcounter =  csound->kcounter;
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
           opstart->insdshead->pds = opstart;
           (*opstart->opadr)(csound, opstart); /* run each opcode */
           opstart = opstart->insdshead->pds;
+        }
+        } else {
+          csoundWarning(csound,
+                        "local ksmps not yet implemented in parallel csound");
         }
         insds->ksmps_offset = 0; /* reset sample-accuracy offset */
         insds->ksmps_no_end = 0;  /* reset end of loop samples */
@@ -1434,18 +1439,109 @@ int kperf(CSOUND *csound)
           if (ip->init_done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
             ip->kcounter =  csound->kcounter;
+            if(ip->ksmps == csound->ksmps){
             while ((opstart = opstart->nxtp) != NULL) {
               opstart->insdshead->pds = opstart;
               (*opstart->opadr)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
+            } else {
+              if(ip->ksmps == 1){
+                MYFLT tmp[MAXCHNLS];
+                int i, j, nchnls = csound->nchnls, n = csound->nspout;
+                int offset =  ip->ksmps_offset*nchnls;
+                int early = ip->ksmps_no_end*nchnls;
+                OPDS  *opstart; 
+                MYFLT *spin = csound->spin;
+                MYFLT *spout = csound->spout;
+                MYFLT *auxspin = csound->auxspin;
+                ip->kcounter =  csound->kcounter*csound->ksmps;
+                memcpy(tmp,spout,nchnls*sizeof(MYFLT));
+                memcpy(auxspin,spin,n*sizeof(MYFLT));
+                if (!csound->spoutactive) {            
+                      memset(spout,0,n*sizeof(MYFLT));
+                 }
 
-            /* //csound->pds = (OPDS*) ip;
-            while ((csound->pds = csound->pds->nxtp) != NULL) {
-             csound->pds->insdshead->pds = csound->pds;
-             (*csound->pds->opadr)(csound, csound->pds);
-             csound->pds = csound->pds->insdshead->pds;
-             }*/
+                if(early) n -= early;
+
+                /* clear offsets, since with CS_KSMPS=1
+                   they don't apply to opcodes, but to the
+                   calling code (ie. this code)
+                 */
+                ip->ksmps_offset = 0;
+                ip->ksmps_no_end = 0;
+
+
+                for (i=offset; i < n; i+=nchnls) {
+                  memcpy(spin, &auxspin[i], sizeof(MYFLT)*nchnls);
+                  opstart = (OPDS*) ip;
+                  while ((opstart = opstart->nxtp) != NULL) {
+                    opstart->insdshead->pds = opstart;
+                    (*opstart->opadr)(csound, opstart); /* run each opcode */
+                    opstart = opstart->insdshead->pds;
+                  }
+                  if(i==offset) memcpy(tmp,spout, sizeof(MYFLT)*nchnls);
+                  else for(j=0; j < nchnls; j++)
+                         spout[j+i] += spout[j]; 
+                  memset(spout, 0, sizeof(MYFLT)*nchnls);
+                  ip->kcounter++;
+                }
+                memcpy(csound->spin, spin, sizeof(MYFLT)*csound->nspin);
+                for(j=0; j < nchnls; j++)
+                  spout[j] = tmp[j];
+              }
+              else { /* other local ksmps */
+                MYFLT tmp[MAXCHNLS];
+                int i, j, nchnls = csound->nchnls, 
+                    n = csound->nspout, ncpy, start=0;
+                int lksmps = ip->ksmps;
+                int offset =  ip->ksmps_offset;
+                int early = ip->ksmps_no_end;
+                OPDS  *opstart; 
+                MYFLT *spin = csound->spin;
+                MYFLT *spout = csound->spout;
+                MYFLT *auxspin = csound->auxspin;
+                ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
+                memcpy(tmp,spout,nchnls*sizeof(MYFLT));
+                memcpy(auxspin,spin,n*sizeof(MYFLT));
+                ncpy = nchnls*lksmps;
+                if (!csound->spoutactive) {            
+                      memset(spout,0,n*sizeof(MYFLT));
+                }
+                
+                /* we have to deal with sample-accurate code 
+                   whole CS_KSMPS blocks are offset here, the
+                   remainder is left to each opcode to deal with.
+                */
+                while(offset >= lksmps) {
+                  offset -= lksmps;
+                  start++;
+                }
+                ip->ksmps_offset = offset;
+                if(early){
+                  n -= (early*nchnls);
+                  ip->ksmps_no_end = early % lksmps;
+                }
+
+                for(i=start; i < n; i+=ncpy){
+                  memcpy(spin, &auxspin[i], sizeof(MYFLT)*ncpy);
+                  opstart = (OPDS*) ip;
+                  while ((opstart = opstart->nxtp) != NULL) {
+                    opstart->insdshead->pds = opstart;
+                    (*opstart->opadr)(csound, opstart); /* run each opcode */
+                    opstart = opstart->insdshead->pds;
+                  }
+                  if(i==start) memcpy(tmp,spout, sizeof(MYFLT)*ncpy);
+                  else for(j=0; j < ncpy; j++)
+                         spout[j+i] += spout[j]; 
+                  memset(spout, 0, sizeof(MYFLT)*ncpy);
+                  ip->kcounter++;
+                }
+                memcpy(csound->spin, spin, sizeof(MYFLT)*csound->nspin);
+                for(j=0; j < ncpy; j++)
+                  spout[j] = tmp[j];
+              }
+            }
           }
 
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
@@ -1456,7 +1552,7 @@ int kperf(CSOUND *csound)
     }
 
     if (!csound->spoutactive) {             /*   results now in spout? */
-     memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
+      memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
     }
     csound->spoutran(csound);               /*      send to audio_out  */
     return 0;
@@ -1468,7 +1564,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
      /* protect resource */
     if(csound->scorestr != NULL &&
        csound->scorestr->body != NULL)
-         corfile_rewind(csound->scorestr);
+      corfile_rewind(csound->scorestr);
 
     csound->scorestr = corfile_create_w();
     corfile_puts(str, csound->scorestr);
@@ -1476,8 +1572,8 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
     /* copy sorted score name */
     csoundLockMutex(csound->API_lock);
     if(csound->scstr == NULL) {
-       scsortstr(csound, csound->scorestr);
-       O->playscore = csound->scstr;
+      scsortstr(csound, csound->scorestr);
+      O->playscore = csound->scstr;
     }
     else {
       char *sc = scsortstr(csound, csound->scorestr);
@@ -1486,7 +1582,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
       corfile_rm(&(csound->scorestr));
     }
     csoundUnlockMutex(csound->API_lock);
-     return CSOUND_SUCCESS;
+    return CSOUND_SUCCESS;
 }
 
 
@@ -2810,8 +2906,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Ignore <CsOptions> in CSD files"
                                           " (default: no)"), NULL);
 
-    csound->stringSavePool = string_pool_create(csound);
-    csound->engineState.stringPool = string_pool_create(csound);
+    csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
     csound->opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
     csound->engineStatus |= CS_STATE_PRE;

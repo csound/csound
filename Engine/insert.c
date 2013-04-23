@@ -963,6 +963,9 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     p->ip->m_pitch  = saved_curip->m_pitch;
     p->ip->m_veloc  = saved_curip->m_veloc;
 
+    p->ip->ksmps_offset =  saved_curip->ksmps_offset;
+    p->ip->ksmps_no_end =  saved_curip->ksmps_no_end;
+
     /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
     /* by default all inputs are i-rate mapped to p-fields */
@@ -1001,6 +1004,28 @@ int subinstrset(CSOUND *csound, SUBINST *p)
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
 /* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
 
+/*
+  UDOs now use the local ksmps stored in lcurip->ksmps
+  all the other dependent parameters are calculated in relation to
+  this.
+
+  lcurip->ksmps is set to the caller ksmps (CS_KSMPS), unless a new
+  local ksmps is used, in which case it is set to that value.
+  If local ksmps differs from CS_KSMPS, we set useropcd1() to
+  deal with the perf-time code. Otherwise useropcd2() is used.
+
+  For recursive calls when the local ksmps is set to differ from
+  the calling instrument ksmps, the top-level call
+  will use useropcd1(), whereas all the other recursive calls
+  will use useropdc2(), since their local ksmps will be the same
+  as the caller.
+
+  Also in case of a local ksmps that differs from the caller,
+  the local kcounter value, obtained from the caller is
+  scaled to denote the correct kcount in terms of local
+  kcycles.
+
+*/
 int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
 
 int useropcdset(CSOUND *csound, UOPCODE *p)
@@ -1014,15 +1039,12 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     unsigned int i, n;
     OPCODINFO    *inm;
     OPCOD_IOBUFS *buf;
-    unsigned int g_ksmps;
-    uint32_t     g_kcounter;
-    MYFLT        g_onedkr, g_onedksmps, g_kicvt, g_ekr;
-    CS_VARIABLE *var;
-    ENGINE_STATE *engineState = &csound->engineState;
+    MYFLT ksmps_scale;
+    unsigned int local_ksmps;
 
-    g_ksmps = p->l_ksmps = CS_KSMPS;       /* default ksmps */
-    p->ksmps_scale = 1;
-    p->mode = 0;
+   /* default ksmps */
+    local_ksmps = CS_KSMPS;
+    ksmps_scale = 1;
     /* look up the 'fake' instr number, and opcode name */
     inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
     instno = inm->instno;
@@ -1036,30 +1058,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
         return csoundInitError(csound, Str("%s: invalid local ksmps value: %d"),
                                        inm->name, i);
       }
-      p->l_ksmps = i;
-    }
-
-    /* save old globals */
-    g_kcounter = CS_KCNT;
-    g_ekr = CS_EKR;
-    g_onedkr = CS_ONEDKR;
-    g_onedksmps = CS_ONEDKSMPS;
-    g_kicvt = CS_KICVT;
-    /* set up local variables depending on ksmps, also change globals */
-    if (p->l_ksmps != g_ksmps) {
-      CS_KSMPS= p->l_ksmps;
-      p->ksmps_scale = g_ksmps / (int) CS_KSMPS;
-      p->l_onedksmps = CS_ONEDKSMPS = FL(1.0) / (MYFLT) p->l_ksmps;
-      p->l_ekr = CS_EKR =
-         csound->esr / (MYFLT) p->l_ksmps;
-      p->l_onedkr = CS_ONEDKR = FL(1.0) / p->l_ekr;
-      p->l_kicvt = CS_KICVT = (MYFLT) FMAXLEN / p->l_ekr;
-      CS_KCNT *= p->ksmps_scale;
-      var = csoundFindVariableWithName(engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = CS_KSMPS;
-      var = csoundFindVariableWithName(engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = CS_EKR;
-      p->mode = 1;
+      local_ksmps = i;
     }
 
     if (!p->ip) {
@@ -1095,15 +1094,38 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
     /* copy parameters from the caller instrument into our subinstrument */
     lcurip = p->ip;
+
+    /* set the local ksmps values */
+    if (local_ksmps != CS_KSMPS) {
+      /* this is the case when p->ip->ksmps != p->h.insdshead->ksmps */
+      lcurip->ksmps = local_ksmps;
+      ksmps_scale = CS_KSMPS / local_ksmps;
+      lcurip->onedksmps =  FL(1.0) / (MYFLT) local_ksmps;
+      lcurip->ekr = csound->esr / (MYFLT) local_ksmps;
+      lcurip->onedkr = FL(1.0) / lcurip->ekr;
+      lcurip->kicvt = (MYFLT) FMAXLEN /lcurip->ekr;
+      lcurip->kcounter *= ksmps_scale;
+    } else {
+     lcurip->ksmps = CS_KSMPS;
+     lcurip->kcounter = CS_KCNT;
+     lcurip->ekr = CS_EKR;
+     lcurip->onedkr = CS_ONEDKR;
+     lcurip->onedksmps = CS_ONEDKSMPS;
+     lcurip->kicvt = CS_KICVT;
+    }
+
     lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
     lcurip->m_pitch = parent_ip->m_pitch;
     lcurip->m_veloc = parent_ip->m_veloc;
-    lcurip->xtratim = parent_ip->xtratim * p->ksmps_scale;
+    lcurip->xtratim = parent_ip->xtratim * ksmps_scale;
     lcurip->m_sust = 0;
     lcurip->relesing = parent_ip->relesing;
     lcurip->offbet = parent_ip->offbet;
     lcurip->offtim = parent_ip->offtim;
     lcurip->nxtolap = NULL;
+    lcurip->ksmps_offset = parent_ip->ksmps_offset;
+    lcurip->ksmps_no_end = parent_ip->ksmps_no_end;
+
     /* copy all p-fields, including p1 (will this work ?) */
     if (tp->pmax > 3) {         /* requested number of p-fields */
       n = tp->pmax; pcnt = 0;
@@ -1125,7 +1147,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 
     /* do init pass for this instr */
-    p->ip->init_done  = 0;
+    p->ip->init_done = 0;
     csound->curip = lcurip;
     csound->ids = (OPDS *) (lcurip->nxti);
     while (csound->ids != NULL) {
@@ -1133,29 +1155,19 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       csound->ids = csound->ids->nxti;
     }
     p->ip->init_done = 1;
+
     /* copy length related parameters back to caller instr */
     saved_curip->relesing = lcurip->relesing;
     saved_curip->offbet = lcurip->offbet;
     saved_curip->offtim = lcurip->offtim;
     saved_curip->p3 = lcurip->p3;
+    local_ksmps = lcurip->ksmps;
 
     /* restore globals */
     csound->ids = saved_ids;
     csound->curip = saved_curip;
-    
-
-    if (p->mode == 1) {
-      CS_KSMPS = g_ksmps;
-      CS_EKR = g_ekr;
-      saved_curip->xtratim = lcurip->xtratim / p->ksmps_scale;
-      CS_KCNT = g_kcounter;
-      CS_ONEDKR = g_onedkr;
-      CS_ONEDKSMPS = g_onedksmps;
-      CS_KICVT = g_kicvt;
-      var = csoundFindVariableWithName(engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = CS_KSMPS;
-      var = csoundFindVariableWithName(engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = CS_EKR;
+    if (local_ksmps != CS_KSMPS) {
+      saved_curip->xtratim = lcurip->xtratim / ksmps_scale;
       /* IV - Sep 17 2002: also select perf routine */
       p->h.opadr = (SUBR) useropcd1;
     }
@@ -1163,7 +1175,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       saved_curip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
     }
-
     return OK;
 }
 
@@ -1341,18 +1352,17 @@ int xoutset(CSOUND *csound, XOUT *p)
 
 /* IV - Sep 8 2002: new opcode: setksmps */
 
+/*
+   This opcode sets the local ksmps for an instrument
+   it can be used on any instrument with the implementation
+   of a mechanism to perform at local ksmps (in kperf etc)
+   (NOT in PARCS yet)
+*/
+
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
-    OPCOD_IOBUFS  *buf;
-    UOPCODE       *pp;
-    unsigned int  l_ksmps, n;
-    CS_VARIABLE *var;
-    ENGINE_STATE *engineState = &csound->engineState;
-    buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
 
-    pp = (UOPCODE*) buf->uopcode_struct;
-    CS_KSMPS = pp->h.insdshead->ksmps;
-    CS_KCNT = pp->h.insdshead->kcounter;
+    unsigned int  l_ksmps, n;
 
     l_ksmps = (unsigned int) *(p->i_ksmps);
     if (!l_ksmps) return OK;       /* zero: do not change */
@@ -1362,23 +1372,16 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
                              Str("setksmps: invalid ksmps value: %d, original: %d"),
                              l_ksmps, CS_KSMPS);
     }
-   
-    /* set up global variables according to the new ksmps value */ 
+
     n = CS_KSMPS / l_ksmps;
-    pp->ksmps_scale *= n;
     p->h.insdshead->xtratim *= n;
-    pp->l_ksmps = CS_KSMPS = l_ksmps;
-    pp->l_onedksmps = CS_ONEDKSMPS = FL(1.0) / (MYFLT) CS_KSMPS;
-    pp->l_ekr = CS_EKR =
-        csound->esr / (MYFLT) CS_KSMPS;
-    pp->l_onedkr = CS_ONEDKR = FL(1.0) / CS_EKR;
-    pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
-    CS_KCNT *= pp->ksmps_scale;
-   var = csoundFindVariableWithName(engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = CS_KSMPS;
-   var = csoundFindVariableWithName(engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = CS_EKR;
-      pp->mode = 1;
+    CS_KSMPS = l_ksmps;
+    CS_ONEDKSMPS = FL(1.0) / (MYFLT) CS_KSMPS;
+    CS_EKR = csound->esr / (MYFLT) CS_KSMPS;
+    CS_ONEDKR = FL(1.0) / CS_EKR;
+    CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
+    CS_KCNT *= n;
+
     return OK;
 }
 
@@ -1471,6 +1474,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     int     saved_sa = csound->spoutactive;
     MYFLT   *pbuf, *saved_spout = csound->spout;
     uint32_t frame, chan;
+    unsigned int nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
       return csoundPerfError(csound, Str("subinstr: not initialised"));
@@ -1493,16 +1497,16 @@ int subinstr(CSOUND *csound, SUBINST *p)
           }while ((CS_PDS = CS_PDS->nxtp));
     }
 
-    /* CS_PDS = (OPDS *)p->ip; */
-    /* while ((CS_PDS = CS_PDS->nxtp) != NULL) { */
-    /*   (*CS_PDS->opadr)(csound, CS_PDS); */
-    /* } */
+    /* VL --
+       this code probably breaks down assumptions used in
+       PARCS -- needs to be reviewed
+    */
 
     /* copy outputs */
     if (csound->spoutactive) {
       for (chan = 0; chan < p->OUTOCOUNT; chan++) {
         for (pbuf = csound->spout + chan, frame = 0;
-             frame < csound->ksmps; frame++) {
+             frame < nsmps; frame++) {
           p->ar[chan][frame] = *pbuf;
           pbuf += csound->nchnls;
         }
@@ -1510,7 +1514,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     }
     else {
       for (chan = 0; chan < p->OUTOCOUNT; chan++)
-        for (frame = 0; frame < csound->ksmps; frame++)
+        for (frame = 0; frame < nsmps; frame++)
           p->ar[chan][frame] = FL(0.0);
     }
 
@@ -1529,36 +1533,27 @@ int subinstr(CSOUND *csound, SUBINST *p)
 int useropcd1(CSOUND *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = CS_PDS;
-    int     g_ksmps, ofs = 0, n;
-    MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
-    int32    g_kcounter;
-    //CS_VARIABLE *var;
-    //ENGINE_STATE *engineState = &csound->engineState;
-    /* update release flag */
+    int    g_ksmps, ofs, n, early, offset;
+    MYFLT  **tmp, *ptr1, *ptr2, *out;
+    INSDS    *this_instr = p->ip;
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
-    /* save old globals */
-    g_ksmps = CS_KSMPS;
-    g_ekr = CS_EKR;
-    g_onedkr = CS_ONEDKR;
-    g_onedksmps = CS_ONEDKSMPS;
-    g_kicvt = CS_KICVT;
-    g_kcounter = CS_KCNT;
-    /* set local ksmps and related values */
-    CS_KSMPS = p->l_ksmps;
-    CS_EKR = p->l_ekr;
-    CS_ONEDKR = p->l_onedkr;
-    CS_ONEDKSMPS = p->l_onedksmps;
-    CS_KICVT = p->l_kicvt;
-    CS_KCNT = CS_KCNT * p->ksmps_scale;
+    early = p->h.insdshead->ksmps_no_end;
+    offset = p->h.insdshead->ksmps_offset;
 
-    /*
-    var = csoundFindVariableWithName(engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = csound->ksmps;
-    var = csoundFindVariableWithName(engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = csound->ekr;
+    /* global ksmps is the caller instr ksmps minus sample-accurate end */
+    g_ksmps = CS_KSMPS - early;
+
+    /* sample-accurate offset */
+    ofs = offset;
+
+    /* clear offsets, since with CS_KSMPS=1
+       they don't apply to opcodes, but to the
+       calling code (ie. this code)
     */
+    this_instr->ksmps_offset = 0;
+    this_instr->ksmps_no_end = 0;
 
-    if (csound->ksmps == 1) {           /* special case for local kr == sr */
+    if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
       do {
         /* copy inputs */
         tmp = p->buf->iobufp_ptrs;
@@ -1578,7 +1573,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          ptr1 = *tmp;
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
-        if((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) {
+        if((CS_PDS = (OPDS *) (this_instr->nxtp)) != NULL) {
           CS_PDS->insdshead->pds = NULL;
           do {
            (*CS_PDS->opadr)(csound, CS_PDS);
@@ -1588,19 +1583,30 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
            }
           }while ((CS_PDS = CS_PDS->nxtp));
         }
-        /*  run each opcode  */
-        /* CS_PDS = (OPDS *) (p->ip); */
-        /* while ((CS_PDS = CS_PDS->nxtp)) { */
-        /*   (*CS_PDS->opadr)(csound, CS_PDS); */
-        /* } */
         /* copy outputs */
+        out = *tmp;
         while (*(++tmp)) {              /* a-rate */
-          ptr1 = *tmp; (*(++tmp))[ofs] = *ptr1;
+           ptr1 = *tmp; (*(++tmp))[ofs] = *ptr1;
         }
-        ++(CS_KCNT);
+        this_instr->kcounter++;
       } while (++ofs < g_ksmps);
     }
-    else {                              /* generic case for local kr != sr */
+    else {
+                                  /* generic case for local kr != sr */
+      /* we have to deal with sample-accurate code
+         whole CS_KSMPS blocks are offset here, the
+         remainder is left to each opcode to deal with.
+      */
+      int start = 0;
+      int lksmps = this_instr->ksmps;
+      while(ofs >= lksmps) {
+                  ofs -= lksmps;
+                  start++;
+          }
+      this_instr->ksmps_offset = ofs;
+      ofs = start;
+      if(early) this_instr->ksmps_no_end = early % lksmps;
+
       do {
         /* copy inputs */
         tmp = p->buf->iobufp_ptrs;
@@ -1625,7 +1631,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
          }
         /*  run each opcode  */
-        if((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) {
+        if((CS_PDS = (OPDS *) (this_instr->nxtp)) != NULL) {
           CS_PDS->insdshead->pds = NULL;
           do {
            (*CS_PDS->opadr)(csound, CS_PDS);
@@ -1635,11 +1641,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
            }
           }while ((CS_PDS = CS_PDS->nxtp));
         }
-         /* CS_PDS = (OPDS *)p->ip; */
-        /* while ((CS_PDS = CS_PDS->nxtp)) { */
-        /*   (*CS_PDS->opadr)(csound, CS_PDS); */
-        /* } */
         /* copy outputs */
+        out = *tmp;
         while (*(++tmp)) {              /* a-rate */
           ptr1 = *tmp; ptr2 = *(++tmp) + ofs;
           n = csound->ksmps;
@@ -1647,8 +1650,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             *(ptr2++) = *(ptr1++);
           } while (--n);
         }
-        ++(CS_KCNT);
-      } while ((ofs += csound->ksmps) < g_ksmps);
+        this_instr->kcounter++;
+      } while ((ofs += this_instr->ksmps) < g_ksmps);
     }
     /* k-rate outputs are copied only in the last sub-kperiod, */
     /* so we do it now */
@@ -1667,17 +1670,21 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
     }
 
-    /* restore globals */
-    CS_KSMPS = g_ksmps;
-    CS_EKR  = g_ekr;
-    CS_ONEDKR = g_onedkr;
-    CS_ONEDKSMPS = g_onedksmps;
-    CS_KICVT = g_kicvt;
-    CS_KCNT  = g_kcounter;
-    /*var = csoundFindVariableWithName(engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = csound->ksmps;
-    var = csoundFindVariableWithName(engineState->varPool, "kr");
-    *((MYFLT *)(var->memBlock)) = csound->ekr; */
+    /* clear the beginning portion of outputs for sample accurate end */
+    if(offset){
+       *tmp = out;
+        while (*(++tmp))
+          memset(*(++tmp), '\0', sizeof(MYFLT)*offset);
+    }
+
+    /* clear the end portion of outputs for sample accurate end */
+    if(early){
+        *tmp = out;
+        while (*(++tmp))
+          memset(&((*(++tmp))[g_ksmps]), '\0', sizeof(MYFLT)*early);
+      }
+
+
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */
@@ -1695,13 +1702,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
     if (!(CS_PDS = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
 
-    /* FOR SOME REASON the opcode has no perf code */
-    //csound->Message(csound, "end input\n");
     /* IV - Nov 16 2002: update release flag */
     p->ip->relesing = p->parent_ip->relesing;
     tmp = p->buf->iobufp_ptrs;
-    if (csound->ksmps != 1) {           /* generic case for kr != sr */
-
+    if (CS_KSMPS != 1) {           /* generic case for kr != sr */
       /* copy inputs */
       while (*tmp) {                    /* a-rate */
         ptr1 = *(tmp++); ptr2 = *(tmp++);
@@ -1733,10 +1737,6 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
               CS_PDS->insdshead->pds = NULL;
            }
        } while ((CS_PDS = CS_PDS->nxtp));
-      /*  run each opcode  */
-      /* do { */
-      /*   (CS_PDS->opadr)(csound, CS_PDS); */
-      /* } while ((CS_PDS = CS_PDS->nxtp)); */
 
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
@@ -1775,9 +1775,6 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
               CS_PDS->insdshead->pds = NULL;
            }
        } while ((CS_PDS = CS_PDS->nxtp));
-      /* do { */
-      /*   (*CS_PDS->opadr)(csound, CS_PDS); */
-      /* } while ((CS_PDS = CS_PDS->nxtp)); */
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
@@ -1988,7 +1985,7 @@ static void instance(CSOUND *csound, int insno)
           argpp[n] = csound->engineState.constantsPool->values + arg->index;
         }
         else if(arg->type == ARG_STRING) {
-          argpp[n] = (MYFLT*)((STRING_VAL*) var)->value;
+          argpp[n] = (MYFLT*)(arg->argPtr);
         }
         else if(arg->type == ARG_PFIELD) {
           argpp[n] = lcloffbas + arg->index;

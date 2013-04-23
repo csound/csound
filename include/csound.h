@@ -567,17 +567,24 @@ extern "C" {
      *
      *  @{ */
     /**
-     * Parse the given orchestra from an ASCII string into a TREE
+     * Parse the given orchestra from an ASCII string into a TREE.
+     * This can be called during performance to parse new code.
     */
     PUBLIC TREE *csoundParseOrc(CSOUND *csound, const char *str);
 
     /**
      * Compile the given TREE node into structs for Csound to use
+     * this can be called during performance to compile a new TREE
      */
     PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
 
     /**
      * Parse, and compile the given orchestra from an ASCII string.
+     * this can be called during performance to compile a new orchestra.
+     * /code
+     *       char *orc = "instr 1 \n a1 rand 0dbfs/4 \n out a1 \n";
+     *       csoundCompileOrc(csound, orc);
+     * /endcode
     */
     PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
 
@@ -611,6 +618,8 @@ extern "C" {
      * Compiles Csound input files (such as an orchestra and score)
      * as directed by the supplied command-line arguments,
      * but does not perform them. Returns a non-zero error code on failure.
+     * This function cannot be called during performance, and before a 
+     * repeated call, csoundReset() needs to be called.
      * In this (host-driven) mode, the sequence of calls should be as follows:
      * /code
      *       csoundCompile(csound, argc, argv);
