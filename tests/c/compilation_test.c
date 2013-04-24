@@ -13,7 +13,7 @@ int main(int argc, char **argv)
        "endin \n";
 
     char  *instrument2 = 
-      "event_i \"i\",1, 0, 2, 10000, 800 \n"
+      "event_i \"i\",2, 0.5, 2, 10000, 800 \n"
       "instr 2 \n"
       "k1 expon p4, p3, p4*0.001 \n"
       "a1 vco2  k1, p5   \n"
@@ -23,9 +23,10 @@ int main(int argc, char **argv)
 
     csoundInitialize(&argc, &argv, 0);
     csound = csoundCreate(NULL);
+    csoundSetOption(csound,"-odac");
     result = csoundCompileOrc(csound, instrument);
    if(!result) {
-       result = csoundReadScore(csound, "f0 10\n i 1 0  1 10000 440\n");
+       result = csoundReadScore(csound,  "i 1 0  1 10000 5000\n i 1 3 1 10000 1000\n");
       if(!result) {
            result = csoundStart(csound);
            while(!result){
@@ -34,7 +35,7 @@ int main(int argc, char **argv)
               /* new compilation */
         	csoundCompileOrc(csound, instrument2);
 	       /* schedule an event on instr2 */
-	        csoundReadScore(csound, "i2 0 1 10000 110 \n i2 + 1 1000 660");
+	        csoundReadScore(csound, "i2 1 1 10000 110 \n i2 + 1 1000 660");
                 compile_again = 1;
               }
             }
