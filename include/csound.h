@@ -1333,9 +1333,8 @@ extern "C" {
             MYFLT **p, const char *name, int type);
 
     /**
-     * Returns a list of allocated channels in *lst. A CsoundChannelListEntry
-     * structure contains the name and type of a channel, with the type having
-     * the same format as in the case of csoundGetChannelPtr().
+     * Returns a list of allocated channels in *lst. A controlChannelInfo_t
+     * structure contains the channel characteristics.
      * The return value is the number of channels, which may be zero if there
      * are none, or CSOUND_MEMORY if there is not enough memory for allocating
      * the list. In the case of no channels or an error, *lst is set to NULL.
