@@ -70,8 +70,6 @@ typedef struct CSFILE_ {
     char            fullName[1];
 } CSFILE;
 
-#define ENV_DB          (((CSOUND*) csound)->envVarDB)
-
 #if defined(MSVC)
 #define RD_OPTS  _O_RDONLY | _O_BINARY
 #define WR_OPTS  _O_TRUNC | _O_CREAT | _O_WRONLY | _O_BINARY,_S_IWRITE
@@ -88,12 +86,6 @@ typedef struct CSFILE_ {
 #define RD_OPTS  O_RDONLY | O_BINARY, 0
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
 #endif
-
-typedef struct envVarEntry_s {
-    struct envVarEntry_s *nxt;  /* pointer to next link in chain        */
-    char    *name;              /* name of environment variable         */
-    char    *value;             /* value of environment variable        */
-} envVarEntry_t;
 
 typedef struct searchPathCacheEntry_s {
     char    *name;
@@ -114,18 +106,6 @@ static char globalEnvVars[8192] = { (char) 0 };
 
 #define globalEnvVarName(x)   ((char*) &(globalEnvVars[(int) (x) << 9]))
 #define globalEnvVarValue(x)  ((char*) &(globalEnvVars[((int) (x) << 9) + 32]))
-
-static inline envVarEntry_t **getEnvVarChain(CSOUND *csound, const char *name)
-{
-    unsigned char h;
-    /* check for trivial cases */
-    if (UNLIKELY(ENV_DB == NULL || name == NULL || name[0] == '\0'))
-      return NULL;
-    /* calculate hash value */
-    h = name_hash_2(csound, name);
-    /* return with pointer from table */
-    return &(((envVarEntry_t**) ENV_DB)[(int) h]);
-}
 
 static int is_valid_envvar_name(const char *name)
 {
@@ -150,8 +130,6 @@ static int is_valid_envvar_name(const char *name)
 
 PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
 {
-    envVarEntry_t **pp, *p;
-
     if (csound == NULL) {
       int i;
       if (name == NULL || name[0] == '\0')
@@ -162,15 +140,10 @@ PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
       }
       return (const char*) getenv(name);
     }
-    pp = getEnvVarChain(csound, name);
-    if (pp == NULL)
-      return (const char*) NULL;
-    p = *pp;
-    while (p != NULL && sCmp(p->name, name) != 0)
-      p = p->nxt;
-    if (p == NULL)
-      return (const char*) NULL;
-    return (const char*) p->value;
+   
+    if (csound->envVarDB == NULL) return NULL;
+    
+    return (const char*) cs_hash_table_get(csound, csound->envVarDB, (char*)name);
 }
 
 /**
@@ -214,15 +187,12 @@ PUBLIC int csoundSetGlobalEnv(const char *name, const char *value)
 int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
 {
     searchPathCacheEntry_t  *ep, *nxt;
-    envVarEntry_t           **pp, *p;
-    char                    *s1, *s2;
+    char                    *oldValue;
 
     /* check for valid parameters */
     if (UNLIKELY(csound == NULL || !is_valid_envvar_name(name)))
       return CSOUND_ERROR;
-    pp = getEnvVarChain(csound, name);
-    if (UNLIKELY(pp == NULL))
-      return CSOUND_ERROR;
+    
     /* invalidate search path cache */
     ep = (searchPathCacheEntry_t*) csound->searchPathCache;
     while (ep != NULL) {
@@ -231,34 +201,15 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
       ep = nxt;
     }
     csound->searchPathCache = NULL;
-    p = *pp;
-    s1 = (char*) name;
-    s2 = NULL;
-    /* copy value */
-    if (value != NULL) {
-      s2 = (char*) mmalloc(csound, strlen(value) + 1);
-      strcpy(s2, value);
+
+    
+    oldValue = cs_hash_table_get(csound, csound->envVarDB, (char*)name);
+    if (oldValue != NULL) {
+        mfree(csound, oldValue);
     }
-    /* is this variable already defined ? */
-    while (p != NULL && sCmp(p->name, name) != 0)
-      p = p->nxt;
-    if (p != NULL) {
-      /* yes, only need to replace value */
-      if (p->value != NULL)
-        mfree(csound, p->value);
-      p->value = s2;
-    }
-    else {
-      /* no, need to allocate new entry, and copy name too */
-      p = (envVarEntry_t*) mmalloc(csound, sizeof(envVarEntry_t));
-      s1 = (char*) mmalloc(csound, (size_t) strlen(name) + (size_t) 1);
-      strcpy(s1, name);
-      /* store pointers to name and value, and link into chain */
-      p->nxt = *pp;
-      p->name = s1;
-      p->value = s2;
-      *pp = p;
-    }
+   
+    cs_hash_table_put(csound, csound->envVarDB, (char*)name, cs_strdup(csound, (char*)value));
+    
     /* print debugging info if requested */
     if (csound->oparms->odebug) {
       csoundMessage(csound, Str("Environment variable '%s' has been set to "),
@@ -266,7 +217,7 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
       if (value == NULL)
         csoundMessage(csound, "NULL\n");
       else
-        csoundMessage(csound, "'%s'\n", s2);
+        csoundMessage(csound, "'%s'\n", value);
     }
     /* report success */
     return CSOUND_SUCCESS;
@@ -355,12 +306,10 @@ int csoundInitEnv(CSOUND *csound)
 {
     int i, retval;
     /* check if already initialised */
-    if (ENV_DB != NULL)
+    if (csound->envVarDB != NULL)
       return CSOUND_SUCCESS;
     /* allocate table */
-    ENV_DB = (void*) mmalloc(csound, sizeof(envVarEntry_t*) * (size_t) 256);
-    for (i = 0; i < 256; i++)
-      ((envVarEntry_t**) ENV_DB)[i] = (envVarEntry_t*) NULL;
+    csound->envVarDB = cs_hash_table_create(csound);
     /* copy standard Csound environment variables */
     for (i = 0; envVar_list[i] != NULL; i++) {
       const char  *name = envVar_list[i];

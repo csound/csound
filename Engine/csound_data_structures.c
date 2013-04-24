@@ -230,7 +230,7 @@ PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable) {
  
     int i = 0;
     
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < HASH_SIZE; i++) {
         CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
         
         while (item != NULL) {
@@ -246,7 +246,7 @@ PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable)
     
     int i = 0;
     
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < HASH_SIZE; i++) {
         CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
         
         while (item != NULL) {
@@ -262,7 +262,7 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
     // TODO - check if this is the best strategy for merging
     int i = 0;
 
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < HASH_SIZE; i++) {
         CS_HASH_TABLE_ITEM* item = source->buckets[i];
 
         while (item != NULL) {
@@ -276,7 +276,7 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     int i;
 
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < HASH_SIZE; i++) {
         CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
 
         while(item != NULL) {
@@ -293,7 +293,7 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
     
     int i;
 
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < HASH_SIZE; i++) {
         CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
 
         while(item != NULL) {
