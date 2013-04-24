@@ -1130,8 +1130,10 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 
    In any subsequent compilation run, it:
    1) Creates a new engineState
-   2) Creates instruments other than instrument 0 (which is ignored)
-   3) Calls engineState_merge() and engineState_free()
+   2) instrument 0 is treated as a global i-time instrument, header constants 
+      are ignored.
+   3) Creates other instruments 
+   4) Calls engineState_merge() and engineState_free()
 
   VL 20-12-12
 

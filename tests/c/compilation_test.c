@@ -13,12 +13,12 @@ int main(int argc, char **argv)
        "endin \n";
 
     char  *instrument2 = 
-      "event_i \"i\",2, 0.5, 2, 10000, 800 \n"
       "instr 2 \n"
       "k1 expon p4, p3, p4*0.001 \n"
       "a1 vco2  k1, p5   \n"
       "out  a1   \n"
-       "endin \n";
+       "endin \n"
+      "event_i \"i\",2, 0.5, 2, 10000, 800 \n";
 
 
     csoundInitialize(&argc, &argv, 0);
