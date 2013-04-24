@@ -58,8 +58,11 @@ PUBLIC CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 /** Returns length of CONS_CELL list */
 PUBLIC int cs_cons_length(CONS_CELL* head);
 
-/** Returns length of CONS_CELL list */
+/** Frees CONS_CELL list but does not free ->value pointers */
 PUBLIC void cs_cons_free(CSOUND* csound, CONS_CELL* head);
+
+/** Frees CONS_CELL list also frees ->value pointers */
+PUBLIC void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head);
 
 /* FUNCTIONS FOR HASH SET */
 
@@ -95,7 +98,10 @@ PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable);
 /** Returns void* values as a cons list */
 PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
-/** Frees hash table and hash table items using mfree. Does not currently call free on ->value pointer. */
+/** Frees hash table and hash table items using mfree. Does not call free on ->value pointer. */
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable);
+
+/** Frees hash table and hash table items using mfree. Does call free on ->value pointer. */
+PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
 #endif

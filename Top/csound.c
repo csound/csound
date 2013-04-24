@@ -597,8 +597,6 @@ static const CSOUND cenviron_ = {
     NULL,           /*  gensub              */
     GENMAX+1,       /*  genmax              */
     NULL,           /*  namedGlobals        */
-    0,              /*  namedGlobalsCurrLimit */
-    0,              /*  namedGlobalsMaxLimit */
     NULL,           /*  cfgVariableDB       */
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
