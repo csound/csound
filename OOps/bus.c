@@ -32,8 +32,6 @@ bus.c:
 #include "bus.h"
 #include "namedins.h"
 
-#define CS_MAX_CHANNELS 256
-
 /* For sensing opcodes */
 #if defined(__unix) || defined(__unix__) || defined(__MACH__)
 #  ifdef HAVE_SYS_TIME_H
@@ -126,7 +124,7 @@ int chani_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
+    if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -148,7 +146,7 @@ int chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
+    if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -173,7 +171,7 @@ int chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
+    if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -201,7 +199,7 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     int   err;
     MYFLT *val;
 
-    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
+    if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("chani: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -246,7 +244,7 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
     PVSDATEXT *fin;
     MYFLT      *pp;
 
-    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
+    if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("pvsin: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -274,7 +272,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     PVSDATEXT *fout;
     MYFLT *pp;
 
-    if (UNLIKELY(n < 0  || n >= CS_MAX_CHANNELS ))
+    if (UNLIKELY(n < 0))
       return csound->PerfError(csound, Str("pvsout: invalid index"));
 
     sprintf(chan_name, "%i", n);
@@ -297,39 +295,35 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
 
 static int delete_channel_db(CSOUND *csound, void *p)
 {
-    CHNENTRY  **db, *pp;
-    int             i;
-
-    (void) p;
-        db = (CHNENTRY**) csound->chn_db;
-    if (db == NULL) {
+    CONS_CELL *head, *values;
+    
+    if (csound->chn_db == NULL) {
       return 0;
     }
-    for (i = 0; i < CS_MAX_CHANNELS; i++) {
-      while (db[i] != NULL) {
-        pp = db[i];
-        db[i] = pp->nxt;
-        if ((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
-            csound->Free(csound, pp->hints.attributes);
-        }
-        csound->Free(csound, (void*) pp);
+   
+    head = values = cs_hash_table_values(csound, csound->chn_db);
+
+    if (head != NULL) {
+      while(values != NULL) {
+          CHNENTRY* entry = values->value;
+          
+          if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
+            csound->Free(csound, entry->hints.attributes);
+          }
+          values = values->next;
       }
+      cs_cons_free(csound, head);
     }
+    
+    cs_hash_table_free_complete(csound, csound->chn_db);
     csound->chn_db = NULL;
-    csound->Free(csound, (void*) db);
     return 0;
 }
 
 static inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
 {
     if (csound->chn_db != NULL && name[0]) {
-          CHNENTRY  *pp;
-          pp = ((CHNENTRY**) csound->chn_db)[name_hash_2(csound, name)];
-      for ( ; pp != NULL; pp = pp->nxt) {
-          if (strcmp(name, pp->name) == 0) {
-              return pp;
-          }
-      }
+        return (CHNENTRY*) cs_hash_table_get(csound, csound->chn_db, (char*) name);
     }
     return NULL;
 }
@@ -383,7 +377,6 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
 {
     CHNENTRY  *pp;
     const char      *s;
-    unsigned char   h;
 
     /* check for valid parameters and calculate hash value */
     if (UNLIKELY(!(type & 48)))
@@ -391,20 +384,17 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
     s = name;
 //    if (UNLIKELY(!isalpha((unsigned char) *s)))
 //      return CSOUND_ERROR;
-    h = (unsigned char) 0;
-    do {
-      h = strhash_tabl_8[(unsigned char) *(s++) ^ h];
-    } while (isalnum((unsigned char) *s) ||
-             *s == (char) '_' || *s == (char) '-' || *s == (char) '.');
+    
+    while (isalnum((unsigned char) *s) ||
+           *s == (char) '_' || *s == (char) '-' || *s == (char) '.') s++;
     if (*s != (char) 0)
       return CSOUND_ERROR;
     /* create new empty database on first call */
     if (csound->chn_db == NULL) {
+      csound->chn_db = cs_hash_table_create(csound);
       if (UNLIKELY(csound->RegisterResetCallback(csound, NULL,
                                                  delete_channel_db) != 0))
           return CSOUND_MEMORY;
-      csound->chn_db =
-        (void*) csound->Calloc(csound, CS_MAX_CHANNELS *  sizeof(CHNENTRY*));
       if (UNLIKELY(csound->chn_db == NULL))
         return CSOUND_MEMORY;
     }
@@ -412,13 +402,13 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
     pp = alloc_channel(csound, p, name, type);
     if (UNLIKELY(pp == NULL))
       return CSOUND_MEMORY;
-    pp->nxt = ((CHNENTRY**) csound->chn_db)[h];
     pp->hints.behav = 0;
     pp->data = (*p);
     pp->type = type;
     strcpy(&(pp->name[0]), name);
-    ((CHNENTRY**) csound->chn_db)[h] = pp;
 
+    cs_hash_table_put(csound, csound->chn_db, (char*)name, pp);
+    
     return CSOUND_SUCCESS;
 }
 
@@ -460,33 +450,35 @@ static int cmp_func(const void *p1, const void *p2)
 
 PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
 {
-        CHNENTRY  *pp;
-    size_t          i, n;
-
+    CHNENTRY  *pp;
+    size_t     n;
+    CONS_CELL* channels;
+    
     *lst = (controlChannelInfo_t*) NULL;
     if (csound->chn_db == NULL)
       return 0;
-    /* count the number of channels */
-    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) CS_MAX_CHANNELS; i++) {
-          for (pp = ((CHNENTRY**) csound->chn_db)[i];
-           pp != NULL;
-           pp = pp->nxt, n++)
-        ;
-    }
+    
+    channels = cs_hash_table_values(csound, csound->chn_db);
+    n = cs_cons_length(channels);
+    
     if (!n)
       return 0;
+    
     /* create list, initially in unsorted order */
+    // TODO - should this be malloc or mmalloc?
     *lst = (controlChannelInfo_t*) malloc(n * sizeof(controlChannelInfo_t));
     if (UNLIKELY(*lst == NULL))
       return CSOUND_MEMORY;
-    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) CS_MAX_CHANNELS; i++) {
-          for (pp = ((CHNENTRY**) csound->chn_db)[i];
-           pp != NULL;
-           pp = pp->nxt, n++) {
-        (*lst)[n].name = pp->name;
-        (*lst)[n].type = pp->type;
-      }
+   
+    n = 0;
+    while (channels != NULL) {
+      pp = channels->value;
+      (*lst)[n].name = pp->name;
+      (*lst)[n].type = pp->type;
+      channels = channels->next;
+      n++;
     }
+    
     /* sort list */
     qsort((void*) (*lst), n, sizeof(controlChannelInfo_t), cmp_func);
     /* return the number of channels */
