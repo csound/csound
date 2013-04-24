@@ -72,6 +72,23 @@ PUBLIC void cs_cons_free(CSOUND* csound, CONS_CELL* head) {
     }
 }
 
+
+PUBLIC void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head) {
+    
+    CONS_CELL *current, *next;
+    
+    if (head == NULL) return;
+
+    current = head;
+    
+    while(current != NULL) {
+        next = current->next;
+        mfree(csound, current->value);
+        mfree(csound, current);
+        current = next;
+    }
+}
+
 /* FUNCTION FOR HASH SET */
 
 PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
@@ -264,9 +281,29 @@ PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
 
         while(item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
-            mfree(csound, item);  // should this also free the value of the item
+            mfree(csound, item->key);
+            mfree(csound, item);
             item = next;
         }
     }
     mfree(csound, hashTable);
 }
+
+PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+    
+    int i;
+
+    for (i = 0; i < 256; i++) {
+        CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
+
+        while(item != NULL) {
+            CS_HASH_TABLE_ITEM* next = item->next;
+            mfree(csound, item->key);
+            mfree(csound, item->value);
+            mfree(csound, item);
+            item = next;
+        }
+    }
+    mfree(csound, hashTable);
+}
+
