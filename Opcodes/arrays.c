@@ -223,39 +223,6 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
     return OK;
 }
 
-//
-//int tassign(CSOUND *csound, ASSIGNT *p)
-//{
-//    ARRAYDAT *t = p->tab;
-//    int ind = MYFLT2LRND(*p->ind);
-//    if (ind<0 || ind>t->size)
-//        return csound->PerfError(csound,
-//                                 Str("Index %d out of range [0,%d] in t[]\n"),
-//                                 ind, t->size);
-//    t->data[ind] = *p->val;
-//    return OK;
-//}
-//
-//int tabref_check(CSOUND *csound, TABREF *p)
-//{
-//    if (UNLIKELY(p->tab->data==NULL))
-//        return csound->InitError(csound, Str("Vector not initialised\n"));
-//    return OK;
-//}
-//
-//int tabref(CSOUND *csound, TABREF *p)
-//{
-//    int ind = MYFLT2LRND(*p->ind);
-//    TABDAT *t = p->tab;
-//    if (ind<0 || ind>t->size)
-//        return csound->PerfError(csound,
-//                                 Str("Index %d out of range [0,%d] in t[]\n"),
-//                                 ind, t->size);
-//    *p->ans = t->data[ind];
-//    return OK;
-//}
-
-
 typedef struct {
     OPDS h;
     ARRAYDAT *ans, *left, *right;
@@ -293,8 +260,6 @@ typedef struct {
    MYFLT  *kstart, *kend;
 } TABSCALE;
 
-
-
 static int tabarithset(CSOUND *csound, TABARITH *p)
 {
     if (LIKELY(p->left->data && p->right->data)) {
@@ -313,16 +278,17 @@ static int tabarithset(CSOUND *csound, TABARITH *p)
     else return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
+// For cases with array as first arg
 static int tabarithset1(CSOUND *csound, TABARITH1 *p)
 {
-    if (LIKELY(p->left->data)) {
+    ARRAYDAT *left = p->left;
+    if (LIKELY(left->data)) {
       int size;
-      if (p->left->dimensions!=1)
+      if (left->dimensions!=1)
         return
           csound->InitError(csound,
-                        Str("Dimensions do not match in array arithmetic"));
-      //size is the smallest of the two
-      size = p->left->sizes[0];
+                        Str("Dimension does not match in array arithmetic"));
+      size = left->sizes[0];
       tabensure(csound, p->ans, size);
       p->ans->sizes[0] = size;
       return OK;
@@ -330,16 +296,17 @@ static int tabarithset1(CSOUND *csound, TABARITH1 *p)
     else return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
+// For cases with array as second arg
 static int tabarithset2(CSOUND *csound, TABARITH2 *p)
 {
-    if (LIKELY(p->right->data)) {
+    ARRAYDAT *right = p->right;
+    if (LIKELY(right->data)) {
       int size;
-      if (p->right->dimensions!=1)
+      if (right->dimensions!=1)
         return
           csound->InitError(csound,
-                        Str("Dimensions do not match in array arithmetic"));
-      //size is the smallest of the two
-      size = p->right->sizes[0];
+                        Str("Dimension does not match in array arithmetic"));
+      size = right->sizes[0];
       tabensure(csound, p->ans, size);
       p->ans->sizes[0] = size;
       return OK;
