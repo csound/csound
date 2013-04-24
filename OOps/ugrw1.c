@@ -3281,7 +3281,7 @@ int inz(CSOUND *csound, IOZ *p)
       for (i = 0; i < nchns; i++)
         for (n = 0; n < nsmps; n++)
           *writeloc++ = ((n>=offset && n<early) ?
-                         csound->spin[i * nsmps+n] : FL(0.0));
+                         CS_SPIN[i * nsmps+n] : FL(0.0));
     }
     return OK;
  err1:
@@ -3312,7 +3312,7 @@ int outz(CSOUND *csound, IOZ *p)
       if (!csound->spoutactive) {
         for (i = 0; i < nchns; i++)
           for (n = 0; n < nsmps; n++) {
-            csound->spout[i * nsmps + n] = ((n>=offset && n<early) ?
+            CS_SPOUT[i * nsmps + n] = ((n>=offset && n<early) ?
                                             *readloc : FL(0.0));
             readloc++;
           }
@@ -3321,7 +3321,7 @@ int outz(CSOUND *csound, IOZ *p)
       else {
         for (i = 0; i < nchns; i++)
           for (n = 0; n < nsmps; n++) {
-            csound->spout[i * n + nsmps] += ((n>=offset && n<early) ?
+            CS_SPOUT[i * n + nsmps] += ((n>=offset && n<early) ?
                                              *readloc : FL(0.0));
             readloc++;
           }

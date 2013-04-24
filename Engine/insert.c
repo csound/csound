@@ -1472,7 +1472,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
 {
     OPDS    *saved_pds = CS_PDS;
     int     saved_sa = csound->spoutactive;
-    MYFLT   *pbuf, *saved_spout = csound->spout;
+    MYFLT   *pbuf;
     uint32_t frame, chan;
     unsigned int nsmps = CS_KSMPS;
 
@@ -1480,7 +1480,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
       return csoundPerfError(csound, Str("subinstr: not initialised"));
     }
     /* copy current spout buffer and clear it */
-    csound->spout = (MYFLT*) p->saved_spout.auxp;
+    CS_SPOUT = (MYFLT*) p->saved_spout.auxp;
     csound->spoutactive = 0;
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
@@ -1497,15 +1497,11 @@ int subinstr(CSOUND *csound, SUBINST *p)
           }while ((CS_PDS = CS_PDS->nxtp));
     }
 
-    /* VL --
-       this code probably breaks down assumptions used in
-       PARCS -- needs to be reviewed
-    */
-
+   
     /* copy outputs */
     if (csound->spoutactive) {
       for (chan = 0; chan < p->OUTOCOUNT; chan++) {
-        for (pbuf = csound->spout + chan, frame = 0;
+        for (pbuf = CS_SPOUT + chan, frame = 0;
              frame < nsmps; frame++) {
           p->ar[chan][frame] = *pbuf;
           pbuf += csound->nchnls;
@@ -1518,9 +1514,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
           p->ar[chan][frame] = FL(0.0);
     }
 
-    /* restore spouts */
-    csound->spout = saved_spout;
-    csound->spoutactive = saved_sa;
+    
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                         /* loop to last opds */

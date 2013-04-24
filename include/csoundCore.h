@@ -464,6 +464,8 @@ typedef struct {
     uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
     uint32_t no_end;      /* samps left at the end for sample accuracy (calculated) */
     uint32_t ksmps_no_end; /* samps left at the end for sample accuracy (used by opcodes) */
+    MYFLT  *spin;         /* offset into csound->spin */
+    MYFLT  *spout;        /* offset into csound->spout, or local spout, if needed */
     int    init_done;
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
@@ -480,6 +482,8 @@ typedef struct {
 #define CS_KICVT     (p->h.insdshead->kicvt)
 #define CS_ESR       (csound->esr)
 #define CS_PDS       (p->h.insdshead->pds)
+#define CS_SPIN      (p->h.insdshead->spin)
+#define CS_SPOUT      (p->h.insdshead->spout)
 
   typedef int (*SUBR)(CSOUND *, void *);
 
