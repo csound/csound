@@ -957,6 +957,7 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     p->ip->nxtolap  = NULL;
     p->ip->p2       = saved_curip->p2;
     p->ip->p3       = saved_curip->p3;
+    p->ip->ksmps = CS_KSMPS;
 
     /* IV - Oct 31 2002 */
     p->ip->m_chnbp  = saved_curip->m_chnbp;
@@ -988,6 +989,7 @@ int subinstrset(CSOUND *csound, SUBINST *p)
       (*csound->ids->iopadr)(csound, csound->ids);
     }
     p->ip->init_done = 1;
+  
     /* copy length related parameters back to caller instr */
     saved_curip->xtratim = csound->curip->xtratim;
     saved_curip->relesing = csound->curip->relesing;
@@ -1471,49 +1473,41 @@ void timexpire(CSOUND *csound, double time)
 int subinstr(CSOUND *csound, SUBINST *p)
 {
     OPDS    *saved_pds = CS_PDS;
-    int     saved_sa = csound->spoutactive;
     MYFLT   *pbuf;
     uint32_t frame, chan;
     unsigned int nsmps = CS_KSMPS;
-
+    
     if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
       return csoundPerfError(csound, Str("subinstr: not initialised"));
     }
     /* copy current spout buffer and clear it */
-    CS_SPOUT = (MYFLT*) p->saved_spout.auxp;
+    p->ip->spout = (MYFLT*) p->saved_spout.auxp;
+    memset(p->ip->spout, 0, csound->nspout*sizeof(MYFLT));
     csound->spoutactive = 0;
+     
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
 
     /*  run each opcode  */
     if((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) {
-          CS_PDS->insdshead->pds = NULL;
+      CS_PDS->insdshead->pds = NULL;
           do {
            (*CS_PDS->opadr)(csound, CS_PDS);
            if (CS_PDS->insdshead->pds != NULL) {
                CS_PDS = CS_PDS->insdshead->pds;
               CS_PDS->insdshead->pds = NULL;
-           }
+	      }
           }while ((CS_PDS = CS_PDS->nxtp));
     }
 
-   
     /* copy outputs */
-    if (csound->spoutactive) {
-      for (chan = 0; chan < p->OUTOCOUNT; chan++) {
-        for (pbuf = CS_SPOUT + chan, frame = 0;
+    for (chan = 0; chan < p->OUTOCOUNT; chan++) {
+        for (pbuf = p->ip->spout + chan, frame = 0;
              frame < nsmps; frame++) {
           p->ar[chan][frame] = *pbuf;
           pbuf += csound->nchnls;
         }
       }
-    }
-    else {
-      for (chan = 0; chan < p->OUTOCOUNT; chan++)
-        for (frame = 0; frame < nsmps; frame++)
-          p->ar[chan][frame] = FL(0.0);
-    }
-
     
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */

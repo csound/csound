@@ -1344,17 +1344,14 @@ inline static int nodePerf(CSOUND *csound, int index)
 		  }
 		
                for (i=start; i < n; i+=incr, insds->spin+=incr, insds->spout+=incr) {
-                  opstart = (OPDS*) insds;
-                  active = csound->spoutactive;  
+                  opstart = (OPDS*) insds; 
                   while ((opstart = opstart->nxtp) != NULL) {
                     opstart->insdshead->pds = opstart;
                     (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
                   insds->kcounter++;
-                  csound->spoutactive = active; /* VL: not sure this is safe */
-                } 
-	       if(active >= 0) csound->spoutactive = 1; /* and this too */         	
+                }          	
         }
         insds->ksmps_offset = 0; /* reset sample-accuracy offset */
         insds->ksmps_no_end = 0;  /* reset end of loop samples */
@@ -1437,6 +1434,8 @@ int kperf(CSOUND *csound)
     if (csound->oparms_.sfread)         /*   if audio_infile open  */
       csound->spinrecv(csound);         /*      fill the spin buf  */
     csound->spoutactive = 0;            /*   make spout inactive   */
+    /* clear spout */
+    memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
     ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
@@ -1482,7 +1481,7 @@ int kperf(CSOUND *csound)
               opstart = opstart->insdshead->pds;
             }
             } else {
-	        int i, n = csound->nspout, start = 0, active = -1;
+	        int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
                 int incr = csound->nchnls*lksmps;
                 int offset =  ip->ksmps_offset;
@@ -1508,19 +1507,15 @@ int kperf(CSOUND *csound)
 		
                for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
-                  active = csound->spoutactive;
                   while ((opstart = opstart->nxtp) != NULL) {
                     opstart->insdshead->pds = opstart;
                     (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
                   ip->kcounter++;
-                  csound->spoutactive = active;
-                } 
-	       if(active >= 0) csound->spoutactive = 1;          
+                }         
             }
           }
-
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0;  /* reset end of loop samples */
           ip = nxt; /* but this does not allow for all deletions */

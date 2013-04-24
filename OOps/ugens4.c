@@ -566,7 +566,7 @@ int arand(CSOUND *csound, RAND *p)
       }
       p->rand = rand;   /* save current rand */
     }
-
+    
     return OK;
 }
 
