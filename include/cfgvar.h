@@ -222,7 +222,7 @@ typedef union csCfgVariable_u {
    * by csoundListGlobalConfigurationVariables() or
    * csoundListConfigurationVariables().
    */
-  PUBLIC void csoundDeleteCfgVarList(csCfgVariable_t **lst);
+  PUBLIC void csoundDeleteCfgVarList(CSOUND* csound, csCfgVariable_t **lst);
 
   /**
    * Remove the configuration variable of Csound instance 'csound' with the

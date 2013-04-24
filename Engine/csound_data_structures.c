@@ -48,7 +48,29 @@ PUBLIC CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
     return cons1;
 }
 
+PUBLIC int cs_cons_length(CONS_CELL* head) {
+    CONS_CELL* current = head;
+    int count = 0;
+    while (current != NULL) {
+        count++;
+        current = current->next;
+    }
+    return count;
+}
 
+PUBLIC void cs_cons_free(CSOUND* csound, CONS_CELL* head) {
+    CONS_CELL *current, *next;
+    
+    if (head == NULL) return;
+
+    current = head;
+    
+    while(current != NULL) {
+        next = current->next;
+        mfree(csound, current);
+        current = next;
+    }
+}
 
 /* FUNCTION FOR HASH SET */
 
@@ -196,6 +218,22 @@ PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable) {
         
         while (item != NULL) {
             head = cs_cons(csound, item->key, head);
+            item = item->next;
+        }
+    }
+    return head;
+}
+
+PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+    CONS_CELL* head = NULL;
+    
+    int i = 0;
+    
+    for (i = 0; i < 256; i++) {
+        CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
+        
+        while (item != NULL) {
+            head = cs_cons(csound, item->value, head);
             item = item->next;
         }
     }
