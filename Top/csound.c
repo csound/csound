@@ -1319,7 +1319,7 @@ inline static int nodePerf(CSOUND *csound, int index)
           opstart = opstart->insdshead->pds;
         }
         } else {
-                int i, n = csound->nspout, start = 0, active = -1;
+                int i, n = csound->nspout, start = 0;
                 int lksmps = insds->ksmps;
                 int incr = csound->nchnls*lksmps;
                 int offset =  insds->ksmps_offset;
@@ -1481,7 +1481,7 @@ int kperf(CSOUND *csound)
               opstart = opstart->insdshead->pds;
             }
             } else {
-	        int i, n = csound->nspout, start = 0;
+	      int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
                 int incr = csound->nchnls*lksmps;
                 int offset =  ip->ksmps_offset;
@@ -1490,7 +1490,7 @@ int kperf(CSOUND *csound)
                 ip->spin = csound->spin;
                 ip->spout = csound->spout;
                 ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
-           
+                
                 /* we have to deal with sample-accurate code 
                    whole CS_KSMPS blocks are offset here, the
                    remainder is left to each opcode to deal with.

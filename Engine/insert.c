@@ -1481,48 +1481,89 @@ void timexpire(CSOUND *csound, double time)
 
 int subinstr(CSOUND *csound, SUBINST *p)
 {
-    OPDS    *saved_pds = CS_PDS;
-    MYFLT   *pbuf;
-    uint32_t frame, chan;
-    unsigned int nsmps = CS_KSMPS;
+  OPDS    *saved_pds = CS_PDS;
+  MYFLT   *pbuf;
+  uint32_t frame, chan;
+  unsigned int nsmps = CS_KSMPS;
+  INSDS *ip = p->ip;
     
-    if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
-      return csoundPerfError(csound, Str("subinstr: not initialised"));
-    }
-    /* copy current spout buffer and clear it */
-    p->ip->spout = (MYFLT*) p->saved_spout.auxp;
-    memset(p->ip->spout, 0, csound->nspout*sizeof(MYFLT));
-    csound->spoutactive = 0;
+  if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
+    return csoundPerfError(csound, Str("subinstr: not initialised"));
+  }
+  /* copy current spout buffer and clear it */
+  ip->spout = (MYFLT*) p->saved_spout.auxp;
+  memset(ip->spout, 0, csound->nspout*sizeof(MYFLT));
+  csound->spoutactive = 0;
      
-    /* update release flag */
-    p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
+  /* update release flag */
+  ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
 
-    /*  run each opcode  */
-    if((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) {
+  /*  run each opcode  */
+  if(csound->ksmps == ip->ksmps) {
+    if((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
       CS_PDS->insdshead->pds = NULL;
-          do {
-           (*CS_PDS->opadr)(csound, CS_PDS);
-           if (CS_PDS->insdshead->pds != NULL) {
-               CS_PDS = CS_PDS->insdshead->pds;
-              CS_PDS->insdshead->pds = NULL;
-	      }
-          }while ((CS_PDS = CS_PDS->nxtp));
+      do {
+	(*CS_PDS->opadr)(csound, CS_PDS);
+	if (CS_PDS->insdshead->pds != NULL) {
+	  CS_PDS = CS_PDS->insdshead->pds;
+	  CS_PDS->insdshead->pds = NULL;
+	}
+      }while ((CS_PDS = CS_PDS->nxtp));
     }
-
-    /* copy outputs */
-    for (chan = 0; chan < p->OUTOCOUNT; chan++) {
-        for (pbuf = p->ip->spout + chan, frame = 0;
-             frame < nsmps; frame++) {
-          p->ar[chan][frame] = *pbuf;
-          pbuf += csound->nchnls;
-        }
+    ip->kcounter++;
+  }
+  else {
+    int i, n = csound->nspout, start = 0;
+    int lksmps = ip->ksmps;
+    int incr = csound->nchnls*lksmps;
+    int offset =  ip->ksmps_offset;
+    int early = ip->ksmps_no_end;
+    ip->spin = csound->spin;
+    ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
+                
+    /* we have to deal with sample-accurate code 
+       whole CS_KSMPS blocks are offset here, the
+       remainder is left to each opcode to deal with.
+    */
+    while(offset >= lksmps) {
+      offset -= lksmps;
+      start += csound->nchnls;
+    }
+    ip->ksmps_offset = offset;
+    if(early){
+      n -= (early*csound->nchnls);
+      ip->ksmps_no_end = early % lksmps;
+    }
+   	
+    for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+      if((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
+	CS_PDS->insdshead->pds = NULL;
+	do {
+	  (*CS_PDS->opadr)(csound, CS_PDS);
+	  if (CS_PDS->insdshead->pds != NULL) {
+	    CS_PDS = CS_PDS->insdshead->pds;
+	    CS_PDS->insdshead->pds = NULL;
+	  }
+	}while ((CS_PDS = CS_PDS->nxtp));
       }
+      ip->kcounter++;
+    }  
+    ip->spout = (MYFLT*) p->saved_spout.auxp;      
+  }
+  /* copy outputs */
+  for (chan = 0; chan < p->OUTOCOUNT; chan++) {
+    for (pbuf = ip->spout + chan, frame = 0;
+	 frame < nsmps; frame++) {
+      p->ar[chan][frame] = *pbuf;
+      pbuf += csound->nchnls;
+    }
+  }
     
-    CS_PDS = saved_pds;
-    /* check if instrument was deactivated (e.g. by perferror) */
-    if (!p->ip)                                         /* loop to last opds */
-      while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
-    return OK;
+  CS_PDS = saved_pds;
+  /* check if instrument was deactivated (e.g. by perferror) */
+  if (!p->ip)                                         /* loop to last opds */
+    while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
+  return OK;
 }
 
 /* IV - Sep 17 2002 -- case 1: local ksmps is used */
