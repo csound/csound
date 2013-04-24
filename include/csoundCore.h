@@ -839,7 +839,7 @@ typedef struct NAME__ {
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor;
-    void          *instrumentNames; /* instrument names */
+    CS_HASH_TABLE *instrumentNames; /* instrument names */
     int           maxinsno;
   } ENGINE_STATE;
 
