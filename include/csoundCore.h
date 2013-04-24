@@ -1557,7 +1557,7 @@ typedef struct NAME__ {
     void          *lprdaddr;            /* ugens5.c */
     int           currentLPCSlot;
     int           max_lpc_slot;
-    void          *chn_db;
+    CS_HASH_TABLE *chn_db;
     int           opcodedirWasOK;
     int           disable_csd_options;
     CsoundRandMTState randState_;
