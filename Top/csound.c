@@ -1489,7 +1489,7 @@ int kperf(CSOUND *csound)
                 OPDS  *opstart; 
                 ip->spin = csound->spin;
                 ip->spout = csound->spout;
-                ip->kcounter =  csound->kcounter*csound->ksmps;
+                ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
            
                 /* we have to deal with sample-accurate code 
                    whole CS_KSMPS blocks are offset here, the
