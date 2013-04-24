@@ -31,20 +31,6 @@
 #include "cfgvar.h"
 #include "namedins.h"
 
-/* faster version that assumes a non-empty string */
-
-static inline unsigned char name_hash_(const char *s)
-{
-    const unsigned char *c = (const unsigned char*) &(s[0]);
-    unsigned int  h = 0U;
-    do {
-      h = strhash_tabl_8[h ^ *c];
-    } while (*(++c) != (unsigned char) '\0');
-    return (unsigned char) h;
-}
-
-#define local_cfg_db    (((CSOUND*) csound)->cfgVariableDB)
-
 /* the global database */
 
 /* list of error messages */
@@ -137,7 +123,8 @@ static int check_flags(int flags)
  * Return value is CSOUNDCFG_SUCCESS, or one of the error codes.
  */
 
-static int cfg_alloc_structure(csCfgVariable_t **ptr,
+static int cfg_alloc_structure(CSOUND* csound,
+                               csCfgVariable_t **ptr,
                                const char *name,
                                void *p, int type, int flags,
                                void *min, void *max,
@@ -172,7 +159,7 @@ static int cfg_alloc_structure(csCfgVariable_t **ptr,
     ldBytes = (ldBytes + 15) & (~15);
     totBytes = structBytes + nameBytes + sdBytes + ldBytes;
     /* allocate memory */
-    pp = (void*) malloc((size_t) totBytes);
+    pp = (void*) mmalloc(csound, (size_t) totBytes);
     if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_MEMORY;
     memset(pp, 0, (size_t) totBytes);
@@ -255,29 +242,26 @@ PUBLIC int
                                     const char *longDesc)
 {
     csCfgVariable_t *pp;
-    int             i, retval;
-    unsigned char   h;
+    int             retval;
 
     /* check if name is already in use */
     if (UNLIKELY(csoundQueryConfigurationVariable(csound, name) != NULL))
       return CSOUNDCFG_INVALID_NAME;
     /* if database is not allocated yet, create an empty one */
-    if (local_cfg_db == NULL) {
-      local_cfg_db = (void**) malloc(sizeof(void*) * 256);
-      if (UNLIKELY(local_cfg_db == NULL))
+    if (csound->cfgVariableDB == NULL) {
+      csound->cfgVariableDB = cs_hash_table_create(csound);
+      if (UNLIKELY(csound->cfgVariableDB == NULL))
         return CSOUNDCFG_MEMORY;
-      for (i = 0; i < 256; i++)
-        local_cfg_db[i] = (void*) NULL;
     }
     /* allocate structure */
-    retval =  cfg_alloc_structure(&pp, name, p, type, flags, min, max,
+    retval =  cfg_alloc_structure(csound, &pp, name, p, type, flags, min, max,
                                   shortDesc, longDesc);
     if (UNLIKELY(retval != CSOUNDCFG_SUCCESS))
       return retval;
     /* link into database */
-    h = name_hash_(name);
-    pp->h.nxt = (csCfgVariable_t*) (local_cfg_db[(int) h]);
-    local_cfg_db[(int) h] = (void*) pp;
+   
+    cs_hash_table_put(csound, csound->cfgVariableDB, (char*)name, pp);
+    
     /* report success */
     return CSOUNDCFG_SUCCESS;
 }
@@ -423,27 +407,6 @@ PUBLIC int
     return (parse_cfg_variable(pp, value));
 }
 
-static csCfgVariable_t *find_cfg_variable(void **db, const char *name)
-{
-    csCfgVariable_t *pp;
-    unsigned char   h;
-    /* check for trivial errors */
-    if (UNLIKELY(db == NULL || name == NULL))
-      return (csCfgVariable_t*) NULL;
-    if (UNLIKELY(name[0] == '\0'))
-      return (csCfgVariable_t*) NULL;
-    /* calculate hash value */
-    h = name_hash_(name);
-    /* find entry in database */
-    pp = (csCfgVariable_t*) (db[(int) h]);
-    while (UNLIKELY(pp!=NULL)) {
-      if (sCmp((char*) pp->h.name, name) == 0)
-        return pp;                          /* found */
-      pp = (csCfgVariable_t*) (pp->h.nxt);
-    }
-    return (csCfgVariable_t*) NULL;
-}
-
 /**
  * Return pointer to the configuration variable of Csound instace 'csound'
  * with the specified name.
@@ -453,7 +416,10 @@ static csCfgVariable_t *find_cfg_variable(void **db, const char *name)
 PUBLIC csCfgVariable_t
     *csoundQueryConfigurationVariable(CSOUND *csound, const char *name)
 {
-    return find_cfg_variable(local_cfg_db, name);
+    if (csound->cfgVariableDB == NULL) {
+        return NULL;
+    }
+    return (csCfgVariable_t*) cs_hash_table_get(csound, csound->cfgVariableDB, (char*)name);
 }
 
 /* compare function for qsort() */
@@ -466,40 +432,29 @@ static int compare_func(const void *p1, const void *p2)
 
 /* create alphabetically sorted list of all entries in 'db' */
 
-static csCfgVariable_t **list_db_entries(void **db)
+static csCfgVariable_t **list_db_entries(CSOUND* csound, CS_HASH_TABLE *db)
 {
-    csCfgVariable_t *pp, **lst;
-    size_t          cnt = (size_t) 0;
-    int             i;
+    csCfgVariable_t **lst;
+    size_t          cnt;
+    CONS_CELL*      values;
 
-    /* count the number of entries */
-    if (db != NULL) {
-      for (i = 0; i < 256; i++) {
-        pp = (csCfgVariable_t*) (db[i]);
-        while (pp != NULL) {
-          cnt++;
-          pp = (csCfgVariable_t*) (pp->h.nxt);
-        }
-      }
-    }
+    values = cs_hash_table_values(csound, db);
+    cnt = cs_cons_length(values);
+    
     /* allocate memory for list */
-    lst = (csCfgVariable_t**) malloc(sizeof(csCfgVariable_t*)
+    lst = (csCfgVariable_t**) mmalloc(csound, sizeof(csCfgVariable_t*)
                                      * (cnt + (size_t) 1));
     if (UNLIKELY(lst == NULL))
       return (csCfgVariable_t**) NULL;  /* not enough memory */
     /* create list */
     if (cnt) {
-      cnt = (size_t) 0;
-      for (i = 0; i < 256; i++) {
-        pp = (csCfgVariable_t*) (db[i]);
-        while (pp != NULL) {
-          lst[cnt++] = pp;
-          pp = (csCfgVariable_t*) (pp->h.nxt);
+        while (values != NULL) {
+            lst[cnt++] = (csCfgVariable_t*)values->value;
+            values = values->next;
         }
-      }
-      /* sort list */
-      qsort((void*) lst, cnt, sizeof(csCfgVariable_t*), compare_func);
+        qsort((void*) lst, cnt, sizeof(csCfgVariable_t*), compare_func);
     }
+    
     lst[cnt] = (csCfgVariable_t*) NULL;
     /* return pointer to list */
     return lst;
@@ -517,7 +472,7 @@ static csCfgVariable_t **list_db_entries(void **db)
 
 PUBLIC csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound)
 {
-    return (list_db_entries(local_cfg_db));
+    return (list_db_entries(csound, csound->cfgVariableDB));
 }
 
 /**
@@ -526,36 +481,24 @@ PUBLIC csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound)
  * csoundListConfigurationVariables().
  */
 
-PUBLIC void csoundDeleteCfgVarList(csCfgVariable_t **lst)
+PUBLIC void csoundDeleteCfgVarList(CSOUND* csound, csCfgVariable_t **lst)
 {
     if (lst != NULL)
-      free(lst);
+      mfree(csound, lst);
 }
 
 /* remove a configuration variable from 'db' */
 
-static int remove_entry_from_db(void **db, const char *name)
+static int remove_entry_from_db(CSOUND* csound, CS_HASH_TABLE *db, const char *name)
 {
-    csCfgVariable_t *pp, *prvp;
-    unsigned char   h;
-    /* first, check if this key actually exists */
-    if (UNLIKELY(find_cfg_variable(db, name) == NULL))
-      return CSOUNDCFG_INVALID_NAME;
-    /* calculate hash value */
-    h = name_hash_(name);
-    /* find entry in database */
-    prvp = (csCfgVariable_t*) NULL;
-    pp = (csCfgVariable_t*) (db[(int) h]);
-    while (strcmp((char*) pp->h.name, name) != 0) {
-      prvp = pp;
-      pp = (csCfgVariable_t*) (pp->h.nxt);
-    }
-    if (prvp != NULL)
-      prvp->h.nxt = pp->h.nxt;      /* unlink */
-    else
-      db[(int) h] = (void*) (pp->h.nxt);
-    /* free allocated memory */
-    free ((void*) pp);
+    csCfgVariable_t *pp = cs_hash_table_get(csound, db, (char*)name);
+
+    if (UNLIKELY(pp == NULL))
+        return CSOUNDCFG_INVALID_NAME;
+
+    mfree(csound, pp);
+    cs_hash_table_remove(csound, db, (char*)name);
+
     return CSOUNDCFG_SUCCESS;
 }
 
@@ -569,25 +512,27 @@ static int remove_entry_from_db(void **db, const char *name)
 
 PUBLIC int csoundDeleteConfigurationVariable(CSOUND *csound, const char *name)
 {
-    return (remove_entry_from_db(local_cfg_db, name));
+    return remove_entry_from_db(csound, csound->cfgVariableDB, name);
 }
 
-static int destroy_entire_db(void **db)
+static int destroy_entire_db(CSOUND *csound, CS_HASH_TABLE *db)
 {
-    csCfgVariable_t *pp, *prvp;
-    int             i;
-
+    CONS_CELL *head, *current;
     if (db == NULL)
       return CSOUNDCFG_SUCCESS;
-    for (i = 0; i < 256; i++) {
-      pp = (csCfgVariable_t*) (db[i]);
-      while (pp != NULL) {
-        prvp = pp;
-        pp = (csCfgVariable_t*) (pp->h.nxt);
-        free((void*) prvp);
-      }
+    
+    head = current = cs_hash_table_values(csound, db);
+    
+    while (current != NULL) {
+        if (current->value != NULL) {
+             mfree(csound, current->value);
+        }
+        current = current->next;
     }
-    free((void*) db);
+    
+    cs_cons_free(csound, head);
+    cs_hash_table_free(csound, db);
+    
     return CSOUNDCFG_SUCCESS;
 }
 
@@ -600,8 +545,8 @@ static int destroy_entire_db(void **db)
 int csoundDeleteAllConfigurationVariables(CSOUND *csound)
 {
     int retval;
-    retval = destroy_entire_db(local_cfg_db);
-    local_cfg_db = NULL;
+    retval = destroy_entire_db(csound, csound->cfgVariableDB);
+    csound->cfgVariableDB = NULL;
     return retval;
 }
 
