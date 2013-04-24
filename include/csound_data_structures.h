@@ -55,6 +55,11 @@ PUBLIC CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 /** Appends the cons2 CONS_CELL list to the tail of the cons1 */
 PUBLIC CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
+/** Returns length of CONS_CELL list */
+PUBLIC int cs_cons_length(CONS_CELL* head);
+
+/** Returns length of CONS_CELL list */
+PUBLIC void cs_cons_free(CSOUND* csound, CONS_CELL* head);
 
 /* FUNCTIONS FOR HASH SET */
 
@@ -76,7 +81,6 @@ PUBLIC void cs_hash_table_put(CSOUND* csound, CS_HASH_TABLE* hashTable, char* ke
  char* used for the hash item key. */
 PUBLIC char* cs_hash_table_put_key(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
 
-
 /** Removes an entry from the hashtable using the given key.  If no entry found for key,
  simply returns. Calls mfree on the table item. */
 PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
@@ -87,6 +91,9 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound, CS_HASH_TABLE* target, CS_HASH_T
 
 /** Returns char* keys as a cons list */
 PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable);
+
+/** Returns void* values as a cons list */
+PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
 /** Frees hash table and hash table items using mfree. Does not currently call free on ->value pointer. */
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable);

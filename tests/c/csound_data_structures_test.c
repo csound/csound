@@ -22,16 +22,6 @@ int clean_suite1(void) {
     return 0;
 }
 
-int cs_cons_length(CONS_CELL* head) {
-    CONS_CELL* current = head;
-    int count = 0;
-    while (current != NULL) {
-        count++;
-        current = current->next;
-    }
-    return count;
-}
-
 void test_cs_cons(void) {
     CSOUND* csound = csoundCreate(NULL);
     CONS_CELL* head = NULL;
