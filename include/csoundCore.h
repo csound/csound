@@ -843,7 +843,7 @@ typedef struct NAME__ {
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor;
-    void          *instrumentNames; /* instrument names */
+    CS_HASH_TABLE *instrumentNames; /* instrument names */
     int           maxinsno;
   } ENGINE_STATE;
 
@@ -1375,9 +1375,7 @@ typedef struct NAME__ {
     int           maxfnum;
     GEN           *gensub;
     int           genmax;
-    void          **namedGlobals;
-    int           namedGlobalsCurrLimit;
-    int           namedGlobalsMaxLimit;
+    CS_HASH_TABLE *namedGlobals;
     CS_HASH_TABLE *cfgVariableDB;
     double        prvbt, curbt, nxtbt;
     double        curp2, nxtim;
@@ -1527,7 +1525,7 @@ typedef struct NAME__ {
     void          *namedgen;            /* fgens.c */
     void          *open_files;          /* fileopen.c */
     void          *searchPathCache;
-    void          *sndmemfiles;
+    CS_HASH_TABLE *sndmemfiles;
     void          *reset_list;
     void          *pvFileTable;         /* pvfileio.c */
     int           pvNumFiles;
