@@ -84,8 +84,6 @@
 #if defined(MAC_OS_X_VERSION_10_6) && \
     (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_6)
 #define NEW_MACH_CODE
-#else
-#define OLD_MACH_CODE
 #endif
 #endif
 #endif
@@ -110,9 +108,6 @@ int             closedir(DIR*);
 #if defined(WIN32)
 #  include <io.h>
 #  include <direct.h>
-#elif defined (OLD_MACH_CODE)
-#  define ERR_STR_LEN 255
-#  include <mach-o/dyld.h>
 #endif
 
 extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
@@ -696,171 +691,6 @@ PUBLIC int csoundCloseLibrary(void *library)
 PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
     return (void*) dlsym(library, procedureName);
-}
-
-#elif defined (OLD_MACH_CODE)
-
-/* Set and get the error string for use by dlerror */
-static const char *error(int setget, const char *str, ...)
-{
-    static char errstr[ERR_STR_LEN];
-    static int  err_filled = 0;
-    const char  *retval;
-    NSLinkEditErrors ler;
-    int         lerno;
-    const char  *dylderrstr;
-    const char  *file;
-    va_list     arg;
-    if (setget <= 0) {
-      va_start(arg, str);
-      strncpy(errstr, "dlsimple: ", ERR_STR_LEN);
-      vsnprintf(errstr + 10, ERR_STR_LEN - 10, str, arg);
-      va_end(arg);
-      /* We prefer to use the dyld error string if getset is 1*/
-      if (setget == 0) {
-        NSLinkEditError(&ler, &lerno, &file, &dylderrstr);
-#if 0
-        fprintf(stderr, "dyld: %s\n", dylderrstr);
-#endif
-        if (dylderrstr && strlen(dylderrstr))
-          strncpy(errstr, dylderrstr, ERR_STR_LEN);
-      }
-      err_filled = 1;
-      retval = NULL;
-    }
-    else  {
-      if (!err_filled)
-        retval = NULL;
-      else
-        retval = errstr;
-      err_filled = 0;
-    }
-    return retval;
-}
-
-/* dlsymIntern is used by dlsym to find the symbol */
-static void *dlsymIntern(void *handle, const char *symbol)
-{
-    NSSymbol  nssym = (NSSymbol) 0;
-    /* If the handle is -1, if is the app global context */
-    if (handle == (void*) -1L) {
-      /* Global context, use NSLookupAndBindSymbol */
-      if (NSIsSymbolNameDefined(symbol)) {
-        nssym = NSLookupAndBindSymbol(symbol);
-      }
-    }
-    /* Now see if the handle is a struct mach_header* or not,
-       use NSLookupSymbol in image for libraries, and
-       NSLookupSymbolInModule for bundles */
-    else {
-      /* Check for both possible magic numbers depending
-         on x86/ppc byte order */
-      if ((((struct mach_header *)handle)->magic == MH_MAGIC) ||
-          (((struct mach_header *)handle)->magic == MH_CIGAM)) {
-        if (NSIsSymbolNameDefinedInImage((struct mach_header *)handle,
-                                         symbol)) {
-          nssym = NSLookupSymbolInImage(
-                            (struct mach_header *)handle, symbol,
-                            NSLOOKUPSYMBOLINIMAGE_OPTION_BIND |
-                            NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR);
-        }
-      }
-      else {
-        nssym = NSLookupSymbolInModule(handle, symbol);
-      }
-    }
-    if (UNLIKELY(!nssym)) {
-      error(0, "Symbol \"%s\" Not found", symbol);
-      return NULL;
-    }
-    return NSAddressOfSymbol(nssym);
-}
-
-int csoundOpenLibrary(void **library, const char *libraryPath)
-{
-    NSObjectFileImage ofi = 0;
-    NSObjectFileImageReturnCode ofirc;
-    static int (*make_private_module_public) (NSModule module) = NULL;
-    unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR |
-                          NSLINKMODULE_OPTION_PRIVATE;
-
-    /* If we got no path, the app wants the global namespace,
-       use -1 as the marker in this case */
-    if (!libraryPath) {
-      *library = (void*) -1L;
-      return 0;
-    }
-    *library = NULL;
-
-    /* Create the object file image, works for things linked
-       with the -bundle arg to ld */
-    ofirc = NSCreateObjectFileImageFromFile(libraryPath, &ofi);
-    switch (ofirc) {
-    case NSObjectFileImageSuccess:
-      /* It was okay, so use NSLinkModule to link in the image */
-      *library = NSLinkModule(ofi, libraryPath, flags);
-      /* Don't forget to destroy the object file
-         image, unless you like leaks */
-      NSDestroyObjectFileImage(ofi);
-      /* If the mode was global, then change the module, this avoids
-         multiply defined symbol errors to first load private then
-         make global. Silly, isn't it. */
-      if (!make_private_module_public) {
-        _dyld_func_lookup("__dyld_NSMakePrivateModulePublic",
-                          (void **) &make_private_module_public);
-      }
-      make_private_module_public(*library);
-      break;
-    case NSObjectFileImageInappropriateFile:
-      /* It may have been a dynamic library rather
-         than a bundle, try to load it */
-      *library = (void*) NSAddImage(libraryPath,
-                                    NSADDIMAGE_OPTION_RETURN_ON_ERROR);
-      break;
-    case NSObjectFileImageFailure:
-      error(0, "Object file setup failure :  \"%s\"", libraryPath);
-      return -1;
-    case NSObjectFileImageArch:
-      error(0, "No object for this architecture :  \"%s\"", libraryPath);
-      return -1;
-    case NSObjectFileImageFormat:
-      error(0, "Bad object file format :  \"%s\"", libraryPath);
-      return -1;
-    case NSObjectFileImageAccess:
-      error(0, "Can't read object file :  \"%s\"", libraryPath);
-      return -1;
-    }
-    if (UNLIKELY(*library == NULL)) {
-      error(0, "Can not open \"%s\"", libraryPath);
-      return -1;
-    }
-    return 0;
-}
-
-int csoundCloseLibrary(void *library)
-{
-    if (UNLIKELY((((struct mach_header *)library)->magic == MH_MAGIC) ||
-                 (((struct mach_header *)library)->magic == MH_CIGAM))) {
-      error(-1, "Can't remove dynamic libraries on darwin");
-      return -1;
-    }
-    if (UNLIKELY(!NSUnLinkModule(library, 0))) {
-      error(0, "unable to unlink module %s", NSNameOfModule(library));
-      return -1;
-    }
-    return 0;
-}
-
-void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
-    char  undersym[257];
-
-    if (UNLIKELY((int) strlen(procedureName) > 255)) {
-      error(-1, "Symbol name is too long");
-      return NULL;
-    }
-    sprintf(undersym, "_%s", procedureName);
-    return (void*) dlsymIntern(library, undersym);
 }
 
 #else /* case for platforms without shared libraries -- added 062404, akozar */
