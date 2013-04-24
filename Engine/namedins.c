@@ -25,11 +25,13 @@
 #include "namedins.h"
 #include <ctype.h>
 
+static const char* INSTR_NAME_FIRST = "::^inm_first^::";
+
 typedef struct namedInstr {
     int32        instno;
     char        *name;
     INSTRTXT    *ip;
-    struct namedInstr   *prv;
+    struct namedInstr   *next;
 } INSTRNAME;
 
 
@@ -148,20 +150,13 @@ int check_instr_name(char *s)
 int32 named_instr_find(CSOUND *csound, char *s)
 {
     INSTRNAME     *inm;
-    unsigned char h = name_hash(csound, s);   /* calculate hash value */
-    printf("hash of %s is %d\n",s,h);
+    
     if (!csound->engineState.instrumentNames)
       return 0L;                              /* no named instruments defined */
     /* now find instrument */
-    inm = ((INSTRNAME**) csound->engineState.instrumentNames)[h];
-    while (inm) {
-      if (!sCmp(inm->name, s)) {
-
-        return (int32) inm->instno;
-      }
-      inm = inm->prv;
-    }
-    return 0L;  /* not found */
+    inm = cs_hash_table_get(csound, csound->engineState.instrumentNames, s);
+    
+    return (inm == NULL) ? 0L : inm->instno;
 }
 
 /* allocate entry for named instrument ip with name s (s must not be freed */
@@ -174,19 +169,17 @@ int32 named_instr_find(CSOUND *csound, char *s)
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
                       int32 insno, ENGINE_STATE *engineState)
 {
-    INSTRNAME   **inm_base =
-      (INSTRNAME**) engineState->instrumentNames, *inm, *inm2;
-    unsigned char h = name_hash(csound, s);   /* calculate hash value */
-    printf("hash of %s is %d\n", s, h);
-    if (UNLIKELY(!inm_base))
-      /* no named instruments defined yet */
-      inm_base = engineState->instrumentNames =
-                 (void*) mcalloc(csound, sizeof(INSTRNAME*) * 258);
+    INSTRNAME *inm, *inm2, *inm_head;
+    
+    if (UNLIKELY(!engineState->instrumentNames))
+        engineState->instrumentNames = cs_hash_table_create(csound);
+    
     /* now check if instrument is already defined */
-    if ((inm = inm_base[h])) {
-      while (inm && sCmp(inm->name, s)) inm = inm->prv;
-      if (UNLIKELY(inm!=NULL)) return 0;        /* error: instr exists */
+    inm = cs_hash_table_get(csound, engineState->instrumentNames, s);
+    if (inm != NULL) {
+        return 0; /* error: instr exists */
     }
+    
     /* allocate entry, */
     inm = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
     inm2 = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
@@ -195,18 +188,23 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     inm2->instno = insno;
     inm2->name = (char*) inm;   /* hack */
     /* link into chain */
-    inm->prv = inm_base[h];
-    inm_base[h] = inm;
+    cs_hash_table_put(csound, engineState->instrumentNames, s, inm);
+   
+    inm_head = cs_hash_table_get(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
     /* temporary chain for use by named_instr_assign_numbers() */
-    if (!inm_base[256])
-      inm_base[256] = inm2;
-    else
-      inm_base[257]->prv = inm2;
-    inm_base[257] = inm2;
+    if (inm_head == NULL) {
+        cs_hash_table_put(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST, inm2);
+    } else {
+        while(inm_head->next != NULL) {
+            inm_head = inm_head->next;
+        }
+        inm_head->next = inm2;
+    }
+    
     if (UNLIKELY(csound->oparms->odebug) && engineState == &csound->engineState)
       csound->Message(csound,
-                      "named instr name = \"%s\", hash = %d, txtp = %p,\n",
-                      s, (int) h, (void*) ip);
+                      "named instr name = \"%s\", txtp = %p,\n",
+                      s, (void*) ip);
     return 1;
 }
 
@@ -215,19 +213,18 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
 
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
 {
-    INSTRNAME   *inm, *inm2, **inm_first, **inm_last;
+    INSTRNAME   *inm, *inm2, *inm_first;
     int     num = 0, insno_priority = 0;
 
     if (!engineState->instrumentNames) return;       /* no named instruments */
-    inm_first = (INSTRNAME**) engineState->instrumentNames + 256;
-    inm_last = inm_first + 1;
+    inm_first = cs_hash_table_get(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
 
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
         num = engineState->maxinsno;         /* find last used instr number */
         while (!engineState->instrtxtp[num] && --num);
       }
-      for (inm = *inm_first; inm; inm = inm->prv) {
+      for (inm = inm_first; inm; inm = inm->next) {
         if ((int) inm->instno != insno_priority) continue;
         /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
@@ -252,13 +249,13 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
       }
     }
     /* clear temporary chains */
-    inm = *inm_first;
+    inm = inm_first;
     while (inm) {
-      INSTRNAME *nxtinm = inm->prv;
+      INSTRNAME *nxtinm = inm->next;
       mfree(csound, inm);
       inm = nxtinm;
     }
-    *inm_first = *inm_last = NULL;
+    cs_hash_table_remove(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
 }
 
 
@@ -480,68 +477,6 @@ int find_opcode(CSOUND *csound, char *opname)
 
 /* -------- IV - Jan 29 2005 -------- */
 
-/* #define CSGLOBALS_USE_TREE  1 */
-
-#ifdef CSGLOBALS_USE_TREE
-
-static void fix_pointers_in_db(void **p,
-                               unsigned char *oldp, unsigned char *newp)
-{
-    void **pp;
-    int  i, j;
-    /* hack to fix pointers in globals database after realloc() */
-    for (i = 0; i < 16; i++) {
-      if (p[i] == (void*) NULL)
-        continue;       /* nothing here */
-      pp = (void**) ((unsigned char*) (p[i]) + (newp - oldp));
-      p[i] = (void*) pp;
-      for (j = 0; j < 16; j += 2) {
-        if (pp[j] != (void*) NULL) {
-          /* recursively search entire database */
-          pp[j] = (void*) ((unsigned char*) (pp[j]) + (newp - oldp));
-          fix_pointers_in_db((void**) pp[j], oldp, newp);
-        }
-      }
-    }
-}
-
-static void **extendNamedGlobals(CSOUND *p, int n, int storeIndex)
-{
-    void  **ptr = NULL;
-    int   i, oldlimit;
-
-    oldlimit = p->namedGlobalsCurrLimit;
-    p->namedGlobalsCurrLimit += n;
-    if (UNLIKELY(p->namedGlobalsCurrLimit > p->namedGlobalsMaxLimit)) {
-      void **new;
-      p->namedGlobalsMaxLimit = p->namedGlobalsCurrLimit;
-      p->namedGlobalsMaxLimit += (p->namedGlobalsMaxLimit >> 3);
-      p->namedGlobalsMaxLimit = (p->namedGlobalsMaxLimit + 15) & (~15);
-      ptr = p->namedGlobals;
-      new = (void**) realloc((void*) p->namedGlobals,
-                                         sizeof(void*)
-                                         * (size_t) p->namedGlobalsMaxLimit);
-      if (UNLIKELY(new == NULL)) {
-        p->namedGlobalsCurrLimit = p->namedGlobalsMaxLimit = 0;
-        free(p->namedGlobals);
-        return NULL;
-      }
-      if (p->namedGlobals != ptr && ptr != NULL) {
-        /* realloc() moved the data, need to fix pointers */
-        fix_pointers_in_db(p->namedGlobals, (unsigned char*) ptr,
-                                            (unsigned char*) p->namedGlobals);
-      }
-      /* clear new allocated space to zero */
-      for (i = oldlimit; i < p->namedGlobalsMaxLimit; i++)
-        p->namedGlobals[i] = (void*) NULL;
-    }
-    ptr = (void**) p->namedGlobals + (int) oldlimit;
-    if (storeIndex >= 0) {
-      /* if requested, store pointer to new area at specified array index */
-      p->namedGlobals[storeIndex] = (void*) ptr;
-    }
-    return ptr;
-}
 
 /**
  * Allocate nbytes bytes of memory that can be accessed later by calling
@@ -554,243 +489,12 @@ static void **extendNamedGlobals(CSOUND *p, int n, int storeIndex)
 PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
                                       const char *name, size_t nbytes)
 {
-    void    **p = NULL;
-    int     i, j, k, len;
-    /* create new empty database if it does not exist yet */
-    if (UNLIKELY(csnd->namedGlobals == NULL)) {
-      if (UNLIKELY(extendNamedGlobals(csnd, 16, -1) == (void**) NULL))
-        return CSOUND_MEMORY;
-    }
-    /* check for a valid name */
-    if (UNLIKELY(name == NULL))
-      return CSOUND_ERROR;
-    if (UNLIKELY(name[0] == '\0'))
-      return CSOUND_ERROR;
-    len = (int) strlen(name);
-    for (i = 0; i < len; i++)
-      if (UNLIKELY((unsigned char) name[i] >= (unsigned char) 0x80))
-        return CSOUND_ERROR;
-    /* cannot allocate zero bytes */
-    if (UNLIKELY((int) nbytes < 1))
-      return CSOUND_ERROR;
-    /* store in tree */
-    i = -1;
-    p = csnd->namedGlobals;
-    while (++i < (len - 1)) {
-      j = ((int) name[i] & 0x78) >> 3;  /* bits 3-6 */
-      k = ((int) name[i] & 0x07) << 1;  /* bits 0-2 */
-      if (UNLIKELY(p[j] == (void*) NULL)) {
-        p = extendNamedGlobals(csnd, 16, (int) ((void**) &(p[j])
-                                                - csnd->namedGlobals));
-        if (UNLIKELY(p == NULL))
-          return CSOUND_MEMORY;
-      }
-      else
-        p = (void**) (p[j]);
-      if (UNLIKELY(p[k] == (void*) NULL)) {
-        p = extendNamedGlobals(csnd, 16, (int) ((void**) &(p[k])
-                                                - csnd->namedGlobals));
-        if (UNLIKELY(p == NULL))
-          return CSOUND_MEMORY;
-      }
-      else
-        p = (void**) (p[k]);
-    }
-    j = ((int) name[i] & 0x78) >> 3;    /* bits 3-6 */
-    k = ((int) name[i] & 0x07) << 1;    /* bits 0-2 */
-    if (UNLIKELY(p[j] == (void*) NULL)) {
-      p = extendNamedGlobals(csnd, 16, (int) ((void**) &(p[j])
-                                              - csnd->namedGlobals));
-      if (UNLIKELY(p == NULL))
-        return CSOUND_MEMORY;
-    }
-    else
-      p = (void**) (p[j]);
-    if (UNLIKELY(p[k + 1] != (void*) NULL))
-      return CSOUND_ERROR;              /* name is already defined */
-    /* allocate memory and store pointer */
-    p[k + 1] = (void*) malloc(nbytes);
-    if (UNLIKELY(p[k + 1] == (void*) NULL))
-      return CSOUND_MEMORY;
-    memset(p[k + 1], 0, nbytes);        /* clear space to zero */
-    /* successfully finished */
-    return CSOUND_SUCCESS;
-}
-
-/**
- * Get pointer to space allocated with the name "name".
- * Returns NULL if the specified name is not defined.
- */
-PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
-{
-    void    **p = NULL;
-    int     i, j, k, len;
-    /* check if there is an actual database to search */
-    if (csnd->namedGlobals == NULL)
-      return NULL;
-    /* check for a valid name */
-    if (name == NULL)
-      return NULL;
-    if (name[0] == '\0')
-      return NULL;
-    len = (int) strlen(name);
-    /* search tree */
-    i = -1;
-    p = csnd->namedGlobals;
-    while (++i < (len - 1)) {
-      if (UNLIKELY((unsigned char) name[i] >= (unsigned char) 0x80))
-        return NULL;            /* invalid name: must be 7-bit ASCII */
-      j = ((int) name[i] & 0x78) >> 3;  /* bits 3-6 */
-      k = ((int) name[i] & 0x07) << 1;  /* bits 0-2 */
-      if (p[j] == (void*) NULL)
-        return NULL;            /* not found */
-      else
-        p = (void**) (p[j]);
-      if (p[k] == (void*) NULL)
-        return NULL;            /* not found */
-      else
-        p = (void**) (p[k]);
-    }
-    if (UNLIKELY((unsigned char) name[i] >= (unsigned char) 0x80))
-      return NULL;              /* invalid name: must be 7-bit ASCII */
-    j = ((int) name[i] & 0x78) >> 3;    /* bits 3-6 */
-    k = ((int) name[i] & 0x07) << 1;    /* bits 0-2 */
-    if (p[j] == (void*) NULL)
-      return NULL;              /* not found */
-    else
-      p = (void**) (p[j]);
-    /* return with pointer (will be NULL for undefined name) */
-    return ((void*) p[k + 1]);
-}
-
-/**
- * This function is the same as csoundQueryGlobalVariable(), except the
- * variable is assumed to exist and no error checking is done.
- * Faster, but may crash or return an invalid pointer if 'name' is
- * not defined.
- */
-PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
-{
-    void    **p = NULL;
-    int     i, j, k, len;
-
-    len = (int) strlen(name);
-    /* search tree */
-    i = -1;
-    p = csnd->namedGlobals;
-    while (++i < (len - 1)) {
-      j = ((int) name[i] & 0x78) >> 3;  /* bits 3-6 */
-      k = ((int) name[i] & 0x07) << 1;  /* bits 0-2 */
-      p = (void**) (p[j]);
-      p = (void**) (p[k]);
-    }
-    j = ((int) name[i] & 0x78) >> 3;    /* bits 3-6 */
-    k = ((int) name[i] & 0x07) << 1;    /* bits 0-2 */
-    p = (void**) (p[j]);
-    /* return with pointer */
-    return ((void*) p[k + 1]);
-}
-
-/**
- * Free memory allocated for "name" and remove "name" from the database.
- * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
- * not defined.
- */
-PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
-{
-    void    **p = NULL;
-    int     i, j, k, len;
-    /* check for a valid name */
-    if (UNLIKELY(csoundQueryGlobalVariable(csnd, name) == (void*) NULL))
-      return CSOUND_ERROR;
-    len = (int) strlen(name);
-    /* search tree (simple version, as the name will surely be found) */
-    i = -1;
-    p = csnd->namedGlobals;
-    while (++i < (len - 1)) {
-      j = ((int) name[i] & 0x78) >> 3;  /* bits 3-6 */
-      k = ((int) name[i] & 0x07) << 1;  /* bits 0-2 */
-      p = (void**) (p[j]);
-      p = (void**) (p[k]);
-    }
-    j = ((int) name[i] & 0x78) >> 3;    /* bits 3-6 */
-    k = ((int) name[i] & 0x07) << 1;    /* bits 0-2 */
-    p = (void**) (p[j]);
-    /* free memory and clear pointer */
-    free((void*) p[k + 1]);
-    p[k + 1] = (void*) NULL;
-    /* done */
-    return CSOUND_SUCCESS;
-}
-
-/* recursively free all allocated globals */
-
-static void free_global_variable(void **p)
-{
-    void **pp;
-    int  i, j;
-    for (i = 0; i < 16; i++) {
-      if (p[i] == (void*) NULL)
-        continue;       /* nothing here */
-      pp = (void**) p[i];
-      for (j = 0; j < 16; j += 2) {
-        if (pp[j + 1] != (void*) NULL) {
-          /* found allocated memory, free it now */
-          free((void*) pp[j + 1]);
-          pp[j + 1] = NULL;
-        }
-        /* recursively search entire database */
-        if (pp[j] != (void*) NULL)
-          free_global_variable((void**) pp[j]);
-      }
-    }
-}
-
-/**
- * Free entire global variable database. This function is for internal use
- * only (e.g. by RESET routines).
- */
-void csoundDeleteAllGlobalVariables(CSOUND *csound)
-{
-    csound->namedGlobalsCurrLimit = 0;
-    csound->namedGlobalsMaxLimit = 0;
-    if (csound->namedGlobals == NULL)
-      return;
-    free_global_variable(csound->namedGlobals);
-    free(csound->namedGlobals);
-    csound->namedGlobals = (void**) NULL;
-}
-
-#else   /* CSGLOBALS_USE_TREE */
-
-typedef struct GlobalVariableEntry_s {
-    struct GlobalVariableEntry_s *nxt;
-    unsigned char *name;
-    void *p;
-    void *dummy;
-} GlobalVariableEntry_t;
-
-/**
- * Allocate nbytes bytes of memory that can be accessed later by calling
- * csoundQueryGlobalVariable() with the specified name; the space is
- * cleared to zero.
- * Returns CSOUND_SUCCESS on success, CSOUND_ERROR in case of invalid
- * parameters (zero nbytes, invalid or already used name), or
- * CSOUND_MEMORY if there is not enough memory.
- */
-PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
-                                      const char *name, size_t nbytes)
-{
-    GlobalVariableEntry_t *p, **pp;
-    int                   i, structBytes, nameBytes, allocBytes;
-    unsigned char         h;
+    void* p;
     /* create new empty database if it does not exist yet */
     if (csnd->namedGlobals == NULL) {
-      csnd->namedGlobals = (void**) malloc(sizeof(void*) * 256);
+      csnd->namedGlobals = cs_hash_table_create(csnd);
       if (UNLIKELY(csnd->namedGlobals == NULL))
         return CSOUND_MEMORY;
-      for (i = 0; i < 256; i++)
-        csnd->namedGlobals[i] = (void*) NULL;
     }
     /* check for valid parameters */
     if (UNLIKELY(name == NULL))
@@ -799,43 +503,15 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
       return CSOUND_ERROR;
     if (UNLIKELY(nbytes < (size_t) 1 || nbytes >= (size_t) 0x7F000000L))
       return CSOUND_ERROR;
-    /* calculate hash value */
-    h = name_hash_2(csnd, name);
-    /* number of bytes to allocate */
-    structBytes = ((int) sizeof(GlobalVariableEntry_t) + 15) & (~15);
-    nameBytes = (((int) strlen(name) + 1) + 15) & (~15);
-    allocBytes = ((int) nbytes + 15) & (~15);
-    /* allocate memory */
-    i = structBytes + nameBytes + allocBytes;
-    p = (GlobalVariableEntry_t*) malloc((size_t) i);
+
+    if (cs_hash_table_get(csnd, csnd->namedGlobals, (char*)name) != NULL)
+      return CSOUND_ERROR;
+
+    p = mcalloc(csnd, nbytes);
     if (UNLIKELY(p == NULL))
       return CSOUND_MEMORY;
-    /* initialise structure */
-    memset((void*) p, 0, (size_t) i);
-    p->nxt = (GlobalVariableEntry_t*) NULL;
-    p->name = (unsigned char*) p + (int) structBytes;
-    p->p = (void*) ((unsigned char*) p + (int) (structBytes + nameBytes));
-    strcpy((char*) (p->name), name);
-    /* link into database */
-    if (csnd->namedGlobals[(int) h] == (void*) NULL) {
-      /* hash value is not used yet */
-      csnd->namedGlobals[(int) h] = (void*) p;
-      return CSOUND_SUCCESS;
-    }
-    /* need to search */
-    pp = (GlobalVariableEntry_t**) &(csnd->namedGlobals[(int) h]);
-    while (1) {
-      /* check for a conflicting name */
-      if (UNLIKELY(sCmp(name, (char*) ((*pp)->name)) == 0)) {
-        free((void*) p);
-        return CSOUND_ERROR;
-      }
-      if ((*pp)->nxt == NULL)
-        break;
-      pp = &((*pp)->nxt);
-    }
-    (*pp)->nxt = (GlobalVariableEntry_t*) p;
-    /* successfully finished */
+
+    cs_hash_table_put(csnd, csnd->namedGlobals, (char*)name, p);
     return CSOUND_SUCCESS;
 }
 
@@ -845,28 +521,14 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
  */
 PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
 {
-    GlobalVariableEntry_t *p;
-    unsigned char         h;
     /* check if there is an actual database to search */
-    if (csnd->namedGlobals == NULL)
-      return NULL;
+    if (csnd->namedGlobals == NULL) return NULL;
+    
     /* check for a valid name */
-    if (name == NULL)
-      return NULL;
-    if (name[0] == '\0')
-      return NULL;
-    /* calculate hash value */
-    h = name_hash_2(csnd, name);
-    /* search tree */
-    p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
-    if (p == NULL)
-      return NULL;
-    while (sCmp(name, (char*) (p->name)) != 0) {
-      p = (GlobalVariableEntry_t*) p->nxt;
-      if (p == NULL)
-        return NULL;
-    }
-    return (void*) (p->p);
+    if (name == NULL) return NULL;
+    if (name[0] == '\0') return NULL;
+
+    return cs_hash_table_get(csnd, csnd->namedGlobals, (char*) name);
 }
 
 /**
@@ -877,19 +539,7 @@ PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
  */
 PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
 {
-    GlobalVariableEntry_t *p;
-    unsigned char         h;
-
-    /* calculate hash value */
-    h = name_hash_2(csnd, name);
-    /* search tree */
-    p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
-    if (!p) {
-      return 0;
-    }
-    while (p->nxt != NULL && sCmp(name, (char*) (p->name)) != 0)
-      p = (GlobalVariableEntry_t*) p->nxt;
-    return (void*) (p->p);
+    return cs_hash_table_get(csnd, csnd->namedGlobals, (char*) name);
 }
 
 /**
@@ -899,27 +549,13 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
  */
 PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
 {
-    GlobalVariableEntry_t *p, *prvp;
-    unsigned char         h;
-
-    /* check for a valid name */
-    if (UNLIKELY(csoundQueryGlobalVariable(csnd, name) == (void*) NULL))
+    void *p = cs_hash_table_get(csnd, csnd->namedGlobals, (char*)name);
+    if (UNLIKELY(p == NULL))
       return CSOUND_ERROR;
-    /* calculate hash value */
-    h = name_hash_2(csnd, name);
-    /* search database (simple version, as the name will surely be found) */
-    prvp = NULL;
-    p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
-    while (sCmp(name, (char*) (p->name)) != 0) {
-      prvp = p;
-      p = (GlobalVariableEntry_t*) p->nxt;
-    }
-    if (prvp != NULL)
-      prvp->nxt = (struct GlobalVariableEntry_s *) (p->nxt);
-    else
-      csnd->namedGlobals[(int) h] = (void*) (p->nxt);
-    free((void*) p);
-    /* done */
+    
+    mfree(csnd, p);
+    cs_hash_table_remove(csnd, csnd->namedGlobals, (char*) name);
+    
     return CSOUND_SUCCESS;
 }
 
@@ -929,25 +565,12 @@ PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
  */
 void csoundDeleteAllGlobalVariables(CSOUND *csound)
 {
-    GlobalVariableEntry_t *p, *prvp;
-    int                   i;
-
-    if (csound->namedGlobals == NULL)
-      return;
-    for (i = 0; i < 256; i++) {
-      p = (GlobalVariableEntry_t*) csound->namedGlobals[i];
-      while (p != NULL) {
-        prvp = p;
-        p = (GlobalVariableEntry_t*) (p->nxt);
-        if (prvp != NULL)
-          free((void*) prvp);
-      }
-    }
-    free((void*) csound->namedGlobals);
-    csound->namedGlobals = (void**) NULL;
+    if (csound == NULL || csound->namedGlobals == NULL) return;
+    
+    cs_hash_table_free_complete(csound, csound->namedGlobals);
+    csound->namedGlobals = NULL;
 }
 
-#endif  /* CSGLOBALS_USE_TREE */
 
  /* ------------------------------------------------------------------------ */
 
