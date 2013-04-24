@@ -1379,7 +1379,7 @@ typedef struct NAME__ {
     EVTBLK        evt;
     void          *memalloc_db;
     MGLOBAL       *midiGlobals;
-    void          *envVarDB;
+    CS_HASH_TABLE *envVarDB;
     MEMFIL        *memfiles;
     PVOCEX_MEMFILE *pvx_memfiles;
     int           FFT_max_size;
