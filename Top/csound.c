@@ -2481,9 +2481,6 @@ PUBLIC void csoundSetKillGraphCallback(CSOUND *csound,
     csound->csoundKillGraphCallback_ = killGraphCallback;
 }
 
-#ifdef never
-
-#endif
 
 PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
                                        int (*exitGraphCallback)(CSOUND *))
@@ -3825,78 +3822,6 @@ static long csoundGetKcounter(CSOUND *csound){
 
 static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
-
-#ifdef never
-
-PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
-{
-    int done = 0;
-    int returnValue;
-
-    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (!(csound->engineStatus & CS_STATE_COMP)){
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
-      return CSOUND_ERROR;
-    }
-    /* setup jmp for return after an exit() */
-    if ((returnValue = setjmp(csound->exitjmp))) {
-#ifndef MACOSX
-      csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
-#endif
-      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
-    csoundLockMutex(csound->API_lock);
-    do {
-      done |= sensevents(csound);
-    } while (kperf(csound));
-    csoundUnlockMutex(csound->API_lock);
-    return done;
-}
-
-
-void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
-{                           /* Surely a memcpy*/
-    memcpy(dest, src, size*sizeof(MYFLT));
-}
-
-/* Old kperf code etc */
-
-#if defined(USE_OPENMP)
-inline void multiThreadedLayer(CSOUND *csound, INSDS *layerBegin, INSDS *layerEnd)
-{
-    // A single thread iterates over all instrument instances
-    // in the current layer...
-    INSDS *currentInstance;
-#pragma omp parallel
-    {
-#pragma omp single
-      {
-        for (currentInstance = layerBegin;
-             currentInstance && (currentInstance != layerEnd);
-             currentInstance = currentInstance->nxtact) {
-          // ...but each instance is computed in its own thread.
-#pragma omp task firstprivate(currentInstance)
-          {
-            OPDS *currentOpcode = (OPDS *)currentInstance;
-            while ((currentOpcode = currentOpcode->nxtp)) {
-              (*currentOpcode->opadr)(csound, currentOpcode);
-            }
-            currentInstance->ksmps_offset = 0; /* reset sample-accuracy offset */
-          }
-        }
-      }
-    }
-}
-static int defaultCsoundExitGraph(CSOUND *csound)
-{
-    (void) csound;
-    return CSOUND_SUCCESS;
-}
-#endif
-
-#endif
 
 
 //#ifdef __cplusplus
