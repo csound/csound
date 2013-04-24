@@ -431,6 +431,15 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->p1           = (MYFLT) insno;     /* set these required p-fields */
     ip->p2           = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
     ip->p3           = FL(-1.0);
+    ip->ksmps = csound->ksmps;
+    ip->ekr = csound->ekr;
+    ip->kcounter = csound->kcounter;
+    ip->onedksmps = csound->onedksmps;
+    ip->onedkr = csound->onedkr;
+    ip->kicvt = csound->kicvt;
+    //#endif
+    ip->pds = csound->pds;
+
     if (tp->psetdata != NULL) {
       MYFLT *pfld = &ip->p3;              /* if pset data present */
       MYFLT *pdat = tp->psetdata + 2;
