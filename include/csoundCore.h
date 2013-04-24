@@ -1371,9 +1371,7 @@ typedef struct NAME__ {
     int           maxfnum;
     GEN           *gensub;
     int           genmax;
-    void          **namedGlobals;
-    int           namedGlobalsCurrLimit;
-    int           namedGlobalsMaxLimit;
+    CS_HASH_TABLE *namedGlobals;
     CS_HASH_TABLE *cfgVariableDB;
     double        prvbt, curbt, nxtbt;
     double        curp2, nxtim;
