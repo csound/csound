@@ -1367,7 +1367,6 @@ int xoutset(CSOUND *csound, XOUT *p)
    This opcode sets the local ksmps for an instrument
    it can be used on any instrument with the implementation
    of a mechanism to perform at local ksmps (in kperf etc)
-   (NOT in PARCS yet)
 */
 
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
@@ -1479,6 +1478,11 @@ void timexpire(CSOUND *csound, double time)
     }
 }
 
+/**
+  this was rewritten for Csound 6 to allow
+  PARCS and local ksmps instruments
+*/
+
 int subinstr(CSOUND *csound, SUBINST *p)
 {
   OPDS    *saved_pds = CS_PDS;
@@ -1577,6 +1581,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
     early = p->h.insdshead->ksmps_no_end;
     offset = p->h.insdshead->ksmps_offset;
+    this_instr->spin = csound->spin;
+    this_instr->spout = csound->spout;
 
     /* global ksmps is the caller instr ksmps minus sample-accurate end */
     g_ksmps = CS_KSMPS - early;
@@ -1627,6 +1633,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
            ptr1 = *tmp; (*(++tmp))[ofs] = *ptr1;
         }
         this_instr->kcounter++;
+        this_instr->spout += csound->nchnls;
+        this_instr->spin  += csound->nchnls;
       } while (++ofs < g_ksmps);
     }
     else {
@@ -1688,6 +1696,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             *(ptr2++) = *(ptr1++);
           } while (--n);
         }
+        this_instr->spout += csound->nchnls*lksmps;
+        this_instr->spin  += csound->nchnls*lksmps;
         this_instr->kcounter++;
       } while ((ofs += this_instr->ksmps) < g_ksmps);
     }
