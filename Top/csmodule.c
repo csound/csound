@@ -461,8 +461,6 @@ int csoundLoadModules(CSOUND *csound)
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
-      /* if (csoundCheckOpcodePluginFile(csound, fname) != 0) */
-      /*   continue;     /\* skip file if marked for deferred loading *\/ */
       sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
 /*       printf("Loading: %s\n", buf); */
       n = csoundLoadExternal(csound, buf);
