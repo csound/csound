@@ -1523,7 +1523,7 @@ typedef struct NAME__ {
     void          *namedgen;            /* fgens.c */
     void          *open_files;          /* fileopen.c */
     void          *searchPathCache;
-    void          *sndmemfiles;
+    CS_HASH_TABLE *sndmemfiles;
     void          *reset_list;
     void          *pvFileTable;         /* pvfileio.c */
     int           pvNumFiles;
