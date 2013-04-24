@@ -567,33 +567,27 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     void          *fd;
     SNDMEMFILE    *p = NULL;
     SF_INFO       tmp;
-    unsigned char h;
 
 
     if (UNLIKELY(fileName == NULL || fileName[0] == '\0'))
       return NULL;
+    
     /* check if file is already loaded */
-    h = name_hash_2(csound, fileName);
     if (csound->sndmemfiles != NULL) {
-      p = ((SNDMEMFILE**) csound->sndmemfiles)[(int) h];
-      while (p != NULL && sCmp(p->name, fileName) != 0)
-        p = p->nxt;
+      p = cs_hash_table_get(csound, csound->sndmemfiles, (char*)fileName);
     }
     else {
-      int i;
-      /* if no files loaded yet, allocate table */
-      csound->sndmemfiles = csound->Malloc(csound, sizeof(SNDMEMFILE*) * 256);
-      for (i = 0; i < 256; i++)
-        ((SNDMEMFILE**) csound->sndmemfiles)[i] = NULL;
+      csound->sndmemfiles = cs_hash_table_create(csound);
     }
+    
     if (p != NULL) {
       /* if file was loaded earlier: */
       if (sfinfo != NULL) {
         memset(sfinfo, 0, sizeof(SF_INFO));
         sfinfo->frames = (sf_count_t) p->nFrames;
-         sfinfo->samplerate = ((int) p->sampleRate + 0.5);
-         sfinfo->channels = p->nChannels;
-         sfinfo->format = FORMAT2SF(p->sampleFormat) | TYPE2SF(p->fileType);
+        sfinfo->samplerate = ((int) p->sampleRate + 0.5);
+        sfinfo->channels = p->nChannels;
+        sfinfo->format = FORMAT2SF(p->sampleFormat) | TYPE2SF(p->fileType);
       }
       return p;
     }
@@ -651,7 +645,6 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
         p->scaleFac = pow(10.0, (double) lpd.gain * 0.05);
       }
     }
-    p->nxt = ((SNDMEMFILE**) csound->sndmemfiles)[(int) h];
     if ((size_t) sf_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
         != p->nFrames) {
       csound->FileClose(csound, fd);
@@ -669,8 +662,10 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
                             p->fullName, (int) sfinfo->samplerate,
                             (int) sfinfo->channels,
                             (uint32) sfinfo->frames);
+    
     /* link into database */
-    ((SNDMEMFILE**) csound->sndmemfiles)[(int) h] = p;
+    cs_hash_table_put(csound, csound->sndmemfiles, (char*)fileName, p);
+    
     /* return with pointer to file structure */
     return p;
 }
