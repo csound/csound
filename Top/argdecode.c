@@ -1214,7 +1214,7 @@ PUBLIC int csoundSetOption(CSOUND *csound, char *option){
   /* if already compiled and running, return */
   if(csound->engineStatus & CS_STATE_COMP) return 1;
   char *args[2] = {"csound", option};
-  return (argdecode(csound, 2, args) ? 0 : 1);
+  return (argdecode(csound, 1, args) ? 0 : 1);
 }
 
 PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
