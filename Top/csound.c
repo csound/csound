@@ -1309,6 +1309,8 @@ inline static int nodePerf(CSOUND *csound, int index)
           }
         opstart = (OPDS*)task_map[which_task];
         if(insds->ksmps == csound->ksmps) {
+        insds->spin = csound->spin;
+        insds->spout = csound->spout;
         insds->kcounter =  csound->kcounter;
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
@@ -1317,8 +1319,42 @@ inline static int nodePerf(CSOUND *csound, int index)
           opstart = opstart->insdshead->pds;
         }
         } else {
-          csoundWarning(csound,
-                        "local ksmps not yet implemented in parallel csound");
+                int i, n = csound->nspout, start = 0, active = -1;
+                int lksmps = insds->ksmps;
+                int incr = csound->nchnls*lksmps;
+                int offset =  insds->ksmps_offset;
+                int early = insds->ksmps_no_end;
+                OPDS  *opstart; 
+                insds->spin = csound->spin;
+                insds->spout = csound->spout;
+                insds->kcounter =  csound->kcounter*csound->ksmps;
+           
+                /* we have to deal with sample-accurate code 
+                   whole CS_KSMPS blocks are offset here, the
+                   remainder is left to each opcode to deal with.
+                */
+                while(offset >= lksmps) {
+                  offset -= lksmps;
+                  start += csound->nchnls;
+                }
+                insds->ksmps_offset = offset;
+                if(early){
+                  n -= (early*csound->nchnls);
+                  insds->ksmps_no_end = early % lksmps;
+		  }
+		
+               for (i=start; i < n; i+=incr, insds->spin+=incr, insds->spout+=incr) {
+                  opstart = (OPDS*) insds;
+                  active = csound->spoutactive;  
+                  while ((opstart = opstart->nxtp) != NULL) {
+                    opstart->insdshead->pds = opstart;
+                    (*opstart->opadr)(csound, opstart); /* run each opcode */
+                    opstart = opstart->insdshead->pds;
+                  }
+                  insds->kcounter++;
+                  csound->spoutactive = active; /* VL: not sure this is safe */
+                } 
+	       if(active >= 0) csound->spoutactive = 1; /* and this too */         	
         }
         insds->ksmps_offset = 0; /* reset sample-accuracy offset */
         insds->ksmps_no_end = 0;  /* reset end of loop samples */
@@ -1436,6 +1472,8 @@ int kperf(CSOUND *csound)
 
           if (ip->init_done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
+            ip->spin = csound->spin;
+            ip->spout = csound->spout;
             ip->kcounter =  csound->kcounter;
             if(ip->ksmps == csound->ksmps){
             while ((opstart = opstart->nxtp) != NULL) {
@@ -1444,101 +1482,42 @@ int kperf(CSOUND *csound)
               opstart = opstart->insdshead->pds;
             }
             } else {
-              if(ip->ksmps == 1){
-                MYFLT tmp[MAXCHNLS];
-                int i, j, nchnls = csound->nchnls, n = csound->nspout;
-                int offset =  ip->ksmps_offset*nchnls;
-                int early = ip->ksmps_no_end*nchnls;
-                OPDS  *opstart; 
-                MYFLT *spin = csound->spin;
-                MYFLT *spout = csound->spout;
-                MYFLT *auxspin = csound->auxspin;
-                ip->kcounter =  csound->kcounter*csound->ksmps;
-                memcpy(tmp,spout,nchnls*sizeof(MYFLT));
-                memcpy(auxspin,spin,n*sizeof(MYFLT));
-                if (!csound->spoutactive) {            
-                      memset(spout,0,n*sizeof(MYFLT));
-                 }
-
-                if(early) n -= early;
-
-                /* clear offsets, since with CS_KSMPS=1
-                   they don't apply to opcodes, but to the
-                   calling code (ie. this code)
-                 */
-                ip->ksmps_offset = 0;
-                ip->ksmps_no_end = 0;
-
-
-                for (i=offset; i < n; i+=nchnls) {
-                  memcpy(spin, &auxspin[i], sizeof(MYFLT)*nchnls);
-                  opstart = (OPDS*) ip;
-                  while ((opstart = opstart->nxtp) != NULL) {
-                    opstart->insdshead->pds = opstart;
-                    (*opstart->opadr)(csound, opstart); /* run each opcode */
-                    opstart = opstart->insdshead->pds;
-                  }
-                  if(i==offset) memcpy(tmp,spout, sizeof(MYFLT)*nchnls);
-                  else for(j=0; j < nchnls; j++)
-                         spout[j+i] += spout[j]; 
-                  memset(spout, 0, sizeof(MYFLT)*nchnls);
-                  ip->kcounter++;
-                }
-                memcpy(csound->spin, spin, sizeof(MYFLT)*csound->nspin);
-                for(j=0; j < nchnls; j++)
-                  spout[j] = tmp[j];
-              }
-              else { /* other local ksmps */
-                MYFLT tmp[MAXCHNLS];
-                int i, j, nchnls = csound->nchnls, 
-                    n = csound->nspout, ncpy, start=0;
+	        int i, n = csound->nspout, start = 0, active = -1;
                 int lksmps = ip->ksmps;
+                int incr = csound->nchnls*lksmps;
                 int offset =  ip->ksmps_offset;
                 int early = ip->ksmps_no_end;
                 OPDS  *opstart; 
-                MYFLT *spin = csound->spin;
-                MYFLT *spout = csound->spout;
-                MYFLT *auxspin = csound->auxspin;
-                ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
-                memcpy(tmp,spout,nchnls*sizeof(MYFLT));
-                memcpy(auxspin,spin,n*sizeof(MYFLT));
-                ncpy = nchnls*lksmps;
-                if (!csound->spoutactive) {            
-                      memset(spout,0,n*sizeof(MYFLT));
-                }
-                
+                ip->spin = csound->spin;
+                ip->spout = csound->spout;
+                ip->kcounter =  csound->kcounter*csound->ksmps;
+           
                 /* we have to deal with sample-accurate code 
                    whole CS_KSMPS blocks are offset here, the
                    remainder is left to each opcode to deal with.
                 */
                 while(offset >= lksmps) {
                   offset -= lksmps;
-                  start++;
+                  start += csound->nchnls;
                 }
                 ip->ksmps_offset = offset;
                 if(early){
-                  n -= (early*nchnls);
+                  n -= (early*csound->nchnls);
                   ip->ksmps_no_end = early % lksmps;
-                }
-
-                for(i=start; i < n; i+=ncpy){
-                  memcpy(spin, &auxspin[i], sizeof(MYFLT)*ncpy);
+		  }
+		
+               for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
+                  active = csound->spoutactive;
                   while ((opstart = opstart->nxtp) != NULL) {
                     opstart->insdshead->pds = opstart;
                     (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
-                  if(i==start) memcpy(tmp,spout, sizeof(MYFLT)*ncpy);
-                  else for(j=0; j < ncpy; j++)
-                         spout[j+i] += spout[j]; 
-                  memset(spout, 0, sizeof(MYFLT)*ncpy);
                   ip->kcounter++;
-                }
-                memcpy(csound->spin, spin, sizeof(MYFLT)*csound->nspin);
-                for(j=0; j < ncpy; j++)
-                  spout[j] = tmp[j];
-              }
+                  csound->spoutactive = active;
+                } 
+	       if(active >= 0) csound->spoutactive = 1;          
             }
           }
 
