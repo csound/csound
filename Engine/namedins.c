@@ -416,28 +416,6 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
 /* ----------------------------------------------------------------------- */
 /* the following functions are for efficient management of the opcode list */
 
-/* static CS_NOINLINE int loadPluginOpcode(CSOUND *csound, */
-/*                                         CsoundOpcodePluginFile_t *fp, */
-/*                                         const char *opname, int h) */
-/* { */
-/*     int     n; */
-
-/*     if (fp->isLoaded != 0) */
-/*       return 0; */
-/*     n = csoundLoadAndInitModule(csound, fp->fullName); */
-/*     if (UNLIKELY(n != 0)) { */
-/*       fp->isLoaded = -1; */
-/*       if (n != CSOUND_ERROR) */
-/*         csound->LongJmp(csound, (n == CSOUND_MEMORY ? n : CSOUND_ERROR)); */
-/*       return 0; */
-/*     } */
-/*     fp->isLoaded = 1; */
-/*     n = ((int*) csound->opcode_list)[h]; */
-/*     while (n && sCmp(csound->opcodlst[n].opname, opname)) */
-/*       n = csound->opcodlst[n].prvnum; */
-
-/*     return n; */
-/* } */
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
@@ -460,16 +438,6 @@ int find_opcode(CSOUND *csound, char *opname)
         return n;
       n = csound->opcodlst[n].prvnum;
     }
-    /* if (csound->pluginOpcodeDB != NULL) { */
-    /*   CsoundPluginOpcode_t  *p; */
-    /*   /\* not found, check for deferred plugin loading *\/ */
-    /*   p = ((CsoundPluginOpcode_t**) csound->pluginOpcodeDB)[h]; */
-    /*   while (p) { */
-    /*     if (!sCmp(opname, p->opname)) */
-    /*       return loadPluginOpcode(csound, p->fp, opname, h); */
-    /*     p = p->nxt; */
-    /*   } */
-    /* } */
 
     return 0;
 }
@@ -571,94 +539,3 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
     csound->namedGlobals = NULL;
 }
 
-
- /* ------------------------------------------------------------------------ */
-
-/**
- * The following functions implement deferred loading of opcode plugins.
- */
-
-/* returns non-zero if 'fname' (not full path) */
-/* is marked for deferred loading */
-
-#if 0
-int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
-{
-#if !(defined(LINUX) || defined(__unix__) || defined(__MACH__))
-    char                        buf[512];
-    size_t                      i;
-#endif
-    CsoundOpcodePluginFile_t    **pp, *p;
-    const char                  *s;
-    unsigned char               h;
-
-    if (fname == NULL || fname[0] == (char) 0)
-      return 0;
-#if !(defined(LINUX) || defined(__unix__) || defined(__MACH__))
-    /* on some platforms, file names are case insensitive */
-    i = (size_t) 0;
-    do {
-      if (isupper(fname[i]))
-        buf[i] = (char) tolower(fname[i]);
-      else
-        buf[i] = fname[i];
-      if (++i >= (size_t) 512)
-        return 0;
-    } while (fname[i] != (char) 0);
-    buf[i] = (char) 0;
-    s = &(buf[0]);
-#else
-    s = fname;
-#endif
-    pp = (CsoundOpcodePluginFile_t**) csound->pluginOpcodeFiles;
-    h = name_hash_2(csound, s);
-    p = (CsoundOpcodePluginFile_t*) NULL;
-    if (pp) {
-      p = pp[h];
-      while (p) {
-        if (!sCmp(p->fname, s))
-          break;
-        p = p->nxt;
-      }
-    }
-    if (!p)
-      return 0;
-    /* file exists, but is not loaded yet */
-    p->isLoaded = 0;
-    return 1;
-}
-
-int csoundLoadAllPluginOpcodes(CSOUND *csound)
-{
-    CsoundOpcodePluginFile_t    *p;
-    int                         i, err;
-
-    if (csound->pluginOpcodeFiles == NULL)
-      return CSOUND_SUCCESS;
-
-    err = CSOUND_SUCCESS;
-    for (i = 0; i < 256; i++) {
-      p = ((CsoundOpcodePluginFile_t**) csound->pluginOpcodeFiles)[i];
-      while (p) {
-        if (!p->isLoaded) {
-          int   retval;
-          retval = csoundLoadAndInitModule(csound, p->fullName);
-          p->isLoaded = (retval == 0 ? 1 : -1);
-          if (retval != 0 && retval != CSOUND_ERROR) {
-            /* record serious errors */
-            if (retval < err)
-              err = retval;
-          }
-        }
-        p = p->nxt;
-      }
-    }
-/*     csoundDestroyOpcodeDB(csound); */
-    /* report any errors */
-    return (err == 0 || err == CSOUND_MEMORY ? err : CSOUND_ERROR);
-}
-#endif
-
-#ifdef __cplusplus
-}
-#endif
