@@ -25,11 +25,13 @@
 #include "namedins.h"
 #include <ctype.h>
 
+static const char* INSTR_NAME_FIRST = "::^inm_first^::";
+
 typedef struct namedInstr {
     int32        instno;
     char        *name;
     INSTRTXT    *ip;
-    struct namedInstr   *prv;
+    struct namedInstr   *next;
 } INSTRNAME;
 
 
@@ -148,20 +150,13 @@ int check_instr_name(char *s)
 int32 named_instr_find(CSOUND *csound, char *s)
 {
     INSTRNAME     *inm;
-    unsigned char h = name_hash(csound, s);   /* calculate hash value */
-    printf("hash of %s is %d\n",s,h);
+    
     if (!csound->engineState.instrumentNames)
       return 0L;                              /* no named instruments defined */
     /* now find instrument */
-    inm = ((INSTRNAME**) csound->engineState.instrumentNames)[h];
-    while (inm) {
-      if (!sCmp(inm->name, s)) {
-
-        return (int32) inm->instno;
-      }
-      inm = inm->prv;
-    }
-    return 0L;  /* not found */
+    inm = cs_hash_table_get(csound, csound->engineState.instrumentNames, s);
+    
+    return (inm == NULL) ? 0L : inm->instno;
 }
 
 /* allocate entry for named instrument ip with name s (s must not be freed */
@@ -174,19 +169,17 @@ int32 named_instr_find(CSOUND *csound, char *s)
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
                       int32 insno, ENGINE_STATE *engineState)
 {
-    INSTRNAME   **inm_base =
-      (INSTRNAME**) engineState->instrumentNames, *inm, *inm2;
-    unsigned char h = name_hash(csound, s);   /* calculate hash value */
-    printf("hash of %s is %d\n", s, h);
-    if (UNLIKELY(!inm_base))
-      /* no named instruments defined yet */
-      inm_base = engineState->instrumentNames =
-                 (void*) mcalloc(csound, sizeof(INSTRNAME*) * 258);
+    INSTRNAME *inm, *inm2, *inm_head;
+    
+    if (UNLIKELY(!engineState->instrumentNames))
+        engineState->instrumentNames = cs_hash_table_create(csound);
+    
     /* now check if instrument is already defined */
-    if ((inm = inm_base[h])) {
-      while (inm && sCmp(inm->name, s)) inm = inm->prv;
-      if (UNLIKELY(inm!=NULL)) return 0;        /* error: instr exists */
+    inm = cs_hash_table_get(csound, engineState->instrumentNames, s);
+    if (inm != NULL) {
+        return 0; /* error: instr exists */
     }
+    
     /* allocate entry, */
     inm = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
     inm2 = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
@@ -195,18 +188,23 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     inm2->instno = insno;
     inm2->name = (char*) inm;   /* hack */
     /* link into chain */
-    inm->prv = inm_base[h];
-    inm_base[h] = inm;
+    cs_hash_table_put(csound, engineState->instrumentNames, s, inm);
+   
+    inm_head = cs_hash_table_get(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
     /* temporary chain for use by named_instr_assign_numbers() */
-    if (!inm_base[256])
-      inm_base[256] = inm2;
-    else
-      inm_base[257]->prv = inm2;
-    inm_base[257] = inm2;
+    if (inm_head == NULL) {
+        cs_hash_table_put(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST, inm2);
+    } else {
+        while(inm_head->next != NULL) {
+            inm_head = inm_head->next;
+        }
+        inm_head->next = inm2;
+    }
+    
     if (UNLIKELY(csound->oparms->odebug) && engineState == &csound->engineState)
       csound->Message(csound,
-                      "named instr name = \"%s\", hash = %d, txtp = %p,\n",
-                      s, (int) h, (void*) ip);
+                      "named instr name = \"%s\", txtp = %p,\n",
+                      s, (void*) ip);
     return 1;
 }
 
@@ -215,19 +213,18 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
 
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
 {
-    INSTRNAME   *inm, *inm2, **inm_first, **inm_last;
+    INSTRNAME   *inm, *inm2, *inm_first;
     int     num = 0, insno_priority = 0;
 
     if (!engineState->instrumentNames) return;       /* no named instruments */
-    inm_first = (INSTRNAME**) engineState->instrumentNames + 256;
-    inm_last = inm_first + 1;
+    inm_first = cs_hash_table_get(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
 
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
         num = engineState->maxinsno;         /* find last used instr number */
         while (!engineState->instrtxtp[num] && --num);
       }
-      for (inm = *inm_first; inm; inm = inm->prv) {
+      for (inm = inm_first; inm; inm = inm->next) {
         if ((int) inm->instno != insno_priority) continue;
         /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
@@ -252,13 +249,13 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
       }
     }
     /* clear temporary chains */
-    inm = *inm_first;
+    inm = inm_first;
     while (inm) {
-      INSTRNAME *nxtinm = inm->prv;
+      INSTRNAME *nxtinm = inm->next;
       mfree(csound, inm);
       inm = nxtinm;
     }
-    *inm_first = *inm_last = NULL;
+    cs_hash_table_remove(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
 }
 
 
