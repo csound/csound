@@ -94,8 +94,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
 #else
     {
       int    *lock =
-        csoundGetChannelLock(csound, (char*) name,
-                             CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+        csoundGetChannelLock(csound, (char*) name);
       csoundSpinLock(lock);
       *pval  = val;
       csoundSpinUnLock(lock);
