@@ -69,24 +69,25 @@ int check_instr_name(char *s);
 /* ------------------------------------------------------------------------ */
 
 char* strsav_string(CSOUND* csound, ENGINE_STATE* engineState, char* key) {
-    char* retVal = cs_hash_table_get_key(csound, csound->engineState.stringPool, key);
-    
+    char* retVal = cs_hash_table_get_key(csound,
+                                         csound->engineState.stringPool, key);
+
     if (retVal == NULL) {
         retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
     }
-    
+
     return retVal;
 }
 
 
 int pnum(char *s)        /* check a char string for pnum format  */
-/*   and return the pnum ( >= 0 )       */
-{                               /* else return -1                       */
+                         /*   and return the pnum ( >= 0 )       */
+{                        /* else return -1                       */
     int n;
 
     if (*s == 'p' || *s == 'P')
-        if (sscanf(++s, "%d", &n))
-            return(n);
+      if (sscanf(++s, "%d", &n))
+        return(n);
     return(-1);
 }
 
@@ -516,7 +517,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     /* start chain */
     ip->t.oentry = &csound->opcodlst[INSTR];
-    ip->t.opcod = strsav_string(csound, engineState, "instr"); /*  to hold global assigns */
+    /*  to hold global assigns */
+    ip->t.opcod = strsav_string(csound, engineState, "instr");
 
     /* The following differs from otran and needs review.  otran keeps a
      * nulllist to point to for empty lists, while this is creating a new list
@@ -689,7 +691,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     INSTRTXT *ip;
     OPTXT *op;
     TREE *current;
-   
+
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
@@ -705,7 +707,8 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
 
     /* start chain */
     ip->t.oentry = &csound->opcodlst[INSTR];
-    ip->t.opcod = strsav_string(csound, engineState, "instr"); /*  to hold global assigns */
+    /*  to hold global assigns */
+    ip->t.opcod = strsav_string(csound, engineState, "instr");
 
     /* The following differs from otran and needs review.  otran keeps a
      * nulllist to point to for empty lists, while this is creating a new list
@@ -757,7 +760,8 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
 
     /* Initialize */
     ip->t.oentry = &csound->opcodlst[INSTR];
-    ip->t.opcod = strsav_string(csound, engineState, "instr"); /*  to hold global assigns */
+    /*  to hold global assigns */
+    ip->t.opcod = strsav_string(csound, engineState, "instr");
 
     /* The following differs from otran and needs review.  otran keeps a
      * nulllist to point to for empty lists, while this is creating a new list
@@ -823,8 +827,9 @@ void close_instrument(CSOUND *csound, ENGINE_STATE* engineState, INSTRTXT * ip)
 
     bp = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
 
-    bp->t.oentry = &csound->opcodlst[ENDIN];  /*  send an endin to */
-    bp->t.opcod = strsav_string(csound, engineState, "endin");     /*  term instr 0 blk */
+    bp->t.oentry = &csound->opcodlst[ENDIN];        /*  send an endin to */
+    bp->t.opcod =
+      strsav_string(csound, engineState, "endin");  /*  term instr 0 blk */
     bp->t.outlist = bp->t.inlist = NULL;
 
     bp->nxtop = NULL;   /* terminate the optxt chain */
@@ -1026,9 +1031,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     ENGINE_STATE *current_state = &csound->engineState;
     INSTRTXT *current;
     int count;
-    
+
     cs_hash_table_merge(csound, current_state->stringPool, engineState->stringPool);
-    
+
     for (count = 0; count < engineState->constantsPool->count; count++) {
       csound->Message(csound, Str(" merging constants %d) %f\n"),
                       count, engineState->constantsPool->values[count]);
@@ -1110,7 +1115,7 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     /* FIXME: we need functions to deallocate stringPool, constantPool */
     mfree(csound, engineState->instrumentNames);
     myflt_pool_free(csound, engineState->constantsPool);
-    
+
     /* purposely using mfree and not cs_hash_table_free as keys will have
      been merged into csound->engineState */
     mfree(csound, engineState->stringPool);
@@ -1130,9 +1135,9 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 
    In any subsequent compilation run, it:
    1) Creates a new engineState
-   2) instrument 0 is treated as a global i-time instrument, header constants 
+   2) instrument 0 is treated as a global i-time instrument, header constants
       are ignored.
-   3) Creates other instruments 
+   3) Creates other instruments
    4) Calls engineState_merge() and engineState_free()
 
   VL 20-12-12
@@ -1441,7 +1446,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     delete_tree(csound, root);
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
-    
+
     /* run global i-time instr here in subsequent compilations */
     if(!firstTime) init0(csound);
     return retVal;
@@ -1583,9 +1588,10 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       arg->type = ARG_STRING;
       temp = mcalloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
-    
-      arg->argPtr = cs_hash_table_get_key(csound, csound->engineState.stringPool, temp);
-        
+
+      arg->argPtr = cs_hash_table_get_key(csound,
+                                          csound->engineState.stringPool, temp);
+
       if (arg->argPtr == NULL) {
         arg->argPtr = cs_hash_table_put_key(csound, engineState->stringPool, temp);
       }

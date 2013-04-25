@@ -26,7 +26,8 @@
 extern void     print_tree(CSOUND *, char *, TREE *);
 
 void header() {
-    printf("csanalyze - developer utility program to analyze Csound's compiler phases\n\n");
+    printf("csanalyze - developer utility program to analyze "
+           "Csound's compiler phases\n\n");
 }
 
 void usage() {

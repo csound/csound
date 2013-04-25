@@ -116,7 +116,7 @@ static  int     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
                                         const char *fname,
                                         long srate, long chans, long fftsize,
                                         long overlap, long winsize,
-                                        pv_wtype wintype, /*int verbose,*/
+                                        pv_wtype wintype,
                                         double beta, int displays);
 static  long    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
                                         long samps, int frametype);
@@ -163,7 +163,6 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
     double  beta = 6.8;
-    //int verbose = 0;
     int displays = 0;
 
 
@@ -237,9 +236,6 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
                 return quit(csound, Str("Failed to open text file"));
               csound->Message(csound, Str("Writing text form to file %s\n"), s);
             }
-          /* case 'v': */
-          /*   verbose = 1; */
-          /*   break; */
           default:
             return quit(csound, Str("unrecognised switch option"));
           }
@@ -304,7 +300,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     if (pvxanal(csound, p, infd, outfilnam, p->sr,
                         ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
-                WindowType, /*verbose,*/ beta, displays) != 0) {
+                WindowType, beta, displays) != 0) {
       csound->Message(csound, Str("error generating pvocex file.\n"));
       return -1;
     }
@@ -404,12 +400,11 @@ static void PVDisplay_Display(PVDISPLAY *p, int frame)
 
 /* Only supports PVOC_AMP_FREQ format for now */
 
-/* not sure how to use 'verbose' yet; but it's here...*/
 /* cannot add display code, as we may have 8 channels here...*/
 
 static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    long srate, long chans, long fftsize, long overlap,
-                   long winsize, pv_wtype wintype, /*int verbose,*/ double beta, int displays)
+                   long winsize, pv_wtype wintype, double beta, int displays)
 {
     int         i, k, pvfile = -1, rc = 0;
     pv_stype    stype = STYPE_16;

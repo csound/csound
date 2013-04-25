@@ -948,7 +948,7 @@ int tablength(CSOUND *csound, TABQUERY *p)
 static OENTRY arrayvars_localops[] =
 {
     { "init.0", sizeof(ARRAYINIT), 0, 1, "[.]", "m", (SUBR)array_init },
-    { "fill", sizeof(TABFILL), 0, 1, "[.]", "m", (SUBR)tabfill },
+    { "fill", sizeof(TABFILL), 0, 1, "[k]", "m", (SUBR)tabfill },
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", "[i]im", (SUBR)array_set },
     { "##array_set.i2", sizeof(ARRAY_SET), 0, 3, "", "[.].m",
                                             (SUBR)array_set, (SUBR)array_set },

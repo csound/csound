@@ -140,9 +140,9 @@ PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
       }
       return (const char*) getenv(name);
     }
-   
+
     if (csound->envVarDB == NULL) return NULL;
-    
+
     return (const char*) cs_hash_table_get(csound, csound->envVarDB, (char*)name);
 }
 
@@ -192,7 +192,7 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
     /* check for valid parameters */
     if (UNLIKELY(csound == NULL || !is_valid_envvar_name(name)))
       return CSOUND_ERROR;
-    
+
     /* invalidate search path cache */
     ep = (searchPathCacheEntry_t*) csound->searchPathCache;
     while (ep != NULL) {
@@ -202,14 +202,15 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
     }
     csound->searchPathCache = NULL;
 
-    
+
     oldValue = cs_hash_table_get(csound, csound->envVarDB, (char*)name);
     if (oldValue != NULL) {
         mfree(csound, oldValue);
     }
-   
-    cs_hash_table_put(csound, csound->envVarDB, (char*)name, cs_strdup(csound, (char*)value));
-    
+
+    cs_hash_table_put(csound, csound->envVarDB,
+                      (char*)name, cs_strdup(csound, (char*)value));
+
     /* print debugging info if requested */
     if (csound->oparms->odebug) {
       csoundMessage(csound, Str("Environment variable '%s' has been set to "),

@@ -571,7 +571,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
 
     if (UNLIKELY(fileName == NULL || fileName[0] == '\0'))
       return NULL;
-    
+
     /* check if file is already loaded */
     if (csound->sndmemfiles != NULL) {
       p = cs_hash_table_get(csound, csound->sndmemfiles, (char*)fileName);
@@ -579,7 +579,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     else {
       csound->sndmemfiles = cs_hash_table_create(csound);
     }
-    
+
     if (p != NULL) {
       /* if file was loaded earlier: */
       if (sfinfo != NULL) {
@@ -662,10 +662,10 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
                             p->fullName, (int) sfinfo->samplerate,
                             (int) sfinfo->channels,
                             (uint32) sfinfo->frames);
-    
+
     /* link into database */
     cs_hash_table_put(csound, csound->sndmemfiles, (char*)fileName, p);
-    
+
     /* return with pointer to file structure */
     return p;
 }

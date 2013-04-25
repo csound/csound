@@ -35,7 +35,8 @@
 * Plugins need to include this header file only, as it will bring all necessary
 * data structures to interact with Csound. It is not necessary for plugins
 * to link to the libcsound library, as plugin opcodes will always receive a
-* CSOUND* pointer (to the CSOUND_ struct) which contains all the API functions inside.
+* CSOUND* pointer (to the CSOUND_ struct) which contains all the API functions
+* inside.
 *
 * This is the basic template for a plugin opcode. See the manual for further
 * details on accepted types and function call rates. The use of the LINKAGE
@@ -94,7 +95,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 
 static OENTRY localops[] =
 {
-    { "opcode",   sizeof(OPCODE),  0, 3, "i",    "ii", (SUBR)op_init, (SUBR)op_k  }}
+  { "opcode",   sizeof(OPCODE),  0, 3, "i",    "ii", (SUBR)op_init, (SUBR)op_k }}
 };
 
 LINKAGE(localops)
@@ -144,7 +145,7 @@ PUBLIC int csoundModuleInfo(void)                                       \
  * which must have unique function names */
 
 #undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(name)                                                  \
+#define LINKAGE_BUILTIN(name)                                           \
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 {   (void) csound; *ep = name; return (long) (sizeof(name));  }         \
 PUBLIC int csoundModuleInfo(void)                                       \
@@ -159,7 +160,7 @@ PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
 #undef FLINKAGE_BUILTIN
-#define FLINKAGE_BUILTIN(name)                                                 \
+#define FLINKAGE_BUILTIN(name)                                          \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {   (void) csound; return name;                                     }   \
 PUBLIC int csoundModuleInfo(void)                                       \
