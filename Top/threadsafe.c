@@ -22,6 +22,8 @@
 #include "csoundCore.h"
 #include <stdlib.h>
 
+extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
+
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);
   csoundInputMessageInternal(csound, message);
