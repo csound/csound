@@ -890,7 +890,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
         INSDS *active = csound->dead_instr_pool[i]->instance;
         while (active != NULL) {
           if(active->actflg) {
-            add_to_deadpool(csound,csound->dead_instr_pool[i]);
+            // add_to_deadpool(csound,csound->dead_instr_pool[i]);
             break;
           }
           active = active->nxtinstance;
@@ -1436,6 +1436,7 @@ extern int init0(CSOUND *csound);
 PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
     int retVal;
+    OPDS *ids = csound->ids;
     int firstTime = csound->instr0 == NULL ? 1 : 0;
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
@@ -1447,8 +1448,9 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
 
-    /* run global i-time instr here in subsequent compilations */
+    /* run global i-time instr here in subsequent compilations */   
     if(!firstTime) init0(csound);
+    csound->ids = ids;
     return retVal;
 }
 
