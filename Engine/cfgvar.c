@@ -259,9 +259,9 @@ PUBLIC int
     if (UNLIKELY(retval != CSOUNDCFG_SUCCESS))
       return retval;
     /* link into database */
-   
+
     cs_hash_table_put(csound, csound->cfgVariableDB, (char*)name, pp);
-    
+
     /* report success */
     return CSOUNDCFG_SUCCESS;
 }
@@ -355,17 +355,17 @@ static int parse_cfg_variable(csCfgVariable_t *pp, const char *value)
         iVal = (int) atoi(value);
         return set_cfgvariable_value(pp, (void*) (&iVal));
       case CSOUNDCFG_BOOLEAN:
-        if (strcmp(value, "0") == 0 ||
-            strcmp(value, "no") == 0 || strcmp(value, "No") == 0 ||
-            strcmp(value, "NO") == 0 || strcmp(value, "off") == 0 ||
+        if (strcmp(value, "0") == 0   ||
+            strcmp(value, "no") == 0  || strcmp(value, "No") == 0  ||
+            strcmp(value, "NO") == 0  || strcmp(value, "off") == 0 ||
             strcmp(value, "Off") == 0 || strcmp(value, "OFF") == 0 ||
             strcmp(value, "false") == 0 || strcmp(value, "False") == 0 ||
             strcmp(value, "FALSE") == 0)
           *(pp->b.p) = 0;
-        else if (strcmp(value, "1") == 0 ||
+        else if (strcmp(value, "1") == 0   ||
                  strcmp(value, "yes") == 0 || strcmp(value, "Yes") == 0 ||
-                 strcmp(value, "YES") == 0 || strcmp(value, "on") == 0 ||
-                 strcmp(value, "On") == 0 || strcmp(value, "ON") == 0 ||
+                 strcmp(value, "YES") == 0 || strcmp(value, "on") == 0  ||
+                 strcmp(value, "On") == 0  || strcmp(value, "ON") == 0  ||
                  strcmp(value, "true") == 0 || strcmp(value, "True") == 0 ||
                  strcmp(value, "TRUE") == 0)
           *(pp->b.p) = 1;
@@ -419,7 +419,8 @@ PUBLIC csCfgVariable_t
     if (csound->cfgVariableDB == NULL) {
         return NULL;
     }
-    return (csCfgVariable_t*) cs_hash_table_get(csound, csound->cfgVariableDB, (char*)name);
+    return (csCfgVariable_t*) cs_hash_table_get(csound,
+                                                csound->cfgVariableDB, (char*)name);
 }
 
 /* compare function for qsort() */
@@ -440,7 +441,7 @@ static csCfgVariable_t **list_db_entries(CSOUND* csound, CS_HASH_TABLE *db)
 
     values = cs_hash_table_values(csound, db);
     cnt = cs_cons_length(values);
-    
+
     /* allocate memory for list */
     lst = (csCfgVariable_t**) mmalloc(csound, sizeof(csCfgVariable_t*)
                                      * (cnt + (size_t) 1));
@@ -454,7 +455,7 @@ static csCfgVariable_t **list_db_entries(CSOUND* csound, CS_HASH_TABLE *db)
         }
         qsort((void*) lst, cnt, sizeof(csCfgVariable_t*), compare_func);
     }
-    
+
     lst[cnt] = (csCfgVariable_t*) NULL;
     /* return pointer to list */
     return lst;
@@ -520,19 +521,19 @@ static int destroy_entire_db(CSOUND *csound, CS_HASH_TABLE *db)
     CONS_CELL *head, *current;
     if (db == NULL)
       return CSOUNDCFG_SUCCESS;
-    
+
     head = current = cs_hash_table_values(csound, db);
-    
+
     while (current != NULL) {
         if (current->value != NULL) {
              mfree(csound, current->value);
         }
         current = current->next;
     }
-    
+
     cs_cons_free(csound, head);
     cs_hash_table_free(csound, db);
-    
+
     return CSOUNDCFG_SUCCESS;
 }
 
@@ -562,4 +563,3 @@ PUBLIC const char *csoundCfgErrorCodeToString(int errcode)
     else
       return errmsg_list[(-errcode)];
 }
-

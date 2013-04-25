@@ -107,7 +107,7 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     //printf("Hash value for %s: %i\n", s, h);
 
     ORCTOKEN *a = cs_hash_table_get(csound, symbtab, s);
-    
+
     ORCTOKEN *ans;
     if (a!=NULL) {
       if (type == a->type) return a;
@@ -122,9 +122,9 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
     strcpy(ans->lexeme, s);
     ans->type = type;
-    
+
     cs_hash_table_put(csound, symbtab, s, ans);
-    
+
     return ans;
 }
 
@@ -167,7 +167,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     int type = T_IDENT;
     ORCTOKEN *a;
     ORCTOKEN *ans;
-    
+
     if (PARSER_DEBUG)
       csound->Message(csound, "Looking up token for: %s\n", s);
 
@@ -191,7 +191,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     }
 
     a = cs_hash_table_get(csound, symbtab, s);
-    
+
     if (a != NULL) {
       ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));
       memcpy(ans, a, sizeof(ORCTOKEN));
@@ -200,7 +200,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       strcpy(ans->lexeme, a->lexeme);
       return ans;
     }
-   
+
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
     strcpy(ans->lexeme, s);

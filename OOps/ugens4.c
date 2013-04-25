@@ -566,7 +566,7 @@ int arand(CSOUND *csound, RAND *p)
       }
       p->rand = rand;   /* save current rand */
     }
-    
+
     return OK;
 }
 
@@ -803,4 +803,3 @@ int randi(CSOUND *csound, RANDI *p)
     p->phs = phs;
     return OK;
 }
-

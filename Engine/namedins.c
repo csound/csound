@@ -150,12 +150,12 @@ int check_instr_name(char *s)
 int32 named_instr_find(CSOUND *csound, char *s)
 {
     INSTRNAME     *inm;
-    
+
     if (!csound->engineState.instrumentNames)
       return 0L;                              /* no named instruments defined */
     /* now find instrument */
     inm = cs_hash_table_get(csound, csound->engineState.instrumentNames, s);
-    
+
     return (inm == NULL) ? 0L : inm->instno;
 }
 
@@ -170,16 +170,16 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
                       int32 insno, ENGINE_STATE *engineState)
 {
     INSTRNAME *inm, *inm2, *inm_head;
-    
+
     if (UNLIKELY(!engineState->instrumentNames))
         engineState->instrumentNames = cs_hash_table_create(csound);
-    
+
     /* now check if instrument is already defined */
     inm = cs_hash_table_get(csound, engineState->instrumentNames, s);
     if (inm != NULL) {
         return 0; /* error: instr exists */
     }
-    
+
     /* allocate entry, */
     inm = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
     inm2 = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
@@ -189,18 +189,20 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     inm2->name = (char*) inm;   /* hack */
     /* link into chain */
     cs_hash_table_put(csound, engineState->instrumentNames, s, inm);
-   
-    inm_head = cs_hash_table_get(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
+
+    inm_head = cs_hash_table_get(csound, engineState->instrumentNames,
+                                 (char*)INSTR_NAME_FIRST);
     /* temporary chain for use by named_instr_assign_numbers() */
     if (inm_head == NULL) {
-        cs_hash_table_put(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST, inm2);
+        cs_hash_table_put(csound, engineState->instrumentNames,
+                          (char*)INSTR_NAME_FIRST, inm2);
     } else {
         while(inm_head->next != NULL) {
             inm_head = inm_head->next;
         }
         inm_head->next = inm2;
     }
-    
+
     if (UNLIKELY(csound->oparms->odebug) && engineState == &csound->engineState)
       csound->Message(csound,
                       "named instr name = \"%s\", txtp = %p,\n",
@@ -217,7 +219,8 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
     int     num = 0, insno_priority = 0;
 
     if (!engineState->instrumentNames) return;       /* no named instruments */
-    inm_first = cs_hash_table_get(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
+    inm_first = cs_hash_table_get(csound, engineState->instrumentNames,
+                                  (char*)INSTR_NAME_FIRST);
 
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
@@ -255,7 +258,8 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
       mfree(csound, inm);
       inm = nxtinm;
     }
-    cs_hash_table_remove(csound, engineState->instrumentNames, (char*)INSTR_NAME_FIRST);
+    cs_hash_table_remove(csound, engineState->instrumentNames,
+                         (char*)INSTR_NAME_FIRST);
 }
 
 
@@ -491,7 +495,7 @@ PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
 {
     /* check if there is an actual database to search */
     if (csnd->namedGlobals == NULL) return NULL;
-    
+
     /* check for a valid name */
     if (name == NULL) return NULL;
     if (name[0] == '\0') return NULL;
@@ -520,10 +524,10 @@ PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
     void *p = cs_hash_table_get(csnd, csnd->namedGlobals, (char*)name);
     if (UNLIKELY(p == NULL))
       return CSOUND_ERROR;
-    
+
     mfree(csnd, p);
     cs_hash_table_remove(csnd, csnd->namedGlobals, (char*) name);
-    
+
     return CSOUND_SUCCESS;
 }
 
@@ -534,8 +538,7 @@ PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
 void csoundDeleteAllGlobalVariables(CSOUND *csound)
 {
     if (csound == NULL || csound->namedGlobals == NULL) return;
-    
+
     cs_hash_table_free_complete(csound, csound->namedGlobals);
     csound->namedGlobals = NULL;
 }
-

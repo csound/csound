@@ -107,7 +107,7 @@ typedef struct {
                     (n<<8 & 0xFF0000L) | (n<<24 & 0xFF000000L))
 
 #define OCTRES     8192
-#define CPSOCTL(n) ((MYFLT)(1 << ((int)(n) >> 13)) * csound->cpsocfrc[(int)(n) & 8191])
+#define CPSOCTL(n) ((MYFLT)(1<<((int)(n)>>13))*csound->cpsocfrc[(int)(n)&8191])
 
 #define LOBITS     10
 #define LOFACT     1024
@@ -240,7 +240,8 @@ typedef struct {
     } OENTRY;
 
     // holds matching oentries from opcodeList
-    // has space for 16 matches and next pointer in case more are found (unlikely though)
+    // has space for 16 matches and next pointer in case more are found
+    // (unlikely though)
     typedef struct oentries {
         OENTRY* entries[16];
         int opnum[16];
@@ -462,8 +463,10 @@ typedef struct {
     /* opcodes to be run at note deactivation */
     void    *nxtd;
     uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
-    uint32_t no_end;      /* samps left at the end for sample accuracy (calculated) */
-    uint32_t ksmps_no_end; /* samps left at the end for sample accuracy (used by opcodes) */
+    uint32_t no_end;      /* samps left at the end for sample accuracy
+                             (calculated) */
+    uint32_t ksmps_no_end; /* samps left at the end for sample accuracy
+                              (used by opcodes) */
     MYFLT  *spin;         /* offset into csound->spin */
     MYFLT  *spout;        /* offset into csound->spout, or local spout, if needed */
     int    init_done;
@@ -1215,9 +1218,9 @@ typedef struct NAME__ {
       NB: if a new variable member is needed by the library, add it below, as a
       private data member.
 
-      If access is required solely by plugins (and not by internally by the library),
-      use the CreateGlobalVariable() etc. interface, instead of adding to
-      CSOUND.
+      If access is required solely by plugins (and not by internally by the
+      library), use the CreateGlobalVariable() etc. interface, instead of adding
+      to CSOUND.
 
       If you find that a plugin needs to access existing private data,
       first check above for an existing interface; if none is available,
@@ -1272,7 +1275,8 @@ typedef struct NAME__ {
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
     OPDS          *ids, *pds;       /* used by init and perf loops */
-    ENGINE_STATE  engineState;      /* current Engine State merged after compilation */
+    ENGINE_STATE  engineState;      /* current Engine State merged after
+                                       compilation */
     INSTRTXT      *instr0;          /* instr0     */
     INSTRTXT      **dead_instr_pool;
     int           dead_instr_no;

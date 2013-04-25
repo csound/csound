@@ -169,7 +169,7 @@ int vbap1_init(CSOUND *csound, VBAP1 *p)
     sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
     if (ls_table==NULL)
-      return csound->InitError(csound, 
+      return csound->InitError(csound,
                                Str("could not find layout table no.%d"),
                                (int)*p->layout );
     p->number = p->OUTOCOUNT;
