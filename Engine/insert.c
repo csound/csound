@@ -334,6 +334,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       csound->Message(csound, Str("instr %d now active:\n"), insno);
     showallocs(csound);
   }
+  csound->Message(csound, "new ip=%p \n", ip);
   return 0;
 }
 
@@ -767,6 +768,8 @@ void xturnoff_now(CSOUND *csound, INSDS *ip)
   xturnoff(csound, ip);
 }
 
+extern void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);
+
 void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
 {
   INSTRTXT  *txtp;
@@ -774,11 +777,14 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
   int       cnt = 0;
   for (txtp = &(csound->engineState.instxtanchor);
        txtp != NULL;  txtp = txtp->nxtinstxt) {
+    // csound->Message(csound, "txp=%p \n", txtp);
     if ((ip = txtp->instance) != NULL) {        /* if instance exists */
+      
       prvip = NULL;
       prvnxtloc = &txtp->instance;
       do {
         if (!ip->actflg) {
+          // csound->Message(csound, "ip=%p \n", ip);
           cnt++;
           if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
             mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
@@ -789,7 +795,9 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
           if ((nxtip = ip->nxtinstance) != NULL)
             nxtip->prvinstance = prvip;
           *prvnxtloc = nxtip;
+          
           mfree(csound, (char *)ip);
+          
         }
         else {
           prvip = ip;
@@ -798,6 +806,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
       }
       while ((ip = *prvnxtloc) != NULL);
     }
+    
     /* IV - Oct 31 2002 */
     if (!txtp->instance)
       txtp->lst_instance = NULL;              /* find last alloc */
@@ -806,7 +815,29 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
       while (ip->nxtinstance) ip = ip->nxtinstance;
       txtp->lst_instance = ip;
     }
+    
     txtp->act_instance = NULL;                /* no free instances */
+  }
+  /* check current items in deadpool to see if they need deleting */
+  {
+   int i;
+    for(i=0; i < csound->dead_instr_no; i++){
+      if(csound->dead_instr_pool[i] != NULL) {
+        INSDS *active = csound->dead_instr_pool[i]->instance;
+        while (active != NULL) {
+          if(active->actflg) {
+            // add_to_deadpool(csound,csound->dead_instr_pool[i]);
+            break;
+          }
+          active = active->nxtinstance;
+        }
+        /* no active instances */
+        if (active == NULL) {
+          free_instrtxt(csound, csound->dead_instr_pool[i]);
+          csound->dead_instr_pool[i] = NULL;
+        }
+      }
+    }
   }
   if (UNLIKELY(cnt))
     csound->Message(csound, Str("inactive allocs returned to freespace\n"));
