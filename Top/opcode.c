@@ -67,7 +67,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     int     i, cnt = 0;
 
     (*lstp) = NULL;
-   
+
     ep = (OENTRY*) csound->opcodlst;
     if (UNLIKELY(ep == NULL))
       return -1;
@@ -182,4 +182,3 @@ void list_opcodes(CSOUND *csound, int level)
     csound->Message(csound, "\n");
     csoundDisposeOpcodeList(csound, lst);
 }
-

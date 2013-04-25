@@ -550,7 +550,7 @@ static const CSOUND cenviron_ = {
     NULL,           /*  spout               */
     0,              /*  nspin               */
     0,              /*  nspout              */
-    NULL,           /*  auxspin  */ 
+    NULL,           /*  auxspin  */
     (OPARMS*) NULL, /*  oparms              */
        { NULL },       /*  m_chnbp             */
         0,                      /*   dither_output  */
@@ -1319,39 +1319,39 @@ inline static int nodePerf(CSOUND *csound, int index)
           opstart = opstart->insdshead->pds;
         }
         } else {
-                int i, n = csound->nspout, start = 0;
-                int lksmps = insds->ksmps;
-                int incr = csound->nchnls*lksmps;
-                int offset =  insds->ksmps_offset;
-                int early = insds->ksmps_no_end;
-                OPDS  *opstart; 
-                insds->spin = csound->spin;
-                insds->spout = csound->spout;
-                insds->kcounter =  csound->kcounter*csound->ksmps;
-           
-                /* we have to deal with sample-accurate code 
-                   whole CS_KSMPS blocks are offset here, the
-                   remainder is left to each opcode to deal with.
-                */
-                while(offset >= lksmps) {
-                  offset -= lksmps;
-                  start += csound->nchnls;
-                }
-                insds->ksmps_offset = offset;
-                if(early){
-                  n -= (early*csound->nchnls);
-                  insds->ksmps_no_end = early % lksmps;
-		  }
-		
-               for (i=start; i < n; i+=incr, insds->spin+=incr, insds->spout+=incr) {
-                  opstart = (OPDS*) insds; 
-                  while ((opstart = opstart->nxtp) != NULL) {
-                    opstart->insdshead->pds = opstart;
-                    (*opstart->opadr)(csound, opstart); /* run each opcode */
-                    opstart = opstart->insdshead->pds;
-                  }
-                  insds->kcounter++;
-                }          	
+          int i, n = csound->nspout, start = 0;
+          int lksmps = insds->ksmps;
+          int incr = csound->nchnls*lksmps;
+          int offset =  insds->ksmps_offset;
+          int early = insds->ksmps_no_end;
+          OPDS  *opstart;
+          insds->spin = csound->spin;
+          insds->spout = csound->spout;
+          insds->kcounter =  csound->kcounter*csound->ksmps;
+
+          /* we have to deal with sample-accurate code
+             whole CS_KSMPS blocks are offset here, the
+             remainder is left to each opcode to deal with.
+          */
+          while(offset >= lksmps) {
+            offset -= lksmps;
+            start += csound->nchnls;
+          }
+          insds->ksmps_offset = offset;
+          if(early){
+            n -= (early*csound->nchnls);
+            insds->ksmps_no_end = early % lksmps;
+          }
+
+          for (i=start; i < n; i+=incr, insds->spin+=incr, insds->spout+=incr) {
+            opstart = (OPDS*) insds;
+            while ((opstart = opstart->nxtp) != NULL) {
+              opstart->insdshead->pds = opstart;
+              (*opstart->opadr)(csound, opstart); /* run each opcode */
+              opstart = opstart->insdshead->pds;
+            }
+            insds->kcounter++;
+          }
         }
         insds->ksmps_offset = 0; /* reset sample-accuracy offset */
         insds->ksmps_no_end = 0;  /* reset end of loop samples */
@@ -1481,17 +1481,17 @@ int kperf(CSOUND *csound)
               opstart = opstart->insdshead->pds;
             }
             } else {
-	      int i, n = csound->nspout, start = 0;
+              int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
                 int incr = csound->nchnls*lksmps;
                 int offset =  ip->ksmps_offset;
                 int early = ip->ksmps_no_end;
-                OPDS  *opstart; 
+                OPDS  *opstart;
                 ip->spin = csound->spin;
                 ip->spout = csound->spout;
                 ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
-                
-                /* we have to deal with sample-accurate code 
+
+                /* we have to deal with sample-accurate code
                    whole CS_KSMPS blocks are offset here, the
                    remainder is left to each opcode to deal with.
                 */
@@ -1503,8 +1503,8 @@ int kperf(CSOUND *csound)
                 if(early){
                   n -= (early*csound->nchnls);
                   ip->ksmps_no_end = early % lksmps;
-		  }
-		
+                  }
+
                for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
                   while ((opstart = opstart->nxtp) != NULL) {
@@ -1513,7 +1513,7 @@ int kperf(CSOUND *csound)
                     opstart = opstart->insdshead->pds;
                   }
                   ip->kcounter++;
-                }         
+                }
             }
           }
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
@@ -2075,7 +2075,8 @@ PUBLIC void csoundKeyPress(CSOUND *csound, char c)
  */
 
 PUBLIC void
-csoundSetInputChannelCallback(CSOUND *csound,channelCallback_t inputChannelCalback)
+csoundSetInputChannelCallback(CSOUND *csound,
+                              channelCallback_t inputChannelCalback)
 {
     csound->InputChannelCallback_ = inputChannelCalback;
 }
@@ -2163,7 +2164,7 @@ static int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
     char    *s;
 
     /* find out if the use of dummy real-time audio functions was requested, */
-    /* or an unknown plugin name was specified; the latter case is an error */
+    /* or an unknown plugin name was specified; the latter case is an error  */
     s = (char*) csoundQueryGlobalVariable(csound, "_RTAUDIO");
     if (s != NULL && !(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
                        strcmp(s, "NULL") == 0)) {
@@ -2200,7 +2201,7 @@ static int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
     char    *s;
 
     /* find out if the use of dummy real-time audio functions was requested, */
-    /* or an unknown plugin name was specified; the latter case is an error */
+    /* or an unknown plugin name was specified; the latter case is an error  */
     s = (char*) csoundQueryGlobalVariable(csound, "_RTAUDIO");
     if (s != NULL && !(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
                        strcmp(s, "NULL") == 0)) {

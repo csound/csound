@@ -391,7 +391,7 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
     double  dur;
     SOUNDIN *p;
 
-    csound->SetUtilSr(csound, FL(0.0));         /* set esr 0. with no orchestra   */
+    csound->SetUtilSr(csound, FL(0.0));         /* set esr 0. with no orchestra */
     thissc->p = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
@@ -409,7 +409,8 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
 #define BUFFER_LEN (1024)
 
 static void
-ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile, SNDFILE *outfd, OPARMS *oparms)
+ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
+           SNDFILE *outfd, OPARMS *oparms)
 {
     MYFLT buffer[BUFFER_LEN];
     long  read_in;
@@ -453,10 +454,12 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile, SNDFILE *outfd, OPARM
                             tpersample * (double) minpos / (double) chans,
                             ((int) minpos % chans) + 1, (int) mintimes);
     csound->Message(csound, Str("Max scale factor = %.3f\n"),
-                            (double) csound->Get0dBFS(csound) / (max > -min ? max:-min));
+                            (double) csound->Get0dBFS(csound) / (max > -min ?
+                                                                 max:-min));
 }
 
-static float FindAndReportMax(CSOUND *csound, SCALE *thissc, SNDFILE *infile, OPARMS *oparms)
+static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
+                              SNDFILE *infile, OPARMS *oparms)
 {
     MYFLT   buffer[BUFFER_LEN];
     long    read_in;
@@ -497,7 +500,8 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc, SNDFILE *infile, OP
                             tpersample * (double) minpos / (double) chans,
                             ((int) minpos % chans) + 1, (int) mintimes);
     csound->Message(csound, Str("Max scale factor = %.3f\n"),
-                            (double) csound->Get0dBFS(csound)/ (max > -min ? max:-min));
+                            (double) csound->Get0dBFS(csound)/ (max > -min ?
+                                                                max:-min));
     return (float) (max > -min ? max : -min);
 }
 

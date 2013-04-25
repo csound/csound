@@ -54,12 +54,12 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len;
     char* retVal;
-    
+
     if (str == NULL) return NULL;
-    
+
     len = strlen(str);
     retVal = mmalloc(csound, (len + 1) * sizeof(char));
-    
+
     if(len > 0) memcpy(retVal, str, len * sizeof(char));
     retVal[len] = '\0';
 
@@ -69,10 +69,10 @@ char* cs_strdup(CSOUND* csound, char* str) {
 char* cs_strndup(CSOUND* csound, char* str, size_t size) {
     size_t len;
     char* retVal;
-    
+
     if (str == NULL || size == 0) return NULL;
     len = strlen(str);
-    
+
     if (size > len) { // catches if str is empty string
       return cs_strdup(csound, str);
     }

@@ -467,9 +467,10 @@ extern "C" {
         struct TREE   *left;
         struct TREE   *right;
         struct TREE   *next;
-        void          *markup;  // TEMPORARY - used by semantic checker to markup node
-                                // adds OENTRY or synthetic var names to expression nodes
-                                // should be moved to TYPE_TABLE
+        void          *markup;  // TEMPORARY - used by semantic checker to
+                                // markup node adds OENTRY or synthetic var
+                                // names to expression nodes should be moved
+                                // to TYPE_TABLE
     } TREE;
 
 
@@ -618,7 +619,7 @@ extern "C" {
      * Compiles Csound input files (such as an orchestra and score)
      * as directed by the supplied command-line arguments,
      * but does not perform them. Returns a non-zero error code on failure.
-     * This function cannot be called during performance, and before a 
+     * This function cannot be called during performance, and before a
      * repeated call, csoundReset() needs to be called.
      * In this (host-driven) mode, the sequence of calls should be as follows:
      * /code
@@ -1430,13 +1431,15 @@ extern "C" {
 
     /** Sets the function which will be called whenever the invalue opcode
      * is used. */
-    PUBLIC void csoundSetInputChannelCallback(CSOUND *csound,
-                                              channelCallback_t inputChannelCalback);
+    PUBLIC void
+    csoundSetInputChannelCallback(CSOUND *csound,
+                                  channelCallback_t inputChannelCalback);
 
     /** Sets the function which will be called whenever the outvalue opcode
      * is used. */
-    PUBLIC void csoundSetOutputChannelCallback(CSOUND *csound,
-                                               channelCallback_t outputChannelCalback);
+    PUBLIC void
+    csoundSetOutputChannelCallback(CSOUND *csound,
+                                   channelCallback_t outputChannelCalback);
 
     /**
      * Sends a PVSDATEX fin to the pvsin opcode (f-rate) for channel 'name'.

@@ -296,17 +296,17 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
 static int delete_channel_db(CSOUND *csound, void *p)
 {
     CONS_CELL *head, *values;
-    
+
     if (csound->chn_db == NULL) {
       return 0;
     }
-   
+
     head = values = cs_hash_table_values(csound, csound->chn_db);
 
     if (head != NULL) {
       while(values != NULL) {
           CHNENTRY* entry = values->value;
-          
+
           if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
             csound->Free(csound, entry->hints.attributes);
           }
@@ -314,7 +314,7 @@ static int delete_channel_db(CSOUND *csound, void *p)
       }
       cs_cons_free(csound, head);
     }
-    
+
     cs_hash_table_free_complete(csound, csound->chn_db);
     csound->chn_db = NULL;
     return 0;
@@ -384,7 +384,7 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
     s = name;
 //    if (UNLIKELY(!isalpha((unsigned char) *s)))
 //      return CSOUND_ERROR;
-    
+
     while (isalnum((unsigned char) *s) ||
            *s == (char) '_' || *s == (char) '-' || *s == (char) '.') s++;
     if (*s != (char) 0)
@@ -408,7 +408,7 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
     strcpy(&(pp->name[0]), name);
 
     cs_hash_table_put(csound, csound->chn_db, (char*)name, pp);
-    
+
     return CSOUND_SUCCESS;
 }
 
@@ -455,23 +455,23 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
     CHNENTRY  *pp;
     size_t     n;
     CONS_CELL* channels;
-    
+
     *lst = (controlChannelInfo_t*) NULL;
     if (csound->chn_db == NULL)
       return 0;
-    
+
     channels = cs_hash_table_values(csound, csound->chn_db);
     n = cs_cons_length(channels);
-    
+
     if (!n)
       return 0;
-    
+
     /* create list, initially in unsorted order */
     // TODO - should this be malloc or mmalloc?
     *lst = (controlChannelInfo_t*) malloc(n * sizeof(controlChannelInfo_t));
     if (UNLIKELY(*lst == NULL))
       return CSOUND_MEMORY;
-   
+
     n = 0;
     while (channels != NULL) {
       pp = channels->value;
@@ -480,7 +480,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
       channels = channels->next;
       n++;
     }
-    
+
     /* sort list */
     qsort((void*) (*lst), n, sizeof(controlChannelInfo_t), cmp_func);
     /* return the number of channels */
