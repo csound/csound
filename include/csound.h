@@ -1377,24 +1377,12 @@ extern "C" {
             controlChannelHints_t *hints);
 
     /**
-     * Recovers a pointer to a lock for the specified channel of the bus in *p
-     * which must exist.
-     * 'type' must be the bitwise OR of exactly one of the following values,
-     *   CSOUND_CONTROL_CHANNEL
-     *     control data (one MYFLT value)
-     *   CSOUND_AUDIO_CHANNEL
-     *     audio data (csoundGetKsmps(csound) MYFLT values)
-     *   CSOUND_STRING_CHANNEL
-     *     string data (MYFLT values with enough space to store
-     *     csoundGetStrVarMaxLen(csound) characters, including the
-     *     NULL character at the end of the string)
-     * and at least one of these:
-     *   CSOUND_INPUT_CHANNEL
-     *   CSOUND_OUTPUT_CHANNEL
-     * Return value is the address of the lock
+     * Recovers a pointer to a lock for the specified channel called 'name'.
+     * The returned lock can be locked/unlocked  with the csoundSpinLock()
+     * and csoundSpinUnLock() functions.
+     * @returns the address of the lock or NULL if the channel does not exist
      */
-    PUBLIC int *csoundGetChannelLock(CSOUND *,
-            const char *name, int type);
+    PUBLIC int *csoundGetChannelLock(CSOUND *, const char *name);
 
     /**
      * retrieves the value of control channel identified by *name.
@@ -1829,19 +1817,18 @@ extern "C" {
      * Use spinlocks to protect access to shared data, especially in functions
      * that do little more than read or write such data, for example:
      *
+     * @code
+     * static int lock = 0;
      * void write(size_t frames, int* signal)
      * {
-     *   static int lock = 0;
      *   csoundSpinLock(&lock);
      *   for (size_t frame = 0; i < frames; frame++) {
      *     global_buffer[frame] += signal[frame];
      *   }
      *   csoundSpinUnlock(&lock);
      * }
+     * @endcode
      */
-
-    /* PUBLIC void csoundSpinLock(int32_t *spinlock)   */
-    /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
 
     /* PUBLIC void csoundSpinLock(int32_t *spinlock)   */
     /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */

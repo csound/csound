@@ -285,7 +285,7 @@ void test_chn_hints(void)
     csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc6);
     int err = csoundStart(csound);
-    err = csoundPerformKsmps(csound); //Need this to load instr 0
+//    err = csoundPerformKsmps(csound); //Need this to load instr 0
     controlChannelHints_t hints;
     hints.attributes = 0;
     CU_ASSERT_EQUAL(0, csoundGetControlChannelHints(csound, "chan", &hints));
