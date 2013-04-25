@@ -841,7 +841,7 @@ void close_instrument(CSOUND *csound, ENGINE_STATE* engineState, INSTRTXT * ip)
     }
 
     current->nxtop = bp;
-    ip->mdepends = ip->mdepends; // ODD!!!!
+    //ip->mdepends = ip->mdepends; // ODD!!!!
     ip->pextrab = ((n = ip->pmax - 3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
     ip->pextrab = ((int) ip->pextrab + 7) & (~7);
     ip->muted = 1;
@@ -874,6 +874,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
      mfree(csound, ip);
      csound->Message(csound, Str("-- deleted instr from deadpool \n"));
 }
+
+
 
 /**
  * This function has two purposes:
@@ -962,7 +964,12 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
         active = active->nxtinstance;
       }
       /* no active instances */
-      if (active == NULL) free_instrtxt(csound, engineState->instrtxtp[instrNum]);
+      if (active == NULL) {
+	csound->Message(csound, "no active instances \n");
+        free_instrtxt(csound, engineState->instrtxtp[instrNum]);
+
+
+      }
       /* err++; continue; */
     }
  end:
@@ -1096,17 +1103,18 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       int j;
       current = current_state->instrtxtp[i];
       if(current != NULL){
-        csound->Message(csound, "instr %d \n", i);
+        csound->Message(csound, "instr %d \n", i, current);
         current->nxtinstxt = NULL;
         j = i;
         while(++j < end-1) {
           if(current_state->instrtxtp[j] != NULL){
-            current->nxtinstxt = current_state->instrtxtp[j];
-            break;
+	  current->nxtinstxt = current_state->instrtxtp[j];
+	  break;
           }
         }
       }
     }
+    (&(current_state->instxtanchor))->nxtinstxt = csound->instr0;
     return 0;
 }
 
@@ -1115,7 +1123,6 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     /* FIXME: we need functions to deallocate stringPool, constantPool */
     mfree(csound, engineState->instrumentNames);
     myflt_pool_free(csound, engineState->constantsPool);
-
     /* purposely using mfree and not cs_hash_table_free as keys will have
      been merged into csound->engineState */
     mfree(csound, engineState->stringPool);
@@ -1403,27 +1410,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       *((MYFLT *)(var->memBlock)) = csound->inchnls;
 
     }
-
-    ip = &(csound->engineState.instxtanchor);
-    ip = ip->nxtinstxt;
-    for (sumcount = 0; (ip = ip->nxtinstxt) != NULL; ) {/* for each instxt */
-      OPTXT *optxt = (OPTXT *) ip;
-      int optxtcount = 0;
-      while ((optxt = optxt->nxtop) != NULL) {      /* for each op in instr  */
-        TEXT *ttp = &optxt->t;
-        optxtcount += 1;
-        if (ttp->oentry == &csound->opcodlst[ENDIN] /*    (until ENDIN)      */
-            || ttp->oentry == &csound->opcodlst[ENDOP]) break;
-        if ((count = ttp->inlist->count)!=0)
-          sumcount += count +1;                     /* count the non-nullist */
-        if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
-          sumcount += (count + 1);
-      }
-      ip->optxtcount = optxtcount;                  /* optxts in this instxt */
-    }
+    
     if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
+    
     return CSOUND_SUCCESS;
 }
 
@@ -1440,17 +1431,23 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     int firstTime = csound->instr0 == NULL ? 1 : 0;
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
+
     retVal = csoundCompileTree(csound, root);
+
     }
     else
       return  CSOUND_ERROR;
     delete_tree(csound, root);
+
+
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
 
     /* run global i-time instr here in subsequent compilations */   
     if(!firstTime) init0(csound);
     csound->ids = ids;
+    
+
     return retVal;
 }
 

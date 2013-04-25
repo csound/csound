@@ -129,7 +129,7 @@ void mfree(CSOUND *csound, void *p)
     if (UNLIKELY(p == NULL))
       return;
     pp = HDR_PTR(p);
-#ifdef MEMDEBUG
+ #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
       csound->Warning(csound, "mfree() called with invalid "
                       "pointer (%p)", p);
@@ -140,7 +140,7 @@ void mfree(CSOUND *csound, void *p)
       return;
     }
     pp->magic = 0;
-#endif
+ #endif
     CSOUND_MEM_SPINLOCK
     /* unlink from chain */
     {
@@ -152,6 +152,7 @@ void mfree(CSOUND *csound, void *p)
       else
         MEMALLOC_DB = (void*)nxt;
     }
+    //csound->Message(csound, "free\n");
     /* free memory */
     free((void*) pp);
     CSOUND_MEM_SPINUNLOCK

@@ -285,7 +285,7 @@ typedef struct {
     int     mdepends;               /* Opcode type (i/k/a) */
     CS_VAR_POOL* varPool;
 
-    int     optxtcount;
+    //    int     optxtcount;
     int16   muted;
 //    int32   localen;
     int32   opdstot;                /* Total size of opds structs in instr */
