@@ -249,14 +249,12 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
   if (csound->realtime_audio_flag == 0) {
     /* do init pass for this instr */
-    OPDS *saved_ids;
     while ((csound->ids = csound->ids->nxti) != NULL) {
       if (O->odebug)
         csound->Message(csound, "init %s:\n",
                         csound->ids->optext->t.oentry->opname);
       (*csound->ids->iopadr)(csound, csound->ids);
-    }
-    
+    } 
     ip->init_done = 1;
   }
 
@@ -1429,7 +1427,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
 
   return OK;
 }
-
+ 
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */
 /* named instrument) */
 
