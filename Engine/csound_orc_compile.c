@@ -942,6 +942,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
     }
 
     if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
+      instrtxt->isNew = 1;
       /* redefinition does not raise an error now, just a warning */
       if(instrNum) csound->Warning(csound,
                       Str("instr %ld redefined, replacing previous definition"),
@@ -973,7 +974,8 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       /* err++; continue; */
     }
  end:
-    instrtxt->isNew = 1;
+    
+    instrtxt->instance = instrtxt->act_instance = instrtxt->lst_instance = NULL;
     engineState->instrtxtp[instrNum] = instrtxt;
 
 }
