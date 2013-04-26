@@ -432,6 +432,8 @@ typedef struct {
     struct insds * nxtolap;
     /* Instrument number */
     int16   insno;
+    /* Instrument def address */
+    INSTRTXT *instr;
     /* non-zero for sustaining MIDI note */
     int16   m_sust;
     /* MIDI pitch, for simple access */
