@@ -102,7 +102,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
   if (csound->advanceCnt)
     return 0;
-  if (UNLIKELY(O->odebug)) {
+   if (UNLIKELY(O->odebug)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
       csound->Message(csound, Str("activating instr %s at %d\n"),
@@ -110,7 +110,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     else
       csound->Message(csound, Str("activating instr %d at %d\n"),
                       insno, csound->icurTime);
-  }
+     }
   csound->inerrcnt = 0;
   tp = csound->engineState.instrtxtp[insno];
   if (UNLIKELY(tp->muted == 0)) {
@@ -164,7 +164,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
     }
     instance(csound, insno);
-    tp->isNew = 0;
+    tp->isNew=0;
   }
   /* pop from free instance chain */
   ip = tp->act_instance;
@@ -388,7 +388,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     instance(csound, insno);
     tp->isNew = 0;
-  }
+  } 
   /* pop from free instance chain */
   ip = tp->act_instance;
   tp->act_instance = ip->nxtact;
@@ -690,8 +690,10 @@ static void deact(CSOUND *csound, INSDS *ip)
   ip->actflg = 0;
   /* link into free instance chain */
   /* This also destroys ip->nxtact causing loops */
+  if(csound->engineState.instrtxtp[ip->insno] == ip->instr){
   ip->nxtact = csound->engineState.instrtxtp[ip->insno]->act_instance;
   csound->engineState.instrtxtp[ip->insno]->act_instance = ip;
+  }
   if (ip->fdchp != NULL)
     fdchclose(csound, ip);
   csound->dag_changed++;
@@ -1942,6 +1944,7 @@ static void instance(CSOUND *csound, int insno)
                         (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
   ip->csound = csound;
   ip->m_chnbp = (MCHNBLK*) NULL;
+  ip->instr = tp;
   /* IV - Oct 26 2002: replaced with faster version (no search) */
   ip->prvinstance = tp->lst_instance;
   if (tp->lst_instance)
@@ -1953,7 +1956,7 @@ static void instance(CSOUND *csound, int insno)
   ip->nxtact = tp->act_instance;
   tp->act_instance = ip;
   ip->insno = insno;
-  /* IV - Nov 10 2002 */
+ 
   if (insno > csound->engineState.maxinsno) {
     size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
     pcnt += (size_t) tp->opcode_info->perf_outcnt;
