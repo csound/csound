@@ -1160,7 +1160,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     INSTRTXT    *prvinstxt;
     OPTXT       *bp;
     char        *opname;
-    int32        count, sumcount; //, instxtcount, optxtcount;
     TREE * current = root;
     ENGINE_STATE *engineState;
     CS_VARIABLE* var;
@@ -1361,11 +1360,15 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     csoundLockMutex(csound->API_lock);
     if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     if(engineState != &csound->engineState) {
+      OPDS *ids = csound->ids;
       /* any compilation other than the first one */
       /* merge ENGINE_STATE */
       engineState_merge(csound, engineState);
       /* delete ENGINE_STATE  */
       engineState_free(csound, engineState);
+      /* run global i-time code */
+      init0(csound);
+      csound->ids = ids;
     }
     else {
       /* first compilation */
@@ -1427,8 +1430,6 @@ extern int init0(CSOUND *csound);
 PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
     int retVal;
-    OPDS *ids = csound->ids;
-    int firstTime = csound->instr0 == NULL ? 1 : 0;
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
 
@@ -1437,17 +1438,10 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     }
     else
       return  CSOUND_ERROR;
-    delete_tree(csound, root);
-
-
+    delete_tree(csound, root);    
+   
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
-
-    /* run global i-time instr here in subsequent compilations */   
-    if(!firstTime) init0(csound);
-    csound->ids = ids;
-    
-
     return retVal;
 }
 
