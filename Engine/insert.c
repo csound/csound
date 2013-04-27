@@ -529,25 +529,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
                       pfield, pfields[index]);
     }
   }
-  /*
-    the code above assumes &p1 is a pointer to an array of N pfields, but
-    this is wrong. It overwrites memory and uses it for passing p-field
-    values. When the overwritten memory is taken to be a pointer in the
-    loop below, the loop does not stop at the end of the opcode list
-    and causes iopadr to be garbage, leading to a segfault.
-    This happens where there is exactly one opcode in an instrument.
-    It is a nasty bug that needs to be fixed.
-
-    A possible solution is to  allocate always a minimum of 5 p-fields (see line
-    approx 1809 below). The extra p-fields appear to be hanging at the end of
-    an INSDS structure, and &p1 appears to be a legal array start address.
-    This allows p4 and p5 to be mapped, but no further p-fields (possibly).
-
-    This fix is a bit of hack IMHO. But I have implemented it here, as it
-    seemingly prevents the crashes.
-
-    (JPff) a safer fix to readthe extra arg numbers
-  */
+ 
 
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
@@ -1919,17 +1901,13 @@ static void instance(CSOUND *csound, int insno)
   char      *nxtopds, *opdslim;
   MYFLT     **argpp, *lclbas, /* *gbloffbas,*/ *lcloffbas;
   char*     opMemStart;
-  //    int       *ndxp;
+ 
   OPARMS    *O = csound->oparms;
   int       odebug = O->odebug;
   ARG*          arg;
   int       argStringCount;
 
-  //    lopdsp = csound->lopds;
-  //    largp = (LARGNO*) csound->larg;
   tp = csound->engineState.instrtxtp[insno];
-  /* VL: added 2 extra MYFLT pointers to the memory to account for possible
-     use by midi mapping flags */
   n = 3;
   if (O->midiKey>n) n = O->midiKey;
   if (O->midiKeyCps>n) n = O->midiKeyCps;
@@ -2091,29 +2069,12 @@ static void instance(CSOUND *csound, int insno)
                         arg->type);
       }
     }
-    //      for ( ; n < cnt; n++) {
-    //        int   indx = *(ndxp++);
-    //        if (indx > 0)                           /* cvt ndx to lcl/gbl */
-    //          argpp[n] = gbloffbas + indx;
-    //        else if (indx >= LABELIM)
-    //          argpp[n] = lcloffbas + (-indx);
-    //        else {                                  /* if label ref, defer */
-    //          largp->lblno = indx - LABELOFS;
-    //          largp->argpp = &(argpp[n]);
-    //          largp++;
-    //        }
-    //      }
+  
   }
 
   if (UNLIKELY(nxtopds > opdslim))
     csoundDie(csound, Str("inconsistent opds total"));
-  /* } */
-
-  // FIXME - label handling
-  //    while (largp > (LARGNO*) csound->larg) {    /* now label refs */
-  //      largp--;
-  //      *largp->argpp = (MYFLT*) csound->lopds[largp->lblno];
-  //    }
+  
 }
 
 int prealloc(CSOUND *csound, AOP *p)
