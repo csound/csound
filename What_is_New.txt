@@ -88,12 +88,12 @@ operation.
 
 
 Arrays exist in multidimensional format.  They are created (usually)
-with init opcode or fill
+with init opcode or fillarray
   k1[]  init 4
 generates a k-rate 1-D array of length 4.  Similarly
   a2[][] init 4,4
 create a square 4x4 a-rate array.
-  k2[]  fill 1,2,3,4
+  k2[]  fillarray 1,2,3,4
 creates a 4-element vector filled with 1,..4, which also defines the
 length.
 
