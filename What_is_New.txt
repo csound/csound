@@ -88,12 +88,12 @@ operation.
 
 
 Arrays exist in multidimensional format.  They are created (usually)
-with init opcode or fill
+with init opcode or fillarray
   k1[]  init 4
 generates a k-rate 1-D array of length 4.  Similarly
   a2[][] init 4,4
 create a square 4x4 a-rate array.
-  k2[]  fill 1,2,3,4
+  k2[]  fillarray 1,2,3,4
 creates a 4-element vector filled with 1,..4, which also defines the
 length.
 
@@ -106,22 +106,22 @@ left-hand side of opcodes, i.e.:
 
 There are a range of new or recoded operations on k-valued arrays,
   most restricted to 1 dimensional arrays (vectors):
-  kans mintab ktab       returns the smallest value in the
+  kans minarray ktab       returns the smallest value in the
                          (possibly) multidimensional array
-  kans maxtab ktab       is like mintab
-  kabs sumtab ktab       returns sum of all values in the array
-  ktab tabgen imin, imax[, inc]
+  kans maxarray ktab       is like mintab
+  kabs sumarray ktab       returns sum of all values in the array
+  ktab genarray imin, imax[, inc]
                          generates vector of values from imin to imax by
                          increments of inc (default 1)
-  ktab2 tabmap ktab1, "sin" maps the k-rate 1-arg function in the string to 
+  ktab2 maparray ktab1, "sin" maps the k-rate 1-arg function in the string to 
                          every element of the vector
-  ktab2 tabmap_i ktab1, "sin" maps the i-rate 1-arg function in the string 
+  ktab2 maparray_i ktab1, "sin" maps the i-rate 1-arg function in the string 
                          to every element of the vector
-  ktab2 tabslice ktab1, istart, iend
+  ktab2 slicearray ktab1, istart, iend
                          returns a slice of ktab1 from ktab1[istart]
                          to ktab1[iend]
-        copy2ttab ktab, kfn copies data from an ftable to a vector
-        copy2ftab ktab, kfn copies data from a vector to an ftable.
+        copyf2array ktab, kfn copies data from an ftable to a vector
+        copya2ftab ktab, kfn copies data from a vector to an ftable.
 
 In addition arithmetic on arrays is allowed.  In particular addition,
 subtraction, multiplication, division on a element-by-element version
