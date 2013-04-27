@@ -349,13 +349,13 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
     O->informat = O->outformat;             /* informat default */
 
-#if defined(USE_OPENMP)
-    if (csound->oparms->numThreads > 1) {
-      omp_set_num_threads(csound->oparms->numThreads);
-    csound->Message(csound, Str("OpenMP enabled: requested %d threads.\n"),
-                      csound->oparms->numThreads);
-    }
-#endif
+/* #if defined(USE_OPENMP) */
+/*     if (csound->oparms->numThreads > 1) { */
+/*       omp_set_num_threads(csound->oparms->numThreads); */
+/*     csound->Message(csound, Str("OpenMP enabled: requested %d threads.\n"), */
+/*                       csound->oparms->numThreads); */
+/*     } */
+/* #endif */
     if (O->numThreads > 1) {
       void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
       int i;

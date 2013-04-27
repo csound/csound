@@ -841,7 +841,6 @@ void close_instrument(CSOUND *csound, ENGINE_STATE* engineState, INSTRTXT * ip)
     }
 
     current->nxtop = bp;
-    //ip->mdepends = ip->mdepends; // ODD!!!!
     ip->pextrab = ((n = ip->pmax - 3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
     ip->pextrab = ((int) ip->pextrab + 7) & (~7);
     ip->muted = 1;
@@ -872,7 +871,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
         }
      mfree(csound, ip->varPool); /* need to delete the varPool memory */
      mfree(csound, ip);
-     csound->Message(csound, Str("-- deleted instr from deadpool \n"));
+     if(csound->oparms->odebug)
+       csound->Message(csound, Str("-- deleted instr from deadpool \n"));
 }
 
 
@@ -909,6 +909,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
       mrealloc(csound, csound->dead_instr_pool,
                ++csound->dead_instr_no * sizeof(INSTRTXT*));
     csound->dead_instr_pool[csound->dead_instr_no-1] = instrtxt;
+    if(csound->oparms->odebug)
     csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
                     csound->dead_instr_no-1);
 }
@@ -916,7 +917,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
 /** Insert INSTRTXT into an engineState list of INSTRTXT's,
     checking to see if number is greater than number of pointers currently
     allocated and if so expand pool of instruments
- */
+ */ 
 void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
                      int32 instrNum, ENGINE_STATE *engineState)
 {
@@ -942,8 +943,9 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
     }
 
     if (UNLIKELY(engineState->instrtxtp[instrNum] != NULL)) {
+      instrtxt->isNew = 1;
       /* redefinition does not raise an error now, just a warning */
-      if(instrNum) csound->Warning(csound,
+      if(instrNum && csound->oparms->odebug) csound->Warning(csound,
                       Str("instr %ld redefined, replacing previous definition"),
                       instrNum);
       /* here we should move the old instrument definition into a deadpool
@@ -965,15 +967,14 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       }
       /* no active instances */
       if (active == NULL) {
-	csound->Message(csound, "no active instances \n");
+	if(csound->oparms->odebug) csound->Message(csound, "no active instances \n");
         free_instrtxt(csound, engineState->instrtxtp[instrNum]);
-
-
       }
       /* err++; continue; */
     }
  end:
-    instrtxt->isNew = 1;
+    
+    instrtxt->instance = instrtxt->act_instance = instrtxt->lst_instance = NULL;
     engineState->instrtxtp[instrNum] = instrtxt;
 
 }
@@ -1042,6 +1043,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     cs_hash_table_merge(csound, current_state->stringPool, engineState->stringPool);
 
     for (count = 0; count < engineState->constantsPool->count; count++) {
+     if(csound->oparms->odebug)
       csound->Message(csound, Str(" merging constants %d) %f\n"),
                       count, engineState->constantsPool->values[count]);
       myflt_pool_find_or_add(csound, current_state->constantsPool,
@@ -1050,6 +1052,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     CS_VARIABLE* gVar = engineState->varPool->head;
     while(gVar != NULL) {
       CS_VARIABLE* var;
+      if(csound->oparms->odebug)
       csound->Message(csound, Str(" merging  %d) %s:%s\n"), count,
                       gVar->varName, gVar->varType->varTypeName);
       var = csoundFindVariableWithName(current_state->varPool, gVar->varName);
@@ -1071,14 +1074,14 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       current = engineState->instrtxtp[i];
       if(current != NULL){
         if(current->insname == NULL) {
-          csound->Message(csound, Str("merging instr %d \n"), i);
+	  if(csound->oparms->odebug) csound->Message(csound, Str("merging instr %d \n"), i);
           /* a first attempt at this merge is to make it use
              insert_instrtxt again */
           /* insert instrument in current engine */
           insert_instrtxt(csound,current,i,current_state);
         }
         else {
-          csound->Message(csound, Str("merging instr %s \n"), current->insname);
+	  if(csound->oparms->odebug) csound->Message(csound, Str("merging instr %s \n"), current->insname);
           /* allocate a named_instr string in the current engine */
           /* FIXME: check the redefinition case for named instrs */
           named_instr_alloc(csound,current->insname,current,-1L,current_state);
@@ -1091,7 +1094,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
        in case of multiple instr numbers, so insprep() is called only once */
     current = (&(engineState->instxtanchor));//->nxtinstxt;
     while ((current = current->nxtinstxt) != NULL) {
-      csound->Message(csound, "insprep %p \n", current);
+      if(csound->oparms->odebug) csound->Message(csound, "insprep %p \n", current);
       insprep(csound, current, current_state);/* run insprep() to connect ARGS  */
       recalculateVarPoolMemory(csound,
                                current->varPool); /* recalculate var pool */
@@ -1103,7 +1106,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       int j;
       current = current_state->instrtxtp[i];
       if(current != NULL){
-        csound->Message(csound, "instr %d \n", i, current);
+        if(csound->oparms->odebug) csound->Message(csound, "instr %d \n", i, current);
         current->nxtinstxt = NULL;
         j = i;
         while(++j < end-1) {
