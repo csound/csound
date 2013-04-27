@@ -1555,7 +1555,6 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
       corfile_rm(&(csound->scorestr));
     }
     csoundUnlockMutex(csound->API_lock);
-    printf("read score\n");
     return CSOUND_SUCCESS;
 }
 
