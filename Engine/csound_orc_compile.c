@@ -923,11 +923,11 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
 {
     int i;
 
-    if (UNLIKELY(instrNum > engineState->maxinsno)) {
+    if (UNLIKELY(instrNum >= engineState->maxinsno)) {
       int old_maxinsno = engineState->maxinsno;
 
       /* expand */
-      while (instrNum > engineState->maxinsno) {
+      while (instrNum >= engineState->maxinsno) {
         engineState->maxinsno += MAXINSNO;
       }
 
@@ -1070,11 +1070,13 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 
     /* merge opcodinfo */
     insert_opcodes(csound, csound->opcodeInfo, current_state);
-    for(i=0; i < end; i++){
+    insert_instrtxt(csound,engineState->instrtxtp[0],0,current_state);
+    for(i=1; i < end; i++){
       current = engineState->instrtxtp[i];
       if(current != NULL){
         if(current->insname == NULL) {
-	  if(csound->oparms->odebug) csound->Message(csound, Str("merging instr %d \n"), i);
+	  //if(csound->oparms->odebug) 
+          csound->Message(csound, Str("merging instr %d \n"), i);
           /* a first attempt at this merge is to make it use
              insert_instrtxt again */
           /* insert instrument in current engine */
@@ -1197,6 +1199,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                           typeTable->instr0LocalPool);
       insert_instrtxt(csound, csound->instr0, 0, engineState);
       prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
+      //engineState->maxinsno = 1;
     }
 
     var = typeTable->globalPool->head;
@@ -1371,6 +1374,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       engineState_free(csound, engineState);
       /* run global i-time code */
       init0(csound);
+      printf("here\n");
       csound->ids = ids;
     }
     else {
