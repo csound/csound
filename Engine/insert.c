@@ -102,7 +102,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
   if (csound->advanceCnt)
     return 0;
-  if (UNLIKELY(O->odebug)) {
+   if (UNLIKELY(O->odebug)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
       csound->Message(csound, Str("activating instr %s at %d\n"),
@@ -110,7 +110,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     else
       csound->Message(csound, Str("activating instr %d at %d\n"),
                       insno, csound->icurTime);
-  }
+     }
   csound->inerrcnt = 0;
   tp = csound->engineState.instrtxtp[insno];
   if (UNLIKELY(tp->muted == 0)) {
@@ -164,7 +164,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
     }
     instance(csound, insno);
-    tp->isNew = 0;
+    tp->isNew=0;
   }
   /* pop from free instance chain */
   ip = tp->act_instance;
@@ -388,7 +388,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     instance(csound, insno);
     tp->isNew = 0;
-  }
+  } 
   /* pop from free instance chain */
   ip = tp->act_instance;
   tp->act_instance = ip->nxtact;
@@ -529,25 +529,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
                       pfield, pfields[index]);
     }
   }
-  /*
-    the code above assumes &p1 is a pointer to an array of N pfields, but
-    this is wrong. It overwrites memory and uses it for passing p-field
-    values. When the overwritten memory is taken to be a pointer in the
-    loop below, the loop does not stop at the end of the opcode list
-    and causes iopadr to be garbage, leading to a segfault.
-    This happens where there is exactly one opcode in an instrument.
-    It is a nasty bug that needs to be fixed.
-
-    A possible solution is to  allocate always a minimum of 5 p-fields (see line
-    approx 1809 below). The extra p-fields appear to be hanging at the end of
-    an INSDS structure, and &p1 appears to be a legal array start address.
-    This allows p4 and p5 to be mapped, but no further p-fields (possibly).
-
-    This fix is a bit of hack IMHO. But I have implemented it here, as it
-    seemingly prevents the crashes.
-
-    (JPff) a safer fix to readthe extra arg numbers
-  */
+ 
 
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
@@ -690,8 +672,10 @@ static void deact(CSOUND *csound, INSDS *ip)
   ip->actflg = 0;
   /* link into free instance chain */
   /* This also destroys ip->nxtact causing loops */
+  if(csound->engineState.instrtxtp[ip->insno] == ip->instr){
   ip->nxtact = csound->engineState.instrtxtp[ip->insno]->act_instance;
   csound->engineState.instrtxtp[ip->insno]->act_instance = ip;
+  }
   if (ip->fdchp != NULL)
     fdchclose(csound, ip);
   csound->dag_changed++;
@@ -1917,17 +1901,13 @@ static void instance(CSOUND *csound, int insno)
   char      *nxtopds, *opdslim;
   MYFLT     **argpp, *lclbas, /* *gbloffbas,*/ *lcloffbas;
   char*     opMemStart;
-  //    int       *ndxp;
+ 
   OPARMS    *O = csound->oparms;
   int       odebug = O->odebug;
   ARG*          arg;
   int       argStringCount;
 
-  //    lopdsp = csound->lopds;
-  //    largp = (LARGNO*) csound->larg;
   tp = csound->engineState.instrtxtp[insno];
-  /* VL: added 2 extra MYFLT pointers to the memory to account for possible
-     use by midi mapping flags */
   n = 3;
   if (O->midiKey>n) n = O->midiKey;
   if (O->midiKeyCps>n) n = O->midiKeyCps;
@@ -1942,6 +1922,7 @@ static void instance(CSOUND *csound, int insno)
                         (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
   ip->csound = csound;
   ip->m_chnbp = (MCHNBLK*) NULL;
+  ip->instr = tp;
   /* IV - Oct 26 2002: replaced with faster version (no search) */
   ip->prvinstance = tp->lst_instance;
   if (tp->lst_instance)
@@ -1953,7 +1934,7 @@ static void instance(CSOUND *csound, int insno)
   ip->nxtact = tp->act_instance;
   tp->act_instance = ip;
   ip->insno = insno;
-  /* IV - Nov 10 2002 */
+ 
   if (insno > csound->engineState.maxinsno) {
     size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
     pcnt += (size_t) tp->opcode_info->perf_outcnt;
@@ -2088,29 +2069,12 @@ static void instance(CSOUND *csound, int insno)
                         arg->type);
       }
     }
-    //      for ( ; n < cnt; n++) {
-    //        int   indx = *(ndxp++);
-    //        if (indx > 0)                           /* cvt ndx to lcl/gbl */
-    //          argpp[n] = gbloffbas + indx;
-    //        else if (indx >= LABELIM)
-    //          argpp[n] = lcloffbas + (-indx);
-    //        else {                                  /* if label ref, defer */
-    //          largp->lblno = indx - LABELOFS;
-    //          largp->argpp = &(argpp[n]);
-    //          largp++;
-    //        }
-    //      }
+  
   }
 
   if (UNLIKELY(nxtopds > opdslim))
     csoundDie(csound, Str("inconsistent opds total"));
-  /* } */
-
-  // FIXME - label handling
-  //    while (largp > (LARGNO*) csound->larg) {    /* now label refs */
-  //      largp--;
-  //      *largp->argpp = (MYFLT*) csound->lopds[largp->lblno];
-  //    }
+  
 }
 
 int prealloc(CSOUND *csound, AOP *p)

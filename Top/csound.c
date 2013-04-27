@@ -1544,7 +1544,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
     corfile_flush(csound->scorestr);
     /* copy sorted score name */
     csoundLockMutex(csound->API_lock);
-    if(csound->scstr == NULL) {
+    if(csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
       scsortstr(csound, csound->scorestr);
       O->playscore = csound->scstr;
     }
@@ -1555,6 +1555,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
       corfile_rm(&(csound->scorestr));
     }
     csoundUnlockMutex(csound->API_lock);
+    printf("read score\n");
     return CSOUND_SUCCESS;
 }
 
