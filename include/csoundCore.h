@@ -307,6 +307,13 @@ typedef struct {
     int     isNew;                  /* is this a new definition */
   } INSTRTXT;
 
+  typedef struct namedInstr {
+    int32        instno;
+    char        *name;
+    INSTRTXT    *ip;
+    struct namedInstr   *next;
+  } INSTRNAME;
+
   /**
    * A chain of TEXT structs. Note that this is identical with the first two
    * members of struct INSTRTEXT, and is so typecast at various points in code.
@@ -1268,7 +1275,7 @@ typedef struct NAME__ {
     int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
     int           (*csoundInternalYieldCallback_)(CSOUND *);
     /* end of callbacks */
-    unsigned int  (*strHash32)(const char *s);
+    //unsigned int  (*strHash32)(const char *s);
     void          (*spinrecv)(CSOUND *);
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
