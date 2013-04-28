@@ -1075,7 +1075,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       current = engineState->instrtxtp[i];
       if(current != NULL){
         if(current->insname == NULL) {
-	  //if(csound->oparms->odebug) 
+	 if(csound->oparms->odebug) 
           csound->Message(csound, Str("merging instr %d \n"), i);
           /* a first attempt at this merge is to make it use
              insert_instrtxt again */
@@ -1083,9 +1083,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
           insert_instrtxt(csound,current,i,current_state);
         }
         else {
-	  if(csound->oparms->odebug) csound->Message(csound, Str("merging instr %s \n"), current->insname);
+	 if(csound->oparms->odebug) 
+         csound->Message(csound, Str("merging instr %s \n"), current->insname);
           /* allocate a named_instr string in the current engine */
-          /* FIXME: check the redefinition case for named instrs */
           named_instr_alloc(csound,current->insname,current,-1L,current_state);
         }
       }
@@ -1108,7 +1108,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       int j;
       current = current_state->instrtxtp[i];
       if(current != NULL){
-        if(csound->oparms->odebug) csound->Message(csound, "instr %d \n", i, current);
+       if(csound->oparms->odebug)
+        csound->Message(csound, "instr %d \n", i, current);
         current->nxtinstxt = NULL;
         j = i;
         while(++j < end-1) {
@@ -1374,7 +1375,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       engineState_free(csound, engineState);
       /* run global i-time code */
       init0(csound);
-      printf("here\n");
       csound->ids = ids;
     }
     else {
