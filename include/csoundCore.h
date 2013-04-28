@@ -1275,7 +1275,6 @@ typedef struct NAME__ {
     int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
     int           (*csoundInternalYieldCallback_)(CSOUND *);
     /* end of callbacks */
-    //unsigned int  (*strHash32)(const char *s);
     void          (*spinrecv)(CSOUND *);
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
