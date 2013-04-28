@@ -254,7 +254,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, "init %s:\n",
                         csound->ids->optext->t.oentry->opname);
       (*csound->ids->iopadr)(csound, csound->ids);
-    } 
+    }
     ip->init_done = 1;
   }
 
@@ -332,7 +332,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       csound->Message(csound, Str("instr %d now active:\n"), insno);
     showallocs(csound);
   }
-  
+
   return 0;
 }
 
@@ -388,7 +388,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     instance(csound, insno);
     tp->isNew = 0;
-  } 
+  }
   /* pop from free instance chain */
   ip = tp->act_instance;
   tp->act_instance = ip->nxtact;
@@ -529,7 +529,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
                       pfield, pfields[index]);
     }
   }
- 
+
 
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
@@ -761,7 +761,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
        txtp != NULL;  txtp = txtp->nxtinstxt) {
     // csound->Message(csound, "txp=%p \n", txtp);
     if ((ip = txtp->instance) != NULL) {        /* if instance exists */
-      
+
       prvip = NULL;
       prvnxtloc = &txtp->instance;
       do {
@@ -777,9 +777,9 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
           if ((nxtip = ip->nxtinstance) != NULL)
             nxtip->prvinstance = prvip;
           *prvnxtloc = nxtip;
-          
+
           mfree(csound, (char *)ip);
-          
+
         }
         else {
           prvip = ip;
@@ -788,7 +788,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
       }
       while ((ip = *prvnxtloc) != NULL);
     }
-    
+
     /* IV - Oct 31 2002 */
     if (!txtp->instance)
       txtp->lst_instance = NULL;              /* find last alloc */
@@ -797,7 +797,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
       while (ip->nxtinstance) ip = ip->nxtinstance;
       txtp->lst_instance = ip;
     }
-    
+
     txtp->act_instance = NULL;                /* no free instances */
   }
   /* check current items in deadpool to see if they need deleting */
@@ -1411,7 +1411,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
 
   return OK;
 }
- 
+
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */
 /* named instrument) */
 
@@ -1901,7 +1901,7 @@ static void instance(CSOUND *csound, int insno)
   char      *nxtopds, *opdslim;
   MYFLT     **argpp, *lclbas, /* *gbloffbas,*/ *lcloffbas;
   char*     opMemStart;
- 
+
   OPARMS    *O = csound->oparms;
   int       odebug = O->odebug;
   ARG*          arg;
@@ -1934,7 +1934,7 @@ static void instance(CSOUND *csound, int insno)
   ip->nxtact = tp->act_instance;
   tp->act_instance = ip;
   ip->insno = insno;
- 
+
   if (insno > csound->engineState.maxinsno) {
     size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
     pcnt += (size_t) tp->opcode_info->perf_outcnt;
@@ -2069,12 +2069,12 @@ static void instance(CSOUND *csound, int insno)
                         arg->type);
       }
     }
-  
+
   }
 
   if (UNLIKELY(nxtopds > opdslim))
     csoundDie(csound, Str("inconsistent opds total"));
-  
+
 }
 
 int prealloc(CSOUND *csound, AOP *p)

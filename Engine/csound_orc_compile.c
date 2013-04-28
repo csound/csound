@@ -916,8 +916,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
 }
 
 /**
-   allocate entry for named instrument ip with name s 
-   instrument number is set to insno 
+   allocate entry for named instrument ip with name s
+   instrument number is set to insno
    If named instr exists, it is replaced.
 */
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
@@ -941,10 +941,11 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
          which will be checked for active instances and freed when there are no
          further ones
       */
-      for(i=0; i < engineState->maxinsno; i++) {
+      for (i=0; i < engineState->maxinsno; i++) {
         /* check for duplicate numbers and do nothing */
-        if(i != inm->instno &&
-           engineState->instrtxtp[i] == engineState->instrtxtp[inm->instno]) goto cont;
+        if (i != inm->instno &&
+           engineState->instrtxtp[i] == engineState->instrtxtp[inm->instno])
+          goto cont;
       }
       INSDS *active = engineState->instrtxtp[inm->instno]->instance;
       while (active != NULL) {
@@ -956,8 +957,8 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       }
       /* no active instances */
       if (active == NULL) {
-       if(csound->oparms->odebug) 
-        csound->Message(csound, "no active instances \n");
+        if (csound->oparms->odebug)
+          csound->Message(csound, "no active instances \n");
         free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
         engineState->instrtxtp[inm->instno] = NULL;
       }
@@ -996,7 +997,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
 }
 
 /**
-  assign instrument numbers to all named instruments 
+  assign instrument numbers to all named instruments
 */
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
 {
@@ -1385,7 +1386,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                   synterr(csound, Str("invalid name for instrument"));
                 }
                 named_instr_alloc(csound,c,instrtxt, insno_priority,
-				  engineState);
+                                  engineState);
                 instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
                 strcpy(instrtxt->insname, c);
         }
