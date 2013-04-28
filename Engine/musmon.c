@@ -403,7 +403,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
       free(p);
     }
-   
+
     /* check if we have already cleaned up */
     if (!(csound->engineStatus & CS_STATE_CLN))
       return 0;
@@ -411,14 +411,14 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     csound->engineStatus &= ~(CS_STATE_CLN);
 
     deactivate_all_notes(csound);
- 
+
     if (csound->engineState.instrtxtp &&
         csound->engineState.instrtxtp[0] &&
         csound->engineState.instrtxtp[0]->instance &&
         csound->engineState.instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
       delete_pending_rt_events(csound);
- 
+
     if(csound->init_pass_loop == 1) {
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 0;
@@ -432,9 +432,9 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       csound->freeEvtNodes = ((EVTNODE*) p)->nxt;
       free(p);
     }
-    
+
     orcompact(csound);
-   
+
     corfile_rm(&csound->scstr);
 
     /* print stats only if musmon was actually run */
