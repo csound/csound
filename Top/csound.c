@@ -834,7 +834,7 @@ static const CSOUND cenviron_ = {
     0,              /* Count of score strings */
     0,              /* length of current strings space */
     NULL,           /* sinetable */
-    8192,           /* sinesize */
+    16384,          /* sinesize */
     NULL,           /* pow2 table */
     NULL,           /* cps conv table */
     NULL,           /* output of preprocessor */
@@ -1166,7 +1166,7 @@ struct CsoundCallbackEntry_s {
 PUBLIC void csoundDestroy(CSOUND *csound)
 {
     csInstance_t  *p, *prv = NULL;
-    
+
     csoundLock();
     p = (csInstance_t*) instance_list;
     while (p != NULL && p->csound != csound) {
@@ -1183,9 +1183,9 @@ PUBLIC void csoundDestroy(CSOUND *csound)
       prv->nxt = p->nxt;
     csoundUnLock();
     free(p);
-    
+
     reset(csound);
-    
+
     if (csound->csoundCallbacks_ != NULL) {
       CsoundCallbackEntry_t *pp, *nxt;
       pp = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
@@ -2642,7 +2642,7 @@ static void reset(CSOUND *csound)
     uintptr_t length;
     uintptr_t end, start;
     int n = 0;
-    
+
     csoundCleanup(csound);
 
     /* call registered reset callbacks */
@@ -2661,7 +2661,7 @@ static void reset(CSOUND *csound)
     csoundDeleteAllConfigurationVariables(csound);
     csoundDeleteAllGlobalVariables(csound);
 
-    
+
 
 #ifdef CSCORE
     cscoreRESET(csound);
@@ -2681,9 +2681,9 @@ static void reset(CSOUND *csound)
     /* delete temporary files created by this Csound instance */
     remove_tmpfiles(csound);
     rlsmemfiles(csound);
-   
+
     memRESET(csound);
-    
+
     while (csound->filedir[n])        /* Clear source directory */
       free(csound->filedir[n++]);
     /**
@@ -2718,7 +2718,7 @@ static void reset(CSOUND *csound)
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
     free(saved_env);
-    
+
 }
 
 PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
