@@ -150,11 +150,15 @@ persist; allows values to carry to next use of the instrument; hope it
 may be useful in legato etc.
 
 If a table number is given as -1 then an internal sine wave equivalent
-to "f. 0 8192 10 1" is used.  Attempts to write to this table will
-give unpredictable results, but is not policed.  The 8192 can be
+to "f. 0 16382 10 1" is used.  Attempts to write to this table will
+give unpredictable results, but is not policed.  The 16382 can be
 change by command line option --sine-size=# where the # is rounded up
 to a power of two.
 
+A number of oscil opcodes no have the f-table parameter as optional,
+defaulting to the internal sine wave.
+(oscil1, oscil1i, oscil, oscil3, oscili, foscil, foscil1,
+loscil, loscil3)
 
 New API functions.....
 

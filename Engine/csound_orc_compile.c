@@ -916,8 +916,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
 }
 
 /**
-   allocate entry for named instrument ip with name s 
-   instrument number is set to insno 
+   allocate entry for named instrument ip with name s
+   instrument number is set to insno
    If named instr exists, it is replaced.
 */
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
@@ -941,10 +941,11 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
          which will be checked for active instances and freed when there are no
          further ones
       */
-      for(i=0; i < engineState->maxinsno; i++) {
+      for (i=0; i < engineState->maxinsno; i++) {
         /* check for duplicate numbers and do nothing */
-        if(i != inm->instno &&
-           engineState->instrtxtp[i] == engineState->instrtxtp[inm->instno]) goto cont;
+        if (i != inm->instno &&
+           engineState->instrtxtp[i] == engineState->instrtxtp[inm->instno])
+          goto cont;
       }
       INSDS *active = engineState->instrtxtp[inm->instno]->instance;
       while (active != NULL) {
@@ -956,8 +957,8 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       }
       /* no active instances */
       if (active == NULL) {
-       if(csound->oparms->odebug) 
-        csound->Message(csound, "no active instances \n");
+        if (csound->oparms->odebug)
+          csound->Message(csound, "no active instances \n");
         free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
         engineState->instrtxtp[inm->instno] = NULL;
       }
@@ -996,7 +997,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
 }
 
 /**
-  assign instrument numbers to all named instruments 
+  assign instrument numbers to all named instruments
 */
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
 {
@@ -1051,7 +1052,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
     Insert INSTRTXT into an engineState list of INSTRTXT's,
     checking to see if number is greater than number of pointers currently
     allocated and if so expand pool of instruments
-*/ 
+*/
 void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
                      int32 instrNum, ENGINE_STATE *engineState)
 {
@@ -1101,13 +1102,14 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       }
       /* no active instances */
       if (active == NULL) {
-	if(csound->oparms->odebug) csound->Message(csound, "no active instances \n");
+        if (csound->oparms->odebug)
+          csound->Message(csound, Str("no active instances \n"));
         free_instrtxt(csound, engineState->instrtxtp[instrNum]);
       }
       /* err++; continue; */
     }
  end:
-    
+
     instrtxt->instance = instrtxt->act_instance = instrtxt->lst_instance = NULL;
     engineState->instrtxtp[instrNum] = instrtxt;
 
@@ -1174,7 +1176,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     INSTRTXT *current;
     int count;
 
-    cs_hash_table_merge(csound, current_state->stringPool, engineState->stringPool);
+    cs_hash_table_merge(csound,
+                        current_state->stringPool, engineState->stringPool);
 
     for (count = 0; count < engineState->constantsPool->count; count++) {
      if(csound->oparms->odebug)
@@ -1209,16 +1212,16 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       current = engineState->instrtxtp[i];
       if(current != NULL){
         if(current->insname == NULL) {
-	 if(csound->oparms->odebug) 
-          csound->Message(csound, Str("merging instr %d \n"), i);
+          if(csound->oparms->odebug)
+            csound->Message(csound, Str("merging instr %d \n"), i);
           /* a first attempt at this merge is to make it use
              insert_instrtxt again */
           /* insert instrument in current engine */
           insert_instrtxt(csound,current,i,current_state);
         }
         else {
-	 if(csound->oparms->odebug) 
-         csound->Message(csound, Str("merging instr %s \n"), current->insname);
+          if(csound->oparms->odebug)
+            csound->Message(csound, Str("merging instr %s \n"), current->insname);
           /* allocate a named_instr string in the current engine */
           named_instr_alloc(csound,current->insname,current,-1L,current_state);
         }
@@ -1242,14 +1245,14 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       int j;
       current = current_state->instrtxtp[i];
       if(current != NULL){
-       if(csound->oparms->odebug)
-        csound->Message(csound, "instr %d \n", i, current);
+        if(csound->oparms->odebug)
+          csound->Message(csound, "instr %d \n", i, current);
         current->nxtinstxt = NULL;
         j = i;
         while(++j < end-1) {
           if(current_state->instrtxtp[j] != NULL){
-	  current->nxtinstxt = current_state->instrtxtp[j];
-	  break;
+          current->nxtinstxt = current_state->instrtxtp[j];
+          break;
           }
         }
       }
@@ -1383,7 +1386,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                   synterr(csound, Str("invalid name for instrument"));
                 }
                 named_instr_alloc(csound,c,instrtxt, insno_priority,
-				  engineState);
+                                  engineState);
                 instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
                 strcpy(instrtxt->insname, c);
         }
@@ -1551,11 +1554,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       *((MYFLT *)(var->memBlock)) = csound->inchnls;
 
     }
-    
+
     if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-    
+
     return CSOUND_SUCCESS;
 }
 
@@ -1576,8 +1579,8 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     }
     else
       return  CSOUND_ERROR;
-    delete_tree(csound, root);    
-   
+    delete_tree(csound, root);
+
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
     return retVal;
