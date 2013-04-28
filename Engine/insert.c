@@ -2169,7 +2169,7 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName, int 
     }
 
     if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
-      return csoundPerfError(csound, Str("turnoff2: invalid mode parameter"));
+      return CSOUND_ERROR;
     }
     ip = &(csound->actanchor);
     ip2 = NULL;
