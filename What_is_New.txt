@@ -7,44 +7,44 @@ Multiple strings in score
 
 Arrays
 
-
 What is New, What has Changed
 =============================
 
-Build system in cmake (and not scons as in Csound5).  
+- Build system in cmake (and not scons as in Csound5). 
 
-
-The loadable opcodes are found in the directory named in the
+ - The loadable opcodes are found in the directory named in the
 environment variables OPCODE6DIR64 or OPCODE6DIR (note the 6) so it
 can co-exist with Csound5
 
-
-Support for old hardware and C compilers has been removed; this
+- Support for old hardware and C compilers has been removed; this
 includes Macintosh OS9 and earlier, Watcom, Borland and Symmantec C
 compilers. 
 
-
-
-Note events can start and end in mid-kcycle.  As this is an
+- Note events can start and end in mid-kcycle.  As this is an
 incompatible change it is only invoked with the command-line option
     --sample-accurate
 is specified.  Not that this does not work for tied notes, and use of
 skipping initialisation has questionable use.
 
+- Instruments can run at local ksmps values using 
 
+setksmps iksmps
 
-A number of table access opcodes have been rewritten but should behave
+as in Csound 5 UDOs.
+
+- A number of table access opcodes have been rewritten but should behave
 the same.  Similarly diskin and diskin2 now use the same code and so
 diskin should be more stable
 
-
-
-Compilation can be done at any stage, new instruments are added or
+- Compilation can be done at any stage, new instruments are added or
 replace old ones. Running instances of old instrument definitions are
-not affected. Only limitation is that instr0 is only compiled once, in
-the first compilation.
+not affected. Only limitation is that header constants in instr 0 are
+read only once at the time of the first compilation. Init-time code
+can be placed outside instruments in the global space, and this will
+be executed once-only following the compilation. In this case, score
+event generation can be completely replaced by orchestra code.
 
-Two i-time opcodes for compilation:
+- Two i-time opcodes for compilation:
 ires  compileorc   ifilename
 compiles an orchestra in ifilename (instr0 ignored)
 
@@ -53,41 +53,33 @@ compiles an orchestra defined in Sinstruments
 
 ires is 0 if successful and non-0 if compilation failed.
 
+ - An i-time opcode for score compilation:
 
+ires readscore Sco
+this opcode runs the score preprocessor on Sco and then schedules
+new events via the RT event mechanism.
 
+- The old parser is totally gone.
 
-The old parser is totally gone.
-
-
-
-New syntax in csound6 includes +=, -=, *= and /= operators
+- New syntax in csound6 includes +=, -=, *= and /= operators
 Please use += and -= for accumulating reverbs as it gives better
 multicore behaviour.
 
-
-
-
-Multicore support is totally rewritten using a different algorithm for
+- Multicore support is totally rewritten using a different algorithm for
 task-dispatch, which should use less memory and fewer locks.
 
-
-
-Opcodes like add, sub, mul and div are no longer available in opcode
+- Opcodes like add, sub, mul and div are no longer available in opcode
 format, only via + - * /
 
-
-
-Any opcode that returns one answer and whose type is the same as the
+- Any opcode that returns one answer and whose type is the same as the
 first argument can be used as a function.  This incorporates all
 functions in CS5, but also functions of two arguments such as taninv2
-and divz, and opcodes like oscil.
+and divz, and opcodes like vco2.
 
-
-A statement can be broken across lines after a , = or arithmetic
+- A statement can be broken across lines after a , = or arithmetic
 operation.
 
-
-Arrays exist in multidimensional format.  They are created (usually)
+- Arrays exist in multidimensional format.  They are created (usually)
 with init opcode or fillarray
   k1[]  init 4
 generates a k-rate 1-D array of length 4.  Similarly
@@ -97,14 +89,14 @@ create a square 4x4 a-rate array.
 creates a 4-element vector filled with 1,..4, which also defines the
 length.
 
-Elements are used via indexing in [] such as k1[2] or a2[2][3]
+- Elements are used via indexing in [] such as k1[2] or a2[2][3]
 One dimensional arrays replace tvars, and can be used in opcodes like
 maxtab, mintab and sumtab (see below). Array setting can be done in
 left-hand side of opcodes, i.e.:
   aSigs[0] vco2 .1, 440
   aSigs[1] vco2 .1, 880
 
-There are a range of new or recoded operations on k-valued arrays,
+- There are a range of new or recoded operations on k-valued arrays,
   most restricted to 1 dimensional arrays (vectors):
   kans minarray ktab       returns the smallest value in the
                          (possibly) multidimensional array
@@ -128,8 +120,7 @@ subtraction, multiplication, division on a element-by-element version
 is provided in arithmetic format.  Similar operations between an array
 and a scalar are allowed.
 
-
-The new realtime priority mode can be switched on with by passing the
+- The new realtime priority mode can be switched on with by passing the
 --realtime or setting the CSOUND_PARAMS field realtime_mode to 1.
 
 This has the following effects:
@@ -137,12 +128,8 @@ This has the following effects:
 a separate thread
 2) all init-pass operations are also performed asynchronously.
 
-
-
 Functions for asynchronous audio file access have been added (see
 below)
-
-
 
 Analysis formats:
 Hetro/adsyn analysis files can be machine byte-order independent if
@@ -155,18 +142,12 @@ is used.  The convolve and lpread etc opcodes will accept either
 format.  You are encouraged to use the machine independent form.
 Analysis files produced with -X can be used on other systems.
 
-
-
 The number of strings that can be used in a score line is no longer
 just one.  It is open ended.
-
-
 
 Each instance of any instrument has a scratchpad of 4 values that
 persist; allows values to carry to next use of the instrument; hope it
 may be useful in legato etc.
-
-
 
 If a table number is given as -1 then an internal sine wave equivalent
 to "f. 0 16382 10 1" is used.  Attempts to write to this table will
