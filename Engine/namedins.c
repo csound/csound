@@ -158,7 +158,8 @@ int32 named_instr_find(CSOUND *csound, char *s)
 
     return (inm == NULL) ? 0L : inm->instno;
 }
-
+extern void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt);
+extern void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);
 /* allocate entry for named instrument ip with name s (s must not be freed */
 /* after the call, because only the pointer is stored); instrument number */
 /* is set to insno */
@@ -177,8 +178,39 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     /* now check if instrument is already defined */
     inm = cs_hash_table_get(csound, engineState->instrumentNames, s);
     if (inm != NULL) {
-        return 0; /* error: instr exists */
+      int i;
+       inm->ip->isNew = 1;
+      /* redefinition does not raise an error now, just a warning */
+      if(csound->oparms->odebug) csound->Warning(csound,
+                      Str("instr %ld redefined, replacing previous definition"),
+                      inm->instno);
+      /* here we should move the old instrument definition into a deadpool
+         which will be checked for active instances and freed when there are no
+         further ones
+      */
+      for(i=0; i < engineState->maxinsno; i++) {
+        /* check for duplicate numbers and do nothing */
+        if(i != inm->instno &&
+           engineState->instrtxtp[i] == engineState->instrtxtp[inm->instno]) goto cont;
+      }
+      INSDS *active = engineState->instrtxtp[inm->instno]->instance;
+      while (active != NULL) {
+        if(active->actflg) {
+          add_to_deadpool(csound, engineState->instrtxtp[inm->instno]);
+          break;
+        }
+        active = active->nxtinstance;
+      }
+      /* no active instances */
+      if (active == NULL) {
+       if(csound->oparms->odebug) 
+        csound->Message(csound, "no active instances \n");
+        free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
+        engineState->instrtxtp[inm->instno] = NULL;
+      }
+
     }
+    cont:
 
     /* allocate entry, */
     inm = (INSTRNAME*) mcalloc(csound, sizeof(INSTRNAME));
