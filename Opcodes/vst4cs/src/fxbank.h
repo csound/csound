@@ -698,9 +698,9 @@ public:
     virtual long OnGetHostVendorVersion() { return 1; }
     virtual bool OnGetProductString(char *text) {
         strcpy(text, "Default CVSTHost"); return true; }
-    virtual bool OnGetSpeakerArrangement(int nEffect, 
+    virtual bool OnGetSpeakerArrangement(int nEffect,
                                          VstSpeakerArrangement* pluginInput,
-                                         VstSpeakerArrangement* pluginOutput) { 
+                                         VstSpeakerArrangement* pluginOutput) {
         return false; }
     virtual void OnSetOutputSampleRate(int nEffect, float sampleRate) { }
     virtual bool OnOfflineStart(int nEffect, VstAudioFile* audioFiles,
