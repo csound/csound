@@ -444,7 +444,7 @@ static const CSOUND cenviron_ = {
     csoundDoCallback_,  /*  doCsoundCallback    */
     defaultCsoundYield, /* csoundInternalYieldCallback_*/
     /* end of callbacks */
-    csound_str_hash_32, /*  strHash32           */
+    //csound_str_hash_32, /*  strHash32           */
     (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
     (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
@@ -1555,7 +1555,6 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
       corfile_rm(&(csound->scorestr));
     }
     csoundUnlockMutex(csound->API_lock);
-    printf("read score\n");
     return CSOUND_SUCCESS;
 }
 
