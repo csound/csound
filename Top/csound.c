@@ -835,7 +835,7 @@ static const CSOUND cenviron_ = {
     0,              /* Count of score strings */
     0,              /* length of current strings space */
     NULL,           /* sinetable */
-    8192,           /* sinesize */
+    16384,          /* sinesize */
     NULL,           /* pow2 table */
     NULL,           /* cps conv table */
     NULL,           /* output of preprocessor */
