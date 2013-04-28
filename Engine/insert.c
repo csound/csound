@@ -2151,6 +2151,70 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
   return NOTOK;
 }
 
+PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName, int mode, int allow_release)
+{
+   
+    INSDS *ip, *ip2, *nip;
+    int   insno;
+
+    csoundLockMutex(csound->API_lock);
+    if(instrName){
+      insno = named_instr_find(csound, instrName);
+      instr = (MYFLT) insno;
+    } else insno = instr;
+
+    if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
+                 csound->engineState.instrtxtp[insno] == NULL)) {
+      return CSOUND_ERROR;
+    }
+
+    if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
+      return csoundPerfError(csound, Str("turnoff2: invalid mode parameter"));
+    }
+    ip = &(csound->actanchor);
+    ip2 = NULL;
+
+    while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
+    if (ip == NULL)
+      return CSOUND_ERROR;
+    do {                        /* This loop does not terminate in mode=0 */
+      nip = ip->nxtact;
+      if (((mode & 8) && ip->offtim >= 0.0) ||
+          ((mode & 4) && ip->p1 != instr) ||
+          (allow_release && ip->relesing)) {
+        ip = nip;
+        continue;
+      }
+      if (!(mode & 3)) {
+        if (allow_release) {
+          xturnoff(csound, ip);
+        }
+        else {
+          nip = ip->nxtact;
+          xturnoff_now(csound, ip);
+        }
+      }
+      else {
+        ip2 = ip;
+        if ((mode & 3) == 1)
+          break;
+      }
+      ip = nip;
+    } while (ip != NULL && (int) ip->insno == insno);
+    if (ip2 != NULL) {
+      if (allow_release) {
+        xturnoff(csound, ip2);
+      }
+      else {
+        xturnoff_now(csound, ip2);
+      }
+    }
+    csoundUnlockMutex(csound->API_lock);
+    return CSOUND_SUCCESS;
+}
+
+
+
 /**
    In realtime mode, this function takes care of the init pass in a
    separate thread.

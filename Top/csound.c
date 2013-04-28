@@ -443,8 +443,7 @@ static const CSOUND cenviron_ = {
     midi_dev_list_dummy,
     csoundDoCallback_,  /*  doCsoundCallback    */
     defaultCsoundYield, /* csoundInternalYieldCallback_*/
-    /* end of callbacks */
-    //csound_str_hash_32, /*  strHash32           */
+    /* end of callbacks */     
     (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
     (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */

@@ -669,6 +669,19 @@ extern "C" {
     PUBLIC int csoundPerformBuffer(CSOUND *);
 
     /**
+     * Kills off one or more running instances of an instrument identified
+     * by instr (number) or instrName (name). If instrName is NULL, the
+     * instrument number is used.
+     * Mode is a sum of the following values:
+     * 0,1,2: kill all instances (1), oldest only (1), or newest (2) 
+     * 4: only turnoff notes with exactly matching (fractional) instr number
+     * 8: only turnoff notes with indefinite duration (p3 < 0 or MIDI)
+     * allow_release, if non-zero, the killed instances are allowed to release.
+     */
+    PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, 
+				  char *instrName, int mode, int allow_release);
+
+    /**
      * Stops a csoundPerform() running in another thread. Note that it is
      * not guaranteed that csoundPerform() has already stopped when this
      * function returns.
