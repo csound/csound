@@ -669,19 +669,6 @@ extern "C" {
     PUBLIC int csoundPerformBuffer(CSOUND *);
 
     /**
-     * Kills off one or more running instances of an instrument identified
-     * by instr (number) or instrName (name). If instrName is NULL, the
-     * instrument number is used.
-     * Mode is a sum of the following values:
-     * 0,1,2: kill all instances (1), oldest only (1), or newest (2) 
-     * 4: only turnoff notes with exactly matching (fractional) instr number
-     * 8: only turnoff notes with indefinite duration (p3 < 0 or MIDI)
-     * allow_release, if non-zero, the killed instances are allowed to release.
-     */
-    PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, 
-				  char *instrName, int mode, int allow_release);
-
-    /**
      * Stops a csoundPerform() running in another thread. Note that it is
      * not guaranteed that csoundPerform() has already stopped when this
      * function returns.
@@ -1130,7 +1117,8 @@ extern "C" {
 
     /**
      *  Read, preprocess, and load a score from an ASCII string
-     *  This substitutes the currently loaded score.
+     *  It can be called repeatedly, with the new score events
+     *  being added to the currently scheduled ones.
      */
     PUBLIC int csoundReadScore(CSOUND *csound, char *str);
 
@@ -1482,7 +1470,8 @@ extern "C" {
     PUBLIC int csoundScoreEvent(CSOUND *,
             char type, const MYFLT *pFields, long numFields);
 
-    /** Like csoundScoreEvent(), this function inserts a score event, but
+    /** 
+     * Like csoundScoreEvent(), this function inserts a score event, but
      * at absolute time with respect to the start of performance, or from an
      * offset set with time_ofs
      */
@@ -1494,6 +1483,19 @@ extern "C" {
      * used for line events.
      */
     PUBLIC void csoundInputMessage(CSOUND *, const char *message);
+
+    /**
+     * Kills off one or more running instances of an instrument identified
+     * by instr (number) or instrName (name). If instrName is NULL, the
+     * instrument number is used.
+     * Mode is a sum of the following values:
+     * 0,1,2: kill all instances (1), oldest only (1), or newest (2) 
+     * 4: only turnoff notes with exactly matching (fractional) instr number
+     * 8: only turnoff notes with indefinite duration (p3 < 0 or MIDI)
+     * allow_release, if non-zero, the killed instances are allowed to release.
+     */
+    PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, 
+				  char *instrName, int mode, int allow_release);
 
     /**
      * Set the ASCII code of the most recent key pressed.
