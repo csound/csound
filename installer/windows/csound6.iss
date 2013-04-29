@@ -117,15 +117,15 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core
-Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core
-Source: "*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core
-Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python
-Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python
-Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python
+Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
+Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 
-Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core
-Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core
+Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
 Source: {#MyPortAudioSourceDir}lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
 Source: {#MyPortAudioSourceDir}bin\.libs\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
