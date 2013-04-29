@@ -2151,9 +2151,9 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
   return NOTOK;
 }
 
-PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName, int mode, int allow_release)
+PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
+                              int mode, int allow_release)
 {
-   
     INSDS *ip, *ip2, *nip;
     int   insno;
 
