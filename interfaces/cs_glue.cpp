@@ -700,8 +700,9 @@ extern "C" {
     return p->YieldCallback();
   }
 
-  static CS_NOINLINE void ChannelIOCallback_wrapper(CSOUND *csound, const char *chnName,
-                                        MYFLT *value, int chnType)
+  static CS_NOINLINE void ChannelIOCallback_wrapper(CSOUND *csound,
+                                                    const char *chnName,
+                                                    MYFLT *value, int chnType)
   {
     CsoundCallbackWrapper *p;
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
