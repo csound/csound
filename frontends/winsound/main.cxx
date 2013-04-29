@@ -730,4 +730,3 @@ void savetext(Fl_Text_Buffer *b, int type)
   }
   delete hw;
 }
-
