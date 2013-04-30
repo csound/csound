@@ -979,7 +979,7 @@ extern "C" {
       *       malloc(n*sizeof(CS_AUDIODEVICE));
       *   csoundAudioDevList(csound,devs,1);
       *   for(i=0; i < n; i++)
-      *       csound->Message(csound, " %d: %s (%s)\n",
+      *       csound-Message(csound, " %d: %s (%s)\n",
       *             i, devs[i].device_id, devs[i].device_name);
       *   free(devs);
       * \endcode
