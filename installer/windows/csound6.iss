@@ -21,6 +21,8 @@
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
 #define MyMinGwBinDir "C:\mingw32-4.7.2\bin\"
+; If you are not Michael Gogins, change this to your MinGW /usr/local/ directory.
+#define MyMinGwUsrLocalDir "C:\mingw32-4.7.2\msys\1.0\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
 #define MySourceDir "C:\Users\Michael\csound-csound6-git\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
@@ -118,8 +120,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyMinGwUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
+Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
 Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
