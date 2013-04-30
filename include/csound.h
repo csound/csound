@@ -2161,6 +2161,12 @@ extern "C" {
 
   /** @}*/
 
+#ifdef SWIGPYTHON
+
+  PUBLIC CSOUND *csoundGetInstance(long obj){ return (CSOUND *)obj; }
+
+#endif
+
 
 #ifdef SOME_FINE_DAY /* these functions are now deprecated */
 
