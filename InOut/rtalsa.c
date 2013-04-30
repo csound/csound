@@ -1544,10 +1544,10 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     OPARMS oparms;
    csound->GetOParms(csound, &oparms);
 
-   csound->module_list_add(csound, "devfile", "midi");
-   csound->module_list_add(csound, "alsaseq", "midi");
-   csound->module_list_add(csound, "alsa", "midi");
    csound->module_list_add(csound, "alsa", "audio");
+   csound->module_list_add(csound, "alsa", "midi");
+   csound->module_list_add(csound, "alsaseq", "midi");
+   csound->module_list_add(csound, "devfile", "midi");
 
    {
      csCfgVariable_t *cfg;
