@@ -1,4 +1,4 @@
 #!/bin/sh
-strip *.dll*
+strip *.dll
 strip *.exe
 strip *.pyd
