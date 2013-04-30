@@ -507,8 +507,6 @@ static void list_devices(CSOUND *csound)
     free(line_);
 }
 
-#if NEEDS_CHECKING
-
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
    FILE * f = fopen("/proc/asound/pcm", "r");
@@ -535,9 +533,13 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         if (temp)
           temp = temp + 2;
         if (list != NULL) {
-         strncpy(list[n].device_name, temp, 63);
+	  /* for some reason, there appears to be a memory
+             problem if we try to copy more than 10 chars,
+             even though list[n].device_name is 64 chars long */
+	 strncpy(list[n].device_name, temp, 10);
+         list[n].device_name[10] = '\0';
          sprintf(tmp, "hw:%i,%i", card, num);
-         strncpy(list[n].device_id, tmp, 63);
+         strncpy(list[n].device_id, tmp, 16);
          list[n].max_nchnls = -1;
          list[n].isOutput = isOutput;
         }
@@ -549,8 +551,6 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     free(line_);
     return n;
 }
-
-#endif
 
 static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
 {    DEVPARAMS *dev;
