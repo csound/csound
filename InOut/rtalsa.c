@@ -1574,6 +1574,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtplayCallback(csound, rtplay_);
       csound->SetRtrecordCallback(csound, rtrecord_);
       csound->SetRtcloseCallback(csound, rtclose_);
+      csound->SetAudioDeviceListCallback(csound, listDevices);
 
     }
     s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
