@@ -2774,7 +2774,11 @@ PUBLIC void csoundReset(CSOUND *csound)
     max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
     s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+#ifndef LINUX
     strcpy(s, "PortAudio");
+#else
+    strcpy(s, "alsa");
+#endif
     csoundCreateConfigurationVariable(csound, "rtaudio", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
                                       Str("Real time audio module name"), NULL);

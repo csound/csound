@@ -844,8 +844,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtcloseCallback(csound, rtclose_);
       csound->SetAudioDeviceListCallback(csound, listDevices);
     }
-
-    csound->module_list_add(csound, drv, "audio");
+    
+    csound->module_list_add(csound, s, "audio");
     return 0;
 }
 
