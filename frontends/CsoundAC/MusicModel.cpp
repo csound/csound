@@ -27,7 +27,8 @@
 namespace csound
 {
   MusicModel::MusicModel() :
-    cppSound(&cppSound_)
+    cppSound(&cppSound_),
+    threadCount(1)
   {
   }
 
@@ -189,15 +190,10 @@ namespace csound
   {
     std::string command_ = cppSound->getCommand();
     if (command_.size() == 0) {
-      const char *temp_path = std::getenv("TEMP");
-      if (temp_path == 0) {
-	temp_path = "";
-      }
-      std::string orcname = std::tmpnam(0);
-      std::string sconame = std::tmpnam(0);
       char buffer[0x200];
       std::sprintf(buffer,
-		   "csound --midi-key=4 --midi-velocity=5 -m195 -RWdfo %s",
+		   "csound --midi-key=4 --midi-velocity=5 -m195 -j%d -RWdfo %s",
+           threadCount,
 		   getOutputSoundfileName().c_str());
       command_ = buffer;
     }
