@@ -115,7 +115,7 @@ int ktableseg(CSOUND *csound, TABLESEG *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("tableseg: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("tableseg: not initialised"));
 }
 
 int ktablexseg(CSOUND *csound, TABLESEG *p)
@@ -143,7 +143,7 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("tablexseg: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("tablexseg: not initialised"));
 }
 
 /************************************************************/
@@ -353,12 +353,12 @@ int vpvoc(CSOUND *csound, VPVOC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, Str("vpvoc: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("vpvoc: not initialised"));
  err2:
-    return csound->PerfError(csound, Str("PVOC transpose too low"));
+    return csound->PerfError(csound, p->h.insdshead, Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, Str("PVOC transpose too high"));
+    return csound->PerfError(csound, p->h.insdshead, Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
 }
 

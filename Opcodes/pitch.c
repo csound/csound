@@ -458,7 +458,7 @@ int pitch(CSOUND *csound, PITCH *p)
     *p->kamp = p->kavl * FL(4.0);
     return OK;
  err1:
-    return csound->PerfError(csound, Str("pitch: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("pitch: not initialised"));
 }
 
 /* Multiply and accumulate opcodes */
@@ -466,7 +466,7 @@ int pitch(CSOUND *csound, PITCH *p)
 int macset(CSOUND *csound, SUM *p)
 {
     if (UNLIKELY((((int)p->INOCOUNT)&1)==1)) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("Must have even number of arguments in mac\n"));
     }
     return OK;
@@ -586,7 +586,7 @@ int scratchread(CSOUND *csound, SCRATCHPAD *p)
 {
     int index = MYFLT2LRND(*p->index);
     if (index<0 || index>3)
-      return csound->PerfError(csound, Str("scratchpad index out of range"));
+      return csound->PerfError(csound, p->h.insdshead, Str("scratchpad index out of range"));
     *p->val = p->h.insdshead->scratchpad[index];
     return OK;
 }
@@ -595,7 +595,7 @@ int scratchwrite(CSOUND *csound, SCRATCHPAD *p)
 {
     int index = MYFLT2LRND(*p->index);
     if (index<0 || index>3)
-      return csound->PerfError(csound, Str("scratchpad index out of range"));
+      return csound->PerfError(csound, p->h.insdshead, Str("scratchpad index out of range"));
     p->h.insdshead->scratchpad[index] = *p->val;
     return OK;
 }
@@ -683,7 +683,7 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     int      c, count;
 
     if (UNLIKELY(p->inerr)) {
-      return csound->PerfError(csound, Str("adsynt: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("adsynt: not initialised"));
     }
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -762,7 +762,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     ftp = p->ftp;
     mixtp = p->mixtp;
     if (UNLIKELY(ftp==NULL || mixtp==NULL)) {
-      return csound->PerfError(csound, Str("hsboscil: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("hsboscil: not initialised"));
     }
 
     tonal = *p->ktona;
@@ -994,7 +994,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
     MYFLT  acc, accmin, diff;
 
     if (UNLIKELY(p->inerr)) {
-      return csound->PerfError(csound, Str("pitchamdf: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("pitchamdf: not initialised"));
     }
 
     if (upsamp) {
@@ -1174,7 +1174,7 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
     int     index = (int)(*p->kindx);
 
     if (UNLIKELY(curphs == NULL)) {
-      return csound->PerfError(csound, Str("phasorbnk: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("phasorbnk: not initialised"));
     }
 
     if (UNLIKELY(index<0 || index>=size)) {
@@ -1203,7 +1203,7 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
     int     index = (int)(*p->kindx);
 
     if (UNLIKELY(curphs == NULL)) {
-      return csound->PerfError(csound, Str("phasorbnk: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("phasorbnk: not initialised"));
     }
 
     if (UNLIKELY(index<0 || index>=size)) {
@@ -1811,7 +1811,7 @@ int trnseg(CSOUND *csound, TRANSEG *p)
     uint32_t n, nsmps = CS_KSMPS;
     NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
-      return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
+      return csound->PerfError(csound, p->h.insdshead, Str("transeg: not initialised (arate)\n"));
     }
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1976,7 +1976,7 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
-      return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
+      return csound->PerfError(csound, p->h.insdshead, Str("transeg: not initialised (arate)\n"));
     }
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -2271,7 +2271,7 @@ int medfilt(CSOUND *csound, MEDFILT *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     if (UNLIKELY(p->b.auxp==NULL)) {
-      return csound->PerfError(csound, Str("median: not initialised (arate)\n"));
+      return csound->PerfError(csound, p->h.insdshead, Str("median: not initialised (arate)\n"));
     }
     if (UNLIKELY(kwind > maxwind)) {
       csound->Warning(csound,
@@ -2323,7 +2323,7 @@ int kmedfilt(CSOUND *csound, MEDFILT *p)
     int kwind = MYFLT2LONG(*p->kwind);
     int index = p->ind;
     if (UNLIKELY(p->b.auxp==NULL)) {
-      return csound->PerfError(csound, Str("median: not initialised (krate)\n"));
+      return csound->PerfError(csound, p->h.insdshead, Str("median: not initialised (krate)\n"));
     }
     if (UNLIKELY(kwind > maxwind)) {
       csound->Warning(csound,

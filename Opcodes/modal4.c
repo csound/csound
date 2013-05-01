@@ -43,7 +43,8 @@ static int make_Modal4(CSOUND *csound,
     if (LIKELY((ftp = csound->FTnp2Find(csound,ifn)) != NULL))
       m->vibr = ftp;
     else {                                              /* Expect sine wave */
-      return csound->PerfError(csound, Str("No table for Modal4 case"));
+     csound->ErrorMsg(csound, Str("No table for Modal4 case"));
+     return NOTOK;
     }
     make_Envelope(&m->envelope);
         /*  We do not make the excitation wave here yet,   */

@@ -341,11 +341,11 @@ static int clfilt(CSOUND *csound, CLFILT *p)
           }
           break;
         case 3: /* Lowpass Elliptical */
-          return csound->PerfError(csound, Str("Lowpass Elliptical "
+          return csound->PerfError(csound, p->h.insdshead, Str("Lowpass Elliptical "
                                                "not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
-          return csound->PerfError(csound,
+          return csound->PerfError(csound, p->h.insdshead,
                                    Str("code error, ikind out of range"));
         }
         break;
@@ -378,16 +378,16 @@ static int clfilt(CSOUND *csound, CLFILT *p)
           }
           break;
         case 3: /* Highpass Elliptical */
-          return csound->PerfError(csound, Str("Highpass Elliptical "
+          return csound->PerfError(csound, p->h.insdshead, Str("Highpass Elliptical "
                                                "not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
-          return csound->PerfError(csound,
+          return csound->PerfError(csound, p->h.insdshead,
                                    Str("code error, ikind out of range"));
         }
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return csound->PerfError(csound, Str("code error, ihilo out of range"));
+        return csound->PerfError(csound, p->h.insdshead, Str("code error, ihilo out of range"));
       }
     }
     in   = p->in;

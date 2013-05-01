@@ -430,7 +430,7 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("scanu: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("scanu: not initialised"));
 }
 
 /****************************************************************************

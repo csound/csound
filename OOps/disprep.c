@@ -150,7 +150,7 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
     p->nxtp = fp;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("display: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("display: not initialised"));
 }
 
 int dsplay(CSOUND *csound, DSPLAY *p)
@@ -377,7 +377,7 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
     p->bufp = bufp;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("dispfft: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("dispfft: not initialised"));
 }
 
 int dspfft(CSOUND *csound, DSPFFT *p)
@@ -420,7 +420,7 @@ int dspfft(CSOUND *csound, DSPFFT *p)
     p->bufp = bufp;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("dispfft: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("dispfft: not initialised"));
 }
 
 #define NTERMS  4
@@ -700,6 +700,6 @@ int tempest(CSOUND *csound, TEMPEST *p)
     *p->kout = p->tempo;                    /* put current tempo */
     return OK;
  err1:
-      return csound->PerfError(csound, Str("tempest: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("tempest: not initialised"));
 }
 

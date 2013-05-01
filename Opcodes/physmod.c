@@ -707,7 +707,8 @@ int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     p->coeff = (FL(1.0)-p->alpha)/(FL(1.0)+p->alpha); /* coefficient for all pass*/
     return 0;
  err1:
-    return csound->PerfError(csound, Str("DlineA not initialised"));
+    csound->ErrorMsg(csound, Str("DlineA not initialised"));
+    return NOTOK;
 }
 
 MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */

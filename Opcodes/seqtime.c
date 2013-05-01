@@ -142,7 +142,7 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound,
+    return csound->PerfError(csound, p->h.insdshead,
                              Str("seqtime: incorrect table number"));
 }
 
@@ -248,7 +248,7 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound,
+    return csound->PerfError(csound, p->h.insdshead,
                              Str("seqtim: incorrect table number"));
 }
 

@@ -164,17 +164,17 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
         switch (type[i]) {
         case 'i':
           if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, Str("String not expected"));
+            return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
           lo_message_add_int32(msg, (int32_t) MYFLT2LRND(*arg[i]));
           break;
         case 'l':
           if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, Str("String not expected"));
+            return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
           lo_message_add_int64(msg, (int64_t) MYFLT2LRND(*arg[i]));
           break;
         case 'c':
           if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, Str("String not expected"));
+            return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
           lo_message_add_char(msg, (char) (*arg[i] + FL(0.5)));
           break;
         case 'm':
@@ -184,30 +184,30 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
               uint8_t  m[4];
             } mm;
             if (UNLIKELY(p->XSTRCODE&msk))
-              return csound->PerfError(csound, Str("String not expected"));
+              return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
             mm.x = *arg[i]+FL(0.5);
             lo_message_add_midi(msg, mm.m);
             break;
           }
         case 'f':
           if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, Str("String not expected"));
+            return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
           lo_message_add_float(msg, (float)(*arg[i]));
           break;
         case 'd':
           if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, Str("String not expected"));
+            return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
           lo_message_add_double(msg, (double)(*arg[i]));
           break;
         case 's':
           if (LIKELY(p->XSTRCODE&msk))
             lo_message_add_string(msg, (char*)arg[i]);
           else
-            return csound->PerfError(csound, Str("Not a string when needed"));
+            return csound->PerfError(csound, p->h.insdshead, Str("Not a string when needed"));
           break;
         case 'b':               /* Boolean */
           if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, Str("String not expected"));
+            return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
           if (*arg[i]==FL(0.0)) lo_message_add_true(msg);
           else lo_message_add_false(msg);
           break;
@@ -215,11 +215,11 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
           {
             lo_timetag tt;
             if (UNLIKELY(p->XSTRCODE&msk))
-              return csound->PerfError(csound, Str("String not expected"));
+              return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
             tt.sec = (uint32_t)(*arg[i]+FL(0.5));
             msk <<= 1; i++;
             if (UNLIKELY(type[i]!='t'))
-              return csound->PerfError(csound,
+              return csound->PerfError(csound, p->h.insdshead,
                                        Str("Time stamp is two values"));
             tt.frac = (uint32_t)(*arg[i]+FL(0.5));
             lo_message_add_timetag(msg, tt);
@@ -233,14 +233,14 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             FUNC    *ftp;
             void *data;
             if (UNLIKELY(p->XSTRCODE&msk))
-              return csound->PerfError(csound, Str("String not expected"));
+              return csound->PerfError(csound, p->h.insdshead, Str("String not expected"));
             /* make sure fn exists */
             if (LIKELY((ftp=csound->FTnp2Find(csound,arg[i]))!=NULL)) {
               data = ftp->ftable;
               len = ftp->flen-1;        /* and set it up */
             }
             else {
-              return csound->PerfError(csound,
+              return csound->PerfError(csound, p->h.insdshead,
                                        Str("ftable %.2f does not exist"), *arg[i]);
             }
             myblob = lo_blob_new(sizeof(MYFLT)*len, data);

@@ -204,10 +204,10 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
-      return csound->PerfError(csound, Str("outz index > isizea. No output"));
+      return csound->PerfError(csound, p->h.insdshead, Str("outz index > isizea. No output"));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, Str("outz index < 0. No output."));
+      return csound->PerfError(csound, p->h.insdshead, Str("outz index < 0. No output."));
     }
     if ((int)*p->layout==0) strcpy(name, "vbap_ls_table");
     else sprintf(name, "vbap_ls_table_%d", (int)*p->layout==0);
@@ -512,10 +512,10 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
-      return csound->PerfError(csound, Str("outz index > isizea. No output"));
+      return csound->PerfError(csound, p->h.insdshead, Str("outz index > isizea. No output"));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, Str("outz index < 0. No output."));
+      return csound->PerfError(csound, p->h.insdshead, Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart + (indx * CS_KSMPS);/* outputs */

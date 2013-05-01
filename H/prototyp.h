@@ -42,7 +42,7 @@ void    fdchclose(CSOUND *, INSDS *);
 CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
 CS_NORETURN CS_PRINTF2  void    csoundDie(CSOUND *, const char *, ...);
 CS_PRINTF2  int     csoundInitError(CSOUND *, const char *, ...);
-CS_PRINTF2  int     csoundPerfError(CSOUND *, const char *, ...);
+int     csoundPerfError(CSOUND *, INSDS *ip, const char *, ...);
 CS_PRINTF2  void    csoundWarning(CSOUND *, const char *, ...);
 CS_PRINTF2  void    csoundDebugMsg(CSOUND *, const char *, ...);
 CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);

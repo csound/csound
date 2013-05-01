@@ -446,7 +446,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     if(p->sfunc != func) {
     p->sfunc = func;
     if (UNLIKELY(func == NULL))
-      return csound->PerfError(csound, "table %d invalid\n", (int) *p->ifn);
+      return csound->PerfError(csound, p->h.insdshead, "table %d invalid\n", (int) *p->ifn);
     if (p->ndx[0] >= p->sfunc->flen)
        p->ndx[0] = (double) p->sfunc->flen - 1.0;
     }
@@ -1018,7 +1018,7 @@ static int pvsarp_process(CSOUND *csound, pvsarp *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound,Str("pvsarp: not initialised\n"));
+    return csound->PerfError(csound, p->h.insdshead,Str("pvsarp: not initialised\n"));
 }
 
 static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
@@ -1115,7 +1115,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound,Str("pvsvoc: not initialised\n"));
+    return csound->PerfError(csound, p->h.insdshead,Str("pvsvoc: not initialised\n"));
 }
 
 static int pvsmorph_init(CSOUND *csound, pvsmorph *p)
@@ -1166,7 +1166,7 @@ static int pvsmorph_process(CSOUND *csound, pvsmorph *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound,Str("pvsmorph: not initialised\n"));
+    return csound->PerfError(csound, p->h.insdshead,Str("pvsmorph: not initialised\n"));
 }
 
 static OENTRY localops[] = {

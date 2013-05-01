@@ -137,7 +137,7 @@ int kdmp4set(CSOUND *csound, KDUMP4 *p)
     return OK;
 }
 
-static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk)
+static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk, void *p)
 {
     char  buf1[256], outbuf[256];
     int   len = 0;
@@ -193,7 +193,7 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk)
     default: csound->Die(csound, Str("unknown kdump format"));
     }
     if (UNLIKELY(fwrite(outbuf, len, 1, ofd)!=1)) { /* now write the buffer */
-      csound->PerfError(csound, Str("write failure in dumpk"));
+      csound->PerfError(csound, ((KDUMP *)p)->h.insdshead, Str("write failure in dumpk"));
     }
 }
 
@@ -204,7 +204,7 @@ int kdump(CSOUND *csound, KDUMP *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       kval[0] = *p->ksig;
-      nkdump(csound, kval, p->f, p->format, 1);
+      nkdump(csound, kval, p->f, p->format, 1, p);
     }
     return OK;
 }
@@ -217,7 +217,7 @@ int kdump2(CSOUND *csound, KDUMP2 *p)
       p->countdown = p->timcount;
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
-      nkdump(csound, kval, p->f, p->format, 2);
+      nkdump(csound, kval, p->f, p->format, 2, p);
     }
     return OK;
 }
@@ -231,7 +231,7 @@ int kdump3(CSOUND *csound, KDUMP3 *p)
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
-      nkdump(csound, kval, p->f, p->format, 3);
+      nkdump(csound, kval, p->f, p->format, 3, p);
     }
     return OK;
 }
@@ -246,7 +246,7 @@ int kdump4(CSOUND *csound, KDUMP4 *p)
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
       kval[3] = *p->ksig4;
-      nkdump(csound, kval, p->f, p->format, 4);
+      nkdump(csound, kval, p->f, p->format, 4, p);
     }
     return OK;
 }
@@ -540,7 +540,7 @@ int kreads(CSOUND *csound, KREADS *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       if (UNLIKELY(fgets(p->lasts, csound->strVarMaxLen,  p->f)==NULL)) {
-        csound->PerfError(csound, Str("Read failure in readks"));
+        csound->PerfError(csound, p->h.insdshead, Str("Read failure in readks"));
       }
     }
     strncpy((char*) p->str, p->lasts, csound->strVarMaxLen);

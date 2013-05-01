@@ -474,7 +474,7 @@ int ktable(CSOUND *csound, TABLE   *p)
     *p->rslt = *(ftp->ftable + indx);
     return OK;
  err1:
-    return csound->PerfError(csound, Str("table(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("table(krate): not initialised"));
 }
 
 /* tablefn()  */
@@ -533,7 +533,7 @@ int tablefn(CSOUND *csound, TABLE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("table: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("table: not initialised"));
 }
 
 /* ktabli() */
@@ -625,7 +625,7 @@ int ktabli(CSOUND *csound, TABLE   *p)
     *p->rslt = v1 + (v2 - v1) * fract;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("tablei(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("tablei(krate): not initialised"));
 }
 
 
@@ -716,7 +716,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("table3(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("table3(krate): not initialised"));
 }
 
 /* tabli() */
@@ -796,7 +796,7 @@ int tabli(CSOUND *csound, TABLE   *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("tablei: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("tablei: not initialised"));
 }
 
 int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
@@ -869,7 +869,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("table3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("table3: not initialised"));
 }
 
 /*************************************/
@@ -945,10 +945,10 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("k rate function table no. %f < 1"),
+    return csound->PerfError(csound, p->h.insdshead, Str("k rate function table no. %f < 1"),
                              *p->xfn);
  err2:
-    return csound->PerfError(csound, Str("Offset %f < 0 or > tablelength"),
+    return csound->PerfError(csound, p->h.insdshead, Str("Offset %f < 0 or > tablelength"),
                              p->offset);
 }
 
@@ -1031,7 +1031,7 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
     p->dcnt = dcnt;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil1(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil1(krate): not initialised"));
 }
 
 int kosc1i(CSOUND *csound, OSCIL1   *p)
@@ -1062,7 +1062,7 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil1i(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil1i(krate): not initialised"));
 }
 
 int oscnset(CSOUND *csound, OSCILN *p)
@@ -1122,7 +1122,7 @@ int osciln(CSOUND *csound, OSCILN *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("osciln: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("osciln: not initialised"));
 }
 
 int oscset(CSOUND *csound, OSC *p)
@@ -1153,7 +1153,7 @@ int koscil(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil(krate): not initialised"));
 }
 
 int osckk(CSOUND *csound, OSC *p)
@@ -1187,7 +1187,7 @@ int osckk(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil: not initialised"));
 }
 
 int oscka(CSOUND *csound, OSC *p)
@@ -1222,7 +1222,7 @@ int oscka(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil: not initialised"));
 }
 
 int oscak(CSOUND *csound, OSC *p)
@@ -1254,7 +1254,7 @@ int oscak(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil: not initialised"));
 }
 
 int oscaa(CSOUND *csound, OSC *p)
@@ -1288,7 +1288,7 @@ int oscaa(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil: not initialised"));
 }
 
 int koscli(CSOUND *csound, OSC   *p)
@@ -1310,7 +1310,7 @@ int koscli(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscili(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscili(krate): not initialised"));
 }
 
 int osckki(CSOUND *csound, OSC   *p)
@@ -1344,7 +1344,7 @@ int osckki(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscili: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscili: not initialised"));
 }
 
 int osckai(CSOUND *csound, OSC   *p)
@@ -1383,7 +1383,7 @@ int osckai(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscili: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscili: not initialised"));
 }
 
 int oscaki(CSOUND *csound, OSC   *p)
@@ -1418,7 +1418,7 @@ int oscaki(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscili: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscili: not initialised"));
 }
 
 int oscaai(CSOUND *csound, OSC   *p)
@@ -1456,7 +1456,7 @@ int oscaai(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscili: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscili: not initialised"));
 }
 
 int koscl3(CSOUND *csound, OSC   *p)
@@ -1496,7 +1496,7 @@ int koscl3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil3(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil3(krate): not initialised"));
 }
 
 int osckk3(CSOUND *csound, OSC   *p)
@@ -1554,7 +1554,7 @@ int osckk3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil3: not initialised"));
 }
 
 int oscka3(CSOUND *csound, OSC   *p)
@@ -1609,7 +1609,7 @@ int oscka3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil3: not initialised"));
 }
 
 int oscak3(CSOUND *csound, OSC   *p)
@@ -1661,7 +1661,7 @@ int oscak3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil3: not initialised"));
 }
 
 int oscaa3(CSOUND *csound, OSC   *p)
@@ -1715,5 +1715,5 @@ int oscaa3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscil3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscil3: not initialised"));
 }

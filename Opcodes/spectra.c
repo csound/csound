@@ -470,7 +470,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 /*     if ((--p->countdown))  return;
        /\* if not yet time for new spec, return *\/ */
 /*     if (p->auxch.auxp==NULL) { /\* RWD fix *\/ */
-/*       return csound->PerfError(csound, Str("noctdft: not initialised")); */
+/*       return csound->PerfError(csound, p->h.insdshead, Str("noctdft: not initialised")); */
 /*     } */
 /*     p->countdown = p->timcount;      /\* else reset counter & proceed:   *\/ */
 /*     downp = p->dsig; */
@@ -562,7 +562,7 @@ int specdisp(CSOUND *csound, SPECDISP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("specdisp: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("specdisp: not initialised"));
 }
 
 int sptrkset(CSOUND *csound, SPECPTRK *p)
@@ -824,7 +824,7 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
       specdisp(csound,&p->fdisplay);
     return OK;
  err1:
-    return csound->PerfError(csound, Str("specptrk: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("specptrk: not initialised"));
 }
 
 int spsumset(CSOUND *csound, SPECSUM *p)
@@ -856,7 +856,7 @@ int specsum(CSOUND *csound, SPECSUM *p)
       p->kval += p->kinc;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("specsum: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("specsum: not initialised"));
 }
 
 int spadmset(CSOUND *csound, SPECADDM *p)
@@ -909,7 +909,7 @@ int specaddm(CSOUND *csound, SPECADDM *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("specaddm: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("specaddm: not initialised"));
 }
 
 int spdifset(CSOUND *csound, SPECDIFF *p)
@@ -971,7 +971,7 @@ int specdiff(CSOUND *csound, SPECDIFF *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("specdiff: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("specdiff: not initialised"));
 }
 
 int spsclset(CSOUND *csound, SPECSCAL *p)
@@ -1064,7 +1064,7 @@ int specscal(CSOUND *csound, SPECSCAL *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("specscal: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("specscal: not initialised"));
 }
 
 int sphstset(CSOUND *csound, SPECHIST *p)
@@ -1120,7 +1120,7 @@ int spechist(CSOUND *csound, SPECHIST *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("spechist: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("spechist: not initialised"));
 }
 
 int spfilset(CSOUND *csound, SPECFILT *p)
@@ -1208,7 +1208,7 @@ int specfilt(CSOUND *csound, SPECFILT *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("specfilt: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("specfilt: not initialised"));
 }
 
 #define S       sizeof

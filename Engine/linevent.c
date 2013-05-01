@@ -362,7 +362,7 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
     opcod = ((char*) p->args[0])[0];
     if ((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
          opcod != 'e') || ((char*) p->args[0])[1] != '\0')
-      return csound->PerfError(csound, Str(errmsg_1));
+      return csound->PerfError(csound, p->h.insdshead,Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
     if(p->flag==1) evt.pcnt = p->argno;
@@ -372,7 +372,7 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
     if (evt.pcnt > 0) {
       if (p->XSTRCODE & 2) {
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
-          return csound->PerfError(csound, Str(errmsg_2));
+          return csound->PerfError(csound, p->h.insdshead,Str(errmsg_2));
         evt.p[1] = SSTRCOD;
         evt.strarg = (char*) p->args[1];
       }
@@ -384,7 +384,7 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
         evt.p[i] = *p->args[i];
     }
     if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
-      return csound->PerfError(csound, Str("event: error creating '%c' event"),
+      return csound->PerfError(csound, p->h.insdshead,Str("event: error creating '%c' event"),
                                        opcod);
     return OK;
 }

@@ -2421,13 +2421,13 @@ FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
     if (UNLIKELY(fno <= 0                 ||
                  fno > csound->maxfnum    ||
                  (ftp = csound->flist[fno]) == NULL)) {
-      csoundPerfError(csound, Str("Invalid ftable no. %f"), *argp);
+      csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
     else if (UNLIKELY(!ftp->lenmask)) {
       /* Now check that the table has a length > 0.  This should only
        * occur for tables which have not been loaded yet.  */
-      csoundPerfError(csound, Str("Deferred-size ftable %f load "
+      csound->ErrorMsg(csound, Str("Deferred-size ftable %f load "
                                   "not available at perf time."), *argp);
       return NULL;
     }
