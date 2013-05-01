@@ -100,7 +100,7 @@ int pvread(CSOUND *csound, PVREAD *p)
     *p->kamp = buf[0];
     return OK;
  err1:
-    return csound->PerfError(csound, Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
 }
 
 static int pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)

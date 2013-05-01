@@ -574,11 +574,12 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
 int csoundInitModules(CSOUND *csound)
 {
     csoundModule_t  *m;
-    int             i, retval = CSOUND_SUCCESS;
+    int             i, retval = CSOUND_SUCCESS,n=0;
 
     /* call init functions */
     for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
       i = csoundInitModule(csound, m);
+      //printf("module=%d \n", ++n);
       if (i != CSOUND_SUCCESS && i < retval)
         retval = i;
     }

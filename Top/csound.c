@@ -261,7 +261,7 @@ static const CSOUND cenviron_ = {
     csoundParseConfigurationVariable,
     csoundQueryConfigurationVariable,
     csoundListConfigurationVariables,
-    csoundDeleteConfigurationVariable,
+   csoundDeleteConfigurationVariable,
     csoundCfgErrorCodeToString,
     /* FFT support */
     csoundGetInverseComplexFFTScale,

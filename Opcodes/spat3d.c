@@ -661,7 +661,7 @@ static int    spat3d(CSOUND *csound, SPAT3D *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("spat3d: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("spat3d: not initialised"));
 }
 
 /* -------------------------- spat3di performance -------------------------- */
@@ -778,7 +778,7 @@ static int    spat3di(CSOUND *csound, SPAT3D *p)
     } while (--nn);
     return OK;
  err1:
-    return csound->PerfError(csound, Str("spat3di: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("spat3di: not initialised"));
 }
 
 /* ---------------------------- spat3dt opcode ----------------------------- */

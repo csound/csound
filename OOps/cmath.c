@@ -33,7 +33,7 @@ int ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
     MYFLT in = *p->in;
     MYFLT powerOf = *p->powerOf;
     if (UNLIKELY(in == FL(0.0) && powerOf == FL(0.0)))
-      return csound->PerfError(csound, Str("NaN in pow\n"));
+      return csound->PerfError(csound, p->h.insdshead, Str("NaN in pow\n"));
     else if (p->norm!=NULL && *p->norm != FL(0.0))
       *p->sr = POWER(in, powerOf) / *p->norm;
     else
@@ -60,7 +60,7 @@ int apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
       for (n = offset; n < nsmps; n++) {
         MYFLT xx = in[n];
         if (UNLIKELY(xx == FL(0.0))) {
-          return csound->PerfError(csound, Str("NaN in pow\n"));
+          return csound->PerfError(csound, p->h.insdshead,Str("NaN in pow\n"));
         }
         else
           out[n] = yy;

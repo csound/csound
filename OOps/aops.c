@@ -225,7 +225,7 @@ int mainit(CSOUND *csound, ASSIGNM *p)
 /*     TABDAT *t = p->tab; */
 /*     int ind = MYFLT2LRND(*p->ind); */
 /*     if (ind<0 || ind>t->size) */
-/*       return csound->PerfError(csound, */
+/*       return csound->PerfError(csound, p->h.insdshead,*/
 /*                                Str("Index %d out of range [0,%d] in t[]\n"), */
 /*                                ind, t->size); */
 /*     t->data[ind] = *p->val; */
@@ -244,7 +244,7 @@ int mainit(CSOUND *csound, ASSIGNM *p)
 /*     int ind = MYFLT2LRND(*p->ind); */
 /*     TABDAT *t = p->tab; */
 /*      if (ind<0 || ind>t->size) */
-/*       return csound->PerfError(csound, */
+/*       return csound->PerfError(csound, p->h.insdshead,*/
 /*                                Str("Index %d out of range [0,%d] in t[]\n"), */
 /*                                ind, t->size); */
 /*      *p->ans = t->data[ind]; */
@@ -1037,7 +1037,7 @@ int cpsxpch(CSOUND *csound, XENH *p)
       FUNC* ftp = csound->FTnp2Find(csound, &t);
       int32 len;
       if (UNLIKELY(ftp == NULL))
-        return csound->PerfError(csound, Str("No tuning table %d"),
+        return csound->PerfError(csound, p->h.insdshead,Str("No tuning table %d"),
                                  -((int)*p->et));
       len = ftp->flen;
       while (fract>len) {
@@ -1065,7 +1065,7 @@ int cps2pch(CSOUND *csound, XENH *p)
       FUNC* ftp = csound->FTnp2Find(csound, &t);
       int32 len;
       if (UNLIKELY(ftp == NULL))
-        return csound->PerfError(csound, Str("No tuning table %d"),
+        return csound->PerfError(csound, p->h.insdshead,Str("No tuning table %d"),
                                  -((int)*p->et));
       len = ftp->flen;
       while (fract>len) {
@@ -1110,7 +1110,7 @@ int cpstun_i(CSOUND *csound, CPSTUNI *p)
     *p->r = func[grade] * factor * basefreq;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("cpstun: invalid table"));
+    return csound->PerfError(csound, p->h.insdshead,Str("cpstun: invalid table"));
 }
 
 int cpstun(CSOUND *csound, CPSTUN *p)
@@ -1148,7 +1148,7 @@ int cpstun(CSOUND *csound, CPSTUN *p)
     else *p->r = p->old_r;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("cpstun: invalid table"));
+    return csound->PerfError(csound, p->h.insdshead,Str("cpstun: invalid table"));
 }
 
 int logbasetwo_set(CSOUND *csound, EVAL *p)
@@ -1510,7 +1510,7 @@ int inch_opcode(CSOUND *csound, INCH *p)
     MYFLT *sp, *ain;
     if (UNLIKELY(nChannels != p->OUTOCOUNT))
       return
-        csound->PerfError(csound,
+        csound->PerfError(csound, p->h.insdshead,
                           Str("Input and output argument count differs in inch"));
     for (nc=0; nc<nChannels; nc++) {
       ch = (int)(*p->ch[nc] + FL(0.5));
@@ -1949,7 +1949,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
     int narg = p->narg;
 
     if (startChan < 0)
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("outrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
 

@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <math.h>
 
 #define INITERROR(x) csound->InitError(csound, Str("partikkel: " x))
-#define PERFERROR(x) csound->PerfError(csound, Str("partikkel: " x))
+#define PERFERROR(x) csound->PerfError(csound, p->h.insdshead, Str("partikkel: " x))
 #define WARNING(x) csound->Warning(csound, Str("partikkel: " x))
 
 /* Assume csound and p pointers are always available */

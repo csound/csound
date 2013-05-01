@@ -567,7 +567,7 @@ static int vcomb(CSOUND *csound, VCOMB *p)
     p->pntr = wp;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("vcomb: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("vcomb: not initialised"));
 }
 
 static int valpass(CSOUND *csound, VCOMB *p)
@@ -627,7 +627,7 @@ static int valpass(CSOUND *csound, VCOMB *p)
     p->pntr = wp;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("valpass: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("valpass: not initialised"));
 }
 
 static int ftmorfset(CSOUND *csound, FTMORF *p)

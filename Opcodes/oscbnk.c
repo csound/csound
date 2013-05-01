@@ -550,7 +550,7 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     p->init_k = 0;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("oscbnk: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("oscbnk: not initialised"));
 }
 
 /* ---------------- grain2 set-up ---------------- */
@@ -748,7 +748,7 @@ static int grain2(CSOUND *csound, GRAIN2 *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("grain2: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("grain2: not initialised"));
 }
 
 /* ---------------- grain3 set-up ---------------- */
@@ -900,13 +900,13 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     w_frq_f = csound->onedsr / *(p->kgdur);     /* window frequency     */
     if (UNLIKELY((w_frq_f < (FL(1.0) / (MYFLT) OSCBNK_PHSMAX)) ||
                  (w_frq_f >= FL(1.0)))) {
-      return csound->PerfError(csound, Str("grain3: invalid grain duration"));
+      return csound->PerfError(csound, p->h.insdshead, Str("grain3: invalid grain duration"));
     }
     w_frq = OSCBNK_PHS2INT(w_frq_f);
     x_frq_f = csound->onedsr * *(p->kdens);     /* density              */
     if (UNLIKELY((x_frq_f < (FL(1.0) / (MYFLT) OSCBNK_PHSMAX)) ||
                  (x_frq_f >= FL(1.0)))) {
-      return csound->PerfError(csound, Str("grain3: invalid grain density"));
+      return csound->PerfError(csound, p->h.insdshead, Str("grain3: invalid grain density"));
     }
     x_frq = OSCBNK_PHS2INT(x_frq_f);
     wfdivxf = w_frq_f / ((MYFLT) OSCBNK_PHSMAX * x_frq_f);
@@ -997,9 +997,9 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     p->x_phs = x_ph;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("grain3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("grain3: not initialised"));
  err2:
-    return csound->PerfError(csound, Str("grain3 needs more overlaps"));
+    return csound->PerfError(csound, p->h.insdshead, Str("grain3 needs more overlaps"));
 }
 
 /* ----------------------------- rnd31 opcode ------------------------------ */
@@ -1071,7 +1071,7 @@ static int rnd31k(CSOUND *csound, RND31 *p)
     *(p->out) = *(p->scl) * oscbnk_rnd_bipolar(&(p->seed), rpow, rmode);
     return OK;
  err1:
-    return csound->PerfError(csound, Str("rnd31: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("rnd31: not initialised"));
 }
 
 /* ---- rnd31 / a-rate ---- */
@@ -1115,7 +1115,7 @@ static int rnd31a(CSOUND *csound, RND31 *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("rnd31: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("rnd31: not initialised"));
 }
 
 /* ---- oscilikt initialisation ---- */
@@ -1930,7 +1930,7 @@ static int vco2ftp(CSOUND *csound, VCO2FT *p)
 
 static int vco2ft(CSOUND *csound, VCO2FT *p)
 {
-    return csound->PerfError(csound, Str("vco2ft: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("vco2ft: not initialised"));
 }
 
 /* ---- vco2 opcode (initialisation) ---- */
@@ -2022,7 +2022,7 @@ static int vco2(CSOUND *csound, VCO2 *p)
     MYFLT   f, f1, npart, *nparts, pfrac, v, *ftable, kamp, *ar;
     if (UNLIKELY(p->tables == NULL)) {
 #endif
-      return csound->PerfError(csound, Str("vco2: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("vco2: not initialised"));
     }
     /* if 1st k-cycle, initialise now */
     if (p->init_k) {
@@ -2203,7 +2203,7 @@ static int delayk(CSOUND *csound, DELAYK *p)
     MYFLT   *buf = (MYFLT*) p->aux.auxp;
 
     if (UNLIKELY(!buf))
-      return csound->PerfError(csound, Str("delayk: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("delayk: not initialised"));
     buf[p->readp++] = *(p->ksig);           /* write input signal to buffer */
     if (p->readp >= p->npts)
       p->readp = 0;                         /* wrap index */
@@ -2244,12 +2244,12 @@ static int vdelayk(CSOUND *csound, VDELAYK *p)
     int     n, npts = p->npts;
 
     if (UNLIKELY(!buf))
-      return csound->PerfError(csound, Str("vdel_k: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("vdel_k: not initialised"));
     buf[p->wrtp] = *(p->ksig);              /* write input signal to buffer */
                                             /* calculate delay time */
     n = (int) MYFLT2LONG(*(p->kdel) * CS_EKR);
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound, Str("vdel_k: invalid delay time "
+      return csound->PerfError(csound, p->h.insdshead, Str("vdel_k: invalid delay time "
                                            "(must be >= 0)"));
     n = p->wrtp - n;
     if (++p->wrtp >= npts) p->wrtp = 0;         /* wrap index */
@@ -2520,7 +2520,7 @@ static int rbjeq(CSOUND *csound, RBJEQ *p)
       }
       break;
     default:
-      return csound->PerfError(csound, Str("rbjeq: invalid filter type"));
+      return csound->PerfError(csound, p->h.insdshead, Str("rbjeq: invalid filter type"));
       break;
     }
     /* save filter state */

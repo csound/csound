@@ -300,7 +300,8 @@ int CLsend(CSOUND *csound, int conn, void *data, int length)
 {
     int nbytes;
     if (UNLIKELY((nbytes = write(conn, data, length)) <= 0)) {
-      return csound->PerfError(csound, Str("write to socket failed"));
+      csound->ErrorMsg(csound, Str("write to socket failed"));
+      return NOTOK;
     }
     /*    csound->Message(csound, "nbytes sent: %d \n", nbytes); */
     return OK;
@@ -578,7 +579,8 @@ int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
     bp->type = SCOR_EVT;                    /* insert type and len */
     bp->len = (char *)g - (char *)bp;
     if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (int)bp->len) < 0)) {
-      return csound->PerfError(csound, Str("CLsend failed"));
+      csound->ErrorMsg(csound, Str("CLsend failed"));
+      return NOTOK;
     }
     else return OK;
 }
@@ -602,7 +604,8 @@ int MIDIsendevt(CSOUND *csound, MEVENT *evt, int rfd)
     bp->len = sizeof(int) * 2 + sizeof(MEVENT);
 
     if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (size_t)bp->len) < 0)) {
-      return csound->PerfError(csound, Str("CLsend failed"));
+      csound->ErrorMsg(csound, Str("CLsend failed"));
+      return NOTOK;
     }
     else return OK;
 }
@@ -626,7 +629,8 @@ int MIDIsend_msg(CSOUND *csound, MEVENT *evt, int rfd)
     bp->len = sizeof(int) * 2 + sizeof(MEVENT);
 
     if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (size_t)bp->len) < 0)) {
-      return csound->PerfError(csound, Str("CLsend failed"));
+      csound->ErrorMsg(csound, Str("CLsend failed"));
+      return NOTOK;
     }
     else return OK;
 }

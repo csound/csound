@@ -485,7 +485,7 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if(!p->initDone && !p->iSkipInit){
-      return csound->PerfError(csound, Str("diskin2: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
       double  f;
@@ -670,7 +670,7 @@ int diskin_file_read(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if(!p->initDone && !p->iSkipInit){
-      return csound->PerfError(csound, Str("diskin2: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
       double  f;
@@ -865,7 +865,7 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
     if(!p->initDone && !p->iSkipInit){
-      return csound->PerfError(csound, Str("diskin2: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("diskin2: not initialised"));
     }
     for (nn = offset; nn < nsmps; nn++){
 
@@ -1074,7 +1074,7 @@ int soundin(CSOUND *csound, SOUNDIN_ *p)
     int i;
 
     if (UNLIKELY(p->fdch.fd == NULL)) {
-      return csound->PerfError(csound, Str("soundin: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("soundin: not initialised"));
     }
     if (UNLIKELY(offset)) for (i=0; i<p->nChannels; i++)
                   memset(p->aOut[i], '\0', offset*sizeof(MYFLT));

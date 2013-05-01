@@ -5354,7 +5354,7 @@ extern "C" {
           {
             //      val = table[k];
             if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-              csound->PerfError(csound,
+              csound->PerfError(csound, p->h.insdshead,
                                 Str("FLslidBnk2Setk: value out of range: "
                                     "function mapping requires a 0 to 1 "
                                     "range for input"));
@@ -5446,7 +5446,7 @@ extern "C" {
             {
               val = table[k];
               if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-                csound->PerfError(csound,
+                csound->PerfError(csound, p->h.insdshead,
                                   Str("FLslidBnk2Setk: value out of range:"
                                       " function mapping requires a 0 to 1"
                                       " range for input"));
@@ -5538,7 +5538,7 @@ extern "C" {
             {
               val = table[k];
               if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-                csound->PerfError(csound,
+                csound->PerfError(csound, p->h.insdshead,
                                   Str("FLslidBnk2Setk: value out of range: "
                                       "function mapping requires a 0 to 1 range "
                                       "for input"));

@@ -890,21 +890,11 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
   return ++(csound->inerrcnt);
 }
 
-int csoundPerfError(CSOUND *csound, const char *s, ...)
+int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
 {
   va_list args;
-  INSDS   *ip;
   char    buf[512];
 
-  /* RWD and probably this too... */
-  if (UNLIKELY(csound->pds == NULL)) {
-    va_start(args, s);
-    csoundErrMsgV(csound, Str("\nPERF ERROR: "), s, args);
-    va_end(args);
-    csound->LongJmp(csound, 1);
-  }
-  /* IV - Oct 16 2002: check for subinstr and user opcode */
-  ip = csound->pds->insdshead;
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
     /* find top level instrument instance */
@@ -923,13 +913,10 @@ int csoundPerfError(CSOUND *csound, const char *s, ...)
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
-  putop(csound, &(csound->pds->optext->t));
+  putop(csound, &(ip->pds->optext->t));
   csoundMessage(csound, Str("   note aborted\n"));
   csound->perferrcnt++;
   xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
-  while (csound->pds->nxtp != NULL)
-    csound->pds = csound->pds->nxtp;        /* loop to last opds */
-
   return csound->perferrcnt;                /* contin from there */
 }
 
@@ -1212,7 +1199,7 @@ int useropcd(CSOUND *csound, UOPCODE *p)
 {
 
   if(p->h.nxtp)
-    return csoundPerfError(csound, Str("%s: not initialised"),
+    return csoundPerfError(csound, p->h.insdshead, Str("%s: not initialised"),
                            p->h.optext->t.opcod);
   else
     return OK;
@@ -1509,7 +1496,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
   INSDS *ip = p->ip;
 
   if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
-    return csoundPerfError(csound, Str("subinstr: not initialised"));
+    return csoundPerfError(csound, p->h.insdshead, Str("subinstr: not initialised"));
   }
   /* copy current spout buffer and clear it */
   ip->spout = (MYFLT*) p->saved_spout.auxp;

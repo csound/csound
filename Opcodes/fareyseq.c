@@ -247,12 +247,12 @@ int tablefilter (CSOUND *csound, TABFILT *p)
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action.     */
     if (UNLIKELY((*p->dft < 1) || (*p->sft < 1))) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f"),
                                *p->dft, *p->sft);
     }
     if (UNLIKELY((*p->ftype < 1))) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("Farey: Filter type < 1 dft=%.2f  sft=%.2f"),
                                *p->ftype);
     }
@@ -267,7 +267,7 @@ int tablefilter (CSOUND *csound, TABFILT *p)
        */
       if (UNLIKELY((p->funcd = csound->FTFindP(csound, p->dft)) == NULL)) {
         return
-          csound->PerfError(csound,
+          csound->PerfError(csound, p->h.insdshead,
                             Str("Farey: Destination dft table %.2f not found."),
                             *p->dft);
       }
@@ -278,7 +278,7 @@ int tablefilter (CSOUND *csound, TABFILT *p)
     /* Source  */
     if (p->psft != (int)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
       }
@@ -302,7 +302,7 @@ int tableifilter (CSOUND *csound, TABFILT *p)
                                *p->dft, *p->sft);
     }
     if (UNLIKELY((*p->ftype < 1))) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("Farey: Filter type < 1"),
                                *p->ftype);
     }
@@ -441,7 +441,7 @@ int tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
 int tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("Table no. < 1 sft=%.2f"),
                                *p->sft);
     }
@@ -449,7 +449,7 @@ int tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
     /* Source  */
     if (p->psft != (int)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
       }
@@ -462,7 +462,7 @@ int tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 int tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("Table no. < 1 sft=%.2f"),
                                *p->sft);
     }
