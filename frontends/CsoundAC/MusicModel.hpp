@@ -46,6 +46,7 @@ namespace csound
     public ScoreModel
   {
   public:
+    int threadCount;
     MusicModel();
     virtual ~MusicModel();
     virtual void initialize();
