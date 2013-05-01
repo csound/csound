@@ -1230,11 +1230,11 @@ static int ftkrchkw(CSOUND *csound, TABLEW *p)
      * with a or k rate operations.  */
     return OK;
  err1:
-    return csound->PerfError(csound, Str("Table write k rate "
+    return csound->PerfError(csound, p->h.insdshead, Str("Table write k rate "
                                          "function table no. %f < 1"),
                              *p->xfn);
  err2:
-    return csound->PerfError(csound,
+    return csound->PerfError(csound, p->h.insdshead,
                              Str("Table write offset %f < 0 or > tablelength"),
                              p->offset);
 }
@@ -1278,7 +1278,7 @@ int    tableng(CSOUND *csound, TABLENG *p)
     flen = csound->GetTable(csound, &dummy, (int)*(p->xfn));
     if (UNLIKELY(flen < 0)) {
       *p->kout = FL(0.0);
-      return csound->PerfError(csound, Str("Table %f not found"), *(p->xfn));
+      return csound->PerfError(csound, p->h.insdshead, Str("Table %f not found"), *(p->xfn));
     }
     /* Return length as a float if we do find the table. */
     *p->kout = (MYFLT) flen;
@@ -1457,7 +1457,7 @@ int tablemix(CSOUND *csound, TABLEMIX *p)
      * which is initially 0.
      */
     if (UNLIKELY((*p->dft  < 1) || (*p->s1ft < 1) || (*p->s2ft < 1))) {
-      return csound->PerfError(csound, Str("Table no. < 1 "
+      return csound->PerfError(csound, p->h.insdshead, Str("Table no. < 1 "
                                            "dft=%.2f  s1ft=%.2f  s2ft=%.2f\n"),
                                *p->dft, *p->s1ft, *p->s2ft);
     }
@@ -1472,7 +1472,7 @@ int tablemix(CSOUND *csound, TABLEMIX *p)
        */
 
       if (UNLIKELY((p->funcd = csound->FTFindP(csound, p->dft)) == NULL)) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("Destination dft table %.2f not found."),
                                  *p->dft);
       }
@@ -1485,7 +1485,7 @@ int tablemix(CSOUND *csound, TABLEMIX *p)
     /* Source 1 */
     if (p->ps1ft != (int)*p->s1ft) {
       if (UNLIKELY((p->funcs1 = csound->FTFindP(csound, p->s1ft)) == NULL)) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("Source 1 s1ft table %.2f not found."),
                                  *p->s1ft);
       }
@@ -1495,7 +1495,7 @@ int tablemix(CSOUND *csound, TABLEMIX *p)
     /* Source 2 */
     if (p->ps2ft != (int)*p->s2ft) {
       if (UNLIKELY((p->funcs2 = csound->FTFindP(csound, p->s2ft)) == NULL)) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("Source 2 s2ft table %.2f not found."),
                                  *p->s2ft);
       }
@@ -1745,7 +1745,7 @@ int tablecopy(CSOUND *csound, TABLECOPY *p)
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action.     */
     if (UNLIKELY((*p->dft < 1) || (*p->sft < 1))) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("Table no. < 1 dft=%.2f  sft=%.2f"),
                                *p->dft, *p->sft);
     }
@@ -1757,7 +1757,7 @@ int tablecopy(CSOUND *csound, TABLECOPY *p)
        * csoundFTFindP() for perf time. csoundFTFind() for init time.
        */
       if (UNLIKELY((p->funcd = csound->FTFindP(csound, p->dft)) == NULL)) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("Destination dft table %.2f not found."),
                                  *p->dft);
       }
@@ -1768,7 +1768,7 @@ int tablecopy(CSOUND *csound, TABLECOPY *p)
     /* Source  */
     if (p->psft != (int)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
       }
@@ -1902,7 +1902,7 @@ int tablera(CSOUND *csound, TABLERA *p)
     /* Check the state of the table number variable.
      * Error message if it is < 1 and no further action. */
     if (UNLIKELY(*p->kfn < 1)) {
-      return csound->PerfError(csound, Str("Table kfn=%.2f < 1"), *p->kfn);
+      return csound->PerfError(csound, p->h.insdshead, Str("Table kfn=%.2f < 1"), *p->kfn);
     }
 
     if (p->pfn != (int)*p->kfn) { /* Check if the table number has changed. */
@@ -1910,7 +1910,7 @@ int tablera(CSOUND *csound, TABLERA *p)
        * csoundFTFindP() for perf time.                              */
 
       if (UNLIKELY((p->ftp = csound->FTFindP(csound, p->kfn)) == NULL)) {
-        return csound->PerfError(csound, Str("kfn table %.2f not found"),
+        return csound->PerfError(csound, p->h.insdshead, Str("kfn table %.2f not found"),
                                          *p->kfn);
       }
       /* Table number is valid.
@@ -1922,7 +1922,7 @@ int tablera(CSOUND *csound, TABLERA *p)
        * the ksmps number of reads can fit within the length of the table. */
 
       if (UNLIKELY(p->ftp->flen < CS_KSMPS)) {
-        return csound->PerfError(csound, Str("Table kfn=%.2f length %ld "
+        return csound->PerfError(csound, p->h.insdshead, Str("Table kfn=%.2f length %ld "
                                              "shorter than ksmps %d"),
                                          *p->kfn, p->ftp->flen, CS_KSMPS);
       }
@@ -1931,7 +1931,7 @@ int tablera(CSOUND *csound, TABLERA *p)
 
     if (UNLIKELY(/*((kstart = (uint32_t)*p->kstart) < 0U) || */
                  ((kstart = (uint32_t)*p->kstart) >= p->ftp->flen))) {
-      return csound->PerfError(csound, Str("kstart %.2f is outside "
+      return csound->PerfError(csound, p->h.insdshead, Str("kstart %.2f is outside "
                                            "table %.2f range 0 to %ld"),
                                        *p->kstart, *p->kfn, p->ftp->flen - 1);
     }
@@ -2031,7 +2031,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
     /* Check the state of the table number variable.
      * Error message if it is < 1 and no further action.     */
     if (UNLIKELY(*p->kfn < 1)) {
-        return csound->PerfError(csound, Str("Table kfn=%.2f < 1"), *p->kfn);
+        return csound->PerfError(csound, p->h.insdshead, Str("Table kfn=%.2f < 1"), *p->kfn);
     }
 
     if (p->pfn != (int)*p->kfn) { /* Check if the table number has changed. */
@@ -2039,7 +2039,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
          * csoundFTFindP() for perf time. */
 
       if (UNLIKELY((p->ftp = csound->FTFindP(csound, p->kfn)) == NULL)) {
-            return csound->PerfError(csound, Str("kfn table %.2f not found"),
+            return csound->PerfError(csound, p->h.insdshead, Str("kfn table %.2f not found"),
                                              *p->kfn);
         }
         /* Table number is valid.
@@ -2052,7 +2052,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
          * the ksmps number of reads can fit within the length of the table. */
 
         if (UNLIKELY(p->ftp->flen < nsmps)) {
-            return csound->PerfError(csound, Str("Table kfn=%.2f length %ld "
+            return csound->PerfError(csound, p->h.insdshead, Str("Table kfn=%.2f length %ld "
                                                  "shorter than ksmps %d"),
                                              *p->kfn, p->ftp->flen, nsmps);
         }
@@ -2061,7 +2061,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
     /* Check that kstart is within the range of the table. */
     if (UNLIKELY(((kstart = (int32)*p->kstart) < 0) ||
                  ((uint32_t)(kstart = (int32)*p->kstart) >= p->ftp->flen))) {
-        return csound->PerfError(csound, Str("kstart %.2f is outside "
+        return csound->PerfError(csound, p->h.insdshead, Str("kstart %.2f is outside "
                                              "table %.2f range 0 to %ld"),
                                          *p->kstart, *p->kfn, p->ftp->flen - 1);
     }
@@ -2267,10 +2267,10 @@ int zkw(CSOUND *csound, ZKW *p)
     /* Check to see this index is within the limits of zk space. */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zklast)) {
-      return csound->PerfError(csound, Str("zkw index > isizek. Not writing."));
+      return csound->PerfError(csound, p->h.insdshead, Str("zkw index > isizek. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, Str("zkw index < 0. Not writing."));
+      return csound->PerfError(csound, p->h.insdshead, Str("zkw index < 0. Not writing."));
     }
     else {
       MYFLT *writeloc;
@@ -2321,11 +2321,11 @@ int zkwm(CSOUND *csound, ZKWM *p)
     /* Check to see this index is within the limits of zk space.   */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zklast)) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("zkwm index > isizek. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, Str("zkwm index < 0. Not writing."));
+      return csound->PerfError(csound, p->h.insdshead, Str("zkwm index < 0. Not writing."));
     }
     else {
       MYFLT *writeloc;
@@ -2404,7 +2404,7 @@ int zkmod(CSOUND *csound, ZKMOD *p)
     /* Check to see this index is within the limits of zk space. */
 
     if (UNLIKELY(indx > csound->zklast)) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("zkmod kzkmod > isizek. Not writing."));
     }
     else {
@@ -2430,14 +2430,14 @@ int zkcl(CSOUND *csound, ZKCL *p)
     /* Check to see both kfirst and klast are within the limits of zk space
      * and that last is >= first.                */
     if (UNLIKELY((first > csound->zklast) || (last > csound->zklast)))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("zkcl first or last > isizek. Not clearing."));
     else if (UNLIKELY((first < 0) || (last < 0))) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("zkcl first or last < 0. Not clearing."));
     }
     else if (UNLIKELY(first > last)) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("zkcl first > last. Not clearing."));
     }
     else {
@@ -2488,11 +2488,11 @@ int zar(CSOUND *csound, ZAR *p)
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-      return csound->PerfError(csound, Str("zar index > isizea. Returning 0."));
+      return csound->PerfError(csound, p->h.insdshead, Str("zar index > isizea. Returning 0."));
     }
     else if (UNLIKELY(indx < 0)) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-      return csound->PerfError(csound, Str("zar index < 0. Returning 0."));
+      return csound->PerfError(csound, p->h.insdshead, Str("zar index < 0. Returning 0."));
     }
     else {
       /* Now read from the array in za space and write to the destination.
@@ -2530,13 +2530,13 @@ int zarg(CSOUND *csound, ZARG *p)
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("zarg index > isizea. Returning 0."));
     }
     else {
       if (UNLIKELY(indx < 0)) {
         memset(writeloc, 0, nsmps*sizeof(MYFLT));
-        return csound->PerfError(csound, Str("zarg index < 0. Returning 0."));
+        return csound->PerfError(csound, p->h.insdshead, Str("zarg index < 0. Returning 0."));
       }
       else {
         /* Now read from the array in za space multiply by kgain and write
@@ -2573,11 +2573,11 @@ int zaw(CSOUND *csound, ZAW *p)
     /* Check to see this index is within the limits of za space.     */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("zaw index > isizea. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-        return csound->PerfError(csound, Str("zaw index < 0. Not writing."));
+        return csound->PerfError(csound, p->h.insdshead, Str("zaw index < 0. Not writing."));
     }
     else {
         /* Now write to the array in za space pointed to by indx.    */
@@ -2612,10 +2612,10 @@ int zawm(CSOUND *csound, ZAWM *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
-      return csound->PerfError(csound, Str("zaw index > isizea. Not writing."));
+      return csound->PerfError(csound, p->h.insdshead, Str("zaw index > isizea. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, Str("zaw index < 0. Not writing."));
+      return csound->PerfError(csound, p->h.insdshead, Str("zaw index < 0. Not writing."));
     }
     else {
       /* Now write to the array in za space pointed to by indx.    */
@@ -2677,7 +2677,7 @@ int zamod(CSOUND *csound, ZAMOD *p)
     }
     /* Check to see this index is within the limits of za space.    */
     if (UNLIKELY(indx > csound->zalast)) {
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("zamod kzamod > isizea. Not writing."));
     }
     else {                      /* Now read the values from za space.    */
@@ -2710,16 +2710,16 @@ int zacl(CSOUND *csound, ZACL *p)
     /* Check to see both kfirst and klast are within the limits of za space
      * and that last is >= first.    */
     if (UNLIKELY((first > csound->zalast) || (last > csound->zalast)))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("zacl first or last > isizea. Not clearing."));
     else {
       if (UNLIKELY((first < 0) || (last < 0))) {
-        return csound->PerfError(csound,
+        return csound->PerfError(csound, p->h.insdshead,
                                  Str("zacl first or last < 0. Not clearing."));
       }
       else {
         if (UNLIKELY(first > last)) {
-          return csound->PerfError(csound,
+          return csound->PerfError(csound, p->h.insdshead,
                                    Str("zacl first > last. Not clearing."));
         }
         else {  /* Now clear the appropriate locations in za space. */
@@ -2852,7 +2852,7 @@ int printk(CSOUND *csound, PRINTK *p)
 
     /* Initialise variables.    */
     if (UNLIKELY(p->initialised != -1))
-      csound->PerfError(csound, Str("printk not initialised"));
+      csound->PerfError(csound, p->h.insdshead, Str("printk not initialised"));
     timel =     ((MYFLT) CS_KCNT * CS_ONEDKR) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
@@ -3149,7 +3149,7 @@ int printks(CSOUND *csound, PRINTKS *p)
 
     /*-----------------------------------*/
     if (UNLIKELY(p->initialised != -1))
-      csound->PerfError(csound, Str("printks not initialised"));
+      csound->PerfError(csound, p->h.insdshead, Str("printks not initialised"));
     timel =     ((MYFLT) CS_KCNT * CS_ONEDKR) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
@@ -3285,9 +3285,9 @@ int inz(CSOUND *csound, IOZ *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("inz index > isizea. Not writing."));
+    return csound->PerfError(csound, p->h.insdshead, Str("inz index > isizea. Not writing."));
  err2:
-    return csound->PerfError(csound, Str("inz index < 0. Not writing."));
+    return csound->PerfError(csound, p->h.insdshead, Str("inz index < 0. Not writing."));
 }
 
 /* outz reads from za space at a rate to output. */
@@ -3329,7 +3329,7 @@ int outz(CSOUND *csound, IOZ *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("outz index > isizea. No output"));
+    return csound->PerfError(csound, p->h.insdshead, Str("outz index > isizea. No output"));
  err2:
-    return csound->PerfError(csound, Str("outz index < 0. No output."));
+    return csound->PerfError(csound, p->h.insdshead, Str("outz index < 0. No output."));
 }

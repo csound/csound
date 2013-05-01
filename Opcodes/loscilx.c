@@ -670,7 +670,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, Str("loscilx: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("loscilx: not initialised"));
 }
 
  /* ------------------------------------------------------------------------ */

@@ -385,7 +385,7 @@ int delay(CSOUND *csound, DELAY *p)
 
     return OK;
  err1:
-      return csound->PerfError(csound, Str("delay: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead, Str("delay: not initialised"));
 }
 
 int delayr(CSOUND *csound, DELAYR *p)
@@ -411,7 +411,7 @@ int delayr(CSOUND *csound, DELAYR *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("delayr: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("delayr: not initialised"));
 }
 
 int delayw(CSOUND *csound, DELAYW *p)
@@ -435,7 +435,7 @@ int delayw(CSOUND *csound, DELAYW *p)
     q->curp = curp;                                     /* now sav new curp */
     return OK;
  err1:
-    return csound->PerfError(csound, Str("delayw: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("delayw: not initialised"));
 }
 
 int deltap(CSOUND *csound, DELTAP *p)
@@ -464,7 +464,7 @@ int deltap(CSOUND *csound, DELTAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("deltap: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("deltap: not initialised"));
 }
 
 int deltapi(CSOUND *csound, DELTAP *p)
@@ -518,7 +518,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("deltapi: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("deltapi: not initialised"));
 }
 
 /* ***** From Hans Mikelson ************* */
@@ -570,7 +570,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("deltapn: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("deltapn: not initialised"));
 }
 
 /* **** JPff **** */
@@ -653,7 +653,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("deltap3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("deltap3: not initialised"));
 }
 
 
@@ -759,7 +759,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("deltap: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("deltap: not initialised"));
 }
 
 int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
@@ -843,7 +843,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("deltap: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("deltap: not initialised"));
 }
 
 int del1set(CSOUND *csound, DELAY1 *p)
@@ -946,7 +946,7 @@ int comb(CSOUND *csound, COMB *p)
     p->pntr = xp;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("comb: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("comb: not initialised"));
 }
 
 int alpass(CSOUND *csound, COMB *p)
@@ -982,7 +982,7 @@ int alpass(CSOUND *csound, COMB *p)
     p->pntr = xp;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("alpass: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("alpass: not initialised"));
 }
 
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
@@ -1105,7 +1105,7 @@ int reverb(CSOUND *csound, REVERB *p)
     p->p6 = p6;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("reverb: not intialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("reverb: not intialised"));
 }
 
 int panset(CSOUND *csound, PAN *p)
@@ -1178,6 +1178,6 @@ int pan(CSOUND *csound, PAN *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, Str("pan: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("pan: not initialised"));
 }
 

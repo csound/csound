@@ -189,9 +189,9 @@ int pvadd(CSOUND *csound, PVADD *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("pvadd: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("pvadd: not initialised"));
  err2:
-    return csound->PerfError(csound, Str("PVADD timpnt < 0"));
+    return csound->PerfError(csound, p->h.insdshead, Str("PVADD timpnt < 0"));
 }
 
 static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)

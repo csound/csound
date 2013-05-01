@@ -296,7 +296,7 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("ftconv: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("ftconv: not initialised"));
 }
 
 /* module interface functions */

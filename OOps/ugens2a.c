@@ -181,7 +181,7 @@ int pktable(CSOUND *csound, TABLE   *p)
     *p->rslt = *(ftp->ftable + indx);
     return OK;
  err1:
-    return csound->PerfError(csound, Str("ptable(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("ptable(krate): not initialised"));
 }
 
 /* ptablefn()  */
@@ -236,7 +236,7 @@ int ptablefn(CSOUND *csound, TABLE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("table: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("table: not initialised"));
 }
 
 /* pktabli() */
@@ -285,7 +285,7 @@ int pktabli(CSOUND *csound, TABLE   *p)
     *p->rslt = v1 + (v2 - v1) * fract;
     return OK;
  err1:
-    return csound->PerfError(csound, Str("ptablei(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("ptablei(krate): not initialised"));
 }
 
 
@@ -344,7 +344,7 @@ int pktabl3(CSOUND *csound, TABLE   *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("ptable3(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("ptable3(krate): not initialised"));
 }
 
 int ptabli(CSOUND *csound, TABLE   *p)
@@ -425,7 +425,7 @@ int ptabli(CSOUND *csound, TABLE   *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("ptablei: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("ptablei: not initialised"));
 }
 
 int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation */
@@ -499,7 +499,7 @@ int ptabl3(CSOUND *csound, TABLE *p)     /* Like ptabli but cubic interpolation 
     }
     return OK;
  err1:
-    return csound->PerfError(csound, Str("ptable3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead, Str("ptable3: not initialised"));
 }
 
 int itblchkw(CSOUND *csound, TABLEW *p)

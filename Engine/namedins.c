@@ -86,7 +86,7 @@ int32 strarg2insno_p(CSOUND *csound, char *s)
     int32    insno;
 
     if (UNLIKELY(!(insno = named_instr_find(csound, s)))) {
-      csound->PerfError(csound, Str("instr %s not found"), s);
+      csound->ErrorMsg(csound, Str("instr %s not found"), s);
       return -1;
     }
     return insno;

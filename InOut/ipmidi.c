@@ -78,8 +78,8 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       char buff[128];
       strerror_r(errno, buff, 128);
 #endif
-      return
-        csound->PerfError(csound, Str("Error binding socket to interface: %s"),
+      
+        csound->ErrorMsg(csound, Str("Error binding socket to interface: %s"),
                           buff);
       //perror("Error binding socket to interface");
       return -1;
@@ -93,13 +93,14 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 #ifdef WIN32
       char *buff = strerror(errno);
       return
-        csound->PerfError(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
+        csound->ErrorMsg(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
 #else
       char buff[128];
       strerror_r(errno, buff, 128);
-      return
-        csound->PerfError(csound, Str("Error adding membership to interface: %s"),
+      
+        csound->ErrorMsg(csound, Str("Error adding membership to interface: %s"),
                           buff);
+	return NOTOK;
       //perror("Error binding socket to interface");
 #endif
     }
@@ -141,7 +142,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
     int             sock = *((int *) userData);
-    printf("CloseMidiInDevice_\n");
+    //printf("CloseMidiInDevice_\n");
     close(sock);
 #ifdef WIN32
     WSACleanup();
