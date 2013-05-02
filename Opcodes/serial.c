@@ -107,7 +107,7 @@ static HANDLE get_port(CSOUND *csound, int port)
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
     if (q == NULL) {
-      csound->PerfError(csound, Str("No ports available"));
+      csound->ErrorMsg(csound, Str("No ports available"));
       return NULL;
     }
     hport = (HANDLE)q->handles[port];
