@@ -109,6 +109,7 @@
 extern "C" {
 #endif
 #include <libintl.h>
+char *csoundLocalizeString(const char *s);
   /* This could be gettext but this indirection helps debugging */
 #define Str(x) csoundLocalizeString(x)
 void init_getstring(void);
