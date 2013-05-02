@@ -91,9 +91,9 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 
     if ( status < 0 ) {
 #ifdef WIN32
-      char *buff = strerror(errno);
-      return
+        char *buff = strerror(errno);
         csound->ErrorMsg(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
+        return -1;
 #else
       char buff[128];
       strerror_r(errno, buff, 128);
