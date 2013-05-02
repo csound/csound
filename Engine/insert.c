@@ -178,7 +178,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
   ip->onedkr = csound->onedkr;
   ip->kicvt = csound->kicvt;
   //#endif
-  ip->pds = csound->pds;
+  ip->pds = NULL;
   /* Add an active instrument */
   tp->active++;
   tp->instcnt++;
@@ -440,8 +440,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ip->onedkr = csound->onedkr;
   ip->kicvt = csound->kicvt;
   //#endif
-  ip->pds = csound->pds;
-
+  ip->pds = NULL;
   if (tp->psetdata != NULL) {
     MYFLT *pfld = &ip->p3;              /* if pset data present */
     MYFLT *pdat = tp->psetdata + 2;
@@ -906,7 +905,7 @@ int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
               ip->insno, op->name);
     else
       sprintf(buf, Str("PERF ERROR in instr %d (subinstr %d): "),
-              ip->insno, csound->pds->insdshead->insno);
+              ip->insno, ip->insno);
   }
   else
     sprintf(buf, Str("PERF ERROR in instr %d: "), ip->insno);

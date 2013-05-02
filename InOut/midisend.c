@@ -66,7 +66,12 @@ static CS_NOINLINE void
     if (nbytes < 2)
       return;
     s = csound->icurTime/csound->esr;
-    if (csound->ids == NULL && csound->pds != NULL)
+    /* this check (for perf time run?) used the global pds, which has now
+       been removed. My impression is that it is sufficient to check
+       for csound->ids, but this might need attention if MIDI file output
+       has problems 
+    */
+    if (csound->ids == NULL)
       s -= csound->ksmps/csound->esr;
     s *=  13040.;  /* VL NOV 11: this was 3000.0, which was wrong;
                       13040.0 was arrived at by experimentation */

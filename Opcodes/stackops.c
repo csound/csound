@@ -105,11 +105,11 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
     CSOUND  *csound;
 
     csound = ((OPDS*) p)->insdshead->csound;
-    if (UNLIKELY(csound->ids != NULL && csound->pds == NULL)) {
+    if (UNLIKELY(csound->ids != NULL &&  ((OPDS*) p)->insdshead->pds == NULL)) {
       csound->InitError(csound, "%s: %s", csound->GetOpcodeName(p), msg);
       csound->LongJmp(csound, CSOUND_INITIALIZATION);
     }
-    else if (UNLIKELY(csound->ids == NULL && csound->pds != NULL)) {
+    else if (UNLIKELY(csound->ids == NULL && ((OPDS*) p)->insdshead->pds != NULL)) {
       csound->PerfError(csound, "%s: %s", csound->GetOpcodeName(p), msg);
       csound->LongJmp(csound, CSOUND_PERFORMANCE);
     }

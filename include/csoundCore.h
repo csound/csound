@@ -1028,7 +1028,7 @@ typedef struct NAME__ {
     /**@{ */
     CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 int (*InitError)(CSOUND *, const char *msg, ...);
-    int (*PerfError)(CSOUND *, INSDS *ip,  const char *msg, ...);
+    CS_PRINTF3 int (*PerfError)(CSOUND *, INSDS *ip,  const char *msg, ...);
     CS_PRINTF2 void (*Warning)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 void (*DebugMsg)(CSOUND *, const char *msg, ...);
     CS_NORETURN void (*LongJmp)(CSOUND *, int);
@@ -1282,7 +1282,7 @@ typedef struct NAME__ {
     void          *hostdata;
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
-    OPDS          *ids, *pds;       /* used by init and perf loops */
+    OPDS          *ids;       /* used by init loops */
     ENGINE_STATE  engineState;      /* current Engine State merged after
                                        compilation */
     INSTRTXT      *instr0;          /* instr0     */

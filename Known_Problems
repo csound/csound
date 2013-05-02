@@ -27,4 +27,6 @@ if-then blocks were not being expanded correctly, with bug
     presenting consistently in case of nested if-then's
         -- fixed in git sources Apr 19 17:44 2013 +0100
 subinstr broken in multicore
-
+        -- fixed in git
+csoundPerfError broken as it uses csound-pds
+       -- fixed to take in an instance argument Thu May 2 00:56:17 2013 +0100
