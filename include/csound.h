@@ -1987,13 +1987,6 @@ extern "C" {
     PUBLIC void csoundSetLanguage(cslanguage_t lang_code);
 
     /**
-     * Translate string 's' to the current language, and return
-     * pointer to the translated message. This may be the same as
-     * 's' if language was set to CSLANGUAGE_DEFAULT.
-     */
-    PUBLIC char *csoundLocalizeString(const char *s);
-
-    /**
      * Get pointer to the value of environment variable 'name', searching
      * in this order: local environment of 'csound' (if not NULL), variables
      * set with csoundSetGlobalEnv(), and system environment variables.

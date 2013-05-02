@@ -158,7 +158,7 @@ static int pyinit(CSOUND *csound, PYINIT *p)
     PyObject *module = PyImport_AddModule("__main__");
     if (module == NULL) {
       PyErr_SetString(PyExc_RuntimeError, "couldn't find module __main__");
-      return NULL;
+      return NOTOK;
     }
     PyObject *public = PyModule_GetDict(module);
     PyObject *csobj = Py_BuildValue("l", (long) csound);
