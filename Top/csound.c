@@ -261,7 +261,7 @@ static const CSOUND cenviron_ = {
     csoundParseConfigurationVariable,
     csoundQueryConfigurationVariable,
     csoundListConfigurationVariables,
-   csoundDeleteConfigurationVariable,
+    csoundDeleteConfigurationVariable,
     csoundCfgErrorCodeToString,
     /* FFT support */
     csoundGetInverseComplexFFTScale,
@@ -452,7 +452,6 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  orchname, scorename */
     NULL, NULL,     /*  orchstr, *scorestr  */
     (OPDS*) NULL,   /*  ids                 */
-    (OPDS*) NULL,   /*  pds                 */
     { (CS_VAR_POOL*)NULL,
       (MYFLT_POOL *) NULL,
       (CS_HASH_TABLE *) NULL,
@@ -2045,7 +2044,6 @@ void csoundLongJmp(CSOUND *csound, int retval)
 
     csound->curip = NULL;
     csound->ids = NULL;
-    csound->pds = NULL;
     csound->reinitflag = 0;
     csound->tieflag = 0;
     csound->perferrcnt += csound->inerrcnt;
