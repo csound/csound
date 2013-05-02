@@ -1282,7 +1282,7 @@ typedef struct NAME__ {
     void          *hostdata;
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
-    OPDS          *ids, *pds;       /* used by init and perf loops */
+    OPDS          *ids;       /* used by init loops */
     ENGINE_STATE  engineState;      /* current Engine State merged after
                                        compilation */
     INSTRTXT      *instr0;          /* instr0     */

@@ -128,7 +128,7 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 
     if (UNLIKELY(csound->ids != NULL && csound->ids->insdshead == csound->curip))
       return csound->InitError(csound, "%s: %s", opname, Str(msg));
-    else if (UNLIKELY(csound->pds != NULL))
+    else if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
       return csound->PerfError(csound, "%s: %s", opname, Str(msg));
     else
       csound->Die(csound, "%s: %s", opname, Str(msg));
