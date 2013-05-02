@@ -104,6 +104,7 @@
     CSLANGUAGE_COLUMBIAN
 } cslanguage_t;
 
+
 #ifdef GNU_GETTEXT
 #ifdef __cplusplus
 extern "C" {
@@ -124,24 +125,10 @@ extern "C" {
 
 #ifdef __BUILDING_LIBCSOUND
 
+char *csoundLocalizeString(const char *s);
 /* Deal with localisation of mesages */
 
 #define Str(x)  (x)
-
-/* NOTE: function prototypes are in csound.h */
-
-/*
- * Set language to 'lang_code' (lang_code can be for example
- * CSLANGUAGE_ENGLISH_UK or CSLANGUAGE_FRENCH or many others,
- * see n_getstr.h for the list of languages). This affects all
- * Csound instances running in the address space of the current
- * process. The special language code CSLANGUAGE_DEFAULT can be
- * used to disable translation of messages and free all memory
- * allocated by a previous call to csoundSetLanguage().
- * csoundSetLanguage() loads all files for the selected language
- * from the directory specified by the CSSTRNGS environment
- * variable.
- */
 
 void init_getstring(void);
 
