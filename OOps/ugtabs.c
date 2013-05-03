@@ -424,7 +424,7 @@ int tablkt_setup(CSOUND *csound, TABL *p) {
 int tablerkt_kontrol(CSOUND *csound, TABL *p) {
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+    return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
    p->np2 = p->ftp->lenmask ? 0 : 1;
@@ -441,7 +441,7 @@ int tablerkt_kontrol(CSOUND *csound, TABL *p) {
 int tablerkt_audio(CSOUND *csound, TABL *p) {
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+    return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
    p->np2 = p->ftp->lenmask ? 0 : 1;
@@ -457,7 +457,7 @@ int tablerkt_audio(CSOUND *csound, TABL *p) {
 int tableirkt_kontrol(CSOUND *csound, TABL *p) {
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+    return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
    p->np2 = p->ftp->lenmask ? 0 : 1;
@@ -473,7 +473,7 @@ int tableirkt_kontrol(CSOUND *csound, TABL *p) {
 int tableirkt_audio(CSOUND *csound, TABL *p) {
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
    p->np2 = p->ftp->lenmask ? 0 : 1;
@@ -489,7 +489,7 @@ int tableirkt_audio(CSOUND *csound, TABL *p) {
 int table3rkt_kontrol(CSOUND *csound, TABL *p) {
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
    p->np2 = p->ftp->lenmask ? 0 : 1;
@@ -504,7 +504,7 @@ int table3rkt_kontrol(CSOUND *csound, TABL *p) {
 int table3rkt_audio(CSOUND *csound, TABL *p) {
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
    p->np2 = p->ftp->lenmask ? 0 : 1;
@@ -611,7 +611,7 @@ int tablew_audio(CSOUND *csound, TABL *p) {
 int tablewkt_kontrol(CSOUND *csound, TABL *p) {
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
    p->np2 = p->ftp->lenmask ? 0 : 1;
@@ -628,7 +628,7 @@ int tablewkt_kontrol(CSOUND *csound, TABL *p) {
 int tablewkt_audio(CSOUND *csound, TABL *p) {
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
    p->np2 = p->ftp->lenmask ? 0 : 1;
@@ -789,7 +789,7 @@ int table_ra(CSOUND *csound, TABLRA *p) {
   nsmps = CS_KSMPS;
 
   if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
   np2 = ftp->lenmask ? 0 : 1;
@@ -798,7 +798,7 @@ int table_ra(CSOUND *csound, TABLRA *p) {
   pos = *p->strt + *p->off;
 
   if (pos < 0)
-    return csound->PerfError(csound,
+    return csound->PerfError(csound, p->h.insdshead,
                              Str("table: could not read negative pos %d"), pos);
 
   if (UNLIKELY(koffset)) memset(sig, '\0', koffset*sizeof(MYFLT));
@@ -835,7 +835,7 @@ int table_wa(CSOUND *csound, TABLWA *p) {
   nsmps = CS_KSMPS;
 
   if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
-      return csound->PerfError(csound,
+      return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
   np2 = ftp->lenmask ? 0 : 1;
@@ -844,7 +844,7 @@ int table_wa(CSOUND *csound, TABLWA *p) {
   pos = p->pos + *p->off;
 
   if (pos < 0)
-    return csound->PerfError(csound,
+    return csound->PerfError(csound, p->h.insdshead,
                              Str("table: could not read negative pos %d"), pos);
 
   if (UNLIKELY(early)) nsmps -= early;

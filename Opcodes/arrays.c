@@ -645,6 +645,12 @@ static int tabmax(CSOUND *csound, TABQUERY *p)
    return OK;
 }
 
+static int tabmax1(CSOUND *csound, TABQUERY *p)
+{
+    if (tabqset(csound, p) == OK) return tabmax(csound, p);
+    else return NOTOK;
+}
+
 static int tabmin(CSOUND *csound, TABQUERY *p)
 {
    ARRAYDAT *t = p->tab;
@@ -1013,7 +1019,8 @@ static OENTRY arrayvars_localops[] =
                                           (SUBR)tabarithset1, (SUBR)tabairem },
     {"##rem.k[",  sizeof(TABARITH2),0,  3, "[k]", "k[k]",
                                           (SUBR)tabarithset2, (SUBR)tabiarem },
-    { "maxtab",sizeof(TABQUERY),_QQ, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabmax },
+    { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabmax },
+    { "maxtab.i",sizeof(TABQUERY),_QQ, 3, "i", "[i]", (SUBR) tabmax1, NULL        },
     { "maxarray", sizeof(TABQUERY), 0, 3, "k", "[k]",(SUBR) tabqset,(SUBR) tabmax },
     { "mintab", sizeof(TABQUERY),_QQ, 3, "k", "[k]",(SUBR) tabqset, (SUBR) tabmin },
     { "minarray", sizeof(TABQUERY),0, 3, "k", "[k]",(SUBR) tabqset, (SUBR) tabmin },

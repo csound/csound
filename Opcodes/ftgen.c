@@ -185,6 +185,11 @@ static int ftfree(CSOUND *csound, FTFREE *p)
     return register_ftable_delete(csound, p, fno);
 }
 
+static int myInitError(CSOUND *csound, INSDS *p, const char *str, ...)
+{
+    return csound->InitError(csound, str);
+}
+
 static int ftload(CSOUND *csound, FTLOAD *p)
 {
     MYFLT **argp = p->argums;
@@ -192,7 +197,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
     char  filename[MAXNAME];
     int   nargs = csound->GetInputArgCnt(p) - 2;
     FILE  *file = NULL;
-    int   (*err_func)(CSOUND *, const char *, ...);
+    int   (*err_func)(CSOUND *, INSDS *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
@@ -203,7 +208,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
     }
     else {
       ft_func = csound->FTnp2Find;
-      err_func = csound->InitError;
+      err_func = myInitError;
     }
 
     if (UNLIKELY(nargs <= 0))
@@ -345,14 +350,14 @@ static int ftload(CSOUND *csound, FTLOAD *p)
     return OK;
  err:
     csound->FileClose(csound, fd);
-    return err_func(csound, Str("ftload: error allocating ftable"));
+    return err_func(csound, p->h.insdshead, Str("ftload: error allocating ftable"));
  err2:
-    return err_func(csound, Str("ftload: no table numbers"));
+    return err_func(csound, p->h.insdshead, Str("ftload: no table numbers"));
  err3:
-    return err_func(csound, Str("ftload: unable to open file"));
+    return err_func(csound, p->h.insdshead, Str("ftload: unable to open file"));
  err4:
     csound->FileClose(csound, fd);
-    return err_func(csound, Str("ftload: incorrect file"));
+    return err_func(csound, p->h.insdshead, Str("ftload: incorrect file"));
 }
 
 static int ftload_k(CSOUND *csound, FTLOAD_K *p)
@@ -368,7 +373,7 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
     char  filename[MAXNAME];
     int   nargs = csound->GetInputArgCnt(p) - 2;
     FILE  *file = NULL;
-    int   (*err_func)(CSOUND *, const char *, ...);
+    int   (*err_func)(CSOUND *, INSDS *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
@@ -379,7 +384,7 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
     }
     else {
       ft_func = csound->FTnp2Find;
-      err_func = csound->InitError;
+      err_func = myInitError;
     }
 
     if (UNLIKELY(nargs <= 0))
@@ -465,14 +470,15 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
     return OK;
  err:
     csound->FileClose(csound, fd);
-    return err_func(csound, Str("ftsave: Bad table number. Saving is possible "
-                                "only for existing tables."));
+    return err_func(csound, p->h.insdshead,
+                    Str("ftsave: Bad table number. Saving is possible "
+                        "only for existing tables."));
  err2:
-    return err_func(csound, Str("ftsave: no table numbers"));
+    return err_func(csound, p->h.insdshead, Str("ftsave: no table numbers"));
  err3:
-    return err_func(csound, Str("ftsave: unable to open file"));
+    return err_func(csound, p->h.insdshead, Str("ftsave: unable to open file"));
  err4:
-    return err_func(csound, Str("ftsave: failed to write file"));
+    return err_func(csound, p->h.insdshead, Str("ftsave: failed to write file"));
 }
 
 static int ftsave_k_set(CSOUND *csound, FTLOAD_K *p)
