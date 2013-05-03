@@ -110,7 +110,8 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
       csound->LongJmp(csound, CSOUND_INITIALIZATION);
     }
     else if (UNLIKELY(csound->ids == NULL && ((OPDS*) p)->insdshead->pds != NULL)) {
-      csound->PerfError(csound, "%s: %s", csound->GetOpcodeName(p), msg);
+      csound->PerfError(csound, ((OPDS*)p)->insdshead,
+                        "%s: %s", csound->GetOpcodeName(p), msg);
       csound->LongJmp(csound, CSOUND_PERFORMANCE);
     }
     else
@@ -284,8 +285,9 @@ static int stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 
 static int notinit_opcode_stub_perf(CSOUND *csound, void *p)
 {
-    return csound->PerfError(csound, Str("%s: not initialised"),
-                                     csound->GetOpcodeName(p));
+    return csound->PerfError(csound, ((OPDS*)p)->insdshead,
+                             Str("%s: not initialised"),
+                             csound->GetOpcodeName(p));
 }
 
 static int push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
