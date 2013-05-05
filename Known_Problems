@@ -30,3 +30,6 @@ subinstr broken in multicore
         -- fixed in git
 csoundPerfError broken as it uses csound-pds
        -- fixed to take in an instance argument Thu May 2 00:56:17 2013 +0100
+global variable initialization not done
+       -- fixed in git sources Fri May 3 20:55:55 2013 +0100
+
