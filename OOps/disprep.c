@@ -150,7 +150,8 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
     p->nxtp = fp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("display: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("display: not initialised"));
 }
 
 int dsplay(CSOUND *csound, DSPLAY *p)
@@ -377,7 +378,8 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
     p->bufp = bufp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("dispfft: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("dispfft: not initialised"));
 }
 
 int dspfft(CSOUND *csound, DSPFFT *p)
@@ -420,7 +422,8 @@ int dspfft(CSOUND *csound, DSPFFT *p)
     p->bufp = bufp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("dispfft: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("dispfft: not initialised"));
 }
 
 #define NTERMS  4
@@ -560,9 +563,9 @@ int tempest(CSOUND *csound, TEMPEST *p)
     p->yt1 = p->coef0 * *p->kin + p->coef1 * p->yt1; /* get lo-pass of kinput */
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
-    if (!(--p->countdown)) {                        /* then on countdown:    */
+    if (!(--p->countdown)) {                         /* then on countdown:    */
       MYFLT *memp;
-      MYFLT kin, expect, *xcur = p->xcur;           /* xcur from prv pass    */
+      MYFLT kin, expect, *xcur = p->xcur;            /* xcur from prv pass    */
       MYFLT lamtot = FL(0.0), weightot = FL(0.0);
 
       p->countdown = p->timcount;           /* reset the countdown            */
@@ -700,6 +703,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
     *p->kout = p->tempo;                    /* put current tempo */
     return OK;
  err1:
-      return csound->PerfError(csound, p->h.insdshead, Str("tempest: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("tempest: not initialised"));
 }
 

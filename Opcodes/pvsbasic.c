@@ -268,7 +268,8 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
       int32 framesize = p->fin->N+2,i;
       if(p->async == 0) {
       if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fin, 1)))
-        return csound->PerfError(csound, p->h.insdshead, Str("pvsfwrite: could not write data\n"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("pvsfwrite: could not write data\n"));
       }
       else {
       MYFLT *fout = p->frame.auxp;
@@ -527,9 +528,10 @@ int pvstanal(CSOUND *csound, PVST *p)
          esr is sampling rate
       */
       if (UNLIKELY(ft->nchanls != (int32)nchans))
-        return csound->PerfError(csound, p->h.insdshead, Str("number of output arguments "
-                                             "inconsistent with number of "
-                                             "sound file channels"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("number of output arguments "
+                                     "inconsistent with number of "
+                                     "sound file channels"));
 
       sizefrs = size/nchans;
       if (!*p->wrap && spos >= sizefrs) {
@@ -1167,7 +1169,8 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvsmix: formats are different."));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvsmix: formats are different."));
 }
 
 /* pvsfilter  */
@@ -1258,7 +1261,8 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvsfilter: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvsfilter: not initialised"));
  err2:
     return csound->PerfError(csound, p->h.insdshead,
                              Str("pvsfilter: formats are different."));
@@ -1479,7 +1483,8 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvscale: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvscale: not initialised"));
 }
 
 /* pvshift */
@@ -1683,7 +1688,8 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvshift: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvshift: not initialised"));
 }
 
 /* pvswarp  */
@@ -1856,7 +1862,8 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvswarp: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvswarp: not initialised"));
 }
 
 
@@ -2010,7 +2017,8 @@ static int pvsblur(CSOUND *csound, PVSBLUR *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvsblur: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvsblur: not initialised"));
 }
 
 /* pvstencil  */
@@ -2134,7 +2142,8 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
       }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvstencil: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvstencil: not initialised"));
 }
 
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)

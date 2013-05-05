@@ -295,7 +295,8 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
 
     if (p->initDone <= 0) {
       if (UNLIKELY(!p->initDone))
-        return csound->PerfError(csound, p->h.insdshead, Str("diskin: not initialised"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("diskin: not initialised"));
       p->initDone = 1;
       /* if no skip time, and playing backwards: start from end of file */
       if (p->pos_frac <= (int64_t)0 && *(p->kTranspose) < FL(0.0)) {
@@ -446,7 +447,8 @@ int soundout(CSOUND *csound, SNDOUT *p)
     uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
-      return csound->PerfError(csound, p->h.insdshead, Str("soundout: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("soundout: not initialised"));
     if (UNLIKELY(early)) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
@@ -467,7 +469,8 @@ int soundouts(CSOUND *csound, SNDOUTS *p)
     uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
-      return csound->PerfError(csound, p->h.insdshead, Str("soundouts: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("soundouts: not initialised"));
     if (UNLIKELY(early)) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {

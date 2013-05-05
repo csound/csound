@@ -243,7 +243,8 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
    return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("Invalid buffer handle"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("Invalid buffer handle"));
   }
 
 
@@ -314,7 +315,8 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     p->scnt += CS_KSMPS;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("Invalid buffer handle"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("Invalid buffer handle"));
   }
 
 

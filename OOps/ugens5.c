@@ -848,12 +848,14 @@ int lpread(CSOUND *csound, LPREAD *p)
     MYFLT   interMagn[MAXPOLES], interPhas[MAXPOLES];
 
     if (UNLIKELY(p->mfp==NULL)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("lpread: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("lpread: not initialised"));
     }
     /* Locate frame position range */
     if (UNLIKELY((framphase = (int32)(*p->ktimpt*p->framrat16)) < 0)) {
       /* for kfram reqd*/
-      return csound->PerfError(csound, p->h.insdshead, Str("lpread timpnt < 0"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("lpread timpnt < 0"));
     }
     if (framphase > p->lastfram16) {                /* not past last one */
       framphase = p->lastfram16;
@@ -889,7 +891,8 @@ int lpread(CSOUND *csound, LPREAD *p)
         DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                             polePhas2,fract,interMagn,interPhas);
       if (UNLIKELY(!status)) {
-        return csound->PerfError(csound, p->h.insdshead, Str("Interpolation failed"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Interpolation failed"));
       }
       for (i=0; i<p->npoles; i++) {
         *cp++ =  interMagn[i];
@@ -946,8 +949,9 @@ int lpformant(CSOUND *csound, LPFORM *p)
       }
     }
     else {
-      csound->PerfError(csound, p->h.insdshead, Str("this opcode only works with LPC "
-                                    "pole analysis type (-a)\n"));
+      csound->PerfError(csound, p->h.insdshead,
+                        Str("this opcode only works with LPC "
+                            "pole analysis type (-a)\n"));
       return NOTOK;
     }
 
@@ -1106,7 +1110,8 @@ int lpfreson(CSOUND *csound, LPFRESON *p)
 
     if (*p->kfrqratio != p->prvratio) {             /* for new freqratio */
       if (*p->kfrqratio <= FL(0.0)) {
-        return csound->PerfError(csound, p->h.insdshead, Str("illegal frqratio, %5.2f"),
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("illegal frqratio, %5.2f"),
                                          *p->kfrqratio);
       }                                             /*      calculate d  */
       p->d = (*p->kfrqratio - FL(1.0)) / (*p->kfrqratio + FL(1.0));
@@ -1373,7 +1378,8 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
 
     /* RWD: guessing this... */
     if (UNLIKELY(p->lp1==NULL || p->lp2==NULL)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("lpinterpol: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("lpinterpol: not initialised"));
     }
     cp1 =  p->lp1->kcoefs;
     cp2 =  p->lp2->kcoefs;
@@ -1388,7 +1394,8 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
     status = DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                                      polePhas2,*p->kmix,interMagn,interPhas);
     if (UNLIKELY(!status)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("Interpolation failed"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("Interpolation failed"));
     }
 
     cp = p->kcoefs;      /* This is where the coefs get stored */

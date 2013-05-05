@@ -69,7 +69,7 @@ static CS_NOINLINE void
     /* this check (for perf time run?) used the global pds, which has now
        been removed. My impression is that it is sufficient to check
        for csound->ids, but this might need attention if MIDI file output
-       has problems 
+       has problems
     */
     if (csound->ids == NULL)
       s -= csound->ksmps/csound->esr;

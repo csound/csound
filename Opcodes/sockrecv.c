@@ -335,7 +335,8 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
     int     n = sizeof(MYFLT) * CS_KSMPS;
 
     if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * CS_KSMPS))) {
-      return csound->PerfError(csound, p->h.insdshead, Str("read from socket failed"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("read from socket failed"));
     }
     return OK;
 }

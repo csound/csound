@@ -193,7 +193,8 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("sndwarp: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("sndwarp: not initialised"));
 }
 
 /****************************************************************/
@@ -364,7 +365,8 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("sndwarpst: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("sndwarpst: not initialised"));
 }
 
 #define S(x)    sizeof(x)

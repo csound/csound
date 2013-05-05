@@ -126,7 +126,8 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     p->point = point;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("nlfilt: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("nlfilt: not initialised"));
 } /* end nlfilt(p) */
 
 /* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
@@ -201,7 +202,8 @@ static int nlfilt2(CSOUND *csound, NLFILT *p)
     p->point = point;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("nlfilt2: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
 
 /* ***************************************************************** */

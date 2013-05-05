@@ -162,7 +162,8 @@ static int fog(CSOUND *csound, FOGS *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("FOF needs more overlaps"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("FOF needs more overlaps"));
 }
 
 static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
