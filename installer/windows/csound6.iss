@@ -16,7 +16,7 @@
 
 #define MyAppName "Csound6"
 #define MyAppVersion ""
-#define MyAppMinVersion "1"
+#define MyAppMinVersion "0"
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
@@ -120,6 +120,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
+; No idea why this other name is needed.
+Source: "{#MyMinGwBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
 Source: "{#MyMinGwUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
@@ -139,6 +141,8 @@ Source: {#MyPortMidiSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion
 Source: {#MyLuaJitSourceDir}luajit.exe; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
 Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
+; No idea why this other name is needed.
+Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; DestName: "lua5.1.dll"; Flags: ignoreversion;  Components: core 
 Source: {#MyLuaJitSourceDir}lua*.h; DestDir: "{#APP_INCLUDE}\luajit"; Flags: ignoreversion;  Components: core 
 
 Source: {#MyFltkSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
