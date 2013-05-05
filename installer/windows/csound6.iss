@@ -130,9 +130,9 @@ Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python
 Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
-Source: {#MyPortAudioSourceDir}lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
-Source: {#MyPortAudioSourceDir}bin\.libs\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
-Source: {#MyPortAudioSourceDir}bin\.libs\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
+Source: {#MyPortAudioSourceDir}*.dll; DestDir: "{#APP_BIN}"; Components: core 
+Source: {#MyPortAudioSourceDir}pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
+Source: {#MyPortAudioSourceDir}pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
 
 Source: {#MyPortMidiSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core 
 
