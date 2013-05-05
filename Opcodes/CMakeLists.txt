@@ -54,14 +54,6 @@ if(BUILD_PLATEREV_OPCODES)
    make_plugin(platerev platerev.c)
 endif()
 
-# temporarily do not build on Windows until these opcodes are fixed
-# to compile
-# these are not plugins anymore
-# if(NOT WIN32) 
-#    make_plugin(udprecv sockrecv.c)
-#    make_plugin(udpsend socksend.c)
-# endif()
-
 set(scansyn_SRCS
     scansyn.c scansynx.c)
 make_plugin(scansyn "${scansyn_SRCS}" m)
@@ -138,17 +130,16 @@ if(BUILD_PYTHON_OPCODES)
 endif()
 
 # this is broken at the moment
-#check_deps(BUILD_LUA_OPCODES LUA51_FOUND OPENMP_FOUND)
-#if(BUILD_LUA_OPCODES)
-#    if(LUA_LIBRARIES)
-#        find_path(LUA_INCLUDE_DIR  lua.h
-#            /usr/include/luajit-2.0
-#            /usr/local/include/luajit-2.0)
-#        include_directories(${LUA_INCLUDE_DIR})
-#        make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
-#        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
-#        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
-#        endif()
+check_deps(BUILD_LUA_OPCODES LUA51_FOUND OPENMP_FOUND)
+if(BUILD_LUA_OPCODES)
+        find_path(LUA_INCLUDE_DIR  lua.h
+            /usr/include/luajit-2.0
+            /usr/local/include/luajit-2.0)
+        include_directories(${LUA_INCLUDE_DIR})
+        make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
+        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
+        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
+        endif()
 #endif()
 
 check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
