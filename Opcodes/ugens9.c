@@ -346,7 +346,8 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     p->outail = outail;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("convolve: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("convolve: not initialised"));
 }
 
 /* partitioned (low latency) overlap-save convolution.

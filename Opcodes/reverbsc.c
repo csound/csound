@@ -301,7 +301,8 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("reverbsc: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("reverbsc: not initialised"));
 }
 
 /* module interface functions */

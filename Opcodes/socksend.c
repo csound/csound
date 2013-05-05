@@ -343,7 +343,8 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
     if (n != write(p->sock, &p->asig[offset], n)) {
       csound->Message(csound, Str("Expected %d got %d\n"),
                       (int) (sizeof(MYFLT) * CS_KSMPS), n);
-      return csound->PerfError(csound, p->h.insdshead, Str("write to socket failed"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("write to socket failed"));
     }
 
     return OK;

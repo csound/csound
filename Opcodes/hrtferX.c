@@ -428,7 +428,8 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("hrtfer: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("hrtfer: not initialised"));
 }
 
 static OENTRY hrtferX_localops[] = {
