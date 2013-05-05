@@ -137,7 +137,8 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     p->left = indx;             /*      and keep track of where you are */
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vdelay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("vdelay: not initialised"));
 }
 
 int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
@@ -246,7 +247,8 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     p->left = indx;             /*      and keep track of where you are */
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vdelay3: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("vdelay3: not initialised"));
 }
 
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
@@ -397,7 +399,8 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vdelay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("vdelay: not initialised"));
 }
 
 int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
@@ -465,7 +468,8 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vdelay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("vdelay: not initialised"));
 }
 
 int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
@@ -542,7 +546,8 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vdelay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("vdelay: not initialised"));
 }
 
 int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
@@ -618,7 +623,8 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vdelay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("vdelay: not initialised"));
 }
 
 int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
@@ -712,7 +718,8 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vdelay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("vdelay: not initialised"));
 }
 
 int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
@@ -806,7 +813,8 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vdelay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("vdelay: not initialised"));
 }
 
 int multitap_set(CSOUND *csound, MDEL *p)
@@ -868,7 +876,8 @@ int multitap_play(CSOUND *csound, MDEL *p)
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("multitap: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("multitap: not initialised"));
 }
 
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
@@ -1217,6 +1226,7 @@ int reverbx(CSOUND *csound, NREV2 *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("reverbx: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("reverbx: not initialised"));
 }
 

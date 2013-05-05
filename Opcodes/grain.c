@@ -91,7 +91,8 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
                                 /* Pick up common values to locals for speed */
     if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
     if (UNLIKELY(kglen<=FL(0.0)))
-      return csound->PerfError(csound, p->h.insdshead, Str("grain: grain length zero"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("grain: grain length zero"));
     gtp  = p->gftp;
     gtbl = gtp->ftable;
 
@@ -155,7 +156,8 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     p->gcount = gcount;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("grain: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("grain: not initialised"));
 }
 
 #define S(x)    sizeof(x)

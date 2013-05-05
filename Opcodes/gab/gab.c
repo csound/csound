@@ -586,7 +586,8 @@ static int tabrec_k(CSOUND *csound,TABREC *p)
       if (*p->kfn != p->old_fn) {
         int flen;
         if ((flen = csoundGetTable(csound, &(p->table), (int) *p->kfn)) < 0)
-          return csound->PerfError(csound, p->h.insdshead, Str("Invalid ftable no. %f"), *p->kfn);
+          return csound->PerfError(csound, p->h.insdshead,
+                                   Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
         *(p->table++) = *p->numtics;
         p->old_fn = *p->kfn;
@@ -640,7 +641,8 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
       if (*p->kfn != p->old_fn) {
         int flen;
         if ((flen = csoundGetTable(csound, &(p->table), (int) *p->kfn)) < 0)
-          return csound->PerfError(csound, p->h.insdshead, Str("Invalid ftable no. %f"), *p->kfn);
+          return csound->PerfError(csound, p->h.insdshead,
+                                   Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
         p->currtic = 0;
         p->ndx = 0;
@@ -753,7 +755,8 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
       }
       break;
     default:
-      return csound->PerfError(csound, p->h.insdshead, Str("max_k: invalid imaxflag value"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("max_k: invalid imaxflag value"));
     }
     if (*p->ktrig) {
       if (flag == 4) {

@@ -52,7 +52,8 @@ static int  mtable1_k(CSOUND *csound, MTABLE1 *p)
     if (p->pfn != (long)*p->xfn) {
       FUNC *ftp;
       if ( (ftp = csound->FTFindP(csound, p->xfn) ) == NULL)
-        return csound->PerfError(csound, p->h.insdshead, Str("vtable1: incorrect table number"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("vtable1: incorrect table number"));
       p->pfn = (long)*p->xfn;
       p->ftable = ftp->ftable;
     }
@@ -274,7 +275,8 @@ static int copyTabElems(CSOUND *csound, COPYTABELEMS *p)
              dNdx = (int) *p->kdestIndex * nelems;
       if (sNdx + nelems > p->sLen)
         return
-          csound->PerfError(csound, p->h.insdshead, Str("copyTabElems: source table too short"));
+          csound->PerfError(csound, p->h.insdshead,
+                            Str("copyTabElems: source table too short"));
       if (dNdx + nelems > p->dLen)
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("copyTabElems: destination table too short"));
@@ -320,7 +322,8 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
         dNdx = (int) *p->idestIndex * nelems;
       if (sNdx + nelems > sLen)
         return
-          csound->PerfError(csound, p->h.insdshead, Str("copyTabElems: source table too short"));
+          csound->PerfError(csound, p->h.insdshead,
+                            Str("copyTabElems: source table too short"));
       if (dNdx + nelems > dLen)
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("copyTabElems: destination table too short"));
