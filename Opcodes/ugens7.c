@@ -174,9 +174,11 @@ static int fof(CSOUND *csound, FOFS *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("fof: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("fof: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead, Str("FOF needs more overlaps"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("FOF needs more overlaps"));
 }
 
 static int newpulse(CSOUND *csound,

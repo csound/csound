@@ -331,7 +331,8 @@ static int atsread(CSOUND *csound, ATSREAD *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("ATSREAD: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("ATSREAD: not initialised"));
 }
 
 /*
@@ -448,7 +449,8 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
     *p->kenergy = FetchNzBand(p, frIndx);
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("ATSREADNZ: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("ATSREADNZ: not initialised"));
 }
 
 /*
@@ -637,7 +639,8 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     }
     return OK;
  err1:
-      return csound->PerfError(csound, p->h.insdshead, Str("ATSADD: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("ATSADD: not initialised"));
 }
 
 static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
@@ -1750,7 +1753,8 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("ATSBUFREAD: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("ATSBUFREAD: not initialised"));
 }
 
 /* ATS partial tap */

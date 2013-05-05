@@ -174,7 +174,8 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvsband: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvsband: not initialised"));
 }
 
 static int pvsbrej(CSOUND *csound, PVSBAND *p)
@@ -279,7 +280,8 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvsband: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvsband: not initialised"));
 }
 
 static OENTRY localops[] = {

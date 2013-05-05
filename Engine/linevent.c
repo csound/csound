@@ -384,8 +384,9 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
         evt.p[i] = *p->args[i];
     }
     if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
-      return csound->PerfError(csound, p->h.insdshead,Str("event: error creating '%c' event"),
-                                       opcod);
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("event: error creating '%c' event"),
+                               opcod);
     return OK;
 }
 
