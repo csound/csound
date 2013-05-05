@@ -176,7 +176,8 @@ static int space(CSOUND *csound, SPACE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("space: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("space: not initialised"));
 }
 
 static int spsendset(CSOUND *csound, SPSEND *p)
@@ -258,7 +259,8 @@ static int spdist(CSOUND *csound, SPDIST *p)
     *r=distance;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("spdist: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("spdist: not initialised"));
 }
 
 #define S(x)    sizeof(x)

@@ -213,7 +213,8 @@ int wii_data(CSOUND *csound, WIIMOTE *p)
     int kontrol = (int)(*p->kControl+FL(0.5));
     if (UNLIKELY(n>=MAX_WIIMOTES || !(wii[n]->state & WIIMOTE_STATE_CONNECTED))) {
       printf("state of wii %d is %x\n", n, wii[n]->state);
-      return csound->PerfError(csound, p->h.insdshead, Str("wiimote %d does not exist"), n);
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("wiimote %d does not exist"), n);
     }
     if (kontrol<0) {
       printf("%f -- %.4x: "
