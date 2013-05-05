@@ -49,7 +49,7 @@ int xyinset(CSOUND *csound, XYIN *p)
 /*     MYFLT   iyinit = *p->iyinit; */
 /*     MYFLT   ixinit = *p->ixinit; */
 
-/*     if (UNLIKELY((p->timcount = (int) (csound->ekr * *p->iprd + FL(0.5))) <= 0)) { */
+/*     if (UNLIKELY((p->timcount = (int)(csound->ekr* *p->iprd + FL(0.5)))<=0)) { */
 /*       return csound->InitError(csound, Str("illegal iprd")); */
 /*     } */
 /*     if (UNLIKELY(iymin > iymax)) {        /\* swap if wrong order *\/ */
@@ -87,7 +87,7 @@ int xyinset(CSOUND *csound, XYIN *p)
 /* { */
 /*     if (UNLIKELY(!(--p->countdown))) {            /\* at each countdown   *\/ */
 /*       p->countdown = p->timcount;                 /\*   reset counter &   *\/ */
-/*       csound->csoundReadXYinCallback_(csound, &p->w); /\*   read cursor postn *\/ */
+/*       csound->csoundReadXYinCallback_(csound, &p->w); \*   read cursor postn  */
 /*       *(p->kxrslt) = *p->ixmin + p->w.x * (*p->ixmax - *p->ixmin); */
 /*       *(p->kyrslt) = *p->iymin + (FL(1.0) - p->w.y) * (*p->iymax - *p->iymin); */
 /*     } */

@@ -120,8 +120,9 @@ int lfok(CSOUND *csound, LFO *p)
     phs = p->phs;
     switch (p->lasttype) {
     default:
-      return csound->PerfError(csound, p->h.insdshead, Str("LFO: unknown oscilator type %d"),
-                                       p->lasttype);
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("LFO: unknown oscilator type %d"),
+                               p->lasttype);
     case 0:
       iphs = phs >> 12;
       fract = (MYFLT)(phs & 0xfff)/FL(4096.0);
@@ -183,8 +184,9 @@ int lfoa(CSOUND *csound, LFO *p)
     for (n=offset; n<nsmps; n++) {
       switch (p->lasttype) {
       default:
-        return csound->PerfError(csound, p->h.insdshead, Str("LFO: unknown oscilator type %d"),
-                                         p->lasttype);
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("LFO: unknown oscilator type %d"),
+                                 p->lasttype);
       case 0:
         iphs = phs >> 12;
         fract = (MYFLT)(phs & 0xfff)/FL(4096.0);
@@ -585,7 +587,8 @@ int kschedule(CSOUND *csound, WSCHED *p)
         which = (int) (FL(0.5) + *p->which);
       if (UNLIKELY(which < 1 || which > csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[which] == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead, Str("Instrument not defined"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Instrument not defined"));
       }
       p->midi = (dur <= FL(0.0));
       if (UNLIKELY(p->midi))

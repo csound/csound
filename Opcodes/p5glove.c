@@ -115,12 +115,14 @@ int p5glove_poll(CSOUND *csound, P5GLOVE *p)
     /* P5Glove *glove = (P5Glove*)csound->QueryGlobalVariable(csound,"p5glove"); */
     /* int res; */
     /* if (glove == NULL) */
-    /*   return csound->PerfError(csound,  p->h.insdshead, Str("No glove open")); */
+    /*   return csound->PerfError(csound,  p->h.insdshead, */
+    /*                            Str("No glove open")); */
     /* res = p5glove_sample(*glove, -1); */
-    /* if (res < 0 && errno == EAGAIN) return OK;*/
+    /* if (res < 0 && errno == EAGAIN) return OK; */
     /* //res = p5glove_sample(*glove, -1); */
     /* if (UNLIKELY(res < 0)) */
-    /*   return csound->PerfError(csound,  p->h.insdshead, Str("P5Glove failure")); */
+    /*   return csound->PerfError(csound,  p->h.insdshead, */
+    /*                            Str("P5Glove failure")); */
     return OK;
 }
 

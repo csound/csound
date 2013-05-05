@@ -126,7 +126,8 @@ int pvbufread(CSOUND *csound, PVBUFREAD *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvbufread: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvbufread: not initialised"));
  err2:
     return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
 }
@@ -296,11 +297,14 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvinterp: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvinterp: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC transpose too low"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC transpose too high"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("PVOC transpose too high"));
  err4:
     return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
 }
@@ -415,10 +419,10 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     pex = *p->kfmod;
     outlen = (int) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
-    if (UNLIKELY(outlen>PVFFTSIZE))   /* Maximum transposition down is one octave */
-                            /* ..so we won't run into buf2Size problems */
+    if (UNLIKELY(outlen>PVFFTSIZE)) /* Maximum transposition down is one octave */
+                                    /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<(int)(2*CS_KSMPS)))   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int)(2*CS_KSMPS))) /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;
@@ -481,11 +485,15 @@ int pvcross(CSOUND *csound, PVCROSS *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvcross: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvcross: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC transpose too low"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC transpose too high"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("PVOC timpnt < 0"));
 }

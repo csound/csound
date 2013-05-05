@@ -1,5 +1,4 @@
-/*
-bus.c:
+/*  bus.c:
 
  Copyright (C) 2004 John ffitch
  (C) 2005, 2006 Istvan Varga
@@ -22,6 +21,7 @@ bus.c:
          Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
          02111-1307 USA
 */
+
 /*                      BUS.C           */
 #include "csoundCore.h"
 #include <setjmp.h>
@@ -574,8 +574,9 @@ PUBLIC int csoundGetControlChannelHints(CSOUND *csound, const char *name,
 
 int notinit_opcode_stub(CSOUND *csound, void *p)
 {
-  return csound->PerfError(csound, ((CHNGET *)p)->h.insdshead,Str("%s: not initialised"),
-                             csound->GetOpcodeName(p));
+  return csound->PerfError(csound, ((CHNGET *)p)->h.insdshead,
+                           Str("%s: not initialised"),
+                           csound->GetOpcodeName(p));
 }
 
 /* print error message on failed channel query */

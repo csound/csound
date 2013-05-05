@@ -114,7 +114,8 @@ int foscil(CSOUND *csound, FOSC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("foscil: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("foscil: not initialised"));
 }
 
 int foscili(CSOUND *csound, FOSC *p)
@@ -201,7 +202,8 @@ int foscili(CSOUND *csound, FOSC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("foscili: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("foscili: not initialised"));
 }
 
 
@@ -887,7 +889,8 @@ int adsyn(CSOUND *csound, ADSYN *p)
     int32   timkincr, nxtim;
 
     if (UNLIKELY(csound->isintab == NULL)) {      /* RWD fix */
-      return csound->PerfError(csound, p->h.insdshead, Str("adsyn: not initialised"));
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */
     ampscale = *p->kamod * csound->e0dbfs;      /* since 15-bit sine table */
