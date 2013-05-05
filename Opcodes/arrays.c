@@ -243,9 +243,15 @@ typedef struct {
 
 typedef struct {
     OPDS h;
-    MYFLT  *ans;
+    MYFLT  *ans, *pos;
     ARRAYDAT *tab;
 } TABQUERY;
+
+typedef struct {
+    OPDS h;
+    MYFLT  *ans;
+    ARRAYDAT *tab;
+} TABQUERY1;
 
 typedef struct {
     OPDS h;
@@ -626,10 +632,16 @@ static int tabqset(CSOUND *csound, TABQUERY *p)
    return csound->InitError(csound, Str("t-variable not initialised"));
 }
 
+static int tabqset1(CSOUND *csound, TABQUERY1 *p)
+{
+   if (LIKELY(p->tab->data)) return OK;
+   return csound->InitError(csound, Str("t-variable not initialised"));
+}
+
 static int tabmax(CSOUND *csound, TABQUERY *p)
 {
    ARRAYDAT *t = p->tab;
-   int i, size = 0;
+   int i, size = 0, pos = 0;;
    MYFLT ans;
 
    if (UNLIKELY(t->data == NULL))
@@ -640,8 +652,12 @@ static int tabmax(CSOUND *csound, TABQUERY *p)
    for (i=0; i<t->dimensions; i++) size += t->sizes[i];
    ans = t->data[0];
    for (i=1; i<size; i++)
-     if (t->data[i]>ans) ans = t->data[i];
+     if (t->data[i]>ans) {
+       ans = t->data[i];
+       pos = i;
+     }
    *p->ans = ans;
+   if (p->OUTOCOUNT>1) *p->pos = (MYFLT)pos;
    return OK;
 }
 
@@ -654,32 +670,46 @@ static int tabmax1(CSOUND *csound, TABQUERY *p)
 static int tabmin(CSOUND *csound, TABQUERY *p)
 {
    ARRAYDAT *t = p->tab;
-   int i, size = 0;
+   int i, size = 0, pos = 0;
    MYFLT ans;
 
    if (UNLIKELY(t->data == NULL))
-     return csound->PerfError(csound, p->h.insdshead, Str("t-variable not initialised"));
+     return csound->PerfError(csound,
+                              p->h.insdshead, Str("t-variable not initialised"));
    /* if (UNLIKELY(t->dimensions!=1)) */
-   /*   return csound->PerfError(csound, p->h.insdshead, Str("t-variable not a vector")); */
+   /*   return csound->PerfError(csound,
+        p->h.insdshead, Str("t-variable not a vector")); */
 
    for (i=0; i<t->dimensions; i++) size += t->sizes[i];
    ans = t->data[0];
    for (i=1; i<size; i++)
-     if (t->data[i]<ans) ans = t->data[i];
+     if (t->data[i]<ans) {
+       ans = t->data[i];
+       pos = i;
+     }
    *p->ans = ans;
+   if (p->OUTOCOUNT>1) *p->pos = (MYFLT)pos;
    return OK;
 }
 
-static int tabsum(CSOUND *csound, TABQUERY *p)
+static int tabmin1(CSOUND *csound, TABQUERY *p)
+{
+    if (tabqset(csound, p) == OK) return tabmax(csound, p);
+    else return NOTOK;
+}
+
+static int tabsum(CSOUND *csound, TABQUERY1 *p)
 {
    ARRAYDAT *t = p->tab;
    int i, size = 0;
    MYFLT ans;
 
    if (UNLIKELY(t->data == NULL))
-        return csound->PerfError(csound, p->h.insdshead, Str("t-variable not initialised"));
+        return csound->PerfError(csound,
+                                 p->h.insdshead, Str("t-variable not initialised"));
    if (UNLIKELY(t->dimensions!=1))
-        return csound->PerfError(csound, p->h.insdshead, Str("t-variable not a vector"));
+        return csound->PerfError(csound,
+                                 p->h.insdshead, Str("t-variable not a vector"));
    ans = t->data[0];
    for (i=0; i<t->dimensions; i++) size += t->sizes[i];
    for (i=1; i<size; i++)
@@ -764,9 +794,11 @@ static int tab2ftab(CSOUND *csound, TABCOPY *p)
     int i, tlen = 0;
 
     if (UNLIKELY(p->tab->data==NULL))
-      return csound->PerfError(csound, p->h.insdshead, Str("t-var not initialised"));
+      return csound->PerfError(csound,
+                               p->h.insdshead, Str("t-var not initialised"));
     if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-        return csound->PerfError(csound, p->h.insdshead, Str("No table for copy2ftab"));
+        return csound->PerfError(csound,
+                                 p->h.insdshead, Str("No table for copy2ftab"));
     for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
     fsize = ftp->flen;
     fdata = ftp->ftable;
@@ -823,7 +855,8 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
     int tlen;
 
     if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-        return csound->PerfError(csound, p->h.insdshead, Str("No table for copy2ftab"));
+        return csound->PerfError(csound,
+                                 p->h.insdshead, Str("No table for copy2ftab"));
     fsize = ftp->flen;
     if (UNLIKELY(p->tab->data==NULL)) {
       tabensure(csound, p->tab, fsize);
@@ -922,13 +955,16 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
     EVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
-      return csound->PerfError(csound, p->h.insdshead, Str("tvar not initialised"));
+      return csound->PerfError(csound,
+                               p->h.insdshead, Str("tvar not initialised"));
     if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions !=1)
-      return csound->PerfError(csound, p->h.insdshead, Str("tvar not initialised"));
+      return csound->PerfError(csound,
+                               p->h.insdshead, Str("tvar not initialised"));
     size = p->tab->sizes[0];
 
     if (UNLIKELY(opc == csound->oplstend))
-      return csound->PerfError(csound, p->h.insdshead, Str("map fn not found at k rate"));
+      return csound->PerfError(csound,
+                               p->h.insdshead, Str("map fn not found at k rate"));
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
       eval.r = &data[n];
@@ -938,7 +974,7 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
     return OK;
 }
 
-int tablength(CSOUND *csound, TABQUERY *p)
+int tablength(CSOUND *csound, TABQUERY1 *p)
 {
    if (UNLIKELY(p->tab==NULL || p->tab->dimensions!=1)) *p->ans = -FL(1.0);
    else *p->ans = p->tab->sizes[0];
@@ -1019,13 +1055,16 @@ static OENTRY arrayvars_localops[] =
                                           (SUBR)tabarithset1, (SUBR)tabairem },
     {"##rem.k[",  sizeof(TABARITH2),0,  3, "[k]", "k[k]",
                                           (SUBR)tabarithset2, (SUBR)tabiarem },
-    { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "k", "[k]", (SUBR) tabqset, (SUBR) tabmax },
-    { "maxtab.i",sizeof(TABQUERY),_QQ, 3, "i", "[i]", (SUBR) tabmax1, NULL        },
-    { "maxarray", sizeof(TABQUERY), 0, 3, "k", "[k]",(SUBR) tabqset,(SUBR) tabmax },
-    { "mintab", sizeof(TABQUERY),_QQ, 3, "k", "[k]",(SUBR) tabqset, (SUBR) tabmin },
-    { "minarray", sizeof(TABQUERY),0, 3, "k", "[k]",(SUBR) tabqset, (SUBR) tabmin },
-    { "sumtab", sizeof(TABQUERY),_QQ, 3, "k", "[k]",(SUBR) tabqset, (SUBR) tabsum },
-    { "sumarray", sizeof(TABQUERY),0, 3, "k", "[k]",(SUBR) tabqset, (SUBR) tabsum },
+    { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "kz", "[k]", (SUBR) tabqset, (SUBR) tabmax },
+    { "maxtab.i",sizeof(TABQUERY),_QQ, 3, "iI", "[i]", (SUBR) tabmax1, NULL  },
+    { "maxarray.k", sizeof(TABQUERY), 0, 3, "kz", "[k]",(SUBR) tabqset,(SUBR) tabmax },
+    { "maxarray.i", sizeof(TABQUERY), 0, 1, "iI", "[i]",(SUBR) tabmax1, NULL  },
+    { "mintab.k", sizeof(TABQUERY),_QQ, 3, "kz", "[k]",(SUBR) tabqset, (SUBR) tabmin },
+    { "minarray.k", sizeof(TABQUERY),0, 3, "kz", "[k]",(SUBR) tabqset, (SUBR) tabmin },
+    { "mintab.i", sizeof(TABQUERY),_QQ, 3, "iI", "[i]",(SUBR) tabmin1 },
+    { "minarray.i", sizeof(TABQUERY),0, 3, "iI", "[i]",(SUBR) tabmin1 },
+    { "sumtab", sizeof(TABQUERY1),_QQ, 3, "k", "[k]",(SUBR) tabqset1, (SUBR) tabsum },
+    { "sumarray", sizeof(TABQUERY1),0, 3, "k", "[k]",(SUBR) tabqset1, (SUBR) tabsum },
     { "scalet", sizeof(TABSCALE), _QQ, 3, "",  "[k]kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "scalearray", sizeof(TABSCALE), 0, 3, "",  "[k]kkOJ",
@@ -1047,10 +1086,10 @@ static OENTRY arrayvars_localops[] =
     { "copy2ttab", sizeof(TABCOPY), TR|_QQ, 2, "", "[k]k", NULL, (SUBR) ftab2tab },
     { "copya2ftab", sizeof(TABCOPY), TW, 2, "", "[k]k", NULL, (SUBR) tab2ftab },
     { "copyf2array", sizeof(TABCOPY), TR, 2, "", "[k]k", NULL, (SUBR) ftab2tab },
-    { "lentab.i", sizeof(TABQUERY), _QQ, 1, "i", "[k]", (SUBR) tablength },
-    { "lentab.k", sizeof(TABQUERY), _QQ, 1, "k", "[k]", NULL, (SUBR) tablength },
-    { "lenarray.i", sizeof(TABQUERY), 0, 1, "i", "[k]", (SUBR) tablength },
-    { "lenarray.k", sizeof(TABQUERY), 0, 1, "k", "[k]", NULL, (SUBR) tablength }
+    { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "[k]", (SUBR) tablength },
+    { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "[k]", NULL, (SUBR) tablength },
+    { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "[k]", (SUBR) tablength },
+    { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "[k]", NULL, (SUBR) tablength }
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
