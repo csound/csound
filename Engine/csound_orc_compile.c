@@ -1345,7 +1345,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     while(var != NULL) {
       var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
       if (var->initializeVariableMemory != NULL) {
-        var->initializeVariableMemory(var, var->memBlock);
+        var->initializeVariableMemory(var, (MYFLT *)(var->memBlock));
       }
       var = var->next;
     }
