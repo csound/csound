@@ -207,11 +207,14 @@ int pvoc(CSOUND *csound, PVOC *p)
  err1:
     return csound->PerfError(csound, p->h.insdshead, Str("pvoc: not initialised"));
  err2:
-      return csound->PerfError(csound, p->h.insdshead, Str("PVOC transpose too low"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC transpose too high"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("PVOC timpnt < 0"));
 }
 
 /* RWD 8:2001: custom version of ldmemfile();

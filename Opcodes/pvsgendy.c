@@ -109,7 +109,8 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvsgendy: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("pvsgendy: not initialised"));
 }
 
 static OENTRY pvsgendy_localops[] = {
