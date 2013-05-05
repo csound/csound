@@ -202,6 +202,9 @@ int musmon(CSOUND *csound)
     csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
     csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
     csound->auxspin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
+    /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
+    /* memset(csound->smaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
+    /* memset(csound->omaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
 
     /* initialise sensevents state */
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;

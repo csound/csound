@@ -257,7 +257,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       }       /* IV - Sep 1 2002: added 'M' */
       else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
                treqd != 'Z' && treqd != 'M' && treqd != 'N' &&
-               treqd != '*') /* else any no */
+               treqd != '*' && treqd != 'I') /* else any no */
         synterr(csound, Str("too many input args\n"));
     }
 
@@ -270,6 +270,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         case 'N':
         case 'Z':
         case 'y':
+        case 'I':
         case 'z':   treqd = *types[nreqd-1]; break;
         default:    treqd = 'i';    /*   (indef in-type) */
         }

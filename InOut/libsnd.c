@@ -62,7 +62,7 @@ static void spoutsf(CSOUND *csound)
     uint32_t   chn = 0;
     int     n, spoutrem = csound->nspout;
     MYFLT   *sp = csound->spout;
-    MYFLT   absamp;
+    MYFLT   absamp = FL(0.0);
     uint32  nframes = STA(nframes);
 
  nchk:
@@ -112,7 +112,7 @@ static void spoutsf_noscale(CSOUND *csound)
     uint32_t chn = 0;
     int      n, spoutrem = csound->nspout;
     MYFLT    *sp = csound->spout;
-    MYFLT    absamp;
+    MYFLT    absamp = FL(0.0);
     uint32   nframes = STA(nframes);
 
  nchk:
