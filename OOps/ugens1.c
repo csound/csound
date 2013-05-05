@@ -259,7 +259,8 @@ int linseg(CSOUND *csound, LINSEG *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("linseg: not initialised (arate)\n"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("linseg: not initialised (arate)\n"));
 }
 
 /* **** ADSR is just a construction and use of linseg */
@@ -745,7 +746,8 @@ int kxpseg(CSOUND *csound, EXXPSEG *p)
     segp->val *= segp->mlt;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("expseg (krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("expseg (krate): not initialised"));
 }
 
 
@@ -777,7 +779,8 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     segp->val = nxtval;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("expseg (arate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("expseg (arate): not initialised"));
 }
 
 int xsgrset(CSOUND *csound, EXPSEG *p)
@@ -1266,7 +1269,8 @@ int knvlpx(CSOUND *csound, ENVLPX *p)
     *p->rslt = *p->xamp * fact;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("envlpx(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("envlpx(krate): not initialised"));
 }
 
 int envlpx(CSOUND *csound, ENVLPX *p)
@@ -1328,7 +1332,8 @@ int envlpx(CSOUND *csound, ENVLPX *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("envlpx(krate): not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("envlpx(krate): not initialised"));
  err2:
     return csound->PerfError(csound, p->h.insdshead,
                              Str("envlpx rise func ends with zero"));
@@ -1681,7 +1686,8 @@ int cosseg(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("cosseg: not initialised (arate)\n"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("cosseg: not initialised (arate)\n"));
 }
 
 int cossegr(CSOUND *csound, COSSEG *p)
@@ -1745,7 +1751,8 @@ int cossegr(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("cossegr: not initialised (arate)\n"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("cossegr: not initialised (arate)\n"));
 }
 
 

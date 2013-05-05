@@ -195,12 +195,14 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
     insno = (int) p1;
     if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
-      return csoundPerfError(csound, p->h.insdshead, Str("turnoff2: invalid instrument number"));
+      return csoundPerfError(csound, p->h.insdshead,
+                             Str("turnoff2: invalid instrument number"));
     }
     mode = (int) (*(p->kFlags) + FL(0.5));
     allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
     if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
-      return csoundPerfError(csound, p->h.insdshead, Str("turnoff2: invalid mode parameter"));
+      return csoundPerfError(csound, p->h.insdshead,
+                             Str("turnoff2: invalid mode parameter"));
     }
     ip = &(csound->actanchor);
     ip2 = NULL;

@@ -137,7 +137,8 @@ int kdmp4set(CSOUND *csound, KDUMP4 *p)
     return OK;
 }
 
-static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk, void *p)
+static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format,
+                   int nk, void *p)
 {
     char  buf1[256], outbuf[256];
     int   len = 0;
@@ -193,7 +194,8 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk, voi
     default: csound->Die(csound, Str("unknown kdump format"));
     }
     if (UNLIKELY(fwrite(outbuf, len, 1, ofd)!=1)) { /* now write the buffer */
-      csound->PerfError(csound, ((KDUMP *)p)->h.insdshead, Str("write failure in dumpk"));
+      csound->PerfError(csound, ((KDUMP *)p)->h.insdshead,
+                        Str("write failure in dumpk"));
     }
 }
 

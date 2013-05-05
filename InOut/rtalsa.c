@@ -533,10 +533,10 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         if (temp)
           temp = temp + 2;
         if (list != NULL) {
-	  /* for some reason, there appears to be a memory
+          /* for some reason, there appears to be a memory
              problem if we try to copy more than 10 chars,
              even though list[n].device_name is 64 chars long */
-	 strncpy(list[n].device_name, temp, 10);
+         strncpy(list[n].device_name, temp, 10);
          list[n].device_name[10] = '\0';
          sprintf(tmp, "hw:%i,%i", card, num);
          strncpy(list[n].device_id, tmp, 16);

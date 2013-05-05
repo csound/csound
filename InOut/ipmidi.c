@@ -78,7 +78,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       char buff[128];
       strerror_r(errno, buff, 128);
 #endif
-      
+
         csound->ErrorMsg(csound, Str("Error binding socket to interface: %s"),
                           buff);
       //perror("Error binding socket to interface");
@@ -97,10 +97,10 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 #else
       char buff[128];
       strerror_r(errno, buff, 128);
-      
+
         csound->ErrorMsg(csound, Str("Error adding membership to interface: %s"),
                           buff);
-	return NOTOK;
+        return NOTOK;
       //perror("Error binding socket to interface");
 #endif
     }
@@ -186,4 +186,3 @@ PUBLIC int csoundModuleInfo(void)
     /* does not depend on MYFLT type */
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));
 }
-
