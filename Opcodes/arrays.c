@@ -740,6 +740,12 @@ static int tabsum(CSOUND *csound, TABQUERY1 *p)
    return OK;
 }
 
+static int tabsum1(CSOUND *csound, TABQUERY1 *p)
+{
+    if (tabqset1(csound, p) == OK) return tabsum(csound, p);
+    else return NOTOK;
+}
+
 static int tabscaleset(CSOUND *csound, TABSCALE *p)
 {
    if (LIKELY(p->tab->data && p->tab->dimensions==1)) return OK;
@@ -779,6 +785,12 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
      t->data[i] = (t->data[i]-tmin)*range + min;
    }
    return OK;
+}
+
+static int tabscale1(CSOUND *csound, TABSCALE *p)
+{
+    if (tabscaleset(csound, p) == OK) return tabscale(csound, p);
+    else return NOTOK;
 }
 
 typedef struct {
@@ -1012,7 +1024,8 @@ int tablength(CSOUND *csound, TABQUERY1 *p)
 static OENTRY arrayvars_localops[] =
 {
     { "init.0", sizeof(ARRAYINIT), 0, 1, "[.]", "m", (SUBR)array_init },
-    { "fillarray", sizeof(TABFILL), 0, 1, "[k]", "m", (SUBR)tabfill },
+    { "fillarray.k", sizeof(TABFILL), 0, 1, "[k]", "m", (SUBR)tabfill },
+    { "fillarray.i", sizeof(TABFILL), 0, 1, "[i]", "m", (SUBR)tabfill },
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", "[i]im", (SUBR)array_set },
     { "##array_set.i2", sizeof(ARRAY_SET), 0, 3, "", "[.].m",
                                             (SUBR)array_set, (SUBR)array_set },
@@ -1091,12 +1104,14 @@ static OENTRY arrayvars_localops[] =
     { "minarray.i", sizeof(TABQUERY),0, 3, "iI", "[i]",(SUBR) tabmin1 },
     { "sumtab", sizeof(TABQUERY1),_QQ, 3, "k", "[k]",
                                           (SUBR) tabqset1, (SUBR) tabsum },
-    { "sumarray", sizeof(TABQUERY1),0, 3, "k", "[k]",
+    { "sumarray.k", sizeof(TABQUERY1),0, 3, "k", "[k]",
                                           (SUBR) tabqset1, (SUBR) tabsum },
+    { "sumarray.i", sizeof(TABQUERY1),0, 1, "k", "[k]", (SUBR) tabsum1   },
     { "scalet", sizeof(TABSCALE), _QQ, 3, "",  "[k]kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
-    { "scalearray", sizeof(TABSCALE), 0, 3, "",  "[k]kkOJ",
+    { "scalearray.k", sizeof(TABSCALE), 0, 3, "",  "[k]kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
+    { "scalearray.1", sizeof(TABSCALE), 0, 1, "",  "[i]iiOJ",   (SUBR) tabscale1 },
     { "=.t", sizeof(TABCPY), 0, 2, "[k]", "[k]", NULL, (SUBR)tabcopy },
     { "tabgen", sizeof(TABGEN), _QQ, 1, "[k]", "iip", (SUBR) tabgen_set, NULL    },
     { "tabmap_i", sizeof(TABMAP), _QQ, 1, "[k]", "[k]S", (SUBR) tabmap_set       },
