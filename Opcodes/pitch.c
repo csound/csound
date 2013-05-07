@@ -1989,7 +1989,7 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
       else
         p->curval = p->cursegp->val + p->curinc *
           (FL(1.0) - EXP(p->curx));
-      p->curx += (MYFLT)CS_KSMPS*p->alpha;
+      p->curx += /* (MYFLT)CS_KSMPS* */ p->alpha;
     }
     return OK;
 }
