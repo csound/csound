@@ -126,9 +126,18 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
     
     if (UNLIKELY(early)) {
       nsmps -= early;
+      for (j=0; j < nchans; j++) {
+      out = p->out[j];
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      }
     }
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) {
+     for (j=0; j < nchans; j++) {
+        out = p->out[j];
+        memset(out, '\0', offset*sizeof(MYFLT));
+     }
+    }
+
 
     for (n=offset; n < nsmps; n++) {
        
@@ -332,9 +341,17 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
 
     if (UNLIKELY(early)) {
       nsmps -= early;
+      for (j=0; j < nchans; j++) {
+      out = p->out[j];
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      }
     }
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) {
+     for (j=0; j < nchans; j++) {
+        out = p->out[j];
+        memset(out, '\0', offset*sizeof(MYFLT));
+     }
+    }
 
     for (n=offset; n < nsmps; n++) {
 
