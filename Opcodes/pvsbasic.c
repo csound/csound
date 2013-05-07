@@ -440,14 +440,16 @@ int pvstanalset(CSOUND *csound, PVST *p)
 {
 
     int i, N, hsize, nChannels;
+    N = (*p->fftsize > 0 ? *p->fftsize : 2048);
+    hsize = (*p->hsize > 0 ? *p->hsize : 512);
     p->init = 0;
     nChannels = csound->GetOutputArgCnt(p);
     if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
       csound->Die(csound, Str("invalid number of output arguments"));
     p->nchans = nChannels;
     for (i=0; i < p->nchans; i++) {
-      N = p->fout[i]->N = (*p->fftsize > 0 ? *p->fftsize : 2048);
-      hsize = p->fout[i]->overlap = (*p->hsize > 0 ? *p->hsize : 512);
+      p->fout[i]->N = N; 
+      p->fout[i]->overlap = hsize;
       p->fout[i]->wintype = PVS_WIN_HANN;
       p->fout[i]->winsize = N;
       p->fout[i]->framecount = 1;
@@ -497,8 +499,8 @@ int pvstanal(CSOUND *csound, PVST *p)
 {
     int hsize = p->fout[0]->overlap, i, k;
     unsigned int j;
-    uint32_t size, sizefrs, post,  nchans = p->nchans;
-    int32 N = p->fout[0]->N;
+    uint32_t sizefrs, nchans = p->nchans;
+    int32 N = p->fout[0]->N, post, size;
     double frac, spos = p->pos, pos;
     MYFLT *tab, dbtresh = *p->dbthresh;
     FUNC *ft;
@@ -563,25 +565,25 @@ int pvstanal(CSOUND *csound, PVST *p)
           frac = pos  - post;
           post *= nchans;
           post += j;
-          if (post >= size ) post -= size;
-          if (post < 0) post += size;
-          else in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+          while (post >= size ) post -= size;
+	  while (post < 0) post += size;
+          in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           fwin[i] = amp * in * win[i]; /* window it */
           /* back windo, bwin */
           post = (int) (pos - hsize*pitch);
           post *= nchans;
           post += j;
-          if (post >= size ) post -= size;
-          if (post < 0) post += size;
-          else in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
+          while (post >= size ) post -= size;
+          while (post < 0) post += size;
+          in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
           bwin[i] = in * win[i];  /* window it */
           if (*p->konset){
           post = (int) pos + hsize;
           post *= nchans;
           post += j;
-          if (post >= size ) post -= size;
-          if (post < 0) post += size;
-          else in =  tab[post];
+          while (post >= size ) post -= size;
+          while (post < 0) post += size;
+          in =  tab[post];
           nwin[i] = amp * in * win[i];
           }
           /* increment read pos according to pitch transposition */
