@@ -543,7 +543,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       }
 
       while (spos >= sizefrs) spos -= sizefrs;
-      while (spos < 0)  spos += sizefrs;
+      while (spos < hsize)  spos += (sizefrs + hsize);
       pos = spos;
       for (j=0; j < nchans; j++) {
 
@@ -563,21 +563,24 @@ int pvstanal(CSOUND *csound, PVST *p)
           frac = pos  - post;
           post *= nchans;
           post += j;
-          if (post >= size ) in = 0.0;
+          if (post >= size ) post -= size;
+          if (post < 0) post += size;
           else in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           fwin[i] = amp * in * win[i]; /* window it */
           /* back windo, bwin */
           post = (int) (pos - hsize*pitch);
           post *= nchans;
           post += j;
-          if (post >= size ) in = 0.0;
+          if (post >= size ) post -= size;
+          if (post < 0) post += size;
           else in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
           bwin[i] = in * win[i];  /* window it */
           if (*p->konset){
           post = (int) pos + hsize;
           post *= nchans;
           post += j;
-          if (post >= size ) in = 0.0;
+          if (post >= size ) post -= size;
+          if (post < 0) post += size;
           else in =  tab[post];
           nwin[i] = amp * in * win[i];
           }
