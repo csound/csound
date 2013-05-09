@@ -314,6 +314,7 @@ OENTRY opcodlst_1[] = {
   { "i.i",   S(ASSIGN),0,   1,      "i",    "i",    assign                  },
   { "i.k",   S(ASSIGN),0,   1,      "i",    "k",    assign                  },
   { "k.i",   S(ASSIGN),0,   1,      "k",    "i",    assign                  },
+  { "k.a",   S(DOWNSAMP),0, 3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   { "cpsoct.i",S(EVAL),0,   1,      "i",    "i",    cpsoct                  },
   { "octpch.i",S(EVAL),0,   1,      "i",    "i",    octpch                  },
   { "cpspch.i",S(EVAL),0,   1,      "i",    "i",    cpspch                  },
