@@ -70,6 +70,7 @@ char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
     case 't': sprintf(s, "#k%d", csound->tcount++); break;
+    case 'f': sprintf(s, "#f%d", csound->tcount++); break;
     case 'S': sprintf(s, "#S%d", csound->tcount++); break;
     case '[': sprintf(s, "#%c%d[]", outype[1], csound->tcount++);
               break; // piggyback on tcount
