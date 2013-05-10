@@ -174,14 +174,14 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     for (i=0; i<nargs; i++) {
       aa = *p->a[i];
       MYFLT *r =p->r[i];
-      for (n = offset; n < nsmps; n++)
-        r[n] = (n<offset || n>early ? FL(0.0) : aa);
+      for (n = 0; n < nsmps; n++)
+        r[n] = (n < offset || n > early ? FL(0.0) : aa);
     }
     for (; i<p->OUTOCOUNT; i++) {
       MYFLT *r =p->r[i];
-      memset(r, '\0', offset*sizeof(MYFLT));
-      for (n = offset; n < nsmps; n++)
-        r[n] = (n<offset || n>early ? FL(0.0) : aa);
+      memset(r, '\0', nsmps*sizeof(MYFLT));
+      for (n = 0; n < nsmps; n++)
+        r[n] = (n < offset || n > early ? FL(0.0) : aa);
     }
 
     return OK;
@@ -1541,7 +1541,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
 {
     uint32_t n = (int)p->OUTOCOUNT, m;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t    i, j = 0, k = 0, nsmps = CS_KSMPS;
+    uint32_t    i,j = 0, k = 0, nsmps = CS_KSMPS;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT *spin = CS_SPIN;
     CSOUND_SPIN_SPINLOCK
