@@ -1548,7 +1548,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
     m = (n < (uint32_t)csound->inchnls ? n : (uint32_t)csound->inchnls);
     for (j=0; j<nsmps; j++)
       if (j<offset || j>early) {
-        for ( ; i < n; i++)
+        for (i=0 ; i < n; i++)
           p->ar[i][j] = FL(0.0);
       }
       else {
