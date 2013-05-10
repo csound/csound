@@ -281,6 +281,12 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     return CSOUND_SUCCESS;
 }
 
+extern int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
+extern void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
+extern int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
+extern int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
+extern void rtclose_dummy(CSOUND *);
+extern int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
 
 PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 {
@@ -293,14 +299,28 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
        return CSOUND_ERROR;
     }
 
+   { /* test for dummy module request */
+    char *s;
+     if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
+       if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+           strcmp(s, "NULL") == 0) {
+        csound->Message(csound, Str("setting dummy interface\n"));
+      csound->SetPlayopenCallback(csound, playopen_dummy);
+      csound->SetRecopenCallback(csound, recopen_dummy);
+      csound->SetRtplayCallback(csound, rtplay_dummy);
+      csound->SetRtrecordCallback(csound, rtrecord_dummy);
+      csound->SetRtcloseCallback(csound, rtclose_dummy);
+      csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
+        }
+    }
+
    /* VL 30-12-12 csoundInitModules is always called here now to enable
        Csound to start without calling csoundCompile, but directly from
        csoundCompileOrc() and csoundReadSco()
     */
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
                                      start with no orchestra */
-      /* VL: added this also to csoundReset() in csound.c   */
-      if (csoundInitModules(csound) != 0)
+         if (csoundInitModules(csound) != 0)
            csound->LongJmp(csound, 1);
         csoundCompileOrc(csound, "instr 1 \n endin \n");
      }
@@ -308,6 +328,8 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
+
+
 
     /* if sound file type is still not known, check SFOUTYP */
     if (O->filetyp <= 0) {

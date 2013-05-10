@@ -950,7 +950,7 @@ extern "C" {
 
     /**
      * Calling this function with a non-zero 'state' value between
-     * csoundPreCompile() and the start of performance will disable all default
+     * csoundCreate() and the start of performance will disable all default
      * handling of sound I/O by the Csound library, allowing the host
      * application to use the spin/spout/input/output buffers directly.
      * If 'bufSize' is greater than zero, the buffer size (-b) will be
