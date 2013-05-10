@@ -1909,6 +1909,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
       segp->val = val;
       if (alpha == FL(0.0)) {
         segp->c1 = (nxtval-val)/d;
+        //printf("alpha zero val=%f c1=%f\n", segp->val, segp->c1);
       }
       else {
         p->lastalpha = alpha;
@@ -1926,6 +1927,14 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
     p->xtra = relestim;
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int)relestim;
+    /* {  */
+    /*   int i; */
+    /*   int nseg = p->INOCOUNT / 3; */
+    /*   NSEG *segp = p->cursegp; */
+    /*   for (i=0; i<nseg; i++) */
+    /*     printf("cnt=%d alpha=%f val=%f nxtpt=%f c1=%f\n", */
+    /*      segp[i].cnt, segp[i].alpha, segp[i].val, segp[i].nxtpt, segp[i].c1); */
+    /* } */
     return OK;
 }
 
@@ -1936,8 +1945,9 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
       csound->Die(csound, Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
-        NSEG        *segp;
+      NSEG        *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
+        //printf("releasing\n");
         while (p->segsrem > 1) {        /* reles flag new:      */
           segp = ++p->cursegp;          /*   go to last segment */
           p->segsrem--;
@@ -1945,6 +1955,8 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
         if (segp->alpha == FL(0.0)) {
           segp->c1 = (p->finalval-p->curval)/segp->cnt;
+          //printf("finalval = %f curval = %f, cnt = %d c1 = %f\n",
+          //       p->finalval, p->curval, segp->cnt, segp->c1);
         }
         else {
           /* this is very wrong */
@@ -1960,20 +1972,24 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
           if (!(--p->segsrem)) return OK;    /*   seg Z now done all */
         segp = ++p->cursegp;            /*   find the next      */
       newm:
+        //printf("curcnt = %d seg/cnt = %d\n", p->curcnt, segp->cnt);
         if (!(p->curcnt = segp->cnt)) { /*   nonlen = discontin */
           p->curval = segp->nxtpt;      /*   poslen = new slope */
+          //printf("curval = %f\n", p->curval);
           goto chk1;
         }
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
         p->curx = FL(0.0);
       }
-      if (p->alpha == FL(0.0))
-        p->curval += p->curinc*CS_KSMPS;   /* advance the cur val  */
+      if (p->alpha == FL(0.0)) {
+        p->curval += p->curinc/**CS_KSMPS*/;   /* advance the cur val  */
+        //printf("curval = %f\n", p->curval);
+      }
       else
         p->curval = p->cursegp->val + p->curinc *
           (FL(1.0) - EXP(p->curx));
-      p->curx += (MYFLT)CS_KSMPS*p->alpha;
+      p->curx += /* (MYFLT)CS_KSMPS* */ p->alpha;
     }
     return OK;
 }

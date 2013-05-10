@@ -448,7 +448,7 @@ int pvstanalset(CSOUND *csound, PVST *p)
       csound->Die(csound, Str("invalid number of output arguments"));
     p->nchans = nChannels;
     for (i=0; i < p->nchans; i++) {
-      p->fout[i]->N = N; 
+      p->fout[i]->N = N;
       p->fout[i]->overlap = hsize;
       p->fout[i]->wintype = PVS_WIN_HANN;
       p->fout[i]->winsize = N;
@@ -566,7 +566,7 @@ int pvstanal(CSOUND *csound, PVST *p)
           post *= nchans;
           post += j;
           while (post >= size ) post -= size;
-	  while (post < 0) post += size;
+          while (post < 0) post += size;
           in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           fwin[i] = amp * in * win[i]; /* window it */
           /* back windo, bwin */
