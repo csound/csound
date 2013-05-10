@@ -108,11 +108,11 @@ void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 {
 
     MYFLT  *psamples;
-    int    *lock;
+    
     if (csoundGetChannelPtr(csound, &psamples, name,
                            CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS) {
-      lock = csoundGetChannelLock(csound, (char*) name);
+      int *lock = csoundGetChannelLock(csound, (char*) name);
       csoundSpinLock(lock);
       memcpy(samples, psamples, csoundGetKsmps(csound)*sizeof(MYFLT));
       csoundSpinUnLock(lock);
@@ -122,11 +122,10 @@ void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 {
     MYFLT  *psamples;
-    int    *lock;
     if (csoundGetChannelPtr(csound, &psamples, name,
                            CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL)
             == CSOUND_SUCCESS){
-      lock = csoundGetChannelLock(csound, (char*) name);
+      int *lock = csoundGetChannelLock(csound, (char*) name);
       csoundSpinLock(lock);
       memcpy(psamples, samples, csoundGetKsmps(csound)*sizeof(MYFLT));
       csoundSpinUnLock(lock);
@@ -136,11 +135,11 @@ void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
 {
     MYFLT  *pstring;
-    int    *lock;
+
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
             == CSOUND_SUCCESS){
-      lock = csoundGetChannelLock(csound, (char*) name);
+      int    *lock = csoundGetChannelLock(csound, (char*) name);
       csoundSpinLock(lock);
       strcpy((char *) pstring, string);
       csoundSpinUnLock(lock);
@@ -150,11 +149,10 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
 void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 {
     MYFLT  *pstring;
-    int    *lock;
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS){
-      lock = csoundGetChannelLock(csound, (char*) name);
+      int *lock = csoundGetChannelLock(csound, (char*) name);
       csoundSpinLock(lock);
       strcpy(string, (char *) pstring);
       csoundSpinUnLock(lock);
