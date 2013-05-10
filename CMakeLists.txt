@@ -23,6 +23,8 @@ set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
+set(CS_FRAMEWORK_DEST "~/Library/Frameworks")
+
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -251,29 +253,6 @@ if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
 endif()
 
 
-if(BUILD_RELEASE)
-    add_definitions("-D_CSOUND_RELEASE_")
-    if(LINUX)
-        set(DEFAULT_OPCODEDIR "${CMAKE_INSTALL_PREFIX}/${PLUGIN_INSTALL_DIR}")
-        add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
-    elseif(APPLE)
-        if(USE_DOUBLE)
-            set(DEFAULT_OPCODEDIR "/Library/Frameworks/CsoundLib64.framework/Versions/${APIVERSION}/Resources/Opcodes64")
-        else()
-            set(DEFAULT_OPCODEDIR "/Library/Frameworks/CsoundLib.framework/Versions/${APIVERSION}/Resources/Opcodes")
-        endif() 
-        add_definitions(-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\")
-    endif()
-else()
-    add_definitions("-DBETA")
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
-    add_definitions("-Wno-format")
-    add_compiler_flags("-g")
-endif()
-
-
 if(USE_DOUBLE)
     if(APPLE)
         set(CSOUNDLIB "CsoundLib64")
@@ -288,6 +267,38 @@ else()
     endif()
 endif()
 
+if(APPLE) 
+    set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes")
+    get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
+    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
+
+
+    set(PYTHON_MODULE_INSTALL_DIR "/Library/Python/2.7/site-packages")
+    set(JAVA_MODULE_INSTALL_DIR "/Library/Java/Extensions")
+
+endif()
+
+if(BUILD_RELEASE)
+    add_definitions("-D_CSOUND_RELEASE_")
+    if(LINUX)
+        set(DEFAULT_OPCODEDIR "${CMAKE_INSTALL_PREFIX}/${PLUGIN_INSTALL_DIR}")
+        add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
+    elseif(APPLE)
+        set(DEFAULT_OPCODEDIR "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes")
+        add_definitions(-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\")
+    endif()
+else()
+    add_definitions("-DBETA")
+    set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
+
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
+    add_definitions("-Wno-format")
+    add_compiler_flags("-g")
+endif()
+
+
 #if(USE_DOUBLE)
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins64)
 #else()
@@ -298,9 +309,9 @@ set(BUILD_PLUGINS_DIR ${BUILD_DIR})
 set(BUILD_BIN_DIR ${BUILD_DIR})
 set(BUILD_LIB_DIR ${BUILD_DIR})
 
-if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode") 
-    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
-endif()
+#if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode") 
+#    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
+#endif()
 
 message(STATUS "BUILD_BIN_DIR set to ${BUILD_BIN_DIR}")
 message(STATUS "BUILD_LIB_DIR set to ${BUILD_LIB_DIR}")
@@ -793,33 +804,33 @@ endif()
 
 # This copies libsndfile into the framework and sets the install names
 # of CsoundLib to refer to it.
-if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
+#if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
 
-get_filename_component(source ${LIBSNDFILE_LIBRARY} REALPATH)
-get_filename_component(depname ${source} NAME)
+#get_filename_component(source ${LIBSNDFILE_LIBRARY} REALPATH)
+#get_filename_component(depname ${source} NAME)
 
-set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
+#set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
 
-if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/${depname})
-   add_custom_command(
-       TARGET ${CSOUNDLIB} 
-       POST_BUILD
-       COMMAND mkdir
-       ARGS -p ${CSOUNDLIB_DIR}/Resources/libs 
-       COMMAND cp
-       ARGS ${source} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
-       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -id ${depname} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
-)
-endif()
+#if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/${depname})
+#   add_custom_command(
+#       TARGET ${CSOUNDLIB} 
+#       POST_BUILD
+#       COMMAND mkdir
+#       ARGS -p ${CSOUNDLIB_DIR}/Resources/libs 
+#       COMMAND cp
+#       ARGS ${source} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
+#       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+#       ARGS -id ${depname} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
+#)
+#endif()
 
-add_custom_command(
-       TARGET ${CSOUNDLIB} 
-       POST_BUILD
-       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -change ${source} @loader_path/Resources/libs/${depname} ${CSOUNDLIB_DIR}/${CSOUNDLIB}
-)
-endif()
+#add_custom_command(
+#       TARGET ${CSOUNDLIB} 
+#       POST_BUILD
+#       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+#       ARGS -change ${source} @loader_path/Resources/libs/${depname} ${CSOUNDLIB_DIR}/${CSOUNDLIB}
+#)
+#endif()
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
@@ -861,38 +872,38 @@ endfunction(make_plugin)
 function(add_dependency_to_framework pluginlib dependency)
 
 
-if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
+	#if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
 
-get_filename_component(source ${dependency} REALPATH)
-get_filename_component(depname ${source} NAME)
+	#get_filename_component(source ${dependency} REALPATH)
+	#get_filename_component(depname ${source} NAME)
+	#
+	#set(RESOURCE_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources)
 
-set(RESOURCE_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources)
-
-if(NOT EXISTS ${RESOURCE_DIR}/libs/${depname})
-   add_custom_command(
-       TARGET ${pluginlib} 
-       COMMAND mkdir 
-       ARGS -p ${RESOURCE_DIR}/libs
-       COMMAND cp
-       ARGS -f ${source} ${RESOURCE_DIR}/libs/${depname}
-       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -id ${depname} ${RESOURCE_DIR}/libs/${depname}
-)
-endif()
-add_custom_command(
-       TARGET ${pluginlib} 
-       POST_BUILD
-       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-       ARGS -change ${source} @loader_path/../libs/${depname} ${BUILD_PLUGINS_DIR}/lib${pluginlib}.dylib
-)
-endif()
+	#if(NOT EXISTS ${RESOURCE_DIR}/libs/${depname})
+	#add_custom_command(
+	#TARGET ${pluginlib} 
+	#COMMAND mkdir 
+	#ARGS -p ${RESOURCE_DIR}/libs
+	#COMMAND cp
+	#ARGS -f ${source} ${RESOURCE_DIR}/libs/${depname}
+	#COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+	#ARGS -id ${depname} ${RESOURCE_DIR}/libs/${depname}
+	#)
+	#endif()
+	#add_custom_command(
+	#TARGET ${pluginlib} 
+	#POST_BUILD
+	#COMMAND ${CMAKE_INSTALL_NAME_TOOL}
+	#ARGS -change ${source} @loader_path/../libs/${depname} ${BUILD_PLUGINS_DIR}/lib${pluginlib}.dylib
+	#)
+	#endif()
 endfunction(add_dependency_to_framework)
 
 # Add the install target
 install(TARGETS ${CSOUNDLIB}
     LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
-    FRAMEWORK DESTINATION "~/Library/Frameworks")
+    FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 
 set(libcsound_LIBS 
     ${LIBSNDFILE_LIBRARY}  
