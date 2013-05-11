@@ -477,6 +477,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
       pp = channels->value;
       (*lst)[n].name = pp->name;
       (*lst)[n].type = pp->type;
+      (*lst)[n].hints = pp->hints;
       channels = channels->next;
       n++;
     }
