@@ -333,7 +333,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
 {
     CHNENTRY  dummy;
     void            *pp;
-    int             nbytes, nameOffs, dataOffs, lockOffs;
+    int             nbytes, nameOffs, dataOffs, lockOffs, dsize;
 
     (void) dummy;
     nameOffs = (int)((char*) &(dummy.name[0]) - (char*) &dummy);
@@ -345,16 +345,20 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
     if (*p == NULL) {
       switch (type & CSOUND_CHANNEL_TYPE_MASK) {
       case CSOUND_CONTROL_CHANNEL:
-        nbytes += (int)sizeof(MYFLT);
+        dsize = (int)sizeof(MYFLT);
+        nbytes +=  dsize;
         break;
       case CSOUND_AUDIO_CHANNEL:
-        nbytes += ((int)sizeof(MYFLT) * csound->ksmps);
+        dsize = ((int)sizeof(MYFLT) * csound->ksmps);
+        nbytes +=  dsize;
         break;
       case CSOUND_STRING_CHANNEL:
-        nbytes += ((int)sizeof(MYFLT) * 1024/*csound->strVarSamples*/);
+        dsize = MAX_STRING_CHANNEL_DATASIZE;
+        nbytes +=  dsize;
         break;
       case CSOUND_PVS_CHANNEL:
-        nbytes += ((int)sizeof(PVSDATEXT));
+        dsize = ((int)sizeof(PVSDATEXT));
+        nbytes +=  dsize;
         break;
       }
     }
@@ -369,6 +373,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
 #endif
     if (*p == NULL)
       *p = (MYFLT*) ((char*) pp + (int)dataOffs);
+    ((CHNENTRY*) pp)->datasize = dsize;
     return (CHNENTRY*) pp;
 }
 
@@ -430,6 +435,15 @@ PUBLIC int csoundGetChannelPtr(CSOUND *csound,
     }
     return create_new_channel(csound, p, name, type);
 }
+
+PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name){
+
+    CHNENTRY  *pp;
+    pp = find_channel(csound, name);
+    if (pp != NULL) return 0;
+    else return pp->datasize;
+}
+
 
 PUBLIC int *csoundGetChannelLock(CSOUND *csound,
                                 const char *name)
@@ -897,7 +911,7 @@ int chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 
 int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
 {
-    int   err;
+  int   err, size;
     int  *lock;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
@@ -909,8 +923,9 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     }
     p->lock = lock =
       csoundGetChannelLock(csound, (char*) p->iname);
+    size = csoundGetChannelDatasize(csound, p->iname);
     csoundSpinLock(lock);
-    strcpy((char*) p->fp, (char*) p->arg);
+    strncpy((char*) p->fp, (char*) p->arg, size-1);
     csoundSpinUnLock(lock);
 
     return OK;
