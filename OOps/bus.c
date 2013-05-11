@@ -915,15 +915,15 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     int  *lock;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    size = csoundGetChannelDatasize(csound, p->iname);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
-    if (UNLIKELY((int)strlen((char*) p->arg) >= csound->strVarMaxLen)) {
+    if (UNLIKELY((int)strlen((char*) p->arg) >= size)) {
       /* can only happen with constants */
       return csound->InitError(csound, Str("string is too long"));
     }
     p->lock = lock =
       csoundGetChannelLock(csound, (char*) p->iname);
-    size = csoundGetChannelDatasize(csound, p->iname);
     csoundSpinLock(lock);
     strncpy((char*) p->fp, (char*) p->arg, size-1);
     ((char*)p->fp)[size-1] = '\0';
