@@ -70,12 +70,12 @@
 #include "csound_standard_types.h"
 
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
-static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
-static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
-static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
-static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
-static void rtclose_dummy(CSOUND *);
-static int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
+int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
+void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
+int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
+int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
+void rtclose_dummy(CSOUND *);
+int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
 static int  midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
@@ -2156,7 +2156,7 @@ static void dummy_rtaudio_timer(CSOUND *csound, double *p)
       csoundSleep((size_t) i);
 }
 
-static int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
+int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
 {
     double  *p;
     char    *s;
@@ -2185,7 +2185,7 @@ static int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
     return CSOUND_SUCCESS;
 }
 
-static void rtplay_dummy(CSOUND *csound, const MYFLT *outBuf, int nbytes)
+void rtplay_dummy(CSOUND *csound, const MYFLT *outBuf, int nbytes)
 {
     double  *p = (double*) csound->rtPlay_userdata;
     (void) outBuf;
@@ -2193,7 +2193,7 @@ static void rtplay_dummy(CSOUND *csound, const MYFLT *outBuf, int nbytes)
     dummy_rtaudio_timer(csound, p);
 }
 
-static int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
+int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
 {
     double  *p;
     char    *s;
@@ -2222,7 +2222,7 @@ static int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
     return CSOUND_SUCCESS;
 }
 
-static int rtrecord_dummy(CSOUND *csound, MYFLT *inBuf, int nbytes)
+int rtrecord_dummy(CSOUND *csound, MYFLT *inBuf, int nbytes)
 {
     double  *p = (double*) csound->rtRecord_userdata;
 
@@ -2236,13 +2236,13 @@ static int rtrecord_dummy(CSOUND *csound, MYFLT *inBuf, int nbytes)
     return nbytes;
 }
 
-static void rtclose_dummy(CSOUND *csound)
+void rtclose_dummy(CSOUND *csound)
 {
     csound->rtPlay_userdata = NULL;
     csound->rtRecord_userdata = NULL;
 }
 
-static int  audio_dev_list_dummy(CSOUND *csound,
+int  audio_dev_list_dummy(CSOUND *csound,
                                  CS_AUDIODEVICE *list, int isOutput)
 {
   IGN(csound); IGN(list); IGN(isOutput);
@@ -2719,10 +2719,22 @@ static void reset(CSOUND *csound)
 
 }
 
+
 PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
   char *s;
-  if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
+ if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
          strncpy(s, module, 20);
+  if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+     strcmp(s, "NULL") == 0) {
+      csound->Message(csound, Str("setting dummy interface\n"));
+      csound->SetPlayopenCallback(csound, playopen_dummy);
+      csound->SetRecopenCallback(csound, recopen_dummy);
+      csound->SetRtplayCallback(csound, rtplay_dummy);
+      csound->SetRtrecordCallback(csound, rtrecord_dummy);
+      csound->SetRtcloseCallback(csound, rtclose_dummy);
+      csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
+      return;
+  }
    if (csoundInitModules(csound) != 0)
              csound->LongJmp(csound, 1);
 }

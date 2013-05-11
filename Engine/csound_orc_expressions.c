@@ -69,8 +69,8 @@ char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
     case 'k': sprintf(s, "#k%d", csound->kcount++); break;
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
-    case 't': sprintf(s, "#k%d", csound->tcount++); break;
     case 'f': sprintf(s, "#f%d", csound->tcount++); break;
+    case 't': sprintf(s, "#k%d", csound->tcount++); break;
     case 'S': sprintf(s, "#S%d", csound->tcount++); break;
     case '[': sprintf(s, "#%c%d[]", outype[1], csound->tcount++);
               break; // piggyback on tcount
@@ -516,9 +516,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
         csound->Message(csound, "Found OP: %s\n", op);
       /* VL: some non-existing functions were appearing here
          looking for opcodes that did not exist */
-
-
-
       opentries = find_opcode2(csound, root->value->lexeme);
 
       if (opentries->count == 0) {

@@ -270,9 +270,6 @@ endif()
 if(APPLE) 
     set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes")
     get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
-    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
-
-
     set(PYTHON_MODULE_INSTALL_DIR "/Library/Python/2.7/site-packages")
     set(JAVA_MODULE_INSTALL_DIR "/Library/Java/Extensions")
 
@@ -289,8 +286,10 @@ if(BUILD_RELEASE)
     endif()
 else()
     add_definitions("-DBETA")
-    set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
-
+    if(APPLE)
+        set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
+        add_definitions(-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\")
+    endif()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
