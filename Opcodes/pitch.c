@@ -1813,9 +1813,9 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
 
 int trnseg(CSOUND *csound, TRANSEG *p)
 {
-    MYFLT  val, *rs   = p->rslt;
-    uint32_t offset   = p->h.insdshead->ksmps_offset;
-    uint32_t early    = p->h.insdshead->ksmps_no_end;
+    MYFLT  val, *rs = p->rslt;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {

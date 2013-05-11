@@ -131,6 +131,11 @@ a separate thread
 Functions for asynchronous audio file access have been added (see
 below)
 
+
+The k() fumction can take an a-rate argument in which case it is a
+call to downsamp.
+
+
 Analysis formats:
 Hetro/adsyn analysis files can be machine byte-order independent if
 created with -X.  Down side is a longer file and a little slower
