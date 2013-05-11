@@ -540,7 +540,7 @@ static const CSOUND cenviron_ = {
     0,              /*  randSeed2           */
     NULL,           /*  csRandState         */
     NULL,           /*  csRtClock           */
-    256,            /*  strVarMaxLen        */
+    16384,            /*  strVarMaxLen        */
        0,              /*  strsmax             */
     (char**) NULL,  /*  strsets             */
     NULL,           /*  spin                */
