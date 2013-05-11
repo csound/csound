@@ -1,4 +1,4 @@
-; C S O U N D   6   I N N O   S E T U P   S C R I P T
+  ; C S O U N D   6   I N N O   S E T U P   S C R I P T
 
 ; Copyright (C) 2013 by Michael Gogins.
 ; This software is licensed under the terms of the 
