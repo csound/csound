@@ -56,6 +56,7 @@ csoundApi.csoundSetOption(csound, '--sample-accurate')
 csoundApi.csoundSetOption(csound, '--output=dac7')
 csoundApi.csoundSetOption(csound, '--format=float')
 csoundApi.csoundSetOption(csound, '--nodisplays')
+csoundApi.csoundSetOption(csound, '--num-threads=4')
 print 'Compiling the Csound orchestra (note multi-line text in double brackets)...'
 result = csoundApi.csoundCompileOrc(csound, [[
 sr = 48000
