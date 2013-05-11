@@ -1057,3 +1057,9 @@ if(UNIX)
   add_custom_target(etags DEPENDS tags)
 endif()
 
+# build a CPack driven installer package
+#include (InstallRequiredSystemLibraries)
+#set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
+set (CPACK_PACKAGE_VERSION_MAJOR "6")
+set (CPACK_PACKAGE_VERSION_MINOR "0")
+include (CPack)
