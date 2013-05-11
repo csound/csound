@@ -351,7 +351,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
         nbytes += ((int)sizeof(MYFLT) * csound->ksmps);
         break;
       case CSOUND_STRING_CHANNEL:
-        nbytes += ((int)sizeof(MYFLT) * csound->strVarSamples);
+        nbytes += ((int)sizeof(MYFLT) * 1024/*csound->strVarSamples*/);
         break;
       case CSOUND_PVS_CHANNEL:
         nbytes += ((int)sizeof(PVSDATEXT));
