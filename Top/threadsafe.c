@@ -143,6 +143,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
       int    *lock = csoundGetChannelLock(csound, (char*) name);
       csoundSpinLock(lock);
       strncpy((char *) pstring, string, size-1);
+      pstring[size-1] = '\0';
       csoundSpinUnLock(lock);
     }
 }
