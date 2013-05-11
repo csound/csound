@@ -101,7 +101,10 @@ PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable)
 /** Frees hash table and hash table items using mfree. Does not call free on ->value pointer. */
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
-/** Frees hash table and hash table items using mfree. Does call free on ->value pointer. */
+/** Frees hash table and hash table keys using mfree. Does call mfree on ->value pointer. */
+PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
+
+/** Frees hash table hash table keys using mfree. Does call free on ->value pointer. */
 PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
 #endif
