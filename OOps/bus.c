@@ -926,6 +926,7 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     size = csoundGetChannelDatasize(csound, p->iname);
     csoundSpinLock(lock);
     strncpy((char*) p->fp, (char*) p->arg, size-1);
+    ((char*)p->fp)[size-1] = '\0';
     csoundSpinUnLock(lock);
 
     return OK;
