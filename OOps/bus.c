@@ -358,7 +358,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
         break;
       }
     }
-    pp = (void*) csound->Malloc(csound, (size_t) nbytes);
+    pp = (void*) malloc((size_t) nbytes);
    if (pp == NULL) return (CHNENTRY*) NULL;
     memset(pp, 0, (size_t) nbytes);
 #ifndef MACOSX
