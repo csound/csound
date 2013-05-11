@@ -1430,6 +1430,13 @@ extern "C" {
     PUBLIC  void csoundGetStringChannel(CSOUND *csound,
                                         const char *name, char *string);
 
+    /**
+     * returns the size of data stored in a channel; for string channels
+     * this might change if the channel space gets reallocate 
+     * (currently this is fixed, but it might change)
+     */
+    PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name);
+
     /** Sets the function which will be called whenever the invalue opcode
      * is used. */
     PUBLIC void

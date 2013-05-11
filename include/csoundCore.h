@@ -99,6 +99,8 @@ typedef struct {
 #define PHMASK     0x0FFFFFFL
 #endif
 
+#define MAX_STRING_CHANNEL_DATASIZE 16384
+
 #define PFRAC(x)   ((MYFLT)((x) & ftp->lomask) * ftp->lodiv)
 #define MAXPOS     0x7FFFFFFFL
 
@@ -1405,7 +1407,6 @@ typedef struct NAME__ {
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
     int           acount, kcount, icount, Bcount, bcount, tcount;
-    int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     pthread_t    file_io_thread;
     int          file_io_start;

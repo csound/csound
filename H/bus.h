@@ -60,6 +60,7 @@ typedef struct channelEntry_s {
         MYFLT   *data;
         int     lock;               /* Multi-thread protection */
         int     type;
+        int     datasize;  /* size of allocated chn data */  
         char    name[1];
 } CHNENTRY;
 
