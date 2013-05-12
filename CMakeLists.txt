@@ -288,7 +288,7 @@ else()
     add_definitions("-DBETA")
     if(APPLE)
         set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
-        add_definitions(-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\")
+        add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
     endif()
 endif()
 
