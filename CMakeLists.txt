@@ -1059,7 +1059,11 @@ endif()
 
 # build a CPack driven installer package
 #include (InstallRequiredSystemLibraries)
-#set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
+
+set (CPACK_PACKAGE_NAME "csound")
+set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
+set (CPACK_PACKAGE_VERSION "6.0.0")
 set (CPACK_PACKAGE_VERSION_MAJOR "6")
 set (CPACK_PACKAGE_VERSION_MINOR "0")
+set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
