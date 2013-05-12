@@ -117,6 +117,14 @@
 #  endif
 #endif
 
+#ifdef USE_DOUBLE
+#  define MYFLT_INT_TYPE int64_t
+#else
+#  define MYFLT_INT_TYPE int32_t
+#endif
+
+
+
 int chani_opcode_perf_k(CSOUND *csound, CHNVAL *p)
 {
     int     n = (int)MYFLT2LRND(*(p->a));
@@ -613,15 +621,14 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
 }
 
 /* receive control value from bus at performance time */
-
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
 #ifdef HAVE_ATOMIC_BUILTIN
     union {
     MYFLT d;
-    int64_t i;
+    MYFLT_INT_TYPE i;
     } x;
-    x.i = __sync_fetch_and_add((int64_t *) p->fp, 0);
+    x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *) p->fp, 0);
     *(p->arg) = x.d;
 #else
     *(p->arg) = *(p->fp);
@@ -673,9 +680,9 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
     {
     union {
     MYFLT d;
-    int64_t i;
+    MYFLT_INT_TYPE i;
     } x;
-    x.i = __sync_fetch_and_add((int64_t *) p->fp, 0);
+    x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *) p->fp, 0);
     *(p->arg) =  x.d;
     }
 #else
@@ -741,10 +748,10 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 #ifdef HAVE_ATOMIC_BUILTIN
     union {
     MYFLT d;
-    int64_t i;
+    MYFLT_INT_TYPE i;
     } x;
     x.d = *(p->arg);
-    __sync_lock_test_and_set((int64_t *)(p->fp),x.i);
+    __sync_lock_test_and_set((MYFLT_INT_TYPE *)(p->fp),x.i);
 #else
     csoundSpinLock(p->lock);
     *(p->fp) = *(p->arg);
@@ -822,13 +829,15 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
+
+
 #ifdef HAVE_ATOMIC_BUILTIN
     union {
     MYFLT d;
-    int64_t i;
+    MYFLT_INT_TYPE i;
     } x;
     x.d = *(p->arg);
-    __sync_lock_test_and_set((int64_t *)(p->fp),x.i);
+    __sync_lock_test_and_set((MYFLT_INT_TYPE *)(p->fp),x.i);
 #else
     {
       int *lock;       /* Need lock for the channel */
@@ -1282,7 +1291,7 @@ int invalset(CSOUND *csound, INVAL *p)
         p->channelType = &CS_VAR_TYPE_K;
         type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
     }
-    double *dummy;
+    MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
@@ -1362,7 +1371,7 @@ int outvalset(CSOUND *csound, OUTVAL *p)
         p->channelType = &CS_VAR_TYPE_K;
         type = CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL;
     }
-    double *dummy;
+    MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
