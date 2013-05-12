@@ -69,7 +69,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
     int err_;
     union {
       MYFLT d;
-      int64_t i;
+      MYFLT_INT_TYPE i;
     } x;
     x.d = FL(0.0);
     if ((err_ = csoundGetChannelPtr(csound, &pval, name,
@@ -91,7 +91,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
     MYFLT *pval;
     union {
       MYFLT d;
-      int64_t i;
+      MYFLT_INT_TYPE i;
     } x;
     x.d = val;
     if(csoundGetChannelPtr(csound, &pval, name,
