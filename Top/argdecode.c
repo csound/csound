@@ -1320,7 +1320,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
   if(csound->engineStatus & CS_STATE_COMP) return;
 
   oparms->outfilename =
-    csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+    csound->Malloc(csound, strlen(name) + 1); /* will be freed by memRESET */
   strcpy(oparms->outfilename, name);
   if (strcmp(oparms->outfilename, "stdout") == 0) {
         set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
