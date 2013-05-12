@@ -22,6 +22,12 @@
 #include "csoundCore.h"
 #include <stdlib.h>
 
+#ifdef USE_DOUBLE
+#  define MYFLT_INT_TYPE int64_t
+#else
+#  define MYFLT_INT_TYPE int32_t
+#endif
+
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
 void csoundInputMessage(CSOUND *csound, const char *message){
@@ -70,7 +76,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)
          == CSOUND_SUCCESS)) {
 #ifdef HAVE_ATOMIC_BUILTIN
-      x.i = __sync_fetch_and_add((int64_t *)pval, 0);
+      x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *)pval, 0);
 #else
       x.d = *pval;
 #endif
@@ -92,7 +98,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
                            CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL)
             == CSOUND_SUCCESS)
 #ifdef HAVE_ATOMIC_BUILTIN
-      __sync_lock_test_and_set((int64_t *)pval,x.i);
+      __sync_lock_test_and_set((MYFLT_INT_TYPE *)pval,x.i);
 #else
     {
       int    *lock =
