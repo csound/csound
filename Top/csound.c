@@ -1081,7 +1081,7 @@ PUBLIC int csoundInitialize(int *argc, char ***argv, int flags)
     } while (n);
     init_done = 2;
     csoundUnLock();
-    init_getstring();
+    /* init_getstring(); // moved to csoundCreate() */
     if (getTimeResolution() != 0) {
       csoundLock();
       init_done = -1;
@@ -1109,6 +1109,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     if (init_done != 1) {
       if (csoundInitialize(NULL, NULL, 0) < 0) return NULL;
     }
+    init_getstring();
     csound = (CSOUND*) malloc(sizeof(CSOUND));
     if (UNLIKELY(csound == NULL)) return NULL;
     memcpy(csound, &cenviron_, sizeof(CSOUND));
