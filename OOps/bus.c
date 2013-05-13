@@ -341,7 +341,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
 {
     CHNENTRY  dummy;
     void            *pp;
-    int             nbytes, nameOffs, dataOffs, lockOffs, dsize;
+    int             nbytes, nameOffs, dataOffs, lockOffs, dsize = 0;
 
     (void) dummy;
     nameOffs = (int)((char*) &(dummy.name[0]) - (char*) &dummy);
@@ -924,7 +924,7 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     int  *lock;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    size = csoundGetChannelDatasize(csound, p->iname);
+    size = csoundGetChannelDatasize(csound, (char *)p->iname);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
     if (UNLIKELY((int)strlen((char*) p->arg) >= size)) {
