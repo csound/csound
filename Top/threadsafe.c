@@ -145,7 +145,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
             == CSOUND_SUCCESS){
-      int    size = csoundGetChannelDatasize(csound, name);
+      // int    size = csoundGetChannelDatasize(csound, name);
       int    *lock = csoundGetChannelLock(csound, (char*) name);
       csoundSpinLock(lock);
       //if(strlen(string) < size)
