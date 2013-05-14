@@ -1463,18 +1463,6 @@ typedef struct NAME__ {
       int     repeat_inc /* = 1 */;
       S_MACRO   *repeat_mm;
     } sreadStatics;
-#define INSMAX  4096
-    struct extractStatics__ {
-      char    inslst[INSMAX];         /*   values set by readxfil         */
-      int     sectno, a0done;
-      int     onsect, offsect;        /*      "       "       "           */
-      MYFLT   onbeat, offbeat;        /*      "       "       "           */
-      MYFLT   ontime, offtime;        /* set by readxfil, mod by w-stmnt  */
-      SRTBLK  *frstout, *prvout;      /* links for building new outlist   */
-      SRTBLK  a0;
-      SRTBLK  f0;
-      SRTBLK  e;
-    } extractStatics;
     struct onefileStatics__ {
       NAMELST *toremove;
       char    orcname[L_tmpnam + 4];

@@ -23,28 +23,14 @@
 
 #include "csoundCore.h"
 #include "sysdep.h"                                 /*    EXTRACT.C   */
-
-//#define INSMAX  4096
+#include "extract.h"
 
 extern  int     realtset(CSOUND *, SRTBLK *);
 extern  MYFLT   realt(CSOUND *, MYFLT);
 
-static  void    include(CSOUND *, SRTBLK *);
+static  void    include(CSOUND *, EXTRACT_STATICS*, SRTBLK *);
 
-/* typedef struct { */
-/*     char    inslst[INSMAX];         /\*   values set by readxfil         *\/ */
-/*     int     sectno, a0done; */
-/*     int     onsect, offsect;        /\*      "       "       "           *\/ */
-/*     MYFLT   onbeat, offbeat;        /\*      "       "       "           *\/ */
-/*     MYFLT   ontime, offtime;        /\* set by readxfil, mod by w-stmnt  *\/ */
-/*     SRTBLK  *frstout, *prvout;      /\* links for building new outlist   *\/ */
-/*     SRTBLK  a0; */
-/*     SRTBLK  f0; */
-/*     SRTBLK  e; */
-/* } EXTRACT_GLOBALS; */
-
-//#define ST(x)   (((EXTRACT_GLOBALS*) ((CSOUND*) csound)->extractGlobals)->x)
-#define STA(x)   (csound->extractStatics.x)
+#define STA(x)   (extractStatics->x)
 
 static  const   SRTBLK a0 = {
     NULL, NULL, 0, 3, FL(0.0), FL(0.0), FL(0.0), FL(0.0), FL(0.0),
@@ -61,7 +47,7 @@ static  const   SRTBLK e = {
     0, SP, "e\n"
 };
 
-static void alloc_globals(CSOUND *csound)
+static void alloc_globals(CSOUND *csound, EXTRACT_STATICS* extractStatics)
 {
 /* if (csound->extractGlobals == NULL) { */
 /*   csound->extractGlobals = csound->Calloc(csound, sizeof(EXTRACT_GLOBALS)); */
@@ -73,12 +59,12 @@ static void alloc_globals(CSOUND *csound)
     /* } */
 }
 
-void readxfil(CSOUND *csound, FILE *xfp)    /* read the extract control file */
+void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics, FILE *xfp)    /* read the extract control file */
 {
     int  flag, all;
     char s[82];
 
-    alloc_globals(csound);
+    alloc_globals(csound, extractStatics);
     all = 1;
     flag = 'i';                                 /* default -i flag supplied */
     STA(onsect) = 1;     STA(onbeat) = FL(0.0);   /* other default vals   */
@@ -125,13 +111,13 @@ void readxfil(CSOUND *csound, FILE *xfp)    /* read the extract control file */
     STA(offtime) = STA(f0).newp2 = STA(f0).p2val = STA(offbeat);
 }
 
-void extract(CSOUND *csound) /* extract instr events within the time period */
+void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics) /* extract instr events within the time period */
 {
     SRTBLK  *bp;
     MYFLT   turnoff, anticip;
     int     warped;
 
-    alloc_globals(csound);
+    alloc_globals(csound, extractStatics);
 
     if ((bp = csound->frstbp) == NULL)      /* if null file         */
       return;
@@ -146,12 +132,12 @@ void extract(CSOUND *csound) /* extract instr events within the time period */
         switch (bp->text[0]) {
         case 'f':                           /* include f's at time 0 */
           bp->p2val = bp->newp2 = FL(1.0);  /* time 1 for now!!     */
-          include(csound, bp);
+          include(csound, extractStatics, bp);
           break;
         case 'w':
         case 's':
         case 'e':
-          include(csound, bp);              /*   incl w,s,e verbatim  */
+          include(csound, extractStatics, bp);              /*   incl w,s,e verbatim  */
           break;
         case 't':
         case 'i':
@@ -169,10 +155,10 @@ void extract(CSOUND *csound) /* extract instr events within the time period */
             STA(ontime) = STA(a0).newp3 = realt(csound, STA(onbeat));
           if (STA(sectno) == STA(offsect) && warped)
             STA(offtime) = STA(f0).newp2 = realt(csound, STA(offbeat));
-          include(csound, bp);
+          include(csound, extractStatics, bp);
           break;
         case 't':
-          include(csound, bp);
+          include(csound, extractStatics, bp);
           break;
         case 'f':
         casef: if (STA(sectno) == STA(onsect) && bp->newp2 < STA(ontime))
@@ -181,10 +167,10 @@ void extract(CSOUND *csound) /* extract instr events within the time period */
           break;
         if (STA(sectno) == STA(onsect) && !STA(a0done)) {
           if (STA(onbeat) > 0)
-            include(csound, &STA(a0));
+            include(csound, extractStatics, &STA(a0));
           STA(a0done)++;
         }
-        include(csound, bp);
+        include(csound, extractStatics, bp);
         break;
         case 'i':
           if (!STA(inslst)[bp->insno])   /* skip insnos not required */
@@ -213,18 +199,18 @@ void extract(CSOUND *csound) /* extract instr events within the time period */
           }
           if (STA(sectno) == STA(onsect) && !STA(a0done)) {
             if (STA(onbeat) > 0)
-              include(csound, &STA(a0));
+              include(csound, extractStatics, &STA(a0));
             STA(a0done)++;
           }
-          include(csound, bp);
+          include(csound, extractStatics, bp);
           break;
         case 's':
         case 'e':
           if (STA(sectno) == STA(offsect)) {
-            include(csound, &STA(f0));
-            include(csound, &STA(e));
+            include(csound, extractStatics, &STA(f0));
+            include(csound, extractStatics, &STA(e));
           }
-          else include(csound, bp);
+          else include(csound, extractStatics, bp);
           break;
         }
       } while ((bp = bp->nxtblk) != NULL);
@@ -236,7 +222,7 @@ void extract(CSOUND *csound) /* extract instr events within the time period */
 
 /* wire a srtblk into the outlist */
 
-static void include(CSOUND *csound, SRTBLK *bp)
+static void include(CSOUND *csound, EXTRACT_STATICS* extractStatics, SRTBLK *bp)
 {
     if (STA(frstout) == NULL)                /* first one is special */
       STA(frstout) = bp;

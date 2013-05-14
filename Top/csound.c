@@ -662,13 +662,6 @@ static const CSOUND cenviron_ = {
       NULL,         /*  repeat_mm */
     },
     {
-      { '\0'},      /*  inslst        */
-      0, 0, 0, 0,   /*  sectno, a0done, onsect, offsect */
-      FL(0.0), FL(0.0), FL(0.0), FL(0.0), /* onbeat, offbeat, ontime, offtime */
-      NULL, NULL,   /*  frstout, prvout   */
-      { 0 }, { 0 }, { 0 },/*  a0, f0, e   */
-    },
-    {
       NULL,
       {'\0'}, {'\0'}, {'\0'}, /* orcname, sconame, midname */
       0, 0           /* midiSet, csdlinecount */

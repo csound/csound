@@ -23,8 +23,8 @@
 
 #include "csoundCore.h"                            /*  SCXTRACT.C  */
 #include "corfile.h"
+#include "extract.h"
 
-extern void readxfil(CSOUND *, FILE *), extract(CSOUND *);
 extern void sfree(CSOUND *csound);
 extern int  sread(CSOUND *csound);
 //extern void sread_init(CSOUND *csound);
@@ -35,24 +35,28 @@ extern void swritestr(CSOUND *csound, CORFIL *sco, int first);
 /*   according to the controlling xfile   */
 
 extern void sread_initstr(CSOUND *, CORFIL *sco);
+
 int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
 {
     int     n;
 
+    EXTRACT_STATICS* extractStatics = calloc(1, sizeof(EXTRACT_STATICS));
+    
     csound->scoreout = NULL;
     csound->scorestr = scin;
     csound->scstr = corfile_create_w();
     csound->sectcnt = 0;
-    readxfil(csound, xfile);
+    readxfil(csound, extractStatics, xfile);
     sread_initstr(csound, scin);
 
     while ((n = sread(csound)) > 0) {
       /*  allout();   */
       /*  textout();  */
-      extract(csound);
+      extract(csound, extractStatics);
       swritestr(csound, csound->scstr, 1);
     }
     corfile_flush(csound->scstr);
     sfree(csound);              /* return all memory used */
+    free(extractStatics);
     return 0;
 }
