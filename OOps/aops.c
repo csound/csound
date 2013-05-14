@@ -1501,6 +1501,37 @@ int in32(CSOUND *csound, INALL *p)
     return inn(csound, p, 32u);
 }
 
+int inch_opcode1(CSOUND *csound, INCH1 *p)
+{                               
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS, ch;
+    MYFLT *sp, *ain;
+  
+      ch = ((int)*p->ch + FL(0.5));
+      if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
+        csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
+        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        //        return OK;
+      }
+      else {
+        sp = CS_SPIN + (ch - 1);
+        ain = p->ar;
+        if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
+          nsmps -= early;
+          memset(&ain[nsmps], '\0', early*sizeof(MYFLT));
+        }
+        for (n = offset; n < nsmps; n++) {
+          ain[n] = *sp;
+          sp += csound->inchnls;
+        }
+      }
+    
+    return OK;
+}
+
+
 int inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
     uint32_t nc, nChannels = p->INCOUNT;
