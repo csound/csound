@@ -814,7 +814,7 @@ OENTRY gab_localops[] = {
   { "tab_i",S(FASTAB),       TR, 1,   "i",    "iio", (SUBR) fastabi, NULL, NULL },
   { "tab",S(FASTAB),         TR, 5,   "a",    "xio",
                             (SUBR) fastab_set, (SUBR)NULL, (SUBR) fastab },
-  { "tab.k",S(FASTAB),         TR, 3,   "s",    "kio",
+  { "tab.k",S(FASTAB),         TR, 3,   "k",    "kio",
                             (SUBR) fastab_set, (SUBR)fastabk, NULL },
   { "tabw_i",S(FASTAB),      TW, 1,   "",    "iiio", (SUBR) fastabiw, NULL, NULL },
   { "tabw",S(FASTAB),        TW, 7,   "",    "xxio",
