@@ -440,3 +440,4 @@ int table_wa_set(CSOUND *csound, TABLWA *p);
 int table_wa(CSOUND *csound, TABLWA *p);
 int tablkt_setup(CSOUND *csound, TABL *p);
 int diskin_init(CSOUND *csound, DISKIN2 *p);
+int inch_opcode1(CSOUND *csound, INCH1 *p);
