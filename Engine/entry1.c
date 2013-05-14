@@ -575,7 +575,7 @@ OENTRY opcodlst_1[] = {
   { "unirand.i",S(PRAND),0, 1,     "i",     "k",    ikuniform, NULL,  NULL  },
   { "unirand.k",S(PRAND),0, 2,     "k",     "k",    NULL,    ikuniform, NULL},
   { "unirand.a",S(PRAND),0, 4,     "a",     "k",    NULL,    NULL, auniform },
-  { "diskin2",S(DISKIN2),0, 5,     "a",
+  { "diskin",S(DISKIN2),0, 5,    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "Tkooooooo",
     (SUBR) diskin2_init, (SUBR) NULL,
     (SUBR) diskin2_perf                         },
@@ -583,7 +583,6 @@ OENTRY opcodlst_1[] = {
     "Tkooooooo",
     (SUBR) diskin2_init, (SUBR) NULL,
     (SUBR) diskin2_perf                         },
-  
   { "noteon", S(OUT_ON),0,  1,      "",     "iii",  iout_on, NULL,   NULL    },
   { "noteoff", S(OUT_ON),0, 1,      "",     "iii",  iout_off, NULL,    NULL  },
   { "noteondur",S(OUT_ON_DUR),0,3,  "", "iiii", iout_on_dur_set,iout_on_dur,NULL},
