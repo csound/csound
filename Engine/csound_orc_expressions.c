@@ -447,8 +447,10 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     if (root->left != NULL) {
       arg1 = argtyp2( root->left->value->lexeme);
     }
+    if (root->right != NULL) {
     arg2 = argtyp2( root->right->value->lexeme);
     //printf("arg1=%.2x(%c); arg2=%.2x(%c)\n", arg1, arg1, arg2, arg2);
+    }
     op = mcalloc(csound, 80);
 
     switch(root->type) {

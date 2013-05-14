@@ -399,7 +399,6 @@ statement : ident '=' expr NEWLINE
           }
           | ans opcode exprlist NEWLINE
                 {
-
                   $2->left = $1;
                   $2->right = $3;
 
@@ -410,11 +409,11 @@ statement : ident '=' expr NEWLINE
                   csp_orc_sa_interlocks(csound, $2->value);
                   query_deprecated_opcode(csound, $2->value);
                 }
-          | opcode0 exprlist NEWLINE
+           | opcode0  exprlist NEWLINE
                 {
                   ((TREE *)$1)->left = NULL;
                   ((TREE *)$1)->right = (TREE *)$2;
-
+                 
                   $$ = $1;
                   csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
@@ -422,6 +421,19 @@ statement : ident '=' expr NEWLINE
                   csp_orc_sa_interlocks(csound, $1->value);
                   query_deprecated_opcode(csound, $1->value);
                 }
+            | opcode0  '(' exprlist ')' NEWLINE   /* VL: added this to allow general func ops with no answers */
+                {
+                  ((TREE *)$1)->left = NULL;
+                  ((TREE *)$1)->right = (TREE *)$3;
+                 
+                  $$ = $1;
+                  csp_orc_sa_global_read_add_list(csound,
+                                  csp_orc_sa_globals_find(csound,
+                                                          $1->right));
+                  csp_orc_sa_interlocks(csound, $1->value);
+                  query_deprecated_opcode(csound, $1->value);
+                }
+
           | LABEL_TOKEN
                 {
                     $$ = make_leaf(csound,LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);
@@ -593,6 +605,7 @@ exprlist  : exprlist ',' expr
                 {
                     /* $$ = make_node(',', $1, $3); */
                     $$ = appendToTree(csound, $1, $3);
+		    
                 }
           | exprlist ',' label
                 {
@@ -601,10 +614,10 @@ exprlist  : exprlist ',' expr
                                       make_leaf(csound, LINE,LOCN,
                                                 LABEL_TOKEN, (ORCTOKEN *)$3));
                 }
-          | exprlist ',' error
-          | expr { $$ = $1;     }
+          | exprlist ',' error 
+          | expr { $$ = $1; }
           | bexpr { $$ = $1; }
-          | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
+          | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);  }
           | T_OPCODE   { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | T_FUNCTION { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | /* null */          { $$ = NULL; }
@@ -669,7 +682,7 @@ iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
           | iexp '^' error
           | iexp '%' iexp    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
           | iexp '%' error
-          | ifac                { $$ = $1; }
+          | ifac                { $$ = $1;  }
           ;
 
 ifac      : ident               { $$ = $1; }
@@ -690,15 +703,16 @@ ifac      : ident               { $$ = $1; }
           | '~' iexp %prec S_UMINUS
             { $$ = make_node(csound, LINE,LOCN, '~', NULL, $2);}
           | '~' error         { $$ = NULL; }
-          | '(' expr ')'      { $$ = $2; }
-          | '(' expr error    { $$ = NULL; }
+          | '(' expr ')'      { $$ = $2;  }
+          | '(' expr error    { $$ = NULL;  }
           | '(' error         { $$ = NULL; }
           | ident '(' exprlist ')'
             {
+                
                 $1->left = NULL;
                 $1->right = $3;
 		$1->type = T_FUNCTION;
-
+                
                 $$ = $1;
             }
           | opcode '(' exprlist ')'
@@ -706,6 +720,7 @@ ifac      : ident               { $$ = $1; }
                 $1->left = NULL;
                 $1->right = $3;
 		$1->type = T_FUNCTION;
+                
 
                 $$ = $1;
             }
@@ -738,7 +753,6 @@ arrayident: arrayident '[' ']' {
 	    $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
           };
 
-
 ident : T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
 
 constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
@@ -763,10 +777,12 @@ constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
 
 opcode0   : T_OPCODE0
             {
-                if (UNLIKELY(PARSER_DEBUG))
+	      if (UNLIKELY(PARSER_DEBUG))
                   csound->Message(csound, "opcode0 $1=%p (%s)\n",
                                   $1,((ORCTOKEN *)$1)->lexeme );
                 $$ = make_leaf(csound,LINE,LOCN, T_OPCODE0, (ORCTOKEN *)$1);
+                
+
             }
           ;
 
