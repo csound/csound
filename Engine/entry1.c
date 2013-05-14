@@ -1,118 +1,118 @@
 /*
-    entry1.c:
+  entry1.c:
 
-    Copyright (C) 1991 Barry Vercoe, John ffitch
+  Copyright (C) 1991 Barry Vercoe, John ffitch
 
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 
 #include "entry1.h"             /*                      ENTRY1.C        */
 #include "interlocks.h"
 
 /* thread vals, where isub=1, ksub=2, asub=4:
-                0 =     1  OR   2  (B out only)
-                1 =     1
-                2 =             2
-                3 =     1  AND  2
-                4 =                     4
-                5 =     1  AND          4
-                7 =     1  AND (2  OR   4)                              */
+   0 =     1  OR   2  (B out only)
+   1 =     1
+   2 =             2
+   3 =     1  AND  2
+   4 =                     4
+   5 =     1  AND          4
+   7 =     1  AND (2  OR   4)                              */
 
 /* inarg types include the following:
 
-                i       irate scalar
-                k       krate scalar
-                a       arate vector
-                f       frequency variable
-                w       spectral variable
-                x       krate scalar or arate vector
-                S       String
-                T       String or i-rate
-                U       String or i/k-rate
-                B       Boolean
-                l       Label
-                .       required arg of any-type
-     and codes
-                ?       optional arg of any-type
-                m       begins an indef list of iargs (any count)
-                M       begins an indef list of args (any count/rate i,k,a)
-                N       begins an indef list of args (any count/rate i,k,a,S)
-                n       begins an indef list of iargs (nargs odd)
-                o       optional i-rate, defaulting to  0
-                p              "             "          1
-                q              "             "         10
-                v              "             "          .5
-                j              "             "         -1
-                h              "             "        127
-                O       optional k-rate, defaulting to  0
-                J              "             "         -1
-                V              "             "          .5
-                P              "             "          1
-                y       begins indef list of aargs (any count)
-                z       begins indef list of kargs (any count)
-                Z       begins alternating kakaka...list (any count)    */
+   i       irate scalar
+   k       krate scalar
+   a       arate vector
+   f       frequency variable
+   w       spectral variable
+   x       krate scalar or arate vector
+   S       String
+   T       String or i-rate
+   U       String or i/k-rate
+   B       Boolean
+   l       Label
+   .       required arg of any-type
+   and codes
+   ?       optional arg of any-type
+   m       begins an indef list of iargs (any count)
+   M       begins an indef list of args (any count/rate i,k,a)
+   N       begins an indef list of args (any count/rate i,k,a,S)
+   n       begins an indef list of iargs (nargs odd)
+   o       optional i-rate, defaulting to  0
+   p              "             "          1
+   q              "             "         10
+   v              "             "          .5
+   j              "             "         -1
+   h              "             "        127
+   O       optional k-rate, defaulting to  0
+   J              "             "         -1
+   V              "             "          .5
+   P              "             "          1
+   y       begins indef list of aargs (any count)
+   z       begins indef list of kargs (any count)
+   Z       begins alternating kakaka...list (any count)    */
 
 /* outarg types include:
-                *       multiple out args of any-type
-                m       multiple out aargs
-                z       multiple out kargs
-                I       multiple out irate (not implemented yet)
-                s       arate or krate scalar
-                X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
-                N       multiple args (a, k, i, or S-rate)
-                F       multiple args (f-rate)
-   (these types must agree with rdorch.c)                               */
+ *       multiple out args of any-type
+ m       multiple out aargs
+ z       multiple out kargs
+ I       multiple out irate (not implemented yet)
+ s       deprecated (use a or k as required)
+ X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
+ N       multiple args (a, k, i, or S-rate)
+ F       multiple args (f-rate)
+ (these types must agree with rdorch.c)                               */
 
 /* If dsblksize is 0xffff then translate on output arg
-                   0xfffe then translate two (oscil)
-                   0xfffd then translate on first input arg (peak)
-                   0xfffc then translate two (divz)
-                   0xfffb then translate on first input arg (loop_l)    */
+   0xfffe then translate two (oscil)
+   0xfffd then translate on first input arg (peak)
+   0xfffc then translate two (divz)
+   0xfffb then translate on first input arg (loop_l)    */
 
 OENTRY opcodlst_1[] = {
-/* opcode   dspace  flags  thread  outarg  inargs  isub    ksub    asub    */
+  /* opcode   dspace  flags  thread  outarg  inargs  isub    ksub    asub    */
   { "",     0,      0,    0,      "",     "",     NULL, NULL, NULL, NULL, 0 },
   { "instr",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
   { "endin",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
-/* IV - Sep 8 2002 */
+  /* IV - Sep 8 2002 */
   { "opcode", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
   { "endop",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
   { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
   { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL, 0 },
 
-    /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
-    /* and setksmps */
-    { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
-    /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-    { "xin",  S(XIN_LOW),0,   1,  "****************", "",  xinset,  NULL, NULL },
-    { "##xin64",   S(XIN_HIGH),0,  1,
-        "****************************************************************", "",
-        xinset,  NULL, NULL },
-    { "##xin256",  S(XIN_MAX),0,   1,
-        "****************************************************************"
-        "****************************************************************"
-        "****************************************************************"
-        "****************************************************************", "",
-        xinset,  NULL, NULL },
-    { "xout", S(XOUT_LOW),0,  1,  "",                 "*", xoutset, NULL, NULL },
-    { "##xout64", S(XOUT_HIGH),0, 1,  "",                 "*", xoutset, NULL },
-    { "##xout256", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL },
-    { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
+  /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
+  /* and setksmps */
+  { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
+  /* IV - Sep 10 2002: removed perf time routines of xin and xout */
+  { "xin",  S(XIN_LOW),0,   1,  "****************", "",  xinset,  NULL, NULL },
+  { "##xin64",   S(XIN_HIGH),0,  1,
+    "****************************************************************", "",
+    xinset,  NULL, NULL },
+  { "##xin256",  S(XIN_MAX),0,   1,
+    "****************************************************************"
+    "****************************************************************"
+    "****************************************************************"
+    "****************************************************************", "",
+    xinset,  NULL, NULL },
+  { "xout", S(XOUT_LOW),0,  1,  "",                 "*", xoutset, NULL, NULL },
+  { "##xout64", S(XOUT_HIGH),0, 1,  "",                 "*", xoutset, NULL },
+  { "##xout256", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL },
+  { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
 
   { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL, 0 },
   { "massign",S(MASSIGN), 0,1,      "",     "iTp",massign, NULL, NULL, NULL, 0 },
@@ -123,43 +123,43 @@ OENTRY opcodlst_1[] = {
   { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL, 0 },
   { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL, 0 },
   { "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
-{ "init",   0xffff      /* base names for later prefixes,suffixes */    },
-{ "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
-{ "bexprnd", 0xffff                                                     },
-{ "cauchy",  0xffff                                                     },
-{ "cauchyi", 0xffff                                                     },
-{ "chanctrl",0xffff                                                     },
-{ "cpsmidib",0xffff                                                     },
-{ "exprand", 0xffff                                                     },
-{ "exprandi",0xffff                                                     },
-{ "gauss" ,  0xffff                                                     },
-{ "gaussi" , 0xffff                                                     },
-{ "limit",   0xffff                                                     },
-{ "linrand", 0xffff                                                     },
-{ "midictrl",0xffff                                                     },
-{ "polyaft", 0xffff                                                     },
-{ "ntrpol",  0xffff                                                     },
-{ "octmidib",0xffff                                                     },
-{ "pcauchy", 0xffff                                                     },
-{ "pchbend", 0xffff                                                     },
-{ "pchmidib",0xffff                                                     },
-{ "poisson", 0xffff                                                     },
-{ "pow",     0xffff,                                                    },
-{ "tableng", 0xffff,  TR                                                },
-{ "taninv2", 0xffff                                                     },
-{ "timek",   0xffff,                                                    },
-{ "times",   0xffff,                                                    },
-{ "trirand", 0xffff                                                     },
-{ "unirand", 0xffff,                                                    },
-{ "weibull", 0xffff                                                     },
-{ "oscil",   0xfffe, TR                                                 },
-{ "oscil3",  0xfffe, TR                                                 },
-{ "oscili",  0xfffe, TR                                                 },
-{ "peak",    0xfffd                                                     },
-{ "rtclock", 0xffff                                                     },
-{ "ptablew",  0xfffe, TW                                                },
-{ "tablew",  0xfffe, TW                                                 },
-{ "tablewkt",0xfffe, TW                                                 },
+  { "init",   0xffff      /* base names for later prefixes,suffixes */    },
+  { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
+  { "bexprnd", 0xffff                                                     },
+  { "cauchy",  0xffff                                                     },
+  { "cauchyi", 0xffff                                                     },
+  { "chanctrl",0xffff                                                     },
+  { "cpsmidib",0xffff                                                     },
+  { "exprand", 0xffff                                                     },
+  { "exprandi",0xffff                                                     },
+  { "gauss" ,  0xffff                                                     },
+  { "gaussi" , 0xffff                                                     },
+  { "limit",   0xffff                                                     },
+  { "linrand", 0xffff                                                     },
+  { "midictrl",0xffff                                                     },
+  { "polyaft", 0xffff                                                     },
+  { "ntrpol",  0xffff                                                     },
+  { "octmidib",0xffff                                                     },
+  { "pcauchy", 0xffff                                                     },
+  { "pchbend", 0xffff                                                     },
+  { "pchmidib",0xffff                                                     },
+  { "poisson", 0xffff                                                     },
+  { "pow",     0xffff,                                                    },
+  { "tableng", 0xffff,  TR                                                },
+  { "taninv2", 0xffff                                                     },
+  { "timek",   0xffff,                                                    },
+  { "times",   0xffff,                                                    },
+  { "trirand", 0xffff                                                     },
+  { "unirand", 0xffff,                                                    },
+  { "weibull", 0xffff                                                     },
+  { "oscil",   0xfffe, TR                                                 },
+  { "oscil3",  0xfffe, TR                                                 },
+  { "oscili",  0xfffe, TR                                                 },
+  { "peak",    0xfffd                                                     },
+  { "rtclock", 0xffff                                                     },
+  { "ptablew",  0xfffe, TW                                                },
+  { "tablew",  0xfffe, TW                                                 },
+  { "tablewkt",0xfffe, TW                                                 },
   { "ihold",  S(LINK),0,    1,      "",     "",     ihold                   },
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff         },
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign                 },
@@ -167,6 +167,7 @@ OENTRY opcodlst_1[] = {
   { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z", NULL, minit },
   { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   aassign },
   { "=.up",   S(UPSAMP),0,  4,      "a",    "k",    NULL,   NULL, (SUBR)upsamp },
+  { "=.down",   S(DOWNSAMP),0,  3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   //  { "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },
   { "init.i", S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0, 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
@@ -215,7 +216,7 @@ OENTRY opcodlst_1[] = {
   { "##mul.aa",  S(AOP),0,    4,      "a",    "aa",   NULL,   NULL,   mulaa   },
   { "##div.aa",  S(AOP),0,    4,      "a",    "aa",   NULL,   NULL,   divaa   },
   { "##mod.aa",  S(AOP),0,    4,      "a",    "aa",   NULL,   NULL,   modaa   },
-{ "divz",   0xfffc                                                      },
+  { "divz",   0xfffc                                                      },
   { "divz.ii", S(DIVZ),0,   1,      "i",    "iii",  divzkk, NULL,   NULL    },
   { "divz.kk", S(DIVZ),0,   2,      "k",    "kkk",  NULL,   divzkk, NULL    },
   { "divz.ak", S(DIVZ),0,   4,      "a",    "akk",  NULL,   NULL,   divzak  },
@@ -353,51 +354,63 @@ OENTRY opcodlst_1[] = {
   { "polyaft.k",S(MIDICTL),0,3,     "k",    "ioh",  maftset, midiaft        },
   { "chanctrl.i",S(CHANCTL),0,1,    "i",    "iioh", ichanctl                },
   { "chanctrl.k",S(CHANCTL),0,3,    "k",    "iioh", chctlset,chanctl        },
-  { "line",   S(LINE),0,    7,      "s",    "iii",  linset, kline,  aline   },
-  { "expon",  S(EXPON),0,   7,      "s",    "iii",  expset, kexpon, expon   },
-  { "cosseg", S(COSSEG),0,  7,      "s",    "iin",  csgset, kosseg, cosseg  },
-  { "cossegb", S(COSSEG),0, 7,      "s",    "iin",  csgset_bkpt, kosseg, cosseg  },
-  { "cossegr", S(COSSEG),0,  7,     "s",    "iin",  csgrset, kcssegr, cossegr  },
-  { "linseg", S(LINSEG),0,  7,      "s",    "iin",  lsgset, klnseg, linseg  },
-  { "linsegb", S(LINSEG),0,  7,     "s",    "iin", lsgset_bkpt, klnseg, linseg  },
-  { "linsegr",S(LINSEG),0,  7,      "s",    "iin",  lsgrset,klnsegr,linsegr },
-  { "expseg", S(EXXPSEG),0,  7,     "s",    "iin",  xsgset, kxpseg, expseg  },
-  { "expsegb", S(EXXPSEG),0,  7,     "s",    "iin",  xsgset_bkpt, kxpseg, expseg },
-  { "expsega",S(EXPSEG2),0,  7,     "a",    "iin",  xsgset2, NULL, expseg2  },
-  { "expsegba",S(EXPSEG2),0,  7,     "a",    "iin",  xsgset2b, NULL, expseg2 },
-  { "expsegr",S(EXPSEG),0,  7,      "s",    "iin",  xsgrset,kxpsegr,expsegr },
+  { "line",   S(LINE),0,    3,      "k",    "iii",  linset, kline,  NULL  },
+  { "line.a",   S(LINE),0,    5,    "a",    "iii",  linset, NULL,  aline   },
+  { "expon",  S(EXPON),0,   3,      "k",    "iii",  expset, kexpon, NULL   },
+  { "expon.a",  S(EXPON),0,   5,      "a",    "iii",  expset, NULL, expon   },
+  { "cosseg", S(COSSEG),0,  3,      "k",    "iin",  csgset, kosseg, NULL  },
+  { "cosseg.a", S(COSSEG),0,  5,      "q",    "iin",  csgset, NULL, cosseg  },
+  { "cossegb", S(COSSEG),0, 3,      "k",    "iin",  csgset_bkpt, kosseg, NULL  },
+  { "cossegb.a", S(COSSEG),0, 5,      "a",    "iin",  csgset_bkpt, NULL, cosseg  },
+  { "cossegr", S(COSSEG),0,  3,     "k",    "iin",  csgrset, kcssegr, NULL  },
+  { "cossegr.a", S(COSSEG),0,  5,     "a",    "iin",  csgrset, NULL, cossegr  },
+  { "linseg", S(LINSEG),0,  3,      "k",    "iin",  lsgset, klnseg, NULL },
+  { "linseg.a", S(LINSEG),0,  5,      "a",    "iin",  lsgset, NULL, linseg  },
+  { "linsegb", S(LINSEG),0,  3,     "k",    "iin", lsgset_bkpt, klnseg, NULL  },
+  { "linsegb.a", S(LINSEG),0,  5,     "a",    "iin", lsgset_bkpt, NULL, linseg  },
+  { "linsegr",S(LINSEG),0,  3,      "k",    "iin",  lsgrset,klnsegr,NULL },
+  { "linsegr.a",S(LINSEG),0,  5,      "s",    "iin",  lsgrset,NULL,linsegr },
+  { "expseg", S(EXXPSEG),0,  3,     "k",    "iin",  xsgset, kxpseg, NULL  },
+  { "expseg.a", S(EXXPSEG),0,  5,     "a",    "iin",  xsgset, NULL, expseg  },
+  { "expsegb", S(EXXPSEG),0,  3,     "k",    "iin",  xsgset_bkpt, kxpseg, NULL },
+  { "expsegb.a", S(EXXPSEG),0, 5,     "a",    "iin",  xsgset_bkpt, NULL, expseg },
+  { "expsega",S(EXPSEG2),0,  5,     "a",    "iin",  xsgset2, NULL, expseg2  },
+  { "expsegba",S(EXPSEG2),0,  5,     "a",    "iin",  xsgset2b, NULL, expseg2 },
+  { "expsegr",S(EXPSEG),0,  3,      "k",    "iin",  xsgrset,kxpsegr,NULL },
+  { "expsegr.a",S(EXPSEG),0,  5,      "a",    "iin",  xsgrset,NULL,expsegr },
   { "linen",  S(LINEN),0,   3,      "k",    "kiii", lnnset, klinen, NULL   },
   { "linen.a",  S(LINEN),0,   5,      "a",    "aiii", lnnset, NULL, linen   },
-  { "linen.x",  S(LINEN),0,   7,      "s",    "xiii", lnnset, klinen, linen   },
+  { "linen.x",  S(LINEN),0,   5,      "a",    "kiii", lnnset, NULL, linen   },
   { "linenr", S(LINENR),0,  3,      "k",    "kiii", lnrset, klinenr,NULL },
   { "linenr.a", S(LINENR),0,  5,      "a",    "aiii", lnrset, NULL,linenr  },
-  { "linenr.x", S(LINENR),0,  7,      "s",    "xiii", lnrset, klinenr,linenr  },
+  { "linenr.x", S(LINENR),0,  5,      "a",    "kiii", lnrset, NULL,linenr  },
   { "envlpx", S(ENVLPX), TR, 3,     "k","kiiiiiio", evxset, knvlpx, NULL },
   { "envlpxr", S(ENVLPR),TR, 3,     "k","aiiiiioo", evrset, knvlpxr, NULL },
   { "envlpx.a", S(ENVLPX), TR, 5,     "a","kiiiiiio", evxset, NULL,envlpx  },
   { "envlpxr.a", S(ENVLPR),TR, 5,     "a","aiiiiioo", evrset, NULL,envlpxr },
-  { "envlpx.x", S(ENVLPX), TR, 7,     "s","xiiiiiio", evxset, knvlpx,envlpx  },
-  { "envlpxr.x", S(ENVLPR),TR, 7,     "s","xiiiiioo", evrset, knvlpxr,envlpxr },
-  { "phasor", S(PHSOR),0,   7,      "s",    "xo",   phsset, kphsor, phsor   },
-  { "ephasor", S(EPHSOR), 0,  5,    "ss",    "xko",  ephsset, NULL, ephsor  },
+  { "envlpx.x", S(ENVLPX), TR, 5,     "a","kiiiiiio", evxset, NULL,envlpx  },
+  { "envlpxr.x", S(ENVLPR),TR, 5,     "a","kiiiiioo", evrset, NULL,envlpxr },
+  { "phasor", S(PHSOR),0,   5,      "a",    "xo",   phsset, NULL, phsor   },
+  { "phasor.k", S(PHSOR),0,   3,      "k",    "ko",   phsset, kphsor, NULL   },
+  { "ephasor", S(EPHSOR), 0,  5,    "aa",    "xko",  ephsset, NULL, ephsor  },
   { "table",  0xffff, TR                                                   },
   { "tablei", 0xffff, TR                                                   },
   { "table3", 0xffff, TR                                                   },
   { "table.i",  S(TABL),0, 1,      "i",    "iiooo",(SUBR)tabler_init       },
   { "table.k",  S(TABL),0, 3,      "k",    "xiooo",(SUBR)tabl_setup,
-                                               (SUBR)tabler_kontrol        },
+    (SUBR)tabler_kontrol        },
   { "table.a",  S(TABL),0, 5,      "a",    "xiooo",(SUBR)tabl_setup, NULL,
-                                               (SUBR)tabler_audio          },
+    (SUBR)tabler_audio          },
   { "tablei.i", S(TABL),0, 1,      "i",    "iiooo",(SUBR)tableir_init      },
   { "tablei.k", S(TABL),0, 3,      "k",    "xiooo",(SUBR)tabl_setup,
-                                               (SUBR)tableir_kontrol       },
+    (SUBR)tableir_kontrol       },
   { "tablei.a", S(TABL),0, 5,      "a",    "xiooo",(SUBR)tabl_setup, NULL,
-                                               (SUBR)tableir_audio         },
+    (SUBR)tableir_audio         },
   { "table3.i", S(TABL),0, 1,      "i",    "iiooo",(SUBR)table3r_init      },
   { "table3.k", S(TABL),0, 3,      "k",    "xiooo",(SUBR)tabl_setup,
-                                               (SUBR)table3r_kontrol       },
+    (SUBR)table3r_kontrol       },
   { "table3.a", S(TABL),0, 5,      "a",    "xiooo",(SUBR)tabl_setup, NULL,
-                                               (SUBR)table3r_audio         },
+    (SUBR)table3r_audio         },
   { "ptable",  0xffff, TR                                                  },
   { "ptablei", 0xffff, TR                                                  },
   { "ptable3", 0xffff, TR                                                  },
@@ -413,26 +426,29 @@ OENTRY opcodlst_1[] = {
   { "oscil1", S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1          },
   { "oscil1i",S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1i         },
   { "osciln", S(OSCILN), TR, 5,     "a",    "kiii", oscnset,NULL,   osciln },
+  { "oscil.a",S(OSC),0,    5,       "a",    "kkjo", oscset, NULL, osckk  },
   { "oscil.kk",S(OSC),0,    7,      "s",    "kkjo", oscset, koscil, osckk  },
   { "oscil.ka",S(OSC),0,    5,      "a",    "kajo", oscset, NULL,   oscka  },
   { "oscil.ak",S(OSC),0,    5,      "a",    "akjo", oscset, NULL,   oscak  },
   { "oscil.aa",S(OSC),0,    5,      "a",    "aajo", oscset, NULL,   oscaa  },
-/* Change these to
-{ "oscil.kk", S(POSC),0, 7, "s", "kkjo", posc_set, kposc, posckk },
-{ "oscil.ka", S(POSC),0, 5, "a", "kajo", posc_set, NULL,  poscka },
-{ "oscil.ak", S(POSC),0, 5, "a", "akjo", posc_set, NULL,  poscak },
-{ "oscil.aa", S(POSC),0, 5, "a", "aajo", posc_set, NULL,  poscaa },
-{ "oscil3.kk",  S(POSC),0,  7, "s", "kkjo", posc_set, kposc3, posc3 },
-*/
-  { "oscili.kk",S(OSC),0,   7,      "s",    "kkjo", oscset, koscli, osckki  },
+  /* Change these to
+     { "oscil.kk", S(POSC),0, 7, "s", "kkjo", posc_set, kposc, posckk },
+     { "oscil.ka", S(POSC),0, 5, "a", "kajo", posc_set, NULL,  poscka },
+     { "oscil.ak", S(POSC),0, 5, "a", "akjo", posc_set, NULL,  poscak },
+     { "oscil.aa", S(POSC),0, 5, "a", "aajo", posc_set, NULL,  poscaa },
+     { "oscil3.kk",  S(POSC),0,  7, "s", "kkjo", posc_set, kposc3, posc3 },
+  */
+  { "oscili.a",S(OSC),0,   5,      "a",    "kkjo", oscset, NULL, osckki  },
+  { "oscili.kk",S(OSC),0,   3,      "k",    "kkjo", oscset, koscli, NULL  },
   { "oscili.ka",S(OSC),0,   5,      "a",    "kajo", oscset, NULL,   osckai  },
   { "oscili.ak",S(OSC),0,   5,      "a",    "akjo", oscset, NULL,   oscaki  },
   { "oscili.aa",S(OSC),0,   5,      "a",    "aajo", oscset, NULL,   oscaai  },
-  { "oscil3.kk",S(OSC),0,   7,      "s",    "kkjo", oscset, koscl3, osckk3  },
+  { "oscil3.a",S(OSC),0,   5,      "a",      "kkjo", oscset, NULL, osckk3  },
+  { "oscil3.kk",S(OSC),0,   3,      "k",    "kkjo", oscset, koscl3, NULL  },
   { "oscil3.ka",S(OSC),0,   5,      "a",    "kajo", oscset, NULL,   oscka3  },
   { "oscil3.ak",S(OSC),0,   5,      "a",    "akjo", oscset, NULL,   oscak3  },
   { "oscil3.aa",S(OSC),0,   5,      "a",    "aajo", oscset, NULL,   oscaa3  },
-/* end change */
+  /* end change */
   { "foscil", S(FOSC),TR,  5,      "a",  "xkxxkjo",foscset,NULL,   foscil  },
   { "foscili",S(FOSC),TR,  5,      "a",  "xkxxkjo",foscset,NULL,   foscili },
   { "loscil", S(LOSC),TR,  5,      "mm","xkjojoojoo",losset,NULL, loscil   },
@@ -441,9 +457,12 @@ OENTRY opcodlst_1[] = {
   { "buzz",   S(BUZZ),TR,  5,      "a",  "xxkio",  bzzset, NULL,   buzz    },
   { "gbuzz",  S(GBUZZ),TR,  5,      "a",  "xxkkkio",gbzset, NULL,   gbuzz   },
   { "pluck",  S(PLUCK), TR, 5,      "a",  "kkiiioo",plukset,NULL,   pluck   },
-  { "rand",   S(RAND),0,    7,      "s",    "xvoo", rndset, krand,  arand   },
-  { "randh",  S(RANDH),0,   7,      "s",    "xxvoo", rhset, krandh, randh   },
-  { "randi",  S(RANDI),0,   7,      "s",    "xxvoo", riset, krandi, randi   },
+  { "rand",   S(RAND),0,    5,      "a",    "xvoo", rndset, NULL,  arand   },
+  { "rand.k",   S(RAND),0,    3,      "k",    "xvoo", rndset, krand,  NULL  },
+  { "randh",  S(RANDH),0,   5,      "a",    "xxvoo", rhset, NULL, randh   },
+  { "randh.k",  S(RANDH),0,   3,      "k",    "xxvoo", rhset, krandh, NULL   },
+  { "randi",  S(RANDI),0,   5,      "a",    "xxvoo", riset, NULL, randi   },
+  { "randi.k",  S(RANDI),0,   3,      "k",    "xxvoo", riset, krandi, NULL  },
   { "port",   S(PORT),0,    3,      "k",    "kio",  porset, port            },
   { "tone",   S(TONE),0,    5,      "a",    "ako",  tonset, NULL,   tone    },
   { "tonex",  S(TONEX),0,   5,      "a",    "akoo", tonsetx, NULL,  tonex   },
@@ -463,7 +482,7 @@ OENTRY opcodlst_1[] = {
   { "balance",S(BALANCE),0, 5,      "a",    "aaqo", balnset,NULL,   balance },
   { "pan",    S(PAN),0,   5, "aaaa", "akkioo",(SUBR)panset,NULL, (SUBR)pan  },
   { "soundin",S(SOUNDIN_),0,5,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","Toooo",
-                                                sndinset, NULL, soundin   },
+    sndinset, NULL, soundin   },
   { "soundout",S(SNDOUT), _QQ, 5,   "",    "aTo",  sndo1set, NULL, soundout  },
   { "soundouts",S(SNDOUTS),_QQ, 5,  "",    "aaTo", sndo1set, NULL, soundouts },
   { "in",     S(INM),0,     4,      "a",    "",     NULL,   NULL,   in      },
@@ -473,7 +492,7 @@ OENTRY opcodlst_1[] = {
      with the charcters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
      CODE REMOVED 2011-Dec-14
-   */
+  */
   { "out",    S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "outs",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "outq",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
@@ -481,11 +500,11 @@ OENTRY opcodlst_1[] = {
   { "outo",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "outx",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "out32",  S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
-/* { "out",    S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   out     }, */
-/* { "outs",   S(OUTS),0,    4,      "",     "aa",   NULL,   NULL,   outs    }, */
+  /* { "out",    S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   out     }, */
+  /* { "outs",   S(OUTS),0,    4,      "",     "aa",   NULL,   NULL,   outs    }, */
   { "outs1",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outs1   },
   { "outs2",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outs2   },
-/* { "outq",   S(OUTQ),0,    4,      "",     "aaaa", NULL,   NULL,   outq    }, */
+  /* { "outq",   S(OUTQ),0,    4,      "",     "aaaa", NULL,   NULL,   outq    }, */
   { "outq1",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outq1   },
   { "outq2",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outq2   },
   { "outq3",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outq3   },
@@ -557,13 +576,13 @@ OENTRY opcodlst_1[] = {
   { "unirand.k",S(PRAND),0, 2,     "k",     "k",    NULL,    ikuniform, NULL},
   { "unirand.a",S(PRAND),0, 4,     "a",     "k",    NULL,    NULL, auniform },
   { "diskin2",S(DISKIN2),0, 5,     "a",
-                            "Tkooooooo",
-                            (SUBR) diskin2_init, (SUBR) NULL,
-                            (SUBR) diskin2_perf                         },
+    "Tkooooooo",
+    (SUBR) diskin2_init, (SUBR) NULL,
+    (SUBR) diskin2_perf                         },
   { "diskin2",S(DISKIN2),0, 5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-                            "Tkooooooo",
-                            (SUBR) diskin2_init, (SUBR) NULL,
-                            (SUBR) diskin2_perf                         },
+    "Tkooooooo",
+    (SUBR) diskin2_init, (SUBR) NULL,
+    (SUBR) diskin2_perf                         },
   
   { "noteon", S(OUT_ON),0,  1,      "",     "iii",  iout_on, NULL,   NULL    },
   { "noteoff", S(OUT_ON),0, 1,      "",     "iii",  iout_off, NULL,    NULL  },
@@ -598,28 +617,28 @@ OENTRY opcodlst_1[] = {
   { "logbtwo.i",S(EVAL),0,   1,     "i",    "i",    ilogbasetwo                },
   { "logbtwo.k",S(EVAL),0,   3,     "k",    "k",    logbasetwo_set, logbasetwo },
   { "logbtwo.a",S(EVAL),0,   5,     "a",    "a",
-                                             logbasetwo_set, NULL, logbasetwoa },
+    logbasetwo_set, NULL, logbasetwoa },
   { "filelen", S(SNDINFO),0, 1,     "i",    "Tp",   filelen, NULL, NULL        },
   { "filenchnls", S(SNDINFO),0, 1,  "i",    "Tp",   filenchnls, NULL, NULL     },
   { "filesr", S(SNDINFO),0,  1,     "i",    "Tp",   filesr, NULL, NULL         },
   { "filebit", S(SNDINFO),0,  1,     "i",   "Tp",   filebit, NULL, NULL        },
   { "filepeak", S(SNDINFOPEAK),0, 1, "i",   "To",   filepeak, NULL, NULL       },
   { "filevalid", S(FILEVALID),0, 1,  "i",   "T",    filevalid, NULL, NULL      },
-/*  { "nlalp", S(NLALP),0,     5,     "a",    "akkoo", nlalp_set, NULL, nlalp }, */
+  /*  { "nlalp", S(NLALP),0,     5,     "a",    "akkoo", nlalp_set, NULL, nlalp }, */
   { "ptableiw",  S(TABLEW),TW, 1,   "",      "iiiooo", (SUBR)pitablew, NULL, NULL},
   { "ptablew.kk", S(TABLEW),0,  3,  "", "kkiooo",
-                                            (SUBR)itblchkw,(SUBR)pktablew, NULL},
+    (SUBR)itblchkw,(SUBR)pktablew, NULL},
   { "ptablew.aa", S(TABLEW),0,  5,  "", "aaiooo",
-                                            (SUBR)itblchkw, NULL, (SUBR)ptablew},
+    (SUBR)itblchkw, NULL, (SUBR)ptablew},
   { "tableiw",  S(TABL),TW, 1,    "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew.kk", S(TABL),TW,  3,    "", "kkiooo",(SUBR)tabl_setup,
-                                            (SUBR)tablew_kontrol, NULL          },
+    (SUBR)tablew_kontrol, NULL          },
   { "tablew.aa", S(TABL),TW,  5,    "", "aaiooo",(SUBR)tabl_setup, NULL,
-                                               (SUBR)tablew_audio               },
+    (SUBR)tablew_audio               },
   { "tablewkt.kk", S(TABL),TW,3, "",  "kkkooo",
-                          (SUBR)tablkt_setup,(SUBR)tablewkt_kontrol,NULL},
+    (SUBR)tablkt_setup,(SUBR)tablewkt_kontrol,NULL},
   { "tablewkt.aa", S(TABL),TW,5, "",  "aakooo",
-                                    (SUBR)tablkt_setup,NULL,(SUBR)tablewkt_audio},
+    (SUBR)tablkt_setup,NULL,(SUBR)tablewkt_audio},
   { "tableng.i", S(TLEN),TR,1,     "i",  "i",    (SUBR)table_length, NULL,  NULL},
   { "tableng.k",  S(TLEN),TR,2,    "k",  "k",    NULL,  (SUBR)table_length, NULL},
   { "tableigpw",S(TGP), TB, 1,     "",  "i",    (SUBR)table_gpw, NULL,  NULL},
@@ -629,18 +648,27 @@ OENTRY opcodlst_1[] = {
   { "tableicopy",S(TGP),TB, 1, "", "ii",   (SUBR)table_copy, NULL, NULL},
   { "tablecopy", S(TGP),TB, 2, "", "kk", NULL, (SUBR)table_copy, NULL},
   { "tablera", S(TABLRA),TR, 5,   "a",  "kkk",
-                                      (SUBR)table_ra_set, NULL, (SUBR)table_ra},
+    (SUBR)table_ra_set, NULL, (SUBR)table_ra},
   { "tablewa", S(TABLWA),TW, 5,   "k",  "kak",
-                                      (SUBR)table_wa_set, NULL, (SUBR)table_wa},
-  { "tablekt",  S(TABL),TR, 7,   "s",  "xkooo",  (SUBR)tablkt_setup,
-                                               (SUBR)tablerkt_kontrol,
-                                               (SUBR)tablerkt_audio           },
-  { "tableikt", S(TABL),TR, 7,    "s",  "xkooo", (SUBR)tablkt_setup,
-                                               (SUBR)tableirkt_kontrol,
-                                               (SUBR)tableirkt_audio          },
-  { "table3kt", S(TABL),TR, 7,  "s",  "xkooo", (SUBR)tablkt_setup,
-                                               (SUBR)table3rkt_kontrol,
-                                               (SUBR)table3rkt_audio          },
+    (SUBR)table_wa_set, NULL, (SUBR)table_wa},
+  { "tablekt",  S(TABL),TR, 3,   "k",  "xkooo",  (SUBR)tablkt_setup,
+    (SUBR)tablerkt_kontrol,
+    NULL         },
+  { "tablekt.a",  S(TABL),TR, 5,   "a",  "xkooo",  (SUBR)tablkt_setup,
+    NULL,
+    (SUBR)tablerkt_audio           },
+  { "tableikt", S(TABL),TR, 3,    "k",  "xkooo", (SUBR)tablkt_setup,
+    (SUBR)tableirkt_kontrol,
+    NULL          },
+  { "tableikt.a", S(TABL),TR, 5,    "a",  "xkooo", (SUBR)tablkt_setup,
+    NULL,
+    (SUBR)tableirkt_audio          },
+  { "table3kt", S(TABL),TR, 3,  "k",  "xkooo", (SUBR)tablkt_setup,
+    (SUBR)table3rkt_kontrol,
+    NULL         },
+  { "table3kt.a", S(TABL),TR, 5,  "a",  "xkooo", (SUBR)tablkt_setup,
+    NULL,
+    (SUBR)table3rkt_audio          },
   { "zakinit", S(ZAKINIT), ZB, 1,  "",   "ii",   (SUBR)zakinit, NULL,  NULL      },
   { "zir",    S(ZKR),ZR,  1,   "i",  "i",    (SUBR)zir,     NULL,  NULL      },
   { "zkr",    S(ZKR),ZR,  3,   "k",  "k",    (SUBR)zkset,   (SUBR)zkr,   NULL},
@@ -663,18 +691,18 @@ OENTRY opcodlst_1[] = {
   { "timek.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)timek, NULL },
   { "times.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)timesr,NULL },
   { "timeinstk", S(RDTIME),0, 3, "k",  "",
-                                          (SUBR)instimset, (SUBR)instimek, NULL },
+    (SUBR)instimset, (SUBR)instimek, NULL },
   { "timeinsts", S(RDTIME),0, 3, "k",  "",
-                                          (SUBR)instimset, (SUBR)instimes, NULL },
+    (SUBR)instimset, (SUBR)instimes, NULL },
   { "peak.k",  S(PEAK),0,   2,   "k",  "k",    NULL,    (SUBR)peakk,    NULL    },
   { "peak.a",   S(PEAK),0,  4,   "k",  "a",    NULL,    NULL,     (SUBR)peaka   },
   { "printk", S(PRINTK),WR,  3,"",     "iko",
-                                            (SUBR)printkset, (SUBR)printk, NULL },
+    (SUBR)printkset, (SUBR)printk, NULL },
   { "printks",S(PRINTKS),WR, 3,   "",   "TiM",
-                                           (SUBR)printksset,(SUBR)printks, NULL },
+    (SUBR)printksset,(SUBR)printks, NULL },
   { "prints",S(PRINTS),0,   1,   "",   "TM",   (SUBR)printsset, NULL, NULL },
   { "printk2", S(PRINTK2), WR, 3, "",   "ko",
-                                          (SUBR)printk2set, (SUBR)printk2, NULL },
+    (SUBR)printk2set, (SUBR)printk2, NULL },
   { "portk",  S(KPORT),0,   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL },
   { "tonek",  S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)ktone, NULL },
   { "atonek", S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)katone, NULL},
@@ -684,21 +712,21 @@ OENTRY opcodlst_1[] = {
   { "limit.k",  S(LIMIT),0, 2, "k",     "xkk",  NULL,          (SUBR)klimit, NULL },
   { "limit.a",  S(LIMIT),0, 4, "a",     "xkk",  NULL,          NULL,  (SUBR)limit },
   { "prealloc", S(AOP),0,   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  },
-/* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
+  /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
   { "inh",    S(INH),0,     4,      "aaaaaa","",    NULL,   NULL,   inh     },
   { "ino",    S(INO),0,     4,      "aaaaaaaa","",  NULL,   NULL,   ino     },
   { "inx",    S(INALL),0,   4,      "aaaaaaaaaaaaaaaa","",  NULL,   NULL,   in16 },
   { "in32",   S(INALL),0,   4,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                                        "",     NULL,   NULL,   in32 },
+    "",     NULL,   NULL,   in32 },
   { "inch",   S(INCH),0,    4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-                                        "z",    NULL,   NULL,   inch_opcode },
+    "z",    NULL,   NULL,   inch_opcode },
   { "_in",    S(INALL),0,   4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-                                        "",     NULL,   NULL,   inall_opcode },
+    "",     NULL,   NULL,   inall_opcode },
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the characters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
      CODE REMOVED 2011-Dec-14
-   */
+  */
   { "outch",  S(OUTCH),0,   4,      "",     "Z",    NULL,   NULL,   outch   },
   { "outc",   S(OUTX),0,    4,      "",     "y",    NULL,   NULL,   outall  },
   { "cpsxpch", S(XENH),TR, 1,      "i",    "iiii", cpsxpch, NULL,  NULL    },
@@ -706,35 +734,40 @@ OENTRY opcodlst_1[] = {
   { "cpstun", S(CPSTUN),  TR, 2,      "k",    "kkk",   NULL,   cpstun         },
   { "cpstuni",S(CPSTUNI), TR, 1,      "i",    "ii",   cpstun_i,               },
   { "cpstmid", S(CPSTABLE),0, 1, "i", "i",    (SUBR)cpstmid                    },
-  { "adsr", S(LINSEG),0,     7,     "s",    "iiiio",adsrset,klnseg, linseg     },
-  { "madsr", S(LINSEG),0,    7,     "s",    "iiiioj", madsrset,klnsegr, linsegr },
-  { "xadsr", S(EXXPSEG),0,   7,     "s",    "iiiio", xdsrset, kxpseg, expseg    },
-  { "mxadsr", S(EXPSEG),0,   7,     "s",    "iiiioj", mxdsrset, kxpsegr, expsegr},
+  { "adsr", S(LINSEG),0,     3,     "k",    "iiiio",adsrset,klnseg, NULL },
+  { "adsr.a", S(LINSEG),0,     5,     "a",    "iiiio",adsrset,NULL, linseg     },
+  { "madsr", S(LINSEG),0,    3,     "k",    "iiiioj", madsrset,klnsegr,NULL },
+  { "madsr.a", S(LINSEG),0,    5,     "s",    "iiiioj", madsrset,NULL, linsegr },
+  { "xadsr", S(EXXPSEG),0,   3,     "k",    "iiiio", xdsrset, kxpseg, NULL   },
+  { "xadsr.a", S(EXXPSEG),0,   5,     "a",    "iiiio", xdsrset, NULL, expseg    },
+  { "mxadsr", S(EXPSEG),0,   3,     "k",    "iiiioj", mxdsrset, kxpsegr, NULL},
+  { "mxadsr.a", S(EXPSEG),0,   5,     "a",    "iiiioj", mxdsrset, NULL, expsegr},
   { "schedule", S(SCHED),0,  1,     "",     "Tiim",
-                                            schedule, /*schedwatch */NULL, NULL },
+    schedule, /*schedwatch */NULL, NULL },
   { "schedwhen", S(WSCHED),0,3,     "",     "kkkkm",ifschedule, kschedule, NULL },
   { "schedkwhen", S(TRIGINSTR),0, 3,"",     "kkkUkz",triginset, ktriginstr, NULL },
   { "schedkwhennamed", S(TRIGINSTR),0, 3,"", "kkkUkz",triginset, ktriginstr, NULL },
   { "trigseq", S(TRIGSEQ),0, 3,     "",     "kkkkkz", trigseq_set, trigseq, NULL },
   { "event", S(LINEVENT),0,  2,     "",     "SUz",  NULL, eventOpcode, NULL   },
   { "event_i", S(LINEVENT),0,1,     "",     "STm",  eventOpcodeI, NULL, NULL  },
-  { "lfo", S(LFO),0,         7,     "s",    "kko",  lfoset,   lfok,   lfoa    },
+  { "lfo", S(LFO),0,         3,     "k",    "kko",  lfoset,   lfok,   NULL   },
+  { "lfo.a", S(LFO),0,         5,     "a",    "kko",  lfoset,  NULL,   lfoa    },
   { "oscils",   S(OSCILS),0, 5,     "a", "iiio",
-                                         (SUBR)oscils_set, NULL, (SUBR)oscils  },
+    (SUBR)oscils_set, NULL, (SUBR)oscils  },
   { "lphasor",  S(LPHASOR),0,5,     "a", "xooooooo" ,
-                                        (SUBR)lphasor_set, NULL, (SUBR)lphasor },
+    (SUBR)lphasor_set, NULL, (SUBR)lphasor },
   { "tablexkt", S(TABLEXKT),TR, 5, "a", "xkkiooo", (SUBR)tablexkt_set, NULL,
-                                                   (SUBR)tablexkt              },
+    (SUBR)tablexkt              },
   { "reverb2",  S(NREV2),0,  5,     "a",    "akkoojoj",
-                                         (SUBR)reverbx_set,NULL,(SUBR)reverbx  },
+    (SUBR)reverbx_set,NULL,(SUBR)reverbx  },
   { "nreverb",  S(NREV2),0,  5,     "a",    "akkoojoj",
-                                         (SUBR)reverbx_set,NULL,(SUBR) reverbx },
+    (SUBR)reverbx_set,NULL,(SUBR) reverbx },
   { "=.f",      S(FASSIGN),0, 3,    "f",   "f",
-                                              (SUBR)fassign_set, (SUBR)fassign },
+    (SUBR)fassign_set, (SUBR)fassign },
   { "init.f",   S(FASSIGN),0, 1,    "f",   "f",
-                                              (SUBR)fassign_set, NULL, NULL    },
+    (SUBR)fassign_set, NULL, NULL    },
   { "pvsanal",  S(PVSANAL), 0, 5,   "f",   "aiiiioo",
-                                                   pvsanalset, NULL, pvsanal   },
+    pvsanalset, NULL, pvsanal   },
   { "pvsynth",  S(PVSYNTH),0, 5,    "a",   "fo",     pvsynthset, NULL, pvsynth },
   { "pvsadsyn", S(PVADS),0,   7,    "a",   "fikopo", pvadsynset, pvadsyn, pvadsyn},
   { "pvscross", S(PVSCROSS),0,3,    "f",   "ffkk",   pvscrosset, pvscross, NULL },
@@ -765,28 +798,28 @@ OENTRY opcodlst_1[] = {
   { "pgmchn",   S(PGMIN),0,  3,     "kk",   "o",     pgmin_set, pgmin, NULL },
   { "ctlchn",   S(CTLIN),0,  3,     "kkk",  "oo",    ctlin_set, ctlin, NULL },
   { "miditempo", S(MIDITEMPO),0, 3, "k",    "",
-                (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
+    (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
   { "midinoteoff", S(MIDINOTEON),0,3,"",    "xx",   midinoteoff, midinoteoff, },
   { "midinoteonkey", S(MIDINOTEON),0,3, "", "xx",   midinoteonkey, midinoteonkey },
   { "midinoteoncps", S(MIDINOTEON),0, 3, "", "xx",  midinoteoncps,midinoteoncps },
   { "midinoteonoct", S(MIDINOTEON),0, 3, "", "xx",  midinoteonoct,midinoteonoct },
   { "midinoteonpch", S(MIDINOTEON),0, 3, "", "xx",  midinoteonpch, midinoteonpch },
   { "midipolyaftertouch", S(MIDIPOLYAFTERTOUCH),0,
-                   3,   "", "xxoh", midipolyaftertouch, midipolyaftertouch},
+    3,   "", "xxoh", midipolyaftertouch, midipolyaftertouch},
   { "midicontrolchange", S(MIDICONTROLCHANGE),0,
-                   3, "", "xxoh",midicontrolchange, midicontrolchange    },
+    3, "", "xxoh",midicontrolchange, midicontrolchange    },
   { "midiprogramchange", S(MIDIPROGRAMCHANGE),0,
-                   3, "", "x", midiprogramchange, midiprogramchange      },
+    3, "", "x", midiprogramchange, midiprogramchange      },
   { "midichannelaftertouch", S(MIDICHANNELAFTERTOUCH),0,
-                   3, "", "xoh",midichannelaftertouch, midichannelaftertouch },
+    3, "", "xoh",midichannelaftertouch, midichannelaftertouch },
   { "midipitchbend", S(MIDIPITCHBEND),0,3, "", "xoh",
-                                                   midipitchbend, midipitchbend },
+    midipitchbend, midipitchbend },
   { "mididefault", S(MIDIDEFAULT),0, 3, "", "xx",   mididefault, mididefault },
   { "invalue",   0xFFFF,   CR,    0,   NULL,   NULL, (SUBR) NULL, (SUBR) NULL },
   { "invalue.k", S(INVAL),0, 3, "k", "T",   (SUBR) invalset,(SUBR)  kinval, NULL },
   { "invalue.S", S(INVAL),0, 3, "S", "T",   (SUBR) invalset, (SUBR) kinval, NULL },
   { "outvalue", S(OUTVAL), CW, 3, "", "TU",(SUBR) outvalset, (SUBR) koutval, NULL},
-/* IV - Oct 20 2002 */
+  /* IV - Oct 20 2002 */
   { "subinstr", S(SUBINST),0, 5, "mmmmmmmm", "Tm",  subinstrset, NULL, subinstr },
   { "subinstrinit", S(SUBINST),0, 1, "",    "Tm",   subinstrset, NULL, NULL     },
   { "nstrnum", S(NSTRNUM),0, 1,     "i",    "T",    nstrnumset, NULL, NULL      },
@@ -803,14 +836,19 @@ OENTRY opcodlst_1[] = {
   { "tempoval", S(GTEMPO),0, 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
   { "downsamp",S(DOWNSAMP),0,3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
   { "upsamp", S(UPSAMP),0,  4,  "a", "k",    NULL,   NULL,   (SUBR)upsamp        },
-/* IV - Sep 5 2002 */
+  /* IV - Sep 5 2002 */
   { "interp", S(INTERP),0,  5,  "a", "koo",  (SUBR)interpset,NULL, (SUBR)interp  },
   { "a.k",    S(INTERP),0,  5,  "a", "k",    (SUBR)a_k_set,NULL,   (SUBR)interp  },
-  { "integ", S(INDIFF),  0, 7,  "s", "xo",
-                                    (SUBR)indfset,(SUBR)kntegrate,(SUBR)integrate},
-  { "diff",   S(INDIFF),0,  7,  "s", "xo", (SUBR)indfset,(SUBR)kdiff, (SUBR)diff },
-  { "samphold",S(SAMPHOLD),0,7, "s", "xxoo",
-                                 (SUBR)samphset,(SUBR)ksmphold,(SUBR)samphold    },
+  { "integ", S(INDIFF),  0, 5,  "a", "xo",
+    (SUBR)indfset,NULL,(SUBR)integrate},
+  { "integ.k", S(INDIFF),  0, 3,  "k", "xo",
+    (SUBR)indfset,(SUBR)kntegrate, NULL},
+  { "diff",   S(INDIFF),0,  5,  "a", "xo", (SUBR)indfset,NULL, (SUBR)diff },
+  { "diff.k",   S(INDIFF),0,  3,  "k", "xo", (SUBR)indfset,(SUBR)kdiff, NULL },
+  { "samphold",S(SAMPHOLD),0,5, "a", "xxoo",
+    (SUBR)samphset,NULL,(SUBR)samphold    },
+  { "samphold.k",S(SAMPHOLD),0,3, "k", "xxoo",
+    (SUBR)samphset,(SUBR)ksmphold,NULL  },
   { "delay",  S(DELAY),0,   5,  "a", "aio",  (SUBR)delset, NULL,   (SUBR)delay   },
   { "delayr", S(DELAYR),0,  5,  "aX","io",   (SUBR)delrset,NULL,   (SUBR)delayr  },
   { "delayw", S(DELAYW),0,  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
@@ -823,88 +861,88 @@ OENTRY opcodlst_1[] = {
   { "vdelay",   S(VDEL),0,  5,  "a", "axio", (SUBR)vdelset, NULL,  (SUBR)vdelay  },
   { "vdelay3",  S(VDEL),0,  5,  "a", "axio", (SUBR)vdelset, NULL,  (SUBR)vdelay3 },
   { "vdelayxwq",S(VDELXQ),0,5,  "aaaa", "aaaaaiio",
-                                         (SUBR)vdelxqset, NULL, (SUBR)vdelayxwq},
+    (SUBR)vdelxqset, NULL, (SUBR)vdelayxwq},
   { "vdelayxws",S(VDELXS),0,5,  "aa", "aaaiio", (SUBR)vdelxsset, NULL,
-                                            (SUBR)vdelayxws                  },
+    (SUBR)vdelayxws                  },
   { "vdelayxw", S(VDELX),0, 5,  "a",  "aaiio",
-                                             (SUBR)vdelxset, NULL, (SUBR)vdelayxw},
+    (SUBR)vdelxset, NULL, (SUBR)vdelayxw},
   { "vdelayxq", S(VDELXQ),0,5,  "aaaa", "aaaaaiio",
-                                         (SUBR)vdelxqset, NULL, (SUBR)vdelayxq},
+    (SUBR)vdelxqset, NULL, (SUBR)vdelayxq},
   { "vdelayxs", S(VDELXS),0,5,  "aa", "aaaiio",
-                                             (SUBR)vdelxsset, NULL, (SUBR)vdelayxs},
+    (SUBR)vdelxsset, NULL, (SUBR)vdelayxs},
   { "vdelayx",  S(VDELX),0, 5,  "a",  "aaiio", (SUBR)vdelxset, NULL, (SUBR)vdelayx},
   { "deltapx",  S(DELTAPX),0,5, "a",  "aio",  (SUBR)tapxset, NULL,  (SUBR)deltapx },
   { "deltapxw", S(DELTAPX),0,5,  "",  "aaio", (SUBR)tapxset, NULL, (SUBR)deltapxw },
   { "multitap", S(MDEL),0,  5,   "a", "am",
-                                   (SUBR)multitap_set,NULL,(SUBR)multitap_play},
+    (SUBR)multitap_set,NULL,(SUBR)multitap_play},
   { "comb",   S(COMB),0,    5,  "a",  "akioo", (SUBR)cmbset,NULL,   (SUBR)comb    },
   { "alpass", S(COMB),0,    5,  "a",  "akioo", (SUBR)cmbset,NULL,   (SUBR)alpass  },
   {  "strset",   S(STRSET_OP),0,   1,  "",     "iS",
-   (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
+     (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
   {  "strget",   S(STRGET_OP),0,   1,  "S",    "i",
-   (SUBR) strget_init, (SUBR) NULL, (SUBR) NULL                        },
+     (SUBR) strget_init, (SUBR) NULL, (SUBR) NULL                        },
   {  "strcpy",   S(STRCPY_OP),0,   1,  "S",    "T",
-   (SUBR) strcpy_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) strcpy_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "=.00",   S(STRCPY_OP),0,   1,  "S",    "T",
-   (SUBR) strcpy_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) strcpy_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "strcpyk",  S(STRCPY_OP),0,   3,  "S",    "T",
-   (SUBR) strcpy_opcode, (SUBR) strcpy_opcode, (SUBR) NULL             },
+     (SUBR) strcpy_opcode, (SUBR) strcpy_opcode, (SUBR) NULL             },
   {  "strcat",   S(STRCAT_OP),0,   1,  "S",    "SS",
-   (SUBR) strcat_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) strcat_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "strcatk",  S(STRCAT_OP),0,   3,  "S",    "SS",
-   (SUBR) strcat_opcode, (SUBR) strcat_opcode, (SUBR) NULL             },
+     (SUBR) strcat_opcode, (SUBR) strcat_opcode, (SUBR) NULL             },
   {  "strcmp",   S(STRCAT_OP),0,   1,  "i",    "SS",
-   (SUBR) strcmp_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) strcmp_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "strcmpk",  S(STRCAT_OP),0,   3,  "k",    "SS",
-   (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             },
+     (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             },
   {  "sprintf",  S(SPRINTF_OP),0,  1,  "S",    "STN",
-   (SUBR) sprintf_opcode, (SUBR) NULL, (SUBR) NULL                     },
+     (SUBR) sprintf_opcode, (SUBR) NULL, (SUBR) NULL                     },
   {  "sprintfk", S(SPRINTF_OP),WR,  3,  "S",    "SUN",
-   (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, (SUBR) NULL           },
+     (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, (SUBR) NULL           },
   {  "printf_i", S(PRINTF_OP),0,   1,  "",     "SiTN",
-   (SUBR) printf_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+     (SUBR) printf_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
   {  "printf",   S(PRINTF_OP),WR,   3,  "",     "SkUN",
-   (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, (SUBR) NULL    },
+     (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, (SUBR) NULL    },
   {  "puts",     S(PUTS_OP),WR,     3,  "",     "Sko",
-   (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
+     (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
   {  "strtod",   S(STRSET_OP),0,   1,  "i",    "T",
-   (SUBR) strtod_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) strtod_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "strtodk",  S(STRSET_OP),0,   3,  "k",    "U",
-   (SUBR) strtod_opcode, (SUBR) strtod_opcode, (SUBR) NULL             },
+     (SUBR) strtod_opcode, (SUBR) strtod_opcode, (SUBR) NULL             },
   {  "strtol",   S(STRSET_OP),0,   1,  "i",    "T",
-   (SUBR) strtol_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) strtol_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "strtolk",  S(STRSET_OP),0,   3,  "k",    "U",
-   (SUBR) strtol_opcode, (SUBR) strtol_opcode, (SUBR) NULL             },
+     (SUBR) strtol_opcode, (SUBR) strtol_opcode, (SUBR) NULL             },
   {  "strsub",   S(STRSUB_OP),0,   1,  "S",    "Soj",
-   (SUBR) strsub_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) strsub_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "strsubk",  S(STRSUB_OP),0,   3,  "S",    "Skk",
-   (SUBR) strsub_opcode, (SUBR) strsub_opcode, (SUBR) NULL             },
+     (SUBR) strsub_opcode, (SUBR) strsub_opcode, (SUBR) NULL             },
   {  "strchar",  S(STRCHAR_OP),0,  1,  "i",    "So",
-   (SUBR) strchar_opcode, (SUBR) NULL, (SUBR) NULL                     },
+     (SUBR) strchar_opcode, (SUBR) NULL, (SUBR) NULL                     },
   {  "strchark", S(STRCHAR_OP),0,  3,  "k",    "SO",
-   (SUBR) strchar_opcode, (SUBR) strchar_opcode, (SUBR) NULL           },
+     (SUBR) strchar_opcode, (SUBR) strchar_opcode, (SUBR) NULL           },
   {  "strlen",   S(STRLEN_OP),0,   1,  "i",    "S",
-   (SUBR) strlen_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) strlen_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "strlenk",  S(STRLEN_OP),0,   3,  "k",    "S",
-   (SUBR) strlen_opcode, (SUBR) strlen_opcode, (SUBR) NULL             },
+     (SUBR) strlen_opcode, (SUBR) strlen_opcode, (SUBR) NULL             },
   {  "strupper", S(STRUPPER_OP),0, 1,  "S",    "S",
-   (SUBR) strupper_opcode, (SUBR) NULL, (SUBR) NULL                    },
+     (SUBR) strupper_opcode, (SUBR) NULL, (SUBR) NULL                    },
   {  "strupperk", S(STRUPPER_OP),0, 3, "S",    "S",
-   (SUBR) strupper_opcode, (SUBR) strupper_opcode, (SUBR) NULL         },
+     (SUBR) strupper_opcode, (SUBR) strupper_opcode, (SUBR) NULL         },
   {  "strlower", S(STRUPPER_OP),0, 1,  "S",    "S",
-   (SUBR) strlower_opcode, (SUBR) NULL, (SUBR) NULL                    },
+     (SUBR) strlower_opcode, (SUBR) NULL, (SUBR) NULL                    },
   {  "strlowerk", S(STRUPPER_OP),0, 3, "S",    "S",
-   (SUBR) strlower_opcode, (SUBR) strlower_opcode, (SUBR) NULL         },
+     (SUBR) strlower_opcode, (SUBR) strlower_opcode, (SUBR) NULL         },
   {  "getcfg",   S(GETCFG_OP),0,   1,  "S",    "i",
-   (SUBR) getcfg_opcode, (SUBR) NULL, (SUBR) NULL                      },
+     (SUBR) getcfg_opcode, (SUBR) NULL, (SUBR) NULL                      },
   {  "strindex", S(STRINDEX_OP),0, 1,  "i",    "SS",
-   (SUBR) strindex_opcode, (SUBR) NULL, (SUBR) NULL                    },
+     (SUBR) strindex_opcode, (SUBR) NULL, (SUBR) NULL                    },
   {  "strindexk", S(STRINDEX_OP),0, 3, "k",    "SS",
-   (SUBR) strindex_opcode, (SUBR) strindex_opcode, (SUBR) NULL         },
+     (SUBR) strindex_opcode, (SUBR) strindex_opcode, (SUBR) NULL         },
   {  "strrindex", S(STRINDEX_OP),0, 1, "i",    "SS",
-   (SUBR) strrindex_opcode, (SUBR) NULL, (SUBR) NULL                   },
+     (SUBR) strrindex_opcode, (SUBR) NULL, (SUBR) NULL                   },
   {  "strrindexk", S(STRINDEX_OP),0, 3, "k",   "SS",
-   (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, (SUBR) NULL       },
+     (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, (SUBR) NULL       },
   { "loop_lt",   0xfffb                                                  },
   { "loop_le",   0xfffb                                                  },
   { "loop_gt",   0xfffb                                                  },
@@ -919,77 +957,77 @@ OENTRY opcodlst_1[] = {
   { "loop_ge.k", S(LOOP_OPS),0,  2,  "", "kkkl", NULL, (SUBR) loop_ge_p, NULL  },
   { "chnget",      0xFFFF,    CR                                             },
   { "chnget.i",    S(CHNGET),0,           1,      "i",            "S",
-   (SUBR) chnget_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+    (SUBR) chnget_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
   { "chnget.k",    S(CHNGET),0,           3,      "k",            "S",
-   (SUBR) chnget_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+    (SUBR) chnget_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
   { "chnget.a",    S(CHNGET),0,           5,      "a",            "S",
-   (SUBR) chnget_opcode_init_a, (SUBR) NULL, (SUBR) notinit_opcode_stub },
+    (SUBR) chnget_opcode_init_a, (SUBR) NULL, (SUBR) notinit_opcode_stub },
   { "chnget.S",    S(CHNGET),0,           1,      "S",            "S",
-   (SUBR) chnget_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+    (SUBR) chnget_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
   { "chnset",      0xFFFB,              CW                               },
   { "chnset.i",    S(CHNGET),0,           1,      "",             "iS",
-   (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
   { "chnset.r",    S(CHNGET),0,           1,      "",             "iS",
-   (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
   { "chnset.c",    S(CHNGET),0,           1,      "",             "iS",
-   (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
   { "chnset.k",    S(CHNGET),0,           3,      "",             "kS",
-   (SUBR) chnset_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+    (SUBR) chnset_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
   { "chnset.a",    S(CHNGET),0,           5,      "",             "aS",
-   (SUBR) chnset_opcode_init_a, (SUBR) NULL, (SUBR) notinit_opcode_stub },
+    (SUBR) chnset_opcode_init_a, (SUBR) NULL, (SUBR) notinit_opcode_stub },
   { "chnset.S",    S(CHNGET),0,           1,      "",             "SS",
-   (SUBR) chnset_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+    (SUBR) chnset_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
   { "chnmix",      S(CHNGET),           CB, 5,      "",             "aS",
-   (SUBR) chnmix_opcode_init, (SUBR) NULL, (SUBR) notinit_opcode_stub  },
+    (SUBR) chnmix_opcode_init, (SUBR) NULL, (SUBR) notinit_opcode_stub  },
   { "chnclear",    S(CHNCLEAR),        CW, 5,      "",             "S",
-   (SUBR) chnclear_opcode_init, (SUBR) NULL, (SUBR) notinit_opcode_stub },
+    (SUBR) chnclear_opcode_init, (SUBR) NULL, (SUBR) notinit_opcode_stub },
   { "chn_k",       S(CHN_OPCODE_K),    CW, 1,      "",             "SiooooooooN",
-   (SUBR) chn_k_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+    (SUBR) chn_k_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
   { "chn_a",       S(CHN_OPCODE),      CW, 1,      "",             "Si",
-   (SUBR) chn_a_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+    (SUBR) chn_a_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
   { "chn_S",       S(CHN_OPCODE),      CW, 1,      "",             "Si",
-   (SUBR) chn_S_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+    (SUBR) chn_S_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
   { "chnexport",   0xFFFF,  0,    0,   NULL,   NULL, (SUBR) NULL, (SUBR) NULL },
   { "chnexport.i", S(CHNEXPORT_OPCODE),0, 1,      "i",            "Sioooo",
-   (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
   { "chnexport.k", S(CHNEXPORT_OPCODE),0, 1,      "k",            "Sioooo",
-   (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
   { "chnexport.a", S(CHNEXPORT_OPCODE),0, 1,      "a",            "Si",
-   (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
   { "chnexport.S", S(CHNEXPORT_OPCODE),0, 1,      "S",            "Si",
-   (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
   { "chnparams",   S(CHNPARAMS_OPCODE),CR, 1,      "iiiiii",       "S",
-   (SUBR) chnparams_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+    (SUBR) chnparams_opcode_init, (SUBR) NULL, (SUBR) NULL              },
   /*  these opcodes have never been fully implemented
-  { "chnrecv",     S(CHNSEND),       CR, 3,      "",             "So",
-   (SUBR) chnrecv_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
-  { "chnsend",     S(CHNSEND),0,          3,      "",             "So",
-   (SUBR) chnsend_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+      { "chnrecv",     S(CHNSEND),       CR, 3,      "",             "So",
+      (SUBR) chnrecv_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+      { "chnsend",     S(CHNSEND),0,          3,      "",             "So",
+      (SUBR) chnsend_opcode_init, (SUBR) notinit_opcode_stub, (SUBR) NULL },
   */
   { "chano",       0xFFFD,  CW, 0,      NULL, NULL, (SUBR) NULL, (SUBR) NULL },
   { "chano.k",     S(ASSIGN),0,           2,      "",             "kk",
-   (SUBR) NULL, (SUBR) chano_opcode_perf_k, (SUBR) NULL                },
+    (SUBR) NULL, (SUBR) chano_opcode_perf_k, (SUBR) NULL                },
   { "chano.a",     S(ASSIGN),0,           4,      "",             "ak",
-   (SUBR) NULL, (SUBR) NULL, (SUBR) chano_opcode_perf_a                },
+    (SUBR) NULL, (SUBR) NULL, (SUBR) chano_opcode_perf_a                },
   { "pvsout",     S(FCHAN),0,           2,      "",             "fk",
-   (SUBR) NULL, (SUBR) pvsout_perf, (SUBR) NULL                        },
+    (SUBR) NULL, (SUBR) pvsout_perf, (SUBR) NULL                        },
   { "chani",      0xFFFF,  CR,      0,   NULL, NULL, (SUBR) NULL, (SUBR) NULL },
   { "chani.k",     S(ASSIGN),0,           2,      "k",            "k",
-   (SUBR) NULL, (SUBR) chani_opcode_perf_k, (SUBR) NULL                },
+    (SUBR) NULL, (SUBR) chani_opcode_perf_k, (SUBR) NULL                },
   { "chani.a",     S(ASSIGN),0,           4,      "a",            "k",
-   (SUBR) NULL, (SUBR) NULL, (SUBR) chani_opcode_perf_a                },
+    (SUBR) NULL, (SUBR) NULL, (SUBR) chani_opcode_perf_a                },
   { "pvsin",     S(FCHAN),0,           3,      "f",            "kooopo",
-   (SUBR)  pvsin_init, (SUBR) pvsin_perf, (SUBR) NULL                  },
+    (SUBR)  pvsin_init, (SUBR) pvsin_perf, (SUBR) NULL                  },
   { "sense",       S(KSENSE),0,           2,      "kz",           "",
-   (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
+    (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
   { "sensekey",    S(KSENSE),0,           2,      "kz",           "",
-   (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
+    (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
   { "remove",      S(DELETEIN),0,         1,      "",             "T",
-   (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
+    (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
   { "##globallock",   S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
-                    globallock,   globallock,   NULL},
+    globallock,   globallock,   NULL},
   { "##globalunlock", S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
-                    globalunlock, globalunlock, NULL},
+    globalunlock, globalunlock, NULL},
   { "##error",S(ERRFN),0, 1,          "i",     "i",   error_fn, NULL,    NULL    },
   { "exprandi.i",S(PRANDI),0, 1,      "i",    "kxx",  iexprndi, NULL,    NULL    },
   { "exprandi.k",S(PRANDI),0, 3,      "k",    "kxx",  exprndiset, kexprndi, NULL },
@@ -1007,9 +1045,9 @@ OENTRY opcodlst_1[] = {
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   /* ----------------------------------------------------------------------- */
   { "monitor",  sizeof(MONITOR_OPCODE), 0, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
-      (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  (SUBR) NULL },
+    (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  (SUBR) NULL },
   { "outrg", S(OUTRANGE), 0,5, "", "ky",
-                               (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange},
-/* terminate list */
-{  NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
+    (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange},
+  /* terminate list */
+  {  NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
