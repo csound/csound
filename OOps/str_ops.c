@@ -106,6 +106,7 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
       if (ss == NULL)
         return OK;
       ss = get_arg_string(csound, *p->indx);
+      printf("sget: %s\n", ss);
       if ((int) strlen(ss) >= csound->strVarMaxLen)
         return csound->InitError(csound, Str("strget: buffer overflow"));
       strcpy((char*) p->r, ss);
@@ -150,12 +151,16 @@ static CS_NOINLINE CS_NORETURN void StrOp_FatalError(void *p, const char *msg)
 int strcpy_opcode(CSOUND *csound, STRCPY_OP *p)
 {
     char  *newVal = (char*) p->str;
-
     if (p->r == p->str)
       return OK;
     if (ISSTRCOD(*p->str)) {
+      char *ss = csound->currevent->strarg;  
+      if (ss != NULL)
+       newVal = get_arg_string(csound, *p->str);
+      else {
        csound->strarg2name(csound, (char *)p->r, p->str, "soundin.", p->XSTRCODE);
        return OK;
+      }
     }
     if (UNLIKELY((int) strlen(newVal) >= csound->strVarMaxLen))
       return StrOp_ErrMsg(p, "buffer overflow");
