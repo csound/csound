@@ -291,7 +291,7 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
       csp_set_alloc_string(csound, &set);
       return set;
     }
-    
+
     left  = csp_orc_sa_globals_find(csound, node->left);
     right = csp_orc_sa_globals_find(csound, node->right);
     csp_set_union(csound, left, right, &current_set);
