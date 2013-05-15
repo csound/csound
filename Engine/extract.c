@@ -59,7 +59,8 @@ static void alloc_globals(CSOUND *csound, EXTRACT_STATICS* extractStatics)
     /* } */
 }
 
-void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics, FILE *xfp)    /* read the extract control file */
+void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
+              FILE *xfp)    /* read the extract control file */
 {
     int  flag, all;
     char s[82];
@@ -111,7 +112,8 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics, FILE *xfp)    /* 
     STA(offtime) = STA(f0).newp2 = STA(f0).p2val = STA(offbeat);
 }
 
-void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics) /* extract instr events within the time period */
+void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
+ /* extract instr events within the time period */
 {
     SRTBLK  *bp;
     MYFLT   turnoff, anticip;
@@ -137,7 +139,7 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics) /* extract instr e
         case 'w':
         case 's':
         case 'e':
-          include(csound, extractStatics, bp);              /*   incl w,s,e verbatim  */
+          include(csound, extractStatics, bp); /*   incl w,s,e verbatim  */
           break;
         case 't':
         case 'i':
