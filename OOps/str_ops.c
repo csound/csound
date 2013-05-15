@@ -76,7 +76,7 @@ static void str_set(CSOUND *csound, int ndx, const char *s)
 
 int strset_init(CSOUND *csound, STRSET_OP *p)
 {
-    str_set(csound, (int) MYFLT2LRND(*p->indx), (char*) p->str);
+    str_set(csound, (int) MYFLT2LRND(*p->indx), p->str->data);
     return OK;
 }
 
@@ -106,9 +106,12 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
       if (ss == NULL)
         return OK;
       ss = get_arg_string(csound, *p->indx);
-      if ((int) strlen(ss) >= csound->strVarMaxLen)
-        return csound->InitError(csound, Str("strget: buffer overflow"));
-      strcpy((char*) p->r, ss);
+      if ((int) strlen(ss) >= p->r->size) {
+	mfree(csound, p->r->data);
+        p->r->data = cs_strdup(csound, ss);
+        p->r->size = strlen(ss) + 1;
+      }
+      strcpy(p->r->data, ss);
       return OK;
     }
     indx = (int)((double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
@@ -149,12 +152,12 @@ static CS_NOINLINE CS_NORETURN void StrOp_FatalError(void *p, const char *msg)
 
 int strcpy_opcode(CSOUND *csound, STRCPY_OP *p)
 {
-    char  *newVal = (char*) p->str;
+    char  *newVal = p->str->data;
 
-    if (p->r == p->str)
+    if (p->r->data == p->str->data)
       return OK;
     if (ISSTRCOD(*p->str)) {
-       csound->strarg2name(csound, (char *)p->r, p->str, "soundin.", p->XSTRCODE);
+       csound->strarg2name(csound, (char *)p->r->data, p->str, "soundin.", p->XSTRCODE);
        return OK;
     }
     if (UNLIKELY((int) strlen(newVal) >= csound->strVarMaxLen))
