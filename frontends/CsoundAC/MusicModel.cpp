@@ -158,21 +158,27 @@ namespace csound
     score.arrange(oldInstrumentNumber, newInstrumentNumber, gain, pan);
   }
 
-  void MusicModel::arrange(int silenceInstrumentNumber, std::string csoundInstrumentName)
+  void MusicModel::arrange(int silenceInstrumentNumber,
+                           std::string csoundInstrumentName)
   {
-    int csoundInstrumentNumber = cppSound->getInstrumentNumber(csoundInstrumentName);
+    int csoundInstrumentNumber =
+      cppSound->getInstrumentNumber(csoundInstrumentName);
     arrange(silenceInstrumentNumber, csoundInstrumentNumber);
   }
 
-  void MusicModel::arrange(int silenceInstrumentNumber, std::string csoundInstrumentName, double gain)
+  void MusicModel::arrange(int silenceInstrumentNumber,
+                           std::string csoundInstrumentName, double gain)
   {
-    int csoundInstrumentNumber = cppSound->getInstrumentNumber(csoundInstrumentName);
+    int csoundInstrumentNumber =
+      cppSound->getInstrumentNumber(csoundInstrumentName);
     arrange(silenceInstrumentNumber, csoundInstrumentNumber, gain);
   }
 
-  void MusicModel::arrange(int silenceInstrumentNumber, std::string csoundInstrumentName, double gain, double pan)
+  void MusicModel::arrange(int silenceInstrumentNumber,
+                           std::string csoundInstrumentName, double gain, double pan)
   {
-    int csoundInstrumentNumber = cppSound->getInstrumentNumber(csoundInstrumentName);
+    int csoundInstrumentNumber =
+      cppSound->getInstrumentNumber(csoundInstrumentName);
     arrange(silenceInstrumentNumber, csoundInstrumentNumber, gain, pan);
   }
 
@@ -192,9 +198,9 @@ namespace csound
     if (command_.size() == 0) {
       char buffer[0x200];
       std::sprintf(buffer,
-		   "csound --midi-key=4 --midi-velocity=5 -m195 -j%d -RWdfo %s",
+                   "csound --midi-key=4 --midi-velocity=5 -m195 -j%d -RWdfo %s",
            threadCount,
-		   getOutputSoundfileName().c_str());
+                   getOutputSoundfileName().c_str());
       command_ = buffer;
     }
     return command_;
@@ -219,11 +225,11 @@ namespace csound
       const std::string token = args[i];
       std::string value = "";
       if (token.find("--") == 0) {
-	key = token;
-	System::inform("argument[%2d]: %s\n", i, key.c_str());
+        key = token;
+        System::inform("argument[%2d]: %s\n", i, key.c_str());
       } else {
-	value = token;
-	System::inform("argument[%2d]: %s =  %s\n", i, key.c_str(), value.c_str());
+        value = token;
+        System::inform("argument[%2d]: %s =  %s\n", i, key.c_str(), value.c_str());
       }
       argsmap[key] = value;
     }
@@ -237,7 +243,7 @@ namespace csound
     if ((argsmap.find("--midi") != argsmap.end()) && !errorStatus) {
       errorStatus = generate();
       if (errorStatus) {
-	return errorStatus;
+        return errorStatus;
       }
       getScore().save(getMidiFilename().c_str());
     }
@@ -247,8 +253,8 @@ namespace csound
       const char *devicename = argsmap["--device"].c_str();
       const char *temp_path = std::getenv("TEMP");
       std::sprintf(command,
-		   "csound --midi-key=4 --midi-velocity=5 -m195 -+rtaudio=%s -o %s",
-		   audiosystem, devicename);
+                   "csound --midi-key=4 --midi-velocity=5 -m195 -+rtaudio=%s -o %s",
+                   audiosystem, devicename);
       System::inform("Csound command: %s\n", command);
       setCsoundCommand(command);
       errorStatus = render();

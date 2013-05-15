@@ -41,7 +41,7 @@ int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
     int     n;
 
     EXTRACT_STATICS* extractStatics = calloc(1, sizeof(EXTRACT_STATICS));
-    
+
     csound->scoreout = NULL;
     csound->scorestr = scin;
     csound->scstr = corfile_create_w();
