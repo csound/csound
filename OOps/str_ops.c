@@ -160,8 +160,6 @@ int strcpy_opcode(CSOUND *csound, STRCPY_OP *p)
     if (UNLIKELY((int) strlen(newVal) >= csound->strVarMaxLen))
       return StrOp_ErrMsg(p, "buffer overflow");
     strcpy((char*) p->r, newVal);
-    //free(p->r);
-    //p->r = strdup(newVal);
     return OK;
 }
 
