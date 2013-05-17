@@ -220,6 +220,16 @@ static const int diskin2_format_table[11] = {
     SF_FORMAT_RAW | SF_FORMAT_DOUBLE
 };
 
+static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname);
+
+int diskin2_init(CSOUND *csound, DISKIN2 *p) {
+  return diskin2_init_(csound,p,0);
+}
+
+int diskin2_init_S(CSOUND *csound, DISKIN2 *p) {
+  return diskin2_init_(csound,p,1);
+}
+
 /* VL 11-01-13  diskin_init - calls diskin2_init  */
 
 int diskin_init(CSOUND *csound, DISKIN2 *p){
@@ -232,9 +242,19 @@ int diskin_init(CSOUND *csound, DISKIN2 *p){
   return ret;
 }
 
+int diskin_init_S(CSOUND *csound, DISKIN2 *p){
+  MYFLT temp; int ret;
+  temp = *p->iWinSize;
+  *p->iSkipInit = temp;
+  *p->iWinSize = 2;
+  ret = diskin2_init_S(csound,p);
+  *p->iWinSize = temp;
+  return ret;
+}
+
 int diskin2_async_deinit(CSOUND *csound, void *p);
 
-int diskin2_init(CSOUND *csound, DISKIN2 *p)
+static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
 {
     double  pos;
     char    name[1024];
@@ -266,7 +286,12 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     sfinfo.format = diskin2_format_table[n];
     /* open file */
     /* FIXME: name can overflow with very long string */
-    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->iFileCode)) strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+    }
+    else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
+
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
@@ -962,7 +987,7 @@ static int soundin_calc_buffer_size(SOUNDIN_ *p, int n_monoSamps)
     return nFrames;
 }
 
-int sndinset(CSOUND *csound, SOUNDIN_ *p)
+static int sndinset_(CSOUND *csound, SOUNDIN_ *p, int stringname)
 {
     double  pos;
     char    name[1024];
@@ -1001,7 +1026,12 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     }
     /* open file */
     /* FIXME: name can overflow with very long string */
-    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->iFileCode)) strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+    }
+    else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
+
     if(csound->realtime_audio_flag==0)
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                          "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
@@ -1069,6 +1099,15 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     return OK;
 }
 
+int sndinset(CSOUND *csound, SOUNDIN_ *p){
+  return sndinset_(csound,p,0);
+}
+
+int sndinset_S(CSOUND *csound, SOUNDIN_ *p){
+  return sndinset_(csound,p,1);
+}
+
+
 int soundin(CSOUND *csound, SOUNDIN_ *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1115,5 +1154,163 @@ int soundin(CSOUND *csound, SOUNDIN_ *p)
      }
      p->read_pos++;
     }
+    return OK;
+}
+
+static int soundout_deinit(CSOUND *csound, void *pp)
+{
+    char    *opname = csound->GetOpcodeName(pp);
+    SNDCOM  *q;
+
+    if (strcmp(opname, "soundouts") == 0)
+      q = &(((SNDOUTS*) pp)->c);
+    else
+      q = &(((SNDOUT*) pp)->c);
+
+    if (q->fd != NULL) {
+      /* flush buffer */
+      MYFLT *p0 = (MYFLT*) &(q->outbuf[0]);
+      MYFLT *p1 = (MYFLT*) q->outbufp;
+      if (p1 > p0) {
+        sf_write_MYFLT(q->sf, p0, (sf_count_t) ((MYFLT*) p1 - (MYFLT*) p0));
+        q->outbufp = (MYFLT*) &(q->outbuf[0]);
+      }
+      /* close file */
+      csound->FileClose(csound, q->fd);
+      q->sf = (SNDFILE*) NULL;
+      q->fd = NULL;
+    }
+
+    return OK;
+}
+
+/* RWD:DBFS: NB: thse funcs all supposed to write to a 'raw' file, so
+   what will people want for 0dbfs handling? really need to update
+   opcode with more options. */
+
+/* init routine for instr soundout  */
+
+static int sndo1set_(CSOUND *csound, void *pp, int stringname)
+{
+    char    *sfname, *opname, name[1024];
+    SNDCOM  *q;
+    MYFLT   *ifilcod, *iformat;
+    int     filetyp = TYP_RAW, format = csound->oparms_.outformat, nchns = 1;
+    SF_INFO sfinfo;
+    //SNDOUTS *p = (SNDOUTS*) pp;
+
+    opname = csound->GetOpcodeName(pp);
+    csound->Warning(csound, Str("%s is deprecated; use fout instead\n"),
+                      opname);
+    if (strcmp(opname, "soundouts") == 0 || strcmp(opname, "soundouts.i") == 0) {
+      q = &(((SNDOUTS*) pp)->c);
+      ifilcod = ((SNDOUTS*) pp)->ifilcod;
+      iformat = ((SNDOUTS*) pp)->iformat;
+      nchns++;
+    }
+    else {
+      q = &(((SNDOUT*) pp)->c);
+      ifilcod = ((SNDOUT*) pp)->ifilcod;
+      iformat = ((SNDOUT*) pp)->iformat;
+    }
+
+    if (q->fd != NULL)                  /* if file already open, */
+      return OK;                        /* return now            */
+
+    csound->RegisterDeinitCallback(csound, pp, soundout_deinit);
+
+    if(stringname==0){
+      if(ISSTRCOD(*ifilcod)) strncpy(name,get_arg_string(csound, *ifilcod), 1023);
+      else csound->strarg2name(csound, name, ifilcod, "soundout.",0);
+    }
+    else strncpy(name, ((STRINGDAT *)ifilcod)->data, 1023);
+
+    sfname = name;
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    sfinfo.frames = -1;
+    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+    sfinfo.channels = nchns;
+    switch ((int) (*iformat + FL(0.5))) {
+      case 1: format = AE_CHAR; break;
+      case 4: format = AE_SHORT; break;
+      case 5: format = AE_LONG; break;
+      case 6: format = AE_FLOAT;
+      case 0: break;
+      default:
+        return csound->InitError(csound, Str("%s: invalid sample format: %d"),
+                                 opname, (int) (*iformat + FL(0.5)));
+    }
+    sfinfo.format = TYPE2SF(filetyp) | FORMAT2SF(format);
+    if (q->fd == NULL) {
+      return csound->InitError(csound, Str("%s cannot open %s"), opname, sfname);
+    }
+    sfname = csound->GetFileName(q->fd);
+    if (format != AE_FLOAT)
+      sf_command(q->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
+    else
+      sf_command(q->sf, SFC_SET_CLIPPING, NULL, SF_FALSE);
+#ifdef USE_DOUBLE
+    sf_command(q->sf, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
+#else
+    sf_command(q->sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
+#endif
+    csound->Warning(csound, Str("%s: opening RAW outfile %s\n"),
+                      opname, sfname);
+    q->outbufp = q->outbuf;                 /* fix - isro 20-11-96 */
+    q->bufend = q->outbuf + SNDOUTSMPS;     /* fix - isro 20-11-96 */
+
+    return OK;
+}
+
+int sndoutset(CSOUND *csound, SNDOUT *p){
+  return sndo1set_(csound,p,0);
+}
+
+int sndoutset_S(CSOUND *csound, SNDOUT *p){
+  return sndo1set_(csound,p,1);
+}
+
+
+int soundout(CSOUND *csound, SNDOUT *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nn, nsmps = CS_KSMPS;
+
+    if (UNLIKELY(p->c.sf == NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("soundout: not initialised"));
+    if (UNLIKELY(early)) nsmps -= early;
+    for (nn = offset; nn < nsmps; nn++) {
+      if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
+
+        sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
+        p->c.outbufp = p->c.outbuf;
+      }
+      *(p->c.outbufp++) = p->asig[nn];
+    }
+
+    return OK;
+}
+
+int soundouts(CSOUND *csound, SNDOUTS *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nn, nsmps = CS_KSMPS;
+
+    if (UNLIKELY(p->c.sf == NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("soundouts: not initialised"));
+    if (UNLIKELY(early)) nsmps -= early;
+    for (nn = offset; nn < nsmps; nn++) {
+      if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
+        sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
+        p->c.outbufp = p->c.outbuf;
+      }
+      *(p->c.outbufp++) = p->asig1[nn];
+      *(p->c.outbufp++) = p->asig2[nn];
+    }
+
     return OK;
 }

@@ -92,8 +92,9 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         need_deinit = 1;
     }
     /* get file name, */
-    if (isString || ISSTRCOD(*iFile))
-      name = csound->strarg2name(csound, NULL, iFile, "fout.", isString);
+    if (isString) name = cs_strdup(csound, ((STRINGDAT *)iFile)->data);
+    else if(ISSTRCOD(*iFile)) name = cs_strdup(csound, get_arg_string(csound, *iFile));
+    /* else csound->strarg2name(csound, NULL, iFile, "fout.", 0);*/
     else {
       /* or handle to previously opened file */
       idx = (int) MYFLT2LRND(*iFile);
@@ -357,7 +358,7 @@ static int fout_flush_callback(CSOUND *csound, void *p_)
     return OK;
 }
 
-static int outfile_set(CSOUND *csound, OUTFILE *p)
+static int outfile_set_(CSOUND *csound, OUTFILE *p, int istring)
 {
     SF_INFO sfinfo;
     int     format_, n, buf_reqd;
@@ -391,11 +392,9 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
     p->f.bufsize =  p->buf.size;
     sfinfo.channels = p->nargs;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
-                       p->fname, p->XSTRCODE, &sfinfo, 0);
+                       p->fname, istring, &sfinfo, 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
-
-
 
     if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
       p->scaleFac = csound->dbfs_to_float;
@@ -405,6 +404,15 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
     csound->RegisterDeinitCallback(csound, p, fout_flush_callback);
     return OK;
 }
+
+static int outfile_set(CSOUND *csound, OUTFILE *p){
+  return outfile_set_(csound,p,0);
+}
+
+static int outfile_set_S(CSOUND *csound, OUTFILE *p){
+  return outfile_set_(csound,p,1);
+}
+
 
 static int koutfile(CSOUND *csound, KOUTFILE *p)
 {
@@ -427,7 +435,7 @@ static int koutfile(CSOUND *csound, KOUTFILE *p)
     return OK;
 }
 
-static int koutfile_set(CSOUND *csound, KOUTFILE *p)
+static int koutfile_set_(CSOUND *csound, KOUTFILE *p, int istring)
 {
     SF_INFO sfinfo;
     int     format_, n, buf_reqd;
@@ -459,11 +467,9 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
       }
      p->f.bufsize = p->buf.size;
      n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
-                        p->fname, p->XSTRCODE, &sfinfo, 0);
+                        p->fname, istring, &sfinfo, 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
-
-
 
     if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
       p->scaleFac = csound->dbfs_to_float;
@@ -474,6 +480,15 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
     return OK;
 }
 
+static int koutfile_set(CSOUND *csound, KOUTFILE *p){
+  return koutfile_set_(csound,p,0);
+}
+
+static int koutfile_set_S(CSOUND *csound, KOUTFILE *p){
+  return koutfile_set_(csound,p,1);
+}
+
+
 /*--------------*/
 
 /* syntax:
@@ -483,7 +498,7 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
 /* open a file and return its handle  */
 /* the handle is simply a stack index */
 
-static int fiopen(CSOUND *csound, FIOPEN *p)
+static int fiopen_(CSOUND *csound, FIOPEN *p, int istring)
 {
     char    *omodes[] = {"w", "r", "wb", "rb"};
     FILE    *rfp = (FILE*) NULL;
@@ -492,7 +507,7 @@ static int fiopen(CSOUND *csound, FIOPEN *p)
     if (idx < 0 || idx > 3)
       idx = 0;
     n = fout_open_file(csound, (FOUT_FILE*) NULL, &rfp, CSFILE_STD,
-                       p->fname, p->XSTRCODE, omodes[idx], 1);
+                       p->fname, istring, omodes[idx], 1);
     if (UNLIKELY(n < 0))
       return NOTOK;
     if (idx > 1)
@@ -502,14 +517,24 @@ static int fiopen(CSOUND *csound, FIOPEN *p)
     return OK;
 }
 
-static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
+static int fiopen(CSOUND *csound, FIOPEN *p){
+  return fiopen_(csound, p, 0);
+}
+
+static int fiopen_S(CSOUND *csound, FIOPEN *p){
+  return fiopen_(csound, p, 1);
+}
+
+static int ficlose_opcode_(CSOUND *csound, FICLOSE *p, int istring)
 {
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int               idx = -1;
-
-    if (p->XSTRCODE || ISSTRCOD(*(p->iFile))) {
-      char    *fname;
-      fname = csound->strarg2name(csound, NULL, p->iFile, "fout.", p->XSTRCODE);
+  
+    if (istring || ISSTRCOD(*(p->iFile))){
+       char    *fname;
+      if(istring) fname = cs_strdup(csound, ((STRINGDAT *)p->iFile)->data);
+      else if(ISSTRCOD(*(p->iFile))) fname = cs_strdup(csound, get_arg_string(csound, *p->iFile));
+	/* else fname = csound->strarg2name(csound, NULL, p->iFile, "fout.", istring);*/
       if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
         csound->Free(csound, fname);
         return csound->InitError(csound, Str("invalid file name"));
@@ -556,6 +581,14 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
     }
 
     return OK;
+}
+
+static int ficlose_opcode(CSOUND *csound, FICLOSE *p){
+  return ficlose_opcode_(csound,p,0);
+}
+
+static int ficlose_opcode_S(CSOUND *csound, FICLOSE *p){
+  return ficlose_opcode_(csound,p,1);
 }
 
 /* syntax:
@@ -618,6 +651,8 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
     }
     return OK;
 }
+
+
 
 static int ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
 {
@@ -691,7 +726,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 
 /*----------------------------------*/
 
-static int infile_set(CSOUND *csound, INFILE *p)
+static int infile_set_(CSOUND *csound, INFILE *p, int istring)
 {
     SF_INFO sfinfo;
     int     n, buf_reqd;
@@ -720,7 +755,7 @@ static int infile_set(CSOUND *csound, INFILE *p)
       }
     p->f.bufsize =  p->buf.size;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
-                       p->fname, p->XSTRCODE, &sfinfo, 0);
+                       p->fname, istring, &sfinfo, 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
 
@@ -738,6 +773,14 @@ static int infile_set(CSOUND *csound, INFILE *p)
     csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
 
     return OK;
+}
+
+static int infile_set(CSOUND *csound, INFILE *p){
+  return infile_set_(csound,p,0);
+}
+
+static int infile_set_S(CSOUND *csound, INFILE *p){
+  return infile_set_(csound,p,1);
 }
 
 static int infile_act(CSOUND *csound, INFILE *p)
@@ -796,7 +839,7 @@ static int infile_act(CSOUND *csound, INFILE *p)
 
 /* ---------------------------- */
 
-static int kinfile_set(CSOUND *csound, KINFILE *p)
+static int kinfile_set_(CSOUND *csound, KINFILE *p, int istring)
 {
     SF_INFO sfinfo;
     int     n, buf_reqd;
@@ -828,7 +871,7 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
       }
     p->f.bufsize =  p->buf.size;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
-                       p->fname, p->XSTRCODE, &sfinfo, 0);
+                       p->fname, istring, &sfinfo, 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
 
@@ -845,6 +888,15 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
 
     return OK;
 }
+
+static int kinfile_set(CSOUND *csound, KINFILE *p){
+  return kinfile_set_(csound,p,0);
+}
+
+static int kinfile_set_S(CSOUND *csound, KINFILE *p){
+  return kinfile_set_(csound,p,1);
+}
+
 
 static int kinfile(CSOUND *csound, KINFILE *p)
 {
@@ -881,7 +933,7 @@ static int kinfile(CSOUND *csound, KINFILE *p)
     return OK;
 }
 
-static int i_infile(CSOUND *csound, I_INFILE *p)
+static int i_infile_(CSOUND *csound, I_INFILE *p, int istring)
 {
     int     j, n, nargs;
     FILE    *fp = NULL;
@@ -892,7 +944,7 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
     if (UNLIKELY(idx < 0 || idx > 2))
       idx = 0;
     n = fout_open_file(csound, (FOUT_FILE*) NULL, &fp, CSFILE_STD,
-                       p->fname, p->XSTRCODE, omodes[idx], 0);
+                       p->fname, istring, omodes[idx], 0);
     if (UNLIKELY(n < 0))
       return NOTOK;
 
@@ -960,6 +1012,15 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
     return OK;
 }
 
+static int i_infile(CSOUND *csound, I_INFILE *p){
+  return i_infile_(csound,p,0);
+}
+
+static int i_infile_S(CSOUND *csound, I_INFILE *p){
+  return i_infile_(csound,p,1);
+}
+
+
 /*---------------------------*/
 
 static int incr(CSOUND *csound, INCR *p)
@@ -988,20 +1049,20 @@ static int clear(CSOUND *csound, CLEARS *p)
 /*---------------------------------*/
 /* formatted output to a text file */
 
-static int fprintf_set(CSOUND *csound, FPRINTF *p)
+static int fprintf_set_(CSOUND *csound, FPRINTF *p, int istring)
 {
     int     n;
-    char    *sarg = (char*) p->fmt;
+    char    *sarg = (char*) p->fmt->data;
     char    *sdest = p->txtstring;
 
     memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 
     if (p->h.opadr != (SUBR) NULL)      /* fprintks */
       n = fout_open_file(csound, &(p->f), NULL, CSFILE_STD,
-                         p->fname, p->XSTRCODE & 1, "w", 1);
+                         p->fname, istring, "w", 1);
     else                                /* fprints */
       n = fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
-                         p->fname, p->XSTRCODE & 1, "w", 1);
+                         p->fname, istring, "w", 1);
     if (UNLIKELY(n < 0))
       return NOTOK;
     setvbuf(p->f.f, (char*)NULL, _IOLBF, 0); /* Seems a good option */
@@ -1104,6 +1165,14 @@ static int fprintf_set(CSOUND *csound, FPRINTF *p)
       /* Increment pointer and process next character until end of string.  */
     } while (*++sarg != 0);
     return OK;
+}
+
+static int fprintf_set(CSOUND *csound, FPRINTF *p){
+  return fprintf_set_(csound,p,0);
+}
+
+static int fprintf_set_S(CSOUND *csound, FPRINTF *p){
+  return fprintf_set_(csound,p,1);
 }
 
 /* perform a sprintf-style format -- matt ingalls */
@@ -1225,33 +1294,63 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
     return OK;
 }
 
+static int fprintf_i_S(CSOUND *csound, FPRINTF *p)
+{
+    char    string[8192];
+
+    if (UNLIKELY(fprintf_set_S(csound, p) != OK))
+      return NOTOK;
+    sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
+    fprintf(p->f.f, string);
+    /* fflush(p->f.f); */
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 static OENTRY localops[] = {
-    {"fprints",    S(FPRINTF),      0, 1,  "",     "TSM",
+    {"fprints",    S(FPRINTF),      0, 1,  "",     "SSM",
+        (SUBR) fprintf_i_S, (SUBR) NULL,(SUBR) NULL, NULL, 0 },
+        {"fprints.i",    S(FPRINTF),      0, 1,  "",     "iSM",
         (SUBR) fprintf_i, (SUBR) NULL,(SUBR) NULL, NULL, 0 },
-    { "fprintks",   S(FPRINTF),    WR, 3,  "",     "TSM",
+    { "fprintks",   S(FPRINTF),    WR, 3,  "",     "SSM",
+        (SUBR) fprintf_set_S,     (SUBR) fprintf_k,   (SUBR) NULL, NULL, 0         },
+    { "fprintks",   S(FPRINTF),    WR, 3,  "",     "iSM",
         (SUBR) fprintf_set,     (SUBR) fprintf_k,   (SUBR) NULL, NULL, 0         },
     { "vincr",      S(INCR),        0, 4,  "",     "aa",
         (SUBR) NULL,            (SUBR) NULL,        (SUBR) incr, NULL, 0         },
     { "clear",      S(CLEARS),      0, 4,  "",     "y",
         (SUBR) NULL,            (SUBR) NULL,        (SUBR) clear, NULL, 0        },
-    { "fout",       S(OUTFILE),     0, 5,  "",     "Tiy",
+    { "fout",       S(OUTFILE),     0, 5,  "",     "Siy",
+        (SUBR) outfile_set_S,     (SUBR) NULL,        (SUBR) outfile, NULL, 0      },
+    { "fout.i",       S(OUTFILE),     0, 5,  "",     "iiy",
         (SUBR) outfile_set,     (SUBR) NULL,        (SUBR) outfile, NULL, 0      },
-    { "foutk",      S(KOUTFILE),    0, 3,  "",     "Tiz",
+    { "foutk",      S(KOUTFILE),    0, 3,  "",     "Siz",
+        (SUBR) koutfile_set_S,    (SUBR) koutfile,    (SUBR) NULL, NULL, 0         },
+        { "foutk.i",      S(KOUTFILE),    0, 3,  "",     "iiz",
         (SUBR) koutfile_set,    (SUBR) koutfile,    (SUBR) NULL, NULL, 0         },
     { "fouti",      S(IOUTFILE),    0, 1,  "",     "iiim",
         (SUBR) ioutfile_set,    (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
     { "foutir",     S(IOUTFILE_R),  0, 3,  "",     "iiim",
         (SUBR) ioutfile_set_r,  (SUBR) ioutfile_r,  (SUBR) NULL, NULL, 0         },
-    { "fiopen",     S(FIOPEN),      0, 1,  "i",    "Ti",
+    { "fiopen",     S(FIOPEN),      0, 1,  "i",    "Si",
+        (SUBR) fiopen_S,          (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
+        { "fiopen.i",     S(FIOPEN),      0, 1,  "i",    "ii",
         (SUBR) fiopen,          (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
-    { "ficlose",    S(FICLOSE),     0, 1,  "",     "T",
+    { "ficlose",    S(FICLOSE),     0, 1,  "",     "S",
+        (SUBR) ficlose_opcode_S,  (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
+    { "ficlose.S",    S(FICLOSE),     0, 1,  "",     "i",
         (SUBR) ficlose_opcode,  (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
-    { "fin",        S(INFILE),      0, 5,  "",     "Tiiy",
+    { "fin",        S(INFILE),      0, 5,  "",     "Siiy",
+        (SUBR) infile_set_S,      (SUBR) NULL,        (SUBR) infile_act, NULL, 0   },
+    { "fin.i",        S(INFILE),      0, 5,  "",     "iiiy",
         (SUBR) infile_set,      (SUBR) NULL,        (SUBR) infile_act, NULL, 0   },
-    { "fink",       S(KINFILE),     0, 3,  "",     "Tiiz",
+    { "fink",       S(KINFILE),     0, 3,  "",     "Siiz",
+        (SUBR) kinfile_set_S,     (SUBR) kinfile,     (SUBR) NULL, NULL, 0         },
+    { "fink.i",       S(KINFILE),     0, 3,  "",     "iiiz",
         (SUBR) kinfile_set,     (SUBR) kinfile,     (SUBR) NULL, NULL, 0         },
     { "fini",       S(I_INFILE),    0, 1,  "",     "Tiim",
+      (SUBR) i_infile_S,        (SUBR) NULL,        (SUBR) NULL, NULL, 0         },
+    { "fini.i",       S(I_INFILE),    0, 1,  "",     "iiim",
         (SUBR) i_infile,        (SUBR) NULL,        (SUBR) NULL, NULL, 0         }
 };
 

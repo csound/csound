@@ -155,9 +155,6 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
 /*        3. the file name is generated using baseName and the  */
 /*           value rounded to the nearest integer, as described */
 /*           above                                              */
-/*      'is_string' is usually p->XSTRCODE for an opcode with   */
-/*      only one string argument, otherwise it is               */
-/*      p->XSTRCODE & (1 << (argno - 1))                        */
 /*   return value:                                              */
 /*      pointer to the output string; if 's' is not NULL, it is */
 /*      always the same as 's', otherwise it is allocated with  */

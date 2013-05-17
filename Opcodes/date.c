@@ -31,7 +31,7 @@ typedef struct {
 
 typedef struct {
    OPDS h;
-   MYFLT *Stime_;
+   STRINGDAT *Stime_;
    MYFLT *timstmp;
 } DATESTRING;
 
@@ -69,24 +69,29 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
     }
     /* q = strchr(time_string, '\n'); */
     /* if (q) *q='\0'; */
-    strcpy((char*) p->Stime_, time_string);
+    if(p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
+    p->Stime_->data = csound->Strdup(csound, time_string);
     return OK;
 }
 
 typedef struct {
    OPDS h;
-   MYFLT *Scd;
+   STRINGDAT *Scd;
 } GETCWD;
 
 static int getcurdir(CSOUND *csound, GETCWD *p)
 {
+  if(p->Scd->data == NULL){
+    p->Scd->size = 1024;
+    p->Scd->data = csound->Calloc(csound, p->Scd->size);
+  }
     if (UNLIKELY(
 #if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__)
                  getcwd
 #else
                  _getcwd
 #endif
-                 (((char*) p->Scd), csound->GetStrVarMaxLen(csound))==NULL))
+                 (p->Scd->data, p->Scd->size-1)==NULL))
       return csound->InitError(csound, Str("cannot determine current directory"));
     return OK;
 }
@@ -108,16 +113,26 @@ static int readf_delete(CSOUND *csound, void *p)
     return OK;
 }
 
-static int readf_init(CSOUND *csound, READF *p)
+static int readf_init_(CSOUND *csound, READF *p, int isstring)
 {
     char name[1024];
-    csound->strarg2name(csound, name, p->Sfile, "input.", p->XSTRCODE);
+    if(isstring) strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
+    else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;
     if (UNLIKELY(p->fd==NULL))
       return csound->InitError(csound, Str("readf: failed to open file"));
     return csound->RegisterDeinitCallback(csound, p, readf_delete);
 }
+
+static int readf_init(CSOUND *csound, READF *p){
+  return readf_init_(csound,p,0);
+}
+
+static int readf_init_S(CSOUND *csound, READF *p){
+  return readf_init_(csound,p,1);
+}
+
 
 static int readf(CSOUND *csound, READF *p)
 {
@@ -146,14 +161,25 @@ static int readfi(CSOUND *csound, READF *p)
     return readf(csound, p);
 }
 
+static int readfi_S(CSOUND *csound, READF *p)
+{
+    if (p->fd==NULL)
+      if (UNLIKELY(readf_init_S(csound, p)!= OK))
+        return csound->InitError(csound, Str("readi failed to initialise"));
+    return readf(csound, p);
+}
+
 
 static OENTRY date_localops[] =
 {
     { "date",   sizeof(DATEMYFLT),  0, 1, "i",    "", (SUBR)datemyfltset   },
     { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
-    { "readfi", sizeof(READF),      0, 1, "Si",   "T", (SUBR)readfi,       },
-    { "readf",  sizeof(READF),      0, 3, "Sk",   "T", (SUBR)readf_init,
+    { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
+    { "readfi.S", sizeof(READF),      0, 1, "Si",   "S", (SUBR)readfi_S,       },
+    { "readf",  sizeof(READF),      0, 3, "Sk",   "i", (SUBR)readf_init,
+      (SUBR)readf         },
+    { "readf.S",  sizeof(READF),      0, 3, "Sk",   "S", (SUBR)readf_init_S,
                                                        (SUBR)readf         }
 
 };

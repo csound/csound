@@ -179,7 +179,7 @@ static int control(CSOUND *csound, CNTRL *p)
     return OK;
 }
 
-static int ocontrol(CSOUND *csound, SCNTRL *p)
+static int ocontrol_(CSOUND *csound, SCNTRL *p, int istring)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     int c = (int) *p->which;
@@ -207,7 +207,11 @@ static int ocontrol(CSOUND *csound, SCNTRL *p)
     case 4:
       {
         char buffer[100];
-        csound->strarg2name(csound, buffer, p->val, "Control ", p->XSTRCODE);
+        if(istring) {
+	  csound->strarg2name(csound, buffer, ((STRINGDAT *)p->val)->data, "Control ",istring);
+        }
+        else
+         csound->strarg2name(csound, buffer, p->val, "Control ",istring);
         csound->Message(csound, Str("Slider %d set to %s\n"), slider, buffer);
         fprintf(pp->wish_cmd, "setlab %d \"%s\"\n", slider, buffer);
         break;
@@ -216,6 +220,14 @@ static int ocontrol(CSOUND *csound, SCNTRL *p)
       return csound->InitError(csound, Str("Unknown control %d"), c);
     }
     return OK;
+}
+
+static int ocontrol(CSOUND *csound, SCNTRL *p){
+  return ocontrol_(csound,p,0);
+}
+
+static int ocontrol_S(CSOUND *csound, SCNTRL *p){
+  return ocontrol_(csound,p,1);
 }
 
 static int button_set(CSOUND *csound, CNTRL *p)
@@ -272,7 +284,7 @@ static int check(CSOUND *csound, CNTRL *p)
 
 /* **** Text Windows **** */
 
-static int textflash(CSOUND *csound, TXTWIN *p)
+static int textflash_(CSOUND *csound, TXTWIN *p, int istring)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     int   wind = (int) MYFLT2LONG(*p->kcntl);
@@ -280,10 +292,13 @@ static int textflash(CSOUND *csound, TXTWIN *p)
 
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
-    if (p->XSTRCODE || ISSTRCOD(*p->val)) {
-      csound->strarg2name(csound, buffer, p->val, "", p->XSTRCODE);
+    if (istring) {
+      csound->strarg2name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
 /*    csound->Message(csound, "settext %d \"%s\"\n", wind, buffer); */
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
+    }
+    else if(ISSTRCOD(*p->val)) {
+      csound->strarg2name(csound, buffer, csound->get_arg_string(csound, *p->val), "", 1);
     }
     else {
 /*    csound->Message(csound, "deltext %d\n", wind); */
@@ -292,14 +307,25 @@ static int textflash(CSOUND *csound, TXTWIN *p)
     return OK;
 }
 
+static int textflash(CSOUND *csound, TXTWIN *p){
+  return textflash_(csound, p, 0);
+}
+
+static int textflash_S(CSOUND *csound, TXTWIN *p){
+  return textflash_(csound, p, 1);
+}
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY control_localops[] = {
   { "control",  S(CNTRL),  0, 3, "k", "k",  (SUBR) cntrl_set, (SUBR) control, NULL },
-{ "setctrl",  S(SCNTRL), 0, 1, "",  "iTi", (SUBR) ocontrol, NULL, NULL           },
+{ "setctrl",  S(SCNTRL), 0, 1, "",  "iii", (SUBR) ocontrol, NULL, NULL           },
+{ "setctrl.S",  S(SCNTRL), 0, 1, "",  "iSi", (SUBR) ocontrol_S, NULL, NULL           },
 { "button",   S(CNTRL),  0, 3, "k", "k",  (SUBR) button_set, (SUBR) button, NULL },
 { "checkbox", S(CNTRL),  0, 3, "k", "k",   (SUBR) check_set, (SUBR) check, NULL  },
-{ "flashtxt", S(TXTWIN), 0, 1, "",  "iT",  (SUBR) textflash, NULL, NULL          },
+{ "flashtxt", S(TXTWIN), 0, 1, "",  "ii",  (SUBR) textflash, NULL, NULL          },
+{ "flashtxt.S", S(TXTWIN), 0, 1, "",  "iS",  (SUBR) textflash_S, NULL, NULL          },
 };
 
 LINKAGE_BUILTIN(control_localops)
