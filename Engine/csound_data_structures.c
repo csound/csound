@@ -320,7 +320,7 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
         while(item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
             mfree(csound, item->key);
-            free(item->value);
+            mfree(csound, item->value);
             mfree(csound, item);
             item = next;
         }

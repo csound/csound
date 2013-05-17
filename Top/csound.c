@@ -238,6 +238,7 @@ static const CSOUND cenviron_ = {
     mmalloc,
     mcalloc,
     mrealloc,
+    cs_strdup,
     mfree,
     /* function tables */
     hfgens,
@@ -411,6 +412,7 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
+    get_arg_string,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,

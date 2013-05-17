@@ -62,7 +62,7 @@ void FetchInForAdd(float *inp, MYFLT *buf, int32 fsize,
     }
 }
 
-int pvaddset(CSOUND *csound, PVADD *p)
+int pvaddset_(CSOUND *csound, PVADD *p, int stringname)
 {
     int      ibins;
     char     pvfilnam[MAXNAME];
@@ -80,7 +80,12 @@ int pvaddset(CSOUND *csound, PVADD *p)
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    }
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+
     if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;
 
@@ -193,6 +198,15 @@ int pvadd(CSOUND *csound, PVADD *p)
  err2:
     return csound->PerfError(csound, p->h.insdshead, Str("PVADD timpnt < 0"));
 }
+
+int pvaddset(CSOUND *csound, PVADD *p){
+  return pvaddset_(csound, p, 0);
+}
+
+int pvaddset_S(CSOUND *csound, PVADD *p){
+  return pvaddset_(csound, p, 1);
+}
+
 
 static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
 {

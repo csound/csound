@@ -1,50 +1,50 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *string;
+    STRINGDAT *string;
 } PYEXEC;
 
 typedef struct {
     OPDS    h;
     MYFLT   *trigger;
-    MYFLT   *string;
+    STRINGDAT *string;
 } PYEXECT;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *string;
+    STRINGDAT *string;
 } PYRUN;
 
 typedef struct {
     OPDS    h;
     MYFLT   *trigger;
-    MYFLT   *string;
+    STRINGDAT *string;
 } PYRUNT;
 
 typedef struct {
     OPDS    h;
     MYFLT   *result;
-    MYFLT   *string;
+    STRINGDAT *string;
 } PYEVAL;
 
 typedef struct {
     OPDS    h;
     MYFLT   *result;
     MYFLT   *trigger;
-    MYFLT   *string;
+    STRINGDAT *string;
     MYFLT   oresult;
 } PYEVALT;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *string;
+    STRINGDAT *string;
     MYFLT   *value;
 } PYASSIGN;
 
 typedef struct {
     OPDS    h;
     MYFLT   *trigger;
-    MYFLT   *string;
+    STRINGDAT *string;
     MYFLT   *value;
 } PYASSIGNT;
 

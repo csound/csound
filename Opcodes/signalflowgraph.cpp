@@ -231,7 +231,7 @@ struct Outleta : public OpcodeBase<Outleta> {
   /**
    * Inputs.
    */
-  MYFLT *Sname;
+  STRINGDAT *Sname;
   MYFLT *asignal;
   /**
    * State.
@@ -244,9 +244,9 @@ struct Outleta : public OpcodeBase<Outleta> {
       sourceOutletId[0] = 0;
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       if (insname) {
-        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       std::vector<Outleta *> &aoutlets = aoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(aoutlets.begin(), aoutlets.end(), this) == aoutlets.end()) {
@@ -267,7 +267,7 @@ struct Inleta : public OpcodeBase<Inleta> {
   /**
    * Inputs.
    */
-  MYFLT *Sname;
+  STRINGDAT *Sname;
   /**
    * State.
    */
@@ -290,9 +290,9 @@ struct Inleta : public OpcodeBase<Inleta> {
       sinkInletId[0] = 0;
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       if (insname) {
-        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       std::vector<Inleta *> &ainlets = ainletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(ainlets.begin(), ainlets.end(), this) == ainlets.end()) {
@@ -360,7 +360,7 @@ struct Outletk : public OpcodeBase<Outletk> {
   /**
    * Inputs.
    */
-  MYFLT *Sname;
+  STRINGDAT *Sname;
   MYFLT *ksignal;
   /**
    * State.
@@ -372,9 +372,9 @@ struct Outletk : public OpcodeBase<Outletk> {
 
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       if (insname) {
-        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       std::vector<Outletk *> &koutlets = koutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
@@ -394,7 +394,7 @@ struct Inletk : public OpcodeBase<Inletk> {
   /**
    * Inputs.
    */
-  MYFLT *Sname;
+  STRINGDAT *Sname;
   /**
    * State.
    */
@@ -415,9 +415,9 @@ struct Inletk : public OpcodeBase<Inletk> {
       sinkInletId[0] = 0;
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       if (insname) {
-        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       std::vector<Inletk *> &kinlets = kinletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
@@ -471,7 +471,7 @@ struct Outletf : public OpcodeBase<Outletf> {
   /**
    * Inputs.
    */
-  MYFLT *Sname;
+  STRINGDAT *Sname;
   PVSDAT *fsignal;
   /**
    * State.
@@ -482,9 +482,9 @@ struct Outletf : public OpcodeBase<Outletf> {
     {
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       if (insname) {
-        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       std::vector<Outletf *> &foutlets = foutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(foutlets.begin(), foutlets.end(), this) == foutlets.end()) {
@@ -504,7 +504,7 @@ struct Inletf : public OpcodeBase<Inletf> {
   /**
    * Inputs.
    */
-  MYFLT *Sname;
+  STRINGDAT *Sname;
   /**
    * State.
    */
@@ -528,9 +528,9 @@ struct Inletf : public OpcodeBase<Inletf> {
       sinkInletId[0] = 0;
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       if (insname) {
-        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       std::vector<Inletf *> &finlets = finletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(finlets.begin(), finlets.end(), this) == finlets.end()) {
@@ -642,8 +642,8 @@ struct Outletkid : public OpcodeBase<Outletkid> {
   /**
    * Inputs.
    */
-  MYFLT *Sname;
-  MYFLT *SinstanceId;
+  STRINGDAT *Sname;
+  STRINGDAT *SinstanceId;
   MYFLT *ksignal;
   /**
    * State.
@@ -656,18 +656,18 @@ struct Outletkid : public OpcodeBase<Outletkid> {
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       instanceId = csound->strarg2name(csound,
                    (char*) NULL,
-                   SinstanceId,
+                   SinstanceId->data,
                    (char *)"",
-                   (int) csound->GetInputArgSMask(this));
+                   1);
       if (insname && instanceId) {
-        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       if (insname) {
-        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
@@ -687,8 +687,8 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   /**
    * Inputs.
    */
-  MYFLT *Sname;
-  MYFLT *SinstanceId;
+  STRINGDAT *Sname;
+  STRINGDAT *SinstanceId;
   /**
    * State.
    */
@@ -710,14 +710,14 @@ struct Inletkid : public OpcodeBase<Inletkid> {
       sinkInletId[0] = 0;
       instanceId = csound->strarg2name(csound,
                    (char*) NULL,
-                   SinstanceId,
+                   SinstanceId->data,
                    (char *)"",
-                   (int) csound->GetInputArgSMask(this));
+                   1);
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       if (insname) {
-        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
       } else {
-        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno, (char *)Sname);
+        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno, (char *)Sname->data);
       }
       std::vector<Inletkid *> &kinlets = kidinletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
@@ -774,9 +774,9 @@ struct Connect : public OpcodeBase<Connect> {
    * Inputs.
    */
   MYFLT *Source;
-  MYFLT *Soutlet;
-  MYFLT *Sink;
-  MYFLT *Sinlet;
+  STRINGDAT *Soutlet;
+  MYFLT  *Sink;
+  STRINGDAT *Sinlet;
   int init(CSOUND *csound) {
 #pragma omp critical (cs_sfg_ports)
     {
@@ -784,27 +784,188 @@ struct Connect : public OpcodeBase<Connect> {
                                                        (char *) 0,
                                                        Source,
                                                        (char *)"",
-                                                       (int) csound->GetInputArgSMask(this));
+                                                       0);
       sourceOutletId += ":";
       sourceOutletId += csound->strarg2name(csound,
                                             (char *) 0,
-                                            Soutlet,
+                                            Soutlet->data,
                                             (char *)"",
-                                            (int) csound->GetInputArgSMask(this));
+                                            1);
       std::string sinkInletId = csound->strarg2name(csound,
                                                     (char *) 0,
                                                     Sink,
                                                     (char *)"",
-                                                    (int) csound->GetInputArgSMask(this));
+                                                    0);
       sinkInletId += ":";
       sinkInletId += csound->strarg2name(csound,
                                          (char *) 0,
-                                         Sinlet,
+                                         Sinlet->data,
                                          (char *)"",
-                                         (int) csound->GetInputArgSMask(this));
+                                         1);
       warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
       connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
     }
+    return OK;
+  }
+};
+
+struct Connecti : public OpcodeBase<Connecti> {
+  /**
+   * Inputs.
+   */
+  MYFLT *Source;
+  STRINGDAT *Soutlet;
+  STRINGDAT *Sink;
+  STRINGDAT *Sinlet;
+  int init(CSOUND *csound) {
+#pragma omp critical (cs_sfg_ports)
+    {
+      std::string sourceOutletId = csound->strarg2name(csound,
+                                                       (char *) 0,
+                                                       Source,
+                                                       (char *)"",
+                                                       0);
+      sourceOutletId += ":";
+      sourceOutletId += csound->strarg2name(csound,
+                                            (char *) 0,
+                                            Soutlet->data,
+                                            (char *)"",
+                                            1);
+      std::string sinkInletId = csound->strarg2name(csound,
+                                                    (char *) 0,
+                                                    Sink->data,
+                                                    (char *)"",
+                                                    1);
+      sinkInletId += ":";
+      sinkInletId += csound->strarg2name(csound,
+                                         (char *) 0,
+                                         Sinlet->data,
+                                         (char *)"",
+                                         1);
+      warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
+      connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
+    }
+    return OK;
+  }
+};
+
+
+struct Connectii : public OpcodeBase<Connectii> {
+  /**
+   * Inputs.
+   */
+  STRINGDAT *Source;
+  STRINGDAT *Soutlet;
+  MYFLT *Sink;
+  STRINGDAT *Sinlet;
+  int init(CSOUND *csound) {
+#pragma omp critical (cs_sfg_ports)
+    {
+      std::string sourceOutletId = csound->strarg2name(csound,
+                                                       (char *) 0,
+                                                       Source->data,
+                                                       (char *)"",
+                                                       1);
+      sourceOutletId += ":";
+      sourceOutletId += csound->strarg2name(csound,
+                                            (char *) 0,
+                                            Soutlet->data,
+                                            (char *)"",
+                                            1);
+      std::string sinkInletId = csound->strarg2name(csound,
+                                                    (char *) 0,
+                                                    Sink,
+                                                    (char *)"",
+                                                    0);
+      sinkInletId += ":";
+      sinkInletId += csound->strarg2name(csound,
+                                         (char *) 0,
+                                         Sinlet->data,
+                                         (char *)"",
+                                         1);
+      warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
+      connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
+    }
+    return OK;
+  }
+};
+
+struct ConnectS : public OpcodeBase<ConnectS> {
+  /**
+   * Inputs.
+   */
+  STRINGDAT *Source;
+  STRINGDAT *Soutlet;
+  STRINGDAT *Sink;
+  STRINGDAT *Sinlet;
+  int init(CSOUND *csound) {
+#pragma omp critical (cs_sfg_ports)
+    {
+      std::string sourceOutletId = csound->strarg2name(csound,
+                                                       (char *) 0,
+                                                       Source->data,
+                                                       (char *)"",
+                                                       1);
+      sourceOutletId += ":";
+      sourceOutletId += csound->strarg2name(csound,
+                                            (char *) 0,
+                                            Soutlet->data,
+                                            (char *)"",
+                                            1);
+      std::string sinkInletId = csound->strarg2name(csound,
+                                                    (char *) 0,
+                                                    Sink->data,
+                                                    (char *)"",
+                                                    1);
+      sinkInletId += ":";
+      sinkInletId += csound->strarg2name(csound,
+                                         (char *) 0,
+                                         Sinlet->data,
+                                         (char *)"",
+                                         1);
+      warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
+      connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
+    }
+    return OK;
+  }
+};
+
+struct AlwaysOnS  : public OpcodeBase<AlwaysOnS> {
+  /**
+   * Inputs.
+   */
+  STRINGDAT *Sinstrument;
+  MYFLT *argums[VARGMAX];
+  /**
+   * State.
+   */
+  EVTBLK evtblk;
+  int init(CSOUND *csound) {
+    std::string source = csound->strarg2name(csound,
+                                             (char *) 0,
+                                             Sinstrument,
+                                             (char *)"",
+                                             (int) 1);
+    evtblk.opcod = 'i';
+    evtblk.strarg = 0;
+    evtblk.p[0] = FL(0.0);
+    evtblk.p[1] = *Sinstrument->data;
+    evtblk.p[2] = evtblk.p2orig = FL(0.0);
+    evtblk.p[3] = evtblk.p3orig = FL(-1.0);
+    if (csound->GetInputArgSMask(this)) {
+      evtblk.p[1] = SSTRCOD;
+      evtblk.strarg = (char *)Sinstrument->data;
+    }
+    size_t inArgCount = csound->GetInputArgCnt(this);
+    // Add 2, for hard-coded p2 and p3.
+    evtblk.pcnt = (int16) inArgCount + 2;
+    // Subtract 1, for only required inarg p1.
+    size_t argumN = inArgCount - 1;
+    // Start evtblk at 4, argums at 0.
+    for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
+      evtblk.p[pfieldI] = *argums[argumI];
+    }
+    csound->insert_score_event(csound, &evtblk, FL(0.0));
     return OK;
   }
 };
@@ -824,17 +985,14 @@ struct AlwaysOn  : public OpcodeBase<AlwaysOn> {
                                              (char *) 0,
                                              Sinstrument,
                                              (char *)"",
-                                             (int) csound->GetInputArgSMask(this));
+                                             (int) 0);
     evtblk.opcod = 'i';
     evtblk.strarg = 0;
     evtblk.p[0] = FL(0.0);
     evtblk.p[1] = *Sinstrument;
     evtblk.p[2] = evtblk.p2orig = FL(0.0);
     evtblk.p[3] = evtblk.p3orig = FL(-1.0);
-    if (csound->GetInputArgSMask(this)) {
-      evtblk.p[1] = SSTRCOD;
-      evtblk.strarg = (char *)Sinstrument;
-    }
+    
     size_t inArgCount = csound->GetInputArgCnt(this);
     // Add 2, for hard-coded p2 and p3.
     evtblk.pcnt = (int16) inArgCount + 2;
@@ -865,6 +1023,71 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
   MYFLT *argums[VARGMAX];
   EventBlock eventBlock;
   int init(CSOUND *csound) {
+    int result;
+#pragma omp critical (cs_ftables)
+    {
+      // Default output.
+      *ifno = FL(0.0);
+      EVTBLK &evtblk = eventBlock.evtblk;
+      std::memset(&evtblk, 0, sizeof(EVTBLK));
+      evtblk.opcod = 'f';
+      evtblk.strarg = 0;
+      evtblk.p[0] = FL(0.0);
+      evtblk.p[1] = *p1;
+      evtblk.p[2] = evtblk.p2orig = FL(0.0);
+      evtblk.p[3] = evtblk.p3orig = *p3;
+      evtblk.p[4] = *p4; 
+      evtblk.p[5] = *p5;
+      evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
+      int n = evtblk.pcnt - 5;
+      if (n > 0) {
+          MYFLT **argp = argums;
+          MYFLT *fp = &evtblk.p[0] + 6;
+          do {
+            *fp++ = **argp++;
+          } while (--n);
+        }
+        // If the arguments have not been used before for this instance of Csound,
+        // create a new function table and store the arguments and table number;
+        // otherwise, look up and return the already created function table's number.
+        if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
+          *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
+          // warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
+          // std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
+        } else {
+          FUNC *func = 0;
+          n = csound->hfgens(csound, &func, &evtblk, 1);
+          if (UNLIKELY(n != 0)) {
+            result = csound->InitError(csound, Str("ftgenonce error"));
+          }
+          if (func) {
+            functionTablesForCsoundsForEvtblks[csound][eventBlock] = func->fno;
+            *ifno = (MYFLT) func->fno;
+            warn(csound, "ftgenonce: created new func: %d\n", func->fno);
+            // std::cerr << "ftgenonce: created new func:" << evtblk << std::endl;
+          }
+        }
+    }
+    return OK;
+  }
+};
+
+struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
+  /**
+   * Outputs.
+   */
+  MYFLT *ifno;
+  /**
+   * Inputs.
+   */
+  MYFLT *p1;
+  MYFLT *p2;
+  MYFLT *p3;
+  MYFLT *p4;
+  MYFLT *p5;
+  MYFLT *argums[VARGMAX];
+  EventBlock eventBlock;
+  int init(CSOUND *csound) {
     int result = OK;
 #pragma omp critical (cs_ftables)
     {
@@ -880,26 +1103,23 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
       evtblk.p[3] = evtblk.p3orig = *p3;
       evtblk.p[4] = *p4;
       int n = 0;
-      if (csound->GetInputArgSMask(this)) {
+      
         n = (int) evtblk.p[4];
         evtblk.p[5] = SSTRCOD;
-        if (n < 0) {
-          n = -n;
-        }
+        if (n < 0) n = -n;
+	
         // Only GEN 1, 23, 28, or 43 can take strings.
         switch (n) {
         case 1:
         case 23:
         case 28:
         case 43:
-          evtblk.strarg = (char *)p5;
+          evtblk.strarg = ((STRINGDAT *)p5)->data;
           break;
         default:
           result = csound->InitError(csound, Str("ftgen string arg not allowed"));
-        }
-      } else {
-        evtblk.p[5] = *p5;
-      }
+	}
+
       if (result == OK) {
         evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
         n = evtblk.pcnt - 5;
@@ -935,6 +1155,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
     return OK;
   }
 };
+
 
 extern "C"
 {
@@ -1044,8 +1265,41 @@ extern "C"
       0,
       1,
       (char *)"",
-      (char *)"TSTS",
+      (char *)"iSiS",
       (SUBR)&Connect::init_,
+      0,
+      0
+    },
+        {
+      (char *)"connect.i",
+      sizeof(Connecti),
+      0,
+      1,
+      (char *)"",
+      (char *)"iSSS",
+      (SUBR)&Connecti::init_,
+      0,
+      0
+    },
+        {
+      (char *)"connect.ii",
+      sizeof(Connectii),
+      0,
+      1,
+      (char *)"",
+      (char *)"SSiS",
+      (SUBR)&Connectii::init_,
+      0,
+      0
+    },
+        {
+      (char *)"connect.S",
+      sizeof(ConnectS),
+      0,
+      1,
+      (char *)"",
+      (char *)"SSSS",
+      (SUBR)&ConnectS::init_,
       0,
       0
     },
@@ -1055,8 +1309,19 @@ extern "C"
       0,
       1,
       (char *)"",
-      (char *)"Tm",
+      (char *)"im",
       (SUBR)&AlwaysOn::init_,
+      0,
+      0
+    },
+     {
+      (char *)"alwayson.S",
+      sizeof(AlwaysOnS),
+      0,
+      1,
+      (char *)"",
+      (char *)"Sm",
+      (SUBR)&AlwaysOnS::init_,
       0,
       0
     },
@@ -1066,8 +1331,19 @@ extern "C"
       TW,
       1,
       (char *)"i",
-      (char *)"iiiiTm",
+      (char *)"iiiiim",
       (SUBR)&FtGenOnce::init_,
+      0,
+      0
+    },
+     {
+      (char *)"ftgenonce.S",
+      sizeof(FtGenOnce),
+      TW,
+      1,
+      (char *)"i",
+      (char *)"iiiiSm",
+      (SUBR)&FtGenOnceS::init_,
       0,
       0
     },

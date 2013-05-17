@@ -1720,15 +1720,15 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       arg->type = ARG_CONSTANT;
       arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
+      STRINGDAT *str = mcalloc(csound, sizeof(STRINGDAT));
       arg->type = ARG_STRING;
       temp = mcalloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
-
-      arg->argPtr = cs_hash_table_get_key(csound,
-                                          csound->engineState.stringPool, temp);
-
-      if (arg->argPtr == NULL) {
-        arg->argPtr = cs_hash_table_put_key(csound, engineState->stringPool, temp);
+      str->data = cs_hash_table_get_key(csound, csound->engineState.stringPool, temp);
+      str->size = strlen(s) + 1;
+      arg->argPtr = str;
+      if (str->data == NULL) {
+        str->data = cs_hash_table_put_key(csound, engineState->stringPool, temp);
       }
     } else if ((n = pnum(s)) >= 0) {
       arg->type = ARG_PFIELD;

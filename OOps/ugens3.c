@@ -804,7 +804,7 @@ int loscil3(CSOUND *csound, LOSC *p)
 #define ISINSIZ 32768L
 #define ADMASK  32767L
 
-int adset(CSOUND *csound, ADSYN *p)
+static int adset_(CSOUND *csound, ADSYN *p, int stringname)
 {
     int32    n;
     char    filnam[MAXNAME];
@@ -819,7 +819,11 @@ int adset(CSOUND *csound, ADSYN *p)
       for (n = 0; n < ISINSIZ; n++)
         *ip++ = (int16) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
-    csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", p->XSTRCODE);
+    if(stringname) strncpy(filnam, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
+    else if (ISSTRCOD(*p->ifilcod)) strncpy(filnam, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
+    else csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", 0);
+
+
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       /* readfile if reqd */
       if (UNLIKELY((mfp = ldmemfile2withCB(csound, filnam,
@@ -871,6 +875,14 @@ int adset(CSOUND *csound, ADSYN *p)
 
  adsful:
     return csound->InitError(csound, Str("partial count exceeds MAXPTLS"));
+}
+
+int adset(CSOUND *csound, ADSYN *p){
+  return adset_(csound,p,0);
+}
+
+int adset_S(CSOUND *csound, ADSYN *p){
+  return adset_(csound,p,1);
 }
 
 #define ADSYN_MAXLONG FL(2147483647.0)

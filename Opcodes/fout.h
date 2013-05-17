@@ -132,7 +132,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *fmt, *argums[VARGMAX];
+  MYFLT   *fname;
+  STRINGDAT *fmt;
+  MYFLT  *argums[VARGMAX];
     FOUT_FILE f;
     char    txtstring[8192];    /* Place to store the string printed */
 } FPRINTF;

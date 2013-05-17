@@ -68,17 +68,30 @@ static void FetchInOne(
     }
 }
 
-int pvreadset(CSOUND *csound, PVREAD *p)
+int pvreadset_(CSOUND *csound, PVREAD *p, int stringname)
 {
     char      pvfilnam[256];
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    }
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+
     if (pvocex_loadfile(csound, pvfilnam, p) == OK) {
       p->prFlg = 1;
       p->mybin = MYFLT2LRND(*p->ibin);
       return OK;
     }
     return NOTOK;
+}
+
+int pvreadset(CSOUND *csound, PVREAD *p){
+  return pvreadset_(csound,p,0);
+}
+
+int pvreadset_S(CSOUND *csound, PVREAD *p){
+  return pvreadset_(csound,p,1);
 }
 
 int pvread(CSOUND *csound, PVREAD *p)
