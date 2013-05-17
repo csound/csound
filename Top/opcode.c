@@ -102,6 +102,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     /* store opcodes in list */
     items = head;
     s = (char*) lst + ((int) sizeof(opcodeListEntry) * (cnt + 1));
+    cnt = 0;
     while (items != NULL) {
         temp = items->value;
         while (temp != NULL) {
