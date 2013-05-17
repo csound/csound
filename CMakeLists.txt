@@ -778,7 +778,8 @@ add_subdirectory(include)
 
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
-    set(libcsound_SRCS "${libcsound_SRCS};${csheaders}")
+    file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers}")
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
