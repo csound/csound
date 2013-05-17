@@ -133,29 +133,6 @@ static void create_opcode_table(CSOUND *csound)
     if (err)
       csoundDie(csound, Str("Error allocating opcode list"));
 }
-//static void create_opcodlst(CSOUND *csound)
-//{
-//    OENTRY  *saved_opcodlst = csound->opcodlst;
-//    int     old_cnt = 0, err;
-//
-//    if (saved_opcodlst != NULL) {
-//      csound->opcodlst = NULL;
-//      if (csound->oplstend != NULL)
-//        old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
-//      csound->oplstend = NULL;
-//      memset(csound->opcode_list, 0, sizeof(int) * 256);
-//    }
-//    /* Basic Entry1 stuff */
-//    err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
-//    /* Add opcodes registered by host application */
-//    if (old_cnt)
-//      err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
-//    if (saved_opcodlst != NULL)
-//      free(saved_opcodlst);
-//    if (err)
-//      csoundDie(csound, Str("Error allocating opcode list"));
-//}
-
 
 #define MAX_MODULES 64
 
@@ -545,9 +522,6 @@ static const CSOUND cenviron_ = {
     (char*) NULL,   /*  xfilename           */
     1,              /*  peakchunks          */
     0,              /*  keep_tmp            */
-//    (OENTRY*) NULL, /*  opcodlst     */
-//    (int*) NULL,  /*  opcode_list         */
-//    (OENTRY*) NULL, /*  opcodlstend         */
     (CS_HASH_TABLE*)NULL, /* Opcode hash table */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */

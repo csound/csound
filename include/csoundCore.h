@@ -1312,11 +1312,7 @@ typedef struct NAME__ {
     char          *xfilename;
     int           peakchunks;
     int           keep_tmp;
-//    OENTRY        *opcodlst;
-//    int           *opcode_list;
-//    OENTRY        *oplstend;
     CS_HASH_TABLE *opcodes;
-    /* int           maxopcno; */
     int32         nrecs;
     FILE*         Linepipe;
     int           Linefd;
