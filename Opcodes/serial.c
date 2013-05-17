@@ -352,17 +352,7 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
     HANDLE port = get_port(csound, (int)*p->port);
     if (port==NULL) return NOTOK;
 #endif
-    if (p->XSTRCODE & 2) {
-#ifndef WIN32
-      if (UNLIKELY(write((int)*p->port, p->toWrite, strlen((char *)p->toWrite))<0))
-        return NOTOK;
-#else
-      int nbytes;
-      WriteFile(port,p->toWrite, strlen((char *)p->toWrite),
-                (PDWORD)&nbytes, NULL);
-#endif
-    }
-    else {
+    {
       unsigned char b = *p->toWrite;
 #ifndef WIN32
       if (UNLIKELY(write((int)*p->port, &b, 1)<0))
@@ -374,6 +364,24 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
     }
     return OK;
 }
+
+int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
+{
+#ifdef WIN32
+    HANDLE port = get_port(csound, (int)*p->port);
+    if (port==NULL) return NOTOK;
+#endif
+#ifndef WIN32
+      if (UNLIKELY(write((int)*p->port, p->toWrite, strlen((char *)p->toWrite))<0))
+        return NOTOK;
+#else
+      int nbytes;
+      WriteFile(port,p->toWrite, strlen((char *)p->toWrite),
+                (PDWORD)&nbytes, NULL);
+#endif
+    return OK;
+}
+
 
 int serialRead(CSOUND *csound, SERIALREAD *p)
 {
@@ -440,10 +448,14 @@ static OENTRY serial_localops[] = {
       (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL   },
     { (char *)"serialEnd", S(SERIALEND), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialEnd, (SUBR)NULL   },
-    { (char *)"serialWrite_i", S(SERIALWRITE), 0, 1, (char *)"", (char *)"iT",
+    { (char *)"serialWrite_i", S(SERIALWRITE), 0, 1, (char *)"", (char *)"ii",
       (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL   },
-    { (char *)"serialWrite", S(SERIALWRITE), WR, 2, (char *)"", (char *)"iU",
+       { (char *)"serialWrite_i.S", S(SERIALWRITE), 0, 1, (char *)"", (char *)"iS",
+      (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL   },
+    { (char *)"serialWrite", S(SERIALWRITE), WR, 2, (char *)"", (char *)"ik",
       (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL   },
+    { (char *)"serialWrite.S", S(SERIALWRITE), WR, 2, (char *)"", (char *)"iS",
+      (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL   },
     { (char *)"serialRead", S(SERIALREAD), 0, 2, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL   },
     { (char *)"serialPrint", S(SERIALPRINT), WR,2, (char *)"", (char *)"i",

@@ -47,14 +47,6 @@ typedef struct {
     int   cnt;
 } OSCSEND;
 
-#ifdef VARGA
-typedef struct {
-    OPDS    h;
-    MYFLT   *i_port;
-    MYFLT   *S_path;
-    MYFLT   *i_absp2;
-} OSCRECV;
-#endif
 
 typedef struct osc_pat {
     struct osc_pat *next;
@@ -76,14 +68,6 @@ typedef struct {
     /* for OSCinit/OSClisten */
     int     nPorts;
     OSC_PORT  *ports;
-#ifdef VARGA
-    /* for OSCrecv */
-    rtEvt_t *eventQueue;
-    void    *mutex_;
-    lo_server_thread  st;
-    double  baseTime;
-    int     absp2mode;
-#endif
 } OSC_GLOBALS;
 
 /* opcode for starting the OSC listener (called once from orchestra header) */
@@ -121,7 +105,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     char *pp = port;
     char *hh;
 
-    /* with too many args, XINCODE/XSTRCODE may not work correctly */
+    /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
       return csound->InitError(csound, Str("Too many arguments to OSCsend"));
     /* a-rate arguments are not allowed */
@@ -163,21 +147,12 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
         /* Need to add type checks */
         switch (type[i]) {
         case 'i':
-          if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, p->h.insdshead,
-                                     Str("String not expected"));
           lo_message_add_int32(msg, (int32_t) MYFLT2LRND(*arg[i]));
           break;
         case 'l':
-          if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, p->h.insdshead,
-                                     Str("String not expected"));
           lo_message_add_int64(msg, (int64_t) MYFLT2LRND(*arg[i]));
           break;
         case 'c':
-          if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, p->h.insdshead,
-                                     Str("String not expected"));
           lo_message_add_char(msg, (char) (*arg[i] + FL(0.5)));
           break;
         case 'm':
@@ -186,45 +161,26 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
               int32_t  x;
               uint8_t  m[4];
             } mm;
-            if (UNLIKELY(p->XSTRCODE&msk))
-              return csound->PerfError(csound, p->h.insdshead,
-                                       Str("String not expected"));
             mm.x = *arg[i]+FL(0.5);
             lo_message_add_midi(msg, mm.m);
             break;
           }
         case 'f':
-          if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, p->h.insdshead,
-                                     Str("String not expected"));
           lo_message_add_float(msg, (float)(*arg[i]));
           break;
         case 'd':
-          if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, p->h.insdshead,
-                                     Str("String not expected"));
           lo_message_add_double(msg, (double)(*arg[i]));
           break;
         case 's':
-          if (LIKELY(p->XSTRCODE&msk))
-            lo_message_add_string(msg, (char*)arg[i]);
-          else
-            return csound->PerfError(csound, p->h.insdshead,
-                                     Str("Not a string when needed"));
+            lo_message_add_string(msg, ((STRINGDAT *)arg[i])->data);
           break;
         case 'b':               /* Boolean */
-          if (UNLIKELY(p->XSTRCODE&msk))
-            return csound->PerfError(csound, p->h.insdshead,
-                                     Str("String not expected"));
           if (*arg[i]==FL(0.0)) lo_message_add_true(msg);
           else lo_message_add_false(msg);
           break;
         case 't':               /* timestamp */
           {
             lo_timetag tt;
-            if (UNLIKELY(p->XSTRCODE&msk))
-              return csound->PerfError(csound, p->h.insdshead,
-                                       Str("String not expected"));
             tt.sec = (uint32_t)(*arg[i]+FL(0.5));
             msk <<= 1; i++;
             if (UNLIKELY(type[i]!='t'))
@@ -241,9 +197,6 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             int     len;
             FUNC    *ftp;
             void *data;
-            if (UNLIKELY(p->XSTRCODE&msk))
-              return csound->PerfError(csound, p->h.insdshead,
-                                       Str("String not expected"));
             /* make sure fn exists */
             if (LIKELY((ftp=csound->FTnp2Find(csound,arg[i]))!=NULL)) {
               data = ftp->ftable;
@@ -269,160 +222,11 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     return OK;
 }
 
-#ifdef VARGA
-/* callback function called by sensevents() once in every control period */
-
-static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
-{
-    /* are there any pending events ? */
-    if (p->eventQueue == NULL)
-      return;
-
-    csound->LockMutex(p->mutex_);
-    while (p->eventQueue != NULL) {
-      long  startTime;
-      int64_t  timeNow = csound->GetCurrentTimeSamples(csound);
-      rtEvt_t *ep = p->eventQueue;
-      p->eventQueue = ep->nxt;
-      csound->UnlockMutex(p->mutex_);
-      startTime = (p->absp2mode ? p->baseTime*csound->GetSr(csound) : timeNow);
-      startTime += (double) ep->e.p[2]*csound->GetSr(csound);
-      ep->e.p[2] = FL(0.0);
-      if (ep->e.pcnt < 3 || ep->e.p[3] < FL(0.0) ||
-          ep->e.opcod == 'q' || ep->e.opcod == 'f' || ep->e.opcod == 'e' ||
-          (double) ep->e.p[3] >= timeNow - startTime) {
-        if (startTime < csound->icurTime) {
-          if (ep->e.pcnt >= 3 && ep->e.p[3] > FL(0.0) &&
-              ep->e.opcod != 'q' && ep->e.opcod != 'f')
-            ep->e.p[3] -= (MYFLT) (timeNow - startTime)/csound->GetSr(csound);
-          startTime = timeNow;
-        }
-        if (ep->e.opcod == 'T')
-          p->baseTime = timeNow/csound->GetSr(csound);
-        else
-          csound->insert_score_event_at_sample(csound, &(ep->e), startTime);
-      }
-      if (ep->e.strarg != NULL)
-        free(ep->e.strarg);
-      free(ep);
-      csound->LockMutex(p->mutex_);
-    }
-    csound->UnlockMutex(p->mutex_);
-}
-
-/* callback function for OSC thread */
-/* NOTE: this function does not run in the main Csound audio thread, */
-/* so use of the API or access to CSOUND should be limited or avoided */
-
-static int osc_event_handler(const char *path, const char *types,
-                             lo_arg **argv, int argc, lo_message msg,
-                             void *user_data)
-{
-    OSC_GLOBALS *p = (OSC_GLOBALS*) user_data;
-    CSOUND      *csound = p->csound;
-    rtEvt_t     *evt;
-    int         i;
-    char        opcod = '\0';
-
-    /* check for valid format */
-    if ((unsigned int) (argc - 1) > (unsigned int) PMAX)
-      return 1;
-    switch ((int) types[0]) {
-      case 'i': opcod = (char) argv[0]->i; break;
-      case 'f': opcod = (char) MYFLT2LRND((MYFLT) argv[0]->f); break;
-      case 's': opcod = (char) argv[0]->s; break;
-      default:  return 1;
-    }
-    switch ((int) opcod) {
-      case 'e': break;
-      case 'T': if (argc > 1) return 1;
-                break;
-      case 'f': if (argc < 6) return 1;
-                break;
-      case 'i':
-      case 'q':
-      case 'a': if (argc < 4) return 1;
-                break;
-      default:  return 1;
-    }
-    /* Create the new event */
-    evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
-    if (evt == NULL)
-      return 1;
-    evt->nxt = NULL;
-    evt->e.strarg = NULL;
-    evt->e.opcod = opcod;
-    evt->e.pcnt = argc - 1;
-    evt->e.p[1] = evt->e.p[2] = evt->e.p[3] = FL(0.0);
-    for (i = 1; i < argc; i++) {
-      switch ((int) types[i]) {
-      case 'i':
-        evt->e.p[i] = (MYFLT) argv[i]->i;
-        break;
-      case 'f':
-        evt->e.p[i] = (MYFLT) argv[i]->f;
-        break;
-      case 's':
-        /* string argument: cannot have more than one */
-        evt->e.p[i] = SSTRCOD;
-        if (evt->e.strarg != NULL) {
-          free(evt->e.strarg);
-          free(evt);
-          return 1;
-        }
-        evt->e.strarg = (char*) malloc(strlen(&(argv[i]->s)) + 1);
-        if (evt->e.strarg == NULL) {
-          free(evt);
-          return 1;
-        }
-        strcpy(evt->e.strarg, &(argv[i]->s));
-        break;
-      }
-    }
-    /* queue event for handling by main Csound thread */
-    csound->LockMutex(p->mutex_);
-    if (p->eventQueue == NULL)
-      p->eventQueue = evt;
-    else {
-      rtEvt_t *ep = p->eventQueue;
-      while (ep->nxt != NULL)
-        ep = ep->nxt;
-      ep->nxt = evt;
-    }
-    csound->UnlockMutex(p->mutex_);
-    return 0;
-}
-
-static void osc_error_handler(int n, const char *msg, const char *path)
-{
-    return;
-}
-#endif
-
 /* RESET routine for cleaning up */
 
 static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
 {
     int i;
-
-#ifdef VARGA
-    if (p->mutex_ != NULL) {
-      /* stop and destroy OSC thread */
-      lo_server_thread_stop(p->st);
-      lo_server_thread_free(p->st);
-      /* delete any pending events */
-      csound->LockMutex(p->mutex_);
-      while (p->eventQueue != NULL) {
-        rtEvt_t *nxt = p->eventQueue->nxt;
-        if (p->eventQueue->e.strarg != NULL)
-          free(p->eventQueue->e.strarg);
-        free(p->eventQueue);
-        p->eventQueue = nxt;
-      }
-      csound->UnlockMutex(p->mutex_);
-      csound->DestroyMutex(p->mutex_);
-    }
-#endif
     for (i = 0; i < p->nPorts; i++)
       if (p->ports[i].thread) {
         lo_server_thread_stop(p->ports[i].thread);
@@ -452,40 +256,7 @@ static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
     return pp;
 }
 
-#ifdef VARGA
-/* OSCrecv opcode (called once from orchestra header) */
 
-static int OSCrecv_init(CSOUND *csound, OSCRECV *p)
-{
-    OSC_GLOBALS *pp;
-    char        portName[256], *pathName;
-
-    /* allocate and initialise the globals structure */
-    pp = alloc_globals(csound);
-    if (UNLIKELY(pp->mutex_ != NULL))
-      return csound->InitError(csound, Str("OSCrecv is already running"));
-    pp->eventQueue = NULL;
-    pp->mutex_ = csound->Create_Mutex(0);
-    pp->baseTime = 0.0;
-    pp->absp2mode = (*(p->i_absp2) == FL(0.0) ? 0 : 1);
-    /* create OSC thread */
-    sprintf(portName, "%d", (int) MYFLT2LRND(*p->i_port));
-    pp->st = lo_server_thread_new(portName,
-                                  (lo_err_handler) osc_error_handler);
-    /* register OSC event handler */
-    pathName = (char*) p->S_path;
-    if (pathName[0] == '\0')
-      pathName = NULL;
-    lo_server_thread_add_method(pp->st, pathName, NULL,
-                                (lo_method_handler) osc_event_handler, pp);
-    /* start thread */
-    lo_server_thread_start(pp->st);
-    /* register callback function for sensevents() */
-    csound->RegisterSenseEventCallback(csound, (void (*)(CSOUND*, void*))
-                                                 event_sense_callback, pp);
-    return OK;
-}
-#endif
 
  /* ------------------------------------------------------------------------ */
 
@@ -535,6 +306,7 @@ static int OSC_handler(const char *path, const char *types,
 {
     OSC_PORT  *pp = (OSC_PORT*) p;
     OSCLISTEN *o;
+    CSOUND *csound = (CSOUND *) pp->csound;
     int       retval = 1;
 
     pp->csound->LockMutex(pp->mutex_);
@@ -573,11 +345,14 @@ static int OSC_handler(const char *path, const char *types,
               *(m->args[i]) = (MYFLT) argv[i]->d; break;
             case 's':
               {
-                char  *src = (char*) &(argv[i]->s), *dst = (char*) m->args[i];
-                char  *endp = dst + (pp->csound->GetStrVarMaxLen(pp->csound) - 1);
-                while (*src != (char) '\0' && dst != endp)
-                  *(dst++) = *(src++);
-                *dst = (char) '\0';
+                char  *src = (char*) &(argv[i]->s), *dst = ((STRINGDAT*) m->args[i])->data;
+                if(dst != NULL) csound->Free(csound, dst);
+                dst = csound->Strdup(csound, src);
+                ((STRINGDAT*) m->args[i])->size = strlen(dst) + 1;
+                /* char  *endp = dst + (pp->csound->GetStrVarMaxLen(pp->csound) - 1); */
+                /* while (*src != (char) '\0' && dst != endp) */
+                /*   *(dst++) = *(src++); */
+                /* *dst = (char) '\0'; */
               }
               break;
             }

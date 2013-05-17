@@ -203,11 +203,17 @@ static int pvsfwrite_destroy(CSOUND *csound, void *pp)
   return OK;
 }
 
-static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
+static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
 {
     int N;
-    char *fname = csound->strarg2name(csound, NULL, p->file,
-                                      "pvoc.",p->XSTRCODE);
+    char fname[MAXNAME];
+
+     if(stringname==0){
+       if(ISSTRCOD(*p->file)) strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
+      else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
+    }
+    else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME-1);
+
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
     p->pvfile= -1;
@@ -241,6 +247,15 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
     p->lastframe = 0;
     return OK;
 }
+
+static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p){
+  return pvsfwriteset_(csound,p,0);
+}
+
+static int pvsfwriteset_S(CSOUND *csound, PVSFWRITE *p){
+  return pvsfwriteset_(csound,p,1);
+}
+
 
 void *pvs_io_thread(void *pp){
   PVSFWRITE *p = (PVSFWRITE *) pp;
@@ -301,13 +316,18 @@ typedef struct _pvsdiskin {
 
 #define FSIGBUFRAMES 2
 
-static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
+static int pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int stringname)
 {
     int N;
     WAVEFORMATEX fmt;
     PVOCDATA   pvdata;
-    char *fname = csound->strarg2name(csound, NULL, p->file,
-                                      "pvoc.",p->XSTRCODE);
+    char fname[MAXNAME];
+
+     if(stringname==0){
+       if(ISSTRCOD(*p->file)) strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
+      else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
+    }
+    else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME-1);
 
     if (UNLIKELY(p->fout->sliding))
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
@@ -360,6 +380,14 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
     p->chn = (int) (*p->ichn <= p->chans ? *p->ichn : p->chans) -1;
     if (p->chn < 0) p->chn = 0;
     return OK;
+}
+
+static int pvsdiskinset(CSOUND *csound, pvsdiskin *p){
+  return pvsdiskinset_(csound, p, 0);
+}
+
+static int pvsdiskinset_S(CSOUND *csound, pvsdiskin *p){
+  return pvsdiskinset_(csound, p, 1);
 }
 
 static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
@@ -2362,7 +2390,9 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 
 
 static OENTRY localops[] = {
-  {"pvsfwrite", sizeof(PVSFWRITE),0, 3, "", "fT", (SUBR) pvsfwriteset,
+  {"pvsfwrite", sizeof(PVSFWRITE),0, 3, "", "fS", (SUBR) pvsfwriteset_S,
+   (SUBR) pvsfwrite},
+  {"pvsfwrite.i", sizeof(PVSFWRITE),0, 3, "", "fi", (SUBR) pvsfwriteset,
    (SUBR) pvsfwrite},
   {"pvsfilter", sizeof(PVSFILTER),0, 3, "f", "ffxp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
@@ -2392,7 +2422,9 @@ static OENTRY localops[] = {
    (SUBR) pvsmoothprocess, NULL},
   {"pvsosc", sizeof(PVSOSC),0, 3, "f", "kkkioopo", (SUBR) pvsoscset,
    (SUBR) pvsoscprocess, NULL},
-  {"pvsdiskin", sizeof(pvsdiskin),0, 3, "f", "SkkopP",(SUBR) pvsdiskinset,
+  {"pvsdiskin", sizeof(pvsdiskin),0, 3, "f", "SkkopP",(SUBR) pvsdiskinset_S,
+   (SUBR) pvsdiskinproc, NULL},
+  {"pvsdiskin.i", sizeof(pvsdiskin),0, 3, "f", "ikkopP",(SUBR) pvsdiskinset,
    (SUBR) pvsdiskinproc, NULL},
   {"pvstanal", sizeof(PVST),0, 3, "FFFFFFFFFFFFFFFF", "kkkkPPoooP",
    (SUBR) pvstanalset, (SUBR) pvstanal, NULL},

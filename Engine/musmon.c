@@ -504,20 +504,39 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 int turnon(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
-    int     isNamedInstr;
+    int insno;
+    evt.strarg = NULL; evt.scnt = 0;
+    evt.opcod = 'i';
+    evt.pcnt = 3;
+ 
+    if(ISSTRCOD(*p->insno)) {    
+    char *ss = get_arg_string(csound,*p->insno);
+    insno = csound->strarg2insno(csound,ss,1);
+    if (insno <= 0L)
+        return NOTOK;
+    } else insno = *p->insno;
+    evt.p[1] = (MYFLT) insno;
+    evt.p[2] = *p->itime;
+    evt.p[3] = FL(-1.0);
+    evt.c.extra = NULL;
+    return insert_score_event_at_sample(csound, &evt, csound->icurTime);
+}
+
+/* make list to turn on instrs for indef */
+/* perf called from i0 for execution in playevents */
+
+int turnon_S(CSOUND *csound, TURNON *p)
+{
+    EVTBLK  evt;
+    int     insno;
 
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
-    isNamedInstr = (int) csound->GetInputArgSMask(p);
-    if (isNamedInstr) {
-      int32  insno = csound->strarg2insno(csound, p->insno, isNamedInstr);
-      if (insno <= 0L)
+    insno = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
+    if (insno <= 0L)
         return NOTOK;
-      evt.p[1] = (MYFLT) insno;
-    }
-    else
-      evt.p[1] = *p->insno;
+    evt.p[1] = (MYFLT) insno;
     evt.p[2] = *p->itime;
     evt.p[3] = FL(-1.0);
     evt.c.extra = NULL;

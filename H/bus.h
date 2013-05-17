@@ -67,7 +67,7 @@ typedef struct channelEntry_s {
 typedef struct {
     OPDS    h;
     MYFLT   *arg;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *fp;
     int     *lock;
     int      pos;
@@ -75,14 +75,14 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *fp;
     int     *lock;
 } CHNCLEAR;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *imode;
     MYFLT   *itype;
     MYFLT   *idflt;
@@ -92,14 +92,13 @@ typedef struct {
     MYFLT   *iy;
     MYFLT   *iwidth;
     MYFLT   *iheight;
-    MYFLT   *Sattributes[64]; /* only the first argument is used the rest
-                                 for safety */
+    STRINGDAT *Sattributes; 
     int     *lock;
 } CHN_OPCODE_K;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *imode;
     int     *lock;
 } CHN_OPCODE;
@@ -107,7 +106,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *arg;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *imode;
     MYFLT   *itype;
     MYFLT   *idflt;
@@ -123,7 +122,7 @@ typedef struct {
     MYFLT   *idflt;
     MYFLT   *imin;
     MYFLT   *imax;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
 } CHNPARAMS_OPCODE;
 
 typedef struct {
@@ -169,11 +168,14 @@ int     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
 
 int kinval(CSOUND *csound, INVAL *p);
 int invalset(CSOUND *csound, INVAL *p);
-int kinval_S(CSOUND *csound, INVAL *p);
+int invalset_string(CSOUND *csound, INVAL *p);
+int invalset_string_S(CSOUND *csound, INVAL *p);
 int invalset_S(CSOUND *csound, INVAL *p);
 int koutval(CSOUND *csound, OUTVAL *p);
 int outvalset(CSOUND *csound, OUTVAL *p);
-
+int outvalset_string(CSOUND *csound, OUTVAL *p);
+int outvalset_string_S(CSOUND *csound, OUTVAL *p);
+int outvalset_S(CSOUND *csound, OUTVAL *p);
 #ifdef __cplusplus
 }
 #endif

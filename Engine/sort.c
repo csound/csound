@@ -232,7 +232,7 @@ static void smoothsort(SRTBLK *A[], const int N)
 }
 
 void sort(CSOUND *csound)
-{
+{ 
     SRTBLK *bp;
     SRTBLK **A;
     int i, n = 0;
@@ -269,7 +269,7 @@ void sort(CSOUND *csound)
       }
     } while ((bp = bp->nxtblk) != NULL);
     /* Get a temporary array and populate it */
-    A = (SRTBLK**) malloc(n*sizeof(SRTBLK*));
+    A = (SRTBLK**) malloc((n)*sizeof(SRTBLK*));
     bp = csound->frstbp;
     for (i=0; i<n; i++,bp = bp->nxtblk)
       A[i] = bp;

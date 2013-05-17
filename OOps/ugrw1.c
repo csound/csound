@@ -824,9 +824,8 @@ int printk(CSOUND *csound, PRINTK *p)
 #define ESC (0x1B)
 
 /* printksset is called when the instance of the instrument is initiallised. */
-int printksset(CSOUND *csound, PRINTKS *p)
+int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 {
-    char        *sarg;
     char        *sdest;
     char        temp, tempn;
 
@@ -835,38 +834,8 @@ int printksset(CSOUND *csound, PRINTKS *p)
       p->ctime = CS_ONEDKR;
     else
       p->ctime = *p->ptime;
-
-    /* Set the initime variable - how many seconds in absolute time
-     * when this instance of the instrument was initialised.     */
-
     p->initime = (MYFLT) CS_KCNT * CS_ONEDKR;
-
-    /* Set cysofar to - 1 so that on the first call to printk - when
-     * cycle = 0, then there will be a print cycle.    */
     p->cysofar = -1;
-
-    /* Set up the string to print.  printf() will take care of the
-     * %f format specifiers, but we need to decode any other special
-     * codes we may want to put in here.
-     */
-
-    /* We get the string via the same mechanism used in ugens3.c for
-     * adsyn().  I have not checked everything which stands behind this.
-     */
-
-    /* If it was not valid string, then complain.
-     * Also complain if the string has nothing in it. However the
-     * program (under DJGPP at least) seems to crash elsewhere if
-     * the first parameter is "".     */
-
-    if (!p->XSTRCODE &&
-        (!ISSTRCOD(*p->ifilcod) || csound->currevent->strarg == NULL)) {
-      return csound->InitError(csound,
-                               Str("printks param 1 was not a \"quoted string\""));
-    }
-    else {
-      sarg = (p->XSTRCODE ? (char*) p->ifilcod :
-                            get_arg_string(csound, *p->ifilcod));
       memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
       sdest = p->txtstring;
       /* Copy the string to the storage place in PRINTKS.
@@ -971,9 +940,20 @@ int printksset(CSOUND *csound, PRINTKS *p)
       /* Increment pointer and process next character until end of string.  */
         ++sarg;
       }
-    }
+    
     return OK;
 }
+
+int printksset_S(CSOUND *csound, PRINTKS *p){
+ char *sarg;
+ sarg = ((STRINGDAT*)p->ifilcod)->data;
+ return printksset_(csound, p, sarg);
+}
+
+int printksset(CSOUND *csound, PRINTKS *p){
+  return printksset_(csound, p, get_arg_string(csound, *p->ifilcod));
+}
+
 
 /* perform a sprintf-style format  -- matt ingalls */
 void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
@@ -1110,6 +1090,21 @@ int printsset(CSOUND *csound, PRINTS *p)
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
     printksset(csound, &pk);
+    sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+    return OK;
+}
+
+int printsset_S(CSOUND *csound, PRINTS *p)
+{
+    PRINTKS pk;
+    char        string[8192];
+    MYFLT ptime = 1;
+    string[0] = '\0';    /* necessary as sprints is not nice */
+    pk.h = p->h;
+    pk.ifilcod = p->ifilcod;
+    pk.ptime = &ptime;
+    printksset_S(csound, &pk);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;

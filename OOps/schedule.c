@@ -30,6 +30,7 @@
 
 int eventOpcode(CSOUND *csound, LINEVENT *p);
 int eventOpcodeI(CSOUND *csound, LINEVENT *p);
+int eventOpcodeI_S(CSOUND *csound, LINEVENT *p);
 
 int schedule(CSOUND *csound, SCHED *p)
 {
@@ -48,6 +49,26 @@ int schedule(CSOUND *csound, SCHED *p)
     pp.flag = 1;
     return eventOpcodeI(csound, &pp);
 }
+
+int schedule_S(CSOUND *csound, SCHED *p)
+{
+    LINEVENT pp;
+    int i;
+    pp.h = p->h;
+    char c[2] = "i";
+    pp.args[0] = (MYFLT *) c;
+    pp.args[1] = p->which;
+    pp.args[2] = p->when;
+    pp.args[3] = p->dur;
+    pp.argno = p->INOCOUNT+1;
+    for (i=4; i < pp.argno ; i++) {
+      pp.args[i] = p->argums[i-4];
+    }
+    pp.flag = 1;
+    return eventOpcodeI_S(csound, &pp);
+}
+
+
 
 int ifschedule(CSOUND *csound, WSCHED *p)
 {                       /* All we need to do is ensure the trigger is set */
@@ -249,7 +270,7 @@ static void unquote(char *dst, char *src, int maxsize)
       strncpy(dst, src, maxsize);
 }
 
-int ktriginstr(CSOUND *csound, TRIGINSTR *p);
+static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname);
 
 int triginset(CSOUND *csound, TRIGINSTR *p)
 {
@@ -264,26 +285,52 @@ int triginset(CSOUND *csound, TRIGINSTR *p)
     if (csound->global_kcounter == 0 &&
         *p->trigger != FL(0.0) /*&& *p->args[1] <= FL(0.0)*/) {
       p->kadjust = 0;   /* No kcounter offset at this time */
-      ktriginstr(csound, p);
+      ktriginstr_(csound, p, 0);
     }
     p->kadjust = -1;      /* Set kcounter offset for perf-time */
     /* Catch p3==0 (i-time only) event triggerings. */
     if (csound->global_kcounter > 0 &&
         *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
-      ktriginstr(csound, p);
+      ktriginstr_(csound, p,0);
     return OK;
 }
 
-static int get_absinsno(CSOUND *csound, TRIGINSTR *p)
+int triginset_S(CSOUND *csound, TRIGINSTR *p)
+{
+    p->prvmintim = *p->mintime;
+    p->timrem = 0;
+    /* An instrument is initialised before kcounter is incremented for
+       this k-cycle, and begins playing after kcounter++.
+       Therefore, if we should start something at the very first k-cycle of
+       performance, we must thus do it now, lest it be one k-cycle late.
+       But in ktriginstr() we'll need to use kcounter-1 to set the start time
+       of new events. So add a separate variable for the kcounter offset (-1) */
+    if (csound->global_kcounter == 0 &&
+        *p->trigger != FL(0.0) /*&& *p->args[1] <= FL(0.0)*/) {
+      p->kadjust = 0;   /* No kcounter offset at this time */
+      ktriginstr_(csound, p, 1);
+    }
+    p->kadjust = -1;      /* Set kcounter offset for perf-time */
+    /* Catch p3==0 (i-time only) event triggerings. */
+    if (csound->global_kcounter > 0 &&
+        *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
+      ktriginstr_(csound, p, 1);
+    return OK;
+}
+
+
+static int get_absinsno(CSOUND *csound, TRIGINSTR *p, int stringname)
 {
     int insno;
 
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
-    if (p->XSTRCODE)
-      insno = (int)strarg2insno_p(csound, (char*)p->args[0]);
-    else if (ISSTRCOD(*p->args[0]))
-      insno = (int)strarg2insno_p(csound, csound->currevent->strarg);
+    if (stringname)
+      insno = (int)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
+    else if (ISSTRCOD(*p->args[0])) {
+      char *ss = get_arg_string(csound, *p->args[0]);
+      insno = (int)strarg2insno_p(csound, ss);
+    }
     else
       insno = (int)FABS(*p->args[0]);
     /* Check that instrument is defined */
@@ -297,7 +344,7 @@ static int get_absinsno(CSOUND *csound, TRIGINSTR *p)
     return insno;
 }
 
-int ktriginstr(CSOUND *csound, TRIGINSTR *p)
+static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
 {         /* k-rate event generator */
     long  starttime;
     int     i, argnum;
@@ -331,7 +378,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
         INSDS *ip;
         int absinsno, numinst = 0;
         /* Count active instr instances */
-        absinsno = get_absinsno(csound, p);
+        absinsno = get_absinsno(csound, p, stringname);
         if (UNLIKELY(absinsno < 1))
           return NOTOK;
         ip = &(csound->actanchor);
@@ -343,8 +390,8 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
     }
 
     /* Create the new event */
-    if (p->XSTRCODE) {
-      evt.strarg = (char*) p->args[0];
+    if (stringname) {
+      evt.strarg = ((STRINGDAT*)p->args[0])->data;
       evt.p[1] = SSTRCOD;
     }
     else if (ISSTRCOD(*p->args[0])) {
@@ -377,6 +424,14 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
       p->timrem = 0;
     return
       (insert_score_event_at_sample(csound, &evt, starttime) == 0 ? OK : NOTOK);
+}
+
+int ktriginstr_S(CSOUND *csound, TRIGINSTR *p){
+  return ktriginstr_(csound,p,1);
+}
+
+int ktriginstr(CSOUND *csound, TRIGINSTR *p){
+  return ktriginstr_(csound,p,0);
 }
 
 /* Maldonado triggering of events */
@@ -444,200 +499,3 @@ int trigseq(CSOUND *csound, TRIGSEQ *p)
     return OK;
 }
 
-#if SOME_FINE_DAY
-extern INSDS  *insert_event(CSOUND*, MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
-
-typedef struct rsched {
-  void          *parent;
-  INSDS         *kicked;
-  struct rsched *next;
-} RSCHED;
-
-static void queue_event(CSOUND *csound,
-                        MYFLT instr, double when, MYFLT dur,
-                        int narg, MYFLT **args)
-{
-    EVTBLK        evt;
-    int           i;
-
-    evt.strarg = NULL;
-    evt.opcod = 'i';
-    evt.pcnt = narg + 3;
-    evt.p[1] = instr;
-    evt.p[2] = FL(0.0);
-    evt.p[3] = dur;
-    for (i = 0; i < narg; i++)
-      evt.p[i + 4] = *(args[i]);
-    insert_score_event(csound, &evt, when);
-}
-
-/* ********** Need to add turnoff stuff *************** */
-int schedule(CSOUND *csound, SCHED *p)
-{
-    RSCHED *rr = (RSCHED*) csound->schedule_kicked;
-    RSCHED *ss = NULL;
-    int which;
-    /* First ensure any stragglers die really in case of reinit */
-    while (rr!=NULL) {
-      if (rr->parent==p) {
-        xturnoff(csound, rr->kicked);
-        {
-          RSCHED *tt = rr->next;
-          free(rr);
-          rr = tt;
-          if (ss == NULL)
-            csound->schedule_kicked = (void*) rr;
-        }
-      }
-      else {
-        ss = rr; rr = rr->next;
-      }
-    }
-    if (p->XSTRCODE)
-      which = (int) named_instr_find(csound, (char*) p->which);
-    else if (ISSTRCOD(*p->which))
-      which = (int) named_instr_find(csound, csound->currevent->strarg);
-    else
-      which = (int) (FL(0.5) + *p->which);
-    if (UNLIKELY(which < 1 || which > csound->engineState.maxinsno ||
-                 csound->engineState.instrtxtp[which] == NULL)) {
-      return csound->InitError(csound, Str("Instrument not defined"));
-    }
-    {
-      RSCHED *rr;
-      /* if duration is zero assume MIDI schedule */
-      MYFLT dur = *p->dur;
-/*       csound->Message(csound,"SCH: when = %f dur = %f\n", *p->when, dur); */
-      p->midi = (dur <= FL(0.0));
-      if (UNLIKELY(p->midi)) {
-        csound->Warning(csound,Str("schedule in MIDI mode is not "
-                                   "implemented correctly, do not use it\n"));
-        /* set 1 k-cycle of extratime in order to allow mtrnoff to
-           recognize whether the note is turned off */
-        if (UNLIKELY(p->h.insdshead->xtratim < 1))
-          p->h.insdshead->xtratim = 1;
-      }
-      if (*p->when <= FL(0.0)) {
-        p->kicked = insert_event(csound, (MYFLT) which,
-                                 (MYFLT) (csound->icurTime/csound->esr -
-                                          csound->timeOffs),
-                                 dur, p->INOCOUNT - 3, p->argums, p->midi);
-        if (UNLIKELY(p->midi)) {
-          rr = (RSCHED*) malloc(sizeof(RSCHED));
-          rr->parent = p; rr->kicked = p->kicked;
-          rr->next = (RSCHED*) csound->schedule_kicked;
-          csound->schedule_kicked = (void*) rr;
-        }
-      }
-      else
-        queue_event(csound, (MYFLT) which,
-                    (double)*p->when + csound->icurTime/csound->esr,
-                            dur, p->INOCOUNT - 3, p->argums);
-    }
-    return OK;
-}
-
-int schedwatch(CSOUND *csound, SCHED *p)
-{                               /* If MIDI case watch for release */
-    if (p->midi && p->h.insdshead->relesing) {
-      p->midi = 0;
-      if (p->kicked==NULL) return OK;
-      xturnoff(csound, p->kicked);
-      {
-        RSCHED *rr = (RSCHED*) csound->schedule_kicked;
-        RSCHED *ss = NULL;
-        while (rr!=NULL) {
-          if (rr->parent==p) {
-            RSCHED *tt = rr->next;
-            free(rr);
-            rr = tt;
-            if (ss == NULL)
-              csound->schedule_kicked = (void*) rr;
-          }
-          else {
-            ss = rr; rr = rr->next;
-          }
-        }
-      }
-      p->kicked = NULL;
-    }
-    return OK;
-}
-
-int ifschedule(CSOUND *csound, WSCHED *p)
-{                       /* All we need to do is ensure the trigger is set */
-    p->todo = 1;
-    p->abs_when = p->h.insdshead->p2;
-    p->midi = 0;
-    return OK;
-}
-
-int kschedule(CSOUND *csound, WSCHED *p)
-{
-    if (p->todo && *p->trigger != FL(0.0)) { /* If not done and trigger */
-      double starttime;
-      RSCHED *rr;
-      MYFLT dur = *p->dur;
-      int which;
-      if (p->XSTRCODE)
-        which = (int) named_instr_find(csound, (char*) p->which);
-      else if (ISSTRCOD(*p->which))
-        which = (int) named_instr_find(csound, get_arg_string(csound,*p->which));
-      else
-        which = (int) (FL(0.5) + *p->which);
-      if (UNLIKELY(which < 1 || which > csound->engineState.maxinsno ||
-                   csound->engineState.instrtxtp[which] == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead,
-                                 Str("Instrument not defined"));
-      }
-      p->midi = (dur <= FL(0.0));
-      if (UNLIKELY(p->midi))
-        csound->Warning(csound,
-                        Str("schedule in MIDI mode is not "
-                            "implemented correctly, do not use it\n"));
-      p->todo = 0;
-                                /* Insert event */
-      starttime = (double)p->abs_when + (double)*(p->when) + csound->timeOffs;
-      if (starttime*csound->esr <= csound->icurTime) {
-        p->kicked = insert_event(csound, (MYFLT) which,
-                                 (MYFLT) (csound->icurTime/csound->esr -
-                                          csound->timeOffs),
-                                 dur, p->INOCOUNT - 4, p->argums, p->midi);
-        if (p->midi) {
-          rr = (RSCHED*) malloc(sizeof(RSCHED));
-          rr->parent = p; rr->kicked = p->kicked;
-          rr->next = (RSCHED*) csound->schedule_kicked;
-          csound->schedule_kicked = (void*) rr;
-        }
-      }
-      else
-        queue_event(csound, (MYFLT) which,
-                    starttime, dur, p->INOCOUNT - 4, p->argums);
-    }
-    else if (p->midi && p->h.insdshead->relesing) {
-                                /* If MIDI case watch for release */
-      p->midi = 0;
-      if (p->kicked==NULL) return OK;
-      xturnoff(csound, p->kicked);
-      {
-        RSCHED *rr = (RSCHED*) csound->schedule_kicked;
-        RSCHED *ss = NULL;
-        while (rr!=NULL) {
-          if (rr->parent==p) {
-            RSCHED *tt = rr->next;
-            free(rr);
-            rr = tt;
-            if (ss == NULL)
-              csound->schedule_kicked = (void*) rr;
-          }
-          else {
-            ss = rr; rr = rr->next;
-          }
-        }
-      }
-      p->kicked = NULL;
-    }
-    return OK;
-}
-
-#endif

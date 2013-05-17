@@ -83,8 +83,8 @@ typedef struct {
 #  define XINARG4   (p->XINCODE & 8)
 #  define XINARG5   (p->XINCODE &16)
 #define XOUTCODE    ORTXT.xoutcod
-#define XSTRCODE    ORTXT.xincod_str
-#define XOUTSTRCODE ORTXT.xoutcod_str
+//#define XSTRCODE    ORTXT.xincod_str
+//#define XOUTSTRCODE ORTXT.xoutcod_str
 
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
@@ -351,6 +351,11 @@ typedef struct {
       MYFLT   *data;
       AUXCH   aux;
    } TABDAT;
+
+  typedef struct {
+    char *data;
+    int size;
+  } STRINGDAT;
 
   typedef struct monblk {
     int16   pch;
@@ -958,6 +963,7 @@ typedef struct NAME__ {
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
+    char *(*Strdup)(CSOUND *, char*);
     void (*Free)(CSOUND *, void *ptr);
 
     /**@}*/
@@ -1219,6 +1225,7 @@ typedef struct NAME__ {
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
+    char *(*get_arg_string)(CSOUND *, MYFLT);
     /**@}*/
     /** @name Placeholders */
     /**@{ */

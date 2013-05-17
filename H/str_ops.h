@@ -37,6 +37,12 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    MYFLT   *indx;
+    MYFLT *str;
+} STRTOD_OP;
+
+typedef struct {
+    OPDS    h;
     STRINGDAT   *r;
     MYFLT   *indx;
 } STRGET_OP;
@@ -53,6 +59,13 @@ typedef struct {
     STRINGDAT   *str1;
     STRINGDAT   *str2;
 } STRCAT_OP;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *r;
+    STRINGDAT   *str1;
+    STRINGDAT   *str2;
+} STRCMP_OP;
 
 typedef struct {
     OPDS    h;
@@ -189,7 +202,8 @@ typedef struct {
 
 int     strset_init(CSOUND *, void *);
 int     strget_init(CSOUND *, void *);
-int     strcpy_opcode(CSOUND *, void *);
+int     strcpy_opcode_p(CSOUND *, void *);
+int     strcpy_opcode_S(CSOUND *, void *);
 int     strcat_opcode(CSOUND *, void *);
 int     strcmp_opcode(CSOUND *, void *);
 int     sprintf_opcode(CSOUND *, void *);
@@ -198,8 +212,10 @@ int     printf_opcode_set(CSOUND *, void *);
 int     printf_opcode_perf(CSOUND *, void *);
 int     puts_opcode_init(CSOUND *, void *);
 int     puts_opcode_perf(CSOUND *, void *);
-int     strtod_opcode(CSOUND *, void *);
-int     strtol_opcode(CSOUND *, void *);
+int     strtod_opcode_p(CSOUND *, void *);
+int     strtod_opcode_S(CSOUND *, void *);
+int     strtol_opcode_p(CSOUND *, void *);
+int     strtol_opcode_S(CSOUND *, void *);
 int     strsub_opcode(CSOUND *, void *);
 int     strchar_opcode(CSOUND *, void *);
 int     strlen_opcode(CSOUND *, void *);

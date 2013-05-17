@@ -919,23 +919,16 @@ int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
   return csound->perferrcnt;                /* contin from there */
 }
 
-/* IV - Oct 12 2002: new simplified subinstr functions */
-
-int subinstrset(CSOUND *csound, SUBINST *p)
+int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 {
   OPDS    *saved_ids = csound->ids;
   INSDS   *saved_curip = csound->curip;
   MYFLT   *flp;
-  int     instno, n, init_op, inarg_ofs;
+  int     n, init_op, inarg_ofs;
 
-  /* check if we are using subinstrinit or subinstr */
   init_op = (p->h.opadr == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
-  /* IV - Oct 31 2002 */
-  if (UNLIKELY((instno = strarg2insno(csound, p->ar[inarg_ofs],
-                                      (p->XSTRCODE & 1)))
-               < 0))
-    return NOTOK;
+  if (UNLIKELY(instno < 0)) return NOTOK;
   /* IV - Oct 9 2002: need this check */
   if (UNLIKELY(!init_op && p->OUTOCOUNT > csound->nchnls)) {
     return csoundInitError(csound, Str("subinstr: number of output "
@@ -1013,6 +1006,25 @@ int subinstrset(CSOUND *csound, SUBINST *p)
   csound->ids = saved_ids;
   csound->curip = saved_curip;
   return OK;
+}
+
+int subinstrset_S(CSOUND *csound, SUBINST *p){
+  int instno, init_op, inarg_ofs;
+   /* check if we are using subinstrinit or subinstr */
+  init_op = (p->h.opadr == NULL ? 1 : 0);
+  inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
+  instno = strarg2insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
+  return subinstrset_(csound,p,instno);
+}
+
+
+int subinstrset(CSOUND *csound, SUBINST *p){
+  int instno, init_op, inarg_ofs;
+   /* check if we are using subinstrinit or subinstr */
+  init_op = (p->h.opadr == NULL ? 1 : 0);
+  inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
+  instno = (int) *(p->ar[inarg_ofs]);
+  return subinstrset_(csound,p,instno);
 }
 
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
@@ -1404,9 +1416,17 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
 int nstrnumset(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
-  *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, (p->XSTRCODE & 1));
+  *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, 0);
   return (*(p->i_insno) > FL(0.0) ? OK : NOTOK);
 }
+
+int nstrnumset_S(CSOUND *csound, NSTRNUM *p)
+{
+  /* IV - Oct 31 2002 */
+  *(p->i_insno) = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->iname)->data, 1);
+  return (*(p->i_insno) > FL(0.0) ? OK : NOTOK);
+}
+
 
 /* unlink expired notes from activ chain */
 /*      and mark them inactive           */
@@ -2063,18 +2083,34 @@ static void instance(CSOUND *csound, int insno)
 
 }
 
-int prealloc(CSOUND *csound, AOP *p)
+int prealloc_(CSOUND *csound, AOP *p, int instname)
 {
   int     n, a;
 
-  n = (int) strarg2opcno(csound, p->r, (p->XSTRCODE & 1),
+  if(instname) 
+    n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                          (*p->b == FL(0.0) ? 0 : 1));
+  else {
+    if(ISSTRCOD(*p->r)) 
+      n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
+                         (*p->b == FL(0.0) ? 0 : 1));
+    else n = *p->r;
+  }
+   
   if (UNLIKELY(n < 1))
     return NOTOK;
   a = (int) *p->a - csound->engineState.instrtxtp[n]->active;
   for ( ; a > 0; a--)
     instance(csound, n);
   return OK;
+}
+
+int prealloc(CSOUND *csound, AOP *p){
+  return prealloc_(csound,p,0);
+}
+
+int prealloc_S(CSOUND *csound, AOP *p){
+  return prealloc_(csound,p,1);
 }
 
 int delete_instr(CSOUND *csound, DELETEIN *p)
