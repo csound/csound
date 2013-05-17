@@ -31,6 +31,7 @@
 #include "insert.h"
 #include "namedins.h"
 #include "interlocks.h"
+#include "csound_orc_semantics.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
@@ -45,8 +46,7 @@ CS_HASH_TABLE* symbtab;
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
 //static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
 extern int csound_orcget_lineno(void*);
-extern int find_opcode_num(CSOUND* csound, char* opname,
-                           char* outArgsFound, char* inArgsFound);
+
 
 int get_opcode_type(OENTRY *ep)
 {
@@ -64,8 +64,10 @@ int get_opcode_type(OENTRY *ep)
 void init_symbtab(CSOUND *csound)
 {
     OENTRY *ep;
-    OENTRY *temp;
-    int len = 0;
+    CONS_CELL *top, *head, *items;
+
+    char *shortName;
+    
 
     symbtab = cs_hash_table_create(csound);
     /* Now we need to populate with basic words */
@@ -75,31 +77,29 @@ void init_symbtab(CSOUND *csound)
      * T_OPCODE0, or T_OPCODE00)
      */
 
-    for (ep = (OENTRY*) csound->opcodlst; ep < (OENTRY*) csound->oplstend; ep++) {
-        if (ep->dsblksiz >= 0xfffb) {
-          char * polyName;
-          len = strlen(ep->opname) + 1;
-          polyName = mcalloc(csound, len + 1);
-          sprintf(polyName, "%s.", ep->opname);
-
-          for (temp = (OENTRY*) csound->opcodlst;
-               temp < (OENTRY*) csound->oplstend; temp++) {
-            if (ep != temp && strncmp(polyName, temp->opname, len) == 0) {
-              add_token(csound, ep->opname, get_opcode_type(temp));
+    top = head = cs_hash_table_values(csound, csound->opcodes);
+    
+    while (head != NULL) {
+        items = head->value;
+        while (items != NULL) {
+            ep = items->value;
+            
+            if (ep->dsblksiz < 0xfffb) {
+                shortName = get_opcode_short_name(csound, ep->opname);
+            
+                add_token(csound, shortName, get_opcode_type(ep));
+                
+                if (shortName != ep->opname) {
+                    mfree(csound, shortName);
+                }
             }
-          }
-
-          mfree(csound, polyName);
-
+            items = items->next;
         }
-        else {
-//            csound->Message(csound, "Found Regular Opcode %s\n",ep->opname);
-          add_token(csound, ep->opname,get_opcode_type(ep));
-        }
-
-
+        head = head->next;
     }
-
+    
+    
+    mfree(csound, top);
 }
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
@@ -432,6 +432,40 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 }
 
 
+OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
+    CONS_CELL *items;
+    char *shortName;
+    OENTRY *ep, *retVal = NULL;
+    
+    if(oentry == NULL) {
+        return NULL;
+    }
+    shortName = get_opcode_short_name(csound, oentry->opname);
+    
+    items = cs_hash_table_get(csound, csound->opcodes, shortName);
+
+    while (items != NULL) {
+        ep = items->value;
+        if (oentry->iopadr == ep->iopadr &&
+            oentry->kopadr == ep->kopadr &&
+            oentry->aopadr == ep->aopadr &&
+            strcmp(oentry->opname, ep->opname) == 0 &&
+            strcmp(oentry->outypes, ep->outypes) == 0 &&
+            strcmp(oentry->intypes, ep->intypes) == 0) {
+            retVal = ep;
+            break;
+        }
+        items = items->next;
+    }
+    
+    if (shortName != oentry->opname) {
+        mfree(csound, shortName);
+    }
+    
+    return retVal;
+}
+
+
 /** Adds a UDO definition as an T_OPCODE or T_OPCODE0 type to the symbol table
  * used at parse time.  An OENTRY is also added at this time so that at
  * verification time the opcode can be looked up to get its signature.
@@ -440,22 +474,29 @@ int add_udo_definition(CSOUND *csound, char *opname,
         char *outtypes, char *intypes) {
 
     OENTRY    tmpEntry, *opc, *newopc;
-    int32      newopnum;
     OPCODINFO *inm;
 
-
-    /* IV - Oct 31 2002 */
     if (UNLIKELY(!check_instr_name(opname))) {
         synterr(csound, Str("invalid name for opcode"));
         return -1;
     }
 
-    /* IV - Oct 31 2002: check if opcode is already defined */
-    newopnum = find_opcode_num(csound, opname, outtypes, intypes);
+    /* check if opcode is already defined */
+    
+    opc = find_opcode_new(csound, opname, outtypes, intypes);
 
-    if (newopnum) {
+    if (opc != NULL) {
         /* IV - Oct 31 2002: redefine old opcode if possible */
-      if (UNLIKELY(newopnum < SETEND || !strcmp(opname, "subinstr"))) {
+      if (UNLIKELY(
+               !strcmp(opname, "instr") ||
+               !strcmp(opname, "endin") ||
+               !strcmp(opname, "opcode") ||
+               !strcmp(opname, "endop") ||
+               !strcmp(opname, "$label") ||
+               !strcmp(opname, "pset") ||
+               !strcmp(opname, "xin") ||
+               !strcmp(opname, "xout") ||
+               !strcmp(opname, "subinstr"))) {
           synterr(csound, Str("cannot redefine %s"), opname);
           return -2;
         }
@@ -467,8 +508,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     /* IV - Oct 31 2002 */
     /* store the name in a linked list (note: must use mcalloc) */
     inm = (OPCODINFO *) mcalloc(csound, sizeof(OPCODINFO));
-    inm->name = (char*)mmalloc(csound, 1+strlen(opname));
-    strcpy(inm->name, opname);
+    inm->name = cs_strdup(csound, opname);
     inm->intypes = intypes;
     inm->outtypes = outtypes;
 
@@ -477,18 +517,12 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* IV - Oct 31 2002: */
     /* create a fake opcode so we can call it as such */
-    opc = &csound->opcodlst[USEROPCODE];
+    opc = find_opcode(csound, "##userOpcode");
     memcpy(&tmpEntry, opc, sizeof(OENTRY));
-    tmpEntry.opname = (char*)mmalloc(csound, 1+strlen(opname));
-    strcpy(tmpEntry.opname, opname);
+    tmpEntry.opname = cs_strdup(csound, opname);
     csound->AppendOpcodes(csound, &tmpEntry, 1);
 
-    if (!newopnum) {
-        newopnum = (int32) ((OENTRY*) csound->oplstend
-                           - (OENTRY*) csound->opcodlst) - 1L;
-    }
-
-    newopc = &(csound->opcodlst[newopnum]);
+    newopc = csound_find_internal_oentry(csound, &tmpEntry);
     newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
 
     /* check in/out types and copy to the opcode's */
