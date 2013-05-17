@@ -104,10 +104,7 @@ char *strarg2name(CSOUND *, char *, void *, const char *, int);
 /* ----------------------------------------------------------------------- */
 /* the following functions are for efficient management of the opcode list */
 
-/* find opcode with the specified name in opcode list */
-/* returns index to opcodlst[], or zero if the opcode cannot be found */
 
-int find_opcode(CSOUND *, char *);
 
 /* ----------------------------------------------------------------------- */
 /* These functions replace the functionality of strsav() in rdorch.c.      */

@@ -521,9 +521,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       opentries = find_opcode2(csound, root->value->lexeme);
 
       if (opentries->count == 0) {
-                                /* This is a little like overkill
-                                 * and also this opnum variable is not used  */
-        //opnum = find_opcode_num(csound, "##error", "i", "i");
         csound->Warning(csound,
                     Str("error: function %s not found, "
                         "line %d \n"),

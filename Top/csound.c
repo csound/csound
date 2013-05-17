@@ -58,6 +58,7 @@
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
+#include "csound_orc_semantics.h"
 
 #if defined(linux) || defined(__HAIKU__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -99,28 +100,61 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];
-static void create_opcodlst(CSOUND *csound)
-{
-    OENTRY  *saved_opcodlst = csound->opcodlst;
-    int     old_cnt = 0, err;
-
-    if (saved_opcodlst != NULL) {
-      csound->opcodlst = NULL;
-      if (csound->oplstend != NULL)
-        old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
-      csound->oplstend = NULL;
-      memset(csound->opcode_list, 0, sizeof(int) * 256);
+static void free_opcode_table(CSOUND* csound) {
+    int i;
+    CS_HASH_TABLE_ITEM* bucket;
+    CONS_CELL* head;
+    
+    for (i = 0; i < HASH_SIZE; i++) {
+        bucket = csound->opcodes->buckets[i];
+        
+        while(bucket != NULL) {
+            head = bucket->value;
+            cs_cons_free(csound, head);
+            bucket = bucket->next;
+        }
     }
+    
+    cs_hash_table_free(csound, csound->opcodes);
+}
+static void create_opcode_table(CSOUND *csound)
+{
+
+    int err;
+    
+    if (csound->opcodes != NULL) {
+        free_opcode_table(csound);
+    }
+    csound->opcodes = mmalloc(csound, sizeof(CS_HASH_TABLE));
+    
     /* Basic Entry1 stuff */
     err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
-    /* Add opcodes registered by host application */
-    if (old_cnt)
-      err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
-    if (saved_opcodlst != NULL)
-      free(saved_opcodlst);
+    
     if (err)
       csoundDie(csound, Str("Error allocating opcode list"));
 }
+//static void create_opcodlst(CSOUND *csound)
+//{
+//    OENTRY  *saved_opcodlst = csound->opcodlst;
+//    int     old_cnt = 0, err;
+//
+//    if (saved_opcodlst != NULL) {
+//      csound->opcodlst = NULL;
+//      if (csound->oplstend != NULL)
+//        old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
+//      csound->oplstend = NULL;
+//      memset(csound->opcode_list, 0, sizeof(int) * 256);
+//    }
+//    /* Basic Entry1 stuff */
+//    err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
+//    /* Add opcodes registered by host application */
+//    if (old_cnt)
+//      err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
+//    if (saved_opcodlst != NULL)
+//      free(saved_opcodlst);
+//    if (err)
+//      csoundDie(csound, Str("Error allocating opcode list"));
+//}
 
 
 #define MAX_MODULES 64
@@ -511,11 +545,10 @@ static const CSOUND cenviron_ = {
     (char*) NULL,   /*  xfilename           */
     1,              /*  peakchunks          */
     0,              /*  keep_tmp            */
-    (OENTRY*) NULL, /*  opcodlst     */
-    (int*) NULL,  /*  opcode_list         */
-    (OENTRY*) NULL, /*  opcodlstend         */
-    (OENTRIES *) NULL, /* opcodelist */
-    (OENTRIES *) NULL, /* opcodelist_end */
+//    (OENTRY*) NULL, /*  opcodlst     */
+//    (int*) NULL,  /*  opcode_list         */
+//    (OENTRY*) NULL, /*  opcodlstend         */
+    (CS_HASH_TABLE*)NULL, /* Opcode hash table */
     0,              /*  nrecs               */
     NULL,           /*  Linepipe            */
     0,              /*  Linefd              */
@@ -2487,50 +2520,30 @@ PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
 static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
                                               const OENTRY *ep)
 {
-    int     oldCnt = 0;
-    int     h = 0;
+    CONS_CELL *head;
+    OENTRY *entryCopy;
+    char *shortName;
 
-    if (ep->opname == NULL)
+    if (ep->opname == NULL || csound->opcodes == NULL)
       return CSOUND_ERROR;
-    if (ep->opname[0] != (char) 0)
-      h = (int) name_hash_2(csound, ep->opname);
-    else if (csound->opcodlst != NULL)
-      return CSOUND_ERROR;
-    if (csound->opcodlst != NULL) {
-      int   n;
-      oldCnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) csound->opcodlst);
-      /* check if this opcode is already defined */
-      n = csound->opcode_list[h];
-      while (n) {
-        if (!sCmp(csound->opcodlst[n].opname, ep->opname)) {
-          int tmp = csound->opcodlst[n].prvnum;
-          /* redefine existing opcode */
-          memcpy(&(csound->opcodlst[n]), ep, sizeof(OENTRY));
-          csound->opcodlst[n].useropinfo = NULL;
-          csound->opcodlst[n].prvnum = tmp;
-          return CSOUND_SUCCESS;
-        }
-        n = csound->opcodlst[n].prvnum;
-      }
+    
+    shortName = get_opcode_short_name(csound, ep->opname);
+    
+    head = cs_hash_table_get(csound, csound->opcodes, shortName);
+    entryCopy = mmalloc(csound, sizeof(OENTRY));
+    memcpy(entryCopy, ep, sizeof(OENTRY));
+    entryCopy->useropinfo = NULL;
+    
+    if (head != NULL) {
+        cs_cons_append(head, cs_cons(csound, entryCopy, NULL));
+    } else {
+        head = cs_cons(csound, entryCopy, NULL);
+        cs_hash_table_put(csound, csound->opcodes, shortName, head);
     }
-    if (!(oldCnt & 0x7F)) {
-      OENTRY  *newList;
-      size_t  nBytes = (size_t) (oldCnt + 0x80) * sizeof(OENTRY);
-      if (!oldCnt)
-        newList = (OENTRY*) malloc(nBytes);
-      else
-        newList = (OENTRY*) realloc(csound->opcodlst, nBytes);
-      if (newList == NULL)
-        return CSOUND_MEMORY;
-      csound->opcodlst = newList;
-      csound->oplstend = ((OENTRY*) newList + (int) oldCnt);
-      memset(&(csound->opcodlst[oldCnt]), 0, sizeof(OENTRY) * 0x80);
+    
+    if (shortName != ep->opname) {
+        mfree(csound, shortName);
     }
-    memcpy(&(csound->opcodlst[oldCnt]), ep, sizeof(OENTRY));
-    csound->opcodlst[oldCnt].useropinfo = NULL;
-    csound->opcodlst[oldCnt].prvnum = csound->opcode_list[h];
-    csound->opcode_list[h] = oldCnt;
-    csound->oplstend = (OENTRY*) csound->oplstend + (int) 1;
     return 0;
 }
 
@@ -2568,9 +2581,9 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
 
 int csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList, int n)
 {
-  OENTRY  *ep = (OENTRY*) opcodeList;
+    OENTRY  *ep = (OENTRY*) opcodeList;
     int     err, retval = 0;
-
+    
     if (UNLIKELY(opcodeList == NULL))
       return -1;
     if (UNLIKELY(n <= 0))
@@ -2657,8 +2670,10 @@ static void reset(CSOUND *csound)
 #ifdef CSCORE
     cscoreRESET(csound);
 #endif
-    if (csound->opcodlst != NULL)
-      free(csound->opcodlst);
+    if (csound->opcodes != NULL) {
+      free_opcode_table(csound);
+      csound->opcodes = NULL;
+    }
 #ifdef HAVE_PTHREAD_SPIN_LOCK
      pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
@@ -2890,9 +2905,9 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
-    csound->opcode_list = (int*) mcalloc(csound, sizeof(int) * 256);
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
+    create_opcode_table(csound);
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
@@ -2964,7 +2979,6 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
       csound->engineState.varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
       csoundAddStandardTypes(csound, csound->typePool);
-      create_opcodlst(csound);
       csoundLoadExternals(csound);
     }
 }
