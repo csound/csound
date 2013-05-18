@@ -240,7 +240,11 @@ int pinit(CSOUND *csound, PINIT *p)
     if (nargs>pargs)
       csound->Warning(csound, Str("More arguments than p fields"));
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
-        *p->inits[n] = csound->currevent->p[n+start];
+      if(ISSTRCOD(csound->currevent->p[n+start])) {
+	((STRINGDAT *)p->inits[n])->data = cs_strdup(csound, get_arg_string(csound, csound->currevent->p[n+start]));
+	((STRINGDAT *)p->inits[n])->size = strlen(((STRINGDAT *)p->inits[n])->data)+1;
+      }
+      else  *p->inits[n] = csound->currevent->p[n+start];
       x <<= 1;
     }
     return OK;

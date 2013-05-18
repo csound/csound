@@ -28,9 +28,8 @@
 #include "namedins.h"
 #include "linevent.h"
 
-int eventOpcode(CSOUND *csound, LINEVENT *p);
-int eventOpcodeI(CSOUND *csound, LINEVENT *p);
-int eventOpcodeI_S(CSOUND *csound, LINEVENT *p);
+
+int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int s, char p1);
 
 int schedule(CSOUND *csound, SCHED *p)
 {
@@ -47,7 +46,7 @@ int schedule(CSOUND *csound, SCHED *p)
       pp.args[i] = p->argums[i-4];
     }
     pp.flag = 1;
-    return eventOpcodeI(csound, &pp);
+    return eventOpcodeI_(csound, &pp, 0, 'i');
 }
 
 int schedule_S(CSOUND *csound, SCHED *p)
@@ -65,7 +64,7 @@ int schedule_S(CSOUND *csound, SCHED *p)
       pp.args[i] = p->argums[i-4];
     }
     pp.flag = 1;
-    return eventOpcodeI_S(csound, &pp);
+    return eventOpcodeI_(csound, &pp, 1, 'i');
 }
 
 
