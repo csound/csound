@@ -658,7 +658,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
 
 char* get_opcode_short_name(CSOUND* csound, char* opname) {
-    
+
     char* dot = strchr(opname, '.');
     if(dot != NULL) {
         int opLen = dot - opname;
@@ -675,18 +675,18 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
     char *shortName;
     CONS_CELL* head;
     OENTRY* retVal;
-    
+
     if (opname[0] == (char) 0 ||
         (opname[0] >= (char) '0' && opname[0] <= (char) '9'))
         return 0;
-    
+
     shortName = get_opcode_short_name(csound, opname);
-    
+
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
-    
+
     retVal = (head != NULL) ? head->value : NULL;
     if (shortName != opname) mfree(csound, shortName);
-    
+
     return retVal;
 }
 
@@ -699,11 +699,11 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
     char *shortName;
     CONS_CELL *head;
     OENTRIES* retVal;
-    
+
     if (UNLIKELY(opname == NULL)) {
       return NULL;
     }
- 
+
     retVal = mcalloc(csound, sizeof(OENTRIES));
 
     shortName = get_opcode_short_name(csound, opname);
@@ -715,13 +715,13 @@ PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
         retVal->entries[i++] = head->value;
         head = head->next;
     }
-    
+
     if (shortName != opname) {
         mfree(csound, shortName);
     }
-    
+
     return retVal;
-    
+
 }
 
 inline static int is_in_optional_arg(char arg) {
