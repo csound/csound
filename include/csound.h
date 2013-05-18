@@ -1432,7 +1432,7 @@ extern "C" {
 
     /**
      * returns the size of data stored in a channel; for string channels
-     * this might change if the channel space gets reallocate 
+     * this might change if the channel space gets reallocate
      * (currently this is fixed, but it might change)
      */
     PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name);

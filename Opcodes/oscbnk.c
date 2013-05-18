@@ -2561,7 +2561,7 @@ static const OENTRY localops[] = {
             (SUBR) rnd31set, (SUBR) NULL, (SUBR) rnd31a                 },
     { "oscilikt",   0xFFFE,   TR                                       },
     { "oscilikt.a", sizeof(OSCKT),   0,   5,      "a",    "kkkoo",
-      (SUBR) oscktset, NULL, (SUBR)osckkikt      },     
+      (SUBR) oscktset, NULL, (SUBR)osckkikt      },
     { "oscilikt.kk", sizeof(OSCKT),   0,   3,      "k",    "kkkoo",
             (SUBR) oscktset, (SUBR) kosclikt, NULL          },
     { "oscilikt.ka", sizeof(OSCKT),   0,   5,      "a",    "kakoo",
@@ -2597,4 +2597,3 @@ int oscbnk_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

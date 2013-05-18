@@ -154,7 +154,7 @@ int strcpy_opcode(CSOUND *csound, STRCPY_OP *p)
     if (p->r == p->str)
       return OK;
     if (ISSTRCOD(*p->str)) {
-      char *ss = csound->currevent->strarg;  
+      char *ss = csound->currevent->strarg;
       if (ss != NULL)
        newVal = get_arg_string(csound, *p->str);
       else {
@@ -804,4 +804,3 @@ int strrindex_opcode(CSOUND *csound, STRINDEX_OP *p)
 
     return OK;
 }
-

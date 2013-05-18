@@ -104,32 +104,32 @@ static void free_opcode_table(CSOUND* csound) {
     int i;
     CS_HASH_TABLE_ITEM* bucket;
     CONS_CELL* head;
-    
+
     for (i = 0; i < HASH_SIZE; i++) {
         bucket = csound->opcodes->buckets[i];
-        
+
         while(bucket != NULL) {
             head = bucket->value;
             cs_cons_free(csound, head);
             bucket = bucket->next;
         }
     }
-    
+
     cs_hash_table_free(csound, csound->opcodes);
 }
 static void create_opcode_table(CSOUND *csound)
 {
 
     int err;
-    
+
     if (csound->opcodes != NULL) {
         free_opcode_table(csound);
     }
     csound->opcodes = cs_hash_table_create(csound);
-    
+
     /* Basic Entry1 stuff */
     err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
-    
+
     if (err)
       csoundDie(csound, Str("Error allocating opcode list"));
 }
@@ -2500,21 +2500,21 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
     if (ep->opname == NULL || csound->opcodes == NULL)
       return CSOUND_ERROR;
-    
+
     shortName = get_opcode_short_name(csound, ep->opname);
-    
+
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
     entryCopy = mmalloc(csound, sizeof(OENTRY));
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
-    
+
     if (head != NULL) {
         cs_cons_append(head, cs_cons(csound, entryCopy, NULL));
     } else {
         head = cs_cons(csound, entryCopy, NULL);
         cs_hash_table_put(csound, csound->opcodes, shortName, head);
     }
-    
+
     if (shortName != ep->opname) {
         mfree(csound, shortName);
     }
@@ -2557,7 +2557,7 @@ int csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList, int n)
 {
     OENTRY  *ep = (OENTRY*) opcodeList;
     int     err, retval = 0;
-    
+
     if (UNLIKELY(opcodeList == NULL))
       return -1;
     if (UNLIKELY(n <= 0))
