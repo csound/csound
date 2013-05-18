@@ -98,16 +98,16 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
       return "##div";
     case '^':
       return "pow";
-    case S_TABREF:
-      return "#tabref";
-    case S_TABRANGE:
-      return "#tabgen";
-    case S_TABSLICE:
-      return "#tabslice";
-    case T_MAPK:
-      return "##tabmap";
-    case T_MAPI:
-      return "##tabmapo_i";
+//    case S_TABREF:
+//      return "#tabref";
+//    case S_TABRANGE:
+//      return "#tabgen";
+//    case S_TABSLICE:
+//      return "#tabslice";
+//    case T_MAPK:
+//      return "##tabmap";
+//    case T_MAPI:
+//      return "##tabmapo_i";
     case S_UMINUS:
       return "##mul";
     case '|':
@@ -1874,16 +1874,6 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_LE:(%d:%d)\n", l->line, l->locn); break;
     case S_EQ:
       csound->Message(csound,"S_EQ:(%d:%d)\n", l->line, l->locn); break;
-    case S_TASSIGN:
-      csound->Message(csound,"S_TASSIGN:(%d:%d)\n", l->line, l->locn); break;
-    case S_TABRANGE:
-      csound->Message(csound,"S_TABRANGE:(%d:%d)\n", l->line, l->locn); break;
-    case S_TABREF:
-      csound->Message(csound,"S_TABREF:(%d:%d)\n", l->line, l->locn); break;
-    case T_MAPK:
-      csound->Message(csound,"T_MAPK:(%d:%d)\n", l->line, l->locn); break;
-    case T_MAPI:
-      csound->Message(csound,"T_MAPI:(%d:%d)\n", l->line, l->locn); break;
     case S_GT:
       csound->Message(csound,"S_GT:(%d:%d)\n", l->line, l->locn); break;
     case S_GE:
@@ -1950,18 +1940,6 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
         csound->Message(csound,"S_UMINUS:(%d:%d)\n", l->line, l->locn); break;
     case T_INSTLIST:
         csound->Message(csound,"T_INSTLIST:(%d:%d)\n", l->line, l->locn); break;
-    case T_TADD:
-      csound->Message(csound,"T_TADD:(%d:%d)\n", l->line, l->locn); break;
-    case T_SUB:
-      csound->Message(csound,"T_SUB:(%d:%d)\n", l->line, l->locn); break;
-    case S_TUMINUS:
-      csound->Message(csound,"S_TUMINUS:(%d:%d)\n", l->line, l->locn); break;
-    case T_TMUL:
-      csound->Message(csound,"T_TMUL:(%d:%d)\n", l->line, l->locn); break;
-    case T_TDIV:
-      csound->Message(csound,"T_TDIV:(%d:%d)\n", l->line, l->locn); break;
-    case T_TREM:
-      csound->Message(csound,"T_TREM:(%d:%d)\n", l->line, l->locn); break;
     default:
       csound->Message(csound,"unknown:%d(%d:%d)\n", l->type, l->line, l->locn);
     }
@@ -2021,12 +1999,12 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_LE\""); break;
     case S_EQ:
       csound->Message(csound,"name=\"S_EQ\""); break;
-    case S_TASSIGN:
-      csound->Message(csound,"name=\"S_TASSIGN\""); break;
-    case S_TABRANGE:
-      csound->Message(csound,"name=\"S_TABRANGE\""); break;
-    case S_TABREF:
-      csound->Message(csound,"name=\"S_TABREF\""); break;
+//    case S_TASSIGN:
+//      csound->Message(csound,"name=\"S_TASSIGN\""); break;
+//    case S_TABRANGE:
+//      csound->Message(csound,"name=\"S_TABRANGE\""); break;
+//    case S_TABREF:
+//      csound->Message(csound,"name=\"S_TABREF\""); break;
     case S_GT:
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
@@ -2123,22 +2101,22 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                       l->value->lexeme); break;
     case S_ELIPSIS:
       csound->Message(csound,"name=\"S_ELIPSIS\""); break;
-    case T_MAPI:
-      csound->Message(csound,"name=\"T_MAPI\""); break;
-    case T_MAPK:
-      csound->Message(csound,"name=\"T_MAPK\""); break;
-    case T_TADD:
-      csound->Message(csound,"name=\"T_TADD\""); break;
-    case T_SUB:
-      csound->Message(csound,"name=\"T_SUB\""); break;
-    case S_TUMINUS:
-      csound->Message(csound,"name=\"S_TUMINUS\""); break;
-    case T_TMUL:
-      csound->Message(csound,"name=\"T_TMUL\""); break;
-    case T_TDIV:
-      csound->Message(csound,"name=\"T_TDIV\""); break;
-    case T_TREM:
-      csound->Message(csound,"name=\"T_TREM\""); break;
+//    case T_MAPI:
+//      csound->Message(csound,"name=\"T_MAPI\""); break;
+//    case T_MAPK:
+//      csound->Message(csound,"name=\"T_MAPK\""); break;
+//    case T_TADD:
+//      csound->Message(csound,"name=\"T_TADD\""); break;
+//    case T_SUB:
+//      csound->Message(csound,"name=\"T_SUB\""); break;
+//    case S_TUMINUS:
+//      csound->Message(csound,"name=\"S_TUMINUS\""); break;
+//    case T_TMUL:
+//      csound->Message(csound,"name=\"T_TMUL\""); break;
+//    case T_TDIV:
+//      csound->Message(csound,"name=\"T_TDIV\""); break;
+//    case T_TREM:
+//      csound->Message(csound,"name=\"T_TREM\""); break;
     default:
       csound->Message(csound,"name=\"unknown\"(%d)", l->type);
     }
