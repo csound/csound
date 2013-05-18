@@ -1947,7 +1947,7 @@ static void instance(CSOUND *csound, int insno)
     if (strcmp(ep->opname, "endin") == 0         /*  (until ENDIN)  */
         || strcmp(ep->opname, "endop") == 0)     /*  (or ENDOP)     */
       break;
-    if (strcmp(ep->opname, "pset")) {
+    if (strcmp(ep->opname, "pset") == 0) {
       ip->p1 = (MYFLT) insno;
       continue;
     }
