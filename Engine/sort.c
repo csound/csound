@@ -268,7 +268,7 @@ void sort(CSOUND *csound)
         break;
       }
     } while ((bp = bp->nxtblk) != NULL);
-    if (n>2) {
+    if (n>1) {
       /* Get a temporary array and populate it */
       A = ((SRTBLK**) malloc(n*sizeof(SRTBLK*)))-1;
       bp = csound->frstbp;
