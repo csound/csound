@@ -406,15 +406,17 @@ int eventOpcode_S(CSOUND *csound, LINEVENT *p)
 
 /* i-time version of event opcode */
 
-int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname)
+int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 {
     EVTBLK  evt;
     int     i, err = 0;
     char    opcod;
 
-    opcod = *((STRINGDAT*) p->args[0])->data;
+    if(p1==0)
+         opcod = *((STRINGDAT*) p->args[0])->data;
+    else  opcod = p1;
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
-                  opcod != 'e') || ((STRINGDAT*) p->args[0])->data[1] != '\0'))
+                  opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
@@ -454,12 +456,12 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname)
 
 int eventOpcodeI(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcodeI_(csound, p, 0);  
+  return eventOpcodeI_(csound, p, 0, 0);  
 }
 
 int eventOpcodeI_S(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcodeI_(csound, p, 1);  
+  return eventOpcodeI_(csound, p, 1, 0);  
 }
 
 

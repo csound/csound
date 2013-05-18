@@ -202,30 +202,23 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 /* strcat */
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
-    char  *newVal1 = (char*) p->str1->data;
-    char  *newVal2 = (char*) p->str2->data;
-    int size = strlen(newVal1) + strlen(newVal2);
-
+  char  *newVal1 = strdup(p->str1->data);
+  char  *newVal2 = strdup(p->str2->data);
+  int size = strlen(newVal1) + strlen(newVal2);
+    
     if(p->r->data == NULL) {
         p->r->data = mcalloc(csound, size+1);
         p->r->size = size+1;
     }
     else if(UNLIKELY((int) size >= p->r->size)) {
-      p->r->data = mcalloc(csound, size + 1);
+      p->r->data = mrealloc(csound, p->r->data, size + 1);
       p->r->size = size + 1;
     }
-    if (p->r->data != p->str2->data) {
-      if (p->r->data != p->str1->data)
-        strcpy((char*) p->r->data, newVal1);
-        strcat((char*) p->r->data, newVal2);
-      return OK;
-    }
-    //if (newVal1[0] == '\0')
-    //return OK;
-    // memmove(newVal2 + strlen(newVal1), newVal2, strlen(newVal2) + 1);
-    //if (p->r->data != p->str1->data)
-    //memcpy(newVal2, newVal1, strlen(newVal1));
 
+    strcpy((char*) p->r->data, newVal1);
+    strcat((char*) p->r->data, newVal2);
+    
+    free(newVal1); free(newVal2);
     return OK;
 }
 
