@@ -293,12 +293,12 @@ PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
 }
 
 PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
-    
+
     int i;
-    
+
     for (i = 0; i < HASH_SIZE; i++) {
         CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
-        
+
         while(item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
             mfree(csound, item->key);

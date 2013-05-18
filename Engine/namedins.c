@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include "namedins.h"
+#include "csound_orc_semantics.h"
 #include <ctype.h>
 
 /* check if the string s is a valid instrument or opcode name */
@@ -206,30 +207,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
 /* the following functions are for efficient management of the opcode list */
 
 
-/* find opcode with the specified name in opcode list */
-/* returns index to opcodlst[], or zero if the opcode cannot be found */
 
-int find_opcode(CSOUND *csound, char *opname)
-{
-    int     h, n;
-
-    if (opname[0] == (char) 0 ||
-        (opname[0] >= (char) '0' && opname[0] <= (char) '9'))
-      return 0;
-
-    /* calculate hash value */
-    h = (int) name_hash_2(csound, opname);
-    /* now find entry in opcode chain */
-    n = ((int*) csound->opcode_list)[h];
-    while (n) {
-
-      if (!sCmp(opname, csound->opcodlst[n].opname))
-        return n;
-      n = csound->opcodlst[n].prvnum;
-    }
-
-    return 0;
-}
 
 
 /* -------- IV - Jan 29 2005 -------- */

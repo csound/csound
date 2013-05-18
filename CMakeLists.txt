@@ -270,11 +270,11 @@ else()
 endif()
 
 if(APPLE) 
-    set(PYTHON_MODULE_INSTALL_DIR "/Library/Python/2.7/site-packages")
-    set(JAVA_MODULE_INSTALL_DIR "/Library/Java/Extensions")
+    get_filename_component(PYTHON_MODULE_INSTALL_DIR "~/Library/Python/2.7/lib/python/site-packages" ABSOLUTE)
+    get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
+
     get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
-
 endif()
 
 if(BUILD_RELEASE)
@@ -777,7 +777,8 @@ add_subdirectory(include)
 
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
-    set(libcsound_SRCS "${libcsound_SRCS};${csheaders}")
+    file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers}")
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})

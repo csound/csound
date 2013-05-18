@@ -1502,12 +1502,12 @@ int in32(CSOUND *csound, INALL *p)
 }
 
 int inch_opcode1(CSOUND *csound, INCH1 *p)
-{                               
+{
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS, ch;
     MYFLT *sp, *ain;
-  
+
       ch = ((int)*p->ch + FL(0.5));
       if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
         csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
@@ -1527,7 +1527,7 @@ int inch_opcode1(CSOUND *csound, INCH1 *p)
           sp += csound->inchnls;
         }
       }
-    
+
     return OK;
 }
 

@@ -60,7 +60,7 @@ typedef struct channelEntry_s {
         MYFLT   *data;
         int     lock;               /* Multi-thread protection */
         int     type;
-        int     datasize;  /* size of allocated chn data */  
+        int     datasize;  /* size of allocated chn data */
         char    name[1];
 } CHNENTRY;
 
@@ -181,4 +181,3 @@ int outvalset_S(CSOUND *csound, OUTVAL *p);
 #endif
 
 #endif      /* CSOUND_BUS_H */
-
