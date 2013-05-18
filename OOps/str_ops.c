@@ -176,6 +176,7 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 
 int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
+
  
     if (ISSTRCOD(*p->indx)) {
       char *ss;
@@ -194,7 +195,6 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
     else{
       p->r->data = csound->strarg2name(csound, NULL, p->indx, "soundin.", 0);
     }
-
     return OK;
 }
 
@@ -938,4 +938,3 @@ int strrindex_opcode(CSOUND *csound, STRINDEX_OP *p)
 
     return OK;
 }
-

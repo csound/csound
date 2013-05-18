@@ -33,7 +33,7 @@
 
 #include "interlocks.h"
 
-int find_opcode(CSOUND *, char *);
+OENTRY* find_opcode(CSOUND *, char *);
 /***********************************************************************
  * static function prototypes
  */
@@ -228,8 +228,7 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
 void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 {
     char *name = opcode->lexeme;
-    int32 opnum = find_opcode(csound, name);
-    OENTRY *ep = csound->opcodlst + opnum;
+    OENTRY *ep = find_opcode(csound, name);
     csp_orc_sa_interlocksf(csound, ep->flags);
 }
 
@@ -291,7 +290,7 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
       csp_set_alloc_string(csound, &set);
       return set;
     }
-    
+
     left  = csp_orc_sa_globals_find(csound, node->left);
     right = csp_orc_sa_globals_find(csound, node->right);
     csp_set_union(csound, left, right, &current_set);

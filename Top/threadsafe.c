@@ -115,7 +115,7 @@ void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 {
 
     MYFLT  *psamples;
-    
+
     if (csoundGetChannelPtr(csound, &psamples, name,
                            CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS) {
@@ -206,4 +206,3 @@ PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
     }
     return CSOUND_SUCCESS;
 }
-

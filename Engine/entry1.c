@@ -86,14 +86,14 @@
 
 OENTRY opcodlst_1[] = {
   /* opcode   dspace  flags  thread  outarg  inargs  isub    ksub    asub    */
-  { "",     0,      0,    0,      "",     "",     NULL, NULL, NULL, NULL, 0 },
-  { "instr",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
-  { "endin",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
+  { "",     0,      0,    0,      "",     "",     NULL, NULL, NULL, NULL },
+  { "instr",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "endin",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   /* IV - Sep 8 2002 */
-  { "opcode", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
-  { "endop",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
-  { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
-  { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL, 0 },
+  { "opcode", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "endop",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL },
 
   /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
   /* and setksmps */
@@ -114,19 +114,20 @@ OENTRY opcodlst_1[] = {
   { "##xout256", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL },
   { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
 
-  { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL, 0 },
-   { "massign",S(MASSIGN), 0,1,      "",     "iip",massign_p, NULL, NULL, NULL, 0 },
-  { "massign.iS",S(MASSIGNS), 0,1,      "",     "iSp",massign_S, NULL, NULL, NULL, 0 },
-  { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL, 0 },
-  { "turnon.S", S(TURNON),  0,1,      "",     "So", turnon_S, NULL, NULL, NULL, 0 },
-  { "remoteport", S(REMOTEPORT), 0,1, "",   "i",  remoteport, NULL, NULL, NULL, 0 },
-  { "insremot",S(INSREMOT),0,1,     "",     "SSm",insremot, NULL, NULL, NULL, 0 },
-  { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL, 0 },
-  { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL, 0 },
-  { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL, 0 },
-  { "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
+  { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL},
+  { "massign",S(MASSIGN), 0,1,      "",     "iip",massign_p, NULL, NULL, NULL},
+  { "massign.iS",S(MASSIGNS), 0,1,      "",     "iSp",massign_S, NULL, NULL, NULL},
+  { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL },
+  { "turnon.S", S(TURNON),  0,1,      "",     "So", turnon_S, NULL, NULL, NULL},
+  { "remoteport", S(REMOTEPORT), 0,1, "",   "i",  remoteport, NULL, NULL, NULL},
+  { "insremot",S(INSREMOT),0,1,     "",     "SSm",insremot, NULL, NULL, NULL},
+  { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL},
+  { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL},
+  { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
+  { "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL},
+
   { "init",   0xffff      /* base names for later prefixes,suffixes */    },
-  { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL, 0 },
+  { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL },
   { "bexprnd", 0xffff                                                     },
   { "cauchy",  0xffff                                                     },
   { "cauchyi", 0xffff                                                     },
@@ -173,7 +174,7 @@ OENTRY opcodlst_1[] = {
   { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z", NULL, minit },
   { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   aassign },
   { "=.up",   S(UPSAMP),0,  4,      "a",    "k",    NULL,   NULL, (SUBR)upsamp },
-  { "=.down",   S(DOWNSAMP),0,  3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
+  { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   //  { "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },
   { "init.i", S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0, 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },

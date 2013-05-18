@@ -32,7 +32,7 @@
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "csound_orc_expressions.h"
-
+#include "csound_orc_semantics.h"
 
 char *csound_orcget_text ( void *scanner );
 int is_label(char* ident, CONS_CELL* labelList);
@@ -98,16 +98,16 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
       return "##div";
     case '^':
       return "pow";
-    case S_TABREF:
-      return "#tabref";
-    case S_TABRANGE:
-      return "#tabgen";
-    case S_TABSLICE:
-      return "#tabslice";
-    case T_MAPK:
-      return "##tabmap";
-    case T_MAPI:
-      return "##tabmapo_i";
+//    case S_TABREF:
+//      return "#tabref";
+//    case S_TABRANGE:
+//      return "#tabgen";
+//    case S_TABSLICE:
+//      return "#tabslice";
+//    case T_MAPK:
+//      return "##tabmap";
+//    case T_MAPI:
+//      return "##tabmapo_i";
     case S_UMINUS:
       return "##mul";
     case '|':
@@ -655,44 +655,73 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 }
 
+
+
+char* get_opcode_short_name(CSOUND* csound, char* opname) {
+
+    char* dot = strchr(opname, '.');
+    if(dot != NULL) {
+        int opLen = dot - opname;
+        return cs_strndup(csound, opname, opLen);
+    }
+    return opname;
+}
+
+/* find opcode with the specified name in opcode list */
+/* returns index to opcodlst[], or zero if the opcode cannot be found */
+
+OENTRY* find_opcode(CSOUND *csound, char *opname)
+{
+    char *shortName;
+    CONS_CELL* head;
+    OENTRY* retVal;
+
+    if (opname[0] == (char) 0 ||
+        (opname[0] >= (char) '0' && opname[0] <= (char) '9'))
+        return 0;
+
+    shortName = get_opcode_short_name(csound, opname);
+
+    head = cs_hash_table_get(csound, csound->opcodes, shortName);
+
+    retVal = (head != NULL) ? head->value : NULL;
+    if (shortName != opname) mfree(csound, shortName);
+
+    return retVal;
+}
+
 /* Finds OENTRIES that match the given opcode name.  May return multiple
  * OENTRY*'s for each entry in a polyMorphic opcode.
  */
 PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
 
+    int i = 0;
+    char *shortName;
+    CONS_CELL *head;
+    OENTRIES* retVal;
+
     if (UNLIKELY(opname == NULL)) {
       return NULL;
     }
 
-    {
-      int listIndex = 0;
-      int i;
+    retVal = mcalloc(csound, sizeof(OENTRIES));
 
-      OENTRY* opc = csound->opcodlst;
-      OENTRIES* retVal = mcalloc(csound, sizeof(OENTRIES));
+    shortName = get_opcode_short_name(csound, opname);
 
-      int opLen = strlen(opname);
+    head = cs_hash_table_get(csound, csound->opcodes, shortName);
 
-      //trim opcode name if name has . in it
-      char* dot = strchr(opname, '.');
-      if(dot != NULL) {
-        opLen = dot - opname;
-      }
-
-      for (i=0; opc < csound->oplstend; opc++, i++) {
-
-        if (strncmp(opname, opc->opname, opLen) == 0) {
-          // hack to work with how opcodes are currently defined with
-          //".x" endings for polymorphism
-          if (opc->opname[opLen] == 0 || opc->opname[opLen] == '.') {
-            retVal->entries[listIndex] = opc;
-            retVal->opnum[listIndex++] = i;
-          }
-        }
-        retVal->count = listIndex;
-      }
-      return retVal;
+    retVal->count = cs_cons_length(head);
+    while (head != NULL) {
+        retVal->entries[i++] = head->value;
+        head = head->next;
     }
+
+    if (shortName != opname) {
+        mfree(csound, shortName);
+    }
+
+    return retVal;
+
 }
 
 inline static int is_in_optional_arg(char arg) {
@@ -1019,31 +1048,31 @@ PUBLIC char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
     return NULL;
 }
 
-PUBLIC int resolve_opcode_num(CSOUND* csound, OENTRIES* entries,
-                              char* outArgTypes, char* inArgTypes) {
-
-    int i;
-//    int retVal = -1;
-
-    for (i = 0; i < entries->count; i++) {
-        OENTRY* temp = entries->entries[i];
-        if (temp->intypes == NULL && temp->outypes == NULL) {
-            continue;
-        }
-        if(check_in_args(csound, inArgTypes, temp->intypes) &&
-           check_out_args(csound, outArgTypes, temp->outypes)) {
-//            if (retVal >= 0) {
-//                return 0;
-//            }
-//            retVal = entries->opnum[i];
-            return entries->opnum[i];
-        }
-
-    }
-
-//    return (retVal < 0) ? 0 : retVal;
-    return 0;
-}
+//PUBLIC int resolve_opcode_num(CSOUND* csound, OENTRIES* entries,
+//                              char* outArgTypes, char* inArgTypes) {
+//
+//    int i;
+////    int retVal = -1;
+//
+//    for (i = 0; i < entries->count; i++) {
+//        OENTRY* temp = entries->entries[i];
+//        if (temp->intypes == NULL && temp->outypes == NULL) {
+//            continue;
+//        }
+//        if(check_in_args(csound, inArgTypes, temp->intypes) &&
+//           check_out_args(csound, outArgTypes, temp->outypes)) {
+////            if (retVal >= 0) {
+////                return 0;
+////            }
+////            retVal = entries->opnum[i];
+//            return entries->opnum[i];
+//        }
+//
+//    }
+//
+////    return (retVal < 0) ? 0 : retVal;
+//    return 0;
+//}
 
 PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                        TYPE_TABLE* typeTable) {
@@ -1111,25 +1140,6 @@ PUBLIC OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 
     return retVal;
 }
-
-PUBLIC int find_opcode_num(CSOUND* csound, char* opname,
-                           char* outArgsFound, char* inArgsFound) {
-
-//    csound->Message(csound, "Searching for opcode: %s | %s | %s\n",
-//                    outArgsFound, opname, inArgsFound);
-
-    OENTRIES* opcodes = find_opcode2(csound, opname);
-
-    if (opcodes->count == 0) {
-      return 0;
-    }
-    int retVal = resolve_opcode_num(csound, opcodes, outArgsFound, inArgsFound);
-
-    mfree(csound, opcodes);
-
-    return retVal;
-}
-
 
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]
@@ -1864,16 +1874,6 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_LE:(%d:%d)\n", l->line, l->locn); break;
     case S_EQ:
       csound->Message(csound,"S_EQ:(%d:%d)\n", l->line, l->locn); break;
-    case S_TASSIGN:
-      csound->Message(csound,"S_TASSIGN:(%d:%d)\n", l->line, l->locn); break;
-    case S_TABRANGE:
-      csound->Message(csound,"S_TABRANGE:(%d:%d)\n", l->line, l->locn); break;
-    case S_TABREF:
-      csound->Message(csound,"S_TABREF:(%d:%d)\n", l->line, l->locn); break;
-    case T_MAPK:
-      csound->Message(csound,"T_MAPK:(%d:%d)\n", l->line, l->locn); break;
-    case T_MAPI:
-      csound->Message(csound,"T_MAPI:(%d:%d)\n", l->line, l->locn); break;
     case S_GT:
       csound->Message(csound,"S_GT:(%d:%d)\n", l->line, l->locn); break;
     case S_GE:
@@ -1940,18 +1940,6 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
         csound->Message(csound,"S_UMINUS:(%d:%d)\n", l->line, l->locn); break;
     case T_INSTLIST:
         csound->Message(csound,"T_INSTLIST:(%d:%d)\n", l->line, l->locn); break;
-    case T_TADD:
-      csound->Message(csound,"T_TADD:(%d:%d)\n", l->line, l->locn); break;
-    case T_SUB:
-      csound->Message(csound,"T_SUB:(%d:%d)\n", l->line, l->locn); break;
-    case S_TUMINUS:
-      csound->Message(csound,"S_TUMINUS:(%d:%d)\n", l->line, l->locn); break;
-    case T_TMUL:
-      csound->Message(csound,"T_TMUL:(%d:%d)\n", l->line, l->locn); break;
-    case T_TDIV:
-      csound->Message(csound,"T_TDIV:(%d:%d)\n", l->line, l->locn); break;
-    case T_TREM:
-      csound->Message(csound,"T_TREM:(%d:%d)\n", l->line, l->locn); break;
     default:
       csound->Message(csound,"unknown:%d(%d:%d)\n", l->type, l->line, l->locn);
     }
@@ -2011,12 +1999,12 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_LE\""); break;
     case S_EQ:
       csound->Message(csound,"name=\"S_EQ\""); break;
-    case S_TASSIGN:
-      csound->Message(csound,"name=\"S_TASSIGN\""); break;
-    case S_TABRANGE:
-      csound->Message(csound,"name=\"S_TABRANGE\""); break;
-    case S_TABREF:
-      csound->Message(csound,"name=\"S_TABREF\""); break;
+//    case S_TASSIGN:
+//      csound->Message(csound,"name=\"S_TASSIGN\""); break;
+//    case S_TABRANGE:
+//      csound->Message(csound,"name=\"S_TABRANGE\""); break;
+//    case S_TABREF:
+//      csound->Message(csound,"name=\"S_TABREF\""); break;
     case S_GT:
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
@@ -2113,22 +2101,22 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                       l->value->lexeme); break;
     case S_ELIPSIS:
       csound->Message(csound,"name=\"S_ELIPSIS\""); break;
-    case T_MAPI:
-      csound->Message(csound,"name=\"T_MAPI\""); break;
-    case T_MAPK:
-      csound->Message(csound,"name=\"T_MAPK\""); break;
-    case T_TADD:
-      csound->Message(csound,"name=\"T_TADD\""); break;
-    case T_SUB:
-      csound->Message(csound,"name=\"T_SUB\""); break;
-    case S_TUMINUS:
-      csound->Message(csound,"name=\"S_TUMINUS\""); break;
-    case T_TMUL:
-      csound->Message(csound,"name=\"T_TMUL\""); break;
-    case T_TDIV:
-      csound->Message(csound,"name=\"T_TDIV\""); break;
-    case T_TREM:
-      csound->Message(csound,"name=\"T_TREM\""); break;
+//    case T_MAPI:
+//      csound->Message(csound,"name=\"T_MAPI\""); break;
+//    case T_MAPK:
+//      csound->Message(csound,"name=\"T_MAPK\""); break;
+//    case T_TADD:
+//      csound->Message(csound,"name=\"T_TADD\""); break;
+//    case T_SUB:
+//      csound->Message(csound,"name=\"T_SUB\""); break;
+//    case S_TUMINUS:
+//      csound->Message(csound,"name=\"S_TUMINUS\""); break;
+//    case T_TMUL:
+//      csound->Message(csound,"name=\"T_TMUL\""); break;
+//    case T_TDIV:
+//      csound->Message(csound,"name=\"T_TDIV\""); break;
+//    case T_TREM:
+//      csound->Message(csound,"name=\"T_TREM\""); break;
     default:
       csound->Message(csound,"name=\"unknown\"(%d)", l->type);
     }

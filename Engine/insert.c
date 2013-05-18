@@ -1895,7 +1895,7 @@ int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
 
   while ((optxt = optxt->nxtop) != NULL) {
     TEXT* t = &optxt->t;
-    if (t->oentry == &csound->opcodlst[LABEL] &&
+    if (strcmp(t->oentry->opname, "$label") == 0 &&
         strcmp(t->opcod, labelName) == 0) {
       break;
     }
@@ -1976,10 +1976,10 @@ static void instance(CSOUND *csound, int insno)
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
 
-    if (ep == &csound->opcodlst[ENDIN]         /*  (until ENDIN)  */
-        || ep == &csound->opcodlst[ENDOP])     /*  (or ENDOP)     */
+    if (strcmp(ep->opname, "endin") == 0         /*  (until ENDIN)  */
+        || strcmp(ep->opname, "endop") == 0)     /*  (or ENDOP)     */
       break;
-    if (ep == &csound->opcodlst[PSET]) {
+    if (strcmp(ep->opname, "pset")) {
       ip->p1 = (MYFLT) insno;
       continue;
     }
@@ -1991,7 +1991,7 @@ static void instance(CSOUND *csound, int insno)
                       ep->opname, opds);
     opds->optext = optxt;                     /* set common headata */
     opds->insdshead = ip;
-    if (ep == &csound->opcodlst[LABEL]) {     /* LABEL:       */
+    if (strcmp(ep->opname, "$label") == 0) {     /* LABEL:       */
       LBLBLK  *lblbp = (LBLBLK *) opds;
       lblbp->prvi = prvids;                   /*    save i/p links */
       lblbp->prvp = prvpds;
