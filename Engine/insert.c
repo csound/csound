@@ -1860,7 +1860,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
   OPTXT* optxt = (OPTXT*) ip;
   int offset = 0;
-    
+
   while ((optxt = optxt->nxtop) != NULL) {
     TEXT* t = &optxt->t;
     if (strcmp(t->oentry->opname, "$label") == 0 &&

@@ -973,7 +973,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
     strncpy(func,  (char *)p->str, 64);
     strncat(func, ".k", 64);
     opc = find_opcode(csound, func);
-    
+
     p->opc = opc;
     return OK;
 }

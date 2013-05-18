@@ -67,7 +67,7 @@ void init_symbtab(CSOUND *csound)
     CONS_CELL *top, *head, *items;
 
     char *shortName;
-    
+
 
     symbtab = cs_hash_table_create(csound);
     /* Now we need to populate with basic words */
@@ -78,17 +78,17 @@ void init_symbtab(CSOUND *csound)
      */
 
     top = head = cs_hash_table_values(csound, csound->opcodes);
-    
+
     while (head != NULL) {
         items = head->value;
         while (items != NULL) {
             ep = items->value;
-            
+
             if (ep->dsblksiz < 0xfffb) {
                 shortName = get_opcode_short_name(csound, ep->opname);
-            
+
                 add_token(csound, shortName, get_opcode_type(ep));
-                
+
                 if (shortName != ep->opname) {
                     mfree(csound, shortName);
                 }
@@ -97,8 +97,8 @@ void init_symbtab(CSOUND *csound)
         }
         head = head->next;
     }
-    
-    
+
+
     mfree(csound, top);
 }
 
@@ -436,12 +436,12 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
     CONS_CELL *items;
     char *shortName;
     OENTRY *ep, *retVal = NULL;
-    
+
     if(oentry == NULL) {
         return NULL;
     }
     shortName = get_opcode_short_name(csound, oentry->opname);
-    
+
     items = cs_hash_table_get(csound, csound->opcodes, shortName);
 
     while (items != NULL) {
@@ -457,11 +457,11 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
         }
         items = items->next;
     }
-    
+
     if (shortName != oentry->opname) {
         mfree(csound, shortName);
     }
-    
+
     return retVal;
 }
 
@@ -482,7 +482,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     }
 
     /* check if opcode is already defined */
-    
+
     opc = find_opcode_new(csound, opname, outtypes, intypes);
 
     if (opc != NULL) {
