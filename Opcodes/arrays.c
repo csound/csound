@@ -25,6 +25,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "aops.h"
+#include "csound_orc_semantics.h"
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
@@ -958,11 +959,9 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
     else size = size < p->tab->sizes[0] ? size : p->tab->sizes[0];
     data =  p->tab->data;
 
-    opc = csound->opcodlst;
-    for (n=0; opc < csound->oplstend; opc++, n++)
-      if(!strcmp(func, opc->opname)) break;
+    opc = find_opcode(csound, func);
 
-    if (UNLIKELY(opc == csound->oplstend))
+    if (UNLIKELY(opc == NULL))
       return csound->InitError(csound, Str("%s not found, %d opcodes"), func, n);
     p->opc = opc;
     for (n=0; n < size; n++) {
@@ -973,9 +972,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
 
     strncpy(func,  (char *)p->str, 64);
     strncat(func, ".k", 64);
-    opc = csound->opcodlst;
-    for (n=0; opc < csound->oplstend; opc++, n++)
-      if(!strcmp(func, opc->opname)) break;
+    opc = find_opcode(csound, func);
 
     p->opc = opc;
     return OK;
@@ -996,7 +993,7 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
                                p->h.insdshead, Str("tvar not initialised"));
     size = p->tab->sizes[0];
 
-    if (UNLIKELY(opc == csound->oplstend))
+    if (UNLIKELY(opc == NULL))
       return csound->PerfError(csound,
                                p->h.insdshead, Str("map fn not found at k rate"));
     for (n=0; n < size; n++) {

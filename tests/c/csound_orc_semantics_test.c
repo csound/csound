@@ -16,7 +16,6 @@
 
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern OENTRY* resolve_opcode(CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
-extern int resolve_opcode_num(CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
 extern OENTRY* find_opcode_new(CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound);
 
 extern bool check_in_arg(char* found, char* required);
@@ -106,23 +105,6 @@ void test_resolve_opcode(void) {
     
     
     csound->Free(csound, entries);
-    
-    
-    entries = find_opcode2(csound, "##array_get");
-    
-    int opnum = resolve_opcode_num(csound, entries, "k", "[k]k");
-    CU_ASSERT_TRUE(opnum > 0);
-    
-    
-    entries = find_opcode2(csound, ">");
-    
-    opnum = resolve_opcode_num(csound, entries, "B", "kk");
-    CU_ASSERT_TRUE(opnum > 0);
-    
-    entries = find_opcode2(csound, "sprintf");
-    
-    opnum = resolve_opcode_num(csound, entries, "S", "Sr");
-    CU_ASSERT_TRUE(opnum > 0);
 }
 
 void test_find_opcode_new(void) {

@@ -238,7 +238,6 @@ typedef struct {
         int     (*kopadr)(CSOUND *, void *p);
         int     (*aopadr)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
-        int     prvnum;
     } OENTRY;
 
     // holds matching oentries from opcodeList
@@ -246,7 +245,7 @@ typedef struct {
     // (unlikely though)
     typedef struct oentries {
         OENTRY* entries[16];
-        int opnum[16];
+//        int opnum[16];
         int count;
         char *opname;
         int prvnum;
@@ -1320,12 +1319,7 @@ typedef struct NAME__ {
     char          *xfilename;
     int           peakchunks;
     int           keep_tmp;
-    OENTRY        *opcodlst;
-    int           *opcode_list;
-    OENTRY        *oplstend;
-    OENTRIES      *opcodelist;
-    OENTRIES      *opcodelist_end;
-    /* int           maxopcno; */
+    CS_HASH_TABLE *opcodes;
     int32         nrecs;
     FILE*         Linepipe;
     int           Linefd;
