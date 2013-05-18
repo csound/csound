@@ -38,8 +38,6 @@
 %token S_SUBIN
 %token S_MULIN
 %token S_DIVIN
-%token S_TASSIGN
-%token S_TABREF
 %token S_GT
 %token S_GE
 %token S_BITSHIFT_LEFT
@@ -93,20 +91,6 @@
 %token T_ARRAY
 %token T_ARRAY_IDENT
 %token T_VAR_TYPE
-%token T_MAPI
-%token T_MAPK
-%token T_TADD
-%token T_SUB
-%token S_TUMINUS
-%token T_TMUL
-%token T_TDIV
-%token T_TREM
-%token T_TIMUL
-%token T_TIDIV
-%token T_TIREM
-%token S_A2K
-%token S_TABRANGE
-%token S_TABSLICE
 
 %start orcfile
 %left '?'

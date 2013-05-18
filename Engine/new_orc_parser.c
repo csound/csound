@@ -24,7 +24,6 @@
 */
 
 #include "csoundCore.h"
-//#include "csound_orcparse.h"
 #include "csound_orc.h"
 #include "corfile.h"
 
@@ -43,7 +42,6 @@ extern void csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
 extern void csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
-//extern void csound_orc_scan_string(char *, void *);
 extern void csound_orcset_lineno(int, void*);
 extern void csound_orclex_destroy(void *);
 extern void init_symbtab(CSOUND*);
