@@ -125,7 +125,7 @@ static void create_opcode_table(CSOUND *csound)
     if (csound->opcodes != NULL) {
         free_opcode_table(csound);
     }
-    csound->opcodes = mmalloc(csound, sizeof(CS_HASH_TABLE));
+    csound->opcodes = cs_hash_table_create(csound);
     
     /* Basic Entry1 stuff */
     err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
