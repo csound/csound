@@ -98,16 +98,6 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
       return "##div";
     case '^':
       return "pow";
-//    case S_TABREF:
-//      return "#tabref";
-//    case S_TABRANGE:
-//      return "#tabgen";
-//    case S_TABSLICE:
-//      return "#tabslice";
-//    case T_MAPK:
-//      return "##tabmap";
-//    case T_MAPI:
-//      return "##tabmapo_i";
     case S_UMINUS:
       return "##mul";
     case '|':
