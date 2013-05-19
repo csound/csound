@@ -937,6 +937,8 @@ typedef struct {
     OENTRY *opc;
 } TABMAP;
 
+
+
 static int tabmap_set(CSOUND *csound, TABMAP *p)
 {
     MYFLT *data, *tabin = p->tabin->data;
