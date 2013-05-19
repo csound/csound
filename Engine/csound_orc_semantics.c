@@ -690,6 +690,7 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
     return retVal;
 }
 
+
 /* Finds OENTRIES that match the given opcode name.  May return multiple
  * OENTRY*'s for each entry in a polyMorphic opcode.
  */
