@@ -80,10 +80,12 @@ typedef struct {
     MYFLT     *num;
  } WIIRANGE;
 
-#if defined(WIIUSE_0_13)
+#ifndef WIIMOTE_STATE_CONNECTED
+# if defined(WIIUSE_0_13)
 #  define WIIMOTE_STATE_CONNECTED          (0x0010)
-#else
+# else
 #  define WIIMOTE_STATE_CONNECTED          (0x0008)
+# endif
 #endif
 
 int wiimote_find(CSOUND *csound, WIIMOTE *p)
