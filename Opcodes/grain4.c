@@ -229,13 +229,13 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     if (*p->ithd != 0) {        /* Do thresholding.... */
       tmplong2 = 0;
-      for (tmplong1=0; tmplong1<ftp->flen; tmplong1++)
+      for (tmplong1=0; tmplong1< (int) ftp->flen; tmplong1++)
         if (fabs(ftp->ftable[tmplong1]) >= *p->ithd )
           ftp->ftable[tmplong2++] = ftp->ftable[tmplong1];
       ftp->flen = tmplong2;
     }
 
-    if (p->gend > ftp->flen) {
+    if (p->gend > (int) ftp->flen) {
       return csound->InitError(csound, Str("granule_set: Illegal combination "
                                            "of igskip and ilength"));
     }
