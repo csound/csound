@@ -34,7 +34,7 @@ option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and li
 find_package(FLEX)
 find_package(BISON)
 
-check_include_file(m_pd.h PD_HEADER)
+find_path(PD_HEADER_PATH m_pd.h)
 
 ## Csound Commandline Executable ##
 set(CS_MAIN_SRCS csound/csound_main.c)
@@ -101,8 +101,10 @@ if(BUILD_CSBEATS)
 endif()
 
 #PD Interface
-check_deps(BUILD_PD_CLASS PD_HEADER)
+check_deps(BUILD_PD_CLASS PD_HEADER_PATH)
 if(BUILD_PD_CLASS)
+
+    include_directories(${PD_HEADER_PATH})
     if(LINUX)
         set(pdname "csoundapi~.pd_linux")
     elseif(APPLE)
