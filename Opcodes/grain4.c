@@ -47,7 +47,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     int         nvoice, cnt;
-    uint32_t    tmplong1, tmplong2;
+    int32_t    tmplong1, tmplong2;
     MYFLT       tmpfloat1;
     MYFLT       pitch[4];
 
@@ -218,7 +218,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     if (*p->igskip_os != 0)
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++) {
-        tmplong1 = (uint32_t)((p->gskip_os * grand(p)) + (MYFLT)p->gskip[nvoice]);
+        tmplong1 = ((p->gskip_os * grand(p)) + (MYFLT)p->gskip[nvoice]);
         p->gskip[nvoice] =
           (tmplong1 < p->gstart) ? p->gstart : tmplong1;
         p->gskip[nvoice]=
@@ -270,7 +270,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
     MYFLT       fract, v1, tmpfloat1;
     int32       att_len, dec_len, att_sus;
     MYFLT       envlop;
-
+   
     /* Optimisations */
     int32       gstart  = p->gstart;
     int32       gend    = p->gend;
@@ -304,7 +304,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
      MYFLT      *pshift = p->pshift, *phs = p->phs;
      ar[n] = FL(0.0);
 
-     for (nvoice = 0; nvoice < *p->ivoice; nvoice++) {
+     for (nvoice = 0; nvoice <  *p->ivoice ; nvoice++) {
        if (*fpnt >= (*gsize -1)) {
          ar[n] += 0;            /* Is this necessary?? */
          *cnt +=1L;
