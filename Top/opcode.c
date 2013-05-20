@@ -70,9 +70,9 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     (*lstp) = NULL;
     if (UNLIKELY(csound->opcodes == NULL))
       return -1;
-    
+
     head = items = cs_hash_table_values(csound, csound->opcodes);
-    
+
     /* count the number of opcodes, and bytes to allocate */
     while (items != NULL) {
       temp = items->value;
@@ -131,12 +131,12 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     ((opcodeListEntry*) lst)[cnt].opname = NULL;
     ((opcodeListEntry*) lst)[cnt].outypes = NULL;
     ((opcodeListEntry*) lst)[cnt].intypes = NULL;
-    
+
     cs_cons_free(csound, head);
-    
+
     /* sort list */
     qsort(lst, (size_t) cnt, sizeof(opcodeListEntry), opcode_cmp_func);
-    
+
     /* return the number of opcodes */
     return cnt;
 }
