@@ -238,6 +238,7 @@ option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" 
 option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(BUILD_RELEASE "Build for release" ON)
+option(BUILD_INSTALLER "Build for release" OFF)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -252,6 +253,9 @@ if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
     add_compiler_flags("-fvisibility=hidden" LINKER)
 endif()
 
+if(APPLE AND BUILD_INSTALLER)
+    set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
+endif()
 
 if(USE_DOUBLE)
     if(APPLE)
@@ -270,11 +274,16 @@ else()
 endif()
 
 if(APPLE) 
-    get_filename_component(PYTHON_MODULE_INSTALL_DIR "~/Library/Python/2.7/lib/python/site-packages" ABSOLUTE)
-    get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
+    if(BUILD_INSTALLER)
+	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64"
+    else()
+        get_filename_component(PYTHON_MODULE_INSTALL_DIR "~/Library/Python/2.7/lib/python/site-packages" ABSOLUTE)
+        get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
+        get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
+    endif()
 
-    get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
+
 endif()
 
 if(BUILD_RELEASE)
