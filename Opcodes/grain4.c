@@ -270,7 +270,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
     MYFLT       fract, v1, tmpfloat1;
     int32       att_len, dec_len, att_sus;
     MYFLT       envlop;
-   
+
     /* Optimisations */
     int32       gstart  = p->gstart;
     int32       gend    = p->gend;
