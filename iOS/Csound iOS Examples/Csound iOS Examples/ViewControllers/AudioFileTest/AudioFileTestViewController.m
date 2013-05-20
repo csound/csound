@@ -29,7 +29,7 @@
 
 - (IBAction)play:(UIButton *)sender
 {
-	NSString *audioFilePath = [[NSBundle mainBundle] pathForResource:@"audiofiletest"
+	NSString *audioFilePath = [[NSBundle mainBundle] pathForResource:@"testAudioFile"
 															  ofType:@"aif"];
 	NSString *score = [NSString stringWithFormat:@"i1 0 1 \"%@\"", audioFilePath];
     [self.csound sendScore:score];

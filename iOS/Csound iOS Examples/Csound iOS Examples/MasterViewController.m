@@ -41,6 +41,7 @@
 #import "AudioFileTestViewController.h"
 #import "ConsoleOutputViewController.h"
 #import "PitchShifterViewController.h"
+#import "TrappedGeneratorViewController.h"
 
 @implementation MasterViewController
 
@@ -56,7 +57,7 @@
             self.contentSizeForViewInPopover = CGSizeMake(320.0, 600.0);
         }
         testNames = [[NSMutableArray arrayWithObjects:@"Simple Test 1", @"Simple Test 2", 
-                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", nil] retain];
+                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"TrappedGenerator",nil] retain];
     }
     return self;
 }
@@ -244,6 +245,9 @@
 			break;
 		case 13:
 			controller = [[PitchShifterViewController alloc] initWithNibName:@"PitchShifterViewController" bundle:nil];
+            break;
+        case 14:
+			controller = [[TrappedGeneratorViewController alloc] initWithNibName:@"TrappedGeneratorViewController" bundle:nil];
 			break;
 		default:
             break;
