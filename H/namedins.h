@@ -102,66 +102,6 @@ int32 strarg2opcno(CSOUND *, void *, int, int);
 char *strarg2name(CSOUND *, char *, void *, const char *, int);
 
 /* ----------------------------------------------------------------------- */
-/* the following functions are for efficient management of the opcode list */
-
-
-
-/* ----------------------------------------------------------------------- */
-/* These functions replace the functionality of strsav() in rdorch.c.      */
-
-/* Allocate space for strsav (called once from rdorchfile()). */
-
-//void strsav_create(CSOUND *);
-
-/* Locate string s in database, and return address of stored string (not */
-/* necessarily the same as s). If the string is not defined yet, it is   */
-/* copied to the database (in such cases, it is allowed to free s after  */
-/* the call).                                                            */
-
-//char *strsav_string(CSOUND *, char *);
-
-/* ----------------------------------------------------------------------- */
-
-/* do not touch this ! */
-static const unsigned char strhash_tabl_8[256] = {
-        230,  69,  87,  14,  21, 133, 233, 229,  54, 111, 196,  53, 128,  23,
-         66, 225,  67,  79, 173, 110, 116,  56,  48, 129,  89, 188,  29, 251,
-        186, 159, 102, 162, 227,  57, 220, 244, 165, 243, 215, 216, 214,  33,
-        172, 254, 247, 241, 121, 197,  83,  22, 142,  61, 199,  50, 140, 192,
-          6, 237, 183,  46, 206,  81,  18, 105, 147, 253,  15,  97, 179, 163,
-        108, 123,  59, 198,  19, 141,   9,  95,  25, 219, 222,   1,   5,  52,
-         90, 138,  11, 234,  55,  60, 209,  39,  80, 203, 120,   4,  64, 146,
-        153, 157, 194, 134, 174, 100, 107, 125, 236, 160, 150,  41,  12, 223,
-        135, 189, 122, 171,  10, 221,  71,  68, 106,  73, 218, 115,   2, 152,
-        132, 190, 185, 113, 139, 104, 151, 154, 248, 117, 193, 118, 136, 204,
-         17, 239, 158,  77, 103, 182, 250, 191, 170,  13,  75,  85,  62,   0,
-        164,   8, 178,  93,  47,  42, 177,   3, 212, 255,  35, 137,  31, 224,
-        242,  88, 161, 145,  49, 119, 143, 245, 201,  38, 211,  96, 169,  98,
-         78, 195,  58, 109,  40, 238, 114,  20,  99,  24, 175, 200, 148, 112,
-         45,   7,  28, 168,  27, 249,  94, 205, 156,  44,  37,  82, 217,  36,
-         30,  16, 101,  72,  43, 149, 144, 187,  65, 131, 184, 166,  51,  32,
-        226, 202, 231, 213, 126, 210, 235,  74, 208, 252, 181, 155, 246,  92,
-         63, 228, 180, 176,  76, 167, 232,  91, 130,  84, 124,  86,  34,  26,
-        207, 240, 127,  70
-};
-
-/* faster version that assumes a non-empty string */
-static inline unsigned char name_hash_2(CSOUND *csound, const char *s)
-{
-    const unsigned char *c = (const unsigned char*) &(s[0]);
-    unsigned int  h = 0U;
-#ifdef LINUX
-    do {
-      h = csound->strhash_tabl_8[h ^ *c];
-    } while (*(++c) != (unsigned char) 0);
-#else
-    (void) csound;
-    do {
-      h = strhash_tabl_8[h ^ *c];
-    } while (*(++c) != (unsigned char) 0);
-#endif
-    return (unsigned char) h;
-}
 
 static inline int sCmp(const char *x, const char *y)
 {
