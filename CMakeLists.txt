@@ -275,7 +275,7 @@ endif()
 
 if(APPLE) 
     if(BUILD_INSTALLER)
-	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64"
+	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
         get_filename_component(PYTHON_MODULE_INSTALL_DIR "~/Library/Python/2.7/lib/python/site-packages" ABSOLUTE)
         get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
