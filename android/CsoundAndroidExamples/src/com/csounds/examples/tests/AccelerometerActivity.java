@@ -1,5 +1,6 @@
 /* 
  
+
  AccelerometerActivity.java:
  
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
@@ -71,7 +72,6 @@ public class AccelerometerActivity extends BaseCsoundActivity implements
 
 	}
 
-	@Override
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
