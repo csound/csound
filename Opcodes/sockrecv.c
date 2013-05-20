@@ -48,7 +48,9 @@ static  int     deinit_udpRecv(CSOUND *csound, void *pdata);
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asig, *ipaddress, *port;
+  MYFLT   *asig;
+  STRINGDAT *ipaddress;
+ MYFLT *port;
     AUXCH   aux, tmp;
     int     sock, conn;
     struct sockaddr_in server_addr;
@@ -303,9 +305,9 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 
     /* the server IP address, in network byte order */
 #ifdef WIN32
-    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress);
+    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress->data);
 #else
-    inet_aton((const char *) p->ipaddress, &(p->server_addr.sin_addr));
+    inet_aton((const char *) p->ipaddress->data, &(p->server_addr.sin_addr));
 #endif
     /* the port we are going to listen on, in network byte order */
     p->server_addr.sin_port = htons((int) *p->port);
