@@ -90,7 +90,8 @@
 %token S_ELIPSIS
 %token T_ARRAY
 %token T_ARRAY_IDENT
-%token T_VAR_TYPE
+%token T_MAPI
+%token T_MAPK
 
 %start orcfile
 %left '?'
