@@ -937,16 +937,14 @@ typedef struct {
     OENTRY *opc;
 } TABMAP;
 
+
+
 static int tabmap_set(CSOUND *csound, TABMAP *p)
 {
     MYFLT *data, *tabin = p->tabin->data;
-    char func[64];
     int n, size;
     OENTRY *opc  = NULL;
     EVAL  eval;
-
-    strncpy(func,  (char *)p->str, 64);
-    strncat(func, ".i", 64);
 
     if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
        return csound->InitError(csound, Str("tvar not initialised"));
@@ -959,10 +957,10 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
     else size = size < p->tab->sizes[0] ? size : p->tab->sizes[0];
     data =  p->tab->data;
 
-    opc = find_opcode(csound, func);
+    opc = find_opcode_new(csound, (char*)p->str, "i", "i");
 
     if (UNLIKELY(opc == NULL))
-      return csound->InitError(csound, Str("%s not found, %d opcodes"), func, n);
+      return csound->InitError(csound, Str("%s not found"), (char*)p->str);
     p->opc = opc;
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
@@ -970,10 +968,8 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
       opc->iopadr(csound, (void *) &eval);
     }
 
-    strncpy(func,  (char *)p->str, 64);
-    strncat(func, ".k", 64);
-    opc = find_opcode(csound, func);
-
+    opc = find_opcode_new(csound, (char*)p->str, "k", "k");
+    
     p->opc = opc;
     return OK;
 }

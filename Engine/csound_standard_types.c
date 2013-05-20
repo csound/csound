@@ -236,7 +236,6 @@ const char* VAR_ARG_OUT_TYPES[] = {
     "m", "a",
     "z", "k",
     "I", "Sip", /* had comment of (not implemented yet) in entry1.c */
-    //"H", "Sip",
     "X", "akip",
     "N", "akipS",
     "F", "f", NULL
