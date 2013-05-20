@@ -28,9 +28,9 @@ package com.csounds.examples.tests;
 import java.io.File;
 
 import android.os.Bundle;
-import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -82,7 +82,6 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 		startStopButton
 				.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
-					@Override
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						if (isChecked) {
@@ -98,12 +97,31 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 
 							csoundObj.addButton(valueButton, "button1");
 							
-							eventButton.setOnClickListener(new OnClickListener() {
+//							eventButton.setOnClickListener(new OnClickListener() {
+//								
+//								public void onClick(View v) {
+//									
+//									Log.d("TEST", "Event Button");
+//									
+//									float value = durationSlider.getProgress() / (float)durationSlider.getMax();
+//									float min = .5f;
+//									float max = 4f;
+//									float range = max - min;
+//									value = (value * range) + min;
+//									String event = String.format("i2 0 %f", value);
+//									
+//									csoundObj.inputMessage(event);
+//								}
+//							});
+							
+							eventButton.setOnTouchListener(new OnTouchListener() {
 								
-								@Override
-								public void onClick(View v) {
+								public boolean onTouch(View v, MotionEvent evt) {
 									
-									Log.d("TEST", "Event Button");
+									if(evt.getAction() != MotionEvent.ACTION_DOWN) {
+										
+										return false;
+									}
 									
 									float value = durationSlider.getProgress() / (float)durationSlider.getMax();
 									float min = .5f;
@@ -112,7 +130,9 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 									value = (value * range) + min;
 									String event = String.format("i2 0 %f", value);
 									
-									csoundObj.sendScore(event);
+									csoundObj.inputMessage(event);
+									
+									return true;
 								}
 							});
 							
@@ -126,7 +146,6 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 
 	}
 
-	@Override
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
