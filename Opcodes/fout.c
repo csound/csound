@@ -1352,7 +1352,7 @@ static OENTRY localops[] = {
         (SUBR) kinfile_set_S,     (SUBR) kinfile,     (SUBR) NULL, NULL},
     { "fink.i",       S(KINFILE),     0, 3,  "",     "iiiz",
         (SUBR) kinfile_set,     (SUBR) kinfile,     (SUBR) NULL, NULL},
-    { "fini",       S(I_INFILE),    0, 1,  "",     "Tiim",
+    { "fini",       S(I_INFILE),    0, 1,  "",     "Siim",
       (SUBR) i_infile_S,        (SUBR) NULL,        (SUBR) NULL, NULL },
     { "fini.i",       S(I_INFILE),    0, 1,  "",     "iiim",
         (SUBR) i_infile,        (SUBR) NULL,        (SUBR) NULL, NULL}

@@ -642,11 +642,11 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 }
 
 static OENTRY localops[] = {
-    { "convolve", sizeof(CONVOLVE),   0, 5, "mmmm", "aTo",
+    { "convolve", sizeof(CONVOLVE),   0, 5, "mmmm", "aSo",
             (SUBR) cvset_S,     (SUBR) NULL,    (SUBR) convolve   },
-    { "convle",   sizeof(CONVOLVE),   0, 5, "mmmm", "aTo",
+    { "convle",   sizeof(CONVOLVE),   0, 5, "mmmm", "aSo",
             (SUBR) cvset_S,     (SUBR) NULL,    (SUBR) convolve   },
-    { "pconvolve",sizeof(PCONVOLVE),  0, 5, "mmmm", "aToo",
+    { "pconvolve",sizeof(PCONVOLVE),  0, 5, "mmmm", "aSoo",
       (SUBR) pconvset_S,  (SUBR) NULL,    (SUBR) pconvolve  },
      { "convolve.i", sizeof(CONVOLVE),   0, 5, "mmmm", "aio",
             (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },

@@ -3,6 +3,7 @@
 
     Copyright (C) 2005, 2006 Istvan Varga
               (C) 2005       Matt J. Ingalls, John ffitch
+              (C) 2013   V Lazzarini (new string code)
 
     This file is part of Csound.
 
