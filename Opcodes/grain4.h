@@ -36,7 +36,7 @@ typedef struct {
         MYFLT   pshift[MAXVOICE], phs[MAXVOICE];
         int16   grnd;
         int32   clock, gskip_os;
-        uint32_t gstart, gend, glength;
+        int32_t gstart, gend, glength;
         MYFLT   gap_os, gsize_os;
         FUNC    *ftp, *ftp_env;
 } GRAINV4;
