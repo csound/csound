@@ -419,8 +419,9 @@ statement : ident '=' expr NEWLINE
                   query_deprecated_opcode(csound, $1->value);
                 }
 
-          | LABEL_TOKEN
+          | LABEL_TOKEN 
                 {
+		  //printf("label %s\n", ((ORCTOKEN *)$1)->lexeme);
                     $$ = make_leaf(csound,LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);
                 }
           | goto label NEWLINE

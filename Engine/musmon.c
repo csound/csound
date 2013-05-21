@@ -931,6 +931,7 @@ int sensevents(CSOUND *csound)
             }
             /* end of: 1: section, 2: score, 3: lplay list */
             retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
+            
             goto scode;
           default:                            /* q, i, f, a:              */
             process_score_event(csound, e, 0);/*   handle event now       */
@@ -1103,8 +1104,10 @@ int sensevents(CSOUND *csound)
       csound->prvbt = csound->nxtbt = csound->beatOffs = csound->curbt;
       section_amps(csound, 1);
     }
-    else
+    else{
       section_amps(csound, 0);
+      
+    }
     if (retval == 1) {                        /* if s code,        */
       orcompact(csound);                      /*   rtn inactiv spc */
       if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
@@ -1112,6 +1115,7 @@ int sensevents(CSOUND *csound)
       csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
       goto retest;                            /*   & back for more */
     }
+    
     return 2;                   /* done with entire score */
 }
 

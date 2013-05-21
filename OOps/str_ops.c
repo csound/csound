@@ -177,8 +177,6 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 
 int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
-
- 
     if (ISSTRCOD(*p->indx)) {
       char *ss;
       ss = get_arg_string(csound, *p->indx);
