@@ -429,7 +429,7 @@ int strtod_opcode(CSOUND *csound, STRSET_OP *p)
     while (*s == ' ' || *s == '\t') s++;
     if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
-    x = strtod(s, &tmp);
+    x = strtod_l(s, &tmp, csound->c_locale);
     if (UNLIKELY(*tmp != '\0'))
       return StrOp_ErrMsg(p, "invalid format");
     *p->indx = (MYFLT) x;
