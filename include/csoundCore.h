@@ -44,6 +44,7 @@ extern "C" {
 #endif /*  __cplusplus */
 
 #ifdef __MACH__
+#include <xlocale.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
