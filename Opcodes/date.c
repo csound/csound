@@ -24,6 +24,10 @@
 #include "csdl.h"
 #include <time.h>
 
+#if defined(__MACH__) 
+#include <unistd.h>
+#endif
+
 typedef struct {
    OPDS h;
    MYFLT *time_;
@@ -63,14 +67,12 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
 
     time_string = ctime(&temp_time);
     /*    printf("Timestamp = %f\ntimestring=>%s<\n", *p->timstmp, time_string); */
-    ((char*) p->Stime_)[0] = '\0';
-    if (UNLIKELY((int) strlen(time_string) >= csound->GetStrVarMaxLen(csound))) {
-      return csound->InitError(csound, Str("dates: buffer overflow"));
-    }
+    p->Stime_->data[0] = '\0';
     /* q = strchr(time_string, '\n'); */
     /* if (q) *q='\0'; */
     if(p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
     p->Stime_->data = csound->Strdup(csound, time_string);
+    p->Stime_->size = strlen(time_string)+1;
     return OK;
 }
 
@@ -85,20 +87,23 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
     p->Scd->size = 1024;
     p->Scd->data = csound->Calloc(csound, p->Scd->size);
   }
-    if (UNLIKELY(
+    
 #if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__)
-                 getcwd
+   if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
-                 _getcwd
-#endif
-                 (p->Scd->data, p->Scd->size-1)==NULL))
+   if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
+#endif               
       return csound->InitError(csound, Str("cannot determine current directory"));
     return OK;
 }
 
+#ifndef MAXLINE
+#define MAXLINE 1024
+#endif
+
 typedef struct {
   OPDS h;
-  MYFLT *Sline;
+  STRINGDAT *Sline;
   MYFLT *line;
   MYFLT *Sfile;
   FILE  *fd;
@@ -120,6 +125,10 @@ static int readf_init_(CSOUND *csound, READF *p, int isstring)
     else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;
+    if(p->Sline->data == NULL) {
+      p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
+    p->Sline->size = MAXLINE;
+    }
     if (UNLIKELY(p->fd==NULL))
       return csound->InitError(csound, Str("readf: failed to open file"));
     return csound->RegisterDeinitCallback(csound, p, readf_delete);
@@ -136,9 +145,9 @@ static int readf_init_S(CSOUND *csound, READF *p){
 
 static int readf(CSOUND *csound, READF *p)
 {
-    ((char*) p->Sline)[0] = '\0';
-    if (UNLIKELY(fgets((char*) p->Sline,
-                       csound->GetStrVarMaxLen(csound), p->fd)==NULL)) {
+    p->Sline->data[0] = '\0';
+    if (UNLIKELY(fgets(p->Sline->data,
+                       p->Sline->size-1, p->fd)==NULL)) {
       int ff = feof(p->fd);
       fclose(p->fd);
       p->fd = NULL;
