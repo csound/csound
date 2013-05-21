@@ -176,6 +176,7 @@ static int pycalln_krate(CSOUND *csound, PYCALLN *p)
     char      command[1024];
     PyObject  *result;
 
+
     format_call_statement(command,  p->function->data,
                           p->INOCOUNT-2, p->args, *p->nresult);
     result = eval_string_in_given_context(command, 0);

@@ -38,7 +38,7 @@ public class CachedSlider extends AbstractValueCacheable{
 	private CsoundObj csoundObj;
 	protected double minValue, maxValue, cachedValue;
 	boolean cacheDirty = true;
-	CsoundMYFLTArray ptr;
+	CsoundMYFLTArray ptr = null;
 
 	public CachedSlider(SeekBar seekBar, String channelName, double min, double max) {
 		this.seekBar = seekBar;
@@ -48,19 +48,16 @@ public class CachedSlider extends AbstractValueCacheable{
 		
 		seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			
-			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				// TODO Auto-generated method stub
 				
 			}
 			
-			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
 				// TODO Auto-generated method stub
 				
 			}
 			
-			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				
@@ -93,7 +90,7 @@ public class CachedSlider extends AbstractValueCacheable{
 	@Override
 	public void updateValuesToCsound() {
 		if (cacheDirty) {
-			ptr.SetValue(0, this.cachedValue);
+			if(ptr != null) ptr.SetValue(0, this.cachedValue);
 			cacheDirty = false;
 		}
 	}

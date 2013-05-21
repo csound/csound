@@ -795,8 +795,6 @@ static const CSOUND cenviron_ = {
       0,            /*    calculateWeights   */
     },
 
-    &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
-
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */

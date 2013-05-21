@@ -1,6 +1,9 @@
 package com.csounds.CsoundApp;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import com.csounds.CsoundApp.R;
 
@@ -29,6 +32,8 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
 
+
+
 public class CsoundAppActivity extends Activity  implements CsoundObjCompletionListener {
 	Button browseButton;
 	ToggleButton startStopButton = null;
@@ -49,7 +54,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	boolean running = false;
 	String errorMessage;
 
-	@Override
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
@@ -61,8 +65,24 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	}
 
    private void displayError(int error){
-	   errorMessage = "Csound Compilation Error " + error;
-	   showDialog(ERROR_DIALOG);    
+	  // errorMessage = "Csound Compilation Error ";
+	  // showDialog(ERROR_DIALOG); 
+      try {
+	      Process process = Runtime.getRuntime().exec("logcat -dt 8 AndroidCsound:I *:S");
+	      BufferedReader bufferedReader = new BufferedReader(
+	      new InputStreamReader(process.getInputStream()));
+	                       
+	      StringBuilder log=new StringBuilder();
+	      String line;
+	      log.append("Csound Compile error:\n");
+	      while ((line = bufferedReader.readLine()) != null) {
+	        log.append(line + "\n");
+	      }
+	      TextView tv = (TextView)findViewById(R.id.textView7);
+	      tv.setText(log.toString());
+	       
+   } catch (IOException e) { }
+	   
    }
 
 	private void OnFileChosen(File file){
@@ -89,7 +109,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		setContentView(R.layout.main);
 		browseButton = (Button) findViewById(R.id.browseButton);
 		browseButton.setOnClickListener(new OnClickListener(){ 
-			@Override
 			public void onClick(View v){
 				if(!running) {
 					loadFileList();
@@ -114,7 +133,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 
 		startStopButton = (ToggleButton) findViewById(R.id.onOffButton);
 		startStopButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (csd == null) {
 					buttonView.toggle();
@@ -123,6 +141,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 				Log.d("CSD", csd.getAbsolutePath());		
 				if(isChecked) {
 					csound = new CsoundObj();
+					
 					String channelName;
 					for(int i = 0; i < 5; i++){
 						channelName = "slider" + (i+1);
@@ -134,9 +153,13 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
+					TextView tv = (TextView)findViewById(R.id.textView7);
+				    tv.setText("Csound is running...");
 			
 				} else {
 					csound.stopCsound();
+					TextView tv = (TextView)findViewById(R.id.textView7);
+				    tv.setText("Csound is stopped...");
 					running = false;
 				}
 			}
@@ -149,9 +172,9 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 			Log.e("error", "unable to write on the sd card ");
 		}
 
+		
 		if (path.exists()) {
 			FilenameFilter filter = new FilenameFilter() {
-				@Override
 				public boolean accept(File dir, String filename) {
 					File sel = new File(dir, filename);
 					return (sel.isFile() || sel.isDirectory())
@@ -221,7 +244,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		case BROWSE_DIALOG:
 			builder.setTitle("Choose your file");
 			builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
-				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					chosenFile = fileList[which].file;
 					File sel = new File(path + "/" + chosenFile);

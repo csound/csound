@@ -1574,7 +1574,6 @@ typedef struct NAME__ {
     MYFLT         *disprep_fftcoefs;
     void          *winEPS_globals;
     OPARMS        oparms_;
-    const unsigned char *strhash_tabl_8;
     REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
     void          *remoteGlobals;
     /* VL: pvs bus */
