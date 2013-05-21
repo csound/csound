@@ -486,11 +486,12 @@ static void list_devices(CSOUND *csound)
     char num_[] = "  ";
     char *temp;
     if (f)  {
+      char *th;
       while (fgets(line, 128, f))  {   /* Read one line*/
         strcpy(line_, line);
-        temp = strtok (line, "-");
+        temp = strtok_r (line, "-", &th);
         strncpy (card_, temp, 2);
-        temp = strtok (NULL, ":");
+        temp = strtok_r (NULL, ":", &th);
         strncpy (num_, temp, 2);
         int card = atoi (card_);
         int num = atoi (num_);
@@ -521,11 +522,12 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     char tmp[64];
     int n =0;
     if (f)  {
+      char *th;
       while (fgets(line, 128, f))  {   /* Read one line*/
         strcpy(line_, line);
-        temp = strtok (line, "-");
+        temp = strtok_r (line, "-", &th);
         strncpy (card_, temp, 2);
-        temp = strtok (NULL, ":");
+        temp = strtok_r (NULL, ":", &th);
         strncpy (num_, temp, 2);
         int card = atoi (card_);
         int num = atoi (num_);

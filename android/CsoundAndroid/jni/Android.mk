@@ -35,6 +35,7 @@ $(CSOUND_SRC_ROOT)/Engine/sread.c \
 $(CSOUND_SRC_ROOT)/Engine/swrite.c \
 $(CSOUND_SRC_ROOT)/Engine/swritestr.c \
 $(CSOUND_SRC_ROOT)/Engine/twarp.c \
+$(CSOUND_SRC_ROOT)/InOut/circularbuffer.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd_u.c \
 $(CSOUND_SRC_ROOT)/InOut/midifile.c \
@@ -96,6 +97,8 @@ $(CSOUND_SRC_ROOT)/Opcodes/phisem.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfopcodes.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/stackops.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap.c  \
+$(CSOUND_SRC_ROOT)/Opcodes/vbap1.c  \
+$(CSOUND_SRC_ROOT)/Opcodes/vbap_n.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap_eight.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap_four.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap_sixteen.c \

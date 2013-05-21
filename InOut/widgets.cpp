@@ -2225,17 +2225,17 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
 
     pid_t pId = vfork();
     if (pId == 0) {
-
+      char *th;
       char *v[40];
       int i = 0;
 
       strcpy(command, p->commandString);
 
-      char *tok = strtok(command, " ");
+      char *tok = strtok_r(command, " ", &th);
 
       if(tok != NULL) {
         v[i++] = tok;
-        while((tok = strtok(NULL, " ")) != NULL) {
+        while((tok = strtok_r(NULL, " ", &th)) != NULL) {
           v[i++] = tok;
         }
         v[i] = NULL;
@@ -2251,15 +2251,16 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
     csound->Free(csound, command);
 #elif defined(WIN32)
     {
+      char *th;
       char *v[40];
       int i = 0;
 
       strcpy(command, p->commandString);
-      char *tok = strtok(command, " ");
+      char *tok = strtok_r(command, " ", &th);
 
       if(tok != NULL) {
         v[i++] = tok;
-        while((tok = strtok(NULL, " ")) != NULL) {
+        while((tok = strtok_r(NULL, " ", &th)) != NULL) {
           v[i++] = tok;
         }
         v[i] = NULL;

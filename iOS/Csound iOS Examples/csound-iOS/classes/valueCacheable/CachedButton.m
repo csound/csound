@@ -44,12 +44,10 @@
 
 
 -(void)setup:(CsoundObj*)csoundObj {
-    cachedValue = mButton.isSelected ? 1 : 0;
+    cachedValue = mButton.selected ? 1 : 0;
     self.cacheDirty = YES;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName];
     [mButton addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
-    [mButton sendActionsForControlEvents:UIControlEventTouchDown];
-
 }
 
 

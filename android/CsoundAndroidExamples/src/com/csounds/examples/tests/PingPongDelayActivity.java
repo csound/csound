@@ -69,7 +69,6 @@ public class PingPongDelayActivity extends BaseCsoundActivity implements
 		startStopButton
 				.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
-					@Override
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						if (isChecked) {
@@ -96,7 +95,6 @@ public class PingPongDelayActivity extends BaseCsoundActivity implements
 
 	}
 
-	@Override
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {

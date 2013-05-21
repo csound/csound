@@ -110,7 +110,6 @@ cp $DIST/lib/_CsoundAC.so $FRAMEWORK64_DIR/$PYTHON_DIR
 echo "preparing framework..."
 
 #cp  csound5-f/lib_csnd.dylib $FRAMEWORK32_DIR/Versions/$CSLIBVERSION/
-#cp  csound5-f/tclcsound.dylib $FRAMEWORK32_DIR/$TCLTK_DIR
 #cp  csound5-f/csladspa.so  $FRAMEWORK32_DIR/$CSLADSPA_DIR
 #cp  csound5-f/lib_jcsound.jnilib $FRAMEWORK32_DIR/$JAVA_DIR
 #cp  csound5-f/csnd.jar $FRAMEWORK32_DIR/$JAVA_DIR
@@ -119,7 +118,6 @@ echo "preparing framework..."
 #cp  csound5-f/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK32_DIR/../Documentation/
 
 #cp  $DIST/lib_csnd.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
-cp  $DIST/lib/tclcsound.dylib $FRAMEWORK64_DIR/$TCLTK_DIR
 #mv  $DIST/CsoundLib64.framework/Resources/Opcodes64/csladspa.dylib  $FRAMEWORK64_DIR/$CSLADSPA_DIR
 cp  $DIST/lib/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/csnd6.jar $FRAMEWORK64_DIR/$JAVA_DIR
