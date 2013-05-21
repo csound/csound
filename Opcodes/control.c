@@ -302,7 +302,7 @@ static int textflash_(CSOUND *csound, TXTWIN *p, int istring)
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
     else if(ISSTRCOD(*p->val)) {
-      csound->strarg2name(csound, buffer, csound->get_arg_string(csound, *p->val), "", 1);
+      csound->strarg2name(csound, buffer, csound->GetString(csound, *p->val), "", 1);
     }
     else {
 /*    csound->Message(csound, "deltext %d\n", wind); */

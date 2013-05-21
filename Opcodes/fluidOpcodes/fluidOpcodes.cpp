@@ -199,7 +199,7 @@ public:
              filename = csound->strarg2name(csound,
                     (char*) NULL,
 		   (ISSTRCOD(*iFilename) ?
-                    csound->get_arg_string(csound, *iFilename) :
+                    csound->GetString(csound, *iFilename) :
                     (char *) iFilename),
                     (char *)"fluid.sf2.",
                     ISSTRCOD(*iFilename));
