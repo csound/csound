@@ -1551,7 +1551,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     TREE *current = root;
     TREE *previous = NULL;
     TREE* newRight;
-
+    
+    CONS_CELL* parentLabelList = typeTable->labelList;
+    typeTable->labelList = get_label_list(csound, root);
+    
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
 
     while (current != NULL) {
@@ -1562,15 +1565,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         current->markup = typeTable->localPool;
 
         if (current->right) {
-          typeTable->labelList = get_label_list(csound, current->right);
 
           newRight = verify_tree(csound, current->right, typeTable);
 
-          mfree(csound, typeTable->labelList);
-
-          typeTable->labelList = NULL;
-
           if (newRight == NULL) {
+            cs_cons_free(csound, typeTable->labelList);
+            typeTable->labelList = parentLabelList;
             return NULL;
           }
 
@@ -1588,13 +1588,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         current->markup = typeTable->localPool;
 
         if (current->right != NULL) {
-            typeTable->labelList = get_label_list(csound, current->right);
 
             newRight = verify_tree(csound, current->right, typeTable);
 
-            mfree(csound, typeTable->labelList);
-
             if (newRight == NULL) {
+                cs_cons_free(csound, typeTable->labelList);
+                typeTable->labelList = parentLabelList;
                 return NULL;
             }
 
@@ -1663,6 +1662,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     if (PARSER_DEBUG) csound->Message(csound, "[End Verifying AST]\n");
 
+    cs_cons_free(csound, typeTable->labelList);
+    typeTable->labelList = parentLabelList;
+    
     return anchor;
 }
 
