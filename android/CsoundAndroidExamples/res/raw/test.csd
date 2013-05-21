@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtaudio=null -d
+-o dac -+rtaudio=null -d -b256 -B1024
 </CsOptions>
 <CsInstruments>
 nchnls=1
@@ -16,6 +16,7 @@ ksl port ksl, 0.01, isl
 a2 expsegr 0.001,0.01,p4,p3-0.01, 0.001, 0.1, 0.001
 a1 oscili a2, p5*(1+ksl), 1
 out a1
+
 endin
 
 
@@ -27,5 +28,6 @@ f1 0 16384 10 1
 i1 [$CNT*0.2] 0.5 0.5 [440*(2^[$CNT/12])]
 }
 
+;i1 0 60 0.5 440
 </CsScore>
 </CsoundSynthesizer>
