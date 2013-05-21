@@ -2134,7 +2134,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
   int isNamedInstr = (int) csound->GetInputArgSMask(p);
 
   if (isNamedInstr)
-    n = csound->strarg2insno(csound, p->insno, isNamedInstr);
+    n = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, isNamedInstr);
   else
     n = (int) (*p->insno + FL(0.5));
 

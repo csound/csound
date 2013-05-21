@@ -111,7 +111,8 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     ORCTOKEN *ans;
     if (a!=NULL) {
       if (type == a->type) return a;
-      if (type!= T_FUNCTION || a->type!=T_OPCODE)
+      if ((type!=T_FUNCTION || a->type!=T_OPCODE)
+	  && (type!=T_OPCODE || a->type!=T_OPCODE0))
         csound->Warning(csound,
                         Str("Type confusion for %s (%d,%d), replacing\n"),
                         s, type, a->type);

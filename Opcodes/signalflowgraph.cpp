@@ -782,20 +782,25 @@ struct Connect : public OpcodeBase<Connect> {
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
-                                                       Source,
+						       ((ISSTRCOD(*Source)) ? 
+						       csound->get_arg_string(csound,*Source) :
+							(char *)Source),
                                                        (char *)"",
-                                                       0);
+                                                       ISSTRCOD(*Source));
       sourceOutletId += ":";
       sourceOutletId += csound->strarg2name(csound,
                                             (char *) 0,
                                             Soutlet->data,
                                             (char *)"",
                                             1);
+
       std::string sinkInletId = csound->strarg2name(csound,
                                                     (char *) 0,
-                                                    Sink,
-                                                    (char *)"",
-                                                    0);
+                                                    ((ISSTRCOD(*Sink)) ? 
+						       csound->get_arg_string(csound,*Sink) :
+							(char *)Sink),
+                                                       (char *)"",
+                                                       ISSTRCOD(*Sink));
       sinkInletId += ":";
       sinkInletId += csound->strarg2name(csound,
                                          (char *) 0,
@@ -822,9 +827,11 @@ struct Connecti : public OpcodeBase<Connecti> {
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
-                                                       Source,
+						       ((ISSTRCOD(*Source)) ? 
+						       csound->get_arg_string(csound,*Source) :
+							(char *)Source),
                                                        (char *)"",
-                                                       0);
+                                                       ISSTRCOD(*Source));
       sourceOutletId += ":";
       sourceOutletId += csound->strarg2name(csound,
                                             (char *) 0,
@@ -874,9 +881,11 @@ struct Connectii : public OpcodeBase<Connectii> {
                                             1);
       std::string sinkInletId = csound->strarg2name(csound,
                                                     (char *) 0,
-                                                    Sink,
-                                                    (char *)"",
-                                                    0);
+                                                    ((ISSTRCOD(*Sink)) ? 
+						       csound->get_arg_string(csound,*Sink) :
+							(char *)Sink),
+                                                       (char *)"",
+                                                       ISSTRCOD(*Sink));;
       sinkInletId += ":";
       sinkInletId += csound->strarg2name(csound,
                                          (char *) 0,
