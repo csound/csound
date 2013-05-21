@@ -652,7 +652,7 @@ void Fl_Value_Input_Spin::input_cb(Fl_Widget*, void* v)
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     double nv;
     if (t.step()>=1.0) nv = strtol(t.input.value(), 0, 0);
-    else nv = strtod_l(t.input.value(), 0, csound->c_locale);
+    else nv = strtod_l(t.input.value(), 0, csound->get_c_locale(csound));
     ST(hack_o_rama1) = 1;
     t.handle_push();
     t.handle_drag(nv);
@@ -899,7 +899,7 @@ void Fl_Value_Slider_Input::input_cb(Fl_Widget*, void* v) {
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     double nv;
     if (t.step()>=1.0) nv = strtol(t.input.value(), 0, 0);
-    else nv = strtod_l(t.input.value(), 0, csound->c_locale);
+    else nv = strtod_l(t.input.value(), 0, csound->get_c_locale(csound));
     ST(hack_o_rama2) = 1;
     t.handle_push();
     t.handle_drag(nv);

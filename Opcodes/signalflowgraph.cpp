@@ -783,7 +783,7 @@ struct Connect : public OpcodeBase<Connect> {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
 						       ((ISSTRCOD(*Source)) ? 
-						       csound->get_arg_string(csound,*Source) :
+						       csound->GetString(csound,*Source) :
 							(char *)Source),
                                                        (char *)"",
                                                        ISSTRCOD(*Source));
@@ -797,7 +797,7 @@ struct Connect : public OpcodeBase<Connect> {
       std::string sinkInletId = csound->strarg2name(csound,
                                                     (char *) 0,
                                                     ((ISSTRCOD(*Sink)) ? 
-						       csound->get_arg_string(csound,*Sink) :
+						       csound->GetString(csound,*Sink) :
 							(char *)Sink),
                                                        (char *)"",
                                                        ISSTRCOD(*Sink));
@@ -828,7 +828,7 @@ struct Connecti : public OpcodeBase<Connecti> {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
 						       ((ISSTRCOD(*Source)) ? 
-						       csound->get_arg_string(csound,*Source) :
+						       csound->GetString(csound,*Source) :
 							(char *)Source),
                                                        (char *)"",
                                                        ISSTRCOD(*Source));
@@ -882,7 +882,7 @@ struct Connectii : public OpcodeBase<Connectii> {
       std::string sinkInletId = csound->strarg2name(csound,
                                                     (char *) 0,
                                                     ((ISSTRCOD(*Sink)) ? 
-						       csound->get_arg_string(csound,*Sink) :
+						       csound->GetString(csound,*Sink) :
 							(char *)Sink),
                                                        (char *)"",
                                                        ISSTRCOD(*Sink));;

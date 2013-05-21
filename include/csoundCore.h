@@ -44,6 +44,7 @@ extern "C" {
 #endif /*  __cplusplus */
 
 #ifdef __MACH__
+#include <xlocale.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -720,6 +721,8 @@ typedef struct {
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
+
+
   typedef union {
     uint32 dwData;
     unsigned char bData[4];
@@ -1223,8 +1226,7 @@ typedef struct NAME__ {
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
-    char *(*get_arg_string)(CSOUND *, MYFLT);
-    locale_t      c_locale;
+    locale_t (*get_c_locale)(CSOUND *);
     /**@}*/
     /** @name Placeholders */
     /**@{ */
@@ -1287,6 +1289,7 @@ typedef struct NAME__ {
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
     void          (*audtran)(CSOUND *, const MYFLT *, int);
+    locale_t      c_locale;
     void          *hostdata;
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
