@@ -26,6 +26,8 @@
 %feature("director") CsoundCallbackWrapper;
 %feature("nodirector") Csound;
 %include "typemaps.i"
+%include "arrays_java.i"
+%include "various.i" 
 %include "std_string.i"
 %include "std_vector.i"
 %feature("autodoc", "1");
@@ -59,11 +61,41 @@ typedef unsigned int uint32_t;
   }
 %}
 
+
+%apply char **STRING_ARRAY { char **argv };
+
 %include "exclusions.i"
 
 %include "csound.h"
 %include "cfgvar.h"
+
+
+%apply MYFLT *OUTPUT { MYFLT *dest };
+%apply MYFLT *INPUT { MYFLT *src };
+%ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
+//%ignore Csound::SetOutputValueCallback(void (*)(CSOUND *, const char *, MYFLT));
+//%ignore Csound::SetInputValueCallback(void (*)(CSOUND *, const char *, MYFLT *));
+%ignore Csound::SetExternalMidiInOpenCallback(int (*)(CSOUND *, void *, const char*));
+%ignore Csound::SetExternalMidiReadCallback(int (*)(CSOUND *, void *, unsigned char *, int));
+%ignore Csound::SetExternalMidiInCloseCallback(int (*)(CSOUND *, void *));
+%ignore Csound::SetHostData(void *);
+%ignore Csound::GetHostData();
+%ignore Csound::SetMessageCallback(void (*)(CSOUND *, int attr,const char *format, va_list valist));
+%ignore Csound::CreateConfigurationVariable;
+%ignore Csound::SetConfigurationVariable;
+%ignore Csound::QueryConfigurationVariable;
+%ignore Csound::ListConfigurationVariables;
+%ignore Csound::DeleteConfigurationVariable;
+%ignore Csound::ParseConfigurationVariable;
+%ignore Csound::GetHostData();
+//%ignore Csound::setPydata;
+//%ignore Csound::getPydata;
+
 %include "csound.hpp"
+
+
+%ignore CsoundPerformanceThread::SetProcessCallback(void (*Callback)(void *), void *cbdata);
+
 %include "cs_glue.hpp"
 %include "csPerfThread.hpp"
 %include "CsoundFile.hpp"

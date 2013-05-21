@@ -65,7 +65,6 @@ public class CachedButton extends AbstractValueCacheable {
 		
 		if(type == 0){	
 		button.setOnClickListener(new OnClickListener() {	
-			@Override
 			public void onClick(View v) {
 				selected = true;
 				cacheDirty = true;
@@ -74,7 +73,6 @@ public class CachedButton extends AbstractValueCacheable {
 		}
 		else {
 			button.setOnTouchListener(new OnTouchListener(){	
-				@Override
 				public boolean onTouch(View v, MotionEvent event) {
 					final int action = event.getAction() & MotionEvent.ACTION_MASK;
 					switch (action){

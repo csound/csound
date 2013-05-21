@@ -77,7 +77,6 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 		startStopButton
 				.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
-					@Override
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						if (isChecked) {
@@ -103,31 +102,26 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 
 		csoundObj.addValueCacheable(new CsoundValueCacheable() {
 
-			@Override
 			public void updateValuesToCsound() {
 				// TODO Auto-generated method stub
 
 			}
 
-			@Override
 			public void updateValuesFromCsound() {
 				// TODO Auto-generated method stub
 
 			}
 
-			@Override
 			public void setup(CsoundObj csoundObj) {
 				Log.d("CsoundAndroidActivity", "ValueCacheable setup called");
 			}
 
-			@Override
 			public void cleanup() {
 				Log.d("CsoundAndroidActivity", "ValueCacheable cleanup called");
 			}
 		});
 	}
 
-	@Override
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {

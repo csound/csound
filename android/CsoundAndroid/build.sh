@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export ANDROID_NDK_ROOT=$HOME/work/android-ndk-r7
+export ANDROID_NDK_ROOT=$HOME/work/android-ndk-r8c
 export NDK_MODULE_PATH=../../../android
 flex -B -t ../../Engine/csound_orc.l > jni/csound_orclex.c 
 flex -B ../../Engine/csound_pre.lex > jni/csound_prelex.c 
@@ -14,7 +14,7 @@ swig -java -package csnd -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DPARCS -DHA
 # ADJUST SWIG CODE FOR ANDROID and DIRECTORS
 sed -i "" 's/AttachCurrentThread((void \*\*)/AttachCurrentThread(/' jni/java_interfaceJAVA_wrap.cpp 
 
-$ANDROID_NDK_ROOT/ndk-build TARGET_PLATFORM=android-9
+$ANDROID_NDK_ROOT/ndk-build TARGET_PLATFORM=android-9 V=1 NDK_DEBUG=0 
 
 
 

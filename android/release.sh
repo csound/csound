@@ -1,6 +1,6 @@
 #!/bin/sh 
 
-export RELEASE_DIR=csound-android-5.17.11 
+export RELEASE_DIR=csound-android-5.19.02
 
 rm -rf CsoundAndroid/obj
 
@@ -12,7 +12,8 @@ cp ../COPYING .
 cp -R ../CSDPlayer .
 cp -R ../CsoundAndroid .
 cp -R ../CsoundAndroidExamples .
-
+cp -R ../pluginlibs .
 cd ..
 
+rm ${RELEASE_DIR}.zip
 zip -r ${RELEASE_DIR}.zip ${RELEASE_DIR} 
