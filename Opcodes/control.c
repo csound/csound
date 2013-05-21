@@ -28,6 +28,10 @@
 #include <sys/types.h>
 #include <signal.h>
 
+#if defined(__MACH__) 
+#include <unistd.h>
+#endif
+
 static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)
 {
     CONTROL_GLOBALS *p;

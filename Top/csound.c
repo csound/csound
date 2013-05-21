@@ -196,7 +196,6 @@ static const CSOUND cenviron_ = {
     csoundGet0dBFS,
     csoundGetKcounter,
     csoundGetCurrentTimeSamples,
-    csoundGetStrVarMaxLen,
     csoundGetInputBufferSize,
     csoundGetOutputBufferSize,
     csoundGetInputBuffer,
@@ -549,7 +548,7 @@ static const CSOUND cenviron_ = {
     0,              /*  randSeed2           */
     NULL,           /*  csRandState         */
     NULL,           /*  csRtClock           */
-    16384,            /*  strVarMaxLen        */
+    // 16384,            /*  strVarMaxLen        */
        0,              /*  strsmax             */
     (char**) NULL,  /*  strsets             */
     NULL,           /*  spin                */
@@ -1773,11 +1772,6 @@ PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)
     return csound->e0dbfs;
 }
 
-PUBLIC int csoundGetStrVarMaxLen(CSOUND *csound)
-{
-    return csound->strVarMaxLen;
-}
-
 PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
 {
     return csound->oparms_.inbufsamps;
@@ -2848,16 +2842,8 @@ PUBLIC void csoundReset(CSOUND *csound)
                                           "(no spaces)"),
                                       NULL);
     {
-      int   minVal = 10;
-      int   maxVal = 10000;
+
       MYFLT minValF = FL(0.0);
-      /* max. length of string variables */
-      csoundCreateConfigurationVariable(csound, "max_str_len",
-                                        &(csound->strVarMaxLen),
-                                        CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
-                                        Str("Maximum length of string "
-                                            "variables + 1"),
-                                        NULL);
       csoundCreateConfigurationVariable(csound, "msg_color",
                                         &(csound->enableMsgAttr),
                                         CSOUNDCFG_BOOLEAN, 0, NULL, NULL,

@@ -29,7 +29,7 @@
 #endif
 
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
-extern void set_channel_data_ptr(CSOUND *csound, const char *name, void *ptr); 
+extern void set_channel_data_ptr(CSOUND *csound, const char *name, void *ptr, int newSize); 
 
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);
@@ -152,7 +152,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
       if(strlen(string) > (unsigned int) size) {
 	if(pstring!=NULL) mfree(csound,pstring);
         pstring = (MYFLT *) cs_strdup(csound, string);
-        set_channel_data_ptr(csound,name,(void*)pstring);
+        set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
       } else strcpy((char *) pstring, string);
       csoundSpinUnLock(lock);
     }

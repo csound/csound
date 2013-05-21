@@ -104,8 +104,8 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-  STRINGDAT  *str;
-MYFLT *ifilcod, *iprd;
+        STRINGDAT  *str;
+        MYFLT *ifilcod, *iprd;
         int32  countdown, timcount;
         char   *lasts;
         FILE   *f;

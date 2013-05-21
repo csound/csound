@@ -730,6 +730,8 @@ int kread4(CSOUND *csound, KREAD4 *p)
     return OK;
 }
 
+#define INITSIZE 1024
+
 int krdsset_S(CSOUND *csound, KREADS *p)
 {
     /* open in curdir or pathname */
@@ -745,11 +747,11 @@ int krdsset_S(CSOUND *csound, KREADS *p)
     if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
-    p->lasts = (char*)csound->Malloc(csound, 1+csound->strVarMaxLen);
+    p->lasts = (char*)csound->Calloc(csound, INITSIZE);
     p->lasts[0] = '\0';
      if(p->str->data == NULL) {
-       p->str->data = mcalloc(csound, 1+csound->strVarMaxLen);
-        p->str->size = 1+csound->strVarMaxLen;
+       p->str->data = mcalloc(csound, INITSIZE);
+        p->str->size = INITSIZE;
     }
     return OK;
 }
@@ -771,11 +773,11 @@ int krdsset_p(CSOUND *csound, KREADS *p)
     if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
-    p->lasts = (char*)csound->Malloc(csound, 1+csound->strVarMaxLen);
+    p->lasts = (char*)csound->Malloc(csound, INITSIZE);
     p->lasts[0] = '\0';
      if(p->str->data == NULL) {
-       p->str->data = mcalloc(csound, 1+csound->strVarMaxLen);
-        p->str->size = 1+csound->strVarMaxLen;
+       p->str->data = mcalloc(csound, INITSIZE);
+        p->str->size = INITSIZE;
     }
     return OK;
 }
@@ -785,10 +787,10 @@ int kreads(CSOUND *csound, KREADS *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      if (UNLIKELY(fgets(p->lasts, csound->strVarMaxLen,  p->f)==NULL)) {
+      if (UNLIKELY(fgets(p->lasts, INITSIZE-1,  p->f)==NULL)) {
         csound->PerfError(csound, p->h.insdshead, Str("Read failure in readks"));
       }
     }
-    strncpy((char*) p->str->data, p->lasts, csound->strVarMaxLen);
+    strncpy((char*) p->str->data, p->lasts, INITSIZE);
     return OK;
 }
