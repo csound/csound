@@ -262,6 +262,8 @@ static int delete_channel_db(CSOUND *csound, void *p)
           if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
             csound->Free(csound, entry->hints.attributes);
           }
+          csound->Free(csound, entry->data);
+          entry->datasize = 0;
           values = values->next;
       }
       cs_cons_free(csound, head);
@@ -280,11 +282,13 @@ static inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
     return NULL;
 }
 
-void set_channel_data_ptr(CSOUND *csound, const char *name, void *ptr)
+void set_channel_data_ptr(CSOUND *csound, const char *name, void *ptr, int newSize)
 {
   find_channel(csound, name)->data = (MYFLT *) ptr;  
+  find_channel(csound, name)->datasize = newSize;
 }
 
+#define INIT_STRING_CHANNEL_DATASIZE 256
 
 static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
                                            const char *name, int type)
@@ -299,7 +303,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
         dsize = ((int)sizeof(MYFLT) * csound->ksmps);
         break;
       case CSOUND_STRING_CHANNEL:
-        dsize = MAX_STRING_CHANNEL_DATASIZE;
+        dsize = INIT_STRING_CHANNEL_DATASIZE;
         break;
       case CSOUND_PVS_CHANNEL:
         dsize = ((int)sizeof(PVSDATEXT));
@@ -873,7 +877,7 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     if (s && strlen(s) >= (unsigned int) size) {
       if(p->fp != NULL) mfree(csound, p->fp);
       p->fp = (MYFLT *)cs_strdup(csound, s);
-      set_channel_data_ptr(csound, p->iname->data,p->fp);  
+      set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);  
     }
     else strcpy((char*) p->fp, s);
     csoundSpinUnLock(lock);

@@ -1240,15 +1240,6 @@ int xinset(CSOUND *csound, XIN *p)
     out = (void *) *(p->args + *ndx_list);
     memcpy(out, in, sizeof(STRINGDAT));
   }
-  /* while (*++ndx_list >= 0) { */
-  /*   const char  *src = (char *)bufs[*ndx_list]; */
-  /*   char  *dst = (char *)(p->args[*ndx_list]); */
-  /*   int n; */
-  /*   /\* FIXME: should throw error instead of truncating string ? *\/ */
-  /*   for (n = csound->strVarMaxLen - 1; *src != '\0' && n != 0; n--) */
-  /*     *(dst++) = *(src++); */
-  /*   *dst = '\0'; */
-  /* } */
   /* and i-time arrays */
   while (*++ndx_list >= 0) {
     void *in, *out;
@@ -1323,15 +1314,6 @@ int xoutset(CSOUND *csound, XOUT *p)
     out = (void *) *(bufs + *ndx_list);
     memcpy(out, in, sizeof(STRINGDAT));
   }
-  /* while (*++ndx_list >= 0) { */
-  /*   const char  *src = (char *)(p->args[*ndx_list]); */
-  /*   char  *dst = (char *)(bufs[*ndx_list]); */
-  /*   int n; */
-  /*   /\* FIXME: should throw error instead of truncating string ? *\/ */
-  /*   for (n = csound->strVarMaxLen - 1; *src != '\0' && n != 0; n--) */
-  /*     *(dst++) = *(src++); */
-  /*   *dst = '\0'; */
-  /* } */
   /* i-time arrays */
   while (*++ndx_list >= 0) {
     void *in, *out;

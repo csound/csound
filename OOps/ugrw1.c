@@ -90,12 +90,15 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
 
     csound->zklast = (int32) *p->isizek;
     length = (csound->zklast + 1L) * sizeof(MYFLT);
+   
     csound->zkstart = (MYFLT*) mcalloc(csound, length);
+    
     /* Likewise, allocate memory for za space, but do it in arrays of
      * length ksmps.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated.       */
     csound->zalast = (int32) *p->isizea;
+    
     length = (csound->zalast + 1L) * sizeof(MYFLT) * CS_KSMPS;
     csound->zastart = (MYFLT*) mcalloc(csound, length);
     return OK;
@@ -431,6 +434,7 @@ int zar(CSOUND *csound, ZAR *p)
       memset(&writeloc[nsmps], '\0', early*sizeof(MYFLT));
     }
     memcpy(&writeloc[offset], &readloc[offset], (nsmps-offset)*sizeof(MYFLT));
+
     }
     return OK;
 }
@@ -564,7 +568,7 @@ int zawm(CSOUND *csound, ZAWM *p)
         /* Mix mode - add to the existing value.   */
         if (UNLIKELY(early)) nsmps -= early;
         for (n=offset; n<nsmps; n++) {
-          writeloc[n] += readloc[n];
+          //writeloc[n] += readloc[n];
         }
       }
     }

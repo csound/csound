@@ -896,8 +896,7 @@ typedef struct NAME__ {
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
     long (*GetKcounter)(CSOUND *);
-     int64_t (*GetCurrentTimeSamples)(CSOUND *);
-    int (*GetStrVarMaxLen)(CSOUND *);
+    int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
@@ -1346,8 +1345,6 @@ typedef struct NAME__ {
     int           randSeed2;
     CsoundRandMTState *csRandState;
     RTCLOCK       *csRtClock;
-    /** max. length of string variables + 1  */
-    int           strVarMaxLen;
     int           strsmax;
     char          **strsets;
     MYFLT         *spin;
