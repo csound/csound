@@ -55,7 +55,6 @@ public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObj
 		fSlider = (SeekBar) findViewById(R.id.slider);
 		startStopButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			
-			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if(isChecked) {
 					String csd = getResourceFileAsString(R.raw.test);
@@ -75,31 +74,26 @@ public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObj
 		
 		csoundObj.addValueCacheable(new CsoundValueCacheable() {
 			
-			@Override
 			public void updateValuesToCsound() {
 				// TODO Auto-generated method stub
 				
 			}
 			
-			@Override
 			public void updateValuesFromCsound() {
 				// TODO Auto-generated method stub
 				
 			}
 			
-			@Override
 			public void setup(CsoundObj csoundObj) {
 				Log.d("CsoundAndroidActivity", "ValueCacheable setup called");
 			}
 			
-			@Override
 			public void cleanup() {
 				Log.d("CsoundAndroidActivity", "ValueCacheable cleanup called");
 			}
 		});
 	}
 
-	@Override
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
