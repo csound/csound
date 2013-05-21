@@ -41,10 +41,12 @@ int closedir(DIR*);
 #define CSSTRNGS_VERSION 0x2000
 #include <locale.h>
 #ifndef GNU_GETTEXT
-void init_getstring(void)
+void init_getstring(void *cs)
 {
-    setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+    //setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+    ((CSOUND*)cs)->c_locale = newlocale (0, "C", NULL);
 }
+
 PUBLIC char *csoundLocalizeString(const char *s)
 {
     return (char*)s;
@@ -55,7 +57,7 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
     return;
 }
 #else
-void init_getstring(void)
+void init_getstring(void *cs)
 {
 /*     s = csoundGetEnv(NULL, "CS_LANG"); */
 /*     if (s == NULL)              /\* Default locale *\/ */
@@ -68,7 +70,8 @@ void init_getstring(void)
     /* This is experimental; where should these be?? */
     bindtextdomain("csound6", "/home/jpff/Sourceforge/csound/csound6/po");
 #endif
-    setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+    //setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+    ((CSOUND*)cs)->c_locale = newlocale (0, "C", NULL);
 }
 
 PUBLIC char *csoundLocalizeString(const char *s)

@@ -933,7 +933,7 @@ endif()
 
 if(LINUX)
     message(STATUS "Building on Linux")
-    add_definitions(-DLINUX -DPIPES)
+    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE)
     list(APPEND libcsound_LIBS m dl) 
 endif()
 
