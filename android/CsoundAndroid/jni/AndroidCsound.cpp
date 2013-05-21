@@ -1,5 +1,6 @@
 #include "AndroidCsound.hpp"
 #include <android/log.h>
+
 extern "C" {
 extern void androidrtclose_(CSOUND *csound);
 extern void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes);
@@ -13,17 +14,19 @@ char message[1024];
 
 vsnprintf(message, 1024, format, valist);
 __android_log_print(ANDROID_LOG_INFO,"AndroidCsound",message); 
-  
+
 }
 
 
 }
+
 
 int AndroidCsound::PreCompile()
 {
 
 __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","PreCompile()"); 
 
+     int retVal = Csound::PreCompile(); 
 __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","set callbacks"); 
       csoundSetPlayopenCallback(csound, androidplayopen_);
       csoundSetRecopenCallback(csound, androidrecopen_);
@@ -33,7 +36,7 @@ __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","set callbacks");
       csoundSetMessageCallback(csound, androidMessageCallbac);
 __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","callbacks set"); 
 
-    return 0; 
+    return retVal; 
 };
 
 void AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {

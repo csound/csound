@@ -31,7 +31,6 @@
 #import <Foundation/Foundation.h>
 #import "csound.h"
 #import <CoreMotion/CoreMotion.h>
-#import "UIKnob.h"
 
 typedef struct csdata_ {
 	CSOUND *cs;
@@ -107,6 +106,7 @@ typedef struct {
 
 -(void)startCsound:(NSString*)csdFilePath;
 -(void)startCsound:(NSString *)csdFilePath recordToURL:(NSURL *)outputURL;
+-(void)startCsoundToDisk:(NSString*)csdFilePath outputFile:(NSString*)outputFile;
 -(void)recordToURL:(NSURL *)outputURL;
 -(void)stopRecording;
 -(void)stopCsound;
@@ -114,6 +114,7 @@ typedef struct {
 -(void)unmuteCsound;
 
 -(CSOUND*)getCsound;
+-(AudioUnit*)getAudioUnit;
 -(float*)getInputChannelPtr:(NSString*)channelName;	
 -(float*)getOutputChannelPtr:(NSString*)channelName;
 -(NSData*)getOutSamples;

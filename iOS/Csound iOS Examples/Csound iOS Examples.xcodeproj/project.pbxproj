@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F632065E16ADA58500F17AE2 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065C16ADA58500F17AE2 /* Default.png */; };
+		F632065F16ADA58500F17AE2 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065D16ADA58500F17AE2 /* Default-568h@2x.png */; };
+		F632066116ADA59B00F17AE2 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F632066016ADA59B00F17AE2 /* Default@2x.png */; };
+		F6968A4E16B07AC90089C462 /* trapped.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6968A4D16B07AC90089C462 /* trapped.csd */; };
+		F6968A5716B07BA00089C462 /* TrappedGeneratorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6968A5516B07BA00089C462 /* TrappedGeneratorViewController.m */; };
+		F6968A5816B07BA00089C462 /* TrappedGeneratorViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6968A5616B07BA00089C462 /* TrappedGeneratorViewController.xib */; };
 		F6B6465E14D348E5005F786B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B6465D14D348E5005F786B /* UIKit.framework */; };
 		F6B6466014D348E5005F786B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B6465F14D348E5005F786B /* Foundation.framework */; };
 		F6B6466214D348E5005F786B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B6466114D348E5005F786B /* CoreGraphics.framework */; };
@@ -27,7 +33,6 @@
 		F6B646EF14D34CB4005F786B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B646ED14D34CB4005F786B /* CoreMotion.framework */; };
 		F6B6474814D353A7005F786B /* AudioFileTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B646F314D353A7005F786B /* AudioFileTestViewController.m */; };
 		F6B6474914D353A7005F786B /* AudioFileTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */; };
-		F6B6474A14D353A7005F786B /* audiofiletest.aif in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F614D353A7005F786B /* audiofiletest.aif */; };
 		F6B6474B14D353A7005F786B /* audiofiletest.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F714D353A7005F786B /* audiofiletest.csd */; };
 		F6B6474C14D353A7005F786B /* audioInTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F814D353A7005F786B /* audioInTest.csd */; };
 		F6B6474D14D353A7005F786B /* AudioInTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B646FA14D353A7005F786B /* AudioInTestViewController.m */; };
@@ -90,9 +95,17 @@
 		F6B647C414D353D2005F786B /* CachedSwitch.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6479614D353D2005F786B /* CachedSwitch.m */; };
 		F6B647CF14D353D2005F786B /* libcsound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B647B814D353D2005F786B /* libcsound.a */; };
 		F6B647D014D353D2005F786B /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B647B914D353D2005F786B /* libsndfile.a */; };
+		F6EE378B16AD67C50050820E /* testAudioFile.aif in Resources */ = {isa = PBXBuildFile; fileRef = F6EE378A16AD67C50050820E /* testAudioFile.aif */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F632065C16ADA58500F17AE2 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
+		F632065D16ADA58500F17AE2 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		F632066016ADA59B00F17AE2 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
+		F6968A4D16B07AC90089C462 /* trapped.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = trapped.csd; sourceTree = "<group>"; };
+		F6968A5416B07BA00089C462 /* TrappedGeneratorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TrappedGeneratorViewController.h; sourceTree = "<group>"; };
+		F6968A5516B07BA00089C462 /* TrappedGeneratorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TrappedGeneratorViewController.m; sourceTree = "<group>"; };
+		F6968A5616B07BA00089C462 /* TrappedGeneratorViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TrappedGeneratorViewController.xib; sourceTree = "<group>"; };
 		F6B6465914D348E5005F786B /* Csound iOS Examples.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Csound iOS Examples.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6B6465D14D348E5005F786B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		F6B6465F14D348E5005F786B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -120,7 +133,6 @@
 		F6B646F214D353A7005F786B /* AudioFileTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileTestViewController.h; sourceTree = "<group>"; };
 		F6B646F314D353A7005F786B /* AudioFileTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioFileTestViewController.m; sourceTree = "<group>"; };
 		F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AudioFileTestViewController.xib; sourceTree = "<group>"; };
-		F6B646F614D353A7005F786B /* audiofiletest.aif */ = {isa = PBXFileReference; lastKnownFileType = file; path = audiofiletest.aif; sourceTree = "<group>"; };
 		F6B646F714D353A7005F786B /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audiofiletest.csd; sourceTree = "<group>"; };
 		F6B646F814D353A7005F786B /* audioInTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audioInTest.csd; sourceTree = "<group>"; };
 		F6B646F914D353A7005F786B /* AudioInTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioInTestViewController.h; sourceTree = "<group>"; };
@@ -235,6 +247,7 @@
 		F6B647B614D353D2005F786B /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
 		F6B647B814D353D2005F786B /* libcsound.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcsound.a; sourceTree = "<group>"; };
 		F6B647B914D353D2005F786B /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsndfile.a; sourceTree = "<group>"; };
+		F6EE378A16AD67C50050820E /* testAudioFile.aif */ = {isa = PBXFileReference; lastKnownFileType = file; path = testAudioFile.aif; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -259,6 +272,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F6968A4B16B07A9D0089C462 /* TrappedGenerator */ = {
+			isa = PBXGroup;
+			children = (
+				F6968A4D16B07AC90089C462 /* trapped.csd */,
+				F6968A5416B07BA00089C462 /* TrappedGeneratorViewController.h */,
+				F6968A5516B07BA00089C462 /* TrappedGeneratorViewController.m */,
+				F6968A5616B07BA00089C462 /* TrappedGeneratorViewController.xib */,
+			);
+			path = TrappedGenerator;
+			sourceTree = "<group>";
+		};
 		F6B6464E14D348E4005F786B = {
 			isa = PBXGroup;
 			children = (
@@ -315,6 +339,9 @@
 		F6B6466414D348E5005F786B /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				F632065C16ADA58500F17AE2 /* Default.png */,
+				F632066016ADA59B00F17AE2 /* Default@2x.png */,
+				F632065D16ADA58500F17AE2 /* Default-568h@2x.png */,
 				F6B6466514D348E5005F786B /* Csound iOS Examples-Info.plist */,
 				F6B6466614D348E5005F786B /* InfoPlist.strings */,
 				F6B6466914D348E5005F786B /* main.m */,
@@ -342,6 +369,7 @@
 				F6B6473714D353A7005F786B /* SimpleTest1 */,
 				F6B6473C14D353A7005F786B /* SimpleTest2 */,
 				F6B6474114D353A7005F786B /* Waveview */,
+				F6968A4B16B07A9D0089C462 /* TrappedGenerator */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -349,6 +377,7 @@
 		F6B646F114D353A7005F786B /* AudioFileTest */ = {
 			isa = PBXGroup;
 			children = (
+				F6EE378A16AD67C50050820E /* testAudioFile.aif */,
 				F6B646F214D353A7005F786B /* AudioFileTestViewController.h */,
 				F6B646F314D353A7005F786B /* AudioFileTestViewController.m */,
 				F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */,
@@ -359,7 +388,6 @@
 		F6B646F514D353A7005F786B /* AudioInTest */ = {
 			isa = PBXGroup;
 			children = (
-				F6B646F614D353A7005F786B /* audiofiletest.aif */,
 				F6B646F714D353A7005F786B /* audiofiletest.csd */,
 				F6B646F814D353A7005F786B /* audioInTest.csd */,
 				F6B646F914D353A7005F786B /* AudioInTestViewController.h */,
@@ -663,7 +691,6 @@
 				F6B6467D14D348E5005F786B /* DetailViewController_iPhone.xib in Resources */,
 				F6B6468014D348E5005F786B /* DetailViewController_iPad.xib in Resources */,
 				F6B6474914D353A7005F786B /* AudioFileTestViewController.xib in Resources */,
-				F6B6474A14D353A7005F786B /* audiofiletest.aif in Resources */,
 				F6B6474B14D353A7005F786B /* audiofiletest.csd in Resources */,
 				F6B6474C14D353A7005F786B /* audioInTest.csd in Resources */,
 				F6B6474E14D353A7005F786B /* AudioInTestViewController.xib in Resources */,
@@ -693,6 +720,12 @@
 				F6B6477714D353A7005F786B /* test2.csd in Resources */,
 				F6B6477914D353A7005F786B /* Waveviewtest.csd in Resources */,
 				F6B6477B14D353A7005F786B /* WaveviewViewController.xib in Resources */,
+				F6EE378B16AD67C50050820E /* testAudioFile.aif in Resources */,
+				F632065E16ADA58500F17AE2 /* Default.png in Resources */,
+				F632065F16ADA58500F17AE2 /* Default-568h@2x.png in Resources */,
+				F632066116ADA59B00F17AE2 /* Default@2x.png in Resources */,
+				F6968A4E16B07AC90089C462 /* trapped.csd in Resources */,
+				F6968A5816B07BA00089C462 /* TrappedGeneratorViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -739,6 +772,7 @@
 				F6B647C214D353D2005F786B /* CachedGyroscope.m in Sources */,
 				F6B647C314D353D2005F786B /* CachedSlider.m in Sources */,
 				F6B647C414D353D2005F786B /* CachedSwitch.m in Sources */,
+				F6968A5716B07BA00089C462 /* TrappedGeneratorViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -793,6 +827,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -808,6 +843,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -818,6 +854,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -827,6 +864,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -843,7 +881,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/csound-iOS/libs\"",
-					"\"$(SRCROOT)/../cs5iOS\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -860,7 +897,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/csound-iOS/libs\"",
-					"\"$(SRCROOT)/../cs5iOS\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;

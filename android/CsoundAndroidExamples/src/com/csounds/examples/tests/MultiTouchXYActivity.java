@@ -84,7 +84,6 @@ public class MultiTouchXYActivity extends BaseCsoundActivity implements
 		
 		multiTouchView.setOnTouchListener(new OnTouchListener() {
 
-			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				final int action = event.getAction() & MotionEvent.ACTION_MASK;
 				switch(action) {
@@ -159,14 +158,12 @@ public class MultiTouchXYActivity extends BaseCsoundActivity implements
 		csoundObj.startCsound(f);
 	}
 
-	@Override
 	public void csoundObjComplete(CsoundObj csoundObj) {
 
 	}
 	
 	// VALUE CACHEABLE
 
-	@Override
 	public void setup(CsoundObj csoundObj) {
 		for(int i = 0; i < touchIds.length; i++) {
 			touchXPtr[i] = csoundObj.getInputChannelPtr(String.format("touch.%d.x", i));
@@ -174,7 +171,6 @@ public class MultiTouchXYActivity extends BaseCsoundActivity implements
 		}
 	}
 
-	@Override
 	public void updateValuesToCsound() {
 		for(int i = 0; i < touchX.length; i++) {
 			touchXPtr[i].SetValue(0, touchX[i]);
@@ -183,11 +179,9 @@ public class MultiTouchXYActivity extends BaseCsoundActivity implements
 		
 	}
 
-	@Override
 	public void updateValuesFromCsound() {
 	}
 
-	@Override
 	public void cleanup() {
 		for(int i = 0; i < touchIds.length; i++) {
 			touchXPtr[i].Clear();
