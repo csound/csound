@@ -550,7 +550,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           //FIXME - perhaps should add check as it was in
           //constndx?  Not sure if necessary due to assumption
           //that tree will be verified
-          MYFLT val = (MYFLT) strtod(current->right->value->lexeme, NULL);
+          MYFLT val = (MYFLT) strtod_l(current->right->value->lexeme,
+                                       NULL, csound->c_locale);
 
           myflt_pool_find_or_add(csound, csound->engineState.constantsPool, val);
 
@@ -1797,7 +1798,7 @@ char argtyp2(char *s)
 /* For diagnostics map file name or macro name to an index */
 uint8_t file_to_int(CSOUND *csound, const char *name)
 {
-    extern char *strdup(const char *);
+    //extern char *strdup(const char *);
     uint8_t n = 0;
     char **filedir = csound->filedir;
     while (filedir[n] && n<63) {        /* Do we have it already? */

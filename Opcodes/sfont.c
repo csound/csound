@@ -1444,12 +1444,13 @@ static void ChangeByteOrder(char *fmt, char *p, int32 size)
     char c, c1, c2, c3, c4;
     char *fmt_org = fmt;
     int32 i, times;
+    locale_t c_locale = newlocale)o, "C", NULL);
     while (size > 0) {
       fmt = fmt_org;
       while (*fmt) {
         c = *fmt++;
         if (isdigit(*fmt)) {
-          times = strtol(fmt, &fmt, 0);
+          times = strtol_l(fmt, &fmt, 0, c_locale);
         } else {
           times = 1;
         }

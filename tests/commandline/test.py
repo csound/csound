@@ -101,6 +101,7 @@ def runTest():
 	["test46.csd", "if-then with expression in boolean comparison"],
 	["test47.csd", "until loop and t-variables"],
 	["test48.csd", "expected failure with variable used before defined", 1],
+	["test_instr0_labels.csd", "test labels in instr0 space"],
 	["test_string.csd", "test string assignment and printing"],
 	["test_sprintf.csd", "test string assignment and printing"],
 	["test_label_within_if_block.csd", "test label within if block"],

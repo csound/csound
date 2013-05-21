@@ -884,6 +884,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         return 1;
       }
     }
+    else if (!(strcmp(s, "new-parser")) ||
+             !(strcmp(s, "old-parser"))) {
+        return 1;  /* ignore flag, this is here for backwards compatibility */
+    }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }
