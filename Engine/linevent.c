@@ -294,7 +294,7 @@ static void sensLine(CSOUND *csound, void *userData)
             }
             continue;
           }
-          e.p[pcnt] = (MYFLT) strtod(cp, &newcp);
+          e.p[pcnt] = (MYFLT) strtod_l(cp, &newcp, csound->c_locale);
           cp = newcp - 1;
         } while (pcnt < PMAX);
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */

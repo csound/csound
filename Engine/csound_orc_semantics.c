@@ -1551,10 +1551,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     TREE *current = root;
     TREE *previous = NULL;
     TREE* newRight;
-    
+
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
-    
+
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
 
     while (current != NULL) {
@@ -1664,7 +1664,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     cs_cons_free(csound, typeTable->labelList);
     typeTable->labelList = parentLabelList;
-    
+
     return anchor;
 }
 
