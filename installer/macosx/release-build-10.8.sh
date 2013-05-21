@@ -50,6 +50,7 @@ cd ../..
 # ASSEMBLE FILES FOR INSTALLER
 export CSLIBVERSION=6.0
 export SUPPORT_LIBS_DIR=$INSTALLER_DIR/SupportLibs/Package_Contents/usr/local/lib
+export SUPPORT_LIBS_OPT_DIR=$INSTALLER_DIR/SupportLibs/Package_Contents/usr/local/opt
 #export APPS32_DIR=$INSTALLER_DIR/CsoundApps/Package_Contents/usr/local/bin
 export APPS64_DIR=$INSTALLER_DIR/CsoundApps64/Package_Contents/usr/local/bin
 #export FRAMEWORK32_DIR=$INSTALLER_DIR/CsoundLib/Package_Contents/Library/Frameworks/CsoundLib.framework
@@ -65,6 +66,7 @@ export PD_DIR=Versions/$CSLIBVERSION/Resources/PD
 export DIST=csound6/build/dist
 
 mkdir -p $SUPPORT_LIBS_DIR
+mkdir -p $SUPPORT_LIBS_OPT_DIR
 #mkdir -p $APPS32_DIR
 mkdir -p $APPS64_DIR
 #mkdir -p $FRAMEWORK32_DIR
@@ -200,8 +202,10 @@ cp $DIST/bin/* $APPS64_DIR
 
 echo "copying support libs..."
 
+cp -L /usr/local/lib/libjpeg.8.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libfltk.1.3.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR
+cp -L /usr/local/lib/libfluidsynth.1.5.2.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/liblo.7.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
@@ -215,22 +219,53 @@ cp -L /usr/local/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 
+# for Fluidsynth
+cp -L /usr/local/lib/libgthread-2.0.0.dylib $SUPPORT_LIBS_DIR
+cp -L /usr/local/lib/libglib-2.0.0.dylib $SUPPORT_LIBS_DIR
+mkdir -p $SUPPORT_LIBS_OPT_DIR/opt/gettext/lib
+cp -L /usr/local/opt/gettext/lib/libintl.8.dylib $SUPPORT_LIBS_OPT_DIR/opt/gettext/lib
+
+# not sure this is necessary...
+#export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.5.2.dylib
+#export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.5.2.dylib 
+#install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.5.2.dylib
+#install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
+
+
+# or this...
+#export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.dylib
+#export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.dylib 
+#install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
+
+export OLD_GLIB_LIB=/usr/local/Cellar/glib/2.36.2/lib/libglib-2.0.0.dylib
+export NEW_GLIB_LIB=/usr/local/lib/libglib-2.0.0.dylib
+install_name_tool -change $OLD_GLIB_LIB $NEW_GLIB_LIB $SUPPORT_LIBS_DIR/libgthread-2.0.0.dylib
+
+export OLD_VORBIS_LIB=/usr/local/Cellar/libvorbis/1.3.3/lib/libvorbis.0.dylib
+export NEW_VORBIS_LIB=/usr/local/lib/libvorbis.0.dylib
+install_name_tool -change $OLD_VORBIS_LIB $NEW_VORBIS_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
+
+export OLD_FLTK_LIB=/usr/local/Cellar/fltk/1.3.2/lib/libfltk.1.3.dylib 
+export NEW_FLTK_LIB=/usr/local/lib/libfltk.1.3.dylib 
+install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk.1.3.dylib
+install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
+
 echo "...setting permissions..."
 
 cd installer
 
-#chgrp -R admin  CsoundLib/Package_Contents/Library
-#chown -R root   CsoundLib/Package_Contents/Library
-#chmod -R 775    CsoundLib/Package_Contents/Library
-##chgrp -R wheel  CsoundLib/Package_Contents/System
-##chown -R root   CsoundLib/Package_Contents/System
-##chmod -R 755    CsoundLib/Package_Contents/System
+#chgrp -r admin  csoundlib/package_contents/library
+#chown -r root   csoundlib/package_contents/library
+#chmod -r 775    csoundlib/package_contents/library
+##chgrp -r wheel  csoundlib/package_contents/system
+##chown -r root   csoundlib/package_contents/system
+##chmod -r 755    csoundlib/package_contents/system
 #
-#chgrp -R admin  CsoundApps/Package_Contents/Library
-#chown -R root   CsoundApps/Package_Contents/Library
-#chmod -R 775    CsoundApps/Package_Contents/Library
-#chgrp -R wheel  CsoundApps/Package_Contents/usr
-#chown -R root   CsoundApps/Package_Contents/usr
+#chgrp -r admin  csoundapps/package_contents/library
+#chown -r root   csoundapps/package_contents/library
+#chmod -r 775    csoundapps/package_contents/library
+#chgrp -r wheel  csoundapps/package_contents/usr
+#chown -r root   csoundapps/package_contents/usr
 #chmod -R 755    CsoundApps/Package_Contents/usr
 
 chgrp -R admin  CsoundLib64/Package_Contents/Library
