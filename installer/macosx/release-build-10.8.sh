@@ -205,8 +205,9 @@ echo "copying support libs..."
 cp -L /usr/local/lib/libjpeg.8.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libfltk.1.3.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libfluidsynth.1.5.2.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
+cp -L /usr/local/lib/libfltk_forms.1.3.dylib $SUPPORT_LIBS_DIR
+cp -L /usr/local/lib/libglib-2.0.0.dylib $SUPPORT_LIBS_DIR
+cp -L /usr/local/lib/libgthread-2.0.0.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/liblo.7.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
@@ -218,21 +219,29 @@ cp -L /usr/local/lib/libFLAC.8.2.0.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
+cp -L /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
+cp -L /usr/local/lib/libfluidsynth.1.5.2.dylib $SUPPORT_LIBS_DIR
 
 # for Fluidsynth
-cp -L /usr/local/lib/libgthread-2.0.0.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libglib-2.0.0.dylib $SUPPORT_LIBS_DIR
-mkdir -p $SUPPORT_LIBS_OPT_DIR/opt/gettext/lib
-cp -L /usr/local/opt/gettext/lib/libintl.8.dylib $SUPPORT_LIBS_OPT_DIR/opt/gettext/lib
+#mkdir -p $SUPPORT_LIBS_OPT_DIR/fluid-synth/
+#cp -R /usr/local/opt/fluid-synth/lib $SUPPORT_LIBS_OPT_DIR/fluid-synth/
+
+#mkdir -p $SUPPORT_LIBS_OPT_DIR/glib/
+#cp -R /usr/local/opt/glib/lib $SUPPORT_LIBS_OPT_DIR/glib/
+
+mkdir -p $SUPPORT_LIBS_OPT_DIR/gettext/lib
+cp -L /usr/local/opt/gettext/lib/libintl.8.dylib $SUPPORT_LIBS_OPT_DIR/gettext/lib
+
+#mkdir -p $SUPPORT_LIBS_OPT_DIR/fltk/
+#cp -R /usr/local/opt/fltk/lib $SUPPORT_LIBS_OPT_DIR/fltk/
 
 # not sure this is necessary...
-#export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.5.2.dylib
-#export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.5.2.dylib 
-#install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.5.2.dylib
-#install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
+export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.5.2.dylib
+export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.5.2.dylib 
+install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $FRAMEWORK64_DIR/Versions/6.0/Resources/Opcodes64/libfluidOpcodes.dylib
+install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.5.2.dylib
 
 
-# or this...
 #export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.dylib
 #export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.dylib 
 #install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
@@ -249,6 +258,7 @@ export OLD_FLTK_LIB=/usr/local/Cellar/fltk/1.3.2/lib/libfltk.1.3.dylib
 export NEW_FLTK_LIB=/usr/local/lib/libfltk.1.3.dylib 
 install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk.1.3.dylib
 install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
+install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
 
 echo "...setting permissions..."
 
