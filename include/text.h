@@ -113,7 +113,7 @@ extern "C" {
 char *csoundLocalizeString(const char *s);
   /* This could be gettext but this indirection helps debugging */
 #define Str(x) csoundLocalizeString(x)
-void init_getstring(void);
+  void init_getstring(void*);
 #ifdef __cplusplus
 }
 #endif
@@ -130,14 +130,14 @@ char *csoundLocalizeString(const char *s);
 
 #define Str(x)  (x)
 
-void init_getstring(void);
+  void init_getstring(void*);
 
 #endif  /* __BUILDING_LIBCSOUND */
 
 #ifdef __cplusplus
 }
 #endif
-void init_getstring(void);
+void init_getstring(void*);
 
 #endif
 #define Str_noop(x) x
