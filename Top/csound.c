@@ -423,6 +423,7 @@ static const CSOUND cenviron_ = {
     csoundGetLibrarySymbol,
     csoundLocalizeString,
     get_arg_string,
+    {NULL},         /* c_locale */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -836,8 +837,8 @@ static const CSOUND cenviron_ = {
     NULL,           /* cps conv table */
     NULL,           /* output of preprocessor */
     NULL,           /* filedir */
-    {NULL},           /* message buffer struct */
-    0               /* jumpset */
+    {NULL},         /* message buffer struct */
+    0,              /* jumpset */
 };
 
 /* from threads.c */
@@ -1080,7 +1081,6 @@ PUBLIC int csoundInitialize(int *argc, char ***argv, int flags)
     } while (n);
     init_done = 2;
     csoundUnLock();
-    /* init_getstring(); // moved to csoundCreate() */
     if (getTimeResolution() != 0) {
       csoundLock();
       init_done = -1;
@@ -1108,10 +1108,10 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     if (init_done != 1) {
       if (csoundInitialize(NULL, NULL, 0) < 0) return NULL;
     }
-    init_getstring();
     csound = (CSOUND*) malloc(sizeof(CSOUND));
     if (UNLIKELY(csound == NULL)) return NULL;
     memcpy(csound, &cenviron_, sizeof(CSOUND));
+    init_getstring(csound);
     csound->oparms = &(csound->oparms_);
     csound->hostdata = hostdata;
     p = (csInstance_t*) malloc(sizeof(csInstance_t));

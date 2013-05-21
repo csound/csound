@@ -52,6 +52,12 @@ int init0(CSOUND *csound)
   csound->ids = (OPDS*) ip;
   tp->active++;
   ip->actflg++;
+  ip->ksmps = csound->ksmps;
+  ip->ekr = csound->ekr;
+  ip->kcounter = csound->kcounter;
+  ip->onedksmps = csound->onedksmps;
+  ip->onedkr = csound->onedkr;
+  ip->kicvt = csound->kicvt;
   csound->inerrcnt = 0;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     (*csound->ids->iopadr)(csound, csound->ids);  /*   run all i-code     */

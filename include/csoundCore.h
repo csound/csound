@@ -1224,6 +1224,7 @@ typedef struct NAME__ {
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
     char *(*get_arg_string)(CSOUND *, MYFLT);
+    locale_t      c_locale;
     /**@}*/
     /** @name Placeholders */
     /**@{ */
