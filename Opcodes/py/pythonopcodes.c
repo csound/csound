@@ -43,14 +43,14 @@ static CS_NOINLINE void create_private_namespace_if_needed(OPDS *o)
 }
 
 static void format_call_statement(char *statement, char *callable,
-                                  int argc, MYFLT *argv[], int skip)
+                                  int argc, MYFLT *argv[], long skip)
 {
     int       i;
 
     statement[0] = '\0';
     if (argc > 0) {
-      sprintf(statement, "%s(%0.6f", callable, *(argv[0]));
-      for (i = 1; i < argc - skip; ++i) {
+      sprintf(statement, "%s(%0.6f", callable, *(argv[skip]));
+      for (i = skip+1; i < argc; ++i) {
         sprintf(statement + strlen(statement), ", %f", *(argv[i]));
       }
       strcat(statement, ")");
@@ -58,6 +58,7 @@ static void format_call_statement(char *statement, char *callable,
     else {
       sprintf(statement, "%s()", callable);
     }
+  
 }
 
 static PyObject *
@@ -175,8 +176,8 @@ static int pycalln_krate(CSOUND *csound, PYCALLN *p)
     char      command[1024];
     PyObject  *result;
 
-    format_call_statement(command, (char*) p->function,
-                          p->INOCOUNT, p->args, (int) *p->nresult + 1);
+    format_call_statement(command,  p->function->data,
+                          p->INOCOUNT-2, p->args, *p->nresult);
     result = eval_string_in_given_context(command, 0);
     if (result != NULL && PyTuple_Check(result) &&
         PyTuple_Size(result) == (int) *p->nresult) {
@@ -202,8 +203,8 @@ static int pylcalln_krate(CSOUND *csound, PYCALLN *p)
     char      command[1024];
     PyObject  *result;
 
-    format_call_statement(command, (char*) p->function,
-                          p->INOCOUNT, p->args, (int) *p->nresult + 1);
+    format_call_statement(command,  p->function->data,
+                          p->INOCOUNT-2, p->args, *p->nresult);
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
     if (result != NULL && PyTuple_Check(result) &&
         PyTuple_Size(result) == (int) *p->nresult) {
@@ -224,8 +225,8 @@ static int pylcallni_irate(CSOUND *csound, PYCALLN *p)
     PyObject  *result;
 
     create_private_namespace_if_needed(&p->h);
-    format_call_statement(command, (char*) p->function,
-                          p->INOCOUNT, p->args, (int) *p->nresult + 1);
+    format_call_statement(command,  p->function->data,
+                          p->INOCOUNT-2, p->args, *p->nresult);
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
     if (result != NULL && PyTuple_Check(result) &&
         PyTuple_Size(result) == (int) *p->nresult) {

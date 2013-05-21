@@ -576,6 +576,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             s = tree->value->lexeme;
 
             if (is_label(s, typeTable->labelList)) {
+	      
                 return cs_strdup(csound, "l");
             }
 
@@ -1159,7 +1160,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         case LABEL_TOKEN:
         case T_IDENT:
           varName = current->value->lexeme;
-
+          
           if (is_label(varName, typeTable->labelList)) {
             break;
           }
