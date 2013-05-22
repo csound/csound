@@ -100,6 +100,10 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];
+#ifdef HAVE_LOCALES
+locale_t c_locale;
+#endif
+
 static void free_opcode_table(CSOUND* csound) {
     int i;
     CS_HASH_TABLE_ITEM* bucket;
@@ -186,10 +190,17 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
-static int get_c_locale(CSOUND *csound){
-  return csound->c_locale;
+#ifdef HAVE_LOCALES
+static locale_t get_c_locale(void)
+{
+  return c_locale;
 }
-
+#else
+static void* get_c_locale(void)
+{
+  return NULL;
+}
+#endif
 
 static const CSOUND cenviron_ = {
     /* attributes  */
@@ -465,7 +476,6 @@ static const CSOUND cenviron_ = {
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
     (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
     (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
-    {NULL},         /* c_locale */
     NULL,           /*  hostdata            */
     NULL, NULL,     /*  orchname, scorename */
     NULL, NULL,     /*  orchstr, *scorestr  */

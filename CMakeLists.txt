@@ -933,13 +933,13 @@ endif()
 
 if(LINUX)
     message(STATUS "Building on Linux")
-    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE)
+    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE -DHAVE_LOCALES)
     list(APPEND libcsound_LIBS m dl) 
 endif()
 
 if(APPLE)
     message(STATUS "Building on OSX")
-    add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
+    add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS -DHAVE_LOCALES)
     list(APPEND libcsound_LIBS m dl) 
 endif()
 

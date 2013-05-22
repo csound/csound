@@ -24,6 +24,9 @@
 */
 
 #include "csoundCore.h"
+#ifndef WIN32
+extern locale_t c_locale;
+#endif
 
 #ifdef HAVE_DIRENT_H
 #  include <sys/types.h>
@@ -46,7 +49,7 @@ void init_getstring(void *cs)
 #ifdef WIN32
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 #else
-    ((CSOUND*)cs)->c_locale = newlocale (0, "C", NULL);
+    c_locale = newlocale (0, "C", NULL);
 #endif
 }
 
@@ -73,10 +76,10 @@ void init_getstring(void *cs)
     /* This is experimental; where should these be?? */
     bindtextdomain("csound6", "/home/jpff/Sourceforge/csound/csound6/po");
 #endif
-#ifndef WIN32
+#ifdef WIN32
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 #else
-    ((CSOUND*)cs)->c_locale = newlocale (0, "C", NULL);
+    c_locale = newlocale (0, "C", NULL);
 #endif
 }
 
