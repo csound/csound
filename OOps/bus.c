@@ -448,7 +448,7 @@ PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name){
 
     CHNENTRY  *pp;
     pp = find_channel(csound, name);
-    if (pp != NULL) return 0;
+    if (pp == NULL) return 0;
     else return pp->datasize;
 }
 
