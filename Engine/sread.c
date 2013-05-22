@@ -856,7 +856,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
             double  tt;
             char    *tmp = p;
-            tt = strtod_l(p, &tmp, csound->c_locale);
+            tt = strtod_l(p, &tmp, c_locale);
             if (tmp != p && (*tmp == '\0' || isspace(*tmp))) {
               STA(bp)->pcnt = 1;
               STA(bp)->p1val = STA(bp)->p2val = STA(bp)->newp2 = (MYFLT) tt;
@@ -1829,7 +1829,7 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
                                     /* (assumes no white space at beginning */
 {                                   /*      but a blank or nl at end)       */
     char    *p;
-    MYFLT   x = (MYFLT) strtod_l(s, &p, csound->c_locale);
+    MYFLT   x = (MYFLT) strtod_l(s, &p, c_locale);
 
     if (*p=='z') return FL(800000000000.0); /* 25367 years */
     if (UNLIKELY(s == p || !(*p == '\0' || isspace(*p)))) {
