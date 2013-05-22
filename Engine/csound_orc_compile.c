@@ -24,9 +24,6 @@
 */
 
 #include "csoundCore.h"
-#ifndef WIN32
-extern locale_t c_locale;
-#endif
 #include "parse_param.h"
 #include "csound_orc.h"
 #include <math.h>

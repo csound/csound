@@ -22,9 +22,6 @@
 */
 
 #include "csoundCore.h"                             /*   SREAD.C     */
-#ifndef WIN32
-extern locale_t c_locale;
-#endif
 #include <math.h>      /* for fabs() */
 #include <ctype.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
