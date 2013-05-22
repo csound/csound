@@ -1218,7 +1218,9 @@ typedef struct NAME__ {
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
+#ifndef WIN32
     locale_t      c_locale;
+#endif
     /**@}*/
     /** @name Placeholders */
     /**@{ */
