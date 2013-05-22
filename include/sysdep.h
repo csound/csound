@@ -26,6 +26,9 @@
 
 /* check for the presence of a modern compiler (for use of certain features) */
 
+#if !defined(locale_t)
+typedef void *locale_t;
+#endif
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
 #endif
