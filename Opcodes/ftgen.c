@@ -29,9 +29,6 @@
 #include <stdarg.h>
 #include "soundio.h"
 #include <math.h>
-#ifndef WIN32
-extern locale_t c_locale;
-#endif
 
 typedef struct {
     OPDS    h;
