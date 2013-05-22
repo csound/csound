@@ -174,11 +174,6 @@ typedef struct {
 #define ASYNC_GLOBAL 1
 #define ASYNC_LOCAL  2
 
-#ifdef HAVE_LOCALES
-  extern locale_t c_locale;
-#endif
-
-
   typedef struct CORFIL {
     char    *body;
     unsigned int     len;
@@ -1222,11 +1217,8 @@ typedef struct NAME__ {
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
-#ifdef HAVE_LOCALES
-    locale_t (*get_c_locale)(CSOUND *);
-#else
-    void* (*get_c_locale)(void);
-#endif
+    char *(*strtok_r)(char*, char*, char**);
+    double (*strtod)(char*, char*);
     /**@}*/
     /** @name Placeholders */
     /**@{ */
@@ -1624,9 +1616,6 @@ typedef struct NAME__ {
     char          *filedir[64]; /* for location directory */
     void          *message_buffer;
     int           jumpset;
-#ifdef HAVE_LOCALES
-    locale_t      c_locale;
-#endif
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
