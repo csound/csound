@@ -186,7 +186,8 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
-static t_locale get_c_locale(CSOUND *csound){
+
+static locale_t get_c_locale(CSOUND *csound){
   return csound->c_locale;
 }
 
@@ -465,7 +466,6 @@ static const CSOUND cenviron_ = {
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
     (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
     (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
-    {NULL},         /* c_locale */
     NULL,           /*  hostdata            */
     NULL, NULL,     /*  orchname, scorename */
     NULL, NULL,     /*  orchstr, *scorestr  */
@@ -844,6 +844,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* filedir */
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
+#ifndef WIN32
+    {NULL},         /* c_locale */
+#endif
 };
 
 /* from threads.c */
