@@ -43,8 +43,11 @@ int closedir(DIR*);
 #ifndef GNU_GETTEXT
 void init_getstring(void *cs)
 {
-    //setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+#ifdef WIN32
+    setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+#else
     ((CSOUND*)cs)->c_locale = newlocale (0, "C", NULL);
+#endif
 }
 
 PUBLIC char *csoundLocalizeString(const char *s)
@@ -70,8 +73,11 @@ void init_getstring(void *cs)
     /* This is experimental; where should these be?? */
     bindtextdomain("csound6", "/home/jpff/Sourceforge/csound/csound6/po");
 #endif
-    //setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+#ifndef WIN32
+    setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+#else
     ((CSOUND*)cs)->c_locale = newlocale (0, "C", NULL);
+#endif
 }
 
 PUBLIC char *csoundLocalizeString(const char *s)
