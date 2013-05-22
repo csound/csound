@@ -422,7 +422,9 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
+#ifndef WIN32
     {NULL},         /* c_locale */
+#endif
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
