@@ -1282,7 +1282,6 @@ typedef struct NAME__ {
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
     void          (*audtran)(CSOUND *, const MYFLT *, int);
-    locale_t      c_locale;
     void          *hostdata;
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;
@@ -1618,6 +1617,9 @@ typedef struct NAME__ {
     char          *filedir[64]; /* for location directory */
     void          *message_buffer;
     int           jumpset;
+#ifndef WIN32
+    locale_t      c_locale;
+#endif
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
