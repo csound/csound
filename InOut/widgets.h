@@ -335,7 +335,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *command;
+  MYFLT   *ihandle;
+  STRINGDAT *command;
     MYFLT   *iwidth, *iheight, *ix, *iy;
     char    *commandString;
     CSOUND  *csound;

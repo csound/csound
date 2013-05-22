@@ -394,6 +394,7 @@ statement : ident '=' expr NEWLINE
                   csp_orc_sa_interlocks(csound, $2->value);
                   query_deprecated_opcode(csound, $2->value);
                 }
+
            | opcode0  exprlist NEWLINE
                 {
                   ((TREE *)$1)->left = NULL;
