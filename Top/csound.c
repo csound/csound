@@ -100,7 +100,7 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];
-#ifndef WIN32
+#ifdef HAVE_LOCALES
 locale_t c_locale;
 #endif
 
@@ -190,10 +190,17 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
-static locale_t get_c_locale(CSOUND *csound){
+#ifdef HAVE_LOCALES
+static locale_t get_c_locale(void)
+{
   return c_locale;
 }
-
+#else
+static void* get_c_locale(void)
+{
+  return NULL;
+}
+#endif
 
 static const CSOUND cenviron_ = {
     /* attributes  */
