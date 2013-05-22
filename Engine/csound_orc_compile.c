@@ -551,7 +551,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           //constndx?  Not sure if necessary due to assumption
           //that tree will be verified
           MYFLT val = (MYFLT) strtod_l(current->right->value->lexeme,
-                                       NULL, csound->c_locale);
+                                       NULL, c_locale);
 
           myflt_pool_find_or_add(csound, csound->engineState.constantsPool, val);
 

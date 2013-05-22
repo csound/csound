@@ -311,22 +311,22 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         header.fno = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
-        header.gen01args.gen01 = (MYFLT)strtod_l(s1, &endptr, csound->c_locale);
+        header.gen01args.gen01 = (MYFLT)strtod_l(s1, &endptr, c_locale);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
-        header.gen01args.ifilno = (MYFLT)strtod_l(s1, &endptr, csound->c_locale);
+        header.gen01args.ifilno = (MYFLT)strtod_l(s1, &endptr, c_locale);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
-        header.gen01args.iskptim = (MYFLT)strtod_l(s1, &endptr, csound->c_locale);
+        header.gen01args.iskptim = (MYFLT)strtod_l(s1, &endptr, c_locale);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
-        header.gen01args.iformat = (MYFLT)strtod_l(s1, &endptr, csound->c_locale);
+        header.gen01args.iformat = (MYFLT)strtod_l(s1, &endptr, c_locale);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
-        header.gen01args.channel = (MYFLT)strtod_l(s1, &endptr, csound->c_locale);
+        header.gen01args.channel = (MYFLT)strtod_l(s1, &endptr, c_locale);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
-        header.gen01args.sample_rate = (MYFLT)strtod_l(s1, &endptr, csound->c_locale);
+        header.gen01args.sample_rate = (MYFLT)strtod_l(s1, &endptr, c_locale);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
         /* WARNING! skips header.gen01args.strarg from saving/loading
@@ -339,7 +339,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         memset(&(ftp->ftable[0]), 0, sizeof(MYFLT) * (ftp->flen + 1));
         for (j = 0; j <= ftp->flen; j++) {
           if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
-          ftp->ftable[j] = (MYFLT) strtod_l(s, &endptr, csound->c_locale);
+          ftp->ftable[j] = (MYFLT) strtod_l(s, &endptr, c_locale);
           if (UNLIKELY(endptr==NULL)) goto err4;
         }
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
