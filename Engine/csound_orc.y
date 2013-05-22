@@ -386,7 +386,19 @@ statement : ident '=' expr NEWLINE
                 {
                   $2->left = $1;
                   $2->right = $3;
-
+         
+                  $$ = $2;
+                  csp_orc_sa_global_read_write_add_list(csound,
+                                    csp_orc_sa_globals_find(csound, $2->left),
+                                    csp_orc_sa_globals_find(csound, $2->right));
+                  csp_orc_sa_interlocks(csound, $2->value);
+                  query_deprecated_opcode(csound, $2->value);
+                }
+            | ans opcode ':' T_IDENT exprlist NEWLINE
+                {
+                  $2->left = $1;
+                  $2->right = $5;
+                  $2->value->optype = $4->value->lexeme;
                   $$ = $2;
                   csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, $2->left),

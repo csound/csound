@@ -454,6 +454,7 @@ extern "C" {
         char             *lexeme;
         int              value;
         double           fvalue;
+        char             *optype;
         struct ORCTOKEN  *next;
     } ORCTOKEN;
 

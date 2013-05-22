@@ -186,7 +186,7 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
-static int get_c_locale(CSOUND *csound){
+static t_locale get_c_locale(CSOUND *csound){
   return csound->c_locale;
 }
 
