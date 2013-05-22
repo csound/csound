@@ -930,7 +930,6 @@ else()
     message(STATUS "Not using localization")
 endif()
 
-
 if(LINUX)
     message(STATUS "Building on Linux")
     add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE)
@@ -948,6 +947,15 @@ if(WIN32)
 endif()
     
 
+check_function_exists(strtok_r HAVE_STRTOK_R)
+check_function_exists(strtod_l HAVE_STRTOD_L)
+
+if(HAVE_STRTOK_R)
+    add_definitions(-DHAVE_STRTOK_R)
+endif()
+if(HAVE_STRTOD_L)
+    add_definitions(-DHAVE_STRTOD_L)
+endif()
 
 # Pass flags according to system capabilities
 
