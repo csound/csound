@@ -154,6 +154,7 @@ Source: {#MyFluidSynthSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversi
 Source: {#MyLibLoSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
 Source: include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 
+Source: include/interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 
 Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ignoreversion;  Components: core 
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
