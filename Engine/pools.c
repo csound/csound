@@ -1,5 +1,8 @@
 
 #include "csoundCore.h"
+#ifndef WIN32
+extern locale_t c_locale;
+#endif
 #include "pools.h"
 
 /* MYFLT POOL */
@@ -55,6 +58,6 @@ int myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
 
 int myflt_pool_find_or_addc(CSOUND* csound, MYFLT_POOL* pool, char* s) {
 
-    MYFLT val = (MYFLT) strtod_l(s, NULL, csound->c_locale);
+    MYFLT val = (MYFLT) strtod_l(s, NULL, c_locale);
     return myflt_pool_find_or_add(csound, pool, val);
 }

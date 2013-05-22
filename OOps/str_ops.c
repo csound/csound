@@ -23,6 +23,9 @@
 */
 
 #include "csoundCore.h"
+#ifndef WIN32
+extern locale_t c_locale;
+#endif
 #define CSOUND_STR_OPS_C    1
 #include "str_ops.h"
 #include <ctype.h>
@@ -429,7 +432,7 @@ int strtod_opcode(CSOUND *csound, STRSET_OP *p)
     while (*s == ' ' || *s == '\t') s++;
     if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
-    x = strtod_l(s, &tmp, csound->c_locale);
+    x = strtod_l(s, &tmp, c_locale);
     if (UNLIKELY(*tmp != '\0'))
       return StrOp_ErrMsg(p, "invalid format");
     *p->indx = (MYFLT) x;

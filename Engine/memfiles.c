@@ -23,6 +23,9 @@
 */
 
 #include "csoundCore.h"     /*                              MEMFILES.C      */
+#ifndef WIN32
+extern locale_t c_locale;
+#endif
 #include "soundio.h"
 #include "pvfileio.h"
 #include "convolve.h"
@@ -77,9 +80,7 @@ static MYFLT read_ieee(FILE* f, int *end)
     char buff[120];
     double x;
     char *p = fgets(buff, 120, f);
-#ifndef WIN32
-    locale_t c_locale = newlocale(0, "C", NULL);
-#endif
+
     if (p==NULL || feof(f)) {
       *end = 1;
       return FL(0.0);
