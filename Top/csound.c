@@ -100,6 +100,7 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];
+
 static void free_opcode_table(CSOUND* csound) {
     int i;
     CS_HASH_TABLE_ITEM* bucket;
@@ -185,12 +186,6 @@ static int csoundGetReinitFlag(CSOUND *csound){
 static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
-
-
-static locale_t get_c_locale(CSOUND *csound){
-  return csound->c_locale;
-}
-
 
 static const CSOUND cenviron_ = {
     /* attributes  */
@@ -428,7 +423,8 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
-    get_c_locale,
+    cs_strtok_r,
+    cs_strtod,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -844,9 +840,6 @@ static const CSOUND cenviron_ = {
     NULL,           /* filedir */
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
-#ifndef WIN32
-    {NULL},         /* c_locale */
-#endif
 };
 
 /* from threads.c */

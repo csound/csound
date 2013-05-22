@@ -174,8 +174,6 @@ typedef struct {
 #define ASYNC_GLOBAL 1
 #define ASYNC_LOCAL  2
 
-
-
   typedef struct CORFIL {
     char    *body;
     unsigned int     len;
@@ -1219,7 +1217,8 @@ typedef struct NAME__ {
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
-    locale_t (*get_c_locale)(CSOUND *);
+    char *(*strtok_r)(char*, char*, char**);
+    double (*strtod)(char*, char*);
     /**@}*/
     /** @name Placeholders */
     /**@{ */
@@ -1617,9 +1616,6 @@ typedef struct NAME__ {
     char          *filedir[64]; /* for location directory */
     void          *message_buffer;
     int           jumpset;
-#ifndef WIN32
-    locale_t      c_locale;
-#endif
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

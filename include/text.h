@@ -114,6 +114,8 @@ char *csoundLocalizeString(const char *s);
   /* This could be gettext but this indirection helps debugging */
 #define Str(x) csoundLocalizeString(x)
   void init_getstring(void*);
+  PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts);
+  PUBLIC double cs_strtod(char* nptr, char** endptr);
 #ifdef __cplusplus
 }
 #endif
@@ -131,6 +133,8 @@ char *csoundLocalizeString(const char *s);
 #define Str(x)  (x)
 
   void init_getstring(void*);
+  PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts);
+  PUBLIC double cs_strtod(char* nptr, char** endptr);
 
 #endif  /* __BUILDING_LIBCSOUND */
 
@@ -141,6 +145,7 @@ void init_getstring(void*);
 
 #endif
 #define Str_noop(x) x
+
 
 #endif  /* CSOUND_TEXT_H */
 
