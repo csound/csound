@@ -4121,7 +4121,7 @@ extern "C" {
       p->csound = csound;
       Fl_Button *w;
 
-      p->commandString =  ((STRINGDAT *)p->command)->data;
+      p->commandString = p->command->data;
 
       csound->Message(csound, Str("Command Found: %s\n"), p->commandString);
 
