@@ -22,9 +22,6 @@
 */
 
 #include "csoundCore.h"     /*                              LINEVENT.C      */
-#ifndef WIN32
-extern locale_t c_locale;
-#endif
 #include "text.h"
 #include <ctype.h>
 

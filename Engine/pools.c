@@ -1,8 +1,5 @@
 
 #include "csoundCore.h"
-#ifndef WIN32
-extern locale_t c_locale;
-#endif
 #include "pools.h"
 
 /* MYFLT POOL */
