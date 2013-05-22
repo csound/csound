@@ -73,7 +73,7 @@ void init_getstring(void *cs)
     /* This is experimental; where should these be?? */
     bindtextdomain("csound6", "/home/jpff/Sourceforge/csound/csound6/po");
 #endif
-#ifndef WIN32
+#ifdef WIN32
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 #else
     ((CSOUND*)cs)->c_locale = newlocale (0, "C", NULL);

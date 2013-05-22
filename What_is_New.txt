@@ -165,6 +165,11 @@ defaulting to the internal sine wave.
 (oscil1, oscil1i, oscil, oscil3, oscili, foscil, foscil1,
 loscil, loscil3)
 
+
+in Linux and OSX the treatment of locales is now thread-safe and
+local.
+
+ 
 New API functions.....
 
     new configuration/parameter setting functions
