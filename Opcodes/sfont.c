@@ -1442,7 +1442,9 @@ static void ChangeByteOrder(char *fmt, char *p, int32 size)
     char c, c1, c2, c3, c4;
     char *fmt_org = fmt;
     int32 i, times;
+#ifndef WIN32
     locale_t c_locale = newlocale)o, "C", NULL);
+#endif
     while (size > 0) {
       fmt = fmt_org;
       while (*fmt) {
