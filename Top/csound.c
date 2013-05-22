@@ -100,9 +100,6 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];
-#ifdef HAVE_LOCALES
-locale_t c_locale;
-#endif
 
 static void free_opcode_table(CSOUND* csound) {
     int i;
@@ -189,18 +186,6 @@ static int csoundGetReinitFlag(CSOUND *csound){
 static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
-
-#ifdef HAVE_LOCALES
-static locale_t get_c_locale(void)
-{
-  return c_locale;
-}
-#else
-static void* get_c_locale(void)
-{
-  return NULL;
-}
-#endif
 
 static const CSOUND cenviron_ = {
     /* attributes  */
@@ -438,7 +423,8 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
-    get_c_locale,
+    cs_strtok_r,
+    cs_strtod,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
