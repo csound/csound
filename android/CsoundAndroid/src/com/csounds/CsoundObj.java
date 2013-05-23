@@ -43,11 +43,11 @@ import com.csounds.valueCacheable.CachedButton;
 import com.csounds.valueCacheable.CachedSlider;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
-import csnd.AndroidCsound;
-import csnd.Csound;
-import csnd.CsoundCallbackWrapper;
-import csnd.CsoundMYFLTArray;
-import csnd.csndConstants;
+import csnd6.AndroidCsound;
+import csnd6.Csound;
+import csnd6.CsoundCallbackWrapper;
+import csnd6.CsoundMYFLTArray;
+import csnd6.controlChannelType;
 
 public class CsoundObj {
 
@@ -158,8 +158,8 @@ public class CsoundObj {
 		getCsound().GetChannelPtr(
 				ptr.GetPtr(),
 				channelName,
-				csndConstants.CSOUND_CONTROL_CHANNEL
-						| csndConstants.CSOUND_INPUT_CHANNEL);
+				controlChannelType.CSOUND_CONTROL_CHANNEL.swigValue()
+						| controlChannelType.CSOUND_INPUT_CHANNEL.swigValue());
 		return ptr;
 	}
 
@@ -213,7 +213,7 @@ public class CsoundObj {
 
 	private void runCsoundOpenSL(File f) {
 
-		retVal = csound.PreCompile();
+		((AndroidCsound)csound).setOpenSlCallbacks();
 		
 		/*if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
@@ -230,7 +230,7 @@ public class CsoundObj {
 
 		}*/
 		
-		Log.d("CsoundAndroid", "Return Value: " + retVal);
+		//Log.d("CsoundAndroid", "Return Value: " + retVal);
 
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
@@ -288,7 +288,6 @@ public class CsoundObj {
 
 	private void runCsoundAudioTrack(File f) {
 
-		retVal = csound.PreCompile();
 		csound.SetHostImplementedAudioIO(1, 0);
 
 		if (messageLoggingEnabled) {

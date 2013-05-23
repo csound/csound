@@ -122,7 +122,7 @@ OENTRY opcodlst_1[] = {
   { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL },
   { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL },
   { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL },
-  { "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL },
+  //{ "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL },
   { "init",   0xffff      /* base names for later prefixes,suffixes */    },
   { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL },
   { "bexprnd", 0xffff                                                     },

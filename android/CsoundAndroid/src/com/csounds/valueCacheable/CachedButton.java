@@ -33,7 +33,7 @@ import android.widget.Button;
 
 import com.csounds.CsoundObj;
 
-import csnd.CsoundMYFLTArray;
+import csnd6.CsoundMYFLTArray;
 
 public class CachedButton extends AbstractValueCacheable {
 

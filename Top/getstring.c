@@ -24,8 +24,8 @@
 */
 
 #include "csoundCore.h"
-#ifndef WIN32
-extern locale_t c_locale;
+#ifdef HAVE_STRTOD_L
+static locale_t csound_c_locale = NULL;
 #endif
 
 #ifdef HAVE_DIRENT_H
@@ -46,10 +46,12 @@ int closedir(DIR*);
 #ifndef GNU_GETTEXT
 void init_getstring(void *cs)
 {
-#ifdef WIN32
+#ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 #else
-    c_locale = newlocale (0, "C", NULL);
+    if (csound_c_locale == NULL) {
+        csound_c_locale = newlocale (0, "C", NULL);
+    }
 #endif
 }
 
@@ -76,10 +78,12 @@ void init_getstring(void *cs)
     /* This is experimental; where should these be?? */
     bindtextdomain("csound6", "/home/jpff/Sourceforge/csound/csound6/po");
 #endif
-#ifdef WIN32
+#ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 #else
-    c_locale = newlocale (0, "C", NULL);
+    if (csound_c_locale == NULL) {
+        csound_c_locale = newlocale (0, "C", NULL);
+    }
 #endif
 }
 
@@ -176,5 +180,24 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
     }
     return;
 }
+
 #endif
 
+
+PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts) {
+#ifdef HAVE_STRTOK_R
+    return strtok_r(str, sep, lasts);
+#else
+    return strtok(str, sep);
+#endif
+}
+
+PUBLIC double cs_strtod(char* nptr, char** endptr) {
+#ifdef HAVE_STRTOD_L
+    return strtod_l(nptr, endptr, csound_c_locale);
+#else
+    return strtod(nptr, endptr);
+#endif
+}
+                    
+                

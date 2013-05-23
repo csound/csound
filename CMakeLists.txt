@@ -930,16 +930,15 @@ else()
     message(STATUS "Not using localization")
 endif()
 
-
 if(LINUX)
     message(STATUS "Building on Linux")
-    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE -DHAVE_LOCALES)
+    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE)
     list(APPEND libcsound_LIBS m dl) 
 endif()
 
 if(APPLE)
     message(STATUS "Building on OSX")
-    add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS -DHAVE_LOCALES)
+    add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS m dl) 
 endif()
 
@@ -948,6 +947,15 @@ if(WIN32)
 endif()
     
 
+check_function_exists(strtok_r HAVE_STRTOK_R)
+check_function_exists(strtod_l HAVE_STRTOD_L)
+
+if(HAVE_STRTOK_R)
+    add_definitions(-DHAVE_STRTOK_R)
+endif()
+if(HAVE_STRTOD_L)
+    add_definitions(-DHAVE_STRTOD_L)
+endif()
 
 # Pass flags according to system capabilities
 

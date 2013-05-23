@@ -1,0 +1,20 @@
+Csound for iOS ChangeLog
+
+This ChangeLog shows changes specific to Csound for iOS. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
+
+
+5.19.02.x - 2013-xx-xx
+
+* CsoundObj.m: Replaced audio route handling code with simpler code setting category default to Speaker (Contributed by Stephan Hepper)
+
+5.19.02.2 - 2013-03-20
+
+* CsoundObj.m: Added [NSThread sleepForTimeInterval:.001] in while loop to prevent loop from being optimized out; caused issue when compiling application with -O1 or higher (i.e. -Os used when building for Release)
+
+* CsoundObj.m: Updated audio route handling to take into account AirPlay; also, now correctly routes to speaker and not earpiece even upon repeated connection and disconnection of headphones
+
+5.19.02.1 - 2013-02-11
+
+* CachedButton.m: fixed issue where it would initially start with a state of 1 even if not pressed down
+* CsoundObj.m: added startCsoundToDisk method for Csound rendering to disk; added TrappedGenerator example that demonstrates how to use this
+* CsoundObj.m: fixed issue where when CsoundObj start, if headphones were plugged in, audio would start through the speaker; now checks if headphones are in to use the default audio route, and if not to use the speaker
