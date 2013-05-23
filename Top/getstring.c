@@ -81,8 +81,8 @@ void init_getstring(void *cs)
 #ifdef WIN32
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 #else
-    if (c_locale == NULL) {
-        c_locale = newlocale (0, "C", NULL);
+    if (csound_c_locale == NULL) {
+        csound_c_locale = newlocale (0, "C", NULL);
     }
 #endif
 }
