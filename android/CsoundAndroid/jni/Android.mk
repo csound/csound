@@ -78,6 +78,7 @@ $(CSOUND_SRC_ROOT)/OOps/ugtabs.c \
 $(CSOUND_SRC_ROOT)/OOps/ugrw1.c \
 $(CSOUND_SRC_ROOT)/OOps/ugrw2.c \
 $(CSOUND_SRC_ROOT)/OOps/vdelay.c \
+$(CSOUND_SRC_ROOT)/OOps/compile_ops.c \
 $(CSOUND_SRC_ROOT)/Opcodes/babo.c \
 $(CSOUND_SRC_ROOT)/Opcodes/bilbar.c \
 $(CSOUND_SRC_ROOT)/Opcodes/compress.c \
@@ -94,6 +95,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/loscilx.c \
 $(CSOUND_SRC_ROOT)/Opcodes/minmax.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pan2.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/phisem.c \
+$(CSOUND_SRC_ROOT)/Opcodes/arrays.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfopcodes.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/stackops.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap.c  \
@@ -188,6 +190,8 @@ $(CSOUND_SRC_ROOT)/Opcodes/ugnorman.c       \
 $(CSOUND_SRC_ROOT)/Opcodes/ugsc.c \
 $(CSOUND_SRC_ROOT)/Opcodes/wave-terrain.c   \
 $(CSOUND_SRC_ROOT)/Opcodes/stdopcod.c \
+$(CSOUND_SRC_ROOT)/Opcodes/socksend.c \
+$(CSOUND_SRC_ROOT)/Opcodes/sockrecv.c \
 $(CSOUND_SRC_ROOT)/Opcodes/ifd.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/partials.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/psynth.c  \
@@ -216,7 +220,6 @@ $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_dispatch.c \
-$(CSOUND_SRC_ROOT)/Engine/new_orc_parser.c \
 $(CSOUND_SRC_ROOT)/Opcodes/mp3in.c \
 $(CSOUND_SRC_ROOT)/InOut/libmpadec/layer1.c \
 $(CSOUND_SRC_ROOT)/InOut/libmpadec/layer2.c \
