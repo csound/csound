@@ -363,7 +363,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
     strcpy(buff, fname);
     strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
     p = strdup(list);
-    deny = strtok_r(p, ",", &th);
+    deny = cs_strtok_r(p, ",", &th);
     /* printf("DEBUG %s(%d): check buff=%s\n", __FILE__, __LINE__, deny); */
     while (deny) {
       /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
@@ -372,7 +372,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
         /* printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); */
         return 1;
       }
-      deny = strtok_r(NULL, ",", &th);
+      deny = cs_strtok_r(NULL, ",", &th);
     }
     free(p);
     /* printf("DEBUG %s(%d): not found\n", __FILE__, __LINE__); */

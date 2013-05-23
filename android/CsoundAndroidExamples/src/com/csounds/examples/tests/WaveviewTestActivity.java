@@ -39,8 +39,8 @@ import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
-import csnd.Csound;
-import csnd.CsoundMYFLTArray;
+import csnd6.Csound;
+import csnd6.CsoundMYFLTArray;
 
 public class WaveviewTestActivity extends BaseCsoundActivity {
 
