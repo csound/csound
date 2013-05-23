@@ -6,8 +6,8 @@ CSOUND_SRC_ROOT := ../../..
 LIBSNDFILE_SRC_DIR := $(LOCAL_PATH)/../../../../android/libsndfile-android/jni/
 
 LOCAL_MODULE   := csoundandroid
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
-LOCAL_CFLAGS := -O3 -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H 
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
+LOCAL_CFLAGS := -O3 -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 ###
 
@@ -16,7 +16,6 @@ $(CSOUND_SRC_ROOT)/Engine/cfgvar.c \
 $(CSOUND_SRC_ROOT)/Engine/corfiles.c \
 $(CSOUND_SRC_ROOT)/Engine/entry1.c \
 $(CSOUND_SRC_ROOT)/Engine/envvar.c \
-$(CSOUND_SRC_ROOT)/Engine/express.c \
 $(CSOUND_SRC_ROOT)/Engine/extract.c \
 $(CSOUND_SRC_ROOT)/Engine/fgens.c \
 $(CSOUND_SRC_ROOT)/Engine/insert.c \
@@ -25,17 +24,17 @@ $(CSOUND_SRC_ROOT)/Engine/memalloc.c \
 $(CSOUND_SRC_ROOT)/Engine/memfiles.c \
 $(CSOUND_SRC_ROOT)/Engine/musmon.c \
 $(CSOUND_SRC_ROOT)/Engine/namedins.c \
-$(CSOUND_SRC_ROOT)/Engine/otran.c \
-$(CSOUND_SRC_ROOT)/Engine/rdorch.c \
 $(CSOUND_SRC_ROOT)/Engine/rdscor.c \
 $(CSOUND_SRC_ROOT)/Engine/scsort.c \
 $(CSOUND_SRC_ROOT)/Engine/scxtract.c \
 $(CSOUND_SRC_ROOT)/Engine/sort.c \
 $(CSOUND_SRC_ROOT)/Engine/sread.c \
-$(CSOUND_SRC_ROOT)/Engine/swrite.c \
 $(CSOUND_SRC_ROOT)/Engine/swritestr.c \
 $(CSOUND_SRC_ROOT)/Engine/twarp.c \
-$(CSOUND_SRC_ROOT)/InOut/circularbuffer.c \
+$(CSOUND_SRC_ROOT)/Engine/csound_type_system.c \
+$(CSOUND_SRC_ROOT)/Engine/csound_standard_types.c \
+$(CSOUND_SRC_ROOT)/Engine/csound_data_structures.c \
+$(CSOUND_SRC_ROOT)/Engine/pools.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd_u.c \
 $(CSOUND_SRC_ROOT)/InOut/midifile.c \
@@ -45,6 +44,7 @@ $(CSOUND_SRC_ROOT)/InOut/winascii.c \
 $(CSOUND_SRC_ROOT)/InOut/windin.c \
 $(CSOUND_SRC_ROOT)/InOut/window.c \
 $(CSOUND_SRC_ROOT)/InOut/winEPS.c \
+$(CSOUND_SRC_ROOT)/InOut/circularbuffer.c \
 $(CSOUND_SRC_ROOT)/OOps/aops.c \
 $(CSOUND_SRC_ROOT)/OOps/bus.c \
 $(CSOUND_SRC_ROOT)/OOps/cmath.c \
@@ -74,6 +74,7 @@ $(CSOUND_SRC_ROOT)/OOps/ugens3.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens4.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens5.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens6.c \
+$(CSOUND_SRC_ROOT)/OOps/ugtabs.c \
 $(CSOUND_SRC_ROOT)/OOps/ugrw1.c \
 $(CSOUND_SRC_ROOT)/OOps/ugrw2.c \
 $(CSOUND_SRC_ROOT)/OOps/vdelay.c \
@@ -92,16 +93,12 @@ $(CSOUND_SRC_ROOT)/Opcodes/hrtferX.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/loscilx.c \
 $(CSOUND_SRC_ROOT)/Opcodes/minmax.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pan2.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/tabvars.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/phisem.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfopcodes.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/stackops.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap1.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap_n.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/vbap_eight.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/vbap_four.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/vbap_sixteen.c \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap_zak.c   \
 $(CSOUND_SRC_ROOT)/Opcodes/vaops.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/ugakbari.c  \
@@ -129,12 +126,12 @@ $(CSOUND_SRC_ROOT)/Opcodes/gab/hvs.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gab/sliderTable.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gab/newgabopc.c \
 $(CSOUND_SRC_ROOT)/Opcodes/ftest.c \
-$(CSOUND_SRC_ROOT)/Top/argdecode.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfearly.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfreverb.c \
 $(CSOUND_SRC_ROOT)/Opcodes/cpumeter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gendy.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/sc_noise.c \
+$(CSOUND_SRC_ROOT)/Top/argdecode.c \
 $(CSOUND_SRC_ROOT)/Top/cscore_internal.c \
 $(CSOUND_SRC_ROOT)/Top/cscorfns.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
@@ -146,6 +143,7 @@ $(CSOUND_SRC_ROOT)/Top/one_file.c \
 $(CSOUND_SRC_ROOT)/Top/opcode.c \
 $(CSOUND_SRC_ROOT)/Top/threads.c \
 $(CSOUND_SRC_ROOT)/Top/utility.c \
+$(CSOUND_SRC_ROOT)/Top/threadsafe.c \
 $(CSOUND_SRC_ROOT)/Opcodes/ambicode.c       \
 $(CSOUND_SRC_ROOT)/Opcodes/bbcut.c          \
 $(CSOUND_SRC_ROOT)/Opcodes/biquad.c \
@@ -199,6 +197,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/pvsdemix.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvs_ops.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvsband.c \
 $(CSOUND_SRC_ROOT)/Opcodes/pvsbuffer.c \
+$(CSOUND_SRC_ROOT)/Opcodes/pvsgendy.c \
 $(CSOUND_SRC_ROOT)/Opcodes/dsputil.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvadd.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvinterp.c  \
@@ -213,6 +212,11 @@ $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_compile.c \
 $(CSOUND_SRC_ROOT)/Engine/new_orc_parser.c \
 $(CSOUND_SRC_ROOT)/Engine/symbtab.c \
+$(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
+$(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
+$(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
+$(CSOUND_SRC_ROOT)/Engine/cs_par_dispatch.c \
+$(CSOUND_SRC_ROOT)/Engine/new_orc_parser.c \
 $(CSOUND_SRC_ROOT)/Opcodes/mp3in.c \
 $(CSOUND_SRC_ROOT)/InOut/libmpadec/layer1.c \
 $(CSOUND_SRC_ROOT)/InOut/libmpadec/layer2.c \
