@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--odac -dm0 -+rtmidi=null -+rtaudio=null -+msg_color=0
+-odac -dm0 -+rtmidi=null -+msg_color=0
 </CsOptions>
 <CsInstruments>
 ;============================================================================;
