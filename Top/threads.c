@@ -151,7 +151,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 
 
-#if defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || defined(WIN32)
+#if defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || defined(ANDROID) || defined(WIN32)
 
 #include <errno.h>
 #include <pthread.h>
@@ -166,7 +166,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 #define BARRIER_SERIAL_THREAD (-1)
 
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-#if !defined(__MACH__) && !defined(__HAIKU__)
+#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID)
 
 typedef struct barrier {
     pthread_mutex_t mut;
