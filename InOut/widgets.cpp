@@ -652,7 +652,7 @@ void Fl_Value_Input_Spin::input_cb(Fl_Widget*, void* v)
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     double nv;
     if (t.step()>=1.0) nv = strtol(t.input.value(), 0, 0);
-    else nv = strtod_l(t.input.value(), 0, csound->get_c_locale(csound));
+    else nv = csound->strtod((char*)t.input.value(), 0);
     ST(hack_o_rama1) = 1;
     t.handle_push();
     t.handle_drag(nv);
@@ -899,7 +899,7 @@ void Fl_Value_Slider_Input::input_cb(Fl_Widget*, void* v) {
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     double nv;
     if (t.step()>=1.0) nv = strtol(t.input.value(), 0, 0);
-    else nv = strtod_l(t.input.value(), 0, csound->get_c_locale(csound));
+    else nv = csound->strtod((char*)t.input.value(), 0);
     ST(hack_o_rama2) = 1;
     t.handle_push();
     t.handle_drag(nv);
@@ -2231,11 +2231,11 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
 
       strcpy(command, p->commandString);
 
-      char *tok = strtok_r(command, " ", &th);
+      char *tok = csound->strtok_r(command, " ", &th);
 
       if(tok != NULL) {
         v[i++] = tok;
-        while((tok = strtok_r(NULL, " ", &th)) != NULL) {
+        while((tok = csound->strtok_r(NULL, " ", &th)) != NULL) {
           v[i++] = tok;
         }
         v[i] = NULL;
@@ -2256,11 +2256,11 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
       int i = 0;
 
       strcpy(command, p->commandString);
-      char *tok = strtok_r(command, " ", &th);
+      char *tok = cs_strtok_r(command, " ", &th);
 
       if(tok != NULL) {
         v[i++] = tok;
-        while((tok = strtok_r(NULL, " ", &th)) != NULL) {
+        while((tok = cs_strtok_r(NULL, " ", &th)) != NULL) {
           v[i++] = tok;
         }
         v[i] = NULL;

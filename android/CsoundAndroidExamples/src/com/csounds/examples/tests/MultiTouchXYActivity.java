@@ -38,7 +38,7 @@ import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
-import csnd.CsoundMYFLTArray;
+import csnd6.CsoundMYFLTArray;
 
 public class MultiTouchXYActivity extends BaseCsoundActivity implements
 		CsoundObjCompletionListener, CsoundValueCacheable {
