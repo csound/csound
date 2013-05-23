@@ -1221,7 +1221,7 @@ typedef struct NAME__ {
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
     char *(*strtok_r)(char*, char*, char**);
-    double (*strtod)(char*, char*);
+    double (*strtod)(char*, char**);
     /**@}*/
     /** @name Placeholders */
     /**@{ */
