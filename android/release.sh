@@ -2,7 +2,14 @@
 
 export RELEASE_DIR=csound-android-6.00.0rc2
 
+#remove backup files ending with ~
+find . -name "*~" -exec rm {} \;
+
+rm -rf CsoundAndroid/bin
 rm -rf CsoundAndroid/obj
+rm -rf CsoundAndroidExamples/bin
+rm -rf CSDPlayer/bin
+rm -rf pluginlibs/libfluidsynth/obj
 
 rm -rf $RELEASE_DIR
 mkdir $RELEASE_DIR
