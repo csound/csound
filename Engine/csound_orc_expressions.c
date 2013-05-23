@@ -66,6 +66,7 @@ TREE* tree_tail(TREE* node) {
 char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
 {
     char* s = (char *)csound->Malloc(csound, 16);
+  
     switch(*outype) {
     case 'a': sprintf(s, "#a%d", csound->acount++); break;
     case 'K':
@@ -474,7 +475,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
-    case T_FUNCTION: /* assumes only single arg input */
+    case T_FUNCTION:
         {
       char* outtype;
       op = cs_strdup(csound, root->value->lexeme);
