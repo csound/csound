@@ -46,6 +46,9 @@ extern char* get_arg_type(CSOUND* csound, TREE* tree);
 
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
 TREE * create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
+char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
+			   char* outArgTypes);
+
 
 static int genlabs = 300;
 
@@ -63,6 +66,7 @@ TREE* tree_tail(TREE* node) {
 char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
 {
     char* s = (char *)csound->Malloc(csound, 16);
+  
     switch(*outype) {
     case 'a': sprintf(s, "#a%d", csound->acount++); break;
     case 'K':
@@ -360,7 +364,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     strncpy(argString, leftArgType, 80);
     strncat(argString, rightArgType, 80 - strlen(leftArgType));
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
-
+    if(outType == NULL) return NULL;    
     return create_out_arg(csound, outType, typeTable);
 }
 
@@ -428,8 +432,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     }
     root->right = newArgList;
 
-
-
     arg1 = '\0';
     if (root->left != NULL) {
       arg1 = argtyp2( root->left->value->lexeme);
@@ -473,31 +475,38 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
-    case T_FUNCTION: /* assumes only single arg input */
+    case T_FUNCTION:
         {
       char* outtype;
       op = cs_strdup(csound, root->value->lexeme);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found OP: %s\n", op);
-      /* VL: some non-existing functions were appearing here
-         looking for opcodes that did not exist */
-      opentries = find_opcode2(csound, root->value->lexeme);
 
+      opentries = find_opcode2(csound, root->value->lexeme);
       if (opentries->count == 0) {
         csound->Warning(csound,
                     Str("error: function %s not found, "
                         "line %d \n"),
                     root->value->lexeme, line);
         outtype = "i";
-
       }
       else {
         char* inArgTypes = get_arg_string_from_tree(csound, root->right, typeTable);
-        outtype = resolve_opcode_get_outarg(csound, opentries, inArgTypes);
+	if(root->value->optype != NULL) 
+         outtype = check_annotated_type(csound, opentries, root->value->optype);
+        /* if there are type annotations */
+        else outtype = resolve_opcode_get_outarg(csound, opentries, inArgTypes);
+      } 
+      if(outtype == NULL) {
+        csound->Warning(csound,
+                    Str("error: opcode %s with output type %s not found, "
+                        "line %d"),
+			root->value->lexeme, root->value->optype, line);
+        outtype = "i";
       }
-
       outarg = create_out_arg(csound, outtype, typeTable);
-        }
+      
+     }
       break;
     case S_UMINUS:
       if (UNLIKELY(PARSER_DEBUG))
@@ -555,8 +564,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                 typeTable);
         break;
 
-     }
+    }
      opTree = create_opcode_token(csound, op);
+     if(root->value) opTree->value->optype = root->value->optype;
      if (root->left != NULL) {
        opTree->right = root->left;
        opTree->right->next = root->right;

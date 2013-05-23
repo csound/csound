@@ -45,6 +45,9 @@ extern "C" {
 
 #ifdef __MACH__
 #include <xlocale.h>
+#endif
+
+#if (defined(__MACH__) || defined(ANDROID))
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -173,8 +176,6 @@ typedef struct {
 
 #define ASYNC_GLOBAL 1
 #define ASYNC_LOCAL  2
-
-
 
   typedef struct CORFIL {
     char    *body;
@@ -1226,7 +1227,8 @@ typedef struct NAME__ {
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
-    locale_t (*get_c_locale)(CSOUND *);
+    char *(*strtok_r)(char*, char*, char**);
+    double (*strtod)(char*, char*);
     /**@}*/
     /** @name Placeholders */
     /**@{ */
@@ -1289,7 +1291,6 @@ typedef struct NAME__ {
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
     void          (*audtran)(CSOUND *, const MYFLT *, int);
-    locale_t      c_locale;
     void          *hostdata;
     char          *orchname, *scorename;
     CORFIL        *orchstr, *scorestr;

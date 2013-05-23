@@ -386,8 +386,9 @@ statement : ident '=' expr NEWLINE
                 {
                   $2->left = $1;
                   $2->right = $3;
-
+                  $2->value->optype = NULL;
                   $$ = $2;
+                  
                   csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, $2->left),
                                     csp_orc_sa_globals_find(csound, $2->right));
@@ -399,7 +400,7 @@ statement : ident '=' expr NEWLINE
                 {
                   ((TREE *)$1)->left = NULL;
                   ((TREE *)$1)->right = (TREE *)$2;
-                 
+                  $1->value->optype = NULL;
                   $$ = $1;
                   csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
@@ -411,7 +412,7 @@ statement : ident '=' expr NEWLINE
                 {
                   ((TREE *)$1)->left = NULL;
                   ((TREE *)$1)->right = (TREE *)$3;
-                 
+                  $1->value->optype = NULL;
                   $$ = $1;
                   csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
@@ -419,8 +420,7 @@ statement : ident '=' expr NEWLINE
                   csp_orc_sa_interlocks(csound, $1->value);
                   query_deprecated_opcode(csound, $1->value);
                 }
-
-          | LABEL_TOKEN 
+          | LABEL_TOKEN
                 {
 		  //printf("label %s\n", ((ORCTOKEN *)$1)->lexeme);
                     $$ = make_leaf(csound,LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);
@@ -702,15 +702,34 @@ ifac      : ident               { $$ = $1; }
                 
                 $$ = $1;
             }
+          | opcode ':' ident '(' exprlist ')'
+            {
+                $1->left = NULL;
+                $1->right = $5;
+		$1->type = T_FUNCTION;
+                $1->value->optype = $3->value->lexeme;
+		
+                $$ = $1;
+            }
+          | opcode ':' opcode '(' exprlist ')'   /* this is need because a & k are also opcodes */
+            {
+                $1->left = NULL;
+                $1->right = $5;
+		$1->type = T_FUNCTION;
+                $1->value->optype = $3->value->lexeme;
+		
+                $$ = $1;
+            }
           | opcode '(' exprlist ')'
             {
                 $1->left = NULL;
                 $1->right = $3;
 		$1->type = T_FUNCTION;
-                
-
+                $1->value->optype = NULL;
+       
                 $$ = $1;
             }
+          
           | ident '(' error
           | opcode '(' error
           ;
@@ -773,7 +792,7 @@ opcode0   : T_OPCODE0
             }
           ;
 
-opcode    : T_OPCODE    { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
+opcode    : T_OPCODE    { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1);  }
           | T_FUNCTION  { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
           ;
 

@@ -77,7 +77,7 @@ int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 void rtclose_dummy(CSOUND *);
 int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
-static int  midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int);
+int  midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
@@ -100,6 +100,7 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];
+
 static void free_opcode_table(CSOUND* csound) {
     int i;
     CS_HASH_TABLE_ITEM* bucket;
@@ -185,11 +186,6 @@ static int csoundGetReinitFlag(CSOUND *csound){
 static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
-
-static int get_c_locale(CSOUND *csound){
-  return csound->c_locale;
-}
-
 
 static const CSOUND cenviron_ = {
     /* attributes  */
@@ -427,7 +423,8 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
-    get_c_locale,
+    cs_strtok_r,
+    cs_strtod,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -465,7 +462,6 @@ static const CSOUND cenviron_ = {
     (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
     (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
     (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
-    {NULL},         /* c_locale */
     NULL,           /*  hostdata            */
     NULL, NULL,     /*  orchname, scorename */
     NULL, NULL,     /*  orchstr, *scorestr  */
@@ -1135,13 +1131,13 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
 }
 
   /* dummy real time MIDI functions */
-static int DummyMidiInOpen(CSOUND *csound, void **userData,
+int DummyMidiInOpen(CSOUND *csound, void **userData,
                            const char *devName);
-static int DummyMidiRead(CSOUND *csound, void *userData,
+int DummyMidiRead(CSOUND *csound, void *userData,
                          unsigned char *buf, int nbytes);
-static int DummyMidiOutOpen(CSOUND *csound, void **userData,
+int DummyMidiOutOpen(CSOUND *csound, void **userData,
                             const char *devName);
-static int DummyMidiWrite(CSOUND *csound, void *userData,
+int DummyMidiWrite(CSOUND *csound, void *userData,
                           const unsigned char *buf, int nbytes);
 /* random.c */
 extern void csound_init_rand(CSOUND *);
@@ -2248,7 +2244,7 @@ int  audio_dev_list_dummy(CSOUND *csound,
   return 0;
 }
 
-static int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
   IGN(csound); IGN(list); IGN(isOutput);
   return 0;
 }
@@ -2312,8 +2308,7 @@ PUBLIC int csoundMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput)
 
 
 /* dummy real time MIDI functions */
-
-static int DummyMidiInOpen(CSOUND *csound, void **userData,
+int DummyMidiInOpen(CSOUND *csound, void **userData,
                            const char *devName)
 {
     char *s;
@@ -2337,7 +2332,7 @@ static int DummyMidiInOpen(CSOUND *csound, void **userData,
     return -1;
 }
 
-static int DummyMidiRead(CSOUND *csound, void *userData,
+int DummyMidiRead(CSOUND *csound, void *userData,
                          unsigned char *buf, int nbytes)
 {
     (void) csound;
@@ -2347,7 +2342,7 @@ static int DummyMidiRead(CSOUND *csound, void *userData,
     return 0;
 }
 
-static int DummyMidiOutOpen(CSOUND *csound, void **userData,
+int DummyMidiOutOpen(CSOUND *csound, void **userData,
                             const char *devName)
 {
     char *s;
@@ -2371,7 +2366,7 @@ static int DummyMidiOutOpen(CSOUND *csound, void **userData,
     return -1;
 }
 
-static int DummyMidiWrite(CSOUND *csound, void *userData,
+int DummyMidiWrite(CSOUND *csound, void *userData,
                           const unsigned char *buf, int nbytes)
 {
     (void) csound;
@@ -2720,10 +2715,24 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
              csound->LongJmp(csound, 1);
 }
 
+
 PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
   char *s;
+
   if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
          strncpy(s, module, 20);
+    if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+     strcmp(s, "NULL") == 0) {
+     csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
+     csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
+     csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
+     csound->SetExternalMidiInCloseCallback(csound, NULL);
+     csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
+     csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
+     csound->SetExternalMidiOutCloseCallback(csound, NULL);
+     
+      return;
+  }
    if (csoundInitModules(csound) != 0)
              csound->LongJmp(csound, 1);
 }
@@ -2737,6 +2746,9 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
    *type = modules[no]->type;
    return CSOUND_SUCCESS;
 }
+
+
+
 
 PUBLIC void csoundReset(CSOUND *csound)
 {
@@ -2791,6 +2803,14 @@ PUBLIC void csoundReset(CSOUND *csound)
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
+    csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
+    csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
+    csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
+    csound->SetExternalMidiInCloseCallback(csound, NULL);
+    csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
+    csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
+    csound->SetExternalMidiOutCloseCallback(csound, NULL);
+
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     strcpy(s, "portmidi");
     csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,

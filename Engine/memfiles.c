@@ -77,12 +77,12 @@ static MYFLT read_ieee(FILE* f, int *end)
     char buff[120];
     double x;
     char *p = fgets(buff, 120, f);
-    locale_t c_locale = newlocale(0, "C", NULL);
+
     if (p==NULL || feof(f)) {
       *end = 1;
       return FL(0.0);
     }
-    x = strtod_l(buff, NULL, c_locale);
+    x = cs_strtod(buff, NULL);
     return (MYFLT)x;
     /* union { */
     /*   double d; */
@@ -187,9 +187,9 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     fscanf(f, "%d %d %d %d\n",
            &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals);
     fgets(buff, 120, f);
-    lph.framrate = (MYFLT)strtod_l(buff, &p, csound->c_locale);
-    lph.srate = (MYFLT)strtod_l(p, &p, csound->c_locale);
-    lph.duration = (MYFLT)strtod_l(p, &p, csound->c_locale);
+    lph.framrate = (MYFLT)cs_strtod(buff, &p);
+    lph.srate = (MYFLT)cs_strtod(p, &p);
+    lph.duration = (MYFLT)cs_strtod(p, &p);
     /* lph.text[0] = (char)strtol(p, &p, 0); */
     /* lph.text[1] = (char)strtol(p, &p, 0); */
     /* lph.text[2] = (char)strtol(p, &p, 0); */
