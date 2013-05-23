@@ -19,9 +19,7 @@ static void androidMessageCallback(CSOUND*, int attr, const char *format, va_lis
 }
 
 
-AndroidCsound::AndroidCsound() {
-
-    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","AndroidCsound Constructor()"); 
+void AndroidCsound::setOpenSlCallbacks() {
 
     __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","set callbacks"); 
     csoundSetPlayopenCallback(csound, androidplayopen_);
