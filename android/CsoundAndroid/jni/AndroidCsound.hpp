@@ -6,6 +6,6 @@
 
 class PUBLIC AndroidCsound : public Csound {
 public:
-virtual int PreCompile();
-int SetGlobalEnv(const char* name, const char* variable);
+    AndroidCsound();
+    int SetGlobalEnv(const char* name, const char* variable);
 };
