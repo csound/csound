@@ -49,6 +49,7 @@ extern int pnum(char*);
 OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
                                OENTRIES* entries, char* inArgTypes);
+PUBLIC int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 
 char* cs_strdup(CSOUND* csound, char* str) {
@@ -403,6 +404,20 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
     return retVal;
 }
 
+/* this checks if the annotated type exists */
+char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
+                              char* outArgTypes) {
+    int i;
+     for (i = 0; i < entries->count; i++) {
+        OENTRY* temp = entries->entries[i];
+	if(check_out_args(csound, outArgTypes, temp->outypes)) 
+            return outArgTypes;
+ 
+    }
+    return NULL;
+}
+
+
 /* This function gets arg type with checking type table */
 PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
@@ -456,8 +471,12 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                                         tree->right, typeTable);
           char* opname = tree->value->lexeme;
           OENTRIES* entries = find_opcode2(csound, opname);
+          char * out;
+ 
+          if(tree->value->optype != NULL) /* if there is type annotation */
+          out = check_annotated_type(csound, entries, tree->value->optype);
+          else  out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
 
-          char* out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
 
           if (UNLIKELY(out == 0)) {
               synterr(csound, Str("error: opcode '%s' for expression with arg "
@@ -465,7 +484,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                       opname, argTypeRight, tree->line);
               return NULL;
           }
-
+          
           return cs_strdup(csound, out);
 
       }
@@ -995,6 +1014,7 @@ PUBLIC OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 
 //    OENTRY* retVal = NULL;
     int i;
+      
 
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -1012,7 +1032,6 @@ PUBLIC OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 //            retVal = temp;
             return temp;
         }
-
     }
     return NULL;
 //    return retVal;
@@ -1369,6 +1388,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     char* rightArgString;
     char* opcodeName;
 
+   
     if (!check_args_exist(csound, root->right, typeTable)) {
       return 0;
     }
@@ -1394,8 +1414,14 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       return 0;
     }
 
-    OENTRY* oentry = resolve_opcode(csound, entries,
+    OENTRY* oentry;
+    if(root->value->optype == NULL)
+    oentry = resolve_opcode(csound, entries,
                                     leftArgString, rightArgString);
+    /* if there is type annotation, try to resolve it */
+    else oentry = resolve_opcode(csound, entries,
+                                    root->value->optype, rightArgString);
+
 
     if (UNLIKELY(oentry == NULL)) {
       synterr(csound, Str("Unable to find opcode entry for \'%s\' "
