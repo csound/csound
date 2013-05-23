@@ -125,7 +125,8 @@ def runTest():
 	["test_fsig_udo.csd", "UDO with f-sig arg"],
 	["test_karrays_udo.csd", "UDO with k[] arg"],
 	["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
-	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen"],
+	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)"],
+	["test_polymorphic_udo.csd", "test polymorphic udo"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
