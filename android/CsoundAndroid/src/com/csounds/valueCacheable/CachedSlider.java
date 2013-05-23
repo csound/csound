@@ -30,7 +30,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.csounds.CsoundObj;
 
-import csnd.CsoundMYFLTArray;
+import csnd6.CsoundMYFLTArray;
 
 public class CachedSlider extends AbstractValueCacheable{
 	private SeekBar seekBar;
