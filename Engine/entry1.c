@@ -113,56 +113,52 @@ OENTRY opcodlst_1[] = {
   { "##xout64", S(XOUT_HIGH),0, 1,  "",                 "*", xoutset, NULL },
   { "##xout256", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL },
   { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
-
-  { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL},
-  { "massign",S(MASSIGN), 0,1,      "",     "iip",massign_p, NULL, NULL, NULL},
-  { "massign.iS",S(MASSIGNS), 0,1,      "",     "iSp",massign_S, NULL, NULL, NULL},
-  { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL },
-  { "turnon.S", S(TURNON),  0,1,      "",     "So", turnon_S, NULL, NULL, NULL},
-  { "remoteport", S(REMOTEPORT), 0,1, "",   "i",  remoteport, NULL, NULL, NULL},
-  { "insremot",S(INSREMOT),0,1,     "",     "SSm",insremot, NULL, NULL, NULL},
-  { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL},
-  { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL},
-  { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
-  //{ "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL},
-
-  /* { "init",   0xffff      /\* base names for later prefixes,suffixes *\/    }, */
-  /* { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL }, */
-  /* { "bexprnd", 0xffff                                                     }, */
-  /* { "cauchy",  0xffff                                                     }, */
-  /* { "cauchyi", 0xffff                                                     }, */
-  /* { "chanctrl",0xffff                                                     }, */
-  /* { "cpsmidib",0xffff                                                     }, */
-  /* { "exprand", 0xffff                                                     }, */
-  /* { "exprandi",0xffff                                                     }, */
-  /* { "gauss" ,  0xffff                                                     }, */
-  /* { "gaussi" , 0xffff                                                     }, */
-  /* { "limit",   0xffff                                                     }, */
-  /* { "linrand", 0xffff                                                     }, */
-  /* { "midictrl",0xffff                                                     }, */
-  /* { "polyaft", 0xffff                                                     }, */
-  /* { "ntrpol",  0xffff                                                     }, */
-  /* { "octmidib",0xffff                                                     }, */
-  /* { "pcauchy", 0xffff                                                     }, */
-  /* { "pchbend", 0xffff                                                     }, */
-  /* { "pchmidib",0xffff                                                     }, */
-  /* { "poisson", 0xffff                                                     }, */
-  /* { "pow",     0xffff,                                                    }, */
-  /* { "tableng", 0xffff,  TR                                                }, */
-  /* { "taninv2", 0xffff                                                     }, */
-  /* { "timek",   0xffff,                                                    }, */
-  /* { "times",   0xffff,                                                    }, */
-  /* { "trirand", 0xffff                                                     }, */
-  /* { "unirand", 0xffff,                                                    }, */
-  /* { "weibull", 0xffff                                                     }, */
-  /* { "oscil",   0xfffe, TR                                                 }, */
-  /* { "oscil3",  0xfffe, TR                                                 }, */
-  /* { "oscili",  0xfffe, TR                                                 }, */
-  /* { "peak",    0xfffd                                                     }, */
-  /* { "rtclock", 0xffff                                                     }, */
-  /* { "ptablew",  0xfffe, TW                                                }, */
-  /* { "tablew",  0xfffe, TW                                                 }, */
-  /* { "tablewkt",0xfffe, TW                                                 }, */
+  { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL },
+  { "massign",S(MASSIGN), 0,1,      "",     "iTp",massign, NULL, NULL, NULL },
+  { "turnon", S(TURNON),  0,1,      "",     "To", turnon, NULL, NULL, NULL },
+  { "remoteport", S(REMOTEPORT), 0,1, "",   "i",  remoteport, NULL, NULL, NULL },
+  { "insremot",S(INSREMOT),0,1,     "",     "SSm",insremot, NULL, NULL, NULL },
+  { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL },
+  { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL },
+  { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL },
+  //{ "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "init",   0xffff      /* base names for later prefixes,suffixes */    },
+  { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "bexprnd", 0xffff                                                     },
+  { "cauchy",  0xffff                                                     },
+  { "cauchyi", 0xffff                                                     },
+  { "chanctrl",0xffff                                                     },
+  { "cpsmidib",0xffff                                                     },
+  { "exprand", 0xffff                                                     },
+  { "exprandi",0xffff                                                     },
+  { "gauss" ,  0xffff                                                     },
+  { "gaussi" , 0xffff                                                     },
+  { "limit",   0xffff                                                     },
+  { "linrand", 0xffff                                                     },
+  { "midictrl",0xffff                                                     },
+  { "polyaft", 0xffff                                                     },
+  { "ntrpol",  0xffff                                                     },
+  { "octmidib",0xffff                                                     },
+  { "pcauchy", 0xffff                                                     },
+  { "pchbend", 0xffff                                                     },
+  { "pchmidib",0xffff                                                     },
+  { "poisson", 0xffff                                                     },
+  { "pow",     0xffff,                                                    },
+  { "tableng", 0xffff,  TR                                                },
+  { "taninv2", 0xffff                                                     },
+  { "timek",   0xffff,                                                    },
+  { "times",   0xffff,                                                    },
+  { "trirand", 0xffff                                                     },
+  { "unirand", 0xffff,                                                    },
+  { "weibull", 0xffff                                                     },
+  { "oscil",   0xfffe, TR                                                 },
+  { "oscil3",  0xfffe, TR                                                 },
+  { "oscili",  0xfffe, TR                                                 },
+  { "peak",    0xfffd                                                     },
+  { "rtclock", 0xffff                                                     },
+  { "ptablew",  0xfffe, TW                                                },
+  { "tablew",  0xfffe, TW                                                 },
+  { "tablewkt",0xfffe, TW                                                 },
   { "ihold",  S(LINK),0,    1,      "",     "",     ihold                   },
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff         },
   {  "=.S",   S(STRCPY_OP),0,   1,  "S",    "S",

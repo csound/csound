@@ -375,9 +375,5 @@ static inline double csoundUndenormalizeDouble(double x)
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
-#ifdef WIN32
-#define strtok_r(a,b,c) strtok(a,b)
-#endif
-
 #endif  /* CSOUND_SYSDEP_H */
 

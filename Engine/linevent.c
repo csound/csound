@@ -22,7 +22,6 @@
 */
 
 #include "csoundCore.h"     /*                              LINEVENT.C      */
-#include "text.h"
 #include <ctype.h>
 
 #include "linevent.h"
@@ -294,7 +293,7 @@ static void sensLine(CSOUND *csound, void *userData)
             }
             continue;
           }
-          e.p[pcnt] = (MYFLT) strtod_l(cp, &newcp, csound->c_locale);
+          e.p[pcnt] = (MYFLT) cs_strtod(cp, &newcp);
           cp = newcp - 1;
         } while (pcnt < PMAX);
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
