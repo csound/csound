@@ -39,6 +39,6 @@ __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","callbacks set");
     return retVal; 
 };
 
-void AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
-    csoundSetGlobalEnv(name, variable);
+int AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
+    return csoundSetGlobalEnv(name, variable);
 }
