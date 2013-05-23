@@ -449,7 +449,6 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
         CSOUND *cs;
         
         cs = csoundCreate(NULL);
-        csoundPreCompile(cs);
         
         char* parserFlag;
         
@@ -515,7 +514,6 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 	CSOUND *cs;
     
 	cs = csoundCreate(NULL);
-    csoundPreCompile(cs);
     csoundSetHostImplementedAudioIO(cs, 1, 0);
 	
 	csoundSetMessageCallback(cs, messageCallback);
