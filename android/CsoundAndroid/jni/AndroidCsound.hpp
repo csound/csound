@@ -6,6 +6,6 @@
 
 class PUBLIC AndroidCsound : public Csound {
 public:
-    AndroidCsound();
+    void setOpenSlCallbacks();
     int SetGlobalEnv(const char* name, const char* variable);
 };
