@@ -175,16 +175,16 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     if (overlap<CS_KSMPS || overlap<=10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
     if (UNLIKELY(N <= 32))
-      csound->Die(csound, Str("pvsanal: fftsize of 32 is too small!\n"));
+      return csound->InitError(csound, Str("pvsanal: fftsize of 32 is too small!\n"));
     /* check N for powof2? CARL fft routines and FFTW are not limited to that */
     N = N  + N%2;       /* Make N even */
     if (UNLIKELY(M < N))
-      csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
+      return csound->InitError(csound, Str("pvsanal: window size too small for fftsize\n"));
     if (UNLIKELY(overlap > N / 2))
-      csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
+      return csound->InitError(csound, Str("pvsanal: overlap too big for fft size\n"));
 #ifdef OLPC
     if (UNLIKELY(overlap < CS_KSMPS))
-      csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
+      return csound->InitError(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 #endif
     halfwinsize = M/2;
     buflen = M*4;
@@ -456,7 +456,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     uint32_t i, nsmps = CS_KSMPS;
     int wintype = p->fsig->wintype;
     if (UNLIKELY(data==NULL)) {
-      csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
+      return csound->PerfError(csound,p->h.insdshead, Str("pvsanal: Not Initialised.\n"));
     }
     ain = p->ain;               /* The input samples */
     loc = p->inptr;             /* Circular buffer */
@@ -668,7 +668,7 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
     ain = p->ain;
 
     if (UNLIKELY(p->input.auxp==NULL)) {
-      csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
+      return csound->PerfError(csound,p->h.insdshead, Str("pvsanal: Not Initialised.\n"));
     }
     {
       int overlap = (int)*p->overlap;
@@ -1033,7 +1033,7 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->output.auxp==NULL)) {
-      csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
+      return csound->PerfError(csound,p->h.insdshead, Str("pvsynth: Not Initialised.\n"));
     }
     if (p->fsig->sliding) return pvssynth(csound, p);
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));

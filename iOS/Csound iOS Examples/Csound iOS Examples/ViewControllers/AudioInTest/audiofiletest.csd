@@ -9,7 +9,7 @@ nchnls    = 2
 0dbfs	  = 1
 
 	instr 1
-S_file = p4
+S_file strget p4
 ilen filelen S_file
 S_score sprintfk {{ i 2 0 %f "%s" }}, ilen, S_file
 scoreline S_score, 1
