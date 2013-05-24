@@ -2738,7 +2738,7 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
      csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
      csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
      csound->SetExternalMidiOutCloseCallback(csound, NULL);
-     
+
       return;
   }
    if (csoundInitModules(csound) != 0)
