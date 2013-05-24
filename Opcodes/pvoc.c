@@ -53,8 +53,10 @@ PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)
     csound->Message(csound, "calling alloc globals");
 #endif
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "pvocGlobals",
-                                              sizeof(PVOC_GLOBALS)) != 0))
-      csound->Die(csound, Str("Error allocating PVOC globals"));
+                                              sizeof(PVOC_GLOBALS)) != 0)){
+      csound->ErrorMsg(csound, Str("Error allocating PVOC globals"));
+      return NULL;
+    }
     p = (PVOC_GLOBALS*) csound->QueryGlobalVariable(csound, "pvocGlobals");
     p->csound = csound;
     p->dsputil_sncTab = (MYFLT*) NULL;
