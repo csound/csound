@@ -168,6 +168,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       case 'e':
         e->opcod = c;
         e->pcnt = 0;
+
         return(1);
       case EOF:                          /* necessary for cscoreGetEvent */
         return(0);

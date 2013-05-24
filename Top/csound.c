@@ -197,7 +197,6 @@ static const CSOUND cenviron_ = {
     csoundGet0dBFS,
     csoundGetKcounter,
     csoundGetCurrentTimeSamples,
-    csoundGetStrVarMaxLen,
     csoundGetInputBufferSize,
     csoundGetOutputBufferSize,
     csoundGetInputBuffer,
@@ -250,6 +249,7 @@ static const CSOUND cenviron_ = {
     mmalloc,
     mcalloc,
     mrealloc,
+    cs_strdup,
     mfree,
     /* function tables */
     hfgens,
@@ -550,7 +550,7 @@ static const CSOUND cenviron_ = {
     0,              /*  randSeed2           */
     NULL,           /*  csRandState         */
     NULL,           /*  csRtClock           */
-    16384,            /*  strVarMaxLen        */
+    // 16384,            /*  strVarMaxLen        */
        0,              /*  strsmax             */
     (char**) NULL,  /*  strsets             */
     NULL,           /*  spin                */
@@ -1194,7 +1194,10 @@ PUBLIC void csoundDestroy(CSOUND *csound)
         pp = nxt;
       } while (pp != (CsoundCallbackEntry_t*) NULL);
     }
-    if(csound->API_lock != NULL) csoundDestroyMutex(csound->API_lock);
+    if(csound->API_lock != NULL) {
+      //csoundLockMutex(csound->API_lock);
+      csoundDestroyMutex(csound->API_lock);
+    }
     free((void*) csound);
 }
 
@@ -1616,34 +1619,6 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     return 0;
 }
 
-
-PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
-{
-    int done = 0;
-    int returnValue;
-
-    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
-      return CSOUND_ERROR;
-    }
-    /* setup jmp for return after an exit() */
-    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
-      csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
-#endif
-      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
-    csoundLockMutex(csound->API_lock);
-    do {
-      done |= sensevents(csound);
-    } while (kperf(csound));
-    csoundUnlockMutex(csound->API_lock);
-    return done;
-}
-
 /* external host's outbuffer passed in csoundPerformBuffer() */
 PUBLIC int csoundPerformBuffer(CSOUND *csound)
 {
@@ -1771,11 +1746,6 @@ PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
 PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)
 {
     return csound->e0dbfs;
-}
-
-PUBLIC int csoundGetStrVarMaxLen(CSOUND *csound)
-{
-    return csound->strVarMaxLen;
 }
 
 PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
@@ -2735,7 +2705,7 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
      csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
      csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
      csound->SetExternalMidiOutCloseCallback(csound, NULL);
-     
+
       return;
   }
    if (csoundInitModules(csound) != 0)
@@ -2872,16 +2842,8 @@ PUBLIC void csoundReset(CSOUND *csound)
                                           "(no spaces)"),
                                       NULL);
     {
-      int   minVal = 10;
-      int   maxVal = 10000;
+
       MYFLT minValF = FL(0.0);
-      /* max. length of string variables */
-      csoundCreateConfigurationVariable(csound, "max_str_len",
-                                        &(csound->strVarMaxLen),
-                                        CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
-                                        Str("Maximum length of string "
-                                            "variables + 1"),
-                                        NULL);
       csoundCreateConfigurationVariable(csound, "msg_color",
                                         &(csound->enableMsgAttr),
                                         CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
@@ -3847,6 +3809,35 @@ static long csoundGetKcounter(CSOUND *csound){
 
 static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
+
+#if 0
+PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
+{
+    int done = 0;
+    int returnValue;
+
+    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
+    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
+      csound->Warning(csound,
+                      Str("Csound not ready for performance: csoundStart() "
+                          "has not been called \n"));
+      return CSOUND_ERROR;
+    }
+    /* setup jmp for return after an exit() */
+    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
+#ifndef MACOSX
+      csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
+#endif
+      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+    csoundLockMutex(csound->API_lock);
+    do {
+      done |= sensevents(csound);
+    } while (kperf(csound));
+    csoundUnlockMutex(csound->API_lock);
+    return done;
+}
+#endif
 
 
 //#ifdef __cplusplus

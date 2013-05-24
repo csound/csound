@@ -77,14 +77,14 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
         /* first check if orchestra's sampling rate is compatible with HRTF
            measurement's */
     if (UNLIKELY(CS_ESR != SAMP_RATE)) {
-      csound->Die(csound,
+      return csound->InitError(csound,
                   Str("Orchestra sampling rate is not compatible with HRTF.\n"
                       "Should be %d...exiting."), SAMP_RATE);
       return NOTOK; /* not reached */
     }
 
-    if (LIKELY(p->XSTRCODE))
-      strcpy(filename, (char*) p->ifilno);
+    if(!strcmp("HRTFcompact", p->ifilno->data))
+      strcpy(filename, p->ifilno->data);
     else {
       csound->Message(csound, Str("\nLast argument must be the string "
                                   "'HRTFcompact' ...correcting.\n"));
