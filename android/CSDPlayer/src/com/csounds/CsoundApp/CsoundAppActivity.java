@@ -2,12 +2,11 @@ package com.csounds.CsoundApp;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import com.csounds.CsoundApp.R;
 
-import java.io.FilenameFilter;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -18,16 +17,16 @@ import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListAdapter;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
-import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
