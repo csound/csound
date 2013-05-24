@@ -96,22 +96,26 @@ typedef struct {                        /* structs for INSTR 0 opcodes */
 
 typedef struct {                        /* structs for INSTR 0 opcodes */
     OPDS    h;
-    MYFLT   *str1, *str2, *insno[64];
+   STRINGDAT  *str1, *str2;
+   MYFLT *insno[64];
 } INSREMOT;
 
 typedef struct {                                /* structs for INSTR 0 opcodes */
     OPDS    h;
-    MYFLT   *str1, *insno[64];
+    STRINGDAT *str1;
+    MYFLT  *insno[64];
 } INSGLOBAL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *str1, *str2, *chnum[16];
+  STRINGDAT   *str1, *str2;
+  MYFLT  *chnum[16];
 } MIDREMOT;
 
 typedef struct {                                /* structs for INSTR 0 opcodes */
     OPDS    h;
-    MYFLT   *str1, *chnum[16];
+  STRINGDAT   *str1;
+  MYFLT  *chnum[16];
 } MIDGLOBAL;
 
 int CLsend(CSOUND *csound, int conn, void *data, int length);

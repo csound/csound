@@ -9,7 +9,7 @@ static int pycall0_krate(CSOUND *csound, PYCALL0 *p)
                  *py_initialize_done == 0))
       return NOTOK;
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -44,7 +44,7 @@ static int pylcall0_krate(CSOUND *csound, PYCALL0 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -68,7 +68,7 @@ static int pylcall0i_irate(CSOUND *csound, PYCALL0 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -98,7 +98,7 @@ static int pycall0t_krate(CSOUND *csound, PYCALL0T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -137,7 +137,7 @@ static int pylcall0t_krate(CSOUND *csound, PYCALL0T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -161,7 +161,7 @@ static int pycall1_krate(CSOUND *csound, PYCALL1 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -196,7 +196,7 @@ static int pylcall1_krate(CSOUND *csound, PYCALL1 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -225,7 +225,7 @@ static int pylcall1i_irate(CSOUND *csound, PYCALL1 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -261,7 +261,7 @@ static int pycall1t_krate(CSOUND *csound, PYCALL1T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -307,7 +307,7 @@ static int pylcall1t_krate(CSOUND *csound, PYCALL1T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -337,7 +337,7 @@ static int pycall2_krate(CSOUND *csound, PYCALL2 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -377,7 +377,7 @@ static int pylcall2_krate(CSOUND *csound, PYCALL2 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -406,7 +406,7 @@ static int pylcall2i_irate(CSOUND *csound, PYCALL2 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -443,7 +443,7 @@ static int pycall2t_krate(CSOUND *csound, PYCALL2T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -491,7 +491,7 @@ static int pylcall2t_krate(CSOUND *csound, PYCALL2T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -522,7 +522,7 @@ static int pycall3_krate(CSOUND *csound, PYCALL3 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -563,7 +563,7 @@ static int pylcall3_krate(CSOUND *csound, PYCALL3 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -593,7 +593,7 @@ static int pylcall3i_irate(CSOUND *csound, PYCALL3 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -632,7 +632,7 @@ static int pycall3t_krate(CSOUND *csound, PYCALL3T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -683,7 +683,7 @@ static int pylcall3t_krate(CSOUND *csound, PYCALL3T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -716,7 +716,7 @@ static int pycall4_krate(CSOUND *csound, PYCALL4 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -758,7 +758,7 @@ static int pylcall4_krate(CSOUND *csound, PYCALL4 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -789,7 +789,7 @@ static int pylcall4i_irate(CSOUND *csound, PYCALL4 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -830,7 +830,7 @@ static int pycall4t_krate(CSOUND *csound, PYCALL4T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -884,7 +884,7 @@ static int pylcall4t_krate(CSOUND *csound, PYCALL4T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -919,7 +919,7 @@ static int pycall5_krate(CSOUND *csound, PYCALL5 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -962,7 +962,7 @@ static int pylcall5_krate(CSOUND *csound, PYCALL5 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -994,7 +994,7 @@ static int pylcall5i_irate(CSOUND *csound, PYCALL5 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -1037,7 +1037,7 @@ static int pycall5t_krate(CSOUND *csound, PYCALL5T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -1094,7 +1094,7 @@ static int pylcall5t_krate(CSOUND *csound, PYCALL5T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -1131,7 +1131,7 @@ static int pycall6_krate(CSOUND *csound, PYCALL6 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -1175,7 +1175,7 @@ static int pylcall6_krate(CSOUND *csound, PYCALL6 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -1208,7 +1208,7 @@ static int pylcall6i_irate(CSOUND *csound, PYCALL6 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -1253,7 +1253,7 @@ static int pycall6t_krate(CSOUND *csound, PYCALL6T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -1313,7 +1313,7 @@ static int pylcall6t_krate(CSOUND *csound, PYCALL6T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -1352,7 +1352,7 @@ static int pycall7_krate(CSOUND *csound, PYCALL7 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -1397,7 +1397,7 @@ static int pylcall7_krate(CSOUND *csound, PYCALL7 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -1431,7 +1431,7 @@ static int pylcall7i_irate(CSOUND *csound, PYCALL7 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -1478,7 +1478,7 @@ static int pycall7t_krate(CSOUND *csound, PYCALL7T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -1541,7 +1541,7 @@ static int pylcall7t_krate(CSOUND *csound, PYCALL7T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -1582,7 +1582,7 @@ static int pycall8_krate(CSOUND *csound, PYCALL8 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, 0);
@@ -1628,7 +1628,7 @@ static int pylcall8_krate(CSOUND *csound, PYCALL8 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
@@ -1663,7 +1663,7 @@ static int pylcall8i_irate(CSOUND *csound, PYCALL8 *p)
                   csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
                  *py_initialize_done == 0))
       return NOTOK;
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 1);
 
     create_private_namespace_if_needed(&p->h);
@@ -1712,7 +1712,7 @@ static int pycall8t_krate(CSOUND *csound, PYCALL8T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, 0);
@@ -1778,7 +1778,7 @@ static int pylcall8t_krate(CSOUND *csound, PYCALL8T *p)
       return OK;
     }
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command, (char*) p->function->data,
                           p->INOCOUNT, p->args, 2);
 
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));

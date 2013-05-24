@@ -30,7 +30,9 @@ extern "C" {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kout, *ihandle, *name, *imin, *imax, *iexp;
+  MYFLT   *kout, *ihandle; 
+  STRINGDAT *name;
+  MYFLT *imin, *imax, *iexp;
     MYFLT   *itype, *idisp, *iwidth, *iheight, *ix, *iy;
     MYFLT   min, base, *table;
     long    tablen;
@@ -50,7 +52,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *names, *inumsliders, *ioutable, *iwidth, *iheight;
+  MYFLT   *names;
+   MYFLT  *inumsliders, *ioutable, *iwidth, *iheight;
     MYFLT   *ix, *iy, *itypetable, *iexptable, *ioutablestart_ndx;
     MYFLT   *iminmaxtable;
     SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
@@ -59,7 +62,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT  *names, *inumsliders, *ioutable, *iconfigtable, *iwidth,
+  MYFLT  *names;
+  MYFLT *inumsliders, *ioutable, *iconfigtable, *iwidth,
            *iheight, *ix, *iy, *ioutablestart_ndx;
     SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
     long   elements;
@@ -78,7 +82,8 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *koutx, *kouty, *ihandle1, *ihandle2;
-    MYFLT   *name, *iminx, *imaxx, *iminy, *imaxy;
+  STRINGDAT   *name;
+  MYFLT *iminx, *imaxx, *iminy, *imaxy;
     MYFLT   *iexpx, *iexpy, *idispx, *idispy, *iwidth, *iheight, *ix, *iy;
     MYFLT   basex, basey, *tablex, *tabley;
     long    tablenx, tableny;
@@ -86,7 +91,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kout, *ihandle, *name, *imin, *imax, *istep, *iexp;
+  MYFLT   *kout, *ihandle;
+  STRINGDAT *name;
+MYFLT *imin, *imax, *istep, *iexp;
     MYFLT   *itype, *idisp, *iwidth, *iheight, *ix, *iy;
     MYFLT   min, base, *table;
     long    tablen;
@@ -94,7 +101,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kout, *ihandle, *name, *imin, *imax, *iexp, *itype;
+  MYFLT   *kout, *ihandle;
+  STRINGDAT *name;
+MYFLT *imin, *imax, *iexp, *itype;
     MYFLT   *idisp, *iwidth, *ix, *iy, *icursorsize;
     MYFLT   min, base, *table;
     long    tablen;
@@ -102,7 +111,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kout, *ihandle, *name, *imin, *imax, *istep, *itype;
+  MYFLT   *kout, *ihandle;
+  STRINGDAT *name;
+MYFLT *imin, *imax, *istep, *itype;
     MYFLT   *iwidth, *iheight, *ix, *iy;
 } FLTEXT;
 
@@ -155,7 +166,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *itext, *ihandle;
+  STRINGDAT  *itext;
+  MYFLT *ihandle;
 } FL_SET_TEXT;
 
 typedef struct {
@@ -190,7 +202,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *itext, *itype, *ifont, *isize;
+  MYFLT   *ihandle;
+  STRINGDAT *itext;
+  MYFLT *itype, *ifont, *isize;
     MYFLT   *iwidth, *iheight, *ix, *iy;
 } FL_BOX;
 
@@ -198,7 +212,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *name, *iwidth, *iheight, *ix, *iy;
+  MYFLT   *ihandle;
+  STRINGDAT *name;
+  MYFLT *iwidth, *iheight, *ix, *iy;
 } FLVALUE;
 
 typedef struct {
@@ -207,7 +223,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *name, *iwidth, *iheight, *ix, *iy, *border, *ikbdsense, *iclose;
+  STRINGDAT   *name;
+   MYFLT *iwidth, *iheight, *ix, *iy, *border, *ikbdsense, *iclose;
 } FLPANEL;
 
 typedef struct {
@@ -222,12 +239,14 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *filename, *group;
+ STRINGDAT     *filename;
+ MYFLT *group;
 } FLSAVESNAPS;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *filename, *group;
+  STRINGDAT   *filename;
+  MYFLT *group;
 } FLLOADSNAPS;
 
 typedef struct {
@@ -254,7 +273,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *name, *iwidth, *iheight, *ix, *iy, *border;
+  STRINGDAT   *name;
+  MYFLT  *iwidth, *iheight, *ix, *iy, *border;
 } FLGROUP;
 
 typedef struct {
@@ -272,7 +292,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kout, *ihandle, *name, *ion, *ioff, *itype;
+  MYFLT   *kout, *ihandle;
+  STRINGDAT *name;
+  MYFLT *ion, *ioff, *itype;
     MYFLT   *iwidth, *iheight, *ix, *iy, *args[PMAX];
 } FLBUTTON;
 
@@ -284,7 +306,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kout, *ihandle, *name, *imin, *imax, *istep1, *istep2, *itype;
+  MYFLT   *kout, *ihandle;
+  STRINGDAT *name;
+MYFLT *imin, *imax, *istep1, *istep2, *itype;
     MYFLT   *iwidth, *iheight, *ix, *iy, *args[PMAX];
 } FLCOUNTER;
 
@@ -304,13 +328,15 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *name;
+  MYFLT   *ihandle;
+  STRINGDAT *name;
     MYFLT   *iwidth, *iheight, *ix, *iy;
 } FLCLOSEBUTTON;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *command;
+  MYFLT   *ihandle;
+  STRINGDAT *command;
     MYFLT   *iwidth, *iheight, *ix, *iy;
     char    *commandString;
     CSOUND  *csound;

@@ -51,9 +51,20 @@
 #define TVA_DEC         134
 #define TVA_RLS         135
 
+
+
 typedef struct {
     OPDS    h;
-    MYFLT   *chnl, *insno, *iresetctls;
+  MYFLT   *chnl;
+    STRINGDAT *insno;
+    MYFLT *iresetctls;
+} MASSIGNS;
+
+typedef struct {
+    OPDS    h;
+  MYFLT   *chnl; 
+    MYFLT *insno;
+    MYFLT *iresetctls;
 } MASSIGN;
 
 typedef struct {

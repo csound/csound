@@ -151,8 +151,9 @@ typedef struct
   /* input, source, listener, hrtf files, default room, [fadelength,
      sr, order, threed, headrot, roomsize, wall high and low absorb
      coeffs, gain for 3 band pass, same for floor and ceiling] */
-  MYFLT *in, *srcx, *srcy, *srcz, *lstnrx, *lstnry, *lstnrz, *ifilel, *ifiler,
-    *idefroom, *ofade, *osr, *porder, *othreed, *Oheadrot,
+  MYFLT *in, *srcx, *srcy, *srcz, *lstnrx, *lstnry, *lstnrz;
+  STRINGDAT *ifilel, *ifiler;
+  MYFLT  *idefroom, *ofade, *osr, *porder, *othreed, *Oheadrot,
     *ormx, *ormy, *ormz, *owlh, *owll, *owlg1, *owlg2, *owlg3, *oflh,
     *ofll, *oflg1, *oflg2, *oflg3,*oclh, *ocll, *oclg1, *oclg2, *oclg3;
 
@@ -313,8 +314,8 @@ static int early_init(CSOUND *csound, early *p)
     }
 
     /* copy in string name...*/
-    strncpy(filel, (char*) p->ifilel, MAXNAME);
-    strncpy(filer, (char*) p->ifiler, MAXNAME);
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME);
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME);
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,

@@ -142,3 +142,23 @@ SArr[] in instr 2 at k-cycle 2:
 SArr[] in instr 2 at k-cycle 3:
   [x  F  Z  l  ]
 
+<bsbPanel>
+ <label>Widgets</label>
+ <objectName/>
+ <x>100</x>
+ <y>100</y>
+ <width>320</width>
+ <height>240</height>
+ <visible>true</visible>
+ <uuid/>
+ <bgcolor mode="nobackground">
+  <r>255</r>
+  <g>255</g>
+  <b>255</b>
+ </bgcolor>
+</bsbPanel>
+<bsbPresets>
+</bsbPresets>
+<MacGUI>
+ioView nobackground {65535, 65535, 65535}
+</MacGUI>

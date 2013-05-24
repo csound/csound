@@ -155,10 +155,10 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
-int vpvset(CSOUND *csound, VPVOC *p)
+int vpvset_(CSOUND *csound, VPVOC *p, int stringname)
 {
     unsigned int      i;
-    char     pvfilnam[64];
+    char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
     int     frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
@@ -192,7 +192,12 @@ int vpvset(CSOUND *csound, VPVOC *p)
       p->outBuf = fltp;      fltp += PVFFTSIZE;
       p->window = fltp;
     }
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
+     if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    }
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("VPVOC cannot load %s"), pvfilnam);
 
@@ -258,6 +263,14 @@ int vpvset(CSOUND *csound, VPVOC *p)
     if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
         csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
     return OK;
+}
+
+int vpvset(CSOUND *csound, VPVOC *p){
+  return vpvset_(csound,p,0);
+}
+
+int vpvset_S(CSOUND *csound, VPVOC *p){
+  return vpvset_(csound,p,1);
 }
 
 int vpvoc(CSOUND *csound, VPVOC *p)

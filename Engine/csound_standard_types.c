@@ -106,7 +106,7 @@ CS_VARIABLE* createString(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = cs->strVarMaxLen;
+    var->memBlockSize = sizeof(STRINGDAT);
     return var;
 }
 
@@ -236,7 +236,6 @@ const char* VAR_ARG_OUT_TYPES[] = {
     "m", "a",
     "z", "k",
     "I", "Sip", /* had comment of (not implemented yet) in entry1.c */
-    //"H", "Sp",
     "X", "akip",
     "N", "akipS",
     "F", "f", NULL
