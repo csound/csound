@@ -116,6 +116,14 @@ struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
 
+#if defined(ISSTRCOD)
+#undef ISSTRCOD
+#endif
+
+static bool ISSTRCOD(MYFLT myflt)
+{
+    return std::isnan(myflt);
+}
 std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
 {
   stream << a.opcod;

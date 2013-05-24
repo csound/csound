@@ -315,8 +315,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
    
 #ifndef MACOSX
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spin_init((pthread_spinlock_t*) pp->lock),
-                      PTHREAD_PROCESS_PRIVATE);
+    pthread_spin_init((pthread_spinlock_t*) pp->lock, PTHREAD_PROCESS_PRIVATE);
 #endif
 #endif
     *p = (MYFLT*) pp->data;
