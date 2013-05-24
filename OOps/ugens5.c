@@ -582,7 +582,7 @@ int areson(CSOUND *csound, RESON *p)
  *
  */
 
-int lprdset(CSOUND *csound, LPREAD *p)
+int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
 {
     LPHEADER *lph;
     MEMFIL   *mfp;
@@ -601,7 +601,9 @@ int lprdset(CSOUND *csound, LPREAD *p)
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = p;
 
     /* Build file name */
-    csound->strarg2name(csound, lpfilname, p->ifilno, "lp.", p->XSTRCODE);
+    if(stringname) strncpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
+    else if (ISSTRCOD(*p->ifilcod)) strncpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
+    else csound->strarg2name(csound, lpfilname, p->ifilcod, "lp.", 0);
 
     /* Do not reload existing file ? */
     if (UNLIKELY((mfp = p->mfp) != NULL && strcmp(mfp->filename, lpfilname) == 0))
@@ -668,6 +670,14 @@ int lprdset(CSOUND *csound, LPREAD *p)
     p->lastmsg = 0;
     return OK;
 }
+
+int lprdset(CSOUND *csound, LPREAD *p){
+  return lprdset_(csound, p, 0);
+  }
+int lprdset_S(CSOUND *csound, LPREAD *p){
+  return lprdset_(csound, p, 1);
+}
+
 
 #ifdef TRACE_POLES
 static void

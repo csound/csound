@@ -125,7 +125,7 @@ static int listrm(CSOUND *csound, PSCSNU *p)
     csound->Message(csound, "remove from scsn_list\n");
     while (1) {
       if (UNLIKELY(i == NULL)) {
-        /* should not call csound->Die() here */
+       
         csound->ErrorMsg(csound,
                          Str("Eek ... scan synthesis id was not found"));
         return NOTOK;
@@ -175,14 +175,17 @@ static PSCSNU *listget(CSOUND *csound, int id)
     pp = scansyn_getGlobals(csound);
     i = (struct scsn_elem *) pp->scsn_list;
     if (UNLIKELY(i == NULL)) {
-      csound->Die(csound, Str("scans: No scan synthesis net specified"));
+      csound->ErrorMsg(csound, Str("scans: No scan synthesis net specified"));
+      return NULL;
     }
     while (1) {
       if (i->id == id)
         break;
       i = i->next;
-      if (UNLIKELY(i == NULL))
-        csound->Die(csound, Str("Eek ... scan synthesis id was not found"));
+      if (UNLIKELY(i == NULL)){
+        csound->ErrorMsg(csound, Str("Eek ... scan synthesis id was not found"));
+        return NULL;
+      }
     }
     return i->p;
 }

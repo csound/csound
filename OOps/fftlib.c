@@ -3187,7 +3187,7 @@ static inline int ConvertFFTSize(CSOUND *csound, int N)
       case 0x08000000:  return 27;
       case 0x10000000:  return 28;
     }
-    csoundDie(csound, Str(" *** fftlib.c: internal error: "
+    csound->Warning(csound, Str(" *** fftlib.c: internal error: "
                           "invalid FFT size: %d"), N);
     return 0;
 }

@@ -685,7 +685,7 @@ static void laguer(CSOUND *csound, fcomplex a[], int m, fcomplex *x, int *its)
       if (iter % MT) *x = x1;
       else *x = Csub(*x,RCmul(frac[iter/MT],dx));
     }
-    csound->Die(csound, Str("too many iterations in laguer"));
+    csound->Warning(csound, Str("too many iterations in laguer"));
     return;
 }
 #undef EPSS

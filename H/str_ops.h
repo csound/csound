@@ -32,38 +32,51 @@ extern "C" {
 typedef struct {
     OPDS    h;
     MYFLT   *indx;
-    MYFLT   *str;
+    STRINGDAT  *str;
 } STRSET_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r;
+    MYFLT   *indx;
+    MYFLT *str;
+} STRTOD_OP;
+
+typedef struct {
+    OPDS    h;
+    STRINGDAT   *r;
     MYFLT   *indx;
 } STRGET_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r;
-    MYFLT   *str;
+    STRINGDAT  *r;
+    STRINGDAT   *str;
 } STRCPY_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r;
-    MYFLT   *str1;
-    MYFLT   *str2;
+    STRINGDAT   *r;
+    STRINGDAT   *str1;
+    STRINGDAT   *str2;
 } STRCAT_OP;
 
 typedef struct {
     OPDS    h;
     MYFLT   *r;
-    MYFLT   *sfmt;
+    STRINGDAT   *str1;
+    STRINGDAT   *str2;
+} STRCMP_OP;
+
+typedef struct {
+    OPDS    h;
+    STRINGDAT   *r;
+    STRINGDAT   *sfmt;
     MYFLT   *args[64];
 } SPRINTF_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *sfmt;
+    STRINGDAT   *sfmt;
     MYFLT   *ktrig;
     MYFLT   *args[64];
     MYFLT   prv_ktrig;
@@ -71,7 +84,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *str;
+    STRINGDAT   *str;
     MYFLT   *ktrig;
     MYFLT   *no_newline;
     MYFLT   prv_ktrig;
@@ -80,8 +93,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *Sdst;
-    MYFLT   *Ssrc;
+    STRINGDAT   *Sdst;
+    STRINGDAT   *Ssrc;
     MYFLT   *istart;
     MYFLT   *iend;
 } STRSUB_OP;
@@ -89,33 +102,33 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *ichr;
-    MYFLT   *Ssrc;
+    STRINGDAT   *Ssrc;
     MYFLT   *ipos;
 } STRCHAR_OP;
 
 typedef struct {
     OPDS    h;
     MYFLT   *ilen;
-    MYFLT   *Ssrc;
+    STRINGDAT   *Ssrc;
 } STRLEN_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *Sdst;
-    MYFLT   *Ssrc;
+    STRINGDAT   *Sdst;
+    STRINGDAT   *Ssrc;
 } STRUPPER_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *Sdst;
+    STRINGDAT   *Sdst;
     MYFLT   *iopt;
 } GETCFG_OP;
 
 typedef struct {
     OPDS    h;
     MYFLT   *ipos;
-    MYFLT   *Ssrc1;
-    MYFLT   *Ssrc2;
+    STRINGDAT   *Ssrc1;
+    STRINGDAT   *Ssrc2;
 } STRINDEX_OP;
 
 /*
@@ -189,7 +202,8 @@ typedef struct {
 
 int     strset_init(CSOUND *, void *);
 int     strget_init(CSOUND *, void *);
-int     strcpy_opcode(CSOUND *, void *);
+int     strcpy_opcode_p(CSOUND *, void *);
+int     strcpy_opcode_S(CSOUND *, void *);
 int     strcat_opcode(CSOUND *, void *);
 int     strcmp_opcode(CSOUND *, void *);
 int     sprintf_opcode(CSOUND *, void *);
@@ -198,8 +212,10 @@ int     printf_opcode_set(CSOUND *, void *);
 int     printf_opcode_perf(CSOUND *, void *);
 int     puts_opcode_init(CSOUND *, void *);
 int     puts_opcode_perf(CSOUND *, void *);
-int     strtod_opcode(CSOUND *, void *);
-int     strtol_opcode(CSOUND *, void *);
+int     strtod_opcode_p(CSOUND *, void *);
+int     strtod_opcode_S(CSOUND *, void *);
+int     strtol_opcode_p(CSOUND *, void *);
+int     strtol_opcode_S(CSOUND *, void *);
 int     strsub_opcode(CSOUND *, void *);
 int     strchar_opcode(CSOUND *, void *);
 int     strlen_opcode(CSOUND *, void *);
