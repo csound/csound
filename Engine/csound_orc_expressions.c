@@ -47,7 +47,7 @@ extern char* get_arg_type(CSOUND* csound, TREE* tree);
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
 TREE * create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
-			   char* outArgTypes);
+                           char* outArgTypes);
 
 
 static int genlabs = 300;
@@ -66,7 +66,7 @@ TREE* tree_tail(TREE* node) {
 char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
 {
     char* s = (char *)csound->Malloc(csound, 16);
-  
+
     switch(*outype) {
     case 'a': sprintf(s, "#a%d", csound->acount++); break;
     case 'K':
@@ -364,7 +364,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     strncpy(argString, leftArgType, 80);
     strncat(argString, rightArgType, 80 - strlen(leftArgType));
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
-    if(outType == NULL) return NULL;    
+    if(outType == NULL) return NULL;
     return create_out_arg(csound, outType, typeTable);
 }
 
@@ -492,20 +492,20 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       else {
         char* inArgTypes = get_arg_string_from_tree(csound, root->right, typeTable);
-	if(root->value->optype != NULL) 
+        if(root->value->optype != NULL)
          outtype = check_annotated_type(csound, opentries, root->value->optype);
         /* if there are type annotations */
         else outtype = resolve_opcode_get_outarg(csound, opentries, inArgTypes);
-      } 
+      }
       if(outtype == NULL) {
         csound->Warning(csound,
                     Str("error: opcode %s with output type %s not found, "
                         "line %d"),
-			root->value->lexeme, root->value->optype, line);
+                        root->value->lexeme, root->value->optype, line);
         outtype = "i";
       }
       outarg = create_out_arg(csound, outtype, typeTable);
-      
+
      }
       break;
     case S_UMINUS:
