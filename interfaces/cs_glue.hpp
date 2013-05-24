@@ -488,41 +488,7 @@ class PUBLIC CsoundCallbackWrapper {
     {
       (void) p;
     }
-    virtual double ControlChannelInputCallback(const char *chnName)
-    {
-      (void) chnName;
-      return 0.0;
-    }
-    virtual void ControlChannelOutputCallback(const char *chnName, double value)
-    {
-      (void) chnName;
-      (void) value;
-    }
-    virtual const char *StringChannelInputCallback(const char *chnName)
-    {
-      (void) chnName;
-      return "";
-    }
-    virtual void StringChannelOutputCallback(const char *chnName,
-                                             const char *value)
-    {
-      (void) chnName;
-      (void) value;
-    }
-#if 0
-    virtual void AudioChannelInputCallback(const char *chnName, MYFLT *buf)
-    {
-      int   ksmps = csoundGetKsmps(csound_);
-      (void) chnName;
-      for (int i = 0; i < ksmps; i++)
-        buf[i] = (MYFLT) 0.0;
-    }
-    virtual void AudioChannelOutputCallback(const char *chnName, MYFLT *buf)
-    {
-      (void) chnName;
-      (void) buf;
-    }
-#endif
+
     void SetMessageCallback();
     // void SetInputValueCallback();
     // void SetOutputValueCallback();

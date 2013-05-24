@@ -32,7 +32,7 @@ typedef struct {
 
 typedef struct {
   OPDS h;
-  MYFLT *function;
+  STRINGDAT *function;
   MYFLT *nresult;
   MYFLT *args[VARGMAX];
 } PYCALLN;

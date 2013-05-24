@@ -383,10 +383,10 @@ public:
   {
     return csoundGet0dBFS(csound);
   }
-  virtual int GetStrVarMaxLen()
-  {
-    return csoundGetStrVarMaxLen(csound);
-  }
+  // virtual int GetStrVarMaxLen()
+  // {
+  //   return csoundGetStrVarMaxLen(csound);
+  // }
 //  virtual int GetSampleFormat()
 //  {
 //    return csoundGetSampleFormat(csound);

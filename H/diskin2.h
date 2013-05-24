@@ -70,6 +70,7 @@ typedef struct {
 } DISKIN2;
 
 int diskin2_init(CSOUND *csound, DISKIN2 *p);
+int diskin2_init_S(CSOUND *csound, DISKIN2 *p);
 int diskin2_perf(CSOUND *csound, DISKIN2 *p);
 
 typedef struct {
@@ -87,6 +88,27 @@ typedef struct {
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
 } SOUNDIN_;
+
+#define SNDOUTSMPS  (1024)
+
+typedef struct {
+    SNDFILE *sf;
+    void    *fd;
+    MYFLT   *outbufp, *bufend;
+    MYFLT   outbuf[SNDOUTSMPS];
+} SNDCOM;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *asig, *ifilcod, *iformat;
+    SNDCOM  c;
+} SNDOUT;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *asig1, *asig2, *ifilcod, *iformat;
+    SNDCOM  c;
+} SNDOUTS;
 
 #endif      /* CSOUND_DISKIN2_H */
 

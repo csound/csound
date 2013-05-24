@@ -395,6 +395,7 @@ statement : ident '=' expr NEWLINE
                   csp_orc_sa_interlocks(csound, $2->value);
                   query_deprecated_opcode(csound, $2->value);
                 }
+
            | opcode0  exprlist NEWLINE
                 {
                   ((TREE *)$1)->left = NULL;
@@ -421,6 +422,7 @@ statement : ident '=' expr NEWLINE
                 }
           | LABEL_TOKEN
                 {
+		  //printf("label %s\n", ((ORCTOKEN *)$1)->lexeme);
                     $$ = make_leaf(csound,LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);
                 }
           | goto label NEWLINE

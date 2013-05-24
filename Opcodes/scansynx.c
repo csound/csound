@@ -218,7 +218,7 @@ static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
  *      Setup the updater
  */
 
-static int scsnux_init(CSOUND *csound, PSCSNUX *p)
+static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
 {
     /* Get parameter table pointers and check lengths */
     SCANSYN_GLOBALS *pp;
@@ -255,7 +255,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
     p->d = f->ftable;
 
     /* Spring stiffness */
-    if (!p->XSTRCODE) {
+    if (!istring) {
       uint32_t j, ilen;
 
       /* Get the table */
@@ -300,10 +300,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
     else {                      /* New format matrix */
       char filnam[256];
       MEMFIL *mfp;
-      /* if (!p->XSTRCODE)
-        unquote(filnam, csound->currevent->strarg);
-        else */
-      strcpy(filnam, (char*) p->i_f);
+      strcpy(filnam, ((STRINGDAT *) p->i_f)->data);
       /* readfile if reqd */
       if (UNLIKELY((mfp =
                     csound->ldmemfile2withCB(csound, filnam,
@@ -453,6 +450,14 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
     }
 
     return OK;
+}
+
+static int scsnux_init(CSOUND *csound, PSCSNUX *p){
+  return scsnux_init_(csound, p, 0);
+}
+
+static int scsnux_init_S(CSOUND *csound, PSCSNUX *p){
+  return scsnux_init_(csound, p, 1);
 }
 
 /*
@@ -728,7 +733,9 @@ static int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "xscanu", S(PSCSNUX),TR, 5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init,
+{ "xscanu", S(PSCSNUX),TR, 5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init_S,
+                                                    NULL,(SUBR)scsnux },
+{ "xscanu", S(PSCSNUX),TR, 5, "", "iiiiiiikkkkiikkaii", (SUBR)scsnux_init,
                                                     NULL,(SUBR)scsnux },
 { "xscans", S(PSCSNSX),  TR, 5,  "a", "kkiio",         (SUBR)scsnsx_init,
                                                     NULL, (SUBR)scsnsx},

@@ -164,7 +164,9 @@ typedef struct
   /* mean free path and order are optional, meanfp defaults to medium
      room, opcode can be used as stand alone binaural reverb, or
      spatially accurate taking meanfp and order from earlies opcode */
-    MYFLT *insig, *ilowrt60, *ihighrt60, *ifilel, *ifiler, *osr, *omeanfp, *porder;
+  MYFLT *insig, *ilowrt60, *ihighrt60;
+  STRINGDAT *ifilel, *ifiler;
+  MYFLT *osr, *omeanfp, *porder;
 
     /* internal data / class variables */
     MYFLT delaytime;
@@ -312,8 +314,8 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       }
 
     /* copy in string name... */
-    strcpy(filel, (char*) p->ifilel);
-    strcpy(filer, (char*) p->ifiler);
+    strcpy(filel, (char*) p->ifilel->data);
+    strcpy(filer, (char*) p->ifiler->data);
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel,
@@ -1334,9 +1336,8 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 }
 
 static OENTRY hrtfreverb_localops[] =
-{
-        {
-                "hrtfreverb", sizeof(hrtfreverb), 0,5, "aai", "aiiSSoop",
+{        {
+               "hrtfreverb", sizeof(hrtfreverb), 0,5, "aai", "aiiSSoop",
                 (SUBR)hrtfreverb_init, NULL, (SUBR)hrtfreverb_process
         }
 };

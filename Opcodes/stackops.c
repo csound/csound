@@ -77,8 +77,10 @@ typedef struct POP_OPCODE_ {
 static CS_NOINLINE void fsg_assign(CSOUND *csound,
                                 PVSDAT *fdst, const PVSDAT *fsrc)
 {
-    if (UNLIKELY(fsrc->frame.auxp == NULL))
-      csound->Die(csound, Str("fsig = : source signal is not initialised"));
+  if (UNLIKELY(fsrc->frame.auxp == NULL)) {
+      csound->ErrorMsg(csound, Str("fsig = : source signal is not initialised"));
+      return;
+  }
     fdst->N = fsrc->N;
     fdst->overlap = fsrc->overlap;
     fdst->winsize = fsrc->winsize;
@@ -115,8 +117,8 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
       csound->LongJmp(csound, CSOUND_PERFORMANCE);
     }
     else
-      csound->Die(csound, "%s: %s", csound->GetOpcodeName(p), msg);
-    /* this is actually never reached */
+      csound->ErrorMsg(csound, "%s: %s", csound->GetOpcodeName(p), msg);
+
     return NOTOK;
 }
 
@@ -138,11 +140,11 @@ static CS_NOINLINE int csoundStack_TypeError(void *p)
     return csoundStack_Error(p, Str("argument number or type mismatch"));
 }
 
-static CS_NOINLINE int csoundStack_LengthError(void *p)
-{
-    /* CSOUND  *csound = ((OPDS*) p)->insdshead->csound; */
-    return csoundStack_Error(p, Str("string argument is too long"));
-}
+/* static CS_NOINLINE int csoundStack_LengthError(void *p) */
+/* { */
+/*     /\* CSOUND  *csound = ((OPDS*) p)->insdshead->csound; *\/ */
+/*     return csoundStack_Error(p, Str("string argument is too long")); */
+/* } */
 
 static CS_NOINLINE CsoundArgStack_t *csoundStack_AllocGlobals(CSOUND *csound,
                                                               int stackSize)
@@ -158,8 +160,10 @@ static CS_NOINLINE CsoundArgStack_t *csoundStack_AllocGlobals(CSOUND *csound,
     nBytes += stackSize;
     if (UNLIKELY(csound->CreateGlobalVariable(csound,
                                               "csArgStack", (size_t) nBytes)
-                 != 0))
-      csound->Die(csound, Str("Error allocating argument stack"));
+                 != 0)) {
+      csound->ErrorMsg(csound, Str("Error allocating argument stack"));
+      return NULL;
+    }
     pp = (CsoundArgStack_t*) csound->QueryGlobalVariable(csound, "csArgStack");
     pp->curBundle = (CsoundArgStack_t*) NULL;
     pp->dataSpace =
@@ -253,8 +257,8 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
         /* init time types */
         if (sMask & maskVal) {
           argMap[i + 3] = (curOffs_i | CS_STACK_S);
-          curOffs_i += csound->strVarMaxLen;
-          curOffs_i = csoundStack_Align(curOffs_i);
+          curOffs_i += (int) sizeof(STRINGDAT);
+	    /* curOffs_i = csoundStack_Align(curOffs_i);*/
         }
         else {
           argMap[i + 3] = (curOffs_i | CS_STACK_I);
@@ -367,19 +371,26 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
             break;
           case CS_STACK_S:
             {
-              char  *src, *dst;
-              int   j, maxLen;
-              src = (char*) p->args[i];
-              dst = (char*) bp + (int) (curOffs & (int) 0x00FFFFFF);
-              maxLen = csound->strVarMaxLen - 1;
-              for (j = 0; src[j] != (char) 0; j++) {
-                dst[j] = src[j];
-                if (j >= maxLen) {
-                  dst[j] = (char) 0;
-                  csoundStack_LengthError(p);
-                }
-              }
-              dst[j] = (char) 0;
+              char  *src;
+              STRINGDAT *dst;
+              /* int   j, maxLen; */
+              src = ((STRINGDAT*) p->args[i])->data;
+              dst = ((STRINGDAT*)(char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
+	      if(dst->size <= (int) strlen(src)){
+              dst->data = csound->Strdup(csound, src);
+              dst->size = strlen(src) + 1;
+              } else {
+		strcpy(dst->data, src);
+	      }
+              /* maxLen = ((STRINGDAT*) p->args[i])->size; */
+              /* for (j = 0; src[j] != (char) 0; j++) { */
+              /*   dst[j] = src[j]; */
+              /*   if (j >= maxLen) { */
+              /*     dst[j] = (char) 0; */
+              /*     csoundStack_LengthError(p); */
+              /*   } */
+              /* } */
+              /* dst[j] = (char) 0; */
             }
           }
         }

@@ -1,4 +1,5 @@
 /*****************************************************
+251
 
                         CSOUND SERIAL PORT OPCODES
                           ma++ ingalls, 2011/9/4
@@ -117,7 +118,9 @@ static HANDLE get_port(CSOUND *csound, int port)
 
 typedef struct {
     OPDS  h;
-    MYFLT *returnedPort, *portName, *baudRate;
+  MYFLT *returnedPort;
+    STRINGDAT *portName;
+    MYFLT *baudRate;
 } SERIALBEGIN;
 int serialBegin(CSOUND *csound, SERIALBEGIN *p);
 
@@ -247,8 +250,10 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
                                                       "serialGlobals_");
     if (q == NULL) {
       if (csound->CreateGlobalVariable(csound, "serialGlobals_",
-                                       sizeof(SERIAL_GLOBALS)) != 0)
-        csound->Die(csound, Str("serial: failed to allocate globals"));
+                                       sizeof(SERIAL_GLOBALS)) != 0){
+        csound->ErrorMag(csound, Str("serial: failed to allocate globals"));
+        return 0;
+      }
       q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
       q->csound = csound;
@@ -326,7 +331,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
 int serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
     *p->returnedPort =
-      (MYFLT)serialport_init(csound, (char *)p->portName, *p->baudRate);
+      (MYFLT)serialport_init(csound, (char *)p->portName->data, *p->baudRate);
     return OK;
 }
 
@@ -352,17 +357,7 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
     HANDLE port = get_port(csound, (int)*p->port);
     if (port==NULL) return NOTOK;
 #endif
-    if (p->XSTRCODE & 2) {
-#ifndef WIN32
-      if (UNLIKELY(write((int)*p->port, p->toWrite, strlen((char *)p->toWrite))<0))
-        return NOTOK;
-#else
-      int nbytes;
-      WriteFile(port,p->toWrite, strlen((char *)p->toWrite),
-                (PDWORD)&nbytes, NULL);
-#endif
-    }
-    else {
+    {
       unsigned char b = *p->toWrite;
 #ifndef WIN32
       if (UNLIKELY(write((int)*p->port, &b, 1)<0))
@@ -374,6 +369,24 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
     }
     return OK;
 }
+
+int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
+{
+#ifdef WIN32
+    HANDLE port = get_port(csound, (int)*p->port);
+    if (port==NULL) return NOTOK;
+#endif
+#ifndef WIN32
+    if (UNLIKELY(write((int)*p->port, ((STRINGDAT*)p->toWrite)->data, ((STRINGDAT*)p->toWrite)->size))<0)
+        return NOTOK;
+#else
+      int nbytes;
+      WriteFile(port,p->toWrite, strlen((char *)p->toWrite),
+                (PDWORD)&nbytes, NULL);
+#endif
+    return OK;
+}
+
 
 int serialRead(CSOUND *csound, SERIALREAD *p)
 {
@@ -440,10 +453,14 @@ static OENTRY serial_localops[] = {
       (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL   },
     { (char *)"serialEnd", S(SERIALEND), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialEnd, (SUBR)NULL   },
-    { (char *)"serialWrite_i", S(SERIALWRITE), 0, 1, (char *)"", (char *)"iT",
+    { (char *)"serialWrite_i", S(SERIALWRITE), 0, 1, (char *)"", (char *)"ii",
       (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL   },
-    { (char *)"serialWrite", S(SERIALWRITE), WR, 2, (char *)"", (char *)"iU",
+       { (char *)"serialWrite_i.S", S(SERIALWRITE), 0, 1, (char *)"", (char *)"iS",
+      (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL   },
+    { (char *)"serialWrite", S(SERIALWRITE), WR, 2, (char *)"", (char *)"ik",
       (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL   },
+    { (char *)"serialWrite.S", S(SERIALWRITE), WR, 2, (char *)"", (char *)"iS",
+      (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL   },
     { (char *)"serialRead", S(SERIALREAD), 0, 2, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL   },
     { (char *)"serialPrint", S(SERIALPRINT), WR,2, (char *)"", (char *)"i",
