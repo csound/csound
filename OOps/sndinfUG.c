@@ -55,7 +55,8 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
       s = csoundFindInputFile(csound, sfname, "SADIR");
       if (UNLIKELY(s == NULL)) {
         /* RWD 5:2001 better to exit in this situation ! */
-        csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
+        csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
+        return NOTOK;
       }
     }
     sfname = s;                         /* & record fullpath filnam */
