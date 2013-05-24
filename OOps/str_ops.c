@@ -55,8 +55,10 @@ static void str_set(CSOUND *csound, int ndx, const char *s)
         csound->strsets[i] = NULL;
       csound->strsmax = newmax;
     }
-    if (UNLIKELY(ndx < 0))    /* -ve index */
-      csound->Die(csound, Str("illegal strset index"));
+    if (UNLIKELY(ndx < 0))  {  /* -ve index */
+     csound->InitError(csound, Str("illegal strset index"));
+     return;
+    }
 
     if (csound->strsets[ndx] != NULL) {
       if (strcmp(s, csound->strsets[ndx]) == 0)
@@ -86,13 +88,17 @@ void strset_option(CSOUND *csound, char *s)
 {
     int indx = 0;
 
-    if (UNLIKELY(!isdigit(*s)))
-      csound->Die(csound, Str("--strset: invalid format"));
+    if (UNLIKELY(!isdigit(*s))) {
+       csound->Warning(csound, Str("--strset: invalid format"));
+       return;
+    }
     do {
       indx = (indx * 10) + (int) (*s++ - '0');
     } while (isdigit(*s));
-    if (UNLIKELY(*s++ != '='))
-      csound->Die(csound, Str("--strset: invalid format"));
+    if (UNLIKELY(*s++ != '=')){
+      csound->Warning(csound, Str("--strset: invalid format"));
+      return;
+    }
     str_set(csound, indx, s);
 }
 
@@ -133,7 +139,7 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
       return csound->PerfError(csound, ((OPDS*)p)->insdshead,
                                "%s: %s", opname, Str(msg));
     else
-      csound->Die(csound, "%s: %s", opname, Str(msg));
+      csound->Warning(csound, "%s: %s", opname, Str(msg));
 
     return NOTOK;
 }
@@ -143,7 +149,7 @@ static CS_NOINLINE CS_NORETURN void StrOp_FatalError(void *p, const char *msg)
     CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
     const char  *opname = csound->GetOpcodeName(p);
 
-    csound->Die(csound, "%s: %s", opname, Str(msg));
+    csound->Warning(csound, "%s: %s", opname, Str(msg));
 }
 
 /* strcpy */
@@ -233,8 +239,10 @@ static CS_NOINLINE int
 
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.xincod != 0))
       return StrOp_ErrMsg(p, "a-rate argument not allowed");
-    if (UNLIKELY((int) ((OPDS*) p)->optext->t.inArgCount > 31))
+    if (UNLIKELY((int) ((OPDS*) p)->optext->t.inArgCount > 31)){
       StrOp_FatalError(p, "too many arguments");
+      return NOTOK;
+    }
 
     while (1) {
       if (UNLIKELY(i >= 2047)) {
@@ -312,6 +320,7 @@ static CS_NOINLINE int
 #else
           /* wrote past end of buffer - hope that did not already crash ! */
           StrOp_FatalError(p, "buffer overflow");
+          return NOTOK;  
 #endif
         }
         outstring += n;
@@ -337,7 +346,7 @@ int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
     if (UNLIKELY(sprintf_opcode_(p, (char*) p->r, (char*) p->sfmt, &(p->args[0]),
                         (int) p->INOCOUNT - 1, ((int) p->XSTRCODE >> 1),
-                                 csound->strVarMaxLen) != 0)) {
+                                 csound->strVarMaxLen) != NOTOK)) {
       ((char*) p->r)[0] = '\0';
       return NOTOK;
     }

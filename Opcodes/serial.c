@@ -1,4 +1,5 @@
 /*****************************************************
+251
 
                         CSOUND SERIAL PORT OPCODES
                           ma++ ingalls, 2011/9/4
@@ -247,8 +248,10 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
                                                       "serialGlobals_");
     if (q == NULL) {
       if (csound->CreateGlobalVariable(csound, "serialGlobals_",
-                                       sizeof(SERIAL_GLOBALS)) != 0)
-        csound->Die(csound, Str("serial: failed to allocate globals"));
+                                       sizeof(SERIAL_GLOBALS)) != 0){
+        csound->ErrorMag(csound, Str("serial: failed to allocate globals"));
+        return 0;
+      }
       q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
       q->csound = csound;

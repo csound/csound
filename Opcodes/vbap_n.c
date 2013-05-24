@@ -349,7 +349,7 @@ int vbap_moving_control(CSOUND *csound, VBAP_MOVING *p)
         }
       }
       if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL)))
-        csound->Die(csound, Str("Missing fields in vbapmove\n"));
+        return csound->PerfError(csound, p->h.insdshead, Str("Missing fields in vbapmove\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] -
                                *p->fld[p->curr_fld]) - 180.0) < 1.0))
@@ -393,7 +393,7 @@ int vbap_moving_control(CSOUND *csound, VBAP_MOVING *p)
         p->ang_dir.ele = FL(0.0);
       }
       else {
-        csound->Die(csound, Str("Wrong dimension\n"));
+        return csound->PerfError(csound, p->h.insdshead, Str("Missing fields in vbapmove\n"));
       }
     }
     else { /* angular velocities */
@@ -551,7 +551,7 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     /* other initialization */
     p->ele_vel = FL(1.0);    /* functions specific to movement */
     if (UNLIKELY(fabs(*p->field_am) < (2+ (p->dim - 2)*2))) {
-      csound->Die(csound,
+      return csound->InitError(csound,
                   Str("Have to have at least %d directions in vbapmove"),
                   2 + (p->dim - 2) * 2);
     }
@@ -562,7 +562,7 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
       p->point_change_interval =
         (int)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
-      csound->Die(csound, Str("Wrong dimension"));
+      return csound->InitError(csound, Str("Wrong dimension"));
     p->point_change_counter = 0;
     p->curr_fld = 0;
     p->next_fld = 1;
