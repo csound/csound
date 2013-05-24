@@ -35,15 +35,19 @@ typedef struct SNDLOAD_OPCODE_ {
     MYFLT   *iLoopMode1, *iLoopStart1, *iLoopEnd1;
 } SNDLOAD_OPCODE;
 
-static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
+static int sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p, int isstring)
 {
     char        *fname;
     SNDMEMFILE  *sf;
     SF_INFO     sfinfo;
     int         sampleFormat, loopMode;
 
-    fname = csound->strarg2name(csound, (char*) NULL, p->Sfname, "soundin.",
-                                (int) csound->GetInputArgSMask(p));
+    if(isstring) fname = ((STRINGDAT *)p->Sfname)->data;
+    else {
+      if(ISSTRCOD(*p->Sfname)) fname = csound->Strdup(csound, get_arg_string(csound, *p->Sfname));
+    else
+      fname = csound->strarg2name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
+    }
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sampleFormat = (int) MYFLT2LRND(*(p->iFormat));
     sfinfo.format = (int) TYPE2SF(TYP_RAW);
@@ -105,6 +109,15 @@ static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
 
     return OK;
 }
+
+static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p){
+  return sndload_opcode_init_(csound,p,0);
+}
+
+static int sndload_opcode_init_S(CSOUND *csound, SNDLOAD_OPCODE *p){
+  return sndload_opcode_init_(csound,p,0);
+}
+
 
  /* ------------------------------------------------------------------------ */
 
@@ -171,11 +184,11 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     if (UNLIKELY(nChannels < 1 || nChannels > LOSCILX_MAXOUTS))
       return csound->InitError(csound, Str("loscilx: invalid number of output arguments"));
     p->nChannels = nChannels;
-    if (csound->GetInputArgSMask(p) != 0UL) {
+    if (ISSTRCOD(*p->ifn)) {
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;
-      sf = csound->LoadSoundFile(csound, (char*) p->ifn, (SF_INFO *) NULL);
+      sf = csound->LoadSoundFile(csound, (char*) get_arg_string(csound, *p->ifn), (SF_INFO *) NULL);
       if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
                                          (char*) p->ifn);
@@ -677,9 +690,11 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
  /* ------------------------------------------------------------------------ */
 
 static OENTRY loscilx_localops[] = {
-  { "sndload",  sizeof(SNDLOAD_OPCODE), 0, 1,  "",                 "Tooooojjoo",
+  { "sndload",  sizeof(SNDLOAD_OPCODE), 0, 1,  "",                 "iooooojjoo",
     (SUBR) sndload_opcode_init, (SUBR) NULL, (SUBR) NULL                      },
-  { "loscilx",  sizeof(LOSCILX_OPCODE), TR, 5,  "mmmmmmmmmmmmmmmm", "xkToojjoo",
+ { "sndload.S",  sizeof(SNDLOAD_OPCODE), 0, 1,  "",                 "Sooooojjoo",
+    (SUBR) sndload_opcode_init_S, (SUBR) NULL, (SUBR) NULL                      },
+  { "loscilx",  sizeof(LOSCILX_OPCODE), TR, 5,  "mmmmmmmmmmmmmmmm", "xkioojjoo",
     (SUBR) loscilx_opcode_init, (SUBR) NULL, (SUBR) loscilx_opcode_perf       }
 };
 

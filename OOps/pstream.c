@@ -356,13 +356,16 @@ int pvscross(CSOUND *csound, PVSCROSS *p)
 
 /******** PVSFREAD ************/
 
-int pvsfreadset(CSOUND *csound, PVSFREAD *p)
+static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
 {
     PVOCEX_MEMFILE  pp;
     uint32   N;
     char            pvfilnam[MAXNAME];
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
+    if(stringname) strncpy(pvfilnam, ((STRINGDAT*)p->ifilno)->data, MAXNAME-1);
+    else if (ISSTRCOD(*p->ifilno)) strncpy(pvfilnam, get_arg_string(csound, *p->ifilno), MAXNAME-1);
+    else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
+
     if (UNLIKELY(PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)) {
       return csound->InitError(csound, Str("Failed to load PVOC-EX file"));
     }
@@ -415,6 +418,16 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
     p->lastframe = 0;
     return OK;
 }
+
+
+int pvsfreadset(CSOUND *csound, PVSFREAD *p){
+  return pvsfreadset_(csound,p, 0);
+  }
+
+int pvsfreadset_S(CSOUND *csound, PVSFREAD *p){
+  return pvsfreadset_(csound,p, 1);
+  }
+
 
 int pvsfread(CSOUND *csound, PVSFREAD *p)
 {

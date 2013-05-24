@@ -87,8 +87,8 @@ typedef struct {
 #  define XINARG4   (p->XINCODE & 8)
 #  define XINARG5   (p->XINCODE &16)
 #define XOUTCODE    ORTXT.xoutcod
-#define XSTRCODE    ORTXT.xincod_str
-#define XOUTSTRCODE ORTXT.xoutcod_str
+//#define XSTRCODE    ORTXT.xincod_str
+//#define XOUTSTRCODE ORTXT.xoutcod_str
 
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
@@ -352,6 +352,11 @@ typedef struct {
       MYFLT   *data;
       AUXCH   aux;
    } TABDAT;
+
+  typedef struct {
+    char *data;
+    int size;
+  } STRINGDAT;
 
   typedef struct monblk {
     int16   pch;
@@ -717,6 +722,8 @@ typedef struct {
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
+
+
   typedef union {
     uint32 dwData;
     unsigned char bData[4];
@@ -893,8 +900,7 @@ typedef struct NAME__ {
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
     long (*GetKcounter)(CSOUND *);
-     int64_t (*GetCurrentTimeSamples)(CSOUND *);
-    int (*GetStrVarMaxLen)(CSOUND *);
+    int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
@@ -959,6 +965,7 @@ typedef struct NAME__ {
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
+    char *(*Strdup)(CSOUND *, char*);
     void (*Free)(CSOUND *, void *ptr);
 
     /**@}*/
@@ -1343,8 +1350,6 @@ typedef struct NAME__ {
     int           randSeed2;
     CsoundRandMTState *csRandState;
     RTCLOCK       *csRtClock;
-    /** max. length of string variables + 1  */
-    int           strVarMaxLen;
     int           strsmax;
     char          **strsets;
     MYFLT         *spin;

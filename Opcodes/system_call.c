@@ -27,7 +27,7 @@ typedef struct {
   OPDS  h;
   MYFLT *res;
   MYFLT *ktrig;
-  MYFLT *commandLine;
+  STRINGDAT *commandLine;
   MYFLT *nowait;
 
   MYFLT prv_ktrig;
@@ -45,12 +45,12 @@ static int call_system(CSOUND *csound, SYSTEM *p)
 {
     _flushall();
     if ( (int)*p->nowait != 0 ) {
-      char *command = strdup( (char *)p->commandLine );
+      char *command = strdup(csound,p->commandLine->data );
       _beginthread( threadroutine, 0, command );
       *p->res = OK;
     }
     else {
-      *p->res = (MYFLT) system( (char *)p->commandLine );
+      *p->res = (MYFLT) system( (char *)p->commandLine->data );
     }
     return OK;
 }
@@ -64,12 +64,12 @@ static int call_system(CSOUND *csound, SYSTEM *p)
       if ((*p->res = fork()))
         return OK;
       else {
-        if (UNLIKELY(system((char*)p->commandLine)<0)) exit(1);
+        if (UNLIKELY(system((char*)p->commandLine->data)<0)) exit(1);
         exit(0);
       }
     }
     else {
-      *p->res = (MYFLT)system((char*)p->commandLine);
+      *p->res = (MYFLT)system((char*)p->commandLine->data);
       return OK;
     }
 }

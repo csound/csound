@@ -360,7 +360,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
 typedef struct _filegrain {
     OPDS    h;
     MYFLT   *output[DGRAIN_MAXCHAN];
-    MYFLT   *fname;
+    STRINGDAT   *fname;
     MYFLT   *amp;
     MYFLT   *fr;
     MYFLT   *pitch;
@@ -394,8 +394,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     void *fd;
     MYFLT *buffer;
     SF_INFO sfinfo;
-    char *fname = csound->strarg2name(csound, NULL, p->fname,
-                                      "soundin.",p->XSTRCODE);
+    char *fname = p->fname->data;
 
     p->nChannels = (int) (p->OUTOCOUNT);
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN)) {

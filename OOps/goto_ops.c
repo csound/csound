@@ -186,8 +186,12 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
     int   mode, insno, allow_release;
 
     if(isStringArg){
-     p1 = (MYFLT) strarg2insno(csound, p->kInsNo, (p->XSTRCODE & 1));
-    } else p1 = *(p->kInsNo);
+      p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
+    } 
+    else  if(ISSTRCOD(*p->kInsNo)) {
+      p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
+    }
+    else p1 = *(p->kInsNo);
 
     if (p1 <= FL(0.0))
       return OK;    /* not triggered */

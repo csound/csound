@@ -192,11 +192,18 @@ public:
             soundFontId = -1;
             toa(iFluidSynth, fluidSynth);
             listPresets = (int) *iListPresets;
-            filename = csound->strarg2name(csound,
+
+	    if(csound->GetInputArgSMask(this))
+	      filename = csound->Strdup(csound, ((STRINGDAT *)iFilename)->data);
+             else
+             filename = csound->strarg2name(csound,
                     (char*) NULL,
-                    iFilename,
+		   (ISSTRCOD(*iFilename) ?
+                    csound->GetString(csound, *iFilename) :
+                    (char *) iFilename),
                     (char *)"fluid.sf2.",
-                    (int) csound->GetInputArgSMask(this));
+                    ISSTRCOD(*iFilename));
+
             filepath = csound->FindInputFile(csound, filename, "SFDIR;SSDIR");
             if (filepath && fluid_is_soundfont(filepath)) {
                 log(csound, "Loading SoundFont : %s.\n", filepath);
