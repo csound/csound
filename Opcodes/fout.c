@@ -571,10 +571,10 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
     int     n = (int) MYFLT2LRND(*p->ihandle);
 
     if (UNLIKELY(n < 0 || n > pp->file_num))
-      csound->Die(csound, Str("fouti: invalid file handle"));
+      return csound->InitError(csound, Str("fouti: invalid file handle"));
     rfil = pp->file_opened[n].raw;
     if (UNLIKELY(rfil == NULL))
-      csound->Die(csound, Str("fouti: invalid file handle"));
+      return csound->InitError(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) MYFLT2LRND(*p->iflag)) {
       case 1:
@@ -646,10 +646,10 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     args = p->argums;
     n = (int) MYFLT2LRND(*p->ihandle);
     if (UNLIKELY(n < 0 || n > pp->file_num))
-      csound->Die(csound, Str("fouti: invalid file handle"));
+      return csound->InitError(csound, Str("fouti: invalid file handle"));
     rfil = pp->file_opened[n].raw;
     if (UNLIKELY(rfil == NULL))
-      csound->Die(csound, Str("fouti: invalid file handle"));
+      return csound->InitError(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) MYFLT2LRND(*p->iflag)) {
       case 1:

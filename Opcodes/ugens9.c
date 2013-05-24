@@ -438,7 +438,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
          handles finding the right channel */
       if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf,
                                                p->Hlen*p->nchanls, &IRfile)) <= 0))
-        csound->Die(csound, Str("PCONVOLVE: less sound than expected!"));
+        return csound->InitError(csound, Str("PCONVOLVE: less sound than expected!"));
 
       /* take FFT of each channel */
       scaleFac = csound->dbfs_to_float

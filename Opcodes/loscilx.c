@@ -169,7 +169,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     p->dataPtr = NULL;
     nChannels = csound->GetOutputArgCnt(p);
     if (UNLIKELY(nChannels < 1 || nChannels > LOSCILX_MAXOUTS))
-      csound->Die(csound, Str("loscilx: invalid number of output arguments"));
+      return csound->InitError(csound, Str("loscilx: invalid number of output arguments"));
     p->nChannels = nChannels;
     if (csound->GetInputArgSMask(p) != 0UL) {
       SNDMEMFILE  *sf;

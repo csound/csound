@@ -825,7 +825,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
     //if (UNLIKELY(p->INOCOUNT/2 == (MYFLT)p->INOCOUNT*FL(0.5)))
     /* Should this test just be p->INOCOUNT&1 ==  */
     if (UNLIKELY((p->INOCOUNT&1)==0))
-      csound->Die(csound, Str("Wrong input count in multitap\n"));
+      csound->InitError(csound, Str("Wrong input count in multitap\n"));
 
     for (i = 0; i < p->INOCOUNT - 1; i += 2) {
       if (max < *p->ndel[i]) max = *p->ndel[i];
