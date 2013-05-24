@@ -58,7 +58,7 @@ int mp3in_cleanup(CSOUND *csound, MP3IN *p)
     return OK;
 }
 
-int mp3ininit(CSOUND *csound, MP3IN *p)
+int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
 {
     char    name[1024];
     int     fd;
@@ -92,7 +92,12 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
       return csound->InitError(csound, mp3dec_error(r));
     }
     /* FIXME: name can overflow with very long string */
-    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->iFileCode)) strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+    }
+    else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
+
     if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
@@ -171,6 +176,15 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     return OK;
 }
 
+int mp3ininit(CSOUND *csound, MP3IN *p){
+  return mp3ininit_(csound,p,0);
+} 
+
+int mp3ininit_S(CSOUND *csound, MP3IN *p){
+  return mp3ininit_(csound,p,1);
+}
+
+
 int mp3in(CSOUND *csound, MP3IN *p)
 {
     int r           = p->r;
@@ -222,7 +236,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
     return OK;
 }
 
-int mp3len(CSOUND *csound, MP3LEN *p)
+int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
 {
     char    name[1024];
     int     fd;
@@ -244,7 +258,12 @@ int mp3len(CSOUND *csound, MP3LEN *p)
       return csound->InitError(csound, mp3dec_error(r));
     }
     /* FIXME: name can overflow with very long string */
-    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
+    
+    if(stringname==0){
+      if(ISSTRCOD(*p->iFileCode)) strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+    }
+    else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
     if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
@@ -268,11 +287,21 @@ int mp3len(CSOUND *csound, MP3LEN *p)
     return OK;
 }
 
+int mp3len(CSOUND *csound, MP3LEN *p){
+  return mp3len_(csound,p,0);
+}
+
+int mp3len_S(CSOUND *csound, MP3LEN *p){
+  return mp3len_(csound,p,1);
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY mp3in_localops[] = {
-  {"mp3in",  S(MP3IN),  0, 5, "aa", "Toooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in},
-  {"mp3len", S(MP3LEN), 0, 1, "i",  "T",     (SUBR) mp3len,    NULL,  NULL}
+  {"mp3in",  S(MP3IN),  0, 5, "aa", "Soooo", (SUBR) mp3ininit_S, NULL, (SUBR) mp3in},
+  {"mp3in.i",  S(MP3IN),  0, 5, "aa", "ioooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in},
+  {"mp3len", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+    {"mp3len.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL}
 };
 
 LINKAGE_BUILTIN(mp3in_localops)

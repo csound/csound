@@ -43,7 +43,7 @@ static CS_NOINLINE void create_private_namespace_if_needed(OPDS *o)
 }
 
 static void format_call_statement(char *statement, char *callable,
-                                  int argc, MYFLT *argv[], int skip)
+                                  int argc, MYFLT *argv[], long skip)
 {
     int       i;
 
@@ -58,6 +58,7 @@ static void format_call_statement(char *statement, char *callable,
     else {
       sprintf(statement, "%s()", callable);
     }
+  
 }
 
 static PyObject *
@@ -175,7 +176,8 @@ static int pycalln_krate(CSOUND *csound, PYCALLN *p)
     char      command[1024];
     PyObject  *result;
 
-    format_call_statement(command, (char*) p->function,
+
+    format_call_statement(command,  p->function->data,
                           p->INOCOUNT-2, p->args, *p->nresult);
     result = eval_string_in_given_context(command, 0);
     if (result != NULL && PyTuple_Check(result) &&
@@ -202,7 +204,7 @@ static int pylcalln_krate(CSOUND *csound, PYCALLN *p)
     char      command[1024];
     PyObject  *result;
 
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command,  p->function->data,
                           p->INOCOUNT-2, p->args, *p->nresult);
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
     if (result != NULL && PyTuple_Check(result) &&
@@ -224,7 +226,7 @@ static int pylcallni_irate(CSOUND *csound, PYCALLN *p)
     PyObject  *result;
 
     create_private_namespace_if_needed(&p->h);
-    format_call_statement(command, (char*) p->function,
+    format_call_statement(command,  p->function->data,
                           p->INOCOUNT-2, p->args, *p->nresult);
     result = eval_string_in_given_context(command, GETPYLOCAL(p->h.insdshead));
     if (result != NULL && PyTuple_Check(result) &&

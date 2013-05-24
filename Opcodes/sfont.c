@@ -104,16 +104,6 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     soundFont = globals->soundFont;
-    /*
-      if (csound->oparms->msglevel & 0x400)
-      csound->Message(csound, "\n"
-                      "******************************************\n"
-                      "**  Csound SoundFont2 support ver. 1.2  **\n"
-                      "**          by Gabriel Maldonado        **\n"
-                      "**        g.maldonado@agora.stm.it      **\n"
-                      "** http://web.tiscalinet.it/G-Maldonado **\n"
-                      "******************************************\n\n");
-    */
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
@@ -149,7 +139,7 @@ static int compare(presetType * elem1, presetType *elem2)
 
 static char *Gfname;
 
-static int SfLoad(CSOUND *csound, SFLOAD *p)
+static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
                                        /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char *fname;
@@ -159,9 +149,13 @@ static int SfLoad(CSOUND *csound, SFLOAD *p)
     if (UNLIKELY(globals==NULL)) {
       return csound->InitError(csound, Str("sfload: could not open globals\n"));
     }
-    fname = csound->strarg2name(csound,
+    if(istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->fname)->data);
+    else {
+      if(ISSTRCOD(*p->fname)) fname = csound->Strdup(csound, get_arg_string(csound,*p->fname));
+      else fname = csound->strarg2name(csound,
                                 NULL, p->fname, "sfont.",
-                                (int) csound->GetInputArgSMask(p));
+                                0);
+    }
     /*    strcpy(fname, (char*) p->fname); */
     Gfname = fname;
     SoundFontLoad(csound, fname);
@@ -177,6 +171,14 @@ static int SfLoad(CSOUND *csound, SFLOAD *p)
       csound->Warning(csound, Str("Extending soundfonts"));
     }
     return OK;
+}
+
+static int SfLoad(CSOUND *csound, SFLOAD *p){
+  return SfLoad_(csound,p,0);
+}
+
+static int SfLoad_S(CSOUND *csound, SFLOAD *p){
+  return SfLoad_(csound,p,1);
 }
 
 static char *filter_string(char *s, char temp_string[24])
@@ -2079,7 +2081,7 @@ static void fill_SfPointers(CSOUND *csound)
         else if (chkid == s2d("sdta")) {
           j +=4; chkp += 4;
           smplChunk = (CHUNK *) chkp;
-          soundFont->sampleData = (SHORT *) &smplChunk->ckDATA;
+          soundFont->sampleData = (void *) &(smplChunk->ckDATA);
           ChangeByteOrder("d", chkp + 4, 4);
           ChangeByteOrder("w", chkp + 8, size - 12);
 /* #ifdef BETA */
@@ -2108,7 +2110,7 @@ static void fill_SfPointers(CSOUND *csound)
             }
             else if (chkid == s2d("pbag")) {
               pbagChunk = (CHUNK *) chkp;
-              soundFont->chunk.pbag= (sfPresetBag *) &pbagChunk->ckDATA;
+              soundFont->chunk.pbag= (void *) &pbagChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
               ChangeByteOrder("w2", chkp + 8, pbagChunk->ckSize);
               chkp += pbagChunk->ckSize+8;
@@ -2116,7 +2118,7 @@ static void fill_SfPointers(CSOUND *csound)
             }
             else if (chkid == s2d("pmod")) {
               pmodChunk = (CHUNK *) chkp;
-              soundFont->chunk.pmod= (sfModList *) &pmodChunk->ckDATA;
+              soundFont->chunk.pmod= (void *) &pmodChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
               ChangeByteOrder("w5", chkp + 8, pmodChunk->ckSize);
               chkp += pmodChunk->ckSize+8;
@@ -2124,7 +2126,7 @@ static void fill_SfPointers(CSOUND *csound)
             }
             else if (chkid == s2d("pgen")) {
               pgenChunk = (CHUNK *) chkp;
-              soundFont->chunk.pgen= (sfGenList *) &pgenChunk->ckDATA;
+              soundFont->chunk.pgen= (void *) &pgenChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
               ChangeByteOrder("w2", chkp + 8, pgenChunk->ckSize);
               chkp += pgenChunk->ckSize+8;
@@ -2140,7 +2142,7 @@ static void fill_SfPointers(CSOUND *csound)
             }
             else if (chkid == s2d("ibag")) {
               ibagChunk = (CHUNK *) chkp;
-              soundFont->chunk.ibag= (sfInstBag *) &ibagChunk->ckDATA;
+              soundFont->chunk.ibag= (void *) &ibagChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
               ChangeByteOrder("w2", chkp + 8, ibagChunk->ckSize);
               chkp += ibagChunk->ckSize+8;
@@ -2148,7 +2150,7 @@ static void fill_SfPointers(CSOUND *csound)
             }
             else if (chkid == s2d("imod")) {
               imodChunk = (CHUNK *) chkp;
-              soundFont->chunk.imod= (sfInstModList *) &imodChunk->ckDATA;
+              soundFont->chunk.imod= (void *) &imodChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
               ChangeByteOrder("w5", chkp + 8, imodChunk->ckSize);
               chkp += imodChunk->ckSize+8;
@@ -2554,7 +2556,8 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-  { "sfload",S(SFLOAD),     0, 1,    "i",    "T",      (SUBR)SfLoad, NULL, NULL },
+  { "sfload",S(SFLOAD),     0, 1,    "i",    "S",      (SUBR)SfLoad_S, NULL, NULL },
+   { "sfload.i",S(SFLOAD),     0, 1,    "i",    "i",      (SUBR)SfLoad, NULL, NULL },
   { "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
   { "sfplay", S(SFPLAY), 0, 5, "aa", "iixxiooo",       (SUBR)SfPlay_set,
                                                        NULL, (SUBR)SfPlay     },

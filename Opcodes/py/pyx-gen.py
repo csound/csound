@@ -68,9 +68,9 @@ def generate_x_method(f, action, context, rate0, triggered):
         print >> f
 
     if action == 'assign':
-        print >> f, '    sprintf(source, "%s = %f", (char*) p->string, *p->value);'
+        print >> f, '    sprintf(source, "%s = %f", (char*) p->string->data, *p->value);'
     else:
-        print >> f, '    strcpy(source, (char*) p->string);'
+        print >> f, '    strcpy(source, (char*) p->string->data);'
     print >> f
 
     if action == 'exec':
