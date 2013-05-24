@@ -1616,34 +1616,6 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     return 0;
 }
 
-
-PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
-{
-    int done = 0;
-    int returnValue;
-
-    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
-      return CSOUND_ERROR;
-    }
-    /* setup jmp for return after an exit() */
-    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
-      csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
-#endif
-      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
-    csoundLockMutex(csound->API_lock);
-    do {
-      done |= sensevents(csound);
-    } while (kperf(csound));
-    csoundUnlockMutex(csound->API_lock);
-    return done;
-}
-
 /* external host's outbuffer passed in csoundPerformBuffer() */
 PUBLIC int csoundPerformBuffer(CSOUND *csound)
 {
@@ -3834,6 +3806,35 @@ static long csoundGetKcounter(CSOUND *csound){
 
 static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
+
+#if 0
+PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
+{
+    int done = 0;
+    int returnValue;
+
+    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
+    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
+      csound->Warning(csound,
+                      Str("Csound not ready for performance: csoundStart() "
+                          "has not been called \n"));
+      return CSOUND_ERROR;
+    }
+    /* setup jmp for return after an exit() */
+    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
+#ifndef MACOSX
+      csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
+#endif
+      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+    csoundLockMutex(csound->API_lock);
+    do {
+      done |= sensevents(csound);
+    } while (kperf(csound));
+    csoundUnlockMutex(csound->API_lock);
+    return done;
+}
+#endif
 
 
 //#ifdef __cplusplus
