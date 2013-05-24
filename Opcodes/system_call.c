@@ -45,8 +45,8 @@ static int call_system(CSOUND *csound, SYSTEM *p)
 {
     _flushall();
     if ( (int)*p->nowait != 0 ) {
-      char *command = strdup(csound,p->commandLine->data );
-      _beginthread( threadroutine, 0, command );
+      char *command = strdup(p->commandLine->data);
+      _beginthread( threadroutine, 0, command);
       *p->res = OK;
     }
     else {

@@ -24,9 +24,9 @@
 ; If you are not Michael Gogins, change this to your MinGW /usr/local/ directory.
 #define MyMinGwUsrLocalDir "C:\mingw32-4.7.2\msys\1.0\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
-#define MySourceDir "C:\Users\Michael\csound-csound6-git\"
+#define MySourceDir "C:\Users\new\csound-csound6-git\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
-#define MyManualSourceDir "C:\Users\Michael\csound-manual6-git\"
+#define MyManualSourceDir "C:\Users\new\csound-manual6-git\"
 ; If you are not Michael Gogins, change this to your Csound tutorial directory.
 #define MyCsoundTutorialSourceDir "D:\Dropbox\tutorial\"
 ; If you are not Michael Gogins, change this to your CsoundAC tutorial directory.
