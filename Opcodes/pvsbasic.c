@@ -473,7 +473,7 @@ int pvstanalset(CSOUND *csound, PVST *p)
     p->init = 0;
     nChannels = csound->GetOutputArgCnt(p);
     if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
-      csound->Die(csound, Str("invalid number of output arguments"));
+      return csound->InitError(csound, Str("invalid number of output arguments"));
     p->nchans = nChannels;
     for (i=0; i < p->nchans; i++) {
       p->fout[i]->N = N;

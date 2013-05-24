@@ -374,7 +374,7 @@ static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 /* error -- report errors */
 static void error(CSOUND *csound, const char* a, const char* b)
 {
-    csound->Die(csound, Str("Error: %s, %s"), a, b);
+    csound->ErrorMsg(csound, Str("Error: %s, %s"), a, b);
 }
 
 #define S(x)    sizeof(x)

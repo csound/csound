@@ -1129,8 +1129,10 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
 
         if (retval) {
           char    ch = '\0';
-          if (UNLIKELY(read(0, &ch, 1)!=1))
-            csound->Die(csound, Str("read failure in sensekey\n"));
+          if (UNLIKELY(read(0, &ch, 1)!=1)) {
+            csound->PerfError(csound, p->h.insdshead, Str("read failure in sensekey\n"));
+            return NOTOK;
+	  }
           keyCode = (int)((unsigned char) ch);
           /* FD_ISSET(0, &rfds) will be true. */
         }

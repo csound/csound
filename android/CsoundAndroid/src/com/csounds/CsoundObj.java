@@ -230,7 +230,7 @@ public class CsoundObj {
 
 		}*/
 		
-		Log.d("CsoundAndroid", "Return Value: " + retVal);
+		//Log.d("CsoundAndroid", "Return Value: " + retVal);
 
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);

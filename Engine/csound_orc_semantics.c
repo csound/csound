@@ -408,11 +408,10 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                               char* outArgTypes) {
     int i;
-     for (i = 0; i < entries->count; i++) {
-        OENTRY* temp = entries->entries[i];
-	if(check_out_args(csound, outArgTypes, temp->outypes)) 
-            return outArgTypes;
- 
+    for (i = 0; i < entries->count; i++) {
+      OENTRY* temp = entries->entries[i];
+      if (check_out_args(csound, outArgTypes, temp->outypes))
+        return outArgTypes;
     }
     return NULL;
 }
@@ -472,7 +471,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           char* opname = tree->value->lexeme;
           OENTRIES* entries = find_opcode2(csound, opname);
           char * out;
- 
+
           if(tree->value->optype != NULL) /* if there is type annotation */
           out = check_annotated_type(csound, entries, tree->value->optype);
           else  out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
@@ -484,7 +483,7 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                       opname, argTypeRight, tree->line);
               return NULL;
           }
-          
+
           return cs_strdup(csound, out);
 
       }
@@ -1015,7 +1014,7 @@ PUBLIC OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 
 //    OENTRY* retVal = NULL;
     int i;
-      
+
 
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -1389,7 +1388,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     char* rightArgString;
     char* opcodeName;
 
-   
+
     if (!check_args_exist(csound, root->right, typeTable)) {
       return 0;
     }

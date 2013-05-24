@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export ANDROID_NDK_ROOT=$HOME/work/android-ndk-r8c
+export ANDROID_NDK_ROOT=$HOME/work/android-ndk-r8e
 export NDK_MODULE_PATH=../../../android
 flex -B -t ../../Engine/csound_orc.l > jni/csound_orclex.c 
 flex -B ../../Engine/csound_pre.lex > jni/csound_prelex.c 

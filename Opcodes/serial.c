@@ -1,4 +1,5 @@
 /*****************************************************
+251
 
                         CSOUND SERIAL PORT OPCODES
                           ma++ ingalls, 2011/9/4
@@ -117,7 +118,9 @@ static HANDLE get_port(CSOUND *csound, int port)
 
 typedef struct {
     OPDS  h;
-    MYFLT *returnedPort, *portName, *baudRate;
+  MYFLT *returnedPort;
+    STRINGDAT *portName;
+    MYFLT *baudRate;
 } SERIALBEGIN;
 int serialBegin(CSOUND *csound, SERIALBEGIN *p);
 
@@ -247,8 +250,10 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
                                                       "serialGlobals_");
     if (q == NULL) {
       if (csound->CreateGlobalVariable(csound, "serialGlobals_",
-                                       sizeof(SERIAL_GLOBALS)) != 0)
-        csound->Die(csound, Str("serial: failed to allocate globals"));
+                                       sizeof(SERIAL_GLOBALS)) != 0){
+        csound->ErrorMag(csound, Str("serial: failed to allocate globals"));
+        return 0;
+      }
       q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
       q->csound = csound;
@@ -326,7 +331,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
 int serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
     *p->returnedPort =
-      (MYFLT)serialport_init(csound, (char *)p->portName, *p->baudRate);
+      (MYFLT)serialport_init(csound, (char *)p->portName->data, *p->baudRate);
     return OK;
 }
 
@@ -372,7 +377,7 @@ int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
     if (port==NULL) return NOTOK;
 #endif
 #ifndef WIN32
-      if (UNLIKELY(write((int)*p->port, p->toWrite, strlen((char *)p->toWrite))<0))
+    if (UNLIKELY(write((int)*p->port, ((STRINGDAT*)p->toWrite)->data, ((STRINGDAT*)p->toWrite)->size))<0)
         return NOTOK;
 #else
       int nbytes;
