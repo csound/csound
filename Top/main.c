@@ -293,7 +293,7 @@ static int DummyMidiRead(CSOUND *csound, void *userData,
 int DummyMidiOutOpen(CSOUND *csound, void **userData,
                             const char *devName);
 int DummyMidiWrite(CSOUND *csound, void *userData,
-		   const unsigned char *buf, int nbytes);
+                   const unsigned char *buf, int nbytes);
 
 
 PUBLIC int csoundStart(CSOUND *csound) // DEBUG
@@ -320,7 +320,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       csound->SetRtcloseCallback(csound, rtclose_dummy);
       csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
         }
-    
+
      /* and midi */
   if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
     if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
@@ -334,7 +334,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
      csound->SetExternalMidiOutCloseCallback(csound, NULL);
   }
    }
- 
+
 
    /* VL 30-12-12 csoundInitModules is always called here now to enable
        Csound to start without calling csoundCompile, but directly from
